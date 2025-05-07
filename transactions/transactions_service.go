@@ -1104,6 +1104,21 @@ func (svc *transactionsService) SettleHoldInvoice(ctx context.Context, preimage 
 		return nil, fmt.Errorf("invalid preimage hex: %w", err)
 	}
 
+	paymentHashBytes := sha256.Sum256(preimageBytes)
+	paymentHash := hex.EncodeToString(paymentHashBytes[:])
+
+	var dbTransaction db.Transaction
+	dbTransaction := svc.db.Limit(1).Find(&dbTransaction, &db.Transaction{
+		Type:        constants.TRANSACTION_TYPE_INCOMING,
+		State:       constants.TRANSACTION_STATE_ACCEPTED,
+		PaymentHash: paymentHash,
+	})
+
+	if result.RowsAffected == 0 {
+		logger.Logger.WithField("paymentHash", paymentHash).Error("Failed to find accepted hold invoice")
+		return nil, errors.New("failed to find accepted hold invoice with payment hash %s", paymentHash)
+	}
+
 	err = lnClient.SettleHoldInvoice(ctx, preimage)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -1113,43 +1128,8 @@ func (svc *transactionsService) SettleHoldInvoice(ctx context.Context, preimage 
 		return nil, err
 	}
 
-	paymentHashBytes := sha256.Sum256(preimageBytes)
-	paymentHash := hex.EncodeToString(paymentHashBytes[:])
-
 	var settledTransaction *db.Transaction
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
-		var dbTransaction db.Transaction
-		result := tx.Limit(1).Find(&dbTransaction, &db.Transaction{
-			Type:        constants.TRANSACTION_TYPE_INCOMING,
-			State:       constants.TRANSACTION_STATE_ACCEPTED,
-			PaymentHash: paymentHash,
-		})
-
-		if result.Error != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"paymentHash": paymentHash,
-				"preimage":    preimage,
-			}).WithError(result.Error).Error("Failed to find pending hold invoice in DB")
-			return result.Error
-		}
-		if result.RowsAffected == 0 {
-			// Could be already settled, or never existed. Check if already settled.
-			var existingSettled db.Transaction
-			if tx.Limit(1).Find(&existingSettled, &db.Transaction{Type: constants.TRANSACTION_TYPE_INCOMING, State: constants.TRANSACTION_STATE_SETTLED, PaymentHash: paymentHash}).RowsAffected > 0 {
-				logger.Logger.WithFields(logrus.Fields{
-					"paymentHash": paymentHash,
-					"preimage":    preimage,
-				}).Warn("Hold invoice already marked as settled in DB")
-				settledTransaction = &existingSettled
-				return nil
-			}
-			logger.Logger.WithFields(logrus.Fields{
-				"paymentHash": paymentHash,
-				"preimage":    preimage,
-			}).Warn("No pending hold invoice found in DB to mark as settled")
-			return NewNotFoundError()
-		}
-
 		var err error
 		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, preimage, 0, false) // Assuming not self-payment for now
 		return err
@@ -1184,14 +1164,14 @@ func (svc *transactionsService) CancelHoldInvoice(ctx context.Context, paymentHa
 		var dbTransaction db.Transaction
 		result := tx.Limit(1).Find(&dbTransaction, &db.Transaction{
 			Type:        constants.TRANSACTION_TYPE_INCOMING,
-			State:       constants.TRANSACTION_STATE_PENDING,
+			State:       constants.TRANSACTION_STATE_ACCEPTED,
 			PaymentHash: paymentHash,
 		})
 
 		if result.Error != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"paymentHash": paymentHash,
-			}).WithError(result.Error).Error("Failed to find pending hold invoice in DB for cancellation")
+			}).WithError(result.Error).Error("Failed to find accepted hold invoice in DB for cancellation")
 			return result.Error
 		}
 		if result.RowsAffected == 0 {
@@ -1206,7 +1186,7 @@ func (svc *transactionsService) CancelHoldInvoice(ctx context.Context, paymentHa
 			}
 			logger.Logger.WithFields(logrus.Fields{
 				"paymentHash": paymentHash,
-			}).Warn("No pending hold invoice found in DB to mark as failed due to cancellation")
+			}).Warn("No accepted hold invoice found in DB to mark as failed due to cancellation")
 			return NewNotFoundError()
 		}
 
