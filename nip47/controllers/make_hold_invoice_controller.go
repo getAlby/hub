@@ -44,10 +44,6 @@ func (controller *nip47Controller) HandleMakeHoldInvoiceEvent(ctx context.Contex
 		"metadata":        makeHoldInvoiceParams.Metadata,
 	}).Info("Making hold invoice")
 
-	expiry := makeHoldInvoiceParams.Expiry
-	if expiry == 0 {
-		expiry = 3600
-	}
 
 	requestEventIdUint := uint(requestEventId)
 	transaction, err := controller.transactionsService.MakeHoldInvoice(
@@ -55,7 +51,7 @@ func (controller *nip47Controller) HandleMakeHoldInvoiceEvent(ctx context.Contex
 		makeHoldInvoiceParams.Amount,
 		makeHoldInvoiceParams.Description,
 		makeHoldInvoiceParams.DescriptionHash,
-		expiry,
+		makeHoldInvoiceParams.Expiry,
 		makeHoldInvoiceParams.PaymentHash,
 		makeHoldInvoiceParams.Metadata,
 		controller.lnClient,
