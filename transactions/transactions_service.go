@@ -836,19 +836,20 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 				"dbTxID":      dbTransaction.ID,
 			}).Info("Updated hold invoice state to accepted in DB")
 
-			var updatedDbTransaction db.Transaction
-			tx.First(&updatedDbTransaction, dbTransaction.ID)
-			svc.eventPublisher.Publish(&events.Event{
-				Event:      "nwc_hold_invoice_accepted",
-				Properties: &updatedDbTransaction,
-			})
 			return nil
 		})
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"paymentHash": lnClientTransaction.PaymentHash,
 			}).WithError(err).Error("Failed DB transaction for hold invoice accepted event")
-		}
+		} else {
+            var updatedDbTransaction db.Transaction
+            tx.First(&updatedDbTransaction, dbTransaction.ID)
+            svc.eventPublisher.Publish(&events.Event{
+                Event:      "nwc_hold_invoice_accepted",
+                Properties: &updatedDbTransaction,
+            })
+        }
 
 	case "nwc_lnclient_payment_sent":
 		lnClientTransaction, ok := event.Properties.(*lnclient.Transaction)
