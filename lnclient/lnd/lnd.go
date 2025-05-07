@@ -791,6 +791,23 @@ func (svc *LNDService) ListTransactions(ctx context.Context, from, until, limit,
 	return transactions, nil
 }
 
+func (svc *LNDService) WatchHoldInvoice(ctx context.Context, paymentHash string) error {
+	paymentHashBytes, err := hex.DecodeString(paymentHash)
+	if err != nil || len(paymentHashBytes) != 32 {
+		if err == nil {
+			err = errors.New("payment hash must be 32 bytes hex")
+		}
+		logger.Logger.WithFields(logrus.Fields{
+			"paymentHash": paymentHash,
+		}).WithError(err).Error("Invalid payment hash for WatchHoldInvoice")
+		return err
+	}
+
+	go svc.subscribeSingleInvoice(paymentHashBytes)
+	logger.Logger.WithField("paymentHash", paymentHash).Info("Launched single invoice subscription goroutine from WatchHoldInvoice")
+	return nil
+}
+
 func (svc *LNDService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
 	return svc.nodeInfo, nil
 }

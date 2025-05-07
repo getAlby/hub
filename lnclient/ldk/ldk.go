@@ -1987,3 +1987,7 @@ func checkLDKErr[T any](val T, err error) (T, error) {
 	}
 	return val, err
 }
+
+func (ls *LDKService) WatchHoldInvoice(ctx context.Context, paymentHash string) error {
+	return errors.New("WatchHoldInvoice is not yet implemented for LDK")
+}

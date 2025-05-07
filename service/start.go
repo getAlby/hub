@@ -378,6 +378,8 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		svc.eventPublisher.SetGlobalProperty("network", info.Network)
 	}
 
+	svc.resubscribeToPendingHoldInvoices(ctx)
+
 	// Mark that the node has successfully started
 	// This will ensure the user cannot go through the setup again
 	err = svc.cfg.SetUpdate("NodeLastStartTime", strconv.FormatInt(time.Now().Unix(), 10), "")
@@ -394,6 +396,36 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 	})
 
 	return nil
+}
+
+func (svc *service) resubscribeToPendingHoldInvoices(ctx context.Context) {
+	go func() {
+		// wait a bit for the node to be fully ready before querying
+		time.Sleep(5 * time.Second)
+		logger.Logger.Info("Checking for pending hold invoices to resubscribe...")
+		var pendingHoldInvoices []db.Transaction
+		result := svc.db.Find(&pendingHoldInvoices, "type = ? AND state = ? AND preimage IS NULL", "incoming", "PENDING")
+		if result.Error != nil {
+			logger.Logger.WithError(result.Error).Error("Failed to query pending hold invoices")
+			return
+		}
+
+		for _, inv := range pendingHoldInvoices {
+			logger.Logger.WithFields(logrus.Fields{
+				"payment_hash": inv.PaymentHash,
+			}).Info("Resubscribing to pending hold invoice")
+			err := svc.lnClient.WatchHoldInvoice(ctx, inv.PaymentHash)
+			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"payment_hash": inv.PaymentHash,
+				}).WithError(err).Error("Failed to resubscribe to pending hold invoice")
+			} else {
+				logger.Logger.WithFields(logrus.Fields{
+					"payment_hash": inv.PaymentHash,
+				}).Info("Successfully resubscribed to pending hold invoice")
+			}
+		}
+	}()
 }
 
 func closeRelay(relay *nostr.Relay) {

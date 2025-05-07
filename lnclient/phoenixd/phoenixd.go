@@ -555,3 +555,8 @@ func (svc *PhoenixService) ExecuteCustomNodeCommand(ctx context.Context, command
 func (svc *PhoenixService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
 	return nil, errors.ErrUnsupported
 }
+
+func (svc *PhoenixService) WatchHoldInvoice(ctx context.Context, paymentHash string) error {
+	logger.Logger.WithField("paymentHash", paymentHash).Warn("WatchHoldInvoice not supported for Phoenixd")
+	return errors.New("WatchHoldInvoice not supported for Phoenixd")
+}
