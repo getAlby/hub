@@ -1197,7 +1197,7 @@ func (svc *transactionsService) CancelHoldInvoice(ctx context.Context, paymentHa
 		logger.Logger.WithFields(logrus.Fields{
 			"paymentHash": paymentHash,
 		}).WithError(err).Error("Failed DB transaction while canceling hold invoice")
-		return nil
+		return err
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
