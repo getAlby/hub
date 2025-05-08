@@ -26,7 +26,7 @@ export default function AppLayout() {
         className={cn(
           "font-sans min-h-screen w-full flex flex-col",
           showBanner
-            ? "[--header-height:calc(theme(spacing.9))]"
+            ? "[--header-height:calc(theme(spacing.9))]" // Banner height is 36px when visible (sidebar hidden on <md width)
             : "[--header-height:0]"
         )}
       >
@@ -38,7 +38,7 @@ export default function AppLayout() {
               <div
                 className={cn(
                   "flex flex-1 flex-col gap-4 p-4",
-                  showBanner && "mt-14 md:mt-9"
+                  showBanner && "mt-14 md:mt-9" // Banner height is 36px with 1 line (>=md width) and 56px with 2 lines (<md width)
                 )}
               >
                 <Outlet />
