@@ -2,6 +2,7 @@ package nip47
 
 import (
 	"context"
+	"time"
 
 	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/apps"
@@ -99,6 +100,9 @@ func (svc *nip47Service) StartNip47InfoPublisher(relay *nostr.Relay, lnClient ln
 				_, err := svc.PublishNip47Info(relay.Context(), relay, req.AppWalletPubKey, req.AppWalletPrivKey, lnClient)
 				if err != nil {
 					logger.Logger.WithError(err).WithField("wallet_pubkey", req.AppWalletPubKey).Error("Failed to publish NIP47 info from queue")
+					// wait and then re-add the item to the queue
+					time.Sleep(5 * time.Second)
+					svc.EnqueueNip47InfoPublishRequest(req.AppWalletPubKey, req.AppWalletPrivKey)
 				}
 			}
 		}
