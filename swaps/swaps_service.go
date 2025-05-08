@@ -244,22 +244,28 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 					"swap":   swap,
 					"update": update,
 				}).Info("Swap created, paying the invoice")
-				metadata := map[string]interface{}{
-					"swapId":        swap.Id,
-					"onchainAmount": swap.OnchainAmount,
-					"refundPubkey":  swap.RefundPublicKey,
-				}
-				transaction, err := svc.transactionsService.SendPaymentSync(ctx, swap.Invoice, nil, metadata, lnClient, nil, nil)
-				if err != nil {
-					logger.Logger.WithError(err).WithFields(logrus.Fields{
-						"swap":   swap,
-						"update": update,
-					}).Error("Error paying the swap invoice")
-					return err
-				}
-				logger.Logger.WithField("transaction", transaction).Info("Swap payment succeeded")
+				go func() {
+					metadata := map[string]interface{}{
+						"swapId":        swap.Id,
+						"onchainAmount": swap.OnchainAmount,
+						"refundPubkey":  swap.RefundPublicKey,
+					}
+					_, err := svc.transactionsService.SendPaymentSync(ctx, swap.Invoice, nil, metadata, lnClient, nil, nil, false)
+					if err != nil {
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"swap":   swap,
+							"update": update,
+						}).Error("Error paying the swap invoice")
+						return
+					}
+					logger.Logger.WithField("swapId", swap.Id).Info("Initiated swap invoice payment")
+				}()
 				break
-
+			case boltz.TransactionMempool:
+				logger.Logger.WithFields(logrus.Fields{
+					"swapId":      swap.Id,
+					"transaction": update.Transaction,
+				}).Info("Lockup transaction found in mempool")
 			case boltz.TransactionConfirmed:
 				lockupTransaction, err := boltz.NewTxFromHex(boltz.CurrencyBtc, update.Transaction.Hex, nil)
 				if err != nil {

@@ -78,7 +78,7 @@ func NewMockLn() (*MockLn, error) {
 	return &MockLn{}, nil
 }
 
-func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string, amount *uint64, isHoldInvoice bool) (*lnclient.PayInvoiceResponse, error) {
 	if len(mln.PayInvoiceResponses) > 0 {
 		response := mln.PayInvoiceResponses[0]
 		err := mln.PayInvoiceErrors[0]
