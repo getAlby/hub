@@ -21,7 +21,7 @@ export default function ReceiveLayout() {
         title="Receive"
         contentRight={
           hasChannelManagement && (
-            <div className="flex items-center gap-4">
+            <div className="md:flex md:items-center md:gap-4">
               <span className="text-muted-foreground">Receive Limit:</span>
               <div className="balance sensitive slashed-zero">
                 {new Intl.NumberFormat().format(
