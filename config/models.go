@@ -8,7 +8,10 @@ const (
 )
 
 const (
-	OnchainAddressKey = "OnchainAddress"
+	OnchainAddressKey           = "OnchainAddress"
+	AutoSwapBalanceThresholdKey = "AutoSwapBalanceThreshold"
+	AutoSwapAmountKey           = "AutoSwapAmount"
+	AutoSwapDestinationKey      = "AutoSwapDestination"
 )
 
 type AppConfig struct {
@@ -44,6 +47,7 @@ type AppConfig struct {
 	EnableAdvancedSetup      bool   `envconfig:"ENABLE_ADVANCED_SETUP" default:"true"`
 	AutoUnlockPassword       string `envconfig:"AUTO_UNLOCK_PASSWORD"`
 	LogDBQueries             bool   `envconfig:"LOG_DB_QUERIES" default:"false"`
+	BoltzApi                 string `envconfig:"BOLTZ_API" default:"https://api.boltz.exchange"`
 }
 
 func (c *AppConfig) IsDefaultClientId() bool {

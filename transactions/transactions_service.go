@@ -38,7 +38,7 @@ type TransactionsService interface {
 	MakeInvoice(ctx context.Context, amount uint64, description string, descriptionHash string, expiry uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
 	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, totalCount uint64, err error)
-	SendPaymentSync(ctx context.Context, payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
+	SendPaymentSync(ctx context.Context, payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint, isHoldInvoice bool) (*Transaction, error)
 	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 }
 
@@ -188,7 +188,7 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount uint64, 
 	return &dbTransaction, nil
 }
 
-func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint, isHoldInvoice bool) (*Transaction, error) {
 	var metadataBytes []byte
 	if metadata != nil {
 		var err error
@@ -293,7 +293,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 	if selfPayment {
 		response, err = svc.interceptSelfPayment(paymentRequest.PaymentHash)
 	} else {
-		response, err = lnClient.SendPaymentSync(ctx, payReq, amountMsat)
+		response, err = lnClient.SendPaymentSync(ctx, payReq, amountMsat, isHoldInvoice)
 	}
 
 	if err != nil {

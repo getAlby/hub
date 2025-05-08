@@ -435,7 +435,7 @@ func getMaxTotalRoutingFeeLimit(amountMsat uint64) ldk_node.MaxTotalRoutingFeeLi
 	}
 }
 
-func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64, isHoldInvoice bool) (*lnclient.PayInvoiceResponse, error) {
 	paymentRequest, err := decodepay.Decodepay(invoice)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -484,8 +484,11 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 	}
 	fee := uint64(0)
 	preimage := ""
-
-	for start := time.Now(); time.Since(start) < time.Second*50; {
+	timeout := time.Second * 50
+	if isHoldInvoice {
+		timeout = time.Hour * 1
+	}
+	for start := time.Now(); time.Since(start) < timeout; {
 		event := <-ldkEventSubscription
 
 		eventPaymentSuccessful, isEventPaymentSuccessfulEvent := (*event).(ldk_node.EventPaymentSuccessful)
