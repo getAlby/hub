@@ -16,9 +16,9 @@ export function UpdateBanner({ onDismiss }: { onDismiss: () => void }) {
     <div className="fixed w-full bg-foreground text-background z-20 py-2 text-sm flex items-center justify-center">
       <ExternalLink
         to={`https://getalby.com/update/hub?version=${info?.version}`}
-        className="flex items-center max-w-[80%]"
+        className="w-full px-12 md:px-24"
       >
-        <p className="line-clamp-2 md:block whitespace-normal md:whitespace-nowrap overflow-hidden text-ellipsis">
+        <p className="line-clamp-2 md:block whitespace-normal md:whitespace-nowrap overflow-hidden text-ellipsis text-center">
           <span className="font-semibold mr-2">Update Available</span>
           <span>•</span>
           <span className="ml-2">{albyInfo.hub.latestReleaseNotes}</span>
