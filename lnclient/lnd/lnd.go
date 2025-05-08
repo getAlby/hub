@@ -89,6 +89,7 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 	go lndService.subscribePayments(lndCtx)
 	go lndService.subscribeInvoices(lndCtx)
 	go lndService.subscribeChannelEvents(lndCtx)
+	go lndService.subscribeOpenHoldInvoices(lndCtx)
 
 	logger.Logger.WithField("alias", nodeInfo.Alias).Info("Connected to LND")
 
@@ -279,6 +280,40 @@ func (svc *LNDService) subscribeChannelEvents(ctx context.Context) {
 					})
 				}
 			}
+		}
+	}
+}
+
+func (svc *LNDService) subscribeOpenHoldInvoices(ctx context.Context) {
+	// wait a bit for the node to be fully ready before querying for existing invoices
+	// as ListInvoices might fail if LND is not fully synced or ready.
+	// select {
+	// case <-ctx.Done():
+	// 	logger.Logger.Info("Context cancelled before resubscribing to pending hold invoices.")
+	// 	return
+	// case <-time.After(10 * time.Second): // Increased delay to allow LND more time
+	// 	logger.Logger.Info("Proceeding to check for pending hold invoices to resubscribe...")
+	// }
+
+	oneWeekAgo := time.Now().AddDate(0, 0, -7).Unix()
+
+	listInvoicesResponse, err := svc.client.ListInvoices(ctx, &lnrpc.ListInvoiceRequest{
+		PendingOnly:       true,
+		CreationDateStart: uint64(oneWeekAgo),
+	})
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to list invoices for open hold invoices subscription")
+		return
+	}
+
+	for _, invoice := range listInvoicesResponse.Invoices {
+		if invoice.State == lnrpc.Invoice_OPEN {
+			paymentHashHex := hex.EncodeToString(invoice.RHash)
+			logger.Logger.WithFields(logrus.Fields{
+				"paymentHash": paymentHashHex,
+				"addIndex":    invoice.AddIndex,
+			}).Info("Resubscribing to pending hold invoice")
+			go svc.subscribeSingleInvoice(invoice.RHash)
 		}
 	}
 }
@@ -633,7 +668,7 @@ func (svc *LNDService) MakeHoldInvoice(ctx context.Context, amount int64, descri
 		Memo:            description,
 		DescriptionHash: descriptionHashBytes,
 		Expiry:          expiry,
-		Private:         !hasPublicChannels, // use private channel hints in the invoice
+		Private:         !hasPublicChannels,
 		Hash:            paymentHashBytes,
 	}
 
@@ -789,23 +824,6 @@ func (svc *LNDService) ListTransactions(ctx context.Context, from, until, limit,
 	})
 
 	return transactions, nil
-}
-
-func (svc *LNDService) WatchHoldInvoice(ctx context.Context, paymentHash string) error {
-	paymentHashBytes, err := hex.DecodeString(paymentHash)
-	if err != nil || len(paymentHashBytes) != 32 {
-		if err == nil {
-			err = errors.New("payment hash must be 32 bytes hex")
-		}
-		logger.Logger.WithFields(logrus.Fields{
-			"paymentHash": paymentHash,
-		}).WithError(err).Error("Invalid payment hash for WatchHoldInvoice")
-		return err
-	}
-
-	go svc.subscribeSingleInvoice(paymentHashBytes)
-	logger.Logger.WithField("paymentHash", paymentHash).Info("Launched single invoice subscription goroutine from WatchHoldInvoice")
-	return nil
 }
 
 func (svc *LNDService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {

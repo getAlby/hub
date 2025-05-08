@@ -93,7 +93,6 @@ type LNClient interface {
 	GetSupportedNIP47NotificationTypes() []string
 	GetCustomNodeCommandDefinitions() []CustomNodeCommandDef
 	ExecuteCustomNodeCommand(ctx context.Context, command *CustomNodeCommandRequest) (*CustomNodeCommandResponse, error)
-	WatchHoldInvoice(ctx context.Context, paymentHash string) error
 }
 
 type Channel struct {

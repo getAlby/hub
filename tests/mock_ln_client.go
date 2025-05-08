@@ -228,7 +228,3 @@ func (mln *MockLn) ExecuteCustomNodeCommand(ctx context.Context, command *lnclie
 func (mln *MockLn) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
 	return nil, errors.ErrUnsupported
 }
-
-func (mln *MockLn) WatchHoldInvoice(ctx context.Context, paymentHash string) error {
-	return nil
-}

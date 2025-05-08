@@ -30,6 +30,8 @@ import (
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/lsp"
+	"github.com/getAlby/hub/nip47/models"
+	"github.com/getAlby/hub/nip47/notifications"
 	"github.com/getAlby/hub/service/keys"
 	"github.com/getAlby/hub/transactions"
 )
@@ -1587,6 +1589,28 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			"total_fee_earned_msat":          eventType.TotalFeeEarnedMsat,
 			"outbound_amount_forwarded_msat": eventType.OutboundAmountForwardedMsat,
 		}).Info("LDK Payment forwarded")
+
+	case ldk_node.EventPaymentClaimable:
+		logger.Logger.WithFields(logrus.Fields{
+			"claimable_amount_msats": eventType.ClaimableAmountMsat,
+			"payment_hash":           eventType.PaymentHash,
+		}).Info("LDK Payment Claimable")
+
+		payment := ls.node.Payment(eventType.PaymentId)
+		if payment == nil {
+			logger.Logger.WithField("payment_id", eventType.PaymentId).Error("could not find LDK payment")
+			return
+		}
+
+		transaction, err := ls.ldkPaymentToTransaction(payment)
+		if err != nil {
+			logger.Logger.WithField("payment_id", eventType.PaymentId).Error("failed to convert LDK payment to transaction")
+			return
+		}
+		ls.eventPublisher.Publish(&events.Event{
+			Event:      "nwc_lnclient_hold_invoice_accepted",
+			Properties: transaction,
+		})
 	}
 }
 
@@ -1808,11 +1832,30 @@ func (ls *LDKService) UpdateLastWalletSyncRequest() {
 }
 
 func (ls *LDKService) GetSupportedNIP47Methods() []string {
-	return []string{"pay_invoice", "pay_keysend", "get_balance", "get_budget", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message"}
+	return []string{
+		models.PAY_INVOICE_METHOD,
+		models.PAY_KEYSEND_METHOD,
+		models.GET_BALANCE_METHOD,
+		models.GET_BUDGET_METHOD,
+		models.GET_INFO_METHOD,
+		models.MAKE_INVOICE_METHOD,
+		models.LOOKUP_INVOICE_METHOD,
+		models.LIST_TRANSACTIONS_METHOD,
+		models.MULTI_PAY_INVOICE_METHOD,
+		models.MULTI_PAY_KEYSEND_METHOD,
+		models.SIGN_MESSAGE_METHOD,
+		models.MAKE_HOLD_INVOICE_METHOD,
+		models.SETTLE_HOLD_INVOICE_METHOD,
+		models.CANCEL_HOLD_INVOICE_METHOD,
+	}
 }
 
 func (ls *LDKService) GetSupportedNIP47NotificationTypes() []string {
-	return []string{"payment_received", "payment_sent"}
+	return []string{
+		notifications.PAYMENT_RECEIVED_NOTIFICATION,
+		notifications.PAYMENT_SENT_NOTIFICATION,
+		notifications.HOLD_INVOICE_ACCEPTED_NOTIFICATION,
+	}
 }
 
 func (ls *LDKService) getPaymentFailReason(eventPaymentFailed *ldk_node.EventPaymentFailed) string {
@@ -1898,15 +1941,131 @@ func (ls *LDKService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 }
 
 func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (*lnclient.Transaction, error) {
-	return nil, errors.New("make_hold_invoice is not yet implemented for LDK")
+	if time.Duration(expiry)*time.Second > maxInvoiceExpiry {
+		return nil, errors.New("expiry is too long")
+	}
+
+	maxReceivable := ls.getMaxReceivable()
+
+	if amount > maxReceivable {
+		ls.eventPublisher.Publish(&events.Event{
+			Event: "nwc_incoming_liquidity_required",
+			Properties: map[string]interface{}{
+				"node_type": config.LDKBackendType,
+			},
+		})
+	}
+
+	if expiry == 0 {
+		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
+	}
+
+	var descriptionType ldk_node.Bolt11InvoiceDescription
+	descriptionType = ldk_node.Bolt11InvoiceDescriptionDirect{
+		Description: description,
+	}
+	if description == "" && descriptionHash != "" {
+		descriptionType = ldk_node.Bolt11InvoiceDescriptionHash{
+			Hash: descriptionHash,
+		}
+	}
+
+	decodedPaymentHash, err := hex.DecodeString(paymentHash)
+	if err != nil {
+		logger.Logger.WithError(err).WithField("paymentHash", paymentHash).Error("Failed to decode payment hash for MakeHoldInvoice")
+		return nil, fmt.Errorf("failed to decode payment hash: %w", err)
+	}
+	if len(decodedPaymentHash) != 32 {
+		return nil, errors.New("payment hash must be 32 bytes")
+	}
+	var paymentHash32 [32]byte
+	copy(paymentHash32[:], decodedPaymentHash)
+
+	ldkPaymentHash := ldk_node.PaymentHash(hex.EncodeToString(paymentHash32[:]))
+
+	invoice, err := checkLDKErr(ls.node.Bolt11Payment().ReceiveForHash(uint64(amount),
+		descriptionType,
+		uint32(expiry),
+		ldkPaymentHash))
+
+	if err != nil {
+		logger.Logger.WithError(err).Error("MakeHoldInvoice failed")
+		return nil, err
+	}
+
+	var expiresAt *int64
+	paymentRequest, err := decodepay.Decodepay(invoice)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"bolt11": invoice,
+		}).WithError(err).Error("Failed to decode bolt11 invoice")
+		return nil, err
+	}
+	expiresAtUnix := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
+	expiresAt = &expiresAtUnix
+	description = paymentRequest.Description
+	descriptionHash = paymentRequest.DescriptionHash
+
+	transaction := &lnclient.Transaction{
+		Type:            "incoming",
+		Invoice:         invoice,
+		PaymentHash:     paymentRequest.PaymentHash,
+		Amount:          amount,
+		CreatedAt:       int64(paymentRequest.CreatedAt),
+		ExpiresAt:       expiresAt,
+		Description:     description,
+		DescriptionHash: descriptionHash,
+	}
+
+	return transaction, nil
 }
 
 func (ls *LDKService) CancelHoldInvoice(ctx context.Context, paymentHash string) error {
-	return errors.New("cancel_hold_invoice is not yet implemented for LDK")
+	_, err := hex.DecodeString(paymentHash)
+	if err != nil {
+		logger.Logger.WithError(err).WithField("paymentHash", paymentHash).Error("Failed to decode payment hash for CancelHoldInvoice")
+		return err
+	}
+
+	err = ls.node.Bolt11Payment().FailForHash(paymentHash).AsError()
+	if err != nil {
+		logger.Logger.WithError(err).WithField("paymentHash", paymentHash).Error("CancelHoldInvoice failed")
+	}
+	return err
 }
 
 func (ls *LDKService) SettleHoldInvoice(ctx context.Context, preimage string) error {
-	return errors.New("settle_hold_invoice is not yet implemented for LDK")
+	decodedPreimage, err := hex.DecodeString(preimage)
+	if err != nil {
+		logger.Logger.WithError(err).WithField("preimage", preimage).Error("Failed to decode preimage for SettleHoldInvoice")
+		return err
+	}
+	if len(decodedPreimage) != 32 {
+		return errors.New("preimage must be 32 bytes")
+	}
+
+	paymentHash256 := sha256.New()
+	paymentHash256.Write(decodedPreimage)
+	paymentHashBytes := paymentHash256.Sum(nil)
+	paymentHash := hex.EncodeToString(paymentHashBytes)
+
+	paymentDetails := ls.node.Payment(paymentHash)
+
+	if paymentDetails == nil {
+		logger.Logger.WithField("payment_hash", paymentHash).Error("SettleHoldInvoice: Could not find payment by derived hash")
+		return errors.New("payment not found for derived hash")
+	}
+	if paymentDetails.AmountMsat == nil {
+		logger.Logger.WithField("payment_hash", paymentHash).Error("SettleHoldInvoice: Payment has no amount_msat")
+		return errors.New("payment has no amount_msat")
+	}
+
+	err = ls.node.Bolt11Payment().ClaimForHash(paymentHash, *paymentDetails.AmountMsat, preimage).AsError()
+	if err != nil {
+		logger.Logger.WithError(err).WithField("preimage", preimage).WithField("derived_payment_hash", paymentHash).Error("SettleHoldInvoice failed")
+		return err
+	}
+	return nil
 }
 
 func GetVssNodeIdentifier(keys keys.Keys) (string, error) {
@@ -1986,8 +2145,4 @@ func checkLDKErr[T any](val T, err error) (T, error) {
 		return val, e.AsError()
 	}
 	return val, err
-}
-
-func (ls *LDKService) WatchHoldInvoice(ctx context.Context, paymentHash string) error {
-	return errors.New("WatchHoldInvoice is not yet implemented for LDK")
 }
