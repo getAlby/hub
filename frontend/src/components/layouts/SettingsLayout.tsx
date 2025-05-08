@@ -63,35 +63,40 @@ export default function SettingsLayout() {
         title="Settings"
         breadcrumb={false}
         contentRight={
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <LoadingButton
-                variant="destructive"
-                size="icon"
-                loading={shuttingDown}
-              >
-                {!shuttingDown && <PowerIcon className="w-4 h-4" />}
-              </LoadingButton>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  Do you want to turn off your Alby Hub?
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  This will turn off your Alby Hub and make your node offline.
-                  You won't be able to send or receive bitcoin until you unlock
-                  it.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={shutdown}>
-                  Continue
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <div className="flex items-center gap-4">
+            <div className="font-medium slashed-zero text-muted-foreground text-sm">
+              {info?.version}
+            </div>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <LoadingButton
+                  variant="destructive"
+                  size="icon"
+                  loading={shuttingDown}
+                >
+                  {!shuttingDown && <PowerIcon className="w-4 h-4" />}
+                </LoadingButton>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    Do you want to turn off your Alby Hub?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will turn off your Alby Hub and make your node offline.
+                    You won't be able to send or receive bitcoin until you
+                    unlock it.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={shutdown}>
+                    Continue
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         }
       />
 
@@ -118,9 +123,6 @@ export default function SettingsLayout() {
             <MenuItem to="/settings/developer">Developer</MenuItem>
             <MenuItem to="/settings/debug-tools">Debug Tools</MenuItem>
           </nav>
-          <span className="font-medium slashed-zero text-muted-foreground text-sm">
-            {info?.version}
-          </span>
         </aside>
         <Separator orientation="vertical" className="hidden lg:block" />
         <div className="flex-1 lg:max-w-2xl">
