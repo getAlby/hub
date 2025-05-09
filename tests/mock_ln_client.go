@@ -66,6 +66,16 @@ var MockLNClientTransactions = []lnclient.Transaction{
 }
 var MockLNClientTransaction = &MockLNClientTransactions[0]
 
+var MockLNClientHoldTransaction = &lnclient.Transaction{
+	Type:            "incoming",
+	Invoice:         "lntbs10n1p5pm854dp8fet5xgzgfazycgrfdemx76trv5sx27rpd4cxcegnp4qws83mqzuqptu5kfvxeles7qmyhsj6u2s6zyuft26mcr4tdmcupuupp5x5cdgnc6ntlgxqj6yyw6jurtqe7jjdn2498rnnx2jaltfrk68jtqsp59uvdltd02g6gmerd8lfg2fg3jn68gycvd57afl7kckj57rk8fyeq9qyysgqcqpcxqyz5vqrzjq03slkn33pafzmh42j9y6q4sdlsy42s63h57ysf5eel3888hn46hnapyqqqqqqqq7vqqqqlgqqqq86qqjqhl687qldh38j24lqmclyp5trah2uzkdz9396vllj788gqf2lxgnsw98d93zmm4pz360u587d388sdutlxwnshavhrmcmczllzg6ne9sq6ngxwl",
+	Description:     "mock hold invoice",
+	DescriptionHash: "",
+	Preimage:        "ae3ae7120954666fd4d18dfffeda406a6f5b0597e9a19b63b5b495fc0c1d77f9",
+	PaymentHash:     "3530d44f1a9afe83025a211da9706b067d29366aa94e39ccca977eb48eda3c96",
+	Amount:          2000,
+}
+
 type MockLn struct {
 	PayInvoiceResponses        []*lnclient.PayInvoiceResponse
 	PayInvoiceErrors           []error
@@ -107,7 +117,7 @@ func (mln *MockLn) MakeInvoice(ctx context.Context, amount int64, description st
 }
 
 func (mln *MockLn) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
-	return MockLNClientTransaction, nil
+	return MockLNClientHoldTransaction, nil
 }
 
 func (mln *MockLn) SettleHoldInvoice(ctx context.Context, preimage string) (err error) {

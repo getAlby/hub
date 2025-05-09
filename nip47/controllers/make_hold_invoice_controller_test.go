@@ -80,8 +80,8 @@ func TestHandleMakeHoldInvoiceEvent(t *testing.T) {
 	}
 
 	assert.Nil(t, publishedResponse.Error)
-	assert.Equal(t, tests.MockLNClientTransaction.Invoice, publishedResponse.Result.(*makeHoldInvoiceResponse).Invoice)
-	assert.Equal(t, tests.MockLNClientTransaction.PaymentHash, publishedResponse.Result.(*makeHoldInvoiceResponse).PaymentHash)
+	assert.Equal(t, tests.MockLNClientHoldTransaction.Invoice, publishedResponse.Result.(*makeHoldInvoiceResponse).Invoice)
+	assert.Equal(t, tests.MockLNClientHoldTransaction.PaymentHash, publishedResponse.Result.(*makeHoldInvoiceResponse).PaymentHash)
 	assert.Equal(t, expectedMetadata, publishedResponse.Result.(*makeHoldInvoiceResponse).Metadata)
 }
 

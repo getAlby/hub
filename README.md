@@ -528,6 +528,7 @@ Internally Alby Hub uses a basic implementation of the pubsub messaging pattern 
     - `nwc_payment_sent` - successfully made a lightning payment
     - `nwc_payment_received` - received a lightning payment
     - `nwc_hold_invoice_accepted` - accepted a lightning payment, but it needs to be cancelled or settled
+    - `nwc_hold_invoice_canceled` - accepted hold payment was explicitly cancelled
     - `nwc_budget_warning` - successfully made a lightning payment, but budget is nearly exceeded
     - `nwc_app_created` - a new app connection was created
     - `nwc_app_deleted` - a new app connection was deleted
