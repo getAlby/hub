@@ -2063,9 +2063,8 @@ func (ls *LDKService) SettleHoldInvoice(ctx context.Context, preimage string) er
 	err = ls.node.Bolt11Payment().ClaimForHash(paymentHash, *paymentDetails.AmountMsat, preimage).AsError()
 	if err != nil {
 		logger.Logger.WithError(err).WithField("preimage", preimage).WithField("derived_payment_hash", paymentHash).Error("SettleHoldInvoice failed")
-		return err
 	}
-	return nil
+	return err
 }
 
 func GetVssNodeIdentifier(keys keys.Keys) (string, error) {

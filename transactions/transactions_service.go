@@ -1143,10 +1143,6 @@ func (svc *transactionsService) SettleHoldInvoice(ctx context.Context, preimage 
 		return nil, err
 	}
 
-	if settledTransaction == nil {
-		return nil, fmt.Errorf("settled transaction is nil despite no error")
-	}
-
 	return settledTransaction, nil
 }
 
