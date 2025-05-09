@@ -284,13 +284,8 @@ func (svc *LNDService) Shutdown() error {
 	return nil
 }
 
-func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64, isHoldInvoice bool) (*lnclient.PayInvoiceResponse, error) {
+func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64, timeoutSeconds int64) (*lnclient.PayInvoiceResponse, error) {
 	const MAX_PARTIAL_PAYMENTS = 16
-
-	sendPaymentTimeout := 50
-	if isHoldInvoice {
-		sendPaymentTimeout = 3600
-	}
 
 	paymentRequest, err := decodepay.Decodepay(payReq)
 	if err != nil {
@@ -307,7 +302,7 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amoun
 	sendRequest := &routerrpc.SendPaymentRequest{
 		PaymentRequest: payReq,
 		MaxParts:       MAX_PARTIAL_PAYMENTS,
-		TimeoutSeconds: int32(sendPaymentTimeout),
+		TimeoutSeconds: int32(timeoutSeconds),
 		FeeLimitMsat:   int64(transactions.CalculateFeeReserveMsat(paymentAmountMsat)),
 	}
 

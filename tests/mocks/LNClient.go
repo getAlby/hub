@@ -1572,9 +1572,9 @@ func (_c *MockLNClient_SendPaymentProbes_Call) RunAndReturn(run func(context.Con
 	return _c
 }
 
-// SendPaymentSync provides a mock function with given fields: ctx, payReq, amount, isHoldInvoice
-func (_m *MockLNClient) SendPaymentSync(ctx context.Context, payReq string, amount *uint64, isHoldInvoice bool) (*lnclient.PayInvoiceResponse, error) {
-	ret := _m.Called(ctx, payReq, amount, isHoldInvoice)
+// SendPaymentSync provides a mock function with given fields: ctx, payReq, amount, timeoutSeconds
+func (_m *MockLNClient) SendPaymentSync(ctx context.Context, payReq string, amount *uint64, timeoutSeconds int64) (*lnclient.PayInvoiceResponse, error) {
+	ret := _m.Called(ctx, payReq, amount, timeoutSeconds)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SendPaymentSync")
@@ -1582,19 +1582,19 @@ func (_m *MockLNClient) SendPaymentSync(ctx context.Context, payReq string, amou
 
 	var r0 *lnclient.PayInvoiceResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, *uint64, bool) (*lnclient.PayInvoiceResponse, error)); ok {
-		return rf(ctx, payReq, amount, isHoldInvoice)
+	if rf, ok := ret.Get(0).(func(context.Context, string, *uint64, int64) (*lnclient.PayInvoiceResponse, error)); ok {
+		return rf(ctx, payReq, amount, timeoutSeconds)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, *uint64, bool) *lnclient.PayInvoiceResponse); ok {
-		r0 = rf(ctx, payReq, amount, isHoldInvoice)
+	if rf, ok := ret.Get(0).(func(context.Context, string, *uint64, int64) *lnclient.PayInvoiceResponse); ok {
+		r0 = rf(ctx, payReq, amount, timeoutSeconds)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*lnclient.PayInvoiceResponse)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, *uint64, bool) error); ok {
-		r1 = rf(ctx, payReq, amount, isHoldInvoice)
+	if rf, ok := ret.Get(1).(func(context.Context, string, *uint64, int64) error); ok {
+		r1 = rf(ctx, payReq, amount, timeoutSeconds)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1611,14 +1611,14 @@ type MockLNClient_SendPaymentSync_Call struct {
 //   - ctx context.Context
 //   - payReq string
 //   - amount *uint64
-//   - isHoldInvoice bool
-func (_e *MockLNClient_Expecter) SendPaymentSync(ctx interface{}, payReq interface{}, amount interface{}, isHoldInvoice interface{}) *MockLNClient_SendPaymentSync_Call {
-	return &MockLNClient_SendPaymentSync_Call{Call: _e.mock.On("SendPaymentSync", ctx, payReq, amount, isHoldInvoice)}
+//   - timeoutSeconds int64
+func (_e *MockLNClient_Expecter) SendPaymentSync(ctx interface{}, payReq interface{}, amount interface{}, timeoutSeconds interface{}) *MockLNClient_SendPaymentSync_Call {
+	return &MockLNClient_SendPaymentSync_Call{Call: _e.mock.On("SendPaymentSync", ctx, payReq, amount, timeoutSeconds)}
 }
 
-func (_c *MockLNClient_SendPaymentSync_Call) Run(run func(ctx context.Context, payReq string, amount *uint64, isHoldInvoice bool)) *MockLNClient_SendPaymentSync_Call {
+func (_c *MockLNClient_SendPaymentSync_Call) Run(run func(ctx context.Context, payReq string, amount *uint64, timeoutSeconds int64)) *MockLNClient_SendPaymentSync_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(*uint64), args[3].(bool))
+		run(args[0].(context.Context), args[1].(string), args[2].(*uint64), args[3].(int64))
 	})
 	return _c
 }
@@ -1628,7 +1628,7 @@ func (_c *MockLNClient_SendPaymentSync_Call) Return(_a0 *lnclient.PayInvoiceResp
 	return _c
 }
 
-func (_c *MockLNClient_SendPaymentSync_Call) RunAndReturn(run func(context.Context, string, *uint64, bool) (*lnclient.PayInvoiceResponse, error)) *MockLNClient_SendPaymentSync_Call {
+func (_c *MockLNClient_SendPaymentSync_Call) RunAndReturn(run func(context.Context, string, *uint64, int64) (*lnclient.PayInvoiceResponse, error)) *MockLNClient_SendPaymentSync_Call {
 	_c.Call.Return(run)
 	return _c
 }

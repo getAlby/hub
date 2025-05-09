@@ -244,13 +244,18 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 					"swap":   swap,
 					"update": update,
 				}).Info("Swap created, paying the invoice")
+				err := lnClient.SendPaymentProbes(ctx, swap.Invoice)
+				if err != nil {
+					logger.Logger.WithField("swapId", swap.Id).Info("Couldn't probe invoice payment, terminating swap")
+					return err
+				}
 				go func() {
 					metadata := map[string]interface{}{
 						"swapId":        swap.Id,
 						"onchainAmount": swap.OnchainAmount,
 						"refundPubkey":  swap.RefundPublicKey,
 					}
-					_, err := svc.transactionsService.SendPaymentSync(ctx, swap.Invoice, nil, metadata, lnClient, nil, nil, false)
+					_, err := svc.transactionsService.SendPaymentSync(ctx, swap.Invoice, nil, metadata, lnClient, nil, nil, 3600)
 					if err != nil {
 						logger.Logger.WithError(err).WithFields(logrus.Fields{
 							"swap":   swap,
