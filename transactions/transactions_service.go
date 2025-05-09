@@ -804,7 +804,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			return
 		}
 		logger.Logger.WithFields(logrus.Fields{
-			"paymentHash": lnClientTransaction.PaymentHash,
+			"payment_hash": lnClientTransaction.PaymentHash,
 		}).Info("Processing hold invoice accepted event")
 
 		var dbTransaction db.Transaction
@@ -813,11 +813,11 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			if result.Error != nil {
 				if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 					logger.Logger.WithFields(logrus.Fields{
-						"paymentHash": lnClientTransaction.PaymentHash,
+						"payment_hash": lnClientTransaction.PaymentHash,
 					}).Warn("No corresponding pending incoming transaction found in DB for accepted hold invoice")
 				}
 				logger.Logger.WithFields(logrus.Fields{
-					"paymentHash": lnClientTransaction.PaymentHash,
+					"payment_hash": lnClientTransaction.PaymentHash,
 				}).WithError(result.Error).Error("Failed to query DB for accepted hold invoice")
 				return result.Error
 			}
@@ -825,23 +825,21 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			err := tx.Model(&dbTransaction).Update("state", constants.TRANSACTION_STATE_ACCEPTED).Error
 			if err != nil {
 				logger.Logger.WithFields(logrus.Fields{
-					"paymentHash": lnClientTransaction.PaymentHash,
-					"dbTxID":      dbTransaction.ID,
+					"payment_hash": lnClientTransaction.PaymentHash,
 				}).WithError(err).Error("Failed to update hold invoice state to accepted in DB")
 				return err
 			}
 			dbTransaction.State = constants.TRANSACTION_STATE_ACCEPTED
 
 			logger.Logger.WithFields(logrus.Fields{
-				"paymentHash": lnClientTransaction.PaymentHash,
-				"dbTxID":      dbTransaction.ID,
+				"payment_hash": lnClientTransaction.PaymentHash,
 			}).Info("Updated hold invoice state to accepted in DB")
 
 			return nil
 		})
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
-				"paymentHash": lnClientTransaction.PaymentHash,
+				"payment_hash": lnClientTransaction.PaymentHash,
 			}).WithError(err).Error("Failed DB transaction for hold invoice accepted event")
 		} else {
 			svc.eventPublisher.Publish(&events.Event{
@@ -1115,7 +1113,7 @@ func (svc *transactionsService) SettleHoldInvoice(ctx context.Context, preimage 
 	})
 
 	if result.RowsAffected == 0 {
-		logger.Logger.WithField("paymentHash", paymentHash).Error("Failed to find accepted hold invoice")
+		logger.Logger.WithField("payment_hash", paymentHash).Error("Failed to find accepted hold invoice")
 		return nil, errors.New("failed to find accepted hold invoice")
 	}
 
@@ -1137,7 +1135,7 @@ func (svc *transactionsService) SettleHoldInvoice(ctx context.Context, preimage 
 
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
-			"paymentHash": paymentHash,
+			"payment_hash": paymentHash,
 			"preimage":    preimage,
 		}).WithError(err).Error("Failed DB transaction while settling hold invoice")
 		return nil, err
@@ -1150,7 +1148,7 @@ func (svc *transactionsService) CancelHoldInvoice(ctx context.Context, paymentHa
 	err := lnClient.CancelHoldInvoice(ctx, paymentHash)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
-			"paymentHash": paymentHash,
+			"payment_hash": paymentHash,
 		}).WithError(err).Error("Failed to cancel hold invoice via LN client")
 		// Don't mark DB as failed here, cancellation might have already happened or might succeed later.
 		return err
@@ -1166,7 +1164,7 @@ func (svc *transactionsService) CancelHoldInvoice(ctx context.Context, paymentHa
 
 		if result.Error != nil {
 			logger.Logger.WithFields(logrus.Fields{
-				"paymentHash": paymentHash,
+				"payment_hash": paymentHash,
 			}).WithError(result.Error).Error("Failed to find accepted hold invoice in DB for cancellation")
 			return result.Error
 		}
@@ -1175,13 +1173,13 @@ func (svc *transactionsService) CancelHoldInvoice(ctx context.Context, paymentHa
 			var existingFinalized db.Transaction
 			if tx.Limit(1).Find(&existingFinalized, "type = ? AND state <> ? AND payment_hash = ?", constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_PENDING, paymentHash).RowsAffected > 0 {
 				logger.Logger.WithFields(logrus.Fields{
-					"paymentHash": paymentHash,
+					"payment_hash": paymentHash,
 					"state":       existingFinalized.State,
 				}).Warn("Hold invoice already finalized in DB, cannot mark as failed due to cancellation")
 				return nil
 			}
 			logger.Logger.WithFields(logrus.Fields{
-				"paymentHash": paymentHash,
+				"payment_hash": paymentHash,
 			}).Warn("No accepted hold invoice found in DB to mark as failed due to cancellation")
 			return NewNotFoundError()
 		}
@@ -1191,13 +1189,13 @@ func (svc *transactionsService) CancelHoldInvoice(ctx context.Context, paymentHa
 
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
-			"paymentHash": paymentHash,
+			"payment_hash": paymentHash,
 		}).WithError(err).Error("Failed DB transaction while canceling hold invoice")
 		return err
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
-		"paymentHash": paymentHash,
+		"payment_hash": paymentHash,
 	}).Info("Marked hold invoice as failed in DB due to cancellation")
 
 	// TODO: Should we publish a specific nwc_hold_invoice_canceled event?
