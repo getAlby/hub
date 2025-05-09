@@ -484,60 +484,69 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 	}
 	fee := uint64(0)
 	preimage := ""
+
 	timeout := time.Second * time.Duration(timeoutSeconds)
-	for start := time.Now(); time.Since(start) < timeout; {
-		event := <-ldkEventSubscription
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
 
-		eventPaymentSuccessful, isEventPaymentSuccessfulEvent := (*event).(ldk_node.EventPaymentSuccessful)
-		eventPaymentFailed, isEventPaymentFailedEvent := (*event).(ldk_node.EventPaymentFailed)
-
-		if isEventPaymentSuccessfulEvent && eventPaymentSuccessful.PaymentHash == paymentHash {
-			logger.Logger.Info("Got payment success event")
-			payment := ls.node.Payment(paymentHash)
-			if payment == nil {
-				logger.Logger.WithField("payment_hash", paymentHash).Error("Couldn't find payment by payment hash")
-				return nil, errors.New("payment not found")
+	for {
+		select {
+		case <-ctx.Done():
+			if err := ctx.Err(); err == context.DeadlineExceeded {
+				logger.Logger.WithFields(logrus.Fields{
+					"paymentHash": paymentHash,
+				}).Warn("Timed out waiting for payment to be sent")
+				return nil, lnclient.NewTimeoutError()
+			} else {
+				return nil, err
 			}
 
-			if eventPaymentSuccessful.PaymentPreimage == nil {
-				logger.Logger.WithField("payment_hash", paymentHash).Error("No payment preimage in payment success event")
-				return nil, errors.New("payment preimage not found")
+		case ev := <-ldkEventSubscription:
+			switch event := (*ev).(type) {
+			case ldk_node.EventPaymentSuccessful:
+				if event.PaymentHash != paymentHash {
+					continue
+				}
+
+				logger.Logger.Info("Got payment success event")
+				payment := ls.node.Payment(paymentHash)
+				if payment == nil {
+					logger.Logger.WithField("payment_hash", paymentHash).Error("Couldn't find payment by payment hash")
+					return nil, errors.New("payment not found")
+				}
+
+				if event.PaymentPreimage == nil {
+					logger.Logger.WithField("payment_hash", paymentHash).Error("No payment preimage in payment success event")
+					return nil, errors.New("payment preimage not found")
+				}
+
+				preimage = *event.PaymentPreimage
+
+				if event.FeePaidMsat != nil {
+					fee = *event.FeePaidMsat
+				}
+
+				logger.Logger.WithFields(logrus.Fields{
+					"duration": time.Since(paymentStart).Milliseconds(),
+					"fee":      fee,
+				}).Info("Successful payment")
+
+				return &lnclient.PayInvoiceResponse{
+					Preimage: preimage,
+					Fee:      fee,
+				}, nil
+			case ldk_node.EventPaymentFailed:
+				if event.PaymentHash != nil && *event.PaymentHash == paymentHash {
+					failureReasonMessage := ls.getPaymentFailReason(&event)
+					logger.Logger.WithFields(logrus.Fields{
+						"payment_hash": paymentHash,
+						"reason":       failureReasonMessage,
+					}).Error("Received payment failed event")
+					return nil, fmt.Errorf("received payment failed event: %s", failureReasonMessage)
+				}
 			}
-
-			preimage = *eventPaymentSuccessful.PaymentPreimage
-
-			if eventPaymentSuccessful.FeePaidMsat != nil {
-				fee = *eventPaymentSuccessful.FeePaidMsat
-			}
-			break
-		}
-		if isEventPaymentFailedEvent && eventPaymentFailed.PaymentHash != nil && *eventPaymentFailed.PaymentHash == paymentHash {
-			failureReasonMessage := ls.getPaymentFailReason(&eventPaymentFailed)
-
-			logger.Logger.WithFields(logrus.Fields{
-				"payment_hash": paymentHash,
-				"reason":       failureReasonMessage,
-			}).Error("Received payment failed event")
-
-			return nil, fmt.Errorf("received payment failed event: %s", failureReasonMessage)
 		}
 	}
-	if preimage == "" {
-		logger.Logger.WithFields(logrus.Fields{
-			"paymentHash": paymentHash,
-		}).Warn("Timed out waiting for payment to be sent")
-		return nil, lnclient.NewTimeoutError()
-	}
-
-	logger.Logger.WithFields(logrus.Fields{
-		"duration": time.Since(paymentStart).Milliseconds(),
-		"fee":      fee,
-	}).Info("Successful payment")
-
-	return &lnclient.PayInvoiceResponse{
-		Preimage: preimage,
-		Fee:      fee,
-	}, nil
 }
 
 func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
