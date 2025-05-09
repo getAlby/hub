@@ -252,3 +252,14 @@ func NewTimeoutError() error {
 func (err *timeoutError) Error() string {
 	return "Timeout"
 }
+
+type holdInvoiceCanceledError struct {
+}
+
+func NewHoldInvoiceCanceledError() error {
+	return &holdInvoiceCanceledError{}
+}
+
+func (err *holdInvoiceCanceledError) Error() string {
+	return "Hold invoice canceled"
+}
