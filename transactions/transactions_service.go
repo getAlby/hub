@@ -829,10 +829,10 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 				}).WithError(err).Error("Failed to update hold invoice state to accepted in DB")
 				return err
 			}
-			dbTransaction.State = constants.TRANSACTION_STATE_ACCEPTED
 
 			logger.Logger.WithFields(logrus.Fields{
 				"payment_hash": lnClientTransaction.PaymentHash,
+				"state":        dbTransaction.State,
 			}).Info("Updated hold invoice state to accepted in DB")
 
 			return nil
@@ -1136,7 +1136,7 @@ func (svc *transactionsService) SettleHoldInvoice(ctx context.Context, preimage 
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"payment_hash": paymentHash,
-			"preimage":    preimage,
+			"preimage":     preimage,
 		}).WithError(err).Error("Failed DB transaction while settling hold invoice")
 		return nil, err
 	}
@@ -1174,7 +1174,7 @@ func (svc *transactionsService) CancelHoldInvoice(ctx context.Context, paymentHa
 			if tx.Limit(1).Find(&existingFinalized, "type = ? AND state <> ? AND payment_hash = ?", constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_PENDING, paymentHash).RowsAffected > 0 {
 				logger.Logger.WithFields(logrus.Fields{
 					"payment_hash": paymentHash,
-					"state":       existingFinalized.State,
+					"state":        existingFinalized.State,
 				}).Warn("Hold invoice already finalized in DB, cannot mark as failed due to cancellation")
 				return nil
 			}
