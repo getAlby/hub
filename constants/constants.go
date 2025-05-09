@@ -38,7 +38,6 @@ const (
 	LOOKUP_INVOICE_SCOPE    = "lookup_invoice"
 	LIST_TRANSACTIONS_SCOPE = "list_transactions"
 	SIGN_MESSAGE_SCOPE      = "sign_message"
-	HOLD_INVOICES_SCOPE     = "hold_invoices" // covers all hold invoice operations (make/settle/cancel)
 	NOTIFICATIONS_SCOPE     = "notifications" // covers all notification types
 	SUPERUSER_SCOPE         = "superuser"
 )

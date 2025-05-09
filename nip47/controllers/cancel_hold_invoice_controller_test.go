@@ -60,7 +60,7 @@ func setupCancelHoldInvoiceTest(t *testing.T, paymentHash string, initialTransac
 
 	appPermission := &db.AppPermission{
 		AppId: app.ID,
-		Scope: constants.HOLD_INVOICES_SCOPE,
+		Scope: constants.MAKE_INVOICE_SCOPE,
 	}
 	err = svc.DB.Create(appPermission).Error
 	require.NoError(t, err)

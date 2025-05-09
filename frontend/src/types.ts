@@ -1,6 +1,5 @@
 import {
   BellIcon,
-  CirclePauseIcon,
   CirclePlusIcon,
   CrownIcon,
   HandCoinsIcon,
@@ -43,7 +42,6 @@ export type Scope =
   | "get_balance"
   | "get_info"
   | "make_invoice"
-  | "hold_invoices"
   | "lookup_invoice"
   | "list_transactions"
   | "sign_message"
@@ -62,7 +60,6 @@ export const scopeIconMap: ScopeIconMap = {
   list_transactions: NotebookTabsIcon,
   lookup_invoice: SearchIcon,
   make_invoice: CirclePlusIcon,
-  hold_invoices: CirclePauseIcon,
   pay_invoice: HandCoinsIcon,
   sign_message: PenLineIcon,
   notifications: BellIcon,
@@ -90,7 +87,6 @@ export const scopeDescriptions: Record<Scope, string> = {
   lookup_invoice: "Lookup status of invoices",
   make_invoice: "Create invoices",
   pay_invoice: "Send payments",
-  hold_invoices: "Create, settle & cancel hold invoices",
   sign_message: "Sign messages",
   notifications: "Receive wallet notifications",
   superuser: "Create other app connections",
