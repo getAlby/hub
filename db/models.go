@@ -85,6 +85,7 @@ type Transaction struct {
 	SelfPayment     bool
 	Boostagram      datatypes.JSON
 	FailureReason   string
+	Hold            bool
 }
 
 const (
