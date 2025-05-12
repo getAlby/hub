@@ -10,7 +10,7 @@ require (
 	github.com/getAlby/ldk-node-go v0.0.0-20250503035148-4f935f853d83
 	github.com/go-gormigrate/gormigrate/v2 v2.1.4
 	github.com/labstack/echo/v4 v4.13.3
-	github.com/nbd-wtf/go-nostr v0.51.10
+	github.com/nbd-wtf/go-nostr v0.51.11
 	github.com/nbd-wtf/ln-decodepay v1.13.0
 	github.com/orandin/lumberjackrus v1.0.1
 	github.com/peterldowns/pgtestdb v0.1.1
