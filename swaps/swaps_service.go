@@ -228,11 +228,14 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 		return err
 	}
 
+	paymentErrorCh := make(chan error, 1)
 	updatesCh := boltzWs.Updates
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
+		case err := <-paymentErrorCh:
+			return err
 		case update, ok := <-updatesCh:
 			if !ok {
 				return errors.New("boltz websocket closed unexpectedly")
@@ -262,11 +265,11 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 							"swap":   swap,
 							"update": update,
 						}).Error("Error paying the swap invoice")
+						paymentErrorCh <- err
 						return
 					}
 					logger.Logger.WithField("swapId", swap.Id).Info("Initiated swap invoice payment")
 				}()
-				break
 			case boltz.TransactionMempool:
 				logger.Logger.WithFields(logrus.Fields{
 					"swapId":      swap.Id,
@@ -327,8 +330,6 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 				}
 
 				logger.Logger.WithField("txId", txId).Info("Transaction broadcasted")
-				break
-
 			case boltz.InvoiceSettled:
 				logger.Logger.WithField("swapId", swap.Id).Info("Swap succeeded")
 				svc.eventPublisher.Publish(&events.Event{
