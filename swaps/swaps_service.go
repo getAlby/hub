@@ -188,6 +188,7 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 		ClaimPublicKey: ourKeys.PubKey().SerializeCompressed(),
 		PreimageHash:   preimageHash[:],
 		InvoiceAmount:  amount,
+		Description:    "Boltz swap invoice",
 		PairHash:       pairInfo.Hash,
 		ReferralId:     "alby",
 		ExtraFees:      albyFee,
@@ -243,7 +244,7 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 				logger.Logger.WithFields(logrus.Fields{
 					"swap":   swap,
 					"update": update,
-				}).Info("Swap created, paying the invoice")
+				}).Info("Paying the swap invoice")
 				err := lnClient.SendPaymentProbes(ctx, swap.Invoice)
 				if err != nil {
 					logger.Logger.WithField("swapId", swap.Id).Info("Couldn't probe invoice payment, terminating swap")
@@ -272,6 +273,10 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 					"transaction": update.Transaction,
 				}).Info("Lockup transaction found in mempool")
 			case boltz.TransactionConfirmed:
+				logger.Logger.WithFields(logrus.Fields{
+					"swapId":      swap.Id,
+					"transaction": update.Transaction,
+				}).Info("Lockup transaction confirmed in mempool")
 				lockupTransaction, err := boltz.NewTxFromHex(boltz.CurrencyBtc, update.Transaction.Hex, nil)
 				if err != nil {
 					return err
