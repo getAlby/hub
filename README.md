@@ -165,6 +165,7 @@ The following configuration options can be set as environment variables or in a 
 - `WORK_DIR`: directory to store NWC data files. Default: $XDG_DATA_HOME/albyhub
 - `LOG_LEVEL`: log level for the application. Higher is more verbose. Default: 4 (info)
 - `AUTO_UNLOCK_PASSWORD`: provide unlock password to auto-unlock Alby Hub on startup (e.g. after a machine restart). Unlock password still be required to access the interface.
+- `BOLTZ_API`: the api which provides auto swaps functionality. Default: "https://api.boltz.exchange"
 
 ### Migrating the database (Sqlite <-> Postgres)
 
