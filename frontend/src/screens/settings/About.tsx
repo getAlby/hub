@@ -4,11 +4,20 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 
 import { useInfo } from "src/hooks/useInfo";
 
+const PLANS: Record<string, string> = {
+  buzz_202406_month: "Pro Cloud",
+  buzz_202406_year: "Pro Cloud",
+  buzz_202411_usd_month: "Pro Cloud",
+  buzz_202411_usd_year: "Pro Cloud",
+  pro_202411_usd_month: "Pro",
+  pro_202411_usd_year: "Pro",
+};
+
 export function About() {
   const { data: info } = useInfo();
-  const { data: albyMe } = useAlbyMe();
+  const { data: albyMe, error: albyMeError } = useAlbyMe();
 
-  if (!info || !albyMe) {
+  if (!info || (info.albyAccountConnected && !albyMe && !albyMeError)) {
     return <Loading />;
   }
 
@@ -45,7 +54,9 @@ export function About() {
         <div className="grid gap-2">
           <p className="font-medium text-sm">Alby Account Plan</p>
           <p className="text-muted-foreground text-sm slashed-zero">
-            {albyMe?.subscription.plan_code || "Free"}
+            {albyMe?.subscription.plan_code
+              ? PLANS[albyMe.subscription.plan_code]
+              : "Free"}
           </p>
         </div>
       </div>
