@@ -159,13 +159,14 @@ For more information refer to:
 The following configuration options can be set as environment variables or in a .env file
 
 - `RELAY`: default: "wss://relay.getalby.com/v1"
-- `JWT_SECRET`: a randomly generated secret string. (only needed in http mode)
-- `DATABASE_URI`: a sqlite filename or postgres URL. Default is SQLite DB `nwc.db` without a path, which will be put in the user home directory: $XDG_DATA_HOME/albyhub/nwc.db
-- `PORT`: the port on which the app should listen on (default: 8080)
-- `WORK_DIR`: directory to store NWC data files. Default: $XDG_DATA_HOME/albyhub
-- `LOG_LEVEL`: log level for the application. Higher is more verbose. Default: 4 (info)
-- `AUTO_UNLOCK_PASSWORD`: provide unlock password to auto-unlock Alby Hub on startup (e.g. after a machine restart). Unlock password still be required to access the interface.
-- `BOLTZ_API`: the api which provides auto swaps functionality. Default: "https://api.boltz.exchange"
+- `JWT_SECRET`: A randomly generated secret string. (only needed in http mode)
+- `DATABASE_URI`: A sqlite filename or postgres URL. Default is SQLite DB `nwc.db` without a path, which will be put in the user home directory: $XDG_DATA_HOME/albyhub/nwc.db
+- `PORT`: The port on which the app should listen on (default: 8080)
+- `WORK_DIR`: Directory to store NWC data files. Default: $XDG_DATA_HOME/albyhub
+- `LOG_LEVEL`: Log level for the application. Higher is more verbose. Default: 4 (info)
+- `AUTO_UNLOCK_PASSWORD`: Provide unlock password to auto-unlock Alby Hub on startup (e.g. after a machine restart). Unlock password still be required to access the interface.
+- `BOLTZ_API`: The api which provides auto swaps functionality. Default: "https://api.boltz.exchange"
+- `NETWORK`: On-chain network used for auto swaps. Should match the backend network. Default: "bitcoin"
 
 ### Migrating the database (Sqlite <-> Postgres)
 
@@ -205,14 +206,14 @@ _To configure via env, the following parameters must be provided:_
 ##### Mutinynet
 
 - `MEMPOOL_API=https://mutinynet.com/api`
-- `LDK_NETWORK=signet`
+- `NETWORK=signet`
 - `LDK_ESPLORA_SERVER=https://mutinynet.com/api`
 - `LDK_GOSSIP_SOURCE=https://rgs.mutinynet.com/snapshot`
 
 ##### Testnet (Not recommended - try Mutinynet)
 
 - `MEMPOOL_API=https://mempool.space/testnet/api`
-- `LDK_NETWORK=testnet`
+- `NETWORK=testnet`
 - `LDK_ESPLORA_SERVER=https://mempool.space/testnet/api`
 - `LDK_GOSSIP_SOURCE=https://rapidsync.lightningdevkit.org/testnet/snapshot`
 

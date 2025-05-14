@@ -146,6 +146,20 @@ func (cfg *config) GetRelayUrl() string {
 	return relayUrl
 }
 
+func (cfg *config) GetNetwork() string {
+	env := cfg.GetEnv()
+
+	if env.Network != "" {
+		return env.Network
+	}
+
+	if env.LDKNetwork != "" {
+		return env.LDKNetwork
+	}
+
+	return "bitcoin"
+}
+
 func (cfg *config) Get(key string, encryptionKey string) (string, error) {
 	return cfg.get(key, encryptionKey, cfg.db)
 }

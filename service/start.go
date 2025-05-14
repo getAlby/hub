@@ -352,7 +352,7 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		setStartupState := func(startupState string) {
 			svc.startupState = startupState
 		}
-		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, mnemonic, ldkWorkdir, svc.cfg.GetEnv().LDKNetwork, vssToken, setStartupState)
+		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, mnemonic, ldkWorkdir, svc.cfg.GetNetwork(), vssToken, setStartupState)
 	case config.PhoenixBackendType:
 		PhoenixdAddress, _ := svc.cfg.Get("PhoenixdAddress", encryptionKey)
 		PhoenixdAuthorization, _ := svc.cfg.Get("PhoenixdAuthorization", encryptionKey)

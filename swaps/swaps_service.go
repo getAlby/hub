@@ -138,7 +138,7 @@ func (svc *swapsService) StopAutoSwaps() {
 }
 
 func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) error {
-	var network, err = boltz.ParseChain(svc.cfg.GetEnv().LDKNetwork)
+	var network, err = boltz.ParseChain(svc.cfg.GetNetwork())
 	if err != nil {
 		return err
 	}
