@@ -438,8 +438,8 @@ func getMaxTotalRoutingFeeLimit(amountMsat uint64) ldk_node.MaxTotalRoutingFeeLi
 
 func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64, timeoutSeconds *int64) (*lnclient.PayInvoiceResponse, error) {
 	sendPaymentTimeout := int64(constants.SEND_PAYMENT_TIMEOUT)
-	if timeoutSeconds == nil {
-		timeoutSeconds = &sendPaymentTimeout
+	if timeoutSeconds != nil {
+		sendPaymentTimeout = *timeoutSeconds
 	}
 
 	paymentRequest, err := decodepay.Decodepay(invoice)
@@ -491,7 +491,7 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 	fee := uint64(0)
 	preimage := ""
 
-	timeout := time.Second * time.Duration(*timeoutSeconds)
+	timeout := time.Second * time.Duration(sendPaymentTimeout)
 	timer := time.NewTimer(timeout)
 	defer timer.Stop()
 

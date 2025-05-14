@@ -289,8 +289,8 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amoun
 	const MAX_PARTIAL_PAYMENTS = 16
 
 	sendPaymentTimeout := int64(constants.SEND_PAYMENT_TIMEOUT)
-	if timeoutSeconds == nil {
-		timeoutSeconds = &sendPaymentTimeout
+	if timeoutSeconds != nil {
+		sendPaymentTimeout = *timeoutSeconds
 	}
 
 	paymentRequest, err := decodepay.Decodepay(payReq)
@@ -308,7 +308,7 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amoun
 	sendRequest := &routerrpc.SendPaymentRequest{
 		PaymentRequest: payReq,
 		MaxParts:       MAX_PARTIAL_PAYMENTS,
-		TimeoutSeconds: int32(*timeoutSeconds),
+		TimeoutSeconds: int32(sendPaymentTimeout),
 		FeeLimitMsat:   int64(transactions.CalculateFeeReserveMsat(paymentAmountMsat)),
 	}
 
