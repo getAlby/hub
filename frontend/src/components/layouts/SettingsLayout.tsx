@@ -98,8 +98,8 @@ export default function SettingsLayout() {
       <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-4 lg:space-y-0">
         <aside className="flex flex-col justify-between lg:w-1/5 max-h-screen">
           <nav className="flex flex-wrap lg:flex-col lg:space-y-1">
-            <MenuItem to="/settings/about">About</MenuItem>
             <MenuItem to="/settings">General</MenuItem>
+            <MenuItem to="/settings/about">About</MenuItem>
             {info?.autoUnlockPasswordSupported && (
               <MenuItem to="/settings/auto-unlock">Auto Unlock</MenuItem>
             )}
