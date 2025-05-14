@@ -86,4 +86,5 @@ func TestSelfHoldPaymentCanceled(t *testing.T) {
 	assert.Equal(t, constants.TRANSACTION_STATE_FAILED, updatedHoldTransaction.State)
 	assert.Equal(t, true, updatedHoldTransaction.SelfPayment)
 	assert.Equal(t, true, updatedHoldTransaction.Hold)
+	time.Sleep(1 * time.Second)
 }
