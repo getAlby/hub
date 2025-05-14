@@ -54,6 +54,7 @@ import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword"
 import DebugTools from "src/screens/settings/DebugTools";
 import DeveloperSettings from "src/screens/settings/DeveloperSettings";
 import Settings from "src/screens/settings/Settings";
+import Swaps from "src/screens/settings/Swaps";
 
 import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
 import { RestoreNode } from "src/screens/setup/RestoreNode";
@@ -188,6 +189,10 @@ const routes = [
                 path: "auto-unlock",
                 element: <AutoUnlock />,
                 handle: { crumb: () => "Auto Unlock" },
+              },
+              {
+                path: "swaps",
+                element: <Swaps />,
               },
               {
                 path: "change-unlock-password",

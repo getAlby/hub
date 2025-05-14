@@ -19,6 +19,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/lnclient/lnd/wrapper"
@@ -284,9 +285,14 @@ func (svc *LNDService) Shutdown() error {
 	return nil
 }
 
-func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64, timeoutSeconds *int64) (*lnclient.PayInvoiceResponse, error) {
 	const MAX_PARTIAL_PAYMENTS = 16
-	const SEND_PAYMENT_TIMEOUT = 50
+
+	sendPaymentTimeout := int64(constants.SEND_PAYMENT_TIMEOUT)
+	if timeoutSeconds != nil {
+		sendPaymentTimeout = *timeoutSeconds
+	}
+
 	paymentRequest, err := decodepay.Decodepay(payReq)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -302,7 +308,7 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amoun
 	sendRequest := &routerrpc.SendPaymentRequest{
 		PaymentRequest: payReq,
 		MaxParts:       MAX_PARTIAL_PAYMENTS,
-		TimeoutSeconds: SEND_PAYMENT_TIMEOUT,
+		TimeoutSeconds: int32(sendPaymentTimeout),
 		FeeLimitMsat:   int64(transactions.CalculateFeeReserveMsat(paymentAmountMsat)),
 	}
 

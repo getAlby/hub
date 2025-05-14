@@ -307,6 +307,51 @@ func (_c *MockConfig_GetJWTSecret_Call) RunAndReturn(run func() string) *MockCon
 	return _c
 }
 
+// GetNetwork provides a mock function with no fields
+func (_m *MockConfig) GetNetwork() string {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetNetwork")
+	}
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
+// MockConfig_GetNetwork_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetNetwork'
+type MockConfig_GetNetwork_Call struct {
+	*mock.Call
+}
+
+// GetNetwork is a helper method to define mock.On call
+func (_e *MockConfig_Expecter) GetNetwork() *MockConfig_GetNetwork_Call {
+	return &MockConfig_GetNetwork_Call{Call: _e.mock.On("GetNetwork")}
+}
+
+func (_c *MockConfig_GetNetwork_Call) Run(run func()) *MockConfig_GetNetwork_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockConfig_GetNetwork_Call) Return(_a0 string) *MockConfig_GetNetwork_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockConfig_GetNetwork_Call) RunAndReturn(run func() string) *MockConfig_GetNetwork_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetRelayUrl provides a mock function with no fields
 func (_m *MockConfig) GetRelayUrl() string {
 	ret := _m.Called()
