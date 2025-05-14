@@ -99,7 +99,6 @@ export default function SettingsLayout() {
         <aside className="flex flex-col justify-between lg:w-1/5 max-h-screen">
           <nav className="flex flex-wrap lg:flex-col lg:space-y-1">
             <MenuItem to="/settings">General</MenuItem>
-            <MenuItem to="/settings/about">About</MenuItem>
             {info?.autoUnlockPasswordSupported && (
               <MenuItem to="/settings/auto-unlock">Auto Unlock</MenuItem>
             )}
@@ -118,6 +117,7 @@ export default function SettingsLayout() {
             )}
             <MenuItem to="/settings/developer">Developer</MenuItem>
             <MenuItem to="/settings/debug-tools">Debug Tools</MenuItem>
+            <MenuItem to="/settings/about">About</MenuItem>
           </nav>
         </aside>
         <Separator orientation="vertical" className="hidden lg:block" />
