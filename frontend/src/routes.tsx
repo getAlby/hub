@@ -46,6 +46,7 @@ import BuyBitcoin from "src/screens/onchain/BuyBitcoin";
 import DepositBitcoin from "src/screens/onchain/DepositBitcoin";
 import ConnectPeer from "src/screens/peers/ConnectPeer";
 import Peers from "src/screens/peers/Peers";
+import { About } from "src/screens/settings/About";
 import { AlbyAccount } from "src/screens/settings/AlbyAccount";
 import { AutoUnlock } from "src/screens/settings/AutoUnlock";
 import Backup from "src/screens/settings/Backup";
@@ -177,6 +178,11 @@ const routes = [
               {
                 index: true,
                 element: <Settings />,
+              },
+              {
+                path: "about",
+                element: <About />,
+                handle: { crumb: () => "About" },
               },
               {
                 path: "auto-unlock",

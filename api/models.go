@@ -186,6 +186,7 @@ type InfoResponse struct {
 	AutoUnlockPasswordSupported bool      `json:"autoUnlockPasswordSupported"`
 	AutoUnlockPasswordEnabled   bool      `json:"autoUnlockPasswordEnabled"`
 	Currency                    string    `json:"currency"`
+	Relay                       string    `json:"relay"`
 }
 
 type UpdateSettingsRequest struct {

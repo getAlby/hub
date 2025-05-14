@@ -122,6 +122,7 @@ export default function SettingsLayout() {
             )}
             <MenuItem to="/settings/developer">Developer</MenuItem>
             <MenuItem to="/settings/debug-tools">Debug Tools</MenuItem>
+            <MenuItem to="/settings/about">About</MenuItem>
           </nav>
         </aside>
         <Separator orientation="vertical" className="hidden lg:block" />

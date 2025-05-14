@@ -769,6 +769,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.AutoUnlockPasswordEnabled = autoUnlockPassword != ""
 	info.AutoUnlockPasswordSupported = api.cfg.GetEnv().IsDefaultClientId()
 	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
+	info.Relay = api.cfg.GetRelayUrl()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get alby user identifier")
 		return nil, err
