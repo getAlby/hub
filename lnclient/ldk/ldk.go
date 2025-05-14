@@ -491,20 +491,19 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 	preimage := ""
 
 	timeout := time.Second * time.Duration(*timeoutSeconds)
-	ctx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
 
 	for {
 		select {
 		case <-ctx.Done():
-			if err := ctx.Err(); err == context.DeadlineExceeded {
-				logger.Logger.WithFields(logrus.Fields{
-					"paymentHash": paymentHash,
-				}).Warn("Timed out waiting for payment to be sent")
-				return nil, lnclient.NewTimeoutError()
-			} else {
-				return nil, err
-			}
+			return nil, ctx.Err()
+
+		case <-timer.C:
+			logger.Logger.WithFields(logrus.Fields{
+				"paymentHash": paymentHash,
+			}).Warn("Timed out waiting for payment to be sent")
+			return nil, lnclient.NewTimeoutError()
 
 		case ev := <-ldkEventSubscription:
 			switch event := (*ev).(type) {
