@@ -68,11 +68,11 @@ var MockLNClientTransaction = &MockLNClientTransactions[0]
 
 var MockLNClientHoldTransaction = &lnclient.Transaction{
 	Type:            "incoming",
-	Invoice:         "lntbs10n1p5pm854dp8fet5xgzgfazycgrfdemx76trv5sx27rpd4cxcegnp4qws83mqzuqptu5kfvxeles7qmyhsj6u2s6zyuft26mcr4tdmcupuupp5x5cdgnc6ntlgxqj6yyw6jurtqe7jjdn2498rnnx2jaltfrk68jtqsp59uvdltd02g6gmerd8lfg2fg3jn68gycvd57afl7kckj57rk8fyeq9qyysgqcqpcxqyz5vqrzjq03slkn33pafzmh42j9y6q4sdlsy42s63h57ysf5eel3888hn46hnapyqqqqqqqq7vqqqqlgqqqq86qqjqhl687qldh38j24lqmclyp5trah2uzkdz9396vllj788gqf2lxgnsw98d93zmm4pz360u587d388sdutlxwnshavhrmcmczllzg6ne9sq6ngxwl",
+	Invoice:         "lntb10n1p5zg5p7dqud4hkx6eqdphkcepqd9h8vmmfvdjsnp4qw988hn4lhpu0my4rf0qkraft3wdx5aa0jnjmusgd23z3s0e9qv62pp5yaulxt6x83u4u0x2pck5pyg7fdxhjsd65c9lmu2a9r05qh0cgl6ssp5x57tsnnuc9hr99a9xzg5ylqma5fwvckxa50jqqay5zykqp83h9kq9qyysgqcqpcxqxf92hqqxh0avuskdnuzkk7mxslsdwem3qq3sf79a4ypmx0hax3rupp043yhv97h25vaarj0xrlcg2fdfdhpztsthettskyaylrz6vweztn0twqqv7kxmr",
 	Description:     "mock hold invoice",
 	DescriptionHash: "",
-	Preimage:        "ae3ae7120954666fd4d18dfffeda406a6f5b0597e9a19b63b5b495fc0c1d77f9",
-	PaymentHash:     "3530d44f1a9afe83025a211da9706b067d29366aa94e39ccca977eb48eda3c96",
+	Preimage:        "4aa083cad11038359b4f614f3a3d6a8298ae17d5275412bc3eca4f5f4d27f2d4",
+	PaymentHash:     "2779f32f463c795e3cca0e2d40911e4b4d7941baa60bfdf15d28df405df847f5",
 	Amount:          2000,
 }
 

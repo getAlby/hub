@@ -28,7 +28,7 @@ func TestSelfHoldPaymentSettled(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, transaction.Hold)
 	// use the pubkey from the decoded tests.MockLNClientHoldTransaction invoice
-	svc.LNClient.(*tests.MockLn).Pubkey = "03a078ec02e002be52c961b3fcc3c0d92f096b8a86844e256ad6f03aadbbc703ce"
+	svc.LNClient.(*tests.MockLn).Pubkey = "038a73de75fdc3c7ec951a5e0b0fa95c5cd353bd7ca72df2086aa228c1f92819a5"
 
 	go func() {
 		result, err := transactionsService.SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, svc.LNClient, nil, nil)
@@ -60,7 +60,7 @@ func TestSelfHoldPaymentCanceled(t *testing.T) {
 	require.NoError(t, err)
 	assert.True(t, transaction.Hold)
 	// use the pubkey from the decoded tests.MockLNClientHoldTransaction invoice
-	svc.LNClient.(*tests.MockLn).Pubkey = "03a078ec02e002be52c961b3fcc3c0d92f096b8a86844e256ad6f03aadbbc703ce"
+	svc.LNClient.(*tests.MockLn).Pubkey = "038a73de75fdc3c7ec951a5e0b0fa95c5cd353bd7ca72df2086aa228c1f92819a5"
 
 	go func() {
 		result, err := transactionsService.SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, svc.LNClient, nil, nil)
