@@ -259,7 +259,8 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 						"onchainAmount": swap.OnchainAmount,
 						"refundPubkey":  swap.RefundPublicKey,
 					}
-					_, err := svc.transactionsService.SendPaymentSync(ctx, swap.Invoice, nil, metadata, lnClient, nil, nil, 3600)
+					sendPaymentTimeout := int64(3600)
+					_, err := svc.transactionsService.SendPaymentSync(ctx, swap.Invoice, nil, metadata, lnClient, nil, nil, &sendPaymentTimeout)
 					if err != nil {
 						logger.Logger.WithError(err).WithFields(logrus.Fields{
 							"swap":   swap,

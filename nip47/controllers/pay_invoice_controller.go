@@ -59,7 +59,7 @@ func (controller *nip47Controller) pay(ctx context.Context, bolt11 string, amoun
 		"bolt11":           bolt11,
 	}).Info("Sending payment")
 
-	transaction, err := controller.transactionsService.SendPaymentSync(ctx, bolt11, amount, metadata, controller.lnClient, &app.ID, &requestEventId, 50)
+	transaction, err := controller.transactionsService.SendPaymentSync(ctx, bolt11, amount, metadata, controller.lnClient, &app.ID, &requestEventId, nil)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,
