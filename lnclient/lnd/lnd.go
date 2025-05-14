@@ -19,6 +19,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/lnclient/lnd/wrapper"
@@ -287,7 +288,7 @@ func (svc *LNDService) Shutdown() error {
 func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64, timeoutSeconds *int64) (*lnclient.PayInvoiceResponse, error) {
 	const MAX_PARTIAL_PAYMENTS = 16
 
-	sendPaymentTimeout := int64(50)
+	sendPaymentTimeout := int64(constants.SEND_PAYMENT_TIMEOUT)
 	if timeoutSeconds == nil {
 		timeoutSeconds = &sendPaymentTimeout
 	}
