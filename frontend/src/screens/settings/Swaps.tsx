@@ -15,6 +15,7 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useToast } from "src/components/ui/use-toast";
+import { MIN_AUTO_SWAP_AMOUNT } from "src/constants";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
 import { useSwaps } from "src/hooks/useSwaps";
 import { request } from "src/utils/request";
@@ -116,11 +117,12 @@ function Swaps() {
               type="number"
               placeholder="How much do you want to swap out?"
               value={swapAmount}
-              min={50_000}
+              min={MIN_AUTO_SWAP_AMOUNT}
               onChange={(e) => setSwapAmount(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Minimum {new Intl.NumberFormat().format(50_000)} sats
+              Minimum {new Intl.NumberFormat().format(MIN_AUTO_SWAP_AMOUNT)}{" "}
+              sats
             </p>
           </div>
           <Label>Destination</Label>
