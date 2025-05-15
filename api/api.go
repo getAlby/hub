@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -543,6 +544,83 @@ func (api *api) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnec
 	return api.svc.GetLNClient().GetNodeConnectionInfo(ctx)
 }
 
+func (api *api) GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error) {
+	swapBalanceThresholdStr, _ := api.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
+	swapAmountStr, _ := api.cfg.Get(config.AutoSwapAmountKey, "")
+	swapDestination, _ := api.cfg.Get(config.AutoSwapDestinationKey, "")
+
+	enabled := swapBalanceThresholdStr != "" &&
+		swapAmountStr != "" &&
+		swapDestination != ""
+	var swapBalanceThreshold, swapAmount uint64
+	if enabled {
+		var err error
+		if swapBalanceThreshold, err = strconv.ParseUint(swapBalanceThresholdStr, 10, 64); err != nil {
+			return nil, fmt.Errorf("invalid autoswap balance threshold: %w", err)
+		}
+		if swapAmount, err = strconv.ParseUint(swapAmountStr, 10, 64); err != nil {
+			return nil, fmt.Errorf("invalid autoswap amount: %w", err)
+		}
+	}
+
+	swapFees, err := api.svc.GetSwapsService().CalculateFee()
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to calculate fee info")
+		return nil, err
+	}
+
+	return &GetAutoSwapsConfigResponse{
+		Enabled:          enabled,
+		BalanceThreshold: swapBalanceThreshold,
+		SwapAmount:       swapAmount,
+		Destination:      swapDestination,
+		AlbyServiceFee:   swapFees.AlbyServiceFee,
+		BoltzServiceFee:  swapFees.BoltzServiceFee,
+		BoltzNetworkFee:  swapFees.BoltzNetworkFee,
+	}, nil
+}
+
+func (api *api) EnableAutoSwaps(ctx context.Context, enableAutoSwapsRequest *EnableAutoSwapsRequest) error {
+	err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, strconv.FormatUint(enableAutoSwapsRequest.BalanceThreshold, 10), "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save autoswap balance threshold to config")
+		return err
+	}
+
+	err = api.cfg.SetUpdate(config.AutoSwapAmountKey, strconv.FormatUint(enableAutoSwapsRequest.SwapAmount, 10), "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save autoswap amount to config")
+		return err
+	}
+
+	err = api.cfg.SetUpdate(config.AutoSwapDestinationKey, enableAutoSwapsRequest.Destination, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save autoswap destination to config")
+		return err
+	}
+
+	return api.svc.StartAutoSwaps()
+}
+
+func (api *api) DisableAutoSwaps() error {
+	if err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, "", ""); err != nil {
+		logger.Logger.WithError(err).Error("Failed to remove autoswap balance threshold")
+		return err
+	}
+	if err := api.cfg.SetUpdate(config.AutoSwapAmountKey, "", ""); err != nil {
+		logger.Logger.WithError(err).Error("Failed to remove autoswap amount")
+		return err
+	}
+	if err := api.cfg.SetUpdate(config.AutoSwapDestinationKey, "", ""); err != nil {
+		logger.Logger.WithError(err).Error("Failed to remove autoswap destination")
+		return err
+	}
+
+	api.svc.GetSwapsService().StopAutoSwaps()
+
+	return nil
+}
+
 func (api *api) GetNodeStatus(ctx context.Context) (*lnclient.NodeStatus, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
@@ -769,6 +847,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.AutoUnlockPasswordEnabled = autoUnlockPassword != ""
 	info.AutoUnlockPasswordSupported = api.cfg.GetEnv().IsDefaultClientId()
 	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
+	info.Relay = api.cfg.GetRelayUrl()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get alby user identifier")
 		return nil, err

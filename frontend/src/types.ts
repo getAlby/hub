@@ -152,6 +152,7 @@ export interface InfoResponse {
   albyUserIdentifier: string;
   network?: Network;
   version: string;
+  relay: string;
   unlocked: boolean;
   enableAdvancedSetup: boolean;
   startupState: string;
@@ -191,6 +192,16 @@ export type AppMetadata = { app_store_app_id?: string } & Record<
   string,
   unknown
 >;
+
+export type SwapsSettingsResponse = {
+  enabled: boolean;
+  balanceThreshold: number;
+  swapAmount: number;
+  destination: string;
+  albyServiceFee: number;
+  boltzServiceFee: number;
+  boltzNetworkFee: number;
+};
 
 export interface MnemonicResponse {
   mnemonic: string;
