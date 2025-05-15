@@ -31,7 +31,7 @@ func TestSelfHoldPaymentSettled(t *testing.T) {
 	svc.LNClient.(*tests.MockLn).Pubkey = "038a73de75fdc3c7ec951a5e0b0fa95c5cd353bd7ca72df2086aa228c1f92819a5"
 
 	go func() {
-		result, err := transactionsService.SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, svc.LNClient, nil, nil)
+		result, err := transactionsService.SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, svc.LNClient, nil, nil, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, result.State)
 		assert.Equal(t, true, result.SelfPayment)
@@ -63,7 +63,7 @@ func TestSelfHoldPaymentCanceled(t *testing.T) {
 	svc.LNClient.(*tests.MockLn).Pubkey = "038a73de75fdc3c7ec951a5e0b0fa95c5cd353bd7ca72df2086aa228c1f92819a5"
 
 	go func() {
-		result, err := transactionsService.SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, svc.LNClient, nil, nil)
+		result, err := transactionsService.SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, svc.LNClient, nil, nil, nil)
 		assert.ErrorIs(t, err, lnclient.NewHoldInvoiceCanceledError())
 		assert.Nil(t, result)
 
