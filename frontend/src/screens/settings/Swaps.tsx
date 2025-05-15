@@ -97,7 +97,7 @@ function Swaps() {
     <>
       <SettingsHeader
         title="Swaps"
-        description="Automatically swap lightning to on-chain funds, a fee of 1.5% applies to all swaps."
+        description="Automatically swap lightning to on-chain funds."
       />
       {!swapsSettings.enabled ? (
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
