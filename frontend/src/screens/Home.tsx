@@ -98,34 +98,6 @@ function Home() {
             </ExternalLink>
           )}
 
-          <Link to="/internal-apps/zapplanner">
-            <Card>
-              <CardHeader>
-                <div className="flex flex-row items-center">
-                  <div className="flex-shrink-0">
-                    <img
-                      src={zapplanner}
-                      className="w-12 h-12 rounded-xl border"
-                    />
-                  </div>
-                  <div>
-                    <CardTitle>
-                      <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4 flex gap-2">
-                        ZapPlanner <Badge>NEW</Badge>
-                      </div>
-                    </CardTitle>
-                    <CardDescription className="ml-4">
-                      Schedule automatic recurring lightning payments.
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="text-right">
-                <Button variant="outline">Open</Button>
-              </CardContent>
-            </Card>
-          </Link>
-
           <Link to="/internal-apps/alby-go">
             <Card>
               <CardHeader>
@@ -188,6 +160,34 @@ function Home() {
           <LatestUsedAppsWidget />
           <LightningMessageboardWidget />
           <AppOfTheDayWidget />
+
+          <Link to="/internal-apps/zapplanner">
+            <Card>
+              <CardHeader>
+                <div className="flex flex-row items-center">
+                  <div className="flex-shrink-0">
+                    <img
+                      src={zapplanner}
+                      className="w-12 h-12 rounded-xl border"
+                    />
+                  </div>
+                  <div>
+                    <CardTitle>
+                      <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4 flex gap-2">
+                        ZapPlanner <Badge>NEW</Badge>
+                      </div>
+                    </CardTitle>
+                    <CardDescription className="ml-4">
+                      Schedule automatic recurring lightning payments.
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="text-right">
+                <Button variant="outline">Open</Button>
+              </CardContent>
+            </Card>
+          </Link>
 
           <Card>
             <CardHeader>
