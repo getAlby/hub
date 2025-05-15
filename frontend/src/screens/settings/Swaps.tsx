@@ -116,11 +116,11 @@ function Swaps() {
               type="number"
               placeholder="How much do you want to swap out?"
               value={swapAmount}
-              min={50000}
+              min={50_000}
               onChange={(e) => setSwapAmount(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Should be ≥ 50000 sats
+              Minimum {new Intl.NumberFormat().format(50_000)} sats
             </p>
           </div>
           <Label>Destination</Label>
