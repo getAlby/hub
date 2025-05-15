@@ -87,6 +87,8 @@ export function ZapPlanner() {
   const [amount, setAmount] = React.useState("");
   const [comment, setComment] = React.useState("");
   const [senderName, setSenderName] = React.useState("");
+  const [frequencyValue, setFrequencyValue] = React.useState("1");
+  const [frequencyUnit, setFrequencyUnit] = React.useState("days");
 
   React.useEffect(() => {
     // reset form on close
@@ -148,7 +150,7 @@ export function ZapPlanner() {
               ...(senderName ? { name: senderName } : {}),
             }),
             nostrWalletConnectUrl: createAppResponse.pairingUri,
-            sleepDuration: "31 days",
+            sleepDuration: `${frequencyValue} ${frequencyUnit}`,
           }),
         }
       );
@@ -273,6 +275,40 @@ export function ZapPlanner() {
                         />
                       </div>
                     </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="frequency" className="text-right">
+                        Frequency
+                      </Label>
+                      <div className="col-span-3 flex gap-2 items-center">
+                        <span className="text-sm whitespace-nowrap">
+                          Repeat payment every
+                        </span>
+                        <Input
+                          id="frequency"
+                          type="number"
+                          min="1"
+                          value={frequencyValue}
+                          onChange={(e) => {
+                            const value = Math.max(
+                              1,
+                              parseInt(e.target.value || "1")
+                            );
+                            setFrequencyValue(value.toString());
+                          }}
+                          className="w-20"
+                        />
+                        <select
+                          value={frequencyUnit}
+                          onChange={(e) => setFrequencyUnit(e.target.value)}
+                          className="border rounded-md px-2 py-1 bg-background text-foreground"
+                        >
+                          <option value="days">days</option>
+                          <option value="weeks">weeks</option>
+                          <option value="months">months</option>
+                        </select>
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-4 gap-4">
                       <Label htmlFor="comment" className="text-right pt-2">
                         Comment
