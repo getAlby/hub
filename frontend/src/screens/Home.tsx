@@ -1,4 +1,4 @@
-import { ExternalLinkIcon, HeartIcon } from "lucide-react";
+import { ExternalLinkIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
@@ -10,7 +10,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
@@ -28,6 +27,7 @@ import { LatestUsedAppsWidget } from "src/components/home/widgets/LatestUsedApps
 import { LightningMessageboardWidget } from "src/components/home/widgets/LightningMessageboardWidget";
 import { NodeStatusWidget } from "src/components/home/widgets/NodeStatusWidget";
 import { OnchainFeesWidget } from "src/components/home/widgets/OnchainFeesWidget";
+import { SupportAlbyWidget } from "src/components/home/widgets/SupportAlbyWidget";
 import { WhatsNewWidget } from "src/components/home/widgets/WhatsNewWidget";
 
 function getGreeting(name: string | undefined) {
@@ -66,23 +66,7 @@ function Home() {
         <div className="grid gap-5">
           <OnboardingChecklist />
           <WhatsNewWidget />
-          <Card>
-            <CardHeader>
-              <CardTitle>Support Alby</CardTitle>
-              <CardDescription>
-                Upgrade to Pro or setup a recurring payment to support the
-                development of Alby Hub, Alby Go and the NWC ecosystem.
-              </CardDescription>
-            </CardHeader>
-            <CardFooter className="flex justify-end">
-              <Link to="/support-alby">
-                <Button variant="outline">
-                  <HeartIcon className="w-4 h-4 mr-2" />
-                  Become a Supporter
-                </Button>
-              </Link>
-            </CardFooter>
-          </Card>
+          <SupportAlbyWidget />
           {info.albyAccountConnected && (
             <ExternalLink to="https://www.getalby.com/dashboard">
               <Card>
@@ -113,34 +97,6 @@ function Home() {
               </Card>
             </ExternalLink>
           )}
-
-          <Link to="/internal-apps/zapplanner">
-            <Card>
-              <CardHeader>
-                <div className="flex flex-row items-center">
-                  <div className="flex-shrink-0">
-                    <img
-                      src={zapplanner}
-                      className="w-12 h-12 rounded-xl border"
-                    />
-                  </div>
-                  <div>
-                    <CardTitle>
-                      <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4 flex gap-2">
-                        ZapPlanner <Badge>NEW</Badge>
-                      </div>
-                    </CardTitle>
-                    <CardDescription className="ml-4">
-                      Schedule automatic recurring lightning payments.
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="text-right">
-                <Button variant="outline">Open</Button>
-              </CardContent>
-            </Card>
-          </Link>
 
           <Link to="/internal-apps/alby-go">
             <Card>
@@ -204,6 +160,34 @@ function Home() {
           <LatestUsedAppsWidget />
           <LightningMessageboardWidget />
           <AppOfTheDayWidget />
+
+          <Link to="/internal-apps/zapplanner">
+            <Card>
+              <CardHeader>
+                <div className="flex flex-row items-center">
+                  <div className="flex-shrink-0">
+                    <img
+                      src={zapplanner}
+                      className="w-12 h-12 rounded-xl border"
+                    />
+                  </div>
+                  <div>
+                    <CardTitle>
+                      <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4 flex gap-2">
+                        ZapPlanner <Badge>NEW</Badge>
+                      </div>
+                    </CardTitle>
+                    <CardDescription className="ml-4">
+                      Schedule automatic recurring lightning payments.
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="text-right">
+                <Button variant="outline">Open</Button>
+              </CardContent>
+            </Card>
+          </Link>
 
           <Card>
             <CardHeader>
