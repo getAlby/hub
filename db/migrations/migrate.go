@@ -29,6 +29,7 @@ func Migrate(gormDB *gorm.DB) error {
 		_202410141503_add_wallet_pubkey,
 		_202412212345_fix_types,
 		_202504231037_add_indexes,
+		_202505091314_hold_invoices,
 	})
 
 	return m.Migrate()

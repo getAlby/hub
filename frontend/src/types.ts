@@ -24,7 +24,10 @@ export type Nip47RequestMethod =
   | "list_transactions"
   | "sign_message"
   | "multi_pay_invoice"
-  | "multi_pay_keysend";
+  | "multi_pay_keysend"
+  | "make_hold_invoice"
+  | "settle_hold_invoice"
+  | "cancel_hold_invoice";
 
 export type BudgetRenewalType =
   | "daily"
