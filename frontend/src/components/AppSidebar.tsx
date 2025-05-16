@@ -20,6 +20,7 @@ import {
 import React from "react";
 
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import albyHub from "src/assets/suggested-apps/alby-hub.png";
 import ExternalLink from "src/components/ExternalLink";
 import { AlbyIcon } from "src/components/icons/Alby";
 import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
@@ -57,7 +58,6 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useHealthCheck } from "src/hooks/useHealthCheck";
 import { useInfo } from "src/hooks/useInfo";
 import { deleteAuthToken } from "src/lib/auth";
-
 import { isHttpMode } from "src/utils/isHttpMode";
 
 export function AppSidebar() {
@@ -181,19 +181,30 @@ export function AppSidebar() {
                   size="lg"
                   className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                 >
-                  <UserAvatar />
-                  <div className="grid flex-1 text-left text-sm leading-tight">
-                    <span className="truncate font-semibold">
-                      {info?.albyAccountConnected
-                        ? albyMe?.name || albyMe?.email
-                        : "Satoshi Nakamoto"}
-                    </span>
-                    <div className="truncate text-xs">
-                      {info?.albyAccountConnected
-                        ? albyMe?.lightning_address
-                        : "satoshin@gmx.com"}
-                    </div>
-                  </div>
+                  {info?.albyAccountConnected ? (
+                    <>
+                      <UserAvatar />
+                      <div className="grid flex-1 text-left text-sm leading-tight">
+                        <span className="truncate font-semibold">
+                          {albyMe?.name || albyMe?.email}
+                        </span>
+                        <div className="truncate text-xs">
+                          {albyMe?.lightning_address}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <img
+                        src={albyHub}
+                        alt="logo"
+                        className="w-8 h-8 rounded-lg "
+                      />
+                      <div className="font-semibold text-left text-sm leading-tight">
+                        My Alby Hub
+                      </div>
+                    </>
+                  )}
                   <ChevronsUpDown className="ml-auto size-4" />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
