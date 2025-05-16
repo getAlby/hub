@@ -1,9 +1,9 @@
 import {
-  ArrowDownUp,
-  BrickWall,
+  ArrowDownUpIcon,
+  BrickWallIcon,
   LucideIcon,
-  MoveDown,
-  SquarePen,
+  MoveDownIcon,
+  SquarePenIcon,
 } from "lucide-react";
 import React from "react";
 import { Checkbox } from "src/components/ui/checkbox";
@@ -16,16 +16,16 @@ type ScopeGroup = (typeof scopeGroups)[number];
 type ScopeGroupIconMap = { [key in ScopeGroup]: LucideIcon };
 
 const scopeGroupIconMap: ScopeGroupIconMap = {
-  full_access: ArrowDownUp,
-  read_only: MoveDown,
-  isolated: BrickWall,
-  custom: SquarePen,
+  full_access: ArrowDownUpIcon,
+  read_only: MoveDownIcon,
+  isolated: BrickWallIcon,
+  custom: SquarePenIcon,
 };
 
 const scopeGroupTitle: Record<ScopeGroup, string> = {
   full_access: "Full Access",
   read_only: "Read Only",
-  isolated: "Sub-wallet",
+  isolated: "Isolated",
   custom: "Custom",
 };
 

@@ -17,9 +17,7 @@ import (
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
-	"github.com/getAlby/hub/lnclient/breez"
 	"github.com/getAlby/hub/lnclient/cashu"
-	"github.com/getAlby/hub/lnclient/greenlight"
 	"github.com/getAlby/hub/lnclient/ldk"
 	"github.com/getAlby/hub/lnclient/lnd"
 	"github.com/getAlby/hub/lnclient/phoenixd"
@@ -48,7 +46,6 @@ func (svc *service) startNostr(ctx context.Context) error {
 		waitToReconnectSeconds := 0
 		var createAppEventListener events.EventSubscriber
 		var updateAppEventListener events.EventSubscriber
-		publishInfoEvents := true
 		for i := 0; ; i++ {
 			// wait for a delay if any before retrying
 			contextCancelled := false
@@ -90,7 +87,8 @@ func (svc *service) startNostr(ctx context.Context) error {
 			}).Info("Connected to the relay")
 			waitToReconnectSeconds = 0
 
-			svc.nip47Service.StartNotifier(relay.Context(), relay)
+			svc.nip47Service.StartNotifier(relay)
+			svc.nip47Service.StartNip47InfoPublisher(relay, svc.lnClient)
 
 			// register a subscriber for events of "nwc_app_created" which handles creation of nostr subscription for new app
 			if createAppEventListener != nil {
@@ -107,7 +105,7 @@ func (svc *service) startNostr(ctx context.Context) error {
 			svc.eventPublisher.RegisterSubscriber(updateAppEventListener)
 
 			// start each app wallet subscription which have a child derived wallet key
-			svc.startAllExistingAppsWalletSubscriptions(ctx, relay, publishInfoEvents)
+			svc.startAllExistingAppsWalletSubscriptions(ctx, relay)
 
 			// check if there are still legacy apps in DB
 			var legacyAppCount int64
@@ -118,13 +116,6 @@ func (svc *service) startNostr(ctx context.Context) error {
 			}
 			if legacyAppCount > 0 {
 				go func() {
-					if publishInfoEvents {
-						// re-publish single NIP47 event info for legacy apps
-						_, err := svc.GetNip47Service().PublishNip47Info(ctx, relay, svc.keys.GetNostrPublicKey(), svc.keys.GetNostrSecretKey(), svc.lnClient)
-						if err != nil {
-							logger.Logger.WithError(err).Error("Could not publish NIP47 info for legacy apps")
-						}
-					}
 					logger.Logger.WithField("legacy_app_count", legacyAppCount).Info("Starting legacy app subscription")
 					// legacy single wallet subscription - only subscribe once for all legacy apps
 					// to ensure we do not get duplicate events
@@ -136,8 +127,6 @@ func (svc *service) startNostr(ctx context.Context) error {
 				}()
 			}
 
-			// only publish info events on first connection
-			publishInfoEvents = false
 			svc.setRelayReady(true)
 
 			select {
@@ -158,7 +147,46 @@ func (svc *service) startNostr(ctx context.Context) error {
 	return nil
 }
 
-func (svc *service) startAllExistingAppsWalletSubscriptions(ctx context.Context, relay *nostr.Relay, publishInfoEvent bool) {
+// In case the relay somehow loses events or the hub updates with
+// new capabilities, we re-publish info events for all apps on startup
+// to ensure that they are retrievable for all connections
+func (svc *service) publishAllAppInfoEvents() {
+	func() {
+		var legacyAppCount int64
+		result := svc.db.Model(&db.App{}).Where("wallet_pubkey IS NULL").Count(&legacyAppCount)
+		if result.Error != nil {
+			logger.Logger.WithError(result.Error).Error("Failed to fetch App records with empty WalletPubkey")
+			return
+		}
+		if legacyAppCount > 0 {
+			logger.Logger.WithField("legacy_app_count", legacyAppCount).Debug("Enqueuing publish of legacy info event")
+			svc.nip47Service.EnqueueNip47InfoPublishRequest(svc.keys.GetNostrPublicKey(), svc.keys.GetNostrSecretKey())
+		}
+	}()
+
+	var apps []db.App
+	result := svc.db.Where("wallet_pubkey IS NOT NULL").Find(&apps)
+	if result.Error != nil {
+		logger.Logger.WithError(result.Error).Error("Failed to fetch App records with non-empty WalletPubkey")
+		return
+	}
+
+	for _, app := range apps {
+		func(app db.App) {
+			// queue info event publish request for all existing apps
+			walletPrivKey, err := svc.keys.GetAppWalletKey(app.ID)
+			if err != nil {
+				logger.Logger.WithError(err).WithFields(logrus.Fields{
+					"app_id": app.ID}).Error("Could not get app wallet key")
+				return
+			}
+			logger.Logger.WithField("app_id", app.ID).Debug("Enqueuing publish of app info event")
+			svc.nip47Service.EnqueueNip47InfoPublishRequest(*app.WalletPubkey, walletPrivKey)
+		}(app)
+	}
+}
+
+func (svc *service) startAllExistingAppsWalletSubscriptions(ctx context.Context, relay *nostr.Relay) {
 	var apps []db.App
 	result := svc.db.Where("wallet_pubkey IS NOT NULL").Find(&apps)
 	if result.Error != nil {
@@ -168,21 +196,7 @@ func (svc *service) startAllExistingAppsWalletSubscriptions(ctx context.Context,
 
 	for _, app := range apps {
 		go func(app db.App) {
-			// republish info event for all existing apps
-			walletPrivKey, err := svc.keys.GetAppWalletKey(app.ID)
-			if err != nil {
-				logger.Logger.WithError(err).WithFields(logrus.Fields{
-					"app_id": app.ID}).Error("Could not get app wallet key")
-			}
-			if publishInfoEvent {
-				_, err = svc.GetNip47Service().PublishNip47Info(ctx, relay, *app.WalletPubkey, walletPrivKey, svc.lnClient)
-				if err != nil {
-					logger.Logger.WithError(err).WithFields(logrus.Fields{
-						"app_id": app.ID}).Error("Could not publish NIP47 info")
-				}
-			}
-
-			err = svc.startAppWalletSubscription(ctx, relay, *app.WalletPubkey)
+			err := svc.startAppWalletSubscription(ctx, relay, *app.WalletPubkey)
 			if err != nil && !errors.Is(err, context.Canceled) {
 				logger.Logger.WithError(err).WithFields(logrus.Fields{
 					"app_id": app.ID}).Error("Subscription error")
@@ -272,6 +286,13 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return err
 	}
 
+	err = svc.StartAutoSwaps()
+	if err != nil {
+		logger.Logger.WithError(err).Error("Couldn't enable auto swaps")
+	}
+
+	svc.publishAllAppInfoEvents()
+
 	svc.startupState = "Connecting To Relay"
 	err = svc.startNostr(ctx)
 	if err != nil {
@@ -282,6 +303,10 @@ func (svc *service) StartApp(encryptionKey string) error {
 	svc.appCancelFn = cancelFn
 
 	return nil
+}
+
+func (svc *service) StartAutoSwaps() error {
+	return svc.GetSwapsService().EnableAutoSwaps(svc.ctx, svc.lnClient)
 }
 
 func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) error {
@@ -327,20 +352,7 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		setStartupState := func(startupState string) {
 			svc.startupState = startupState
 		}
-		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, mnemonic, ldkWorkdir, svc.cfg.GetEnv().LDKNetwork, vssToken, setStartupState)
-	case config.GreenlightBackendType:
-		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
-		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
-		GreenlightWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "greenlight")
-
-		lnClient, err = greenlight.NewGreenlightService(svc.cfg, Mnemonic, GreenlightInviteCode, GreenlightWorkdir, encryptionKey)
-	case config.BreezBackendType:
-		Mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
-		BreezAPIKey, _ := svc.cfg.Get("BreezAPIKey", encryptionKey)
-		GreenlightInviteCode, _ := svc.cfg.Get("GreenlightInviteCode", encryptionKey)
-		BreezWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "breez")
-
-		lnClient, err = breez.NewBreezService(Mnemonic, BreezAPIKey, GreenlightInviteCode, BreezWorkdir)
+		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, mnemonic, ldkWorkdir, svc.cfg.GetNetwork(), vssToken, setStartupState)
 	case config.PhoenixBackendType:
 		PhoenixdAddress, _ := svc.cfg.Get("PhoenixdAddress", encryptionKey)
 		PhoenixdAuthorization, _ := svc.cfg.Get("PhoenixdAuthorization", encryptionKey)
@@ -428,7 +440,7 @@ func (svc *service) requestVssToken(ctx context.Context) (string, error) {
 				return "", err
 			}
 			// only activate VSS for Alby paid subscribers
-			if me.Subscription.Buzz {
+			if me.Subscription.PlanCode != "" {
 				svc.cfg.SetUpdate("LdkVssEnabled", "true", "")
 			}
 		}
@@ -446,7 +458,18 @@ func (svc *service) requestVssToken(ctx context.Context) (string, error) {
 		vssToken, err = svc.albyOAuthSvc.GetVssAuthToken(ctx, vssNodeIdentifier)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to fetch VSS JWT token")
+
+			existingVssToken, _ := svc.cfg.Get("VssToken", "")
+			if existingVssToken != "" {
+				logger.Logger.Warn("Using stored VSS JWT token")
+				return existingVssToken, nil
+			}
+
 			return "", err
+		}
+		err = svc.cfg.SetUpdate("VssToken", vssToken, "")
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save VSS JWT token to user config")
 		}
 	}
 	return vssToken, nil

@@ -13,9 +13,9 @@ export default function FormattedFiatAmount({
   className,
 }: FormattedFiatAmountProps) {
   const { data: info } = useInfo();
-  const { data: bitcoinRate } = useBitcoinRate();
+  const { data: bitcoinRate, error: bitcoinRateError } = useBitcoinRate();
 
-  if (info?.currency === "SATS") {
+  if (info?.currency === "SATS" || bitcoinRateError) {
     return null;
   }
 

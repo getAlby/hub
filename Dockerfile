@@ -3,7 +3,7 @@ WORKDIR /build
 COPY frontend ./frontend
 RUN cd frontend && yarn install --network-timeout 3000000 && yarn build:http
 
-FROM golang:1.23.1 as builder
+FROM golang:1.24 as builder
 
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
@@ -43,14 +43,12 @@ RUN chmod +x copy_dylibs.sh
 RUN ./copy_dylibs.sh $(echo "$TARGETPLATFORM" | cut -d'/' -f2)
 
 # Start a new, final image to reduce size.
-FROM debian as final
+FROM debian:12-slim as final
 
 ENV LD_LIBRARY_PATH=/usr/lib/nwc
 #
 # # Copy the binaries and entrypoint from the builder image.
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /build/libbreez_sdk_bindings.so /usr/lib/nwc/
-COPY --from=builder /build/libglalby_bindings.so /usr/lib/nwc/
 COPY --from=builder /build/libldk_node.so /usr/lib/nwc/
 COPY --from=builder /build/main /bin/
 

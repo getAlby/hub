@@ -1,23 +1,17 @@
 import {
-  Bell,
-  CirclePlus,
-  Crown,
-  HandCoins,
-  Info,
+  BellIcon,
+  CirclePlusIcon,
+  CrownIcon,
+  HandCoinsIcon,
+  InfoIcon,
   LucideIcon,
-  NotebookTabs,
-  PenLine,
-  Search,
-  WalletMinimal,
+  NotebookTabsIcon,
+  PenLineIcon,
+  SearchIcon,
+  WalletMinimalIcon,
 } from "lucide-react";
 
-export type BackendType =
-  | "LND"
-  | "BREEZ"
-  | "GREENLIGHT"
-  | "LDK"
-  | "PHOENIX"
-  | "CASHU";
+export type BackendType = "LND" | "LDK" | "PHOENIX" | "CASHU";
 
 export type Nip47RequestMethod =
   | "get_info"
@@ -58,15 +52,15 @@ export type ScopeIconMap = {
 };
 
 export const scopeIconMap: ScopeIconMap = {
-  get_balance: WalletMinimal,
-  get_info: Info,
-  list_transactions: NotebookTabs,
-  lookup_invoice: Search,
-  make_invoice: CirclePlus,
-  pay_invoice: HandCoins,
-  sign_message: PenLine,
-  notifications: Bell,
-  superuser: Crown,
+  get_balance: WalletMinimalIcon,
+  get_info: InfoIcon,
+  list_transactions: NotebookTabsIcon,
+  lookup_invoice: SearchIcon,
+  make_invoice: CirclePlusIcon,
+  pay_invoice: HandCoinsIcon,
+  sign_message: PenLineIcon,
+  notifications: BellIcon,
+  superuser: CrownIcon,
 };
 
 export type WalletCapabilities = {
@@ -155,6 +149,7 @@ export interface InfoResponse {
   albyUserIdentifier: string;
   network?: Network;
   version: string;
+  relay: string;
   unlocked: boolean;
   enableAdvancedSetup: boolean;
   startupState: string;
@@ -169,11 +164,19 @@ export type HealthAlarmKind =
   | "alby_service"
   | "node_not_ready"
   | "channels_offline"
-  | "nostr_relay_offline";
+  | "nostr_relay_offline"
+  | "vss_no_subscription";
 
 export type HealthAlarm = {
   kind: HealthAlarmKind;
-  rawDetails: unknown;
+  rawDetails?: unknown;
+};
+export type AlbyInfoIncident = {
+  name: string;
+  started: string;
+  status: string;
+  impact: string;
+  url: string;
 };
 
 export type HealthResponse = {
@@ -186,6 +189,16 @@ export type AppMetadata = { app_store_app_id?: string } & Record<
   string,
   unknown
 >;
+
+export type SwapsSettingsResponse = {
+  enabled: boolean;
+  balanceThreshold: number;
+  swapAmount: number;
+  destination: string;
+  albyServiceFee: number;
+  boltzServiceFee: number;
+  boltzNetworkFee: number;
+};
 
 export interface MnemonicResponse {
   mnemonic: string;
@@ -331,8 +344,6 @@ export type SetupNodeInfo = Partial<{
 
   mnemonic?: string;
   nextBackupReminder?: string;
-  greenlightInviteCode?: string;
-  breezApiKey?: string;
 
   lndAddress?: string;
   lndCertHex?: string;
@@ -395,7 +406,7 @@ export type AlbyMe = {
     name?: string;
   };
   subscription: {
-    buzz: boolean;
+    plan_code: string;
   };
 };
 
@@ -490,6 +501,15 @@ export type Boostagram = {
   time: string;
   action: "boost";
   valueMsatTotal: number;
+};
+
+export type OnchainTransaction = {
+  amountSat: number;
+  createdAt: number;
+  type: "incoming" | "outgoing";
+  state: "confirmed" | "unconfirmed";
+  numConfirmations: number;
+  txId: string;
 };
 
 export type ListTransactionsResponse = {

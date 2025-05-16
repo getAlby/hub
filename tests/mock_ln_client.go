@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/getAlby/hub/lnclient"
@@ -77,7 +78,7 @@ func NewMockLn() (*MockLn, error) {
 	return &MockLn{}, nil
 }
 
-func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string, amount *uint64, timeoutSeconds *int64) (*lnclient.PayInvoiceResponse, error) {
 	if len(mln.PayInvoiceResponses) > 0 {
 		response := mln.PayInvoiceResponses[0]
 		err := mln.PayInvoiceErrors[0]
@@ -137,7 +138,7 @@ func (mln *MockLn) CloseChannel(ctx context.Context, closeChannelRequest *lnclie
 func (mln *MockLn) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	return "", nil
 }
-func (mln *MockLn) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
+func (mln *MockLn) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
 	return &MockLNClientBalances, nil
 }
 func (mln *MockLn) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
@@ -210,4 +211,8 @@ func (mln *MockLn) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeComman
 
 func (mln *MockLn) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
 	return nil, nil
+}
+
+func (mln *MockLn) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
+	return nil, errors.ErrUnsupported
 }

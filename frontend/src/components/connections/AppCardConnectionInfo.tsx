@@ -1,8 +1,9 @@
 import dayjs from "dayjs";
-import { BrickWall, CircleCheck, PlusCircle } from "lucide-react";
+import { BrickWallIcon, CircleCheckIcon, PlusCircleIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "src/components/ui/button";
 import { Progress } from "src/components/ui/progress";
+import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
 import { formatAmount } from "src/lib/utils";
 import { App, BudgetRenewalType } from "src/types";
 
@@ -40,8 +41,12 @@ export function AppCardConnectionInfo({
         <>
           <div className="text-sm text-secondary-foreground font-medium w-full h-full flex flex-col gap-2">
             <div className="flex flex-row items-center gap-2">
-              <BrickWall className="w-4 h-4" />
-              Sub-wallet
+              <BrickWallIcon className="w-4 h-4" />
+
+              {connection.metadata?.app_store_app_id ===
+              SUBWALLET_APPSTORE_APP_ID
+                ? "Sub-wallet"
+                : "Isolated App"}
             </div>
           </div>
           <div className="flex flex-row justify-between text-xs items-end mt-2">
@@ -122,7 +127,7 @@ export function AppCardConnectionInfo({
             {!readonly && (
               <Link to={`/apps/${connection.appPubkey}?edit=true`}>
                 <Button variant="outline">
-                  <PlusCircle className="w-4 h-4 mr-2" />
+                  <PlusCircleIcon className="w-4 h-4 mr-2" />
                   Set Budget
                 </Button>
               </Link>
@@ -133,18 +138,18 @@ export function AppCardConnectionInfo({
         <>
           <div className="text-sm text-secondary-foreground font-medium w-full h-full flex flex-col gap-2">
             <div className="flex flex-row items-center gap-2">
-              <CircleCheck className="w-4 h-4" />
+              <CircleCheckIcon className="w-4 h-4" />
               Share wallet information
             </div>
             {connection.scopes.indexOf("make_invoice") > -1 && (
               <div className="flex flex-row items-center gap-2">
-                <CircleCheck className="w-4 h-4" />
+                <CircleCheckIcon className="w-4 h-4" />
                 Receive payments
               </div>
             )}
             {connection.scopes.indexOf("list_transactions") > -1 && (
               <div className="flex flex-row items-center gap-2">
-                <CircleCheck className="w-4 h-4" />
+                <CircleCheckIcon className="w-4 h-4" />
                 Read transaction history
               </div>
             )}
@@ -162,7 +167,7 @@ export function AppCardConnectionInfo({
                 onClick={(e) => e.stopPropagation()}
               >
                 <Button variant="outline">
-                  <PlusCircle className="w-4 h-4 mr-2" />
+                  <PlusCircleIcon className="w-4 h-4 mr-2" />
                   Enable Payments
                 </Button>
               </Link>

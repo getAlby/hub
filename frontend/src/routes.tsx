@@ -8,12 +8,11 @@ import { DefaultRedirect } from "src/components/redirects/DefaultRedirect";
 import { HomeRedirect } from "src/components/redirects/HomeRedirect";
 import { SetupRedirect } from "src/components/redirects/SetupRedirect";
 import { StartRedirect } from "src/components/redirects/StartRedirect";
-import { BackupMnemonic } from "src/screens/BackupMnemonic";
-import { BackupNode } from "src/screens/BackupNode";
-import { BackupNodeSuccess } from "src/screens/BackupNodeSuccess";
 import { ConnectAlbyAccount } from "src/screens/ConnectAlbyAccount";
+import { CreateNodeMigrationFileSuccess } from "src/screens/CreateNodeMigrationFileSuccess";
 import Home from "src/screens/Home";
 import { Intro } from "src/screens/Intro";
+import { MigrateNode } from "src/screens/MigrateNode";
 import NotFound from "src/screens/NotFound";
 import Start from "src/screens/Start";
 import Unlock from "src/screens/Unlock";
@@ -38,20 +37,25 @@ import { FirstChannel } from "src/screens/channels/first/FirstChannel";
 import { OpenedFirstChannel } from "src/screens/channels/first/OpenedFirstChannel";
 import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChannel";
 import { AlbyGo } from "src/screens/internal-apps/AlbyGo";
+import { Bitrefill } from "src/screens/internal-apps/Bitrefill";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
+import { LightningMessageboard } from "src/screens/internal-apps/LightningMessageboard";
 import { SimpleBoost } from "src/screens/internal-apps/SimpleBoost";
-import { UncleJim } from "src/screens/internal-apps/UncleJim";
 import { ZapPlanner } from "src/screens/internal-apps/ZapPlanner";
 import BuyBitcoin from "src/screens/onchain/BuyBitcoin";
 import DepositBitcoin from "src/screens/onchain/DepositBitcoin";
 import ConnectPeer from "src/screens/peers/ConnectPeer";
 import Peers from "src/screens/peers/Peers";
+import { About } from "src/screens/settings/About";
 import { AlbyAccount } from "src/screens/settings/AlbyAccount";
 import { AutoUnlock } from "src/screens/settings/AutoUnlock";
+import Backup from "src/screens/settings/Backup";
 import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
 import DebugTools from "src/screens/settings/DebugTools";
 import DeveloperSettings from "src/screens/settings/DeveloperSettings";
 import Settings from "src/screens/settings/Settings";
+import Swaps from "src/screens/settings/Swaps";
+
 import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
 import { RestoreNode } from "src/screens/setup/RestoreNode";
 import { SetupAdvanced } from "src/screens/setup/SetupAdvanced";
@@ -59,13 +63,14 @@ import { SetupFinish } from "src/screens/setup/SetupFinish";
 import { SetupNode } from "src/screens/setup/SetupNode";
 import { SetupPassword } from "src/screens/setup/SetupPassword";
 import { SetupSecurity } from "src/screens/setup/SetupSecurity";
-import { BreezForm } from "src/screens/setup/node/BreezForm";
 import { CashuForm } from "src/screens/setup/node/CashuForm";
-import { GreenlightForm } from "src/screens/setup/node/GreenlightForm";
 import { LDKForm } from "src/screens/setup/node/LDKForm";
 import { LNDForm } from "src/screens/setup/node/LNDForm";
 import { PhoenixdForm } from "src/screens/setup/node/PhoenixdForm";
 import { PresetNodeForm } from "src/screens/setup/node/PresetNodeForm";
+import { NewSubwallet } from "src/screens/subwallets/NewSubwallet";
+import { SubwalletCreated } from "src/screens/subwallets/SubwalletCreated";
+import { SubwalletList } from "src/screens/subwallets/SubwalletList";
 import Wallet from "src/screens/wallet";
 import Receive from "src/screens/wallet/Receive";
 import Send from "src/screens/wallet/Send";
@@ -176,9 +181,18 @@ const routes = [
                 element: <Settings />,
               },
               {
+                path: "about",
+                element: <About />,
+                handle: { crumb: () => "About" },
+              },
+              {
                 path: "auto-unlock",
                 element: <AutoUnlock />,
                 handle: { crumb: () => "Auto Unlock" },
+              },
+              {
+                path: "swaps",
+                element: <Swaps />,
               },
               {
                 path: "change-unlock-password",
@@ -187,12 +201,12 @@ const routes = [
               },
               {
                 path: "backup",
-                element: <BackupMnemonic />,
+                element: <Backup />,
                 handle: { crumb: () => "Backup" },
               },
               {
-                path: "node-backup",
-                element: <BackupNode />,
+                path: "node-migrate",
+                element: <MigrateNode />,
               },
               {
                 path: "alby-account",
@@ -239,14 +253,30 @@ const routes = [
         ],
       },
       {
+        path: "sub-wallets",
+        element: <DefaultRedirect />,
+        handle: { crumb: () => "Sub-wallets" },
+
+        children: [
+          {
+            index: true,
+            element: <SubwalletList />,
+          },
+          {
+            path: "new",
+            element: <NewSubwallet />,
+          },
+          {
+            path: "created",
+            element: <SubwalletCreated />,
+          },
+        ],
+      },
+      {
         path: "internal-apps",
         element: <DefaultRedirect />,
         handle: { crumb: () => "Connections" },
         children: [
-          {
-            path: "uncle-jim",
-            element: <UncleJim />,
-          },
           {
             path: "alby-go",
             element: <AlbyGo />,
@@ -260,8 +290,16 @@ const routes = [
             element: <SimpleBoost />,
           },
           {
+            path: "lightning-messageboard",
+            element: <LightningMessageboard />,
+          },
+          {
             path: "zapplanner",
             element: <ZapPlanner />,
+          },
+          {
+            path: "bitrefill",
+            element: <Bitrefill />,
           },
         ],
       },
@@ -432,14 +470,6 @@ const routes = [
                 element: <SetupNode />,
               },
               {
-                path: "breez",
-                element: <BreezForm />,
-              },
-              {
-                path: "greenlight",
-                element: <GreenlightForm />,
-              },
-              {
                 path: "cashu",
                 element: <CashuForm />,
               },
@@ -482,8 +512,8 @@ const routes = [
     ],
   },
   {
-    path: "node-backup-success",
-    element: <BackupNodeSuccess />,
+    path: "create-node-migration-file-success",
+    element: <CreateNodeMigrationFileSuccess />,
   },
   {
     path: "intro",

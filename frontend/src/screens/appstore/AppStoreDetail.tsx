@@ -1,4 +1,4 @@
-import { Globe } from "lucide-react";
+import { GlobeIcon } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
@@ -155,7 +155,7 @@ export function AppStoreDetail() {
                 {app.webLink && (
                   <ExternalLink to={app.webLink}>
                     <Button variant="outline">
-                      <Globe className="w-4 h-4 mr-2" />
+                      <GlobeIcon className="w-4 h-4 mr-2" />
                       Website
                     </Button>
                   </ExternalLink>

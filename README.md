@@ -95,6 +95,22 @@ _If you get a blank screen, try running in your normal terminal (outside of vsco
 
     $ go test ./... -run TestHandleGetInfoEvent
 
+#### Testing with PostgreSQL
+
+By default, sqlite is used for testing. It is also possible to run the tests with PostgreSQL.
+
+The tests use [pgtestdb](https://github.com/peterldowns/pgtestdb) to set up a temporary PostgreSQL database, which requires a running PostgreSQL server. Follow your OS instructions to install PostgreSQL, or use the official [Docker image](https://hub.docker.com/_/postgres).
+
+See the [docker compose file](./tests/db/postgres/docker-compose.yml) for an easy way to get started.
+
+When PostgreSQL is installed and running, set the `TEST_DATABASE_URI` environment variable to the PostgreSQL connection string. For example:
+
+    $ export TEST_DATABASE_URI="postgresql://user:password@localhost:5432/postgres"
+
+Note that the PostgreSQL user account must be granted appropriate permissions to create new databases. When the tests complete, the temporary database will be removed.
+
+**Do not** use a production database. It is preferable to launch a dedicated PostgreSQL instance for testing purposes.
+
 #### Mocking
 
 We use [testify/mock](https://github.com/stretchr/testify) to facilitate mocking in tests. Instead of writing mocks manually, we generate them using [vektra/mockery](https://github.com/vektra/mockery). To regenerate them, [install mockery](https://vektra.github.io/mockery/latest/installation) and run it in the project's root directory:
@@ -138,21 +154,19 @@ For more information refer to:
 
     $ go run -ldflags="-X 'github.com/getAlby/hub/version.Tag=v0.6.0'" cmd/http/main.go
 
-### Windows
-
-Breez SDK requires gcc to build the Breez bindings. Run `choco install mingw` and copy the breez SDK bindings file into the root of this directory (from your go installation directory) as per the [Breez SDK instructions](https://github.com/breez/breez-sdk-go?tab=readme-ov-file#windows). ALSO copy the bindings file into the output directory alongside the .exe in order to run it.
-
 ## Optional configuration parameters
 
 The following configuration options can be set as environment variables or in a .env file
 
 - `RELAY`: default: "wss://relay.getalby.com/v1"
-- `JWT_SECRET`: a randomly generated secret string. (only needed in http mode)
-- `DATABASE_URI`: a sqlite filename or postgres URL. Default is SQLite DB `nwc.db` without a path, which will be put in the user home directory: $XDG_DATA_HOME/albyhub/nwc.db
-- `PORT`: the port on which the app should listen on (default: 8080)
-- `WORK_DIR`: directory to store NWC data files. Default: $XDG_DATA_HOME/albyhub
-- `LOG_LEVEL`: log level for the application. Higher is more verbose. Default: 4 (info)
-- `AUTO_UNLOCK_PASSWORD`: provide unlock password to auto-unlock Alby Hub on startup (e.g. after a machine restart). Unlock password still be required to access the interface.
+- `JWT_SECRET`: A randomly generated secret string. (only needed in http mode)
+- `DATABASE_URI`: A sqlite filename or postgres URL. Default is SQLite DB `nwc.db` without a path, which will be put in the user home directory: $XDG_DATA_HOME/albyhub/nwc.db
+- `PORT`: The port on which the app should listen on (default: 8080)
+- `WORK_DIR`: Directory to store NWC data files. Default: $XDG_DATA_HOME/albyhub
+- `LOG_LEVEL`: Log level for the application. Higher is more verbose. Default: 4 (info)
+- `AUTO_UNLOCK_PASSWORD`: Provide unlock password to auto-unlock Alby Hub on startup (e.g. after a machine restart). Unlock password still be required to access the interface.
+- `BOLTZ_API`: The api which provides auto swaps functionality. Default: "https://api.boltz.exchange"
+- `NETWORK`: On-chain network used for auto swaps. Should match the backend network. Default: "bitcoin"
 
 ### Migrating the database (Sqlite <-> Postgres)
 
@@ -192,14 +206,14 @@ _To configure via env, the following parameters must be provided:_
 ##### Mutinynet
 
 - `MEMPOOL_API=https://mutinynet.com/api`
-- `LDK_NETWORK=signet`
+- `NETWORK=signet`
 - `LDK_ESPLORA_SERVER=https://mutinynet.com/api`
 - `LDK_GOSSIP_SOURCE=https://rgs.mutinynet.com/snapshot`
 
 ##### Testnet (Not recommended - try Mutinynet)
 
 - `MEMPOOL_API=https://mempool.space/testnet/api`
-- `LDK_NETWORK=testnet`
+- `NETWORK=testnet`
 - `LDK_ESPLORA_SERVER=https://mempool.space/testnet/api`
 - `LDK_GOSSIP_SOURCE=https://rapidsync.lightningdevkit.org/testnet/snapshot`
 
@@ -356,10 +370,6 @@ You can also contribute to our [bounty program](https://github.com/getAlby/light
 
 - ⚠️ PAYMENT_FAILED error code not supported
 
-### Breez
-
-(Supported methods coming soon)
-
 ## Node Distributions
 
 Run NWC on your own node!
@@ -488,7 +498,7 @@ At a high level Alby Hub is an [NWC](https://nwc.dev) wallet service which allow
 
 ### LNClient
 
-The LNClient interface abstracts the differences between wallet implementations and allows users to run Alby Hub with their preferred wallet, such as LDK, LND, Phoenixd, Cashu, Breez, Greenlight.
+The LNClient interface abstracts the differences between wallet implementations and allows users to run Alby Hub with their preferred wallet, such as LDK, LND, Phoenixd, Cashu.
 
 ### Transactions Service
 

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -543,6 +544,83 @@ func (api *api) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnec
 	return api.svc.GetLNClient().GetNodeConnectionInfo(ctx)
 }
 
+func (api *api) GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error) {
+	swapBalanceThresholdStr, _ := api.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
+	swapAmountStr, _ := api.cfg.Get(config.AutoSwapAmountKey, "")
+	swapDestination, _ := api.cfg.Get(config.AutoSwapDestinationKey, "")
+
+	enabled := swapBalanceThresholdStr != "" &&
+		swapAmountStr != "" &&
+		swapDestination != ""
+	var swapBalanceThreshold, swapAmount uint64
+	if enabled {
+		var err error
+		if swapBalanceThreshold, err = strconv.ParseUint(swapBalanceThresholdStr, 10, 64); err != nil {
+			return nil, fmt.Errorf("invalid autoswap balance threshold: %w", err)
+		}
+		if swapAmount, err = strconv.ParseUint(swapAmountStr, 10, 64); err != nil {
+			return nil, fmt.Errorf("invalid autoswap amount: %w", err)
+		}
+	}
+
+	swapFees, err := api.svc.GetSwapsService().CalculateFee()
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to calculate fee info")
+		return nil, err
+	}
+
+	return &GetAutoSwapsConfigResponse{
+		Enabled:          enabled,
+		BalanceThreshold: swapBalanceThreshold,
+		SwapAmount:       swapAmount,
+		Destination:      swapDestination,
+		AlbyServiceFee:   swapFees.AlbyServiceFee,
+		BoltzServiceFee:  swapFees.BoltzServiceFee,
+		BoltzNetworkFee:  swapFees.BoltzNetworkFee,
+	}, nil
+}
+
+func (api *api) EnableAutoSwaps(ctx context.Context, enableAutoSwapsRequest *EnableAutoSwapsRequest) error {
+	err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, strconv.FormatUint(enableAutoSwapsRequest.BalanceThreshold, 10), "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save autoswap balance threshold to config")
+		return err
+	}
+
+	err = api.cfg.SetUpdate(config.AutoSwapAmountKey, strconv.FormatUint(enableAutoSwapsRequest.SwapAmount, 10), "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save autoswap amount to config")
+		return err
+	}
+
+	err = api.cfg.SetUpdate(config.AutoSwapDestinationKey, enableAutoSwapsRequest.Destination, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save autoswap destination to config")
+		return err
+	}
+
+	return api.svc.StartAutoSwaps()
+}
+
+func (api *api) DisableAutoSwaps() error {
+	if err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, "", ""); err != nil {
+		logger.Logger.WithError(err).Error("Failed to remove autoswap balance threshold")
+		return err
+	}
+	if err := api.cfg.SetUpdate(config.AutoSwapAmountKey, "", ""); err != nil {
+		logger.Logger.WithError(err).Error("Failed to remove autoswap amount")
+		return err
+	}
+	if err := api.cfg.SetUpdate(config.AutoSwapDestinationKey, "", ""); err != nil {
+		logger.Logger.WithError(err).Error("Failed to remove autoswap destination")
+		return err
+	}
+
+	api.svc.GetSwapsService().StopAutoSwaps()
+
+	return nil
+}
+
 func (api *api) GetNodeStatus(ctx context.Context) (*lnclient.NodeStatus, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
@@ -694,7 +772,7 @@ func (api *api) GetBalances(ctx context.Context) (*BalancesResponse, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	balances, err := api.svc.GetLNClient().GetBalances(ctx)
+	balances, err := api.svc.GetLNClient().GetBalances(ctx, false)
 	if err != nil {
 		return nil, err
 	}
@@ -769,6 +847,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.AutoUnlockPasswordEnabled = autoUnlockPassword != ""
 	info.AutoUnlockPasswordSupported = api.cfg.GetEnv().IsDefaultClientId()
 	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
+	info.Relay = api.cfg.GetRelayUrl()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get alby user identifier")
 		return nil, err
@@ -889,24 +968,10 @@ func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
 			return err
 		}
 	}
-	if setupRequest.BreezAPIKey != "" {
-		err = api.cfg.SetUpdate("BreezAPIKey", setupRequest.BreezAPIKey, setupRequest.UnlockPassword)
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to save breez api key")
-			return err
-		}
-	}
 	if setupRequest.Mnemonic != "" {
 		err = api.cfg.SetUpdate("Mnemonic", setupRequest.Mnemonic, setupRequest.UnlockPassword)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to save encrypted mnemonic")
-			return err
-		}
-	}
-	if setupRequest.GreenlightInviteCode != "" {
-		err = api.cfg.SetUpdate("GreenlightInviteCode", setupRequest.GreenlightInviteCode, setupRequest.UnlockPassword)
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to save greenlight invite code")
 			return err
 		}
 	}
@@ -1049,6 +1114,12 @@ func (api *api) SyncWallet() error {
 	api.svc.GetLNClient().UpdateLastWalletSyncRequest()
 	return nil
 }
+func (api *api) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
+	if api.svc.GetLNClient() == nil {
+		return nil, errors.New("LNClient not started")
+	}
+	return api.svc.GetLNClient().ListOnchainTransactions(ctx)
+}
 
 func (api *api) GetLogOutput(ctx context.Context, logType string, getLogRequest *GetLogOutputRequest) (*GetLogOutputResponse, error) {
 	var err error
@@ -1096,13 +1167,21 @@ func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 		alarms = append(alarms, NewHealthAlarm(HealthAlarmKindNostrRelayOffline, nil))
 	}
 
-	lnClient := api.svc.GetLNClient()
-
-	if lnClient != nil {
-		nodeStatus, err := lnClient.GetNodeStatus(ctx)
+	ldkVssEnabled, _ := api.cfg.Get("LdkVssEnabled", "")
+	if ldkVssEnabled == "true" {
+		albyMe, err := api.albyOAuthSvc.GetMe(ctx)
 		if err != nil {
 			return nil, err
 		}
+		if albyMe.Subscription.PlanCode == "" {
+			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindVssNoSubscription, nil))
+		}
+	}
+
+	lnClient := api.svc.GetLNClient()
+
+	if lnClient != nil {
+		nodeStatus, _ := lnClient.GetNodeStatus(ctx)
 		if nodeStatus == nil || !nodeStatus.IsReady {
 			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindNodeNotReady, nodeStatus))
 		}

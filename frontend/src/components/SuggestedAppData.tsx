@@ -3,12 +3,14 @@ import { Link } from "react-router-dom";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
 import alby from "src/assets/suggested-apps/alby.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
+import bitrefill from "src/assets/suggested-apps/bitrefill.png";
 import btcpay from "src/assets/suggested-apps/btcpay.png";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
 import clams from "src/assets/suggested-apps/clams.png";
 import coracle from "src/assets/suggested-apps/coracle.png";
 import damus from "src/assets/suggested-apps/damus.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
+import lightningMessageboard from "src/assets/suggested-apps/lightning-messageboard.png";
 import lnbits from "src/assets/suggested-apps/lnbits.png";
 import lume from "src/assets/suggested-apps/lume.png";
 import nostrcheckserver from "src/assets/suggested-apps/nostrcheck-server.png";
@@ -21,7 +23,6 @@ import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
 import simpleboost from "src/assets/suggested-apps/simple-boost.png";
 import snort from "src/assets/suggested-apps/snort.png";
 import stackernews from "src/assets/suggested-apps/stacker-news.png";
-import uncleJim from "src/assets/suggested-apps/uncle-jim.png";
 import wavlake from "src/assets/suggested-apps/wavlake.png";
 import wherostr from "src/assets/suggested-apps/wherostr.png";
 import yakihonne from "src/assets/suggested-apps/yakihonne.png";
@@ -30,6 +31,7 @@ import zapplanner from "src/assets/suggested-apps/zapplanner.png";
 import zapplepay from "src/assets/suggested-apps/zapple-pay.png";
 import zappybird from "src/assets/suggested-apps/zappy-bird.png";
 import zapstore from "src/assets/suggested-apps/zapstore.png";
+import zeus from "src/assets/suggested-apps/zeus.png";
 import ExternalLink from "src/components/ExternalLink";
 
 export type SuggestedApp = {
@@ -57,13 +59,6 @@ export type SuggestedApp = {
 
 export const suggestedApps: SuggestedApp[] = [
   {
-    id: "uncle-jim",
-    title: "Friends & Family",
-    description: "Sub-wallets powered by your Hub",
-    internal: true,
-    logo: uncleJim,
-  },
-  {
     id: "alby-go",
     title: "Alby Go",
     description: "A simple mobile wallet that works great with Alby Hub",
@@ -89,6 +84,13 @@ export const suggestedApps: SuggestedApp[] = [
     description: "Donation widget for your website",
     internal: true,
     logo: simpleboost,
+  },
+  {
+    id: "lightning-messageboard",
+    title: "Lightning Messageboard",
+    description: "Paid messageboard widget for your website",
+    internal: true,
+    logo: lightningMessageboard,
   },
   {
     id: "alby-extension",
@@ -448,7 +450,10 @@ export const suggestedApps: SuggestedApp[] = [
                 Connect to BTCPay Server
               </Link>
             </li>
-            <li>5. Set wallet permissions, according to your preferences</li>
+            <li>
+              5. Set wallet permissions as read-only unless payments are
+              specifically needed.
+            </li>
             <li>6. Copy generated NWC connection secret</li>
           </ul>
         </div>
@@ -1742,5 +1747,84 @@ export const suggestedApps: SuggestedApp[] = [
         </div>
       </>
     ),
+  },
+  {
+    id: "zeus",
+    title: "ZEUS",
+    description: "A self-custodial Bitcoin wallet that puts you in control.",
+    webLink: "https://zeusln.com/",
+    playLink: "https://play.google.com/store/apps/details?id=app.zeusln.zeus",
+    appleLink: "https://apps.apple.com/us/app/zeus-wallet/id1456038895",
+    zapStoreLink: "https://zapstore.dev/download/",
+    logo: zeus,
+    extendedDescription:
+      "Send and receive payments, to and from your Hub, on the go",
+    guide: (
+      <>
+        <div>
+          <h3 className="font-medium">In ZEUS</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              1. Install{" "}
+              <ExternalLink
+                to="https://zeusln.com/download/"
+                className="font-medium text-foreground underline"
+              >
+                ZEUS
+              </ExternalLink>{" "}
+              on your Android or iOS smartphone
+            </li>
+            <li>2. Open the settings</li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In Alby Hub</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              3. Click{" "}
+              <Link
+                to="/apps/new?app=zeus"
+                className="font-medium text-foreground underline"
+              >
+                Connect to ZEUS
+              </Link>
+            </li>
+            <li>4. Set app's wallet permissions (full access recommended)</li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In ZEUS</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              5. Scan the connection QR using the QR scanner in the bottom right
+              corner of the bottom of the app, OR manually paste in the
+              connection string under{" "}
+              <span className="font-medium text-foreground">Menu</span> {">"}{" "}
+              <span className="font-medium text-foreground">
+                Connect a Wallet
+              </span>{" "}
+              {">"} <span className="font-medium text-foreground">+</span> after
+              selecting{" "}
+              <span className="font-medium text-foreground">
+                Nostr Wallet Connect
+              </span>{" "}
+              as the{" "}
+              <span className="font-medium text-foreground">
+                Wallet interface
+              </span>
+              .
+            </li>
+          </ul>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: "bitrefill",
+    title: "Bitrefill",
+    description: "Live on bitcoin",
+    internal: true,
+    webLink: "https://bitrefill.com",
+    logo: bitrefill,
   },
 ].sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));

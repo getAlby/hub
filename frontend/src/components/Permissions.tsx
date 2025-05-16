@@ -1,4 +1,4 @@
-import { AlertTriangleIcon, BrickWall, PlusCircle } from "lucide-react";
+import { AlertTriangleIcon, PlusCircleIcon } from "lucide-react";
 import React from "react";
 import BudgetAmountSelect from "src/components/BudgetAmountSelect";
 import BudgetRenewalSelect from "src/components/BudgetRenewalSelect";
@@ -116,22 +116,6 @@ const Permissions: React.FC<PermissionsProps> = ({
         </>
       )}
 
-      {permissions.isolated && (
-        <>
-          <div className="flex items-center gap-2 mb-2">
-            <BrickWall className="w-4 h-4" />
-            <p className="text-sm font-medium">Isolated App</p>
-          </div>
-
-          <p className="mb-4">
-            This app is isolated from the rest of your wallet. This means it
-            will have an isolated balance and only has access to its own
-            transaction history. It will not be able to sign messages on your
-            node's behalf.
-          </p>
-        </>
-      )}
-
       {!permissions.isolated && permissions.scopes.includes("pay_invoice") && (
         <>
           {!readOnly && !budgetReadOnly ? (
@@ -147,7 +131,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                   }}
                   className={cn("mr-4", showExpiryOptions && "mb-4")}
                 >
-                  <PlusCircle className="w-4 h-4 mr-2" />
+                  <PlusCircleIcon className="w-4 h-4 mr-2" />
                   Set budget
                 </Button>
               )}
@@ -204,7 +188,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                 variant="secondary"
                 onClick={() => setShowExpiryOptions(true)}
               >
-                <PlusCircle className="w-4 h-4 mr-2" />
+                <PlusCircleIcon className="w-4 h-4 mr-2" />
                 Set expiration time
               </Button>
             )}

@@ -1,4 +1,4 @@
-import { ChevronDown, InfoIcon } from "lucide-react";
+import { ChevronDownIcon, InfoIcon } from "lucide-react";
 import React, { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
@@ -66,7 +66,8 @@ function NewChannelInternal({
   network: Network;
   channels: Channel[];
 }) {
-  const { data: _channelPeerSuggestions } = useChannelPeerSuggestions();
+  const { data: _channelPeerSuggestions, error: channelPeerSuggestionsError } =
+    useChannelPeerSuggestions();
   const navigate = useNavigate();
 
   const { toast } = useToast();
@@ -85,6 +86,16 @@ function NewChannelInternal({
   const [selectedPeer, setSelectedPeer] = React.useState<
     RecommendedChannelPeer | undefined
   >();
+
+  React.useEffect(() => {
+    if (channelPeerSuggestionsError) {
+      toast({
+        variant: "destructive",
+        title: "Failed to load channel suggestions",
+      });
+      navigate("/channels/outgoing");
+    }
+  }, [channelPeerSuggestionsError, navigate, toast]);
 
   const channelPeerSuggestions = React.useMemo(() => {
     return _channelPeerSuggestions
@@ -227,11 +238,10 @@ function NewChannelInternal({
         />
         <p className="text-muted-foreground">
           Alby Hub works with selected service providers (LSPs) which provide
-          the best network connectivity and liquidity to receive payments. The
-          channel typically stays open as long as there is usage.{" "}
+          the best network connectivity and liquidity to receive payments.{" "}
           <ExternalLink
             className="underline"
-            to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-channel"
+            to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel"
           >
             Learn more
           </ExternalLink>
@@ -392,8 +402,13 @@ function NewChannelInternal({
                     Public Channel
                   </Label>
                   <p className="text-xs text-muted-foreground">
-                    Only enable if you want to receive keysend payments. (e.g.
-                    podcasting)
+                    Not recommended for most users.{" "}
+                    <ExternalLink
+                      className="underline"
+                      to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/should-i-open-a-private-or-public-channel"
+                    >
+                      Learn more
+                    </ExternalLink>
                   </p>
                 </div>
               </div>
@@ -406,7 +421,7 @@ function NewChannelInternal({
               className="text-muted-foreground text-xs"
               onClick={() => setShowAdvanced((current) => !current)}
             >
-              <ChevronDown className="w-4 h-4 mr-2" />
+              <ChevronDownIcon className="w-4 h-4 mr-2" />
               Advanced Options
             </Button>
           )}

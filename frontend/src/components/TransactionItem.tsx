@@ -1,11 +1,10 @@
 import dayjs from "dayjs";
-import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
-  ChevronDown,
-  ChevronUp,
+  ChevronDownIcon,
+  ChevronUpIcon,
   CopyIcon,
   XIcon,
 } from "lucide-react";
@@ -31,17 +30,25 @@ import { cn } from "src/lib/utils";
 import { Transaction } from "src/types";
 
 dayjs.extend(utc);
-dayjs.extend(timezone);
 
 type Props = {
   tx: Transaction;
 };
+
+function safeNpubEncode(hex: string): string | undefined {
+  try {
+    return nip19.npubEncode(hex);
+  } catch {
+    return undefined;
+  }
+}
 
 function TransactionItem({ tx }: Props) {
   const { data: apps } = useApps();
   const { toast } = useToast();
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;
+
   const typeStateText =
     type == "incoming"
       ? "Received"
@@ -50,16 +57,30 @@ function TransactionItem({ tx }: Props) {
         : tx.state === "pending"
           ? "Sending"
           : "Failed";
+
   const Icon =
     tx.state === "failed"
       ? XIcon
       : tx.type == "outgoing"
         ? ArrowUpIcon
         : ArrowDownIcon;
-  const app =
-    tx.appId !== undefined
-      ? apps?.find((app) => app.id === tx.appId)
+
+  const app = React.useMemo(
+    () =>
+      tx.appId != null ? apps?.find((app) => app.id === tx.appId) : undefined,
+    [apps, tx.appId]
+  );
+
+  const pubkey = tx.metadata?.nostr?.pubkey;
+  const npub = pubkey ? safeNpubEncode(pubkey) : undefined;
+
+  const from = tx.metadata?.payer_data?.name
+    ? `from ${tx.metadata.payer_data.name}`
+    : npub
+      ? `zap from ${npub.substring(0, 12)}...`
       : undefined;
+
+  const eventId = tx.metadata?.nostr?.tags?.find((t) => t[0] === "e")?.[1];
 
   const copy = (text: string) => {
     copyToClipboard(text, toast);
@@ -107,17 +128,6 @@ function TransactionItem({ tx }: Props) {
     </div>
   );
 
-  let from;
-
-  if (tx.metadata?.payer_data?.name) {
-    from = "from " + tx.metadata.payer_data.name;
-  } else if (tx.metadata?.nostr) {
-    const npub = nip19.npubEncode(tx.metadata.nostr.pubkey);
-    from = "zap from " + npub.substring(0, 12) + "...";
-  }
-
-  const eventId = tx.metadata?.nostr?.tags.find((t) => t[0] === "e")?.[1];
-
   return (
     <Dialog
       onOpenChange={(open) => {
@@ -146,7 +156,7 @@ function TransactionItem({ tx }: Props) {
                 </span>
               </p>
             </div>
-            <p className="text-sm md:text-base text-muted-foreground break-all w-full truncate">
+            <p className="text-sm md:text-base text-muted-foreground break-all line-clamp-1">
               {tx.description}
             </p>
           </div>
@@ -211,9 +221,7 @@ function TransactionItem({ tx }: Props) {
             <div className="mt-6">
               <p>Date & Time</p>
               <p className="text-muted-foreground">
-                {dayjs(tx.updatedAt)
-                  .tz(dayjs.tz.guess())
-                  .format("D MMMM YYYY, HH:mm")}
+                {dayjs(tx.updatedAt).local().format("D MMMM YYYY, HH:mm")}
               </p>
             </div>
             {tx.state != "failed" && type == "outgoing" && (
@@ -235,7 +243,7 @@ function TransactionItem({ tx }: Props) {
                 </p>
               </div>
             )}
-            {tx.metadata?.nostr && eventId && (
+            {tx.metadata?.nostr && eventId && npub && (
               <div className="mt-6">
                 <p>
                   <ExternalLink
@@ -247,7 +255,7 @@ function TransactionItem({ tx }: Props) {
                     Nostr Zap
                   </ExternalLink>{" "}
                   <span className="text-muted-foreground break-all">
-                    from {nip19.npubEncode(tx.metadata.nostr.pubkey)}
+                    from {npub}
                   </span>
                 </p>
               </div>
@@ -259,9 +267,9 @@ function TransactionItem({ tx }: Props) {
               >
                 Details
                 {showDetails ? (
-                  <ChevronUp className="w-4 h-4" />
+                  <ChevronUpIcon className="w-4 h-4" />
                 ) : (
-                  <ChevronDown className="w-4 h-4" />
+                  <ChevronDownIcon className="w-4 h-4" />
                 )}
               </div>
               {showDetails && (

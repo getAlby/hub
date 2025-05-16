@@ -40,6 +40,15 @@ type Transaction struct {
 	Metadata        Metadata
 }
 
+type OnchainTransaction struct {
+	AmountSat        uint64 `json:"amountSat"`
+	CreatedAt        uint64 `json:"createdAt"`
+	State            string `json:"state"`
+	Type             string `json:"type"`
+	NumConfirmations uint32 `json:"numConfirmations"`
+	TxId             string `json:"txId"`
+}
+
 type NodeConnectionInfo struct {
 	Pubkey  string `json:"pubkey"`
 	Address string `json:"address"`
@@ -47,13 +56,14 @@ type NodeConnectionInfo struct {
 }
 
 type LNClient interface {
-	SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*PayInvoiceResponse, error)
+	SendPaymentSync(ctx context.Context, payReq string, amount *uint64, timeoutSeconds *int64) (*PayInvoiceResponse, error)
 	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []TLVRecord, preimage string) (*PayKeysendResponse, error)
 	GetPubkey() string
 	GetInfo(ctx context.Context) (info *NodeInfo, err error)
 	MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Transaction, err error)
 	LookupInvoice(ctx context.Context, paymentHash string) (transaction *Transaction, err error)
 	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Transaction, err error)
+	ListOnchainTransactions(ctx context.Context) ([]OnchainTransaction, error)
 	Shutdown() error
 	ListChannels(ctx context.Context) (channels []Channel, err error)
 	GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *NodeConnectionInfo, err error)
@@ -66,7 +76,7 @@ type LNClient interface {
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	ResetRouter(key string) error
 	GetOnchainBalance(ctx context.Context) (*OnchainBalanceResponse, error)
-	GetBalances(ctx context.Context) (*BalancesResponse, error)
+	GetBalances(ctx context.Context, includeInactiveChannels bool) (*BalancesResponse, error)
 	RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate float64, sendAll bool) (txId string, err error)
 	SendPaymentProbes(ctx context.Context, invoice string) error
 	SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error

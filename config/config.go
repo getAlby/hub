@@ -146,6 +146,20 @@ func (cfg *config) GetRelayUrl() string {
 	return relayUrl
 }
 
+func (cfg *config) GetNetwork() string {
+	env := cfg.GetEnv()
+
+	if env.Network != "" {
+		return env.Network
+	}
+
+	if env.LDKNetwork != "" {
+		return env.LDKNetwork
+	}
+
+	return "bitcoin"
+}
+
 func (cfg *config) Get(key string, encryptionKey string) (string, error) {
 	return cfg.get(key, encryptionKey, cfg.db)
 }
@@ -303,8 +317,11 @@ const defaultCurrency = "USD"
 
 func (cfg *config) GetCurrency() string {
 	currency, err := cfg.Get("Currency", "")
-	if err != nil || currency == "" {
-		logger.Logger.WithError(err).Debug("Currency not found, using default")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch currency")
+		return defaultCurrency
+	}
+	if currency == "" {
 		return defaultCurrency
 	}
 	return currency

@@ -27,6 +27,7 @@ import { LatestUsedAppsWidget } from "src/components/home/widgets/LatestUsedApps
 import { LightningMessageboardWidget } from "src/components/home/widgets/LightningMessageboardWidget";
 import { NodeStatusWidget } from "src/components/home/widgets/NodeStatusWidget";
 import { OnchainFeesWidget } from "src/components/home/widgets/OnchainFeesWidget";
+import { SupportAlbyWidget } from "src/components/home/widgets/SupportAlbyWidget";
 import { WhatsNewWidget } from "src/components/home/widgets/WhatsNewWidget";
 
 function getGreeting(name: string | undefined) {
@@ -59,12 +60,13 @@ function Home() {
 
   return (
     <>
-      <AppHeader title={getGreeting(albyMe?.name)} description="" />
+      <AppHeader title={getGreeting(albyMe?.name)} />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start justify-start">
         {/* LEFT */}
         <div className="grid gap-5">
           <OnboardingChecklist />
           <WhatsNewWidget />
+          <SupportAlbyWidget />
           {info.albyAccountConnected && (
             <ExternalLink to="https://www.getalby.com/dashboard">
               <Card>
@@ -96,35 +98,7 @@ function Home() {
             </ExternalLink>
           )}
 
-          <Link to="/internal-apps/zapplanner">
-            <Card>
-              <CardHeader>
-                <div className="flex flex-row items-center">
-                  <div className="flex-shrink-0">
-                    <img
-                      src={zapplanner}
-                      className="w-12 h-12 rounded-xl border"
-                    />
-                  </div>
-                  <div>
-                    <CardTitle>
-                      <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4 flex gap-2">
-                        ZapPlanner <Badge>NEW</Badge>
-                      </div>
-                    </CardTitle>
-                    <CardDescription className="ml-4">
-                      Schedule automatic recurring lightning payments.
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="text-right">
-                <Button variant="outline">Open</Button>
-              </CardContent>
-            </Card>
-          </Link>
-
-          <Link to="/appstore/alby-go">
+          <Link to="/internal-apps/alby-go">
             <Card>
               <CardHeader>
                 <div className="flex flex-row items-center">
@@ -186,6 +160,34 @@ function Home() {
           <LatestUsedAppsWidget />
           <LightningMessageboardWidget />
           <AppOfTheDayWidget />
+
+          <Link to="/internal-apps/zapplanner">
+            <Card>
+              <CardHeader>
+                <div className="flex flex-row items-center">
+                  <div className="flex-shrink-0">
+                    <img
+                      src={zapplanner}
+                      className="w-12 h-12 rounded-xl border"
+                    />
+                  </div>
+                  <div>
+                    <CardTitle>
+                      <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4 flex gap-2">
+                        ZapPlanner <Badge>NEW</Badge>
+                      </div>
+                    </CardTitle>
+                    <CardDescription className="ml-4">
+                      Schedule automatic recurring lightning payments.
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="text-right">
+                <Button variant="outline">Open</Button>
+              </CardContent>
+            </Card>
+          </Link>
 
           <Card>
             <CardHeader>

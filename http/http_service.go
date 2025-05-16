@@ -63,7 +63,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		ContentTypeNosniff:    "nosniff",
 		XFrameOptions:         "DENY",
-		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https://uploads.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com https://zapplanner.albylabs.com wss://relay.getalby.com/v1",
+		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https://uploads.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com https://zapplanner.albylabs.com wss://relay.getalby.com/v1; frame-src https://embed.bitrefill.com",
 		ReferrerPolicy:        "no-referrer",
 	}))
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
@@ -132,6 +132,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/node/status", httpSvc.nodeStatusHandler)
 	restrictedApiGroup.GET("/node/network-graph", httpSvc.nodeNetworkGraphHandler)
 	restrictedApiGroup.POST("/node/migrate-storage", httpSvc.migrateNodeStorageHandler)
+	restrictedApiGroup.GET("/node/transactions", httpSvc.listOnchainTransactionsHandler)
 	restrictedApiGroup.GET("/peers", httpSvc.listPeers)
 	restrictedApiGroup.POST("/peers", httpSvc.connectPeerHandler)
 	restrictedApiGroup.DELETE("/peers/:peerId", httpSvc.disconnectPeerHandler)
@@ -157,6 +158,9 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/health", httpSvc.healthHandler)
 	restrictedApiGroup.GET("/commands", httpSvc.getCustomNodeCommandsHandler)
 	restrictedApiGroup.POST("/command", httpSvc.execCustomNodeCommandHandler)
+	restrictedApiGroup.GET("/settings/swaps", httpSvc.getAutoSwapsConfigHandler)
+	restrictedApiGroup.POST("/settings/swaps", httpSvc.enableAutoSwapsHandler)
+	restrictedApiGroup.DELETE("/settings/swaps", httpSvc.disableAutoSwapsHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedApiGroup, e)
 }
@@ -594,6 +598,20 @@ func (httpSvc *HttpService) listTransactionsHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, transactions)
 }
 
+func (httpSvc *HttpService) listOnchainTransactionsHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	transactions, err := httpSvc.api.ListOnchainTransactions(ctx)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, transactions)
+}
+
 func (httpSvc *HttpService) walletSyncHandler(c echo.Context) error {
 	httpSvc.api.SyncWallet()
 
@@ -820,7 +838,7 @@ func (httpSvc *HttpService) signMessageHandler(c echo.Context) error {
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to sign messae: %s", err.Error()),
+			Message: fmt.Sprintf("Failed to sign message: %s", err.Error()),
 		})
 	}
 	return c.JSON(http.StatusOK, signMessageResponse)
@@ -1139,4 +1157,45 @@ func (httpSvc *HttpService) healthHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, healthResponse)
+}
+
+func (httpSvc *HttpService) getAutoSwapsConfigHandler(c echo.Context) error {
+	getAutoSwapsConfigResponse, err := httpSvc.api.GetAutoSwapsConfig()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get swap settings: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, getAutoSwapsConfigResponse)
+}
+
+func (httpSvc *HttpService) enableAutoSwapsHandler(c echo.Context) error {
+	var enableAutoSwapsRequest api.EnableAutoSwapsRequest
+	if err := c.Bind(&enableAutoSwapsRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.api.EnableAutoSwaps(c.Request().Context(), &enableAutoSwapsRequest)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to save swap settings: %v", err),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) disableAutoSwapsHandler(c echo.Context) error {
+	err := httpSvc.api.DisableAutoSwaps()
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }

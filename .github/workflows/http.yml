@@ -30,21 +30,18 @@ jobs:
           [
             {
               arch: x86_64,
-              breez_arch: linux-amd64,
               alby_arch: x86_64-unknown-linux-gnu,
-              os: ubuntu-20.04,
+              os: ubuntu-22.04,
             },
             {
               arch: armv6,
-              breez_arch: "",
               alby_arch: arm-unknown-linux-gnueabihf,
-              os: ubuntu-20.04,
+              os: ubuntu-22.04,
             },
             {
               arch: aarch64,
-              breez_arch: linux-aarch64,
               alby_arch: aarch64-unknown-linux-gnu,
-              os: ubuntu-20.04,
+              os: ubuntu-22.04,
             },
             { arch: darwin/universal, os: macos-13 },
           ]
@@ -113,7 +110,7 @@ jobs:
           echo "GOARCH=arm" >> $GITHUB_ENV
           echo "GOARM=6" >> $GITHUB_ENV
           echo "CC=$GITHUB_WORKSPACE/armv6-unknown-linux-gnueabihf/bin/armv6-unknown-linux-gnueabihf-gcc" >> $GITHUB_ENV
-          echo "GOTAGS=-tags skip_breez,netgo" >> $GITHUB_ENV
+          echo "GOTAGS=-tags netgo" >> $GITHUB_ENV
 
       - name: Install ARM64 cross-compiler
         if: matrix.build.arch == 'aarch64'
@@ -143,10 +140,6 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           mkdir -p ./build/bin/${{ env.PACKAGE_NAME }}/lib
-          if [ "${{ matrix.build.breez_arch }}" != "" ]; then
-            cp `go list -m -f "{{.Dir}}" github.com/breez/breez-sdk-go`/breez_sdk/lib/${{ matrix.build.breez_arch }}/libbreez_sdk_bindings.so ./build/bin/${{ env.PACKAGE_NAME }}/lib/
-          fi
-          cp `go list -m -f "{{.Dir}}" github.com/getAlby/glalby-go`/glalby/${{ matrix.build.alby_arch }}/libglalby_bindings.so ./build/bin/${{ env.PACKAGE_NAME }}/lib/
           cp `go list -m -f "{{.Dir}}" github.com/getAlby/ldk-node-go`/ldk_node/${{ matrix.build.alby_arch }}/libldk_node.so ./build/bin/${{ env.PACKAGE_NAME }}/lib/
         shell: bash
 
@@ -158,8 +151,6 @@ jobs:
       - name: Copy shared libraries to the output directory
         if: runner.os == 'macOS'
         run: |
-          lipo -create -output ./build/bin/${{ env.PACKAGE_NAME }}/lib/libbreez_sdk_bindings.dylib `go list -m -f "{{.Dir}}" github.com/breez/breez-sdk-go`/breez_sdk/lib/darwin-aarch64/libbreez_sdk_bindings.dylib `go list -m -f "{{.Dir}}" github.com/breez/breez-sdk-go`/breez_sdk/lib/darwin-amd64/libbreez_sdk_bindings.dylib
-          cp `go list -m -f "{{.Dir}}" github.com/getAlby/glalby-go`/glalby/universal-macos/libglalby_bindings.dylib ./build/bin/${{ env.PACKAGE_NAME }}/lib/
           cp `go list -m -f "{{.Dir}}" github.com/getAlby/ldk-node-go`/ldk_node/universal-macos/libldk_node.dylib ./build/bin/${{ env.PACKAGE_NAME }}/lib/
         shell: bash
 

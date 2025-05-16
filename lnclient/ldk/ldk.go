@@ -26,13 +26,13 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/lsp"
 	"github.com/getAlby/hub/service/keys"
 	"github.com/getAlby/hub/transactions"
-	"github.com/getAlby/hub/utils"
 )
 
 type LDKService struct {
@@ -68,8 +68,6 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		logger.Logger.WithError(err).Error("Failed to create LDK working dir")
 		return nil, err
 	}
-
-	logDirPath := filepath.Join(newpath, "./logs")
 
 	ldkConfig := ldk_node.DefaultConfig()
 	listeningAddresses := strings.Split(cfg.GetEnv().LDKListeningAddresses, ",")
@@ -111,15 +109,13 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	}
 
 	ldkConfig.ListeningAddresses = &listeningAddresses
-	ldkConfig.LogDirPath = &logDirPath
-	logLevel, err := strconv.Atoi(cfg.GetEnv().LDKLogLevel)
-	if err == nil {
-		// LogLevelGossip is added due to bug in go bindings which uses an enum that starts at 1 instead of 0
-		// If LogLevelGossip is changed to 0, this addition can be removed
-		ldkConfig.LogLevel = ldk_node.LogLevel(logLevel) + ldk_node.LogLevelGossip
-	}
+	logLevel, _ := strconv.Atoi(cfg.GetEnv().LDKLogLevel)
+	// LogLevelGossip is added due to bug in go bindings which uses an enum that starts at 1 instead of 0
+	ldkLogger := NewLDKLogger(ldk_node.LogLevel(logLevel) + ldk_node.LogLevelGossip)
 	ldkConfig.TransientNetworkGraph = cfg.GetEnv().LDKTransientNetworkGraph
+
 	builder := ldk_node.BuilderFromConfig(ldkConfig)
+	builder.SetCustomLogger(ldkLogger)
 	builder.SetNodeAlias("Alby Hub") // TODO: allow users to customize
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
 	builder.SetNetwork(network)
@@ -129,11 +125,6 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		builder.SetGossipSourceRgs(cfg.GetEnv().LDKGossipSource)
 	}
 	builder.SetStorageDirPath(filepath.Join(newpath, "./storage"))
-
-	// TODO: remove when https://github.com/lightningdevkit/rust-lightning/issues/2914 is merged
-	// LDK default HTLC inflight value is 10% of the channel size. If an LSPS service is configured this will be set to 0.
-	// The liquidity source below is not used because we do not use the native LDK-node LSPS2 API.
-	builder.SetLiquiditySourceLsps2("52.88.33.119:9735", lsp.OlympusLSP().Pubkey, nil)
 
 	migrateStorage, _ := cfg.Get("LdkMigrateStorage", "")
 	if migrateStorage == "VSS" {
@@ -160,11 +151,11 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	setStartupState("Loading node data...")
 	var node *ldk_node.Node
 	if vssToken != "" {
-		node, err = builder.BuildWithVssStoreAndFixedHeaders(cfg.GetEnv().LDKVssUrl, "albyhub", map[string]string{
+		node, err = checkLDKErr(builder.BuildWithVssStoreAndFixedHeaders(cfg.GetEnv().LDKVssUrl, "albyhub", map[string]string{
 			"Authorization": fmt.Sprintf("Bearer %s", vssToken),
-		})
+		}))
 	} else {
-		node, err = builder.Build()
+		node, err = checkLDKErr(builder.Build())
 	}
 
 	logger.Logger.WithFields(logrus.Fields{}).Info("LDK node created")
@@ -192,20 +183,9 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 
 	eventPublisher.RegisterSubscriber(&ls)
 
-	// TODO: remove when LDK supports this
-	deleteOldLDKLogs(logDirPath)
-	go func() {
-		// delete old LDK logs every 24 hours
-		ticker := time.NewTicker(24 * time.Hour)
-		for {
-			select {
-			case <-ticker.C:
-				deleteOldLDKLogs(logDirPath)
-			case <-ldkCtx.Done():
-				return
-			}
-		}
-	}()
+	// TODO: remove after 2026-01-01 - we now log to app logs rather than ldk log files
+	// this line is just left to cleanup old logs after the update
+	deleteOldLDKLogs(filepath.Join(newpath, "./logs"))
 
 	// check for and forward new LDK events to LDKEventBroadcaster (through ldkEventConsumer)
 	go func() {
@@ -237,7 +217,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 
 	setStartupState("Starting node...")
 
-	err = node.Start()
+	err = node.Start().AsError()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to start LDK node")
 		return nil, err
@@ -250,7 +230,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 
 	setStartupState("Syncing node...")
 	syncStartTime := time.Now()
-	err = node.SyncWallets()
+	err = node.SyncWallets().AsError()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to sync LDK wallets")
 		ls.eventPublisher.Publish(&events.Event{
@@ -346,7 +326,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 
 					// only update fee estimates
 					logger.Logger.Debug("Updating fee estimates")
-					err = node.UpdateFeeEstimates()
+					err = node.UpdateFeeEstimates().AsError()
 					if err != nil {
 						logger.Logger.WithError(err).Error("Failed to update fee estimates")
 						ls.eventPublisher.Publish(&events.Event{
@@ -366,7 +346,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 
 				logger.Logger.Debug("Starting full background wallet sync")
 				syncStartTime := time.Now()
-				err = node.SyncWallets()
+				err = node.SyncWallets().AsError()
 
 				if err != nil {
 					logger.Logger.WithError(err).Error("Failed to sync LDK wallets")
@@ -427,7 +407,7 @@ func (ls *LDKService) Shutdown() error {
 	logger.Logger.Info("stopping LDK node")
 	shutdownChannel := make(chan error)
 	go func() {
-		shutdownChannel <- ls.node.Stop()
+		shutdownChannel <- ls.node.Stop().AsError()
 	}()
 
 	select {
@@ -438,8 +418,8 @@ func (ls *LDKService) Shutdown() error {
 		} else {
 			logger.Logger.Info("LDK stop node succeeded")
 		}
-	case <-time.After(120 * time.Second):
-		logger.Logger.Error("Timeout shutting down LDK node after 120 seconds")
+	case <-time.After(5 * time.Minute):
+		logger.Logger.Error("Timeout shutting down LDK node after 5 minutes")
 	}
 
 	logger.Logger.Debug("Destroying LDK node object")
@@ -456,7 +436,12 @@ func getMaxTotalRoutingFeeLimit(amountMsat uint64) ldk_node.MaxTotalRoutingFeeLi
 	}
 }
 
-func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64, timeoutSeconds *int64) (*lnclient.PayInvoiceResponse, error) {
+	sendPaymentTimeout := int64(constants.SEND_PAYMENT_TIMEOUT)
+	if timeoutSeconds != nil {
+		sendPaymentTimeout = *timeoutSeconds
+	}
+
 	paymentRequest, err := decodepay.Decodepay(invoice)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -495,9 +480,9 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 	}
 
 	if amount == nil {
-		paymentHash, err = ls.node.Bolt11Payment().Send(invoice, sendingParams)
+		paymentHash, err = checkLDKErr(ls.node.Bolt11Payment().Send(invoice, sendingParams))
 	} else {
-		paymentHash, err = ls.node.Bolt11Payment().SendUsingAmount(invoice, *amount, sendingParams)
+		paymentHash, err = checkLDKErr(ls.node.Bolt11Payment().SendUsingAmount(invoice, *amount, sendingParams))
 	}
 	if err != nil {
 		logger.Logger.WithError(err).Error("SendPayment failed")
@@ -506,66 +491,67 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 	fee := uint64(0)
 	preimage := ""
 
-	for start := time.Now(); time.Since(start) < time.Second*50; {
-		event := <-ldkEventSubscription
+	timeout := time.Second * time.Duration(sendPaymentTimeout)
+	timer := time.NewTimer(timeout)
+	defer timer.Stop()
 
-		eventPaymentSuccessful, isEventPaymentSuccessfulEvent := (*event).(ldk_node.EventPaymentSuccessful)
-		eventPaymentFailed, isEventPaymentFailedEvent := (*event).(ldk_node.EventPaymentFailed)
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
 
-		if isEventPaymentSuccessfulEvent && eventPaymentSuccessful.PaymentHash == paymentHash {
-			logger.Logger.Info("Got payment success event")
-			payment := ls.node.Payment(paymentHash)
-			if payment == nil {
-				logger.Logger.WithField("payment_hash", paymentHash).Error("Couldn't find payment by payment hash")
-				return nil, errors.New("payment not found")
-			}
-
-			bolt11PaymentKind, ok := payment.Kind.(ldk_node.PaymentKindBolt11)
-
-			if !ok {
-				logger.Logger.WithFields(logrus.Fields{
-					"payment": payment,
-				}).Error("Payment is not a bolt11 kind")
-			}
-
-			if bolt11PaymentKind.Preimage == nil {
-				logger.Logger.WithField("payment_hash", paymentHash).Error("No payment preimage for payment hash")
-				return nil, errors.New("payment preimage not found")
-			}
-			preimage = *bolt11PaymentKind.Preimage
-
-			if eventPaymentSuccessful.FeePaidMsat != nil {
-				fee = *eventPaymentSuccessful.FeePaidMsat
-			}
-			break
-		}
-		if isEventPaymentFailedEvent && eventPaymentFailed.PaymentHash != nil && *eventPaymentFailed.PaymentHash == paymentHash {
-			failureReasonMessage := ls.getPaymentFailReason(&eventPaymentFailed)
-
+		case <-timer.C:
 			logger.Logger.WithFields(logrus.Fields{
-				"payment_hash": paymentHash,
-				"reason":       failureReasonMessage,
-			}).Error("Received payment failed event")
+				"paymentHash": paymentHash,
+			}).Warn("Timed out waiting for payment to be sent")
+			return nil, lnclient.NewTimeoutError()
 
-			return nil, fmt.Errorf("received payment failed event: %s", failureReasonMessage)
+		case ev := <-ldkEventSubscription:
+			switch event := (*ev).(type) {
+			case ldk_node.EventPaymentSuccessful:
+				if event.PaymentHash != paymentHash {
+					continue
+				}
+
+				logger.Logger.Info("Got payment success event")
+				payment := ls.node.Payment(paymentHash)
+				if payment == nil {
+					logger.Logger.WithField("payment_hash", paymentHash).Error("Couldn't find payment by payment hash")
+					return nil, errors.New("payment not found")
+				}
+
+				if event.PaymentPreimage == nil {
+					logger.Logger.WithField("payment_hash", paymentHash).Error("No payment preimage in payment success event")
+					return nil, errors.New("payment preimage not found")
+				}
+
+				preimage = *event.PaymentPreimage
+
+				if event.FeePaidMsat != nil {
+					fee = *event.FeePaidMsat
+				}
+
+				logger.Logger.WithFields(logrus.Fields{
+					"duration": time.Since(paymentStart).Milliseconds(),
+					"fee":      fee,
+				}).Info("Successful payment")
+
+				return &lnclient.PayInvoiceResponse{
+					Preimage: preimage,
+					Fee:      fee,
+				}, nil
+			case ldk_node.EventPaymentFailed:
+				if event.PaymentHash != nil && *event.PaymentHash == paymentHash {
+					failureReasonMessage := ls.getPaymentFailReason(&event)
+					logger.Logger.WithFields(logrus.Fields{
+						"payment_hash": paymentHash,
+						"reason":       failureReasonMessage,
+					}).Error("Received payment failed event")
+					return nil, fmt.Errorf("received payment failed event: %s", failureReasonMessage)
+				}
+			}
 		}
 	}
-	if preimage == "" {
-		logger.Logger.WithFields(logrus.Fields{
-			"paymentHash": paymentHash,
-		}).Warn("Timed out waiting for payment to be sent")
-		return nil, lnclient.NewTimeoutError()
-	}
-
-	logger.Logger.WithFields(logrus.Fields{
-		"duration": time.Since(paymentStart).Milliseconds(),
-		"fee":      fee,
-	}).Info("Successful payment")
-
-	return &lnclient.PayInvoiceResponse{
-		Preimage: preimage,
-		Fee:      fee,
-	}, nil
 }
 
 func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
@@ -591,7 +577,7 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 		MaxTotalRoutingFeeMsat: &maxTotalRoutingFeeMsat,
 	}
 
-	paymentHash, err := ls.node.SpontaneousPayment().Send(amount, destination, sendingParams, customTlvs, &preimage)
+	paymentHash, err := checkLDKErr(ls.node.SpontaneousPayment().SendWithTlvsAndPreimage(amount, destination, sendingParams, customTlvs, &preimage))
 	if err != nil {
 		logger.Logger.WithError(err).Error("Keysend failed")
 		return nil, err
@@ -667,7 +653,7 @@ func (ls *LDKService) getMaxSpendable() uint64 {
 func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
 
 	if time.Duration(expiry)*time.Second > maxInvoiceExpiry {
-		return nil, errors.New("Expiry is too long")
+		return nil, errors.New("expiry is too long")
 	}
 
 	maxReceivable := ls.getMaxReceivable()
@@ -688,10 +674,19 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
 	}
 
-	// TODO: support passing description hash
-	invoice, err := ls.node.Bolt11Payment().Receive(uint64(amount),
-		description,
-		uint32(expiry))
+	var descriptionType ldk_node.Bolt11InvoiceDescription
+	descriptionType = ldk_node.Bolt11InvoiceDescriptionDirect{
+		Description: description,
+	}
+	if description == "" && descriptionHash != "" {
+		descriptionType = ldk_node.Bolt11InvoiceDescriptionHash{
+			Hash: descriptionHash,
+		}
+	}
+
+	invoice, err := checkLDKErr(ls.node.Bolt11Payment().Receive(uint64(amount),
+		descriptionType,
+		uint32(expiry)))
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("MakeInvoice failed")
@@ -748,7 +743,9 @@ func (ls *LDKService) LookupInvoice(ctx context.Context, paymentHash string) (tr
 }
 
 func (ls *LDKService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []lnclient.Transaction, err error) {
-	transactions = []lnclient.Transaction{}
+	// this method shouldn't be any more because this LNClient supports notifications
+	return nil, errors.New("this method should not be called")
+	/*transactions = []lnclient.Transaction{}
 
 	// TODO: support pagination
 	payments := ls.node.ListPayments()
@@ -796,6 +793,57 @@ func (ls *LDKService) ListTransactions(ctx context.Context, from, until, limit, 
 
 	// logger.Logger.WithField("transactions", transactions).Debug("Listed transactions")
 
+	return transactions, nil*/
+}
+
+func (ls *LDKService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
+	transactions := []lnclient.OnchainTransaction{}
+	for _, payment := range ls.node.ListPayments() {
+		onchainPaymentKind, isOnchainPaymentKind := payment.Kind.(ldk_node.PaymentKindOnchain)
+		if !isOnchainPaymentKind {
+			continue
+		}
+
+		transactionType := "incoming"
+		if payment.Direction == ldk_node.PaymentDirectionOutbound {
+			transactionType = "outgoing"
+		}
+
+		var amountMsat uint64
+		if payment.AmountMsat != nil {
+			amountMsat = *payment.AmountMsat
+		}
+		var status string
+		var height uint32
+		var numConfirmations uint32
+		switch onchainPaymentStatus := onchainPaymentKind.Status.(type) {
+		case ldk_node.ConfirmationStatusConfirmed:
+			status = "confirmed"
+			height = onchainPaymentStatus.Height
+			nodeStatus := ls.node.Status()
+			numConfirmations = nodeStatus.CurrentBestBlock.Height - height
+		case ldk_node.ConfirmationStatusUnconfirmed:
+			status = "unconfirmed"
+		}
+
+		createdAt := payment.CreatedAt
+		if createdAt == 0 {
+			createdAt = payment.LatestUpdateTimestamp
+		}
+
+		transactions = append(transactions, lnclient.OnchainTransaction{
+			AmountSat:        amountMsat / 1000,
+			CreatedAt:        createdAt,
+			State:            status,
+			Type:             transactionType,
+			NumConfirmations: numConfirmations,
+			TxId:             onchainPaymentKind.Txid,
+		})
+
+	}
+	sort.SliceStable(transactions, func(i, j int) bool {
+		return transactions[i].CreatedAt > transactions[j].CreatedAt
+	})
 	return transactions, nil
 }
 
@@ -909,13 +957,13 @@ func (ls *LDKService) GetNodeConnectionInfo(ctx context.Context) (nodeConnection
 
 func (ls *LDKService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
 	// disconnect first to ensure new IP address is saved in case of re-connecting
-	err := ls.node.Disconnect(connectPeerRequest.Pubkey)
+	err := ls.node.Disconnect(connectPeerRequest.Pubkey).AsError()
 	if err != nil {
 		// non-critical: only log an error
 		logger.Logger.WithField("request", connectPeerRequest).WithError(err).Error("Disconnect failed while connecting peer")
 	}
 
-	err = ls.node.Connect(connectPeerRequest.Pubkey, connectPeerRequest.Address+":"+strconv.Itoa(int(connectPeerRequest.Port)), true)
+	err = ls.node.Connect(connectPeerRequest.Pubkey, connectPeerRequest.Address+":"+strconv.Itoa(int(connectPeerRequest.Port)), true).AsError()
 	if err != nil {
 		logger.Logger.WithField("request", connectPeerRequest).WithError(err).Error("ConnectPeer failed")
 		return err
@@ -946,9 +994,9 @@ func (ls *LDKService) OpenChannel(ctx context.Context, openChannelRequest *lncli
 	var userChannelId string
 	var err error
 	if openChannelRequest.Public {
-		userChannelId, err = ls.node.OpenAnnouncedChannel(foundPeer.NodeId, foundPeer.Address, uint64(openChannelRequest.AmountSats), nil, nil)
+		userChannelId, err = checkLDKErr(ls.node.OpenAnnouncedChannel(foundPeer.NodeId, foundPeer.Address, uint64(openChannelRequest.AmountSats), nil, nil))
 	} else {
-		userChannelId, err = ls.node.OpenChannel(foundPeer.NodeId, foundPeer.Address, uint64(openChannelRequest.AmountSats), nil, nil)
+		userChannelId, err = checkLDKErr(ls.node.OpenChannel(foundPeer.NodeId, foundPeer.Address, uint64(openChannelRequest.AmountSats), nil, nil))
 	}
 	if err != nil {
 		logger.Logger.WithError(err).Error("OpenChannel failed")
@@ -1014,7 +1062,7 @@ func (ls *LDKService) UpdateChannel(ctx context.Context, updateChannelRequest *l
 		}
 	}
 
-	err := ls.node.UpdateChannelConfig(updateChannelRequest.ChannelId, updateChannelRequest.NodeId, existingConfig)
+	err := ls.node.UpdateChannelConfig(updateChannelRequest.ChannelId, updateChannelRequest.NodeId, existingConfig).AsError()
 	if err != nil {
 		logger.Logger.WithError(err).Error("UpdateChannelConfig failed")
 		return err
@@ -1029,9 +1077,9 @@ func (ls *LDKService) CloseChannel(ctx context.Context, closeChannelRequest *lnc
 
 	var err error
 	if closeChannelRequest.Force {
-		err = ls.node.ForceCloseChannel(closeChannelRequest.ChannelId, closeChannelRequest.NodeId, nil)
+		err = ls.node.ForceCloseChannel(closeChannelRequest.ChannelId, closeChannelRequest.NodeId, nil).AsError()
 	} else {
-		err = ls.node.CloseChannel(closeChannelRequest.ChannelId, closeChannelRequest.NodeId)
+		err = ls.node.CloseChannel(closeChannelRequest.ChannelId, closeChannelRequest.NodeId).AsError()
 	}
 	if err != nil {
 		logger.Logger.WithError(err).Error("CloseChannel failed")
@@ -1041,7 +1089,7 @@ func (ls *LDKService) CloseChannel(ctx context.Context, closeChannelRequest *lnc
 }
 
 func (ls *LDKService) GetNewOnchainAddress(ctx context.Context) (string, error) {
-	address, err := ls.node.OnchainPayment().NewAddress()
+	address, err := checkLDKErr(ls.node.OnchainPayment().NewAddress())
 	if err != nil {
 		logger.Logger.WithError(err).Error("NewOnchainAddress failed")
 		return "", err
@@ -1150,7 +1198,7 @@ func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, 
 	if !sendAll {
 		// NOTE: this may fail if user does not reserve enough for the onchain transaction
 		// and can also drain the anchor reserves if the user provides a too high amount.
-		txId, err := ls.node.OnchainPayment().SendToAddress(toAddress, amount)
+		txId, err := checkLDKErr(ls.node.OnchainPayment().SendToAddress(toAddress, amount, nil))
 		if err != nil {
 			logger.Logger.WithError(err).Error("SendToAddress failed")
 			return "", err
@@ -1158,8 +1206,7 @@ func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, 
 		return txId, nil
 	}
 
-	// TODO: this could be improved to preserve anchor reserves once LDK supports this
-	txId, err := ls.node.OnchainPayment().SendAllToAddress(toAddress)
+	txId, err := checkLDKErr(ls.node.OnchainPayment().SendAllToAddress(toAddress, false, nil))
 	if err != nil {
 		logger.Logger.WithError(err).Error("SendAllToAddress failed")
 		return "", err
@@ -1223,8 +1270,8 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 				preimage = *bolt11PaymentKind.Preimage
 			}
 			settledAt = &createdAt // fallback settledAt to created at time
-			if payment.LastUpdate > 0 {
-				lastUpdate := int64(payment.LastUpdate)
+			if payment.LatestUpdateTimestamp > 0 {
+				lastUpdate := int64(payment.LatestUpdateTimestamp)
 				settledAt = &lastUpdate
 			}
 		}
@@ -1234,7 +1281,7 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 	spontaneousPaymentKind, isSpontaneousPaymentKind := payment.Kind.(ldk_node.PaymentKindSpontaneous)
 	if isSpontaneousPaymentKind {
 		// keysend payment
-		lastUpdate := int64(payment.LastUpdate)
+		lastUpdate := int64(payment.LatestUpdateTimestamp)
 		createdAt = int64(payment.CreatedAt)
 		// TODO: remove this check some point in the future
 		// all payments after v0.6.2 will have createdAt set
@@ -1265,8 +1312,8 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 	}
 
 	var fee uint64 = 0
-	if payment.FeeMsat != nil {
-		fee = *payment.FeeMsat
+	if payment.FeePaidMsat != nil {
+		fee = *payment.FeePaidMsat
 	}
 
 	return &lnclient.Transaction{
@@ -1286,7 +1333,7 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 }
 
 func (ls *LDKService) SendPaymentProbes(ctx context.Context, invoice string) error {
-	err := ls.node.Bolt11Payment().SendProbes(invoice)
+	err := ls.node.Bolt11Payment().SendProbes(invoice).AsError()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Bolt11Payment.SendProbes failed")
 		return err
@@ -1296,7 +1343,7 @@ func (ls *LDKService) SendPaymentProbes(ctx context.Context, invoice string) err
 }
 
 func (ls *LDKService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
-	err := ls.node.SpontaneousPayment().SendProbes(amountMsat, nodeId)
+	err := ls.node.SpontaneousPayment().SendProbes(amountMsat, nodeId).AsError()
 	if err != nil {
 		logger.Logger.WithError(err).Error("SpontaneousPayment.SendProbes failed")
 		return err
@@ -1343,11 +1390,13 @@ func (ls *LDKService) GetNetworkGraph(ctx context.Context, nodeIds []string) (ln
 				Node:   graphNode,
 				NodeId: nodeId,
 			})
-		}
-		for _, channelId := range graphNode.Channels {
-			graphChannel := graph.Channel(channelId)
-			if graphChannel != nil {
-				channels = append(channels, graphChannel)
+			if graphNode.Channels != nil {
+				for _, channelId := range graphNode.Channels {
+					graphChannel := graph.Channel(channelId)
+					if graphChannel != nil {
+						channels = append(channels, graphChannel)
+					}
+				}
 			}
 		}
 	}
@@ -1360,36 +1409,7 @@ func (ls *LDKService) GetNetworkGraph(ctx context.Context, nodeIds []string) (ln
 }
 
 func (ls *LDKService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, error) {
-	config := ls.node.Config()
-	logPath := ""
-	if config.LogDirPath != nil {
-		logPath = *config.LogDirPath
-	} else {
-		// Default log path if not set explicitly in the config.
-		logPath = filepath.Join(config.StorageDirPath, "logs")
-	}
-
-	allLogFiles, err := filepath.Glob(filepath.Join(logPath, "ldk_node_*.log"))
-	if err != nil {
-		logger.Logger.WithError(err).Error("GetLogOutput failed to list log files")
-		return nil, err
-	}
-
-	if len(allLogFiles) == 0 {
-		return []byte{}, nil
-	}
-
-	// Log filenames are formatted as ldk_node_YYYY_MM_DD.log, hence they
-	// naturally sort by date.
-	lastLogFileName := slices.Max(allLogFiles)
-
-	logData, err := utils.ReadFileTail(lastLogFileName, maxLen)
-	if err != nil {
-		logger.Logger.WithError(err).Error("GetLogOutput failed to read log file")
-		return nil, err
-	}
-
-	return logData, nil
+	return []byte("Node logs are now included in application logs"), nil
 }
 
 func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
@@ -1430,7 +1450,6 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			return
 		}
 
-		// also
 		maxDustHtlcExposureFromFeeRateMultiplier := uint64(0)
 		if isTrusted {
 			// avoid closures like "ProcessingError: Peer sent update_fee with a feerate (62500)
@@ -1459,13 +1478,54 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			"event":  event,
 			"reason": closureReason,
 		}).Info("Channel closed")
+		onchainBalance, err := ls.GetOnchainBalance(context.Background())
+		if err != nil {
+			logger.Logger.WithError(err).Error("failed to retrieve on-chain balance when closing channel")
+		}
+		var pendingBalance uint64
+		var fundingTxId string
+		var fundingTxVout uint32
+		var fundingTxUrl string
+
+		if onchainBalance != nil {
+			logger.Logger.WithField("onchain_balance", onchainBalance).Info("got on-chain balance when closing channel")
+
+			for _, details := range onchainBalance.PendingBalancesDetails {
+				if details.ChannelId == eventType.ChannelId {
+					fundingTxId = details.FundingTxId
+					fundingTxVout = details.FundingTxVout
+					fundingTxUrl = fmt.Sprintf("https://mempool.space/tx/%s#flow=&vout=%d", fundingTxId, fundingTxVout)
+					pendingBalance += details.Amount
+				}
+			}
+			for _, details := range onchainBalance.PendingSweepBalancesDetails {
+				if details.ChannelId == eventType.ChannelId {
+					fundingTxId = details.FundingTxId
+					fundingTxVout = details.FundingTxVout
+					fundingTxUrl = fmt.Sprintf("https://mempool.space/tx/%s#flow=&vout=%d", fundingTxId, fundingTxVout)
+					pendingBalance += details.Amount
+				}
+			}
+		}
+
+		var counterpartyNodeId string
+		var counterpartyNodeUrl string
+		if eventType.CounterpartyNodeId != nil {
+			counterpartyNodeId = *eventType.CounterpartyNodeId
+			counterpartyNodeUrl = "https://amboss.space/node/" + counterpartyNodeId
+		}
 
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_channel_closed",
 			Properties: map[string]interface{}{
-				"counterparty_node_id": eventType.CounterpartyNodeId,
-				"reason":               closureReason,
-				"node_type":            config.LDKBackendType,
+				"counterparty_node_id":  counterpartyNodeId,
+				"counterparty_node_url": counterpartyNodeUrl,
+				"reason":                closureReason,
+				"node_type":             config.LDKBackendType,
+				"pending_balance":       pendingBalance,
+				"funding_tx_id":         fundingTxId,
+				"funding_tx_vout":       fundingTxVout,
+				"funding_tx_url":        fundingTxUrl,
 			},
 		})
 	case ldk_node.EventPaymentReceived:
@@ -1536,6 +1596,11 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 				Reason:      reason,
 			},
 		})
+	case ldk_node.EventPaymentForwarded:
+		logger.Logger.WithFields(logrus.Fields{
+			"total_fee_earned_msat":          eventType.TotalFeeEarnedMsat,
+			"outbound_amount_forwarded_msat": eventType.OutboundAmountForwardedMsat,
+		}).Info("LDK Payment forwarded")
 	}
 }
 
@@ -1572,7 +1637,7 @@ func (ls *LDKService) backupChannels() {
 		})
 	}
 
-	monitors, err := ls.node.GetEncodedChannelMonitors()
+	monitors, err := checkLDKErr(ls.node.GetEncodedChannelMonitors())
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to list channel monitors")
 		return
@@ -1622,7 +1687,7 @@ func (ls *LDKService) saveStaticChannelBackupToDisk(event *events.StaticChannels
 	logger.Logger.WithField("backupPath", backupFilePath).Debug("Saved static channel backup to disk")
 }
 
-func (ls *LDKService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
+func (ls *LDKService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
 	onchainBalance, err := ls.GetOnchainBalance(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to retrieve onchain balance")
@@ -1637,7 +1702,7 @@ func (ls *LDKService) GetBalances(ctx context.Context) (*lnclient.BalancesRespon
 	var nextMaxSpendableMPP int64 = 0
 	channels := ls.node.ListChannels()
 	for _, channel := range channels {
-		if channel.IsUsable {
+		if channel.IsUsable || includeInactiveChannels {
 			// spending or receiving amount may be constrained by channel configuration (e.g. ACINQ does this)
 			channelConstrainedSpendable := min(int64(channel.OutboundCapacityMsat), int64(*channel.CounterpartyOutboundHtlcMaximumMsat))
 			channelConstrainedReceivable := min(int64(channel.InboundCapacityMsat), int64(*channel.InboundHtlcMaximumMsat))
@@ -1681,12 +1746,28 @@ func (ls *LDKService) deleteOldLDKPayments() {
 	now := time.Now()
 	for _, payment := range payments {
 		paymentCreatedAt := time.Unix(int64(payment.CreatedAt), 0)
+
+		deletablePaymentKind := false
+		switch (payment.Kind).(type) {
+		case ldk_node.PaymentKindBolt11:
+			deletablePaymentKind = true
+		case ldk_node.PaymentKindSpontaneous:
+			deletablePaymentKind = true
+		}
+		if !deletablePaymentKind {
+			logger.Logger.WithFields(logrus.Fields{
+				"created_at": paymentCreatedAt,
+				"payment_id": payment.Id,
+			}).Debug("Skipping undeletable payment kind")
+			continue
+		}
+
 		if paymentCreatedAt.Add(maxInvoiceExpiry).Before(now) {
 			logger.Logger.WithFields(logrus.Fields{
 				"created_at": paymentCreatedAt,
 				"payment_id": payment.Id,
 			}).Debug("Deleting old payment")
-			err := ls.node.RemovePayment(payment.Id)
+			err := ls.node.RemovePayment(payment.Id).AsError()
 			if err != nil {
 				logger.Logger.WithError(err).WithField("id", payment.Id).Error("failed to delete old payment")
 			}
@@ -1733,7 +1814,7 @@ func (ls *LDKService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.N
 }
 
 func (ls *LDKService) DisconnectPeer(ctx context.Context, peerId string) error {
-	return ls.node.Disconnect(peerId)
+	return ls.node.Disconnect(peerId).AsError()
 }
 
 func (ls *LDKService) UpdateLastWalletSyncRequest() {
@@ -1767,6 +1848,14 @@ func (ls *LDKService) getPaymentFailReason(eventPaymentFailed *ldk_node.EventPay
 		failureReasonMessage = "RouteNotFound"
 	case ldk_node.PaymentFailureReasonUnexpectedError:
 		failureReasonMessage = "UnexpectedError"
+	case ldk_node.PaymentFailureReasonUnknownRequiredFeatures:
+		failureReasonMessage = "UnknownRequiredFeatures"
+	case ldk_node.PaymentFailureReasonInvoiceRequestExpired:
+		failureReasonMessage = "InvoiceRequestExpired"
+	case ldk_node.PaymentFailureReasonInvoiceRequestRejected:
+		failureReasonMessage = "InvoiceRequestRejected"
+	case ldk_node.PaymentFailureReasonBlindedPathCreationFailed:
+		failureReasonMessage = "BlindedPathCreationFailed"
 	default:
 		failureReasonMessage = "UnknownError"
 	}
@@ -1822,22 +1911,6 @@ func (ls *LDKService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 	return nil, nil
 }
 
-func getEncodedChannelMonitorsFromStaticChannelsBackup(channelsBackup *events.StaticChannelsBackupEvent) []ldk_node.KeyValue {
-	encodedMonitors := []ldk_node.KeyValue{}
-	for _, monitor := range channelsBackup.Monitors {
-		value, err := hex.DecodeString(monitor.Value)
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to decode LDK channel monitor hex")
-			continue
-		}
-		encodedMonitors = append(encodedMonitors, ldk_node.KeyValue{
-			Key:   monitor.Key,
-			Value: value,
-		})
-	}
-	return encodedMonitors
-}
-
 func GetVssNodeIdentifier(keys keys.Keys) (string, error) {
 	key, err := keys.DeriveKey([]uint32{bip32.FirstHardenedChild + 2})
 
@@ -1880,6 +1953,8 @@ func getResetStateRequest(cfg config.Config) *ldk_node.ResetState {
 		ret = ldk_node.ResetStateScorer
 	case "NetworkGraph":
 		ret = ldk_node.ResetStateNetworkGraph
+	case "NodeMetrics":
+		ret = ldk_node.ResetStateNodeMetrics
 	default:
 		logger.Logger.WithField("key", resetKey).Error("Unknown reset router key")
 		return nil
@@ -1893,4 +1968,24 @@ func (ls *LDKService) ConsumeEvent(ctx context.Context, event *events.Event, glo
 		// backup existing channels to the user's Alby Account on first connect
 		ls.backupChannels()
 	}
+}
+
+// checkLDKErr is a helper function to convert errors returned from LDK to
+// generic Go errors. This is a workaround for the Go pitfall where an interface
+// value becomes non-`nil` when assigned a `nil` value of a pointer to a
+// concrete type.
+//
+// For example, the following snippet will panic even if the builder returns
+// a `nil` error:
+//
+// builder := ldk_node.BuilderFromConfig(ldkConfig)
+// node, err := builder.Build()
+// if err != nil { panic(err) }
+//
+// See this for details: https://go.dev/doc/faq#nil_error
+func checkLDKErr[T any](val T, err error) (T, error) {
+	if e, ok := err.(ldk_node.NativeError); ok {
+		return val, e.AsError()
+	}
+	return val, err
 }

@@ -1,4 +1,4 @@
-import { ChevronDown } from "lucide-react";
+import { ChevronDownIcon, InfoIcon } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
@@ -17,8 +17,10 @@ import { useInfo } from "src/hooks/useInfo";
 import { AutoChannelRequest, AutoChannelResponse } from "src/types";
 import { request } from "src/utils/request";
 
+import { Invoice } from "@getalby/lightning-tools";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import { PayLightningInvoice } from "src/components/PayLightningInvoice";
+import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import { ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL } from "src/constants";
 
 export function FirstChannel() {
@@ -99,11 +101,50 @@ export function FirstChannel() {
       {invoice && channelSize && (
         <div className="flex flex-col gap-4 items-center justify-center max-w-md">
           <p className="text-muted-foreground slashed-zero">
-            Please pay the lightning invoice below which will cover the costs of
-            opening your first channel. You will receive a channel with{" "}
-            {new Intl.NumberFormat().format(channelSize)} sats of incoming
-            liquidity.
+            Alby Hub works with selected service providers (LSPs) which provide
+            the best network connectivity and liquidity to receive payments. To
+            quickly get started you can buy a channel from an LSP by paying the
+            lightning invoice below.
           </p>
+          <div className="border rounded-lg slashed-zero w-full">
+            <Table>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="font-medium p-3">
+                    Incoming Liquidity
+                  </TableCell>
+                  <TableCell className="text-right p-3">
+                    {new Intl.NumberFormat().format(channelSize)} sats
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium p-3 flex items-center gap-2">
+                    Duration
+                    <ExternalLink to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel#which-lightning-service-provider-to-choose">
+                      <InfoIcon className="w-4 h-4 text-muted-foreground" />
+                    </ExternalLink>
+                  </TableCell>
+
+                  <TableCell className="p-3 text-right">
+                    at least 3 months
+                  </TableCell>
+                </TableRow>
+                {invoice && (
+                  <TableRow>
+                    <TableCell className="font-medium p-3">
+                      Amount to pay
+                    </TableCell>
+                    <TableCell className="font-semibold text-right p-3">
+                      {new Intl.NumberFormat().format(
+                        new Invoice({ pr: invoice }).satoshi
+                      )}{" "}
+                      sats
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
           <PayLightningInvoice invoice={invoice} />
 
           <Separator className="mt-8" />
@@ -165,6 +206,17 @@ export function FirstChannel() {
                   you'll immediately be able to receive and send bitcoin with
                   your Hub.
                 </p>
+                <p className="text-muted-foreground">
+                  Alby Hub works with selected service providers (LSPs) which
+                  provide the best network connectivity and liquidity to receive
+                  payments.{" "}
+                  <ExternalLink
+                    className="underline"
+                    to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel"
+                  >
+                    Learn more
+                  </ExternalLink>
+                </p>
               </>
             )}
             {showAdvanced && (
@@ -183,8 +235,13 @@ export function FirstChannel() {
                       Public Channel
                     </Label>
                     <p className="text-xs text-muted-foreground">
-                      Only enable if you want to receive keysend payments. (e.g.
-                      podcasting)
+                      Not recommended for most users.{" "}
+                      <ExternalLink
+                        className="underline"
+                        to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/should-i-open-a-private-or-public-channel"
+                      >
+                        Learn more
+                      </ExternalLink>
                     </p>
                   </div>
                 </div>
@@ -199,7 +256,7 @@ export function FirstChannel() {
                   onClick={() => setShowAdvanced((current) => !current)}
                 >
                   Advanced Options
-                  <ChevronDown className="w-4 h-4 ml-1" />
+                  <ChevronDownIcon className="w-4 h-4 ml-1" />
                 </Button>
               </div>
             )}

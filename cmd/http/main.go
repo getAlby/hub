@@ -36,7 +36,7 @@ func main() {
 	go func() {
 		if err := e.Start(fmt.Sprintf(":%v", svc.GetConfig().GetEnv().Port)); err != nil && err != nethttp.ErrServerClosed {
 			logger.Logger.WithError(err).Error("echo server failed to start")
-			ctx.Done()
+			cancel()
 		}
 	}()
 

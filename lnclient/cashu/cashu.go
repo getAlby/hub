@@ -72,7 +72,7 @@ func (cs *CashuService) Shutdown() error {
 	return cs.wallet.Shutdown()
 }
 
-func (cs *CashuService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64) (response *lnclient.PayInvoiceResponse, err error) {
+func (cs *CashuService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64, timeoutSeconds *int64) (response *lnclient.PayInvoiceResponse, err error) {
 	// TODO: support 0-amount invoices
 	if amount != nil {
 		return nil, errors.New("0-amount invoices not supported")
@@ -283,7 +283,7 @@ func (cs *CashuService) UpdateChannel(ctx context.Context, updateChannelRequest 
 	return nil
 }
 
-func (cs *CashuService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
+func (cs *CashuService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
 	cashuBalance := cs.wallet.GetBalance()
 	balance := int64(cashuBalance * 1000)
 
@@ -550,4 +550,8 @@ func (cs *CashuService) executeCommandResetWallet() (*lnclient.CustomNodeCommand
 			"message": "Reset successful. Your hub will shutdown in 10 seconds...",
 		},
 	}, nil
+}
+
+func (cs *CashuService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
+	return nil, errors.ErrUnsupported
 }

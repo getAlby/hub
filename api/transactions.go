@@ -39,7 +39,13 @@ func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64,
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	transactions, totalCount, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, true, false, nil, api.svc.GetLNClient(), appId, true)
+
+	forceFilterByAppId := false
+	if appId != nil {
+		forceFilterByAppId = true
+	}
+
+	transactions, totalCount, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, true, false, nil, api.svc.GetLNClient(), appId, forceFilterByAppId)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +65,7 @@ func (api *api) SendPayment(ctx context.Context, invoice string, amountMsat *uin
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	transaction, err := api.svc.GetTransactionsService().SendPaymentSync(ctx, invoice, amountMsat, nil, api.svc.GetLNClient(), nil, nil)
+	transaction, err := api.svc.GetTransactionsService().SendPaymentSync(ctx, invoice, amountMsat, nil, api.svc.GetLNClient(), nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +142,7 @@ func (api *api) TopupIsolatedApp(ctx context.Context, userApp *db.App, amountMsa
 		return err
 	}
 
-	_, err = api.svc.GetTransactionsService().SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, api.svc.GetLNClient(), nil, nil)
+	_, err = api.svc.GetTransactionsService().SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, api.svc.GetLNClient(), nil, nil, nil)
 	return err
 }
 

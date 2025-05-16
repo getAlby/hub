@@ -1,10 +1,11 @@
 import {
   ExternalLinkIcon,
-  HandCoins,
-  MoreHorizontal,
-  Trash2,
+  HandCoinsIcon,
+  MoreHorizontalIcon,
+  Trash2Icon,
 } from "lucide-react";
 import React from "react";
+import { useSearchParams } from "react-router-dom";
 import { CloseChannelDialogContent } from "src/components/CloseChannelDialogContent";
 import ExternalLink from "src/components/ExternalLink";
 import { RoutingFeeDialogContent } from "src/components/RoutingFeeDialogContent";
@@ -30,11 +31,19 @@ export function ChannelDropdownMenu({
   alias,
   channel,
 }: ChannelDropdownMenuProps) {
+  const [searchParams] = useSearchParams();
   const [dialog, setDialog] = React.useState<"closeChannel" | "routingFee">();
+
+  React.useEffect(() => {
+    // when opening the swap dialog, close existing dialog
+    if (searchParams.has("swap", "true")) {
+      setDialog(undefined);
+    }
+  }, [searchParams]);
 
   return (
     <AlertDialog
-      onOpenChange={() => {
+      onOpenChange={(open) => {
         if (!open) {
           setDialog(undefined);
         }
@@ -43,7 +52,7 @@ export function ChannelDropdownMenu({
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button size="icon" variant="ghost">
-            <MoreHorizontal className="h-4 w-4" />
+            <MoreHorizontalIcon className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
@@ -71,7 +80,7 @@ export function ChannelDropdownMenu({
                 className="flex flex-row items-center gap-2 cursor-pointer"
                 onClick={() => setDialog("routingFee")}
               >
-                <HandCoins className="h-4 w-4" />
+                <HandCoinsIcon className="h-4 w-4" />
                 Set Routing Fee
               </DropdownMenuItem>
             </AlertDialogTrigger>
@@ -81,7 +90,7 @@ export function ChannelDropdownMenu({
               className="flex flex-row items-center gap-2 cursor-pointer"
               onClick={() => setDialog("closeChannel")}
             >
-              <Trash2 className="h-4 w-4 text-destructive" />
+              <Trash2Icon className="h-4 w-4 text-destructive" />
               Close Channel
             </DropdownMenuItem>
           </AlertDialogTrigger>

@@ -13,6 +13,12 @@ cp -r data albyhub-backup
 
 wget https://getalby.com/install/hub/server-linux-armv6.tar.bz2
 
+./verify.sh server-linux-armv6.tar.bz2 albyhub-Server-Linux-armv6.tar.bz2
+if [[ $? -ne 0 ]]; then
+  echo "❌ Verification failed, aborting installation"
+  exit 1
+fi
+
 # Extract archives
 tar -xvf server-linux-armv6.tar.bz2
 
