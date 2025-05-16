@@ -1359,7 +1359,7 @@ func (_c *MockLNClient_OpenChannel_Call) RunAndReturn(run func(context.Context, 
 }
 
 // RedeemOnchainFunds provides a mock function with given fields: ctx, toAddress, amount, feeRate, sendAll
-func (_m *MockLNClient) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate float64, sendAll bool) (string, error) {
+func (_m *MockLNClient) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate uint64, sendAll bool) (string, error) {
 	ret := _m.Called(ctx, toAddress, amount, feeRate, sendAll)
 
 	if len(ret) == 0 {
@@ -1368,16 +1368,16 @@ func (_m *MockLNClient) RedeemOnchainFunds(ctx context.Context, toAddress string
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, uint64, float64, bool) (string, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, uint64, uint64, bool) (string, error)); ok {
 		return rf(ctx, toAddress, amount, feeRate, sendAll)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, uint64, float64, bool) string); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, uint64, uint64, bool) string); ok {
 		r0 = rf(ctx, toAddress, amount, feeRate, sendAll)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, uint64, float64, bool) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, string, uint64, uint64, bool) error); ok {
 		r1 = rf(ctx, toAddress, amount, feeRate, sendAll)
 	} else {
 		r1 = ret.Error(1)
@@ -1395,15 +1395,15 @@ type MockLNClient_RedeemOnchainFunds_Call struct {
 //   - ctx context.Context
 //   - toAddress string
 //   - amount uint64
-//   - feeRate float64
+//   - feeRate uint64
 //   - sendAll bool
 func (_e *MockLNClient_Expecter) RedeemOnchainFunds(ctx interface{}, toAddress interface{}, amount interface{}, feeRate interface{}, sendAll interface{}) *MockLNClient_RedeemOnchainFunds_Call {
 	return &MockLNClient_RedeemOnchainFunds_Call{Call: _e.mock.On("RedeemOnchainFunds", ctx, toAddress, amount, feeRate, sendAll)}
 }
 
-func (_c *MockLNClient_RedeemOnchainFunds_Call) Run(run func(ctx context.Context, toAddress string, amount uint64, feeRate float64, sendAll bool)) *MockLNClient_RedeemOnchainFunds_Call {
+func (_c *MockLNClient_RedeemOnchainFunds_Call) Run(run func(ctx context.Context, toAddress string, amount uint64, feeRate uint64, sendAll bool)) *MockLNClient_RedeemOnchainFunds_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(uint64), args[3].(float64), args[4].(bool))
+		run(args[0].(context.Context), args[1].(string), args[2].(uint64), args[3].(uint64), args[4].(bool))
 	})
 	return _c
 }
@@ -1413,7 +1413,7 @@ func (_c *MockLNClient_RedeemOnchainFunds_Call) Return(txId string, err error) *
 	return _c
 }
 
-func (_c *MockLNClient_RedeemOnchainFunds_Call) RunAndReturn(run func(context.Context, string, uint64, float64, bool) (string, error)) *MockLNClient_RedeemOnchainFunds_Call {
+func (_c *MockLNClient_RedeemOnchainFunds_Call) RunAndReturn(run func(context.Context, string, uint64, uint64, bool) (string, error)) *MockLNClient_RedeemOnchainFunds_Call {
 	_c.Call.Return(run)
 	return _c
 }

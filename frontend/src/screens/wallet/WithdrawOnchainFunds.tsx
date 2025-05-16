@@ -250,8 +250,12 @@ export default function WithdrawOnchainFunds() {
                 setOnchainAddress(e.target.value);
               }}
             />
+            <p className="mt-2 text-sm text-muted-foreground">
+              Please double-check the destination address. This transaction
+              cannot be reversed.
+            </p>
           </div>
-          {info?.backendType === "LND" && (
+          {(info?.backendType === "LDK" || info?.backendType === "LND") && (
             <>
               {showAdvanced && (
                 <div className="">
@@ -281,11 +285,6 @@ export default function WithdrawOnchainFunds() {
               )}
             </>
           )}
-
-          <p className="text-sm text-muted-foreground">
-            Please double-check the destination address. This transaction cannot
-            be reversed.
-          </p>
 
           {+feeRate > recommendedFees.fastestFee && (
             <Alert>

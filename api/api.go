@@ -755,7 +755,7 @@ func (api *api) SignMessage(ctx context.Context, message string) (*SignMessageRe
 	}, nil
 }
 
-func (api *api) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate float64, sendAll bool) (*RedeemOnchainFundsResponse, error) {
+func (api *api) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate uint64, sendAll bool) (*RedeemOnchainFundsResponse, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
