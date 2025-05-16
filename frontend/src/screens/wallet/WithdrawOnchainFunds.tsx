@@ -264,6 +264,7 @@ export default function WithdrawOnchainFunds() {
                     id="fee-rate"
                     type="number"
                     value={feeRate}
+                    step={1}
                     required
                     min={recommendedFees.minimumFee}
                     onChange={(e) => {
