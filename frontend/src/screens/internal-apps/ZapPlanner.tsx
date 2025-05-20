@@ -237,38 +237,41 @@ export function ZapPlanner() {
                       <Label htmlFor="name" className="text-right">
                         Recipient Name
                       </Label>
-                      <Input
-                        id="name"
-                        value={recipientName}
-                        required
-                        onChange={(e) => setRecipientName(e.target.value)}
-                        className="col-span-3"
-                      />
+                      <div className="col-span-3">
+                        <Input
+                          id="name"
+                          value={recipientName}
+                          required
+                          onChange={(e) => setRecipientName(e.target.value)}
+                        />
+                      </div>
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="name" className="text-right">
                         Recipient Lightning Address
                       </Label>
-                      <Input
-                        id="receiver"
-                        required
-                        value={recipientLightningAddress}
-                        onChange={(e) =>
-                          setRecipientLightningAddress(e.target.value)
-                        }
-                        className="col-span-3"
-                      />
+                      <div className="col-span-3">
+                        <Input
+                          id="receiver"
+                          required
+                          value={recipientLightningAddress}
+                          onChange={(e) =>
+                            setRecipientLightningAddress(e.target.value)
+                          }
+                        />
+                      </div>
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="amount" className="text-right">
                         Amount / month (sats)
                       </Label>
-                      <Input
-                        id="amount"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        className="col-span-3"
-                      />
+                      <div className="col-span-3">
+                        <Input
+                          id="amount"
+                          value={amount}
+                          onChange={(e) => setAmount(e.target.value)}
+                        />
+                      </div>
                     </div>
                     <div className="grid grid-cols-4 gap-4">
                       <Label htmlFor="comment" className="text-right pt-2">
@@ -286,13 +289,14 @@ export function ZapPlanner() {
                       <Label htmlFor="comment" className="text-right">
                         Your Name
                       </Label>
-                      <Input
-                        id="sender-name"
-                        value={senderName}
-                        onChange={(e) => setSenderName(e.target.value)}
-                        placeholder={`Let ${recipientName || "them"} know it was from you`}
-                        className="col-span-3"
-                      />
+                      <div className="col-span-3">
+                        <Input
+                          id="sender-name"
+                          value={senderName}
+                          onChange={(e) => setSenderName(e.target.value)}
+                          placeholder={`Let ${recipientName || "them"} know it was from you`}
+                        />
+                      </div>
                     </div>
                   </div>
                   <DialogFooter>

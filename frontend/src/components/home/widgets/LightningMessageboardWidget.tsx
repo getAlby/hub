@@ -246,27 +246,29 @@ export function LightningMessageboardWidget() {
                 <Label htmlFor="comment" className="text-right">
                   Your Name
                 </Label>
-                <Input
-                  id="sender-name"
-                  value={senderName}
-                  onChange={(e) => setSenderName(e.target.value)}
-                  maxLength={20}
-                  className="col-span-3"
-                  autoFocus
-                />
+                <div className="col-span-3">
+                  <Input
+                    id="sender-name"
+                    value={senderName}
+                    onChange={(e) => setSenderName(e.target.value)}
+                    maxLength={20}
+                    autoFocus
+                  />
+                </div>
               </div>
 
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="amount" className="text-right">
                   Amount (sats)
                 </Label>
-                <Input
-                  id="amount"
-                  required
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="col-span-2"
-                />
+                <div className="col-span-2">
+                  <Input
+                    id="amount"
+                    required
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                  />
+                </div>
                 <Button
                   type="button"
                   variant="secondary"
