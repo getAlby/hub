@@ -32,7 +32,10 @@ export default function LnurlPay() {
       });
       navigate(`/wallet/send/confirm-payment`, {
         state: {
-          args: { paymentRequest: invoice },
+          args: {
+            paymentRequest: invoice,
+            recipient: lnAddress,
+          },
         },
       });
     } catch (e) {
