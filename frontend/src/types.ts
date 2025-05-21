@@ -477,6 +477,9 @@ export type Transaction = {
       name?: string;
       pubkey?: string;
     }; // LUD-18
+    recipient_data?: {
+      identifier?: string;
+    }; // LUD-18
     nostr?: {
       pubkey: string;
       tags: string[][];

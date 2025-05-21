@@ -34,7 +34,7 @@ export default function LnurlPay() {
         state: {
           args: {
             paymentRequest: invoice,
-            recipient: lnAddress,
+            identifier: lnAddress.lnurlpData?.identifier,
           },
         },
       });
