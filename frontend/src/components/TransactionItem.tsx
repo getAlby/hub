@@ -88,6 +88,8 @@ function TransactionItem({ tx }: Props) {
 
   const eventId = tx.metadata?.nostr?.tags?.find((t) => t[0] === "e")?.[1];
 
+  const description = tx.description || tx.metadata?.comment;
+
   const copy = (text: string) => {
     copyToClipboard(text, toast);
   };
@@ -162,7 +164,7 @@ function TransactionItem({ tx }: Props) {
               </span>
             </div>
             <p className="text-sm md:text-base text-muted-foreground break-all line-clamp-1">
-              {tx.description}
+              {description}
             </p>
           </div>
           <div className="flex ml-auto space-x-3 shrink-0">
@@ -223,6 +225,18 @@ function TransactionItem({ tx }: Props) {
                 </Link>
               </div>
             )}
+            {recipientIdentifier && (
+              <div className="mt-6">
+                <p>To</p>
+                <p className="text-muted-foreground">{recipientIdentifier}</p>
+              </div>
+            )}
+            {payerName && (
+              <div className="mt-6">
+                <p>From</p>
+                <p className="text-muted-foreground">{payerName}</p>
+              </div>
+            )}
             <div className="mt-6">
               <p>Date & Time</p>
               <p className="text-muted-foreground">
@@ -248,6 +262,15 @@ function TransactionItem({ tx }: Props) {
                 </p>
               </div>
             )}
+            {tx.metadata?.comment && (
+              <div className="mt-6">
+                <p>Comment</p>
+                <p className="text-muted-foreground break-all">
+                  {tx.metadata?.comment}
+                </p>
+              </div>
+            )}
+            {/* We don't include zap request content as that is set as the description itself by the rails app */}
             {tx.metadata?.nostr && eventId && npub && (
               <div className="mt-6">
                 <p>
