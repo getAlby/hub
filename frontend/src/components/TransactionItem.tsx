@@ -61,7 +61,7 @@ function TransactionItem({ tx }: Props) {
   const Icon =
     tx.state === "failed"
       ? XIcon
-      : tx.type == "outgoing"
+      : tx.type === "outgoing"
         ? ArrowUpIcon
         : ArrowDownIcon;
 
@@ -74,11 +74,17 @@ function TransactionItem({ tx }: Props) {
   const pubkey = tx.metadata?.nostr?.pubkey;
   const npub = pubkey ? safeNpubEncode(pubkey) : undefined;
 
-  const from = tx.metadata?.payer_data?.name
-    ? `from ${tx.metadata.payer_data.name}`
+  const payerName = tx.metadata?.payer_data?.name;
+  const from = payerName
+    ? `from ${payerName}`
     : npub
       ? `zap from ${npub.substring(0, 12)}...`
       : undefined;
+
+  const recipientIdentifier = tx.metadata?.recipient_data?.identifier;
+  const to = recipientIdentifier
+    ? `${tx.state === "failed" ? "sending " : ""}to ${recipientIdentifier}`
+    : undefined;
 
   const eventId = tx.metadata?.nostr?.tags?.find((t) => t[0] === "e")?.[1];
 
@@ -145,16 +151,15 @@ function TransactionItem({ tx }: Props) {
         >
           {typeStateIcon}
           <div className="overflow-hidden mr-3 max-w-full text-left flex flex-col items-start justify-center">
-            <div>
-              <p className="flex items-end truncate">
-                <span className="md:text-xl font-semibold">
-                  {typeStateText}
-                </span>
+            <div className="flex items-center gap-2">
+              <span className="md:text-xl font-semibold break-all line-clamp-1">
+                {typeStateText}
                 {from !== undefined && <>&nbsp;{from}</>}
-                <span className="text-xs md:text-base ml-2 truncate text-muted-foreground">
-                  {dayjs(tx.updatedAt).fromNow()}
-                </span>
-              </p>
+                {to !== undefined && <>&nbsp;{to}</>}
+              </span>
+              <span className="text-xs md:text-base text-muted-foreground flex-shrink-0">
+                {dayjs(tx.updatedAt).fromNow()}
+              </span>
             </div>
             <p className="text-sm md:text-base text-muted-foreground break-all line-clamp-1">
               {tx.description}
