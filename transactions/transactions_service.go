@@ -348,7 +348,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 
 	var response *lnclient.PayInvoiceResponse
 	if selfPayment {
-		response, err = svc.interceptSelfPayment(paymentRequest.PaymentHash)
+		response, err = svc.interceptSelfPayment(ctx, paymentRequest.PaymentHash, lnClient)
 	} else {
 		response, err = lnClient.SendPaymentSync(ctx, payReq, amountMsat, timeoutSeconds)
 	}
@@ -487,7 +487,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 			return nil, err
 		}
 
-		_, err = svc.interceptSelfPayment(paymentHash)
+		_, err = svc.interceptSelfPayment(ctx, paymentHash, lnClient)
 		if err == nil {
 			payKeysendResponse = &lnclient.PayKeysendResponse{
 				Fee: 0,
@@ -804,7 +804,11 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			logger.Logger.WithField("event", event).Error("Failed to cast event properties for hold invoice accepted")
 			return
 		}
-		svc.markHoldInvoiceAccepted(lnClientTransaction.PaymentHash, false)
+		if lnClientTransaction.SettleDeadline == nil {
+			logger.Logger.WithField("event", event).Error("Transaction has no settle deadline")
+			return
+		}
+		svc.markHoldInvoiceAccepted(lnClientTransaction.PaymentHash, *lnClientTransaction.SettleDeadline, false)
 
 	case "nwc_lnclient_payment_sent":
 		lnClientTransaction, ok := event.Properties.(*lnclient.Transaction)
@@ -868,7 +872,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 	}
 }
 
-func (svc *transactionsService) markHoldInvoiceAccepted(paymentHash string, selfPayment bool) {
+func (svc *transactionsService) markHoldInvoiceAccepted(paymentHash string, settleDeadline uint32, selfPayment bool) {
 	logger.Logger.WithFields(logrus.Fields{
 		"paymentHash":  paymentHash,
 		"self_payment": selfPayment,
@@ -890,8 +894,9 @@ func (svc *transactionsService) markHoldInvoiceAccepted(paymentHash string, self
 		}
 
 		err := tx.Model(&dbTransaction).UpdateColumns(map[string]interface{}{
-			"state":        constants.TRANSACTION_STATE_ACCEPTED,
-			"self_payment": selfPayment,
+			"state":           constants.TRANSACTION_STATE_ACCEPTED,
+			"self_payment":    selfPayment,
+			"settle_deadline": settleDeadline,
 		}).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -920,7 +925,7 @@ func (svc *transactionsService) markHoldInvoiceAccepted(paymentHash string, self
 	}
 }
 
-func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lnclient.PayInvoiceResponse, error) {
+func (svc *transactionsService) interceptSelfPayment(ctx context.Context, paymentHash string, lnClient lnclient.LNClient) (*lnclient.PayInvoiceResponse, error) {
 	logger.Logger.WithField("payment_hash", paymentHash).Debug("Intercepting self payment")
 	incomingTransaction := db.Transaction{}
 	result := svc.db.Limit(1).Find(&incomingTransaction, &db.Transaction{
@@ -937,7 +942,7 @@ func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lncli
 	}
 
 	if incomingTransaction.Hold {
-		return svc.interceptSelfHoldPayment(paymentHash)
+		return svc.interceptSelfHoldPayment(ctx, paymentHash, lnClient)
 	}
 
 	if incomingTransaction.Preimage == nil {
@@ -959,7 +964,7 @@ func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lncli
 	}, nil
 }
 
-func (svc *transactionsService) interceptSelfHoldPayment(paymentHash string) (*lnclient.PayInvoiceResponse, error) {
+func (svc *transactionsService) interceptSelfHoldPayment(ctx context.Context, paymentHash string, lnClient lnclient.LNClient) (*lnclient.PayInvoiceResponse, error) {
 	settledChannel := make(chan *db.Transaction)
 	canceledChannel := make(chan *db.Transaction)
 
@@ -967,7 +972,17 @@ func (svc *transactionsService) interceptSelfHoldPayment(paymentHash string) (*l
 
 	svc.eventPublisher.RegisterSubscriber(holdInvoiceUpdatedConsumer)
 
-	svc.markHoldInvoiceAccepted(paymentHash, true)
+	clientInfo, err := lnClient.GetInfo(ctx)
+	if err != nil {
+		return nil, errors.New("failed to get client info")
+	}
+	if clientInfo.BlockHeight == 0 {
+		return nil, errors.New("invalid client block height")
+	}
+
+	fakeSettleDeadline := clientInfo.BlockHeight + 24
+
+	svc.markHoldInvoiceAccepted(paymentHash, fakeSettleDeadline, true)
 
 	select {
 	case settledTransaction := <-settledChannel:

@@ -13,6 +13,7 @@ var _202505091314_hold_invoices = &gormigrate.Migration{
 
 		if err := db.Exec(`
 	ALTER TABLE transactions ADD COLUMN hold BOOLEAN;
+	ALTER TABLE transactions ADD COLUMN settle_deadline integer;
 `).Error; err != nil {
 			return err
 		}

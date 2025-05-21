@@ -38,6 +38,7 @@ type Transaction struct {
 	ExpiresAt       *int64
 	SettledAt       *int64
 	Metadata        Metadata
+	SettleDeadline  *uint32 // block number for accepted hold invoices
 }
 
 type OnchainTransaction struct {

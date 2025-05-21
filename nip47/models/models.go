@@ -42,6 +42,7 @@ type Transaction struct {
 	CreatedAt       int64       `json:"created_at"`
 	ExpiresAt       *int64      `json:"expires_at"`
 	SettledAt       *int64      `json:"settled_at"`
+	SettleDeadline  *uint32     `json:"settle_deadline"` // block number for accepted hold invoices
 	Metadata        interface{} `json:"metadata,omitempty"`
 }
 

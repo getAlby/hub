@@ -86,6 +86,7 @@ type Transaction struct {
 	Boostagram      datatypes.JSON
 	FailureReason   string
 	Hold            bool
+	SettleDeadline  *uint32 // block number for accepted hold invoices
 }
 
 const (
