@@ -386,11 +386,11 @@ func (svc *LNDService) subscribeSingleInvoice(paymentHashBytes []byte) {
 				Properties: transaction,
 			})
 		case lnrpc.Invoice_CANCELED:
-			log.Info("Hold invoice canceled, publishing internal event")
+			/*log.Info("Hold invoice canceled, publishing internal event")
 			svc.eventPublisher.Publish(&events.Event{
 				Event:      "nwc_lnclient_hold_invoice_canceled",
 				Properties: lndInvoiceToTransaction(invoice),
-			})
+			})*/
 			return // Invoice reached final state, exit goroutine
 		case lnrpc.Invoice_SETTLED:
 			return // Invoice reached final state, exit goroutine
