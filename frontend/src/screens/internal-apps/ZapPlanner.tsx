@@ -97,7 +97,7 @@ export function ZapPlanner() {
   const [frequencyValue, setFrequencyValue] = React.useState("1");
   const [frequencyUnit, setFrequencyUnit] = React.useState("months");
   const [amountCurrency, setAmountCurrency] = React.useState<"BTC" | "USD">(
-    "BTC"
+    "USD"
   );
   const [convertedAmount, setConvertedAmount] = React.useState<string>("");
   const [satoshiAmount, setSatoshiAmount] = React.useState<number | undefined>(
@@ -349,7 +349,7 @@ export function ZapPlanner() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="BTC">BTC</SelectItem>
+                            <SelectItem value="BTC">BTC (sats)</SelectItem>
                             <SelectItem value="USD">USD</SelectItem>
                           </SelectContent>
                         </Select>
