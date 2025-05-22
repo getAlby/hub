@@ -33,15 +33,17 @@ func TestSelfHoldPaymentSettled(t *testing.T) {
 	go func() {
 		result, err := transactionsService.SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, svc.LNClient, nil, nil, nil)
 		assert.NoError(t, err)
+		require.NotNil(t, result)
 		assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, result.State)
 		assert.Equal(t, true, result.SelfPayment)
 		assert.Equal(t, false, result.Hold)
 	}()
 
 	// wait for payment to be accepted
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 	settledTransaction, err := transactionsService.SettleHoldInvoice(ctx, preimage, svc.LNClient)
 	assert.NoError(t, err)
+	require.NotNil(t, settledTransaction)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, settledTransaction.State)
 	assert.Equal(t, true, settledTransaction.SelfPayment)
 	assert.Equal(t, true, settledTransaction.Hold)
@@ -70,13 +72,14 @@ func TestSelfHoldPaymentCanceled(t *testing.T) {
 		outgoingTransactionType := constants.TRANSACTION_TYPE_OUTGOING
 		failedOutgoingTransaction, err := transactionsService.LookupTransaction(ctx, paymentHash, &outgoingTransactionType, svc.LNClient, nil)
 		assert.Nil(t, err)
+		require.NotNil(t, failedOutgoingTransaction)
 		assert.Equal(t, constants.TRANSACTION_STATE_FAILED, failedOutgoingTransaction.State)
 		assert.Equal(t, true, failedOutgoingTransaction.SelfPayment)
 		assert.Equal(t, false, failedOutgoingTransaction.Hold)
 	}()
 
 	// wait for payment to be accepted
-	time.Sleep(10 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 	err = transactionsService.CancelHoldInvoice(ctx, paymentHash, svc.LNClient)
 	assert.NoError(t, err)
 
