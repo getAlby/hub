@@ -71,7 +71,7 @@ export default function PaymentSuccess() {
             <div className="font-medium">URL</div>
             <ExternalLink
               to={invoice.successAction.url}
-              className="underline flex items-center mt-2"
+              className="underline flex items-center"
             >
               <p className="text-sm">{invoice.successAction.url}</p>
               <ExternalLinkIcon className="w-4 h-4 ml-2" />
