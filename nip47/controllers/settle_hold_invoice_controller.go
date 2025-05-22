@@ -16,9 +16,6 @@ type settleHoldInvoiceParams struct {
 type settleHoldInvoiceResponse struct{}
 
 func (controller *nip47Controller) HandleSettleHoldInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, appId uint, publishResponse func(*models.Response, nostr.Tags)) {
-	resp := &models.Response{}
-	resp.ResultType = models.SETTLE_HOLD_INVOICE_METHOD
-
 	settleHoldInvoiceParams := &settleHoldInvoiceParams{}
 	decodeErrResp := decodeRequest(nip47Request, settleHoldInvoiceParams)
 	if decodeErrResp != nil {

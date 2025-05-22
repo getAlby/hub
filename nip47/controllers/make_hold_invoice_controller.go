@@ -23,9 +23,6 @@ type makeHoldInvoiceResponse struct {
 }
 
 func (controller *nip47Controller) HandleMakeHoldInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, appId uint, publishResponse func(*models.Response, nostr.Tags)) {
-	resp := &models.Response{}
-	resp.ResultType = models.MAKE_HOLD_INVOICE_METHOD
-
 	makeHoldInvoiceParams := &makeHoldInvoiceParams{}
 	decodeErrResp := decodeRequest(nip47Request, makeHoldInvoiceParams)
 	if decodeErrResp != nil {

@@ -16,9 +16,6 @@ type cancelHoldInvoiceParams struct {
 type cancelHoldInvoiceResponse struct{}
 
 func (controller *nip47Controller) HandleCancelHoldInvoiceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, appId uint, publishResponse func(*models.Response, nostr.Tags)) {
-	resp := &models.Response{}
-	resp.ResultType = models.CANCEL_HOLD_INVOICE_METHOD
-
 	cancelHoldInvoiceParams := &cancelHoldInvoiceParams{}
 	decodeErrResp := decodeRequest(nip47Request, cancelHoldInvoiceParams)
 	if decodeErrResp != nil {
