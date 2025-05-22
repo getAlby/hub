@@ -40,7 +40,7 @@ type LNDService struct {
 	client         *wrapper.LNDWrapper
 	nodeInfo       *lnclient.NodeInfo
 	cancel         context.CancelFunc
-	globalCtx      context.Context
+	ctx            context.Context
 	eventPublisher events.EventPublisher
 }
 
@@ -77,13 +77,13 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 		return nil, err
 	}
 
-	lndCtx, svcCancel := context.WithCancel(ctx)
+	lndCtx, cancel := context.WithCancel(ctx)
 
 	lndService := &LNDService{
 		client:         lndClient,
 		nodeInfo:       nodeInfo,
-		cancel:         svcCancel,
-		globalCtx:      ctx,
+		cancel:         cancel,
+		ctx:            lndCtx,
 		eventPublisher: eventPublisher,
 	}
 
@@ -313,7 +313,7 @@ func (svc *LNDService) subscribeSingleInvoice(paymentHashBytes []byte) {
 	// Use the global context for the lifetime of this subscription, but create a cancellable one for this specific task
 	// This allows the goroutine to be potentially cancelled externally if needed, though it primarily exits on invoice state change.
 	// We use a background context derived from the global one to avoid cancelling if the original request context finishes.
-	ctx, cancel := context.WithCancel(svc.globalCtx)
+	ctx, cancel := context.WithCancel(svc.ctx)
 	defer cancel() // Ensure cancellation happens on exit
 
 	paymentHashHex := hex.EncodeToString(paymentHashBytes)
