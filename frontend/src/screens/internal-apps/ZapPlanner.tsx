@@ -94,8 +94,8 @@ export function ZapPlanner() {
   const [amount, setAmount] = React.useState("");
   const [comment, setComment] = React.useState("");
   const [senderName, setSenderName] = React.useState("");
-  const [frequencyValue, setFrequencyValue] = React.useState("31");
-  const [frequencyUnit, setFrequencyUnit] = React.useState("days");
+  const [frequencyValue, setFrequencyValue] = React.useState("1");
+  const [frequencyUnit, setFrequencyUnit] = React.useState("months");
   const [amountCurrency, setAmountCurrency] = React.useState<"BTC" | "USD">(
     "BTC"
   );
