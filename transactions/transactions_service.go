@@ -1252,15 +1252,6 @@ func (svc *transactionsService) CancelHoldInvoice(ctx context.Context, paymentHa
 			return result.Error
 		}
 		if result.RowsAffected == 0 {
-			// Check if already failed/settled.
-			var existingFinalized db.Transaction
-			if tx.Limit(1).Find(&existingFinalized, "type = ? AND state <> ? AND payment_hash = ?", constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_PENDING, paymentHash).RowsAffected > 0 {
-				logger.Logger.WithFields(logrus.Fields{
-					"payment_hash": paymentHash,
-					"state":        existingFinalized.State,
-				}).Warn("Hold invoice already finalized in DB, cannot mark as failed due to cancellation")
-				return nil
-			}
 			logger.Logger.WithFields(logrus.Fields{
 				"payment_hash": paymentHash,
 			}).Warn("No accepted hold invoice found in DB to mark as failed due to cancellation")
