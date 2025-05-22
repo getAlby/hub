@@ -83,7 +83,7 @@ function TransactionItem({ tx }: Props) {
 
   const recipientIdentifier = tx.metadata?.recipient_data?.identifier;
   const to = recipientIdentifier
-    ? `${tx.state === "failed" ? "sending " : ""}to ${recipientIdentifier}`
+    ? `${tx.state === "failed" ? "payment " : ""}to ${recipientIdentifier}`
     : undefined;
 
   const eventId = tx.metadata?.nostr?.tags?.find((t) => t[0] === "e")?.[1];
@@ -270,7 +270,8 @@ function TransactionItem({ tx }: Props) {
                 </p>
               </div>
             )}
-            {/* We don't include zap request content as that is set as the description itself by the rails app */}
+            {/* for Alby lightning addresses the content of the zap request is
+            automatically extracted and already displayed above as description */}
             {tx.metadata?.nostr && eventId && npub && (
               <div className="mt-6">
                 <p>
