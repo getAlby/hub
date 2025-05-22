@@ -373,9 +373,17 @@ func (svc *LNDService) subscribeSingleInvoice(paymentHashBytes []byte) {
 		switch invoice.State {
 		case lnrpc.Invoice_ACCEPTED:
 			log.Info("Hold invoice accepted, publishing internal event")
+			transaction := lndInvoiceToTransaction(invoice)
+			var minExpiry uint32
+			for _, htlc := range invoice.Htlcs {
+				if htlc.ExpiryHeight < int32(minExpiry) || minExpiry == 0 {
+					minExpiry = uint32(htlc.ExpiryHeight)
+				}
+			}
+			transaction.SettleDeadline = &minExpiry
 			svc.eventPublisher.Publish(&events.Event{
 				Event:      "nwc_lnclient_hold_invoice_accepted",
-				Properties: lndInvoiceToTransaction(invoice),
+				Properties: transaction,
 			})
 		case lnrpc.Invoice_CANCELED:
 			log.Info("Hold invoice canceled, publishing internal event")

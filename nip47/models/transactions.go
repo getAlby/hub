@@ -49,5 +49,6 @@ func ToNip47Transaction(transaction *transactions.Transaction) *Transaction {
 		ExpiresAt:       expiresAt,
 		SettledAt:       settledAt,
 		Metadata:        metadata,
+		SettleDeadline:  transaction.SettleDeadline,
 	}
 }

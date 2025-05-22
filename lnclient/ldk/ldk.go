@@ -1605,9 +1605,15 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 		}).Info("LDK Payment forwarded")
 
 	case ldk_node.EventPaymentClaimable:
+		if eventType.ClaimDeadline == nil {
+			logger.Logger.WithField("payment_id", eventType.PaymentId).Error("claimable payment has no claim deadline")
+			return
+		}
+
 		logger.Logger.WithFields(logrus.Fields{
 			"claimable_amount_msats": eventType.ClaimableAmountMsat,
 			"payment_hash":           eventType.PaymentHash,
+			"claim_deadline":         *eventType.ClaimDeadline,
 		}).Info("LDK Payment Claimable")
 
 		payment := ls.node.Payment(eventType.PaymentId)
@@ -1621,6 +1627,7 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			logger.Logger.WithField("payment_id", eventType.PaymentId).Error("failed to convert LDK payment to transaction")
 			return
 		}
+		transaction.SettleDeadline = eventType.ClaimDeadline
 		ls.eventPublisher.Publish(&events.Event{
 			Event:      "nwc_lnclient_hold_invoice_accepted",
 			Properties: transaction,
