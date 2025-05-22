@@ -699,14 +699,7 @@ func (svc *LNDService) MakeHoldInvoice(ctx context.Context, amount int64, descri
 	inv, err := svc.client.LookupInvoice(ctx, &lnrpc.PaymentHash{RHash: paymentHashBytes})
 	if err != nil {
 		logger.Logger.WithField("paymentHash", paymentHash).WithError(err).Error("Failed to lookup hold invoice after creation")
-		return &lnclient.Transaction{
-			Type:        "incoming",
-			Invoice:     resp.PaymentRequest,
-			PaymentHash: paymentHash,
-			Amount:      amount,
-			CreatedAt:   time.Now().Unix(),
-			ExpiresAt:   &expiry,
-		}, nil
+		return nil, err
 	}
 
 	transaction = lndInvoiceToTransaction(inv)
