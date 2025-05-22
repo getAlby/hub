@@ -15,6 +15,7 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useToast } from "src/components/ui/use-toast";
+import { MIN_AUTO_SWAP_AMOUNT } from "src/constants";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
 import { useSwaps } from "src/hooks/useSwaps";
 import { request } from "src/utils/request";
@@ -97,7 +98,7 @@ function Swaps() {
     <>
       <SettingsHeader
         title="Swaps"
-        description="Automatically swap lightning to on-chain funds, a fee of 1.5% applies to all swaps."
+        description="Automatically swap lightning to on-chain funds."
       />
       {!swapsSettings.enabled ? (
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
@@ -116,11 +117,12 @@ function Swaps() {
               type="number"
               placeholder="How much do you want to swap out?"
               value={swapAmount}
-              min={50000}
+              min={MIN_AUTO_SWAP_AMOUNT}
               onChange={(e) => setSwapAmount(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">
-              Should be ≥ 50000 sats
+              Minimum {new Intl.NumberFormat().format(MIN_AUTO_SWAP_AMOUNT)}{" "}
+              sats
             </p>
           </div>
           <Label>Destination</Label>
