@@ -686,7 +686,7 @@ func (svc *LNDService) MakeHoldInvoice(ctx context.Context, amount int64, descri
 		Hash:            paymentHashBytes,
 	}
 
-	resp, err := svc.client.AddHoldInvoice(ctx, addInvoiceRequest)
+	_, err = svc.client.AddHoldInvoice(ctx, addInvoiceRequest)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create hold invoice")
 		return nil, err

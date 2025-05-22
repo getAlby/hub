@@ -235,7 +235,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 
 		nip47Response = &models.Response{
 			Error: &models.Error{
-				Code:    constants.ERROR_INTERNAL,
+				Code:    constants.ERROR_BAD_REQUEST,
 				Message: fmt.Sprintf("failed to decrypt: %s", decryptionErr.Error()),
 			},
 		}

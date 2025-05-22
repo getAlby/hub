@@ -83,10 +83,7 @@ func (controller *nip47Controller) HandleMakeHoldInvoiceEvent(ctx context.Contex
 
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code:    constants.ERROR_INTERNAL,
-				Message: err.Error(),
-			},
+			Error:      mapNip47Error(err),
 		}, nostr.Tags{})
 		return
 	}
@@ -96,8 +93,6 @@ func (controller *nip47Controller) HandleMakeHoldInvoiceEvent(ctx context.Contex
 	responsePayload := &makeHoldInvoiceResponse{
 		Transaction: *nip47Transaction,
 	}
-
-	resp.Result = responsePayload
 
 	publishResponse(&models.Response{
 		ResultType: nip47Request.Method,

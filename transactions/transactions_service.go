@@ -1223,7 +1223,7 @@ func (svc *transactionsService) CancelHoldInvoice(ctx context.Context, paymentHa
 
 	if result.RowsAffected == 0 {
 		logger.Logger.WithField("payment_hash", paymentHash).Error("Failed to find accepted hold invoice")
-		return errors.New("failed to find accepted hold invoice")
+		return NewNotFoundError()
 	}
 
 	if !dbTransaction.SelfPayment {

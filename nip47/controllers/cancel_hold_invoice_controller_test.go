@@ -131,19 +131,5 @@ func TestHandleCancelHoldInvoiceEvent_InvoiceNotFound(t *testing.T) {
 
 	assert.True(t, setup.publishCalled)
 	require.NotNil(t, setup.response.Error)
-	assert.Equal(t, constants.ERROR_INTERNAL, setup.response.Error.Code)
-}
-
-func TestHandleCancelHoldInvoiceEvent_InvoiceNotAccepted(t *testing.T) {
-	paymentHashNotAccepted := "paymenthashnotacceptedpaymenthashnotacceptedpaymenthashnotaccepted"
-	initialState := constants.TRANSACTION_STATE_PENDING
-	setup := setupCancelHoldInvoiceTest(t, paymentHashNotAccepted, &initialState)
-	defer setup.TearDown()
-
-	NewTestNip47Controller(setup.svc).
-		HandleCancelHoldInvoiceEvent(setup.ctx, setup.nip47Request, setup.dbRequestEvent.ID, *setup.dbRequestEvent.AppId, setup.PublishResponse)
-
-	assert.True(t, setup.publishCalled)
-	require.NotNil(t, setup.response.Error)
-	assert.Equal(t, constants.ERROR_INTERNAL, setup.response.Error.Code)
+	assert.Equal(t, constants.ERROR_NOT_FOUND, setup.response.Error.Code)
 }

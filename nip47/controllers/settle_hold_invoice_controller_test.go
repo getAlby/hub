@@ -19,7 +19,6 @@ import (
 
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/tests"
-	"github.com/getAlby/hub/transactions"
 )
 
 const nip47SettleHoldInvoiceJson = `
@@ -92,11 +91,6 @@ func setupSettleHoldInvoiceTest(t *testing.T, preimage string, paymentHashToCrea
 	err = svc.DB.Create(&dbRequestEvent).Error
 	require.NoError(t, err)
 
-	controller := NewTestNip47Controller(svc)
-	if controller.transactionsService == nil {
-		controller.transactionsService = transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	}
-
 	setup := &settleHoldInvoiceTestSetup{
 		ctx:            ctx,
 		svc:            svc,
@@ -127,9 +121,6 @@ func TestHandleSettleHoldInvoiceEvent(t *testing.T) {
 	defer setup.TearDown()
 
 	controller := NewTestNip47Controller(setup.svc)
-	if controller.transactionsService == nil {
-		controller.transactionsService = transactions.NewTransactionsService(setup.svc.DB, setup.svc.EventPublisher)
-	}
 
 	controller.HandleSettleHoldInvoiceEvent(setup.ctx, setup.nip47Request, setup.dbRequestEvent.ID, *setup.dbRequestEvent.AppId, setup.PublishResponse)
 
@@ -151,9 +142,6 @@ func TestHandleSettleHoldInvoiceEvent_InvalidPreimage(t *testing.T) {
 	defer setup.TearDown()
 
 	controller := NewTestNip47Controller(setup.svc)
-	if controller.transactionsService == nil {
-		controller.transactionsService = transactions.NewTransactionsService(setup.svc.DB, setup.svc.EventPublisher)
-	}
 
 	controller.HandleSettleHoldInvoiceEvent(setup.ctx, setup.nip47Request, setup.dbRequestEvent.ID, *setup.dbRequestEvent.AppId, setup.PublishResponse)
 
