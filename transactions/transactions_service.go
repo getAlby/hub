@@ -1258,7 +1258,7 @@ func (svc *transactionsService) CancelHoldInvoice(ctx context.Context, paymentHa
 			return NewNotFoundError()
 		}
 
-		return svc.markPaymentFailed(tx, &dbTransaction, "Canceled via NIP-47")
+		return svc.markPaymentFailed(tx, &dbTransaction, "Hold invoice was cancelled")
 	})
 
 	if err != nil {
