@@ -286,16 +286,6 @@ func (svc *LNDService) subscribeChannelEvents(ctx context.Context) {
 }
 
 func (svc *LNDService) subscribeOpenHoldInvoices(ctx context.Context) {
-	// wait a bit for the node to be fully ready before querying for existing invoices
-	// as ListInvoices might fail if LND is not fully synced or ready.
-	// select {
-	// case <-ctx.Done():
-	// 	logger.Logger.Info("Context cancelled before resubscribing to pending hold invoices.")
-	// 	return
-	// case <-time.After(10 * time.Second): // Increased delay to allow LND more time
-	// 	logger.Logger.Info("Proceeding to check for pending hold invoices to resubscribe...")
-	// }
-
 	oneWeekAgo := time.Now().AddDate(0, 0, -7).Unix()
 
 	listInvoicesResponse, err := svc.client.ListInvoices(ctx, &lnrpc.ListInvoiceRequest{
@@ -386,11 +376,7 @@ func (svc *LNDService) subscribeSingleInvoice(paymentHashBytes []byte) {
 				Properties: transaction,
 			})
 		case lnrpc.Invoice_CANCELED:
-			/*log.Info("Hold invoice canceled, publishing internal event")
-			svc.eventPublisher.Publish(&events.Event{
-				Event:      "nwc_lnclient_hold_invoice_canceled",
-				Properties: lndInvoiceToTransaction(invoice),
-			})*/
+			log.Info("Hold invoice canceled, ending subscription")
 			return // Invoice reached final state, exit goroutine
 		case lnrpc.Invoice_SETTLED:
 			return // Invoice reached final state, exit goroutine
