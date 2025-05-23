@@ -154,7 +154,7 @@ export function ZapPlanner() {
     };
 
     convertCurrency();
-  }, [amount, amountCurrency]);
+  }, [amount, amountCurrency, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
