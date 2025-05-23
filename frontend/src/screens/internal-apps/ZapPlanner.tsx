@@ -125,7 +125,7 @@ export function ZapPlanner() {
       return;
     }
 
-    // Automatically converte between sats and USD if the amount changes
+    // Automatically convert between sats and USD if the amount changes
     const convertCurrency = async () => {
       try {
         if (amountCurrency === "USD") {
@@ -172,9 +172,26 @@ export function ZapPlanner() {
         (() => {
           throw new Error("Invalid amount");
         })();
+      // Determine how many payments in one month
+      let periodsPerMonth: number;
+      switch (frequencyUnit) {
+        case "days":
+          periodsPerMonth = 31 / parseInt(frequencyValue, 10);
+          break;
+        case "weeks":
+          periodsPerMonth = 31 / 7 / parseInt(frequencyValue, 10);
+          break;
+        case "months":
+          periodsPerMonth = 1 / parseInt(frequencyValue, 10);
+          break;
+        default:
+          throw new Error("Unsupported frequency unit");
+      }
+      //  Compute raw monthly spend
+      const rawSpend = satsToSend * periodsPerMonth;
 
       // with fee reserve of max(1% or 10 sats) + 30% to avoid nwc_budget_warning (see transactions service)
-      const maxAmount = Math.floor((satsToSend * 1.01 + 10) * 1.3);
+      const maxAmount = Math.ceil((rawSpend * 1.01 + 10) * 1.3);
       const isolated = false;
 
       const createAppRequest: CreateAppRequest = {
@@ -190,6 +207,13 @@ export function ZapPlanner() {
       };
 
       const createAppResponse = await createApp(createAppRequest);
+      // months → days since months are not recognized
+      const monthsToDays = (m: string) => parseInt(m, 10) * 31;
+
+      const sleepDuration =
+        frequencyUnit === "months"
+          ? `${monthsToDays(frequencyValue)} days`
+          : `${frequencyValue} ${frequencyUnit}`;
 
       // TODO: proxy through hub backend and remove CSRF exceptions for zapplanner.albylabs.com
       const createSubscriptionResponse = await fetch(
@@ -210,7 +234,7 @@ export function ZapPlanner() {
               ...(senderName ? { name: senderName } : {}),
             }),
             nostrWalletConnectUrl: createAppResponse.pairingUri,
-            sleepDuration: `${frequencyValue} ${frequencyUnit}`,
+            sleepDuration,
           }),
         }
       );
