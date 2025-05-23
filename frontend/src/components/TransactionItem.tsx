@@ -61,7 +61,7 @@ function TransactionItem({ tx }: Props) {
   const Icon =
     tx.state === "failed"
       ? XIcon
-      : tx.type == "outgoing"
+      : tx.type === "outgoing"
         ? ArrowUpIcon
         : ArrowDownIcon;
 
@@ -74,13 +74,21 @@ function TransactionItem({ tx }: Props) {
   const pubkey = tx.metadata?.nostr?.pubkey;
   const npub = pubkey ? safeNpubEncode(pubkey) : undefined;
 
-  const from = tx.metadata?.payer_data?.name
-    ? `from ${tx.metadata.payer_data.name}`
+  const payerName = tx.metadata?.payer_data?.name;
+  const from = payerName
+    ? `from ${payerName}`
     : npub
       ? `zap from ${npub.substring(0, 12)}...`
       : undefined;
 
+  const recipientIdentifier = tx.metadata?.recipient_data?.identifier;
+  const to = recipientIdentifier
+    ? `${tx.state === "failed" ? "payment " : ""}to ${recipientIdentifier}`
+    : undefined;
+
   const eventId = tx.metadata?.nostr?.tags?.find((t) => t[0] === "e")?.[1];
+
+  const description = tx.description || tx.metadata?.comment;
 
   const copy = (text: string) => {
     copyToClipboard(text, toast);
@@ -145,19 +153,18 @@ function TransactionItem({ tx }: Props) {
         >
           {typeStateIcon}
           <div className="overflow-hidden mr-3 max-w-full text-left flex flex-col items-start justify-center">
-            <div>
-              <p className="flex items-end truncate">
-                <span className="md:text-xl font-semibold">
-                  {typeStateText}
-                </span>
+            <div className="flex items-center gap-2">
+              <span className="md:text-xl font-semibold break-all line-clamp-1">
+                {typeStateText}
                 {from !== undefined && <>&nbsp;{from}</>}
-                <span className="text-xs md:text-base ml-2 truncate text-muted-foreground">
-                  {dayjs(tx.updatedAt).fromNow()}
-                </span>
-              </p>
+                {to !== undefined && <>&nbsp;{to}</>}
+              </span>
+              <span className="text-xs md:text-base text-muted-foreground flex-shrink-0">
+                {dayjs(tx.updatedAt).fromNow()}
+              </span>
             </div>
             <p className="text-sm md:text-base text-muted-foreground break-all line-clamp-1">
-              {tx.description}
+              {description}
             </p>
           </div>
           <div className="flex ml-auto space-x-3 shrink-0">
@@ -218,6 +225,18 @@ function TransactionItem({ tx }: Props) {
                 </Link>
               </div>
             )}
+            {recipientIdentifier && (
+              <div className="mt-6">
+                <p>To</p>
+                <p className="text-muted-foreground">{recipientIdentifier}</p>
+              </div>
+            )}
+            {payerName && (
+              <div className="mt-6">
+                <p>From</p>
+                <p className="text-muted-foreground">{payerName}</p>
+              </div>
+            )}
             <div className="mt-6">
               <p>Date & Time</p>
               <p className="text-muted-foreground">
@@ -243,6 +262,16 @@ function TransactionItem({ tx }: Props) {
                 </p>
               </div>
             )}
+            {tx.metadata?.comment && (
+              <div className="mt-6">
+                <p>Comment</p>
+                <p className="text-muted-foreground break-all">
+                  {tx.metadata?.comment}
+                </p>
+              </div>
+            )}
+            {/* for Alby lightning addresses the content of the zap request is
+            automatically extracted and already displayed above as description */}
             {tx.metadata?.nostr && eventId && npub && (
               <div className="mt-6">
                 <p>
