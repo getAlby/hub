@@ -235,7 +235,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 
 		nip47Response = &models.Response{
 			Error: &models.Error{
-				Code:    constants.ERROR_INTERNAL,
+				Code:    constants.ERROR_BAD_REQUEST,
 				Message: fmt.Sprintf("failed to decrypt: %s", decryptionErr.Error()),
 			},
 		}
@@ -425,6 +425,15 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	case models.CREATE_CONNECTION_METHOD:
 		controller.
 			HandleCreateConnectionEvent(ctx, nip47Request, requestEvent.ID, publishResponse)
+	case models.MAKE_HOLD_INVOICE_METHOD:
+		controller.
+			HandleMakeHoldInvoiceEvent(ctx, nip47Request, requestEvent.ID, app.ID, publishResponse)
+	case models.CANCEL_HOLD_INVOICE_METHOD:
+		controller.
+			HandleCancelHoldInvoiceEvent(ctx, nip47Request, requestEvent.ID, app.ID, publishResponse)
+	case models.SETTLE_HOLD_INVOICE_METHOD:
+		controller.
+			HandleSettleHoldInvoiceEvent(ctx, nip47Request, requestEvent.ID, app.ID, publishResponse)
 	default:
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,

@@ -182,7 +182,7 @@ func TestHandlePayInvoiceEvent_MalformedInvoice(t *testing.T) {
 		HandlePayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse, nostr.Tags{})
 
 	assert.Nil(t, publishedResponse.Result)
-	assert.Equal(t, constants.ERROR_INTERNAL, publishedResponse.Error.Code)
+	assert.Equal(t, constants.ERROR_BAD_REQUEST, publishedResponse.Error.Code)
 	assert.Equal(t, "Failed to decode bolt11 invoice: bolt11 too short", publishedResponse.Error.Message)
 }
 

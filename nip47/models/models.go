@@ -12,18 +12,21 @@ const (
 	NOTIFICATION_KIND        = 23197
 
 	// request methods
-	PAY_INVOICE_METHOD       = "pay_invoice"
-	GET_BALANCE_METHOD       = "get_balance"
-	GET_BUDGET_METHOD        = "get_budget"
-	GET_INFO_METHOD          = "get_info"
-	MAKE_INVOICE_METHOD      = "make_invoice"
-	LOOKUP_INVOICE_METHOD    = "lookup_invoice"
-	LIST_TRANSACTIONS_METHOD = "list_transactions"
-	PAY_KEYSEND_METHOD       = "pay_keysend"
-	MULTI_PAY_INVOICE_METHOD = "multi_pay_invoice"
-	MULTI_PAY_KEYSEND_METHOD = "multi_pay_keysend"
-	SIGN_MESSAGE_METHOD      = "sign_message"
-	CREATE_CONNECTION_METHOD = "create_connection"
+	PAY_INVOICE_METHOD         = "pay_invoice"
+	GET_BALANCE_METHOD         = "get_balance"
+	GET_BUDGET_METHOD          = "get_budget"
+	GET_INFO_METHOD            = "get_info"
+	MAKE_INVOICE_METHOD        = "make_invoice"
+	LOOKUP_INVOICE_METHOD      = "lookup_invoice"
+	LIST_TRANSACTIONS_METHOD   = "list_transactions"
+	PAY_KEYSEND_METHOD         = "pay_keysend"
+	MULTI_PAY_INVOICE_METHOD   = "multi_pay_invoice"
+	MULTI_PAY_KEYSEND_METHOD   = "multi_pay_keysend"
+	SIGN_MESSAGE_METHOD        = "sign_message"
+	CREATE_CONNECTION_METHOD   = "create_connection"
+	MAKE_HOLD_INVOICE_METHOD   = "make_hold_invoice"
+	CANCEL_HOLD_INVOICE_METHOD = "cancel_hold_invoice"
+	SETTLE_HOLD_INVOICE_METHOD = "settle_hold_invoice"
 )
 
 type Transaction struct {
@@ -39,6 +42,7 @@ type Transaction struct {
 	CreatedAt       int64       `json:"created_at"`
 	ExpiresAt       *int64      `json:"expires_at"`
 	SettledAt       *int64      `json:"settled_at"`
+	SettleDeadline  *uint32     `json:"settle_deadline"` // block number for accepted hold invoices
 	Metadata        interface{} `json:"metadata,omitempty"`
 }
 

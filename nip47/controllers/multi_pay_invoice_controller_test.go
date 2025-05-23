@@ -196,7 +196,7 @@ func TestHandleMultiPayInvoiceEvent_OneMalformedInvoice(t *testing.T) {
 	}
 
 	assert.Equal(t, "invoiceId123", dTags[0].GetFirst([]string{"d"}).Value())
-	assert.Equal(t, constants.ERROR_INTERNAL, responses[0].Error.Code)
+	assert.Equal(t, constants.ERROR_BAD_REQUEST, responses[0].Error.Code)
 	assert.Nil(t, responses[0].Result)
 
 	assert.Equal(t, tests.MockPaymentHash, dTags[1].GetFirst([]string{"d"}).Value())

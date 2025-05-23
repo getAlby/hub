@@ -50,7 +50,7 @@ func (controller *nip47Controller) HandleLookupInvoiceEvent(ctx context.Context,
 			publishResponse(&models.Response{
 				ResultType: nip47Request.Method,
 				Error: &models.Error{
-					Code:    constants.ERROR_INTERNAL,
+					Code:    constants.ERROR_BAD_REQUEST,
 					Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
 				},
 			}, nostr.Tags{})
