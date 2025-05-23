@@ -185,12 +185,12 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToNoApp(t *testing.T) {
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
 
-	// give the isolated app 133 sats
+	// give the isolated app 123 sats (fee reserve not applied for self payments)
 	svc.DB.Create(&db.Transaction{
 		AppId:      &app.ID,
 		State:      constants.TRANSACTION_STATE_SETTLED,
 		Type:       constants.TRANSACTION_TYPE_INCOMING,
-		AmountMsat: 133000, // invoice is 123000 msat, but we also calculate fee reserves max of(10 sats or 1%)
+		AmountMsat: 123000, // invoice is 123000 msat
 	})
 
 	dbRequestEvent := &db.RequestEvent{}
@@ -230,7 +230,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToNoApp(t *testing.T) {
 	result := svc.DB.Find(&transactions)
 	assert.Equal(t, int64(3), result.RowsAffected)
 	// expect balance to be decreased
-	assert.Equal(t, int64(10000), queries.GetIsolatedBalance(svc.DB, app.ID))
+	assert.Equal(t, int64(0), queries.GetIsolatedBalance(svc.DB, app.ID))
 }
 
 func TestSendPaymentSync_SelfPayment_IsolatedAppToApp(t *testing.T) {
@@ -259,12 +259,12 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToApp(t *testing.T) {
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
 
-	// give the isolated app 133 sats
+	// give the isolated app 123 sats (fee reserve not applied for self payments)
 	svc.DB.Create(&db.Transaction{
 		AppId:      &app.ID,
 		State:      constants.TRANSACTION_STATE_SETTLED,
 		Type:       constants.TRANSACTION_TYPE_INCOMING,
-		AmountMsat: 133000, // invoice is 123000 msat, but we also calculate fee reserves max of(10 sats or 1%)
+		AmountMsat: 123000, // invoice is 123000 msat
 	})
 
 	dbRequestEvent := &db.RequestEvent{}
@@ -306,7 +306,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToApp(t *testing.T) {
 	result := svc.DB.Find(&transactions)
 	assert.Equal(t, int64(3), result.RowsAffected)
 	// expect balance to be decreased
-	assert.Equal(t, int64(10000), queries.GetIsolatedBalance(svc.DB, app.ID))
+	assert.Equal(t, int64(0), queries.GetIsolatedBalance(svc.DB, app.ID))
 }
 
 func TestSendPaymentSync_SelfPayment_IsolatedAppToIsolatedApp(t *testing.T) {
@@ -338,12 +338,12 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToIsolatedApp(t *testing.T) {
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
 
-	// give the isolated app 133 sats
+	// give the isolated app 123 sats (fee reserve not applied for self payments)
 	svc.DB.Create(&db.Transaction{
 		AppId:      &app.ID,
 		State:      constants.TRANSACTION_STATE_SETTLED,
 		Type:       constants.TRANSACTION_TYPE_INCOMING,
-		AmountMsat: 133000, // invoice is 123000 msat, but we also calculate fee reserves max of(10 sats or 1%)
+		AmountMsat: 123000, // invoice is 123000 msat
 	})
 
 	dbRequestEvent := &db.RequestEvent{}
@@ -388,7 +388,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToIsolatedApp(t *testing.T) {
 	result := svc.DB.Find(&transactions)
 	assert.Equal(t, int64(3), result.RowsAffected)
 	// expect balance to be decreased
-	assert.Equal(t, int64(10000), queries.GetIsolatedBalance(svc.DB, app.ID))
+	assert.Equal(t, int64(0), queries.GetIsolatedBalance(svc.DB, app.ID))
 
 	// check notifications
 	assert.Equal(t, 2, len(mockEventConsumer.GetConsumedEvents()))
@@ -433,12 +433,12 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToSelf(t *testing.T) {
 	err = svc.DB.Create(appPermission).Error
 	assert.NoError(t, err)
 
-	// give the isolated app 133 sats
+	// give the isolated app 123 sats (fee reserve not applied for self payments)
 	svc.DB.Create(&db.Transaction{
 		AppId:      &app.ID,
 		State:      constants.TRANSACTION_STATE_SETTLED,
 		Type:       constants.TRANSACTION_TYPE_INCOMING,
-		AmountMsat: 133000, // invoice is 123000 msat, but we also calculate fee reserves max of(10 sats or 1%)
+		AmountMsat: 123000, // invoice is 123000 msat
 	})
 
 	dbRequestEvent := &db.RequestEvent{}
@@ -481,5 +481,5 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToSelf(t *testing.T) {
 	assert.Equal(t, int64(3), result.RowsAffected)
 
 	// expect balance to be unchanged
-	assert.Equal(t, int64(133000), queries.GetIsolatedBalance(svc.DB, app.ID))
+	assert.Equal(t, int64(123000), queries.GetIsolatedBalance(svc.DB, app.ID))
 }
