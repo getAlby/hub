@@ -252,7 +252,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 				return errors.New("there is already a payment pending for this invoice")
 			}
 
-			err := svc.validateCanPay(tx, appId, paymentAmount, paymentRequest.Description)
+			err := svc.validateCanPay(tx, appId, paymentAmount, paymentRequest.Description, selfPayment)
 			if err != nil {
 				return err
 			}
@@ -373,7 +373,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 		balanceValidationLock.Lock()
 		defer balanceValidationLock.Unlock()
 		return svc.db.Transaction(func(tx *gorm.DB) error {
-			err := svc.validateCanPay(tx, appId, amount, "")
+			err := svc.validateCanPay(tx, appId, amount, "", selfPayment)
 			if err != nil {
 				return err
 			}
@@ -836,8 +836,11 @@ func (svc *transactionsService) interceptSelfPayment(paymentHash string) (*lncli
 	}, nil
 }
 
-func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount uint64, description string) error {
-	amountWithFeeReserve := amount + CalculateFeeReserveMsat(amount)
+func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount uint64, description string, selfPayment bool) error {
+	amountWithFeeReserve := amount
+	if !selfPayment {
+		amountWithFeeReserve += CalculateFeeReserveMsat(amount)
+	}
 
 	// ensure balance for isolated apps
 	if appId != nil {
