@@ -13,7 +13,7 @@ import { createApp } from "src/requests/createApp";
 import { CreateAppRequest, UpdateAppRequest } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 
-import { LightningAddress } from "@getalby/lightning-tools";
+import { fiat, LightningAddress } from "@getalby/lightning-tools";
 import { ExternalLinkIcon, PlusCircleIcon } from "lucide-react";
 import alby from "src/assets/suggested-apps/alby.png";
 import bitcoinbrink from "src/assets/zapplanner/bitcoinbrink.png";
@@ -33,6 +33,13 @@ import {
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "src/components/ui/select";
 import { Textarea } from "src/components/ui/textarea";
 import { SUPPORT_ALBY_LIGHTNING_ADDRESS } from "src/constants";
 import { request } from "src/utils/request";
@@ -87,6 +94,15 @@ export function ZapPlanner() {
   const [amount, setAmount] = React.useState("");
   const [comment, setComment] = React.useState("");
   const [senderName, setSenderName] = React.useState("");
+  const [frequencyValue, setFrequencyValue] = React.useState("1");
+  const [frequencyUnit, setFrequencyUnit] = React.useState("months");
+  const [amountCurrency, setAmountCurrency] = React.useState<"BTC" | "USD">(
+    "USD"
+  );
+  const [convertedAmount, setConvertedAmount] = React.useState<string>("");
+  const [satoshiAmount, setSatoshiAmount] = React.useState<number | undefined>(
+    undefined
+  );
 
   React.useEffect(() => {
     // reset form on close
@@ -94,10 +110,51 @@ export function ZapPlanner() {
       setRecipientName("");
       setRecipientLightningAddress("");
       setComment("");
-      setAmount("5000");
+      setAmount("5");
       setSenderName("");
+      setConvertedAmount("");
+      setSatoshiAmount(undefined);
     }
   }, [open]);
+
+  React.useEffect(() => {
+    // If amount is empty, clear conversion output
+    if (!amount) {
+      setConvertedAmount("");
+      setSatoshiAmount(undefined);
+      return;
+    }
+
+    // Automatically convert between sats and USD if the amount changes
+    const convertCurrency = async () => {
+      try {
+        if (amountCurrency === "USD") {
+          // Convert USD to sats
+          const sats = await fiat.getSatoshiValue({
+            amount: parseFloat(amount),
+            currency: "USD",
+          });
+          setSatoshiAmount(sats);
+          setConvertedAmount(`~${sats.toLocaleString()} sats`);
+        } else {
+          // Convert satoshis to USD
+          const sats = parseInt(amount, 10);
+          setSatoshiAmount(sats);
+          const fiatValue = await fiat.getFormattedFiatValue({
+            satoshi: sats,
+            currency: "USD",
+            locale: "en-US",
+          });
+          setConvertedAmount(`~${fiatValue}`);
+        }
+      } catch (error) {
+        console.error("Conversion error:", error);
+        setConvertedAmount("--");
+      }
+    };
+
+    convertCurrency();
+  }, [amount, amountCurrency, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,13 +166,32 @@ export function ZapPlanner() {
       if (!ln.lnurlpData) {
         throw new Error("invalid recipient lightning address");
       }
-      const parsedAmount = parseInt(amount);
-      if (isNaN(parsedAmount) || parsedAmount < 1) {
-        throw new Error("Invalid amount");
+      // Determine the satoshi amount to send:
+      const satsToSend =
+        satoshiAmount ??
+        (() => {
+          throw new Error("Invalid amount");
+        })();
+      // Determine how many payments in one month
+      let periodsPerMonth: number;
+      switch (frequencyUnit) {
+        case "days":
+          periodsPerMonth = 31 / parseInt(frequencyValue, 10);
+          break;
+        case "weeks":
+          periodsPerMonth = 31 / 7 / parseInt(frequencyValue, 10);
+          break;
+        case "months":
+          periodsPerMonth = 1 / parseInt(frequencyValue, 10);
+          break;
+        default:
+          throw new Error("Unsupported frequency unit");
       }
+      //  Compute raw monthly spend
+      const rawSpend = satsToSend * periodsPerMonth;
 
       // with fee reserve of max(1% or 10 sats) + 30% to avoid nwc_budget_warning (see transactions service)
-      const maxAmount = Math.floor((parsedAmount * 1.01 + 10) * 1.3);
+      const maxAmount = Math.ceil((rawSpend * 1.01 + 10) * 1.3);
       const isolated = false;
 
       const createAppRequest: CreateAppRequest = {
@@ -131,6 +207,13 @@ export function ZapPlanner() {
       };
 
       const createAppResponse = await createApp(createAppRequest);
+      // months → days since months are not recognized
+      const monthsToDays = (m: string) => parseInt(m, 10) * 31;
+
+      const sleepDuration =
+        frequencyUnit === "months"
+          ? `${monthsToDays(frequencyValue)} days`
+          : `${frequencyValue} ${frequencyUnit}`;
 
       // TODO: proxy through hub backend and remove CSRF exceptions for zapplanner.albylabs.com
       const createSubscriptionResponse = await fetch(
@@ -141,14 +224,17 @@ export function ZapPlanner() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            recipientLightningAddress: recipientLightningAddress,
-            amount: parsedAmount,
+            recipientLightningAddress,
+            amount: satsToSend, // ← always sats
+            // TODO: include other currencies
+            // currency: amountCurrency,
+
             message: comment || "ZapPlanner payment from Alby Hub",
             payerData: JSON.stringify({
               ...(senderName ? { name: senderName } : {}),
             }),
             nostrWalletConnectUrl: createAppResponse.pairingUri,
-            sleepDuration: "31 days",
+            sleepDuration,
           }),
         }
       );
@@ -242,7 +328,7 @@ export function ZapPlanner() {
                         value={recipientName}
                         required
                         onChange={(e) => setRecipientName(e.target.value)}
-                        className="col-span-3"
+                        className="col-span-3 w-70"
                       />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
@@ -256,20 +342,85 @@ export function ZapPlanner() {
                         onChange={(e) =>
                           setRecipientLightningAddress(e.target.value)
                         }
-                        className="col-span-3"
+                        className="col-span-3 w-70"
                       />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                       <Label htmlFor="amount" className="text-right">
-                        Amount / month (sats)
+                        Amount
                       </Label>
-                      <Input
-                        id="amount"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        className="col-span-3"
-                      />
+                      <div className="col-span-3 flex items-center gap-2">
+                        <div className="relative flex-1">
+                          <Input
+                            id="amount"
+                            value={amount}
+                            onChange={(e) => setAmount(e.target.value)}
+                            className="col-span-3 w-70"
+                          />
+
+                          {convertedAmount && (
+                            <span className="absolute inset-y-0 right-3 flex items-center text-sm text-gray-500 pointer-events-none">
+                              {convertedAmount}
+                            </span>
+                          )}
+                        </div>
+
+                        <Select
+                          value={amountCurrency}
+                          onValueChange={setAmountCurrency}
+                        >
+                          <SelectTrigger className="w-1/2">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="BTC">BTC (sats)</SelectItem>
+                            <SelectItem value="USD">USD</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
+
+                    <div className="grid grid-cols-4 items-start gap-4">
+                      <Label htmlFor="frequency" className="text-right pt-2">
+                        Frequency
+                      </Label>
+                      <div className="col-span-3 flex flex-col gap-1 w-full max-w-[450px]">
+                        <div className="flex items-center gap-2 w-full">
+                          <Input
+                            id="frequency"
+                            type="number"
+                            min="1"
+                            value={frequencyValue}
+                            onChange={(e) => {
+                              const value = Math.max(
+                                1,
+                                parseInt(e.target.value || "1")
+                              );
+                              setFrequencyValue(value.toString());
+                            }}
+                            className="col-span-3 w-70"
+                          />
+                          <Select
+                            value={frequencyUnit}
+                            onValueChange={setFrequencyUnit}
+                          >
+                            <SelectTrigger className="w-1/2">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="days">days</SelectItem>
+                              <SelectItem value="weeks">weeks</SelectItem>
+                              <SelectItem value="months">months</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <span className="text-muted-foreground text-sm">
+                          Repeat payment every
+                        </span>
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-4 gap-4">
                       <Label htmlFor="comment" className="text-right pt-2">
                         Comment
@@ -291,7 +442,7 @@ export function ZapPlanner() {
                         value={senderName}
                         onChange={(e) => setSenderName(e.target.value)}
                         placeholder={`Let ${recipientName || "them"} know it was from you`}
-                        className="col-span-3"
+                        className="col-span-3 w-70"
                       />
                     </div>
                   </div>
