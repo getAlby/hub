@@ -1,5 +1,4 @@
 import {
-  AlertCircleIcon,
   AlertTriangleIcon,
   ChevronDown,
   CopyIcon,
@@ -259,7 +258,7 @@ export default function WithdrawOnchainFunds() {
             <>
               {showAdvanced && (
                 <div className="">
-                  <Label htmlFor="fee-rate">Fee Rate (Sat/Vbyte)</Label>
+                  <Label htmlFor="fee-rate">Fee Rate (Sat/vB)</Label>
                   <Input
                     id="fee-rate"
                     type="number"
@@ -271,6 +270,33 @@ export default function WithdrawOnchainFunds() {
                       setFeeRate(e.target.value);
                     }}
                   />
+                  <p className="text-muted-foreground text-sm mt-4">
+                    <Button
+                      size="sm"
+                      variant="positive"
+                      className="rounded-full"
+                      type="button"
+                      onClick={() =>
+                        setFeeRate(recommendedFees.economyFee.toString())
+                      }
+                    >
+                      Low priority: {recommendedFees.economyFee}
+                    </Button>{" "}
+                    <Button
+                      size="sm"
+                      variant="positive"
+                      className="rounded-full"
+                      type="button"
+                      onClick={() =>
+                        setFeeRate(recommendedFees.fastestFee.toString())
+                      }
+                    >
+                      High priority: {recommendedFees.economyFee}
+                    </Button>{" "}
+                    <a href="https://mempool.space" className="underline ml-2">
+                      mempool.space
+                    </a>
+                  </p>
                 </div>
               )}
               {!showAdvanced && (
@@ -285,18 +311,6 @@ export default function WithdrawOnchainFunds() {
                 </Button>
               )}
             </>
-          )}
-
-          {+feeRate > recommendedFees.fastestFee && (
-            <Alert>
-              <AlertCircleIcon className="h-4 w-4" />
-              <AlertTitle>Fee rate exceeds the current fastest fee</AlertTitle>
-              <AlertDescription>
-                While a higher fee may speed up confirmation, it could also mean
-                you're overpaying. Please review your fee rate before
-                proceeding.
-              </AlertDescription>
-            </Alert>
           )}
 
           <div>
