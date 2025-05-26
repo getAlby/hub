@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 
-	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/nbd-wtf/go-nostr"
@@ -60,10 +59,7 @@ func (controller *nip47Controller) HandleListTransactionsEvent(ctx context.Conte
 
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code:    constants.ERROR_INTERNAL,
-				Message: err.Error(),
-			},
+			Error:      mapNip47Error(err),
 		}, nostr.Tags{})
 		return
 	}

@@ -120,6 +120,18 @@ func (cs *CashuService) MakeInvoice(ctx context.Context, amount int64, descripti
 	return cs.cashuMintQuoteToTransaction(mintQuote), nil
 }
 
+func (cs *CashuService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
+	return nil, errors.New("not implemented")
+}
+
+func (cs *CashuService) SettleHoldInvoice(ctx context.Context, preimage string) (err error) {
+	return errors.New("not implemented")
+}
+
+func (cs *CashuService) CancelHoldInvoice(ctx context.Context, paymentHash string) (err error) {
+	return errors.New("not implemented")
+}
+
 func (cs *CashuService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
 	mintQuote := cs.getMintQuoteByPaymentHash(paymentHash)
 	if mintQuote != nil {
