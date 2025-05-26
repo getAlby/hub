@@ -75,7 +75,8 @@ func (svc *swapsService) EnableAutoSwaps(ctx context.Context, lnClient lnclient.
 
 	if swapDestination == "" || balanceThresholdStr == "" || amountStr == "" {
 		cancelFn()
-		return errors.New("auto swap not configured")
+		logger.Logger.Info("Auto swaps not configured")
+		return nil
 	}
 
 	parsedBalanceThreshold, err := strconv.ParseUint(balanceThresholdStr, 10, 64)
