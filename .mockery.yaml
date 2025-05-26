@@ -1,19 +1,14 @@
 filename: "{{.InterfaceName}}.go"
 dir: tests/mocks
-outpkg: mocks
-
-# Fix deprecation warnings:
-issue-845-fix: True
-resolve-type-alias: False
-
+pkgname: mocks
+template: testify
 packages:
-  github.com/getAlby/hub/service:
-    interfaces:
-      Service:
-
-  github.com/getAlby/hub/lnclient:
-    interfaces:
-      LNClient:
   github.com/getAlby/hub/config:
     interfaces:
-      Config:
+      Config: {}
+  github.com/getAlby/hub/lnclient:
+    interfaces:
+      LNClient: {}
+  github.com/getAlby/hub/service:
+    interfaces:
+      Service: {}

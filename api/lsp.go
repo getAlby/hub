@@ -245,6 +245,12 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderReques
 		token = "AlbyHub/" + version.Tag
 	}
 
+	// set a non-empty token to notify LNServer that we support 0-conf
+	// (Pre-v1.17.2 does not support 0-conf)
+	if request.LSPUrl == "https://www.lnserver.com/lsp/wave" {
+		token = "AlbyHub/" + version.Tag
+	}
+
 	newLSPS1ChannelRequest := lsps1ChannelRequest{
 		PublicKey:                    pubkey,
 		LSPBalanceSat:                strconv.FormatUint(request.Amount, 10),

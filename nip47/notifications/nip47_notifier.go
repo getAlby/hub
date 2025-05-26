@@ -70,6 +70,24 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 			Notification:     notification,
 			NotificationType: PAYMENT_SENT_NOTIFICATION,
 		}, nostr.Tags{}, transaction.AppId)
+
+	case "nwc_hold_invoice_accepted":
+		dbTransaction, ok := event.Properties.(*db.Transaction)
+		if !ok {
+			logger.Logger.WithField("event", event).Error("Failed to cast event properties to db.Transaction for hold invoice accepted")
+			return
+		}
+
+		nip47Transaction := models.ToNip47Transaction(dbTransaction)
+
+		notification := HoldInvoiceAcceptedNotification{
+			Transaction: *nip47Transaction,
+		}
+
+		notifier.notifySubscribers(ctx, &Notification{
+			Notification:     notification,
+			NotificationType: HOLD_INVOICE_ACCEPTED_NOTIFICATION,
+		}, nostr.Tags{}, dbTransaction.AppId)
 	}
 }
 
