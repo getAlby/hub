@@ -54,6 +54,6 @@ ENV LD_LIBRARY_PATH=/usr/lib/nwc
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /build/libldk_node.so /usr/lib/nwc/
 COPY --from=builder /build/main /bin/
-COPY --from=builder /build/migrate /bin/
+COPY --from=builder /build/db_migrate /bin/
 
 ENTRYPOINT [ "/bin/main" ]
