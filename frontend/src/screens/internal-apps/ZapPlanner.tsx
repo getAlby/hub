@@ -99,10 +99,29 @@ export function ZapPlanner() {
   const [amountCurrency, setAmountCurrency] = React.useState<"BTC" | "USD">(
     "USD"
   );
+  const [currencies, setCurrencies] = React.useState<string[]>(["BTC"]);
+
   const [convertedAmount, setConvertedAmount] = React.useState<string>("");
   const [satoshiAmount, setSatoshiAmount] = React.useState<number | undefined>(
     undefined
   );
+
+  React.useEffect(() => {
+    // fetch the fiat list and prepend sats/BTC
+    async function fetchCurrencies() {
+      try {
+        const res = await fetch("https://getalby.com/api/rates");
+        const data: Record<string, { name: string }> = await res.json();
+        const fiatCodes = Object.keys(data)
+          .map((c) => c.toUpperCase())
+          .sort();
+        setCurrencies(["BTC", ...fiatCodes]);
+      } catch (err) {
+        console.error("Failed to load currencies", err);
+      }
+    }
+    fetchCurrencies();
+  }, []);
 
   React.useEffect(() => {
     // reset form on close
@@ -373,8 +392,11 @@ export function ZapPlanner() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="BTC">BTC (sats)</SelectItem>
-                            <SelectItem value="USD">USD</SelectItem>
+                            {currencies.map((code) => (
+                              <SelectItem key={code} value={code}>
+                                {code === "BTC" ? "BTC (sats)" : code}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
