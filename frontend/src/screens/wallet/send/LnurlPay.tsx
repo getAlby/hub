@@ -1,13 +1,13 @@
+import { LightningAddress } from "@getalby/lightning-tools";
 import React from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
-
-import { LightningAddress } from "@getalby/lightning-tools";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import Loading from "src/components/Loading";
+import { TransactionMetadata } from "src/types";
 
 export default function LnurlPay() {
   const { state } = useLocation();
@@ -31,14 +31,15 @@ export default function LnurlPay() {
         satoshi: parseInt(amount),
         comment,
       });
+      const metadata: TransactionMetadata = {
+        comment,
+        ...(identifier && { recipient_data: { identifier } }),
+      };
       navigate(`/wallet/send/confirm-payment`, {
         state: {
           args: {
             paymentRequest: invoice,
-            metadata: {
-              ...(comment && { comment }),
-              ...(identifier && { recipient_data: { identifier } }),
-            },
+            metadata,
           },
         },
       });
