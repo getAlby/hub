@@ -15,6 +15,7 @@ export default function LnurlPay() {
   const { toast } = useToast();
 
   const lnAddress = state?.args?.lnAddress as LightningAddress;
+  const identifier = lnAddress.lnurlpData?.identifier;
   const [amount, setAmount] = React.useState("");
   const [comment, setComment] = React.useState("");
   const [isLoading, setLoading] = React.useState(false);
@@ -34,7 +35,10 @@ export default function LnurlPay() {
         state: {
           args: {
             paymentRequest: invoice,
-            identifier: lnAddress.lnurlpData?.identifier,
+            metadata: {
+              ...(comment && { comment }),
+              ...(identifier && { recipient_data: { identifier } }),
+            },
           },
         },
       });

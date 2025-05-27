@@ -8,7 +8,7 @@ import { useToast } from "src/components/ui/use-toast";
 import { Invoice } from "@getalby/lightning-tools";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
-import { PayInvoiceResponse } from "src/types";
+import { PayInvoiceResponse, TransactionMetadata } from "src/types";
 import { request } from "src/utils/request";
 
 export default function ConfirmPayment() {
@@ -18,7 +18,7 @@ export default function ConfirmPayment() {
 
   const amount = state?.args?.amount as number | undefined;
   const invoice = state?.args?.paymentRequest as Invoice;
-  const identifier = state?.args?.identifier as string;
+  const metadata = state?.args?.metadata as TransactionMetadata;
   const [isLoading, setLoading] = React.useState(false);
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -31,9 +31,7 @@ export default function ConfirmPayment() {
           method: "POST",
           body: JSON.stringify({
             amount: amount ? amount * 1000 : undefined,
-            metadata: identifier
-              ? { recipient_data: { identifier } }
-              : undefined,
+            metadata,
           }),
           headers: {
             "Content-Type": "application/json",
