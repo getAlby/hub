@@ -114,6 +114,8 @@ export function ZapPlanner() {
         const data: Record<string, { name: string }> = await res.json();
         const fiatCodes = Object.keys(data)
           .map((c) => c.toUpperCase())
+          // drop "BTC" so it only lives in our prepended slot
+          .filter((code) => code !== "BTC")
           .sort();
         setCurrencies(["BTC", ...fiatCodes]);
       } catch (err) {
