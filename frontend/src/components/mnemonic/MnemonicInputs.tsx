@@ -1,6 +1,6 @@
 import { wordlist } from "@scure/bip39/wordlists/english";
 import { useState } from "react";
-import PasswordViewAdornment from "src/components/password/RevealPasswordToggle";
+import RevealPasswordToggle from "src/components/password/RevealPasswordToggle";
 import {
   Card,
   CardContent,
@@ -68,7 +68,7 @@ export default function MnemonicInputs({
                     );
                   }}
                   endAdornment={
-                    <PasswordViewAdornment
+                    <RevealPasswordToggle
                       isRevealed={isRevealed}
                       onChange={(passwordView) => {
                         if (passwordView) {
