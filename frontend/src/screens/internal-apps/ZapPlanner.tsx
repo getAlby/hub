@@ -133,6 +133,9 @@ export function ZapPlanner() {
       setComment("");
       setAmount("5");
       setSenderName("");
+      setFrequencyValue("1");
+      setFrequencyUnit("months");
+      setAmountCurrency("USD");
       setConvertedAmount("");
       setSatoshiAmount(undefined);
     }
@@ -149,11 +152,11 @@ export function ZapPlanner() {
     // Automatically convert between sats and USD if the amount changes
     const convertCurrency = async () => {
       try {
-        if (amountCurrency === "USD") {
-          // Convert USD to sats
+        // any fiat (not BTC) → sats
+        if (amountCurrency !== "BTC") {
           const sats = await fiat.getSatoshiValue({
             amount: parseFloat(amount),
-            currency: "USD",
+            currency: amountCurrency,
           });
           setSatoshiAmount(sats);
           setConvertedAmount(`~${sats.toLocaleString()} sats`);
@@ -180,6 +183,11 @@ export function ZapPlanner() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+    // parse and validate the raw frequency
+    const rawFreq = parseInt(frequencyValue, 10);
+    if (isNaN(rawFreq) || rawFreq < 1) {
+      throw new Error("Invalid frequency");
+    }
     try {
       // validate lightning address
       const ln = new LightningAddress(recipientLightningAddress);
@@ -197,17 +205,18 @@ export function ZapPlanner() {
       let periodsPerMonth: number;
       switch (frequencyUnit) {
         case "days":
-          periodsPerMonth = 31 / parseInt(frequencyValue, 10);
+          periodsPerMonth = 31 / rawFreq;
           break;
         case "weeks":
-          periodsPerMonth = 31 / 7 / parseInt(frequencyValue, 10);
+          periodsPerMonth = 31 / 7 / rawFreq;
           break;
         case "months":
-          periodsPerMonth = 1 / parseInt(frequencyValue, 10);
+          periodsPerMonth = 1 / rawFreq;
           break;
         default:
           throw new Error("Unsupported frequency unit");
       }
+      periodsPerMonth = Math.ceil(periodsPerMonth);
       //  Compute raw monthly spend
       const rawSpend = satsToSend * periodsPerMonth;
 
@@ -236,6 +245,27 @@ export function ZapPlanner() {
           ? `${monthsToDays(frequencyValue)} days`
           : `${frequencyValue} ${frequencyUnit}`;
 
+      // Build a “stable fiat” payload when needed
+      const subscriptionBody: Record<string, unknown> = {
+        recipientLightningAddress,
+        message: comment || "ZapPlanner payment from Alby Hub",
+        payerData: JSON.stringify({
+          ...(senderName ? { name: senderName } : {}),
+        }),
+        nostrWalletConnectUrl: createAppResponse.pairingUri,
+        sleepDuration,
+      };
+
+      if (amountCurrency === "BTC") {
+        // user entered sats directly
+        subscriptionBody.amount = satsToSend;
+        subscriptionBody.currency = "BTC";
+      } else {
+        // user entered fiat → ZapPlanner will convert to sats later
+        subscriptionBody.amount = parseFloat(amount);
+        subscriptionBody.currency = amountCurrency;
+      }
+
       // TODO: proxy through hub backend and remove CSRF exceptions for zapplanner.albylabs.com
       const createSubscriptionResponse = await fetch(
         "https://zapplanner.albylabs.com/api/subscriptions",
@@ -244,19 +274,7 @@ export function ZapPlanner() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            recipientLightningAddress,
-            amount: satsToSend, // ← always sats
-            // TODO: include other currencies
-            // currency: amountCurrency,
-
-            message: comment || "ZapPlanner payment from Alby Hub",
-            payerData: JSON.stringify({
-              ...(senderName ? { name: senderName } : {}),
-            }),
-            nostrWalletConnectUrl: createAppResponse.pairingUri,
-            sleepDuration,
-          }),
+          body: JSON.stringify(subscriptionBody),
         }
       );
       if (!createSubscriptionResponse.ok) {
@@ -374,6 +392,10 @@ export function ZapPlanner() {
                         <div className="relative flex-1">
                           <Input
                             id="amount"
+                            type="number"
+                            min="0"
+                            step="any"
+                            inputMode="decimal"
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                             className="col-span-3 w-70"
@@ -414,14 +436,10 @@ export function ZapPlanner() {
                             id="frequency"
                             type="number"
                             min="1"
+                            step="1"
+                            inputMode="numeric"
                             value={frequencyValue}
-                            onChange={(e) => {
-                              const value = Math.max(
-                                1,
-                                parseInt(e.target.value || "1")
-                              );
-                              setFrequencyValue(value.toString());
-                            }}
+                            onChange={(e) => setFrequencyValue(e.target.value)}
                             className="col-span-3 w-70"
                           />
                           <Select
