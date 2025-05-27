@@ -2,6 +2,7 @@ package transactions
 
 import (
 	"context"
+	"sync"
 	"testing"
 	"time"
 
@@ -30,7 +31,10 @@ func TestSelfHoldPaymentSettled(t *testing.T) {
 	// use the pubkey from the decoded tests.MockLNClientHoldTransaction invoice
 	svc.LNClient.(*tests.MockLn).Pubkey = "038a73de75fdc3c7ec951a5e0b0fa95c5cd353bd7ca72df2086aa228c1f92819a5"
 
+	var wg sync.WaitGroup
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		result, err := transactionsService.SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, svc.LNClient, nil, nil, nil)
 		assert.NoError(t, err)
 		require.NotNil(t, result)
@@ -40,13 +44,14 @@ func TestSelfHoldPaymentSettled(t *testing.T) {
 	}()
 
 	// wait for payment to be accepted
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 	settledTransaction, err := transactionsService.SettleHoldInvoice(ctx, preimage, svc.LNClient)
 	assert.NoError(t, err)
 	require.NotNil(t, settledTransaction)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, settledTransaction.State)
 	assert.Equal(t, true, settledTransaction.SelfPayment)
 	assert.Equal(t, true, settledTransaction.Hold)
+	wg.Wait()
 }
 func TestSelfHoldPaymentCanceled(t *testing.T) {
 	ctx := context.TODO()
@@ -64,7 +69,10 @@ func TestSelfHoldPaymentCanceled(t *testing.T) {
 	// use the pubkey from the decoded tests.MockLNClientHoldTransaction invoice
 	svc.LNClient.(*tests.MockLn).Pubkey = "038a73de75fdc3c7ec951a5e0b0fa95c5cd353bd7ca72df2086aa228c1f92819a5"
 
+	var wg sync.WaitGroup
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
 		result, err := transactionsService.SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, svc.LNClient, nil, nil, nil)
 		assert.ErrorIs(t, err, lnclient.NewHoldInvoiceCanceledError())
 		assert.Nil(t, result)
@@ -79,7 +87,7 @@ func TestSelfHoldPaymentCanceled(t *testing.T) {
 	}()
 
 	// wait for payment to be accepted
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
 	err = transactionsService.CancelHoldInvoice(ctx, paymentHash, svc.LNClient)
 	assert.NoError(t, err)
 
@@ -89,5 +97,5 @@ func TestSelfHoldPaymentCanceled(t *testing.T) {
 	assert.Equal(t, constants.TRANSACTION_STATE_FAILED, updatedHoldTransaction.State)
 	assert.Equal(t, true, updatedHoldTransaction.SelfPayment)
 	assert.Equal(t, true, updatedHoldTransaction.Hold)
-	time.Sleep(1 * time.Second)
+	wg.Wait()
 }
