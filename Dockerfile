@@ -39,7 +39,7 @@ RUN GOARCH=$(echo "$TARGETPLATFORM" | cut -d'/' -f2) go build \
    -o main cmd/http/main.go
 
 RUN GOARCH=$(echo "$TARGETPLATFORM" | cut -d'/' -f2) go build \
-   -o migrate cmd/db_migrate/main.go
+   -o db_migrate cmd/db_migrate/main.go
 
 COPY ./build/docker/copy_dylibs.sh .
 RUN chmod +x copy_dylibs.sh
