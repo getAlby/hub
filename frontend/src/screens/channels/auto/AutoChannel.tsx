@@ -160,7 +160,7 @@ export function AutoChannel() {
                 payments.{" "}
                 <ExternalLink
                   className="underline"
-                  to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel"
+                  to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel"
                 >
                   Learn more
                 </ExternalLink>
@@ -185,7 +185,7 @@ export function AutoChannel() {
                       Not recommended for most users.{" "}
                       <ExternalLink
                         className="underline"
-                        to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/should-i-open-a-private-or-public-channel"
+                        to="https://guides.getalby.com/user-guide/alby-hub/faq/should-i-open-a-private-or-public-channel"
                       >
                         Learn more
                       </ExternalLink>

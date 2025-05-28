@@ -124,7 +124,7 @@ function Success() {
       <p>
         To ensure you can both send and receive, make sure to balance your{" "}
         <ExternalLink
-          to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/liquidity"
+          to="https://guides.getalby.com/user-guide/alby-hub/node"
           className="underline"
         >
           channel's liquidity
@@ -708,7 +708,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                     <TableRow>
                       <TableCell className="font-medium p-3 flex items-center gap-2">
                         Duration
-                        <ExternalLink to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel#which-lightning-service-provider-to-choose">
+                        <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel">
                           <InfoIcon className="w-4 h-4 text-muted-foreground" />
                         </ExternalLink>
                       </TableCell>

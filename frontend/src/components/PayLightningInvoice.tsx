@@ -60,7 +60,7 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
           Copy Invoice
         </Button>
         <ExternalLinkButton
-          to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/wallet/open-your-first-channel"
+          to="https://guides.getalby.com/user-guide/alby-hub/wallet/open-your-first-channel"
           variant="secondary"
           className="flex-1 flex gap-2 items-center justify-center"
         >

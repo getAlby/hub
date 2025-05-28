@@ -36,7 +36,7 @@ export function SwapAlert({ className, minChannels = 2 }: SwapAlertProps) {
         </p>
         <div className="flex items-center justify-end mt-2 gap-2">
           <ExternalLinkButton
-            to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/node/swaps-in-and-out"
+            to="https://guides.getalby.com/user-guide/alby-hub/node/swap-in-and-out"
             variant="outline"
           >
             Learn more

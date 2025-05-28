@@ -89,7 +89,7 @@ export function RoutingFeeDialogContent({ channel }: Props) {
             }}
           />
           <ExternalLink
-            to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-can-i-change-routing-fees#understanding-routing-fees-and-alby-hub"
+            to="https://guides.getalby.com/user-guide/alby-hub/faq/how-can-i-change-routing-fees#understanding-routing-fees-and-alby-hub"
             className="underline flex items-center mt-4"
           >
             Learn more about routing fees

@@ -14,7 +14,7 @@ export function ChannelPublicPrivateAlert() {
         </div>
         <ExternalLink
           to={
-            "https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/should-i-open-a-private-or-public-channel"
+            "https://guides.getalby.com/user-guide/alby-hub/faq/should-i-open-a-private-or-public-channel"
           }
           className="underline"
         >

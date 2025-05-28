@@ -85,7 +85,7 @@ export default function Backup() {
               please use the migration tool.{" "}
             </span>
             <a
-              href="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/backups-and-recover"
+              href="https://guides.getalby.com/user-guide/alby-hub/backups-and-recover"
               target="_blank"
               rel="noreferrer noopener"
               className="text-foreground underline"
@@ -243,7 +243,7 @@ export default function Backup() {
                       Account linked, follow the
                     </span>
                     <ExternalLink
-                      to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/backups-and-recover#alby-hub-self-hosted-without-an-alby-account"
+                      to="https://guides.getalby.com/user-guide/alby-hub/backups-and-recover#alby-hub-self-hosted-without-an-alby-account"
                       className="underline inline-flex items-center text-sm"
                     >
                       manual backups guide

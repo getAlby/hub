@@ -79,7 +79,7 @@ export function HealthCheckAlert() {
             <ExternalLinkButton
               size="sm"
               variant="secondary"
-              to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/what-happens-if-the-healthcheck-indicator-turns-red"
+              to="https://guides.getalby.com/user-guide/alby-hub/faq/what-happens-if-the-healthcheck-indicator-turns-red"
             >
               Learn More
             </ExternalLinkButton>
