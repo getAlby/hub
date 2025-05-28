@@ -416,6 +416,26 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
+              <div className="flex justify-end text-sm text-muted-foreground mb-4">
+                <span className="mr-2">
+                  Download your whole transaction history. Export to:
+                </span>
+                <a
+                  href="#"
+                  // onClick={handleExportCsv}
+                  className="underline hover:text-white/80"
+                >
+                  CSV
+                </a>
+                <span className="px-1">|</span>
+                <a
+                  href="#"
+                  // onClick={handleExportJson}
+                  className="underline hover:text-white/80"
+                >
+                  JSON
+                </a>
+              </div>
               <TransactionsList appId={app.id} showReceiveButton={false} />
             </CardContent>
           </Card>
