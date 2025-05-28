@@ -1195,14 +1195,19 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 	}, nil
 }
 
-func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate uint64, sendAll bool) (string, error) {
-	var fee *ldk_node.FeeRate
-	fee = ldk_node.FeeRateFromSatPerVbUnchecked(feeRate)
+func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (string, error) {
+	var feePtr **ldk_node.FeeRate
+	if feeRate != nil {
+		fee := ldk_node.FeeRateFromSatPerVbUnchecked(*feeRate)
+		feePtr = &fee
+	} else {
+		feePtr = nil
+	}
 
 	if !sendAll {
 		// NOTE: this may fail if user does not reserve enough for the onchain transaction
 		// and can also drain the anchor reserves if the user provides a too high amount.
-		txId, err := checkLDKErr(ls.node.OnchainPayment().SendToAddress(toAddress, amount, &fee))
+		txId, err := checkLDKErr(ls.node.OnchainPayment().SendToAddress(toAddress, amount, feePtr))
 		if err != nil {
 			logger.Logger.WithError(err).Error("SendToAddress failed")
 			return "", err
@@ -1210,7 +1215,7 @@ func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, 
 		return txId, nil
 	}
 
-	txId, err := checkLDKErr(ls.node.OnchainPayment().SendAllToAddress(toAddress, false, &fee))
+	txId, err := checkLDKErr(ls.node.OnchainPayment().SendAllToAddress(toAddress, false, feePtr))
 	if err != nil {
 		logger.Logger.WithError(err).Error("SendAllToAddress failed")
 		return "", err

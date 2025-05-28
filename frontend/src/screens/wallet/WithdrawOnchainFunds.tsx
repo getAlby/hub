@@ -55,12 +55,6 @@ export default function WithdrawOnchainFunds() {
   const [transactionId, setTransactionId] = React.useState("");
   const [confirmDialogOpen, setConfirmDialogOpen] = React.useState(false);
 
-  React.useEffect(() => {
-    if (recommendedFees) {
-      setFeeRate(recommendedFees.fastestFee.toString());
-    }
-  }, [recommendedFees]);
-
   const copy = (text: string) => {
     copyToClipboard(text, toast);
   };
@@ -94,8 +88,8 @@ export default function WithdrawOnchainFunds() {
           body: JSON.stringify({
             toAddress: onchainAddress,
             amount: +amount,
-            feeRate: +feeRate,
             sendAll,
+            ...(feeRate && { feeRate: +feeRate }),
           }),
         }
       );
@@ -291,11 +285,14 @@ export default function WithdrawOnchainFunds() {
                         setFeeRate(recommendedFees.fastestFee.toString())
                       }
                     >
-                      High priority: {recommendedFees.economyFee}
+                      High priority: {recommendedFees.fastestFee}
                     </Button>{" "}
-                    <a href="https://mempool.space" className="underline ml-2">
+                    <ExternalLink
+                      to="https://mempool.space"
+                      className="underline ml-2"
+                    >
                       mempool.space
-                    </a>
+                    </ExternalLink>
                   </p>
                 </div>
               )}
