@@ -32,7 +32,7 @@ export default function LnurlPay() {
         comment,
       });
       const metadata: TransactionMetadata = {
-        comment,
+        ...(comment && { comment }),
         ...(identifier && { recipient_data: { identifier } }),
       };
       navigate(`/wallet/send/confirm-payment`, {
