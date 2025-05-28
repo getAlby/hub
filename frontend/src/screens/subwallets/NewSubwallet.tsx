@@ -87,7 +87,7 @@ export function NewSubwallet() {
         title="Create Sub-wallet"
         contentRight={
           <>
-            <ExternalLink to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/app-store/sub-wallet-friends-and-family">
+            <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/sub-wallets">
               <ResponsiveButton
                 icon={HelpCircleIcon}
                 text="Help"
