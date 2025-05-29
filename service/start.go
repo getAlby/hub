@@ -21,6 +21,7 @@ import (
 	"github.com/getAlby/hub/lnclient/ldk"
 	"github.com/getAlby/hub/lnclient/lnd"
 	"github.com/getAlby/hub/lnclient/phoenixd"
+	"github.com/getAlby/hub/lnclient/second_ark"
 	"github.com/getAlby/hub/logger"
 )
 
@@ -364,6 +365,11 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		cashuWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "cashu")
 
 		lnClient, err = cashu.NewCashuService(svc.cfg, cashuWorkdir, mnemonic, cashuMintUrl)
+	case config.BarkBackendType:
+		mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
+		barkWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "bark")
+
+		lnClient, err = second_ark.NewSecondArkService(ctx, mnemonic, barkWorkdir)
 	default:
 		logger.Logger.WithField("backend_type", lnBackend).Error("Unsupported LNBackendType")
 		return fmt.Errorf("unsupported backend type: %s", lnBackend)
