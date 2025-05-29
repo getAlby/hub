@@ -81,6 +81,31 @@ type AppInternalProps = {
 
 function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const { toast } = useToast();
+  // Download sub-account’s full transaction list as JSON
+  const handleExportJson = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    try {
+      // fetch entire tx list for this app
+      const { totalCount, transactions } = await request(
+        `/api/transactions?appId=${app.id}`
+      );
+      // if you ever need pagination, you could refetch here with ?limit=totalCount
+      const payload = { totalCount, transactions };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `subaccount-${app.id}-transactions.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      toast({ title: "Error exporting JSON", variant: "destructive" });
+    }
+  };
   const navigate = useNavigate();
   const location = useLocation();
   const [isEditingName, setIsEditingName] = React.useState(false);
@@ -418,19 +443,11 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
             <CardContent>
               <div className="flex justify-end text-sm text-muted-foreground mb-4">
                 <span className="mr-2">
-                  Download your whole transaction history. Export to:
+                  Download your whole transaction history:
                 </span>
                 <a
                   href="#"
-                  // onClick={handleExportCsv}
-                  className="underline hover:text-white/80"
-                >
-                  CSV
-                </a>
-                <span className="px-1">|</span>
-                <a
-                  href="#"
-                  // onClick={handleExportJson}
+                  onClick={handleExportJson}
                   className="underline hover:text-white/80"
                 >
                   JSON
