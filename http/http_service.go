@@ -564,37 +564,33 @@ func (httpSvc *HttpService) lookupTransactionHandler(c echo.Context) error {
 func (httpSvc *HttpService) listTransactionsHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	limit := uint64(20)
+	// parse limit/offset/appId
+	limit := uint64(50)
 	offset := uint64(0)
 	var appId *uint
 
-	if limitParam := c.QueryParam("limit"); limitParam != "" {
-		if parsedLimit, err := strconv.ParseUint(limitParam, 10, 64); err == nil {
-			limit = parsedLimit
+	if lp := c.QueryParam("limit"); lp != "" {
+		if v, err := strconv.ParseUint(lp, 10, 64); err == nil {
+			limit = v
+		}
+	}
+	if op := c.QueryParam("offset"); op != "" {
+		if v, err := strconv.ParseUint(op, 10, 64); err == nil {
+			offset = v
+		}
+	}
+	if ap := c.QueryParam("appId"); ap != "" {
+		if v, err := strconv.ParseUint(ap, 10, 64); err == nil {
+			ui := uint(v)
+			appId = &ui
 		}
 	}
 
-	if offsetParam := c.QueryParam("offset"); offsetParam != "" {
-		if parsedOffset, err := strconv.ParseUint(offsetParam, 10, 64); err == nil {
-			offset = parsedOffset
-		}
-	}
-
-	if appIdParam := c.QueryParam("appId"); appIdParam != "" {
-		if parsedAppId, err := strconv.ParseUint(appIdParam, 10, 64); err == nil {
-			var unsignedAppId = uint(parsedAppId)
-			appId = &unsignedAppId
-		}
-	}
-
+	// fetch & return JSON
 	transactions, err := httpSvc.api.ListTransactions(ctx, appId, limit, offset)
-
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: err.Error(),
-		})
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
 	}
-
 	return c.JSON(http.StatusOK, transactions)
 }
 
