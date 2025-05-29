@@ -115,8 +115,6 @@ Note that the PostgreSQL user account must be granted appropriate permissions to
 
 We use [testify/mock](https://github.com/stretchr/testify) to facilitate mocking in tests. Instead of writing mocks manually, we generate them using [vektra/mockery](https://github.com/vektra/mockery). To regenerate them, [install mockery](https://vektra.github.io/mockery/latest/installation) and run it in the project's root directory:
 
-> Use `go install github.com/vektra/mockery/v2@v2.52.1` as go 1.24.0 is currently not supported by Alby Hub.
-
     $ mockery
 
 Mockery loads its configuration from the .mockery.yaml file in the root directory of this project. To add mocks for new interfaces, add them to the configuration file and run mockery.
