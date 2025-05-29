@@ -1200,8 +1200,6 @@ func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, 
 	if feeRate != nil {
 		fee := ldk_node.FeeRateFromSatPerVbUnchecked(*feeRate)
 		feePtr = &fee
-	} else {
-		feePtr = nil
 	}
 
 	if !sendAll {
