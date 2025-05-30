@@ -1099,6 +1099,7 @@ func (ls *LDKService) GetNewOnchainAddress(ctx context.Context) (string, error) 
 }
 
 func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
+	nodeStatus := ls.node.Status()
 	channels := ls.node.ListChannels()
 	balances := ls.node.ListBalances()
 	logger.Logger.WithFields(logrus.Fields{
@@ -1177,7 +1178,12 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 		case ldk_node.PendingSweepBalanceBroadcastAwaitingConfirmation:
 			increasePendingBalanceFromClosure(pendingType.CounterpartyNodeId, pendingType.ChannelId, pendingType.AmountSatoshis, pendingType.FundingTxId, pendingType.FundingTxIndex)
 		case ldk_node.PendingSweepBalanceAwaitingThresholdConfirmations:
-			increasePendingBalanceFromClosure(pendingType.CounterpartyNodeId, pendingType.ChannelId, pendingType.AmountSatoshis, pendingType.FundingTxId, pendingType.FundingTxIndex)
+			if nodeStatus.CurrentBestBlock.Height < pendingType.ConfirmationHeight+6 {
+				// LDK now keeps the balance in this state for four weeks even after the funds are confirmed to be swept
+				// to confirm the channel monitors are archived before the sweeper entries are dropped
+				// so now we just check for 6 confirmations
+				increasePendingBalanceFromClosure(pendingType.CounterpartyNodeId, pendingType.ChannelId, pendingType.AmountSatoshis, pendingType.FundingTxId, pendingType.FundingTxIndex)
+			}
 		}
 	}
 
