@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import {
   AlertTriangleIcon,
   ArrowRightIcon,
@@ -60,7 +61,12 @@ import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo.ts";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
 import { copyToClipboard } from "src/lib/clipboard.ts";
 import { cn } from "src/lib/utils.ts";
-import { Channel, Node } from "src/types";
+import {
+  Channel,
+  LongUnconfirmedZeroConfChannel,
+  MempoolNode,
+  MempoolTransaction,
+} from "src/types";
 import { request } from "src/utils/request";
 
 export default function Channels() {
@@ -70,7 +76,9 @@ export default function Channels() {
   const { hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
   const navigate = useNavigate();
-  const [nodes, setNodes] = React.useState<Node[]>([]);
+  const [nodes, setNodes] = React.useState<MempoolNode[]>([]);
+  const [longUnconfirmedZeroConfChannels, setLongUnconfirmedZeroConfChannels] =
+    React.useState<LongUnconfirmedZeroConfChannel[]>([]);
   const [swapOutDialogOpen, setSwapOutDialogOpen] = React.useState(false);
   const [swapInDialogOpen, setSwapInDialogOpen] = React.useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -98,9 +106,9 @@ export default function Channels() {
       return [];
     }
     const nodes = await Promise.all(
-      channels?.map(async (channel): Promise<Node | undefined> => {
+      channels?.map(async (channel): Promise<MempoolNode | undefined> => {
         try {
-          const response = await request<Node>(
+          const response = await request<MempoolNode>(
             `/api/mempool?endpoint=/v1/lightning/nodes/${channel.remotePubkey}`
           );
           return response;
@@ -110,12 +118,71 @@ export default function Channels() {
         }
       })
     );
-    setNodes(nodes.filter((node) => !!node) as Node[]);
+    setNodes(nodes.filter((node) => !!node) as MempoolNode[]);
+  }, [channels]);
+
+  const findUnconfirmedChannels = React.useCallback(async () => {
+    if (!channels) {
+      return [];
+    }
+
+    const _longUnconfirmedZeroConfChannels: LongUnconfirmedZeroConfChannel[] =
+      [];
+    for (const channel of channels) {
+      // only check for unconfirmed 0-conf active channels
+      if (
+        channel.status !== "online" ||
+        channel.confirmationsRequired !== 0 ||
+        !!channel.confirmations
+      ) {
+        continue;
+      }
+      try {
+        const mempoolTransactionResponse = await request<MempoolTransaction>(
+          `/api/mempool?endpoint=/tx/${channel.fundingTxId}`
+        );
+        if (!mempoolTransactionResponse) {
+          throw new Error("No response");
+        }
+        if (mempoolTransactionResponse.status.confirmed) {
+          continue;
+        }
+        // see if the transaction is in the mempool, and has been for how long
+        const unconfirmedTransactionTimeResponse = await request<number[]>(
+          `/api/mempool?endpoint=/v1/transaction-times?txId[]=${channel.fundingTxId}`
+        );
+        if (!unconfirmedTransactionTimeResponse?.length) {
+          throw new Error("No response");
+        }
+
+        const timestamp = unconfirmedTransactionTimeResponse[0];
+        const unconfirmedHours = dayjs().diff(timestamp * 1000, "hours");
+        if (unconfirmedHours === 0) {
+          // channel has been unconfirmed for less than an hour
+          continue;
+        }
+
+        _longUnconfirmedZeroConfChannels.push({
+          id: channel.id,
+          message: "Unconfirmed for " + unconfirmedHours + " hours",
+        });
+      } catch (error) {
+        _longUnconfirmedZeroConfChannels.push({
+          id: channel.id,
+          message: "Channel transaction not in the mempool yet",
+        });
+      }
+    }
+    setLongUnconfirmedZeroConfChannels(_longUnconfirmedZeroConfChannels);
   }, [channels]);
 
   React.useEffect(() => {
     loadNodeStats();
   }, [loadNodeStats]);
+
+  React.useEffect(() => {
+    findUnconfirmedChannels();
+  }, [findUnconfirmedChannels]);
 
   return (
     <>
@@ -571,8 +638,16 @@ export default function Channels() {
             />
           )}
 
-          <ChannelsTable channels={channels} nodes={nodes} />
-          <ChannelsCards channels={channels} nodes={nodes} />
+          <ChannelsTable
+            channels={channels}
+            nodes={nodes}
+            longUnconfirmedZeroConfChannels={longUnconfirmedZeroConfChannels}
+          />
+          <ChannelsCards
+            channels={channels}
+            nodes={nodes}
+            longUnconfirmedZeroConfChannels={longUnconfirmedZeroConfChannels}
+          />
           <OnchainTransactionsTable />
         </>
       )}

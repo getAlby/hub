@@ -39,9 +39,9 @@ import { usePeers } from "src/hooks/usePeers";
 import { cn, formatAmount } from "src/lib/utils";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import {
+  MempoolNode,
   Network,
   NewChannelOrder,
-  Node,
   OnchainOrder,
   RecommendedChannelPeer,
 } from "src/types";
@@ -435,7 +435,9 @@ type NewChannelOnchainProps = {
 };
 
 function NewChannelOnchain(props: NewChannelOnchainProps) {
-  const [nodeDetails, setNodeDetails] = React.useState<Node | undefined>();
+  const [nodeDetails, setNodeDetails] = React.useState<
+    MempoolNode | undefined
+  >();
   const { data: peers } = usePeers();
 
   if (props.order.paymentMethod !== "onchain") {
@@ -470,7 +472,7 @@ function NewChannelOnchain(props: NewChannelOnchainProps) {
       return;
     }
     try {
-      const data = await request<Node>(
+      const data = await request<MempoolNode>(
         `/api/mempool?endpoint=/v1/lightning/nodes/${pubkey}`
       );
 
