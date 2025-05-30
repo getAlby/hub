@@ -18,14 +18,23 @@ import {
   TooltipTrigger,
 } from "src/components/ui/tooltip";
 import { formatAmount } from "src/lib/utils.ts";
-import { Channel, Node } from "src/types";
+import {
+  Channel,
+  LongUnconfirmedZeroConfChannel,
+  MempoolNode,
+} from "src/types";
 
 type ChannelsCardsProps = {
   channels?: Channel[];
-  nodes?: Node[];
+  nodes?: MempoolNode[];
+  longUnconfirmedZeroConfChannels: LongUnconfirmedZeroConfChannel[];
 };
 
-export function ChannelsCards({ channels, nodes }: ChannelsCardsProps) {
+export function ChannelsCards({
+  channels,
+  nodes,
+  longUnconfirmedZeroConfChannels,
+}: ChannelsCardsProps) {
   if (!channels?.length) {
     return null;
   }
@@ -48,6 +57,9 @@ export function ChannelsCards({ channels, nodes }: ChannelsCardsProps) {
             );
             const alias = node?.alias || "Unknown";
             const capacity = channel.localBalance + channel.remoteBalance;
+            const unconfirmedChannel = longUnconfirmedZeroConfChannels.find(
+              (uc) => uc.id === channel.id
+            );
 
             return (
               <>
@@ -69,7 +81,16 @@ export function ChannelsCards({ channels, nodes }: ChannelsCardsProps) {
                         Status
                       </p>
                       {channel.status == "online" ? (
-                        <Badge variant="positive">Online</Badge>
+                        unconfirmedChannel ? (
+                          <Badge
+                            variant="outline"
+                            title={unconfirmedChannel.message}
+                          >
+                            Unconfirmed
+                          </Badge>
+                        ) : (
+                          <Badge variant="positive">Online</Badge>
+                        )
                       ) : channel.status == "opening" ? (
                         <Badge variant="outline">Opening</Badge>
                       ) : (
