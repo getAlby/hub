@@ -2,12 +2,14 @@ import {
   ExternalLinkIcon,
   HandCoinsIcon,
   MoreHorizontalIcon,
+  ScaleIcon,
   Trash2Icon,
 } from "lucide-react";
 import React from "react";
 import { useSearchParams } from "react-router-dom";
 import { CloseChannelDialogContent } from "src/components/CloseChannelDialogContent";
 import ExternalLink from "src/components/ExternalLink";
+import { RebalanceChannelDialogContent } from "src/components/RebalanceChannelDialogContent";
 import { RoutingFeeDialogContent } from "src/components/RoutingFeeDialogContent";
 import {
   AlertDialog,
@@ -32,7 +34,9 @@ export function ChannelDropdownMenu({
   channel,
 }: ChannelDropdownMenuProps) {
   const [searchParams] = useSearchParams();
-  const [dialog, setDialog] = React.useState<"closeChannel" | "routingFee">();
+  const [dialog, setDialog] = React.useState<
+    "closeChannel" | "routingFee" | "rebalance"
+  >();
 
   React.useEffect(() => {
     // when opening the swap dialog, close existing dialog
@@ -56,6 +60,17 @@ export function ChannelDropdownMenu({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          {channel.status == "online" && (
+            <AlertDialogTrigger asChild>
+              <DropdownMenuItem
+                className="flex flex-row items-center gap-2 cursor-pointer"
+                onClick={() => setDialog("rebalance")}
+              >
+                <ScaleIcon className="h-4 w-4" />
+                Rebalance In
+              </DropdownMenuItem>
+            </AlertDialogTrigger>
+          )}
           <DropdownMenuItem className="flex flex-row items-center gap-2 cursor-pointer">
             <ExternalLink
               to={`https://mempool.space/tx/${channel.fundingTxId}#flow=&vout=${channel.fundingTxVout}`}
@@ -100,6 +115,11 @@ export function ChannelDropdownMenu({
         <CloseChannelDialogContent alias={alias} channel={channel} />
       )}
       {dialog === "routingFee" && <RoutingFeeDialogContent channel={channel} />}
+      {dialog === "rebalance" && (
+        <RebalanceChannelDialogContent
+          receiveThroughNodePubkey={channel.remotePubkey}
+        />
+      )}
     </AlertDialog>
   );
 }
