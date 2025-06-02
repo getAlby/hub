@@ -89,6 +89,8 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 
+	e.POST("/api/event", httpSvc.eventHandler)
+
 	e.GET("/api/info", httpSvc.infoHandler)
 	e.POST("/api/setup", httpSvc.setupHandler)
 	e.POST("/api/restore", httpSvc.restoreBackupHandler)
@@ -189,6 +191,19 @@ func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, responseBody)
+}
+
+func (httpSvc *HttpService) eventHandler(c echo.Context) error {
+	var sendEventRequest api.SendEventRequest
+	if err := c.Bind(&sendEventRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	httpSvc.api.SendEvent(sendEventRequest.Event)
+
+	return c.NoContent(http.StatusOK)
 }
 
 func (httpSvc *HttpService) mnemonicHandler(c echo.Context) error {
