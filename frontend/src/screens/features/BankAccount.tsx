@@ -14,7 +14,7 @@ function BankAccount() {
         icon={CreditCardIcon}
         title="Activate Your Virtual Bank Account"
         description="Fund your Hub with fiat, settle traditional payments, and move money to Lightning in seconds. Virtual credit card coming soon!"
-        buttonText="Sign up for waitlist"
+        buttonText="Request Early Access"
         buttonLink="/connect-bank"
       />
     </>
