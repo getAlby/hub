@@ -89,7 +89,7 @@ function TransactionItem({ tx }: Props) {
   const eventId = tx.metadata?.nostr?.tags?.find((t) => t[0] === "e")?.[1];
 
   const bolt12Offer = tx.metadata?.offer;
-  const isBolt12Offer = !!tx.metadata?.offer?.id;
+  const isBolt12Offer = !!bolt12Offer?.id;
 
   const description =
     tx.description || tx.metadata?.comment || bolt12Offer?.payer_note;
