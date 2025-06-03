@@ -46,6 +46,7 @@ import BuyBitcoin from "src/screens/onchain/BuyBitcoin";
 import DepositBitcoin from "src/screens/onchain/DepositBitcoin";
 import ConnectPeer from "src/screens/peers/ConnectPeer";
 import Peers from "src/screens/peers/Peers";
+import { About } from "src/screens/settings/About";
 import { AlbyAccount } from "src/screens/settings/AlbyAccount";
 import { AutoUnlock } from "src/screens/settings/AutoUnlock";
 import Backup from "src/screens/settings/Backup";
@@ -53,6 +54,7 @@ import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword"
 import DebugTools from "src/screens/settings/DebugTools";
 import DeveloperSettings from "src/screens/settings/DeveloperSettings";
 import Settings from "src/screens/settings/Settings";
+import Swaps from "src/screens/settings/Swaps";
 
 import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
 import { RestoreNode } from "src/screens/setup/RestoreNode";
@@ -185,9 +187,18 @@ const routes = [
                 element: <Settings />,
               },
               {
+                path: "about",
+                element: <About />,
+                handle: { crumb: () => "About" },
+              },
+              {
                 path: "auto-unlock",
                 element: <AutoUnlock />,
                 handle: { crumb: () => "Auto Unlock" },
+              },
+              {
+                path: "swaps",
+                element: <Swaps />,
               },
               {
                 path: "change-unlock-password",

@@ -665,6 +665,6 @@ func doTestHandleResponse_EncryptionTagDoesNotMatchPayload(t *testing.T, svc *te
 	assert.NoError(t, err)
 	assert.Nil(t, unmarshalledResponse.Result)
 	// assert.Equal(t, models.GET_INFO_METHOD, unmarshalledResponse.ResultType)
-	assert.Equal(t, constants.ERROR_INTERNAL, unmarshalledResponse.Error.Code)
+	assert.Equal(t, constants.ERROR_BAD_REQUEST, unmarshalledResponse.Error.Code)
 	assert.Contains(t, unmarshalledResponse.Error.Message, "failed to decrypt:")
 }

@@ -35,11 +35,11 @@ type API interface {
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	GetUnusedOnchainAddress(ctx context.Context) (string, error)
 	SignMessage(ctx context.Context, message string) (*SignMessageResponse, error)
-	RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (*RedeemOnchainFundsResponse, error)
+	RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (*RedeemOnchainFundsResponse, error)
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
 	ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error)
 	ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error)
-	SendPayment(ctx context.Context, invoice string, amountMsat *uint64) (*SendPaymentResponse, error)
+	SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}) (*SendPaymentResponse, error)
 	CreateInvoice(ctx context.Context, amount uint64, description string) (*MakeInvoiceResponse, error)
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
 	RequestMempoolApi(endpoint string) (interface{}, error)
@@ -60,6 +60,9 @@ type API interface {
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
+	GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error)
+	DisableAutoSwaps() error
+	EnableAutoSwaps(ctx context.Context, autoSwapsRequest *EnableAutoSwapsRequest) error
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
 }
@@ -113,6 +116,22 @@ type CreateAppRequest struct {
 	Isolated       bool     `json:"isolated"`
 	Metadata       Metadata `json:"metadata,omitempty"`
 	UnlockPassword string   `json:"unlockPassword"`
+}
+
+type EnableAutoSwapsRequest struct {
+	BalanceThreshold uint64 `json:"balanceThreshold"`
+	SwapAmount       uint64 `json:"swapAmount"`
+	Destination      string `json:"destination"`
+}
+
+type GetAutoSwapsConfigResponse struct {
+	Enabled          bool    `json:"enabled"`
+	BalanceThreshold uint64  `json:"balanceThreshold"`
+	SwapAmount       uint64  `json:"swapAmount"`
+	Destination      string  `json:"destination"`
+	AlbyServiceFee   float64 `json:"albyServiceFee"`
+	BoltzServiceFee  float64 `json:"boltzServiceFee"`
+	BoltzNetworkFee  uint64  `json:"boltzNetworkFee"`
 }
 
 type StartRequest struct {
@@ -187,6 +206,7 @@ type InfoResponse struct {
 	AutoUnlockPasswordSupported bool      `json:"autoUnlockPasswordSupported"`
 	AutoUnlockPasswordEnabled   bool      `json:"autoUnlockPasswordEnabled"`
 	Currency                    string    `json:"currency"`
+	Relay                       string    `json:"relay"`
 }
 
 type UpdateSettingsRequest struct {
@@ -216,9 +236,10 @@ type CloseChannelResponse = lnclient.CloseChannelResponse
 type UpdateChannelRequest = lnclient.UpdateChannelRequest
 
 type RedeemOnchainFundsRequest struct {
-	ToAddress string `json:"toAddress"`
-	Amount    uint64 `json:"amount"`
-	SendAll   bool   `json:"sendAll"`
+	ToAddress string  `json:"toAddress"`
+	Amount    uint64  `json:"amount"`
+	FeeRate   *uint64 `json:"feeRate"`
+	SendAll   bool    `json:"sendAll"`
 }
 
 type RedeemOnchainFundsResponse struct {
@@ -317,7 +338,8 @@ type SignMessageResponse struct {
 }
 
 type PayInvoiceRequest struct {
-	Amount *uint64 `json:"amount"`
+	Amount   *uint64  `json:"amount"`
+	Metadata Metadata `json:"metadata"`
 }
 
 type GenerateOfferRequest struct {

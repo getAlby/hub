@@ -324,6 +324,18 @@ func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, descri
 	return tx, nil
 }
 
+func (svc *PhoenixService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
+	return nil, errors.New("not implemented")
+}
+
+func (svc *PhoenixService) SettleHoldInvoice(ctx context.Context, preimage string) (err error) {
+	return errors.New("not implemented")
+}
+
+func (svc *PhoenixService) CancelHoldInvoice(ctx context.Context, paymentHash string) (err error) {
+	return errors.New("not implemented")
+}
+
 func (svc *PhoenixService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
 	req, err := http.NewRequest(http.MethodGet, svc.Address+"/payments/incoming/"+paymentHash, nil)
 	if err != nil {
@@ -350,7 +362,7 @@ func (svc *PhoenixService) LookupInvoice(ctx context.Context, paymentHash string
 	return transaction, nil
 }
 
-func (svc *PhoenixService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (svc *PhoenixService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64, timeoutSeconds *int64) (*lnclient.PayInvoiceResponse, error) {
 	// TODO: support 0-amount invoices
 	if amount != nil {
 		return nil, errors.New("0-amount invoices not supported")
@@ -385,7 +397,7 @@ func (svc *PhoenixService) SendKeysend(ctx context.Context, amount uint64, desti
 	return nil, errors.New("not implemented")
 }
 
-func (svc *PhoenixService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (txId string, err error) {
+func (svc *PhoenixService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (txId string, err error) {
 	return "", errors.New("not implemented")
 }
 
@@ -394,6 +406,7 @@ func (svc *PhoenixService) ResetRouter(key string) error {
 }
 
 func (svc *PhoenixService) Shutdown() error {
+	// No specific shutdown actions needed for Phoenixd client via HTTP
 	return nil
 }
 

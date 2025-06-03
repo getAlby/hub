@@ -17,11 +17,13 @@ export function AppOfTheDayWidget() {
     return x - Math.floor(x);
   }
 
+  // filter out apps which already have a widget
+  const excludedAppIds = ["alby-go", "zapplanner"];
+  const apps = suggestedApps.filter((a) => !excludedAppIds.includes(a.id));
+
   const daysSinceEpoch = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
-  const todayIndex = Math.floor(
-    seededRandom(daysSinceEpoch) * suggestedApps.length
-  );
-  const app = suggestedApps[todayIndex];
+  const todayIndex = Math.floor(seededRandom(daysSinceEpoch) * apps.length);
+  const app = apps[todayIndex];
 
   return (
     <Card>

@@ -19,7 +19,7 @@ export function SubwalletIntro() {
         description="Create sub-wallets for yourself, friends, family or coworkers"
         contentRight={
           <>
-            <ExternalLink to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/app-store/sub-wallet-friends-and-family">
+            <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/sub-wallets">
               <Button variant="outline" size="icon">
                 <HelpCircle className="w-4 h-4" />
               </Button>
@@ -46,7 +46,7 @@ export function SubwalletIntro() {
             <div className="flex flex-row gap-3">
               <Wallet2 className="w-6 h-6" />
               <div className="font-medium">
-                Sub-wallets are seperate wallets hosted by your Alby Hub
+                Sub-wallets are separate wallets hosted by your Alby Hub
               </div>
             </div>
             <div className="ml-9 text-muted-foreground text-sm">

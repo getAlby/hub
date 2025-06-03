@@ -8,7 +8,10 @@ const (
 )
 
 const (
-	OnchainAddressKey = "OnchainAddress"
+	OnchainAddressKey           = "OnchainAddress"
+	AutoSwapBalanceThresholdKey = "AutoSwapBalanceThreshold"
+	AutoSwapAmountKey           = "AutoSwapAmount"
+	AutoSwapDestinationKey      = "AutoSwapDestination"
 )
 
 type AppConfig struct {
@@ -23,11 +26,12 @@ type AppConfig struct {
 	JWTSecret                string `envconfig:"JWT_SECRET"`
 	LogLevel                 string `envconfig:"LOG_LEVEL" default:"4"`
 	LogToFile                bool   `envconfig:"LOG_TO_FILE" default:"true"`
-	LDKNetwork               string `envconfig:"LDK_NETWORK" default:"bitcoin"`
+	Network                  string `envconfig:"NETWORK"`
+	LDKNetwork               string `envconfig:"LDK_NETWORK"`
 	LDKEsploraServer         string `envconfig:"LDK_ESPLORA_SERVER" default:"https://electrs.getalbypro.com"` // TODO: remove LDK prefix
 	LDKGossipSource          string `envconfig:"LDK_GOSSIP_SOURCE"`
 	LDKLogLevel              string `envconfig:"LDK_LOG_LEVEL" default:"3"`
-	LDKVssUrl                string `envconfig:"LDK_VSS_URL"`
+	LDKVssUrl                string `envconfig:"LDK_VSS_URL" default:"https://vss.getalbypro.com/vss"`
 	LDKListeningAddresses    string `envconfig:"LDK_LISTENING_ADDRESSES" default:"0.0.0.0:9735,[::]:9735"`
 	LDKTransientNetworkGraph bool   `envconfig:"LDK_TRANSIENT_NETWORK_GRAPH" default:"false"`
 	MempoolApi               string `envconfig:"MEMPOOL_API" default:"https://mempool.space/api"`
@@ -44,6 +48,7 @@ type AppConfig struct {
 	EnableAdvancedSetup      bool   `envconfig:"ENABLE_ADVANCED_SETUP" default:"true"`
 	AutoUnlockPassword       string `envconfig:"AUTO_UNLOCK_PASSWORD"`
 	LogDBQueries             bool   `envconfig:"LOG_DB_QUERIES" default:"false"`
+	BoltzApi                 string `envconfig:"BOLTZ_API" default:"https://api.boltz.exchange"`
 }
 
 func (c *AppConfig) IsDefaultClientId() bool {
@@ -56,6 +61,7 @@ type Config interface {
 	SetUpdate(key string, value string, encryptionKey string) error
 	GetJWTSecret() string
 	GetRelayUrl() string
+	GetNetwork() string
 	GetEnv() *AppConfig
 	CheckUnlockPassword(password string) bool
 	ChangeUnlockPassword(currentUnlockPassword string, newUnlockPassword string) error

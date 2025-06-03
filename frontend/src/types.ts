@@ -24,7 +24,10 @@ export type Nip47RequestMethod =
   | "list_transactions"
   | "sign_message"
   | "multi_pay_invoice"
-  | "multi_pay_keysend";
+  | "multi_pay_keysend"
+  | "make_hold_invoice"
+  | "settle_hold_invoice"
+  | "cancel_hold_invoice";
 
 export type BudgetRenewalType =
   | "daily"
@@ -149,6 +152,7 @@ export interface InfoResponse {
   albyUserIdentifier: string;
   network?: Network;
   version: string;
+  relay: string;
   unlocked: boolean;
   enableAdvancedSetup: boolean;
   startupState: string;
@@ -188,6 +192,16 @@ export type AppMetadata = { app_store_app_id?: string } & Record<
   string,
   unknown
 >;
+
+export type SwapsSettingsResponse = {
+  enabled: boolean;
+  balanceThreshold: number;
+  swapAmount: number;
+  destination: string;
+  albyServiceFee: number;
+  boltzServiceFee: number;
+  boltzNetworkFee: number;
+};
 
 export interface MnemonicResponse {
   mnemonic: string;
@@ -463,21 +477,26 @@ export type Transaction = {
   updatedAt: string;
   createdAt: string;
   settledAt: string | undefined;
-  metadata?: {
-    comment?: string; // LUD-12
-    payer_data?: {
-      email?: string;
-      name?: string;
-      pubkey?: string;
-    }; // LUD-18
-    nostr?: {
-      pubkey: string;
-      tags: string[][];
-    }; // NIP-57
-  } & Record<string, unknown>;
+  metadata?: TransactionMetadata;
   boostagram?: Boostagram;
   failureReason: string;
 };
+
+export type TransactionMetadata = {
+  comment?: string; // LUD-12
+  payer_data?: {
+    email?: string;
+    name?: string;
+    pubkey?: string;
+  }; // LUD-18
+  recipient_data?: {
+    identifier?: string;
+  }; // LUD-18
+  nostr?: {
+    pubkey: string;
+    tags: string[][];
+  }; // NIP-57
+} & Record<string, unknown>;
 
 export type Boostagram = {
   appName: string;

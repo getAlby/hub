@@ -19,16 +19,20 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/lnclient/lnd/wrapper"
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/nip47/models"
+	"github.com/getAlby/hub/nip47/notifications"
 	"github.com/getAlby/hub/transactions"
 
 	"github.com/sirupsen/logrus"
 	// "gorm.io/gorm"
 
 	"github.com/lightningnetwork/lnd/lnrpc"
+	"github.com/lightningnetwork/lnd/lnrpc/invoicesrpc"
 	"github.com/lightningnetwork/lnd/lnrpc/routerrpc"
 )
 
@@ -36,6 +40,7 @@ type LNDService struct {
 	client         *wrapper.LNDWrapper
 	nodeInfo       *lnclient.NodeInfo
 	cancel         context.CancelFunc
+	ctx            context.Context
 	eventPublisher events.EventPublisher
 }
 
@@ -78,12 +83,14 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 		client:         lndClient,
 		nodeInfo:       nodeInfo,
 		cancel:         cancel,
+		ctx:            lndCtx,
 		eventPublisher: eventPublisher,
 	}
 
 	go lndService.subscribePayments(lndCtx)
 	go lndService.subscribeInvoices(lndCtx)
 	go lndService.subscribeChannelEvents(lndCtx)
+	go lndService.subscribeOpenHoldInvoices(lndCtx)
 
 	logger.Logger.WithField("alias", nodeInfo.Alias).Info("Connected to LND")
 
@@ -278,15 +285,121 @@ func (svc *LNDService) subscribeChannelEvents(ctx context.Context) {
 	}
 }
 
+func (svc *LNDService) subscribeOpenHoldInvoices(ctx context.Context) {
+	oneWeekAgo := time.Now().AddDate(0, 0, -7).Unix()
+
+	listInvoicesResponse, err := svc.client.ListInvoices(ctx, &lnrpc.ListInvoiceRequest{
+		PendingOnly:       true,
+		CreationDateStart: uint64(oneWeekAgo),
+	})
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to list invoices for open hold invoices subscription")
+		return
+	}
+
+	for _, invoice := range listInvoicesResponse.Invoices {
+		if invoice.State == lnrpc.Invoice_OPEN {
+			paymentHashHex := hex.EncodeToString(invoice.RHash)
+			logger.Logger.WithFields(logrus.Fields{
+				"paymentHash": paymentHashHex,
+				"addIndex":    invoice.AddIndex,
+			}).Info("Resubscribing to pending hold invoice")
+			go svc.subscribeSingleInvoice(invoice.RHash)
+		}
+	}
+}
+
+func (svc *LNDService) subscribeSingleInvoice(paymentHashBytes []byte) {
+	// Use the global context for the lifetime of this subscription, but create a cancellable one for this specific task
+	// This allows the goroutine to be potentially cancelled externally if needed, though it primarily exits on invoice state change.
+	// We use a background context derived from the global one to avoid cancelling if the original request context finishes.
+	ctx, cancel := context.WithCancel(svc.ctx)
+	defer cancel() // Ensure cancellation happens on exit
+
+	paymentHashHex := hex.EncodeToString(paymentHashBytes)
+	log := logger.Logger.WithField("paymentHash", paymentHashHex)
+
+	log.Info("Starting subscribeSingleInvoice goroutine")
+
+	subReq := &invoicesrpc.SubscribeSingleInvoiceRequest{
+		RHash: paymentHashBytes,
+	}
+
+	invoiceStream, err := svc.client.SubscribeSingleInvoice(ctx, subReq)
+	if err != nil {
+		log.WithError(err).Error("SubscribeSingleInvoice call failed")
+		// Goroutine will exit
+		return
+	}
+
+	log.Info("Successfully subscribed to single invoice stream")
+
+	defer func() {
+		log.Info("Exiting subscribeSingleInvoice goroutine")
+		if r := recover(); r != nil {
+			log.WithField("panic", r).Errorf("PANIC recovered in single invoice stream processing")
+		}
+	}()
+
+	for {
+		invoice, err := invoiceStream.Recv()
+
+		if err != nil {
+			log.WithError(err).Error("Failed to receive single invoice update from stream")
+			return
+		}
+		if ctx.Err() != nil {
+			log.Info("Context cancelled, exiting single invoice subscription loop")
+			return
+		}
+
+		log.WithFields(logrus.Fields{
+			"rawState":    invoice.State.String(),
+			"addIndex":    invoice.AddIndex,
+			"settleIndex": invoice.SettleIndex,
+			"amtPaidMsat": invoice.AmtPaidMsat,
+		}).Info("Raw update received from single invoice stream")
+
+		switch invoice.State {
+		case lnrpc.Invoice_ACCEPTED:
+			log.Info("Hold invoice accepted, publishing internal event")
+			transaction := lndInvoiceToTransaction(invoice)
+			var minExpiry uint32
+			for _, htlc := range invoice.Htlcs {
+				if htlc.ExpiryHeight < int32(minExpiry) || minExpiry == 0 {
+					minExpiry = uint32(htlc.ExpiryHeight)
+				}
+			}
+			transaction.SettleDeadline = &minExpiry
+			svc.eventPublisher.Publish(&events.Event{
+				Event:      "nwc_lnclient_hold_invoice_accepted",
+				Properties: transaction,
+			})
+		case lnrpc.Invoice_CANCELED:
+			log.Info("Hold invoice canceled, ending subscription")
+			return // Invoice reached final state, exit goroutine
+		case lnrpc.Invoice_SETTLED:
+			return // Invoice reached final state, exit goroutine
+		case lnrpc.Invoice_OPEN:
+			// Continue loop
+		}
+	}
+}
+
 func (svc *LNDService) Shutdown() error {
 	logger.Logger.Info("cancelling LND context")
 	svc.cancel()
 	return nil
 }
 
-func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64, timeoutSeconds *int64) (*lnclient.PayInvoiceResponse, error) {
 	const MAX_PARTIAL_PAYMENTS = 16
-	const SEND_PAYMENT_TIMEOUT = 50
+
+	sendPaymentTimeout := int64(constants.SEND_PAYMENT_TIMEOUT)
+	if timeoutSeconds != nil {
+		sendPaymentTimeout = *timeoutSeconds
+	}
+
 	paymentRequest, err := decodepay.Decodepay(payReq)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -302,7 +415,7 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amoun
 	sendRequest := &routerrpc.SendPaymentRequest{
 		PaymentRequest: payReq,
 		MaxParts:       MAX_PARTIAL_PAYMENTS,
-		TimeoutSeconds: SEND_PAYMENT_TIMEOUT,
+		TimeoutSeconds: int32(sendPaymentTimeout),
 		FeeLimitMsat:   int64(transactions.CalculateFeeReserveMsat(paymentAmountMsat)),
 	}
 
@@ -504,6 +617,127 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, descriptio
 
 	transaction = lndInvoiceToTransaction(inv)
 	return transaction, nil
+}
+
+func (svc *LNDService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
+	var descriptionHashBytes []byte
+	var paymentHashBytes []byte
+
+	if descriptionHash != "" {
+		descriptionHashBytes, err = hex.DecodeString(descriptionHash)
+		if err != nil || len(descriptionHashBytes) != 32 {
+			if err == nil {
+				err = errors.New("description hash must be 32 bytes hex")
+			}
+			logger.Logger.WithFields(logrus.Fields{
+				"descriptionHash": descriptionHash,
+			}).WithError(err).Error("Invalid description hash")
+			return nil, err
+		}
+	}
+
+	paymentHashBytes, err = hex.DecodeString(paymentHash)
+	if err != nil || len(paymentHashBytes) != 32 {
+		if err == nil {
+			err = errors.New("payment hash must be 32 bytes hex")
+		}
+		logger.Logger.WithFields(logrus.Fields{
+			"paymentHash": paymentHash,
+		}).WithError(err).Error("Invalid payment hash")
+		return nil, err
+	}
+
+	if expiry == 0 {
+		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
+	}
+
+	channels, err := svc.ListChannels(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	hasPublicChannels := false
+	for _, channel := range channels {
+		if channel.Active && channel.Public {
+			hasPublicChannels = true
+		}
+	}
+
+	addInvoiceRequest := &invoicesrpc.AddHoldInvoiceRequest{
+		ValueMsat:       amount,
+		Memo:            description,
+		DescriptionHash: descriptionHashBytes,
+		Expiry:          expiry,
+		Private:         !hasPublicChannels,
+		Hash:            paymentHashBytes,
+	}
+
+	_, err = svc.client.AddHoldInvoice(ctx, addInvoiceRequest)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to create hold invoice")
+		return nil, err
+	}
+
+	// Start subscribing to updates for this specific hold invoice in a separate goroutine
+	go svc.subscribeSingleInvoice(paymentHashBytes)
+	logger.Logger.WithField("paymentHash", paymentHash).Info("Launched single invoice subscription goroutine")
+
+	inv, err := svc.client.LookupInvoice(ctx, &lnrpc.PaymentHash{RHash: paymentHashBytes})
+	if err != nil {
+		logger.Logger.WithField("paymentHash", paymentHash).WithError(err).Error("Failed to lookup hold invoice after creation")
+		return nil, err
+	}
+
+	transaction = lndInvoiceToTransaction(inv)
+	return transaction, nil
+}
+
+func (svc *LNDService) SettleHoldInvoice(ctx context.Context, preimage string) (err error) {
+	preimageBytes, err := hex.DecodeString(preimage)
+	if err != nil || len(preimageBytes) != 32 {
+		if err == nil {
+			err = errors.New("preimage must be 32 bytes hex")
+		}
+		logger.Logger.WithFields(logrus.Fields{
+			"preimage": preimage,
+		}).WithError(err).Error("Invalid preimage")
+		return err
+	}
+
+	_, err = svc.client.SettleInvoice(ctx, &invoicesrpc.SettleInvoiceMsg{
+		Preimage: preimageBytes,
+	})
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"preimage": preimage,
+		}).WithError(err).Error("Failed to settle hold invoice")
+		return err
+	}
+	return nil
+}
+
+func (svc *LNDService) CancelHoldInvoice(ctx context.Context, paymentHash string) (err error) {
+	paymentHashBytes, err := hex.DecodeString(paymentHash)
+	if err != nil || len(paymentHashBytes) != 32 {
+		if err == nil {
+			err = errors.New("payment hash must be 32 bytes hex")
+		}
+		logger.Logger.WithFields(logrus.Fields{
+			"paymentHash": paymentHash,
+		}).WithError(err).Error("Invalid payment hash")
+		return err
+	}
+
+	_, err = svc.client.CancelInvoice(ctx, &invoicesrpc.CancelInvoiceMsg{
+		PaymentHash: paymentHashBytes,
+	})
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"paymentHash": paymentHash,
+		}).WithError(err).Error("Failed to cancel hold invoice")
+		return err
+	}
+	return nil
 }
 
 func (svc *LNDService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
@@ -985,13 +1219,20 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 	}, nil
 }
 
-func (svc *LNDService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (txId string, err error) {
-	resp, err := svc.client.SendCoins(ctx, &lnrpc.SendCoinsRequest{
-		Addr:       toAddress,
-		SendAll:    sendAll,
-		Amount:     int64(amount),
-		TargetConf: 1,
-	})
+func (svc *LNDService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (txId string, err error) {
+	sendCoinsRequest := &lnrpc.SendCoinsRequest{
+		Addr:    toAddress,
+		SendAll: sendAll,
+		Amount:  int64(amount),
+	}
+
+	if feeRate != nil {
+		sendCoinsRequest.SatPerVbyte = *feeRate
+	} else {
+		sendCoinsRequest.TargetConf = 1
+	}
+
+	resp, err := svc.client.SendCoins(ctx, sendCoinsRequest)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to send onchain funds")
 		return "", err
@@ -1196,12 +1437,25 @@ func (svc *LNDService) UpdateLastWalletSyncRequest() {}
 
 func (svc *LNDService) GetSupportedNIP47Methods() []string {
 	return []string{
-		"pay_invoice", "pay_keysend", "get_balance", "get_budget", "get_info", "make_invoice", "lookup_invoice", "list_transactions", "multi_pay_invoice", "multi_pay_keysend", "sign_message",
+		models.PAY_INVOICE_METHOD,
+		models.PAY_KEYSEND_METHOD,
+		models.GET_BALANCE_METHOD,
+		models.GET_BUDGET_METHOD,
+		models.GET_INFO_METHOD,
+		models.MAKE_INVOICE_METHOD,
+		models.LOOKUP_INVOICE_METHOD,
+		models.LIST_TRANSACTIONS_METHOD,
+		models.MULTI_PAY_INVOICE_METHOD,
+		models.MULTI_PAY_KEYSEND_METHOD,
+		models.SIGN_MESSAGE_METHOD,
+		models.MAKE_HOLD_INVOICE_METHOD,
+		models.SETTLE_HOLD_INVOICE_METHOD,
+		models.CANCEL_HOLD_INVOICE_METHOD,
 	}
 }
 
 func (svc *LNDService) GetSupportedNIP47NotificationTypes() []string {
-	return []string{"payment_received", "payment_sent"}
+	return []string{notifications.PAYMENT_RECEIVED_NOTIFICATION, notifications.PAYMENT_SENT_NOTIFICATION, notifications.HOLD_INVOICE_ACCEPTED_NOTIFICATION}
 }
 
 func (svc *LNDService) GetPubkey() string {

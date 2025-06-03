@@ -159,6 +159,9 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/health", httpSvc.healthHandler)
 	restrictedApiGroup.GET("/commands", httpSvc.getCustomNodeCommandsHandler)
 	restrictedApiGroup.POST("/command", httpSvc.execCustomNodeCommandHandler)
+	restrictedApiGroup.GET("/settings/swaps", httpSvc.getAutoSwapsConfigHandler)
+	restrictedApiGroup.POST("/settings/swaps", httpSvc.enableAutoSwapsHandler)
+	restrictedApiGroup.DELETE("/settings/swaps", httpSvc.disableAutoSwapsHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedApiGroup, e)
 }
@@ -515,7 +518,7 @@ func (httpSvc *HttpService) sendPaymentHandler(c echo.Context) error {
 		})
 	}
 
-	paymentResponse, err := httpSvc.api.SendPayment(ctx, c.Param("invoice"), payInvoiceRequest.Amount)
+	paymentResponse, err := httpSvc.api.SendPayment(ctx, c.Param("invoice"), payInvoiceRequest.Amount, payInvoiceRequest.Metadata)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -832,7 +835,7 @@ func (httpSvc *HttpService) redeemOnchainFundsHandler(c echo.Context) error {
 		})
 	}
 
-	redeemOnchainFundsResponse, err := httpSvc.api.RedeemOnchainFunds(ctx, redeemOnchainFundsRequest.ToAddress, redeemOnchainFundsRequest.Amount, redeemOnchainFundsRequest.SendAll)
+	redeemOnchainFundsResponse, err := httpSvc.api.RedeemOnchainFunds(ctx, redeemOnchainFundsRequest.ToAddress, redeemOnchainFundsRequest.Amount, redeemOnchainFundsRequest.FeeRate, redeemOnchainFundsRequest.SendAll)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -1176,4 +1179,45 @@ func (httpSvc *HttpService) healthHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, healthResponse)
+}
+
+func (httpSvc *HttpService) getAutoSwapsConfigHandler(c echo.Context) error {
+	getAutoSwapsConfigResponse, err := httpSvc.api.GetAutoSwapsConfig()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get swap settings: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, getAutoSwapsConfigResponse)
+}
+
+func (httpSvc *HttpService) enableAutoSwapsHandler(c echo.Context) error {
+	var enableAutoSwapsRequest api.EnableAutoSwapsRequest
+	if err := c.Bind(&enableAutoSwapsRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.api.EnableAutoSwaps(c.Request().Context(), &enableAutoSwapsRequest)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to save swap settings: %v", err),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) disableAutoSwapsHandler(c echo.Context) error {
+	err := httpSvc.api.DisableAutoSwaps()
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }

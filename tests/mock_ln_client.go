@@ -66,6 +66,16 @@ var MockLNClientTransactions = []lnclient.Transaction{
 }
 var MockLNClientTransaction = &MockLNClientTransactions[0]
 
+var MockLNClientHoldTransaction = &lnclient.Transaction{
+	Type:            "incoming",
+	Invoice:         "lntb10n1p5zg5p7dqud4hkx6eqdphkcepqd9h8vmmfvdjsnp4qw988hn4lhpu0my4rf0qkraft3wdx5aa0jnjmusgd23z3s0e9qv62pp5yaulxt6x83u4u0x2pck5pyg7fdxhjsd65c9lmu2a9r05qh0cgl6ssp5x57tsnnuc9hr99a9xzg5ylqma5fwvckxa50jqqay5zykqp83h9kq9qyysgqcqpcxqxf92hqqxh0avuskdnuzkk7mxslsdwem3qq3sf79a4ypmx0hax3rupp043yhv97h25vaarj0xrlcg2fdfdhpztsthettskyaylrz6vweztn0twqqv7kxmr",
+	Description:     "mock hold invoice",
+	DescriptionHash: "",
+	Preimage:        "4aa083cad11038359b4f614f3a3d6a8298ae17d5275412bc3eca4f5f4d27f2d4",
+	PaymentHash:     "2779f32f463c795e3cca0e2d40911e4b4d7941baa60bfdf15d28df405df847f5",
+	Amount:          2000,
+}
+
 type MockLn struct {
 	PayInvoiceResponses        []*lnclient.PayInvoiceResponse
 	PayInvoiceErrors           []error
@@ -78,7 +88,7 @@ func NewMockLn() (*MockLn, error) {
 	return &MockLn{}, nil
 }
 
-func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string, amount *uint64, timeoutSeconds *int64) (*lnclient.PayInvoiceResponse, error) {
 	if len(mln.PayInvoiceResponses) > 0 {
 		response := mln.PayInvoiceResponses[0]
 		err := mln.PayInvoiceErrors[0]
@@ -104,6 +114,18 @@ func (mln *MockLn) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err er
 
 func (mln *MockLn) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
 	return MockLNClientTransaction, nil
+}
+
+func (mln *MockLn) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
+	return MockLNClientHoldTransaction, nil
+}
+
+func (mln *MockLn) SettleHoldInvoice(ctx context.Context, preimage string) (err error) {
+	return nil
+}
+
+func (mln *MockLn) CancelHoldInvoice(ctx context.Context, paymentHash string) (err error) {
+	return nil
 }
 
 func (mln *MockLn) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
@@ -144,7 +166,7 @@ func (mln *MockLn) GetBalances(ctx context.Context, includeInactiveChannels bool
 func (mln *MockLn) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
 	return nil, nil
 }
-func (mln *MockLn) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (txId string, err error) {
+func (mln *MockLn) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (txId string, err error) {
 	return "", nil
 }
 func (mln *MockLn) ResetRouter(key string) error {

@@ -42,7 +42,7 @@ func (controller *nip47Controller) HandlePayInvoiceEvent(ctx context.Context, ni
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
 			Error: &models.Error{
-				Code:    constants.ERROR_INTERNAL,
+				Code:    constants.ERROR_BAD_REQUEST,
 				Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
 			},
 		}, tags)
@@ -59,7 +59,7 @@ func (controller *nip47Controller) pay(ctx context.Context, bolt11 string, amoun
 		"bolt11":           bolt11,
 	}).Info("Sending payment")
 
-	transaction, err := controller.transactionsService.SendPaymentSync(ctx, bolt11, amount, metadata, controller.lnClient, &app.ID, &requestEventId)
+	transaction, err := controller.transactionsService.SendPaymentSync(ctx, bolt11, amount, metadata, controller.lnClient, &app.ID, &requestEventId, nil)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,

@@ -210,7 +210,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                 </div>
               </RadioGroup>
               <ExternalLink
-                to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-can-i-close-this-channel-what-happens-to-the-sats-in-this-channel"
+                to="https://guides.getalby.com/user-guide/alby-hub/faq/how-can-i-close-a-channel-what-happens-to-the-sats-in-this-channel"
                 className="underline flex items-center mt-4"
               >
                 Learn more about closing channels

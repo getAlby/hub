@@ -9,6 +9,7 @@ const (
 	TRANSACTION_STATE_PENDING = "PENDING"
 	TRANSACTION_STATE_SETTLED = "SETTLED"
 	TRANSACTION_STATE_FAILED  = "FAILED"
+	TRANSACTION_STATE_ACCEPTED = "ACCEPTED"
 )
 
 const (
@@ -46,6 +47,8 @@ const (
 // each transaction would have to have a maximum size of 20480
 // accounting for encryption and other metadata in the response, this is set to 4096 characters
 const INVOICE_METADATA_MAX_LENGTH = 4096
+
+const SEND_PAYMENT_TIMEOUT = 50
 
 // errors used by NIP-47 and the transaction service
 const (

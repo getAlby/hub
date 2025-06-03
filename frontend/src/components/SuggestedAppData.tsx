@@ -450,7 +450,10 @@ export const suggestedApps: SuggestedApp[] = [
                 Connect to BTCPay Server
               </Link>
             </li>
-            <li>5. Set wallet permissions, according to your preferences</li>
+            <li>
+              5. Set wallet permissions as read-only unless payments are
+              specifically needed.
+            </li>
             <li>6. Copy generated NWC connection secret</li>
           </ul>
         </div>
