@@ -496,6 +496,11 @@ export type TransactionMetadata = {
     pubkey: string;
     tags: string[][];
   }; // NIP-57
+  offer?: {
+    id: string;
+    payer_note: string;
+    quantity: number;
+  }; // BOLT-12
 } & Record<string, unknown>;
 
 export type Boostagram = {

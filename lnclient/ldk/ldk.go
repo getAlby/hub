@@ -1311,11 +1311,18 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 		if bolt12PaymentKind.Hash != nil {
 			paymentHash = *bolt12PaymentKind.Hash
 		}
+
+		offer := map[string]interface{}{}
+		offer["id"] = bolt12PaymentKind.OfferId
+
 		if bolt12PaymentKind.PayerNote != nil {
-			description = *bolt12PaymentKind.PayerNote
+			offer["payer_note"] = *bolt12PaymentKind.PayerNote
+		}
+		if bolt12PaymentKind.Quantity != nil {
+			offer["quantity"] = *bolt12PaymentKind.Quantity
 		}
 
-		metadata["offer_id"] = bolt12PaymentKind.OfferId
+		metadata["offer"] = offer
 
 		if payment.Status == ldk_node.PaymentStatusSucceeded {
 			if bolt12PaymentKind.Preimage != nil {
