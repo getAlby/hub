@@ -28,7 +28,7 @@ function BankAccount() {
   return (
     <>
       <AppHeader
-        title="Virtual Bank Account 🌐"
+        title="Bank Account"
         description="Fund your Hub with fiat, settle traditional payments, and move money to Lightning in seconds. Virtual credit card coming soon!"
       />
       <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm p-8">
