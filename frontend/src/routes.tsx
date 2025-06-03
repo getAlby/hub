@@ -54,7 +54,6 @@ import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword"
 import DebugTools from "src/screens/settings/DebugTools";
 import DeveloperSettings from "src/screens/settings/DeveloperSettings";
 import Settings from "src/screens/settings/Settings";
-import Swaps from "src/screens/settings/Swaps";
 
 import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
 import { RestoreNode } from "src/screens/setup/RestoreNode";
@@ -75,6 +74,7 @@ import Wallet from "src/screens/wallet";
 import Receive from "src/screens/wallet/Receive";
 import Send from "src/screens/wallet/Send";
 import SignMessage from "src/screens/wallet/SignMessage";
+import Swaps from "src/screens/wallet/Swaps";
 import WithdrawOnchainFunds from "src/screens/wallet/WithdrawOnchainFunds";
 import ReceiveInvoice from "src/screens/wallet/receive/ReceiveInvoice";
 import ConfirmPayment from "src/screens/wallet/send/ConfirmPayment";
@@ -111,6 +111,11 @@ const routes = [
           {
             index: true,
             element: <Wallet />,
+          },
+          {
+            path: "swaps",
+            handle: { crumb: () => "Swaps" },
+            element: <Swaps />,
           },
           {
             path: "receive",
@@ -189,10 +194,6 @@ const routes = [
                 path: "auto-unlock",
                 element: <AutoUnlock />,
                 handle: { crumb: () => "Auto Unlock" },
-              },
-              {
-                path: "swaps",
-                element: <Swaps />,
               },
               {
                 path: "change-unlock-password",
