@@ -182,9 +182,7 @@ function TransactionItem({ tx }: Props) {
                     )}
                   </span>
                 </p>
-                <p className="text-muted-foreground">
-                  {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
-                </p>
+                <p className="text-muted-foreground">₿</p>
               </div>
               <FormattedFiatAmount
                 className="text-xs md:text-base"
@@ -210,7 +208,7 @@ function TransactionItem({ tx }: Props) {
               <div className="ml-4">
                 <p className="text-xl md:text-2xl font-semibold sensitive">
                   {new Intl.NumberFormat().format(Math.floor(tx.amount / 1000))}{" "}
-                  {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
+                  ₿
                 </p>
                 <FormattedFiatAmount amount={Math.floor(tx.amount / 1000)} />
               </div>
@@ -250,7 +248,7 @@ function TransactionItem({ tx }: Props) {
                   {new Intl.NumberFormat().format(
                     Math.floor(tx.feesPaid / 1000)
                   )}{" "}
-                  {Math.floor(tx.feesPaid / 1000) == 1 ? "sat" : "sats"}
+                  ₿
                 </p>
               </div>
             )}

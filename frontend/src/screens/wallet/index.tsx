@@ -83,7 +83,7 @@ function Wallet() {
             {new Intl.NumberFormat().format(
               Math.floor(balances.lightning.totalSpendable / 1000)
             )}{" "}
-            sats
+            ₿
           </div>
           <FormattedFiatAmount
             className="text-xl"
