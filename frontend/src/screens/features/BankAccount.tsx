@@ -29,7 +29,7 @@ function BankAccount() {
     <>
       <AppHeader
         title="Virtual Bank Account 🌐"
-        description="Bridge Alby Hub to legacy finance using a virtual bank account and virtual credit cards."
+        description="Fund your Hub with fiat, settle traditional payments, and move money to Lightning in seconds. Virtual credit card coming soon!"
       />
       <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm p-8">
         <div className="flex flex-col items-center gap-1 text-center max-w-sm">
