@@ -215,6 +215,13 @@ _To configure via env, the following parameters must be provided:_
 - `LDK_ESPLORA_SERVER=https://mempool.space/testnet/api`
 - `LDK_GOSSIP_SOURCE=https://rapidsync.lightningdevkit.org/testnet/snapshot`
 
+###### Connect to your own bitcoind
+
+- `LDK_BITCOIND_RPC_HOST=127.0.0.1`
+- `LDK_BITCOIND_RPC_PORT=8332`
+- `LDK_BITCOIND_RPC_USER=yourusername`
+- `LDK_BITCOIND_RPC_PASSWORD=yourpassword`
+
 ### Phoenixd
 
 See [Phoenixd](scripts/linux-x86_64/phoenixd/README.md)
