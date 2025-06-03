@@ -11,7 +11,7 @@ function BankAccount() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        event: "interest_virtual-bankaccount",
+        event: "interest_virtual_bankaccount",
       }),
     });
   }

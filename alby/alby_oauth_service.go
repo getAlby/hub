@@ -1469,6 +1469,6 @@ func getEventWhitelist() []string {
 		"nwc_node_stopped",
 		"nwc_alby_account_connected",
 
-		"interest_virtual-bankaccount",
+		"interest_virtual_bankaccount",
 	}
 }
