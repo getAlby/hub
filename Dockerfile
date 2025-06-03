@@ -38,6 +38,9 @@ RUN GOARCH=$(echo "$TARGETPLATFORM" | cut -d'/' -f2) go build \
    -ldflags="-X 'github.com/getAlby/hub/version.Tag=$TAG'" \
    -o main cmd/http/main.go
 
+RUN GOARCH=$(echo "$TARGETPLATFORM" | cut -d'/' -f2) go build \
+   -o db_migrate cmd/db_migrate/main.go
+
 COPY ./build/docker/copy_dylibs.sh .
 RUN chmod +x copy_dylibs.sh
 RUN ./copy_dylibs.sh $(echo "$TARGETPLATFORM" | cut -d'/' -f2)
@@ -51,5 +54,6 @@ ENV LD_LIBRARY_PATH=/usr/lib/nwc
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /build/libldk_node.so /usr/lib/nwc/
 COPY --from=builder /build/main /bin/
+COPY --from=builder /build/db_migrate /bin/
 
 ENTRYPOINT [ "/bin/main" ]

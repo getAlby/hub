@@ -1219,13 +1219,20 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 	}, nil
 }
 
-func (svc *LNDService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (txId string, err error) {
-	resp, err := svc.client.SendCoins(ctx, &lnrpc.SendCoinsRequest{
-		Addr:       toAddress,
-		SendAll:    sendAll,
-		Amount:     int64(amount),
-		TargetConf: 1,
-	})
+func (svc *LNDService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (txId string, err error) {
+	sendCoinsRequest := &lnrpc.SendCoinsRequest{
+		Addr:    toAddress,
+		SendAll: sendAll,
+		Amount:  int64(amount),
+	}
+
+	if feeRate != nil {
+		sendCoinsRequest.SatPerVbyte = *feeRate
+	} else {
+		sendCoinsRequest.TargetConf = 1
+	}
+
+	resp, err := svc.client.SendCoins(ctx, sendCoinsRequest)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to send onchain funds")
 		return "", err
