@@ -231,7 +231,7 @@ export default function Channels() {
               <Link to="/channels/incoming">
                 <Button>Open Channel</Button>
               </Link>
-              <ExternalLink to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/liquidity/node-health">
+              <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/node/node-health">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
@@ -552,7 +552,7 @@ export default function Channels() {
                   on-chain balance. Funds from channels that were force closed
                   may take up to 2 weeks to become available.{" "}
                   <ExternalLink
-                    to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/faq-alby-hub/why-was-my-lightning-channel-closed-and-what-to-do-next"
+                    to="https://guides.getalby.com/user-guide/alby-hub/faq/why-was-my-lightning-channel-closed-and-what-to-do-next"
                     className="underline"
                   >
                     Learn more

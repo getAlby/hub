@@ -120,7 +120,7 @@ export function FirstChannel() {
                 <TableRow>
                   <TableCell className="font-medium p-3 flex items-center gap-2">
                     Duration
-                    <ExternalLink to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel#which-lightning-service-provider-to-choose">
+                    <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel#which-lightning-service-provider-to-choose">
                       <InfoIcon className="w-4 h-4 text-muted-foreground" />
                     </ExternalLink>
                   </TableCell>
@@ -183,7 +183,7 @@ export function FirstChannel() {
                     credits.
                   </span>{" "}
                   <Link
-                    to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-account/faqs-alby-account/what-are-fee-credits-in-my-alby-account"
+                    to="https://guides.getalby.com/user-guide/alby-account/faq/what-are-fee-credits-in-my-alby-account"
                     target="_blank"
                     className="underline"
                   >
@@ -212,7 +212,7 @@ export function FirstChannel() {
                   payments.{" "}
                   <ExternalLink
                     className="underline"
-                    to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel"
+                    to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel"
                   >
                     Learn more
                   </ExternalLink>
@@ -238,7 +238,7 @@ export function FirstChannel() {
                       Not recommended for most users.{" "}
                       <ExternalLink
                         className="underline"
-                        to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/should-i-open-a-private-or-public-channel"
+                        to="https://guides.getalby.com/user-guide/alby-hub/faq/should-i-open-a-private-or-public-channel"
                       >
                         Learn more
                       </ExternalLink>

@@ -98,7 +98,7 @@ export function SetupSecurity() {
             )}
             <ExternalLink
               className="text-muted-foreground flex items-center text-sm"
-              to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/backups"
+              to="https://guides.getalby.com/user-guide/alby-hub/backups-and-recover"
             >
               <p>
                 Learn more about backups and recovery process on{" "}

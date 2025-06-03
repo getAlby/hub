@@ -36,7 +36,7 @@ export function MempoolAlert({ className }: { className?: string }) {
         <p>Bitcoin transactions may be uneconomical at this time.</p>
         <div className="flex gap-2 mt-2">
           <ExternalLinkButton
-            to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/faq-alby-hub/what-to-do-during-times-of-high-onchain-fees"
+            to="https://guides.getalby.com/user-guide/alby-hub/faq/what-to-do-during-times-of-high-onchain-fees"
             size={"sm"}
           >
             Learn more

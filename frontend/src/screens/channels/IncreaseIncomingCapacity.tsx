@@ -241,7 +241,7 @@ function NewChannelInternal({
           the best network connectivity and liquidity to receive payments.{" "}
           <ExternalLink
             className="underline"
-            to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel"
+            to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel"
           >
             Learn more
           </ExternalLink>
@@ -271,7 +271,7 @@ function NewChannelInternal({
                 For a smooth experience consider a opening a channel of 200k
                 sats in size or more.{" "}
                 <ExternalLink
-                  to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/liquidity"
+                  to="https://guides.getalby.com/user-guide/alby-hub/node"
                   className="underline"
                 >
                   Learn more
@@ -405,7 +405,7 @@ function NewChannelInternal({
                     Not recommended for most users.{" "}
                     <ExternalLink
                       className="underline"
-                      to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/should-i-open-a-private-or-public-channel"
+                      to="https://guides.getalby.com/user-guide/alby-hub/faq/should-i-open-a-private-or-public-channel"
                     >
                       Learn more
                     </ExternalLink>
