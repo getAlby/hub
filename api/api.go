@@ -1308,6 +1308,12 @@ func (api *api) ExecuteCustomNodeCommand(ctx context.Context, command string) (i
 	return nodeResp.Response, nil
 }
 
+func (api *api) SendEvent(event string) {
+	api.svc.GetEventPublisher().Publish(&events.Event{
+		Event: event,
+	})
+}
+
 func (api *api) parseExpiresAt(expiresAtString string) (*time.Time, error) {
 	var expiresAt *time.Time
 	if expiresAtString != "" {

@@ -1044,6 +1044,24 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}
 			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		}
+	case "/api/event":
+		switch method {
+		case "POST":
+			sendEventRequest := &api.SendEventRequest{}
+			err := json.Unmarshal([]byte(body), sendEventRequest)
+			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"route":  route,
+					"method": method,
+					"body":   body,
+				}).WithError(err).Error("Failed to send event")
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+
+			app.api.SendEvent(sendEventRequest.Event)
+
+			return WailsRequestRouterResponse{Body: nil, Error: ""}
+		}
 	}
 
 	if strings.HasPrefix(route, "/api/log/") {
