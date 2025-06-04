@@ -2109,7 +2109,7 @@ func (ls *LDKService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCom
 	return []lnclient.CustomNodeCommandDef{
 		{
 			Name:        nodeCommandPayBOLT12Offer,
-			Description: "Send payments to a BOLT-12 offer.",
+			Description: "Send payments to a BOLT-12 offer. NOTE: this is for testing only. Payment will not show in transaction list.",
 			Args: []lnclient.CustomNodeCommandArgDef{
 				{
 					Name:        "offer",
@@ -2117,7 +2117,7 @@ func (ls *LDKService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCom
 				},
 				{
 					Name:        "amount",
-					Description: "amount to send in milli sats",
+					Description: "amount to send in millisats",
 				},
 				{
 					Name:        "payerNote",
