@@ -1,7 +1,8 @@
-const defaultTheme = require("tailwindcss/defaultTheme");
+import * as tailwindAnimate from "tailwindcss-animate";
+import defaultTheme from "tailwindcss/defaultTheme";
 
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
   darkMode: ["selector"],
   content: [
     "./pages/**/*.{ts,tsx}",
@@ -103,5 +104,5 @@ module.exports = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [tailwindAnimate],
 };
