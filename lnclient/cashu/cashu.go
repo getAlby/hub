@@ -564,7 +564,7 @@ func (cs *CashuService) executeCommandResetWallet() (*lnclient.CustomNodeCommand
 	}, nil
 }
 
-func (svc *CashuService) GenerateOfferSync(ctx context.Context, description string) (string, error) {
+func (svc *CashuService) MakeOffer(ctx context.Context, description string) (string, error) {
 	return "", errors.New("not supported")
 }
 

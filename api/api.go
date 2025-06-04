@@ -685,11 +685,11 @@ func (api *api) UpdateChannel(ctx context.Context, updateChannelRequest *UpdateC
 	return api.svc.GetLNClient().UpdateChannel(ctx, updateChannelRequest)
 }
 
-func (api *api) GenerateOffer(ctx context.Context, description string) (string, error) {
+func (api *api) MakeOffer(ctx context.Context, description string) (string, error) {
 	if api.svc.GetLNClient() == nil {
 		return "", errors.New("LNClient not started")
 	}
-	offer, err := api.svc.GetLNClient().GenerateOfferSync(ctx, description)
+	offer, err := api.svc.GetLNClient().MakeOffer(ctx, description)
 	if err != nil {
 		return "", err
 	}

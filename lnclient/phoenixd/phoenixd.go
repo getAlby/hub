@@ -553,7 +553,7 @@ func (svc *PhoenixService) ExecuteCustomNodeCommand(ctx context.Context, command
 	return nil, nil
 }
 
-func (svc *PhoenixService) GenerateOfferSync(ctx context.Context, description string) (string, error) {
+func (svc *PhoenixService) MakeOffer(ctx context.Context, description string) (string, error) {
 	return "", errors.New("not supported")
 }
 

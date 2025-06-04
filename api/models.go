@@ -31,7 +31,7 @@ type API interface {
 	OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error)
 	CloseChannel(ctx context.Context, peerId, channelId string, force bool) (*CloseChannelResponse, error)
 	UpdateChannel(ctx context.Context, updateChannelRequest *UpdateChannelRequest) error
-	GenerateOffer(ctx context.Context, description string) (string, error)
+	MakeOffer(ctx context.Context, description string) (string, error)
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	GetUnusedOnchainAddress(ctx context.Context) (string, error)
 	SignMessage(ctx context.Context, message string) (*SignMessageResponse, error)
@@ -342,7 +342,7 @@ type PayInvoiceRequest struct {
 	Metadata Metadata `json:"metadata"`
 }
 
-type GenerateOfferRequest struct {
+type MakeOfferRequest struct {
 	Description string `json:"description"`
 }
 

@@ -437,7 +437,7 @@ func getMaxTotalRoutingFeeLimit(amountMsat uint64) ldk_node.MaxTotalRoutingFeeLi
 	}
 }
 
-func (ls *LDKService) GenerateOfferSync(ctx context.Context, description string) (string, error) {
+func (ls *LDKService) MakeOffer(ctx context.Context, description string) (string, error) {
 	offer, err := ls.node.Bolt12Payment().ReceiveVariableAmount(description, nil)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to generate BOLT12 offer")

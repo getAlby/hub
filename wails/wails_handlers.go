@@ -945,8 +945,8 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 		return WailsRequestRouterResponse{Body: *nodeHealth, Error: ""}
 	case "/api/offers":
-		generateOfferRequest := &api.GenerateOfferRequest{}
-		err := json.Unmarshal([]byte(body), generateOfferRequest)
+		makeOfferRequest := &api.MakeOfferRequest{}
+		err := json.Unmarshal([]byte(body), makeOfferRequest)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,
@@ -955,7 +955,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}).WithError(err).Error("Failed to decode request to wails router")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		offer, err := app.api.GenerateOffer(ctx, generateOfferRequest.Description)
+		offer, err := app.api.MakeOffer(ctx, makeOfferRequest.Description)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,

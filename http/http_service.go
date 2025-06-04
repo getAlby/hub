@@ -146,7 +146,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/wallet/capabilities", httpSvc.capabilitiesHandler)
 	restrictedApiGroup.POST("/payments/:invoice", httpSvc.sendPaymentHandler)
 	restrictedApiGroup.POST("/invoices", httpSvc.makeInvoiceHandler)
-	restrictedApiGroup.POST("/offers", httpSvc.generateOfferHandler)
+	restrictedApiGroup.POST("/offers", httpSvc.makeOfferHandler)
 	restrictedApiGroup.GET("/transactions", httpSvc.listTransactionsHandler)
 	restrictedApiGroup.GET("/transactions/:paymentHash", httpSvc.lookupTransactionHandler)
 	restrictedApiGroup.GET("/balances", httpSvc.balancesHandler)
@@ -529,17 +529,17 @@ func (httpSvc *HttpService) sendPaymentHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, paymentResponse)
 }
 
-func (httpSvc *HttpService) generateOfferHandler(c echo.Context) error {
+func (httpSvc *HttpService) makeOfferHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
-	var generateOfferRequest api.GenerateOfferRequest
-	if err := c.Bind(&generateOfferRequest); err != nil {
+	var makeOfferRequest api.MakeOfferRequest
+	if err := c.Bind(&makeOfferRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
 
-	offer, err := httpSvc.api.GenerateOffer(ctx, generateOfferRequest.Description)
+	offer, err := httpSvc.api.MakeOffer(ctx, makeOfferRequest.Description)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{

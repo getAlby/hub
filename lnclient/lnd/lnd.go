@@ -1573,7 +1573,7 @@ func (svc *LNDService) ExecuteCustomNodeCommand(ctx context.Context, command *ln
 	return nil, nil
 }
 
-func (svc *LNDService) GenerateOfferSync(ctx context.Context, description string) (string, error) {
+func (svc *LNDService) MakeOffer(ctx context.Context, description string) (string, error) {
 	return "", errors.New("not supported")
 }
 

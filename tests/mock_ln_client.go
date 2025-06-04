@@ -235,7 +235,7 @@ func (mln *MockLn) ExecuteCustomNodeCommand(ctx context.Context, command *lnclie
 	return nil, nil
 }
 
-func (mln *MockLn) GenerateOfferSync(ctx context.Context, description string) (string, error) {
+func (mln *MockLn) MakeOffer(ctx context.Context, description string) (string, error) {
 	return "", errors.New("not supported")
 }
 
