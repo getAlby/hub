@@ -873,10 +873,14 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 				return nil, err
 			}
 
+			var policy *lnrpc.RoutingPolicy
 			if channelEdge.Node1Pub == nodeInfo.IdentityPubkey {
-				forwardingFee = uint32(channelEdge.Node1Policy.FeeBaseMsat)
+				policy = channelEdge.Node1Policy
 			} else {
-				forwardingFee = uint32(channelEdge.Node2Policy.FeeBaseMsat)
+				policy = channelEdge.Node2Policy
+			}
+			if policy != nil {
+				forwardingFee = uint32(policy.FeeBaseMsat)
 			}
 		}
 
