@@ -2121,7 +2121,7 @@ func (ls *LDKService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCom
 					Description: "amount to send in millisats",
 				},
 				{
-					Name:        "payerNote",
+					Name:        "payer_note",
 					Description: "note to the recepient",
 				},
 			},
@@ -2142,7 +2142,7 @@ func (ls *LDKService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 				offer = command.Args[i].Value
 			case "amount":
 				amount, err = strconv.ParseUint(string(command.Args[i].Value), 10, 64)
-			case "payerNote":
+			case "payer_note":
 				payerNote = command.Args[i].Value
 			}
 		}
