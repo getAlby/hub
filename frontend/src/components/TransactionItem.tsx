@@ -88,7 +88,10 @@ function TransactionItem({ tx }: Props) {
 
   const eventId = tx.metadata?.nostr?.tags?.find((t) => t[0] === "e")?.[1];
 
-  const description = tx.description || tx.metadata?.comment;
+  const bolt12Offer = tx.metadata?.offer;
+
+  const description =
+    tx.description || tx.metadata?.comment || bolt12Offer?.payer_note;
 
   const copy = (text: string) => {
     copyToClipboard(text, toast);
@@ -266,7 +269,15 @@ function TransactionItem({ tx }: Props) {
               <div className="mt-6">
                 <p>Comment</p>
                 <p className="text-muted-foreground break-all">
-                  {tx.metadata?.comment}
+                  {tx.metadata.comment}
+                </p>
+              </div>
+            )}
+            {bolt12Offer?.payer_note && (
+              <div className="mt-6">
+                <p>Payer Note</p>
+                <p className="text-muted-foreground break-all">
+                  {bolt12Offer.payer_note}
                 </p>
               </div>
             )}
@@ -304,6 +315,22 @@ function TransactionItem({ tx }: Props) {
               {showDetails && (
                 <>
                   {tx.boostagram && <PodcastingInfo boost={tx.boostagram} />}
+                  {bolt12Offer && (
+                    <div className="mt-6">
+                      <p>BOLT-12 Offer Id</p>
+                      <div className="flex items-center gap-4">
+                        <p className="text-muted-foreground break-all">
+                          {bolt12Offer.id}
+                        </p>
+                        <CopyIcon
+                          className="cursor-pointer text-muted-foreground w-4 h-4 flex-shrink-0"
+                          onClick={() => {
+                            copy(bolt12Offer.id as string);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
                   {tx.preimage && (
                     <div className="mt-6">
                       <p>Preimage</p>

@@ -78,6 +78,7 @@ import Send from "src/screens/wallet/Send";
 import SignMessage from "src/screens/wallet/SignMessage";
 import WithdrawOnchainFunds from "src/screens/wallet/WithdrawOnchainFunds";
 import ReceiveInvoice from "src/screens/wallet/receive/ReceiveInvoice";
+import ReceiveOffer from "src/screens/wallet/receive/ReceiveOffer";
 import ConfirmPayment from "src/screens/wallet/send/ConfirmPayment";
 import LnurlPay from "src/screens/wallet/send/LnurlPay";
 import PaymentSuccess from "src/screens/wallet/send/PaymentSuccess";
@@ -126,6 +127,11 @@ const routes = [
                 handle: { crumb: () => "Invoice" },
                 path: "invoice",
                 element: <ReceiveInvoice />,
+              },
+              {
+                handle: { crumb: () => "BOLT-12 Offer" },
+                path: "offer",
+                element: <ReceiveOffer />,
               },
             ],
           },

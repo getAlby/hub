@@ -553,6 +553,10 @@ func (svc *PhoenixService) ExecuteCustomNodeCommand(ctx context.Context, command
 	return nil, nil
 }
 
+func (svc *PhoenixService) MakeOffer(ctx context.Context, description string) (string, error) {
+	return "", errors.New("not supported")
+}
+
 func (svc *PhoenixService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
 	return nil, errors.ErrUnsupported
 }

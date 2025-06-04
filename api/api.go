@@ -685,6 +685,18 @@ func (api *api) UpdateChannel(ctx context.Context, updateChannelRequest *UpdateC
 	return api.svc.GetLNClient().UpdateChannel(ctx, updateChannelRequest)
 }
 
+func (api *api) MakeOffer(ctx context.Context, description string) (string, error) {
+	if api.svc.GetLNClient() == nil {
+		return "", errors.New("LNClient not started")
+	}
+	offer, err := api.svc.GetLNClient().MakeOffer(ctx, description)
+	if err != nil {
+		return "", err
+	}
+
+	return offer, nil
+}
+
 func (api *api) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	if api.svc.GetLNClient() == nil {
 		return "", errors.New("LNClient not started")

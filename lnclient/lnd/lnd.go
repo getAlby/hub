@@ -1573,6 +1573,10 @@ func (svc *LNDService) ExecuteCustomNodeCommand(ctx context.Context, command *ln
 	return nil, nil
 }
 
+func (svc *LNDService) MakeOffer(ctx context.Context, description string) (string, error) {
+	return "", errors.New("not supported")
+}
+
 func (svc *LNDService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
 	resp, err := svc.client.GetTransactions(ctx, &lnrpc.GetTransactionsRequest{})
 	if err != nil {

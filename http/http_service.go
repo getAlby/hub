@@ -148,6 +148,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/wallet/capabilities", httpSvc.capabilitiesHandler)
 	restrictedApiGroup.POST("/payments/:invoice", httpSvc.sendPaymentHandler)
 	restrictedApiGroup.POST("/invoices", httpSvc.makeInvoiceHandler)
+	restrictedApiGroup.POST("/offers", httpSvc.makeOfferHandler)
 	restrictedApiGroup.GET("/transactions", httpSvc.listTransactionsHandler)
 	restrictedApiGroup.GET("/transactions/:paymentHash", httpSvc.lookupTransactionHandler)
 	restrictedApiGroup.GET("/balances", httpSvc.balancesHandler)
@@ -541,6 +542,27 @@ func (httpSvc *HttpService) sendPaymentHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, paymentResponse)
+}
+
+func (httpSvc *HttpService) makeOfferHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	var makeOfferRequest api.MakeOfferRequest
+	if err := c.Bind(&makeOfferRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	offer, err := httpSvc.api.MakeOffer(ctx, makeOfferRequest.Description)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to generate BOLT-12 offer: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, offer)
 }
 
 func (httpSvc *HttpService) makeInvoiceHandler(c echo.Context) error {

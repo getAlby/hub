@@ -299,6 +299,10 @@ export type PayInvoiceResponse = {
   fee: number;
 };
 
+export type CreateOfferRequest = {
+  description: string;
+};
+
 export type CreateInvoiceRequest = {
   amount: number;
   description: string;
@@ -492,6 +496,10 @@ export type TransactionMetadata = {
     pubkey: string;
     tags: string[][];
   }; // NIP-57
+  offer?: {
+    id: string;
+    payer_note: string;
+  }; // BOLT-12
 } & Record<string, unknown>;
 
 export type Boostagram = {
