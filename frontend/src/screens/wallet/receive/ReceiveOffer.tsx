@@ -70,10 +70,12 @@ export default function ReceiveOffer() {
       {!offer && (
         <Alert>
           <CircleAlertIcon className="h-4 w-4" />
-          <AlertTitle>Reusable invoices (BOLT-12) are in beta phase</AlertTitle>
+          <AlertTitle>BOLT-12 Offers are in beta</AlertTitle>
           <AlertDescription>
-            This feature will work only if you have a channel with a node that
-            supports onion message forwarding
+            BOLT-12 is not supported by all wallets and nodes in the lightning
+            network. This feature will work only if you have a channel with a
+            node that supports onion message forwarding, and are paid by a
+            lightning wallet that supports paying BOLT-12 offers.
           </AlertDescription>
         </Alert>
       )}

@@ -1,6 +1,6 @@
 import { CopyIcon, PencilIcon, ReceiptTextIcon } from "lucide-react";
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { Button, LinkButton } from "src/components/ui/button";
@@ -52,13 +52,6 @@ export default function Receive() {
                 {me.lightning_address}
               </p>
               <div className="flex gap-4 w-full">
-                <LinkButton
-                  to="invoice"
-                  variant="outline"
-                  className="flex-1 flex gap-2 items-center justify-center"
-                >
-                  <PencilIcon className="w-4 h-4" /> Amount
-                </LinkButton>
                 <Button
                   variant="secondary"
                   onClick={() => {
@@ -66,19 +59,29 @@ export default function Receive() {
                   }}
                   className="flex-1 flex gap-2 items-center justify-center"
                 >
-                  <CopyIcon className="w-4 h-4" /> Copy
+                  <CopyIcon className="w-4 h-4" /> Copy Lightning Address
                 </Button>
               </div>
-              {info.backendType === "LDK" && (
-                <div className="w-full border-t pt-6">
-                  <Link to="/wallet/receive/offer">
-                    <Button variant="outline" className="w-full">
-                      <ReceiptTextIcon className="h-4 w-4 shrink-0 mr-2" />
-                      Lightning Offer
-                    </Button>
-                  </Link>
-                </div>
-              )}
+
+              <div className="flex gap-4 w-full border-t pt-6">
+                <LinkButton
+                  to="invoice"
+                  variant="outline"
+                  className="flex-1 flex gap-2 items-center justify-center"
+                >
+                  <PencilIcon className="w-4 h-4" /> Amount
+                </LinkButton>
+                {info.backendType === "LDK" && (
+                  <LinkButton
+                    to="/wallet/receive/offer"
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    <ReceiptTextIcon className="h-4 w-4 shrink-0 mr-2" />
+                    BOLT-12
+                  </LinkButton>
+                )}
+              </div>
             </CardContent>
           </Card>
         )}
