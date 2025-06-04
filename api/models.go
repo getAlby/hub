@@ -64,6 +64,7 @@ type API interface {
 	EnableAutoSwaps(ctx context.Context, autoSwapsRequest *EnableAutoSwapsRequest) error
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
+	SendEvent(event string)
 }
 
 type App struct {
@@ -144,6 +145,10 @@ type UnlockRequest struct {
 
 type BackupReminderRequest struct {
 	NextBackupReminder string `json:"nextBackupReminder"`
+}
+
+type SendEventRequest struct {
+	Event string `json:"event"`
 }
 
 type SetupRequest struct {
