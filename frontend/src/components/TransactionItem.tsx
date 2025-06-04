@@ -89,7 +89,6 @@ function TransactionItem({ tx }: Props) {
   const eventId = tx.metadata?.nostr?.tags?.find((t) => t[0] === "e")?.[1];
 
   const bolt12Offer = tx.metadata?.offer;
-  const isBolt12Offer = !!bolt12Offer?.id;
 
   const description =
     tx.description || tx.metadata?.comment || bolt12Offer?.payer_note;
@@ -316,17 +315,17 @@ function TransactionItem({ tx }: Props) {
               {showDetails && (
                 <>
                   {tx.boostagram && <PodcastingInfo boost={tx.boostagram} />}
-                  {isBolt12Offer && (
+                  {bolt12Offer && (
                     <div className="mt-6">
                       <p>BOLT-12 Offer Id</p>
                       <div className="flex items-center gap-4">
                         <p className="text-muted-foreground break-all">
-                          {tx.metadata?.offer?.id}
+                          {bolt12Offer.id}
                         </p>
                         <CopyIcon
                           className="cursor-pointer text-muted-foreground w-4 h-4 flex-shrink-0"
                           onClick={() => {
-                            copy(tx.metadata?.offer?.id as string);
+                            copy(bolt12Offer.id as string);
                           }}
                         />
                       </div>
