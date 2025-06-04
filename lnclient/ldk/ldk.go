@@ -1305,7 +1305,6 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 	bolt12PaymentKind, isBolt12PaymentKind := payment.Kind.(ldk_node.PaymentKindBolt12Offer)
 
 	if isBolt12PaymentKind {
-		logger.Logger.WithField("bolt12", bolt12PaymentKind).WithField("payment", payment).Info("Received BOLT-12 payment")
 		createdAt = int64(payment.CreatedAt)
 
 		if bolt12PaymentKind.Hash != nil {
