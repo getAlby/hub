@@ -2104,7 +2104,7 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uin
 	}, nil
 }
 
-const nodeCommandPayBOLT12Offer = "payBOLT12Offer"
+const nodeCommandPayBOLT12Offer = "pay_bolt12_offer"
 
 func (ls *LDKService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
 	return []lnclient.CustomNodeCommandDef{
