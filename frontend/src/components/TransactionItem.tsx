@@ -160,7 +160,6 @@ function TransactionItem({ tx }: Props) {
             <div className="flex items-center gap-2">
               <span className="md:text-xl font-semibold break-all line-clamp-1">
                 {typeStateText}
-                {isBolt12Offer && <>&nbsp;BOLT-12 offer</>}
                 {from !== undefined && <>&nbsp;{from}</>}
                 {to !== undefined && <>&nbsp;{to}</>}
               </span>
