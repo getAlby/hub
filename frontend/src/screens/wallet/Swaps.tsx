@@ -4,7 +4,7 @@ import {
   ClipboardPasteIcon,
   XCircleIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
@@ -31,6 +31,14 @@ import { request } from "src/utils/request";
 export default function Swaps() {
   const { data: swapsSettings } = useSwaps();
   const [swapType, setSwapType] = useState("out");
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const swapType = queryParams.get("type");
+    if (swapType) {
+      setSwapType(swapType);
+    }
+  }, []);
 
   if (!swapsSettings) {
     return <Loading />;
