@@ -2104,7 +2104,7 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uin
 	}, nil
 }
 
-const nodeCommandPayBOLT12Offer = "payBOLT12Offer"
+const nodeCommandPayBOLT12Offer = "pay_bolt12_offer"
 
 func (ls *LDKService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
 	return []lnclient.CustomNodeCommandDef{
@@ -2121,7 +2121,7 @@ func (ls *LDKService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCom
 					Description: "amount to send in millisats",
 				},
 				{
-					Name:        "payerNote",
+					Name:        "payer_note",
 					Description: "note to the recepient",
 				},
 			},
@@ -2142,7 +2142,7 @@ func (ls *LDKService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 				offer = command.Args[i].Value
 			case "amount":
 				amount, err = strconv.ParseUint(string(command.Args[i].Value), 10, 64)
-			case "payerNote":
+			case "payer_note":
 				payerNote = command.Args[i].Value
 			}
 		}
