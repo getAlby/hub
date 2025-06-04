@@ -1,5 +1,6 @@
 import {
   AlertTriangleIcon,
+  ArrowDownUpIcon,
   ArrowRightIcon,
   CopyIcon,
   ExternalLinkIcon,
@@ -124,6 +125,7 @@ export default function Channels() {
         contentRight={
           hasChannelManagement && (
             <div className="flex gap-3 items-center justify-center">
+              {/* TODO: Remove swap dialogs */}
               <SwapDialogs
                 setSwapOutDialogOpen={setSwapOutDialogOpen}
                 swapOutDialogOpen={swapOutDialogOpen}
@@ -227,6 +229,13 @@ export default function Channels() {
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
+
+              <ResponsiveButton
+                icon={ArrowDownUpIcon}
+                text="Swap"
+                variant="secondary"
+                onClick={() => navigate("/wallet/swaps")}
+              />
 
               <Link to="/channels/incoming">
                 <Button>Open Channel</Button>

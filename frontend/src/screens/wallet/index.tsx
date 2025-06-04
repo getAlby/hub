@@ -1,14 +1,16 @@
 import {
   AlertTriangleIcon,
   ArrowDownIcon,
+  ArrowDownUpIcon,
   ArrowUpIcon,
   CreditCardIcon,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import ResponsiveButton from "src/components/ResponsiveButton";
 import TransactionsList from "src/components/TransactionsList";
 import {
   Alert,
@@ -24,6 +26,7 @@ function Wallet() {
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
   const { data: channels } = useChannels();
+  const navigate = useNavigate();
 
   if (!info || !balances) {
     return <Loading />;
@@ -31,7 +34,26 @@ function Wallet() {
 
   return (
     <>
-      <AppHeader title="Wallet" description="" />
+      <AppHeader
+        title="Wallet"
+        description=""
+        contentRight={
+          <>
+            <ResponsiveButton
+              icon={ArrowDownIcon}
+              text="Receive"
+              size="lg"
+              onClick={() => navigate("/wallet/receive")}
+            />
+            <ResponsiveButton
+              icon={ArrowUpIcon}
+              text="Send"
+              size="lg"
+              onClick={() => navigate("/wallet/send")}
+            />
+          </>
+        }
+      />
       {hasChannelManagement &&
         !!channels?.length &&
         channels?.every(
@@ -77,7 +99,7 @@ function Wallet() {
           </AlertDescription>
         </Alert>
       )}
-      <div className="flex flex-col xl:flex-row justify-between xl:items-center gap-5">
+      <div className="flex flex-col xl:flex-row justify-between xl:items-start gap-5">
         <div className="flex flex-col gap-1 text-center xl:text-left">
           <div className="text-5xl font-medium balance sensitive slashed-zero">
             {new Intl.NumberFormat().format(
@@ -90,26 +112,17 @@ function Wallet() {
             amount={balances.lightning.totalSpendable / 1000}
           />
         </div>
-        <div className="grid grid-cols-2 items-center gap-4 sm:grid-cols-3">
-          <ExternalLink
-            to="https://www.getalby.com/topup"
-            className="col-span-2 sm:col-span-1"
-          >
-            <Button size="lg" className="w-full" variant="secondary">
+        <div className="grid grid-cols-2 items-center gap-3">
+          <ExternalLink to="https://www.getalby.com/topup">
+            <Button className="w-full" variant="secondary">
               <CreditCardIcon className="h-4 w-4 shrink-0 mr-2" />
               Buy Bitcoin
             </Button>
           </ExternalLink>
-          <Link to="/wallet/receive">
-            <Button size="lg" className="w-full">
-              <ArrowDownIcon className="h-4 w-4 shrink-0 mr-2" />
-              Receive
-            </Button>
-          </Link>
-          <Link to="/wallet/send">
-            <Button size="lg" className="w-full">
-              <ArrowUpIcon className="h-4 w-4 shrink-0 mr-2" />
-              Send
+          <Link to="/wallet/swaps">
+            <Button className="w-full" variant="secondary">
+              <ArrowDownUpIcon className="h-4 w-4 shrink-0 mr-2" />
+              Swap
             </Button>
           </Link>
         </div>
