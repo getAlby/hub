@@ -124,7 +124,6 @@ export default function ReceiveOffer() {
               className="w-full md:w-auto"
               loading={isLoading}
               type="submit"
-              disabled={!description}
             >
               Create Offer
             </LoadingButton>
