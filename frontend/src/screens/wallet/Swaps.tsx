@@ -92,7 +92,7 @@ function SwapInForm() {
 
     try {
       setLoading(true);
-      await request("/api/settings/swaps", {
+      await request("/api/wallet/swaps", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -213,7 +213,7 @@ function SwapOutForm() {
   const { data: onchainAddress } = useOnchainAddress();
   const { data: swapsSettings, mutate } = useSwaps();
 
-  const [swapTo, setSwapTo] = useState("hub");
+  const [swapTo, setSwapTo] = useState("internal");
   const [balanceThreshold, setBalanceThreshold] = useState("");
   const [swapAmount, setSwapAmount] = useState("");
   const [destination, setDestination] = useState("");
@@ -226,27 +226,37 @@ function SwapOutForm() {
 
     try {
       setLoading(true);
-      await request("/api/settings/swaps", {
+      await request(`/api/wallet/${recurringSwaps ? "swaps" : "swap"}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          swapType: "out",
           swapAmount: parseInt(swapAmount),
+          destination: swapTo === "internal" ? onchainAddress : destination,
           balanceThreshold: parseInt(balanceThreshold),
-          destination: swapTo === "hub" ? onchainAddress : destination,
         }),
       });
-      toast({ title: "Saved successfully." });
+      toast({
+        title: recurringSwaps ? "Saved successfully" : "Initiated swap",
+      });
       await mutate();
     } catch (error) {
       toast({
-        title: "Saving swap settings failed",
+        title: recurringSwaps
+          ? "Failed to save auto swap settings"
+          : "Failed to initiate swap",
         description: (error as Error).message,
         variant: "destructive",
       });
     } finally {
       setLoading(false);
+      setSwapTo("internal");
+      setSwapAmount("");
+      setDestination("");
+      setShowAdvanced(false);
+      setRecurringSwaps(false);
     }
   };
 
@@ -284,7 +294,7 @@ function SwapOutForm() {
         value={swapTo}
         onValueChange={(val) => {
           setSwapTo(val);
-          if (val == "hub") {
+          if (val == "internal") {
             setDestination(onchainAddress);
           } else {
             setDestination("");
@@ -293,9 +303,9 @@ function SwapOutForm() {
         className="flex gap-4 flex-row"
       >
         <div className="flex items-start space-x-2 mb-2">
-          <RadioGroupItem value="hub" id="hub" className="shrink-0" />
+          <RadioGroupItem value="internal" id="internal" className="shrink-0" />
           <Label
-            htmlFor="hub"
+            htmlFor="internal"
             className="text-primary font-medium cursor-pointer"
           >
             Alby Hub on-chain balance
@@ -413,7 +423,7 @@ function ActiveSwaps({ swaps }: { swaps: SwapsSettingsResponse }) {
 
     try {
       setLoading(true);
-      await request("/api/settings/swaps", {
+      await request("/api/wallet/swaps", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

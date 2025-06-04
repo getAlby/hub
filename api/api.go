@@ -580,6 +580,36 @@ func (api *api) GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error) {
 	}, nil
 }
 
+func (api *api) InitiateSwap(ctx context.Context, initiateSwapRequest *InitiateSwapRequest) error {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
+		return errors.New("LNClient not started")
+	}
+
+	amount := initiateSwapRequest.SwapAmount
+	destination := initiateSwapRequest.Destination
+	swapType := initiateSwapRequest.SwapType
+
+	if amount == 0 || destination == "" {
+		return errors.New("invalid amount or destination")
+	}
+
+	if swapType == "out" {
+		go func() {
+			err := api.svc.GetSwapsService().ReverseSwap(context.Background(), amount, destination, lnClient)
+			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"amount":      amount,
+					"destination": destination,
+					"swapType":    swapType,
+				}).WithError(err).Error("Failed to initiate swap")
+			}
+		}()
+		return nil
+	}
+	return nil
+}
+
 func (api *api) EnableAutoSwaps(ctx context.Context, enableAutoSwapsRequest *EnableAutoSwapsRequest) error {
 	err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, strconv.FormatUint(enableAutoSwapsRequest.BalanceThreshold, 10), "")
 	if err != nil {

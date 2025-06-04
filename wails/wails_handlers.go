@@ -976,7 +976,29 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: commandResponse, Error: ""}
-	case "/api/settings/swaps":
+	case "/api/wallet/swap":
+		initiateSwapRequest := &api.InitiateSwapRequest{}
+		err := json.Unmarshal([]byte(body), initiateSwapRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+
+		err = app.api.InitiateSwap(ctx, initiateSwapRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to initiate swap")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
+	case "/api/wallet/swaps":
 		switch method {
 		case "GET":
 			autoSwapsConfig, err := app.api.GetAutoSwapsConfig()

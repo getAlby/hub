@@ -61,6 +61,7 @@ type API interface {
 	SetCurrency(currency string) error
 	GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error)
 	DisableAutoSwaps() error
+	InitiateSwap(ctx context.Context, initiateSwapRequest *InitiateSwapRequest) error
 	EnableAutoSwaps(ctx context.Context, autoSwapsRequest *EnableAutoSwapsRequest) error
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
@@ -115,6 +116,12 @@ type CreateAppRequest struct {
 	Isolated       bool     `json:"isolated"`
 	Metadata       Metadata `json:"metadata,omitempty"`
 	UnlockPassword string   `json:"unlockPassword"`
+}
+
+type InitiateSwapRequest struct {
+	SwapType    string `json:"swapType"`
+	SwapAmount  uint64 `json:"swapAmount"`
+	Destination string `json:"destination"`
 }
 
 type EnableAutoSwapsRequest struct {
