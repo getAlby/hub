@@ -29,7 +29,7 @@ function BankAccount() {
     <>
       <AppHeader
         title="Bank Account"
-        description="Fund your Hub with fiat, settle traditional payments, and move money to Lightning in seconds. Virtual credit card coming soon!"
+        description="Receive money from your bank account, pay bills and send payments to bank accounts. Virtual credit cards are coming soon!"
       />
       <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm p-8">
         <div className="flex flex-col items-center gap-1 text-center max-w-sm">
