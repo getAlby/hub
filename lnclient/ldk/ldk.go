@@ -2003,18 +2003,20 @@ func (ls *LDKService) GetPubkey() string {
 	return ls.pubkey
 }
 
-func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uint64, payerNote string) (string, *lnclient.PayOfferResponse, error) {
-
+func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uint64, payerNote string) (*lnclient.PayOfferResponse, error) {
+	// TODO: this is only for testing MakeOffer and needs improvements
+	// (+ BOLT-12 payments need to go through transactions service)
 	// TODO: send liquidity event if amount too large
 
 	paymentStart := time.Now()
 	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
 	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
+	// TODO: use normal send if no amount is provided
 	paymentId, err := checkLDKErr(ls.node.Bolt12Payment().SendUsingAmount(offer, amount, nil, &payerNote))
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to initiate BOLT-12 variable amount payment")
-		return "", nil, errors.New("failed to initiate BOLT-12 variable amount payment")
+		return nil, errors.New("failed to initiate BOLT-12 variable amount payment")
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
@@ -2026,7 +2028,7 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uin
 
 	payment := ls.node.Payment(paymentId)
 	if payment == nil {
-		return "", nil, errors.New("payment not found by payment ID")
+		return nil, errors.New("payment not found by payment ID")
 	}
 
 	paymentHash := ""
@@ -2042,7 +2044,7 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uin
 			payment := ls.node.Payment(paymentId)
 			if payment == nil {
 				logger.Logger.Errorf("Couldn't find payment by payment ID: %v", paymentId)
-				return paymentHash, nil, errors.New("payment not found")
+				return nil, errors.New("payment not found")
 			}
 
 			bolt12PaymentKind, ok := payment.Kind.(ldk_node.PaymentKindBolt12Offer)
@@ -2051,18 +2053,18 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uin
 				logger.Logger.WithFields(logrus.Fields{
 					"payment": payment,
 				}).Error("Payment is not a BOLT-12 offer kind")
-				return paymentHash, nil, errors.New("payment is not a BOLT-12 offer")
+				return nil, errors.New("payment is not a BOLT-12 offer")
 			}
 
 			if bolt12PaymentKind.Preimage == nil {
 				logger.Logger.Errorf("No payment preimage for payment ID: %v", paymentId)
-				return paymentHash, nil, errors.New("payment preimage not found")
+				return nil, errors.New("payment preimage not found")
 			}
 			preimage = *bolt12PaymentKind.Preimage
 
 			if bolt12PaymentKind.Hash == nil {
 				logger.Logger.Errorf("No payment hash for payment ID: %v", paymentId)
-				return "", nil, errors.New("payment hash not found")
+				return nil, errors.New("payment hash not found")
 			}
 			paymentHash = *bolt12PaymentKind.Hash
 
@@ -2079,7 +2081,7 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uin
 				"reason":     reason,
 			}).Error("Received payment failed event")
 
-			return paymentHash, nil, fmt.Errorf("received payment failed event: %s", reason)
+			return nil, fmt.Errorf("received payment failed event: %s", reason)
 		}
 	}
 
@@ -2087,7 +2089,7 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uin
 		logger.Logger.WithFields(logrus.Fields{
 			"payment_id": paymentId,
 		}).Warn("Timed out waiting for payment to be sent")
-		return paymentHash, nil, lnclient.NewTimeoutError()
+		return nil, lnclient.NewTimeoutError()
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
@@ -2095,9 +2097,10 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uin
 		"fee":      fee,
 	}).Info("Successful payment")
 
-	return paymentHash, &lnclient.PayOfferResponse{
-		Preimage: preimage,
-		Fee:      fee,
+	return &lnclient.PayOfferResponse{
+		PaymentHash: paymentHash,
+		Preimage:    preimage,
+		Fee:         fee,
 	}, nil
 }
 
@@ -2147,7 +2150,7 @@ func (ls *LDKService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 			return nil, err
 		}
 
-		paymentHash, payOfferResponse, err := ls.PayOfferSync(ctx, offer, amount, payerNote)
+		payOfferResponse, err := ls.PayOfferSync(ctx, offer, amount, payerNote)
 
 		if err != nil {
 			return nil, err
@@ -2155,7 +2158,7 @@ func (ls *LDKService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 
 		return &lnclient.CustomNodeCommandResponse{
 			Response: map[string]interface{}{
-				"paymentHash": paymentHash,
+				"paymentHash": payOfferResponse.PaymentHash,
 				"preimage":    payOfferResponse.Preimage,
 				"fee":         payOfferResponse.Fee,
 			},

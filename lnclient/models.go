@@ -192,7 +192,11 @@ type PayInvoiceResponse struct {
 	Fee      uint64 `json:"fee"`
 }
 
-type PayOfferResponse = PayInvoiceResponse
+type PayOfferResponse = struct {
+	Preimage    string `json:"preimage"`
+	Fee         uint64 `json:"fee"`
+	PaymentHash string `json:"payment_hash"`
+}
 
 type PayKeysendResponse struct {
 	Fee uint64 `json:"fee"`
