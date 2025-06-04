@@ -1307,9 +1307,10 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 	if isBolt12PaymentKind {
 		createdAt = int64(payment.CreatedAt)
 
-		if bolt12PaymentKind.Hash != nil {
-			paymentHash = *bolt12PaymentKind.Hash
+		if bolt12PaymentKind.Hash == nil {
+			return nil, errors.New("BOLT-12 payment has no payment hash")
 		}
+		paymentHash = *bolt12PaymentKind.Hash
 
 		offer := map[string]interface{}{}
 		offer["id"] = bolt12PaymentKind.OfferId
