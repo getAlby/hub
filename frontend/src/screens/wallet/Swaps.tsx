@@ -77,17 +77,15 @@ export default function Swaps() {
   );
 }
 
+// TODO: WE ONLY WISH TO ADD ONE-OFF SWAP-INS AT THE MOMENT
 function SwapInForm() {
   const { toast } = useToast();
   const { data: swapsSettings, mutate } = useSwaps();
 
-  const [balanceThreshold, setBalanceThreshold] = useState("");
   const [swapAmount, setSwapAmount] = useState("");
   const [destination, setDestination] = useState("");
   const [isInternalSwap, setInternalSwap] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [recurringSwaps, setRecurringSwaps] = useState(false);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,7 +100,6 @@ function SwapInForm() {
         body: JSON.stringify({
           // TODO: review conflict between swap in/out
           swapAmount: parseInt(swapAmount),
-          balanceThreshold: parseInt(balanceThreshold),
           destination: destination, // TODO: assume empty destination as dest -> "Spending Balance"
         }),
       });
@@ -152,10 +149,8 @@ function SwapInForm() {
         defaultValue="normal"
         value={isInternalSwap ? "internal" : "external"}
         onValueChange={() => {
+          setDestination("");
           setInternalSwap(!isInternalSwap);
-          if (!isInternalSwap) {
-            setDestination("");
-          }
         }}
         className="flex gap-4 flex-row"
       >
@@ -199,62 +194,6 @@ function SwapInForm() {
           </div>
         </div>
       )}
-
-      <Button
-        type="button"
-        variant="link"
-        className="text-muted-foreground text-xs"
-        onClick={() => setShowAdvanced((current) => !current)}
-      >
-        {showAdvanced ? (
-          <ChevronUpIcon className="w-4 h-4 mr-2" />
-        ) : (
-          <ChevronDownIcon className="w-4 h-4 mr-2" />
-        )}
-        Advanced Options
-      </Button>
-
-      {showAdvanced && (
-        <>
-          <div className="flex items-top space-x-2">
-            <Checkbox
-              id="public-channel"
-              checked={recurringSwaps}
-              onCheckedChange={() => setRecurringSwaps(!recurringSwaps)}
-              className="mr-2"
-            />
-            <div className="grid gap-1.5 leading-none">
-              <Label
-                htmlFor="public-channel"
-                className="flex items-center gap-2"
-              >
-                Set it as recurring swap
-              </Label>
-              <p className="text-xs text-muted-foreground">
-                Enable if you want Alby Hub to automatically swap funds every
-                time a set threshold is reached.
-              </p>
-            </div>
-          </div>
-          {recurringSwaps && (
-            <div className="mt-2 grid gap-1.5">
-              <Label>Swap threshold</Label>
-              <Input
-                type="number"
-                placeholder="Amount in satoshis"
-                value={balanceThreshold}
-                onChange={(e) => setBalanceThreshold(e.target.value)}
-                required
-              />
-              <p className="text-xs text-muted-foreground">
-                Alby Hub will try to perform a swap to lightning everytime
-                on-chain balance reaches this threshold.
-              </p>
-            </div>
-          )}
-        </>
-      )}
-
       {/* TODO: Review fee for swap ins */}
       <div className="flex items-center justify-between border-t py-4">
         <Label>Fee</Label>
@@ -263,9 +202,7 @@ function SwapInForm() {
           on-chain fees
         </p>
       </div>
-      <LoadingButton loading={loading}>
-        {recurringSwaps ? "Enable Auto Swap-ins" : "Swap In"}
-      </LoadingButton>
+      <LoadingButton loading={loading}>Swap In</LoadingButton>
     </form>
   );
 }
