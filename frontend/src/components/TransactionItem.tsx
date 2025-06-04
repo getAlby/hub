@@ -282,14 +282,6 @@ function TransactionItem({ tx }: Props) {
                 </p>
               </div>
             )}
-            {bolt12Offer?.quantity && (
-              <div className="mt-6">
-                <p>Quantity</p>
-                <p className="text-muted-foreground break-all">
-                  {bolt12Offer.quantity}
-                </p>
-              </div>
-            )}
             {/* for Alby lightning addresses the content of the zap request is
             automatically extracted and already displayed above as description */}
             {tx.metadata?.nostr && eventId && npub && (

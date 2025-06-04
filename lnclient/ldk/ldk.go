@@ -1317,9 +1317,6 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 		if bolt12PaymentKind.PayerNote != nil {
 			offer["payer_note"] = *bolt12PaymentKind.PayerNote
 		}
-		if bolt12PaymentKind.Quantity != nil {
-			offer["quantity"] = *bolt12PaymentKind.Quantity
-		}
 
 		metadata["offer"] = offer
 

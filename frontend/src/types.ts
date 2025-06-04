@@ -499,7 +499,6 @@ export type TransactionMetadata = {
   offer?: {
     id: string;
     payer_note: string;
-    quantity: number;
   }; // BOLT-12
 } & Record<string, unknown>;
 
