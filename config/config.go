@@ -269,6 +269,19 @@ func (cfg *config) ChangeUnlockPassword(currentUnlockPassword string, newUnlockP
 		return err
 	}
 
+	newSecret, err := randomHex(32)
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to generate new JWT secret")
+	} else {
+		err = cfg.SetUpdate("JWTSecret", newSecret, "")
+		if err != nil {
+			logger.Logger.WithError(err).Error("failed to save new JWT secret")
+		} else {
+			cfg.JWTSecret = newSecret
+			logger.Logger.Info("Successfully regenerated JWT secret after password change")
+		}
+	}
+
 	return nil
 }
 
