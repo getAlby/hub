@@ -1179,14 +1179,14 @@ func (httpSvc *HttpService) initiateSwapOutHandler(c echo.Context) error {
 		})
 	}
 
-	err := httpSvc.api.InitiateSwapOut(c.Request().Context(), &initiateSwapOutRequest)
+	txId, err := httpSvc.api.InitiateSwapOut(c.Request().Context(), &initiateSwapOutRequest)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to initiate swap: %v", err),
 		})
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	return c.JSON(http.StatusOK, txId)
 }
 
 func (httpSvc *HttpService) enableAutoSwapsHandler(c echo.Context) error {

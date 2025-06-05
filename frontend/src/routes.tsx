@@ -3,6 +3,7 @@ import AppLayout from "src/components/layouts/AppLayout";
 import ReceiveLayout from "src/components/layouts/ReceiveLayout";
 import SendLayout from "src/components/layouts/SendLayout";
 import SettingsLayout from "src/components/layouts/SettingsLayout";
+import SwapLayout from "src/components/layouts/SwapLayout";
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
 import { DefaultRedirect } from "src/components/redirects/DefaultRedirect";
 import { HomeRedirect } from "src/components/redirects/HomeRedirect";
@@ -74,13 +75,14 @@ import Wallet from "src/screens/wallet";
 import Receive from "src/screens/wallet/Receive";
 import Send from "src/screens/wallet/Send";
 import SignMessage from "src/screens/wallet/SignMessage";
-import Swaps from "src/screens/wallet/Swaps";
+import Swap from "src/screens/wallet/Swap";
 import WithdrawOnchainFunds from "src/screens/wallet/WithdrawOnchainFunds";
 import ReceiveInvoice from "src/screens/wallet/receive/ReceiveInvoice";
 import ConfirmPayment from "src/screens/wallet/send/ConfirmPayment";
 import LnurlPay from "src/screens/wallet/send/LnurlPay";
 import PaymentSuccess from "src/screens/wallet/send/PaymentSuccess";
 import ZeroAmount from "src/screens/wallet/send/ZeroAmount";
+import SwapSuccess from "src/screens/wallet/swaps/SwapSuccess";
 
 const routes = [
   {
@@ -113,9 +115,19 @@ const routes = [
             element: <Wallet />,
           },
           {
-            path: "swaps",
-            handle: { crumb: () => "Swaps" },
-            element: <Swaps />,
+            path: "swap",
+            handle: { crumb: () => "Swap" },
+            element: <SwapLayout />,
+            children: [
+              {
+                index: true,
+                element: <Swap />,
+              },
+              {
+                path: "success",
+                element: <SwapSuccess />,
+              },
+            ],
           },
           {
             path: "receive",

@@ -2,19 +2,11 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   ClipboardPasteIcon,
-  XCircleIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import AppHeader from "src/components/AppHeader";
+import { useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "src/components/ui/card";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -25,10 +17,9 @@ import { MIN_AUTO_SWAP_AMOUNT } from "src/constants";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
 import { useSwaps } from "src/hooks/useSwaps";
 import { cn } from "src/lib/utils";
-import { SwapsSettingsResponse } from "src/types";
 import { request } from "src/utils/request";
 
-export default function Swaps() {
+export default function Swap() {
   const { data: swapsSettings } = useSwaps();
   const [swapType, setSwapType] = useState("out");
 
@@ -45,39 +36,32 @@ export default function Swaps() {
   }
 
   return (
-    <>
-      <AppHeader title="Swaps" />
-      <div className="flex gap-8 lg:gap-12 w-full flex-col lg:flex-row">
-        <div className="w-full max-w-lg">
-          <div className="flex items-center text-center text-foreground font-medium rounded-lg bg-muted p-1 mb-4">
-            <div
-              className={cn(
-                "cursor-pointer rounded-md flex-1 py-1.5 text-sm",
-                swapType == "in" && "bg-white font-bold"
-              )}
-              onClick={() => setSwapType("in")}
-            >
-              Swap In
-            </div>
-            <div
-              className={cn(
-                "cursor-pointer rounded-md flex-1 py-1.5 text-sm",
-                swapType == "out" && "bg-white font-bold"
-              )}
-              onClick={() => setSwapType("out")}
-            >
-              Swap Out
-            </div>
-          </div>
-          {swapType == "in" ? <SwapInForm /> : <SwapOutForm />}
+    <div className="w-full max-w-lg">
+      <div className="flex items-center text-center text-foreground font-medium rounded-lg bg-muted p-1 mb-4">
+        <div
+          className={cn(
+            "cursor-pointer rounded-md flex-1 py-1.5 text-sm",
+            swapType == "in" && "bg-white font-bold"
+          )}
+          onClick={() => setSwapType("in")}
+        >
+          Swap In
         </div>
-        {swapsSettings.enabled && <ActiveSwaps swaps={swapsSettings} />}
+        <div
+          className={cn(
+            "cursor-pointer rounded-md flex-1 py-1.5 text-sm",
+            swapType == "out" && "bg-white font-bold"
+          )}
+          onClick={() => setSwapType("out")}
+        >
+          Swap Out
+        </div>
       </div>
-    </>
+      {swapType == "in" ? <SwapInForm /> : <SwapOutForm />}
+    </div>
   );
 }
 
-// TODO: WE ONLY WISH TO ADD ONE-OFF SWAP-INS AT THE MOMENT
 function SwapInForm() {
   const { toast } = useToast();
   const { data: swapsSettings, mutate } = useSwaps();
@@ -212,6 +196,7 @@ function SwapOutForm() {
   // TODO: Optimize by setting this from the backend
   const { data: onchainAddress } = useOnchainAddress();
   const { data: swapsSettings, mutate } = useSwaps();
+  const navigate = useNavigate();
 
   const [swapTo, setSwapTo] = useState("internal");
   const [balanceThreshold, setBalanceThreshold] = useState("");
@@ -219,14 +204,15 @@ function SwapOutForm() {
   const [destination, setDestination] = useState("");
   const [loading, setLoading] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const [recurringSwaps, setRecurringSwaps] = useState(false);
+  const [isRecurringSwap, setRecurringSwap] = useState(false);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
       setLoading(true);
-      if (recurringSwaps) {
+      let txId;
+      if (isRecurringSwap) {
         await request("/api/wallet/swaps", {
           method: "POST",
           headers: {
@@ -239,7 +225,7 @@ function SwapOutForm() {
           }),
         });
       } else {
-        await request("/api/wallet/swap-out", {
+        txId = await request<string>("/api/wallet/swap-out", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -249,14 +235,26 @@ function SwapOutForm() {
             destination: swapTo === "internal" ? onchainAddress : destination,
           }),
         });
+        if (!txId) {
+          throw new Error("Error swapping out");
+        }
       }
+      navigate(`/wallet/swap/success`, {
+        state: {
+          type: "out",
+          isRecurringSwap,
+          txId,
+          balanceThreshold,
+          amount: swapAmount,
+        },
+      });
       toast({
-        title: recurringSwaps ? "Saved successfully" : "Initiated swap",
+        title: isRecurringSwap ? "Saved successfully" : "Initiated swap",
       });
       await mutate();
     } catch (error) {
       toast({
-        title: recurringSwaps
+        title: isRecurringSwap
           ? "Failed to save auto swap settings"
           : "Failed to initiate swap",
         description: (error as Error).message,
@@ -264,11 +262,6 @@ function SwapOutForm() {
       });
     } finally {
       setLoading(false);
-      setSwapTo("internal");
-      setSwapAmount("");
-      setDestination("");
-      setShowAdvanced(false);
-      setRecurringSwaps(false);
     }
   };
 
@@ -374,8 +367,8 @@ function SwapOutForm() {
           <div className="flex items-top space-x-2">
             <Checkbox
               id="public-channel"
-              checked={recurringSwaps}
-              onCheckedChange={() => setRecurringSwaps(!recurringSwaps)}
+              checked={isRecurringSwap}
+              onCheckedChange={() => setRecurringSwap(!isRecurringSwap)}
               className="mr-2"
             />
             <div className="grid gap-1.5 leading-none">
@@ -391,7 +384,7 @@ function SwapOutForm() {
               </p>
             </div>
           </div>
-          {recurringSwaps && (
+          {isRecurringSwap && (
             <div className="mt-2 grid gap-1.5">
               <Label>Swap threshold</Label>
               <Input
@@ -418,94 +411,8 @@ function SwapOutForm() {
         </p>
       </div>
       <LoadingButton loading={loading}>
-        {recurringSwaps ? "Enable Auto Swap-outs" : "Swap Out"}
+        {isRecurringSwap ? "Enable Auto Swap-outs" : "Swap Out"}
       </LoadingButton>
     </form>
-  );
-}
-
-function ActiveSwaps({ swaps }: { swaps: SwapsSettingsResponse }) {
-  const { toast } = useToast();
-  const { mutate } = useSwaps();
-
-  const [loading, setLoading] = useState(false);
-
-  const onDeactivate = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      setLoading(true);
-      await request("/api/wallet/swaps", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      toast({ title: "Deactivated successfully." });
-      await mutate();
-    } catch (error) {
-      toast({
-        title: "Deactivating auto swaps failed",
-        description: (error as Error).message,
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="border-t-2 lg:border-t-0 pt-8 lg:pt-0">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="font-medium">Active Recurring Swap</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Alby Hub will try to perform a swap every time the balance reaches
-            the threshold.
-          </p>
-
-          <div className="mt-6 space-y-4 text-sm">
-            <div className="flex justify-between items-center">
-              <span className="font-medium">Type</span>
-              <span className="text-muted-foreground text-right">
-                Lightning to On-chain
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="font-medium">Destination</span>
-              <span className="text-muted-foreground text-right">
-                {swaps.destination}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="font-medium">Spending Balance Threshold</span>
-              <span className="text-muted-foreground text-right">
-                {new Intl.NumberFormat().format(swaps.balanceThreshold)} sats
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="font-medium">Swap amount</span>
-              <span className="text-muted-foreground text-right">
-                {new Intl.NumberFormat().format(swaps.swapAmount)} sats
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="font-medium">Fee</span>
-              <span className="text-muted-foreground text-right">
-                {swaps.albyServiceFee + swaps.boltzServiceFee}% + on-chain fees
-              </span>
-            </div>
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-end">
-          <Button onClick={onDeactivate} disabled={loading} variant="outline">
-            <XCircleIcon className="h-4 w-4 mr-2" />
-            Deactivate
-          </Button>
-        </CardFooter>
-      </Card>
-    </div>
   );
 }

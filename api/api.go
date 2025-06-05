@@ -580,29 +580,30 @@ func (api *api) GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error) {
 	}, nil
 }
 
-func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapOutRequest) error {
+func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapOutRequest) (string, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return errors.New("LNClient not started")
+		return "", errors.New("LNClient not started")
 	}
 
 	amount := initiateSwapOutRequest.SwapAmount
 	destination := initiateSwapOutRequest.Destination
 
 	if amount == 0 || destination == "" {
-		return errors.New("invalid amount or destination")
+		return "", errors.New("invalid amount or destination")
 	}
 
-	go func() {
-		err := api.svc.GetSwapsService().ReverseSwap(context.Background(), amount, destination, lnClient)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"amount":      amount,
-				"destination": destination,
-			}).WithError(err).Error("Failed to initiate swap out")
-		}
-	}()
-	return nil
+	// TODO: Do not use context.Background
+	txId, err := api.svc.GetSwapsService().ReverseSwap(context.Background(), amount, destination, lnClient)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"amount":      amount,
+			"destination": destination,
+		}).WithError(err).Error("Failed to initiate swap out")
+		return "", err
+	}
+
+	return txId, nil
 }
 
 func (api *api) EnableAutoSwaps(ctx context.Context, enableAutoSwapsRequest *EnableAutoSwapsRequest) error {

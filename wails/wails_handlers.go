@@ -988,7 +988,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 
-		err = app.api.InitiateSwapOut(ctx, initiateSwapOutRequest)
+		txId, err := app.api.InitiateSwapOut(ctx, initiateSwapOutRequest)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,
@@ -997,7 +997,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}).WithError(err).Error("Failed to initiate swap")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		return WailsRequestRouterResponse{Body: nil, Error: ""}
+		return WailsRequestRouterResponse{Body: txId, Error: ""}
 	case "/api/wallet/swaps":
 		switch method {
 		case "GET":

@@ -167,7 +167,7 @@ export default function Channels() {
                   <DropdownMenuGroup>
                     <DropdownMenuLabel>Swaps</DropdownMenuLabel>
                     <DropdownMenuItem
-                      onClick={() => navigate("/wallet/swaps?type=in")}
+                      onClick={() => navigate("/wallet/swap?type=in")}
                       className="cursor-pointer"
                     >
                       <div className="mr-2 text-muted-foreground flex flex-row items-center">
@@ -178,7 +178,7 @@ export default function Channels() {
                       Swap in
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => navigate("/wallet/swaps?type=out")}
+                      onClick={() => navigate("/wallet/swap?type=out")}
                       className="cursor-pointer"
                     >
                       <div className="mr-2 text-muted-foreground flex flex-row items-center">
@@ -210,7 +210,7 @@ export default function Channels() {
                 icon={ArrowDownUpIcon}
                 text="Swap"
                 variant="secondary"
-                onClick={() => navigate("/wallet/swaps")}
+                onClick={() => navigate("/wallet/swap")}
               />
 
               <Link to="/channels/incoming">

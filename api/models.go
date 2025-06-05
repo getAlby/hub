@@ -61,7 +61,7 @@ type API interface {
 	SetCurrency(currency string) error
 	GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error)
 	DisableAutoSwaps() error
-	InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapOutRequest) error
+	InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapOutRequest) (string, error)
 	EnableAutoSwaps(ctx context.Context, autoSwapsRequest *EnableAutoSwapsRequest) error
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)

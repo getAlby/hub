@@ -43,7 +43,7 @@ export function SwapAlert({ className, minChannels = 2 }: SwapAlertProps) {
             <ExternalLinkIcon className="w-4 h-4 ml-2" />
           </ExternalLinkButton>
           <LinkButton
-            to={`/wallet/swaps?type=${isSwapOut ? "out" : "in"}`}
+            to={`/wallet/swap?type=${isSwapOut ? "out" : "in"}`}
             variant="secondary"
           >
             Swap {isSwapOut ? "Out" : "In"}
