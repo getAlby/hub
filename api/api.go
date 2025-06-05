@@ -580,33 +580,28 @@ func (api *api) GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error) {
 	}, nil
 }
 
-func (api *api) InitiateSwap(ctx context.Context, initiateSwapRequest *InitiateSwapRequest) error {
+func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapOutRequest) error {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return errors.New("LNClient not started")
 	}
 
-	amount := initiateSwapRequest.SwapAmount
-	destination := initiateSwapRequest.Destination
-	swapType := initiateSwapRequest.SwapType
+	amount := initiateSwapOutRequest.SwapAmount
+	destination := initiateSwapOutRequest.Destination
 
 	if amount == 0 || destination == "" {
 		return errors.New("invalid amount or destination")
 	}
 
-	if swapType == "out" {
-		go func() {
-			err := api.svc.GetSwapsService().ReverseSwap(context.Background(), amount, destination, lnClient)
-			if err != nil {
-				logger.Logger.WithFields(logrus.Fields{
-					"amount":      amount,
-					"destination": destination,
-					"swapType":    swapType,
-				}).WithError(err).Error("Failed to initiate swap")
-			}
-		}()
-		return nil
-	}
+	go func() {
+		err := api.svc.GetSwapsService().ReverseSwap(context.Background(), amount, destination, lnClient)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"amount":      amount,
+				"destination": destination,
+			}).WithError(err).Error("Failed to initiate swap out")
+		}
+	}()
 	return nil
 }
 

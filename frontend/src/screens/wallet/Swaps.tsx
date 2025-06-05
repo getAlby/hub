@@ -53,7 +53,7 @@ export default function Swaps() {
             <div
               className={cn(
                 "cursor-pointer rounded-md flex-1 py-1.5 text-sm",
-                swapType == "in" && "bg-white"
+                swapType == "in" && "bg-white font-bold"
               )}
               onClick={() => setSwapType("in")}
             >
@@ -62,7 +62,7 @@ export default function Swaps() {
             <div
               className={cn(
                 "cursor-pointer rounded-md flex-1 py-1.5 text-sm",
-                swapType == "out" && "bg-white"
+                swapType == "out" && "bg-white font-bold"
               )}
               onClick={() => setSwapType("out")}
             >
@@ -226,18 +226,30 @@ function SwapOutForm() {
 
     try {
       setLoading(true);
-      await request(`/api/wallet/${recurringSwaps ? "swaps" : "swap"}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          swapType: "out",
-          swapAmount: parseInt(swapAmount),
-          destination: swapTo === "internal" ? onchainAddress : destination,
-          balanceThreshold: parseInt(balanceThreshold),
-        }),
-      });
+      if (recurringSwaps) {
+        await request("/api/wallet/swaps", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            swapAmount: parseInt(swapAmount),
+            destination: swapTo === "internal" ? onchainAddress : destination,
+            balanceThreshold: parseInt(balanceThreshold),
+          }),
+        });
+      } else {
+        await request("/api/wallet/swap-out", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            swapAmount: parseInt(swapAmount),
+            destination: swapTo === "internal" ? onchainAddress : destination,
+          }),
+        });
+      }
       toast({
         title: recurringSwaps ? "Saved successfully" : "Initiated swap",
       });

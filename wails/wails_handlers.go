@@ -976,9 +976,9 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: commandResponse, Error: ""}
-	case "/api/wallet/swap":
-		initiateSwapRequest := &api.InitiateSwapRequest{}
-		err := json.Unmarshal([]byte(body), initiateSwapRequest)
+	case "/api/wallet/swap-out":
+		initiateSwapOutRequest := &api.InitiateSwapOutRequest{}
+		err := json.Unmarshal([]byte(body), initiateSwapOutRequest)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,
@@ -988,7 +988,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 
-		err = app.api.InitiateSwap(ctx, initiateSwapRequest)
+		err = app.api.InitiateSwapOut(ctx, initiateSwapOutRequest)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,

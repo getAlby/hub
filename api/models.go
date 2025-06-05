@@ -61,7 +61,7 @@ type API interface {
 	SetCurrency(currency string) error
 	GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error)
 	DisableAutoSwaps() error
-	InitiateSwap(ctx context.Context, initiateSwapRequest *InitiateSwapRequest) error
+	InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapOutRequest) error
 	EnableAutoSwaps(ctx context.Context, autoSwapsRequest *EnableAutoSwapsRequest) error
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
@@ -118,8 +118,7 @@ type CreateAppRequest struct {
 	UnlockPassword string   `json:"unlockPassword"`
 }
 
-type InitiateSwapRequest struct {
-	SwapType    string `json:"swapType"`
+type InitiateSwapOutRequest struct {
 	SwapAmount  uint64 `json:"swapAmount"`
 	Destination string `json:"destination"`
 }
