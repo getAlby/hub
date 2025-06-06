@@ -26,6 +26,7 @@ func Init(logLevel string) {
 		logrusLogLevel = int(logrus.InfoLevel)
 	}
 	Logger.SetLevel(logrus.Level(logrusLogLevel))
+	Logger.ReportCaller = true
 }
 
 func AddFileLogger(workdir string) error {
