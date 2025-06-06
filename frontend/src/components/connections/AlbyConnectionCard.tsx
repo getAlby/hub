@@ -51,9 +51,9 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
   const { loading, linkStatus, loadingLinkStatus, linkAccount } =
     useLinkAccount();
 
-  const [maxAmount, setMaxAmount] = useState(1_000_000);
+  const [maxAmount, setMaxAmount] = useState(150_000);
   const [budgetRenewal, setBudgetRenewal] =
-    useState<BudgetRenewalType>("monthly");
+    useState<BudgetRenewalType>("weekly");
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -130,6 +130,11 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
                           minAmount={
                             25000 /* the minimum should be a bit more than the Alby monthly fee */
                           }
+                          budgetOptions={{
+                            "150k": 150_000,
+                            "500k": 500_000,
+                            "1M": 1_000_000,
+                          }}
                         />
                       </div>
                       <DialogFooter>
