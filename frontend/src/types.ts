@@ -339,13 +339,36 @@ export type OnchainBalanceResponse = {
 };
 
 // from https://mempool.space/docs/api/rest#get-node-stats
-export type Node = {
+export type MempoolNode = {
   alias: string;
   public_key: string;
   color: string;
   active_channel_count: number;
   sockets: string;
 };
+
+// from https://mempool.space/docs/api/rest#get-transaction
+export type MempoolTransaction = {
+  txid: string;
+  //version: 1,
+  //locktime: 0,
+  // vin: [],
+  //vout: [],
+  size: number;
+  weight: number;
+  fee: number;
+  status:
+    | {
+        confirmed: true;
+        block_height: number;
+        block_hash: string;
+        block_time: number;
+      }
+    | { confirmed: false };
+};
+
+export type LongUnconfirmedZeroConfChannel = { id: string; message: string };
+
 export type SetupNodeInfo = Partial<{
   backendType: BackendType;
 

@@ -24,15 +24,24 @@ import {
   TooltipTrigger,
 } from "src/components/ui/tooltip.tsx";
 import { formatAmount } from "src/lib/utils.ts";
-import { Channel, Node } from "src/types";
+import {
+  Channel,
+  LongUnconfirmedZeroConfChannel,
+  MempoolNode,
+} from "src/types";
 import { ChannelDropdownMenu } from "./ChannelDropdownMenu";
 
 type ChannelsTableProps = {
   channels?: Channel[];
-  nodes?: Node[];
+  nodes?: MempoolNode[];
+  longUnconfirmedZeroConfChannels: LongUnconfirmedZeroConfChannel[];
 };
 
-export function ChannelsTable({ channels, nodes }: ChannelsTableProps) {
+export function ChannelsTable({
+  channels,
+  nodes,
+  longUnconfirmedZeroConfChannels,
+}: ChannelsTableProps) {
   if (channels && !channels.length) {
     return null;
   }
@@ -134,6 +143,10 @@ export function ChannelsTable({ channels, nodes }: ChannelsTableProps) {
                     const capacity =
                       channel.localBalance + channel.remoteBalance;
 
+                    const unconfirmedChannel =
+                      longUnconfirmedZeroConfChannels.find(
+                        (uc) => uc.id === channel.id
+                      );
                     return (
                       <TableRow key={channel.id} className="channel">
                         <TableCell>
@@ -146,7 +159,16 @@ export function ChannelsTable({ channels, nodes }: ChannelsTableProps) {
                         </TableCell>
                         <TableCell>
                           {channel.status == "online" ? (
-                            <Badge variant="positive">Online</Badge>
+                            unconfirmedChannel ? (
+                              <Badge
+                                variant="outline"
+                                title={unconfirmedChannel.message}
+                              >
+                                Unconfirmed
+                              </Badge>
+                            ) : (
+                              <Badge variant="positive">Online</Badge>
+                            )
                           ) : channel.status == "opening" ? (
                             <Badge variant="outline">Opening</Badge>
                           ) : (
