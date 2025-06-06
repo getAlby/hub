@@ -34,6 +34,10 @@ type AppConfig struct {
 	LDKVssUrl                string `envconfig:"LDK_VSS_URL" default:"https://vss.getalbypro.com/vss"`
 	LDKListeningAddresses    string `envconfig:"LDK_LISTENING_ADDRESSES" default:"0.0.0.0:9735,[::]:9735"`
 	LDKTransientNetworkGraph bool   `envconfig:"LDK_TRANSIENT_NETWORK_GRAPH" default:"false"`
+	LDKBitcoindRpcHost       string `envconfig:"LDK_BITCOIND_RPC_HOST"`
+	LDKBitcoindRpcPort       string `envconfig:"LDK_BITCOIND_RPC_PORT"`
+	LDKBitcoindRpcUser       string `envconfig:"LDK_BITCOIND_RPC_USER"`
+	LDKBitcoindRpcPassword   string `envconfig:"LDK_BITCOIND_RPC_PASSWORD"`
 	MempoolApi               string `envconfig:"MEMPOOL_API" default:"https://mempool.space/api"`
 	AlbyClientId             string `envconfig:"ALBY_OAUTH_CLIENT_ID" default:"J2PbXS1yOf"`
 	AlbyClientSecret         string `envconfig:"ALBY_OAUTH_CLIENT_SECRET" default:"rABK2n16IWjLTZ9M1uKU"`
