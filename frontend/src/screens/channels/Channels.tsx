@@ -1,5 +1,6 @@
 import {
   AlertTriangleIcon,
+  ArrowDownUpIcon,
   ArrowRightIcon,
   CopyIcon,
   ExternalLinkIcon,
@@ -12,13 +13,12 @@ import {
   ZapIcon,
 } from "lucide-react";
 import React from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader.tsx";
 import { ChannelsCards } from "src/components/channels/ChannelsCards.tsx";
 import { ChannelsTable } from "src/components/channels/ChannelsTable.tsx";
 import { HealthCheckAlert } from "src/components/channels/HealthcheckAlert";
 import { OnchainTransactionsTable } from "src/components/channels/OnchainTransactionsTable.tsx";
-import { SwapDialogs } from "src/components/channels/SwapDialogs";
 import EmptyState from "src/components/EmptyState.tsx";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
@@ -71,22 +71,6 @@ export default function Channels() {
   const { data: balances } = useBalances();
   const navigate = useNavigate();
   const [nodes, setNodes] = React.useState<Node[]>([]);
-  const [swapOutDialogOpen, setSwapOutDialogOpen] = React.useState(false);
-  const [swapInDialogOpen, setSwapInDialogOpen] = React.useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  React.useEffect(() => {
-    if (balances && channels && searchParams.has("swap", "true")) {
-      setSearchParams({});
-      if (
-        balances.lightning.totalSpendable > balances.lightning.totalReceivable
-      ) {
-        setSwapOutDialogOpen(true);
-      } else {
-        setSwapInDialogOpen(true);
-      }
-    }
-  }, [balances, channels, searchParams, setSearchParams]);
 
   const { toast } = useToast();
 
@@ -124,12 +108,6 @@ export default function Channels() {
         contentRight={
           hasChannelManagement && (
             <div className="flex gap-3 items-center justify-center">
-              <SwapDialogs
-                setSwapOutDialogOpen={setSwapOutDialogOpen}
-                swapOutDialogOpen={swapOutDialogOpen}
-                setSwapInDialogOpen={setSwapInDialogOpen}
-                swapInDialogOpen={swapInDialogOpen}
-              />
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger>
                   <ResponsiveButton
@@ -189,7 +167,7 @@ export default function Channels() {
                   <DropdownMenuGroup>
                     <DropdownMenuLabel>Swaps</DropdownMenuLabel>
                     <DropdownMenuItem
-                      onClick={() => setSwapInDialogOpen(true)}
+                      onClick={() => navigate("/wallet/swap?type=in")}
                       className="cursor-pointer"
                     >
                       <div className="mr-2 text-muted-foreground flex flex-row items-center">
@@ -200,7 +178,7 @@ export default function Channels() {
                       Swap in
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={() => setSwapOutDialogOpen(true)}
+                      onClick={() => navigate("/wallet/swap?type=out")}
                       className="cursor-pointer"
                     >
                       <div className="mr-2 text-muted-foreground flex flex-row items-center">
@@ -227,6 +205,13 @@ export default function Channels() {
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
+
+              <ResponsiveButton
+                icon={ArrowDownUpIcon}
+                text="Swap"
+                variant="secondary"
+                onClick={() => navigate("/wallet/swap")}
+              />
 
               <Link to="/channels/incoming">
                 <Button>Open Channel</Button>
@@ -282,11 +267,7 @@ export default function Channels() {
                   <AlertTitle>Low receiving limit</AlertTitle>
                   <AlertDescription>
                     You likely won't be able to receive payments until you{" "}
-                    <Link
-                      className="underline"
-                      to="#"
-                      onClick={() => setSwapOutDialogOpen(true)}
-                    >
+                    <Link className="underline" to="/wallet/swaps?type=out">
                       swap out funds
                     </Link>{" "}
                     or{" "}
