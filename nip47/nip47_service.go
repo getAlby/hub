@@ -76,7 +76,14 @@ func (svc *nip47Service) StartNotifier(relay *nostr.Relay) {
 				// relay disconnected
 				return
 			case event := <-svc.nip47NotificationQueue.Channel():
-				nip47Notifier.ConsumeEvent(relay.Context(), event)
+				logger.Logger.WithField("event", event).Debug("Consuming event from notification queue")
+				err := nip47Notifier.ConsumeEvent(relay.Context(), event)
+				if err != nil {
+					logger.Logger.WithError(err).WithField("event", event).Error("Failed to consume event from notification queue")
+					// wait and then re-add the item to the queue
+					time.Sleep(5 * time.Second)
+					svc.nip47NotificationQueue.AddToQueue(event)
+				}
 			}
 		}
 	}()
