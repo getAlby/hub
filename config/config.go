@@ -16,9 +16,8 @@ import (
 )
 
 type config struct {
-	Env       *AppConfig
-	JWTSecret string
-	db        *gorm.DB
+	Env *AppConfig
+	db *gorm.DB
 }
 
 const (
@@ -105,20 +104,29 @@ func (cfg *config) init(env *AppConfig) error {
 		}
 	}
 
-	// set the JWT secret to the one from the env
-	// if no JWT secret is configured we create a random one and store it in the DB
-	cfg.JWTSecret = cfg.Env.JWTSecret
-	if cfg.JWTSecret == "" {
-		hex, err := randomHex(32)
+	// set the JWT secret from the env, or generate a new one
+	if cfg.Env.JWTSecret != "" {
+		// If JWTSecret is provided in env, ensure it's in the DB
+		err := cfg.SetIgnore("JWTSecret", cfg.Env.JWTSecret, "")
 		if err != nil {
-			logger.Logger.WithError(err).Error("failed to generate JWT secret")
-			return err
+			logger.Logger.WithError(err).Error("failed to set JWT secret from env")
 		}
-		err = cfg.SetIgnore("JWTSecret", hex, "")
-		if err != nil {
-			return err
+	} else {
+		// Check if a JWT secret already exists in DB, otherwise generate one
+		existingSecret, _ := cfg.Get("JWTSecret", "")
+		if existingSecret == "" {
+			hexSecret, err := randomHex(32)
+			if err != nil {
+				logger.Logger.WithError(err).Error("failed to generate JWT secret")
+				return err
+			}
+			err = cfg.SetIgnore("JWTSecret", hexSecret, "")
+			if err != nil {
+				logger.Logger.WithError(err).Error("failed to save newly generated JWT secret")
+				return err
+			}
+			logger.Logger.Info("Generated and saved new JWT secret")
 		}
-		cfg.JWTSecret, _ = cfg.Get("JWTSecret", "")
 	}
 	return nil
 }
@@ -138,7 +146,12 @@ func (cfg *config) SetupCompleted() bool {
 }
 
 func (cfg *config) GetJWTSecret() string {
-	return cfg.JWTSecret
+	secret, err := cfg.Get("JWTSecret", "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to retrieve JWTSecret from database")
+		return ""
+	}
+	return secret
 }
 
 func (cfg *config) GetRelayUrl() string {
@@ -277,7 +290,6 @@ func (cfg *config) ChangeUnlockPassword(currentUnlockPassword string, newUnlockP
 		if err != nil {
 			logger.Logger.WithError(err).Error("failed to save new JWT secret")
 		} else {
-			cfg.JWTSecret = newSecret
 			logger.Logger.Info("Successfully regenerated JWT secret after password change")
 		}
 	}
