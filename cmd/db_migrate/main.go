@@ -70,6 +70,24 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Check if VSS is enabled in the source database
+	var vssConfig db.UserConfig
+	result := fromDB.Where("key = ?", "LdkVssEnabled").First(&vssConfig)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			logger.Logger.Error("LdkVssEnabled config not found in source DB. Migration will not proceed.")
+		} else {
+			logger.Logger.WithError(result.Error).Error("failed to query LdkVssEnabled config from source DB")
+		}
+		os.Exit(1)
+	}
+
+	if vssConfig.Value != "true" {
+		logger.Logger.Error("VSS is not enabled in the source DB (LdkVssEnabled is not 'true'). Migration will not proceed.")
+		os.Exit(1)
+	}
+	logger.Logger.Info("LdkVssEnabled check passed.")
+
 	logger.Logger.Info("migrating...")
 	err = migrateDB(fromDB, toDB)
 	if err != nil {

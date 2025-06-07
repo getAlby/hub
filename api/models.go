@@ -31,10 +31,11 @@ type API interface {
 	OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error)
 	CloseChannel(ctx context.Context, peerId, channelId string, force bool) (*CloseChannelResponse, error)
 	UpdateChannel(ctx context.Context, updateChannelRequest *UpdateChannelRequest) error
+	MakeOffer(ctx context.Context, description string) (string, error)
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	GetUnusedOnchainAddress(ctx context.Context) (string, error)
 	SignMessage(ctx context.Context, message string) (*SignMessageResponse, error)
-	RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (*RedeemOnchainFundsResponse, error)
+	RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (*RedeemOnchainFundsResponse, error)
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
 	ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error)
 	ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error)
@@ -64,6 +65,7 @@ type API interface {
 	EnableAutoSwaps(ctx context.Context, autoSwapsRequest *EnableAutoSwapsRequest) error
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
+	SendEvent(event string)
 }
 
 type App struct {
@@ -144,6 +146,10 @@ type UnlockRequest struct {
 
 type BackupReminderRequest struct {
 	NextBackupReminder string `json:"nextBackupReminder"`
+}
+
+type SendEventRequest struct {
+	Event string `json:"event"`
 }
 
 type SetupRequest struct {
@@ -235,9 +241,10 @@ type CloseChannelResponse = lnclient.CloseChannelResponse
 type UpdateChannelRequest = lnclient.UpdateChannelRequest
 
 type RedeemOnchainFundsRequest struct {
-	ToAddress string `json:"toAddress"`
-	Amount    uint64 `json:"amount"`
-	SendAll   bool   `json:"sendAll"`
+	ToAddress string  `json:"toAddress"`
+	Amount    uint64  `json:"amount"`
+	FeeRate   *uint64 `json:"feeRate"`
+	SendAll   bool    `json:"sendAll"`
 }
 
 type RedeemOnchainFundsResponse struct {
@@ -338,6 +345,10 @@ type SignMessageResponse struct {
 type PayInvoiceRequest struct {
 	Amount   *uint64  `json:"amount"`
 	Metadata Metadata `json:"metadata"`
+}
+
+type MakeOfferRequest struct {
+	Description string `json:"description"`
 }
 
 type MakeInvoiceRequest struct {

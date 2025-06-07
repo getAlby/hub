@@ -1,4 +1,9 @@
-import { AlertTriangleIcon, CopyIcon, ExternalLinkIcon } from "lucide-react";
+import {
+  AlertTriangleIcon,
+  ChevronDown,
+  CopyIcon,
+  ExternalLinkIcon,
+} from "lucide-react";
 import React from "react";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
@@ -23,6 +28,8 @@ import { useToast } from "src/components/ui/use-toast";
 import { ONCHAIN_DUST_SATS } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
+import { useInfo } from "src/hooks/useInfo";
+import { useMempoolApi } from "src/hooks/useMempoolApi";
 
 import { copyToClipboard } from "src/lib/clipboard";
 import { RedeemOnchainFundsResponse } from "src/types";
@@ -31,11 +38,20 @@ import { request } from "src/utils/request";
 export default function WithdrawOnchainFunds() {
   const [isLoading, setLoading] = React.useState(false);
   const { toast } = useToast();
+  const { data: info } = useInfo();
   const { data: balances } = useBalances();
+  const { data: recommendedFees } = useMempoolApi<{
+    fastestFee: number;
+    halfHourFee: number;
+    economyFee: number;
+    minimumFee: number;
+  }>("/v1/fees/recommended");
   const { data: channels } = useChannels();
   const [onchainAddress, setOnchainAddress] = React.useState("");
   const [amount, setAmount] = React.useState("");
+  const [feeRate, setFeeRate] = React.useState("");
   const [sendAll, setSendAll] = React.useState(false);
+  const [showAdvanced, setShowAdvanced] = React.useState(false);
   const [transactionId, setTransactionId] = React.useState("");
   const [confirmDialogOpen, setConfirmDialogOpen] = React.useState(false);
 
@@ -73,6 +89,7 @@ export default function WithdrawOnchainFunds() {
             toAddress: onchainAddress,
             amount: +amount,
             sendAll,
+            ...(feeRate && { feeRate: +feeRate }),
           }),
         }
       );
@@ -90,7 +107,7 @@ export default function WithdrawOnchainFunds() {
       });
     }
     setLoading(false);
-  }, [amount, onchainAddress, sendAll, toast]);
+  }, [amount, feeRate, onchainAddress, sendAll, toast]);
 
   if (transactionId) {
     return (
@@ -123,7 +140,7 @@ export default function WithdrawOnchainFunds() {
     );
   }
 
-  if (!balances) {
+  if (!info || !balances || !recommendedFees) {
     return <Loading />;
   }
 
@@ -226,12 +243,72 @@ export default function WithdrawOnchainFunds() {
                 setOnchainAddress(e.target.value);
               }}
             />
+            <p className="mt-2 text-sm text-muted-foreground">
+              Please double-check the destination address. This transaction
+              cannot be reversed.
+            </p>
           </div>
-
-          <p className="text-sm text-muted-foreground">
-            Please double-check the destination address. This transaction cannot
-            be reversed.
-          </p>
+          {(info?.backendType === "LDK" || info?.backendType === "LND") && (
+            <>
+              {showAdvanced && (
+                <div className="">
+                  <Label htmlFor="fee-rate">Fee Rate (Sat/vB)</Label>
+                  <Input
+                    id="fee-rate"
+                    type="number"
+                    value={feeRate}
+                    step={1}
+                    required
+                    min={recommendedFees.minimumFee}
+                    onChange={(e) => {
+                      setFeeRate(e.target.value);
+                    }}
+                  />
+                  <p className="text-muted-foreground text-sm mt-4">
+                    <Button
+                      size="sm"
+                      variant="positive"
+                      className="rounded-full"
+                      type="button"
+                      onClick={() =>
+                        setFeeRate(recommendedFees.economyFee.toString())
+                      }
+                    >
+                      Low priority: {recommendedFees.economyFee}
+                    </Button>{" "}
+                    <Button
+                      size="sm"
+                      variant="positive"
+                      className="rounded-full"
+                      type="button"
+                      onClick={() =>
+                        setFeeRate(recommendedFees.fastestFee.toString())
+                      }
+                    >
+                      High priority: {recommendedFees.fastestFee}
+                    </Button>{" "}
+                    <ExternalLink
+                      to="https://mempool.space"
+                      className="underline ml-2"
+                    >
+                      mempool.space
+                    </ExternalLink>
+                  </p>
+                </div>
+              )}
+              {!showAdvanced && (
+                <Button
+                  type="button"
+                  variant="link"
+                  className="text-muted-foreground text-xs"
+                  onClick={() => setShowAdvanced((current) => !current)}
+                >
+                  <ChevronDown className="w-4 h-4 mr-2" />
+                  Advanced Options
+                </Button>
+              )}
+            </>
+          )}
 
           <div>
             <AlertDialog

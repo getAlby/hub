@@ -36,6 +36,7 @@ import { OpeningAutoChannel } from "src/screens/channels/auto/OpeningAutoChannel
 import { FirstChannel } from "src/screens/channels/first/FirstChannel";
 import { OpenedFirstChannel } from "src/screens/channels/first/OpenedFirstChannel";
 import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChannel";
+import BankAccount from "src/screens/features/BankAccount";
 import { AlbyGo } from "src/screens/internal-apps/AlbyGo";
 import { Bitrefill } from "src/screens/internal-apps/Bitrefill";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
@@ -77,6 +78,7 @@ import Send from "src/screens/wallet/Send";
 import SignMessage from "src/screens/wallet/SignMessage";
 import WithdrawOnchainFunds from "src/screens/wallet/WithdrawOnchainFunds";
 import ReceiveInvoice from "src/screens/wallet/receive/ReceiveInvoice";
+import ReceiveOffer from "src/screens/wallet/receive/ReceiveOffer";
 import ConfirmPayment from "src/screens/wallet/send/ConfirmPayment";
 import LnurlPay from "src/screens/wallet/send/LnurlPay";
 import PaymentSuccess from "src/screens/wallet/send/PaymentSuccess";
@@ -125,6 +127,11 @@ const routes = [
                 handle: { crumb: () => "Invoice" },
                 path: "invoice",
                 element: <ReceiveInvoice />,
+              },
+              {
+                handle: { crumb: () => "BOLT-12 Offer" },
+                path: "offer",
+                element: <ReceiveOffer />,
               },
             ],
           },
@@ -409,6 +416,10 @@ const routes = [
       {
         path: "support-alby",
         element: <SupportAlby />,
+      },
+      {
+        path: "bank-account",
+        element: <BankAccount />,
       },
     ],
   },

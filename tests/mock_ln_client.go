@@ -166,7 +166,7 @@ func (mln *MockLn) GetBalances(ctx context.Context, includeInactiveChannels bool
 func (mln *MockLn) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
 	return nil, nil
 }
-func (mln *MockLn) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (txId string, err error) {
+func (mln *MockLn) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (txId string, err error) {
 	return "", nil
 }
 func (mln *MockLn) ResetRouter(key string) error {
@@ -233,6 +233,10 @@ func (mln *MockLn) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeComman
 
 func (mln *MockLn) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
 	return nil, nil
+}
+
+func (mln *MockLn) MakeOffer(ctx context.Context, description string) (string, error) {
+	return "", errors.New("not supported")
 }
 
 func (mln *MockLn) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {

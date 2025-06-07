@@ -873,10 +873,14 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 				return nil, err
 			}
 
+			var policy *lnrpc.RoutingPolicy
 			if channelEdge.Node1Pub == nodeInfo.IdentityPubkey {
-				forwardingFee = uint32(channelEdge.Node1Policy.FeeBaseMsat)
+				policy = channelEdge.Node1Policy
 			} else {
-				forwardingFee = uint32(channelEdge.Node2Policy.FeeBaseMsat)
+				policy = channelEdge.Node2Policy
+			}
+			if policy != nil {
+				forwardingFee = uint32(policy.FeeBaseMsat)
 			}
 		}
 
@@ -1219,13 +1223,20 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 	}, nil
 }
 
-func (svc *LNDService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (txId string, err error) {
-	resp, err := svc.client.SendCoins(ctx, &lnrpc.SendCoinsRequest{
-		Addr:       toAddress,
-		SendAll:    sendAll,
-		Amount:     int64(amount),
-		TargetConf: 1,
-	})
+func (svc *LNDService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (txId string, err error) {
+	sendCoinsRequest := &lnrpc.SendCoinsRequest{
+		Addr:    toAddress,
+		SendAll: sendAll,
+		Amount:  int64(amount),
+	}
+
+	if feeRate != nil {
+		sendCoinsRequest.SatPerVbyte = *feeRate
+	} else {
+		sendCoinsRequest.TargetConf = 1
+	}
+
+	resp, err := svc.client.SendCoins(ctx, sendCoinsRequest)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to send onchain funds")
 		return "", err
@@ -1564,6 +1575,10 @@ func (svc *LNDService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCo
 
 func (svc *LNDService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
 	return nil, nil
+}
+
+func (svc *LNDService) MakeOffer(ctx context.Context, description string) (string, error) {
+	return "", errors.New("not supported")
 }
 
 func (svc *LNDService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
