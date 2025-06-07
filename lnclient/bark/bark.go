@@ -45,11 +45,10 @@ func NewBarkService(ctx context.Context, mnemonic, workdir string) (*BarkService
 		}
 
 		barkConfig := bindings.Config{
-			Network:              "signet",
-			Birthday:             nil,
-			AspAddress:           "https://ark.signet.2nd.dev",
-			EsploraAddress:       "https://esplora.signet.2nd.dev",
-			VtxoRefreshThreshold: 0,
+			Network:        "signet",
+			Birthday:       nil,
+			AspAddress:     "https://ark.signet.2nd.dev",
+			EsploraAddress: "https://esplora.signet.2nd.dev",
 		}
 
 		wallet, err = checkBindingsErr(bindings.CreateWallet(dbFilePath, mnemonic, barkConfig))
