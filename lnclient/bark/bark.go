@@ -1,4 +1,4 @@
-package second_ark
+package bark
 
 import (
 	"context"
@@ -22,16 +22,16 @@ const vtxoRefreshInterval = 1 * time.Hour
 const nodeCommandPubkey = "pubkey"
 const nodeCommandMaintenance = "maintenance"
 
-type SecondArkService struct {
+type BarkService struct {
 	wallet *bindings.Wallet
 	cancel context.CancelFunc
 	wg     *sync.WaitGroup
 }
 
-func NewSecondArkService(ctx context.Context, mnemonic, workdir string) (*SecondArkService, error) {
+func NewBarkService(ctx context.Context, mnemonic, workdir string) (*BarkService, error) {
 	err := os.MkdirAll(workdir, 0755)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to create Second Ark working dir")
+		logger.Logger.WithError(err).Error("Failed to create Bark working dir")
 		return nil, err
 	}
 
@@ -40,7 +40,7 @@ func NewSecondArkService(ctx context.Context, mnemonic, workdir string) (*Second
 	dbFilePath := filepath.Join(workdir, barkDB)
 	if _, err := os.Stat(dbFilePath); err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
-			logger.Logger.WithError(err).Error("Failed to check Second Ark database file")
+			logger.Logger.WithError(err).Error("Failed to check Bark database file")
 			return nil, err
 		}
 
@@ -54,13 +54,13 @@ func NewSecondArkService(ctx context.Context, mnemonic, workdir string) (*Second
 
 		wallet, err = checkBindingsErr(bindings.CreateWallet(dbFilePath, mnemonic, barkConfig))
 		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to create Second Ark wallet")
+			logger.Logger.WithError(err).Error("Failed to create Bark wallet")
 			return nil, err
 		}
 	} else {
 		wallet, err = checkBindingsErr(bindings.OpenWallet(dbFilePath, mnemonic))
 		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to open Second Ark wallet")
+			logger.Logger.WithError(err).Error("Failed to open Bark wallet")
 			return nil, err
 		}
 	}
@@ -103,13 +103,13 @@ func NewSecondArkService(ctx context.Context, mnemonic, workdir string) (*Second
 		}
 	}()
 
-	return &SecondArkService{
+	return &BarkService{
 		wallet: wallet,
 		cancel: cancel,
 	}, nil
 }
 
-func (s *SecondArkService) Shutdown() error {
+func (s *BarkService) Shutdown() error {
 	logger.Logger.Info("Shutting down Ark client")
 
 	s.cancel()
@@ -122,7 +122,7 @@ func (s *SecondArkService) Shutdown() error {
 	return nil
 }
 
-func (s *SecondArkService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64, timeoutSeconds *int64) (*lnclient.PayInvoiceResponse, error) {
+func (s *BarkService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64, timeoutSeconds *int64) (*lnclient.PayInvoiceResponse, error) {
 	paymentRequest, err := decodepay.Decodepay(invoice)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -163,19 +163,19 @@ func (s *SecondArkService) SendPaymentSync(ctx context.Context, invoice string, 
 	}, nil
 }
 
-func (s *SecondArkService) SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+func (s *BarkService) SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (s *SecondArkService) GetPubkey() string {
+func (s *BarkService) GetPubkey() string {
 	return s.wallet.OorPubkey()
 }
 
-func (s *SecondArkService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
+func (s *BarkService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
 	pk := s.wallet.OorPubkey()
 	arkInfo, err := checkBindingsErr(s.wallet.ArkInfo())
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to get Second Ark info")
+		logger.Logger.WithError(err).Error("Failed to get Ark info")
 		return nil, err
 	}
 
@@ -185,82 +185,82 @@ func (s *SecondArkService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo
 	}, nil
 }
 
-func (s *SecondArkService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
+func (s *BarkService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
 	return nil, errors.New("not implemented")
 }
 
-func (s *SecondArkService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
+func (s *BarkService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
 	return nil, errors.New("not implemented")
 }
 
-func (s *SecondArkService) SettleHoldInvoice(ctx context.Context, preimage string) (err error) {
+func (s *BarkService) SettleHoldInvoice(ctx context.Context, preimage string) (err error) {
 	return errors.New("not implemented")
 }
 
-func (s *SecondArkService) CancelHoldInvoice(ctx context.Context, paymentHash string) (err error) {
+func (s *BarkService) CancelHoldInvoice(ctx context.Context, paymentHash string) (err error) {
 	return errors.New("not implemented")
 }
 
-func (s *SecondArkService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
+func (s *BarkService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
 	return nil, errors.New("not implemented")
 }
 
-func (s *SecondArkService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []lnclient.Transaction, err error) {
+func (s *BarkService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []lnclient.Transaction, err error) {
 	return nil, errors.New("not implemented")
 }
 
-func (s *SecondArkService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
+func (s *BarkService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (s *SecondArkService) ListChannels(ctx context.Context) (channels []lnclient.Channel, err error) {
+func (s *BarkService) ListChannels(ctx context.Context) (channels []lnclient.Channel, err error) {
 	return []lnclient.Channel{}, nil
 }
 
-func (s *SecondArkService) GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *lnclient.NodeConnectionInfo, err error) {
+func (s *BarkService) GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *lnclient.NodeConnectionInfo, err error) {
 	return &lnclient.NodeConnectionInfo{
 		Pubkey: s.wallet.OorPubkey(),
 	}, nil
 }
 
-func (s *SecondArkService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
+func (s *BarkService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
 	return &lnclient.NodeStatus{
 		IsReady: true,
 	}, nil
 }
 
-func (s *SecondArkService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
+func (s *BarkService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
 	return errors.New("not implemented")
 }
 
-func (s *SecondArkService) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
+func (s *BarkService) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (s *SecondArkService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
+func (s *BarkService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (s *SecondArkService) UpdateChannel(ctx context.Context, updateChannelRequest *lnclient.UpdateChannelRequest) error {
+func (s *BarkService) UpdateChannel(ctx context.Context, updateChannelRequest *lnclient.UpdateChannelRequest) error {
 	return errors.New("not implemented")
 }
 
-func (s *SecondArkService) DisconnectPeer(ctx context.Context, peerId string) error {
+func (s *BarkService) DisconnectPeer(ctx context.Context, peerId string) error {
 	return errors.New("not implemented")
 }
 
-func (s *SecondArkService) GetNewOnchainAddress(ctx context.Context) (string, error) {
+func (s *BarkService) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	return "", errors.New("not implemented")
 }
 
-func (s *SecondArkService) ResetRouter(key string) error {
+func (s *BarkService) ResetRouter(key string) error {
 	return errors.New("not implemented")
 }
 
-func (s *SecondArkService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
+func (s *BarkService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
 	balance, err := checkBindingsErr(s.wallet.Balance())
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to get Second Ark balance")
+		logger.Logger.WithError(err).Error("Failed to get Bark wallet balance")
 		return nil, err
 	}
 
@@ -270,10 +270,10 @@ func (s *SecondArkService) GetOnchainBalance(ctx context.Context) (*lnclient.Onc
 	}, nil
 }
 
-func (s *SecondArkService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
+func (s *BarkService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
 	balance, err := checkBindingsErr(s.wallet.Balance())
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to get Second Ark balance")
+		logger.Logger.WithError(err).Error("Failed to get Bark wallet balance")
 		return nil, err
 	}
 
@@ -288,50 +288,50 @@ func (s *SecondArkService) GetBalances(ctx context.Context, includeInactiveChann
 	}, nil
 }
 
-func (s *SecondArkService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (txId string, err error) {
+func (s *BarkService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (txId string, err error) {
 	return "", errors.New("not implemented")
 }
 
-func (s *SecondArkService) SendPaymentProbes(ctx context.Context, invoice string) error {
+func (s *BarkService) SendPaymentProbes(ctx context.Context, invoice string) error {
 	return errors.New("not implemented")
 }
 
-func (s *SecondArkService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
+func (s *BarkService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
 	return errors.New("not implemented")
 }
 
-func (s *SecondArkService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
+func (s *BarkService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (s *SecondArkService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, error) {
+func (s *BarkService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (s *SecondArkService) SignMessage(ctx context.Context, message string) (string, error) {
+func (s *BarkService) SignMessage(ctx context.Context, message string) (string, error) {
 	return "", errors.New("not implemented")
 }
 
-func (s *SecondArkService) GetStorageDir() (string, error) {
+func (s *BarkService) GetStorageDir() (string, error) {
 	return "", errors.New("not implemented")
 }
 
-func (s *SecondArkService) GetNetworkGraph(ctx context.Context, nodeIds []string) (lnclient.NetworkGraphResponse, error) {
+func (s *BarkService) GetNetworkGraph(ctx context.Context, nodeIds []string) (lnclient.NetworkGraphResponse, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (s *SecondArkService) UpdateLastWalletSyncRequest() {
+func (s *BarkService) UpdateLastWalletSyncRequest() {
 }
 
-func (s *SecondArkService) GetSupportedNIP47Methods() []string {
+func (s *BarkService) GetSupportedNIP47Methods() []string {
 	return []string{"pay_invoice", "get_balance", "get_info"}
 }
 
-func (s *SecondArkService) GetSupportedNIP47NotificationTypes() []string {
+func (s *BarkService) GetSupportedNIP47NotificationTypes() []string {
 	return []string{}
 }
 
-func (s *SecondArkService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
+func (s *BarkService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
 	return []lnclient.CustomNodeCommandDef{
 		{
 			Name:        nodeCommandPubkey,
@@ -346,7 +346,7 @@ func (s *SecondArkService) GetCustomNodeCommandDefinitions() []lnclient.CustomNo
 	}
 }
 
-func (s *SecondArkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
+func (s *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
 	switch command.Name {
 	case nodeCommandPubkey:
 		return &lnclient.CustomNodeCommandResponse{

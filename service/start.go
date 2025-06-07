@@ -17,11 +17,11 @@ import (
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/lnclient/bark"
 	"github.com/getAlby/hub/lnclient/cashu"
 	"github.com/getAlby/hub/lnclient/ldk"
 	"github.com/getAlby/hub/lnclient/lnd"
 	"github.com/getAlby/hub/lnclient/phoenixd"
-	"github.com/getAlby/hub/lnclient/second_ark"
 	"github.com/getAlby/hub/logger"
 )
 
@@ -369,7 +369,7 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		barkWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "bark")
 
-		lnClient, err = second_ark.NewSecondArkService(ctx, mnemonic, barkWorkdir)
+		lnClient, err = bark.NewBarkService(ctx, mnemonic, barkWorkdir)
 	default:
 		logger.Logger.WithField("backend_type", lnBackend).Error("Unsupported LNBackendType")
 		return fmt.Errorf("unsupported backend type: %s", lnBackend)
