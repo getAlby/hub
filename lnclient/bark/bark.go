@@ -106,6 +106,7 @@ func NewBarkService(ctx context.Context, mnemonic, workdir string) (*BarkService
 	return &BarkService{
 		wallet: wallet,
 		cancel: cancel,
+		wg:     wg,
 	}, nil
 }
 
