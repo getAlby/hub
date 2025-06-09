@@ -23,7 +23,6 @@ import { LoadingButton } from "src/components/ui/loading-button";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useToast } from "src/components/ui/use-toast";
 import { MIN_AUTO_SWAP_AMOUNT } from "src/constants";
-import { useOnchainAddress } from "src/hooks/useOnchainAddress";
 import { useSwaps } from "src/hooks/useSwaps";
 import { cn } from "src/lib/utils";
 import { SwapsSettingsResponse } from "src/types";
@@ -124,10 +123,6 @@ function AutoSwapInForm() {
     }
   };
 
-  if (!swapsSettings) {
-    return <Loading />;
-  }
-
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
       <div className="mt-6">
@@ -172,10 +167,14 @@ function AutoSwapInForm() {
       {/* TODO: Review fee for swap ins */}
       <div className="flex items-center justify-between border-t py-4">
         <Label>Fee</Label>
-        <p className="text-muted-foreground text-sm">
-          {swapsSettings.albyServiceFee + swapsSettings.boltzServiceFee}% +
-          on-chain fees
-        </p>
+        {swapsSettings ? (
+          <p className="text-muted-foreground text-sm">
+            {swapsSettings.albyServiceFee + swapsSettings.boltzServiceFee}% +
+            on-chain fees
+          </p>
+        ) : (
+          <Loading />
+        )}
       </div>
       <LoadingButton loading={loading}>Set Auto Swap In</LoadingButton>
     </form>
@@ -184,8 +183,6 @@ function AutoSwapInForm() {
 
 function AutoSwapOutForm() {
   const { toast } = useToast();
-  // TODO: Optimize by setting this from the backend
-  const { data: onchainAddress } = useOnchainAddress();
   const { data: swapsSettings, mutate } = useSwaps();
   const navigate = useNavigate();
 
@@ -207,8 +204,8 @@ function AutoSwapOutForm() {
         },
         body: JSON.stringify({
           swapAmount: parseInt(swapAmount),
-          destination: isInternalSwap ? onchainAddress : destination,
           balanceThreshold: parseInt(balanceThreshold),
+          destination,
         }),
       });
       navigate(`/wallet/swap/success`, {
@@ -238,10 +235,6 @@ function AutoSwapOutForm() {
     const text = await navigator.clipboard.readText();
     setDestination(text.trim());
   };
-
-  if (!onchainAddress || !swapsSettings) {
-    return <Loading />;
-  }
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
@@ -346,10 +339,14 @@ function AutoSwapOutForm() {
 
       <div className="flex items-center justify-between border-t pt-4">
         <Label>Fee</Label>
-        <p className="text-muted-foreground text-sm">
-          {swapsSettings.albyServiceFee + swapsSettings.boltzServiceFee}% +
-          on-chain fees
-        </p>
+        {swapsSettings ? (
+          <p className="text-muted-foreground text-sm">
+            {swapsSettings.albyServiceFee + swapsSettings.boltzServiceFee}% +
+            on-chain fees
+          </p>
+        ) : (
+          <Loading />
+        )}
       </div>
       <LoadingButton loading={loading}>Set Auto Swap Out</LoadingButton>
     </form>

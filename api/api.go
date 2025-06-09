@@ -544,7 +544,7 @@ func (api *api) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnec
 	return api.svc.GetLNClient().GetNodeConnectionInfo(ctx)
 }
 
-func (api *api) GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error) {
+func (api *api) GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error) {
 	swapBalanceThresholdStr, _ := api.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
 	swapAmountStr, _ := api.cfg.Get(config.AutoSwapAmountKey, "")
 	swapDestination, _ := api.cfg.Get(config.AutoSwapDestinationKey, "")
@@ -569,7 +569,7 @@ func (api *api) GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error) {
 		return nil, err
 	}
 
-	return &GetAutoSwapsConfigResponse{
+	return &GetAutoSwapConfigResponse{
 		Enabled:          enabled,
 		BalanceThreshold: swapBalanceThreshold,
 		SwapAmount:       swapAmount,
@@ -580,7 +580,7 @@ func (api *api) GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error) {
 	}, nil
 }
 
-func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapOutRequest) (string, error) {
+func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (string, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return "", errors.New("LNClient not started")
@@ -589,8 +589,8 @@ func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *Ini
 	amount := initiateSwapOutRequest.SwapAmount
 	destination := initiateSwapOutRequest.Destination
 
-	if amount == 0 || destination == "" {
-		return "", errors.New("invalid amount or destination")
+	if amount == 0 {
+		return "", errors.New("invalid swap amount")
 	}
 
 	// TODO: Do not use context.Background
@@ -606,7 +606,7 @@ func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *Ini
 	return txId, nil
 }
 
-func (api *api) EnableAutoSwaps(ctx context.Context, enableAutoSwapsRequest *EnableAutoSwapsRequest) error {
+func (api *api) EnableAutoSwap(ctx context.Context, enableAutoSwapsRequest *EnableAutoSwapRequest) error {
 	err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, strconv.FormatUint(enableAutoSwapsRequest.BalanceThreshold, 10), "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save autoswap balance threshold to config")
@@ -625,10 +625,10 @@ func (api *api) EnableAutoSwaps(ctx context.Context, enableAutoSwapsRequest *Ena
 		return err
 	}
 
-	return api.svc.StartAutoSwaps()
+	return api.svc.StartAutoSwap()
 }
 
-func (api *api) DisableAutoSwaps() error {
+func (api *api) DisableAutoSwap() error {
 	if err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, "", ""); err != nil {
 		logger.Logger.WithError(err).Error("Failed to remove autoswap balance threshold")
 		return err
@@ -642,7 +642,7 @@ func (api *api) DisableAutoSwaps() error {
 		return err
 	}
 
-	api.svc.GetSwapsService().StopAutoSwaps()
+	api.svc.GetSwapsService().StopAutoSwap()
 
 	return nil
 }

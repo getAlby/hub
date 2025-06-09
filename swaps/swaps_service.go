@@ -31,8 +31,8 @@ type swapsService struct {
 }
 
 type SwapsService interface {
-	EnableAutoSwaps(ctx context.Context, lnClient lnclient.LNClient) error
-	StopAutoSwaps()
+	EnableAutoSwap(ctx context.Context, lnClient lnclient.LNClient) error
+	StopAutoSwap()
 	CalculateFee() (*SwapFees, error)
 	ReverseSwap(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) (string, error)
 }
@@ -64,18 +64,18 @@ func NewSwapsService(cfg config.Config, eventPublisher events.EventPublisher, tr
 	}
 }
 
-func (svc *swapsService) EnableAutoSwaps(ctx context.Context, lnClient lnclient.LNClient) error {
+func (svc *swapsService) EnableAutoSwap(ctx context.Context, lnClient lnclient.LNClient) error {
 	// stop any existing swap process
-	svc.StopAutoSwaps()
+	svc.StopAutoSwap()
 
 	ctx, cancelFn := context.WithCancel(ctx)
 	swapDestination, _ := svc.cfg.Get(config.AutoSwapDestinationKey, "")
 	balanceThresholdStr, _ := svc.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
 	amountStr, _ := svc.cfg.Get(config.AutoSwapAmountKey, "")
 
-	if swapDestination == "" || balanceThresholdStr == "" || amountStr == "" {
+	if balanceThresholdStr == "" || amountStr == "" {
 		cancelFn()
-		logger.Logger.Info("Auto swaps not configured")
+		logger.Logger.Info("Auto swap not configured")
 		return nil
 	}
 
@@ -130,7 +130,7 @@ func (svc *swapsService) EnableAutoSwaps(ctx context.Context, lnClient lnclient.
 	return nil
 }
 
-func (svc *swapsService) StopAutoSwaps() {
+func (svc *swapsService) StopAutoSwap() {
 	if svc.cancelFn != nil {
 		logger.Logger.Info("Stopping swap service...")
 		svc.cancelFn()
@@ -139,6 +139,14 @@ func (svc *swapsService) StopAutoSwaps() {
 }
 
 func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) (string, error) {
+	if destination == "" {
+		var err error
+		destination, err = svc.cfg.Get(config.OnchainAddressKey, "")
+		if err != nil {
+			return "", fmt.Errorf("could not get onchain address from config: %s", err)
+		}
+	}
+
 	var network, err = boltz.ParseChain(svc.cfg.GetNetwork())
 	if err != nil {
 		return "", err

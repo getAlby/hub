@@ -11,7 +11,6 @@ import { LoadingButton } from "src/components/ui/loading-button";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useToast } from "src/components/ui/use-toast";
 import { MIN_AUTO_SWAP_AMOUNT } from "src/constants";
-import { useOnchainAddress } from "src/hooks/useOnchainAddress";
 import { useSwaps } from "src/hooks/useSwaps";
 import { cn } from "src/lib/utils";
 import { request } from "src/utils/request";
@@ -75,7 +74,7 @@ export default function Swap() {
 
 function SwapInForm() {
   const { toast } = useToast();
-  const { data: swapsSettings, mutate } = useSwaps();
+  const { data: swapsSettings } = useSwaps();
 
   const [swapAmount, setSwapAmount] = useState("");
   const [loading, setLoading] = useState(false);
@@ -95,7 +94,6 @@ function SwapInForm() {
         }),
       });
       toast({ title: "Initiated swap" });
-      await mutate();
     } catch (error) {
       toast({
         title: "Saving swap settings failed",
@@ -106,10 +104,6 @@ function SwapInForm() {
       setLoading(false);
     }
   };
-
-  if (!swapsSettings) {
-    return <Loading />;
-  }
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
@@ -139,10 +133,14 @@ function SwapInForm() {
       {/* TODO: Review fee for swap ins */}
       <div className="flex items-center justify-between border-t pt-4">
         <Label>Fee</Label>
-        <p className="text-muted-foreground text-sm">
-          {swapsSettings.albyServiceFee + swapsSettings.boltzServiceFee}% +
-          on-chain fees
-        </p>
+        {swapsSettings ? (
+          <p className="text-muted-foreground text-sm">
+            {swapsSettings.albyServiceFee + swapsSettings.boltzServiceFee}% +
+            on-chain fees
+          </p>
+        ) : (
+          <Loading />
+        )}
       </div>
       <LoadingButton loading={loading}>Swap In</LoadingButton>
     </form>
@@ -151,9 +149,7 @@ function SwapInForm() {
 
 function SwapOutForm() {
   const { toast } = useToast();
-  // TODO: Optimize by setting this from the backend
-  const { data: onchainAddress } = useOnchainAddress();
-  const { data: swapsSettings, mutate } = useSwaps();
+  const { data: swapsSettings } = useSwaps();
   const navigate = useNavigate();
 
   const [isInternalSwap, setInternalSwap] = useState(true);
@@ -173,7 +169,7 @@ function SwapOutForm() {
         },
         body: JSON.stringify({
           swapAmount: parseInt(swapAmount),
-          destination: isInternalSwap ? onchainAddress : destination, // TODO: assume empty destination as hub onchain address
+          destination,
         }),
       });
       if (!txId) {
@@ -189,7 +185,6 @@ function SwapOutForm() {
       toast({
         title: "Initiated swap",
       });
-      await mutate();
     } catch (error) {
       toast({
         title: "Failed to initiate swap",
@@ -205,10 +200,6 @@ function SwapOutForm() {
     const text = await navigator.clipboard.readText();
     setDestination(text.trim());
   };
-
-  if (!onchainAddress || !swapsSettings) {
-    return <Loading />;
-  }
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
@@ -297,10 +288,14 @@ function SwapOutForm() {
 
       <div className="flex items-center justify-between border-t pt-4">
         <Label>Fee</Label>
-        <p className="text-muted-foreground text-sm">
-          {swapsSettings.albyServiceFee + swapsSettings.boltzServiceFee}% +
-          on-chain fees
-        </p>
+        {swapsSettings ? (
+          <p className="text-muted-foreground text-sm">
+            {swapsSettings.albyServiceFee + swapsSettings.boltzServiceFee}% +
+            on-chain fees
+          </p>
+        ) : (
+          <Loading />
+        )}
       </div>
       <LoadingButton loading={loading}>Swap Out</LoadingButton>
     </form>
