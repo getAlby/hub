@@ -105,27 +105,23 @@ func (cfg *config) init(env *AppConfig) error {
 	}
 
 	// set the JWT secret from the env, or generate a new one
-	if cfg.Env.JWTSecret != "" {
-		// If JWTSecret is provided in env, ensure it's in the DB
-		err := cfg.SetIgnore("JWTSecret", cfg.Env.JWTSecret, "")
-		if err != nil {
-			logger.Logger.WithError(err).Error("failed to set JWT secret from env")
-		}
-	} else {
-		// Check if a JWT secret already exists in DB, otherwise generate one
-		existingSecret, _ := cfg.Get("JWTSecret", "")
-		if existingSecret == "" {
+	existingSecret, _ := cfg.Get("JWTSecret", "")
+	if existingSecret == "" {
+		jwtSecret := cfg.Env.JWTSecret
+		if jwtSecret == "" {
 			hexSecret, err := randomHex(32)
 			if err != nil {
 				logger.Logger.WithError(err).Error("failed to generate JWT secret")
 				return err
 			}
-			err = cfg.SetIgnore("JWTSecret", hexSecret, "")
-			if err != nil {
-				logger.Logger.WithError(err).Error("failed to save newly generated JWT secret")
-				return err
-			}
-			logger.Logger.Info("Generated and saved new JWT secret")
+			jwtSecret = hexSecret
+			logger.Logger.Info("Generated new JWT secret")
+		}
+		
+		err := cfg.SetIgnore("JWTSecret", jwtSecret, "")
+		if err != nil {
+			logger.Logger.WithError(err).Error("failed to save JWT secret")
+			return err
 		}
 	}
 	return nil
