@@ -273,27 +273,30 @@ func (cfg *config) ChangeUnlockPassword(currentUnlockPassword string, newUnlockP
 			logger.Logger.WithField("key", userConfig.Key).Info("re-encrypted key")
 		}
 
-		// commit transaction
+		newSecret, err := randomHex(32)
+		if err != nil {
+			logger.Logger.WithError(err).Error("failed to generate new JWT secret during password change transaction")
+			return fmt.Errorf("failed to generate new JWT secret: %w", err)
+		}
+
+		updateClauses := clause.OnConflict{
+			Columns:   []clause.Column{{Name: "key"}},
+			DoUpdates: clause.AssignmentColumns([]string{"value"}),
+		}
+		err = cfg.set("JWTSecret", newSecret, updateClauses, "", tx)
+		if err != nil {
+			logger.Logger.WithError(err).Error("failed to save new JWT secret during password change transaction")
+			return fmt.Errorf("failed to save new JWT secret: %w", err)
+		}
+		logger.Logger.Info("Successfully regenerated JWT secret as part of password change transaction")
+
 		return nil
 	})
 
 	if err != nil {
-		logger.Logger.WithError(err).Error("failed to execute db transaction")
+		logger.Logger.WithError(err).Error("failed to execute password change transaction (includes JWT regeneration)")
 		return err
 	}
-
-	newSecret, err := randomHex(32)
-	if err != nil {
-		logger.Logger.WithError(err).Error("failed to generate new JWT secret")
-	} else {
-		err = cfg.SetUpdate("JWTSecret", newSecret, "")
-		if err != nil {
-			logger.Logger.WithError(err).Error("failed to save new JWT secret")
-		} else {
-			logger.Logger.Info("Successfully regenerated JWT secret after password change")
-		}
-	}
-
 	return nil
 }
 
