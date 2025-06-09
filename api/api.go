@@ -606,6 +606,30 @@ func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *Ini
 	return txId, nil
 }
 
+func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (string, error) {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
+		return "", errors.New("LNClient not started")
+	}
+
+	amount := initiateSwapInRequest.SwapAmount
+
+	if amount == 0 {
+		return "", errors.New("invalid swap amount")
+	}
+
+	// TODO: Do not use context.Background
+	txId, err := api.svc.GetSwapsService().SubmarineSwap(context.Background(), amount, lnClient)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"amount": amount,
+		}).WithError(err).Error("Failed to initiate swap out")
+		return "", err
+	}
+
+	return txId, nil
+}
+
 func (api *api) EnableAutoSwap(ctx context.Context, enableAutoSwapsRequest *EnableAutoSwapRequest) error {
 	err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, strconv.FormatUint(enableAutoSwapsRequest.BalanceThreshold, 10), "")
 	if err != nil {

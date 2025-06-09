@@ -159,6 +159,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/commands", httpSvc.getCustomNodeCommandsHandler)
 	restrictedApiGroup.POST("/command", httpSvc.execCustomNodeCommandHandler)
 	restrictedApiGroup.POST("/wallet/swap/out", httpSvc.initiateSwapOutHandler)
+	restrictedApiGroup.POST("/wallet/swap/in", httpSvc.initiateSwapInHandler)
 	restrictedApiGroup.GET("/wallet/autoswap/out", httpSvc.getAutoSwapOutConfigHandler)
 	restrictedApiGroup.POST("/wallet/autoswap/out", httpSvc.enableAutoSwapOutHandler)
 	restrictedApiGroup.DELETE("/wallet/autoswap/out", httpSvc.disableAutoSwapOutHandler)
@@ -1171,7 +1172,25 @@ func (httpSvc *HttpService) initiateSwapOutHandler(c echo.Context) error {
 	txId, err := httpSvc.api.InitiateSwapOut(c.Request().Context(), &initiateSwapOutRequest)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to initiate swap: %v", err),
+			Message: fmt.Sprintf("Failed to initiate swap out: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, txId)
+}
+
+func (httpSvc *HttpService) initiateSwapInHandler(c echo.Context) error {
+	var initiateSwapInRequest api.InitiateSwapRequest
+	if err := c.Bind(&initiateSwapInRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	txId, err := httpSvc.api.InitiateSwapIn(c.Request().Context(), &initiateSwapInRequest)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to initiate swap in: %v", err),
 		})
 	}
 

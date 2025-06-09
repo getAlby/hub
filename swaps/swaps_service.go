@@ -1,9 +1,11 @@
 package swaps
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -35,6 +37,7 @@ type SwapsService interface {
 	StopAutoSwap()
 	CalculateFee() (*SwapFees, error)
 	ReverseSwap(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) (string, error)
+	SubmarineSwap(ctx context.Context, amount uint64, lnClient lnclient.LNClient) (string, error)
 }
 
 const (
@@ -450,4 +453,197 @@ func (svc *swapsService) getFeeRates() (*FeeRates, error) {
 		return nil, fmt.Errorf("failed to deserialize json %s %s", url, string(body))
 	}
 	return &rates, nil
+}
+
+func (svc *swapsService) SubmarineSwap(ctx context.Context, amount uint64, lnClient lnclient.LNClient) (string, error) {
+	amount *= 1000
+	if amount == 0 {
+		return "", fmt.Errorf("invalid amount")
+	}
+
+	// metadata := map[string]interface{}{
+	// 	"swapId":      swap.Id,
+	// 	"claimPubkey": swap.ClaimPublicKey,
+	// 	"amount":      amount,
+	// }
+	invoice, err := svc.transactionsService.MakeInvoice(ctx, amount, "Boltz swap invoice", "", 0, nil, lnClient, nil, nil)
+	if err != nil {
+		return "", err
+	}
+
+	network, err := boltz.ParseChain(svc.cfg.GetNetwork())
+	if err != nil {
+		return "", err
+	}
+
+	ourKeys, err := btcec.NewPrivateKey()
+	if err != nil {
+		return "", err
+	}
+
+	// TODO: Calculate fees
+
+	albyFee := &boltz.ExtraFees{
+		Percentage: AlbySwapServiceFee,
+		Id:         "albyServiceFee",
+	}
+
+	swap, err := svc.boltzApi.CreateSwap(boltz.CreateSwapRequest{
+		From:            boltz.CurrencyBtc,
+		To:              boltz.CurrencyBtc,
+		RefundPublicKey: ourKeys.PubKey().SerializeCompressed(),
+		Invoice:         invoice.PaymentRequest,
+		ReferralId:      "alby",
+		ExtraFees:       albyFee,
+	})
+	if err != nil {
+		return "", fmt.Errorf("could not create swap: %s", err)
+	}
+
+	boltzPubKey, err := btcec.ParsePubKey(swap.ClaimPublicKey)
+	if err != nil {
+		return "", err
+	}
+
+	tree := swap.SwapTree.Deserialize()
+	if err := tree.Init(boltz.CurrencyBtc, false, ourKeys, boltzPubKey); err != nil {
+		return "", err
+	}
+
+	decodedPreimageHash, err := hex.DecodeString(invoice.PaymentHash)
+	if err != nil {
+		return "", fmt.Errorf("invalid preimage hash: %v", err)
+	}
+
+	// Check the scripts of the Taptree to make sure Boltz is not cheating
+	if err := tree.Check(boltz.NormalSwap, swap.TimeoutBlockHeight, decodedPreimageHash); err != nil {
+		return "", err
+	}
+
+	// Verify that Boltz is giving us the correct address
+	if err := tree.CheckAddress(swap.Address, network, nil); err != nil {
+		return "", err
+	}
+
+	logger.Logger.WithField("swap", swap).Info("Swap created")
+
+	txCh := make(chan string, 1)
+	errCh := make(chan error, 1)
+
+	boltzWs := svc.boltzApi.NewWebsocket()
+	if err := boltzWs.Connect(); err != nil {
+		return "", fmt.Errorf("could not connect to Boltz websocket: %w", err)
+	}
+
+	if err := boltzWs.Subscribe([]string{swap.Id}); err != nil {
+		_ = boltzWs.Close()
+		return "", err
+	}
+
+	go func() {
+		defer func() {
+			if err := boltzWs.Close(); err != nil {
+				logger.Logger.WithError(err).Error("Failed to close boltz websocket")
+			}
+		}()
+
+		updatesCh := boltzWs.Updates
+		paymentErrorCh := make(chan error, 1)
+
+		for {
+			select {
+			case <-ctx.Done():
+				logger.Logger.WithError(ctx.Err()).Error("Submarine swap context cancelled")
+				errCh <- ctx.Err()
+				return
+			case err := <-paymentErrorCh:
+				errCh <- err
+				return
+			case update, ok := <-updatesCh:
+				if !ok {
+					errCh <- errors.New("boltz websocket closed unexpectedly")
+					return
+				}
+
+				parsedStatus := boltz.ParseEvent(update.Status)
+
+				switch parsedStatus {
+				case boltz.InvoiceSet:
+					logger.Logger.WithFields(logrus.Fields{
+						"swap":   swap,
+						"update": update,
+					}).Info("Paying for the swap on-chain")
+					go func() {
+						_, err := lnClient.RedeemOnchainFunds(ctx, swap.Address, swap.ExpectedAmount, nil, false)
+						if err != nil {
+							logger.Logger.WithError(err).WithFields(logrus.Fields{
+								"swap":   swap,
+								"update": update,
+							}).Error("Error paying for the swap on-chain")
+							paymentErrorCh <- err
+							return
+						}
+						logger.Logger.WithField("swapId", swap.Id).Info("Initiated swap on-chain payment")
+					}()
+				case boltz.TransactionMempool:
+					logger.Logger.WithFields(logrus.Fields{
+						"swapId":      swap.Id,
+						"transaction": update.Transaction,
+					}).Info("Lockup transaction found in mempool")
+					txCh <- update.Transaction.Id
+				case boltz.TransactionClaimPending:
+					logger.Logger.WithFields(logrus.Fields{
+						"swapId":      swap.Id,
+						"transaction": update.Transaction,
+					}).Info("Lockup transaction confirmed in mempool")
+					claimDetails, err := svc.boltzApi.GetSwapClaimDetails(swap.Id)
+					if err != nil {
+						logger.Logger.WithError(err).Error("Could not get claim details from Boltz")
+						return
+					}
+
+					// Verify that the invoice was actually paid
+					preimageHash := sha256.Sum256(claimDetails.Preimage)
+					if !bytes.Equal(decodedPreimageHash, preimageHash[:]) {
+						logger.Logger.WithField("preimage", claimDetails.Preimage).Error("Boltz returned wrong preimage")
+						return
+					}
+
+					session, _ := boltz.NewSigningSession(tree)
+					partial, err := session.Sign(claimDetails.TransactionHash, claimDetails.PubNonce)
+					if err != nil {
+						logger.Logger.WithError(err).Error("Could not create partial signature")
+						return
+					}
+
+					if err := svc.boltzApi.SendSwapClaimSignature(swap.Id, partial); err != nil {
+						logger.Logger.WithError(err).Error("Could not send partial signature to Boltz")
+						return
+					}
+				case boltz.TransactionClaimed:
+					logger.Logger.WithField("swapId", swap.Id).Info("Swap succeeded")
+					svc.eventPublisher.Publish(&events.Event{
+						Event: "nwc_swap_succeeded",
+						Properties: map[string]interface{}{
+							"swapType":    "in",
+							"swapId":      swap.Id,
+							"address":     swap.Address,
+							"amount":      swap.ExpectedAmount,
+							"claimPubkey": swap.ClaimPublicKey,
+						},
+					})
+					return
+				}
+			}
+		}
+	}()
+
+	select {
+	case <-ctx.Done():
+		return "", ctx.Err()
+	case err := <-errCh:
+		return "", err
+	case txid := <-txCh:
+		return txid, nil
+	}
 }

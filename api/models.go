@@ -59,6 +59,7 @@ type API interface {
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
+	InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (string, error)
 	InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (string, error)
 	GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error)
 	EnableAutoSwap(ctx context.Context, autoSwapRequest *EnableAutoSwapRequest) error

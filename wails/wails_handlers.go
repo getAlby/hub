@@ -994,7 +994,29 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				"route":  route,
 				"method": method,
 				"body":   body,
-			}).WithError(err).Error("Failed to initiate swap")
+			}).WithError(err).Error("Failed to initiate swap out")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: txId, Error: ""}
+	case "/api/wallet/swap/in":
+		initiateSwapInRequest := &api.InitiateSwapRequest{}
+		err := json.Unmarshal([]byte(body), initiateSwapInRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+
+		txId, err := app.api.InitiateSwapOut(ctx, initiateSwapInRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to initiate swap in")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: txId, Error: ""}
