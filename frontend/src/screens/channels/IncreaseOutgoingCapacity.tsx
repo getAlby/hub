@@ -47,6 +47,9 @@ import {
 } from "src/types";
 import { request } from "src/utils/request";
 
+import LightningNetworkDarkSVG from "public/images/illustrations/lightning-network-dark.svg";
+import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
+
 function getPeerKey(peer: RecommendedChannelPeer) {
   return JSON.stringify(peer);
 }
@@ -200,13 +203,10 @@ function NewChannelInternal({ network }: { network: Network }) {
       />
       <div className="md:max-w-md max-w-full flex flex-col gap-5 flex-1">
         <img
-          src="/images/illustrations/lightning-network-dark.svg"
+          src={LightningNetworkDarkSVG}
           className="w-full hidden dark:block"
         />
-        <img
-          src="/images/illustrations/lightning-network-light.svg"
-          className="w-full dark:hidden"
-        />
+        <img src={LightningNetworkLightSVG} className="w-full dark:hidden" />
         <p className="text-muted-foreground">
           Open a channel with on-chain funds. Both parties are free to close the
           channel at any time. However, by keeping more funds on your side of
