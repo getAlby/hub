@@ -93,11 +93,11 @@ github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0/go.mod h1:7SFka0XMvUgj3hfZtyd
 github.com/btcsuite/btclog v0.0.0-20170628155309-84c8d2346e9f/go.mod h1:TdznJufoqS23FtqVCzL0ZqgP5MqXbb4fg/WgDys70nA=
 github.com/btcsuite/btclog v0.0.0-20241003133417-09c4e92e319c h1:4HxD1lBUGUddhzgaNgrCPsFWd7cGYNpeFUgd9ZIgyM0=
 github.com/btcsuite/btclog v0.0.0-20241003133417-09c4e92e319c/go.mod h1:w7xnGOhwT3lmrS4H3b/D1XAXxvh+tbhUm8xeHN2y3TQ=
-github.com/btcsuite/btclog/v2 v2.0.1-0.20250110154127-3ae4bf1cb318 h1:oCjIcinPt7XQ644MP/22JcjYEC84qRc3bRBH0d7Hhd4=
-github.com/btcsuite/btclog/v2 v2.0.1-0.20250110154127-3ae4bf1cb318/go.mod h1:XItGUfVOxotJL8kkuk2Hj3EVow5KCugXl3wWfQ6K0AE=
+github.com/btcsuite/btclog/v2 v2.0.1-0.20250602222548-9967d19bb084 h1:y3bvkt8ki0KX35eUEU8XShRHusz1S+55QwXUTmxn888=
+github.com/btcsuite/btclog/v2 v2.0.1-0.20250602222548-9967d19bb084/go.mod h1:XItGUfVOxotJL8kkuk2Hj3EVow5KCugXl3wWfQ6K0AE=
 github.com/btcsuite/btcutil v0.0.0-20190425235716-9e5f4b9a998d/go.mod h1:+5NJ2+qvTyV9exUAL/rxXi3DcLg2Ts+ymUAY5y4NvMg=
-github.com/btcsuite/btcwallet v0.16.13 h1:JGu+wrihQ0I00ODb3w92JtBPbrHxZhbcvU01O+e+lKw=
-github.com/btcsuite/btcwallet v0.16.13/go.mod h1:H6dfoZcWPonM2wbVsR2ZBY0PKNZKdQyLAmnX8vL9JFA=
+github.com/btcsuite/btcwallet v0.16.14 h1:CofysgmI1ednkLsXontAdBoXJkbiim7unXnFKhLLjnE=
+github.com/btcsuite/btcwallet v0.16.14/go.mod h1:H6dfoZcWPonM2wbVsR2ZBY0PKNZKdQyLAmnX8vL9JFA=
 github.com/btcsuite/btcwallet/wallet/txauthor v1.3.5 h1:Rr0njWI3r341nhSPesKQ2JF+ugDSzdPoeckS75SeDZk=
 github.com/btcsuite/btcwallet/wallet/txauthor v1.3.5/go.mod h1:+tXJ3Ym0nlQc/iHSwW1qzjmPs3ev+UVWMbGgfV1OZqU=
 github.com/btcsuite/btcwallet/wallet/txrules v1.2.2 h1:YEO+Lx1ZJJAtdRrjuhXjWrYsmAk26wLTlNzxt2q0lhk=
@@ -477,8 +477,8 @@ github.com/lightninglabs/protobuf-go-hex-display v1.30.0-hex-display h1:pRdza2wl
 github.com/lightninglabs/protobuf-go-hex-display v1.30.0-hex-display/go.mod h1:HV8QOd/L58Z+nl8r43ehVNZIU/HEI6OcFqwMG9pJV4I=
 github.com/lightningnetwork/lightning-onion v1.2.1-0.20240712235311-98bd56499dfb h1:yfM05S8DXKhuCBp5qSMZdtSwvJ+GFzl94KbXMNB1JDY=
 github.com/lightningnetwork/lightning-onion v1.2.1-0.20240712235311-98bd56499dfb/go.mod h1:c0kvRShutpj3l6B9WtTsNTBUtjSmjZXbJd9ZBRQOSKI=
-github.com/lightningnetwork/lnd v0.19.0-beta.rc4 h1:24btFAAm0pQ5+tRrcTCdEkIQka5C1MUFSJz5iOUl7rQ=
-github.com/lightningnetwork/lnd v0.19.0-beta.rc4/go.mod h1:bASjjAiZsoEtHFo0imi5m4z/8m9afdIpu+Wz7rUXink=
+github.com/lightningnetwork/lnd v0.19.1-beta.rc1 h1:VV7xpS1g7OpDhlGYIa50Ac4I7TDZhvHjZ2Mmf+L4a7Y=
+github.com/lightningnetwork/lnd v0.19.1-beta.rc1/go.mod h1:iHZ/FHFK00BqV6qgDkZZfqWE3LGtgE0U5KdO5WrM+eQ=
 github.com/lightningnetwork/lnd/clock v1.1.1 h1:OfR3/zcJd2RhH0RU+zX/77c0ZiOnIMsDIBjgjWdZgA0=
 github.com/lightningnetwork/lnd/clock v1.1.1/go.mod h1:mGnAhPyjYZQJmebS7aevElXKTFDuO+uNFFfMXK1W8xQ=
 github.com/lightningnetwork/lnd/fn/v2 v2.0.8 h1:r2SLz7gZYQPVc3IZhU82M66guz3Zk2oY+Rlj9QN5S3g=
@@ -493,8 +493,8 @@ github.com/lightningnetwork/lnd/sqldb v1.0.9 h1:7OHi+Hui823mB/U9NzCdlZTAGSVdDCbj
 github.com/lightningnetwork/lnd/sqldb v1.0.9/go.mod h1:OG09zL/PHPaBJefp4HsPz2YLUJ+zIQHbpgCtLnOx8I4=
 github.com/lightningnetwork/lnd/ticker v1.1.1 h1:J/b6N2hibFtC7JLV77ULQp++QLtCwT6ijJlbdiZFbSM=
 github.com/lightningnetwork/lnd/ticker v1.1.1/go.mod h1:waPTRAAcwtu7Ji3+3k+u/xH5GHovTsCoSVpho0KDvdA=
-github.com/lightningnetwork/lnd/tlv v1.3.0 h1:exS/KCPEgpOgviIttfiXAPaUqw2rHQrnUOpP7HPBPiY=
-github.com/lightningnetwork/lnd/tlv v1.3.0/go.mod h1:pJuiBj1ecr1WWLOtcZ+2+hu9Ey25aJWFIsjmAoPPnmc=
+github.com/lightningnetwork/lnd/tlv v1.3.1 h1:o7CZg06y+rJZfUMAo0WzBLr0pgBWCzrt0f9gpujYUzk=
+github.com/lightningnetwork/lnd/tlv v1.3.1/go.mod h1:pJuiBj1ecr1WWLOtcZ+2+hu9Ey25aJWFIsjmAoPPnmc=
 github.com/lightningnetwork/lnd/tor v1.1.6 h1:WHUumk7WgU6BUFsqHuqszI9P6nfhMeIG+rjJBlVE6OE=
 github.com/lightningnetwork/lnd/tor v1.1.6/go.mod h1:qSRB8llhAK+a6kaTPWOLLXSZc6Hg8ZC0mq1sUQ/8JfI=
 github.com/ltcsuite/ltcd v0.23.5 h1:MFWjmx2hCwxrUu9v0wdIPOSN7PHg9BWQeh+AO4FsVLI=
