@@ -1270,21 +1270,15 @@ export const suggestedApps: SuggestedApp[] = [
               >
                 NakaPay
               </ExternalLink>{" "}
-              in your browser and create an account
+              in your browser and login with your Lightning wallet
             </li>
             <li>
-              2. Go to{" "}
-              <span className="font-medium text-foreground">Settings</span> →{" "}
-              <span className="font-medium text-foreground">Wallet</span> →{" "}
-              <span className="font-medium text-foreground">
-                Connect Wallet
-              </span>
+              2. Your account will be created automatically upon first login
             </li>
             <li>
-              3. Choose{" "}
-              <span className="font-medium text-foreground">
-                Nostr Wallet Connect
-              </span>
+              3. Go to{" "}
+              <span className="font-medium text-foreground">Dashboard</span> to
+              create an API key and configure your payment settings
             </li>
           </ul>
         </div>
@@ -1307,9 +1301,11 @@ export const suggestedApps: SuggestedApp[] = [
           </ul>
         </div>
         <div>
-          <h3 className="font-medium">In NakaPay</h3>
+          <h3 className="font-medium">In NakaPay Dashboard</h3>
           <ul className="list-inside text-muted-foreground">
-            <li>6. Paste the connection secret from Alby Hub</li>
+            <li>6. Create an API key for integration with your business</li>
+            <li>7. Configure webhook URLs to receive payment notifications</li>
+            <li>8. Paste the connection secret from Alby Hub in wallet settings</li>
           </ul>
         </div>
       </>
