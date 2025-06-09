@@ -25,7 +25,7 @@ export default function SwapSuccess() {
       <Card className="w-full">
         <CardHeader>
           <CardTitle className="text-center">
-            {state.isRecurringSwap ? "Auto swaps enabled" : "Swap Initiated"}
+            {state.isAutoSwap ? "Auto swaps enabled" : "Swap Initiated"}
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
@@ -35,7 +35,7 @@ export default function SwapSuccess() {
               {new Intl.NumberFormat().format(state.amount)} sats
             </p>
             <FormattedFiatAmount amount={state.amount} />
-            {state.isRecurringSwap && (
+            {state.isAutoSwap && (
               <div className="text-sm">
                 Will be swapped everytime balance reaches{" "}
                 <span className="font-bold slashed-zero">
