@@ -286,7 +286,7 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return err
 	}
 
-	err = svc.StartAutoSwap()
+	err = svc.StartAutoSwap(true, true)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Couldn't enable auto swaps")
 	}
@@ -305,8 +305,20 @@ func (svc *service) StartApp(encryptionKey string) error {
 	return nil
 }
 
-func (svc *service) StartAutoSwap() error {
-	return svc.GetSwapsService().EnableAutoSwap(svc.ctx, svc.lnClient)
+func (svc *service) StartAutoSwap(swapIn, swapOut bool) error {
+	if swapIn {
+		err := svc.GetSwapsService().EnableAutoSwapIn(svc.ctx, svc.lnClient)
+		if err != nil {
+			return err
+		}
+	}
+	if swapOut {
+		err := svc.GetSwapsService().EnableAutoSwapIn(svc.ctx, svc.lnClient)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) error {

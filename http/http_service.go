@@ -162,7 +162,9 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.POST("/wallet/swap/in", httpSvc.initiateSwapInHandler)
 	restrictedApiGroup.GET("/wallet/autoswap/out", httpSvc.getAutoSwapOutConfigHandler)
 	restrictedApiGroup.POST("/wallet/autoswap/out", httpSvc.enableAutoSwapOutHandler)
+	restrictedApiGroup.POST("/wallet/autoswap/in", httpSvc.enableAutoSwapInHandler)
 	restrictedApiGroup.DELETE("/wallet/autoswap/out", httpSvc.disableAutoSwapOutHandler)
+	restrictedApiGroup.DELETE("/wallet/autoswap/in", httpSvc.disableAutoSwapInHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedApiGroup, e)
 }
@@ -1216,7 +1218,7 @@ func (httpSvc *HttpService) enableAutoSwapOutHandler(c echo.Context) error {
 		})
 	}
 
-	err := httpSvc.api.EnableAutoSwap(c.Request().Context(), &enableAutoSwapRequest)
+	err := httpSvc.api.EnableAutoSwapOut(c.Request().Context(), &enableAutoSwapRequest)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to save swap settings: %v", err),
@@ -1226,8 +1228,38 @@ func (httpSvc *HttpService) enableAutoSwapOutHandler(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+func (httpSvc *HttpService) enableAutoSwapInHandler(c echo.Context) error {
+	var enableAutoSwapRequest api.EnableAutoSwapRequest
+	if err := c.Bind(&enableAutoSwapRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.api.EnableAutoSwapIn(c.Request().Context(), &enableAutoSwapRequest)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to save swap settings: %v", err),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) disableAutoSwapInHandler(c echo.Context) error {
+	err := httpSvc.api.DisableAutoSwap("in")
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
 func (httpSvc *HttpService) disableAutoSwapOutHandler(c echo.Context) error {
-	err := httpSvc.api.DisableAutoSwap()
+	err := httpSvc.api.DisableAutoSwap("out")
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{

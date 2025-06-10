@@ -25,7 +25,8 @@ import (
 )
 
 type swapsService struct {
-	cancelFn            context.CancelFunc
+	swapOutCancelFn     context.CancelFunc
+	swapInCancelFn      context.CancelFunc
 	cfg                 config.Config
 	eventPublisher      events.EventPublisher
 	transactionsService transactions.TransactionsService
@@ -33,9 +34,11 @@ type swapsService struct {
 }
 
 type SwapsService interface {
-	EnableAutoSwap(ctx context.Context, lnClient lnclient.LNClient) error
-	StopAutoSwap()
-	CalculateFee() (*SwapFees, error)
+	EnableAutoSwapOut(ctx context.Context, lnClient lnclient.LNClient) error
+	EnableAutoSwapIn(ctx context.Context, lnClient lnclient.LNClient) error
+	StopAutoSwap(swapIn, swapOut bool)
+	CalculateSwapOutFee() (*SwapFees, error)
+	CalculateSwapInFee() (*SwapFees, error)
 	ReverseSwap(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) (string, error)
 	SubmarineSwap(ctx context.Context, amount uint64, lnClient lnclient.LNClient) (string, error)
 }
@@ -67,9 +70,9 @@ func NewSwapsService(cfg config.Config, eventPublisher events.EventPublisher, tr
 	}
 }
 
-func (svc *swapsService) EnableAutoSwap(ctx context.Context, lnClient lnclient.LNClient) error {
-	// stop any existing swap process
-	svc.StopAutoSwap()
+func (svc *swapsService) EnableAutoSwapOut(ctx context.Context, lnClient lnclient.LNClient) error {
+	// stop any existing swap out process
+	svc.StopAutoSwap(false, true)
 
 	ctx, cancelFn := context.WithCancel(ctx)
 	swapDestination, _ := svc.cfg.Get(config.AutoSwapDestinationKey, "")
@@ -128,16 +131,86 @@ func (svc *swapsService) EnableAutoSwap(ctx context.Context, lnClient lnclient.L
 		}
 	}()
 
-	svc.cancelFn = cancelFn
+	svc.swapOutCancelFn = cancelFn
 
 	return nil
 }
 
-func (svc *swapsService) StopAutoSwap() {
-	if svc.cancelFn != nil {
-		logger.Logger.Info("Stopping swap service...")
-		svc.cancelFn()
-		logger.Logger.Info("swap service stopped")
+func (svc *swapsService) EnableAutoSwapIn(ctx context.Context, lnClient lnclient.LNClient) error {
+	// stop any existing swap in process
+	svc.StopAutoSwap(true, false)
+
+	// TODO: change threshold keys
+	ctx, cancelFn := context.WithCancel(ctx)
+	balanceThresholdStr, _ := svc.cfg.Get(config.AutoSwapInBalanceThresholdKey, "")
+	amountStr, _ := svc.cfg.Get(config.AutoSwapInAmountKey, "")
+
+	if balanceThresholdStr == "" || amountStr == "" {
+		cancelFn()
+		logger.Logger.Info("Auto swap not configured")
+		return nil
+	}
+
+	parsedBalanceThreshold, err := strconv.ParseUint(balanceThresholdStr, 10, 64)
+	if err != nil {
+		cancelFn()
+		return errors.New("invalid auto swap configuration")
+	}
+
+	amount, err := strconv.ParseUint(amountStr, 10, 64)
+	if err != nil {
+		cancelFn()
+		return errors.New("invalid auto swap configuration")
+	}
+
+	logger.Logger.Info("Starting auto swap workflow")
+
+	go func() {
+		ticker := time.NewTicker(1 * time.Hour)
+		for {
+			select {
+			case <-ticker.C:
+				logger.Logger.Debug("Checking to see if we can swap")
+				balance, err := lnClient.GetBalances(ctx, false)
+				if err != nil {
+					logger.Logger.WithError(err).Error("Failed to get balance")
+					return
+				}
+				onchainBalance := uint64(balance.Onchain.Spendable)
+				balanceThresholdMilliSats := parsedBalanceThreshold
+				if onchainBalance >= balanceThresholdMilliSats {
+					logger.Logger.WithFields(logrus.Fields{
+						"amount": amount,
+					}).Info("Initiating swap")
+					_, err := svc.SubmarineSwap(ctx, amount, lnClient)
+					if err != nil {
+						logger.Logger.WithError(err).Error("Failed to swap")
+					}
+				} else {
+					logger.Logger.Info("Threshold requirements not met for swap, ignoring")
+				}
+			case <-ctx.Done():
+				logger.Logger.Info("Stopping auto swap workflow")
+				return
+			}
+		}
+	}()
+
+	svc.swapInCancelFn = cancelFn
+
+	return nil
+}
+
+func (svc *swapsService) StopAutoSwap(swapIn, swapOut bool) {
+	if swapIn && svc.swapInCancelFn != nil {
+		logger.Logger.Info("Stopping auto swap in service...")
+		svc.swapInCancelFn()
+		logger.Logger.Info("Auto swap in service stopped")
+	}
+	if swapOut && svc.swapOutCancelFn != nil {
+		logger.Logger.Info("Stopping auto swap out service...")
+		svc.swapOutCancelFn()
+		logger.Logger.Info("Auto swap out service stopped")
 	}
 }
 
@@ -155,6 +228,7 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 		return "", err
 	}
 
+	// TODO: use own keys
 	ourKeys, err := btcec.NewPrivateKey()
 	if err != nil {
 		return "", err
@@ -187,7 +261,7 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 	logger.Logger.WithFields(logrus.Fields{
 		"serviceFee": serviceFee,
 		"networkFee": networkFee,
-	}).Info("Calculated fees for swap")
+	}).Info("Calculated fees for swap out")
 
 	albyFee := &boltz.ExtraFees{
 		Percentage: AlbySwapServiceFee,
@@ -301,6 +375,7 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 						"transaction": update.Transaction,
 					}).Info("Lockup transaction found in mempool")
 					txCh <- update.Transaction.Id
+					// TODO: add this txId to payment metadata
 				case boltz.TransactionConfirmed:
 					logger.Logger.WithFields(logrus.Fields{
 						"swapId":      swap.Id,
@@ -389,7 +464,7 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 	}
 }
 
-func (svc *swapsService) CalculateFee() (*SwapFees, error) {
+func (svc *swapsService) CalculateSwapOutFee() (*SwapFees, error) {
 	reversePairs, err := svc.boltzApi.GetReversePairs()
 	if err != nil {
 		return nil, fmt.Errorf("could not get reverse pairs: %s", err)
@@ -408,6 +483,27 @@ func (svc *swapsService) CalculateFee() (*SwapFees, error) {
 		AlbyServiceFee:  AlbySwapServiceFee,
 		BoltzServiceFee: fees.Percentage,
 		BoltzNetworkFee: networkFee,
+	}, nil
+}
+
+func (svc *swapsService) CalculateSwapInFee() (*SwapFees, error) {
+	submarinePairs, err := svc.boltzApi.GetSubmarinePairs()
+	if err != nil {
+		return nil, fmt.Errorf("could not get reverse pairs: %s", err)
+	}
+
+	pair := boltz.Pair{From: boltz.CurrencyBtc, To: boltz.CurrencyBtc}
+	pairInfo, err := boltz.FindPair(pair, submarinePairs)
+	if err != nil {
+		return nil, fmt.Errorf("could not find reverse pair: %s", err)
+	}
+
+	fees := pairInfo.Fees
+
+	return &SwapFees{
+		AlbyServiceFee:  AlbySwapServiceFee,
+		BoltzServiceFee: fees.Percentage,
+		BoltzNetworkFee: fees.MinerFees,
 	}, nil
 }
 
@@ -461,6 +557,7 @@ func (svc *swapsService) SubmarineSwap(ctx context.Context, amount uint64, lnCli
 		return "", fmt.Errorf("invalid amount")
 	}
 
+	// TODO: add metadata to the invoice
 	// metadata := map[string]interface{}{
 	// 	"swapId":      swap.Id,
 	// 	"claimPubkey": swap.ClaimPublicKey,
@@ -476,12 +573,33 @@ func (svc *swapsService) SubmarineSwap(ctx context.Context, amount uint64, lnCli
 		return "", err
 	}
 
+	// TODO: use own keys
 	ourKeys, err := btcec.NewPrivateKey()
 	if err != nil {
 		return "", err
 	}
 
-	// TODO: Calculate fees
+	submarinePairs, err := svc.boltzApi.GetSubmarinePairs()
+	if err != nil {
+		return "", fmt.Errorf("could not get submarine pairs: %s", err)
+	}
+
+	pair := boltz.Pair{From: boltz.CurrencyBtc, To: boltz.CurrencyBtc}
+	pairInfo, err := boltz.FindPair(pair, submarinePairs)
+	if err != nil {
+		return "", fmt.Errorf("could not find submarine pair: %s", err)
+	}
+
+	fees := pairInfo.Fees
+	serviceFeePercentage := boltz.Percentage(fees.Percentage)
+
+	serviceFee := boltz.CalculatePercentage(serviceFeePercentage, amount)
+	networkFee := fees.MinerFees
+
+	logger.Logger.WithFields(logrus.Fields{
+		"serviceFee": serviceFee,
+		"networkFee": networkFee,
+	}).Info("Calculated fees for swap in")
 
 	albyFee := &boltz.ExtraFees{
 		Percentage: AlbySwapServiceFee,
@@ -493,6 +611,7 @@ func (svc *swapsService) SubmarineSwap(ctx context.Context, amount uint64, lnCli
 		To:              boltz.CurrencyBtc,
 		RefundPublicKey: ourKeys.PubKey().SerializeCompressed(),
 		Invoice:         invoice.PaymentRequest,
+		PairHash:        pairInfo.Hash,
 		ReferralId:      "alby",
 		ExtraFees:       albyFee,
 	})
@@ -515,12 +634,10 @@ func (svc *swapsService) SubmarineSwap(ctx context.Context, amount uint64, lnCli
 		return "", fmt.Errorf("invalid preimage hash: %v", err)
 	}
 
-	// Check the scripts of the Taptree to make sure Boltz is not cheating
 	if err := tree.Check(boltz.NormalSwap, swap.TimeoutBlockHeight, decodedPreimageHash); err != nil {
 		return "", err
 	}
 
-	// Verify that Boltz is giving us the correct address
 	if err := tree.CheckAddress(swap.Address, network, nil); err != nil {
 		return "", err
 	}
@@ -602,7 +719,6 @@ func (svc *swapsService) SubmarineSwap(ctx context.Context, amount uint64, lnCli
 						return
 					}
 
-					// Verify that the invoice was actually paid
 					preimageHash := sha256.Sum256(claimDetails.Preimage)
 					if !bytes.Equal(decodedPreimageHash, preimageHash[:]) {
 						logger.Logger.WithField("preimage", claimDetails.Preimage).Error("Boltz returned wrong preimage")
@@ -646,4 +762,27 @@ func (svc *swapsService) SubmarineSwap(ctx context.Context, amount uint64, lnCli
 	case txid := <-txCh:
 		return txid, nil
 	}
+}
+
+// TODO: Finish this
+func (svc *swapsService) RefundSubmarineSwap(ctx context.Context, swapId, refundTx string) (string, error) {
+	partialSig, err := svc.boltzApi.RefundSwap(swapId, &boltz.RefundRequest{
+		Transaction: refundTx,
+	})
+	if err != nil {
+		return "", err
+	}
+	_, err = partialSig.PartialSignature.MarshalText()
+	if err != nil {
+		return "", err
+	}
+	// ptx, _ := psbt.NewFromRawBytes(strings.NewReader(signedRefundTx), true)
+	// ptx.Inputs[0].TaprootScriptSpendSig = append(ptx.Inputs[0].TaprootScriptSpendSig, &psbt.TaprootScriptSpendSig{
+	// 	XOnlyPubKey: schnorr.SerializePubKey(boltzPubkey),
+	// 	LeafHash:    ptx.Inputs[0].TaprootScriptSpendSig[0].LeafHash,
+	// 	Signature:   sig,
+	// 	SigHash:     ptx.Inputs[0].TaprootScriptSpendSig[0].SigHash,
+	// })
+	// return ptx.B64Encode()
+	return "sig", nil
 }

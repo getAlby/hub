@@ -8,10 +8,12 @@ const (
 )
 
 const (
-	OnchainAddressKey           = "OnchainAddress"
-	AutoSwapBalanceThresholdKey = "AutoSwapBalanceThreshold"
-	AutoSwapAmountKey           = "AutoSwapAmount"
-	AutoSwapDestinationKey      = "AutoSwapDestination"
+	OnchainAddressKey             = "OnchainAddress"
+	AutoSwapBalanceThresholdKey   = "AutoSwapBalanceThreshold"
+	AutoSwapAmountKey             = "AutoSwapAmount"
+	AutoSwapDestinationKey        = "AutoSwapDestination"
+	AutoSwapInBalanceThresholdKey = "AutoSwapInBalanceThreshold"
+	AutoSwapInAmountKey           = "AutoSwapInAmount"
 )
 
 type AppConfig struct {

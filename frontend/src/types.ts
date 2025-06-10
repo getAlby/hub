@@ -194,6 +194,7 @@ export type AppMetadata = { app_store_app_id?: string } & Record<
 >;
 
 export type SwapsSettingsResponse = {
+  type: "in" | "out";
   enabled: boolean;
   balanceThreshold: number;
   swapAmount: number;

@@ -29,7 +29,7 @@ import { SwapsSettingsResponse } from "src/types";
 import { request } from "src/utils/request";
 
 export default function AutoSwap() {
-  const { data: swapsSettings } = useSwaps();
+  const { data: swapSettings } = useSwaps();
   const [swapType, setSwapType] = useState("in");
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function AutoSwap() {
     }
   }, []);
 
-  if (!swapsSettings) {
+  if (!swapSettings) {
     return <Loading />;
   }
 
@@ -82,7 +82,7 @@ export default function AutoSwap() {
           </div>
           {swapType == "in" ? <AutoSwapInForm /> : <AutoSwapOutForm />}
         </div>
-        {swapsSettings.enabled && <ActiveSwaps swaps={swapsSettings} />}
+        {swapSettings && <ActiveSwaps swaps={swapSettings} />}
       </div>
     </div>
   );
@@ -90,7 +90,8 @@ export default function AutoSwap() {
 
 function AutoSwapInForm() {
   const { toast } = useToast();
-  const { data: swapsSettings, mutate } = useSwaps();
+  const { data: swapSettings, mutate } = useSwaps();
+  const swapInSettings = swapSettings?.find((s) => s.type === "in");
 
   const [balanceThreshold, setBalanceThreshold] = useState("");
   const [swapAmount, setSwapAmount] = useState("");
@@ -167,9 +168,9 @@ function AutoSwapInForm() {
       {/* TODO: Review fee for swap ins */}
       <div className="flex items-center justify-between border-t py-4">
         <Label>Fee</Label>
-        {swapsSettings ? (
+        {swapInSettings ? (
           <p className="text-muted-foreground text-sm">
-            {swapsSettings.albyServiceFee + swapsSettings.boltzServiceFee}% +
+            {swapInSettings.albyServiceFee + swapInSettings.boltzServiceFee}% +
             on-chain fees
           </p>
         ) : (
@@ -183,7 +184,8 @@ function AutoSwapInForm() {
 
 function AutoSwapOutForm() {
   const { toast } = useToast();
-  const { data: swapsSettings, mutate } = useSwaps();
+  const { data: swapSettings, mutate } = useSwaps();
+  const swapOutSettings = swapSettings?.find((s) => s.type === "out");
   const navigate = useNavigate();
 
   const [isInternalSwap, setInternalSwap] = useState(true);
@@ -339,10 +341,10 @@ function AutoSwapOutForm() {
 
       <div className="flex items-center justify-between border-t pt-4">
         <Label>Fee</Label>
-        {swapsSettings ? (
+        {swapOutSettings ? (
           <p className="text-muted-foreground text-sm">
-            {swapsSettings.albyServiceFee + swapsSettings.boltzServiceFee}% +
-            on-chain fees
+            {swapOutSettings.albyServiceFee + swapOutSettings.boltzServiceFee}%
+            + on-chain fees
           </p>
         ) : (
           <Loading />
@@ -354,18 +356,16 @@ function AutoSwapOutForm() {
 }
 
 // TODO: Fix overflow in small screens
-function ActiveSwaps({ swaps }: { swaps: SwapsSettingsResponse }) {
+function ActiveSwaps({ swaps }: { swaps: SwapsSettingsResponse[] }) {
   const { toast } = useToast();
   const { mutate } = useSwaps();
 
   const [loading, setLoading] = useState(false);
 
-  const onDeactivate = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const onDeactivate = async (swapType: string) => {
     try {
       setLoading(true);
-      await request("/api/wallet/swaps", {
+      await request(`/api/wallet/autoswap/${swapType}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -385,57 +385,72 @@ function ActiveSwaps({ swaps }: { swaps: SwapsSettingsResponse }) {
   };
 
   return (
-    <div className="w-full border-t-2 lg:border-t-0 pt-8 lg:pt-0">
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="font-medium">Active Recurring Swap</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Alby Hub will try to perform a swap every time the balance reaches
-            the threshold.
-          </p>
+    <div className="w-full flex flex-col gap-5 border-t-2 lg:border-t-0 pt-8 lg:pt-0">
+      {swaps
+        .filter((swap) => swap.enabled)
+        .map((swap) => (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="font-medium">
+                Active Recurring Swap
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Alby Hub will try to perform a swap every time the balance
+                reaches the threshold.
+              </p>
 
-          <div className="mt-6 space-y-4 text-sm">
-            <div className="flex justify-between items-center">
-              <span className="font-medium">Type</span>
-              <span className="text-muted-foreground text-right">
-                Lightning to On-chain
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="font-medium">Destination</span>
-              <span className="text-muted-foreground text-right">
-                {swaps.destination}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="font-medium">Spending Balance Threshold</span>
-              <span className="text-muted-foreground text-right">
-                {new Intl.NumberFormat().format(swaps.balanceThreshold)} sats
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="font-medium">Swap amount</span>
-              <span className="text-muted-foreground text-right">
-                {new Intl.NumberFormat().format(swaps.swapAmount)} sats
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="font-medium">Fee</span>
-              <span className="text-muted-foreground text-right">
-                {swaps.albyServiceFee + swaps.boltzServiceFee}% + on-chain fees
-              </span>
-            </div>
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-end">
-          <Button onClick={onDeactivate} disabled={loading} variant="outline">
-            <XCircleIcon className="h-4 w-4 mr-2" />
-            Deactivate
-          </Button>
-        </CardFooter>
-      </Card>
+              <div className="mt-6 space-y-4 text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Type</span>
+                  <span className="text-muted-foreground text-right">
+                    {swap.type == "out"
+                      ? "Lightning to On-chain"
+                      : "On-chain to Lightning"}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Destination</span>
+                  <span className="text-muted-foreground text-right">
+                    {swap.destination}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">
+                    Spending Balance Threshold
+                  </span>
+                  <span className="text-muted-foreground text-right">
+                    {new Intl.NumberFormat().format(swap.balanceThreshold)} sats
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Swap amount</span>
+                  <span className="text-muted-foreground text-right">
+                    {new Intl.NumberFormat().format(swap.swapAmount)} sats
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="font-medium">Fee</span>
+                  <span className="text-muted-foreground text-right">
+                    {swap.albyServiceFee + swap.boltzServiceFee}% + on-chain
+                    fees
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex justify-end">
+              <Button
+                onClick={() => onDeactivate(swap.type)}
+                disabled={loading}
+                variant="outline"
+              >
+                <XCircleIcon className="h-4 w-4 mr-2" />
+                Deactivate
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
     </div>
   );
 }

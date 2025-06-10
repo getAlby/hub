@@ -16,7 +16,6 @@ import { cn } from "src/lib/utils";
 import { request } from "src/utils/request";
 
 export default function Swap() {
-  const { data: swapsSettings } = useSwaps();
   const [swapType, setSwapType] = useState("in");
 
   useEffect(() => {
@@ -26,10 +25,6 @@ export default function Swap() {
       setSwapType(swapType);
     }
   }, []);
-
-  if (!swapsSettings) {
-    return <Loading />;
-  }
 
   return (
     <div className="grid gap-5">
@@ -74,7 +69,8 @@ export default function Swap() {
 
 function SwapInForm() {
   const { toast } = useToast();
-  const { data: swapsSettings } = useSwaps();
+  const { data: swapSettings } = useSwaps();
+  const swapInSettings = swapSettings?.find((s) => s.type === "in");
 
   const [swapAmount, setSwapAmount] = useState("");
   const [loading, setLoading] = useState(false);
@@ -133,9 +129,9 @@ function SwapInForm() {
       {/* TODO: Review fee for swap ins */}
       <div className="flex items-center justify-between border-t pt-4">
         <Label>Fee</Label>
-        {swapsSettings ? (
+        {swapInSettings ? (
           <p className="text-muted-foreground text-sm">
-            {swapsSettings.albyServiceFee + swapsSettings.boltzServiceFee}% +
+            {swapInSettings.albyServiceFee + swapInSettings.boltzServiceFee}% +
             on-chain fees
           </p>
         ) : (
@@ -149,7 +145,8 @@ function SwapInForm() {
 
 function SwapOutForm() {
   const { toast } = useToast();
-  const { data: swapsSettings } = useSwaps();
+  const { data: swapSettings } = useSwaps();
+  const swapOutSettings = swapSettings?.find((s) => s.type === "out");
   const navigate = useNavigate();
 
   const [isInternalSwap, setInternalSwap] = useState(true);
@@ -288,10 +285,10 @@ function SwapOutForm() {
 
       <div className="flex items-center justify-between border-t pt-4">
         <Label>Fee</Label>
-        {swapsSettings ? (
+        {swapOutSettings ? (
           <p className="text-muted-foreground text-sm">
-            {swapsSettings.albyServiceFee + swapsSettings.boltzServiceFee}% +
-            on-chain fees
+            {swapOutSettings.albyServiceFee + swapOutSettings.boltzServiceFee}%
+            + on-chain fees
           </p>
         ) : (
           <Loading />
