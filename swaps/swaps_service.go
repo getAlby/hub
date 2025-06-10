@@ -34,13 +34,13 @@ type swapsService struct {
 }
 
 type SwapsService interface {
+	StopAutoSwap(swapIn, swapOut bool)
 	EnableAutoSwapOut(ctx context.Context, lnClient lnclient.LNClient) error
 	EnableAutoSwapIn(ctx context.Context, lnClient lnclient.LNClient) error
-	StopAutoSwap(swapIn, swapOut bool)
+	SwapOut(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) (string, error)
+	SwapIn(ctx context.Context, amount uint64, lnClient lnclient.LNClient) (string, error)
 	CalculateSwapOutFee() (*SwapFees, error)
 	CalculateSwapInFee() (*SwapFees, error)
-	ReverseSwap(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) (string, error)
-	SubmarineSwap(ctx context.Context, amount uint64, lnClient lnclient.LNClient) (string, error)
 }
 
 const (
@@ -67,6 +67,19 @@ func NewSwapsService(cfg config.Config, eventPublisher events.EventPublisher, tr
 		eventPublisher:      eventPublisher,
 		transactionsService: transactionsService,
 		boltzApi:            &boltz.Api{URL: cfg.GetEnv().BoltzApi},
+	}
+}
+
+func (svc *swapsService) StopAutoSwap(swapIn, swapOut bool) {
+	if swapIn && svc.swapInCancelFn != nil {
+		logger.Logger.Info("Stopping auto swap in service...")
+		svc.swapInCancelFn()
+		logger.Logger.Info("Auto swap in service stopped")
+	}
+	if swapOut && svc.swapOutCancelFn != nil {
+		logger.Logger.Info("Stopping auto swap out service...")
+		svc.swapOutCancelFn()
+		logger.Logger.Info("Auto swap out service stopped")
 	}
 }
 
@@ -117,7 +130,7 @@ func (svc *swapsService) EnableAutoSwapOut(ctx context.Context, lnClient lnclien
 						"amount":      amount,
 						"destination": swapDestination,
 					}).Info("Initiating swap")
-					_, err := svc.ReverseSwap(ctx, amount, swapDestination, lnClient)
+					_, err := svc.SwapOut(ctx, amount, swapDestination, lnClient)
 					if err != nil {
 						logger.Logger.WithError(err).Error("Failed to swap")
 					}
@@ -181,7 +194,7 @@ func (svc *swapsService) EnableAutoSwapIn(ctx context.Context, lnClient lnclient
 					logger.Logger.WithFields(logrus.Fields{
 						"amount": amount,
 					}).Info("Initiating swap")
-					_, err := svc.SubmarineSwap(ctx, amount, lnClient)
+					_, err := svc.SwapIn(ctx, amount, lnClient)
 					if err != nil {
 						logger.Logger.WithError(err).Error("Failed to swap")
 					}
@@ -200,20 +213,7 @@ func (svc *swapsService) EnableAutoSwapIn(ctx context.Context, lnClient lnclient
 	return nil
 }
 
-func (svc *swapsService) StopAutoSwap(swapIn, swapOut bool) {
-	if swapIn && svc.swapInCancelFn != nil {
-		logger.Logger.Info("Stopping auto swap in service...")
-		svc.swapInCancelFn()
-		logger.Logger.Info("Auto swap in service stopped")
-	}
-	if swapOut && svc.swapOutCancelFn != nil {
-		logger.Logger.Info("Stopping auto swap out service...")
-		svc.swapOutCancelFn()
-		logger.Logger.Info("Auto swap out service stopped")
-	}
-}
-
-func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) (string, error) {
+func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) (string, error) {
 	if destination == "" {
 		var err error
 		destination, err = svc.cfg.Get(config.OnchainAddressKey, "")
@@ -463,94 +463,7 @@ func (svc *swapsService) ReverseSwap(ctx context.Context, amount uint64, destina
 	}
 }
 
-func (svc *swapsService) CalculateSwapOutFee() (*SwapFees, error) {
-	reversePairs, err := svc.boltzApi.GetReversePairs()
-	if err != nil {
-		return nil, fmt.Errorf("could not get reverse pairs: %s", err)
-	}
-
-	pair := boltz.Pair{From: boltz.CurrencyBtc, To: boltz.CurrencyBtc}
-	pairInfo, err := boltz.FindPair(pair, reversePairs)
-	if err != nil {
-		return nil, fmt.Errorf("could not find reverse pair: %s", err)
-	}
-
-	fees := pairInfo.Fees
-	networkFee := fees.MinerFees.Lockup + fees.MinerFees.Claim
-
-	return &SwapFees{
-		AlbyServiceFee:  AlbySwapServiceFee,
-		BoltzServiceFee: fees.Percentage,
-		BoltzNetworkFee: networkFee,
-	}, nil
-}
-
-func (svc *swapsService) CalculateSwapInFee() (*SwapFees, error) {
-	submarinePairs, err := svc.boltzApi.GetSubmarinePairs()
-	if err != nil {
-		return nil, fmt.Errorf("could not get reverse pairs: %s", err)
-	}
-
-	pair := boltz.Pair{From: boltz.CurrencyBtc, To: boltz.CurrencyBtc}
-	pairInfo, err := boltz.FindPair(pair, submarinePairs)
-	if err != nil {
-		return nil, fmt.Errorf("could not find reverse pair: %s", err)
-	}
-
-	fees := pairInfo.Fees
-
-	return &SwapFees{
-		AlbyServiceFee:  AlbySwapServiceFee,
-		BoltzServiceFee: fees.Percentage,
-		BoltzNetworkFee: fees.MinerFees,
-	}, nil
-}
-
-func (svc *swapsService) getFeeRates() (*FeeRates, error) {
-	url := svc.cfg.GetEnv().MempoolApi + "/v1/fees/recommended"
-
-	client := http.Client{
-		Timeout: time.Second * 10,
-	}
-
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to create http request")
-		return nil, err
-	}
-
-	res, err := client.Do(req)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to send request")
-		return nil, err
-	}
-
-	defer res.Body.Close()
-
-	body, readErr := io.ReadAll(res.Body)
-	if readErr != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to read response body")
-		return nil, errors.New("failed to read response body")
-	}
-
-	var rates FeeRates
-	jsonErr := json.Unmarshal(body, &rates)
-	if jsonErr != nil {
-		logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to deserialize json")
-		return nil, fmt.Errorf("failed to deserialize json %s %s", url, string(body))
-	}
-	return &rates, nil
-}
-
-func (svc *swapsService) SubmarineSwap(ctx context.Context, amount uint64, lnClient lnclient.LNClient) (string, error) {
+func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnclient.LNClient) (string, error) {
 	amount *= 1000
 	if amount == 0 {
 		return "", fmt.Errorf("invalid amount")
@@ -769,25 +682,89 @@ func (svc *swapsService) SubmarineSwap(ctx context.Context, amount uint64, lnCli
 	}
 }
 
-// TODO: Finish this
-func (svc *swapsService) RefundSubmarineSwap(ctx context.Context, swapId, refundTx string) (string, error) {
-	partialSig, err := svc.boltzApi.RefundSwap(swapId, &boltz.RefundRequest{
-		Transaction: refundTx,
-	})
+func (svc *swapsService) CalculateSwapOutFee() (*SwapFees, error) {
+	reversePairs, err := svc.boltzApi.GetReversePairs()
 	if err != nil {
-		return "", err
+		return nil, fmt.Errorf("could not get reverse pairs: %s", err)
 	}
-	_, err = partialSig.PartialSignature.MarshalText()
+
+	pair := boltz.Pair{From: boltz.CurrencyBtc, To: boltz.CurrencyBtc}
+	pairInfo, err := boltz.FindPair(pair, reversePairs)
 	if err != nil {
-		return "", err
+		return nil, fmt.Errorf("could not find reverse pair: %s", err)
 	}
-	// ptx, _ := psbt.NewFromRawBytes(strings.NewReader(signedRefundTx), true)
-	// ptx.Inputs[0].TaprootScriptSpendSig = append(ptx.Inputs[0].TaprootScriptSpendSig, &psbt.TaprootScriptSpendSig{
-	// 	XOnlyPubKey: schnorr.SerializePubKey(boltzPubkey),
-	// 	LeafHash:    ptx.Inputs[0].TaprootScriptSpendSig[0].LeafHash,
-	// 	Signature:   sig,
-	// 	SigHash:     ptx.Inputs[0].TaprootScriptSpendSig[0].SigHash,
-	// })
-	// return ptx.B64Encode()
-	return "sig", nil
+
+	fees := pairInfo.Fees
+	networkFee := fees.MinerFees.Lockup + fees.MinerFees.Claim
+
+	return &SwapFees{
+		AlbyServiceFee:  AlbySwapServiceFee,
+		BoltzServiceFee: fees.Percentage,
+		BoltzNetworkFee: networkFee,
+	}, nil
+}
+
+func (svc *swapsService) CalculateSwapInFee() (*SwapFees, error) {
+	submarinePairs, err := svc.boltzApi.GetSubmarinePairs()
+	if err != nil {
+		return nil, fmt.Errorf("could not get reverse pairs: %s", err)
+	}
+
+	pair := boltz.Pair{From: boltz.CurrencyBtc, To: boltz.CurrencyBtc}
+	pairInfo, err := boltz.FindPair(pair, submarinePairs)
+	if err != nil {
+		return nil, fmt.Errorf("could not find reverse pair: %s", err)
+	}
+
+	fees := pairInfo.Fees
+
+	return &SwapFees{
+		AlbyServiceFee:  AlbySwapServiceFee,
+		BoltzServiceFee: fees.Percentage,
+		BoltzNetworkFee: fees.MinerFees,
+	}, nil
+}
+
+func (svc *swapsService) getFeeRates() (*FeeRates, error) {
+	url := svc.cfg.GetEnv().MempoolApi + "/v1/fees/recommended"
+
+	client := http.Client{
+		Timeout: time.Second * 10,
+	}
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to create http request")
+		return nil, err
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to send request")
+		return nil, err
+	}
+
+	defer res.Body.Close()
+
+	body, readErr := io.ReadAll(res.Body)
+	if readErr != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to read response body")
+		return nil, errors.New("failed to read response body")
+	}
+
+	var rates FeeRates
+	jsonErr := json.Unmarshal(body, &rates)
+	if jsonErr != nil {
+		logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to deserialize json")
+		return nil, fmt.Errorf("failed to deserialize json %s %s", url, string(body))
+	}
+	return &rates, nil
 }
