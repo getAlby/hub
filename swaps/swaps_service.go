@@ -177,8 +177,7 @@ func (svc *swapsService) EnableAutoSwapIn(ctx context.Context, lnClient lnclient
 					return
 				}
 				onchainBalance := uint64(balance.Onchain.Spendable)
-				balanceThresholdMilliSats := parsedBalanceThreshold
-				if onchainBalance >= balanceThresholdMilliSats {
+				if onchainBalance >= parsedBalanceThreshold {
 					logger.Logger.WithFields(logrus.Fields{
 						"amount": amount,
 					}).Info("Initiating swap")
@@ -691,7 +690,13 @@ func (svc *swapsService) SubmarineSwap(ctx context.Context, amount uint64, lnCli
 						"update": update,
 					}).Info("Paying for the swap on-chain")
 					go func() {
-						_, err := lnClient.RedeemOnchainFunds(ctx, swap.Address, swap.ExpectedAmount, nil, false)
+						feeRates, err := svc.getFeeRates()
+						if err != nil {
+							logger.Logger.WithError(err).Error("Failed to fetch fee rate")
+							paymentErrorCh <- err
+							return
+						}
+						_, err = lnClient.RedeemOnchainFunds(ctx, swap.Address, swap.ExpectedAmount, &feeRates.FastestFee, false)
 						if err != nil {
 							logger.Logger.WithError(err).WithFields(logrus.Fields{
 								"swap":   swap,

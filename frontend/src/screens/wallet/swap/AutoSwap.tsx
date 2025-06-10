@@ -92,6 +92,7 @@ function AutoSwapInForm() {
   const { toast } = useToast();
   const { data: swapSettings, mutate } = useSwaps();
   const swapInSettings = swapSettings?.find((s) => s.type === "in");
+  const navigate = useNavigate();
 
   const [balanceThreshold, setBalanceThreshold] = useState("");
   const [swapAmount, setSwapAmount] = useState("");
@@ -109,7 +110,16 @@ function AutoSwapInForm() {
         },
         body: JSON.stringify({
           swapAmount: parseInt(swapAmount),
+          balanceThreshold: parseInt(balanceThreshold),
         }),
+      });
+      navigate(`/wallet/swap/success`, {
+        state: {
+          type: "in",
+          isAutoSwap: true,
+          balanceThreshold,
+          amount: swapAmount,
+        },
       });
       toast({ title: "Saved successfully." });
       await mutate();
@@ -412,7 +422,11 @@ function ActiveSwaps({ swaps }: { swaps: SwapsSettingsResponse[] }) {
                 <div className="flex justify-between items-center">
                   <span className="font-medium">Destination</span>
                   <span className="text-muted-foreground text-right">
-                    {swap.destination}
+                    {swap.destination
+                      ? swap.destination
+                      : swap.type === "out"
+                        ? "On-chain Balance"
+                        : "Lightning Balance"}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">

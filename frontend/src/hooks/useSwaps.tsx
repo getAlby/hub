@@ -9,7 +9,7 @@ const pollConfiguration: SWRConfiguration = {
 
 export function useSwaps(poll = true) {
   return useSWR<SwapsSettingsResponse[]>(
-    "/api/wallet/autoswap/out",
+    "/api/wallet/autoswap",
     swrFetcher,
     poll ? pollConfiguration : undefined
   );

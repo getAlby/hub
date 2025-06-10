@@ -160,11 +160,11 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.POST("/command", httpSvc.execCustomNodeCommandHandler)
 	restrictedApiGroup.POST("/wallet/swap/out", httpSvc.initiateSwapOutHandler)
 	restrictedApiGroup.POST("/wallet/swap/in", httpSvc.initiateSwapInHandler)
-	restrictedApiGroup.GET("/wallet/autoswap/out", httpSvc.getAutoSwapOutConfigHandler)
 	restrictedApiGroup.POST("/wallet/autoswap/out", httpSvc.enableAutoSwapOutHandler)
 	restrictedApiGroup.POST("/wallet/autoswap/in", httpSvc.enableAutoSwapInHandler)
 	restrictedApiGroup.DELETE("/wallet/autoswap/out", httpSvc.disableAutoSwapOutHandler)
 	restrictedApiGroup.DELETE("/wallet/autoswap/in", httpSvc.disableAutoSwapInHandler)
+	restrictedApiGroup.GET("/wallet/autoswap", httpSvc.getAutoSwapConfigHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedApiGroup, e)
 }
@@ -1199,7 +1199,7 @@ func (httpSvc *HttpService) initiateSwapInHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, txId)
 }
 
-func (httpSvc *HttpService) getAutoSwapOutConfigHandler(c echo.Context) error {
+func (httpSvc *HttpService) getAutoSwapConfigHandler(c echo.Context) error {
 	getAutoSwapConfigResponse, err := httpSvc.api.GetAutoSwapConfig()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{

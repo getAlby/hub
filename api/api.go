@@ -549,9 +549,6 @@ func (api *api) GetAutoSwapConfig() ([]*GetAutoSwapConfigResponse, error) {
 	swapOutAmountStr, _ := api.cfg.Get(config.AutoSwapAmountKey, "")
 	swapOutDestination, _ := api.cfg.Get(config.AutoSwapDestinationKey, "")
 
-	swapInBalanceThresholdStr, _ := api.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
-	swapInAmountStr, _ := api.cfg.Get(config.AutoSwapAmountKey, "")
-
 	swapOutEnabled := swapOutBalanceThresholdStr != "" && swapOutAmountStr != ""
 	var swapOutBalanceThreshold, swapOutAmount uint64
 	if swapOutEnabled {
@@ -581,14 +578,17 @@ func (api *api) GetAutoSwapConfig() ([]*GetAutoSwapConfigResponse, error) {
 		BoltzNetworkFee:  swapOutFees.BoltzNetworkFee,
 	}
 
+	swapInBalanceThresholdStr, _ := api.cfg.Get(config.AutoSwapInBalanceThresholdKey, "")
+	swapInAmountStr, _ := api.cfg.Get(config.AutoSwapInAmountKey, "")
+
 	swapInEnabled := swapInBalanceThresholdStr != "" && swapInAmountStr != ""
 	var swapInBalanceThreshold, swapInAmount uint64
 	if swapInEnabled {
 		var err error
-		if swapInBalanceThreshold, err = strconv.ParseUint(swapOutBalanceThresholdStr, 10, 64); err != nil {
+		if swapInBalanceThreshold, err = strconv.ParseUint(swapInBalanceThresholdStr, 10, 64); err != nil {
 			return nil, fmt.Errorf("invalid autoswap out balance threshold: %w", err)
 		}
-		if swapInAmount, err = strconv.ParseUint(swapOutAmountStr, 10, 64); err != nil {
+		if swapInAmount, err = strconv.ParseUint(swapInAmountStr, 10, 64); err != nil {
 			return nil, fmt.Errorf("invalid autoswap out amount: %w", err)
 		}
 	}
