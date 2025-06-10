@@ -878,7 +878,6 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 
 	info.NextBackupReminder, _ = api.cfg.Get("NextBackupReminder", "")
 
-	// Add NodeAlias to info response
 	info.NodeAlias, _ = api.cfg.Get("NodeAlias", "")
 
 	return &info, nil
