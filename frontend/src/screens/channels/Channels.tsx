@@ -66,7 +66,7 @@ export default function Channels() {
   useSyncWallet();
   const { data: channels } = useChannels();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
-  const { hasChannelManagement } = useInfo();
+  const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
   const navigate = useNavigate();
   const [nodes, setNodes] = React.useState<Node[]>([]);
@@ -163,31 +163,34 @@ export default function Channels() {
                     )}
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel>Swaps</DropdownMenuLabel>
-                    <DropdownMenuItem
-                      onClick={() => navigate("/wallet/swap?type=in")}
-                      className="cursor-pointer"
-                    >
-                      <div className="mr-2 text-muted-foreground flex flex-row items-center">
-                        <LinkIcon className="w-4 h-4" />
-                        <ArrowRightIcon className="w-4 h-4" />
-                        <ZapIcon className="w-4 h-4" />
-                      </div>
-                      Swap in
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => navigate("/wallet/swap?type=out")}
-                      className="cursor-pointer"
-                    >
-                      <div className="mr-2 text-muted-foreground flex flex-row items-center">
-                        <ZapIcon className="w-4 h-4" />
-                        <ArrowRightIcon className="w-4 h-4" />
-                        <LinkIcon className="w-4 h-4" />
-                      </div>
-                      Swap out
-                    </DropdownMenuItem>
-                  </DropdownMenuGroup>
+                  {(info?.backendType === "LDK" ||
+                    info?.backendType === "LND") && (
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel>Swaps</DropdownMenuLabel>
+                      <DropdownMenuItem
+                        onClick={() => navigate("/wallet/swap?type=in")}
+                        className="cursor-pointer"
+                      >
+                        <div className="mr-2 text-muted-foreground flex flex-row items-center">
+                          <LinkIcon className="w-4 h-4" />
+                          <ArrowRightIcon className="w-4 h-4" />
+                          <ZapIcon className="w-4 h-4" />
+                        </div>
+                        Swap in
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => navigate("/wallet/swap?type=out")}
+                        className="cursor-pointer"
+                      >
+                        <div className="mr-2 text-muted-foreground flex flex-row items-center">
+                          <ZapIcon className="w-4 h-4" />
+                          <ArrowRightIcon className="w-4 h-4" />
+                          <LinkIcon className="w-4 h-4" />
+                        </div>
+                        Swap out
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
                     <DropdownMenuLabel>Management</DropdownMenuLabel>

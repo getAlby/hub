@@ -119,12 +119,14 @@ function Wallet() {
               Buy Bitcoin
             </Button>
           </ExternalLink>
-          <Link to="/wallet/swap">
-            <Button className="w-full" variant="secondary">
-              <ArrowDownUpIcon className="h-4 w-4 shrink-0 mr-2" />
-              Swap
-            </Button>
-          </Link>
+          {(info?.backendType === "LDK" || info?.backendType === "LND") && (
+            <Link to="/wallet/swap">
+              <Button className="w-full" variant="secondary">
+                <ArrowDownUpIcon className="h-4 w-4 shrink-0 mr-2" />
+                Swap
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
