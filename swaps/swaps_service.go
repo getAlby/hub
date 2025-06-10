@@ -98,7 +98,7 @@ func (svc *swapsService) EnableAutoSwapOut(ctx context.Context, lnClient lnclien
 		return nil
 	}
 
-	parsedBalanceThreshold, err := strconv.ParseUint(balanceThresholdStr, 10, 64)
+	balanceThreshold, err := strconv.ParseUint(balanceThresholdStr, 10, 64)
 	if err != nil {
 		cancelFn()
 		return errors.New("invalid auto swap configuration")
@@ -124,18 +124,18 @@ func (svc *swapsService) EnableAutoSwapOut(ctx context.Context, lnClient lnclien
 					return
 				}
 				lightningBalance := uint64(balance.Lightning.TotalSpendable)
-				balanceThresholdMilliSats := parsedBalanceThreshold * 1000
-				if lightningBalance >= balanceThresholdMilliSats {
-					logger.Logger.WithFields(logrus.Fields{
-						"amount":      amount,
-						"destination": swapDestination,
-					}).Info("Initiating swap")
-					_, err := svc.SwapOut(ctx, amount, swapDestination, lnClient)
-					if err != nil {
-						logger.Logger.WithError(err).Error("Failed to swap")
-					}
-				} else {
+				balanceThresholdMilliSats := balanceThreshold * 1000
+				if lightningBalance < balanceThresholdMilliSats {
 					logger.Logger.Info("Threshold requirements not met for swap, ignoring")
+					return
+				}
+				logger.Logger.WithFields(logrus.Fields{
+					"amount":      amount,
+					"destination": swapDestination,
+				}).Info("Initiating swap")
+				_, err = svc.SwapOut(ctx, amount, swapDestination, lnClient)
+				if err != nil {
+					logger.Logger.WithError(err).Error("Failed to swap")
 				}
 			case <-ctx.Done():
 				logger.Logger.Info("Stopping auto swap workflow")
@@ -164,7 +164,7 @@ func (svc *swapsService) EnableAutoSwapIn(ctx context.Context, lnClient lnclient
 		return nil
 	}
 
-	parsedBalanceThreshold, err := strconv.ParseUint(balanceThresholdStr, 10, 64)
+	balanceThreshold, err := strconv.ParseUint(balanceThresholdStr, 10, 64)
 	if err != nil {
 		cancelFn()
 		return errors.New("invalid auto swap configuration")
@@ -189,17 +189,23 @@ func (svc *swapsService) EnableAutoSwapIn(ctx context.Context, lnClient lnclient
 					logger.Logger.WithError(err).Error("Failed to get balance")
 					return
 				}
+				amountMilliSats := amount * 1000
+				receiveLimit := uint64(balance.Lightning.TotalReceivable)
+				if receiveLimit < amountMilliSats {
+					logger.Logger.Info("Receive limit is less than swap in amount, ignoring")
+					return
+				}
 				onchainBalance := uint64(balance.Onchain.Spendable)
-				if onchainBalance >= parsedBalanceThreshold {
-					logger.Logger.WithFields(logrus.Fields{
-						"amount": amount,
-					}).Info("Initiating swap")
-					_, err := svc.SwapIn(ctx, amount, lnClient)
-					if err != nil {
-						logger.Logger.WithError(err).Error("Failed to swap")
-					}
-				} else {
+				if onchainBalance < balanceThreshold {
 					logger.Logger.Info("Threshold requirements not met for swap, ignoring")
+					return
+				}
+				logger.Logger.WithFields(logrus.Fields{
+					"amount": amount,
+				}).Info("Initiating swap")
+				_, err = svc.SwapIn(ctx, amount, lnClient)
+				if err != nil {
+					logger.Logger.WithError(err).Error("Failed to swap")
 				}
 			case <-ctx.Done():
 				logger.Logger.Info("Stopping auto swap workflow")
@@ -464,18 +470,14 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 }
 
 func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnclient.LNClient) (string, error) {
-	amount *= 1000
-	if amount == 0 {
-		return "", fmt.Errorf("invalid amount")
-	}
-
 	// TODO: add metadata to the invoice
 	// metadata := map[string]interface{}{
 	// 	"swapId":      swap.Id,
 	// 	"claimPubkey": swap.ClaimPublicKey,
 	// 	"amount":      amount,
 	// }
-	invoice, err := svc.transactionsService.MakeInvoice(ctx, amount, "Boltz swap invoice", "", 0, nil, lnClient, nil, nil)
+	amountMSat := amount * 1000
+	invoice, err := svc.transactionsService.MakeInvoice(ctx, amountMSat, "Boltz swap invoice", "", 0, nil, lnClient, nil, nil)
 	if err != nil {
 		return "", err
 	}

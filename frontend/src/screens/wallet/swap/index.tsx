@@ -1,9 +1,15 @@
-import { ClipboardPasteIcon, MoveRightIcon, RefreshCwIcon } from "lucide-react";
+import {
+  AlertTriangleIcon,
+  ClipboardPasteIcon,
+  MoveRightIcon,
+  RefreshCwIcon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
 import ResponsiveButton from "src/components/ResponsiveButton";
+import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -11,6 +17,8 @@ import { LoadingButton } from "src/components/ui/loading-button";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useToast } from "src/components/ui/use-toast";
 import { MIN_AUTO_SWAP_AMOUNT } from "src/constants";
+import { useBalances } from "src/hooks/useBalances";
+import { useInfo } from "src/hooks/useInfo";
 import { useSwaps } from "src/hooks/useSwaps";
 import { cn } from "src/lib/utils";
 import { request } from "src/utils/request";
@@ -69,6 +77,8 @@ export default function Swap() {
 
 function SwapInForm() {
   const { toast } = useToast();
+  const { data: info, hasChannelManagement } = useInfo();
+  const { data: balances } = useBalances();
   const { data: swapSettings } = useSwaps();
   const swapInSettings = swapSettings?.find((s) => s.type === "in");
   const navigate = useNavigate();
@@ -112,9 +122,27 @@ function SwapInForm() {
     }
   };
 
+  if (!info || !balances) {
+    return <Loading />;
+  }
+
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
       <div className="mt-6">
+        {hasChannelManagement &&
+          parseInt(swapAmount || "0") * 1000 >=
+            0.8 * balances.lightning.totalReceivable && (
+            <Alert className="mb-6">
+              <AlertTriangleIcon className="h-4 w-4" />
+              <AlertTitle>Low receiving capacity</AlertTitle>
+              <AlertDescription>
+                You likely won't be able to receive payments until you{" "}
+                <Link className="underline" to="/channels/incoming">
+                  increase your receiving capacity.
+                </Link>
+              </AlertDescription>
+            </Alert>
+          )}
         <h2 className="font-medium text-foreground flex items-center gap-1">
           On-chain <MoveRightIcon /> Lightning
         </h2>

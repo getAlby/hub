@@ -398,7 +398,7 @@ function ActiveSwaps({ swaps }: { swaps: SwapsSettingsResponse[] }) {
       {swaps
         .filter((swap) => swap.enabled)
         .map((swap) => (
-          <Card>
+          <Card key={swap.type}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="font-medium">
                 Active Recurring Swap
