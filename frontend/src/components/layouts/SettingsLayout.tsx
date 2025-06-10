@@ -4,6 +4,7 @@ import AppHeader from "src/components/AppHeader";
 import { buttonVariants } from "src/components/ui/button";
 
 import { useInfo } from "src/hooks/useInfo";
+import { useChannels } from "src/hooks/useChannels";
 
 import { PowerIcon } from "lucide-react";
 import {
@@ -30,9 +31,12 @@ export default function SettingsLayout() {
     hasMnemonic,
     hasNodeBackup,
   } = useInfo();
+  const { data: channels } = useChannels();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [shuttingDown, setShuttingDown] = useState(false);
+
+  const hasPublicChannels = channels?.some((channel) => channel.public) || false;
 
   const shutdown = React.useCallback(async () => {
     setShuttingDown(true);
@@ -122,6 +126,9 @@ export default function SettingsLayout() {
             )}
             {info && !info.albyAccountConnected && (
               <MenuItem to="/alby/account">Alby Account</MenuItem>
+            )}
+            {info?.backendType === "LDK" && hasPublicChannels && (
+              <MenuItem to="/settings/node">Node</MenuItem>
             )}
             <MenuItem to="/settings/developer">Developer</MenuItem>
             <MenuItem to="/settings/debug-tools">Debug Tools</MenuItem>

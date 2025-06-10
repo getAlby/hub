@@ -1,0 +1,106 @@
+import React, { useState } from "react";
+import { Button } from "src/components/ui/button";
+import { Input } from "src/components/ui/input";
+import { Label } from "src/components/ui/label";
+import { useToast } from "src/components/ui/use-toast";
+import SettingsHeader from "src/components/SettingsHeader";
+import { UpgradeDialog } from "src/components/UpgradeDialog";
+import { useAlbyMe } from "src/hooks/useAlbyMe";
+import { useInfo } from "src/hooks/useInfo";
+import { handleRequestError } from "src/utils/handleRequestError";
+import { request } from "src/utils/request";
+
+export function NodeSettings() {
+  const { toast } = useToast();
+  const { data: info, mutate: reloadInfo } = useInfo();
+  const { data: albyMe } = useAlbyMe();
+  const [nodeAlias, setNodeAlias] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Initialize nodeAlias with current value when info loads
+  React.useEffect(() => {
+    if (info?.nodeAlias !== undefined) {
+      setNodeAlias(info.nodeAlias);
+    }
+  }, [info?.nodeAlias]);
+
+  const hasPaid = albyMe?.subscription?.plan_code;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!hasPaid) {
+      toast({
+        title: "Please upgrade to change your node alias",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await request("/api/node/alias", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ nodeAlias }),
+      });
+      
+      await reloadInfo();
+      toast({ 
+        title: "Alias changed. Restart your node to apply the change.",
+        description: "Your node alias has been updated successfully."
+      });
+    } catch (error) {
+      console.error("Failed to update node alias:", error);
+      handleRequestError(toast, "Failed to update node alias", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <SettingsHeader
+        title="Node"
+        description="Configure your lightning node settings."
+      />
+      <div className="relative">
+        {!hasPaid && (
+          <div className="absolute top-4 right-4">
+            <UpgradeDialog>
+              <Button variant="premium" size="sm">
+                Upgrade
+              </Button>
+            </UpgradeDialog>
+          </div>
+        )}
+        <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
+          <div className="grid gap-2">
+            <Label htmlFor="nodeAlias">Node Alias</Label>
+            <Input
+              id="nodeAlias"
+              type="text"
+              value={nodeAlias}
+              onChange={(e) => setNodeAlias(e.target.value)}
+              placeholder="Alby Hub"
+              disabled={!hasPaid}
+              className="w-full md:w-60"
+            />
+            <p className="text-sm text-muted-foreground">
+              Set a custom alias for your lightning node to appear on network explorers.
+            </p>
+          </div>
+          <Button 
+            type="submit" 
+            disabled={isLoading || !hasPaid}
+            className="w-fit"
+          >
+            {isLoading ? "Updating..." : "Update Alias"}
+          </Button>
+        </form>
+      </div>
+    </>
+  );
+}

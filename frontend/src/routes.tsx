@@ -54,6 +54,7 @@ import Backup from "src/screens/settings/Backup";
 import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
 import DebugTools from "src/screens/settings/DebugTools";
 import DeveloperSettings from "src/screens/settings/DeveloperSettings";
+import { NodeSettings } from "src/screens/settings/NodeSettings";
 import Settings from "src/screens/settings/Settings";
 import Swaps from "src/screens/settings/Swaps";
 
@@ -218,6 +219,11 @@ const routes = [
               {
                 path: "alby-account",
                 element: <AlbyAccount />,
+              },
+              {
+                path: "node",
+                element: <NodeSettings />,
+                handle: { crumb: () => "Node" },
               },
               {
                 path: "developer",

@@ -878,6 +878,9 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 
 	info.NextBackupReminder, _ = api.cfg.Get("NextBackupReminder", "")
 
+	// Add NodeAlias to info response
+	info.NodeAlias, _ = api.cfg.Get("NodeAlias", "")
+
 	return &info, nil
 }
 
@@ -889,6 +892,16 @@ func (api *api) SetCurrency(currency string) error {
 	err := api.cfg.SetCurrency(currency)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to update currency")
+		return err
+	}
+
+	return nil
+}
+
+func (api *api) SetNodeAlias(nodeAlias string) error {
+	err := api.cfg.SetUpdate("NodeAlias", nodeAlias, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save node alias to config")
 		return err
 	}
 
