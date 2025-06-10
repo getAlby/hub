@@ -17,7 +17,7 @@ import (
 
 type config struct {
 	Env *AppConfig
-	db *gorm.DB
+	db  *gorm.DB
 }
 
 const (
@@ -117,7 +117,7 @@ func (cfg *config) init(env *AppConfig) error {
 			jwtSecret = hexSecret
 			logger.Logger.Info("Generated new JWT secret")
 		}
-		
+
 		err := cfg.SetIgnore("JWTSecret", jwtSecret, "")
 		if err != nil {
 			logger.Logger.WithError(err).Error("failed to save JWT secret")
@@ -290,7 +290,7 @@ func (cfg *config) ChangeUnlockPassword(currentUnlockPassword string, newUnlockP
 	})
 
 	if err != nil {
-		logger.Logger.WithError(err).Error("failed to execute password change transaction (includes JWT regeneration)")
+		logger.Logger.WithError(err).Error("failed to execute password change transaction")
 		return err
 	}
 	return nil
