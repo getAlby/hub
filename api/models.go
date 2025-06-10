@@ -60,9 +60,12 @@ type API interface {
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
-	GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error)
-	DisableAutoSwaps() error
-	EnableAutoSwaps(ctx context.Context, autoSwapsRequest *EnableAutoSwapsRequest) error
+	InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (string, error)
+	InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (string, error)
+	GetAutoSwapConfig() ([]*GetAutoSwapConfigResponse, error)
+	EnableAutoSwapOut(ctx context.Context, autoSwapRequest *EnableAutoSwapRequest) error
+	EnableAutoSwapIn(ctx context.Context, autoSwapRequest *EnableAutoSwapRequest) error
+	DisableAutoSwap(swapType string) error
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
 	SendEvent(event string)
@@ -119,13 +122,19 @@ type CreateAppRequest struct {
 	UnlockPassword string   `json:"unlockPassword"`
 }
 
-type EnableAutoSwapsRequest struct {
+type InitiateSwapRequest struct {
+	SwapAmount  uint64 `json:"swapAmount"`
+	Destination string `json:"destination"`
+}
+
+type EnableAutoSwapRequest struct {
 	BalanceThreshold uint64 `json:"balanceThreshold"`
 	SwapAmount       uint64 `json:"swapAmount"`
 	Destination      string `json:"destination"`
 }
 
-type GetAutoSwapsConfigResponse struct {
+type GetAutoSwapConfigResponse struct {
+	Type             string  `json:"type"`
 	Enabled          bool    `json:"enabled"`
 	BalanceThreshold uint64  `json:"balanceThreshold"`
 	SwapAmount       uint64  `json:"swapAmount"`
