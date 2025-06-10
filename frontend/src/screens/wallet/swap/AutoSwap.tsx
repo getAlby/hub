@@ -165,7 +165,6 @@ function AutoSwapInForm() {
         </p>
       </div>
 
-      {/* TODO: Review fee for swap ins */}
       <div className="flex items-center justify-between border-t py-4">
         <Label>Fee</Label>
         {swapInSettings ? (

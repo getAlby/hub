@@ -126,7 +126,6 @@ function SwapInForm() {
         </p>
       </div>
 
-      {/* TODO: Review fee for swap ins */}
       <div className="flex items-center justify-between border-t pt-4">
         <Label>Fee</Label>
         {swapInSettings ? (
