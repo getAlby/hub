@@ -1,5 +1,6 @@
+import { SparklesIcon } from "lucide-react";
 import React, { useState } from "react";
-import SettingsHeader from "src/components/SettingsHeader";
+import AppHeader from "src/components/AppHeader";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -7,10 +8,11 @@ import { useToast } from "src/components/ui/use-toast";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
+
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
-export function NodeSettings() {
+export default function NodeAlias() {
   const { toast } = useToast();
   const { data: info, mutate: reloadInfo } = useInfo();
   const { data: albyMe } = useAlbyMe();
@@ -61,21 +63,20 @@ export function NodeSettings() {
   };
 
   return (
-    <>
-      <SettingsHeader
-        title="Node"
-        description="Configure your lightning node settings."
-      />
-      {!hasPaid && (
-        <div className="flex w-full justify-end">
+    <div className="grid gap-5">
+      <AppHeader
+        title="Node Alias"
+        description="Set a human-readable name for your lightning node"
+        contentRight={
           <UpgradeDialog>
-            <Button variant="premium" size="sm">
+            <Button>
+              <SparklesIcon className="w-4 h-4 mr-2" />
               Upgrade
             </Button>
           </UpgradeDialog>
-        </div>
-      )}
-      <div className="w-full">
+        }
+      />
+      <div className="max-w-lg">
         <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
           <div className="grid gap-2">
             <Label htmlFor="nodeAlias">Node Alias</Label>
@@ -88,8 +89,9 @@ export function NodeSettings() {
               className="w-full md:w-60"
             />
             <p className="text-sm text-muted-foreground">
-              Set a custom alias for your lightning node to appear on network
-              explorers.
+              Your lightning node alias will appear to your channel partners,
+              connected peers, and on lightning network explorers such as
+              amboss.space.
             </p>
           </div>
           <Button type="submit" disabled={isLoading} className="w-fit">
@@ -97,6 +99,6 @@ export function NodeSettings() {
           </Button>
         </form>
       </div>
-    </>
+    </div>
   );
 }

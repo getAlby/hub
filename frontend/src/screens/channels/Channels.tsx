@@ -65,6 +65,7 @@ import { request } from "src/utils/request";
 
 export default function Channels() {
   useSyncWallet();
+  const { data: info } = useInfo();
   const { data: channels } = useChannels();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const { hasChannelManagement } = useInfo();
@@ -74,6 +75,9 @@ export default function Channels() {
   const [swapOutDialogOpen, setSwapOutDialogOpen] = React.useState(false);
   const [swapInDialogOpen, setSwapInDialogOpen] = React.useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const hasPublicChannels =
+    channels?.some((channel) => channel.public) || false;
 
   React.useEffect(() => {
     if (balances && channels && searchParams.has("swap", "true")) {
@@ -224,6 +228,13 @@ export default function Channels() {
                         Sign Message
                       </Link>
                     </DropdownMenuItem>
+                    {info?.backendType === "LDK" && hasPublicChannels && (
+                      <DropdownMenuItem>
+                        <Link className="w-full" to="/wallet/node-alias">
+                          Set Node Alias
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>

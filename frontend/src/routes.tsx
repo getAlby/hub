@@ -54,7 +54,6 @@ import Backup from "src/screens/settings/Backup";
 import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
 import DebugTools from "src/screens/settings/DebugTools";
 import DeveloperSettings from "src/screens/settings/DeveloperSettings";
-import { NodeSettings } from "src/screens/settings/NodeSettings";
 import Settings from "src/screens/settings/Settings";
 import Swaps from "src/screens/settings/Swaps";
 
@@ -74,6 +73,7 @@ import { NewSubwallet } from "src/screens/subwallets/NewSubwallet";
 import { SubwalletCreated } from "src/screens/subwallets/SubwalletCreated";
 import { SubwalletList } from "src/screens/subwallets/SubwalletList";
 import Wallet from "src/screens/wallet";
+import NodeAlias from "src/screens/wallet/NodeAlias";
 import Receive from "src/screens/wallet/Receive";
 import Send from "src/screens/wallet/Send";
 import SignMessage from "src/screens/wallet/SignMessage";
@@ -169,6 +169,11 @@ const routes = [
             handle: { crumb: () => "Sign Message" },
           },
           {
+            path: "node-alias",
+            element: <NodeAlias />,
+            handle: { crumb: () => "Node Alias" },
+          },
+          {
             path: "withdraw",
             element: <WithdrawOnchainFunds />,
             handle: { crumb: () => "Withdraw On-Chain Balance" },
@@ -219,11 +224,6 @@ const routes = [
               {
                 path: "alby-account",
                 element: <AlbyAccount />,
-              },
-              {
-                path: "node",
-                element: <NodeSettings />,
-                handle: { crumb: () => "Node" },
               },
               {
                 path: "developer",
