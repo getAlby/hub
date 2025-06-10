@@ -553,28 +553,3 @@ export type NewChannelOrder = OnchainOrder | LightningOrder;
 export type AuthTokenResponse = {
   token: string;
 };
-
-// TODO: use types in frontend
-export interface CreateAutoSwapRequest {
-  swapAmount: number;
-  balanceThreshold: number;
-  destination?: string;
-}
-
-export interface CreateAutoSwapResponse {
-  swapType: string;
-  swapAmount: number;
-  balanceThreshold: number;
-  destination?: string;
-}
-
-export interface CreateSwapRequest {
-  swapAmount: number;
-  destination?: string;
-}
-
-export interface CreateSwapResponse {
-  swapId: string;
-  swapType: string;
-  txId: string;
-}
