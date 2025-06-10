@@ -1,9 +1,9 @@
 import React, { useState } from "react";
+import SettingsHeader from "src/components/SettingsHeader";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { useToast } from "src/components/ui/use-toast";
-import SettingsHeader from "src/components/SettingsHeader";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
@@ -28,7 +28,7 @@ export function NodeSettings() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!hasPaid) {
       toast({
         title: "Please upgrade to change your node alias",
@@ -46,11 +46,11 @@ export function NodeSettings() {
         },
         body: JSON.stringify({ nodeAlias }),
       });
-      
+
       await reloadInfo();
-      toast({ 
+      toast({
         title: "Alias changed. Restart your node to apply the change.",
-        description: "Your node alias has been updated successfully."
+        description: "Your node alias has been updated successfully.",
       });
     } catch (error) {
       console.error("Failed to update node alias:", error);
@@ -66,16 +66,16 @@ export function NodeSettings() {
         title="Node"
         description="Configure your lightning node settings."
       />
-      <div className="relative">
-        {!hasPaid && (
-          <div className="absolute top-4 right-4">
-            <UpgradeDialog>
-              <Button variant="premium" size="sm">
-                Upgrade
-              </Button>
-            </UpgradeDialog>
-          </div>
-        )}
+      {!hasPaid && (
+        <div className="flex w-full justify-end">
+          <UpgradeDialog>
+            <Button variant="premium" size="sm">
+              Upgrade
+            </Button>
+          </UpgradeDialog>
+        </div>
+      )}
+      <div className="w-full">
         <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
           <div className="grid gap-2">
             <Label htmlFor="nodeAlias">Node Alias</Label>
@@ -85,18 +85,14 @@ export function NodeSettings() {
               value={nodeAlias}
               onChange={(e) => setNodeAlias(e.target.value)}
               placeholder="Alby Hub"
-              disabled={!hasPaid}
               className="w-full md:w-60"
             />
             <p className="text-sm text-muted-foreground">
-              Set a custom alias for your lightning node to appear on network explorers.
+              Set a custom alias for your lightning node to appear on network
+              explorers.
             </p>
           </div>
-          <Button 
-            type="submit" 
-            disabled={isLoading || !hasPaid}
-            className="w-fit"
-          >
+          <Button type="submit" disabled={isLoading} className="w-fit">
             {isLoading ? "Updating..." : "Update Alias"}
           </Button>
         </form>
