@@ -79,6 +79,7 @@ function NewChannelInternal({
     status: "pay",
     amount: presetAmounts[0].toString(),
     prevChannelIds: channels.map((channel) => channel.id),
+    isPublic: !!channels.length && channels.every((channel) => channel.public),
   });
 
   const [showAdvanced, setShowAdvanced] = React.useState(false);
