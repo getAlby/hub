@@ -38,19 +38,20 @@ import (
 )
 
 type LDKService struct {
-	workdir               string
-	node                  *ldk_node.Node
-	ldkEventBroadcaster   LDKEventBroadcaster
-	cancel                context.CancelFunc
-	network               string
-	eventPublisher        events.EventPublisher
-	syncing               bool
-	lastFullSync          time.Time
-	lastFeeEstimatesSync  time.Time
-	cfg                   config.Config
-	lastWalletSyncRequest time.Time
-	pubkey                string
-	shuttingDown          bool
+	workdir                            string
+	node                               *ldk_node.Node
+	ldkEventBroadcaster                LDKEventBroadcaster
+	cancel                             context.CancelFunc
+	network                            string
+	eventPublisher                     events.EventPublisher
+	syncing                            bool
+	lastFullSync                       time.Time
+	lastFeeEstimatesSync               time.Time
+	cfg                                config.Config
+	lastWalletSyncRequest              time.Time
+	redeemedOnchainFundsWithinThisSync bool
+	pubkey                             string
+	shuttingDown                       bool
 }
 
 const resetRouterKey = "ResetRouter"
@@ -317,6 +318,14 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 						break
 					}
 				}
+				balances := ls.node.ListBalances()
+				for _, balance := range balances.LightningBalances {
+					switch balanceType := (balance).(type) {
+					case ldk_node.LightningBalanceContentiousClaimable:
+						logger.Logger.WithField("channel_id", balanceType.ChannelId).Debug("Using short sync time while balances are contentious claimable after channel closure")
+						ls.lastWalletSyncRequest = time.Now()
+					}
+				}
 
 				if time.Since(ls.lastWalletSyncRequest) > MIN_SYNC_INTERVAL && time.Since(ls.lastFullSync) < MAX_SYNC_INTERVAL {
 
@@ -365,6 +374,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 					continue
 				}
 
+				ls.redeemedOnchainFundsWithinThisSync = false
 				ls.lastFullSync = time.Now()
 				// fee estimates happens as part of full sync
 				ls.lastFeeEstimatesSync = time.Now()
@@ -1213,28 +1223,36 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 }
 
 func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (string, error) {
+	if ls.redeemedOnchainFundsWithinThisSync {
+		return "", errors.New("please wait a minute for the wallet to sync before doing another on-chain payment")
+	}
+
 	var feePtr **ldk_node.FeeRate
 	if feeRate != nil {
 		fee := ldk_node.FeeRateFromSatPerVbUnchecked(*feeRate)
 		feePtr = &fee
 	}
 
+	var txId string
+	var err error
+
 	if !sendAll {
 		// NOTE: this may fail if user does not reserve enough for the onchain transaction
 		// and can also drain the anchor reserves if the user provides a too high amount.
-		txId, err := checkLDKErr(ls.node.OnchainPayment().SendToAddress(toAddress, amount, feePtr))
-		if err != nil {
-			logger.Logger.WithError(err).Error("SendToAddress failed")
-			return "", err
-		}
-		return txId, nil
+		txId, err = checkLDKErr(ls.node.OnchainPayment().SendToAddress(toAddress, amount, feePtr))
+	} else {
+		txId, err = checkLDKErr(ls.node.OnchainPayment().SendAllToAddress(toAddress, false, feePtr))
 	}
 
-	txId, err := checkLDKErr(ls.node.OnchainPayment().SendAllToAddress(toAddress, false, feePtr))
 	if err != nil {
-		logger.Logger.WithError(err).Error("SendAllToAddress failed")
+		logger.Logger.WithField("send_all", sendAll).WithError(err).Error("LDK onchain payment to redeem funds failed")
 		return "", err
 	}
+
+	// make sure we do a sync after sending on-chain funds
+	ls.redeemedOnchainFundsWithinThisSync = true
+	ls.lastWalletSyncRequest = time.Now()
+
 	return txId, nil
 }
 
@@ -1525,6 +1543,9 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 		}
 
 	case ldk_node.EventChannelClosed:
+		// make sure we do a sync after receiving a channel closed event
+		ls.lastWalletSyncRequest = time.Now()
+
 		closureReason := ls.getChannelCloseReason(&eventType)
 		logger.Logger.WithFields(logrus.Fields{
 			"event":  event,

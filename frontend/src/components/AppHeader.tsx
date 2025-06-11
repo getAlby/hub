@@ -7,13 +7,19 @@ type Props = {
   description?: string | ReactElement;
   contentRight?: React.ReactNode;
   breadcrumb?: boolean;
+  addSidebarTrigger?: boolean;
 };
 
-function AppHeader({ title, description = "", contentRight }: Props) {
+function AppHeader({
+  title,
+  description = "",
+  contentRight,
+  addSidebarTrigger = true,
+}: Props) {
   return (
     <>
       <header className="flex flex-row items-center border-b border-border pb-4 gap-2">
-        <SidebarTrigger className="-ml-1 md:hidden" />
+        {addSidebarTrigger && <SidebarTrigger className="-ml-1 md:hidden" />}
         <Separator orientation="vertical" className="mr-2 h-4 md:hidden" />
         <div className="flex flex-col flex-1">
           <div className="flex justify-between items-center">
