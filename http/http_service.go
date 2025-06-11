@@ -164,6 +164,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/settings/swaps", httpSvc.getAutoSwapsConfigHandler)
 	restrictedApiGroup.POST("/settings/swaps", httpSvc.enableAutoSwapsHandler)
 	restrictedApiGroup.DELETE("/settings/swaps", httpSvc.disableAutoSwapsHandler)
+	restrictedApiGroup.POST("/node/alias", httpSvc.setNodeAliasHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedApiGroup, e)
 }
@@ -1231,6 +1232,24 @@ func (httpSvc *HttpService) disableAutoSwapsHandler(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) setNodeAliasHandler(c echo.Context) error {
+	var setNodeAliasRequest api.SetNodeAliasRequest
+	if err := c.Bind(&setNodeAliasRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.api.SetNodeAlias(setNodeAliasRequest.NodeAlias)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to set node alias: %s", err.Error()),
 		})
 	}
 

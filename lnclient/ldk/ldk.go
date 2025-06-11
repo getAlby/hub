@@ -116,9 +116,14 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	ldkLogger := NewLDKLogger(ldk_node.LogLevel(logLevel) + ldk_node.LogLevelGossip)
 	ldkConfig.TransientNetworkGraph = cfg.GetEnv().LDKTransientNetworkGraph
 
+	alias, _ := cfg.Get("NodeAlias", "")
+	if alias == "" {
+		alias = "Alby Hub"
+	}
+
 	builder := ldk_node.BuilderFromConfig(ldkConfig)
 	builder.SetCustomLogger(ldkLogger)
-	builder.SetNodeAlias("Alby Hub") // TODO: allow users to customize
+	builder.SetNodeAlias(alias)
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
 	builder.SetNetwork(network)
 	builder.SetChainSourceEsplora(cfg.GetEnv().LDKEsploraServer, nil)
@@ -148,6 +153,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	logger.Logger.WithFields(logrus.Fields{
 		"migrate_storage":     migrateStorage,
 		"vss_enabled":         vssToken != "",
+		"node_alias":          alias,
 		"listening_addresses": listeningAddresses,
 	}).Info("Creating LDK node")
 	setStartupState("Loading node data...")
