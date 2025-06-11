@@ -1297,7 +1297,7 @@ func (svc *transactionsService) SetTransactionMetadata(ctx context.Context, id u
 
 	err = svc.db.Model(&db.Transaction{}).Where("id", id).Update("metadata", datatypes.JSON(metadataBytes)).Error
 	if err != nil {
-		logger.Logger.WithError(err).WithField("metadata", metadata).Error("failed to update transaction metadata")
+		logger.Logger.WithError(err).WithField("metadata", metadata).Error("Failed to update transaction metadata")
 		return err
 	}
 

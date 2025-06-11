@@ -388,7 +388,7 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 
 					holdInvoicePayment, err := svc.transactionsService.LookupTransaction(ctx, paymentHash, nil, lnClient, nil)
 					if err != nil {
-						logger.Logger.WithError(err).WithField("payment_hash", paymentHash).Error("failed to lookup swap hold invoice payment")
+						logger.Logger.WithError(err).WithField("payment_hash", paymentHash).Error("Failed to lookup swap hold invoice payment")
 						return
 					}
 
@@ -406,7 +406,7 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 						logger.Logger.WithError(err).WithFields(logrus.Fields{
 							"payment_hash":          paymentHash,
 							"lookup_transaction_id": update.Transaction.Id,
-						}).Error("failed to add lookup transaction id to lightning payment metadata")
+						}).Error("Failed to add lookup transaction id to lightning payment metadata")
 						return
 					}
 
@@ -810,8 +810,8 @@ func (svc *swapsService) getFeeRates() (*FeeRates, error) {
 	for attempt := 1; attempt < 10; attempt++ {
 		feeRates, err := tryGetFeeRates()
 		if err != nil {
-			logger.Logger.WithError(err).WithField("attempt", attempt).Error("failed to fetch fee rates for swap")
-			time.Sleep(10 * time.Second)
+			logger.Logger.WithError(err).WithField("attempt", attempt).Error("Failed to fetch fee rates for swap")
+			time.Sleep(5 * time.Second)
 			continue
 		}
 		return feeRates, nil
