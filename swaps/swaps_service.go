@@ -37,7 +37,7 @@ type SwapsService interface {
 	StopAutoSwap(swapIn, swapOut bool)
 	EnableAutoSwapOut(ctx context.Context, lnClient lnclient.LNClient) error
 	EnableAutoSwapIn(ctx context.Context, lnClient lnclient.LNClient) error
-	SwapOut(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) (string, error)
+	SwapOut(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) (*SwapOutResponse, error)
 	SwapIn(ctx context.Context, amount uint64, lnClient lnclient.LNClient) (string, error)
 	CalculateSwapOutFee() (*SwapFees, error)
 	CalculateSwapInFee() (*SwapFees, error)
@@ -61,7 +61,13 @@ type SwapFees struct {
 	BoltzNetworkFee uint64  `json:"boltzNetworkFee"`
 }
 
-func NewSwapsService(cfg config.Config, eventPublisher events.EventPublisher, transactionsService transactions.TransactionsService) *swapsService {
+type SwapOutResponse struct {
+	TxId        string `json:"txId"`
+	SwapId      string `json:"swapId"`
+	PaymentHash string `json:"paymentHash"`
+}
+
+func NewSwapsService(cfg config.Config, eventPublisher events.EventPublisher, transactionsService transactions.TransactionsService) SwapsService {
 	return &swapsService{
 		cfg:                 cfg,
 		eventPublisher:      eventPublisher,
@@ -219,42 +225,43 @@ func (svc *swapsService) EnableAutoSwapIn(ctx context.Context, lnClient lnclient
 	return nil
 }
 
-func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) (string, error) {
+func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient) (*SwapOutResponse, error) {
 	if destination == "" {
 		var err error
 		destination, err = svc.cfg.Get(config.OnchainAddressKey, "")
 		if err != nil {
-			return "", fmt.Errorf("could not get onchain address from config: %s", err)
+			return nil, fmt.Errorf("could not get onchain address from config: %s", err)
 		}
 	}
 
 	var network, err = boltz.ParseChain(svc.cfg.GetNetwork())
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// TODO: use own keys
 	ourKeys, err := btcec.NewPrivateKey()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	preimage := make([]byte, 32)
 	_, err = rand.Read(preimage)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	preimageHash := sha256.Sum256(preimage)
+	paymentHash := hex.EncodeToString(preimageHash[:])
 
 	reversePairs, err := svc.boltzApi.GetReversePairs()
 	if err != nil {
-		return "", fmt.Errorf("could not get reverse pairs: %s", err)
+		return nil, fmt.Errorf("could not get reverse pairs: %s", err)
 	}
 
 	pair := boltz.Pair{From: boltz.CurrencyBtc, To: boltz.CurrencyBtc}
 	pairInfo, err := boltz.FindPair(pair, reversePairs)
 	if err != nil {
-		return "", fmt.Errorf("could not find reverse pair: %s", err)
+		return nil, fmt.Errorf("could not find reverse pair: %s", err)
 	}
 
 	fees := pairInfo.Fees
@@ -285,21 +292,21 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 		ExtraFees:      albyFee,
 	})
 	if err != nil {
-		return "", fmt.Errorf("could not create swap: %s", err)
+		return nil, fmt.Errorf("could not create swap: %s", err)
 	}
 
 	boltzPubKey, err := btcec.ParsePubKey(swap.RefundPublicKey)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	tree := swap.SwapTree.Deserialize()
 	if err := tree.Init(boltz.CurrencyBtc, true, ourKeys, boltzPubKey); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if err := tree.Check(boltz.ReverseSwap, swap.TimeoutBlockHeight, preimageHash[:]); err != nil {
-		return "", err
+		return nil, err
 	}
 
 	logger.Logger.WithField("swap", swap).Info("Swap created")
@@ -309,12 +316,12 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 
 	boltzWs := svc.boltzApi.NewWebsocket()
 	if err := boltzWs.Connect(); err != nil {
-		return "", fmt.Errorf("could not connect to Boltz websocket: %w", err)
+		return nil, fmt.Errorf("could not connect to Boltz websocket: %w", err)
 	}
 
 	if err := boltzWs.Subscribe([]string{swap.Id}); err != nil {
 		_ = boltzWs.Close()
-		return "", err
+		return nil, err
 	}
 
 	go func() {
@@ -357,7 +364,7 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 							"refundPubkey":  swap.RefundPublicKey,
 						}
 						sendPaymentTimeout := int64(3600)
-						_, err := svc.transactionsService.SendPaymentSync(ctx, swap.Invoice, nil, metadata, lnClient, nil, nil, &sendPaymentTimeout)
+						holdInvoicePayment, err := svc.transactionsService.SendPaymentSync(ctx, swap.Invoice, nil, metadata, lnClient, nil, nil, &sendPaymentTimeout)
 						if err != nil {
 							logger.Logger.WithError(err).WithFields(logrus.Fields{
 								"swap":   swap,
@@ -367,6 +374,10 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 							return
 						}
 						logger.Logger.WithField("swapId", swap.Id).Info("Initiated swap invoice payment")
+						if holdInvoicePayment.PaymentHash != paymentHash {
+							paymentErrorCh <- errors.New("swap hold payment hash mismatch")
+							return
+						}
 					}()
 				case boltz.TransactionMempool:
 					logger.Logger.WithFields(logrus.Fields{
@@ -374,7 +385,31 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 						"transaction": update.Transaction,
 					}).Info("Lockup transaction found in mempool")
 					txCh <- update.Transaction.Id
-					// TODO: add this txId to payment metadata
+
+					holdInvoicePayment, err := svc.transactionsService.LookupTransaction(ctx, paymentHash, nil, lnClient, nil)
+					if err != nil {
+						logger.Logger.WithError(err).WithField("payment_hash", paymentHash).Error("failed to lookup swap hold invoice payment")
+						return
+					}
+
+					var metadata map[string]interface{}
+					jsonErr := json.Unmarshal(holdInvoicePayment.Metadata, &metadata)
+					if jsonErr != nil {
+						logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
+							"payment_hash": paymentHash,
+						}).Error("Failed to deserialize transaction metadata")
+						return
+					}
+					metadata["lockupTransactionId"] = update.Transaction.Id
+					err = svc.transactionsService.SetTransactionMetadata(ctx, holdInvoicePayment.ID, metadata)
+					if err != nil {
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"payment_hash":          paymentHash,
+							"lookup_transaction_id": update.Transaction.Id,
+						}).Error("failed to add lookup transaction id to lightning payment metadata")
+						return
+					}
+
 				case boltz.TransactionConfirmed:
 					logger.Logger.WithFields(logrus.Fields{
 						"swapId":      swap.Id,
@@ -455,11 +490,15 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 
 	select {
 	case <-ctx.Done():
-		return "", ctx.Err()
+		return nil, ctx.Err()
 	case err := <-errCh:
-		return "", err
+		return nil, err
 	case txid := <-txCh:
-		return txid, nil
+		return &SwapOutResponse{
+			TxId:        txid,
+			SwapId:      swap.Id,
+			PaymentHash: paymentHash,
+		}, nil
 	}
 }
 
@@ -722,45 +761,60 @@ func (svc *swapsService) CalculateSwapInFee() (*SwapFees, error) {
 }
 
 func (svc *swapsService) getFeeRates() (*FeeRates, error) {
-	url := svc.cfg.GetEnv().MempoolApi + "/v1/fees/recommended"
+	// especially on Testnet the fee rate endpoint is unreliable
 
-	client := http.Client{
-		Timeout: time.Second * 10,
+	tryGetFeeRates := func() (*FeeRates, error) {
+		url := svc.cfg.GetEnv().MempoolApi + "/v1/fees/recommended"
+
+		client := http.Client{
+			Timeout: time.Second * 10,
+		}
+
+		req, err := http.NewRequest(http.MethodGet, url, nil)
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"url": url,
+			}).Error("Failed to create http request")
+			return nil, err
+		}
+
+		res, err := client.Do(req)
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"url": url,
+			}).Error("Failed to send request")
+			return nil, err
+		}
+
+		defer res.Body.Close()
+
+		body, readErr := io.ReadAll(res.Body)
+		if readErr != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"url": url,
+			}).Error("Failed to read response body")
+			return nil, errors.New("failed to read response body")
+		}
+
+		var rates FeeRates
+		jsonErr := json.Unmarshal(body, &rates)
+		if jsonErr != nil {
+			logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
+				"url": url,
+			}).Error("Failed to deserialize json")
+			return nil, fmt.Errorf("failed to deserialize json %s %s", url, string(body))
+		}
+		return &rates, nil
 	}
 
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to create http request")
-		return nil, err
+	for attempt := 1; attempt < 10; attempt++ {
+		feeRates, err := tryGetFeeRates()
+		if err != nil {
+			logger.Logger.WithError(err).WithField("attempt", attempt).Error("failed to fetch fee rates for swap")
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		return feeRates, nil
 	}
-
-	res, err := client.Do(req)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to send request")
-		return nil, err
-	}
-
-	defer res.Body.Close()
-
-	body, readErr := io.ReadAll(res.Body)
-	if readErr != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to read response body")
-		return nil, errors.New("failed to read response body")
-	}
-
-	var rates FeeRates
-	jsonErr := json.Unmarshal(body, &rates)
-	if jsonErr != nil {
-		logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to deserialize json")
-		return nil, fmt.Errorf("failed to deserialize json %s %s", url, string(body))
-	}
-	return &rates, nil
+	return nil, errors.New("ran out of attempts to fetch fee rates for swap")
 }

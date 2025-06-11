@@ -21,6 +21,7 @@ import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import { useSwaps } from "src/hooks/useSwaps";
 import { cn } from "src/lib/utils";
+import { SwapOutResponse } from "src/types";
 import { request } from "src/utils/request";
 
 export default function Swap() {
@@ -197,24 +198,26 @@ function SwapOutForm() {
 
     try {
       setLoading(true);
-      const txId = await request<string>("/api/wallet/swap/out", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          swapAmount: parseInt(swapAmount),
-          destination,
-        }),
-      });
-      if (!txId) {
+      const swapOutResponse = await request<SwapOutResponse>(
+        "/api/wallet/swap/out",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            swapAmount: parseInt(swapAmount),
+            destination,
+          }),
+        }
+      );
+      if (!swapOutResponse) {
         throw new Error("Error swapping out");
       }
-      navigate(`/wallet/swap/success`, {
+      navigate(`/wallet/swap/out/success`, {
         state: {
-          type: "out",
-          txId,
-          amount: swapAmount,
+          swapOutResponse,
+          amount: parseInt(swapAmount),
         },
       });
       toast({ title: "Initiated swap" });

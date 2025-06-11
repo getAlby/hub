@@ -8,6 +8,7 @@ import (
 	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/swaps"
 )
 
 type API interface {
@@ -60,7 +61,7 @@ type API interface {
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
 	InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (string, error)
-	InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (string, error)
+	InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (*swaps.SwapOutResponse, error)
 	GetAutoSwapConfig() ([]*GetAutoSwapConfigResponse, error)
 	EnableAutoSwapOut(ctx context.Context, autoSwapRequest *EnableAutoSwapRequest) error
 	EnableAutoSwapIn(ctx context.Context, autoSwapRequest *EnableAutoSwapRequest) error

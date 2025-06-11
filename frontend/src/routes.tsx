@@ -82,6 +82,7 @@ import PaymentSuccess from "src/screens/wallet/send/PaymentSuccess";
 import ZeroAmount from "src/screens/wallet/send/ZeroAmount";
 import Swap from "src/screens/wallet/swap";
 import AutoSwap from "src/screens/wallet/swap/AutoSwap";
+import SwapOutSuccess from "src/screens/wallet/swap/SwapOutSuccess";
 import SwapSuccess from "src/screens/wallet/swap/SwapSuccess";
 
 const routes = [
@@ -125,6 +126,10 @@ const routes = [
               {
                 path: "auto",
                 element: <AutoSwap />,
+              },
+              {
+                path: "out/success",
+                element: <SwapOutSuccess />,
               },
               {
                 path: "success",
