@@ -811,7 +811,7 @@ func (svc *swapsService) getFeeRates() (*FeeRates, error) {
 		feeRates, err := tryGetFeeRates()
 		if err != nil {
 			logger.Logger.WithError(err).WithField("attempt", attempt).Error("failed to fetch fee rates for swap")
-			time.Sleep(1 * time.Second)
+			time.Sleep(10 * time.Second)
 			continue
 		}
 		return feeRates, nil
