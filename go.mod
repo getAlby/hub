@@ -18,7 +18,6 @@ require (
 	golang.org/x/crypto v0.38.0
 	golang.org/x/oauth2 v0.30.0
 	google.golang.org/grpc v1.73.0
-	gopkg.in/DataDog/dd-trace-go.v1 v1.73.1
 	gopkg.in/macaroon.v2 v2.1.0
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/driver/sqlite v1.5.7
@@ -34,7 +33,7 @@ require (
 	github.com/FactomProject/basen v0.0.0-20150613233007-fe3947df716e // indirect
 	github.com/FactomProject/btcutilecc v0.0.0-20130527213604-d3a63a5752ec // indirect
 	github.com/ImVexed/fasturl v0.0.0-20230304231329-4e41488060f3 // indirect
-	github.com/Masterminds/semver/v3 v3.2.1 // indirect
+	github.com/Masterminds/semver/v3 v3.3.1 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
 	github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da // indirect
@@ -83,6 +82,7 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
 	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
+	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.5.2 // indirect
 	github.com/golang-migrate/migrate/v4 v4.18.1 // indirect
@@ -92,6 +92,7 @@ require (
 	github.com/google/pprof v0.0.0-20241210010833-40e02aabc2ad // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/google/uuid v1.6.0 // indirect
+	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
@@ -172,6 +173,7 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/fastuuid v1.2.0 // indirect
 	github.com/samber/lo v1.49.1 // indirect
+	github.com/shirou/gopsutil/v3 v3.24.4 // indirect
 	github.com/soheilhy/cmux v0.1.5 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
@@ -251,6 +253,7 @@ require (
 
 require (
 	github.com/BoltzExchange/boltz-client/v2 v2.6.0
+	github.com/DataDog/dd-trace-go/v2 v2.0.0
 	github.com/btcsuite/btcd/btcec/v2 v2.3.4
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0
 	github.com/decred/dcrd/crypto/blake256 v1.1.0 // indirect

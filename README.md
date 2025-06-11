@@ -146,7 +146,7 @@ Make sure to specify the required DataDog configuration environment variables as
 For more information refer to:
 
 - [DataDog Profiler documentation](https://docs.datadoghq.com/profiler/enabling/go/)
-- [DataDog Profiler Go library](https://pkg.go.dev/gopkg.in/DataDog/dd-trace-go.v1/profiler)
+- [DataDog Profiler Go library](https://github.com/DataDog/dd-trace-go/tree/main/profiler)
 
 ### Versioning
 

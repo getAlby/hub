@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"net/http/pprof"
 
-	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
+	"github.com/DataDog/dd-trace-go/v2/profiler"
 )
 
 func startProfiler(ctx context.Context, addr string) {
