@@ -74,12 +74,21 @@ function Wallet() {
         )}
       {hasChannelManagement &&
         !!channels?.length &&
-        !balances.lightning.totalReceivable && (
+        balances.lightning.totalReceivable <
+          balances.lightning.totalSpendable * 0.1 && (
           <Alert>
             <AlertTriangleIcon className="h-4 w-4" />
             <AlertTitle>Low receiving capacity</AlertTitle>
             <AlertDescription>
-              You won't be able to receive payments until you{" "}
+              You likely won't be able to receive payments until you{" "}
+              {!!balances.lightning.totalSpendable && (
+                <>
+                  <Link className="underline" to="/wallet/swap?type=out">
+                    swap out funds
+                  </Link>{" "}
+                  or{" "}
+                </>
+              )}
               <Link className="underline" to="/channels/incoming">
                 increase your receiving capacity.
               </Link>

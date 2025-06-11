@@ -109,6 +109,14 @@ export default function ReceiveInvoice() {
                 <AlertTitle>Low receiving capacity</AlertTitle>
                 <AlertDescription>
                   You likely won't be able to receive payments until you{" "}
+                  {!!balances.lightning.totalSpendable && (
+                    <>
+                      <Link className="underline" to="/wallet/swap?type=out">
+                        swap out funds
+                      </Link>{" "}
+                      or{" "}
+                    </>
+                  )}
                   <Link className="underline" to="/channels/incoming">
                     increase your receiving capacity.
                   </Link>
