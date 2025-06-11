@@ -214,7 +214,7 @@ function SwapOutForm() {
       if (!swapOutResponse) {
         throw new Error("Error swapping out");
       }
-      navigate(`/wallet/swap/out/success`, {
+      navigate(`/wallet/swap/out/status`, {
         state: {
           swapOutResponse,
           amount: parseInt(swapAmount),

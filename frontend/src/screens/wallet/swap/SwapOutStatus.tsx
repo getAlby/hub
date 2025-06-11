@@ -17,7 +17,7 @@ import { useTransaction } from "src/hooks/useTransaction";
 import { copyToClipboard } from "src/lib/clipboard";
 import { SwapOutResponse } from "src/types";
 
-export default function SwapOutSuccess() {
+export default function SwapOutStatus() {
   const { state } = useLocation();
   const { toast } = useToast();
   useSyncWallet(); // ensure funds show up on node page after swap completes
@@ -33,7 +33,7 @@ export default function SwapOutSuccess() {
     copyToClipboard(swapOutResponse.txId as string, toast);
   };
 
-  const swapState =
+  const swapStatus =
     lightningPayment?.state === "settled"
       ? "success"
       : lightningPayment?.state === "failed"
@@ -48,15 +48,15 @@ export default function SwapOutSuccess() {
           <CardHeader>
             <CardTitle className="text-center">
               Swap{" "}
-              {swapState === "success"
+              {swapStatus === "success"
                 ? "Successful"
-                : swapState === "failed"
+                : swapStatus === "failed"
                   ? "Failed"
                   : "Initiated"}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
-            {swapState === "success" ? (
+            {swapStatus === "success" ? (
               <CircleCheckIcon className="w-32 h-32 mb-2" />
             ) : (
               <Badge> {lightningPayment?.state || "Loading..."}</Badge>
