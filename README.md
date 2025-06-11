@@ -137,17 +137,6 @@ go tool pprof -http=localhost:8081 -seconds=30 http://localhost:6060/debug/pprof
 
 For more information on the Go pprof library, see the [official documentation](https://pkg.go.dev/net/http/pprof).
 
-#### DataDog profiler
-
-To enable the DataDog profiler, set the `DD_PROFILER_ENABLED` environment variable to `true`.
-
-Make sure to specify the required DataDog configuration environment variables as well.
-
-For more information refer to:
-
-- [DataDog Profiler documentation](https://docs.datadoghq.com/profiler/enabling/go/)
-- [DataDog Profiler Go library](https://pkg.go.dev/gopkg.in/DataDog/dd-trace-go.v1/profiler)
-
 ### Versioning
 
     $ go run -ldflags="-X 'github.com/getAlby/hub/version.Tag=v0.6.0'" cmd/http/main.go
