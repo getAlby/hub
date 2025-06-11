@@ -187,6 +187,7 @@ function SwapOutForm() {
   const { data: swapSettings } = useSwaps();
   const swapOutSettings = swapSettings?.find((s) => s.type === "out");
   const navigate = useNavigate();
+  const { data: balances } = useBalances();
 
   const [isInternalSwap, setInternalSwap] = useState(true);
   const [swapAmount, setSwapAmount] = useState("");
@@ -257,9 +258,21 @@ function SwapOutForm() {
           onChange={(e) => setSwapAmount(e.target.value)}
           required
         />
-        <p className="text-xs text-muted-foreground">
-          Minimum {new Intl.NumberFormat().format(MIN_AUTO_SWAP_AMOUNT)} sats
-        </p>
+
+        <div className="flex justify-between">
+          {balances && (
+            <p className="text-xs text-muted-foreground">
+              Balance:{" "}
+              {new Intl.NumberFormat().format(
+                balances.lightning.totalSpendable / 1000
+              )}{" "}
+              sats
+            </p>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Minimum: {new Intl.NumberFormat().format(MIN_AUTO_SWAP_AMOUNT)} sats
+          </p>
+        </div>
       </div>
       <div className="flex flex-col gap-4">
         <Label>Swap to</Label>
