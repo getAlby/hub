@@ -53,7 +53,7 @@ export default function Swap() {
           <div
             className={cn(
               "cursor-pointer rounded-md flex-1 py-1.5 text-sm",
-              swapType == "in" && "text-background bg-foreground font-semibold"
+              swapType == "in" && "text-foreground bg-background font-semibold"
             )}
             onClick={() => setSwapType("in")}
           >
@@ -62,7 +62,7 @@ export default function Swap() {
           <div
             className={cn(
               "cursor-pointer rounded-md flex-1 py-1.5 text-sm",
-              swapType == "out" && "text-background bg-foreground font-semibold"
+              swapType == "out" && "text-foreground bg-background font-semibold"
             )}
             onClick={() => setSwapType("out")}
           >
