@@ -21,6 +21,7 @@ import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import { useSwaps } from "src/hooks/useSwaps";
 import { cn } from "src/lib/utils";
+import { SwapOutResponse } from "src/types";
 import { request } from "src/utils/request";
 
 export default function Swap() {
@@ -186,6 +187,7 @@ function SwapOutForm() {
   const { data: swapSettings } = useSwaps();
   const swapOutSettings = swapSettings?.find((s) => s.type === "out");
   const navigate = useNavigate();
+  const { data: balances } = useBalances();
 
   const [isInternalSwap, setInternalSwap] = useState(true);
   const [swapAmount, setSwapAmount] = useState("");
@@ -197,24 +199,26 @@ function SwapOutForm() {
 
     try {
       setLoading(true);
-      const txId = await request<string>("/api/wallet/swap/out", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          swapAmount: parseInt(swapAmount),
-          destination,
-        }),
-      });
-      if (!txId) {
+      const swapOutResponse = await request<SwapOutResponse>(
+        "/api/wallet/swap/out",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            swapAmount: parseInt(swapAmount),
+            destination,
+          }),
+        }
+      );
+      if (!swapOutResponse) {
         throw new Error("Error swapping out");
       }
-      navigate(`/wallet/swap/success`, {
+      navigate(`/wallet/swap/out/status`, {
         state: {
-          type: "out",
-          txId,
-          amount: swapAmount,
+          swapOutResponse,
+          amount: parseInt(swapAmount),
         },
       });
       toast({ title: "Initiated swap" });
@@ -254,9 +258,21 @@ function SwapOutForm() {
           onChange={(e) => setSwapAmount(e.target.value)}
           required
         />
-        <p className="text-xs text-muted-foreground">
-          Minimum {new Intl.NumberFormat().format(MIN_AUTO_SWAP_AMOUNT)} sats
-        </p>
+
+        <div className="flex justify-between">
+          {balances && (
+            <p className="text-xs text-muted-foreground">
+              Balance:{" "}
+              {new Intl.NumberFormat().format(
+                balances.lightning.totalSpendable / 1000
+              )}{" "}
+              sats
+            </p>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Minimum: {new Intl.NumberFormat().format(MIN_AUTO_SWAP_AMOUNT)} sats
+          </p>
+        </div>
       </div>
       <div className="flex flex-col gap-4">
         <Label>Swap to</Label>

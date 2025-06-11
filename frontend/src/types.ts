@@ -204,6 +204,12 @@ export type SwapsSettingsResponse = {
   boltzNetworkFee: number;
 };
 
+export type SwapOutResponse = {
+  txId: string;
+  swapId: string;
+  paymentHash: string;
+};
+
 export interface MnemonicResponse {
   mnemonic: string;
 }

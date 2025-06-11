@@ -31,6 +31,7 @@ import (
 	permissions "github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/service"
 	"github.com/getAlby/hub/service/keys"
+	"github.com/getAlby/hub/swaps"
 	"github.com/getAlby/hub/utils"
 	"github.com/getAlby/hub/version"
 )
@@ -613,30 +614,30 @@ func (api *api) GetAutoSwapConfig() ([]*GetAutoSwapConfigResponse, error) {
 	return []*GetAutoSwapConfigResponse{autoSwapInConfig, autoSwapOutConfig}, nil
 }
 
-func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (string, error) {
+func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (*swaps.SwapOutResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return "", errors.New("LNClient not started")
+		return nil, errors.New("LNClient not started")
 	}
 
 	amount := initiateSwapOutRequest.SwapAmount
 	destination := initiateSwapOutRequest.Destination
 
 	if amount == 0 {
-		return "", errors.New("invalid swap amount")
+		return nil, errors.New("invalid swap amount")
 	}
 
-	// TODO: Do not use context.Background
-	txId, err := api.svc.GetSwapsService().SwapOut(context.Background(), amount, destination, lnClient)
+	// TODO: Do not use context.Background - use background context in the SwapOut goroutine instead
+	swapoutResponse, err := api.svc.GetSwapsService().SwapOut(context.Background(), amount, destination, lnClient)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount":      amount,
 			"destination": destination,
 		}).WithError(err).Error("Failed to initiate swap out")
-		return "", err
+		return nil, err
 	}
 
-	return txId, nil
+	return swapoutResponse, nil
 }
 
 func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (string, error) {
