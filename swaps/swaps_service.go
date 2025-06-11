@@ -159,7 +159,6 @@ func (svc *swapsService) EnableAutoSwapIn(ctx context.Context, lnClient lnclient
 	// stop any existing swap in process
 	svc.StopAutoSwap(true, false)
 
-	// TODO: change threshold keys
 	ctx, cancelFn := context.WithCancel(ctx)
 	balanceThresholdStr, _ := svc.cfg.Get(config.AutoSwapInBalanceThresholdKey, "")
 	amountStr, _ := svc.cfg.Get(config.AutoSwapInAmountKey, "")
