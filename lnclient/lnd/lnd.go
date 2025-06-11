@@ -744,7 +744,7 @@ func (svc *LNDService) LookupInvoice(ctx context.Context, paymentHash string) (t
 	paymentHashBytes, err := hex.DecodeString(paymentHash)
 	if err != nil || len(paymentHashBytes) != 32 {
 		if err == nil {
-			err = errors.New("Payment hash must be 32 bytes hex")
+			err = errors.New("payment hash must be 32 bytes hex")
 		}
 		logger.Logger.WithFields(logrus.Fields{
 			"payment_hash": paymentHash,
@@ -973,7 +973,7 @@ func (svc *LNDService) GetNodeConnectionInfo(ctx context.Context) (nodeConnectio
 	}
 
 	addresses := nodeInfo.Node.Addresses
-	if addresses == nil || len(addresses) < 1 {
+	if len(addresses) < 1 {
 		logger.Logger.Error("No available listening addresses")
 		return nodeConnectionInfo, nil
 	}
@@ -1014,6 +1014,10 @@ func (svc *LNDService) ConnectPeer(ctx context.Context, connectPeerRequest *lncl
 
 func (svc *LNDService) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
 	peers, err := svc.ListPeers(ctx)
+	if err != nil {
+		return nil, errors.New("failed to list peers")
+	}
+
 	var foundPeer *lnclient.PeerDetails
 	for _, peer := range peers {
 		if peer.NodeId == openChannelRequest.Pubkey {
