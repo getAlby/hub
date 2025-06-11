@@ -15,6 +15,7 @@ import { useToast } from "src/components/ui/use-toast";
 import { useSyncWallet } from "src/hooks/useSyncWallet";
 import { useTransaction } from "src/hooks/useTransaction";
 import { copyToClipboard } from "src/lib/clipboard";
+import { cn } from "src/lib/utils";
 import { SwapOutResponse } from "src/types";
 
 export default function SwapOutStatus() {
@@ -59,7 +60,12 @@ export default function SwapOutStatus() {
             {swapStatus === "success" ? (
               <CircleCheckIcon className="w-32 h-32 mb-2" />
             ) : (
-              <Badge> {lightningPayment?.state || "Loading..."}</Badge>
+              <Badge
+                className={cn(swapStatus === "pending" && "animate-pulse")}
+              >
+                {" "}
+                {lightningPayment?.state || "Loading..."}
+              </Badge>
             )}
 
             {/*  */}
