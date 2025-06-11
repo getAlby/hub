@@ -429,7 +429,7 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 
 					feeRates, err := svc.getFeeRates()
 					if err != nil {
-						logger.Logger.WithError(err).Error("Could not create claim transaction")
+						logger.Logger.WithError(err).Error("Failed to fetch fee rate to create claim transaction")
 						return
 					}
 
