@@ -13,6 +13,7 @@ import hablanews from "src/assets/suggested-apps/habla-news.png";
 import lightningMessageboard from "src/assets/suggested-apps/lightning-messageboard.png";
 import lnbits from "src/assets/suggested-apps/lnbits.png";
 import lume from "src/assets/suggested-apps/lume.png";
+import nakapay from "src/assets/suggested-apps/nakapay.png";
 import nostrcheckserver from "src/assets/suggested-apps/nostrcheck-server.png";
 import nostrudel from "src/assets/suggested-apps/nostrudel.png";
 import nostter from "src/assets/suggested-apps/nostter.png";
@@ -1243,6 +1244,68 @@ export const suggestedApps: SuggestedApp[] = [
           <h3 className="font-medium">In Lume</h3>
           <ul className="list-inside text-muted-foreground">
             <li>6. Paste the connection secret from Alby Hub</li>
+          </ul>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: "nakapay",
+    title: "NakaPay",
+    description: "Accept Bitcoin Lightning payments for businesses",
+    webLink: "https://www.nakapay.app",
+    logo: nakapay,
+    extendedDescription:
+      "Accept Bitcoin Lightning payments with your Hub for your online business",
+    guide: (
+      <>
+        <div>
+          <h3 className="font-medium">In NakaPay</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              1. Open{" "}
+              <ExternalLink
+                to="https://www.nakapay.app"
+                className="font-medium text-foreground underline"
+              >
+                NakaPay
+              </ExternalLink>{" "}
+              in your browser and login with your Lightning wallet
+            </li>
+            <li>
+              2. Your account will be created automatically upon first login
+            </li>
+            <li>
+              3. Go to{" "}
+              <span className="font-medium text-foreground">Dashboard</span> to
+              create an API key and configure your payment settings
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In Alby Hub</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              4. Click{" "}
+              <Link
+                to="/apps/new?app=nakapay"
+                className="font-medium text-foreground underline"
+              >
+                Connect to NakaPay
+              </Link>
+            </li>
+            <li>
+              5. Set app's wallet permissions (receive-only recommended for
+              businesses)
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In NakaPay Dashboard</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>6. Create an API key for integration with your business</li>
+            <li>7. Configure webhook URLs to receive payment notifications</li>
+            <li>8. Paste the connection secret from Alby Hub in wallet settings</li>
           </ul>
         </div>
       </>
