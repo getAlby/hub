@@ -39,6 +39,7 @@ import { usePeers } from "src/hooks/usePeers";
 import { cn, formatAmount } from "src/lib/utils";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import {
+  Channel,
   MempoolNode,
   Network,
   NewChannelOrder,
@@ -53,18 +54,25 @@ function getPeerKey(peer: RecommendedChannelPeer) {
 
 export default function IncreaseOutgoingCapacity() {
   const { data: info } = useInfo();
+  const { data: channels } = useChannels();
 
-  if (!info?.network) {
+  if (!info?.network || !channels) {
     return <Loading />;
   }
 
-  return <NewChannelInternal network={info.network} />;
+  return <NewChannelInternal network={info.network} channels={channels} />;
 }
 
-function NewChannelInternal({ network }: { network: Network }) {
+function NewChannelInternal({
+  network,
+  channels,
+}: {
+  network: Network;
+  channels: Channel[];
+}) {
   const { data: _channelPeerSuggestions } = useChannelPeerSuggestions();
   const { data: balances } = useBalances();
-  const { data: channels } = useChannels();
+
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -74,6 +82,7 @@ function NewChannelInternal({ network }: { network: Network }) {
     paymentMethod: "onchain",
     status: "pay",
     amount: presetAmounts[0].toString(),
+    isPublic: !!channels.length && channels.every((channel) => channel.public),
   });
 
   const [selectedPeer, setSelectedPeer] = React.useState<
