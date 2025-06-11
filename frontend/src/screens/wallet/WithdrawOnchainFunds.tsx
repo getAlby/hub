@@ -3,6 +3,7 @@ import {
   ChevronDown,
   CopyIcon,
   ExternalLinkIcon,
+  TriangleAlertIcon,
 } from "lucide-react";
 import React from "react";
 import AppHeader from "src/components/AppHeader";
@@ -40,7 +41,7 @@ export default function WithdrawOnchainFunds() {
   const { toast } = useToast();
   const { data: info } = useInfo();
   const { data: balances } = useBalances();
-  const { data: recommendedFees } = useMempoolApi<{
+  const { data: recommendedFees, error: mempoolError } = useMempoolApi<{
     fastestFee: number;
     halfHourFee: number;
     economyFee: number;
@@ -54,6 +55,12 @@ export default function WithdrawOnchainFunds() {
   const [showAdvanced, setShowAdvanced] = React.useState(false);
   const [transactionId, setTransactionId] = React.useState("");
   const [confirmDialogOpen, setConfirmDialogOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    if (recommendedFees?.fastestFee) {
+      setFeeRate(recommendedFees.fastestFee.toString());
+    }
+  }, [recommendedFees]);
 
   const copy = (text: string) => {
     copyToClipboard(text, toast);
@@ -140,7 +147,7 @@ export default function WithdrawOnchainFunds() {
     );
   }
 
-  if (!info || !balances || !recommendedFees) {
+  if (!info || !balances || (!recommendedFees && !mempoolError)) {
     return <Loading />;
   }
 
@@ -259,41 +266,43 @@ export default function WithdrawOnchainFunds() {
                     value={feeRate}
                     step={1}
                     required
-                    min={recommendedFees.minimumFee}
+                    min={recommendedFees?.minimumFee || 1}
                     onChange={(e) => {
                       setFeeRate(e.target.value);
                     }}
                   />
-                  <p className="text-muted-foreground text-sm mt-4">
-                    <Button
-                      size="sm"
-                      variant="positive"
-                      className="rounded-full"
-                      type="button"
-                      onClick={() =>
-                        setFeeRate(recommendedFees.economyFee.toString())
-                      }
-                    >
-                      Low priority: {recommendedFees.economyFee}
-                    </Button>{" "}
-                    <Button
-                      size="sm"
-                      variant="positive"
-                      className="rounded-full"
-                      type="button"
-                      onClick={() =>
-                        setFeeRate(recommendedFees.fastestFee.toString())
-                      }
-                    >
-                      High priority: {recommendedFees.fastestFee}
-                    </Button>{" "}
-                    <ExternalLink
-                      to="https://mempool.space"
-                      className="underline ml-2"
-                    >
-                      mempool.space
-                    </ExternalLink>
-                  </p>
+                  {recommendedFees && (
+                    <p className="text-muted-foreground text-sm mt-4">
+                      <Button
+                        size="sm"
+                        variant="positive"
+                        className="rounded-full"
+                        type="button"
+                        onClick={() =>
+                          setFeeRate(recommendedFees.economyFee.toString())
+                        }
+                      >
+                        Low priority: {recommendedFees.economyFee}
+                      </Button>{" "}
+                      <Button
+                        size="sm"
+                        variant="positive"
+                        className="rounded-full"
+                        type="button"
+                        onClick={() =>
+                          setFeeRate(recommendedFees.fastestFee.toString())
+                        }
+                      >
+                        High priority: {recommendedFees.fastestFee}
+                      </Button>{" "}
+                      <ExternalLink
+                        to="https://mempool.space"
+                        className="underline ml-2"
+                      >
+                        mempool.space
+                      </ExternalLink>
+                    </p>
+                  )}
                 </div>
               )}
               {!showAdvanced && (
@@ -315,7 +324,13 @@ export default function WithdrawOnchainFunds() {
               onOpenChange={setConfirmDialogOpen}
               open={confirmDialogOpen}
             >
-              <Button>Withdraw</Button>
+              <Button className="w-full">Withdraw</Button>
+              {feeRate && (
+                <div className="mt-2 text-muted-foreground text-sm flex items-center">
+                  <TriangleAlertIcon className="h-4 w-4 mr-1" />
+                  Onchain payment will be made with {feeRate} sat/vB fee
+                </div>
+              )}
 
               <AlertDialogContent>
                 <AlertDialogHeader>
