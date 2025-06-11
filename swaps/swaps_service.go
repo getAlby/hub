@@ -463,7 +463,7 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 						return
 					}
 
-					// TODO: Replace with LNClient method
+					// TODO: Replace with LNClient broadcast method to avoid trusting boltz
 					txId, err := svc.boltzApi.BroadcastTransaction(boltz.CurrencyBtc, txHex)
 					if err != nil {
 						logger.Logger.WithError(err).Error("Could not broadcast transaction")
