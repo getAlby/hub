@@ -350,12 +350,6 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 						"swap":   swap,
 						"update": update,
 					}).Info("Paying the swap invoice")
-					err := lnClient.SendPaymentProbes(ctx, swap.Invoice)
-					if err != nil {
-						logger.Logger.WithField("swapId", swap.Id).Info("Couldn't probe invoice payment, terminating swap")
-						errCh <- err
-						return
-					}
 					go func() {
 						metadata := map[string]interface{}{
 							"swapId":        swap.Id,
