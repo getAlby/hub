@@ -64,7 +64,8 @@ export default function AutoSwap() {
             <div
               className={cn(
                 "cursor-pointer rounded-md flex-1 py-1.5 text-sm",
-                swapType == "in" && "bg-white font-semibold"
+                swapType == "in" &&
+                  "text-background bg-foreground font-semibold"
               )}
               onClick={() => setSwapType("in")}
             >
@@ -73,7 +74,8 @@ export default function AutoSwap() {
             <div
               className={cn(
                 "cursor-pointer rounded-md flex-1 py-1.5 text-sm",
-                swapType == "out" && "bg-white font-semibold"
+                swapType == "out" &&
+                  "text-background bg-foreground font-semibold"
               )}
               onClick={() => setSwapType("out")}
             >
