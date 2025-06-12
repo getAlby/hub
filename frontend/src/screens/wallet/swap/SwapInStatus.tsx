@@ -121,6 +121,7 @@ export default function SwapInStatus() {
 
             {swapStatus === "pending" && (
               <>
+                {isPaying && <p>Broadcasting On-Chain payment...</p>}
                 {!addressTransactions?.length &&
                   !isPaying &&
                   !hasPaidWithHubFunds && (
@@ -170,7 +171,9 @@ export default function SwapInStatus() {
                   <CopyIcon className="w-4 h-4 mr-2" />
                   Copy Address
                 </Button>
-                {balances &&
+                {!isPaying &&
+                  !hasPaidWithHubFunds &&
+                  balances &&
                   balances.onchain.spendable - 25000 /* anchor reserve */ >
                     swapInResponse.amountToDeposit && (
                     <LoadingButton onClick={payWithAlbyHub} variant="outline">
