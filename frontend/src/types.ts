@@ -193,15 +193,22 @@ export type AppMetadata = { app_store_app_id?: string } & Record<
   unknown
 >;
 
-export type SwapsSettingsResponse = {
+export type AutoSwapsConfig = {
   type: "in" | "out";
   enabled: boolean;
   balanceThreshold: number;
   swapAmount: number;
   destination: string;
+};
+
+export type SwapFees = {
   albyServiceFee: number;
   boltzServiceFee: number;
   boltzNetworkFee: number;
+};
+
+export type SwapInResponse = {
+  txId: string;
 };
 
 export type SwapOutResponse = {

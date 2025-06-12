@@ -19,7 +19,7 @@ import { useToast } from "src/components/ui/use-toast";
 import { MIN_AUTO_SWAP_AMOUNT } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
-import { useSwaps } from "src/hooks/useSwaps";
+import { useSwapFees } from "src/hooks/useSwaps";
 import { cn } from "src/lib/utils";
 import { SwapOutResponse } from "src/types";
 import { request } from "src/utils/request";
@@ -80,8 +80,7 @@ function SwapInForm() {
   const { toast } = useToast();
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
-  const { data: swapSettings } = useSwaps();
-  const swapInSettings = swapSettings?.find((s) => s.type === "in");
+  const { data: swapFees } = useSwapFees("in");
   const navigate = useNavigate();
 
   const [swapAmount, setSwapAmount] = useState("");
@@ -158,20 +157,43 @@ function SwapInForm() {
           placeholder="Amount in satoshis"
           value={swapAmount}
           min={MIN_AUTO_SWAP_AMOUNT}
+          max={(balances.lightning.totalReceivable / 1000) * 0.99}
           onChange={(e) => setSwapAmount(e.target.value)}
           required
         />
-        <p className="text-xs text-muted-foreground">
-          Minimum {new Intl.NumberFormat().format(MIN_AUTO_SWAP_AMOUNT)} sats
-        </p>
+
+        <div className="flex justify-between">
+          {balances && (
+            <div>
+              <p className="text-xs text-muted-foreground">
+                Receiving Capacity:{" "}
+                {new Intl.NumberFormat().format(
+                  balances.lightning.totalReceivable / 1000
+                )}{" "}
+                sats{" "}
+                <Link className="underline" to="/channels/incoming">
+                  increase
+                </Link>
+              </p>
+              <p className="text-xs text-muted-foreground">
+                On-Chain Balance:{" "}
+                {new Intl.NumberFormat().format(balances.onchain.spendable)}{" "}
+                sats
+              </p>
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Minimum: {new Intl.NumberFormat().format(MIN_AUTO_SWAP_AMOUNT)} sats
+          </p>
+        </div>
       </div>
 
       <div className="flex items-center justify-between border-t pt-4">
         <Label>Fee</Label>
-        {swapInSettings ? (
+        {swapFees ? (
           <p className="text-muted-foreground text-sm">
-            {swapInSettings.albyServiceFee + swapInSettings.boltzServiceFee}% +
-            on-chain fees
+            {swapFees.albyServiceFee + swapFees.boltzServiceFee}% + on-chain
+            fees
           </p>
         ) : (
           <Loading />
@@ -184,8 +206,7 @@ function SwapInForm() {
 
 function SwapOutForm() {
   const { toast } = useToast();
-  const { data: swapSettings } = useSwaps();
-  const swapOutSettings = swapSettings?.find((s) => s.type === "out");
+  const { data: swapFees } = useSwapFees("out");
   const navigate = useNavigate();
   const { data: balances } = useBalances();
 
@@ -337,10 +358,10 @@ function SwapOutForm() {
 
       <div className="flex items-center justify-between border-t pt-4">
         <Label>Fee</Label>
-        {swapOutSettings ? (
+        {swapFees ? (
           <p className="text-muted-foreground text-sm">
-            {swapOutSettings.albyServiceFee + swapOutSettings.boltzServiceFee}%
-            + on-chain fees
+            {swapFees.albyServiceFee + swapFees.boltzServiceFee}% + on-chain
+            fees
           </p>
         ) : (
           <Loading />

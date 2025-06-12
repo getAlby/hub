@@ -60,12 +60,13 @@ type API interface {
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
-	InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (string, error)
+	GetSwapInFees() (*SwapFeesResponse, error)
+	GetSwapOutFees() (*SwapFeesResponse, error)
+	InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (*swaps.SwapInResponse, error)
 	InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (*swaps.SwapOutResponse, error)
-	GetAutoSwapConfig() ([]*GetAutoSwapConfigResponse, error)
+	GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error)
 	EnableAutoSwapOut(ctx context.Context, autoSwapRequest *EnableAutoSwapRequest) error
-	EnableAutoSwapIn(ctx context.Context, autoSwapRequest *EnableAutoSwapRequest) error
-	DisableAutoSwap(swapType string) error
+	DisableAutoSwap() error
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
 }
@@ -133,14 +134,17 @@ type EnableAutoSwapRequest struct {
 }
 
 type GetAutoSwapConfigResponse struct {
-	Type             string  `json:"type"`
-	Enabled          bool    `json:"enabled"`
-	BalanceThreshold uint64  `json:"balanceThreshold"`
-	SwapAmount       uint64  `json:"swapAmount"`
-	Destination      string  `json:"destination"`
-	AlbyServiceFee   float64 `json:"albyServiceFee"`
-	BoltzServiceFee  float64 `json:"boltzServiceFee"`
-	BoltzNetworkFee  uint64  `json:"boltzNetworkFee"`
+	Type             string `json:"type"`
+	Enabled          bool   `json:"enabled"`
+	BalanceThreshold uint64 `json:"balanceThreshold"`
+	SwapAmount       uint64 `json:"swapAmount"`
+	Destination      string `json:"destination"`
+}
+
+type SwapFeesResponse struct {
+	AlbyServiceFee  float64 `json:"albyServiceFee"`
+	BoltzServiceFee float64 `json:"boltzServiceFee"`
+	BoltzNetworkFee uint64  `json:"boltzNetworkFee"`
 }
 
 type StartRequest struct {
