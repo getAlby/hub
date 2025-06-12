@@ -208,7 +208,9 @@ export type SwapFees = {
 };
 
 export type SwapInResponse = {
-  txId: string;
+  onchainAddress: string;
+  amountToDeposit: number;
+  paymentHash: string;
 };
 
 export type SwapOutResponse = {

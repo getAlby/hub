@@ -91,7 +91,7 @@ function SwapInForm() {
 
     try {
       setLoading(true);
-      const txId = await request("/api/wallet/swap/in", {
+      const swapInResponse = await request("/api/wallet/swap/in", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -100,14 +100,12 @@ function SwapInForm() {
           swapAmount: parseInt(swapAmount),
         }),
       });
-      if (!txId) {
-        throw new Error("Error swapping out");
+      if (!swapInResponse) {
+        throw new Error("Error swapping in");
       }
-      navigate(`/wallet/swap/success`, {
+      navigate(`/wallet/swap/in/status`, {
         state: {
-          type: "in",
-          txId,
-          amount: swapAmount,
+          swapInResponse,
         },
       });
       toast({ title: "Initiated swap" });

@@ -68,7 +68,9 @@ type SwapOutResponse struct {
 }
 
 type SwapInResponse struct {
-	TxId string `json:"txId"`
+	OnchainAddress  string `json:"onchainAddress"`
+	AmountToDeposit uint64 `json:"amountToDeposit"`
+	PaymentHash     string `json:"paymentHash"`
 }
 
 func NewSwapsService(cfg config.Config, eventPublisher events.EventPublisher, transactionsService transactions.TransactionsService) SwapsService {
@@ -80,7 +82,7 @@ func NewSwapsService(cfg config.Config, eventPublisher events.EventPublisher, tr
 	}
 }
 
-func (svc *swapsService) StopAutoSwap(swapIn, swapOut bool) {
+func (svc *swapsService) StopAutoSwap() {
 	if svc.autoSwapOutCancelFn != nil {
 		logger.Logger.Info("Stopping auto swap out service...")
 		svc.autoSwapOutCancelFn()
@@ -89,8 +91,7 @@ func (svc *swapsService) StopAutoSwap(swapIn, swapOut bool) {
 }
 
 func (svc *swapsService) EnableAutoSwapOut(ctx context.Context, lnClient lnclient.LNClient) error {
-	// stop any existing swap out process
-	svc.StopAutoSwap(false, true)
+	svc.StopAutoSwap()
 
 	ctx, cancelFn := context.WithCancel(ctx)
 	swapDestination, _ := svc.cfg.Get(config.AutoSwapDestinationKey, "")
@@ -633,7 +634,9 @@ func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnc
 	}()
 
 	return &SwapInResponse{
-		TxId: swap.Address,
+		OnchainAddress:  swap.Address,
+		AmountToDeposit: swap.ExpectedAmount,
+		PaymentHash:     invoice.PaymentHash,
 	}, nil
 }
 

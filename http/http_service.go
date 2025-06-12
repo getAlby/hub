@@ -1252,7 +1252,7 @@ func (httpSvc *HttpService) enableAutoSwapOutHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) disableAutoSwapOutHandler(c echo.Context) error {
-	err := httpSvc.api.DisableAutoSwap("out")
+	err := httpSvc.api.DisableAutoSwap()
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
