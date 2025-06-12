@@ -122,9 +122,12 @@ export default function SwapInStatus() {
             ) : (
               <CircleEllipsisIcon className="animate-pulse w-32 h-32 mb-2" />
             )}
-            <p className="text-xl font-bold slashed-zero text-center">
-              {new Intl.NumberFormat().format(amount)} sats
-            </p>
+            <div className="flex flex-col items-center">
+              <p className="text-xl font-bold slashed-zero text-center">
+                {new Intl.NumberFormat().format(amount)} sats
+              </p>
+              <FormattedFiatAmount amount={amount} />
+            </div>
 
             {swapStatus === "pending" && (
               <>
@@ -133,17 +136,17 @@ export default function SwapInStatus() {
                   !isPaying &&
                   !hasPaidWithHubFunds && (
                     <div className="flex flex-col gap-2 items-center">
-                      <p className="text-xl font-bold slashed-zero text-center">
-                        Deposit {new Intl.NumberFormat().format(amount)} sats
-                        <a
-                          href={`bitcoin:${swapInResponse.onchainAddress}`}
-                          target="_blank"
-                          className="flex justify-center"
-                        >
-                          <QRCode value={swapInResponse.onchainAddress} />
-                        </a>
+                      <p className="slashed-zero text-center text-muted-foreground max-w-xs">
+                        Please deposit {new Intl.NumberFormat().format(amount)}{" "}
+                        sats to the address using your bitcoin on-chain wallet.
                       </p>
-                      <FormattedFiatAmount amount={amount} />
+                      <a
+                        href={`bitcoin:${swapInResponse.onchainAddress}`}
+                        target="_blank"
+                        className="flex justify-center"
+                      >
+                        <QRCode value={swapInResponse.onchainAddress} />
+                      </a>
                     </div>
                   )}
                 {!addressTransactions?.length && (
