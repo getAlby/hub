@@ -12,6 +12,7 @@ import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import QRCode from "src/components/QRCode";
+import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -84,8 +85,11 @@ export default function SwapInStatus() {
     setPaying(false);
   }
 
-  const copy = () => {
-    copyToClipboard(swapInResponse.onchainAddress as string, toast);
+  const copyAddress = () => {
+    copyToClipboard(swapInResponse.onchainAddress, toast);
+  };
+  const copyAmount = () => {
+    copyToClipboard(swapInResponse.amountToDeposit.toString(), toast);
   };
 
   const swapStatus =
@@ -118,6 +122,9 @@ export default function SwapInStatus() {
             ) : (
               <CircleEllipsisIcon className="animate-pulse w-32 h-32 mb-2" />
             )}
+            <p className="text-xl font-bold slashed-zero text-center">
+              {new Intl.NumberFormat().format(amount)} sats
+            </p>
 
             {swapStatus === "pending" && (
               <>
@@ -141,17 +148,16 @@ export default function SwapInStatus() {
                   )}
                 {!addressTransactions?.length && (
                   <div className="flex flex-col gap-2 items-center">
-                    <p>Waiting for onchain payment to show in mempool... </p>
+                    <Badge>Waiting for onchain payment... </Badge>
                   </div>
                 )}
                 {!!addressTransactions?.length && (
                   <div className="flex flex-col gap-2 items-center">
-                    <p>
-                      TX in mempool. Confirmed:{" "}
-                      {addressTransactions
-                        .every((tx) => tx.status.confirmed)
-                        .toString()}{" "}
-                    </p>
+                    <Badge>
+                      {addressTransactions.every((tx) => tx.status.confirmed)
+                        ? "Transaction confirmed"
+                        : "Transaction in mempool"}
+                    </Badge>
                   </div>
                 )}
               </>
@@ -167,10 +173,16 @@ export default function SwapInStatus() {
                     <ExternalLinkIcon className="w-4 h-4 ml-2" />
                   </Button>
                 </ExternalLink>
-                <Button onClick={copy} variant="outline">
+                <Button onClick={copyAddress} variant="outline">
                   <CopyIcon className="w-4 h-4 mr-2" />
                   Copy Address
                 </Button>
+                {!isPaying && !hasPaidWithHubFunds && (
+                  <Button onClick={copyAmount} variant="outline">
+                    <CopyIcon className="w-4 h-4 mr-2" />
+                    Copy Amount
+                  </Button>
+                )}
                 {!isPaying &&
                   !hasPaidWithHubFunds &&
                   balances &&
