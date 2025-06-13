@@ -636,7 +636,7 @@ func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnc
 						},
 					})
 					return
-				case boltz.TransactionLockupFailed, boltz.InvoiceFailedToPay:
+				case boltz.TransactionLockupFailed, boltz.InvoiceFailedToPay, boltz.SwapExpired:
 					logger.Logger.WithFields(logrus.Fields{
 						"swapId": swap.Id,
 						"update": update,
