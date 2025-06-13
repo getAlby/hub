@@ -584,16 +584,16 @@ func (_c *MockService_StartApp_Call) RunAndReturn(run func(encryptionKey string)
 }
 
 // StartAutoSwap provides a mock function for the type MockService
-func (_mock *MockService) StartAutoSwap(swapIn bool, swapOut bool) error {
-	ret := _mock.Called(swapIn, swapOut)
+func (_mock *MockService) StartAutoSwap() error {
+	ret := _mock.Called()
 
 	if len(ret) == 0 {
 		panic("no return value specified for StartAutoSwap")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(bool, bool) error); ok {
-		r0 = returnFunc(swapIn, swapOut)
+	if returnFunc, ok := ret.Get(0).(func() error); ok {
+		r0 = returnFunc()
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -606,26 +606,13 @@ type MockService_StartAutoSwap_Call struct {
 }
 
 // StartAutoSwap is a helper method to define mock.On call
-//   - swapIn bool
-//   - swapOut bool
-func (_e *MockService_Expecter) StartAutoSwap(swapIn interface{}, swapOut interface{}) *MockService_StartAutoSwap_Call {
-	return &MockService_StartAutoSwap_Call{Call: _e.mock.On("StartAutoSwap", swapIn, swapOut)}
+func (_e *MockService_Expecter) StartAutoSwap() *MockService_StartAutoSwap_Call {
+	return &MockService_StartAutoSwap_Call{Call: _e.mock.On("StartAutoSwap")}
 }
 
-func (_c *MockService_StartAutoSwap_Call) Run(run func(swapIn bool, swapOut bool)) *MockService_StartAutoSwap_Call {
+func (_c *MockService_StartAutoSwap_Call) Run(run func()) *MockService_StartAutoSwap_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 bool
-		if args[0] != nil {
-			arg0 = args[0].(bool)
-		}
-		var arg1 bool
-		if args[1] != nil {
-			arg1 = args[1].(bool)
-		}
-		run(
-			arg0,
-			arg1,
-		)
+		run()
 	})
 	return _c
 }
@@ -635,7 +622,7 @@ func (_c *MockService_StartAutoSwap_Call) Return(err error) *MockService_StartAu
 	return _c
 }
 
-func (_c *MockService_StartAutoSwap_Call) RunAndReturn(run func(swapIn bool, swapOut bool) error) *MockService_StartAutoSwap_Call {
+func (_c *MockService_StartAutoSwap_Call) RunAndReturn(run func() error) *MockService_StartAutoSwap_Call {
 	_c.Call.Return(run)
 	return _c
 }
