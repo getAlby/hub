@@ -1077,7 +1077,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}
 			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		case "DELETE":
-			err := app.api.DisableAutoSwap("out")
+			err := app.api.DisableAutoSwap()
 			if err != nil {
 				logger.Logger.WithFields(logrus.Fields{
 					"route":  route,

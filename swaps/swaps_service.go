@@ -497,6 +497,9 @@ func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnc
 		ReferralId:      "alby",
 		ExtraFees:       albyFee,
 	})
+	if err != nil {
+		return nil, fmt.Errorf("could not create swap: %s", err)
+	}
 
 	// TODO: move to swaps table + review info needed for refund
 	metadata := map[string]interface{}{
@@ -514,10 +517,6 @@ func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnc
 			"metadata":     metadata,
 		}).Error("Failed to add swap metadata to lightning payment")
 		return nil, err
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("could not create swap: %s", err)
 	}
 
 	boltzPubKey, err := btcec.ParsePubKey(swap.ClaimPublicKey)
@@ -542,6 +541,7 @@ func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnc
 	if err := tree.CheckAddress(swap.Address, network, nil); err != nil {
 		return nil, err
 	}
+
 	logger.Logger.WithFields(logrus.Fields{
 		"swap":         swap,
 		"payment_hash": invoice.PaymentHash,
@@ -557,6 +557,7 @@ func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnc
 		return nil, err
 	}
 
+	// TODO: add a timeout equivalent to invoice expiry so it doesn't keep waiting forever
 	go func() {
 		defer func() {
 			if err := boltzWs.Close(); err != nil {
@@ -581,7 +582,6 @@ func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnc
 				parsedStatus := boltz.ParseEvent(update.Status)
 
 				switch parsedStatus {
-
 				case boltz.TransactionMempool:
 					logger.Logger.WithFields(logrus.Fields{
 						"swapId":      swap.Id,

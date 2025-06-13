@@ -200,7 +200,7 @@ export default function SwapInStatus() {
             )}
           </CardContent>
         </Card>
-        <Link to={`/wallet/swap?type=out`}>
+        <Link to={`/wallet/swap?type=in`}>
           <Button className="mt-4 w-full">Make Another Swap</Button>
         </Link>
         <Link to="/wallet">

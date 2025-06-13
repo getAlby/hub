@@ -79,7 +79,7 @@ function AutoSwapOutForm() {
           destination,
         }),
       });
-      navigate(`/wallet/swap/success`, {
+      navigate(`/wallet/swap/auto/success`, {
         state: {
           type: "out",
           isAutoSwap: true,
@@ -109,7 +109,7 @@ function AutoSwapOutForm() {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
-      <div className="mt-6">
+      <div>
         <h2 className="font-medium text-foreground flex items-center gap-1">
           Lightning <MoveRightIcon /> On-chain
         </h2>
