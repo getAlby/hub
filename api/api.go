@@ -642,7 +642,7 @@ func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *Initi
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount": amount,
-		}).WithError(err).Error("Failed to initiate in out")
+		}).WithError(err).Error("Failed to initiate swap in")
 		return nil, err
 	}
 
