@@ -25,7 +25,11 @@ func main() {
 	signal.Notify(osSignalChannel, os.Interrupt, syscall.SIGTERM)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	svc, _ := service.NewService(ctx)
+	svc, err := service.NewService(ctx)
+	if err != nil {
+		log.WithError(err).Fatal("Failed to create service")
+		return
+	}
 
 	e := echo.New()
 
