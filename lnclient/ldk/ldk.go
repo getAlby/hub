@@ -501,10 +501,16 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 		MaxTotalRoutingFeeMsat: &maxTotalRoutingFeeMsat,
 	}
 
+	invoiceObj, err := checkLDKErr(ldk_node.Bolt11InvoiceFromStr(invoice))
+	if err != nil {
+		logger.Logger.WithError(err).Error("ldk failed to parse bolt 11 invoice from string")
+		return nil, err
+	}
+
 	if amount == nil {
-		paymentHash, err = checkLDKErr(ls.node.Bolt11Payment().Send(invoice, sendingParams))
+		paymentHash, err = checkLDKErr(ls.node.Bolt11Payment().Send(invoiceObj, sendingParams))
 	} else {
-		paymentHash, err = checkLDKErr(ls.node.Bolt11Payment().SendUsingAmount(invoice, *amount, sendingParams))
+		paymentHash, err = checkLDKErr(ls.node.Bolt11Payment().SendUsingAmount(invoiceObj, *amount, sendingParams))
 	}
 	if err != nil {
 		logger.Logger.WithError(err).Error("SendPayment failed")
@@ -706,7 +712,7 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 		}
 	}
 
-	invoice, err := checkLDKErr(ls.node.Bolt11Payment().Receive(uint64(amount),
+	invoiceObj, err := checkLDKErr(ls.node.Bolt11Payment().Receive(uint64(amount),
 		descriptionType,
 		uint32(expiry)))
 
@@ -715,7 +721,8 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 		return nil, err
 	}
 
-	var expiresAt *int64
+	payment := ls.node.Payment(invoiceObj.PaymentHash())
+	invoice := *payment.Kind.(ldk_node.PaymentKindBolt11).Bolt11Invoice
 	paymentRequest, err := decodepay.Decodepay(invoice)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -725,11 +732,6 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 		return nil, err
 	}
 	expiresAtUnix := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
-	expiresAt = &expiresAtUnix
-	description = paymentRequest.Description
-	descriptionHash = paymentRequest.DescriptionHash
-
-	payment := ls.node.Payment(paymentRequest.PaymentHash)
 
 	transaction = &lnclient.Transaction{
 		Type:            "incoming",
@@ -738,9 +740,9 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 		Preimage:        *payment.Kind.(ldk_node.PaymentKindBolt11).Preimage,
 		Amount:          amount,
 		CreatedAt:       int64(paymentRequest.CreatedAt),
-		ExpiresAt:       expiresAt,
-		Description:     description,
-		DescriptionHash: descriptionHash,
+		ExpiresAt:       &expiresAtUnix,
+		Description:     paymentRequest.Description,
+		DescriptionHash: paymentRequest.DescriptionHash,
 	}
 
 	return transaction, nil
@@ -1403,7 +1405,11 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 }
 
 func (ls *LDKService) SendPaymentProbes(ctx context.Context, invoice string) error {
-	err := ls.node.Bolt11Payment().SendProbes(invoice).AsError()
+	bolt11Invoice, err := checkLDKErr(ldk_node.Bolt11InvoiceFromStr(invoice))
+	if err != nil {
+		return err
+	}
+	err = ls.node.Bolt11Payment().SendProbes(bolt11Invoice).AsError()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Bolt11Payment.SendProbes failed")
 		return err
@@ -2232,7 +2238,7 @@ func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amount int64, descrip
 
 	ldkPaymentHash := ldk_node.PaymentHash(hex.EncodeToString(paymentHash32[:]))
 
-	invoice, err := checkLDKErr(ls.node.Bolt11Payment().ReceiveForHash(uint64(amount),
+	invoiceObj, err := checkLDKErr(ls.node.Bolt11Payment().ReceiveForHash(uint64(amount),
 		descriptionType,
 		uint32(expiry),
 		ldkPaymentHash))
@@ -2242,7 +2248,8 @@ func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amount int64, descrip
 		return nil, err
 	}
 
-	var expiresAt *int64
+	payment := ls.node.Payment(invoiceObj.PaymentHash())
+	invoice := *payment.Kind.(ldk_node.PaymentKindBolt11).Bolt11Invoice
 	paymentRequest, err := decodepay.Decodepay(invoice)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -2251,19 +2258,16 @@ func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amount int64, descrip
 		return nil, err
 	}
 	expiresAtUnix := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
-	expiresAt = &expiresAtUnix
-	description = paymentRequest.Description
-	descriptionHash = paymentRequest.DescriptionHash
 
 	transaction := &lnclient.Transaction{
 		Type:            "incoming",
-		Invoice:         invoice,
+		Invoice:         *payment.Kind.(ldk_node.PaymentKindBolt11).Bolt11Invoice,
 		PaymentHash:     paymentRequest.PaymentHash,
 		Amount:          amount,
-		CreatedAt:       int64(paymentRequest.CreatedAt),
-		ExpiresAt:       expiresAt,
-		Description:     description,
-		DescriptionHash: descriptionHash,
+		CreatedAt:       int64(payment.CreatedAt),
+		ExpiresAt:       &expiresAtUnix,
+		Description:     paymentRequest.Description,
+		DescriptionHash: paymentRequest.DescriptionHash,
 	}
 
 	return transaction, nil
