@@ -744,7 +744,7 @@ func (svc *LNDService) LookupInvoice(ctx context.Context, paymentHash string) (t
 	paymentHashBytes, err := hex.DecodeString(paymentHash)
 	if err != nil || len(paymentHashBytes) != 32 {
 		if err == nil {
-			err = errors.New("Payment hash must be 32 bytes hex")
+			err = errors.New("payment hash must be 32 bytes hex")
 		}
 		logger.Logger.WithFields(logrus.Fields{
 			"payment_hash": paymentHash,
@@ -873,10 +873,14 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 				return nil, err
 			}
 
+			var policy *lnrpc.RoutingPolicy
 			if channelEdge.Node1Pub == nodeInfo.IdentityPubkey {
-				forwardingFee = uint32(channelEdge.Node1Policy.FeeBaseMsat)
+				policy = channelEdge.Node1Policy
 			} else {
-				forwardingFee = uint32(channelEdge.Node2Policy.FeeBaseMsat)
+				policy = channelEdge.Node2Policy
+			}
+			if policy != nil {
+				forwardingFee = uint32(policy.FeeBaseMsat)
 			}
 		}
 
@@ -969,7 +973,7 @@ func (svc *LNDService) GetNodeConnectionInfo(ctx context.Context) (nodeConnectio
 	}
 
 	addresses := nodeInfo.Node.Addresses
-	if addresses == nil || len(addresses) < 1 {
+	if len(addresses) < 1 {
 		logger.Logger.Error("No available listening addresses")
 		return nodeConnectionInfo, nil
 	}
@@ -1010,6 +1014,10 @@ func (svc *LNDService) ConnectPeer(ctx context.Context, connectPeerRequest *lncl
 
 func (svc *LNDService) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
 	peers, err := svc.ListPeers(ctx)
+	if err != nil {
+		return nil, errors.New("failed to list peers")
+	}
+
 	var foundPeer *lnclient.PeerDetails
 	for _, peer := range peers {
 		if peer.NodeId == openChannelRequest.Pubkey {
@@ -1571,6 +1579,10 @@ func (svc *LNDService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCo
 
 func (svc *LNDService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
 	return nil, nil
+}
+
+func (svc *LNDService) MakeOffer(ctx context.Context, description string) (string, error) {
+	return "", errors.New("not supported")
 }
 
 func (svc *LNDService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {

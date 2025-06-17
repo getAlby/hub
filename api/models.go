@@ -32,6 +32,7 @@ type API interface {
 	OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error)
 	CloseChannel(ctx context.Context, peerId, channelId string, force bool) (*CloseChannelResponse, error)
 	UpdateChannel(ctx context.Context, updateChannelRequest *UpdateChannelRequest) error
+	MakeOffer(ctx context.Context, description string) (string, error)
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	GetUnusedOnchainAddress(ctx context.Context) (string, error)
 	SignMessage(ctx context.Context, message string) (*SignMessageResponse, error)
@@ -69,6 +70,7 @@ type API interface {
 	DisableAutoSwap() error
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
+	SendEvent(event string)
 }
 
 type App struct {
@@ -158,6 +160,10 @@ type UnlockRequest struct {
 
 type BackupReminderRequest struct {
 	NextBackupReminder string `json:"nextBackupReminder"`
+}
+
+type SendEventRequest struct {
+	Event string `json:"event"`
 }
 
 type SetupRequest struct {
@@ -353,6 +359,10 @@ type SignMessageResponse struct {
 type PayInvoiceRequest struct {
 	Amount   *uint64  `json:"amount"`
 	Metadata Metadata `json:"metadata"`
+}
+
+type MakeOfferRequest struct {
+	Description string `json:"description"`
 }
 
 type MakeInvoiceRequest struct {

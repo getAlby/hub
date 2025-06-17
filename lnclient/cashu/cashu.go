@@ -564,6 +564,10 @@ func (cs *CashuService) executeCommandResetWallet() (*lnclient.CustomNodeCommand
 	}, nil
 }
 
+func (svc *CashuService) MakeOffer(ctx context.Context, description string) (string, error) {
+	return "", errors.New("not supported")
+}
+
 func (cs *CashuService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
 	return nil, errors.ErrUnsupported
 }

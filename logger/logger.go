@@ -26,6 +26,10 @@ func Init(logLevel string) {
 		logrusLogLevel = int(logrus.InfoLevel)
 	}
 	Logger.SetLevel(logrus.Level(logrusLogLevel))
+	if logrusLogLevel >= int(logrus.DebugLevel) {
+		Logger.ReportCaller = true
+		Logger.Debug("Logrus report caller enabled in debug mode")
+	}
 }
 
 func AddFileLogger(workdir string) error {

@@ -140,6 +140,16 @@ func NewTransactionsService(db *gorm.DB, eventPublisher events.EventPublisher) *
 }
 
 func (svc *transactionsService) MakeInvoice(ctx context.Context, amount uint64, description string, descriptionHash string, expiry uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+	logger.Logger.WithFields(logrus.Fields{
+		"app_id":           appId,
+		"request_event_id": requestEventId,
+		"amount":           amount,
+		"description":      description,
+		"description_hash": descriptionHash,
+		"expiry":           expiry,
+		"metadata":         metadata,
+	}).Debug("Making invoice")
+
 	var metadataBytes []byte
 	if metadata != nil {
 		var err error
@@ -151,6 +161,16 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount uint64, 
 		if len(metadataBytes) > constants.INVOICE_METADATA_MAX_LENGTH {
 			return nil, fmt.Errorf("encoded invoice metadata provided is too large. Limit: %d Received: %d", constants.INVOICE_METADATA_MAX_LENGTH, len(metadataBytes))
 		}
+	}
+
+	if metadata["app_id"] != nil {
+		overwriteAppIdType, ok := metadata["app_id"].(float64)
+		if !ok {
+			return nil, errors.New("failed to overwrite app ID")
+		}
+		overwriteAppId := uint(overwriteAppIdType)
+		logger.Logger.WithField("app_id", overwriteAppId).Info("Making invoice with overwritten app ID")
+		appId = &overwriteAppId
 	}
 
 	lnClientTransaction, err := lnClient.MakeInvoice(ctx, int64(amount), description, descriptionHash, int64(expiry))
@@ -346,6 +366,17 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 		}).WithError(err).Error("Failed to create DB transaction")
 		return nil, err
 	}
+
+	logger.Logger.WithFields(logrus.Fields{
+		"app_id":           appId,
+		"request_event_id": requestEventId,
+		"amount":           paymentAmount,
+		"description":      paymentRequest.Description,
+		"description_hash": paymentRequest.DescriptionHash,
+		"expiry":           paymentRequest.Expiry,
+		"self_payment":     selfPayment,
+		"metadata":         metadata,
+	}).Debug("Initiating payment")
 
 	var response *lnclient.PayInvoiceResponse
 	if selfPayment {

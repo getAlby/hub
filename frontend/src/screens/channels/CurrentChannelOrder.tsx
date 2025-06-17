@@ -1,8 +1,8 @@
 import React from "react";
 import {
   ConnectPeerRequest,
+  MempoolNode,
   NewChannelOrder,
-  Node,
   OpenChannelRequest,
   OpenChannelResponse,
   PayInvoiceResponse,
@@ -390,7 +390,9 @@ function PayBitcoinChannelOrderWithSpendableFunds({
     throw new Error("incorrect payment method");
   }
   const { data: peers } = usePeers();
-  const [nodeDetails, setNodeDetails] = React.useState<Node | undefined>();
+  const [nodeDetails, setNodeDetails] = React.useState<
+    MempoolNode | undefined
+  >();
   const [hasLoadedNodeDetails, setLoadedNodeDetails] = React.useState(false);
 
   const { toast } = useToast();
@@ -402,7 +404,7 @@ function PayBitcoinChannelOrderWithSpendableFunds({
       return;
     }
     try {
-      const data = await request<Node>(
+      const data = await request<MempoolNode>(
         `/api/mempool?endpoint=/v1/lightning/nodes/${pubkey}`
       );
       setNodeDetails(data);
