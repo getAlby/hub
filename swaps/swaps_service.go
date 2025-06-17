@@ -479,7 +479,7 @@ func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnc
 		return nil, err
 	}
 
-	// FIXME: use HD key and derivation path: https://github.com/BoltzExchange/boltz-web-app/blob/main/src/utils/rescueFile.ts#L36
+	// FIXME: use svc.keys.GetSwapKey
 
 	ourKey, _ := btcec.PrivKeyFromBytes(bip39.NewSeed(mnemonic, ""))
 

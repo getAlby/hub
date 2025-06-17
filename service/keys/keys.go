@@ -5,6 +5,8 @@ import (
 	"errors"
 
 	"github.com/btcsuite/btcd/btcec/v2"
+	"github.com/btcsuite/btcd/btcutil/hdkeychain"
+	"github.com/btcsuite/btcd/chaincfg"
 
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/logger"
@@ -23,12 +25,15 @@ type Keys interface {
 	GetAppWalletKey(childIndex uint) (string, error)
 	// Derives a child BIP-32 key from the app key (derived from the mnemonic)
 	DeriveKey(path []uint32) (*bip32.Key, error)
+	// Derives a BIP32 child key from appKey derived child dedicated for swaps
+	GetSwapKey(childIndex uint) (string, error)
 }
 
 type keys struct {
 	nostrSecretKey string
 	nostrPublicKey string
 	appKey         *bip32.Key
+	swapKey        *hdkeychain.ExtendedKey
 }
 
 func NewKeys() *keys {
@@ -93,6 +98,19 @@ func (keys *keys) Init(cfg config.Config, encryptionKey string) error {
 	}
 	keys.appKey = appKey
 
+	netParams := &chaincfg.MainNetParams
+	network := cfg.GetNetwork()
+	if network == "testnet" {
+		netParams = &chaincfg.TestNet3Params
+	}
+
+	hdMasterKey, err := hdkeychain.NewMaster(bip39.NewSeed(mnemonic, ""), netParams)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to create seed from mnemonic")
+		return err
+	}
+	keys.swapKey = hdMasterKey
+
 	return nil
 }
 
@@ -131,4 +149,20 @@ func (keys *keys) DeriveKey(path []uint32) (*bip32.Key, error) {
 	}
 
 	return key, nil
+}
+
+func (keys *keys) GetSwapKey(swapID uint) (string, error) {
+	path := []uint32{44, 0, 0, 0, uint32(swapID)}
+
+	key := keys.swapKey
+	for _, index := range path {
+		var err error
+		key, err = key.Derive(index)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	childPrivKey, _ := key.ECPrivKey()
+	return hex.EncodeToString(childPrivKey.Serialize()), nil
 }
