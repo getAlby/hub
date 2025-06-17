@@ -545,7 +545,7 @@ func (api *api) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnec
 	return api.svc.GetLNClient().GetNodeConnectionInfo(ctx)
 }
 
-func (api *api) GetAutoSwapConfig() ([]*GetAutoSwapConfigResponse, error) {
+func (api *api) GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error) {
 	swapOutBalanceThresholdStr, _ := api.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
 	swapOutAmountStr, _ := api.cfg.Get(config.AutoSwapAmountKey, "")
 	swapOutDestination, _ := api.cfg.Get(config.AutoSwapDestinationKey, "")
@@ -562,56 +562,41 @@ func (api *api) GetAutoSwapConfig() ([]*GetAutoSwapConfigResponse, error) {
 		}
 	}
 
-	swapOutFees, err := api.svc.GetSwapsService().CalculateSwapOutFee()
-	if err != nil {
-		logger.Logger.WithError(err).Error("failed to calculate fee info")
-		return nil, err
-	}
-
-	autoSwapOutConfig := &GetAutoSwapConfigResponse{
+	return &GetAutoSwapConfigResponse{
 		Type:             "out",
 		Enabled:          swapOutEnabled,
 		BalanceThreshold: swapOutBalanceThreshold,
 		SwapAmount:       swapOutAmount,
 		Destination:      swapOutDestination,
-		AlbyServiceFee:   swapOutFees.AlbyServiceFee,
-		BoltzServiceFee:  swapOutFees.BoltzServiceFee,
-		BoltzNetworkFee:  swapOutFees.BoltzNetworkFee,
-	}
+	}, nil
+}
 
-	swapInBalanceThresholdStr, _ := api.cfg.Get(config.AutoSwapInBalanceThresholdKey, "")
-	swapInAmountStr, _ := api.cfg.Get(config.AutoSwapInAmountKey, "")
-
-	swapInEnabled := swapInBalanceThresholdStr != "" && swapInAmountStr != ""
-	var swapInBalanceThreshold, swapInAmount uint64
-	if swapInEnabled {
-		var err error
-		if swapInBalanceThreshold, err = strconv.ParseUint(swapInBalanceThresholdStr, 10, 64); err != nil {
-			return nil, fmt.Errorf("invalid autoswap out balance threshold: %w", err)
-		}
-		if swapInAmount, err = strconv.ParseUint(swapInAmountStr, 10, 64); err != nil {
-			return nil, fmt.Errorf("invalid autoswap out amount: %w", err)
-		}
-	}
-
+func (api *api) GetSwapInFees() (*SwapFeesResponse, error) {
 	swapInFees, err := api.svc.GetSwapsService().CalculateSwapInFee()
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to calculate fee info")
 		return nil, err
 	}
 
-	autoSwapInConfig := &GetAutoSwapConfigResponse{
-		Type:             "in",
-		Enabled:          swapInEnabled,
-		BalanceThreshold: swapInBalanceThreshold,
-		SwapAmount:       swapInAmount,
-		Destination:      swapOutDestination,
-		AlbyServiceFee:   swapInFees.AlbyServiceFee,
-		BoltzServiceFee:  swapInFees.BoltzServiceFee,
-		BoltzNetworkFee:  swapInFees.BoltzNetworkFee,
+	return &SwapFeesResponse{
+		AlbyServiceFee:  swapInFees.AlbyServiceFee,
+		BoltzServiceFee: swapInFees.BoltzServiceFee,
+		BoltzNetworkFee: swapInFees.BoltzNetworkFee,
+	}, nil
+}
+
+func (api *api) GetSwapOutFees() (*SwapFeesResponse, error) {
+	swapOutFees, err := api.svc.GetSwapsService().CalculateSwapOutFee()
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to calculate fee info")
+		return nil, err
 	}
 
-	return []*GetAutoSwapConfigResponse{autoSwapInConfig, autoSwapOutConfig}, nil
+	return &SwapFeesResponse{
+		AlbyServiceFee:  swapOutFees.AlbyServiceFee,
+		BoltzServiceFee: swapOutFees.BoltzServiceFee,
+		BoltzNetworkFee: swapOutFees.BoltzNetworkFee,
+	}, nil
 }
 
 func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (*swaps.SwapOutResponse, error) {
@@ -640,25 +625,25 @@ func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *Ini
 	return swapoutResponse, nil
 }
 
-func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (string, error) {
+func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (*swaps.SwapInResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return "", errors.New("LNClient not started")
+		return nil, errors.New("LNClient not started")
 	}
 
 	amount := initiateSwapInRequest.SwapAmount
 
 	if amount == 0 {
-		return "", errors.New("invalid swap amount")
+		return nil, errors.New("invalid swap amount")
 	}
 
-	// TODO: Do not use context.Background
+	// TODO: Do not use context.Background - use background context in the SwapIn goroutine instead
 	txId, err := api.svc.GetSwapsService().SwapIn(context.Background(), amount, lnClient)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount": amount,
-		}).WithError(err).Error("Failed to initiate swap out")
-		return "", err
+		}).WithError(err).Error("Failed to initiate swap in")
+		return nil, err
 	}
 
 	return txId, nil
@@ -683,36 +668,11 @@ func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *E
 		return err
 	}
 
-	return api.svc.StartAutoSwap(false, true)
+	return api.svc.StartAutoSwap()
 }
 
-func (api *api) EnableAutoSwapIn(ctx context.Context, enableAutoSwapsRequest *EnableAutoSwapRequest) error {
-	err := api.cfg.SetUpdate(config.AutoSwapInBalanceThresholdKey, strconv.FormatUint(enableAutoSwapsRequest.BalanceThreshold, 10), "")
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to save autoswap balance threshold to config")
-		return err
-	}
-
-	err = api.cfg.SetUpdate(config.AutoSwapInAmountKey, strconv.FormatUint(enableAutoSwapsRequest.SwapAmount, 10), "")
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to save autoswap amount to config")
-		return err
-	}
-
-	return api.svc.StartAutoSwap(true, false)
-}
-
-func (api *api) DisableAutoSwap(swapType string) error {
-	var keys []string
-	var swapIn, swapOut bool
-
-	if swapType == "in" {
-		keys = []string{config.AutoSwapInBalanceThresholdKey, config.AutoSwapInAmountKey}
-		swapIn = true
-	} else {
-		keys = []string{config.AutoSwapBalanceThresholdKey, config.AutoSwapAmountKey, config.AutoSwapDestinationKey}
-		swapOut = true
-	}
+func (api *api) DisableAutoSwap() error {
+	keys := []string{config.AutoSwapBalanceThresholdKey, config.AutoSwapAmountKey, config.AutoSwapDestinationKey}
 
 	for _, key := range keys {
 		if err := api.cfg.SetUpdate(key, "", ""); err != nil {
@@ -721,7 +681,7 @@ func (api *api) DisableAutoSwap(swapType string) error {
 		}
 	}
 
-	api.svc.GetSwapsService().StopAutoSwap(swapIn, swapOut)
+	api.svc.GetSwapsService().StopAutoSwap()
 	return nil
 }
 

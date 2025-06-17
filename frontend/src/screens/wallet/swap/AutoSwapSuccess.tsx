@@ -13,7 +13,7 @@ import {
 import { useToast } from "src/components/ui/use-toast";
 import { copyToClipboard } from "src/lib/clipboard";
 
-export default function SwapSuccess() {
+export default function AutoSwapSuccess() {
   const { state } = useLocation();
   const { toast } = useToast();
 
@@ -67,9 +67,6 @@ export default function SwapSuccess() {
             )}
           </CardContent>
         </Card>
-        <Link to={`/wallet/swap?type=${state.type}`}>
-          <Button className="mt-4 w-full">Make Another Swap</Button>
-        </Link>
         <Link to="/wallet">
           <Button className="mt-4 w-full" variant="secondary">
             Back To Wallet

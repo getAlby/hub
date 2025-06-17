@@ -158,12 +158,13 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/health", httpSvc.healthHandler)
 	restrictedApiGroup.GET("/commands", httpSvc.getCustomNodeCommandsHandler)
 	restrictedApiGroup.POST("/command", httpSvc.execCustomNodeCommandHandler)
+	// TODO: rename to /swaps
+	restrictedApiGroup.GET("/wallet/swap/out/fees", httpSvc.getSwapOutFeesHandler)
+	restrictedApiGroup.GET("/wallet/swap/in/fees", httpSvc.getSwapInFeesHandler)
 	restrictedApiGroup.POST("/wallet/swap/out", httpSvc.initiateSwapOutHandler)
 	restrictedApiGroup.POST("/wallet/swap/in", httpSvc.initiateSwapInHandler)
 	restrictedApiGroup.POST("/wallet/autoswap/out", httpSvc.enableAutoSwapOutHandler)
-	restrictedApiGroup.POST("/wallet/autoswap/in", httpSvc.enableAutoSwapInHandler)
 	restrictedApiGroup.DELETE("/wallet/autoswap/out", httpSvc.disableAutoSwapOutHandler)
-	restrictedApiGroup.DELETE("/wallet/autoswap/in", httpSvc.disableAutoSwapInHandler)
 	restrictedApiGroup.GET("/wallet/autoswap", httpSvc.getAutoSwapConfigHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedApiGroup, e)
@@ -1199,6 +1200,28 @@ func (httpSvc *HttpService) initiateSwapInHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, txId)
 }
 
+func (httpSvc *HttpService) getSwapOutFeesHandler(c echo.Context) error {
+	swapOutFeesResponse, err := httpSvc.api.GetSwapOutFees()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get swap settings: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, swapOutFeesResponse)
+}
+
+func (httpSvc *HttpService) getSwapInFeesHandler(c echo.Context) error {
+	swapOutFeesResponse, err := httpSvc.api.GetSwapInFees()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get swap settings: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, swapOutFeesResponse)
+}
+
 func (httpSvc *HttpService) getAutoSwapConfigHandler(c echo.Context) error {
 	getAutoSwapConfigResponse, err := httpSvc.api.GetAutoSwapConfig()
 	if err != nil {
@@ -1228,38 +1251,8 @@ func (httpSvc *HttpService) enableAutoSwapOutHandler(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (httpSvc *HttpService) enableAutoSwapInHandler(c echo.Context) error {
-	var enableAutoSwapRequest api.EnableAutoSwapRequest
-	if err := c.Bind(&enableAutoSwapRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Message: fmt.Sprintf("Bad request: %s", err.Error()),
-		})
-	}
-
-	err := httpSvc.api.EnableAutoSwapIn(c.Request().Context(), &enableAutoSwapRequest)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to save swap settings: %v", err),
-		})
-	}
-
-	return c.NoContent(http.StatusNoContent)
-}
-
-func (httpSvc *HttpService) disableAutoSwapInHandler(c echo.Context) error {
-	err := httpSvc.api.DisableAutoSwap("in")
-
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: err.Error(),
-		})
-	}
-
-	return c.NoContent(http.StatusNoContent)
-}
-
 func (httpSvc *HttpService) disableAutoSwapOutHandler(c echo.Context) error {
-	err := httpSvc.api.DisableAutoSwap("out")
+	err := httpSvc.api.DisableAutoSwap()
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
