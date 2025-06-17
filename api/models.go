@@ -8,6 +8,7 @@ import (
 	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/swaps"
 )
 
 type API interface {
@@ -60,9 +61,13 @@ type API interface {
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
-	GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error)
-	DisableAutoSwaps() error
-	EnableAutoSwaps(ctx context.Context, autoSwapsRequest *EnableAutoSwapsRequest) error
+	GetSwapInFees() (*SwapFeesResponse, error)
+	GetSwapOutFees() (*SwapFeesResponse, error)
+	InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (*swaps.SwapInResponse, error)
+	InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (*swaps.SwapOutResponse, error)
+	GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error)
+	EnableAutoSwapOut(ctx context.Context, autoSwapRequest *EnableAutoSwapRequest) error
+	DisableAutoSwap() error
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
 	SendEvent(event string)
@@ -119,20 +124,29 @@ type CreateAppRequest struct {
 	UnlockPassword string   `json:"unlockPassword"`
 }
 
-type EnableAutoSwapsRequest struct {
+type InitiateSwapRequest struct {
+	SwapAmount  uint64 `json:"swapAmount"`
+	Destination string `json:"destination"`
+}
+
+type EnableAutoSwapRequest struct {
 	BalanceThreshold uint64 `json:"balanceThreshold"`
 	SwapAmount       uint64 `json:"swapAmount"`
 	Destination      string `json:"destination"`
 }
 
-type GetAutoSwapsConfigResponse struct {
-	Enabled          bool    `json:"enabled"`
-	BalanceThreshold uint64  `json:"balanceThreshold"`
-	SwapAmount       uint64  `json:"swapAmount"`
-	Destination      string  `json:"destination"`
-	AlbyServiceFee   float64 `json:"albyServiceFee"`
-	BoltzServiceFee  float64 `json:"boltzServiceFee"`
-	BoltzNetworkFee  uint64  `json:"boltzNetworkFee"`
+type GetAutoSwapConfigResponse struct {
+	Type             string `json:"type"`
+	Enabled          bool   `json:"enabled"`
+	BalanceThreshold uint64 `json:"balanceThreshold"`
+	SwapAmount       uint64 `json:"swapAmount"`
+	Destination      string `json:"destination"`
+}
+
+type SwapFeesResponse struct {
+	AlbyServiceFee  float64 `json:"albyServiceFee"`
+	BoltzServiceFee float64 `json:"boltzServiceFee"`
+	BoltzNetworkFee uint64  `json:"boltzNetworkFee"`
 }
 
 type StartRequest struct {
