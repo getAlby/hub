@@ -613,7 +613,7 @@ func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *Ini
 	}
 
 	// TODO: Do not use context.Background - use background context in the SwapOut goroutine instead
-	swapoutResponse, err := api.svc.GetSwapsService().SwapOut(context.Background(), amount, destination, lnClient)
+	swapoutResponse, err := api.svc.GetSwapsService().SwapOut(context.Background(), amount, destination, lnClient, false)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount":      amount,
@@ -638,7 +638,7 @@ func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *Initi
 	}
 
 	// TODO: Do not use context.Background - use background context in the SwapIn goroutine instead
-	txId, err := api.svc.GetSwapsService().SwapIn(context.Background(), amount, lnClient)
+	txId, err := api.svc.GetSwapsService().SwapIn(context.Background(), amount, lnClient, false)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount": amount,
