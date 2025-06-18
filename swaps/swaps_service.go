@@ -47,6 +47,7 @@ type SwapsService interface {
 	SwapIn(ctx context.Context, amount uint64, lnClient lnclient.LNClient, autoSwap bool) (*SwapInResponse, error)
 	CalculateSwapOutFee() (*SwapFees, error)
 	CalculateSwapInFee() (*SwapFees, error)
+	ProcessRefund(swapId string) error
 }
 
 const (
