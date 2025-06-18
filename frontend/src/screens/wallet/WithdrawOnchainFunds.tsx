@@ -3,7 +3,7 @@ import {
   ChevronDown,
   CopyIcon,
   ExternalLinkIcon,
-  TriangleAlertIcon,
+  InfoIcon,
 } from "lucide-react";
 import React from "react";
 import AppHeader from "src/components/AppHeader";
@@ -57,6 +57,12 @@ export default function WithdrawOnchainFunds() {
   const [confirmDialogOpen, setConfirmDialogOpen] = React.useState(false);
 
   React.useEffect(() => {
+    if (mempoolError) {
+      setShowAdvanced(true);
+    }
+  }, [mempoolError]);
+
+  React.useEffect(() => {
     if (recommendedFees?.fastestFee) {
       setFeeRate(recommendedFees.fastestFee.toString());
     }
@@ -69,9 +75,11 @@ export default function WithdrawOnchainFunds() {
   const redeemFunds = React.useCallback(async () => {
     setLoading(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 100));
       if (!onchainAddress) {
         throw new Error("No onchain address");
+      }
+      if (!feeRate) {
+        throw new Error("No fee rate set");
       }
     } catch (error) {
       console.error(error);
@@ -96,7 +104,7 @@ export default function WithdrawOnchainFunds() {
             toAddress: onchainAddress,
             amount: +amount,
             sendAll,
-            ...(feeRate && { feeRate: +feeRate }),
+            feeRate: +feeRate,
           }),
         }
       );
@@ -260,6 +268,12 @@ export default function WithdrawOnchainFunds() {
               {showAdvanced && (
                 <div className="">
                   <Label htmlFor="fee-rate">Fee Rate (Sat/vB)</Label>
+                  {mempoolError && (
+                    <div className="text-muted-foreground text-xs flex gap-1 items-center">
+                      <AlertTriangleIcon className="h-3 w-3" />
+                      Failed to fetch fee estimates. Try refreshing the page.
+                    </div>
+                  )}
                   <Input
                     id="fee-rate"
                     type="number"
@@ -326,9 +340,10 @@ export default function WithdrawOnchainFunds() {
             >
               <Button className="w-full">Withdraw</Button>
               {feeRate && (
-                <div className="mt-2 text-muted-foreground text-sm flex items-center">
-                  <TriangleAlertIcon className="h-4 w-4 mr-1" />
-                  Onchain payment will be made with {feeRate} sat/vB fee
+                <div className="mt-2 text-muted-foreground text-sm flex gap-1 items-center justify-center">
+                  <InfoIcon className="h-4 w-4" />
+                  On-chain payment will be made with{" "}
+                  <span className="font-semibold">{feeRate} sat/vB</span> fee
                 </div>
               )}
 
@@ -353,6 +368,15 @@ export default function WithdrawOnchainFunds() {
                           )}
                         </span>
                       </p>
+                      {feeRate && (
+                        <p className="mt-4">
+                          Fee Rate:{" "}
+                          <span className="font-bold slashed-zero">
+                            {feeRate}
+                          </span>{" "}
+                          sat/vB
+                        </p>
+                      )}
                     </div>
                   </AlertDialogDescription>
                 </AlertDialogHeader>
