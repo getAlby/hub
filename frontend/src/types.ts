@@ -161,6 +161,7 @@ export interface InfoResponse {
   autoUnlockPasswordSupported: boolean;
   autoUnlockPasswordEnabled: boolean;
   currency: string;
+  nodeAlias: string;
 }
 
 export type HealthAlarmKind =
