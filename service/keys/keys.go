@@ -1,6 +1,8 @@
 package keys
 
 import (
+	"crypto/hmac"
+	"crypto/sha512"
 	"encoding/hex"
 	"errors"
 
@@ -93,25 +95,21 @@ func (keys *keys) Init(cfg config.Config, encryptionKey string) error {
 	albyHubIndex := uint32(bip32.FirstHardenedChild + 128029 /* 🐝 */)
 	appKey, err := masterKey.NewChildKey(albyHubIndex)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to create seed from mnemonic")
+		logger.Logger.WithError(err).Error("Failed to derive app key")
 		return err
 	}
 	keys.appKey = appKey
 
-	// TODO: create a child mnemonic using BIP-85
-	entropy, err := bip39.NewEntropy(128)
+	swapIndex := uint32(bip32.FirstHardenedChild + 128260 /* 🔄 */)
+	swapMasterKey, err := masterKey.NewChildKey(swapIndex)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to generate entropy for mnemonic")
+		logger.Logger.WithError(err).Error("Failed to derive swap master key")
 		return err
 	}
-	mnemonic, err = bip39.NewMnemonic(entropy)
+
+	mnemonic, err = keys.GetSwapMnemonic(swapMasterKey)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to generate mnemonic")
-		return err
-	}
-	err = cfg.SetUpdate("SwapMnemonic", mnemonic, encryptionKey)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to save mnemonic")
+		logger.Logger.WithError(err).Error("Failed to generate swap mnemonic")
 		return err
 	}
 
@@ -121,12 +119,12 @@ func (keys *keys) Init(cfg config.Config, encryptionKey string) error {
 		netParams = &chaincfg.TestNet3Params
 	}
 
-	hdMasterKey, err := hdkeychain.NewMaster(bip39.NewSeed(mnemonic, ""), netParams)
+	swapKey, err := hdkeychain.NewMaster(bip39.NewSeed(mnemonic, ""), netParams)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to create seed from mnemonic")
+		logger.Logger.WithError(err).Error("Failed to create seed from swap mnemonic")
 		return err
 	}
-	keys.swapKey = hdMasterKey
+	keys.swapKey = swapKey
 
 	return nil
 }
@@ -183,31 +181,16 @@ func (keys *keys) GetSwapKey(swapID uint) (*btcec.PrivateKey, error) {
 	return key.ECPrivKey()
 }
 
-// TODO: use this
-func deriveBIP85Mnemonic(root *hdkeychain.ExtendedKey) (string, error) {
-	path := []uint32{
-		hdkeychain.HardenedKeyStart + 83696968,
-		hdkeychain.HardenedKeyStart + 39,
-		hdkeychain.HardenedKeyStart + 128029, /* 🐝 */
-		hdkeychain.HardenedKeyStart + 12,
-	}
-
-	key := root
-	for _, index := range path {
-		var err error
-		key, err = key.Derive(index)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	priv, err := key.ECPrivKey()
+// Taken from https://github.com/e4coder/bip85/blob/main/bip85.go
+func (keys *keys) GetSwapMnemonic(key *bip32.Key) (string, error) {
+	hash := hmac.New(sha512.New, []byte("bip-entropy-from-k"))
+	_, err := hash.Write(key.Key)
 	if err != nil {
 		return "", err
 	}
-	entropy := priv.Serialize()
-
-	mnemonic, err := bip39.NewMnemonic(entropy)
+	entropy := hash.Sum(nil)
+	entropyBIP39 := entropy[:16]
+	mnemonic, err := bip39.NewMnemonic(entropyBIP39)
 	if err != nil {
 		return "", err
 	}
