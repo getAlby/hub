@@ -1,11 +1,9 @@
-import { SparklesIcon } from "lucide-react";
 import React, { useState } from "react";
 import AppHeader from "src/components/AppHeader";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { useToast } from "src/components/ui/use-toast";
-import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 
@@ -67,14 +65,6 @@ export default function NodeAlias() {
       <AppHeader
         title="Node Alias"
         description="Set a human-readable name for your lightning node"
-        contentRight={
-          <UpgradeDialog>
-            <Button>
-              <SparklesIcon className="w-4 h-4 mr-2" />
-              Upgrade
-            </Button>
-          </UpgradeDialog>
-        }
       />
       <div className="max-w-lg">
         <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">

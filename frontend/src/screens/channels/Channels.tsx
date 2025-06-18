@@ -8,6 +8,7 @@ import {
   InfoIcon,
   LinkIcon,
   Settings2Icon,
+  SparklesIcon,
   UnplugIcon,
   ZapIcon,
 } from "lucide-react";
@@ -52,7 +53,9 @@ import {
   TooltipTrigger,
 } from "src/components/ui/tooltip.tsx";
 import { useToast } from "src/components/ui/use-toast.ts";
+import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { ONCHAIN_DUST_SATS } from "src/constants.ts";
+import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useBalances } from "src/hooks/useBalances.ts";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
@@ -66,6 +69,7 @@ import { request } from "src/utils/request";
 export default function Channels() {
   useSyncWallet();
   const { data: info } = useInfo();
+  const { data: albyMe } = useAlbyMe();
   const { data: channels } = useChannels();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const { hasChannelManagement } = useInfo();
@@ -75,9 +79,6 @@ export default function Channels() {
   const [swapOutDialogOpen, setSwapOutDialogOpen] = React.useState(false);
   const [swapInDialogOpen, setSwapInDialogOpen] = React.useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
-
-  const hasPublicChannels =
-    channels?.some((channel) => channel.public) || false;
 
   React.useEffect(() => {
     if (balances && channels && searchParams.has("swap", "true")) {
@@ -228,13 +229,28 @@ export default function Channels() {
                         Sign Message
                       </Link>
                     </DropdownMenuItem>
-                    {info?.backendType === "LDK" && hasPublicChannels && (
-                      <DropdownMenuItem>
-                        <Link className="w-full" to="/wallet/node-alias">
-                          Set Node Alias
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
+                    {info?.backendType === "LDK" &&
+                      (!albyMe?.subscription.plan_code ? (
+                        <UpgradeDialog>
+                          <div className="cursor-pointer">
+                            <DropdownMenuItem className="w-full pointer-events-none">
+                              <Link
+                                className="w-full flex items-center"
+                                to="/wallet/node-alias"
+                              >
+                                <SparklesIcon className="w-4 h-4 mr-2" /> Set
+                                Node Alias
+                              </Link>
+                            </DropdownMenuItem>
+                          </div>
+                        </UpgradeDialog>
+                      ) : (
+                        <DropdownMenuItem className="w-full">
+                          <Link className="w-full" to="/wallet/node-alias">
+                            Set Node Alias
+                          </Link>
+                        </DropdownMenuItem>
+                      ))}
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
