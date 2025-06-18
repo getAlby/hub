@@ -23,6 +23,7 @@ CREATE TABLE swaps(
 	lockup_tx_id text,
 	claim_tx_id text,
 	auto_swap boolean,
+	swap_tree json,
 	created_at {{ .Timestamp }},
 	updated_at {{ .Timestamp }}
 );

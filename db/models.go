@@ -103,6 +103,7 @@ type Swap struct {
 	ClaimTxId      string
 	AutoSwap       bool
 	BoltzPubkey    string
+	SwapTree       datatypes.JSON
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }
