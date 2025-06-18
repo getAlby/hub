@@ -1436,6 +1436,15 @@ func (svc *transactionsService) markPaymentFailed(tx *gorm.DB, dbTransaction *db
 		return result.Error
 	}
 
+	var metadata map[string]interface{}
+	if err := json.Unmarshal(existingTransaction.Metadata, &metadata); err == nil {
+		if swapIdRaw, ok := metadata["swapId"]; ok {
+			if swapId, ok := swapIdRaw.(string); ok && swapId != "" {
+				defer svc.markSwapFailed(tx, swapId)
+			}
+		}
+	}
+
 	if existingTransaction.State == constants.TRANSACTION_STATE_FAILED {
 		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Info("payment already marked as failed")
 		return nil
@@ -1458,5 +1467,33 @@ func (svc *transactionsService) markPaymentFailed(tx *gorm.DB, dbTransaction *db
 		Event:      "nwc_payment_failed",
 		Properties: dbTransaction,
 	})
+	return nil
+}
+
+// NOTE: This is only required for swap outs
+func (svc *transactionsService) markSwapFailed(tx *gorm.DB, swapId string) error {
+	var existingSwap db.Swap
+	err := tx.Limit(1).Find(&existingSwap, &db.Swap{
+		SwapId: swapId,
+	}).Error
+
+	if err != nil {
+		logger.Logger.WithField("swapId", swapId).WithError(err).Error("could not find swap to mark as failed")
+		return err
+	}
+
+	if existingSwap.State == constants.SWAP_STATE_FAILED {
+		logger.Logger.WithField("swapId", swapId).Info("swap already marked as failed")
+		return nil
+	}
+
+	err = tx.Model(existingSwap).Update("state", constants.SWAP_STATE_FAILED).Error
+	if err != nil {
+		logger.Logger.WithField("swapId", swapId).WithError(err).Error("Failed to update swap state")
+		return err
+	}
+
+	logger.Logger.WithField("swapId", swapId).Info("Marked swap as failed")
+
 	return nil
 }

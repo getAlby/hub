@@ -326,6 +326,7 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 				return
 			case update, ok := <-updatesCh:
 				if !ok {
+					// TODO: should we reconnect here?
 					errCh <- errors.New("boltz websocket closed unexpectedly")
 					return
 				}
@@ -453,7 +454,6 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 					}
 				case boltz.InvoiceSettled:
 					isSwapSuccessful = true
-					// TODO: save amount received to swap table
 					logger.Logger.WithField("swapId", swap.Id).Info("Swap succeeded")
 					svc.eventPublisher.Publish(&events.Event{
 						Event: "nwc_swap_succeeded",
@@ -632,7 +632,6 @@ func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnc
 		return nil, err
 	}
 
-	// TODO: add a timeout equivalent to invoice expiry so it doesn't keep waiting forever
 	go func() {
 		var txHex string
 		var isSwapSuccessful bool
