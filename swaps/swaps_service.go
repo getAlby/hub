@@ -23,9 +23,9 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/service/keys"
 	"github.com/getAlby/hub/transactions"
 	"github.com/sirupsen/logrus"
-	"github.com/tyler-smith/go-bip39"
 	"gorm.io/gorm"
 )
 
@@ -33,6 +33,7 @@ type swapsService struct {
 	autoSwapOutCancelFn context.CancelFunc
 	db                  *gorm.DB
 	cfg                 config.Config
+	keys                keys.Keys
 	eventPublisher      events.EventPublisher
 	transactionsService transactions.TransactionsService
 	boltzApi            *boltz.Api
@@ -77,10 +78,11 @@ type SwapInResponse struct {
 	PaymentHash     string `json:"paymentHash"`
 }
 
-func NewSwapsService(db *gorm.DB, cfg config.Config, eventPublisher events.EventPublisher, transactionsService transactions.TransactionsService) SwapsService {
+func NewSwapsService(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher, transactionsService transactions.TransactionsService) SwapsService {
 	return &swapsService{
 		cfg:                 cfg,
 		db:                  db,
+		keys:                keys,
 		eventPublisher:      eventPublisher,
 		transactionsService: transactionsService,
 		boltzApi:            &boltz.Api{URL: cfg.GetEnv().BoltzApi},
@@ -174,12 +176,6 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 		return nil, err
 	}
 
-	// TODO: use own keys
-	ourKeys, err := btcec.NewPrivateKey()
-	if err != nil {
-		return nil, err
-	}
-
 	preimage := make([]byte, 32)
 	_, err = rand.Read(preimage)
 	if err != nil {
@@ -215,47 +211,74 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 		Id:         "albyServiceFee",
 	}
 
-	swap, err := svc.boltzApi.CreateReverseSwap(boltz.CreateReverseSwapRequest{
-		From:           boltz.CurrencyBtc,
-		To:             boltz.CurrencyBtc,
-		ClaimPublicKey: ourKeys.PubKey().SerializeCompressed(),
-		PreimageHash:   preimageHash[:],
-		InvoiceAmount:  amount,
-		Description:    "Boltz swap out",
-		PairHash:       pairInfo.Hash,
-		ReferralId:     "alby",
-		ExtraFees:      albyFee,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("could not create swap: %s", err)
-	}
-
-	boltzPubKey, err := btcec.ParsePubKey(swap.RefundPublicKey)
-	if err != nil {
-		return nil, err
-	}
-
-	tree := swap.SwapTree.Deserialize()
-	if err := tree.Init(boltz.CurrencyBtc, true, ourKeys, boltzPubKey); err != nil {
-		return nil, err
-	}
-
-	if err := tree.Check(boltz.ReverseSwap, swap.TimeoutBlockHeight, preimageHash[:]); err != nil {
-		return nil, err
-	}
-
 	dbSwap := db.Swap{
-		SwapId:      swap.Id,
 		Type:        constants.SWAP_TYPE_OUT,
 		State:       constants.SWAP_STATE_PENDING,
-		Amount:      amount,
+		AmountSent:  amount,
 		Destination: destination,
 		PaymentHash: paymentHash,
 		AutoSwap:    autoSwap,
 	}
-	err = svc.db.Create(&dbSwap).Error
+
+	var tree *boltz.SwapTree
+	var ourKeys *btcec.PrivateKey
+	var swap *boltz.CreateReverseSwapResponse
+
+	err = svc.db.Transaction(func(tx *gorm.DB) error {
+		err := tx.Save(&dbSwap).Error
+		if err != nil {
+			return err
+		}
+
+		ourKeys, err = svc.keys.GetSwapKey(dbSwap.ID)
+		if err != nil {
+			return fmt.Errorf("error generating swap child private key: %w", err)
+		}
+
+		swap, err = svc.boltzApi.CreateReverseSwap(boltz.CreateReverseSwapRequest{
+			From:           boltz.CurrencyBtc,
+			To:             boltz.CurrencyBtc,
+			ClaimPublicKey: ourKeys.PubKey().SerializeCompressed(),
+			PreimageHash:   preimageHash[:],
+			InvoiceAmount:  amount,
+			Description:    "Boltz swap out",
+			PairHash:       pairInfo.Hash,
+			ReferralId:     "alby",
+			ExtraFees:      albyFee,
+		})
+
+		if err != nil {
+			return fmt.Errorf("could not create swap: %s", err)
+		}
+
+		err = tx.Model(&dbSwap).Updates(map[string]interface{}{
+			"swap_id":      swap.Id,
+			"boltz_pubkey": hex.EncodeToString(swap.RefundPublicKey),
+		}).Error
+		if err != nil {
+			return err
+		}
+
+		boltzPubKey, err := btcec.ParsePubKey(swap.RefundPublicKey)
+		if err != nil {
+			return err
+		}
+
+		tree = swap.SwapTree.Deserialize()
+		if err := tree.Init(boltz.CurrencyBtc, true, ourKeys, boltzPubKey); err != nil {
+			return err
+		}
+
+		if err := tree.Check(boltz.ReverseSwap, swap.TimeoutBlockHeight, preimageHash[:]); err != nil {
+			return err
+		}
+
+		// commit transaction
+		return nil
+	})
+
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to create DB swap")
+		logger.Logger.WithError(err).Error("Failed to save swap")
 		return nil, err
 	}
 
@@ -395,6 +418,9 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 						return
 					}
 
+					vout, _, _ = claimTransaction.FindVout(network, destination)
+					claimAmount, _ := claimTransaction.VoutValue(vout)
+
 					txHex, err := claimTransaction.Serialize()
 					if err != nil {
 						logger.Logger.WithError(err).Error("Could not serialize claim transaction")
@@ -402,24 +428,32 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 					}
 
 					// TODO: Replace with LNClient broadcast method to avoid trusting boltz
-					txId, err := svc.boltzApi.BroadcastTransaction(boltz.CurrencyBtc, txHex)
+					claimTxId, err := svc.boltzApi.BroadcastTransaction(boltz.CurrencyBtc, txHex)
 					if err != nil {
 						logger.Logger.WithError(err).Error("Could not broadcast transaction")
 						return
 					}
 
-					logger.Logger.WithField("txId", txId).Info("Transaction broadcasted")
+					logger.Logger.WithFields(logrus.Fields{
+						"swapId":    swap.Id,
+						"claimTxId": claimTxId,
+					}).Info("Claim transaction broadcasted")
 
-					err = svc.db.Model(&dbSwap).Update("claim_tx_id", txId).Error
+					err = svc.db.Model(&dbSwap).Updates(map[string]interface{}{
+						"claim_tx_id":     claimTxId,
+						"amount_received": claimAmount,
+					}).Error
 					if err != nil {
 						logger.Logger.WithFields(logrus.Fields{
-							"swapId":    swap.Id,
-							"claimTxId": txId,
-						}).WithError(err).Error("Failed to save claim txid to swap")
+							"swapId":      swap.Id,
+							"claimTxId":   claimTxId,
+							"claimAmount": claimAmount,
+						}).WithError(err).Error("Failed to save claim info to swap")
 						return
 					}
 				case boltz.InvoiceSettled:
 					isSwapSuccessful = true
+					// TODO: save amount received to swap table
 					logger.Logger.WithField("swapId", swap.Id).Info("Swap succeeded")
 					svc.eventPublisher.Publish(&events.Event{
 						Event: "nwc_swap_succeeded",
@@ -463,25 +497,15 @@ func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnc
 		return nil, err
 	}
 
+	decodedPreimageHash, err := hex.DecodeString(invoice.PaymentHash)
+	if err != nil {
+		return nil, fmt.Errorf("invalid preimage hash: %v", err)
+	}
+
 	network, err := boltz.ParseChain(svc.cfg.GetNetwork())
 	if err != nil {
 		return nil, err
 	}
-
-	entropy, err := bip39.NewEntropy(128)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to generate entropy for mnemonic")
-		return nil, err
-	}
-	mnemonic, err := bip39.NewMnemonic(entropy)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to generate mnemonic")
-		return nil, err
-	}
-
-	// FIXME: use svc.keys.GetSwapKey
-
-	ourKey, _ := btcec.PrivKeyFromBytes(bip39.NewSeed(mnemonic, ""))
 
 	submarinePairs, err := svc.boltzApi.GetSubmarinePairs()
 	if err != nil {
@@ -510,17 +534,77 @@ func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnc
 		Id:         "albyServiceFee",
 	}
 
-	swap, err := svc.boltzApi.CreateSwap(boltz.CreateSwapRequest{
-		From:            boltz.CurrencyBtc,
-		To:              boltz.CurrencyBtc,
-		RefundPublicKey: ourKey.PubKey().SerializeCompressed(),
-		Invoice:         invoice.PaymentRequest,
-		PairHash:        pairInfo.Hash,
-		ReferralId:      "alby",
-		ExtraFees:       albyFee,
+	dbSwap := db.Swap{
+		Type:           constants.SWAP_TYPE_IN,
+		State:          constants.SWAP_STATE_PENDING,
+		AmountReceived: amount,
+		PaymentHash:    invoice.PaymentHash,
+		AutoSwap:       autoSwap,
+	}
+
+	var tree *boltz.SwapTree
+	var ourKeys *btcec.PrivateKey
+	var swap *boltz.CreateSwapResponse
+
+	err = svc.db.Transaction(func(tx *gorm.DB) error {
+		err := tx.Save(&dbSwap).Error
+		if err != nil {
+			return err
+		}
+
+		ourKeys, err = svc.keys.GetSwapKey(dbSwap.ID)
+		if err != nil {
+			return fmt.Errorf("error generating swap child private key: %w", err)
+		}
+
+		swap, err = svc.boltzApi.CreateSwap(boltz.CreateSwapRequest{
+			From:            boltz.CurrencyBtc,
+			To:              boltz.CurrencyBtc,
+			RefundPublicKey: ourKeys.PubKey().SerializeCompressed(),
+			Invoice:         invoice.PaymentRequest,
+			PairHash:        pairInfo.Hash,
+			ReferralId:      "alby",
+			ExtraFees:       albyFee,
+		})
+		if err != nil {
+			return fmt.Errorf("could not create swap: %s", err)
+		}
+
+		err = tx.Model(&dbSwap).Updates(map[string]interface{}{
+			"swap_id":      swap.Id,
+			"amount_sent":  swap.ExpectedAmount,
+			"address":      swap.Address,
+			"boltz_pubkey": hex.EncodeToString(swap.ClaimPublicKey),
+		}).Error
+		if err != nil {
+			return err
+		}
+
+		boltzPubKey, err := btcec.ParsePubKey(swap.ClaimPublicKey)
+		if err != nil {
+			return err
+		}
+
+		tree = swap.SwapTree.Deserialize()
+		if err := tree.Init(boltz.CurrencyBtc, false, ourKeys, boltzPubKey); err != nil {
+			return err
+		}
+
+		if err := tree.Check(boltz.NormalSwap, swap.TimeoutBlockHeight, decodedPreimageHash); err != nil {
+			return err
+		}
+
+		if err := tree.CheckAddress(swap.Address, network, nil); err != nil {
+			return err
+		}
+
+		// commit transaction
+		return nil
 	})
+
 	if err != nil {
-		return nil, fmt.Errorf("could not create swap: %s", err)
+		logger.Logger.WithError(err).Error("Failed to save swap")
+		return nil, err
 	}
 
 	metadata := map[string]interface{}{
@@ -532,46 +616,6 @@ func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnc
 			"payment_hash": invoice.PaymentHash,
 			"metadata":     metadata,
 		}).Error("Failed to add swap metadata to lightning payment")
-		return nil, err
-	}
-
-	boltzPubKey, err := btcec.ParsePubKey(swap.ClaimPublicKey)
-	if err != nil {
-		return nil, err
-	}
-
-	tree := swap.SwapTree.Deserialize()
-	if err := tree.Init(boltz.CurrencyBtc, false, ourKey, boltzPubKey); err != nil {
-		return nil, err
-	}
-
-	decodedPreimageHash, err := hex.DecodeString(invoice.PaymentHash)
-	if err != nil {
-		return nil, fmt.Errorf("invalid preimage hash: %v", err)
-	}
-
-	if err := tree.Check(boltz.NormalSwap, swap.TimeoutBlockHeight, decodedPreimageHash); err != nil {
-		return nil, err
-	}
-
-	if err := tree.CheckAddress(swap.Address, network, nil); err != nil {
-		return nil, err
-	}
-
-	// TODO: review where to save mnemonic
-	dbSwap := db.Swap{
-		SwapId:      swap.Id,
-		Type:        constants.SWAP_TYPE_IN,
-		State:       constants.SWAP_STATE_PENDING,
-		Amount:      swap.ExpectedAmount,
-		Address:     swap.Address,
-		PaymentHash: invoice.PaymentHash,
-		AutoSwap:    autoSwap,
-	}
-	err = svc.db.Create(&dbSwap).Error
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to create DB swap")
-		return nil, err
 	}
 
 	logger.Logger.WithField("swap", swap).Info("Swap created")
@@ -735,7 +779,7 @@ func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnc
 								LockupTransaction:  lockupTransaction,
 								TimeoutBlockHeight: swap.TimeoutBlockHeight,
 								Vout:               vout,
-								PrivateKey:         ourKey,
+								PrivateKey:         ourKeys,
 								SwapTree:           tree,
 								Cooperative:        true,
 							},

@@ -90,19 +90,21 @@ type Transaction struct {
 }
 
 type Swap struct {
-	ID          uint
-	SwapId      string `validate:"required"`
-	Type        string
-	State       string
-	Address     string
-	Amount      uint64
-	PaymentHash string
-	Destination string
-	LockupTxId  string
-	ClaimTxId   string
-	AutoSwap    bool
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID             uint
+	SwapId         string `validate:"required"`
+	Type           string
+	State          string
+	Address        string
+	AmountSent     uint64
+	AmountReceived uint64
+	PaymentHash    string
+	Destination    string
+	LockupTxId     string
+	ClaimTxId      string
+	AutoSwap       bool
+	BoltzPubkey    string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
 const (

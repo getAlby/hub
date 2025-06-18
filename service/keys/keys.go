@@ -26,7 +26,7 @@ type Keys interface {
 	// Derives a child BIP-32 key from the app key (derived from the mnemonic)
 	DeriveKey(path []uint32) (*bip32.Key, error)
 	// Derives a BIP32 child key from appKey derived child dedicated for swaps
-	GetSwapKey(childIndex uint) (string, error)
+	GetSwapKey(childIndex uint) (*btcec.PrivateKey, error)
 }
 
 type keys struct {
@@ -98,6 +98,23 @@ func (keys *keys) Init(cfg config.Config, encryptionKey string) error {
 	}
 	keys.appKey = appKey
 
+	// TODO: create a child mnemonic using BIP-85
+	entropy, err := bip39.NewEntropy(128)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to generate entropy for mnemonic")
+		return err
+	}
+	mnemonic, err = bip39.NewMnemonic(entropy)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to generate mnemonic")
+		return err
+	}
+	err = cfg.SetUpdate("SwapMnemonic", mnemonic, encryptionKey)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save mnemonic")
+		return err
+	}
+
 	netParams := &chaincfg.MainNetParams
 	network := cfg.GetNetwork()
 	if network == "testnet" {
@@ -151,10 +168,31 @@ func (keys *keys) DeriveKey(path []uint32) (*bip32.Key, error) {
 	return key, nil
 }
 
-func (keys *keys) GetSwapKey(swapID uint) (string, error) {
+func (keys *keys) GetSwapKey(swapID uint) (*btcec.PrivateKey, error) {
 	path := []uint32{44, 0, 0, 0, uint32(swapID)}
 
 	key := keys.swapKey
+	for _, index := range path {
+		var err error
+		key, err = key.Derive(index)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return key.ECPrivKey()
+}
+
+// TODO: use this
+func deriveBIP85Mnemonic(root *hdkeychain.ExtendedKey) (string, error) {
+	path := []uint32{
+		hdkeychain.HardenedKeyStart + 83696968,
+		hdkeychain.HardenedKeyStart + 39,
+		hdkeychain.HardenedKeyStart + 128029, /* 🐝 */
+		hdkeychain.HardenedKeyStart + 12,
+	}
+
+	key := root
 	for _, index := range path {
 		var err error
 		key, err = key.Derive(index)
@@ -163,6 +201,15 @@ func (keys *keys) GetSwapKey(swapID uint) (string, error) {
 		}
 	}
 
-	childPrivKey, _ := key.ECPrivKey()
-	return hex.EncodeToString(childPrivKey.Serialize()), nil
+	priv, err := key.ECPrivKey()
+	if err != nil {
+		return "", err
+	}
+	entropy := priv.Serialize()
+
+	mnemonic, err := bip39.NewMnemonic(entropy)
+	if err != nil {
+		return "", err
+	}
+	return mnemonic, nil
 }
