@@ -434,6 +434,9 @@ export type AlbyMe = {
   shared_node: boolean;
   hub: {
     name?: string;
+    config?: {
+      region?: string;
+    };
   };
   subscription: {
     plan_code: string;
