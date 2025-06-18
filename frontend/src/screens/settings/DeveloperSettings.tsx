@@ -174,8 +174,16 @@ export default function DeveloperSettings() {
                     </span>{" "}
                   </li>
                 )}
+                {albyMe?.hub.name && (
+                  <li>
+                    <span className="font-mono font-semibold">
+                      AlbyHub-Region: {albyMe.hub.config?.region || "lax"}
+                    </span>
+                  </li>
+                )}
               </ol>
             </div>
+
             <p className="text-xs">
               This token grants full access to your hub. Please keep it secure.
               If you suspect that the token has been compromised, immediately
