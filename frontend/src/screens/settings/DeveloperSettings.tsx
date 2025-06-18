@@ -174,7 +174,43 @@ export default function DeveloperSettings() {
                     </span>{" "}
                   </li>
                 )}
+                <li>
+                  <span className="font-mono font-semibold">
+                    AlbyHub-Region: YOUR_COOKIE_VALUE
+                  </span>{" "}
+                  (if you are using Alby Cloud)
+                </li>
               </ol>
+              <p className="mt-2 text-sm text-muted-foreground">
+                To find the{" "}
+                <span className="font-mono font-semibold">AlbyHub-Region</span>{" "}
+                cookie value:
+              </p>
+              <ul className="list-disc list-inside text-sm text-muted-foreground ml-4">
+                <li>
+                  Open Developer Tools in your browser (e.g., press F12 or
+                  right-click and select 'Inspect').
+                </li>
+                <li>
+                  Navigate to the 'Application' tab (in Chrome-based browsers)
+                  or 'Storage' tab (in Firefox).
+                </li>
+                <li>
+                  Under the 'Cookies' section in the sidebar, find and select
+                  the domain for Alby Hub (e.g.,{" "}
+                  <span className="font-mono font-semibold">
+                    {new URL(window.location.origin).hostname}
+                  </span>
+                  ).
+                </li>
+                <li>
+                  Look for the cookie named{" "}
+                  <span className="font-mono font-semibold">
+                    AlbyHub-Region
+                  </span>{" "}
+                  in the list and copy its value.
+                </li>
+              </ul>
             </div>
             <p className="text-xs">
               This token grants full access to your hub. Please keep it secure.
