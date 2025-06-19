@@ -1,0 +1,8 @@
+# FOR TESTING ONLY, do not use internal tls!
+https://your-domain.com {
+    redir /example-path /example-path/ 301
+    handle_path /example-path* {
+		reverse_proxy localhost:8080
+	}
+    tls internal
+}

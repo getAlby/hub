@@ -61,6 +61,14 @@ Go to `/frontend`
 1. `yarn install`
 2. `yarn dev`
 
+### HTTP Production build
+
+    $ yarn build:http
+
+If you plan to run Alby Hub on a subpath behind a reverse proxy, you can do:
+
+    $ BASE_PATH="/hub" yarn build:http
+
 ### Wails (Backend + Frontend)
 
 _Make sure to have [wails](https://wails.io/docs/gettingstarted/installation) installed and all platform-specific dependencies installed (see wails doctor)_
