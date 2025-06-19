@@ -142,7 +142,10 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		logger.Logger.WithFields(logrus.Fields{
 			"esplora_url": cfg.GetEnv().LDKEsploraServer,
 		}).Info("Using LDK node esplora chain source")
-		builder.SetChainSourceEsplora(cfg.GetEnv().LDKEsploraServer, nil)
+		builder.SetChainSourceEsplora(cfg.GetEnv().LDKEsploraServer, &ldk_node.EsploraSyncConfig{
+			// turn off background sync - we manage syncs ourselves
+			BackgroundSyncConfig: nil,
+		})
 		chainSource = "esplora"
 	}
 
