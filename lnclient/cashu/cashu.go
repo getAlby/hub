@@ -227,7 +227,7 @@ func (cs *CashuService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchai
 	}, nil
 }
 
-func (cs *CashuService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (string, error) {
+func (cs *CashuService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (string, error) {
 	return "", nil
 }
 
@@ -562,6 +562,10 @@ func (cs *CashuService) executeCommandResetWallet() (*lnclient.CustomNodeCommand
 			"message": "Reset successful. Your hub will shutdown in 10 seconds...",
 		},
 	}, nil
+}
+
+func (svc *CashuService) MakeOffer(ctx context.Context, description string) (string, error) {
+	return "", errors.New("not supported")
 }
 
 func (cs *CashuService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {

@@ -77,11 +77,12 @@ type LNClient interface {
 	CloseChannel(ctx context.Context, closeChannelRequest *CloseChannelRequest) (*CloseChannelResponse, error)
 	UpdateChannel(ctx context.Context, updateChannelRequest *UpdateChannelRequest) error
 	DisconnectPeer(ctx context.Context, peerId string) error
+	MakeOffer(ctx context.Context, description string) (string, error)
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	ResetRouter(key string) error
 	GetOnchainBalance(ctx context.Context) (*OnchainBalanceResponse, error)
 	GetBalances(ctx context.Context, includeInactiveChannels bool) (*BalancesResponse, error)
-	RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (txId string, err error)
+	RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (txId string, err error)
 	SendPaymentProbes(ctx context.Context, invoice string) error
 	SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error
 	ListPeers(ctx context.Context) ([]PeerDetails, error)
@@ -189,6 +190,12 @@ type LightningBalanceResponse struct {
 type PayInvoiceResponse struct {
 	Preimage string `json:"preimage"`
 	Fee      uint64 `json:"fee"`
+}
+
+type PayOfferResponse = struct {
+	Preimage    string `json:"preimage"`
+	Fee         uint64 `json:"fee"`
+	PaymentHash string `json:"payment_hash"`
 }
 
 type PayKeysendResponse struct {

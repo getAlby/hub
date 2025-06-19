@@ -1382,6 +1382,61 @@ func (_c *MockLNClient_MakeInvoice_Call) RunAndReturn(run func(ctx context.Conte
 	return _c
 }
 
+// MakeOffer provides a mock function for the type MockLNClient
+func (_mock *MockLNClient) MakeOffer(ctx context.Context, description string) (string, error) {
+	ret := _mock.Called(ctx, description)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MakeOffer")
+	}
+
+	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (string, error)); ok {
+		return returnFunc(ctx, description)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) string); ok {
+		r0 = returnFunc(ctx, description)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, description)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockLNClient_MakeOffer_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'MakeOffer'
+type MockLNClient_MakeOffer_Call struct {
+	*mock.Call
+}
+
+// MakeOffer is a helper method to define mock.On call
+//   - ctx
+//   - description
+func (_e *MockLNClient_Expecter) MakeOffer(ctx interface{}, description interface{}) *MockLNClient_MakeOffer_Call {
+	return &MockLNClient_MakeOffer_Call{Call: _e.mock.On("MakeOffer", ctx, description)}
+}
+
+func (_c *MockLNClient_MakeOffer_Call) Run(run func(ctx context.Context, description string)) *MockLNClient_MakeOffer_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockLNClient_MakeOffer_Call) Return(s string, err error) *MockLNClient_MakeOffer_Call {
+	_c.Call.Return(s, err)
+	return _c
+}
+
+func (_c *MockLNClient_MakeOffer_Call) RunAndReturn(run func(ctx context.Context, description string) (string, error)) *MockLNClient_MakeOffer_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // OpenChannel provides a mock function for the type MockLNClient
 func (_mock *MockLNClient) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
 	ret := _mock.Called(ctx, openChannelRequest)
@@ -1440,8 +1495,8 @@ func (_c *MockLNClient_OpenChannel_Call) RunAndReturn(run func(ctx context.Conte
 }
 
 // RedeemOnchainFunds provides a mock function for the type MockLNClient
-func (_mock *MockLNClient) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (string, error) {
-	ret := _mock.Called(ctx, toAddress, amount, sendAll)
+func (_mock *MockLNClient) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (string, error) {
+	ret := _mock.Called(ctx, toAddress, amount, feeRate, sendAll)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RedeemOnchainFunds")
@@ -1449,16 +1504,16 @@ func (_mock *MockLNClient) RedeemOnchainFunds(ctx context.Context, toAddress str
 
 	var r0 string
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint64, bool) (string, error)); ok {
-		return returnFunc(ctx, toAddress, amount, sendAll)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint64, *uint64, bool) (string, error)); ok {
+		return returnFunc(ctx, toAddress, amount, feeRate, sendAll)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint64, bool) string); ok {
-		r0 = returnFunc(ctx, toAddress, amount, sendAll)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint64, *uint64, bool) string); ok {
+		r0 = returnFunc(ctx, toAddress, amount, feeRate, sendAll)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint64, bool) error); ok {
-		r1 = returnFunc(ctx, toAddress, amount, sendAll)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint64, *uint64, bool) error); ok {
+		r1 = returnFunc(ctx, toAddress, amount, feeRate, sendAll)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1474,14 +1529,15 @@ type MockLNClient_RedeemOnchainFunds_Call struct {
 //   - ctx
 //   - toAddress
 //   - amount
+//   - feeRate
 //   - sendAll
-func (_e *MockLNClient_Expecter) RedeemOnchainFunds(ctx interface{}, toAddress interface{}, amount interface{}, sendAll interface{}) *MockLNClient_RedeemOnchainFunds_Call {
-	return &MockLNClient_RedeemOnchainFunds_Call{Call: _e.mock.On("RedeemOnchainFunds", ctx, toAddress, amount, sendAll)}
+func (_e *MockLNClient_Expecter) RedeemOnchainFunds(ctx interface{}, toAddress interface{}, amount interface{}, feeRate interface{}, sendAll interface{}) *MockLNClient_RedeemOnchainFunds_Call {
+	return &MockLNClient_RedeemOnchainFunds_Call{Call: _e.mock.On("RedeemOnchainFunds", ctx, toAddress, amount, feeRate, sendAll)}
 }
 
-func (_c *MockLNClient_RedeemOnchainFunds_Call) Run(run func(ctx context.Context, toAddress string, amount uint64, sendAll bool)) *MockLNClient_RedeemOnchainFunds_Call {
+func (_c *MockLNClient_RedeemOnchainFunds_Call) Run(run func(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool)) *MockLNClient_RedeemOnchainFunds_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(uint64), args[3].(bool))
+		run(args[0].(context.Context), args[1].(string), args[2].(uint64), args[3].(*uint64), args[4].(bool))
 	})
 	return _c
 }
@@ -1491,7 +1547,7 @@ func (_c *MockLNClient_RedeemOnchainFunds_Call) Return(txId string, err error) *
 	return _c
 }
 
-func (_c *MockLNClient_RedeemOnchainFunds_Call) RunAndReturn(run func(ctx context.Context, toAddress string, amount uint64, sendAll bool) (string, error)) *MockLNClient_RedeemOnchainFunds_Call {
+func (_c *MockLNClient_RedeemOnchainFunds_Call) RunAndReturn(run func(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (string, error)) *MockLNClient_RedeemOnchainFunds_Call {
 	_c.Call.Return(run)
 	return _c
 }

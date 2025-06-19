@@ -161,6 +161,7 @@ export interface InfoResponse {
   autoUnlockPasswordSupported: boolean;
   autoUnlockPasswordEnabled: boolean;
   currency: string;
+  nodeAlias: string;
 }
 
 export type HealthAlarmKind =
@@ -299,6 +300,10 @@ export type PayInvoiceResponse = {
   fee: number;
 };
 
+export type CreateOfferRequest = {
+  description: string;
+};
+
 export type CreateInvoiceRequest = {
   amount: number;
   description: string;
@@ -335,13 +340,36 @@ export type OnchainBalanceResponse = {
 };
 
 // from https://mempool.space/docs/api/rest#get-node-stats
-export type Node = {
+export type MempoolNode = {
   alias: string;
   public_key: string;
   color: string;
   active_channel_count: number;
   sockets: string;
 };
+
+// from https://mempool.space/docs/api/rest#get-transaction
+export type MempoolTransaction = {
+  txid: string;
+  //version: 1,
+  //locktime: 0,
+  // vin: [],
+  //vout: [],
+  size: number;
+  weight: number;
+  fee: number;
+  status:
+    | {
+        confirmed: true;
+        block_height: number;
+        block_hash: string;
+        block_time: number;
+      }
+    | { confirmed: false };
+};
+
+export type LongUnconfirmedZeroConfChannel = { id: string; message: string };
+
 export type SetupNodeInfo = Partial<{
   backendType: BackendType;
 
@@ -407,6 +435,9 @@ export type AlbyMe = {
   shared_node: boolean;
   hub: {
     name?: string;
+    config?: {
+      region?: string;
+    };
   };
   subscription: {
     plan_code: string;
@@ -473,21 +504,30 @@ export type Transaction = {
   updatedAt: string;
   createdAt: string;
   settledAt: string | undefined;
-  metadata?: {
-    comment?: string; // LUD-12
-    payer_data?: {
-      email?: string;
-      name?: string;
-      pubkey?: string;
-    }; // LUD-18
-    nostr?: {
-      pubkey: string;
-      tags: string[][];
-    }; // NIP-57
-  } & Record<string, unknown>;
+  metadata?: TransactionMetadata;
   boostagram?: Boostagram;
   failureReason: string;
 };
+
+export type TransactionMetadata = {
+  comment?: string; // LUD-12
+  payer_data?: {
+    email?: string;
+    name?: string;
+    pubkey?: string;
+  }; // LUD-18
+  recipient_data?: {
+    identifier?: string;
+  }; // LUD-18
+  nostr?: {
+    pubkey: string;
+    tags: string[][];
+  }; // NIP-57
+  offer?: {
+    id: string;
+    payer_note: string;
+  }; // BOLT-12
+} & Record<string, unknown>;
 
 export type Boostagram = {
   appName: string;

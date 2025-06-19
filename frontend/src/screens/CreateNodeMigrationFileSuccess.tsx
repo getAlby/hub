@@ -9,6 +9,7 @@ export function CreateNodeMigrationFileSuccess() {
         <AppHeader
           title="Alby Hub Migration File Saved"
           description="You're ready to move your node to another machine"
+          addSidebarTrigger={false}
         />
         <Card>
           <CardContent className="pt-6">

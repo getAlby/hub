@@ -30,13 +30,14 @@ func (controller *nip47Controller) HandleMakeInvoiceEvent(ctx context.Context, n
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
+		"app_id":           appId,
 		"request_event_id": requestEventId,
 		"amount":           makeInvoiceParams.Amount,
 		"description":      makeInvoiceParams.Description,
 		"description_hash": makeInvoiceParams.DescriptionHash,
 		"expiry":           makeInvoiceParams.Expiry,
 		"metadata":         makeInvoiceParams.Metadata,
-	}).Info("Making invoice")
+	}).Debug("Handling make_invoice request")
 
 	expiry := makeInvoiceParams.Expiry
 

@@ -31,14 +31,15 @@ type API interface {
 	OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error)
 	CloseChannel(ctx context.Context, peerId, channelId string, force bool) (*CloseChannelResponse, error)
 	UpdateChannel(ctx context.Context, updateChannelRequest *UpdateChannelRequest) error
+	MakeOffer(ctx context.Context, description string) (string, error)
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	GetUnusedOnchainAddress(ctx context.Context) (string, error)
 	SignMessage(ctx context.Context, message string) (*SignMessageResponse, error)
-	RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (*RedeemOnchainFundsResponse, error)
+	RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (*RedeemOnchainFundsResponse, error)
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
 	ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error)
 	ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error)
-	SendPayment(ctx context.Context, invoice string, amountMsat *uint64) (*SendPaymentResponse, error)
+	SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}) (*SendPaymentResponse, error)
 	CreateInvoice(ctx context.Context, amount uint64, description string) (*MakeInvoiceResponse, error)
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
 	RequestMempoolApi(endpoint string) (interface{}, error)
@@ -59,11 +60,13 @@ type API interface {
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
+	SetNodeAlias(nodeAlias string) error
 	GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error)
 	DisableAutoSwaps() error
 	EnableAutoSwaps(ctx context.Context, autoSwapsRequest *EnableAutoSwapsRequest) error
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
+	SendEvent(event string)
 }
 
 type App struct {
@@ -146,6 +149,10 @@ type BackupReminderRequest struct {
 	NextBackupReminder string `json:"nextBackupReminder"`
 }
 
+type SendEventRequest struct {
+	Event string `json:"event"`
+}
+
 type SetupRequest struct {
 	LNBackendType  string `json:"backendType"`
 	UnlockPassword string `json:"unlockPassword"`
@@ -206,10 +213,15 @@ type InfoResponse struct {
 	AutoUnlockPasswordEnabled   bool      `json:"autoUnlockPasswordEnabled"`
 	Currency                    string    `json:"currency"`
 	Relay                       string    `json:"relay"`
+	NodeAlias                   string    `json:"nodeAlias"`
 }
 
 type UpdateSettingsRequest struct {
 	Currency string `json:"currency"`
+}
+
+type SetNodeAliasRequest struct {
+	NodeAlias string `json:"nodeAlias"`
 }
 
 type MnemonicRequest struct {
@@ -235,9 +247,10 @@ type CloseChannelResponse = lnclient.CloseChannelResponse
 type UpdateChannelRequest = lnclient.UpdateChannelRequest
 
 type RedeemOnchainFundsRequest struct {
-	ToAddress string `json:"toAddress"`
-	Amount    uint64 `json:"amount"`
-	SendAll   bool   `json:"sendAll"`
+	ToAddress string  `json:"toAddress"`
+	Amount    uint64  `json:"amount"`
+	FeeRate   *uint64 `json:"feeRate"`
+	SendAll   bool    `json:"sendAll"`
 }
 
 type RedeemOnchainFundsResponse struct {
@@ -336,7 +349,12 @@ type SignMessageResponse struct {
 }
 
 type PayInvoiceRequest struct {
-	Amount *uint64 `json:"amount"`
+	Amount   *uint64  `json:"amount"`
+	Metadata Metadata `json:"metadata"`
+}
+
+type MakeOfferRequest struct {
+	Description string `json:"description"`
 }
 
 type MakeInvoiceRequest struct {

@@ -89,6 +89,8 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 
+	e.POST("/api/event", httpSvc.eventHandler)
+
 	e.GET("/api/info", httpSvc.infoHandler)
 	e.POST("/api/setup", httpSvc.setupHandler)
 	e.POST("/api/restore", httpSvc.restoreBackupHandler)
@@ -146,6 +148,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/wallet/capabilities", httpSvc.capabilitiesHandler)
 	restrictedApiGroup.POST("/payments/:invoice", httpSvc.sendPaymentHandler)
 	restrictedApiGroup.POST("/invoices", httpSvc.makeInvoiceHandler)
+	restrictedApiGroup.POST("/offers", httpSvc.makeOfferHandler)
 	restrictedApiGroup.GET("/transactions", httpSvc.listTransactionsHandler)
 	restrictedApiGroup.GET("/transactions/:paymentHash", httpSvc.lookupTransactionHandler)
 	restrictedApiGroup.GET("/balances", httpSvc.balancesHandler)
@@ -161,6 +164,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/settings/swaps", httpSvc.getAutoSwapsConfigHandler)
 	restrictedApiGroup.POST("/settings/swaps", httpSvc.enableAutoSwapsHandler)
 	restrictedApiGroup.DELETE("/settings/swaps", httpSvc.disableAutoSwapsHandler)
+	restrictedApiGroup.POST("/node/alias", httpSvc.setNodeAliasHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedApiGroup, e)
 }
@@ -189,6 +193,19 @@ func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, responseBody)
+}
+
+func (httpSvc *HttpService) eventHandler(c echo.Context) error {
+	var sendEventRequest api.SendEventRequest
+	if err := c.Bind(&sendEventRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	httpSvc.api.SendEvent(sendEventRequest.Event)
+
+	return c.NoContent(http.StatusOK)
 }
 
 func (httpSvc *HttpService) mnemonicHandler(c echo.Context) error {
@@ -517,7 +534,7 @@ func (httpSvc *HttpService) sendPaymentHandler(c echo.Context) error {
 		})
 	}
 
-	paymentResponse, err := httpSvc.api.SendPayment(ctx, c.Param("invoice"), payInvoiceRequest.Amount)
+	paymentResponse, err := httpSvc.api.SendPayment(ctx, c.Param("invoice"), payInvoiceRequest.Amount, payInvoiceRequest.Metadata)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -526,6 +543,27 @@ func (httpSvc *HttpService) sendPaymentHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, paymentResponse)
+}
+
+func (httpSvc *HttpService) makeOfferHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	var makeOfferRequest api.MakeOfferRequest
+	if err := c.Bind(&makeOfferRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	offer, err := httpSvc.api.MakeOffer(ctx, makeOfferRequest.Description)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to generate BOLT-12 offer: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, offer)
 }
 
 func (httpSvc *HttpService) makeInvoiceHandler(c echo.Context) error {
@@ -813,7 +851,7 @@ func (httpSvc *HttpService) redeemOnchainFundsHandler(c echo.Context) error {
 		})
 	}
 
-	redeemOnchainFundsResponse, err := httpSvc.api.RedeemOnchainFunds(ctx, redeemOnchainFundsRequest.ToAddress, redeemOnchainFundsRequest.Amount, redeemOnchainFundsRequest.SendAll)
+	redeemOnchainFundsResponse, err := httpSvc.api.RedeemOnchainFunds(ctx, redeemOnchainFundsRequest.ToAddress, redeemOnchainFundsRequest.Amount, redeemOnchainFundsRequest.FeeRate, redeemOnchainFundsRequest.SendAll)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -1194,6 +1232,24 @@ func (httpSvc *HttpService) disableAutoSwapsHandler(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) setNodeAliasHandler(c echo.Context) error {
+	var setNodeAliasRequest api.SetNodeAliasRequest
+	if err := c.Bind(&setNodeAliasRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.api.SetNodeAlias(setNodeAliasRequest.NodeAlias)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to set node alias: %s", err.Error()),
 		})
 	}
 

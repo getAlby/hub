@@ -68,7 +68,7 @@ export function SubwalletList() {
         description="Create sub-wallets for yourself, friends, family or coworkers"
         contentRight={
           <>
-            <ExternalLink to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/app-store/sub-wallet-friends-and-family">
+            <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/sub-wallets">
               <Button variant="outline" size="icon">
                 <HelpCircle className="w-4 h-4" />
               </Button>

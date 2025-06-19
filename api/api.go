@@ -685,6 +685,18 @@ func (api *api) UpdateChannel(ctx context.Context, updateChannelRequest *UpdateC
 	return api.svc.GetLNClient().UpdateChannel(ctx, updateChannelRequest)
 }
 
+func (api *api) MakeOffer(ctx context.Context, description string) (string, error) {
+	if api.svc.GetLNClient() == nil {
+		return "", errors.New("LNClient not started")
+	}
+	offer, err := api.svc.GetLNClient().MakeOffer(ctx, description)
+	if err != nil {
+		return "", err
+	}
+
+	return offer, nil
+}
+
 func (api *api) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	if api.svc.GetLNClient() == nil {
 		return "", errors.New("LNClient not started")
@@ -755,11 +767,11 @@ func (api *api) SignMessage(ctx context.Context, message string) (*SignMessageRe
 	}, nil
 }
 
-func (api *api) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (*RedeemOnchainFundsResponse, error) {
+func (api *api) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (*RedeemOnchainFundsResponse, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	txId, err := api.svc.GetLNClient().RedeemOnchainFunds(ctx, toAddress, amount, sendAll)
+	txId, err := api.svc.GetLNClient().RedeemOnchainFunds(ctx, toAddress, amount, feeRate, sendAll)
 	if err != nil {
 		return nil, err
 	}
@@ -866,6 +878,8 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 
 	info.NextBackupReminder, _ = api.cfg.Get("NextBackupReminder", "")
 
+	info.NodeAlias, _ = api.cfg.Get("NodeAlias", "")
+
 	return &info, nil
 }
 
@@ -877,6 +891,16 @@ func (api *api) SetCurrency(currency string) error {
 	err := api.cfg.SetCurrency(currency)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to update currency")
+		return err
+	}
+
+	return nil
+}
+
+func (api *api) SetNodeAlias(nodeAlias string) error {
+	err := api.cfg.SetUpdate("NodeAlias", nodeAlias, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save node alias to config")
 		return err
 	}
 
@@ -1294,6 +1318,12 @@ func (api *api) ExecuteCustomNodeCommand(ctx context.Context, command string) (i
 	}
 
 	return nodeResp.Response, nil
+}
+
+func (api *api) SendEvent(event string) {
+	api.svc.GetEventPublisher().Publish(&events.Event{
+		Event: event,
+	})
 }
 
 func (api *api) parseExpiresAt(expiresAtString string) (*time.Time, error) {
