@@ -466,8 +466,8 @@ function SwapOutStatus({ swap }: { swap: SwapOut }) {
                 {swap.lockupTxId ? (
                   <>
                     <div className="flex items-center text-muted-foreground text-sm">
-                      <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />
-                      Swap hold invoice paid
+                      <CircleAlertIcon className="w-5 h-5 mr-2 text-red-500" />
+                      Failed to claim swap in time
                     </div>
                     <Divider color="border-green-600 dark:border-emerald-500" />
                   </>

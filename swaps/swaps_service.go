@@ -442,6 +442,8 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 						"claimTxId": claimTxId,
 					}).Info("Claim transaction broadcasted")
 
+					swapState = constants.SWAP_STATE_SUCCESS
+
 					err = svc.db.Model(&dbSwap).Updates(map[string]interface{}{
 						"claim_tx_id":     claimTxId,
 						"amount_received": claimAmount,
@@ -455,7 +457,6 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 						return
 					}
 				case boltz.InvoiceSettled:
-					swapState = constants.SWAP_STATE_SUCCESS
 					logger.Logger.WithField("swapId", swap.Id).Info("Swap succeeded")
 					svc.eventPublisher.Publish(&events.Event{
 						Event: "nwc_swap_succeeded",
