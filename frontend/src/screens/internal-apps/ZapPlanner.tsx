@@ -96,10 +96,8 @@ export function ZapPlanner() {
   const [senderName, setSenderName] = React.useState("");
   const [frequencyValue, setFrequencyValue] = React.useState("1");
   const [frequencyUnit, setFrequencyUnit] = React.useState("months");
-  const [amountCurrency, setAmountCurrency] = React.useState<"BTC" | "USD">(
-    "USD"
-  );
-  const [currencies, setCurrencies] = React.useState<string[]>(["BTC"]);
+  const [currency, setCurrency] = React.useState<string>("USD");
+  const [currencies, setCurrencies] = React.useState<string[]>([]);
 
   const [convertedAmount, setConvertedAmount] = React.useState<string>("");
   const [satoshiAmount, setSatoshiAmount] = React.useState<number | undefined>(
@@ -111,13 +109,20 @@ export function ZapPlanner() {
     async function fetchCurrencies() {
       try {
         const res = await fetch("https://getalby.com/api/rates");
-        const data: Record<string, { name: string }> = await res.json();
+        const data: Record<string, { name: string; priority: number }> =
+          await res.json();
         const fiatCodes = Object.keys(data)
-          .map((c) => c.toUpperCase())
-          // drop "BTC" so it only lives in our prepended slot
+          // drop "BTC" - ZapPlanner uses SATS for the bitcoin currency
           .filter((code) => code !== "BTC")
-          .sort();
-        setCurrencies(["BTC", ...fiatCodes]);
+          .sort((a, b) => {
+            const priorityDiff = data[a].priority - data[b].priority;
+            if (priorityDiff !== 0) {
+              return priorityDiff;
+            }
+            return a.localeCompare(b);
+          })
+          .map((c) => c.toUpperCase());
+        setCurrencies(["SATS", ...fiatCodes]);
       } catch (err) {
         console.error("Failed to load currencies", err);
       }
@@ -135,7 +140,7 @@ export function ZapPlanner() {
       setSenderName("");
       setFrequencyValue("1");
       setFrequencyUnit("months");
-      setAmountCurrency("USD");
+      setCurrency("USD");
       setConvertedAmount("");
       setSatoshiAmount(undefined);
     }
@@ -153,10 +158,10 @@ export function ZapPlanner() {
     const convertCurrency = async () => {
       try {
         // any fiat (not BTC) → sats
-        if (amountCurrency !== "BTC") {
+        if (currency !== "SATS") {
           const sats = await fiat.getSatoshiValue({
             amount: parseFloat(amount),
-            currency: amountCurrency,
+            currency: currency,
           });
           setSatoshiAmount(sats);
           setConvertedAmount(`~${sats.toLocaleString()} sats`);
@@ -178,29 +183,30 @@ export function ZapPlanner() {
     };
 
     convertCurrency();
-  }, [amount, amountCurrency, open]);
+  }, [amount, currency, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    // parse and validate the raw frequency
-    const rawFreq = parseInt(frequencyValue, 10);
-    if (isNaN(rawFreq) || rawFreq < 1) {
-      throw new Error("Invalid frequency");
-    }
+
     try {
+      if (!amount || parseFloat(amount) !== parseInt(amount)) {
+        throw new Error("Amount must be a whole number");
+      }
+      if (!satoshiAmount) {
+        throw new Error("Invalid amount");
+      }
+      // parse and validate the raw frequency
+      const rawFreq = parseInt(frequencyValue, 10);
+      if (isNaN(rawFreq) || rawFreq < 1) {
+        throw new Error("Invalid frequency");
+      }
       // validate lightning address
       const ln = new LightningAddress(recipientLightningAddress);
       await ln.fetch();
       if (!ln.lnurlpData) {
         throw new Error("invalid recipient lightning address");
       }
-      // Determine the satoshi amount to send:
-      const satsToSend =
-        satoshiAmount ??
-        (() => {
-          throw new Error("Invalid amount");
-        })();
       // Determine how many payments in one month
       let periodsPerMonth: number;
       switch (frequencyUnit) {
@@ -218,7 +224,7 @@ export function ZapPlanner() {
       }
       periodsPerMonth = Math.ceil(periodsPerMonth);
       //  Compute raw monthly spend
-      const rawSpend = satsToSend * periodsPerMonth;
+      const rawSpend = satoshiAmount * periodsPerMonth;
 
       // with fee reserve of max(1% or 10 sats) + 30% to avoid nwc_budget_warning (see transactions service)
       const maxAmount = Math.ceil((rawSpend * 1.01 + 10) * 1.3);
@@ -254,17 +260,9 @@ export function ZapPlanner() {
         }),
         nostrWalletConnectUrl: createAppResponse.pairingUri,
         sleepDuration,
+        currency,
+        amount: parseInt(amount),
       };
-
-      if (amountCurrency === "BTC") {
-        // user entered sats directly
-        subscriptionBody.amount = satsToSend;
-        subscriptionBody.currency = "BTC";
-      } else {
-        // user entered fiat → ZapPlanner will convert to sats later
-        subscriptionBody.amount = parseFloat(amount);
-        subscriptionBody.currency = amountCurrency;
-      }
 
       // TODO: proxy through hub backend and remove CSRF exceptions for zapplanner.albylabs.com
       const createSubscriptionResponse = await fetch(
@@ -408,10 +406,7 @@ export function ZapPlanner() {
                           )}
                         </div>
 
-                        <Select
-                          value={amountCurrency}
-                          onValueChange={setAmountCurrency}
-                        >
+                        <Select value={currency} onValueChange={setCurrency}>
                           <SelectTrigger className="w-1/2">
                             <SelectValue />
                           </SelectTrigger>
@@ -472,7 +467,7 @@ export function ZapPlanner() {
                         value={comment}
                         onChange={(e) => setComment(e.target.value)}
                         placeholder="Optional comment"
-                        className="col-span-3"
+                        className="col-span-3 w-70"
                       />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
