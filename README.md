@@ -157,7 +157,7 @@ For more information refer to:
 The following configuration options can be set as environment variables or in a .env file
 
 - `RELAY`: default: "wss://relay.getalby.com/v1"
-- `JWT_SECRET`: A randomly generated secret string. (only needed in http mode)
+- `JWT_SECRET`: A randomly generated secret string, applied if no JWT secret is already set. (only needed in http mode). If not provided, one will be automatically generated. On password change, a new JWT secret will be generated.
 - `DATABASE_URI`: A sqlite filename or postgres URL. Default is SQLite DB `nwc.db` without a path, which will be put in the user home directory: $XDG_DATA_HOME/albyhub/nwc.db
 - `PORT`: The port on which the app should listen on (default: 8080)
 - `WORK_DIR`: Directory to store NWC data files. Default: $XDG_DATA_HOME/albyhub

@@ -3,6 +3,7 @@ import {
   ChevronsUpDown,
   CircleHelp,
   Cloud,
+  CreditCardIcon,
   HomeIcon,
   LayoutGridIcon,
   LogOut,
@@ -97,6 +98,11 @@ export function AppSidebar() {
         title: "Connections",
         url: "/apps",
         icon: Plug2Icon,
+      },
+      {
+        title: "Bank Account",
+        url: "/bank-account",
+        icon: CreditCardIcon,
       },
     ],
     navSecondary: [
@@ -316,7 +322,7 @@ export function NavSecondary({
             </SidebarMenuItem>
           </ExternalLink>
           {!albyMe?.hub.name && info?.albyAccountConnected && (
-            <ExternalLink to="https://getalby.com/subscription/new">
+            <ExternalLink to="https://getalby.com/subscription/pro">
               <SidebarMenuItem>
                 <SidebarMenuButton>
                   <Cloud className="h-4 w-4" />
