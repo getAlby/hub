@@ -61,6 +61,7 @@ type API interface {
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
+	ProcessSwapRefund(swapId string) error
 	GetSwapInfo(swapId string) (*Swap, error)
 	GetSwapInFees() (*SwapFeesResponse, error)
 	GetSwapOutFees() (*SwapFeesResponse, error)
@@ -151,6 +152,7 @@ type SwapFeesResponse struct {
 }
 
 type Swap struct {
+	Id             string `json:"id"`
 	Type           string `json:"type"`
 	State          string `json:"state"`
 	Address        string `json:"address"`

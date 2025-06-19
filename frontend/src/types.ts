@@ -208,6 +208,7 @@ export type SwapFees = {
 };
 
 type BaseSwap = {
+  id: string;
   state: "PENDING" | "SUCCESS" | "FAILED";
   amountSent: number;
   paymentHash: string;

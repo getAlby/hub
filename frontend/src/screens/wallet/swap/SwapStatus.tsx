@@ -60,12 +60,12 @@ export default function SwapStatus() {
   );
 }
 
-// TODO: Add process refunds button with api call
 function SwapInStatus({ swap }: { swap: SwapIn }) {
   const { toast } = useToast();
   const { data: balances } = useBalances();
   const { isDarkMode } = useTheme();
   const [isPaying, setPaying] = useState(false);
+  const [isProcessingRefund, setProcessingRefund] = useState(false);
 
   const copyPaymentHash = () => {
     copyToClipboard(swap.paymentHash, toast);
@@ -117,6 +117,28 @@ function SwapInStatus({ swap }: { swap: SwapIn }) {
     setPaying(false);
   }
 
+  async function processRefund() {
+    setProcessingRefund(true);
+    try {
+      const response = await request(`/api/wallet/swap/refund/${swap.id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      console.info("Processed refund", response);
+      toast({ title: "Claim transaction broadcasted for refund" });
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Failed to redeem onchain funds",
+        description: "" + error,
+      });
+    }
+    setProcessingRefund(false);
+  }
+
   const swapStatus = swap.state;
   const statusText = {
     SUCCESS: "Swap Successful",
@@ -160,6 +182,14 @@ function SwapInStatus({ swap }: { swap: SwapIn }) {
                 </p>
                 <FormattedFiatAmount amount={swap.amountSent} />
               </div>
+              {swap.lockupTxId && !swap.claimTxId && (
+                <LoadingButton
+                  loading={isProcessingRefund}
+                  onClick={processRefund}
+                >
+                  Process Refund
+                </LoadingButton>
+              )}
             </>
           )}
           {swapStatus === "PENDING" && (

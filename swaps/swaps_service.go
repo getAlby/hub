@@ -347,6 +347,7 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 							"swapId": swap.Id,
 						}
 						sendPaymentTimeout := int64(3600)
+						// TODO: use swap service context here
 						holdInvoicePayment, err := svc.transactionsService.SendPaymentSync(ctx, swap.Invoice, nil, metadata, lnClient, nil, nil, &sendPaymentTimeout)
 						if err != nil {
 							logger.Logger.WithError(err).WithFields(logrus.Fields{

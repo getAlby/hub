@@ -162,6 +162,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/commands", httpSvc.getCustomNodeCommandsHandler)
 	restrictedApiGroup.POST("/command", httpSvc.execCustomNodeCommandHandler)
 	// TODO: rename to /swaps
+	restrictedApiGroup.POST("/wallet/swap/refund/:swapId", httpSvc.swapRefundHandler)
 	restrictedApiGroup.GET("/wallet/swap/info/:swapId", httpSvc.getSwapInfoHandler)
 	restrictedApiGroup.GET("/wallet/swap/out/fees", httpSvc.getSwapOutFeesHandler)
 	restrictedApiGroup.GET("/wallet/swap/in/fees", httpSvc.getSwapInFeesHandler)
@@ -1200,6 +1201,17 @@ func (httpSvc *HttpService) healthHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, healthResponse)
+}
+
+func (httpSvc *HttpService) swapRefundHandler(c echo.Context) error {
+	err := httpSvc.api.ProcessSwapRefund(c.Param("swapId"))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (httpSvc *HttpService) initiateSwapOutHandler(c echo.Context) error {

@@ -545,6 +545,10 @@ func (api *api) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnec
 	return api.svc.GetLNClient().GetNodeConnectionInfo(ctx)
 }
 
+func (api *api) ProcessSwapRefund(swapId string) error {
+	return api.svc.GetSwapsService().ProcessRefund(swapId)
+}
+
 func (api *api) GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error) {
 	swapOutBalanceThresholdStr, _ := api.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
 	swapOutAmountStr, _ := api.cfg.Get(config.AutoSwapAmountKey, "")
@@ -579,6 +583,7 @@ func (api *api) GetSwapInfo(swapId string) (*Swap, error) {
 	}
 
 	return &Swap{
+		Id:             dbSwap.SwapId,
 		Type:           dbSwap.Type,
 		State:          dbSwap.State,
 		Address:        dbSwap.Address,
