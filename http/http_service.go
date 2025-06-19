@@ -162,6 +162,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/commands", httpSvc.getCustomNodeCommandsHandler)
 	restrictedApiGroup.POST("/command", httpSvc.execCustomNodeCommandHandler)
 	// TODO: rename to /swaps
+	restrictedApiGroup.GET("/wallet/swap/info/:swapId", httpSvc.getSwapInfoHandler)
 	restrictedApiGroup.GET("/wallet/swap/out/fees", httpSvc.getSwapOutFeesHandler)
 	restrictedApiGroup.GET("/wallet/swap/in/fees", httpSvc.getSwapInFeesHandler)
 	restrictedApiGroup.POST("/wallet/swap/out", httpSvc.initiateSwapOutHandler)
@@ -1160,7 +1161,7 @@ func (httpSvc *HttpService) restoreBackupHandler(c echo.Context) error {
 		return err
 	}
 	if info.SetupCompleted {
-		return errors.New("Setup already completed")
+		return errors.New("setup already completed")
 	}
 
 	password := c.FormValue("unlockPassword")
@@ -1235,6 +1236,17 @@ func (httpSvc *HttpService) initiateSwapInHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, txId)
+}
+
+func (httpSvc *HttpService) getSwapInfoHandler(c echo.Context) error {
+	swap, err := httpSvc.api.GetSwapInfo(c.Param("swapId"))
+	if err != nil {
+		return c.JSON(http.StatusNotFound, ErrorResponse{
+			Message: "App not found",
+		})
+	}
+
+	return c.JSON(http.StatusOK, swap)
 }
 
 func (httpSvc *HttpService) getSwapOutFeesHandler(c echo.Context) error {

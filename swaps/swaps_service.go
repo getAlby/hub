@@ -30,6 +30,8 @@ import (
 	"gorm.io/gorm"
 )
 
+type Swap = db.Swap
+
 type swapsService struct {
 	autoSwapOutCancelFn context.CancelFunc
 	db                  *gorm.DB
@@ -43,11 +45,12 @@ type swapsService struct {
 type SwapsService interface {
 	StopAutoSwap()
 	EnableAutoSwapOut(ctx context.Context, lnClient lnclient.LNClient) error
-	SwapOut(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient, autoSwap bool) (*SwapOutResponse, error)
-	SwapIn(ctx context.Context, amount uint64, lnClient lnclient.LNClient, autoSwap bool) (*SwapInResponse, error)
+	SwapOut(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient, autoSwap bool) (*SwapResponse, error)
+	SwapIn(ctx context.Context, amount uint64, lnClient lnclient.LNClient, autoSwap bool) (*SwapResponse, error)
 	CalculateSwapOutFee() (*SwapFees, error)
 	CalculateSwapInFee() (*SwapFees, error)
 	ProcessRefund(swapId string) error
+	GetSwapInfo(swapId string) (*Swap, error)
 }
 
 const (
@@ -68,18 +71,12 @@ type SwapFees struct {
 	BoltzNetworkFee uint64  `json:"boltzNetworkFee"`
 }
 
-type SwapOutResponse struct {
-	TxId        string `json:"txId"`
+type SwapResponse struct {
 	SwapId      string `json:"swapId"`
 	PaymentHash string `json:"paymentHash"`
 }
 
-type SwapInResponse struct {
-	OnchainAddress  string `json:"onchainAddress"`
-	AmountToDeposit uint64 `json:"amountToDeposit"`
-	PaymentHash     string `json:"paymentHash"`
-}
-
+// TODO: Subscribe to boltz for all pending swaps to update
 func NewSwapsService(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher, transactionsService transactions.TransactionsService) SwapsService {
 	return &swapsService{
 		cfg:                 cfg,
@@ -164,7 +161,7 @@ func (svc *swapsService) EnableAutoSwapOut(ctx context.Context, lnClient lnclien
 	return nil
 }
 
-func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient, autoSwap bool) (*SwapOutResponse, error) {
+func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient, autoSwap bool) (*SwapResponse, error) {
 	if destination == "" {
 		var err error
 		destination, err = svc.cfg.Get(config.OnchainAddressKey, "")
@@ -292,9 +289,6 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 
 	logger.Logger.WithField("swap", swap).Info("Swap created")
 
-	txCh := make(chan string, 1)
-	errCh := make(chan error, 1)
-
 	boltzWs := svc.boltzApi.NewWebsocket()
 	if err := boltzWs.Connect(); err != nil {
 		svc.markSwapState(&dbSwap, constants.SWAP_STATE_FAILED)
@@ -325,16 +319,18 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 		for {
 			select {
 			case <-ctx.Done():
-				logger.Logger.WithError(ctx.Err()).Error("Swap out context cancelled")
-				errCh <- ctx.Err()
+				logger.Logger.WithError(ctx.Err()).WithFields(logrus.Fields{
+					"swap": swap,
+				}).Error("Swap out context cancelled")
 				return
 			case err := <-paymentErrorCh:
-				errCh <- err
+				logger.Logger.WithError(err).WithFields(logrus.Fields{
+					"swap": swap,
+				}).Error("Failed to pay hold invoice, terminating swap out...")
 				return
 			case update, ok := <-updatesCh:
 				if !ok {
 					// TODO: should we reconnect here?
-					errCh <- errors.New("boltz websocket closed unexpectedly")
 					return
 				}
 
@@ -378,7 +374,6 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 							"lockupTxId": update.Transaction.Id,
 						}).WithError(err).Error("Failed to save lockup txid to swap")
 					}
-					txCh <- update.Transaction.Id
 				case boltz.TransactionConfirmed:
 					logger.Logger.WithFields(logrus.Fields{
 						"swapId":      swap.Id,
@@ -460,14 +455,14 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 						return
 					}
 				case boltz.InvoiceSettled:
-					swapState = constants.SWAP_STATE_SETTLED
+					swapState = constants.SWAP_STATE_SUCCESS
 					logger.Logger.WithField("swapId", swap.Id).Info("Swap succeeded")
 					svc.eventPublisher.Publish(&events.Event{
 						Event: "nwc_swap_succeeded",
 						Properties: map[string]interface{}{
 							"swapType":    constants.SWAP_TYPE_OUT,
 							"swapId":      swap.Id,
-							"amount":      amount,
+							"amount":      dbSwap.AmountReceived,
 							"destination": destination,
 						},
 					})
@@ -483,21 +478,13 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 		}
 	}()
 
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	case err := <-errCh:
-		return nil, err
-	case txid := <-txCh:
-		return &SwapOutResponse{
-			TxId:        txid,
-			SwapId:      swap.Id,
-			PaymentHash: paymentHash,
-		}, nil
-	}
+	return &SwapResponse{
+		SwapId:      swap.Id,
+		PaymentHash: paymentHash,
+	}, nil
 }
 
-func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnclient.LNClient, autoSwap bool) (*SwapInResponse, error) {
+func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnclient.LNClient, autoSwap bool) (*SwapResponse, error) {
 	amountMSat := amount * 1000
 	invoice, err := svc.transactionsService.MakeInvoice(ctx, amountMSat, "Boltz swap in", "", 0, nil, lnClient, nil, nil)
 	if err != nil {
@@ -692,6 +679,7 @@ func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnc
 						"transaction": update.Transaction,
 					}).Info("Lockup transaction confirmed in mempool")
 				case boltz.TransactionClaimPending:
+					// this is not a mandatory step as boltz can still claim the locked up funds via the script path
 					logger.Logger.WithFields(logrus.Fields{
 						"swapId":      swap.Id,
 						"transaction": update.Transaction,
@@ -720,16 +708,14 @@ func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnc
 						return
 					}
 				case boltz.TransactionClaimed:
-					swapState = constants.SWAP_STATE_SETTLED
+					swapState = constants.SWAP_STATE_SUCCESS
 					logger.Logger.WithField("swapId", swap.Id).Info("Swap succeeded")
 					svc.eventPublisher.Publish(&events.Event{
 						Event: "nwc_swap_succeeded",
 						Properties: map[string]interface{}{
-							"swapType":    constants.SWAP_TYPE_IN,
-							"swapId":      swap.Id,
-							"address":     swap.Address,
-							"amount":      swap.ExpectedAmount,
-							"claimPubkey": swap.ClaimPublicKey,
+							"swapType": constants.SWAP_TYPE_IN,
+							"swapId":   swap.Id,
+							"amount":   amount,
 						},
 					})
 					return
@@ -749,10 +735,9 @@ func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnc
 		}
 	}()
 
-	return &SwapInResponse{
-		OnchainAddress:  swap.Address,
-		AmountToDeposit: swap.ExpectedAmount,
-		PaymentHash:     invoice.PaymentHash,
+	return &SwapResponse{
+		SwapId:      swap.Id,
+		PaymentHash: invoice.PaymentHash,
 	}, nil
 }
 
@@ -1013,4 +998,18 @@ func (svc *swapsService) ProcessRefund(swapId string) error {
 	}
 
 	return nil
+}
+
+func (svc *swapsService) GetSwapInfo(swapId string) (*Swap, error) {
+	var swap db.Swap
+	err := svc.db.Limit(1).Find(&swap, &db.Swap{
+		SwapId: swapId,
+	}).Error
+
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to get swap")
+		return nil, err
+	}
+
+	return &swap, nil
 }

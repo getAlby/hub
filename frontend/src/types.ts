@@ -207,14 +207,37 @@ export type SwapFees = {
   boltzNetworkFee: number;
 };
 
-export type SwapInResponse = {
-  onchainAddress: string;
-  amountToDeposit: number;
+type BaseSwap = {
+  state: "PENDING" | "SUCCESS" | "FAILED";
+  amountSent: number;
   paymentHash: string;
+  autoSwap: boolean;
+  boltzPubkey: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
-export type SwapOutResponse = {
-  txId: string;
+export type SwapIn = BaseSwap & {
+  type: "in";
+  address: string;
+  amountReceived: number;
+  destination?: never;
+  lockupTxId?: string;
+  claimTxId?: string;
+};
+
+export type SwapOut = BaseSwap & {
+  type: "out";
+  destination: string;
+  address?: never;
+  amountReceived?: number;
+  lockupTxId?: string;
+  claimTxId?: string;
+};
+
+export type Swap = SwapIn | SwapOut;
+
+export type SwapResponse = {
   swapId: string;
   paymentHash: string;
 };

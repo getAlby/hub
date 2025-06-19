@@ -61,10 +61,11 @@ type API interface {
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
+	GetSwapInfo(swapId string) (*Swap, error)
 	GetSwapInFees() (*SwapFeesResponse, error)
 	GetSwapOutFees() (*SwapFeesResponse, error)
-	InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (*swaps.SwapInResponse, error)
-	InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (*swaps.SwapOutResponse, error)
+	InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (*swaps.SwapResponse, error)
+	InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (*swaps.SwapResponse, error)
 	GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error)
 	EnableAutoSwapOut(ctx context.Context, autoSwapRequest *EnableAutoSwapRequest) error
 	DisableAutoSwap() error
@@ -147,6 +148,22 @@ type SwapFeesResponse struct {
 	AlbyServiceFee  float64 `json:"albyServiceFee"`
 	BoltzServiceFee float64 `json:"boltzServiceFee"`
 	BoltzNetworkFee uint64  `json:"boltzNetworkFee"`
+}
+
+type Swap struct {
+	Type           string `json:"type"`
+	State          string `json:"state"`
+	Address        string `json:"address"`
+	AmountSent     uint64 `json:"amountSent"`
+	AmountReceived uint64 `json:"amountReceived"`
+	PaymentHash    string `json:"paymentHash"`
+	Destination    string `json:"destination"`
+	LockupTxId     string `json:"lockupTxId"`
+	ClaimTxId      string `json:"claimTxId"`
+	AutoSwap       bool   `json:"autoSwap"`
+	BoltzPubkey    string `json:"boltzPubkey"`
+	CreatedAt      string `json:"createdAt"`
+	UpdatedAt      string `json:"updatedAt"`
 }
 
 type StartRequest struct {

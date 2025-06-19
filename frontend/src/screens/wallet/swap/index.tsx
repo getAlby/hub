@@ -21,7 +21,7 @@ import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import { useSwapFees } from "src/hooks/useSwaps";
 import { cn } from "src/lib/utils";
-import { SwapOutResponse } from "src/types";
+import { SwapResponse } from "src/types";
 import { request } from "src/utils/request";
 
 export default function Swap() {
@@ -91,23 +91,22 @@ function SwapInForm() {
 
     try {
       setLoading(true);
-      const swapInResponse = await request("/api/wallet/swap/in", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          swapAmount: parseInt(swapAmount),
-        }),
-      });
+      const swapInResponse = await request<SwapResponse>(
+        "/api/wallet/swap/in",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            swapAmount: parseInt(swapAmount),
+          }),
+        }
+      );
       if (!swapInResponse) {
         throw new Error("Error swapping in");
       }
-      navigate(`/wallet/swap/in/status`, {
-        state: {
-          swapInResponse,
-        },
-      });
+      navigate(`/wallet/swap/status/${swapInResponse.swapId}`);
       toast({ title: "Initiated swap" });
     } catch (error) {
       toast({
@@ -218,7 +217,7 @@ function SwapOutForm() {
 
     try {
       setLoading(true);
-      const swapOutResponse = await request<SwapOutResponse>(
+      const swapOutResponse = await request<SwapResponse>(
         "/api/wallet/swap/out",
         {
           method: "POST",
@@ -234,12 +233,7 @@ function SwapOutForm() {
       if (!swapOutResponse) {
         throw new Error("Error swapping out");
       }
-      navigate(`/wallet/swap/out/status`, {
-        state: {
-          swapOutResponse,
-          amount: parseInt(swapAmount),
-        },
-      });
+      navigate(`/wallet/swap/status/${swapOutResponse.swapId}`);
       toast({ title: "Initiated swap" });
     } catch (error) {
       toast({
