@@ -13,7 +13,7 @@ import routes from "src/routes.tsx";
 import { isHttpMode } from "src/utils/isHttpMode";
 
 const createRouterFunc = isHttpMode() ? createBrowserRouter : createHashRouter;
-const router = createRouterFunc(routes);
+const router = createRouterFunc(routes, { basename: import.meta.env.BASE_URL });
 
 function App() {
   const { data: info } = useInfo();

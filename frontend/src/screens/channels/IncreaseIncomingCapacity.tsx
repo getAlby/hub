@@ -44,6 +44,9 @@ import {
   RecommendedChannelPeer,
 } from "src/types";
 
+import LightningNetworkDarkSVG from "public/images/illustrations/lightning-network-dark.svg";
+import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
+
 function getPeerKey(peer: RecommendedChannelPeer) {
   return JSON.stringify(peer);
 }
@@ -230,13 +233,10 @@ function NewChannelInternal({
       />
       <div className="md:max-w-md max-w-full flex flex-col gap-5 flex-1">
         <img
-          src="/images/illustrations/lightning-network-dark.svg"
+          src={LightningNetworkDarkSVG}
           className="w-full hidden dark:block"
         />
-        <img
-          src="/images/illustrations/lightning-network-light.svg"
-          className="w-full dark:hidden"
-        />
+        <img src={LightningNetworkLightSVG} className="w-full dark:hidden" />
         <p className="text-muted-foreground">
           Alby Hub works with selected service providers (LSPs) which provide
           the best network connectivity and liquidity to receive payments.{" "}

@@ -5,6 +5,15 @@ import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
 import { Button } from "src/components/ui/button.tsx";
 import { useInfo } from "src/hooks/useInfo";
 
+import AntonopoulosSVG from "public/images/quotes/antonopoulos.svg";
+import BackSVG from "public/images/quotes/back.svg";
+import FinneySVG from "public/images/quotes/finney.svg";
+import HayekSVG from "public/images/quotes/hayek.svg";
+import NakamotoSVG from "public/images/quotes/nakamoto.svg";
+import ObamaSVG from "public/images/quotes/obama.svg";
+import RolandSVG from "public/images/quotes/roland.svg";
+import WilsonSVG from "public/images/quotes/wilson.svg";
+
 const quotes = [
   {
     content: `This isn't about nation-states anymore. This isn't about who adopts
@@ -13,42 +22,42 @@ const quotes = [
         largest economy. It is the first transnational economy, and it needs a
         transnational currency.`,
     author: "Andreas M. Antonopoulos",
-    imageUrl: "/images/quotes/antonopoulos.svg",
+    imageUrl: AntonopoulosSVG,
   },
   {
     content: `It might make sense just to get some in case it catches on. If enough people think the same way, that becomes a self fulfilling prophecy. Once it gets bootstrapped, there are so many applications if you could effortlessly pay a few cents to a website as easily as dropping coins in a vending machine.`,
     author: "Satoshi Nakamoto",
-    imageUrl: "/images/quotes/nakamoto.svg",
+    imageUrl: NakamotoSVG,
   },
   {
     content: `Since we're all rich with bitcoins, or we will be once they're worth a million dollars like everyone expects, we ought to put some of this unearned wealth to good use.`,
     author: "Hal Finney",
-    imageUrl: "/images/quotes/finney.svg",
+    imageUrl: FinneySVG,
   },
   {
     content: `I don't believe we shall ever have a good money again before we take the thing out of the hands of government, that is, we can't take it violently out of the hands of government, all we can do is by some sly roundabout way introduce something that they can't stop.`,
     author: "Friedrich August von Hayek",
-    imageUrl: "/images/quotes/hayek.svg",
+    imageUrl: HayekSVG,
   },
   {
     content: `Bitcoin is what they fear it is.`,
     author: "Cody Wilson",
-    imageUrl: "/images/quotes/wilson.svg",
+    imageUrl: WilsonSVG,
   },
   {
     content: `If in fact you can't crack that at all, government can't get in then —everybody's walking around with a Swiss bank account in their pocket.`,
     author: "Barack Obama",
-    imageUrl: "/images/quotes/obama.svg",
+    imageUrl: ObamaSVG,
   },
   {
     content: `Bitcoin is the new wonder of the world, more work and human ingenuity, than went into the great pyramids of Egypt. The biggest computation ever done, a digital monument, a verifiable artefact of digital gold - the foundation of a new digital age.`,
     author: "Adam Back",
-    imageUrl: "/images/quotes/back.svg",
+    imageUrl: BackSVG,
   },
   {
     content: `We who choose Bitcoin, are pioneers of a new world. A world filled with freedom, hope and peace.`,
     author: "Roland",
-    imageUrl: "/images/quotes/roland.svg",
+    imageUrl: RolandSVG,
   },
 ];
 

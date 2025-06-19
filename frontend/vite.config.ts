@@ -64,6 +64,10 @@ export default defineConfig(({ command }) => ({
     alias: {
       src: path.resolve(__dirname, "./src"),
       wailsjs: path.resolve(__dirname, "./wailsjs"),
+      // used to refrence public assets when importing images or other
+      // assets from the public folder
+      // this is necessary to inject the base path during build
+      public: "",
     },
   },
   build: {
@@ -75,6 +79,7 @@ export default defineConfig(({ command }) => ({
           cspNonce: "DEVELOPMENT",
         }
       : undefined,
+  base: process.env.BASE_PATH || "/",
 }));
 
 const DEVELOPMENT_NONCE = "'nonce-DEVELOPMENT'";
