@@ -575,29 +575,49 @@ func (api *api) GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error) {
 	}, nil
 }
 
-func (api *api) GetSwapInfo(swapId string) (*Swap, error) {
-	dbSwap, err := api.svc.GetSwapsService().GetSwapInfo(swapId)
+func (api *api) LookupSwap(swapId string) (*LookupSwapResponse, error) {
+	dbSwap, err := api.svc.GetSwapsService().GetSwap(swapId)
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to fetch swap info")
 		return nil, err
 	}
 
-	return &Swap{
-		Id:             dbSwap.SwapId,
-		Type:           dbSwap.Type,
-		State:          dbSwap.State,
-		Address:        dbSwap.Address,
-		AmountSent:     dbSwap.AmountSent,
-		AmountReceived: dbSwap.AmountReceived,
-		PaymentHash:    dbSwap.PaymentHash,
-		Destination:    dbSwap.Destination,
-		LockupTxId:     dbSwap.LockupTxId,
-		ClaimTxId:      dbSwap.ClaimTxId,
-		AutoSwap:       dbSwap.AutoSwap,
-		BoltzPubkey:    dbSwap.BoltzPubkey,
-		CreatedAt:      dbSwap.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:      dbSwap.UpdatedAt.Format(time.RFC3339),
+	return toApiSwap(dbSwap), nil
+}
+
+func (api *api) ListSwaps() (*ListSwapsResponse, error) {
+	swaps, err := api.svc.GetSwapsService().ListSwaps()
+	if err != nil {
+		return nil, err
+	}
+
+	apiSwaps := []Swap{}
+	for _, swap := range swaps {
+		apiSwaps = append(apiSwaps, *toApiSwap(&swap))
+	}
+
+	return &ListSwapsResponse{
+		Swaps: apiSwaps,
 	}, nil
+}
+
+func toApiSwap(swap *swaps.Swap) *Swap {
+	return &Swap{
+		Id:             swap.SwapId,
+		Type:           swap.Type,
+		State:          swap.State,
+		Address:        swap.Address,
+		AmountSent:     swap.AmountSent,
+		AmountReceived: swap.AmountReceived,
+		PaymentHash:    swap.PaymentHash,
+		Destination:    swap.Destination,
+		LockupTxId:     swap.LockupTxId,
+		ClaimTxId:      swap.ClaimTxId,
+		AutoSwap:       swap.AutoSwap,
+		BoltzPubkey:    swap.BoltzPubkey,
+		CreatedAt:      swap.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:      swap.UpdatedAt.Format(time.RFC3339),
+	}
 }
 
 func (api *api) GetSwapInFees() (*SwapFeesResponse, error) {

@@ -68,7 +68,7 @@ function AutoSwapOutForm() {
 
     try {
       setLoading(true);
-      await request("/api/wallet/autoswap/out", {
+      await request("/api/autoswap", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -235,7 +235,7 @@ function ActiveSwaps() {
   const onDeactivate = async () => {
     try {
       setLoading(true);
-      await request(`/api/wallet/autoswap/out`, {
+      await request(`/api/autoswap`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

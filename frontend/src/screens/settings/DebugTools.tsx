@@ -17,6 +17,7 @@ import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { Textarea } from "src/components/ui/textarea";
+import { useToast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";
 
 import { request } from "src/utils/request";
@@ -134,6 +135,62 @@ function ProbeKeysendDialogContent({ apiRequest }: Props) {
   );
 }
 
+function SwapRefundDialogContent() {
+  const [swapId, setSwapId] = React.useState<string>("");
+  const { toast } = useToast();
+
+  async function onConfirm() {
+    try {
+      const response = await request(`/api/swaps/refund/${swapId}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      console.info("Processed refund", response);
+      toast({ title: "Claim transaction broadcasted for refund" });
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Failed to process refund",
+        description: "" + error,
+      });
+    }
+    setSwapId("");
+  }
+
+  return (
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle className="capitalize">Swap Refund</AlertDialogTitle>
+        <AlertDialogDescription className="text-start">
+          <Label htmlFor="swapId" className="block mb-2">
+            Enter swap-in id
+          </Label>
+          <Input
+            id="swapId"
+            name="swapId"
+            type="text"
+            required
+            autoFocus
+            value={swapId}
+            onChange={(e) => {
+              setSwapId(e.target.value.trim());
+            }}
+          />
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>Cancel</AlertDialogCancel>
+        <AlertDialogAction disabled={!swapId} onClick={onConfirm}>
+          Confirm
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  );
+}
+
 function GetLogsDialogContent({ apiRequest, target }: Props) {
   const [maxLen, setMaxLen] = React.useState<string>("");
 
@@ -218,6 +275,7 @@ export default function DebugTools() {
   const [dialog, setDialog] = React.useState<
     | "probeInvoice"
     | "probeKeysend"
+    | "swapRefund"
     | "getAppLogs"
     | "getNodeLogs"
     | "getNetworkGraph"
@@ -286,6 +344,17 @@ export default function DebugTools() {
           >
             List Channels
           </Button>
+          <Button
+            variant={"outline"}
+            onClick={() => apiRequest("/api/swaps", "GET")}
+          >
+            List Swaps
+          </Button>
+          <AlertDialogTrigger asChild>
+            <Button variant={"outline"} onClick={() => setDialog("swapRefund")}>
+              Swap Refund
+            </Button>
+          </AlertDialogTrigger>
           <AlertDialogTrigger asChild>
             <Button variant={"outline"} onClick={() => setDialog("getAppLogs")}>
               Get App Logs
@@ -374,6 +443,7 @@ export default function DebugTools() {
           {dialog === "probeKeysend" && (
             <ProbeKeysendDialogContent apiRequest={apiRequest} />
           )}
+          {dialog === "swapRefund" && <SwapRefundDialogContent />}
           {(dialog === "getAppLogs" || dialog === "getNodeLogs") && (
             <GetLogsDialogContent
               apiRequest={apiRequest}

@@ -62,7 +62,8 @@ type API interface {
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
 	ProcessSwapRefund(swapId string) error
-	GetSwapInfo(swapId string) (*Swap, error)
+	LookupSwap(swapId string) (*LookupSwapResponse, error)
+	ListSwaps() (*ListSwapsResponse, error)
 	GetSwapInFees() (*SwapFeesResponse, error)
 	GetSwapOutFees() (*SwapFeesResponse, error)
 	InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (*swaps.SwapResponse, error)
@@ -150,6 +151,12 @@ type SwapFeesResponse struct {
 	BoltzServiceFee float64 `json:"boltzServiceFee"`
 	BoltzNetworkFee uint64  `json:"boltzNetworkFee"`
 }
+
+type ListSwapsResponse struct {
+	Swaps []Swap `json:"swaps"`
+}
+
+type LookupSwapResponse = Swap
 
 type Swap struct {
 	Id             string `json:"id"`

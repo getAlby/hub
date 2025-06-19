@@ -120,7 +120,7 @@ function SwapInStatus({ swap }: { swap: SwapIn }) {
   async function processRefund() {
     setProcessingRefund(true);
     try {
-      const response = await request(`/api/wallet/swap/refund/${swap.id}`, {
+      const response = await request(`/api/swaps/refund/${swap.id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -132,7 +132,7 @@ function SwapInStatus({ swap }: { swap: SwapIn }) {
       console.error(error);
       toast({
         variant: "destructive",
-        title: "Failed to redeem onchain funds",
+        title: "Failed to process refund",
         description: "" + error,
       });
     }

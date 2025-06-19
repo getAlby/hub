@@ -50,7 +50,8 @@ type SwapsService interface {
 	CalculateSwapOutFee() (*SwapFees, error)
 	CalculateSwapInFee() (*SwapFees, error)
 	ProcessRefund(swapId string) error
-	GetSwapInfo(swapId string) (*Swap, error)
+	GetSwap(swapId string) (*Swap, error)
+	ListSwaps() ([]Swap, error)
 }
 
 const (
@@ -1002,7 +1003,7 @@ func (svc *swapsService) ProcessRefund(swapId string) error {
 	return nil
 }
 
-func (svc *swapsService) GetSwapInfo(swapId string) (*Swap, error) {
+func (svc *swapsService) GetSwap(swapId string) (*Swap, error) {
 	var swap db.Swap
 	err := svc.db.Limit(1).Find(&swap, &db.Swap{
 		SwapId: swapId,
@@ -1014,4 +1015,16 @@ func (svc *swapsService) GetSwapInfo(swapId string) (*Swap, error) {
 	}
 
 	return &swap, nil
+}
+
+func (svc *swapsService) ListSwaps() ([]Swap, error) {
+	var swaps []db.Swap
+	err := svc.db.Find(&swaps).Error
+
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to list swaps")
+		return nil, err
+	}
+
+	return swaps, nil
 }
