@@ -15,6 +15,7 @@ import { isHttpMode } from "src/utils/isHttpMode";
 const createRouterFunc = isHttpMode() ? createBrowserRouter : createHashRouter;
 const router = createRouterFunc(routes, {
   // if running on a subpath, use the subpath as the router basename
+  // BASE_URL is set via process.env.BASE_PATH, see https://vite.dev/guide/build#public-base-path
   basename:
     import.meta.env.BASE_URL !== "/" ? import.meta.env.BASE_URL : undefined,
 });
