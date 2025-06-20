@@ -6,7 +6,7 @@ import {
   CopyIcon,
   ZapIcon,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Lottie from "react-lottie";
 import { useParams } from "react-router-dom";
 import animationDataDark from "src/assets/lotties/loading-dark.json";
@@ -33,6 +33,7 @@ import {
 } from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
+import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useSwap } from "src/hooks/useSwaps";
 import { useSyncWallet } from "src/hooks/useSyncWallet";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -64,8 +65,22 @@ function SwapInStatus({ swap }: { swap: SwapIn }) {
   const { toast } = useToast();
   const { data: balances } = useBalances();
   const { isDarkMode } = useTheme();
+  const { data: recommendedFees } = useMempoolApi<{
+    fastestFee: number;
+    halfHourFee: number;
+    economyFee: number;
+    minimumFee: number;
+  }>("/v1/fees/recommended");
+
+  const [feeRate, setFeeRate] = useState("");
   const [isPaying, setPaying] = useState(false);
   const [isProcessingRefund, setProcessingRefund] = useState(false);
+
+  useEffect(() => {
+    if (recommendedFees?.fastestFee) {
+      setFeeRate(recommendedFees.fastestFee.toString());
+    }
+  }, [recommendedFees]);
 
   const copyPaymentHash = () => {
     copyToClipboard(swap.paymentHash, toast);
@@ -87,6 +102,9 @@ function SwapInStatus({ swap }: { swap: SwapIn }) {
   async function payWithAlbyHub() {
     setPaying(true);
     try {
+      if (!feeRate) {
+        throw new Error("No fee rate set");
+      }
       const response = await request<RedeemOnchainFundsResponse>(
         "/api/wallet/redeem-onchain-funds",
         {
@@ -94,10 +112,10 @@ function SwapInStatus({ swap }: { swap: SwapIn }) {
           headers: {
             "Content-Type": "application/json",
           },
-          // TODO: specify fees
           body: JSON.stringify({
             toAddress: swap.address,
             amount: swap.amountSent,
+            feeRate: +feeRate,
           }),
         }
       );
@@ -216,7 +234,7 @@ function SwapInStatus({ swap }: { swap: SwapIn }) {
                         <LoadingButton
                           loading={isPaying}
                           onClick={payWithAlbyHub}
-                          variant="outline"
+                          disabled={!recommendedFees}
                         >
                           <ZapIcon className="w-4 h-4 mr-2" />
                           Use Hub On-Chain Funds
@@ -487,7 +505,6 @@ function SwapOutStatus({ swap }: { swap: SwapOut }) {
             )}
             {swapStatus === "FAILED" && (
               <>
-                {/* TODO: Review this once */}
                 <div className="flex items-center text-muted-foreground text-sm">
                   <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />
                   Swap hold invoice cancelled
