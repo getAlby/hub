@@ -359,7 +359,7 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 						}).Info("Paying the swap invoice")
 						go func() {
 							metadata := map[string]interface{}{
-								"swapId": swap.Id,
+								"swap_id": swap.Id,
 							}
 							sendPaymentTimeout := int64(3600)
 							holdInvoicePayment, err := svc.transactionsService.SendPaymentSync(svc.ctx, swap.Invoice, nil, metadata, svc.lnClient, nil, nil, &sendPaymentTimeout)
@@ -625,7 +625,7 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 	}
 
 	metadata := map[string]interface{}{
-		"swapId": swap.Id,
+		"swap_id": swap.Id,
 	}
 	err = svc.transactionsService.SetTransactionMetadata(svc.ctx, invoice.ID, metadata)
 	if err != nil {

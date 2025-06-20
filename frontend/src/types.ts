@@ -563,6 +563,7 @@ export type TransactionMetadata = {
     id: string;
     payer_note: string;
   }; // BOLT-12
+  swap_id?: string;
 } & Record<string, unknown>;
 
 export type Boostagram = {

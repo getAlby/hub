@@ -1353,7 +1353,7 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 
 	var metadata map[string]interface{}
 	if err := json.Unmarshal(dbTransaction.Metadata, &metadata); err == nil {
-		if swapIdRaw, ok := metadata["swapId"]; ok {
+		if swapIdRaw, ok := metadata["swap_id"]; ok {
 			if swapId, ok := swapIdRaw.(string); ok && swapId != "" {
 				defer svc.markSwapStatus(tx, swapId, constants.SWAP_STATE_SUCCESS)
 			}
@@ -1447,7 +1447,7 @@ func (svc *transactionsService) markPaymentFailed(tx *gorm.DB, dbTransaction *db
 
 	var metadata map[string]interface{}
 	if err := json.Unmarshal(existingTransaction.Metadata, &metadata); err == nil {
-		if swapIdRaw, ok := metadata["swapId"]; ok {
+		if swapIdRaw, ok := metadata["swap_id"]; ok {
 			if swapId, ok := swapIdRaw.(string); ok && swapId != "" {
 				defer svc.markSwapStatus(tx, swapId, constants.SWAP_STATE_FAILED)
 			}

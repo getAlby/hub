@@ -11,6 +11,7 @@ import {
 import { nip19 } from "nostr-tools";
 import React from "react";
 import { Link } from "react-router-dom";
+import boltz from "src/assets/suggested-apps/boltz.png";
 import AppAvatar from "src/components/AppAvatar";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
@@ -90,6 +91,8 @@ function TransactionItem({ tx }: Props) {
 
   const bolt12Offer = tx.metadata?.offer;
 
+  const swapId = tx.metadata?.swap_id;
+
   const description =
     tx.description || tx.metadata?.comment || bolt12Offer?.payer_note;
 
@@ -133,6 +136,13 @@ function TransactionItem({ tx }: Props) {
               app={app}
               className="border-none p-0 rounded-full w-[18px] h-[18px] md:w-6 md:h-6 shadow-sm"
             />
+          </div>
+        )}
+        {swapId && (
+          <div className="absolute -bottom-1 -right-1">
+            <div className="w-[18px] h-[18px] md:w-6 md:h-6 shadow-sm">
+              <img src={boltz} className="rounded-full" />
+            </div>
           </div>
         )}
       </div>
@@ -225,6 +235,17 @@ function TransactionItem({ tx }: Props) {
                   <p className="font-semibold">
                     {app.name === "getalby.com" ? "Alby Account" : app.name}
                   </p>
+                </Link>
+              </div>
+            )}
+            {swapId && (
+              <div className="mt-8">
+                <p>Boltz Swap Id</p>
+                <Link
+                  to={`/wallet/swap/status/${swapId}`}
+                  className="flex items-center gap-1"
+                >
+                  <p className="underline">{swapId}</p>
                 </Link>
               </div>
             )}
