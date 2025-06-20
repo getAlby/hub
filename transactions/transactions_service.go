@@ -1351,6 +1351,15 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 		return nil, errors.New("no preimage in payment")
 	}
 
+	var metadata map[string]interface{}
+	if err := json.Unmarshal(dbTransaction.Metadata, &metadata); err == nil {
+		if swapIdRaw, ok := metadata["swapId"]; ok {
+			if swapId, ok := swapIdRaw.(string); ok && swapId != "" {
+				defer svc.markSwapStatus(tx, swapId, constants.SWAP_STATE_SUCCESS)
+			}
+		}
+	}
+
 	now := time.Now()
 	err := tx.Model(dbTransaction).Updates(map[string]interface{}{
 		"State":          constants.TRANSACTION_STATE_SETTLED,
@@ -1440,7 +1449,7 @@ func (svc *transactionsService) markPaymentFailed(tx *gorm.DB, dbTransaction *db
 	if err := json.Unmarshal(existingTransaction.Metadata, &metadata); err == nil {
 		if swapIdRaw, ok := metadata["swapId"]; ok {
 			if swapId, ok := swapIdRaw.(string); ok && swapId != "" {
-				defer svc.markSwapFailed(tx, swapId)
+				defer svc.markSwapStatus(tx, swapId, constants.SWAP_STATE_FAILED)
 			}
 		}
 	}
@@ -1470,30 +1479,30 @@ func (svc *transactionsService) markPaymentFailed(tx *gorm.DB, dbTransaction *db
 	return nil
 }
 
-// NOTE: This is only required for swap outs
-func (svc *transactionsService) markSwapFailed(tx *gorm.DB, swapId string) error {
+// NOTE: we wouldn't need this if we resubscribe to pending swaps
+func (svc *transactionsService) markSwapStatus(tx *gorm.DB, swapId string, state string) error {
 	var existingSwap db.Swap
 	err := tx.Limit(1).Find(&existingSwap, &db.Swap{
 		SwapId: swapId,
 	}).Error
 
 	if err != nil {
-		logger.Logger.WithField("swapId", swapId).WithError(err).Error("could not find swap to mark as failed")
+		logger.Logger.WithField("swapId", swapId).WithError(err).Errorf("could not find swap to mark as %s", state)
 		return err
 	}
 
-	if existingSwap.State == constants.SWAP_STATE_FAILED {
-		logger.Logger.WithField("swapId", swapId).Info("swap already marked as failed")
+	if existingSwap.State == state {
+		logger.Logger.WithField("swapId", swapId).Infof("swap already marked as %s", state)
 		return nil
 	}
 
-	err = tx.Model(existingSwap).Update("state", constants.SWAP_STATE_FAILED).Error
+	err = tx.Model(existingSwap).Update("state", state).Error
 	if err != nil {
 		logger.Logger.WithField("swapId", swapId).WithError(err).Error("Failed to update swap state")
 		return err
 	}
 
-	logger.Logger.WithField("swapId", swapId).Info("Marked swap as failed")
+	logger.Logger.WithField("swapId", swapId).Infof("Marked swap as %s", state)
 
 	return nil
 }

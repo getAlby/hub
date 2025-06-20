@@ -35,6 +35,8 @@ type Swap = db.Swap
 type swapsService struct {
 	autoSwapOutCancelFn context.CancelFunc
 	db                  *gorm.DB
+	ctx                 context.Context
+	lnClient            lnclient.LNClient
 	cfg                 config.Config
 	keys                keys.Keys
 	eventPublisher      events.EventPublisher
@@ -43,10 +45,10 @@ type swapsService struct {
 }
 
 type SwapsService interface {
-	StopAutoSwap()
-	EnableAutoSwapOut(ctx context.Context, lnClient lnclient.LNClient) error
-	SwapOut(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient, autoSwap bool) (*SwapResponse, error)
-	SwapIn(ctx context.Context, amount uint64, lnClient lnclient.LNClient, autoSwap bool) (*SwapResponse, error)
+	StopAutoSwapOut()
+	EnableAutoSwapOut() error
+	SwapOut(amount uint64, destination string, autoSwap bool) (*SwapResponse, error)
+	SwapIn(amount uint64, autoSwap bool) (*SwapResponse, error)
 	CalculateSwapOutFee() (*SwapFees, error)
 	CalculateSwapInFee() (*SwapFees, error)
 	ProcessRefund(swapId string) error
@@ -78,18 +80,21 @@ type SwapResponse struct {
 }
 
 // TODO: Subscribe to boltz for all pending swaps to update
-func NewSwapsService(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher, transactionsService transactions.TransactionsService) SwapsService {
+func NewSwapsService(ctx context.Context, db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher,
+	lnClient lnclient.LNClient, transactionsService transactions.TransactionsService) SwapsService {
 	return &swapsService{
+		ctx:                 ctx,
 		cfg:                 cfg,
 		db:                  db,
 		keys:                keys,
 		eventPublisher:      eventPublisher,
 		transactionsService: transactionsService,
+		lnClient:            lnClient,
 		boltzApi:            &boltz.Api{URL: cfg.GetEnv().BoltzApi},
 	}
 }
 
-func (svc *swapsService) StopAutoSwap() {
+func (svc *swapsService) StopAutoSwapOut() {
 	if svc.autoSwapOutCancelFn != nil {
 		logger.Logger.Info("Stopping auto swap out service...")
 		svc.autoSwapOutCancelFn()
@@ -97,10 +102,10 @@ func (svc *swapsService) StopAutoSwap() {
 	}
 }
 
-func (svc *swapsService) EnableAutoSwapOut(ctx context.Context, lnClient lnclient.LNClient) error {
-	svc.StopAutoSwap()
+func (svc *swapsService) EnableAutoSwapOut() error {
+	svc.StopAutoSwapOut()
 
-	ctx, cancelFn := context.WithCancel(ctx)
+	ctx, cancelFn := context.WithCancel(svc.ctx)
 	swapDestination, _ := svc.cfg.Get(config.AutoSwapDestinationKey, "")
 	balanceThresholdStr, _ := svc.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
 	amountStr, _ := svc.cfg.Get(config.AutoSwapAmountKey, "")
@@ -131,7 +136,7 @@ func (svc *swapsService) EnableAutoSwapOut(ctx context.Context, lnClient lnclien
 			select {
 			case <-ticker.C:
 				logger.Logger.Debug("Checking to see if we can swap")
-				balance, err := lnClient.GetBalances(ctx, false)
+				balance, err := svc.lnClient.GetBalances(ctx, false)
 				if err != nil {
 					logger.Logger.WithError(err).Error("Failed to get balance")
 					return
@@ -146,7 +151,7 @@ func (svc *swapsService) EnableAutoSwapOut(ctx context.Context, lnClient lnclien
 					"amount":      amount,
 					"destination": swapDestination,
 				}).Info("Initiating swap")
-				_, err = svc.SwapOut(ctx, amount, swapDestination, lnClient, true)
+				_, err = svc.SwapOut(amount, swapDestination, true)
 				if err != nil {
 					logger.Logger.WithError(err).Error("Failed to swap")
 				}
@@ -162,7 +167,7 @@ func (svc *swapsService) EnableAutoSwapOut(ctx context.Context, lnClient lnclien
 	return nil
 }
 
-func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination string, lnClient lnclient.LNClient, autoSwap bool) (*SwapResponse, error) {
+func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap bool) (*SwapResponse, error) {
 	if destination == "" {
 		var err error
 		destination, err = svc.cfg.Get(config.OnchainAddressKey, "")
@@ -302,7 +307,6 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 		return nil, err
 	}
 
-	// TODO: use swap service context here
 	go func() {
 		var swapState string
 		defer func() {
@@ -321,8 +325,8 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 			updatesCh := boltzWs.Updates
 			for {
 				select {
-				case <-ctx.Done():
-					logger.Logger.WithError(ctx.Err()).WithFields(logrus.Fields{
+				case <-svc.ctx.Done():
+					logger.Logger.WithError(svc.ctx.Err()).WithFields(logrus.Fields{
 						"swap": swap,
 					}).Error("Swap out context cancelled")
 					return
@@ -358,7 +362,7 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 								"swapId": swap.Id,
 							}
 							sendPaymentTimeout := int64(3600)
-							holdInvoicePayment, err := svc.transactionsService.SendPaymentSync(ctx, swap.Invoice, nil, metadata, lnClient, nil, nil, &sendPaymentTimeout)
+							holdInvoicePayment, err := svc.transactionsService.SendPaymentSync(svc.ctx, swap.Invoice, nil, metadata, svc.lnClient, nil, nil, &sendPaymentTimeout)
 							if err != nil {
 								logger.Logger.WithError(err).WithFields(logrus.Fields{
 									"swap":   swap,
@@ -497,9 +501,9 @@ func (svc *swapsService) SwapOut(ctx context.Context, amount uint64, destination
 	}, nil
 }
 
-func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnclient.LNClient, autoSwap bool) (*SwapResponse, error) {
+func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, error) {
 	amountMSat := amount * 1000
-	invoice, err := svc.transactionsService.MakeInvoice(ctx, amountMSat, "Boltz swap in", "", 0, nil, lnClient, nil, nil)
+	invoice, err := svc.transactionsService.MakeInvoice(svc.ctx, amountMSat, "Boltz swap in", "", 0, nil, svc.lnClient, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -623,7 +627,7 @@ func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnc
 	metadata := map[string]interface{}{
 		"swapId": swap.Id,
 	}
-	err = svc.transactionsService.SetTransactionMetadata(ctx, invoice.ID, metadata)
+	err = svc.transactionsService.SetTransactionMetadata(svc.ctx, invoice.ID, metadata)
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
 			"payment_hash": invoice.PaymentHash,
@@ -662,8 +666,8 @@ func (svc *swapsService) SwapIn(ctx context.Context, amount uint64, lnClient lnc
 
 			for {
 				select {
-				case <-ctx.Done():
-					logger.Logger.WithError(ctx.Err()).Error("Swap in context cancelled")
+				case <-svc.ctx.Done():
+					logger.Logger.WithError(svc.ctx.Err()).Error("Swap in context cancelled")
 					return
 				case update, ok := <-updatesCh:
 					if !ok {

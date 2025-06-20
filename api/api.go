@@ -661,8 +661,7 @@ func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *Ini
 		return nil, errors.New("invalid swap amount")
 	}
 
-	// TODO: Do not use context.Background - use background context in the SwapOut goroutine instead
-	swapoutResponse, err := api.svc.GetSwapsService().SwapOut(context.Background(), amount, destination, lnClient, false)
+	swapoutResponse, err := api.svc.GetSwapsService().SwapOut(amount, destination, false)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount":      amount,
@@ -686,8 +685,7 @@ func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *Initi
 		return nil, errors.New("invalid swap amount")
 	}
 
-	// TODO: Do not use context.Background - use background context in the SwapIn goroutine instead
-	txId, err := api.svc.GetSwapsService().SwapIn(context.Background(), amount, lnClient, false)
+	txId, err := api.svc.GetSwapsService().SwapIn(amount, false)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount": amount,
@@ -717,7 +715,7 @@ func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *E
 		return err
 	}
 
-	return api.svc.StartAutoSwap()
+	return api.svc.GetSwapsService().EnableAutoSwapOut()
 }
 
 func (api *api) DisableAutoSwap() error {
@@ -730,7 +728,7 @@ func (api *api) DisableAutoSwap() error {
 		}
 	}
 
-	api.svc.GetSwapsService().StopAutoSwap()
+	api.svc.GetSwapsService().StopAutoSwapOut()
 	return nil
 }
 
