@@ -1,10 +1,10 @@
 import useSWR, { SWRConfiguration } from "swr";
 
-import { AutoSwapsConfig, Swap, SwapFees } from "src/types";
+import { AutoSwapConfig, Swap, SwapFees } from "src/types";
 import { swrFetcher } from "src/utils/swr";
 
 export function useAutoSwapsConfig() {
-  return useSWR<AutoSwapsConfig>("/api/autoswap", swrFetcher);
+  return useSWR<AutoSwapConfig>("/api/autoswap", swrFetcher);
 }
 
 export function useSwapFees(direction: "in" | "out") {

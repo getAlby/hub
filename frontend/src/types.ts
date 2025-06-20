@@ -193,8 +193,8 @@ export type AppMetadata = { app_store_app_id?: string } & Record<
   unknown
 >;
 
-export type AutoSwapsConfig = {
-  type: "in" | "out";
+export type AutoSwapConfig = {
+  type: "out";
   enabled: boolean;
   balanceThreshold: number;
   swapAmount: number;
