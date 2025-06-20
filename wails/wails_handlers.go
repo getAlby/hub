@@ -277,6 +277,51 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		return WailsRequestRouterResponse{Body: transactions, Error: ""}
 	}
 
+	swapRegex := regexp.MustCompile(
+		`/api/swaps/([0-9a-fA-F]+)`,
+	)
+	swapIdMatch := swapRegex.FindStringSubmatch(route)
+
+	switch {
+	case len(swapIdMatch) > 1:
+		swapId := swapIdMatch[1]
+		swapInfo, err := app.api.LookupSwap(swapId)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+
+		return WailsRequestRouterResponse{Body: swapInfo, Error: ""}
+	}
+
+	refundSwapRegex := regexp.MustCompile(
+		`/api/swaps/refund/([0-9a-fA-F]+)`,
+	)
+	refundSwapIdMatch := refundSwapRegex.FindStringSubmatch(route)
+
+	switch {
+	case len(refundSwapIdMatch) > 1:
+		swapId := refundSwapIdMatch[1]
+		err := app.api.ProcessSwapRefund(swapId)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
+	}
+
+	listSwapsRegex := regexp.MustCompile(
+		`/api/swaps`,
+	)
+
+	switch {
+	case listSwapsRegex.MatchString(route):
+		swaps, err := app.api.ListSwaps()
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: swaps, Error: ""}
+	}
+
 	paymentRegex := regexp.MustCompile(
 		`/api/payments/([0-9a-zA-Z]+)`,
 	)
@@ -998,39 +1043,74 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 		return WailsRequestRouterResponse{Body: commandResponse, Error: ""}
 	case "/api/wallet/autoswap":
-		autoSwapsConfig, err := app.api.GetAutoSwapConfig()
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"route":  route,
-				"method": method,
-				"body":   body,
-			}).WithError(err).Error("Failed to get auto swap configuration")
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		switch method {
+		case "GET":
+			autoSwapsConfig, err := app.api.GetAutoSwapConfig()
+			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"route":  route,
+					"method": method,
+					"body":   body,
+				}).WithError(err).Error("Failed to get auto swap configuration")
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			return WailsRequestRouterResponse{Body: autoSwapsConfig, Error: ""}
+		case "POST":
+			enableAutoSwapRequest := &api.EnableAutoSwapRequest{}
+			err := json.Unmarshal([]byte(body), enableAutoSwapRequest)
+			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"route":  route,
+					"method": method,
+					"body":   body,
+				}).WithError(err).Error("Failed to decode request to wails router")
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			err = app.api.EnableAutoSwapOut(ctx, enableAutoSwapRequest)
+			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"route":  route,
+					"method": method,
+					"body":   body,
+				}).WithError(err).Error("Failed to enable auto swap")
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			return WailsRequestRouterResponse{Body: nil, Error: ""}
+		case "DELETE":
+			err := app.api.DisableAutoSwap()
+			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"route":  route,
+					"method": method,
+					"body":   body,
+				}).WithError(err).Error("Failed to disable auto swap")
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		}
-		return WailsRequestRouterResponse{Body: autoSwapsConfig, Error: ""}
-	case "/api/wallet/swap/out/fees":
+	case "/swaps/out/fees":
 		swapOutFees, err := app.api.GetSwapOutFees()
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,
 				"method": method,
 				"body":   body,
-			}).WithError(err).Error("Failed to get auto swap configuration")
+			}).WithError(err).Error("Failed to get swap out fees")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: swapOutFees, Error: ""}
-	case "/api/wallet/swap/in/fees":
+	case "/swaps/in/fees":
 		swapInFees, err := app.api.GetSwapInFees()
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,
 				"method": method,
 				"body":   body,
-			}).WithError(err).Error("Failed to get auto swap configuration")
+			}).WithError(err).Error("Failed to get swap in fees")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: swapInFees, Error: ""}
-	case "/api/wallet/swap/out":
+	case "/api/swaps/out":
 		initiateSwapOutRequest := &api.InitiateSwapRequest{}
 		err := json.Unmarshal([]byte(body), initiateSwapOutRequest)
 		if err != nil {
@@ -1052,7 +1132,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: swapOutResponse, Error: ""}
-	case "/api/wallet/swap/in":
+	case "/api/swaps/in":
 		initiateSwapInRequest := &api.InitiateSwapRequest{}
 		err := json.Unmarshal([]byte(body), initiateSwapInRequest)
 		if err != nil {
@@ -1063,7 +1143,6 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}).WithError(err).Error("Failed to decode request to wails router")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-
 		txId, err := app.api.InitiateSwapIn(ctx, initiateSwapInRequest)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -1074,41 +1153,6 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: txId, Error: ""}
-	case "/api/wallet/autoswap/out":
-		switch method {
-		case "POST":
-			enableAutoSwapRequest := &api.EnableAutoSwapRequest{}
-			err := json.Unmarshal([]byte(body), enableAutoSwapRequest)
-			if err != nil {
-				logger.Logger.WithFields(logrus.Fields{
-					"route":  route,
-					"method": method,
-					"body":   body,
-				}).WithError(err).Error("Failed to decode request to wails router")
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
-			err = app.api.EnableAutoSwapOut(ctx, enableAutoSwapRequest)
-			if err != nil {
-				logger.Logger.WithFields(logrus.Fields{
-					"route":  route,
-					"method": method,
-					"body":   body,
-				}).WithError(err).Error("Failed to enable swap outs")
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
-			return WailsRequestRouterResponse{Body: nil, Error: ""}
-		case "DELETE":
-			err := app.api.DisableAutoSwap()
-			if err != nil {
-				logger.Logger.WithFields(logrus.Fields{
-					"route":  route,
-					"method": method,
-					"body":   body,
-				}).WithError(err).Error("Failed to disable swap outs")
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
-			return WailsRequestRouterResponse{Body: nil, Error: ""}
-		}
 	case "/api/event":
 		switch method {
 		case "POST":

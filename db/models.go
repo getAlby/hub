@@ -89,6 +89,25 @@ type Transaction struct {
 	SettleDeadline  *uint32 // block number for accepted hold invoices
 }
 
+type Swap struct {
+	ID             uint
+	SwapId         string `validate:"required"`
+	Type           string
+	State          string
+	Address        string
+	AmountSent     uint64
+	AmountReceived uint64
+	PaymentHash    string
+	Destination    string
+	LockupTxId     string
+	ClaimTxId      string
+	AutoSwap       bool
+	BoltzPubkey    string
+	SwapTree       datatypes.JSON
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
 const (
 	REQUEST_EVENT_STATE_HANDLER_EXECUTING = "executing"
 	REQUEST_EVENT_STATE_HANDLER_EXECUTED  = "executed"

@@ -193,8 +193,8 @@ export type AppMetadata = { app_store_app_id?: string } & Record<
   unknown
 >;
 
-export type AutoSwapsConfig = {
-  type: "in" | "out";
+export type AutoSwapConfig = {
+  type: "out";
   enabled: boolean;
   balanceThreshold: number;
   swapAmount: number;
@@ -207,14 +207,38 @@ export type SwapFees = {
   boltzNetworkFee: number;
 };
 
-export type SwapInResponse = {
-  onchainAddress: string;
-  amountToDeposit: number;
+type BaseSwap = {
+  id: string;
+  state: "PENDING" | "SUCCESS" | "FAILED";
+  amountSent: number;
   paymentHash: string;
+  autoSwap: boolean;
+  boltzPubkey: string;
+  createdAt: string;
+  updatedAt: string;
 };
 
-export type SwapOutResponse = {
-  txId: string;
+export type SwapIn = BaseSwap & {
+  type: "in";
+  address: string;
+  amountReceived: number;
+  destination?: never;
+  lockupTxId?: string;
+  claimTxId?: string;
+};
+
+export type SwapOut = BaseSwap & {
+  type: "out";
+  destination: string;
+  address?: never;
+  amountReceived?: number;
+  lockupTxId?: string;
+  claimTxId?: string;
+};
+
+export type Swap = SwapIn | SwapOut;
+
+export type SwapResponse = {
   swapId: string;
   paymentHash: string;
 };
@@ -539,6 +563,7 @@ export type TransactionMetadata = {
     id: string;
     payer_note: string;
   }; // BOLT-12
+  swap_id?: string;
 } & Record<string, unknown>;
 
 export type Boostagram = {
