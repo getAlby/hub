@@ -1260,55 +1260,63 @@ export const suggestedApps: SuggestedApp[] = [
     guide: (
       <>
         <div>
-          <h3 className="font-medium">In NakaPay</h3>
+          <h3 className="font-medium">Connect Your Alby Hub to NakaPay</h3>
           <ul className="list-inside text-muted-foreground">
             <li>
-              1. Open{" "}
+              1. Click{" "}
+              <Link
+                to="/apps/new?app=nakapay"
+                className="font-medium text-foreground underline"
+              >
+                Connect to NakaPay
+              </Link>{" "}
+              to create a new app connection
+            </li>
+            <li>
+              2. Set permissions to "Receive payments" (recommended for businesses)
+            </li>
+            <li>
+              3. Copy the NWC connection string that starts with{" "}
+              <code className="bg-muted px-1 py-0.5 rounded text-xs">nostr+walletconnect://</code>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">Set Up Your NakaPay Account</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              4. Visit{" "}
               <ExternalLink
                 to="https://www.nakapay.app"
                 className="font-medium text-foreground underline"
               >
                 NakaPay
               </ExternalLink>{" "}
-              in your browser and login with your Lightning wallet
+              and log in with any Lightning wallet (LNURL-auth)
             </li>
             <li>
-              2. Your business account will be created automatically upon first login
+              5. Your business account will be automatically created on first login
             </li>
             <li>
-              3. Go to{" "}
-              <span className="font-medium text-foreground">Dashboard</span> and then{" "}
-              <span className="font-medium text-foreground">Settings</span> to configure your wallet connection
+              6. Go to{" "}
+              <span className="font-medium text-foreground">Dashboard</span> →{" "}
+              <span className="font-medium text-foreground">Settings</span> →{" "}
+              <span className="font-medium text-foreground">Wallet</span>
             </li>
           </ul>
         </div>
         <div>
-          <h3 className="font-medium">In Alby Hub</h3>
+          <h3 className="font-medium">Complete Non-Custodial Setup</h3>
           <ul className="list-inside text-muted-foreground">
-            <li>
-              4. Click{" "}
-              <Link
-                to="/apps/new?app=nakapay"
-                className="font-medium text-foreground underline"
-              >
-                Connect to NakaPay
-              </Link>
+            <li>7. Paste your Alby Hub NWC connection string in the wallet connection field</li>
+            <li>8. Test the connection to verify everything works</li>
+            <li>9. Configure your Lightning Address in{" "}
+              <span className="font-medium text-foreground">Settings</span> for payment routing
             </li>
-            <li>
-              5. Set app's wallet permissions (receive payments recommended for businesses)
+            <li>10. Create API keys in{" "}
+              <span className="font-medium text-foreground">Dashboard</span> →{" "}
+              <span className="font-medium text-foreground">API Management</span> for your applications
             </li>
-            <li>
-              6. Copy the NWC connection string from Alby Hub
-            </li>
-          </ul>
-        </div>
-        <div>
-          <h3 className="font-medium">Complete NWC Setup</h3>
-          <ul className="list-inside text-muted-foreground">
-            <li>7. Paste the NWC connection string in NakaPay Dashboard → Settings → Wallet Connection</li>
-            <li>8. Configure your Lightning Address for receiving payments</li>
-            <li>9. Create an API key for integration with your business applications</li>
-            <li>10. Set up webhook URLs to receive real-time payment notifications</li>
           </ul>
         </div>
       </>
