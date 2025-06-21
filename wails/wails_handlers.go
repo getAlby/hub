@@ -1084,6 +1084,20 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 
 			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		}
+	case "/api/scb":
+		scbData, err := app.api.GetLatestSCB()
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to get SCB file")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: map[string]interface{}{
+			"data":     string(scbData),
+			"filename": "static-channel-backup.json",
+		}, Error: ""}
 	}
 
 	if strings.HasPrefix(route, "/api/log/") {

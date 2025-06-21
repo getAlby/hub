@@ -165,6 +165,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.POST("/settings/swaps", httpSvc.enableAutoSwapsHandler)
 	restrictedApiGroup.DELETE("/settings/swaps", httpSvc.disableAutoSwapsHandler)
 	restrictedApiGroup.POST("/node/alias", httpSvc.setNodeAliasHandler)
+	restrictedApiGroup.GET("/scb", httpSvc.downloadSCBHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedApiGroup, e)
 }
@@ -1254,4 +1255,18 @@ func (httpSvc *HttpService) setNodeAliasHandler(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) downloadSCBHandler(c echo.Context) error {
+	scbData, err := httpSvc.api.GetLatestSCB()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get SCB file: %v", err),
+		})
+	}
+	c.Response().Header().Set("Content-Type", "application/json")
+	c.Response().Header().Set("Content-Disposition", "attachment; filename=static-channel-backup.json")
+	c.Response().WriteHeader(http.StatusOK)
+	c.Response().Write(scbData)
+	return nil
 }

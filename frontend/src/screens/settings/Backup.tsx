@@ -1,7 +1,9 @@
 import {
+  DownloadIcon,
   ExternalLinkIcon,
   EyeIcon,
   Link2Icon,
+  Loader2Icon,
   TriangleAlertIcon,
 } from "lucide-react";
 import React, { useState } from "react";
@@ -36,6 +38,8 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 import { useMigrateLDKStorage } from "src/hooks/useMigrateLDKStorage";
 import { InfoResponse, MnemonicResponse } from "src/types";
+import { handleRequestError } from "src/utils/handleRequestError";
+import { isHttpMode } from "src/utils/isHttpMode";
 import { request } from "src/utils/request";
 
 export default function Backup() {
@@ -237,11 +241,9 @@ export default function Backup() {
                     </h3>
                     <Badge variant={"positive"}>Active</Badge>
                   </div>
-                  <p>
-                    <span className="text-muted-foreground text-sm">
-                      To backup your channels state manually, without Alby
-                      Account linked, follow the
-                    </span>
+                  <p className="text-muted-foreground text-sm mb-4">
+                    To backup your channels state manually, without Alby Account
+                    linked, follow the
                     <ExternalLink
                       to="https://guides.getalby.com/user-guide/alby-hub/backups-and-recover#alby-hub-self-hosted-without-an-alby-account"
                       className="underline inline-flex items-center text-sm"
@@ -250,6 +252,14 @@ export default function Backup() {
                       <ExternalLinkIcon className="w-4 h-4 ml-1" />
                     </ExternalLink>
                   </p>
+                  {info?.backendType === "LDK" && (
+                    <div className="flex flex-col gap-2">
+                      <p className="text-muted-foreground text-sm">
+                        Download your latest Static Channel Backup (SCB) file:
+                      </p>
+                      <DownloadSCBButton />
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -358,5 +368,95 @@ function CashuMnemonicWarning() {
         </p>
       </AlertDescription>
     </Alert>
+  );
+}
+
+function DownloadSCBButton() {
+  const [isDownloading, setIsDownloading] = React.useState(false);
+  const { toast } = useToast();
+
+  const handleDownload = async () => {
+    setIsDownloading(true);
+    try {
+      const _isHttpMode = isHttpMode();
+
+      if (_isHttpMode) {
+        const response = await fetch("/api/scb", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "static-channel-backup.json";
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+      } else {
+        const result = await request<{ data: string; filename: string }>(
+          "/api/scb",
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (result?.data && result?.filename) {
+          const blob = new Blob([result.data], { type: "application/json" });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = result.filename;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          a.remove();
+        }
+      }
+
+      toast({
+        title: "SCB Downloaded",
+        description:
+          "Static Channel Backup file has been downloaded successfully.",
+      });
+    } catch (error) {
+      handleRequestError(toast, "Failed to download SCB file", error);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      onClick={handleDownload}
+      disabled={isDownloading}
+      className="w-fit"
+    >
+      {isDownloading ? (
+        <>
+          <Loader2Icon className="w-4 h-4 mr-2 animate-spin" />
+          Downloading...
+        </>
+      ) : (
+        <>
+          <DownloadIcon className="w-4 h-4 mr-2" />
+          Download Latest SCB
+        </>
+      )}
+    </Button>
   );
 }
