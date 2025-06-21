@@ -67,6 +67,7 @@ type API interface {
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
 	SendEvent(event string)
+	GetLatestSCB() ([]byte, error)
 }
 
 type App struct {

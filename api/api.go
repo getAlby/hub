@@ -9,6 +9,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
@@ -1338,4 +1340,46 @@ func (api *api) parseExpiresAt(expiresAtString string) (*time.Time, error) {
 		expiresAt = &expiresAtValue
 	}
 	return expiresAt, nil
+}
+
+func (api *api) GetLatestSCB() ([]byte, error) {
+	if api.svc.GetLNClient() == nil {
+		return nil, fmt.Errorf("node not running")
+	}
+	workDir := api.cfg.GetEnv().Workdir
+	scbDir := filepath.Join(workDir, "static_channel_backups")
+
+	if _, err := os.Stat(scbDir); os.IsNotExist(err) {
+		return nil, fmt.Errorf("no SCB files found - directory does not exist")
+	}
+	files, err := os.ReadDir(scbDir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read SCB directory: %w", err)
+	}
+	var latestFile os.DirEntry
+	var latestTime time.Time
+
+	for _, file := range files {
+		if !file.IsDir() && strings.HasSuffix(file.Name(), ".json") {
+			info, err := file.Info()
+			if err != nil {
+				continue
+			}
+			if info.ModTime().After(latestTime) {
+				latestTime = info.ModTime()
+				latestFile = file
+			}
+		}
+	}
+
+	if latestFile == nil {
+		return nil, fmt.Errorf("no SCB files found")
+	}
+	filePath := filepath.Join(scbDir, latestFile.Name())
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read SCB file: %w", err)
+	}
+
+	return content, nil
 }
