@@ -1252,11 +1252,11 @@ export const suggestedApps: SuggestedApp[] = [
   {
     id: "nakapay",
     title: "NakaPay",
-    description: "Accept Bitcoin Lightning payments for businesses",
+    description: "Non-custodial Lightning payments for businesses via NWC",
     webLink: "https://www.nakapay.app",
     logo: nakapay,
     extendedDescription:
-      "Accept Bitcoin Lightning payments with your Hub for your online business",
+      "Accept Bitcoin Lightning payments directly to your Hub wallet with non-custodial NWC integration for your online business",
     guide: (
       <>
         <div>
@@ -1273,12 +1273,12 @@ export const suggestedApps: SuggestedApp[] = [
               in your browser and login with your Lightning wallet
             </li>
             <li>
-              2. Your account will be created automatically upon first login
+              2. Your business account will be created automatically upon first login
             </li>
             <li>
               3. Go to{" "}
-              <span className="font-medium text-foreground">Dashboard</span> to
-              create an API key and configure your payment settings
+              <span className="font-medium text-foreground">Dashboard</span> and then{" "}
+              <span className="font-medium text-foreground">Settings</span> to configure your wallet connection
             </li>
           </ul>
         </div>
@@ -1295,17 +1295,20 @@ export const suggestedApps: SuggestedApp[] = [
               </Link>
             </li>
             <li>
-              5. Set app's wallet permissions (receive-only recommended for
-              businesses)
+              5. Set app's wallet permissions (receive payments recommended for businesses)
+            </li>
+            <li>
+              6. Copy the NWC connection string from Alby Hub
             </li>
           </ul>
         </div>
         <div>
-          <h3 className="font-medium">In NakaPay Dashboard</h3>
+          <h3 className="font-medium">Complete NWC Setup</h3>
           <ul className="list-inside text-muted-foreground">
-            <li>6. Create an API key for integration with your business</li>
-            <li>7. Configure webhook URLs to receive payment notifications</li>
-            <li>8. Paste the connection secret from Alby Hub in wallet settings</li>
+            <li>7. Paste the NWC connection string in NakaPay Dashboard → Settings → Wallet Connection</li>
+            <li>8. Configure your Lightning Address for receiving payments</li>
+            <li>9. Create an API key for integration with your business applications</li>
+            <li>10. Set up webhook URLs to receive real-time payment notifications</li>
           </ul>
         </div>
       </>
