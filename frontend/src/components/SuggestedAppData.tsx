@@ -13,6 +13,7 @@ import hablanews from "src/assets/suggested-apps/habla-news.png";
 import lightningMessageboard from "src/assets/suggested-apps/lightning-messageboard.png";
 import lnbits from "src/assets/suggested-apps/lnbits.png";
 import lume from "src/assets/suggested-apps/lume.png";
+import nakapay from "src/assets/suggested-apps/nakapay.png";
 import nostrcheckserver from "src/assets/suggested-apps/nostrcheck-server.png";
 import nostrudel from "src/assets/suggested-apps/nostrudel.png";
 import nostter from "src/assets/suggested-apps/nostter.png";
@@ -1243,6 +1244,77 @@ export const suggestedApps: SuggestedApp[] = [
           <h3 className="font-medium">In Lume</h3>
           <ul className="list-inside text-muted-foreground">
             <li>6. Paste the connection secret from Alby Hub</li>
+          </ul>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: "nakapay",
+    title: "NakaPay",
+    description: "Non-custodial Lightning payments for businesses via NWC",
+    webLink: "https://www.nakapay.app",
+    logo: nakapay,
+    extendedDescription:
+      "Accept Bitcoin Lightning payments directly to your Hub wallet with non-custodial NWC integration for your online business",
+    guide: (
+      <>
+        <div>
+          <h3 className="font-medium">Connect Your Alby Hub to NakaPay</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              1. Click{" "}
+              <Link
+                to="/apps/new?app=nakapay"
+                className="font-medium text-foreground underline"
+              >
+                Connect to NakaPay
+              </Link>{" "}
+              to create a new app connection
+            </li>
+            <li>
+              2. Set permissions to "Receive payments" (recommended for businesses)
+            </li>
+            <li>
+              3. Copy the NWC connection string that starts with{" "}
+              <code className="bg-muted px-1 py-0.5 rounded text-xs">nostr+walletconnect://</code>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">Set Up Your NakaPay Account</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              4. Visit{" "}
+              <ExternalLink
+                to="https://www.nakapay.app"
+                className="font-medium text-foreground underline"
+              >
+                NakaPay
+              </ExternalLink>{" "}
+              and log in with any Lightning wallet (LNURL-auth)
+            </li>
+            <li>
+              5. Your business account will be automatically created on first login
+            </li>
+            <li>
+              6. Go to{" "}
+              <span className="font-medium text-foreground">Dashboard</span> →{" "}
+              <span className="font-medium text-foreground">Settings</span> →{" "}
+              <span className="font-medium text-foreground">Wallet</span>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">Complete Non-Custodial Setup</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>7. Paste your Alby Hub NWC connection string in the wallet connection field</li>
+            <li>8. Test the connection to verify everything works</li>
+            <li>9. Create API keys in{" "}
+              <span className="font-medium text-foreground">Dashboard</span> →{" "}
+              <span className="font-medium text-foreground">API Management</span> for your applications
+            </li>
+            <li>10. Start accepting payments directly to your Alby Hub wallet!</li>
           </ul>
         </div>
       </>
