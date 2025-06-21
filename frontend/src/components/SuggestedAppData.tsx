@@ -1310,13 +1310,11 @@ export const suggestedApps: SuggestedApp[] = [
           <ul className="list-inside text-muted-foreground">
             <li>7. Paste your Alby Hub NWC connection string in the wallet connection field</li>
             <li>8. Test the connection to verify everything works</li>
-            <li>9. Configure your Lightning Address in{" "}
-              <span className="font-medium text-foreground">Settings</span> for payment routing
-            </li>
-            <li>10. Create API keys in{" "}
+            <li>9. Create API keys in{" "}
               <span className="font-medium text-foreground">Dashboard</span> →{" "}
               <span className="font-medium text-foreground">API Management</span> for your applications
             </li>
+            <li>10. Start accepting payments directly to your Alby Hub wallet!</li>
           </ul>
         </div>
       </>
