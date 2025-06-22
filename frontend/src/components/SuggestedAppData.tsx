@@ -867,7 +867,9 @@ export const suggestedApps: SuggestedApp[] = [
             </li>
             <li>
               3. Choose{" "}
-              <span className="font-medium text-foreground">NWC Generic</span>{" "}
+              <span className="font-medium text-foreground">
+                NWC Generic
+              </span>{" "}
             </li>
           </ul>
         </div>
@@ -1273,11 +1275,14 @@ export const suggestedApps: SuggestedApp[] = [
               to create a new app connection
             </li>
             <li>
-              2. Set permissions to "Receive payments" (recommended for businesses)
+              2. Set permissions to "Receive payments" (recommended for
+              businesses)
             </li>
             <li>
               3. Copy the NWC connection string that starts with{" "}
-              <code className="bg-muted px-1 py-0.5 rounded text-xs">nostr+walletconnect://</code>
+              <code className="bg-muted px-1 py-0.5 rounded text-xs">
+                nostr+walletconnect://
+              </code>
             </li>
           </ul>
         </div>
@@ -1295,7 +1300,8 @@ export const suggestedApps: SuggestedApp[] = [
               and log in with any Lightning wallet (LNURL-auth)
             </li>
             <li>
-              5. Your business account will be automatically created on first login
+              5. Your business account will be automatically created on first
+              login
             </li>
             <li>
               6. Go to{" "}
@@ -1308,13 +1314,22 @@ export const suggestedApps: SuggestedApp[] = [
         <div>
           <h3 className="font-medium">Complete Non-Custodial Setup</h3>
           <ul className="list-inside text-muted-foreground">
-            <li>7. Paste your Alby Hub NWC connection string in the wallet connection field</li>
-            <li>8. Test the connection to verify everything works</li>
-            <li>9. Create API keys in{" "}
-              <span className="font-medium text-foreground">Dashboard</span> →{" "}
-              <span className="font-medium text-foreground">API Management</span> for your applications
+            <li>
+              7. Paste your Alby Hub NWC connection string in the wallet
+              connection field
             </li>
-            <li>10. Start accepting payments directly to your Alby Hub wallet!</li>
+            <li>8. Test the connection to verify everything works</li>
+            <li>
+              9. Create API keys in{" "}
+              <span className="font-medium text-foreground">Dashboard</span> →{" "}
+              <span className="font-medium text-foreground">
+                API Management
+              </span>{" "}
+              for your applications
+            </li>
+            <li>
+              10. Start accepting payments directly to your Alby Hub wallet!
+            </li>
           </ul>
         </div>
       </>
