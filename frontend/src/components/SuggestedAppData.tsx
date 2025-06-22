@@ -1258,9 +1258,19 @@ export const suggestedApps: SuggestedApp[] = [
     webLink: "https://www.nakapay.app",
     logo: nakapay,
     extendedDescription:
-      "Accept Bitcoin Lightning payments directly to your Hub wallet with non-custodial NWC integration for your online business",
+      "Accept Bitcoin Lightning payments directly to your Hub wallet. NakaPay generates invoices that customers pay directly to you - your funds never go through NakaPay (fully non-custodial)",
     guide: (
       <>
+        <div>
+          <p className="text-sm text-muted-foreground mb-4">
+            NakaPay is a{" "}
+            <span className="font-medium text-foreground">
+              fully non-custodial
+            </span>{" "}
+            payment service. Customer payments go directly to your Alby Hub
+            wallet - NakaPay never holds your funds.
+          </p>
+        </div>
         <div>
           <h3 className="font-medium">Connect Your Alby Hub to NakaPay</h3>
           <ul className="list-inside text-muted-foreground">
@@ -1275,8 +1285,10 @@ export const suggestedApps: SuggestedApp[] = [
               to create a new app connection
             </li>
             <li>
-              2. Set permissions to "Receive payments" (recommended for
-              businesses)
+              2. Set permissions to "Receive payments" - this allows NakaPay to
+              create Lightning invoices on behalf of your business. When
+              customers pay these invoices, the payments go directly to your Hub
+              wallet (you remain in full control of your funds)
             </li>
             <li>
               3. Copy the NWC connection string that starts with{" "}
