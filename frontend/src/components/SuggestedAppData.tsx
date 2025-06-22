@@ -273,10 +273,9 @@ export const suggestedApps: SuggestedApp[] = [
     title: "Primal",
     description: "Cross-platform social",
     webLink: "https://primal.net/",
+    appleLink: "https://apps.apple.com/us/app/primal/id1673134518",
     playLink:
       "https://play.google.com/store/apps/details?id=net.primal.android",
-    // NWC is not supported on iOS
-    // appleLink: "https://apps.apple.com/us/app/primal/id1673134518",
     logo: primal,
     extendedDescription:
       "Tip nostr posts and profiles and receive zaps seamlessly with your Hub",
@@ -288,7 +287,7 @@ export const suggestedApps: SuggestedApp[] = [
             <li>
               1. Download and open{" "}
               <span className="font-medium text-foreground">Primal</span> on
-              your Android device
+              your Android or iOS device
             </li>
             <li>
               2. Click on your{" "}
@@ -298,12 +297,6 @@ export const suggestedApps: SuggestedApp[] = [
               <span className="font-medium text-foreground">Wallet</span> →{" "}
               <span className="font-medium text-foreground">
                 Untoggle Primal wallet
-              </span>
-            </li>
-            <li>
-              3. Choose{" "}
-              <span className="font-medium text-foreground">
-                Connect Other Wallet
               </span>
             </li>
           </ul>
@@ -320,13 +313,13 @@ export const suggestedApps: SuggestedApp[] = [
                 Connect to Primal
               </Link>
             </li>
-            <li>4. Set app's wallet permissions (full access recommended)</li>
+            <li>4. Set app's wallet permissions (full access recommended) and click on "Next"</li>
           </ul>
         </div>
         <div>
           <h3 className="font-medium">In Primal</h3>
           <ul className="list-inside text-muted-foreground">
-            <li>5. Scan or paste the connection secret from Alby Hub</li>
+            <li>5. Click on "Paste NWC String" or "Scan NWC QR Code" to connect Alby Hub</li>
           </ul>
         </div>
       </>
