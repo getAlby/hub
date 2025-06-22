@@ -1285,10 +1285,11 @@ export const suggestedApps: SuggestedApp[] = [
               to create a new app connection
             </li>
             <li>
-              2. Set permissions to "Receive payments" - this allows NakaPay to
-              create Lightning invoices on behalf of your business. When
-              customers pay these invoices, the payments go directly to your Hub
-              wallet (you remain in full control of your funds)
+              2. Choose "Custom" permissions and select: "Read your balance",
+              "Create invoices", and "Send payments". This allows NakaPay to
+              check your wallet balance, create invoices for customers, and
+              process fee payments - all while your funds remain in your Hub
+              wallet
             </li>
             <li>
               3. Copy the NWC connection string that starts with{" "}
