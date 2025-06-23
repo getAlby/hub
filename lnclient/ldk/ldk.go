@@ -501,10 +501,12 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
 	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
-	var paymentHash string
+	saturationPowerInt, _ := strconv.Atoi(ls.cfg.GetEnv().LDKMaxChannelSaturationPowerOfHalf)
+	saturationPower := uint8(saturationPowerInt)
 	maxTotalRoutingFeeMsat := getMaxTotalRoutingFeeLimit(paymentAmountMsat)
 	sendingParams := &ldk_node.SendingParameters{
-		MaxTotalRoutingFeeMsat: &maxTotalRoutingFeeMsat,
+		MaxTotalRoutingFeeMsat:          &maxTotalRoutingFeeMsat,
+		MaxChannelSaturationPowerOfHalf: &saturationPower,
 	}
 
 	invoiceObj, err := checkLDKErr(ldk_node.Bolt11InvoiceFromStr(invoice))
@@ -513,6 +515,7 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 		return nil, err
 	}
 
+	var paymentHash string
 	if amount == nil {
 		paymentHash, err = checkLDKErr(ls.node.Bolt11Payment().Send(invoiceObj, sendingParams))
 	} else {
@@ -606,9 +609,12 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
 	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
+	saturationPowerInt, _ := strconv.Atoi(ls.cfg.GetEnv().LDKMaxChannelSaturationPowerOfHalf)
+	saturationPower := uint8(saturationPowerInt)
 	maxTotalRoutingFeeMsat := getMaxTotalRoutingFeeLimit(amount)
 	sendingParams := &ldk_node.SendingParameters{
-		MaxTotalRoutingFeeMsat: &maxTotalRoutingFeeMsat,
+		MaxTotalRoutingFeeMsat:          &maxTotalRoutingFeeMsat,
+		MaxChannelSaturationPowerOfHalf: &saturationPower,
 	}
 
 	paymentHash, err := checkLDKErr(ls.node.SpontaneousPayment().SendWithTlvsAndPreimage(amount, destination, sendingParams, customTlvs, &preimage))
