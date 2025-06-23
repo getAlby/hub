@@ -313,13 +313,19 @@ export const suggestedApps: SuggestedApp[] = [
                 Connect to Primal
               </Link>
             </li>
-            <li>4. Set app's wallet permissions (full access recommended) and click on "Next"</li>
+            <li>
+              4. Set app's wallet permissions (full access recommended) and
+              click on "Next"
+            </li>
           </ul>
         </div>
         <div>
           <h3 className="font-medium">In Primal</h3>
           <ul className="list-inside text-muted-foreground">
-            <li>5. Click on "Paste NWC String" or "Scan NWC QR Code" to connect Alby Hub</li>
+            <li>
+              5. Click on "Paste NWC String" or "Scan NWC QR Code" to connect
+              Alby Hub
+            </li>
           </ul>
         </div>
       </>
