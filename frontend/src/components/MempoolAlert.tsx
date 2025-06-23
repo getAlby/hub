@@ -1,6 +1,7 @@
 import { TriangleAlertIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { ExternalLinkButton } from "src/components/ui/button";
+import { MEMPOOL_URL } from "src/constants";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 
 export function MempoolAlert({ className }: { className?: string }) {
@@ -41,11 +42,7 @@ export function MempoolAlert({ className }: { className?: string }) {
           >
             Learn more
           </ExternalLinkButton>
-          <ExternalLinkButton
-            to="https://mempool.space"
-            size={"sm"}
-            variant="secondary"
-          >
+          <ExternalLinkButton to={MEMPOOL_URL} size={"sm"} variant="secondary">
             View fees on mempool
           </ExternalLinkButton>
         </div>

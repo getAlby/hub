@@ -13,6 +13,7 @@ import { Button } from "src/components/ui/button";
 import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useToast } from "src/components/ui/use-toast";
+import { MEMPOOL_URL } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -241,7 +242,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                 />
               </div>
               <ExternalLink
-                to={`https://mempool.space/tx/${fundingTxId}`}
+                to={`${MEMPOOL_URL}/tx/${fundingTxId}`}
                 className="underline flex items-center mt-2"
               >
                 View on Mempool

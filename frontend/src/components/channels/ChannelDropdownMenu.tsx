@@ -20,6 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu.tsx";
+import { MEMPOOL_URL } from "src/constants";
 import { Channel } from "src/types";
 
 type ChannelDropdownMenuProps = {
@@ -58,7 +59,7 @@ export function ChannelDropdownMenu({
         <DropdownMenuContent align="end">
           <DropdownMenuItem className="flex flex-row items-center gap-2 cursor-pointer">
             <ExternalLink
-              to={`https://mempool.space/tx/${channel.fundingTxId}#flow=&vout=${channel.fundingTxVout}`}
+              to={`${MEMPOOL_URL}/tx/${channel.fundingTxId}#flow=&vout=${channel.fundingTxVout}`}
               className="w-full flex flex-row items-center gap-2"
             >
               <ExternalLinkIcon className="w-4 h-4" />

@@ -19,3 +19,6 @@ export const SUPPORT_ALBY_CONNECTION_NAME = `ZapPlanner - Alby Hub`;
 export const SUPPORT_ALBY_LIGHTNING_ADDRESS = "hub@getalby.com";
 
 export const SUBWALLET_APPSTORE_APP_ID = "uncle-jim";
+
+export const MEMPOOL_URL =
+  import.meta.env.VITE_MEMPOOL_URL || "https://mempool.space";
