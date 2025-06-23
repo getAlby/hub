@@ -62,6 +62,7 @@ type Config interface {
 	GetJWTSecret() string
 	GetRelayUrl() string
 	GetNetwork() string
+	GetMempoolUrl() string
 	GetEnv() *AppConfig
 	CheckUnlockPassword(password string) bool
 	ChangeUnlockPassword(currentUnlockPassword string, newUnlockPassword string) error
