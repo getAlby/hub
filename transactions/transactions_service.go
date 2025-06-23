@@ -633,7 +633,7 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 		return nil, NewNotFoundError()
 	}
 
-	if transaction.State == constants.TRANSACTION_STATE_PENDING {
+	if transaction.State == constants.TRANSACTION_STATE_PENDING || transaction.State == constants.TRANSACTION_STATE_ACCEPTED {
 		svc.checkUnsettledTransaction(ctx, &transaction, lnClient)
 	}
 
@@ -667,9 +667,21 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 	if !unpaidOutgoing && !unpaidIncoming {
 		tx = tx.Where("state = ?", constants.TRANSACTION_STATE_SETTLED)
 	} else if unpaidOutgoing && !unpaidIncoming {
-		tx = tx.Where("state = ? OR type = ?", constants.TRANSACTION_STATE_SETTLED, constants.TRANSACTION_TYPE_OUTGOING)
+		tx = tx.Where("state = ? OR (type = ? AND state IN (?, ?, ?, ?))", 
+			constants.TRANSACTION_STATE_SETTLED, 
+			constants.TRANSACTION_TYPE_OUTGOING,
+			constants.TRANSACTION_STATE_PENDING,
+			constants.TRANSACTION_STATE_FAILED,
+			constants.TRANSACTION_STATE_EXPIRED,
+			constants.TRANSACTION_STATE_ACCEPTED)
 	} else if unpaidIncoming && !unpaidOutgoing {
-		tx = tx.Where("state = ? OR type = ?", constants.TRANSACTION_STATE_SETTLED, constants.TRANSACTION_TYPE_INCOMING)
+		tx = tx.Where("state = ? OR (type = ? AND state IN (?, ?, ?, ?))", 
+			constants.TRANSACTION_STATE_SETTLED, 
+			constants.TRANSACTION_TYPE_INCOMING,
+			constants.TRANSACTION_STATE_PENDING,
+			constants.TRANSACTION_STATE_FAILED,
+			constants.TRANSACTION_STATE_EXPIRED,
+			constants.TRANSACTION_STATE_ACCEPTED)
 	}
 
 	if transactionType != nil {
@@ -716,9 +728,12 @@ func (svc *transactionsService) checkUnsettledTransactions(ctx context.Context, 
 		return
 	}
 
-	// check pending payments less than a day old
+	// check pending and accepted payments less than a day old
 	transactions := []Transaction{}
-	result := svc.db.Where("state = ? AND created_at > ?", constants.TRANSACTION_STATE_PENDING, time.Now().Add(-24*time.Hour)).Find(&transactions)
+	result := svc.db.Where("state IN (?, ?) AND created_at > ?", 
+		constants.TRANSACTION_STATE_PENDING, 
+		constants.TRANSACTION_STATE_ACCEPTED,
+		time.Now().Add(-24*time.Hour)).Find(&transactions)
 	if result.Error != nil {
 		logger.Logger.WithError(result.Error).Error("Failed to list DB transactions")
 		return
@@ -729,6 +744,14 @@ func (svc *transactionsService) checkUnsettledTransactions(ctx context.Context, 
 }
 func (svc *transactionsService) checkUnsettledTransaction(ctx context.Context, transaction *db.Transaction, lnClient lnclient.LNClient) {
 	if slices.Contains(lnClient.GetSupportedNIP47NotificationTypes(), "payment_received") {
+		return
+	}
+
+	// Check if the transaction has expired
+	if transaction.ExpiresAt != nil && time.Now().After(*transaction.ExpiresAt) {
+		if transaction.State == constants.TRANSACTION_STATE_PENDING || transaction.State == constants.TRANSACTION_STATE_ACCEPTED {
+			svc.markTransactionExpired(transaction)
+		}
 		return
 	}
 
@@ -1438,4 +1461,27 @@ func (svc *transactionsService) markPaymentFailed(tx *gorm.DB, dbTransaction *db
 		Properties: dbTransaction,
 	})
 	return nil
+}
+
+func (svc *transactionsService) markTransactionExpired(dbTransaction *db.Transaction) {
+	err := svc.db.Model(dbTransaction).Updates(map[string]interface{}{
+		"State":         constants.TRANSACTION_STATE_EXPIRED,
+		"FailureReason": "Transaction expired",
+	}).Error
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"payment_hash": dbTransaction.PaymentHash,
+		}).WithError(err).Error("Failed to mark transaction as expired")
+		return
+	}
+	
+	logger.Logger.WithFields(logrus.Fields{
+		"payment_hash": dbTransaction.PaymentHash,
+		"type":         dbTransaction.Type,
+	}).Info("Marked transaction as expired")
+
+	svc.eventPublisher.Publish(&events.Event{
+		Event:      "nwc_payment_expired",
+		Properties: dbTransaction,
+	})
 }
