@@ -43,7 +43,7 @@ export default function ConfirmPayment() {
       navigate(`/wallet/send/success`, {
         state: {
           preimage: payInvoiceResponse.preimage,
-          invoice: invoice,
+          invoice,
         },
       });
       toast({

@@ -19,17 +19,17 @@ export default function PaymentSuccess() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const invoice = state?.invoice as Invoice;
-
   useEffect(() => {
     if (!state?.preimage) {
       navigate("/wallet/send");
     }
   }, [state, navigate]);
 
-  if (!state?.preimage) {
+  if (!state?.preimage || !state?.invoice) {
     return null;
   }
+
+  const invoice = state?.invoice as Invoice;
 
   const copy = () => {
     copyToClipboard(state.preimage as string, toast);
