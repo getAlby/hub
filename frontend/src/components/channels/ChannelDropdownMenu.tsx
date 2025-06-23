@@ -20,7 +20,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu.tsx";
-import { MEMPOOL_URL } from "src/constants";
+import { DEFAULT_MEMPOOL_URL } from "src/constants";
+import { useInfo } from "src/hooks/useInfo";
 import { Channel } from "src/types";
 
 type ChannelDropdownMenuProps = {
@@ -32,6 +33,7 @@ export function ChannelDropdownMenu({
   alias,
   channel,
 }: ChannelDropdownMenuProps) {
+  const { data: info } = useInfo();
   const [searchParams] = useSearchParams();
   const [dialog, setDialog] = React.useState<"closeChannel" | "routingFee">();
 
@@ -59,7 +61,7 @@ export function ChannelDropdownMenu({
         <DropdownMenuContent align="end">
           <DropdownMenuItem className="flex flex-row items-center gap-2 cursor-pointer">
             <ExternalLink
-              to={`${MEMPOOL_URL}/tx/${channel.fundingTxId}#flow=&vout=${channel.fundingTxVout}`}
+              to={`${info?.mempoolUrl || DEFAULT_MEMPOOL_URL}/tx/${channel.fundingTxId}#flow=&vout=${channel.fundingTxVout}`}
               className="w-full flex flex-row items-center gap-2"
             >
               <ExternalLinkIcon className="w-4 h-4" />

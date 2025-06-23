@@ -20,5 +20,4 @@ export const SUPPORT_ALBY_LIGHTNING_ADDRESS = "hub@getalby.com";
 
 export const SUBWALLET_APPSTORE_APP_ID = "uncle-jim";
 
-export const MEMPOOL_URL =
-  import.meta.env.VITE_MEMPOOL_URL || "https://mempool.space";
+export const DEFAULT_MEMPOOL_URL = "https://mempool.space";

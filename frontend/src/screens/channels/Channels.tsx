@@ -55,7 +55,7 @@ import {
 } from "src/components/ui/tooltip.tsx";
 import { useToast } from "src/components/ui/use-toast.ts";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
-import { MEMPOOL_URL, ONCHAIN_DUST_SATS } from "src/constants.ts";
+import { DEFAULT_MEMPOOL_URL, ONCHAIN_DUST_SATS } from "src/constants.ts";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useBalances } from "src/hooks/useBalances.ts";
 import { useChannels } from "src/hooks/useChannels";
@@ -631,7 +631,7 @@ export default function Channels() {
                       ({new Intl.NumberFormat().format(details.amount)}{" "}
                       sats)&nbsp;
                       <ExternalLink
-                        to={`${MEMPOOL_URL}/tx/${details.fundingTxId}#flow=&vout=${details.fundingTxVout}`}
+                        to={`${info?.mempoolUrl || DEFAULT_MEMPOOL_URL}/tx/${details.fundingTxId}#flow=&vout=${details.fundingTxVout}`}
                         className="underline"
                       >
                         funding tx

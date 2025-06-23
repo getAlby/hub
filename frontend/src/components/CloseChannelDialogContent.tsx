@@ -13,9 +13,10 @@ import { Button } from "src/components/ui/button";
 import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useToast } from "src/components/ui/use-toast";
-import { MEMPOOL_URL } from "src/constants";
+import { DEFAULT_MEMPOOL_URL } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
+import { useInfo } from "src/hooks/useInfo";
 import { copyToClipboard } from "src/lib/clipboard";
 import { formatAmount } from "src/lib/utils";
 import { Channel, CloseChannelResponse } from "src/types";
@@ -38,6 +39,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
   const [closeType, setCloseType] = React.useState("normal");
   const [step, setStep] = React.useState(channel.active ? 2 : 1);
   const [fundingTxId, setFundingTxId] = React.useState("");
+  const { data: info } = useInfo();
   const { mutate: reloadBalances } = useBalances();
   const { data: channels, mutate: reloadChannels } = useChannels();
   const { toast } = useToast();
@@ -242,7 +244,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                 />
               </div>
               <ExternalLink
-                to={`${MEMPOOL_URL}/tx/${fundingTxId}`}
+                to={`${info?.mempoolUrl || DEFAULT_MEMPOOL_URL}/tx/${fundingTxId}`}
                 className="underline flex items-center mt-2"
               >
                 View on Mempool

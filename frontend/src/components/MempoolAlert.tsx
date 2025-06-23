@@ -1,10 +1,12 @@
 import { TriangleAlertIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { ExternalLinkButton } from "src/components/ui/button";
-import { MEMPOOL_URL } from "src/constants";
+import { DEFAULT_MEMPOOL_URL } from "src/constants";
+import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 
 export function MempoolAlert({ className }: { className?: string }) {
+  const { data: info } = useInfo();
   const { data: recommendedFees } = useMempoolApi<{ fastestFee: number }>(
     "/v1/fees/recommended",
     true
@@ -42,7 +44,11 @@ export function MempoolAlert({ className }: { className?: string }) {
           >
             Learn more
           </ExternalLinkButton>
-          <ExternalLinkButton to={MEMPOOL_URL} size={"sm"} variant="secondary">
+          <ExternalLinkButton
+            to={info?.mempoolUrl || DEFAULT_MEMPOOL_URL}
+            size={"sm"}
+            variant="secondary"
+          >
             View fees on mempool
           </ExternalLinkButton>
         </div>
