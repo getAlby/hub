@@ -162,6 +162,7 @@ export interface InfoResponse {
   autoUnlockPasswordEnabled: boolean;
   currency: string;
   nodeAlias: string;
+  mempoolUrl: string;
 }
 
 export type HealthAlarmKind =

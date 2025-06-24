@@ -631,7 +631,7 @@ export default function Channels() {
                       ({new Intl.NumberFormat().format(details.amount)}{" "}
                       sats)&nbsp;
                       <ExternalLink
-                        to={`https://mempool.space/tx/${details.fundingTxId}#flow=&vout=${details.fundingTxVout}`}
+                        to={`${info?.mempoolUrl}/tx/${details.fundingTxId}#flow=&vout=${details.fundingTxVout}`}
                         className="underline"
                       >
                         funding tx
