@@ -68,8 +68,14 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 		}
 		logger.Logger.WithFields(logrus.Fields{
 			"iteration": i,
-		}).WithError(err).Error("Failed to connect to LND, retrying in 10s")
-		time.Sleep(10 * time.Second)
+		}).WithError(err).Error("Failed to connect to LND, retrying in 30s")
+
+		select {
+		case <-time.After(30 * time.Second):
+		case <-ctx.Done():
+			logger.Logger.WithError(ctx.Err()).Error("Context cancelled during LND connection retries")
+			return nil, ctx.Err()
+		}
 	}
 
 	if err != nil {
