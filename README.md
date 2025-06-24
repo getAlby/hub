@@ -215,6 +215,13 @@ _To configure via env, the following parameters must be provided:_
 - `LDK_ESPLORA_SERVER=https://mempool.space/testnet/api`
 - `LDK_GOSSIP_SOURCE=https://rapidsync.lightningdevkit.org/testnet/snapshot`
 
+###### Connect to your own bitcoind
+
+- `LDK_BITCOIND_RPC_HOST=127.0.0.1`
+- `LDK_BITCOIND_RPC_PORT=8332`
+- `LDK_BITCOIND_RPC_USER=yourusername`
+- `LDK_BITCOIND_RPC_PASSWORD=yourpassword`
+
 ### Phoenixd
 
 See [Phoenixd](scripts/linux-x86_64/phoenixd/README.md)
@@ -399,15 +406,15 @@ Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/script
 
 #### Quick start (Raspberry PI 4/5)
 
-Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/scripts/pi-aarch64) which you can run as a service.
+Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/scripts/pi-aarch64) which you can run as a service. (Experimental – we cannot provide support for installations on Raspberry PI 4/5.)
 
 #### Quick start (Raspberry PI Zero)
 
-Go to the [Quick start script](https://github.com/getAlby/hub/tree/master/scripts/pi-arm) which you can run as a service.
+Go to the [Quick start script](https://github.com/getAlby/hub/tree/master/scripts/pi-arm) which you can run as a service. (Experimental – we cannot provide support for installations on Raspberry PI Zero.)
 
 #### Quick start (Desktop)
 
-View the [release binaries](https://github.com/getAlby/hub/releases/latest)
+View the [release binaries](https://github.com/getAlby/hub/releases/latest). Please use a desktop computer that is always online. 
 
 #### Manual (x86 Linux Server)
 

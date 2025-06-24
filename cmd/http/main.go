@@ -25,7 +25,11 @@ func main() {
 	signal.Notify(osSignalChannel, os.Interrupt, syscall.SIGTERM)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	svc, _ := service.NewService(ctx)
+	svc, err := service.NewService(ctx)
+	if err != nil {
+		log.WithError(err).Fatal("Failed to create service")
+		return
+	}
 
 	e := echo.New()
 
@@ -54,7 +58,7 @@ func main() {
 	logger.Logger.Info("Shutting down echo server...")
 	ctx, cancel = context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	err := e.Shutdown(ctx)
+	err = e.Shutdown(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to shutdown echo server")
 	}

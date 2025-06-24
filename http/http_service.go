@@ -135,6 +135,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/node/network-graph", httpSvc.nodeNetworkGraphHandler)
 	restrictedApiGroup.POST("/node/migrate-storage", httpSvc.migrateNodeStorageHandler)
 	restrictedApiGroup.GET("/node/transactions", httpSvc.listOnchainTransactionsHandler)
+	restrictedApiGroup.POST("/node/alias", httpSvc.setNodeAliasHandler)
 	restrictedApiGroup.GET("/peers", httpSvc.listPeers)
 	restrictedApiGroup.POST("/peers", httpSvc.connectPeerHandler)
 	restrictedApiGroup.DELETE("/peers/:peerId", httpSvc.disconnectPeerHandler)
@@ -1330,6 +1331,24 @@ func (httpSvc *HttpService) disableAutoSwapOutHandler(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) setNodeAliasHandler(c echo.Context) error {
+	var setNodeAliasRequest api.SetNodeAliasRequest
+	if err := c.Bind(&setNodeAliasRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.api.SetNodeAlias(setNodeAliasRequest.NodeAlias)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to set node alias: %s", err.Error()),
 		})
 	}
 

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/logger"
@@ -169,6 +170,11 @@ func (cfg *config) GetNetwork() string {
 	return "bitcoin"
 }
 
+func (cfg *config) GetMempoolUrl() string {
+	mempoolApiUrl := cfg.GetEnv().MempoolApi
+	return strings.TrimSuffix(mempoolApiUrl, "/api")
+}
+
 func (cfg *config) Get(key string, encryptionKey string) (string, error) {
 	return cfg.get(key, encryptionKey, cfg.db)
 }
@@ -236,7 +242,7 @@ func (cfg *config) SetUpdate(key string, value string, encryptionKey string) err
 
 func (cfg *config) ChangeUnlockPassword(currentUnlockPassword string, newUnlockPassword string) error {
 	if newUnlockPassword == "" {
-		return errors.New("New unlock password must not be empty")
+		return errors.New("new unlock password must not be empty")
 	}
 	if !cfg.CheckUnlockPassword(currentUnlockPassword) {
 		return errors.New("incorrect password")

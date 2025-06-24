@@ -161,6 +161,8 @@ export interface InfoResponse {
   autoUnlockPasswordSupported: boolean;
   autoUnlockPasswordEnabled: boolean;
   currency: string;
+  nodeAlias: string;
+  mempoolUrl: string;
 }
 
 export type HealthAlarmKind =
@@ -474,6 +476,9 @@ export type AlbyMe = {
   shared_node: boolean;
   hub: {
     name?: string;
+    config?: {
+      region?: string;
+    };
   };
   subscription: {
     plan_code: string;

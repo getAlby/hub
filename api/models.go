@@ -71,6 +71,7 @@ type API interface {
 	GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error)
 	EnableAutoSwapOut(ctx context.Context, autoSwapRequest *EnableAutoSwapRequest) error
 	DisableAutoSwap() error
+	SetNodeAlias(nodeAlias string) error
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
 	SendEvent(event string)
@@ -252,10 +253,16 @@ type InfoResponse struct {
 	AutoUnlockPasswordEnabled   bool      `json:"autoUnlockPasswordEnabled"`
 	Currency                    string    `json:"currency"`
 	Relay                       string    `json:"relay"`
+	NodeAlias                   string    `json:"nodeAlias"`
+	MempoolUrl                  string    `json:"mempoolUrl"`
 }
 
 type UpdateSettingsRequest struct {
 	Currency string `json:"currency"`
+}
+
+type SetNodeAliasRequest struct {
+	NodeAlias string `json:"nodeAlias"`
 }
 
 type MnemonicRequest struct {
