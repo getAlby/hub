@@ -399,11 +399,11 @@ Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/script
 
 #### Quick start (Raspberry PI 4/5)
 
-Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/scripts/pi-aarch64) which you can run as a service. (Experimental – we cannot provide support for installations on Raspberry Pi 4/5.)
+Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/scripts/pi-aarch64) which you can run as a service. (Experimental – we cannot provide support for installations on Raspberry PI 4/5.)
 
 #### Quick start (Raspberry PI Zero)
 
-Go to the [Quick start script](https://github.com/getAlby/hub/tree/master/scripts/pi-arm) which you can run as a service. (Experimental – we cannot provide support for installations on Raspberry Pi Zero.)
+Go to the [Quick start script](https://github.com/getAlby/hub/tree/master/scripts/pi-arm) which you can run as a service. (Experimental – we cannot provide support for installations on Raspberry PI Zero.)
 
 #### Quick start (Desktop)
 
