@@ -126,7 +126,29 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	builder.SetNodeAlias(alias)
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
 	builder.SetNetwork(network)
-	builder.SetChainSourceEsplora(cfg.GetEnv().LDKEsploraServer, nil)
+	var chainSource string
+	if cfg.GetEnv().LDKBitcoindRpcHost != "" {
+		logger.Logger.WithFields(logrus.Fields{
+			"rpc_host": cfg.GetEnv().LDKBitcoindRpcHost,
+			"rpc_port": cfg.GetEnv().LDKBitcoindRpcPort,
+		}).Info("Using LDK node bitcoin RPC chain source")
+		port, err := strconv.ParseUint(cfg.GetEnv().LDKBitcoindRpcPort, 10, 16)
+		if err != nil {
+			return nil, err
+		}
+		builder.SetChainSourceBitcoindRpc(cfg.GetEnv().LDKBitcoindRpcHost, uint16(port), cfg.GetEnv().LDKBitcoindRpcUser, cfg.GetEnv().LDKBitcoindRpcPassword)
+		chainSource = "bitcoind_rpc"
+	} else {
+		logger.Logger.WithFields(logrus.Fields{
+			"esplora_url": cfg.GetEnv().LDKEsploraServer,
+		}).Info("Using LDK node esplora chain source")
+		builder.SetChainSourceEsplora(cfg.GetEnv().LDKEsploraServer, &ldk_node.EsploraSyncConfig{
+			// turn off background sync - we manage syncs ourselves
+			BackgroundSyncConfig: nil,
+		})
+		chainSource = "esplora"
+	}
+
 	if cfg.GetEnv().LDKGossipSource != "" {
 		logger.Logger.WithField("gossipSource", cfg.GetEnv().LDKGossipSource).Warn("LDK RGS instance set")
 		builder.SetGossipSourceRgs(cfg.GetEnv().LDKGossipSource)
@@ -155,6 +177,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		"vss_enabled":         vssToken != "",
 		"node_alias":          alias,
 		"listening_addresses": listeningAddresses,
+		"chain_source":        chainSource,
 	}).Info("Creating LDK node")
 	setStartupState("Loading node data...")
 	var node *ldk_node.Node
@@ -248,7 +271,6 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 				"sync_type":    "full",
 				"initial_sync": true,
 				"node_type":    config.LDKBackendType,
-				"esplora_url":  ls.cfg.GetEnv().LDKEsploraServer,
 			},
 		})
 
@@ -348,10 +370,9 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 						ls.eventPublisher.Publish(&events.Event{
 							Event: "nwc_node_sync_failed",
 							Properties: map[string]interface{}{
-								"error":       err.Error(),
-								"sync_type":   "fee_estimates",
-								"node_type":   config.LDKBackendType,
-								"esplora_url": ls.cfg.GetEnv().LDKEsploraServer,
+								"error":     err.Error(),
+								"sync_type": "fee_estimates",
+								"node_type": config.LDKBackendType,
 							},
 						})
 						continue
@@ -369,10 +390,9 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 					ls.eventPublisher.Publish(&events.Event{
 						Event: "nwc_node_sync_failed",
 						Properties: map[string]interface{}{
-							"error":       err.Error(),
-							"sync_type":   "full",
-							"node_type":   config.LDKBackendType,
-							"esplora_url": ls.cfg.GetEnv().LDKEsploraServer,
+							"error":     err.Error(),
+							"sync_type": "full",
+							"node_type": config.LDKBackendType,
 						},
 					})
 
