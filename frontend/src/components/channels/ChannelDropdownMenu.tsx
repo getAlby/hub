@@ -20,6 +20,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu.tsx";
+import { useInfo } from "src/hooks/useInfo";
 import { Channel } from "src/types";
 
 type ChannelDropdownMenuProps = {
@@ -31,6 +32,7 @@ export function ChannelDropdownMenu({
   alias,
   channel,
 }: ChannelDropdownMenuProps) {
+  const { data: info } = useInfo();
   const [searchParams] = useSearchParams();
   const [dialog, setDialog] = React.useState<"closeChannel" | "routingFee">();
 
@@ -58,7 +60,7 @@ export function ChannelDropdownMenu({
         <DropdownMenuContent align="end">
           <DropdownMenuItem className="flex flex-row items-center gap-2 cursor-pointer">
             <ExternalLink
-              to={`https://mempool.space/tx/${channel.fundingTxId}#flow=&vout=${channel.fundingTxVout}`}
+              to={`${info?.mempoolUrl}/tx/${channel.fundingTxId}#flow=&vout=${channel.fundingTxVout}`}
               className="w-full flex flex-row items-center gap-2"
             >
               <ExternalLinkIcon className="w-4 h-4" />
