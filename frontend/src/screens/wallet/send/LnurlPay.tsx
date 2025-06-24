@@ -2,17 +2,22 @@ import { LightningAddress } from "@getalby/lightning-tools";
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
+import { SpendingAlert } from "src/components/SpendingAlert";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
+import { useBalances } from "src/hooks/useBalances";
+import { useInfo } from "src/hooks/useInfo";
 import { TransactionMetadata } from "src/types";
 
 export default function LnurlPay() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { hasChannelManagement } = useInfo();
+  const { data: balances } = useBalances();
 
   const lnAddress = state?.args?.lnAddress as LightningAddress;
   const identifier = lnAddress.lnurlpData?.identifier;
@@ -61,12 +66,19 @@ export default function LnurlPay() {
     }
   }, [navigate, lnAddress]);
 
-  if (!lnAddress) {
+  if (!balances || !lnAddress) {
     return <Loading />;
   }
 
   return (
     <form onSubmit={onSubmit} className="grid gap-4">
+      {hasChannelManagement &&
+        parseInt(amount || "0") * 1000 >=
+          balances.lightning.nextMaxSpendableMPP -
+            Math.max(
+              0.01 * balances.lightning.nextMaxSpendableMPP,
+              10000
+            ) /* fee reserve */ && <SpendingAlert />}
       <div>
         <p className="font-medium text-lg mb-2">{lnAddress.address}</p>
         {lnAddress.lnurlpData?.description && (
