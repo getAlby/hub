@@ -32,6 +32,7 @@ type AppConfig struct {
 	LDKGossipSource                    string `envconfig:"LDK_GOSSIP_SOURCE"`
 	LDKLogLevel                        string `envconfig:"LDK_LOG_LEVEL" default:"3"`
 	LDKMaxChannelSaturationPowerOfHalf string `envconfig:"LDK_MAX_CHANNEL_SATURATION" default:"2"`
+	LDKMaxPathCount                    string `envconfig:"LDK_MAX_PATH_COUNT" default:"10"`
 	LDKVssUrl                          string `envconfig:"LDK_VSS_URL" default:"https://vss.getalbypro.com/vss"`
 	LDKListeningAddresses              string `envconfig:"LDK_LISTENING_ADDRESSES" default:"0.0.0.0:9735,[::]:9735"`
 	LDKTransientNetworkGraph           bool   `envconfig:"LDK_TRANSIENT_NETWORK_GRAPH" default:"false"`
