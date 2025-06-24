@@ -13,7 +13,6 @@ import { Button } from "src/components/ui/button";
 import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useToast } from "src/components/ui/use-toast";
-import { DEFAULT_MEMPOOL_URL } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
@@ -244,7 +243,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                 />
               </div>
               <ExternalLink
-                to={`${info?.mempoolUrl || DEFAULT_MEMPOOL_URL}/tx/${fundingTxId}`}
+                to={`${info?.mempoolUrl}/tx/${fundingTxId}`}
                 className="underline flex items-center mt-2"
               >
                 View on Mempool

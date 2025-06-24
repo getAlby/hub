@@ -26,7 +26,7 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
-import { DEFAULT_MEMPOOL_URL, ONCHAIN_DUST_SATS } from "src/constants";
+import { ONCHAIN_DUST_SATS } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
@@ -144,7 +144,7 @@ export default function WithdrawOnchainFunds() {
           />
         </div>
         <ExternalLink
-          to={`${info?.mempoolUrl || DEFAULT_MEMPOOL_URL}/tx/${transactionId}`}
+          to={`${info?.mempoolUrl}/tx/${transactionId}`}
           className="underline flex items-center mt-2"
         >
           View on Mempool
@@ -310,7 +310,7 @@ export default function WithdrawOnchainFunds() {
                         High priority: {recommendedFees.fastestFee}
                       </Button>{" "}
                       <ExternalLink
-                        to={info?.mempoolUrl || DEFAULT_MEMPOOL_URL}
+                        to={info?.mempoolUrl}
                         className="underline ml-2"
                       >
                         mempool.space
