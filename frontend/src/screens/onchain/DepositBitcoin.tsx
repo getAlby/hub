@@ -1,30 +1,73 @@
-import { CopyIcon, CreditCardIcon, RefreshCwIcon } from "lucide-react";
+import {
+  CircleCheckIcon,
+  CopyIcon,
+  CreditCardIcon,
+  RefreshCwIcon,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import QRCode from "src/components/QRCode";
 import { Button } from "src/components/ui/button";
-import { Card, CardContent } from "src/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "src/components/ui/card";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
+import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
+import { useSyncWallet } from "src/hooks/useSyncWallet";
 import { copyToClipboard } from "src/lib/clipboard";
+import { MempoolUtxo } from "src/types";
 
 export default function DepositBitcoin() {
+  useSyncWallet();
   const {
     data: onchainAddress,
     getNewAddress,
     loadingAddress,
   } = useOnchainAddress();
   const { toast } = useToast();
+  const { data: mempoolAddressUtxos } = useMempoolApi<MempoolUtxo[]>(
+    onchainAddress ? `/address/${onchainAddress}/utxo` : undefined,
+    3000
+  );
+
+  const [txId, setTxId] = useState("");
+  const [confirmedAmount, setConfirmedAmount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!mempoolAddressUtxos || mempoolAddressUtxos.length === 0) {
+      return;
+    }
+
+    if (txId) {
+      const utxo = mempoolAddressUtxos.find((utxo) => utxo.txid === txId);
+      if (utxo?.status.confirmed) {
+        setConfirmedAmount(utxo.value);
+      }
+    } else {
+      const unconfirmed = mempoolAddressUtxos.find(
+        (utxo) => !utxo.status.confirmed
+      );
+      if (unconfirmed) {
+        toast({
+          title: "Incoming transaction",
+          description: `${unconfirmed.value} sats on the way`,
+        });
+        setTxId(unconfirmed.txid);
+      }
+    }
+  }, [mempoolAddressUtxos, toast, txId]);
 
   if (!onchainAddress) {
-    return (
-      <div className="flex justify-center">
-        <Loading />
-      </div>
-    );
+    return <Loading />;
   }
 
   return (
@@ -43,50 +86,82 @@ export default function DepositBitcoin() {
       />
       <MempoolAlert />
       <div className="w-80">
-        <Card>
-          <CardContent className="grid gap-6 p-8 justify-center border border-muted">
-            <a
-              href={`bitcoin:${onchainAddress}`}
-              target="_blank"
-              className="flex justify-center"
-            >
-              <QRCode value={onchainAddress} />
-            </a>
-
-            <div className="text-center">
-              {onchainAddress.match(/.{1,4}/g)?.map((word, index) => {
-                if (index % 2 === 0) {
-                  return <span className="text-foreground">{word} </span>;
-                } else {
-                  return <span className="text-muted-foreground">{word} </span>;
-                }
-              })}
-            </div>
-
-            <div className="flex flex-row gap-4 justify-center">
-              <LoadingButton
-                variant="outline"
-                onClick={getNewAddress}
-                className="w-28"
-                loading={loadingAddress}
+        {confirmedAmount ? (
+          <DepositSuccess amount={confirmedAmount} />
+        ) : (
+          <Card>
+            <CardContent className="grid gap-6 p-8 justify-center border border-muted">
+              <a
+                href={`bitcoin:${onchainAddress}`}
+                target="_blank"
+                className="flex justify-center"
               >
-                {!loadingAddress && <RefreshCwIcon className="w-4 h-4 mr-2" />}
-                Change
-              </LoadingButton>
-              <Button
-                variant="secondary"
-                className="w-28"
-                onClick={() => {
-                  copyToClipboard(onchainAddress, toast);
-                }}
-              >
-                <CopyIcon className="w-4 h-4 mr-2" />
-                Copy
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                <QRCode value={onchainAddress} />
+              </a>
+
+              <div className="break-all text-center">
+                {onchainAddress.match(/.{1,4}/g)?.map((word, index) => {
+                  if (index % 2 === 0) {
+                    return <span className="text-foreground mr-2">{word}</span>;
+                  } else {
+                    return (
+                      <span className="text-muted-foreground mr-2">{word}</span>
+                    );
+                  }
+                })}
+              </div>
+
+              <div className="flex flex-row gap-4 justify-center">
+                <LoadingButton
+                  variant="outline"
+                  onClick={getNewAddress}
+                  className="w-28"
+                  loading={loadingAddress}
+                >
+                  {!loadingAddress && (
+                    <RefreshCwIcon className="w-4 h-4 mr-2" />
+                  )}
+                  Change
+                </LoadingButton>
+                <Button
+                  variant="secondary"
+                  className="w-28"
+                  onClick={() => {
+                    copyToClipboard(onchainAddress, toast);
+                  }}
+                >
+                  <CopyIcon className="w-4 h-4 mr-2" />
+                  Copy
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
+  );
+}
+
+function DepositSuccess({ amount }: { amount: number }) {
+  return (
+    <>
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="text-center">Payment Received!</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center gap-4">
+          <CircleCheckIcon className="w-72 h-72 p-2" />
+          <div className="flex flex-col gap-2 items-center">
+            <p className="text-xl font-semibold slashed-zero">
+              {new Intl.NumberFormat().format(amount)} sats
+            </p>
+            <FormattedFiatAmount amount={amount} />
+          </div>
+        </CardContent>
+      </Card>
+      <Link to="/channels">
+        <Button className="mt-4 w-full">Back To Node</Button>
+      </Link>
+    </>
   );
 }

@@ -2,6 +2,7 @@ import React from "react";
 import {
   ConnectPeerRequest,
   MempoolNode,
+  MempoolUtxo,
   NewChannelOrder,
   OpenChannelRequest,
   OpenChannelResponse,
@@ -227,9 +228,9 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
     loadingAddress,
   } = useOnchainAddress();
 
-  const { data: mempoolAddressUtxos } = useMempoolApi<{ value: number }[]>(
+  const { data: mempoolAddressUtxos } = useMempoolApi<MempoolUtxo[]>(
     onchainAddress ? `/address/${onchainAddress}/utxo` : undefined,
-    true
+    3000
   );
   const estimatedTransactionFee = useEstimatedTransactionFee();
 
