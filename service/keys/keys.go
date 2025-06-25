@@ -100,14 +100,7 @@ func (keys *keys) Init(cfg config.Config, encryptionKey string) error {
 	}
 	keys.appKey = appKey
 
-	swapIndex := uint32(bip32.FirstHardenedChild + 128260 /* 🔄 */)
-	swapMasterKey, err := masterKey.NewChildKey(swapIndex)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to derive swap master key")
-		return err
-	}
-
-	mnemonic, err = keys.GetSwapMnemonic(swapMasterKey)
+	swapMnemonic, err := keys.GetSwapMnemonic(masterKey)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to generate swap mnemonic")
 		return err
@@ -119,7 +112,7 @@ func (keys *keys) Init(cfg config.Config, encryptionKey string) error {
 		netParams = &chaincfg.TestNet3Params
 	}
 
-	swapKey, err := hdkeychain.NewMaster(bip39.NewSeed(mnemonic, ""), netParams)
+	swapKey, err := hdkeychain.NewMaster(bip39.NewSeed(swapMnemonic, ""), netParams)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create seed from swap mnemonic")
 		return err
@@ -183,6 +176,17 @@ func (keys *keys) GetSwapKey(swapID uint) (*btcec.PrivateKey, error) {
 
 // Taken from https://github.com/e4coder/bip85/blob/main/bip85.go
 func (keys *keys) GetSwapMnemonic(key *bip32.Key) (string, error) {
+	swapIndex := uint32(bip32.FirstHardenedChild + 128260 /* 🔄 */)
+	path := []uint32{bip32.FirstHardenedChild + 83696968, bip32.FirstHardenedChild + 39, bip32.FirstHardenedChild + 0, bip32.FirstHardenedChild + 12, swapIndex}
+
+	for _, index := range path {
+		var err error
+		key, err = key.NewChildKey(index)
+		if err != nil {
+			return "", err
+		}
+	}
+
 	hash := hmac.New(sha512.New, []byte("bip-entropy-from-k"))
 	_, err := hash.Write(key.Key)
 	if err != nil {
