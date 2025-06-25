@@ -166,6 +166,27 @@ The following configuration options can be set as environment variables or in a 
 - `BOLTZ_API`: The api which provides auto swaps functionality. Default: "https://api.boltz.exchange"
 - `NETWORK`: On-chain network used for auto swaps. Should match the backend network. Default: "bitcoin"
 
+### Boltz Regtest Setup
+
+There is a boltz regtest fork with mempool service and alby-specific instructions [here](https://github.com/rolznz/boltz-regtest/tree/alby-hub?tab=readme-ov-file#your-first-swap)
+
+Make sure to update your RPC password below, and change your work directory each time you restart boltz (it is ephemeral):
+
+    WORK_DIR=.data/boltz-regtest-1
+    LDK_BITCOIND_RPC_HOST="127.0.0.1"
+    LDK_BITCOIND_RPC_PORT="18443"
+    LDK_BITCOIND_RPC_USER="__cookie__"
+    LDK_BITCOIND_RPC_PASSWORD="f7460d81974b000b63e46c0e880243cf28bbaf93938b6e38494628f1f1700f23"
+    # or use esplora
+    #LDK_ESPLORA_SERVER=http://localhost:4002/api
+    NETWORK="regtest"
+    LDK_LISTENING_ADDRESSES="0.0.0.0:19735"
+    BOLTZ_API=http://localhost:9001
+    PORT=8082
+    MEMPOOL_API=http://localhost:8123/api
+
+And then run the frontend with: `VITE_API_URL="http://localhost:8082" yarn dev:http`
+
 ### Migrating the database (Sqlite <-> Postgres)
 
 Migration of the database is currently experimental. Please make a backup before continuing.
@@ -414,7 +435,7 @@ Go to the [Quick start script](https://github.com/getAlby/hub/tree/master/script
 
 #### Quick start (Desktop)
 
-View the [release binaries](https://github.com/getAlby/hub/releases/latest). Please use a desktop computer that is always online. 
+View the [release binaries](https://github.com/getAlby/hub/releases/latest). Please use a desktop computer that is always online.
 
 #### Manual (x86 Linux Server)
 
