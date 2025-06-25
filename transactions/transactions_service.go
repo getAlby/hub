@@ -1487,12 +1487,12 @@ func (svc *transactionsService) markSwapStatus(tx *gorm.DB, swapId string, state
 	}).Error
 
 	if err != nil {
-		logger.Logger.WithField("swapId", swapId).WithError(err).Errorf("could not find swap to mark as %s", state)
+		logger.Logger.WithField("swapId", swapId).WithError(err).Errorf("Could not find swap to mark as %s", state)
 		return err
 	}
 
 	if existingSwap.State == state {
-		logger.Logger.WithField("swapId", swapId).Infof("swap already marked as %s", state)
+		logger.Logger.WithField("swapId", swapId).Infof("Swap already marked as %s", state)
 		return nil
 	}
 
