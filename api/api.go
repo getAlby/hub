@@ -545,8 +545,8 @@ func (api *api) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnec
 	return api.svc.GetLNClient().GetNodeConnectionInfo(ctx)
 }
 
-func (api *api) ProcessSwapRefund(swapId string) error {
-	return api.svc.GetSwapsService().ProcessRefund(swapId)
+func (api *api) RefundSwap(swapId string) error {
+	return api.svc.GetSwapsService().RefundSwap(swapId)
 }
 
 func (api *api) GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error) {

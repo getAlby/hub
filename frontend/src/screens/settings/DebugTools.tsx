@@ -135,7 +135,7 @@ function ProbeKeysendDialogContent({ apiRequest }: Props) {
   );
 }
 
-function SwapRefundDialogContent() {
+function RefundSwapDialogContent() {
   const [swapId, setSwapId] = React.useState<string>("");
   const { toast } = useToast();
 
@@ -163,7 +163,7 @@ function SwapRefundDialogContent() {
   return (
     <AlertDialogContent>
       <AlertDialogHeader>
-        <AlertDialogTitle className="capitalize">Swap Refund</AlertDialogTitle>
+        <AlertDialogTitle className="capitalize">Refund Swap</AlertDialogTitle>
         <AlertDialogDescription className="text-start">
           <Label htmlFor="swapId" className="block mb-2">
             Enter swap-in id
@@ -275,7 +275,7 @@ export default function DebugTools() {
   const [dialog, setDialog] = React.useState<
     | "probeInvoice"
     | "probeKeysend"
-    | "swapRefund"
+    | "refundSwap"
     | "getAppLogs"
     | "getNodeLogs"
     | "getNetworkGraph"
@@ -351,8 +351,8 @@ export default function DebugTools() {
             List Swaps
           </Button>
           <AlertDialogTrigger asChild>
-            <Button variant={"outline"} onClick={() => setDialog("swapRefund")}>
-              Swap Refund
+            <Button variant={"outline"} onClick={() => setDialog("refundSwap")}>
+              Refund Swap
             </Button>
           </AlertDialogTrigger>
           <AlertDialogTrigger asChild>
@@ -443,7 +443,7 @@ export default function DebugTools() {
           {dialog === "probeKeysend" && (
             <ProbeKeysendDialogContent apiRequest={apiRequest} />
           )}
-          {dialog === "swapRefund" && <SwapRefundDialogContent />}
+          {dialog === "refundSwap" && <RefundSwapDialogContent />}
           {(dialog === "getAppLogs" || dialog === "getNodeLogs") && (
             <GetLogsDialogContent
               apiRequest={apiRequest}
