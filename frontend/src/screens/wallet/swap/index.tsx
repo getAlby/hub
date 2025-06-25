@@ -103,7 +103,7 @@ function SwapInForm() {
       if (!swapInResponse) {
         throw new Error("Error swapping in");
       }
-      navigate(`/wallet/swap/status/${swapInResponse.swapId}`);
+      navigate(`/wallet/swap/in/status/${swapInResponse.swapId}`);
       toast({ title: "Initiated swap" });
     } catch (error) {
       toast({
@@ -227,7 +227,7 @@ function SwapOutForm() {
       if (!swapOutResponse) {
         throw new Error("Error swapping out");
       }
-      navigate(`/wallet/swap/status/${swapOutResponse.swapId}`);
+      navigate(`/wallet/swap/out/status/${swapOutResponse.swapId}`);
       toast({ title: "Initiated swap" });
     } catch (error) {
       toast({

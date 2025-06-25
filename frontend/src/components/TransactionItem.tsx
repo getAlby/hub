@@ -242,7 +242,7 @@ function TransactionItem({ tx }: Props) {
               <div className="mt-8">
                 <p>Boltz Swap Id</p>
                 <Link
-                  to={`/wallet/swap/status/${swapId}`}
+                  to={`/wallet/swap/${type === "incoming" ? "in" : "out"}/status/${swapId}`}
                   className="flex items-center gap-1"
                 >
                   <p className="underline">{swapId}</p>

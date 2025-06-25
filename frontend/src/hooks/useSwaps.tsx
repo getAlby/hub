@@ -15,8 +15,8 @@ const pollConfiguration: SWRConfiguration = {
   refreshInterval: 3000,
 };
 
-export function useSwap(swapId: string, poll = false) {
-  return useSWR<Swap>(
+export function useSwap<T = Swap>(swapId: string, poll = false) {
+  return useSWR<T>(
     `/api/swaps/${swapId}`,
     swrFetcher,
     poll ? pollConfiguration : undefined
