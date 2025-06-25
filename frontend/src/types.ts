@@ -218,6 +218,8 @@ type BaseSwap = {
   boltzPubkey: string;
   createdAt: string;
   updatedAt: string;
+  lockupTxId?: string;
+  claimTxId?: string;
 };
 
 export type SwapIn = BaseSwap & {
@@ -225,8 +227,6 @@ export type SwapIn = BaseSwap & {
   address: string;
   amountReceived: number;
   destination?: never;
-  lockupTxId?: string;
-  claimTxId?: string;
 };
 
 export type SwapOut = BaseSwap & {
@@ -234,8 +234,6 @@ export type SwapOut = BaseSwap & {
   destination: string;
   address?: never;
   amountReceived?: number;
-  lockupTxId?: string;
-  claimTxId?: string;
 };
 
 export type Swap = SwapIn | SwapOut;

@@ -927,7 +927,7 @@ func (svc *swapsService) getFeeRates() (*FeeRates, error) {
 }
 
 func (svc *swapsService) markSwapState(dbSwap *db.Swap, state string) {
-	dbErr := svc.db.Model(&dbSwap).Update("state", state).Error
+	dbErr := svc.db.Model(dbSwap).Update("state", state).Error
 	if dbErr != nil {
 		logger.Logger.WithError(dbErr).WithField("swapId", dbSwap.SwapId).Error("Failed to update swap state")
 	}
