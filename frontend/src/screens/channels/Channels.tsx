@@ -77,7 +77,7 @@ export default function Channels() {
   const { data: channels } = useChannels();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const { data: info, hasChannelManagement } = useInfo();
-  const { data: balances } = useBalances();
+  const { data: balances } = useBalances(true);
   const navigate = useNavigate();
   const [nodes, setNodes] = React.useState<MempoolNode[]>([]);
   const [longUnconfirmedZeroConfChannels, setLongUnconfirmedZeroConfChannels] =
