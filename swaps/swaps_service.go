@@ -287,10 +287,10 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 			return err
 		}
 
-		err = tx.Model(&dbSwap).Updates(map[string]interface{}{
-			"swap_id":      swap.Id,
-			"boltz_pubkey": hex.EncodeToString(swap.RefundPublicKey),
-			"swap_tree":    datatypes.JSON(swapTreeJson),
+		err = tx.Model(&dbSwap).Updates(&db.Swap{
+			SwapId:      swap.Id,
+			BoltzPubkey: hex.EncodeToString(swap.RefundPublicKey),
+			SwapTree:    datatypes.JSON(swapTreeJson),
 		}).Error
 		if err != nil {
 			return err
@@ -489,9 +489,9 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 
 						swapState = constants.SWAP_STATE_SUCCESS
 
-						err = svc.db.Model(&dbSwap).Updates(map[string]interface{}{
-							"claim_tx_id":     claimTxId,
-							"amount_received": claimAmount,
+						err = svc.db.Model(&dbSwap).Updates(&db.Swap{
+							ClaimTxId:      claimTxId,
+							AmountReceived: claimAmount,
 						}).Error
 						if err != nil {
 							logger.Logger.WithFields(logrus.Fields{
@@ -646,12 +646,12 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 			return err
 		}
 
-		err = tx.Model(&dbSwap).Updates(map[string]interface{}{
-			"swap_id":      swap.Id,
-			"amount_sent":  swap.ExpectedAmount,
-			"address":      swap.Address,
-			"boltz_pubkey": hex.EncodeToString(swap.ClaimPublicKey),
-			"swap_tree":    datatypes.JSON(swapTreeJson),
+		err = tx.Model(&dbSwap).Updates(&db.Swap{
+			SwapId:      swap.Id,
+			AmountSent:  swap.ExpectedAmount,
+			Address:     swap.Address,
+			BoltzPubkey: hex.EncodeToString(swap.ClaimPublicKey),
+			SwapTree:    datatypes.JSON(swapTreeJson),
 		}).Error
 		if err != nil {
 			return err
@@ -819,6 +819,8 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 							logger.Logger.WithError(err).WithFields(logrus.Fields{
 								"swapId": swap.Id,
 							}).Error("Could not process refund")
+						} else {
+							swapState = constants.SWAP_STATE_REFUNDED
 						}
 						return
 					}
@@ -927,6 +929,14 @@ func (svc *swapsService) getFeeRates() (*FeeRates, error) {
 }
 
 func (svc *swapsService) markSwapState(dbSwap *db.Swap, state string) {
+	if svc.db.Limit(1).Find(dbSwap, &db.Swap{
+		SwapId: dbSwap.SwapId,
+		State:  state,
+	}).RowsAffected > 0 {
+		logger.Logger.WithField("swapId", dbSwap.SwapId).Debugf("swap already marked as %s", state)
+		return
+	}
+
 	dbErr := svc.db.Model(dbSwap).Update("state", state).Error
 	if dbErr != nil {
 		logger.Logger.WithError(dbErr).WithField("swapId", dbSwap.SwapId).Error("Failed to update swap state")
@@ -1077,9 +1087,10 @@ func (svc *swapsService) RefundSwap(swapId string) error {
 		"claimTxId": claimTxId,
 	}).Info("Claim transaction broadcasted for refund")
 
-	err = svc.db.Model(&swap).Updates(map[string]interface{}{
-		"claim_tx_id":     claimTxId,
-		"amount_received": refundAmount,
+	err = svc.db.Model(&swap).Updates(&db.Swap{
+		ClaimTxId:      claimTxId,
+		AmountReceived: refundAmount,
+		State:          constants.SWAP_STATE_REFUNDED,
 	}).Error
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
