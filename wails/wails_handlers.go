@@ -301,7 +301,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	switch {
 	case len(refundSwapIdMatch) > 1:
 		swapId := refundSwapIdMatch[1]
-		err := app.api.ProcessSwapRefund(swapId)
+		err := app.api.RefundSwap(swapId)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}

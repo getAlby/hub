@@ -135,7 +135,7 @@ function SwapInStatus({ swap }: { swap: SwapIn }) {
     setPaying(false);
   }
 
-  async function processRefund() {
+  async function refundSwap() {
     setProcessingRefund(true);
     try {
       const response = await request(`/api/swaps/refund/${swap.id}`, {
@@ -203,9 +203,9 @@ function SwapInStatus({ swap }: { swap: SwapIn }) {
               {swap.lockupTxId && !swap.claimTxId && (
                 <LoadingButton
                   loading={isProcessingRefund}
-                  onClick={processRefund}
+                  onClick={refundSwap}
                 >
-                  Process Refund
+                  Refund Swap
                 </LoadingButton>
               )}
             </>
@@ -308,7 +308,7 @@ function SwapInStatus({ swap }: { swap: SwapIn }) {
                           Lockup usually fails when there is an amount mismatch
                           or if Hub was shut down during the swap process.
                           {!swap.claimTxId &&
-                            " You can use the Process Refund button to claim the locked up bitcoin."}
+                            " You can use the Refund Swap button to claim the locked up bitcoin."}
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>

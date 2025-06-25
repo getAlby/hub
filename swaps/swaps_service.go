@@ -51,7 +51,7 @@ type SwapsService interface {
 	SwapIn(amount uint64, autoSwap bool) (*SwapResponse, error)
 	CalculateSwapOutFee() (*SwapFees, error)
 	CalculateSwapInFee() (*SwapFees, error)
-	ProcessRefund(swapId string) error
+	RefundSwap(swapId string) error
 	GetSwap(swapId string) (*Swap, error)
 	ListSwaps() ([]Swap, error)
 }
@@ -750,7 +750,7 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 							"update": update,
 						}).Info("Swap in failed, initiating refund")
 
-						err := svc.ProcessRefund(swap.Id)
+						err := svc.RefundSwap(swap.Id)
 						if err != nil {
 							logger.Logger.WithError(err).Error("Could not process refund")
 						}
@@ -867,7 +867,7 @@ func (svc *swapsService) markSwapState(dbSwap *db.Swap, state string) {
 	}
 }
 
-func (svc *swapsService) ProcessRefund(swapId string) error {
+func (svc *swapsService) RefundSwap(swapId string) error {
 	var swap db.Swap
 	err := svc.db.Limit(1).Find(&swap, &db.Swap{
 		SwapId: swapId,
