@@ -355,7 +355,6 @@ function SwapInStatus({ swap }: { swap: SwapIn }) {
 function SwapOutStatus({ swap }: { swap: SwapOut }) {
   const { data: info } = useInfo();
   const { toast } = useToast();
-  const { data: info } = useInfo();
   const { isDarkMode } = useTheme();
 
   const copyTxId = () => {
