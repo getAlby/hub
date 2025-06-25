@@ -33,6 +33,7 @@ import {
 } from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
+import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useSwap } from "src/hooks/useSwaps";
 import { useSyncWallet } from "src/hooks/useSyncWallet";
@@ -63,6 +64,7 @@ export default function SwapStatus() {
 
 function SwapInStatus({ swap }: { swap: SwapIn }) {
   const { toast } = useToast();
+  const { data: info } = useInfo();
   const { data: balances } = useBalances();
   const { isDarkMode } = useTheme();
   const { data: recommendedFees } = useMempoolApi<{
@@ -259,7 +261,7 @@ function SwapInStatus({ swap }: { swap: SwapIn }) {
                     <div className="flex items-center gap-2">
                       <p>Lockup confirmed.</p>
                       <ExternalLink
-                        to={`https://mempool.space/tx/${swap.lockupTxId}`}
+                        to={`${info?.mempoolUrl}/tx/${swap.lockupTxId}`}
                         className="flex items-center underline text-foreground"
                       >
                         View
@@ -278,7 +280,7 @@ function SwapInStatus({ swap }: { swap: SwapIn }) {
                         <div className="flex items-center gap-2">
                           <p>Refund initiated.</p>
                           <ExternalLink
-                            to={`https://mempool.space/tx/${swap.lockupTxId}`}
+                            to={`${info?.mempoolUrl}/tx/${swap.lockupTxId}`}
                             className="flex items-center underline text-foreground"
                           >
                             View
@@ -296,7 +298,7 @@ function SwapInStatus({ swap }: { swap: SwapIn }) {
                           <div className="flex items-center gap-2">
                             <p>Lockup failed</p>
                             <ExternalLink
-                              to={`https://mempool.space/tx/${swap.lockupTxId}`}
+                              to={`${info?.mempoolUrl}/tx/${swap.lockupTxId}`}
                               className="flex items-center underline text-foreground"
                             >
                               View
@@ -328,7 +330,7 @@ function SwapInStatus({ swap }: { swap: SwapIn }) {
                     <div className="flex items-center gap-2">
                       <p>Lockup found in mempool.</p>
                       <ExternalLink
-                        to={`https://mempool.space/tx/${swap.lockupTxId}`}
+                        to={`${info?.mempoolUrl}/tx/${swap.lockupTxId}`}
                         className="flex items-center underline text-foreground"
                       >
                         View
@@ -351,6 +353,7 @@ function SwapInStatus({ swap }: { swap: SwapIn }) {
 }
 
 function SwapOutStatus({ swap }: { swap: SwapOut }) {
+  const { data: info } = useInfo();
   const { toast } = useToast();
   const { isDarkMode } = useTheme();
 
@@ -446,7 +449,7 @@ function SwapOutStatus({ swap }: { swap: SwapOut }) {
                           <div className="flex items-center gap-2">
                             <p>Claim tx broadcasted.</p>
                             <ExternalLink
-                              to={`https://mempool.space/tx/${swap.claimTxId}`}
+                              to={`${info?.mempoolUrl}/tx/${swap.claimTxId}`}
                               className="flex items-center underline text-foreground"
                             >
                               View
@@ -459,7 +462,7 @@ function SwapOutStatus({ swap }: { swap: SwapOut }) {
                           <div className="flex items-center gap-2">
                             <p>Lockup confirmed.</p>
                             <ExternalLink
-                              to={`https://mempool.space/tx/${swap.lockupTxId}`}
+                              to={`${info?.mempoolUrl}/tx/${swap.lockupTxId}`}
                               className="flex items-center underline text-foreground"
                             >
                               View
@@ -479,7 +482,7 @@ function SwapOutStatus({ swap }: { swap: SwapOut }) {
                           <div className="flex items-center gap-2">
                             <p>Lockup found in mempool.</p>
                             <ExternalLink
-                              to={`https://mempool.space/tx/${swap.lockupTxId}`}
+                              to={`${info?.mempoolUrl}/tx/${swap.lockupTxId}`}
                               className="flex items-center underline text-foreground"
                             >
                               View
