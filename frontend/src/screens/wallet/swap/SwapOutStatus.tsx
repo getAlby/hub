@@ -24,14 +24,13 @@ import { useToast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";
 import { useSwap } from "src/hooks/useSwaps";
 import { copyToClipboard } from "src/lib/clipboard";
-import { SwapOut } from "src/types";
 
 export default function SwapOutStatus() {
   const { toast } = useToast();
   const { data: info } = useInfo();
   const { isDarkMode } = useTheme();
   const { swapId } = useParams() as { swapId: string };
-  const { data: swap } = useSwap<SwapOut>(swapId, true);
+  const { data: swap } = useSwap(swapId, true);
 
   if (!swap) {
     return <Loading />;
@@ -54,6 +53,7 @@ export default function SwapOutStatus() {
   const statusText = {
     SUCCESS: "Swap Successful",
     FAILED: "Swap Failed",
+    REFUNDED: "Swap Refunded",
     PENDING: swap.lockupTxId
       ? "Waiting for lockup confirmation"
       : "Waiting for deposit from boltz",
@@ -77,11 +77,11 @@ export default function SwapOutStatus() {
                 <div className="flex flex-col gap-2 items-center">
                   <p className="text-xl font-bold slashed-zero text-center">
                     {new Intl.NumberFormat().format(
-                      swap.amountReceived as number
+                      swap.receivedAmount as number
                     )}{" "}
                     sats
                   </p>
-                  <FormattedFiatAmount amount={swap.amountReceived as number} />
+                  <FormattedFiatAmount amount={swap.receivedAmount as number} />
                 </div>
                 <div className="flex justify-center gap-4 flex-wrap">
                   <Button onClick={copyTxId} variant="outline">
@@ -96,11 +96,11 @@ export default function SwapOutStatus() {
                 <CircleXIcon className="w-60 h-60" />
                 <div className="flex flex-col gap-2 items-center">
                   <p className="text-xl font-bold slashed-zero text-center">
-                    ~{new Intl.NumberFormat().format(swap.amountSent)} sats
+                    ~{new Intl.NumberFormat().format(swap.sendAmount)} sats
                   </p>
                   <div className="flex items-center">
                     <span className="text-sm text-muted-foreground">~</span>
-                    <FormattedFiatAmount amount={swap.amountSent} />
+                    <FormattedFiatAmount amount={swap.sendAmount} />
                   </div>
                 </div>
               </>
@@ -110,11 +110,11 @@ export default function SwapOutStatus() {
                 <Lottie options={defaultOptions} />
                 <div className="flex flex-col gap-2 items-center">
                   <p className="text-xl font-bold slashed-zero text-center">
-                    ~{new Intl.NumberFormat().format(swap.amountSent)} sats
+                    ~{new Intl.NumberFormat().format(swap.sendAmount)} sats
                   </p>
                   <div className="flex items-center">
                     <span className="text-sm text-muted-foreground">~</span>
-                    <FormattedFiatAmount amount={swap.amountSent} />
+                    <FormattedFiatAmount amount={swap.sendAmount} />
                   </div>
                 </div>
               </>

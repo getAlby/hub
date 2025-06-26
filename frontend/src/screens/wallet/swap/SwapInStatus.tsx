@@ -38,7 +38,7 @@ import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useSwap } from "src/hooks/useSwaps";
 import { useSyncWallet } from "src/hooks/useSyncWallet";
 import { copyToClipboard } from "src/lib/clipboard";
-import { RedeemOnchainFundsResponse, SwapIn } from "src/types";
+import { RedeemOnchainFundsResponse } from "src/types";
 import { request } from "src/utils/request";
 
 export default function SwapInStatus() {
@@ -54,7 +54,7 @@ export default function SwapInStatus() {
   }>("/v1/fees/recommended");
   useSyncWallet(); // ensure funds show up on node page after swap completes
   const { swapId } = useParams() as { swapId: string };
-  const { data: swap } = useSwap<SwapIn>(swapId, true);
+  const { data: swap } = useSwap(swapId, true);
 
   const [feeRate, setFeeRate] = useState("");
   const [isPaying, setPaying] = useState(false);
@@ -75,7 +75,7 @@ export default function SwapInStatus() {
   };
 
   const copyAddress = () => {
-    copyToClipboard(swap.address, toast);
+    copyToClipboard(swap.destinationAddress, toast);
   };
 
   const defaultOptions = {
@@ -104,8 +104,8 @@ export default function SwapInStatus() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            toAddress: swap.address,
-            amount: swap.amountSent,
+            toAddress: swap.destinationAddress,
+            amount: swap.sendAmount,
             feeRate: +feeRate,
           }),
         }
@@ -155,6 +155,7 @@ export default function SwapInStatus() {
   const statusText = {
     SUCCESS: "Swap Successful",
     FAILED: "Swap Failed",
+    REFUNDED: "Swap Refunded",
     PENDING: swap.lockupTxId
       ? "Confirming on-chain deposit"
       : "Waiting for deposit",
@@ -177,9 +178,9 @@ export default function SwapInStatus() {
                 <CircleCheckIcon className="w-60 h-60" />
                 <div className="flex flex-col gap-2 items-center">
                   <p className="text-xl font-bold slashed-zero text-center">
-                    {new Intl.NumberFormat().format(swap.amountSent)} sats
+                    {new Intl.NumberFormat().format(swap.sendAmount)} sats
                   </p>
-                  <FormattedFiatAmount amount={swap.amountSent} />
+                  <FormattedFiatAmount amount={swap.sendAmount} />
                 </div>
                 <Button onClick={copyPaymentHash} variant="outline">
                   <CopyIcon className="w-4 h-4 mr-2" />
@@ -192,9 +193,9 @@ export default function SwapInStatus() {
                 <CircleXIcon className="w-60 h-60" />
                 <div className="flex flex-col gap-2 items-center">
                   <p className="text-xl font-bold slashed-zero text-center">
-                    {new Intl.NumberFormat().format(swap.amountSent)} sats
+                    {new Intl.NumberFormat().format(swap.sendAmount)} sats
                   </p>
-                  <FormattedFiatAmount amount={swap.amountSent} />
+                  <FormattedFiatAmount amount={swap.sendAmount} />
                 </div>
                 {swap.lockupTxId && !swap.claimTxId && (
                   <LoadingButton
@@ -212,12 +213,12 @@ export default function SwapInStatus() {
                   <Lottie options={defaultOptions} />
                 ) : (
                   <>
-                    <QRCode value={swap.address} />
+                    <QRCode value={swap.destinationAddress} />
                     <div className="flex flex-col gap-2 items-center">
                       <p className="text-xl font-bold slashed-zero text-center">
-                        {new Intl.NumberFormat().format(swap.amountSent)} sats
+                        {new Intl.NumberFormat().format(swap.sendAmount)} sats
                       </p>
-                      <FormattedFiatAmount amount={swap.amountSent} />
+                      <FormattedFiatAmount amount={swap.sendAmount} />
                     </div>
                     <div className="flex justify-center gap-4 flex-wrap">
                       <Button onClick={copyAddress} variant="outline">
@@ -227,7 +228,7 @@ export default function SwapInStatus() {
                       {balances &&
                         balances.onchain.spendable -
                           25000 /* anchor reserve */ >
-                          swap.amountSent && (
+                          swap.sendAmount && (
                           <LoadingButton
                             loading={isPaying}
                             onClick={payWithAlbyHub}

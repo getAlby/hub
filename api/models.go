@@ -160,20 +160,20 @@ type ListSwapsResponse struct {
 type LookupSwapResponse = Swap
 
 type Swap struct {
-	Id             string `json:"id"`
-	Type           string `json:"type"`
-	State          string `json:"state"`
-	Address        string `json:"address"`
-	AmountSent     uint64 `json:"amountSent"`
-	AmountReceived uint64 `json:"amountReceived"`
-	PaymentHash    string `json:"paymentHash"`
-	Destination    string `json:"destination"`
-	LockupTxId     string `json:"lockupTxId"`
-	ClaimTxId      string `json:"claimTxId"`
-	AutoSwap       bool   `json:"autoSwap"`
-	BoltzPubkey    string `json:"boltzPubkey"`
-	CreatedAt      string `json:"createdAt"`
-	UpdatedAt      string `json:"updatedAt"`
+	Id                 string `json:"id"`
+	Type               string `json:"type"`
+	State              string `json:"state"`
+	SendAmount         uint64 `json:"sendAmount"`
+	ReceivedAmount     uint64 `json:"receivedAmount"`
+	PaymentHash        string `json:"paymentHash"`
+	DestinationAddress string `json:"destinationAddress"`
+	RefundAddress      string `json:"refundAddress"`
+	LockupTxId         string `json:"lockupTxId"`
+	ClaimTxId          string `json:"claimTxId"`
+	AutoSwap           bool   `json:"autoSwap"`
+	BoltzPubkey        string `json:"boltzPubkey"`
+	CreatedAt          string `json:"createdAt"`
+	UpdatedAt          string `json:"updatedAt"`
 }
 
 type StartRequest struct {

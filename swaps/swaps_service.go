@@ -217,12 +217,12 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 	}
 
 	dbSwap := db.Swap{
-		Type:        constants.SWAP_TYPE_OUT,
-		State:       constants.SWAP_STATE_PENDING,
-		AmountSent:  amount,
-		Destination: destination,
-		PaymentHash: paymentHash,
-		AutoSwap:    autoSwap,
+		Type:               constants.SWAP_TYPE_OUT,
+		State:              constants.SWAP_STATE_PENDING,
+		SendAmount:         amount,
+		DestinationAddress: destination,
+		PaymentHash:        paymentHash,
+		AutoSwap:           autoSwap,
 	}
 
 	var tree *boltz.SwapTree
@@ -491,7 +491,7 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 
 						err = svc.db.Model(&dbSwap).Updates(&db.Swap{
 							ClaimTxId:      claimTxId,
-							AmountReceived: claimAmount,
+							ReceivedAmount: claimAmount,
 						}).Error
 						if err != nil {
 							logger.Logger.WithFields(logrus.Fields{
@@ -508,7 +508,7 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 							Properties: map[string]interface{}{
 								"swapType":    constants.SWAP_TYPE_OUT,
 								"swapId":      swap.Id,
-								"amount":      dbSwap.AmountReceived,
+								"amount":      dbSwap.ReceivedAmount,
 								"destination": destination,
 							},
 						})
@@ -576,11 +576,10 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 	}
 
 	dbSwap := db.Swap{
-		Type:           constants.SWAP_TYPE_IN,
-		State:          constants.SWAP_STATE_PENDING,
-		AmountReceived: amount,
-		PaymentHash:    invoice.PaymentHash,
-		AutoSwap:       autoSwap,
+		Type:        constants.SWAP_TYPE_IN,
+		State:       constants.SWAP_STATE_PENDING,
+		PaymentHash: invoice.PaymentHash,
+		AutoSwap:    autoSwap,
 	}
 
 	var tree *boltz.SwapTree
@@ -647,11 +646,11 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 		}
 
 		err = tx.Model(&dbSwap).Updates(&db.Swap{
-			SwapId:      swap.Id,
-			AmountSent:  swap.ExpectedAmount,
-			Address:     swap.Address,
-			BoltzPubkey: hex.EncodeToString(swap.ClaimPublicKey),
-			SwapTree:    datatypes.JSON(swapTreeJson),
+			SwapId:             swap.Id,
+			SendAmount:         swap.ExpectedAmount,
+			DestinationAddress: swap.Address,
+			BoltzPubkey:        hex.EncodeToString(swap.ClaimPublicKey),
+			SwapTree:           datatypes.JSON(swapTreeJson),
 		}).Error
 		if err != nil {
 			return err
@@ -798,6 +797,16 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 						}
 					case boltz.TransactionClaimed:
 						swapState = constants.SWAP_STATE_SUCCESS
+						err = svc.db.Model(&dbSwap).Updates(&db.Swap{
+							ReceivedAmount: amount,
+						}).Error
+						if err != nil {
+							logger.Logger.WithFields(logrus.Fields{
+								"swapId":         swap.Id,
+								"receivedAmount": amount,
+							}).WithError(err).Error("Failed to save received amount to swap")
+							return
+						}
 						logger.Logger.WithField("swapId", swap.Id).Info("Swap succeeded")
 						svc.eventPublisher.Publish(&events.Event{
 							Event: "nwc_swap_succeeded",
@@ -1017,7 +1026,7 @@ func (svc *swapsService) RefundSwap(swapId string) error {
 		return err
 	}
 
-	if err := tree.CheckAddress(swap.Address, network, nil); err != nil {
+	if err := tree.CheckAddress(swap.DestinationAddress, network, nil); err != nil {
 		return err
 	}
 
@@ -1026,7 +1035,7 @@ func (svc *swapsService) RefundSwap(swapId string) error {
 		logger.Logger.WithError(err).Error("Failed to build lockup tx from hex")
 		return err
 	}
-	vout, _, err := lockupTransaction.FindVout(network, swap.Address)
+	vout, _, err := lockupTransaction.FindVout(network, swap.DestinationAddress)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to find lockup address output")
 		return err
@@ -1036,7 +1045,7 @@ func (svc *swapsService) RefundSwap(swapId string) error {
 		logger.Logger.WithError(err).Error("Failed to fetch fee rate to create claim transaction")
 		return err
 	}
-	// TODO: generate a new key
+	// TODO: Use refundAddress
 	address, err := svc.cfg.Get(config.OnchainAddressKey, "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get on-chain address from config")
@@ -1089,7 +1098,7 @@ func (svc *swapsService) RefundSwap(swapId string) error {
 
 	err = svc.db.Model(&swap).Updates(&db.Swap{
 		ClaimTxId:      claimTxId,
-		AmountReceived: refundAmount,
+		ReceivedAmount: refundAmount,
 		State:          constants.SWAP_STATE_REFUNDED,
 	}).Error
 	if err != nil {

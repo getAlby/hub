@@ -603,20 +603,20 @@ func (api *api) ListSwaps() (*ListSwapsResponse, error) {
 
 func toApiSwap(swap *swaps.Swap) *Swap {
 	return &Swap{
-		Id:             swap.SwapId,
-		Type:           swap.Type,
-		State:          swap.State,
-		Address:        swap.Address,
-		AmountSent:     swap.AmountSent,
-		AmountReceived: swap.AmountReceived,
-		PaymentHash:    swap.PaymentHash,
-		Destination:    swap.Destination,
-		LockupTxId:     swap.LockupTxId,
-		ClaimTxId:      swap.ClaimTxId,
-		AutoSwap:       swap.AutoSwap,
-		BoltzPubkey:    swap.BoltzPubkey,
-		CreatedAt:      swap.CreatedAt.Format(time.RFC3339),
-		UpdatedAt:      swap.UpdatedAt.Format(time.RFC3339),
+		Id:                 swap.SwapId,
+		Type:               swap.Type,
+		State:              swap.State,
+		SendAmount:         swap.SendAmount,
+		ReceivedAmount:     swap.ReceivedAmount,
+		PaymentHash:        swap.PaymentHash,
+		DestinationAddress: swap.DestinationAddress,
+		RefundAddress:      swap.RefundAddress,
+		LockupTxId:         swap.LockupTxId,
+		ClaimTxId:          swap.ClaimTxId,
+		AutoSwap:           swap.AutoSwap,
+		BoltzPubkey:        swap.BoltzPubkey,
+		CreatedAt:          swap.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:          swap.UpdatedAt.Format(time.RFC3339),
 	}
 }
 
