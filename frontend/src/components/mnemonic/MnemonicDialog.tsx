@@ -33,7 +33,6 @@ export default function MnemonicDialog({
   const { mutate: refetchInfo } = useInfo();
   const [backedUp, setIsBackedUp] = useState<boolean>(false);
   const [backedUp2, setIsBackedUp2] = useState<boolean>(false);
-  const [isPrivate, setPrivate] = useState<boolean>(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -90,18 +89,7 @@ export default function MnemonicDialog({
                 secure place
               </Label>
             </div>
-            <div className="flex">
-              <Checkbox
-                id="private"
-                required
-                onCheckedChange={() => setPrivate(!isPrivate)}
-                className="mt-0.5"
-              />
-              <Label htmlFor="private" className="ml-2 text-sm text-foreground">
-                I'll NEVER share my recovery phrase with anyone, including Alby
-                support
-              </Label>
-            </div>
+
             {backedUp && !info?.albyAccountConnected && (
               <div className="flex">
                 <Checkbox
