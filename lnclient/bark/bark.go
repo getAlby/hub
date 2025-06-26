@@ -51,13 +51,13 @@ func NewBarkService(ctx context.Context, mnemonic, workdir string) (*BarkService
 			EsploraAddress: "https://esplora.signet.2nd.dev",
 		}
 
-		wallet, err = checkBindingsErr(bindings.CreateWallet(dbFilePath, mnemonic, barkConfig))
+		wallet, err = bindings.CreateWallet(dbFilePath, mnemonic, barkConfig)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to create Bark wallet")
 			return nil, err
 		}
 	} else {
-		wallet, err = checkBindingsErr(bindings.OpenWallet(dbFilePath, mnemonic))
+		wallet, err = bindings.OpenWallet(dbFilePath, mnemonic)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to open Bark wallet")
 			return nil, err
@@ -65,7 +65,7 @@ func NewBarkService(ctx context.Context, mnemonic, workdir string) (*BarkService
 	}
 
 	logger.Logger.Info("Performing wallet maintenance")
-	if err := wallet.Maintenance().AsError(); err != nil {
+	if err := wallet.Maintenance(); err != nil {
 		logger.Logger.WithError(err).Error("Failed to perform wallet maintenance")
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func NewBarkService(ctx context.Context, mnemonic, workdir string) (*BarkService
 
 		// Perform initial refresh on startup.
 		logger.Logger.Info("Refreshing vtxos")
-		if err := wallet.RefreshAll().AsError(); err != nil {
+		if err := wallet.RefreshAll(); err != nil {
 			logger.Logger.WithError(err).Error("Failed to refresh vtxos")
 		}
 
@@ -93,7 +93,7 @@ func NewBarkService(ctx context.Context, mnemonic, workdir string) (*BarkService
 			select {
 			case <-ticker.C:
 				logger.Logger.Info("Refreshing vtxos")
-				if err := wallet.RefreshAll().AsError(); err != nil {
+				if err := wallet.RefreshAll(); err != nil {
 					logger.Logger.WithError(err).Error("Failed to refresh vtxos")
 				}
 			case <-cctx.Done():
@@ -141,7 +141,7 @@ func (s *BarkService) SendPaymentSync(ctx context.Context, invoice string, amoun
 		customAmount = &customAmountSat
 	}
 
-	preimage, err := checkBindingsErr(s.wallet.PayBolt11(invoice, customAmount))
+	preimage, err := s.wallet.PayBolt11(invoice, customAmount)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"bolt11": invoice,
@@ -173,7 +173,7 @@ func (s *BarkService) GetPubkey() string {
 
 func (s *BarkService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
 	pk := s.wallet.OorPubkey()
-	arkInfo, err := checkBindingsErr(s.wallet.ArkInfo())
+	arkInfo, err := s.wallet.ArkInfo()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get Ark info")
 		return nil, err
@@ -258,7 +258,7 @@ func (s *BarkService) ResetRouter(key string) error {
 }
 
 func (s *BarkService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
-	balance, err := checkBindingsErr(s.wallet.Balance())
+	balance, err := s.wallet.Balance()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get Bark wallet balance")
 		return nil, err
@@ -271,7 +271,7 @@ func (s *BarkService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 }
 
 func (s *BarkService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
-	balance, err := checkBindingsErr(s.wallet.Balance())
+	balance, err := s.wallet.Balance()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get Bark wallet balance")
 		return nil, err
@@ -355,7 +355,7 @@ func (s *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 			},
 		}, nil
 	case nodeCommandMaintenance:
-		if err := s.wallet.Maintenance().AsError(); err != nil {
+		if err := s.wallet.Maintenance(); err != nil {
 			logger.Logger.WithError(err).Error("Failed to perform wallet maintenance")
 			return nil, err
 		}
@@ -363,11 +363,4 @@ func (s *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 	}
 
 	return nil, lnclient.ErrUnknownCustomNodeCommand
-}
-
-func checkBindingsErr[T any](val T, err error) (T, error) {
-	if e, ok := err.(bindings.NativeError); ok {
-		return val, e.AsError()
-	}
-	return val, err
 }
