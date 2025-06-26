@@ -113,6 +113,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	ldkConfig.ListeningAddresses = &listeningAddresses
 	logLevel, err := strconv.Atoi(cfg.GetEnv().LDKLogLevel)
 	if err != nil {
+		// If parsing log level fails we default to 3, which is then bumped below
 		logLevel = int(ldk_node.LogLevelDebug)
 	}
 	// LogLevelGossip is added due to bug in go bindings which uses an enum that starts at 1 instead of 0
