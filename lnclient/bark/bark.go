@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"time"
 
@@ -21,6 +22,14 @@ const vtxoRefreshInterval = 1 * time.Hour
 
 const nodeCommandPubkey = "pubkey"
 const nodeCommandMaintenance = "maintenance"
+const nodeCommandArkInfo = "ark_info"
+const nodeCommandListVTXOs = "list_vtxos"
+const nodeCommandGetBoardingAddress = "get_boarding_address"
+const nodeCommandSendOnchain = "send_onchain"
+const nodeCommandUnilateralExitAll = "unilateral_exit_all"
+const nodeCommandPollExitStatus = "poll_exit_status"
+const nodeCommandPayToArkAddress = "pay_to_ark_address"
+const nodeCommandListUTXOs = "list_utxos"
 
 type BarkService struct {
 	wallet *bindings.Wallet
@@ -352,6 +361,64 @@ func (s *BarkService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCom
 			Description: "Run Bark wallet maintenance.",
 			Args:        nil,
 		},
+		{
+			Name:        nodeCommandArkInfo,
+			Description: "Get information about the Ark network.",
+			Args:        nil,
+		},
+		{
+			Name:        nodeCommandListVTXOs,
+			Description: "List VTXOs.",
+			Args:        nil,
+		},
+		{
+			Name:        nodeCommandGetBoardingAddress,
+			Description: "Get the boarding address for the Ark network.",
+			Args:        nil,
+		},
+		{
+			Name:        nodeCommandSendOnchain,
+			Description: "Send funds onchain.",
+			Args: []lnclient.CustomNodeCommandArgDef{
+				{
+					Name:        "address",
+					Description: "Destination onchain address.",
+				},
+				{
+					Name:        "amount",
+					Description: "Amount to send, in satoshis.",
+				},
+			},
+		},
+		{
+			Name:        nodeCommandUnilateralExitAll,
+			Description: "Unilateral exit.",
+			Args:        nil,
+		},
+		{
+			Name:        nodeCommandPollExitStatus,
+			Description: "Poll the status of an exit.",
+			Args:        nil,
+		},
+		{
+			Name:        nodeCommandPayToArkAddress,
+			Description: "Pay to an Ark address.",
+			Args: []lnclient.CustomNodeCommandArgDef{
+				{
+					Name:        "destination",
+					Description: "Destination public key.",
+				},
+				{
+					Name:        "amount",
+					Description: "Amount to send, in satoshis.",
+				},
+			},
+		},
+		{
+			Name:        nodeCommandListUTXOs,
+			Description: "List UTXOs.",
+			Args:        nil,
+		},
 	}
 }
 
@@ -369,7 +436,246 @@ func (s *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 			return nil, err
 		}
 		return lnclient.NewCustomNodeCommandResponseEmpty(), nil
+	case nodeCommandArkInfo:
+		arkInfo, err := s.wallet.ArkInfo()
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to get Ark info")
+			return nil, err
+		}
+
+		return &lnclient.CustomNodeCommandResponse{
+			Response: map[string]interface{}{
+				"network":              arkInfo.Network,
+				"asp_pubkey":           arkInfo.AspPubkey,
+				"round_interval_sec":   arkInfo.RoundIntervalSec,
+				"nb_round_nonces":      arkInfo.NbRoundNonces,
+				"vtxo_exit_delta":      arkInfo.VtxoExitDelta,
+				"vtxo_expiry_delta":    arkInfo.VtxoExpiryDelta,
+				"max_vtxo_amount_sats": arkInfo.MaxVtxoAmountSats,
+			},
+		}, nil
+	case nodeCommandListVTXOs:
+		vtxos, err := s.wallet.Vtxos()
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to list VTXOs")
+			return nil, err
+		}
+
+		respVtxos := make([]map[string]interface{}, 0, len(vtxos))
+		for _, vtxo := range vtxos {
+			respVtxos = append(respVtxos, convertVtxoToCommandResp(vtxo))
+		}
+
+		return &lnclient.CustomNodeCommandResponse{
+			Response: map[string]interface{}{
+				"vtxos": respVtxos,
+			},
+		}, nil
+	case nodeCommandGetBoardingAddress:
+		boardAddress, err := s.wallet.OnchainAddress()
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to get boarding address")
+			return nil, err
+		}
+
+		return &lnclient.CustomNodeCommandResponse{
+			Response: map[string]interface{}{
+				"boarding_address": boardAddress,
+			},
+		}, nil
+	case nodeCommandSendOnchain:
+		var addr string
+		var amount uint64
+		for _, arg := range command.Args {
+			if arg.Name == "address" {
+				addr = arg.Value
+			} else if arg.Name == "amount" {
+				var err error
+				amount, err = strconv.ParseUint(arg.Value, 10, 64)
+				if err != nil {
+					logger.Logger.WithError(err).Error("Failed to parse amount for onchain send")
+					return nil, err
+				}
+			}
+		}
+
+		if addr == "" || amount == 0 {
+			err := errors.New("address and amount are required for onchain send")
+			logger.Logger.WithError(err).Error("Invalid arguments for onchain send")
+			return nil, err
+		}
+
+		txid, err := s.wallet.SendOnchain(addr, amount)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to send onchain transaction")
+			return nil, err
+		}
+
+		return &lnclient.CustomNodeCommandResponse{
+			Response: map[string]interface{}{
+				"txid": txid,
+			},
+		}, nil
+	case nodeCommandUnilateralExitAll:
+		if err := s.wallet.ExitAll(); err != nil {
+			logger.Logger.WithError(err).Error("Failed to perform unilateral exit")
+			return nil, err
+		}
+
+		return lnclient.NewCustomNodeCommandResponseEmpty(), nil
+	case nodeCommandPollExitStatus:
+		exitStatus, err := s.wallet.ExitStatus()
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to poll exit status")
+			return nil, err
+		}
+
+		return &lnclient.CustomNodeCommandResponse{
+			Response: map[string]interface{}{
+				"done":   exitStatus.Done,
+				"height": exitStatus.Height,
+			},
+		}, nil
+	case nodeCommandPayToArkAddress:
+		var destination string
+		var amount uint64
+		for _, arg := range command.Args {
+			if arg.Name == "destination" {
+				destination = arg.Value
+			} else if arg.Name == "amount" {
+				var err error
+				amount, err = strconv.ParseUint(arg.Value, 10, 64)
+				if err != nil {
+					logger.Logger.WithError(err).Error("Failed to parse amount for pay to Ark address")
+					return nil, err
+				}
+			}
+		}
+
+		if destination == "" || amount == 0 {
+			err := errors.New("destination and amount are required for pay to Ark address")
+			logger.Logger.WithError(err).Error("Invalid arguments for pay to Ark address")
+			return nil, err
+		}
+
+		vtxo, err := s.wallet.Send(destination, amount)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to pay to Ark address")
+			return nil, err
+		}
+
+		respVtxo := convertVtxoToCommandResp(vtxo)
+
+		return &lnclient.CustomNodeCommandResponse{
+			Response: map[string]interface{}{
+				"vtxo": respVtxo,
+			},
+		}, nil
+	case nodeCommandListUTXOs:
+		utxos := s.wallet.Utxos()
+
+		respUtxos := make([]map[string]interface{}, 0, len(utxos))
+		for _, utxo := range utxos {
+			respUtxos = append(respUtxos, convertUtxoToCommandResp(utxo))
+		}
+
+		return &lnclient.CustomNodeCommandResponse{
+			Response: map[string]interface{}{
+				"utxos": respUtxos,
+			},
+		}, nil
 	}
 
 	return nil, lnclient.ErrUnknownCustomNodeCommand
+}
+
+func convertVtxoToCommandResp(vtxo bindings.Vtxo) map[string]interface{} {
+	var respVtxo map[string]interface{}
+
+	switch vtxo := vtxo.(type) {
+	case bindings.VtxoBoard:
+		respVtxo = map[string]interface{}{
+			"type":              "board",
+			"user_pubkey":       vtxo.Spec.UserPubkey,
+			"asp_pubkey":        vtxo.Spec.AspPubkey,
+			"expiry_height":     vtxo.Spec.ExpiryHeight,
+			"amount_sat":        vtxo.Spec.AmountSat,
+			"outpoint_txid":     vtxo.OnchainOutput.Txid,
+			"outpoint_vout":     vtxo.OnchainOutput.Vout,
+			"exit_tx_signature": vtxo.ExitTxSignature,
+		}
+	case bindings.VtxoRound:
+		respVtxo = map[string]interface{}{
+			"type":          "round",
+			"user_pubkey":   vtxo.Spec.UserPubkey,
+			"asp_pubkey":    vtxo.Spec.AspPubkey,
+			"expiry_height": vtxo.Spec.ExpiryHeight,
+			"amount_sat":    vtxo.Spec.AmountSat,
+			"leaf_idx":      vtxo.LeafIdx,
+			"point_txid":    vtxo.Point.Txid,
+			"point_vout":    vtxo.Point.Vout,
+		}
+	case bindings.VtxoArkoor:
+		inputs := make([]map[string]interface{}, 0, len(vtxo.Inputs))
+		for _, input := range vtxo.Inputs {
+			inputs = append(inputs, convertVtxoToCommandResp(input))
+		}
+
+		signatures := make([]string, 0, len(vtxo.Signatures))
+		for _, sig := range vtxo.Signatures {
+			signatures = append(signatures, sig)
+		}
+
+		outputSpecs := make([]map[string]interface{}, 0, len(vtxo.OutputSpecs))
+		for _, spec := range vtxo.OutputSpecs {
+			outputSpecs = append(outputSpecs, map[string]interface{}{
+				"user_pubkey":   spec.UserPubkey,
+				"asp_pubkey":    spec.AspPubkey,
+				"expiry_height": spec.ExpiryHeight,
+				"amount_sat":    spec.AmountSat,
+			})
+		}
+
+		respVtxo = map[string]interface{}{
+			"type":         "arkoor",
+			"inputs":       inputs,
+			"signatures":   signatures,
+			"output_specs": outputSpecs,
+			"point_txid":   vtxo.Point.Txid,
+			"point_vout":   vtxo.Point.Vout,
+		}
+	default:
+		respVtxo = map[string]interface{}{
+			"type": "<unknown>",
+		}
+	}
+
+	return respVtxo
+}
+
+func convertUtxoToCommandResp(utxo bindings.Utxo) map[string]interface{} {
+	var respUtxo map[string]interface{}
+
+	switch utxo := utxo.(type) {
+	case bindings.UtxoLocal:
+		respUtxo = map[string]interface{}{
+			"type":      "local",
+			"txid":      utxo.Outpoint.Txid,
+			"vout":      utxo.Outpoint.Vout,
+			"value_sat": utxo.ValueSat,
+			"is_spent":  utxo.IsSpent,
+		}
+	case bindings.UtxoExit:
+		respUtxo = map[string]interface{}{
+			"type":                "exit",
+			"vtxo":                convertVtxoToCommandResp(utxo.Vtxo),
+			"spendable_at_height": utxo.SpendableAtHeight,
+		}
+	default:
+		respUtxo = map[string]interface{}{
+			"type": "<unknown>",
+		}
+	}
+
+	return respUtxo
 }
