@@ -26,6 +26,7 @@ import {
 } from "src/components/ui/alert-dialog";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
+import { Checkbox } from "src/components/ui/checkbox";
 
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
@@ -129,6 +130,18 @@ export default function Backup() {
                   Enter your unlock password to view your recovery phrase.
                 </p>
               </div>
+              {!!unlockPassword && (
+                <div className="flex">
+                  <Checkbox id="private" required className="mt-0.5" />
+                  <Label
+                    htmlFor="private"
+                    className="ml-2 text-sm text-foreground"
+                  >
+                    I'll NEVER share my recovery phrase with anyone, including
+                    Alby support
+                  </Label>
+                </div>
+              )}
               <div className="flex justify-start">
                 <LoadingButton
                   loading={loading}
