@@ -23,6 +23,9 @@ import { PayLightningInvoice } from "src/components/PayLightningInvoice";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import { ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL } from "src/constants";
 
+import LightningNetworkDarkSVG from "public/images/illustrations/lightning-network-dark.svg";
+import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
+
 export function FirstChannel() {
   const { data: info } = useInfo();
   const { data: channels } = useChannels(true);
@@ -167,11 +170,11 @@ export function FirstChannel() {
         <>
           <div className="flex flex-col gap-6 max-w-md text-muted-foreground">
             <img
-              src="/images/illustrations/lightning-network-dark.svg"
+              src={LightningNetworkDarkSVG}
               className="w-full hidden dark:block"
             />
             <img
-              src="/images/illustrations/lightning-network-light.svg"
+              src={LightningNetworkLightSVG}
               className="w-full dark:hidden"
             />
             {canPayForFirstChannel ? (
