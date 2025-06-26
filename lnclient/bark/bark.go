@@ -306,7 +306,7 @@ func (s *BarkService) GetBalances(ctx context.Context, includeInactiveChannels b
 	}, nil
 }
 
-func (s *BarkService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (txId string, err error) {
+func (s *BarkService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (txId string, err error) {
 	return "", errors.New("not implemented")
 }
 
@@ -347,6 +347,10 @@ func (s *BarkService) GetSupportedNIP47Methods() []string {
 
 func (s *BarkService) GetSupportedNIP47NotificationTypes() []string {
 	return []string{}
+}
+
+func (s *BarkService) MakeOffer(ctx context.Context, description string) (string, error) {
+	return "", errors.New("not implemented")
 }
 
 func (s *BarkService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
