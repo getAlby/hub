@@ -99,13 +99,13 @@ export default function DepositBitcoin() {
                 <QRCode value={onchainAddress} />
               </a>
 
-              <div className="break-all text-center">
+              <div className="flex flex-wrap gap-2 items-center justify-center">
                 {onchainAddress.match(/.{1,4}/g)?.map((word, index) => {
                   if (index % 2 === 0) {
-                    return <span className="text-foreground mr-2">{word}</span>;
+                    return <span className="text-foreground">{word}</span>;
                   } else {
                     return (
-                      <span className="text-muted-foreground mr-2">{word}</span>
+                      <span className="text-muted-foreground">{word}</span>
                     );
                   }
                 })}
