@@ -24,7 +24,7 @@ import { useToast } from "src/components/ui/use-toast";
 import { useChannels } from "src/hooks/useChannels";
 import { usePeers } from "src/hooks/usePeers.ts";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
-import { Node, Peer } from "src/types";
+import { MempoolNode, Peer } from "src/types";
 import { request } from "src/utils/request";
 
 export default function Peers() {
@@ -32,7 +32,7 @@ export default function Peers() {
   const { data: peers } = usePeers();
   const { data: channels } = useChannels();
   const { toast } = useToast();
-  const [nodes, setNodes] = React.useState<Node[]>([]);
+  const [nodes, setNodes] = React.useState<MempoolNode[]>([]);
   const [peerToDisconnect, setPeerToDisconnect] = React.useState<Peer>();
 
   // TODO: move to NWC backend
@@ -41,9 +41,9 @@ export default function Peers() {
       return [];
     }
     const nodes = await Promise.all(
-      peers?.map(async (peer): Promise<Node | undefined> => {
+      peers?.map(async (peer): Promise<MempoolNode | undefined> => {
         try {
-          const response = await request<Node>(
+          const response = await request<MempoolNode>(
             `/api/mempool?endpoint=/v1/lightning/nodes/${peer.nodeId}`
           );
           return response;
@@ -53,7 +53,7 @@ export default function Peers() {
         }
       })
     );
-    setNodes(nodes.filter((node) => !!node) as Node[]);
+    setNodes(nodes.filter((node) => !!node) as MempoolNode[]);
   }, [peers]);
 
   React.useEffect(() => {

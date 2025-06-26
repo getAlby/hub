@@ -20,6 +20,9 @@ import { MempoolAlert } from "src/components/MempoolAlert";
 import { PayLightningInvoice } from "src/components/PayLightningInvoice";
 import { ChannelPublicPrivateAlert } from "src/components/channels/ChannelPublicPrivateAlert";
 
+import LightningNetworkDarkSVG from "public/images/illustrations/lightning-network-dark.svg";
+import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
+
 export function AutoChannel() {
   const { data: info } = useInfo();
   const { data: channels } = useChannels(true);
@@ -134,11 +137,11 @@ export function AutoChannel() {
         <>
           <div className="flex flex-col gap-6 max-w-md text-muted-foreground">
             <img
-              src="/images/illustrations/lightning-network-dark.svg"
+              src={LightningNetworkDarkSVG}
               className="w-full hidden dark:block"
             />
             <img
-              src="/images/illustrations/lightning-network-light.svg"
+              src={LightningNetworkLightSVG}
               className="w-full dark:hidden"
             />
 

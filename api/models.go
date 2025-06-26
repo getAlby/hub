@@ -60,6 +60,7 @@ type API interface {
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
+	SetNodeAlias(nodeAlias string) error
 	GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error)
 	DisableAutoSwaps() error
 	EnableAutoSwaps(ctx context.Context, autoSwapsRequest *EnableAutoSwapsRequest) error
@@ -212,10 +213,16 @@ type InfoResponse struct {
 	AutoUnlockPasswordEnabled   bool      `json:"autoUnlockPasswordEnabled"`
 	Currency                    string    `json:"currency"`
 	Relay                       string    `json:"relay"`
+	NodeAlias                   string    `json:"nodeAlias"`
+	MempoolUrl                  string    `json:"mempoolUrl"`
 }
 
 type UpdateSettingsRequest struct {
 	Currency string `json:"currency"`
+}
+
+type SetNodeAliasRequest struct {
+	NodeAlias string `json:"nodeAlias"`
 }
 
 type MnemonicRequest struct {
