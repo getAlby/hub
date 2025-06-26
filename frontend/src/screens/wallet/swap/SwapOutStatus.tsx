@@ -24,13 +24,14 @@ import { useToast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";
 import { useSwap } from "src/hooks/useSwaps";
 import { copyToClipboard } from "src/lib/clipboard";
+import { SwapOut } from "src/types";
 
 export default function SwapOutStatus() {
   const { toast } = useToast();
   const { data: info } = useInfo();
   const { isDarkMode } = useTheme();
   const { swapId } = useParams() as { swapId: string };
-  const { data: swap } = useSwap(swapId, true);
+  const { data: swap } = useSwap<SwapOut>(swapId, true);
 
   if (!swap) {
     return <Loading />;
@@ -53,10 +54,9 @@ export default function SwapOutStatus() {
   const statusText = {
     SUCCESS: "Swap Successful",
     FAILED: "Swap Failed",
-    REFUNDED: "Swap Refunded",
     PENDING: swap.lockupTxId
-      ? "Waiting for lockup confirmation"
-      : "Waiting for deposit from boltz",
+      ? "Waiting for confirmation"
+      : "Waiting for deposit",
   };
 
   return (
@@ -71,7 +71,7 @@ export default function SwapOutStatus() {
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
-            {swapStatus === "SUCCESS" && (
+            {swapStatus === "SUCCESS" ? (
               <>
                 <CircleCheckIcon className="w-60 h-60" />
                 <div className="flex flex-col gap-2 items-center">
@@ -90,24 +90,13 @@ export default function SwapOutStatus() {
                   </Button>
                 </div>
               </>
-            )}
-            {swapStatus === "FAILED" && (
+            ) : (
               <>
-                <CircleXIcon className="w-60 h-60" />
-                <div className="flex flex-col gap-2 items-center">
-                  <p className="text-xl font-bold slashed-zero text-center">
-                    ~{new Intl.NumberFormat().format(swap.sendAmount)} sats
-                  </p>
-                  <div className="flex items-center">
-                    <span className="text-sm text-muted-foreground">~</span>
-                    <FormattedFiatAmount amount={swap.sendAmount} />
-                  </div>
-                </div>
-              </>
-            )}
-            {swapStatus === "PENDING" && (
-              <>
-                <Lottie options={defaultOptions} />
+                {swapStatus === "PENDING" ? (
+                  <Lottie options={defaultOptions} />
+                ) : (
+                  <CircleXIcon className="w-60 h-60" />
+                )}
                 <div className="flex flex-col gap-2 items-center">
                   <p className="text-xl font-bold slashed-zero text-center">
                     ~{new Intl.NumberFormat().format(swap.sendAmount)} sats
@@ -125,64 +114,42 @@ export default function SwapOutStatus() {
                   {swap.lockupTxId ? (
                     <>
                       {swap.claimTxId ? (
-                        <>
-                          <div className="flex items-center text-muted-foreground text-sm">
-                            <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />
-                            <div className="flex items-center gap-2">
-                              <p>Claim tx broadcasted.</p>
-                              <ExternalLink
-                                to={`${info?.mempoolUrl}/tx/${swap.claimTxId}`}
-                                className="flex items-center underline text-foreground"
-                              >
-                                View
-                              </ExternalLink>
-                            </div>
+                        <div className="flex items-center text-muted-foreground text-sm">
+                          <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />
+                          <div className="flex items-center gap-2">
+                            <p>Claimed via onchain</p>
+                            <ExternalLink
+                              to={`${info?.mempoolUrl}/tx/${swap.claimTxId}`}
+                              className="flex items-center underline text-foreground"
+                            >
+                              View
+                            </ExternalLink>
                           </div>
-                          <Divider color="border-green-600 dark:border-emerald-500" />
-                          <div className="flex items-center text-muted-foreground text-sm">
-                            <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />
-                            <div className="flex items-center gap-2">
-                              <p>Lockup confirmed.</p>
-                              <ExternalLink
-                                to={`${info?.mempoolUrl}/tx/${swap.lockupTxId}`}
-                                className="flex items-center underline text-foreground"
-                              >
-                                View
-                              </ExternalLink>
-                            </div>
-                          </div>
-                        </>
+                        </div>
                       ) : (
-                        <>
-                          <div className="flex items-center text-muted-foreground text-sm">
-                            <Loading className="w-5 h-5 mr-2" />
-                            Confirming lockup deposit...
+                        <div className="flex items-center text-muted-foreground text-sm">
+                          <Loading className="w-5 h-5 mr-2" />
+                          <div className="flex items-center gap-2">
+                            <p>Waiting for onchain confirmation...</p>
+                            <ExternalLink
+                              to={`${info?.mempoolUrl}/tx/${swap.lockupTxId}`}
+                              className="flex items-center underline text-foreground"
+                            >
+                              View
+                            </ExternalLink>
                           </div>
-                          <Divider color="border-green-600 dark:border-emerald-500" />
-                          <div className="flex items-center text-muted-foreground text-sm">
-                            <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />
-                            <div className="flex items-center gap-2">
-                              <p>Lockup found in mempool.</p>
-                              <ExternalLink
-                                to={`${info?.mempoolUrl}/tx/${swap.lockupTxId}`}
-                                className="flex items-center underline text-foreground"
-                              >
-                                View
-                              </ExternalLink>
-                            </div>
-                          </div>
-                        </>
-                      )}{" "}
+                        </div>
+                      )}
                       <Divider color="border-green-600 dark:border-emerald-500" />
                       <div className="flex items-center text-muted-foreground text-sm">
                         <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />
-                        Swap hold invoice paid
+                        Lightning invoice paid
                       </div>
                     </>
                   ) : (
                     <div className="flex items-center text-muted-foreground text-sm">
                       <Loading className="w-5 h-5 mr-2" />
-                      Paying swap hold invoice...
+                      Paying lightning invoice...
                     </div>
                   )}
                   <Divider color="border-green-600 dark:border-emerald-500" />

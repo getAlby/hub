@@ -209,10 +209,8 @@ export type SwapFees = {
   boltzNetworkFee: number;
 };
 
-export type Swap = {
+export type BaseSwap = {
   id: string;
-  type: "in" | "out";
-  state: "PENDING" | "SUCCESS" | "FAILED" | "REFUNDED";
   sendAmount: number;
   receivedAmount?: number;
   destinationAddress: string;
@@ -223,8 +221,20 @@ export type Swap = {
   updatedAt: string;
   lockupTxId?: string;
   claimTxId?: string;
+};
+
+export type SwapIn = BaseSwap & {
+  type: "in";
+  state: "PENDING" | "SUCCESS" | "FAILED" | "REFUNDED";
   refundAddress?: string;
 };
+
+export type SwapOut = BaseSwap & {
+  type: "out";
+  state: "PENDING" | "SUCCESS" | "FAILED";
+};
+
+export type Swap = SwapIn | SwapOut;
 
 export type SwapResponse = {
   swapId: string;

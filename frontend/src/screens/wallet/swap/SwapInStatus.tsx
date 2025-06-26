@@ -38,7 +38,7 @@ import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useSwap } from "src/hooks/useSwaps";
 import { useSyncWallet } from "src/hooks/useSyncWallet";
 import { copyToClipboard } from "src/lib/clipboard";
-import { RedeemOnchainFundsResponse } from "src/types";
+import { RedeemOnchainFundsResponse, SwapIn } from "src/types";
 import { request } from "src/utils/request";
 
 export default function SwapInStatus() {
@@ -54,17 +54,22 @@ export default function SwapInStatus() {
   }>("/v1/fees/recommended");
   useSyncWallet(); // ensure funds show up on node page after swap completes
   const { swapId } = useParams() as { swapId: string };
-  const { data: swap } = useSwap(swapId, true);
+  const { data: swap } = useSwap<SwapIn>(swapId, true);
 
   const [feeRate, setFeeRate] = useState("");
   const [isPaying, setPaying] = useState(false);
-  const [isProcessingRefund, setProcessingRefund] = useState(false);
 
   useEffect(() => {
     if (recommendedFees?.fastestFee) {
       setFeeRate(recommendedFees.fastestFee.toString());
     }
   }, [recommendedFees]);
+
+  useEffect(() => {
+    if (isPaying && swap?.lockupTxId) {
+      setPaying(false);
+    }
+  }, [isPaying, swap?.lockupTxId]);
 
   if (!swap) {
     return <Loading />;
@@ -110,11 +115,10 @@ export default function SwapInStatus() {
           }),
         }
       );
-      console.info("Redeemed onchain funds", response);
       if (!response?.txId) {
         throw new Error("No address in response");
       }
-      swap.lockupTxId = response.txId;
+      console.info("Redeemed onchain funds", response);
     } catch (error) {
       console.error(error);
       toast({
@@ -122,33 +126,8 @@ export default function SwapInStatus() {
         title: "Failed to redeem onchain funds",
         description: "" + error,
       });
+      setPaying(false);
     }
-    setPaying(false);
-  }
-
-  async function refundSwap() {
-    setProcessingRefund(true);
-    try {
-      if (!swap) {
-        throw new Error("swap not loaded");
-      }
-      const response = await request(`/api/swaps/refund/${swap.id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      console.info("Processed refund", response);
-      toast({ title: "Claim transaction broadcasted for refund" });
-    } catch (error) {
-      console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Failed to process refund",
-        description: "" + error,
-      });
-    }
-    setProcessingRefund(false);
   }
 
   const swapStatus = swap.state;
@@ -157,7 +136,7 @@ export default function SwapInStatus() {
     FAILED: "Swap Failed",
     REFUNDED: "Swap Refunded",
     PENDING: swap.lockupTxId
-      ? "Confirming on-chain deposit"
+      ? "Confirming onchain deposit"
       : "Waiting for deposit",
   };
 
@@ -174,75 +153,50 @@ export default function SwapInStatus() {
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
             {swapStatus === "SUCCESS" && (
-              <>
-                <CircleCheckIcon className="w-60 h-60" />
-                <div className="flex flex-col gap-2 items-center">
-                  <p className="text-xl font-bold slashed-zero text-center">
-                    {new Intl.NumberFormat().format(swap.sendAmount)} sats
-                  </p>
-                  <FormattedFiatAmount amount={swap.sendAmount} />
-                </div>
-                <Button onClick={copyPaymentHash} variant="outline">
+              <CircleCheckIcon className="w-60 h-60" />
+            )}
+            {(swapStatus === "REFUNDED" || swapStatus === "FAILED") && (
+              <CircleXIcon className="w-60 h-60" />
+            )}
+            {swapStatus === "PENDING" &&
+              (swap.lockupTxId ? (
+                <Lottie options={defaultOptions} />
+              ) : (
+                <QRCode value={swap.destinationAddress} />
+              ))}
+            <div className="flex flex-col gap-2 items-center">
+              <p className="text-xl font-bold slashed-zero text-center">
+                {new Intl.NumberFormat().format(swap.sendAmount)} sats
+              </p>
+              <FormattedFiatAmount amount={swap.sendAmount} />
+            </div>
+            {swapStatus === "SUCCESS" && (
+              <Button onClick={copyPaymentHash} variant="outline">
+                <CopyIcon className="w-4 h-4 mr-2" />
+                Copy Payment Hash
+              </Button>
+            )}
+            {!swap.lockupTxId && (
+              <div className="flex justify-center gap-4 flex-wrap">
+                <Button onClick={copyAddress} variant="outline">
                   <CopyIcon className="w-4 h-4 mr-2" />
-                  Copy Payment Hash
+                  Copy Address
                 </Button>
-              </>
+                {balances &&
+                  balances.onchain.spendable - 25000 /* anchor reserve */ >
+                    swap.sendAmount && (
+                    <LoadingButton
+                      loading={isPaying}
+                      onClick={payWithAlbyHub}
+                      disabled={!recommendedFees}
+                    >
+                      <ZapIcon className="w-4 h-4 mr-2" />
+                      Use Hub On-Chain Funds
+                    </LoadingButton>
+                  )}
+              </div>
             )}
-            {swapStatus === "FAILED" && (
-              <>
-                <CircleXIcon className="w-60 h-60" />
-                <div className="flex flex-col gap-2 items-center">
-                  <p className="text-xl font-bold slashed-zero text-center">
-                    {new Intl.NumberFormat().format(swap.sendAmount)} sats
-                  </p>
-                  <FormattedFiatAmount amount={swap.sendAmount} />
-                </div>
-                {swap.lockupTxId && !swap.claimTxId && (
-                  <LoadingButton
-                    loading={isProcessingRefund}
-                    onClick={refundSwap}
-                  >
-                    Refund Swap
-                  </LoadingButton>
-                )}
-              </>
-            )}
-            {swapStatus === "PENDING" && (
-              <>
-                {swap.lockupTxId ? (
-                  <Lottie options={defaultOptions} />
-                ) : (
-                  <>
-                    <QRCode value={swap.destinationAddress} />
-                    <div className="flex flex-col gap-2 items-center">
-                      <p className="text-xl font-bold slashed-zero text-center">
-                        {new Intl.NumberFormat().format(swap.sendAmount)} sats
-                      </p>
-                      <FormattedFiatAmount amount={swap.sendAmount} />
-                    </div>
-                    <div className="flex justify-center gap-4 flex-wrap">
-                      <Button onClick={copyAddress} variant="outline">
-                        <CopyIcon className="w-4 h-4 mr-2" />
-                        Copy Address
-                      </Button>
-                      {balances &&
-                        balances.onchain.spendable -
-                          25000 /* anchor reserve */ >
-                          swap.sendAmount && (
-                          <LoadingButton
-                            loading={isPaying}
-                            onClick={payWithAlbyHub}
-                            disabled={!recommendedFees}
-                          >
-                            <ZapIcon className="w-4 h-4 mr-2" />
-                            Use Hub On-Chain Funds
-                          </LoadingButton>
-                        )}
-                    </div>
-                  </>
-                )}
-              </>
-            )}
+            {/* We only show status screen once bitcoin is locked up */}
             {swap.lockupTxId && (
               <div className="flex flex-col justify-start gap-2 w-full mt-2">
                 {swapStatus === "SUCCESS" && (
@@ -255,7 +209,7 @@ export default function SwapInStatus() {
                     <div className="flex items-center text-muted-foreground text-sm">
                       <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />
                       <div className="flex items-center gap-2">
-                        <p>Lockup confirmed.</p>
+                        <p>Onchain deposit confirmed</p>
                         <ExternalLink
                           to={`${info?.mempoolUrl}/tx/${swap.lockupTxId}`}
                           className="flex items-center underline text-foreground"
@@ -267,32 +221,49 @@ export default function SwapInStatus() {
                     <Divider color="border-green-600 dark:border-emerald-500" />
                   </>
                 )}
-                {swapStatus === "FAILED" && (
+                {swapStatus === "PENDING" && (
                   <>
-                    {swap.claimTxId && (
-                      <>
-                        <div className="flex items-center text-muted-foreground text-sm">
-                          <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />
-                          <div className="flex items-center gap-2">
-                            <p>Refund initiated.</p>
-                            <ExternalLink
-                              to={`${info?.mempoolUrl}/tx/${swap.lockupTxId}`}
-                              className="flex items-center underline text-foreground"
-                            >
-                              View
-                            </ExternalLink>
-                          </div>
-                        </div>
-                        <Divider color="border-green-600 dark:border-emerald-500" />
-                      </>
-                    )}
+                    <div className="flex items-center text-muted-foreground text-sm">
+                      <Loading className="w-5 h-5 mr-2" />
+                      <div className="flex items-center gap-2">
+                        <p>Confirming onchain deposit...</p>
+                        <ExternalLink
+                          to={`${info?.mempoolUrl}/tx/${swap.lockupTxId}`}
+                          className="flex items-center underline text-foreground"
+                        >
+                          View
+                        </ExternalLink>
+                      </div>
+                    </div>
+                    <Divider color="border-green-600 dark:border-emerald-500" />
+                  </>
+                )}
+                {swapStatus === "REFUNDED" && (
+                  <>
+                    <div className="flex items-center text-muted-foreground text-sm">
+                      <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />
+                      <div className="flex items-center gap-2">
+                        <p>Refund initiated</p>
+                        <ExternalLink
+                          to={`${info?.mempoolUrl}/tx/${swap.claimTxId}`}
+                          className="flex items-center underline text-foreground"
+                        >
+                          View
+                        </ExternalLink>
+                      </div>
+                    </div>
+                    <Divider color="border-green-600 dark:border-emerald-500" />
+                  </>
+                )}
+                {(swapStatus === "FAILED" || swapStatus === "REFUNDED") && (
+                  <>
                     <div className="flex items-center text-muted-foreground text-sm">
                       <CircleAlertIcon className="w-5 h-5 mr-2 text-red-500" />
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger>
                             <div className="flex items-center gap-2">
-                              <p>Lockup failed</p>
+                              <p>Onchain deposit failed</p>
                               <ExternalLink
                                 to={`${info?.mempoolUrl}/tx/${swap.lockupTxId}`}
                                 className="flex items-center underline text-foreground"
@@ -303,38 +274,16 @@ export default function SwapInStatus() {
                             </div>
                           </TooltipTrigger>
                           <TooltipContent className="w-[300px]">
-                            Lockup usually fails when there is an amount
+                            Deposit usually fails when there is an amount
                             mismatch or if Hub was shut down during the swap
                             process.
-                            {!swap.claimTxId &&
-                              " You can use the Refund Swap button to claim the locked up bitcoin."}
+                            {swapStatus !== "REFUNDED" &&
+                              " You can use the Swap Refund button in debug tools to claim the locked up bitcoin."}
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </div>
                     <Divider color="border-red-500" />
-                  </>
-                )}
-                {swapStatus === "PENDING" && (
-                  <>
-                    <div className="flex items-center text-muted-foreground text-sm">
-                      <Loading className="w-5 h-5 mr-2" />
-                      Confirming lockup deposit...
-                    </div>
-                    <Divider color="border-green-600 dark:border-emerald-500" />
-                    <div className="flex items-center text-muted-foreground text-sm">
-                      <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />
-                      <div className="flex items-center gap-2">
-                        <p>Lockup found in mempool.</p>
-                        <ExternalLink
-                          to={`${info?.mempoolUrl}/tx/${swap.lockupTxId}`}
-                          className="flex items-center underline text-foreground"
-                        >
-                          View
-                        </ExternalLink>
-                      </div>
-                    </div>
-                    <Divider color="border-green-600 dark:border-emerald-500" />
                   </>
                 )}
                 <div className="flex items-center text-muted-foreground text-sm">

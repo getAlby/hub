@@ -487,6 +487,7 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 							"claimTxId": claimTxId,
 						}).Info("Claim transaction broadcasted")
 
+						// TODO: Mark success only after claimtx confirmation
 						swapState = constants.SWAP_STATE_SUCCESS
 
 						err = svc.db.Model(&dbSwap).Updates(&db.Swap{
