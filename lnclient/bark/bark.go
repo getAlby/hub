@@ -79,7 +79,11 @@ func NewBarkService(ctx context.Context, mnemonic, workdir string) (*BarkService
 		return nil, err
 	}
 
-	pk := wallet.OorPubkey()
+	pk, err := wallet.OorPubkey()
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to get Ark public key")
+		return nil, err
+	}
 	logger.Logger.Info("Ark public key: ", pk)
 
 	cctx, cancel := context.WithCancel(ctx)
@@ -186,11 +190,22 @@ func (s *BarkService) SendKeysend(ctx context.Context, amount uint64, destinatio
 }
 
 func (s *BarkService) GetPubkey() string {
-	return s.wallet.OorPubkey()
+	pk, err := s.wallet.OorPubkey()
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to get Ark public key")
+		return ""
+	}
+
+	return pk
 }
 
 func (s *BarkService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
-	pk := s.wallet.OorPubkey()
+	pk, err := s.wallet.OorPubkey()
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to get Ark public key")
+		return nil, err
+	}
+
 	arkInfo, err := s.wallet.ArkInfo()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get Ark info")
@@ -236,8 +251,14 @@ func (s *BarkService) ListChannels(ctx context.Context) (channels []lnclient.Cha
 }
 
 func (s *BarkService) GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *lnclient.NodeConnectionInfo, err error) {
+	pk, err := s.wallet.OorPubkey()
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to get Ark public key")
+		return nil, err
+	}
+
 	return &lnclient.NodeConnectionInfo{
-		Pubkey: s.wallet.OorPubkey(),
+		Pubkey: pk,
 	}, nil
 }
 
@@ -429,9 +450,15 @@ func (s *BarkService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCom
 func (s *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
 	switch command.Name {
 	case nodeCommandPubkey:
+		pk, err := s.wallet.OorPubkey()
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to get Ark public key")
+			return nil, err
+		}
+
 		return &lnclient.CustomNodeCommandResponse{
 			Response: map[string]interface{}{
-				"pubkey": s.wallet.OorPubkey(),
+				"pubkey": pk,
 			},
 		}, nil
 	case nodeCommandMaintenance:
@@ -562,17 +589,20 @@ func (s *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 			return nil, err
 		}
 
-		vtxo, err := s.wallet.Send(destination, amount)
+		vtxos, err := s.wallet.Send(destination, amount)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to pay to Ark address")
 			return nil, err
 		}
 
-		respVtxo := convertVtxoToCommandResp(vtxo)
+		respVtxos := make([]map[string]interface{}, 0, len(vtxos))
+		for _, vtxo := range vtxos {
+			respVtxos = append(respVtxos, convertVtxoToCommandResp(vtxo))
+		}
 
 		return &lnclient.CustomNodeCommandResponse{
 			Response: map[string]interface{}{
-				"vtxo": respVtxo,
+				"vtxos": respVtxos,
 			},
 		}, nil
 	case nodeCommandListUTXOs:
@@ -625,11 +655,6 @@ func convertVtxoToCommandResp(vtxo bindings.Vtxo) map[string]interface{} {
 			inputs = append(inputs, convertVtxoToCommandResp(input))
 		}
 
-		signatures := make([]string, 0, len(vtxo.Signatures))
-		for _, sig := range vtxo.Signatures {
-			signatures = append(signatures, sig)
-		}
-
 		outputSpecs := make([]map[string]interface{}, 0, len(vtxo.OutputSpecs))
 		for _, spec := range vtxo.OutputSpecs {
 			outputSpecs = append(outputSpecs, map[string]interface{}{
@@ -643,7 +668,7 @@ func convertVtxoToCommandResp(vtxo bindings.Vtxo) map[string]interface{} {
 		respVtxo = map[string]interface{}{
 			"type":         "arkoor",
 			"inputs":       inputs,
-			"signatures":   signatures,
+			"signature":    vtxo.Signature,
 			"output_specs": outputSpecs,
 			"point_txid":   vtxo.Point.Txid,
 			"point_vout":   vtxo.Point.Vout,
@@ -671,9 +696,9 @@ func convertUtxoToCommandResp(utxo bindings.Utxo) map[string]interface{} {
 		}
 	case bindings.UtxoExit:
 		respUtxo = map[string]interface{}{
-			"type":                "exit",
-			"vtxo":                convertVtxoToCommandResp(utxo.Vtxo),
-			"spendable_at_height": utxo.SpendableAtHeight,
+			"type":   "exit",
+			"vtxo":   convertVtxoToCommandResp(utxo.Vtxo),
+			"height": utxo.Height,
 		}
 	default:
 		respUtxo = map[string]interface{}{
