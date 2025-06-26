@@ -134,11 +134,20 @@ func (s *BarkService) SendPaymentSync(ctx context.Context, invoice string, amoun
 
 	// Bark won't allow setting amount on invoices that already have an amount set.
 	// Bark also does not support msats, offering rounding up or down to the nearest sat.
-	// FIXME: Rounding up here to avoid underpayment; however, this may lead to unexpected spending.
 	var customAmount *uint64
 	if paymentRequest.MSatoshi == 0 && amount != nil {
-		customAmountSat := (*amount + 999) / 1000
-		customAmount = &customAmountSat
+		if *amount%1000 != 0 {
+			amountErr := errors.New("bark only supports amounts in whole sats, not msats")
+
+			logger.Logger.WithFields(logrus.Fields{
+				"bolt11": invoice,
+				"amount": amount,
+			}).Error(amountErr)
+
+			return nil, amountErr
+		}
+
+		customAmount = amount
 	}
 
 	preimage, err := s.wallet.PayBolt11(invoice, customAmount)
