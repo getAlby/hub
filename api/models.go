@@ -214,6 +214,7 @@ type InfoResponse struct {
 	Currency                    string    `json:"currency"`
 	Relay                       string    `json:"relay"`
 	NodeAlias                   string    `json:"nodeAlias"`
+	MempoolUrl                  string    `json:"mempoolUrl"`
 }
 
 type UpdateSettingsRequest struct {

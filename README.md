@@ -61,6 +61,14 @@ Go to `/frontend`
 1. `yarn install`
 2. `yarn dev`
 
+### HTTP Production build
+
+    $ yarn build:http
+
+If you plan to run Alby Hub on a subpath behind a reverse proxy, you can do:
+
+    $ BASE_PATH="/hub" yarn build:http
+
 ### Wails (Backend + Frontend)
 
 _Make sure to have [wails](https://wails.io/docs/gettingstarted/installation) installed and all platform-specific dependencies installed (see wails doctor)_
@@ -216,6 +224,13 @@ _To configure via env, the following parameters must be provided:_
 - `NETWORK=testnet`
 - `LDK_ESPLORA_SERVER=https://mempool.space/testnet/api`
 - `LDK_GOSSIP_SOURCE=https://rapidsync.lightningdevkit.org/testnet/snapshot`
+
+###### Connect to your own bitcoind
+
+- `LDK_BITCOIND_RPC_HOST=127.0.0.1`
+- `LDK_BITCOIND_RPC_PORT=8332`
+- `LDK_BITCOIND_RPC_USER=yourusername`
+- `LDK_BITCOIND_RPC_PASSWORD=yourpassword`
 
 ### Phoenixd
 
@@ -401,15 +416,15 @@ Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/script
 
 #### Quick start (Raspberry PI 4/5)
 
-Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/scripts/pi-aarch64) which you can run as a service.
+Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/scripts/pi-aarch64) which you can run as a service. (Experimental – we cannot provide support for installations on Raspberry PI 4/5.)
 
 #### Quick start (Raspberry PI Zero)
 
-Go to the [Quick start script](https://github.com/getAlby/hub/tree/master/scripts/pi-arm) which you can run as a service.
+Go to the [Quick start script](https://github.com/getAlby/hub/tree/master/scripts/pi-arm) which you can run as a service. (Experimental – we cannot provide support for installations on Raspberry PI Zero.)
 
 #### Quick start (Desktop)
 
-View the [release binaries](https://github.com/getAlby/hub/releases/latest)
+View the [release binaries](https://github.com/getAlby/hub/releases/latest). Please use a desktop computer that is always online. 
 
 #### Manual (x86 Linux Server)
 

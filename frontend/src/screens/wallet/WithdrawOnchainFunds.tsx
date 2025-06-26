@@ -144,7 +144,7 @@ export default function WithdrawOnchainFunds() {
           />
         </div>
         <ExternalLink
-          to={`https://mempool.space/tx/${transactionId}`}
+          to={`${info?.mempoolUrl}/tx/${transactionId}`}
           className="underline flex items-center mt-2"
         >
           View on Mempool
@@ -310,7 +310,7 @@ export default function WithdrawOnchainFunds() {
                         High priority: {recommendedFees.fastestFee}
                       </Button>{" "}
                       <ExternalLink
-                        to="https://mempool.space"
+                        to={info?.mempoolUrl}
                         className="underline ml-2"
                       >
                         mempool.space
