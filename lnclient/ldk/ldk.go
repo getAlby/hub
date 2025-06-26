@@ -2203,14 +2203,14 @@ func (ls *LDKService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 			},
 		}, nil
 	case nodeCommandExportPathfindingScores:
-		filePath, err := ls.node.ExportPathfindingScores()
+		scores, err := ls.node.ExportPathfindingScores()
 		if err != nil {
 			logger.Logger.WithError(err).Error("ExportPathfindingScores command failed")
 			return nil, fmt.Errorf("failed to export pathfinding scores: %w", err)
 		}
 		return &lnclient.CustomNodeCommandResponse{
 			Response: map[string]interface{}{
-				"filePath": filePath,
+				"scores": hex.EncodeToString(scores),
 			},
 		}, nil
 	}
