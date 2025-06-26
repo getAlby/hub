@@ -8,6 +8,9 @@ import { useToast } from "src/components/ui/use-toast";
 import { Invoice } from "@getalby/lightning-tools";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import { SpendingAlert } from "src/components/SpendingAlert";
+import { useBalances } from "src/hooks/useBalances";
+import { useInfo } from "src/hooks/useInfo";
 import { PayInvoiceResponse, TransactionMetadata } from "src/types";
 import { request } from "src/utils/request";
 
@@ -15,6 +18,8 @@ export default function ConfirmPayment() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { hasChannelManagement } = useInfo();
+  const { data: balances } = useBalances();
 
   const amount = state?.args?.amount as number | undefined;
   const invoice = state?.args?.paymentRequest as Invoice;
@@ -69,12 +74,19 @@ export default function ConfirmPayment() {
     }
   }, [navigate, invoice]);
 
-  if (!invoice) {
+  if (!balances || !invoice) {
     return <Loading />;
   }
 
   return (
     <form onSubmit={onSubmit} className="grid gap-4">
+      {hasChannelManagement &&
+        (amount || 0) * 1000 >=
+          balances.lightning.nextMaxSpendableMPP -
+            Math.max(
+              0.01 * balances.lightning.nextMaxSpendableMPP,
+              10000
+            ) /* fee reserve */ && <SpendingAlert />}
       <div>
         <p className="font-medium text-lg mb-2">Payment Details</p>
         <div>
