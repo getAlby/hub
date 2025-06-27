@@ -340,6 +340,19 @@ export type OnchainBalanceResponse = {
   pendingSweepBalancesDetails: PendingBalancesDetails[];
 };
 
+// from https://mempool.space/docs/api/rest#get-address-utxo
+export type MempoolUtxo = {
+  txid: string;
+  vout: number;
+  status: {
+    confirmed: boolean;
+    block_height?: number;
+    block_hash?: string;
+    block_time?: number;
+  };
+  value: number;
+};
+
 // from https://mempool.space/docs/api/rest#get-node-stats
 export type MempoolNode = {
   alias: string;
