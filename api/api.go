@@ -489,7 +489,7 @@ func (api *api) ChangeUnlockPassword(changeUnlockPasswordRequest *ChangeUnlockPa
 		return err
 	}
 	if autoUnlockPassword != "" {
-		return errors.New("Please disable auto-unlock before using this feature")
+		return errors.New("please disable auto-unlock before using this feature")
 	}
 
 	err = api.cfg.ChangeUnlockPassword(changeUnlockPasswordRequest.CurrentUnlockPassword, changeUnlockPasswordRequest.NewUnlockPassword)
@@ -545,6 +545,10 @@ func (api *api) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnec
 	return api.svc.GetLNClient().GetNodeConnectionInfo(ctx)
 }
 
+func (api *api) RefundSwap(swapId string) error {
+	return api.svc.GetSwapsService().RefundSwap(swapId)
+}
+
 func (api *api) GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error) {
 	swapOutBalanceThresholdStr, _ := api.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
 	swapOutAmountStr, _ := api.cfg.Get(config.AutoSwapAmountKey, "")
@@ -569,6 +573,51 @@ func (api *api) GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error) {
 		SwapAmount:       swapOutAmount,
 		Destination:      swapOutDestination,
 	}, nil
+}
+
+func (api *api) LookupSwap(swapId string) (*LookupSwapResponse, error) {
+	dbSwap, err := api.svc.GetSwapsService().GetSwap(swapId)
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to fetch swap info")
+		return nil, err
+	}
+
+	return toApiSwap(dbSwap), nil
+}
+
+func (api *api) ListSwaps() (*ListSwapsResponse, error) {
+	swaps, err := api.svc.GetSwapsService().ListSwaps()
+	if err != nil {
+		return nil, err
+	}
+
+	apiSwaps := []Swap{}
+	for _, swap := range swaps {
+		apiSwaps = append(apiSwaps, *toApiSwap(&swap))
+	}
+
+	return &ListSwapsResponse{
+		Swaps: apiSwaps,
+	}, nil
+}
+
+func toApiSwap(swap *swaps.Swap) *Swap {
+	return &Swap{
+		Id:                 swap.SwapId,
+		Type:               swap.Type,
+		State:              swap.State,
+		SendAmount:         swap.SendAmount,
+		ReceivedAmount:     swap.ReceivedAmount,
+		PaymentHash:        swap.PaymentHash,
+		DestinationAddress: swap.DestinationAddress,
+		RefundAddress:      swap.RefundAddress,
+		LockupTxId:         swap.LockupTxId,
+		ClaimTxId:          swap.ClaimTxId,
+		AutoSwap:           swap.AutoSwap,
+		BoltzPubkey:        swap.BoltzPubkey,
+		CreatedAt:          swap.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:          swap.UpdatedAt.Format(time.RFC3339),
+	}
 }
 
 func (api *api) GetSwapInFees() (*SwapFeesResponse, error) {
@@ -599,7 +648,7 @@ func (api *api) GetSwapOutFees() (*SwapFeesResponse, error) {
 	}, nil
 }
 
-func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (*swaps.SwapOutResponse, error) {
+func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (*swaps.SwapResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
@@ -612,8 +661,7 @@ func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *Ini
 		return nil, errors.New("invalid swap amount")
 	}
 
-	// TODO: Do not use context.Background - use background context in the SwapOut goroutine instead
-	swapoutResponse, err := api.svc.GetSwapsService().SwapOut(context.Background(), amount, destination, lnClient)
+	swapoutResponse, err := api.svc.GetSwapsService().SwapOut(amount, destination, false)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount":      amount,
@@ -625,7 +673,7 @@ func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *Ini
 	return swapoutResponse, nil
 }
 
-func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (*swaps.SwapInResponse, error) {
+func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (*swaps.SwapResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
@@ -637,8 +685,7 @@ func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *Initi
 		return nil, errors.New("invalid swap amount")
 	}
 
-	// TODO: Do not use context.Background - use background context in the SwapIn goroutine instead
-	txId, err := api.svc.GetSwapsService().SwapIn(context.Background(), amount, lnClient)
+	txId, err := api.svc.GetSwapsService().SwapIn(amount, false)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount": amount,
@@ -668,7 +715,7 @@ func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *E
 		return err
 	}
 
-	return api.svc.StartAutoSwap()
+	return api.svc.GetSwapsService().EnableAutoSwapOut()
 }
 
 func (api *api) DisableAutoSwap() error {
@@ -681,7 +728,7 @@ func (api *api) DisableAutoSwap() error {
 		}
 	}
 
-	api.svc.GetSwapsService().StopAutoSwap()
+	api.svc.GetSwapsService().StopAutoSwapOut()
 	return nil
 }
 
@@ -923,6 +970,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.AutoUnlockPasswordEnabled = autoUnlockPassword != ""
 	info.AutoUnlockPasswordSupported = api.cfg.GetEnv().IsDefaultClientId()
 	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
+	info.MempoolUrl = api.cfg.GetMempoolUrl()
 	info.Relay = api.cfg.GetRelayUrl()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get alby user identifier")
@@ -942,6 +990,8 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 
 	info.NextBackupReminder, _ = api.cfg.Get("NextBackupReminder", "")
 
+	info.NodeAlias, _ = api.cfg.Get("NodeAlias", "")
+
 	return &info, nil
 }
 
@@ -953,6 +1003,16 @@ func (api *api) SetCurrency(currency string) error {
 	err := api.cfg.SetCurrency(currency)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to update currency")
+		return err
+	}
+
+	return nil
+}
+
+func (api *api) SetNodeAlias(nodeAlias string) error {
+	err := api.cfg.SetUpdate("NodeAlias", nodeAlias, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save node alias to config")
 		return err
 	}
 
@@ -1141,7 +1201,7 @@ func (api *api) MigrateNodeStorage(ctx context.Context, to string) error {
 		return errors.New("LNClient not started")
 	}
 	if to != "VSS" {
-		return fmt.Errorf("Migration type not supported: %s", to)
+		return fmt.Errorf("migration type not supported: %s", to)
 	}
 
 	ldkVssEnabled, err := api.cfg.Get("LdkVssEnabled", "")
@@ -1154,7 +1214,7 @@ func (api *api) MigrateNodeStorage(ctx context.Context, to string) error {
 	}
 
 	if api.cfg.GetEnv().LDKVssUrl == "" {
-		return errors.New("No VSS URL set")
+		return errors.New("no VSS URL set")
 	}
 
 	api.cfg.SetUpdate("LdkVssEnabled", "true", "")

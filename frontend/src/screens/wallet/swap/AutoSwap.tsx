@@ -10,13 +10,6 @@ import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
 import ResponsiveButton from "src/components/ResponsiveButton";
 import { Button } from "src/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "src/components/ui/card";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
@@ -24,9 +17,16 @@ import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useToast } from "src/components/ui/use-toast";
 import { MIN_AUTO_SWAP_AMOUNT } from "src/constants";
 import { useAutoSwapsConfig, useSwapFees } from "src/hooks/useSwaps";
+import { AutoSwapConfig } from "src/types";
 import { request } from "src/utils/request";
 
 export default function AutoSwap() {
+  const { data: swapConfig } = useAutoSwapsConfig();
+
+  if (!swapConfig) {
+    return <Loading />;
+  }
+
   return (
     <div className="grid gap-5">
       <AppHeader
@@ -41,11 +41,12 @@ export default function AutoSwap() {
           </Link>
         }
       />
-      <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 w-full">
-        <div className="w-full lg:max-w-lg">
+      <div className="w-full lg:max-w-lg min-w-0">
+        {swapConfig.enabled ? (
+          <ActiveSwapOutConfig swapConfig={swapConfig} />
+        ) : (
           <AutoSwapOutForm />
-        </div>
-        <ActiveSwaps />
+        )}
       </div>
     </div>
   );
@@ -68,7 +69,7 @@ function AutoSwapOutForm() {
 
     try {
       setLoading(true);
-      await request("/api/wallet/autoswap/out", {
+      await request("/api/autoswap", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -224,10 +225,9 @@ function AutoSwapOutForm() {
   );
 }
 
-// TODO: Fix overflow in small screens
-function ActiveSwaps() {
+function ActiveSwapOutConfig({ swapConfig }: { swapConfig: AutoSwapConfig }) {
   const { toast } = useToast();
-  const { data: swapConfig, mutate } = useAutoSwapsConfig();
+  const { mutate } = useAutoSwapsConfig();
   const { data: swapFees } = useSwapFees("out");
 
   const [loading, setLoading] = useState(false);
@@ -235,7 +235,7 @@ function ActiveSwaps() {
   const onDeactivate = async () => {
     try {
       setLoading(true);
-      await request(`/api/wallet/autoswap/out`, {
+      await request(`/api/autoswap`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -255,73 +255,64 @@ function ActiveSwaps() {
   };
 
   return (
-    <div className="w-full flex flex-col gap-5 border-t-2 lg:border-t-0 pt-8 lg:pt-0">
-      {swapConfig?.enabled && (
-        <Card key={swapConfig.type}>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="font-medium">Active Recurring Swap</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Alby Hub will try to perform a swap every time the balance reaches
-              the threshold.
-            </p>
+    <>
+      <h2 className="font-medium text-foreground flex items-center gap-1">
+        Active Lightning <MoveRightIcon /> On-chain Swap
+      </h2>
+      <p className="mt-1 text-muted-foreground">
+        Alby Hub will try to perform a swap every time the balance reaches the
+        threshold.
+      </p>
 
-            <div className="mt-6 space-y-4 text-sm">
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Type</span>
-                <span className="text-muted-foreground text-right">
-                  {swapConfig.type == "out"
-                    ? "Lightning to On-chain"
-                    : "On-chain to Lightning"}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Destination</span>
-                <span className="text-muted-foreground text-right">
-                  {swapConfig.destination
-                    ? swapConfig.destination
-                    : swapConfig.type === "out"
-                      ? "On-chain Balance"
-                      : "Lightning Balance"}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Spending Balance Threshold</span>
-                <span className="text-muted-foreground text-right">
-                  {new Intl.NumberFormat().format(swapConfig.balanceThreshold)}{" "}
-                  sats
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Swap amount</span>
-                <span className="text-muted-foreground text-right">
-                  {new Intl.NumberFormat().format(swapConfig.swapAmount)} sats
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-medium">Fee</span>
-                {swapFees && (
-                  <span className="text-muted-foreground text-right">
-                    {swapFees.albyServiceFee + swapFees.boltzServiceFee}% +
-                    on-chain fees
-                  </span>
-                )}
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-end">
-            <Button
-              onClick={() => onDeactivate()}
-              disabled={loading}
-              variant="outline"
-            >
-              <XCircleIcon className="h-4 w-4 mr-2" />
-              Deactivate
-            </Button>
-          </CardFooter>
-        </Card>
-      )}
-    </div>
+      <div className="my-6 space-y-4 text-sm">
+        <div className="flex justify-between items-center gap-2">
+          <span className="font-medium">Type</span>
+          <span className="truncate text-muted-foreground text-right">
+            Lightning to On-chain
+          </span>
+        </div>
+        <div className="flex justify-between items-center gap-2">
+          <div className="font-medium">Destination</div>
+          <div className="truncate text-muted-foreground text-right">
+            {swapConfig.destination
+              ? swapConfig.destination
+              : "On-chain Balance"}
+          </div>
+        </div>
+        <div className="flex justify-between items-center gap-2">
+          <span className="font-medium truncate">
+            Spending Balance Threshold
+          </span>
+          <span className="shrink-0 text-muted-foreground text-right">
+            {new Intl.NumberFormat().format(swapConfig.balanceThreshold)} sats
+          </span>
+        </div>
+        <div className="flex justify-between items-center gap-2">
+          <span className="font-medium truncate">Swap amount</span>
+          <span className="shrink-0 text-muted-foreground text-right">
+            {new Intl.NumberFormat().format(swapConfig.swapAmount)} sats
+          </span>
+        </div>
+        <div className="flex justify-between items-center gap-2">
+          <span className="font-medium">Fee</span>
+          {swapFees ? (
+            <span className="truncate text-muted-foreground text-right">
+              {swapFees.albyServiceFee + swapFees.boltzServiceFee}% + on-chain
+              fees
+            </span>
+          ) : (
+            <Loading className="w-4 h-4" />
+          )}
+        </div>
+      </div>
+      <Button
+        onClick={() => onDeactivate()}
+        disabled={loading}
+        variant="outline"
+      >
+        <XCircleIcon className="h-4 w-4 mr-2" />
+        Deactivate Auto Swap
+      </Button>
+    </>
   );
 }

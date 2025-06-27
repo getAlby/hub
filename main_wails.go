@@ -31,7 +31,11 @@ func main() {
 
 	log.Info("Alby Hub starting in WAILS mode")
 	ctx, cancel := context.WithCancel(context.Background())
-	svc, _ := service.NewService(ctx)
+	svc, err := service.NewService(ctx)
+	if err != nil {
+		log.WithError(err).Fatal("Failed to create service")
+		return
+	}
 
 	app := wails.NewApp(svc)
 	wails.LaunchWailsApp(app, assets, appIcon)

@@ -30,6 +30,7 @@ func Migrate(gormDB *gorm.DB) error {
 		_202412212345_fix_types,
 		_202504231037_add_indexes,
 		_202505091314_hold_invoices,
+		_202506170342_swaps,
 	})
 
 	return m.Migrate()
