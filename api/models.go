@@ -17,6 +17,7 @@ type API interface {
 	DeleteApp(app *db.App) error
 	GetApp(app *db.App) *App
 	ListApps() ([]App, error)
+	CreateLightningAddress(ctx context.Context, createLightningAddressRequest *CreateLightningAddressRequest) error
 	ListChannels(ctx context.Context) ([]Channel, error)
 	GetChannelPeerSuggestions(ctx context.Context) ([]alby.ChannelPeerSuggestion, error)
 	ResetRouter(key string) error
@@ -118,6 +119,11 @@ type CreateAppRequest struct {
 	Isolated       bool     `json:"isolated"`
 	Metadata       Metadata `json:"metadata,omitempty"`
 	UnlockPassword string   `json:"unlockPassword"`
+}
+
+type CreateLightningAddressRequest struct {
+	Address string `json:"address"`
+	AppId   uint   `json:"appId"`
 }
 
 type EnableAutoSwapsRequest struct {

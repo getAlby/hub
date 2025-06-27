@@ -5,6 +5,7 @@ import {
   ExternalLinkIcon,
   TriangleAlert,
 } from "lucide-react";
+import React from "react";
 import QRCode from "react-qr-code";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
@@ -24,6 +25,7 @@ import { Badge } from "src/components/ui/badge";
 import { Button, ExternalLinkButton } from "src/components/ui/button";
 import {
   Card,
+  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -31,6 +33,7 @@ import {
 } from "src/components/ui/card";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
+import { LoadingButton } from "src/components/ui/loading-button";
 import {
   Popover,
   PopoverContent,
@@ -38,11 +41,14 @@ import {
 } from "src/components/ui/popover";
 import { Textarea } from "src/components/ui/textarea";
 import { useToast } from "src/components/ui/use-toast";
+import { UpgradeDialog } from "src/components/UpgradeDialog";
+import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApp } from "src/hooks/useApp";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
 import { copyToClipboard } from "src/lib/clipboard";
 import { ConnectAppCard } from "src/screens/apps/AppCreated";
 import { CreateAppResponse } from "src/types";
+import { request } from "src/utils/request";
 
 export function SubwalletCreated() {
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
@@ -50,8 +56,17 @@ export function SubwalletCreated() {
 
   const { state } = useLocation();
   const navigate = useNavigate();
-  const createAppResponse = state as CreateAppResponse;
-  const { data: app } = useApp(createAppResponse.pairingPublicKey, true);
+  const createAppResponse = state as CreateAppResponse | undefined;
+  const { data: app, mutate: refetchApp } = useApp(
+    createAppResponse?.pairingPublicKey,
+    true
+  );
+  const [intendedLightningAddress, setIntendedLightningAddress] =
+    React.useState(createAppResponse?.name);
+  const [creatingLightningAddress, setCreatingLightningAddress] =
+    React.useState(false);
+
+  const { data: albyMe } = useAlbyMe();
 
   if (!createAppResponse?.pairingUri) {
     navigate("/");
@@ -66,6 +81,36 @@ export function SubwalletCreated() {
   const valueTag = `<podcast:value type="lightning" method="keysend">
     <podcast:valueRecipient name="${name}" type="node" address="${nodeConnectionInfo?.pubkey}" customKey="696969"  customValue="${app?.id}" split="100"/>
   </podcast:value>`;
+
+  async function createLightningAddress() {
+    try {
+      if (!app) {
+        throw new Error("app not found");
+      }
+      setCreatingLightningAddress(true);
+      await request("/api/lightning-addresses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          address: intendedLightningAddress,
+          appId: app.id,
+        }),
+      });
+      await refetchApp();
+      toast({
+        title: "Successfully created lightning address",
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to create lightning address",
+        description: (error as Error).message,
+        variant: "destructive",
+      });
+    }
+    setCreatingLightningAddress(false);
+  }
 
   return (
     <div className="grid gap-5">
@@ -349,7 +394,7 @@ export function SubwalletCreated() {
           </Link>
         </div>
         {app && (
-          <div className="col-span-2">
+          <div className="col-span-2 flex flex-col gap-2">
             <Card>
               <CardHeader>
                 <CardTitle>{name}</CardTitle>
@@ -369,6 +414,76 @@ export function SubwalletCreated() {
                 </IsolatedAppTopupDialog>
               </CardFooter>
             </Card>
+            {!app.metadata?.lud16 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Lightning address</CardTitle>
+                  <CardDescription>
+                    Create a lightning address for this sub-account
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Input
+                    type="text"
+                    value={intendedLightningAddress}
+                    onChange={(e) =>
+                      setIntendedLightningAddress(e.target.value)
+                    }
+                    required
+                    autoComplete="off"
+                    endAdornment={
+                      <span className="mr-1 text-muted-foreground text-xs">
+                        @getalby.com
+                      </span>
+                    }
+                  />
+                </CardContent>
+                <CardFooter className="flex flex-row justify-end">
+                  {!albyMe?.subscription.plan_code ? (
+                    <UpgradeDialog>
+                      <Button size="sm" variant="secondary">
+                        Create Lightning Address
+                      </Button>
+                    </UpgradeDialog>
+                  ) : (
+                    <LoadingButton
+                      loading={creatingLightningAddress}
+                      onClick={createLightningAddress}
+                      size="sm"
+                      variant="secondary"
+                    >
+                      Create Lightning Address
+                    </LoadingButton>
+                  )}
+                </CardFooter>
+              </Card>
+            )}
+            {app.metadata?.lud16 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Lightning address</CardTitle>
+                  <CardDescription>
+                    Your lightning address for this sub-account
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="font-semibold">{app.metadata.lud16}</p>
+                </CardContent>
+                <CardFooter className="flex flex-row justify-end">
+                  <Button
+                    onClick={() => {
+                      if (app.metadata?.lud16) {
+                        copyToClipboard(app.metadata.lud16, toast);
+                      }
+                    }}
+                    size="sm"
+                    variant="secondary"
+                  >
+                    Copy
+                  </Button>
+                </CardFooter>
+              </Card>
+            )}
           </div>
         )}
       </div>

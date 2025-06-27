@@ -190,10 +190,10 @@ export type HealthResponse = {
 
 export type Network = "bitcoin" | "testnet" | "signet";
 
-export type AppMetadata = { app_store_app_id?: string } & Record<
-  string,
-  unknown
->;
+export type AppMetadata = {
+  app_store_app_id?: string;
+  lud16?: string;
+} & Record<string, unknown>;
 
 export type SwapsSettingsResponse = {
   enabled: boolean;

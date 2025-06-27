@@ -251,6 +251,37 @@ func (api *api) DeleteApp(userApp *db.App) error {
 	return api.appsSvc.DeleteApp(userApp)
 }
 
+func (api *api) CreateLightningAddress(ctx context.Context, createLightningAddressRequest *CreateLightningAddressRequest) error {
+	app := api.appsSvc.GetAppById(createLightningAddressRequest.AppId)
+	if app == nil {
+		return errors.New("app not found")
+	}
+
+	var metadata map[string]interface{}
+	err := json.Unmarshal(app.Metadata, &metadata)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"app_id": app.ID,
+		}).Error("Failed to deserialize app metadata")
+		return err
+	}
+
+	err = api.albyOAuthSvc.CreateLightningAddress(ctx, createLightningAddressRequest.Address, createLightningAddressRequest.AppId)
+
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to create lightning address for app")
+		return err
+	}
+
+	metadata["lud16"] = createLightningAddressRequest.Address + "@getalby.com"
+	err = api.appsSvc.SetAppMetadata(app.ID, metadata)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to add lightning address to app metadata")
+		return err
+	}
+	return nil
+}
+
 func (api *api) GetApp(dbApp *db.App) *App {
 
 	var lastEvent db.RequestEvent
