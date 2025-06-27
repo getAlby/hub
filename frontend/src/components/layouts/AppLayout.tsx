@@ -1,8 +1,8 @@
 import { Outlet } from "react-router-dom";
 
 import { AppSidebar } from "src/components/AppSidebar";
+import { Banner } from "src/components/Banner";
 import { SidebarInset, SidebarProvider } from "src/components/ui/sidebar";
-import { UpdateBanner } from "src/components/UpdateBanner";
 import { useBanner } from "src/hooks/useBanner";
 import { useInfo } from "src/hooks/useInfo";
 import { useNotifyReceivedPayments } from "src/hooks/useNotifyReceivedPayments";
@@ -31,7 +31,7 @@ export default function AppLayout() {
         )}
       >
         <SidebarProvider className="flex flex-col">
-          {showBanner && <UpdateBanner onDismiss={dismissBanner} />}
+          {showBanner && <Banner onDismiss={dismissBanner} />}
           <div className="flex flex-1">
             <AppSidebar />
             <SidebarInset>
