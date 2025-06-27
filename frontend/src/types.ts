@@ -11,7 +11,7 @@ import {
   WalletMinimalIcon,
 } from "lucide-react";
 
-export type BackendType = "LND" | "LDK" | "PHOENIX" | "CASHU";
+export type BackendType = "LND" | "LDK" | "PHOENIX" | "CASHU" | "BARK";
 
 export type Nip47RequestMethod =
   | "get_info"
