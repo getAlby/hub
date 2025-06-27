@@ -68,6 +68,18 @@ type FeeRates struct {
 	MinimumFee  uint64 `json:"minimumFee"`
 }
 
+type TxStatusInfo struct {
+	Confirmed   bool   `json:"confirmed"`
+	BlockHeight uint32 `json:"block_height"`
+	BlockHash   string `json:"block_hash"`
+	BlockTime   uint64 `json:"block_time"`
+}
+
+type MempoolTx struct {
+	TxId   string       `json:"txid"`
+	Status TxStatusInfo `json:"status"`
+}
+
 type SwapFees struct {
 	AlbyServiceFee  float64 `json:"albyServiceFee"`
 	BoltzServiceFee float64 `json:"boltzServiceFee"`
@@ -239,7 +251,7 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 			if err != nil {
 				err := svc.db.Model(&dbSwap).Update("state", constants.SWAP_STATE_FAILED).Error
 				if err != nil {
-					logger.Logger.WithFields(logrus.Fields{
+					logger.Logger.WithError(err).WithFields(logrus.Fields{
 						"dbSwapID":    dbSwap.ID,
 						"paymentHash": paymentHash,
 					}).Error("Failed to mark swap as failed")
@@ -325,16 +337,19 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 
 	go func() {
 		var swapState string
+		claimTicker := time.NewTicker(10 * time.Second)
+
 		defer func() {
+			if swapState == "" {
+				swapState = constants.SWAP_STATE_FAILED
+			}
+			svc.markSwapState(&dbSwap, swapState)
+			claimTicker.Stop()
 			if err := boltzWs.Close(); err != nil {
 				logger.Logger.WithError(err).WithFields(logrus.Fields{
 					"swapId": swap.Id,
 				}).Error("Failed to close boltz websocket")
 			}
-			if swapState == "" {
-				swapState = constants.SWAP_STATE_FAILED
-			}
-			svc.markSwapState(&dbSwap, swapState)
 		}()
 
 		paymentErrorCh := make(chan error, 1)
@@ -353,6 +368,31 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 						"swapId": swap.Id,
 					}).Error("Failed to pay hold invoice, terminating swap out...")
 					return
+				case <-claimTicker.C:
+					if dbSwap.ClaimTxId != "" {
+						tx, err := svc.getMempoolTx(dbSwap.ClaimTxId)
+						if err != nil {
+							logger.Logger.WithError(err).WithFields(logrus.Fields{
+								"swapId":    dbSwap.SwapId,
+								"claimTxId": dbSwap.ClaimTxId,
+							}).Debug("Claim poll failed; will retry")
+							break
+						}
+						if tx.Status.Confirmed {
+							swapState = constants.SWAP_STATE_SUCCESS
+							logger.Logger.WithField("swapId", dbSwap.SwapId).Info("Swap succeeded")
+							svc.eventPublisher.Publish(&events.Event{
+								Event: "nwc_swap_succeeded",
+								Properties: map[string]interface{}{
+									"swapType":    constants.SWAP_TYPE_OUT,
+									"swapId":      dbSwap.SwapId,
+									"amount":      dbSwap.ReceivedAmount,
+									"destination": dbSwap.DestinationAddress,
+								},
+							})
+							return
+						}
+					}
 				case update, ok := <-updatesCh:
 					if !ok {
 						logger.Logger.WithField("swapId", swap.Id).Error("Boltz websocket closed unexpectedly, reconnecting...")
@@ -487,9 +527,6 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 							"claimTxId": claimTxId,
 						}).Info("Claim transaction broadcasted")
 
-						// TODO: Mark success only after claimtx confirmation
-						swapState = constants.SWAP_STATE_SUCCESS
-
 						err = svc.db.Model(&dbSwap).Updates(&db.Swap{
 							ClaimTxId:      claimTxId,
 							ReceivedAmount: claimAmount,
@@ -502,18 +539,6 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 							}).WithError(err).Error("Failed to save claim info to swap")
 							return
 						}
-					case boltz.InvoiceSettled:
-						logger.Logger.WithField("swapId", swap.Id).Info("Swap succeeded")
-						svc.eventPublisher.Publish(&events.Event{
-							Event: "nwc_swap_succeeded",
-							Properties: map[string]interface{}{
-								"swapType":    constants.SWAP_TYPE_OUT,
-								"swapId":      swap.Id,
-								"amount":      dbSwap.ReceivedAmount,
-								"destination": destination,
-							},
-						})
-						return
 					case boltz.TransactionFailed, boltz.SwapExpired:
 						logger.Logger.WithFields(logrus.Fields{
 							"swapId": swap.Id,
@@ -597,7 +622,7 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 			if err != nil {
 				err := svc.db.Model(&dbSwap).Update("state", constants.SWAP_STATE_FAILED).Error
 				if err != nil {
-					logger.Logger.WithFields(logrus.Fields{
+					logger.Logger.WithError(err).WithFields(logrus.Fields{
 						"dbSwapID":    dbSwap.ID,
 						"paymentHash": invoice.PaymentHash,
 					}).Error("Failed to mark swap as failed")
@@ -699,15 +724,15 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 	go func() {
 		var swapState string
 		defer func() {
+			if swapState == "" {
+				swapState = constants.SWAP_STATE_FAILED
+			}
+			svc.markSwapState(&dbSwap, swapState)
 			if err := boltzWs.Close(); err != nil {
 				logger.Logger.WithError(err).WithFields(logrus.Fields{
 					"swapId": swap.Id,
 				}).Error("Failed to close boltz websocket")
 			}
-			if swapState == "" {
-				swapState = constants.SWAP_STATE_FAILED
-			}
-			svc.markSwapState(&dbSwap, swapState)
 		}()
 
 		for {
@@ -886,56 +911,6 @@ func (svc *swapsService) CalculateSwapInFee() (*SwapFees, error) {
 		BoltzServiceFee: fees.Percentage,
 		BoltzNetworkFee: fees.MinerFees,
 	}, nil
-}
-
-func (svc *swapsService) getFeeRates() (*FeeRates, error) {
-	url := svc.cfg.GetEnv().MempoolApi + "/v1/fees/recommended"
-	// force mainnet fees since testnet is so often unavailable
-	url = strings.ReplaceAll(url, "testnet/", "")
-
-	client := http.Client{
-		Timeout: time.Second * 10,
-	}
-
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to create http request")
-		return nil, err
-	}
-
-	res, err := client.Do(req)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to send request")
-		return nil, err
-	}
-
-	if res.StatusCode >= 300 {
-		return nil, errors.New("failed to fetch fee rates: unexpected status: " + res.Status)
-	}
-
-	defer res.Body.Close()
-
-	body, readErr := io.ReadAll(res.Body)
-	if readErr != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to read fee rates response body")
-		return nil, errors.New("failed to read response body")
-	}
-
-	var rates FeeRates
-	jsonErr := json.Unmarshal(body, &rates)
-	if jsonErr != nil {
-		logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to deserialize json")
-		return nil, fmt.Errorf("failed to deserialize fee rates json %s %s", url, string(body))
-	}
-	return &rates, nil
 }
 
 func (svc *swapsService) markSwapState(dbSwap *db.Swap, state string) {
@@ -1137,4 +1112,65 @@ func (svc *swapsService) ListSwaps() ([]Swap, error) {
 	}
 
 	return swaps, nil
+}
+
+func (svc *swapsService) getMempoolTx(txId string) (*MempoolTx, error) {
+	var transaction MempoolTx
+	endpoint := fmt.Sprintf("/tx/%s", txId)
+	if err := svc.requestMempoolApi(endpoint, &transaction); err != nil {
+		return nil, err
+	}
+	return &transaction, nil
+}
+
+func (svc *swapsService) getFeeRates() (*FeeRates, error) {
+	var rates FeeRates
+	if err := svc.requestMempoolApi("/v1/fees/recommended", &rates); err != nil {
+		return nil, err
+	}
+	return &rates, nil
+}
+
+func (svc *swapsService) requestMempoolApi(endpoint string, result interface{}) error {
+	url := svc.cfg.GetEnv().MempoolApi + endpoint
+	url = strings.ReplaceAll(url, "testnet/", "")
+
+	client := http.Client{
+		Timeout: time.Second * 10,
+	}
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to create http request")
+		return err
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to send request")
+		return err
+	}
+
+	defer res.Body.Close()
+
+	body, readErr := io.ReadAll(res.Body)
+	if readErr != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to read response body")
+		return errors.New("failed to read response body")
+	}
+
+	jsonErr := json.Unmarshal(body, &result)
+	if jsonErr != nil {
+		logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to deserialize json")
+		return fmt.Errorf("failed to deserialize json %s %s", url, string(body))
+	}
+	return nil
 }
