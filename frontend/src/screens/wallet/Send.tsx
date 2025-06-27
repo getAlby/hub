@@ -30,15 +30,17 @@ export default function Send() {
     event.preventDefault();
     try {
       setLoading(true);
-      const lnAddress = new LightningAddress(recipient);
-      await lnAddress.fetch();
-      if (lnAddress.lnurlpData) {
-        navigate(`/wallet/send/lnurl-pay`, {
-          state: {
-            args: { lnAddress },
-          },
-        });
-        return;
+      if (recipient.includes("@")) {
+        const lnAddress = new LightningAddress(recipient);
+        await lnAddress.fetch();
+        if (lnAddress.lnurlpData) {
+          navigate(`/wallet/send/lnurl-pay`, {
+            state: {
+              args: { lnAddress },
+            },
+          });
+          return;
+        }
       }
 
       const invoice = new Invoice({ pr: recipient });
