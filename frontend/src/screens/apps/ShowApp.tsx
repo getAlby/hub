@@ -355,10 +355,15 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                                     status from this connection?
                                   </b>
                                 ) : (
-                                  <b>
-                                    Are you sure you wish to give this
-                                    connection pay permissions?
-                                  </b>
+                                  <div className="space-y-2">
+                                    <b>
+                                      Are you sure you wish to give this
+                                      connection pay permissions?
+                                    </b>
+                                    <p className="text-amber-600 dark:text-amber-400 font-medium">
+                                      ⚠️ Warning: This applies to all apps that have the connection secret. Only change this if you know it is safe to do so, otherwise you could potentially lose all your funds.
+                                    </p>
+                                  </div>
                                 )}
                               </AlertDialogDescription>
                               <AlertDialogFooter className="mt-5">
