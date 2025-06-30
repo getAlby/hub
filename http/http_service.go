@@ -1017,7 +1017,7 @@ func (httpSvc *HttpService) lightningAddressesCreateHandler(c echo.Context) erro
 	if err != nil {
 		logger.Logger.WithField("request", requestData).WithError(err).Error("Failed to create lightning address")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to save app: %v", err),
+			Message: err.Error(),
 		})
 	}
 

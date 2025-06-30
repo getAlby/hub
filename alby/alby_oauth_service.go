@@ -436,6 +436,22 @@ func (svc *albyOAuthService) CreateLightningAddress(ctx context.Context, address
 		return errors.New("failed to read response body")
 	}
 
+	if res.StatusCode == 422 {
+		type createLightningAddressErrors struct {
+			Address []string `json:"address"`
+		}
+		lightningAddressErrors := &createLightningAddressErrors{}
+		err = json.Unmarshal(responseBody, lightningAddressErrors)
+		if err != nil {
+			logger.Logger.WithError(err).Error("failed to unmarshal errors response")
+			return err
+		}
+		if len(lightningAddressErrors.Address) == 0 {
+			return errors.New("unknown error occurred")
+		}
+		return errors.New(lightningAddressErrors.Address[0])
+	}
+
 	if res.StatusCode >= 300 {
 		return fmt.Errorf("request to /internal/lightning_addresses returned non-success status: %d %s", res.StatusCode, string(responseBody))
 	}
