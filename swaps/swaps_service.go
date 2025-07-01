@@ -51,7 +51,7 @@ type SwapsService interface {
 	SwapIn(amount uint64, autoSwap bool) (*SwapResponse, error)
 	CalculateSwapOutFee() (*SwapFees, error)
 	CalculateSwapInFee() (*SwapFees, error)
-	RefundSwap(swapId string) error
+	RefundSwap(swapId, address string) error
 	GetSwap(swapId string) (*Swap, error)
 	ListSwaps() ([]Swap, error)
 }
@@ -849,7 +849,7 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 							"reason": update.Status,
 						}).Error("Swap in failed, initiating refund")
 
-						err := svc.RefundSwap(swap.Id)
+						err := svc.RefundSwap(swap.Id, "")
 						if err != nil {
 							logger.Logger.WithError(err).WithFields(logrus.Fields{
 								"swapId": swap.Id,
@@ -928,7 +928,7 @@ func (svc *swapsService) markSwapState(dbSwap *db.Swap, state string) {
 	}
 }
 
-func (svc *swapsService) RefundSwap(swapId string) error {
+func (svc *swapsService) RefundSwap(swapId, address string) error {
 	var swap db.Swap
 	err := svc.db.Limit(1).Find(&swap, &db.Swap{
 		SwapId: swapId,
@@ -1021,12 +1021,15 @@ func (svc *swapsService) RefundSwap(swapId string) error {
 		logger.Logger.WithError(err).Error("Failed to fetch fee rate to create claim transaction")
 		return err
 	}
-	// TODO: Use refundAddress
-	address, err := svc.cfg.Get(config.OnchainAddressKey, "")
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to get on-chain address from config")
-		return err
+
+	if address == "" {
+		address, err = svc.cfg.Get(config.OnchainAddressKey, "")
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to get on-chain address from config")
+			return err
+		}
 	}
+
 	refundTransaction, _, err := boltz.ConstructTransaction(
 		network,
 		boltz.CurrencyBtc,

@@ -61,7 +61,7 @@ type API interface {
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
-	RefundSwap(swapId string) error
+	RefundSwap(swapId, address string) error
 	LookupSwap(swapId string) (*LookupSwapResponse, error)
 	ListSwaps() (*ListSwapsResponse, error)
 	GetSwapInFees() (*SwapFeesResponse, error)
@@ -131,6 +131,11 @@ type CreateAppRequest struct {
 type InitiateSwapRequest struct {
 	SwapAmount  uint64 `json:"swapAmount"`
 	Destination string `json:"destination"`
+}
+
+type RefundSwapRequest struct {
+	SwapId  string `json:"swapId"`
+	Address string `json:"address"`
 }
 
 type EnableAutoSwapRequest struct {

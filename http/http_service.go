@@ -168,7 +168,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/swaps/in/fees", httpSvc.getSwapInFeesHandler)
 	restrictedApiGroup.POST("/swaps/out", httpSvc.initiateSwapOutHandler)
 	restrictedApiGroup.POST("/swaps/in", httpSvc.initiateSwapInHandler)
-	restrictedApiGroup.POST("/swaps/refund/:swapId", httpSvc.refundSwapHandler)
+	restrictedApiGroup.POST("/swaps/refund", httpSvc.refundSwapHandler)
 	restrictedApiGroup.GET("/autoswap", httpSvc.getAutoSwapConfigHandler)
 	restrictedApiGroup.POST("/autoswap", httpSvc.enableAutoSwapOutHandler)
 	restrictedApiGroup.DELETE("/autoswap", httpSvc.disableAutoSwapOutHandler)
@@ -1205,7 +1205,14 @@ func (httpSvc *HttpService) healthHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) refundSwapHandler(c echo.Context) error {
-	err := httpSvc.api.RefundSwap(c.Param("swapId"))
+	var refundSwapInRequest api.RefundSwapRequest
+	if err := c.Bind(&refundSwapInRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.api.RefundSwap(refundSwapInRequest.SwapId, refundSwapInRequest.Address)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: err.Error(),
