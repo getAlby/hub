@@ -107,7 +107,7 @@ function SwapInForm() {
       toast({ title: "Initiated swap" });
     } catch (error) {
       toast({
-        title: "Saving swap settings failed",
+        title: "Failed to initiate swap",
         description: (error as Error).message,
         variant: "destructive",
       });

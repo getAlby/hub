@@ -277,35 +277,6 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		return WailsRequestRouterResponse{Body: transactions, Error: ""}
 	}
 
-	swapRegex := regexp.MustCompile(
-		`/api/swaps/([0-9a-fA-F]+)`,
-	)
-	swapIdMatch := swapRegex.FindStringSubmatch(route)
-
-	switch {
-	case len(swapIdMatch) > 1:
-		swapId := swapIdMatch[1]
-		swapInfo, err := app.api.LookupSwap(swapId)
-		if err != nil {
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-		}
-
-		return WailsRequestRouterResponse{Body: swapInfo, Error: ""}
-	}
-
-	listSwapsRegex := regexp.MustCompile(
-		`/api/swaps`,
-	)
-
-	switch {
-	case listSwapsRegex.MatchString(route):
-		swaps, err := app.api.ListSwaps()
-		if err != nil {
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-		}
-		return WailsRequestRouterResponse{Body: swaps, Error: ""}
-	}
-
 	paymentRegex := regexp.MustCompile(
 		`/api/payments/([0-9a-zA-Z]+)`,
 	)
@@ -1026,7 +997,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: commandResponse, Error: ""}
-	case "/api/wallet/autoswap":
+	case "/api/autoswap":
 		switch method {
 		case "GET":
 			autoSwapsConfig, err := app.api.GetAutoSwapConfig()
@@ -1196,6 +1167,35 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 
 			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		}
+	}
+
+	swapRegex := regexp.MustCompile(
+		`/api/swaps/([0-9a-zA-Z]+)`,
+	)
+	swapIdMatch := swapRegex.FindStringSubmatch(route)
+
+	switch {
+	case len(swapIdMatch) > 1:
+		swapId := swapIdMatch[1]
+		swapInfo, err := app.api.LookupSwap(swapId)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+
+		return WailsRequestRouterResponse{Body: swapInfo, Error: ""}
+	}
+
+	listSwapsRegex := regexp.MustCompile(
+		`/api/swaps`,
+	)
+
+	switch {
+	case listSwapsRegex.MatchString(route):
+		swaps, err := app.api.ListSwaps()
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: swaps, Error: ""}
 	}
 
 	if strings.HasPrefix(route, "/api/log/") {

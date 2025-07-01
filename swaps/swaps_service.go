@@ -249,7 +249,7 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 
 		defer func() {
 			if err != nil {
-				err := svc.db.Model(&dbSwap).Update("state", constants.SWAP_STATE_FAILED).Error
+				err := tx.Model(&dbSwap).Update("state", constants.SWAP_STATE_FAILED).Error
 				if err != nil {
 					logger.Logger.WithError(err).WithFields(logrus.Fields{
 						"dbSwapID":    dbSwap.ID,
@@ -620,7 +620,7 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 
 		defer func() {
 			if err != nil {
-				err := svc.db.Model(&dbSwap).Update("state", constants.SWAP_STATE_FAILED).Error
+				err := tx.Model(&dbSwap).Update("state", constants.SWAP_STATE_FAILED).Error
 				if err != nil {
 					logger.Logger.WithError(err).WithFields(logrus.Fields{
 						"dbSwapID":    dbSwap.ID,
@@ -688,8 +688,6 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"dbSwapId":    dbSwap.ID,
-			"swapId":      swap.Id,
 			"paymentHash": invoice.PaymentHash,
 		}).Error("Failed to save swap")
 		return nil, err
