@@ -18,6 +18,7 @@ type API interface {
 	GetApp(app *db.App) *App
 	ListApps() ([]App, error)
 	CreateLightningAddress(ctx context.Context, createLightningAddressRequest *CreateLightningAddressRequest) error
+	DeleteLightningAddress(ctx context.Context, appId uint) error
 	ListChannels(ctx context.Context) ([]Channel, error)
 	GetChannelPeerSuggestions(ctx context.Context) ([]alby.ChannelPeerSuggestion, error)
 	ResetRouter(key string) error

@@ -453,7 +453,7 @@ func (svc *albyOAuthService) CreateLightningAddress(ctx context.Context, address
 	}
 
 	if res.StatusCode >= 300 {
-		return fmt.Errorf("request to /internal/lightning_addresses returned non-success status: %d %s", res.StatusCode, string(responseBody))
+		return fmt.Errorf("POST request to /internal/lightning_addresses returned non-success status: %d %s", res.StatusCode, string(responseBody))
 	}
 
 	return nil
@@ -492,7 +492,7 @@ func (svc *albyOAuthService) DeleteLightningAddress(ctx context.Context, address
 	}
 
 	if res.StatusCode >= 300 {
-		return fmt.Errorf("request to /internal/lightning_addresses/%d returned non-success status: %d %s", appId, res.StatusCode, string(responseBody))
+		return fmt.Errorf("DELETE request to /internal/lightning_addresses/%s returned non-success status: %d %s", address, res.StatusCode, string(responseBody))
 	}
 
 	return nil
