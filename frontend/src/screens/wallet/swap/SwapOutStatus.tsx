@@ -109,53 +109,54 @@ export default function SwapOutStatus() {
               </>
             )}
             <div className="flex flex-col justify-start gap-2 w-full mt-2">
-              {swap.lockupTxId ? (
-                <>
-                  {swapStatus === "SUCCESS" && (
+              {swapStatus !== "FAILED" ? (
+                swap.lockupTxId ? (
+                  <>
+                    {swapStatus === "SUCCESS" && (
+                      <div className="flex items-center text-muted-foreground text-sm">
+                        <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />
+                        <div className="flex items-center gap-2">
+                          <p>Claimed via onchain</p>
+                          <ExternalLink
+                            to={`${info?.mempoolUrl}/tx/${swap.claimTxId}`}
+                            className="flex items-center underline text-foreground"
+                          >
+                            View
+                          </ExternalLink>
+                        </div>
+                      </div>
+                    )}
+                    {swapStatus === "PENDING" && (
+                      <div className="flex items-center text-muted-foreground text-sm">
+                        <Loading className="w-5 h-5 mr-2" />
+                        <div className="flex items-center gap-2">
+                          <p>Waiting for onchain confirmation...</p>
+                          <ExternalLink
+                            to={`${info?.mempoolUrl}/tx/${swap.claimTxId || swap.lockupTxId}`}
+                            className="flex items-center underline text-foreground"
+                          >
+                            View
+                          </ExternalLink>
+                        </div>
+                      </div>
+                    )}
+                    <Divider color="border-green-600 dark:border-emerald-500" />
                     <div className="flex items-center text-muted-foreground text-sm">
                       <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />
-                      <div className="flex items-center gap-2">
-                        <p>Claimed via onchain</p>
-                        <ExternalLink
-                          to={`${info?.mempoolUrl}/tx/${swap.claimTxId}`}
-                          className="flex items-center underline text-foreground"
-                        >
-                          View
-                        </ExternalLink>
-                      </div>
+                      Lightning invoice paid
                     </div>
-                  )}
-                  {swapStatus === "PENDING" && (
+                    <Divider color="border-green-600 dark:border-emerald-500" />
+                  </>
+                ) : (
+                  <>
                     <div className="flex items-center text-muted-foreground text-sm">
                       <Loading className="w-5 h-5 mr-2" />
-                      <div className="flex items-center gap-2">
-                        <p>Waiting for onchain confirmation...</p>
-                        <ExternalLink
-                          to={`${info?.mempoolUrl}/tx/${swap.claimTxId || swap.lockupTxId}`}
-                          className="flex items-center underline text-foreground"
-                        >
-                          View
-                        </ExternalLink>
-                      </div>
+                      Paying lightning invoice...
                     </div>
-                  )}
-                  <Divider color="border-green-600 dark:border-emerald-500" />
-                  <div className="flex items-center text-muted-foreground text-sm">
-                    <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />
-                    Lightning invoice paid
-                  </div>
-                  <Divider color="border-green-600 dark:border-emerald-500" />
-                </>
+                    <Divider color="border-green-600 dark:border-emerald-500" />
+                  </>
+                )
               ) : (
-                <>
-                  <div className="flex items-center text-muted-foreground text-sm">
-                    <Loading className="w-5 h-5 mr-2" />
-                    Paying lightning invoice...
-                  </div>
-                  <Divider color="border-green-600 dark:border-emerald-500" />
-                </>
-              )}
-              {swapStatus === "FAILED" && (
                 <>
                   <div className="flex items-center text-muted-foreground text-sm">
                     <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />

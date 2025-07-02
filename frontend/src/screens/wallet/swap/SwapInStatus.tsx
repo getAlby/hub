@@ -80,7 +80,7 @@ export default function SwapInStatus() {
   };
 
   const copyAddress = () => {
-    copyToClipboard(swap.destinationAddress, toast);
+    copyToClipboard(swap.lockupAddress, toast);
   };
 
   const defaultOptions = {
@@ -109,7 +109,7 @@ export default function SwapInStatus() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            toAddress: swap.destinationAddress,
+            toAddress: swap.lockupAddress,
             amount: swap.sendAmount,
             feeRate: +feeRate,
           }),
@@ -162,7 +162,7 @@ export default function SwapInStatus() {
               (swap.lockupTxId ? (
                 <Lottie options={defaultOptions} />
               ) : (
-                <QRCode value={swap.destinationAddress} />
+                <QRCode value={swap.lockupAddress} />
               ))}
             <div className="flex flex-col gap-2 items-center">
               <p className="text-xl font-bold slashed-zero text-center">

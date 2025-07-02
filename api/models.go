@@ -168,11 +168,13 @@ type Swap struct {
 	Id                 string `json:"id"`
 	Type               string `json:"type"`
 	State              string `json:"state"`
+	Invoice            string `json:"invoice"`
 	SendAmount         uint64 `json:"sendAmount"`
 	ReceivedAmount     uint64 `json:"receivedAmount"`
 	PaymentHash        string `json:"paymentHash"`
 	DestinationAddress string `json:"destinationAddress"`
 	RefundAddress      string `json:"refundAddress"`
+	LockupAddress      string `json:"lockupAddress"`
 	LockupTxId         string `json:"lockupTxId"`
 	ClaimTxId          string `json:"claimTxId"`
 	AutoSwap           bool   `json:"autoSwap"`

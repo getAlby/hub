@@ -213,8 +213,10 @@ export type BaseSwap = {
   id: string;
   sendAmount: number;
   receivedAmount?: number;
+  lockupAddress: string;
   destinationAddress: string;
   paymentHash: string;
+  invoice: string;
   autoSwap: boolean;
   boltzPubkey: string;
   createdAt: string;

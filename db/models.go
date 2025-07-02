@@ -94,14 +94,18 @@ type Swap struct {
 	SwapId             string `validate:"required"`
 	Type               string
 	State              string
+	Invoice            string
 	SendAmount         uint64
 	ReceivedAmount     uint64
+	Preimage           string
 	PaymentHash        string
 	DestinationAddress string
 	RefundAddress      string
+	LockupAddress      string
 	LockupTxId         string
 	ClaimTxId          string
 	AutoSwap           bool
+	TimeoutBlockHeight uint32
 	BoltzPubkey        string
 	SwapTree           datatypes.JSON
 	CreatedAt          time.Time

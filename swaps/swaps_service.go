@@ -25,6 +25,7 @@ import (
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/service/keys"
 	"github.com/getAlby/hub/transactions"
+	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -91,10 +92,9 @@ type SwapResponse struct {
 	PaymentHash string `json:"paymentHash"`
 }
 
-// TODO: Subscribe to boltz for all pending swaps to update
 func NewSwapsService(ctx context.Context, db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher,
 	lnClient lnclient.LNClient, transactionsService transactions.TransactionsService) SwapsService {
-	return &swapsService{
+	svc := &swapsService{
 		ctx:                 ctx,
 		cfg:                 cfg,
 		db:                  db,
@@ -104,6 +104,10 @@ func NewSwapsService(ctx context.Context, db *gorm.DB, cfg config.Config, keys k
 		lnClient:            lnClient,
 		boltzApi:            &boltz.Api{URL: cfg.GetEnv().BoltzApi},
 	}
+
+	go svc.subscribePendingSwaps()
+
+	return svc
 }
 
 func (svc *swapsService) StopAutoSwapOut() {
@@ -188,13 +192,8 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 		}
 	}
 
-	var network, err = boltz.ParseChain(svc.cfg.GetNetwork())
-	if err != nil {
-		return nil, err
-	}
-
 	preimage := make([]byte, 32)
-	_, err = rand.Read(preimage)
+	_, err := rand.Read(preimage)
 	if err != nil {
 		return nil, err
 	}
@@ -234,6 +233,7 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 		SendAmount:         amount,
 		DestinationAddress: destination,
 		PaymentHash:        paymentHash,
+		Preimage:           hex.EncodeToString(preimage),
 		AutoSwap:           autoSwap,
 	}
 
@@ -300,9 +300,12 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 		}
 
 		err = tx.Model(&dbSwap).Updates(&db.Swap{
-			SwapId:      swap.Id,
-			BoltzPubkey: hex.EncodeToString(swap.RefundPublicKey),
-			SwapTree:    datatypes.JSON(swapTreeJson),
+			SwapId:             swap.Id,
+			Invoice:            swap.Invoice,
+			LockupAddress:      swap.LockupAddress,
+			TimeoutBlockHeight: swap.TimeoutBlockHeight,
+			BoltzPubkey:        hex.EncodeToString(swap.RefundPublicKey),
+			SwapTree:           datatypes.JSON(swapTreeJson),
 		}).Error
 		if err != nil {
 			return err
@@ -314,8 +317,6 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"dbSwapId":    dbSwap.ID,
-			"swapId":      swap.Id,
 			"paymentHash": paymentHash,
 		}).Error("Failed to save swap")
 		return nil, err
@@ -335,221 +336,7 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 		return nil, err
 	}
 
-	go func() {
-		var swapState string
-		claimTicker := time.NewTicker(10 * time.Second)
-
-		defer func() {
-			if swapState == "" {
-				swapState = constants.SWAP_STATE_FAILED
-			}
-			svc.markSwapState(&dbSwap, swapState)
-			claimTicker.Stop()
-			if err := boltzWs.Close(); err != nil {
-				logger.Logger.WithError(err).WithFields(logrus.Fields{
-					"swapId": swap.Id,
-				}).Error("Failed to close boltz websocket")
-			}
-		}()
-
-		paymentErrorCh := make(chan error, 1)
-
-		for {
-			updatesCh := boltzWs.Updates
-			for {
-				select {
-				case <-svc.ctx.Done():
-					logger.Logger.WithError(svc.ctx.Err()).WithFields(logrus.Fields{
-						"swapId": swap.Id,
-					}).Error("Swap out context cancelled")
-					return
-				case err := <-paymentErrorCh:
-					logger.Logger.WithError(err).WithFields(logrus.Fields{
-						"swapId": swap.Id,
-					}).Error("Failed to pay hold invoice, terminating swap out...")
-					return
-				case <-claimTicker.C:
-					if dbSwap.ClaimTxId != "" {
-						tx, err := svc.getMempoolTx(dbSwap.ClaimTxId)
-						if err != nil {
-							logger.Logger.WithError(err).WithFields(logrus.Fields{
-								"swapId":    dbSwap.SwapId,
-								"claimTxId": dbSwap.ClaimTxId,
-							}).Debug("Claim poll failed; will retry")
-							break
-						}
-						if tx.Status.Confirmed {
-							swapState = constants.SWAP_STATE_SUCCESS
-							logger.Logger.WithField("swapId", dbSwap.SwapId).Info("Swap succeeded")
-							svc.eventPublisher.Publish(&events.Event{
-								Event: "nwc_swap_succeeded",
-								Properties: map[string]interface{}{
-									"swapType":    constants.SWAP_TYPE_OUT,
-									"swapId":      dbSwap.SwapId,
-									"amount":      dbSwap.ReceivedAmount,
-									"destination": dbSwap.DestinationAddress,
-								},
-							})
-							return
-						}
-					}
-				case update, ok := <-updatesCh:
-					if !ok {
-						logger.Logger.WithField("swapId", swap.Id).Error("Boltz websocket closed unexpectedly, reconnecting...")
-						if err := boltzWs.Connect(); err != nil {
-							logger.Logger.WithError(err).WithFields(logrus.Fields{
-								"swapId": swap.Id,
-							}).Error("Reconnection to Boltz websocket failed")
-							return
-						}
-						if err := boltzWs.Subscribe([]string{swap.Id}); err != nil {
-							logger.Logger.WithError(err).WithFields(logrus.Fields{
-								"swapId": swap.Id,
-							}).Error("Resubscribe after reconnect failed")
-							return
-						}
-						break
-					}
-
-					parsedStatus := boltz.ParseEvent(update.Status)
-
-					switch parsedStatus {
-					case boltz.SwapCreated:
-						logger.Logger.WithField("swapId", swap.Id).Info("Paying the swap invoice")
-						go func() {
-							metadata := map[string]interface{}{
-								"swap_id": swap.Id,
-							}
-							sendPaymentTimeout := int64(3600)
-							holdInvoicePayment, err := svc.transactionsService.SendPaymentSync(svc.ctx, swap.Invoice, nil, metadata, svc.lnClient, nil, nil, &sendPaymentTimeout)
-							if err != nil {
-								logger.Logger.WithError(err).WithFields(logrus.Fields{
-									"swapId": swap.Id,
-								}).Error("Error paying the swap invoice")
-								paymentErrorCh <- err
-								return
-							}
-							logger.Logger.WithField("swapId", swap.Id).Info("Initiated swap invoice payment")
-							if holdInvoicePayment.PaymentHash != paymentHash {
-								paymentErrorCh <- errors.New("swap hold payment hash mismatch")
-								return
-							}
-						}()
-					case boltz.TransactionMempool:
-						logger.Logger.WithFields(logrus.Fields{
-							"swapId":     swap.Id,
-							"lockupTxId": update.Transaction.Id,
-						}).Info("Lockup transaction found in mempool")
-						err = svc.db.Model(&dbSwap).Update("lockup_tx_id", update.Transaction.Id).Error
-						if err != nil {
-							logger.Logger.WithFields(logrus.Fields{
-								"swapId":     swap.Id,
-								"lockupTxId": update.Transaction.Id,
-							}).WithError(err).Error("Failed to save lockup txid to swap")
-						}
-					case boltz.TransactionConfirmed:
-						logger.Logger.WithFields(logrus.Fields{
-							"swapId":     swap.Id,
-							"lockupTxId": dbSwap.LockupTxId,
-						}).Info("Lockup transaction confirmed in mempool")
-						lockupTransaction, err := boltz.NewTxFromHex(boltz.CurrencyBtc, update.Transaction.Hex, nil)
-						if err != nil {
-							logger.Logger.WithError(err).WithFields(logrus.Fields{
-								"swapId": swap.Id,
-							}).Error("Failed to build lockup tx from hex")
-							return
-						}
-
-						vout, _, err := lockupTransaction.FindVout(network, swap.LockupAddress)
-						if err != nil {
-							logger.Logger.WithError(err).WithFields(logrus.Fields{
-								"swapId": swap.Id,
-							}).Error("Failed to find lockup address output")
-							return
-						}
-
-						feeRates, err := svc.getFeeRates()
-						if err != nil {
-							logger.Logger.WithError(err).WithFields(logrus.Fields{
-								"swapId": swap.Id,
-							}).Error("Failed to fetch fee rate to create claim transaction")
-							return
-						}
-
-						claimTransaction, _, err := boltz.ConstructTransaction(
-							network,
-							boltz.CurrencyBtc,
-							[]boltz.OutputDetails{
-								{
-									SwapId:            swap.Id,
-									SwapType:          boltz.ReverseSwap,
-									Address:           destination,
-									LockupTransaction: lockupTransaction,
-									Vout:              vout,
-									Preimage:          preimage,
-									PrivateKey:        ourKeys,
-									SwapTree:          tree,
-									Cooperative:       true,
-								},
-							},
-							float64(feeRates.FastestFee),
-							svc.boltzApi,
-						)
-						if err != nil {
-							logger.Logger.WithError(err).WithFields(logrus.Fields{
-								"swapId": swap.Id,
-							}).Error("Could not create claim transaction")
-							return
-						}
-
-						vout, _, _ = claimTransaction.FindVout(network, destination)
-						claimAmount, _ := claimTransaction.VoutValue(vout)
-
-						txHex, err := claimTransaction.Serialize()
-						if err != nil {
-							logger.Logger.WithError(err).WithFields(logrus.Fields{
-								"swapId": swap.Id,
-							}).Error("Could not serialize claim transaction")
-							return
-						}
-
-						// TODO: Replace with LNClient broadcast method to avoid trusting boltz
-						claimTxId, err := svc.boltzApi.BroadcastTransaction(boltz.CurrencyBtc, txHex)
-						if err != nil {
-							logger.Logger.WithError(err).WithFields(logrus.Fields{
-								"swapId": swap.Id,
-							}).Error("Could not broadcast transaction")
-							return
-						}
-
-						logger.Logger.WithFields(logrus.Fields{
-							"swapId":    swap.Id,
-							"claimTxId": claimTxId,
-						}).Info("Claim transaction broadcasted")
-
-						err = svc.db.Model(&dbSwap).Updates(&db.Swap{
-							ClaimTxId:      claimTxId,
-							ReceivedAmount: claimAmount,
-						}).Error
-						if err != nil {
-							logger.Logger.WithFields(logrus.Fields{
-								"swapId":      swap.Id,
-								"claimTxId":   claimTxId,
-								"claimAmount": claimAmount,
-							}).WithError(err).Error("Failed to save claim info to swap")
-							return
-						}
-					case boltz.TransactionFailed, boltz.SwapExpired:
-						logger.Logger.WithFields(logrus.Fields{
-							"swapId": swap.Id,
-							"reason": update.Status,
-						}).Info("Swap out failed, HTLC is cancelled")
-						return
-					}
-				}
-			}
-		}
-	}()
+	go svc.startSwapOutListener(&dbSwap, boltzWs)
 
 	return &SwapResponse{
 		SwapId:      swap.Id,
@@ -604,6 +391,7 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 	dbSwap := db.Swap{
 		Type:        constants.SWAP_TYPE_IN,
 		State:       constants.SWAP_STATE_PENDING,
+		Invoice:     invoice.PaymentRequest,
 		PaymentHash: invoice.PaymentHash,
 		AutoSwap:    autoSwap,
 	}
@@ -674,7 +462,8 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 		err = tx.Model(&dbSwap).Updates(&db.Swap{
 			SwapId:             swap.Id,
 			SendAmount:         swap.ExpectedAmount,
-			DestinationAddress: swap.Address,
+			LockupAddress:      swap.Address,
+			TimeoutBlockHeight: swap.TimeoutBlockHeight,
 			BoltzPubkey:        hex.EncodeToString(swap.ClaimPublicKey),
 			SwapTree:           datatypes.JSON(swapTreeJson),
 		}).Error
@@ -719,148 +508,7 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 		return nil, err
 	}
 
-	go func() {
-		var swapState string
-		defer func() {
-			if swapState == "" {
-				swapState = constants.SWAP_STATE_FAILED
-			}
-			svc.markSwapState(&dbSwap, swapState)
-			if err := boltzWs.Close(); err != nil {
-				logger.Logger.WithError(err).WithFields(logrus.Fields{
-					"swapId": swap.Id,
-				}).Error("Failed to close boltz websocket")
-			}
-		}()
-
-		for {
-			updatesCh := boltzWs.Updates
-
-			for {
-				select {
-				case <-svc.ctx.Done():
-					logger.Logger.WithError(svc.ctx.Err()).WithFields(logrus.Fields{
-						"swapId": swap.Id,
-					}).Error("Swap in context cancelled")
-					return
-				case update, ok := <-updatesCh:
-					if !ok {
-						logger.Logger.WithField("swapId", swap.Id).Error("Boltz websocket closed unexpectedly, reconnecting...")
-						if err := boltzWs.Connect(); err != nil {
-							logger.Logger.WithError(err).WithFields(logrus.Fields{
-								"swapId": swap.Id,
-							}).Error("Reconnection to Boltz websocket failed")
-							return
-						}
-						if err := boltzWs.Subscribe([]string{swap.Id}); err != nil {
-							logger.Logger.WithError(err).WithFields(logrus.Fields{
-								"swapId": swap.Id,
-							}).Error("Resubscribe after reconnect failed")
-							return
-						}
-						break
-					}
-
-					parsedStatus := boltz.ParseEvent(update.Status)
-
-					switch parsedStatus {
-					case boltz.TransactionMempool:
-						logger.Logger.WithFields(logrus.Fields{
-							"swapId":     swap.Id,
-							"lockupTxId": update.Transaction.Id,
-						}).Info("Lockup transaction found in mempool")
-						err = svc.db.Model(&dbSwap).Update("lockup_tx_id", update.Transaction.Id).Error
-						if err != nil {
-							logger.Logger.WithFields(logrus.Fields{
-								"swapId":     swap.Id,
-								"lockupTxId": update.Transaction.Id,
-							}).WithError(err).Error("Failed to save lockup txid to swap")
-						}
-					case boltz.TransactionConfirmed:
-						logger.Logger.WithFields(logrus.Fields{
-							"swapId":     swap.Id,
-							"lockupTxId": dbSwap.LockupTxId,
-						}).Info("Lockup transaction confirmed in mempool")
-					case boltz.TransactionClaimPending:
-						// this is not a mandatory step as boltz can still claim the locked up funds via the script path
-						logger.Logger.WithFields(logrus.Fields{
-							"swapId":      swap.Id,
-							"transaction": update.Transaction,
-						}).Info("Sending partial signature to boltz to claim the payment")
-						claimDetails, err := svc.boltzApi.GetSwapClaimDetails(swap.Id)
-						if err != nil {
-							logger.Logger.WithError(err).WithFields(logrus.Fields{
-								"swapId": swap.Id,
-							}).Error("Could not get claim details from Boltz")
-							return
-						}
-
-						preimageHash := sha256.Sum256(claimDetails.Preimage)
-						if !bytes.Equal(decodedPreimageHash, preimageHash[:]) {
-							logger.Logger.WithError(err).WithFields(logrus.Fields{
-								"swapId":   swap.Id,
-								"preimage": claimDetails.Preimage,
-							}).Error("Boltz returned wrong preimage")
-							return
-						}
-
-						session, _ := boltz.NewSigningSession(tree)
-						partial, err := session.Sign(claimDetails.TransactionHash, claimDetails.PubNonce)
-						if err != nil {
-							logger.Logger.WithError(err).WithFields(logrus.Fields{
-								"swapId": swap.Id,
-							}).Error("Could not create partial signature")
-							return
-						}
-
-						if err := svc.boltzApi.SendSwapClaimSignature(swap.Id, partial); err != nil {
-							logger.Logger.WithError(err).WithFields(logrus.Fields{
-								"swapId": swap.Id,
-							}).Error("Could not send partial signature to Boltz")
-							return
-						}
-					case boltz.TransactionClaimed:
-						swapState = constants.SWAP_STATE_SUCCESS
-						err = svc.db.Model(&dbSwap).Updates(&db.Swap{
-							ReceivedAmount: amount,
-						}).Error
-						if err != nil {
-							logger.Logger.WithFields(logrus.Fields{
-								"swapId":         swap.Id,
-								"receivedAmount": amount,
-							}).WithError(err).Error("Failed to save received amount to swap")
-							return
-						}
-						logger.Logger.WithField("swapId", swap.Id).Info("Swap succeeded")
-						svc.eventPublisher.Publish(&events.Event{
-							Event: "nwc_swap_succeeded",
-							Properties: map[string]interface{}{
-								"swapType": constants.SWAP_TYPE_IN,
-								"swapId":   swap.Id,
-								"amount":   amount,
-							},
-						})
-						return
-					case boltz.TransactionLockupFailed, boltz.InvoiceFailedToPay, boltz.SwapExpired:
-						logger.Logger.WithFields(logrus.Fields{
-							"swapId": swap.Id,
-							"reason": update.Status,
-						}).Error("Swap in failed, initiating refund")
-
-						err := svc.RefundSwap(swap.Id, "")
-						if err != nil {
-							logger.Logger.WithError(err).WithFields(logrus.Fields{
-								"swapId": swap.Id,
-							}).Error("Could not process refund")
-						} else {
-							swapState = constants.SWAP_STATE_REFUNDED
-						}
-						return
-					}
-				}
-			}
-		}
-	}()
+	go svc.startSwapInListener(&dbSwap, boltzWs)
 
 	return &SwapResponse{
 		SwapId:      swap.Id,
@@ -996,11 +644,11 @@ func (svc *swapsService) RefundSwap(swapId, address string) error {
 		return err
 	}
 
-	if err := tree.Check(boltz.NormalSwap, swapTransactionResp.TimeoutBlockHeight, decodedPreimageHash); err != nil {
+	if err := tree.Check(boltz.NormalSwap, swap.TimeoutBlockHeight, decodedPreimageHash); err != nil {
 		return err
 	}
 
-	if err := tree.CheckAddress(swap.DestinationAddress, network, nil); err != nil {
+	if err := tree.CheckAddress(swap.LockupAddress, network, nil); err != nil {
 		return err
 	}
 
@@ -1009,7 +657,7 @@ func (svc *swapsService) RefundSwap(swapId, address string) error {
 		logger.Logger.WithError(err).Error("Failed to build lockup tx from hex")
 		return err
 	}
-	vout, _, err := lockupTransaction.FindVout(network, swap.DestinationAddress)
+	vout, _, err := lockupTransaction.FindVout(network, swap.LockupAddress)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to find lockup address output")
 		return err
@@ -1113,6 +761,448 @@ func (svc *swapsService) ListSwaps() ([]Swap, error) {
 	}
 
 	return swaps, nil
+}
+
+func (svc *swapsService) subscribePendingSwaps() {
+	var swaps []db.Swap
+	if err := svc.db.Where("state = ?", constants.SWAP_STATE_PENDING).Find(&swaps).Error; err != nil {
+		logger.Logger.WithError(err).Error("failed to load pending swaps")
+		return
+	}
+	if len(swaps) == 0 {
+		return
+	}
+
+	logger.Logger.WithField("count", len(swaps)).Info("Resuming pending swaps...")
+
+	boltzWs := svc.boltzApi.NewWebsocket()
+	if err := boltzWs.Connect(); err != nil {
+		logger.Logger.WithError(err).Error("Could not connect to Boltz websocket")
+		return
+	}
+
+	for _, swap := range swaps {
+		if err := boltzWs.Subscribe([]string{swap.SwapId}); err != nil {
+			logger.Logger.WithError(err).WithField("swapId", swap.SwapId).Error("Failed to subscribe to boltz updates")
+			return
+		}
+		switch swap.Type {
+		case constants.SWAP_TYPE_IN:
+			go svc.startSwapInListener(&swap, boltzWs)
+		case constants.SWAP_TYPE_OUT:
+			go svc.startSwapOutListener(&swap, boltzWs)
+		}
+	}
+}
+
+func (svc *swapsService) startSwapInListener(swap *db.Swap, boltzWs *boltz.Websocket) {
+	network, err := boltz.ParseChain(svc.cfg.GetNetwork())
+	if err != nil {
+		return
+	}
+
+	ourKeys, err := svc.keys.GetSwapKey(swap.ID)
+	if err != nil {
+		return
+	}
+
+	var serializedTree boltz.SerializedTree
+	if err := json.Unmarshal(swap.SwapTree, &serializedTree); err != nil {
+		return
+	}
+
+	boltzPubkeyBytes, err := hex.DecodeString(swap.BoltzPubkey)
+	if err != nil {
+		return
+	}
+
+	boltzPubKey, err := btcec.ParsePubKey(boltzPubkeyBytes)
+	if err != nil {
+		return
+	}
+
+	decodedPreimageHash, err := hex.DecodeString(swap.PaymentHash)
+	if err != nil {
+		return
+	}
+
+	tree := serializedTree.Deserialize()
+	if err := tree.Init(boltz.CurrencyBtc, false, ourKeys, boltzPubKey); err != nil {
+		return
+	}
+
+	if err := tree.Check(boltz.NormalSwap, swap.TimeoutBlockHeight, decodedPreimageHash); err != nil {
+		return
+	}
+
+	if err := tree.CheckAddress(swap.LockupAddress, network, nil); err != nil {
+		return
+	}
+
+	paymentRequest, _ := decodepay.Decodepay(swap.Invoice)
+	amount := uint64(paymentRequest.MSatoshi / 1000)
+
+	for {
+		updatesCh := boltzWs.Updates
+
+		for {
+			select {
+			case <-svc.ctx.Done():
+				logger.Logger.WithError(svc.ctx.Err()).WithFields(logrus.Fields{
+					"swapId": swap.SwapId,
+				}).Error("Swap in context cancelled")
+				return
+			case update, ok := <-updatesCh:
+				if !ok {
+					logger.Logger.WithField("swapId", swap.SwapId).Error("Boltz websocket closed unexpectedly, reconnecting...")
+					if err := boltzWs.Connect(); err != nil {
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"swapId": swap.SwapId,
+						}).Error("Reconnection to Boltz websocket failed")
+						return
+					}
+					if err := boltzWs.Subscribe([]string{swap.SwapId}); err != nil {
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"swapId": swap.SwapId,
+						}).Error("Resubscribe after reconnect failed")
+						return
+					}
+					break
+				}
+
+				parsedStatus := boltz.ParseEvent(update.Status)
+
+				switch parsedStatus {
+				case boltz.TransactionMempool:
+					logger.Logger.WithFields(logrus.Fields{
+						"swapId":     swap.SwapId,
+						"lockupTxId": update.Transaction.Id,
+					}).Info("Lockup transaction found in mempool")
+					err = svc.db.Model(swap).Update("lockup_tx_id", update.Transaction.Id).Error
+					if err != nil {
+						logger.Logger.WithFields(logrus.Fields{
+							"swapId":     swap.SwapId,
+							"lockupTxId": update.Transaction.Id,
+						}).WithError(err).Error("Failed to save lockup txid to swap")
+					}
+				case boltz.TransactionConfirmed:
+					logger.Logger.WithFields(logrus.Fields{
+						"swapId":     swap.SwapId,
+						"lockupTxId": swap.LockupTxId,
+					}).Info("Lockup transaction confirmed in mempool")
+				case boltz.TransactionClaimPending:
+					// this is not a mandatory step as boltz can still claim the locked up funds via the script path
+					logger.Logger.WithFields(logrus.Fields{
+						"swapId":      swap.SwapId,
+						"transaction": update.Transaction,
+					}).Info("Sending partial signature to boltz to claim the payment")
+					claimDetails, err := svc.boltzApi.GetSwapClaimDetails(swap.SwapId)
+					if err != nil {
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"swapId": swap.SwapId,
+						}).Error("Could not get claim details from Boltz")
+						return
+					}
+
+					preimageHash := sha256.Sum256(claimDetails.Preimage)
+					if !bytes.Equal(decodedPreimageHash, preimageHash[:]) {
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"swapId":   swap.SwapId,
+							"preimage": claimDetails.Preimage,
+						}).Error("Boltz returned wrong preimage")
+						return
+					}
+
+					session, _ := boltz.NewSigningSession(tree)
+					partial, err := session.Sign(claimDetails.TransactionHash, claimDetails.PubNonce)
+					if err != nil {
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"swapId": swap.SwapId,
+						}).Error("Could not create partial signature")
+						return
+					}
+
+					if err := svc.boltzApi.SendSwapClaimSignature(swap.SwapId, partial); err != nil {
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"swapId": swap.SwapId,
+						}).Error("Could not send partial signature to Boltz")
+						return
+					}
+				case boltz.TransactionClaimed:
+					svc.markSwapState(swap, constants.SWAP_STATE_SUCCESS)
+					err = svc.db.Model(swap).Updates(&db.Swap{
+						ReceivedAmount: amount,
+					}).Error
+					if err != nil {
+						logger.Logger.WithFields(logrus.Fields{
+							"swapId":         swap.SwapId,
+							"receivedAmount": amount,
+						}).WithError(err).Error("Failed to save received amount to swap")
+						return
+					}
+					logger.Logger.WithField("swapId", swap.SwapId).Info("Swap succeeded")
+					svc.eventPublisher.Publish(&events.Event{
+						Event: "nwc_swap_succeeded",
+						Properties: map[string]interface{}{
+							"swapType": constants.SWAP_TYPE_IN,
+							"swapId":   swap.SwapId,
+							"amount":   amount,
+						},
+					})
+					return
+				case boltz.TransactionLockupFailed, boltz.InvoiceFailedToPay, boltz.SwapExpired:
+					logger.Logger.WithFields(logrus.Fields{
+						"swapId": swap.SwapId,
+						"reason": update.Status,
+					}).Error("Swap in failed, initiating refund")
+
+					err := svc.RefundSwap(swap.SwapId, "")
+					if err != nil {
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"swapId": swap.SwapId,
+						}).Error("Could not process refund")
+					}
+					return
+				}
+			}
+		}
+	}
+}
+
+func (svc *swapsService) startSwapOutListener(swap *db.Swap, boltzWs *boltz.Websocket) {
+	network, _ := boltz.ParseChain(svc.cfg.GetNetwork())
+	ourKeys, _ := svc.keys.GetSwapKey(swap.ID)
+
+	var serializedTree boltz.SerializedTree
+	if err := json.Unmarshal(swap.SwapTree, &serializedTree); err != nil {
+		return
+	}
+
+	boltzPubkeyBytes, err := hex.DecodeString(swap.BoltzPubkey)
+	if err != nil {
+		return
+	}
+
+	boltzPubKey, err := btcec.ParsePubKey(boltzPubkeyBytes)
+	if err != nil {
+		return
+	}
+
+	preimageBytes, err := hex.DecodeString(swap.Preimage)
+	if err != nil {
+		return
+	}
+	preimageHash := sha256.Sum256(preimageBytes)
+
+	tree := serializedTree.Deserialize()
+	if err := tree.Init(boltz.CurrencyBtc, true, ourKeys, boltzPubKey); err != nil {
+		return
+	}
+
+	if err := tree.Check(boltz.ReverseSwap, swap.TimeoutBlockHeight, preimageHash[:]); err != nil {
+		return
+	}
+
+	claimTicker := time.NewTicker(10 * time.Second)
+	defer claimTicker.Stop()
+
+	paymentErrorCh := make(chan error, 1)
+
+	for {
+		updatesCh := boltzWs.Updates
+		for {
+			select {
+			case <-svc.ctx.Done():
+				logger.Logger.WithError(svc.ctx.Err()).WithFields(logrus.Fields{
+					"swapId": swap.SwapId,
+				}).Error("Swap out context cancelled")
+				return
+			case err := <-paymentErrorCh:
+				logger.Logger.WithError(err).WithFields(logrus.Fields{
+					"swapId": swap.SwapId,
+				}).Error("Failed to pay hold invoice, terminating swap out...")
+				return
+			case <-claimTicker.C:
+				if swap.ClaimTxId != "" {
+					tx, err := svc.getMempoolTx(swap.ClaimTxId)
+					if err != nil {
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"swapId":    swap.SwapId,
+							"claimTxId": swap.ClaimTxId,
+						}).Debug("Claim poll failed; will retry")
+						break
+					}
+					if tx.Status.Confirmed {
+						svc.markSwapState(swap, constants.SWAP_STATE_SUCCESS)
+						logger.Logger.WithField("swapId", swap.SwapId).Info("Swap succeeded")
+						svc.eventPublisher.Publish(&events.Event{
+							Event: "nwc_swap_succeeded",
+							Properties: map[string]interface{}{
+								"swapType":    constants.SWAP_TYPE_OUT,
+								"swapId":      swap.SwapId,
+								"amount":      swap.ReceivedAmount,
+								"destination": swap.DestinationAddress,
+							},
+						})
+						return
+					}
+				}
+			case update, ok := <-updatesCh:
+				if !ok {
+					logger.Logger.WithField("swapId", swap.SwapId).Error("Boltz websocket closed unexpectedly, reconnecting...")
+					if err := boltzWs.Connect(); err != nil {
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"swapId": swap.SwapId,
+						}).Error("Reconnection to Boltz websocket failed")
+						return
+					}
+					if err := boltzWs.Subscribe([]string{swap.SwapId}); err != nil {
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"swapId": swap.SwapId,
+						}).Error("Resubscribe after reconnect failed")
+						return
+					}
+					break
+				}
+
+				parsedStatus := boltz.ParseEvent(update.Status)
+
+				switch parsedStatus {
+				case boltz.SwapCreated:
+					logger.Logger.WithField("swapId", swap.SwapId).Info("Paying the swap invoice")
+					go func() {
+						metadata := map[string]interface{}{
+							"swap_id": swap.SwapId,
+						}
+						sendPaymentTimeout := int64(3600)
+						holdInvoicePayment, err := svc.transactionsService.SendPaymentSync(svc.ctx, swap.Invoice, nil, metadata, svc.lnClient, nil, nil, &sendPaymentTimeout)
+						if err != nil {
+							logger.Logger.WithError(err).WithFields(logrus.Fields{
+								"swapId": swap.SwapId,
+							}).Error("Error paying the swap invoice")
+							paymentErrorCh <- err
+							return
+						}
+						logger.Logger.WithField("swapId", swap.SwapId).Info("Initiated swap invoice payment")
+						if holdInvoicePayment.PaymentHash != swap.PaymentHash {
+							paymentErrorCh <- errors.New("swap hold payment hash mismatch")
+							return
+						}
+					}()
+				case boltz.TransactionMempool:
+					logger.Logger.WithFields(logrus.Fields{
+						"swapId":     swap.SwapId,
+						"lockupTxId": update.Transaction.Id,
+					}).Info("Lockup transaction found in mempool")
+					err := svc.db.Model(swap).Update("lockup_tx_id", update.Transaction.Id).Error
+					if err != nil {
+						logger.Logger.WithFields(logrus.Fields{
+							"swapId":     swap.SwapId,
+							"lockupTxId": update.Transaction.Id,
+						}).WithError(err).Error("Failed to save lockup txid to swap")
+					}
+				case boltz.TransactionConfirmed:
+					logger.Logger.WithFields(logrus.Fields{
+						"swapId":     swap.SwapId,
+						"lockupTxId": swap.LockupTxId,
+					}).Info("Lockup transaction confirmed in mempool")
+					lockupTransaction, err := boltz.NewTxFromHex(boltz.CurrencyBtc, update.Transaction.Hex, nil)
+					if err != nil {
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"swapId": swap.SwapId,
+						}).Error("Failed to build lockup tx from hex")
+						return
+					}
+
+					vout, _, err := lockupTransaction.FindVout(network, swap.LockupAddress)
+					if err != nil {
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"swapId": swap.SwapId,
+						}).Error("Failed to find lockup address output")
+						return
+					}
+
+					feeRates, err := svc.getFeeRates()
+					if err != nil {
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"swapId": swap.SwapId,
+						}).Error("Failed to fetch fee rate to create claim transaction")
+						return
+					}
+
+					claimTransaction, _, err := boltz.ConstructTransaction(
+						network,
+						boltz.CurrencyBtc,
+						[]boltz.OutputDetails{
+							{
+								SwapId:            swap.SwapId,
+								SwapType:          boltz.ReverseSwap,
+								Address:           swap.DestinationAddress,
+								LockupTransaction: lockupTransaction,
+								Vout:              vout,
+								Preimage:          preimageBytes,
+								PrivateKey:        ourKeys,
+								SwapTree:          tree,
+								Cooperative:       true,
+							},
+						},
+						float64(feeRates.FastestFee),
+						svc.boltzApi,
+					)
+					if err != nil {
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"swapId": swap.SwapId,
+						}).Error("Could not create claim transaction")
+						return
+					}
+
+					vout, _, _ = claimTransaction.FindVout(network, swap.DestinationAddress)
+					claimAmount, _ := claimTransaction.VoutValue(vout)
+
+					txHex, err := claimTransaction.Serialize()
+					if err != nil {
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"swapId": swap.SwapId,
+						}).Error("Could not serialize claim transaction")
+						return
+					}
+
+					// TODO: Replace with LNClient broadcast method to avoid trusting boltz
+					claimTxId, err := svc.boltzApi.BroadcastTransaction(boltz.CurrencyBtc, txHex)
+					if err != nil {
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"swapId": swap.SwapId,
+						}).Error("Could not broadcast transaction")
+						return
+					}
+
+					logger.Logger.WithFields(logrus.Fields{
+						"swapId":    swap.SwapId,
+						"claimTxId": claimTxId,
+					}).Info("Claim transaction broadcasted")
+
+					err = svc.db.Model(swap).Updates(&db.Swap{
+						ClaimTxId:      claimTxId,
+						ReceivedAmount: claimAmount,
+					}).Error
+					if err != nil {
+						logger.Logger.WithFields(logrus.Fields{
+							"swapId":      swap.SwapId,
+							"claimTxId":   claimTxId,
+							"claimAmount": claimAmount,
+						}).WithError(err).Error("Failed to save claim info to swap")
+						return
+					}
+				case boltz.TransactionFailed, boltz.SwapExpired:
+					logger.Logger.WithFields(logrus.Fields{
+						"swapId": swap.SwapId,
+						"reason": update.Status,
+					}).Info("Swap out failed, HTLC is cancelled")
+					return
+				}
+			}
+		}
+	}
 }
 
 func (svc *swapsService) getMempoolTx(txId string) (*MempoolTx, error) {
