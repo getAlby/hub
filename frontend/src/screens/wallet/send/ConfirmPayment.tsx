@@ -78,12 +78,14 @@ export default function ConfirmPayment() {
     return <Loading />;
   }
 
-  const maxSpendable =
+  const maxSpendable = Math.max(
     balances.lightning.nextMaxSpendableMPP -
-    Math.max(
-      0.01 * balances.lightning.nextMaxSpendableMPP,
-      10000
-    ); /* fee reserve */
+      Math.max(
+        0.01 * balances.lightning.nextMaxSpendableMPP,
+        10000 /* fee reserve */
+      ),
+    0
+  );
 
   return (
     <form onSubmit={onSubmit} className="grid gap-4">

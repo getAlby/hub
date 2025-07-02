@@ -2,21 +2,18 @@ import { LightningAddress } from "@getalby/lightning-tools";
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
-import { SpendingAlert } from "src/components/SpendingAlert";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
-import { useInfo } from "src/hooks/useInfo";
 import { TransactionMetadata } from "src/types";
 
 export default function LnurlPay() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
 
   const lnAddress = state?.args?.lnAddress as LightningAddress;
@@ -70,13 +67,6 @@ export default function LnurlPay() {
     return <Loading />;
   }
 
-  const maxSpendable =
-    balances.lightning.nextMaxSpendableMPP -
-    Math.max(
-      0.01 * balances.lightning.nextMaxSpendableMPP,
-      10000
-    ); /* fee reserve */
-
   return (
     <form onSubmit={onSubmit} className="grid gap-4">
       <div className="grid gap-2">
@@ -119,10 +109,6 @@ export default function LnurlPay() {
           </div>
         )}
       </div>
-      {hasChannelManagement &&
-        parseInt(amount || "0") * 1000 >= maxSpendable && (
-          <SpendingAlert maxSpendable={maxSpendable} />
-        )}
       <div className="flex gap-4">
         <LoadingButton loading={isLoading} type="submit">
           Continue

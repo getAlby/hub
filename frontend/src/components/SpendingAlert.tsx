@@ -11,9 +11,9 @@ export function SpendingAlert({
   return (
     <Alert className={className}>
       <AlertTriangleIcon className="h-4 w-4" />
-      <AlertTitle>Channel Liquidity Too Low</AlertTitle>
+      <AlertTitle>Maximum Spendable Balance Too Low</AlertTitle>
       <AlertDescription>
-        Your payment will likely fail because your maximum spendable amount for
+        Your payment will likely fail because your maximum spendable balance for
         the next payment is currently{" "}
         {new Intl.NumberFormat().format(Math.floor(maxSpendable / 1000))} sats.
       </AlertDescription>
