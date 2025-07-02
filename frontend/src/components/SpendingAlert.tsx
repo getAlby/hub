@@ -1,17 +1,21 @@
 import { AlertTriangleIcon } from "lucide-react";
-import { Link } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 
-export function SpendingAlert({ className }: { className?: string }) {
+export function SpendingAlert({
+  className,
+  maxSpendable,
+}: {
+  className?: string;
+  maxSpendable: number;
+}) {
   return (
     <Alert className={className}>
       <AlertTriangleIcon className="h-4 w-4" />
-      <AlertTitle>Low spending capacity</AlertTitle>
+      <AlertTitle>Channel Liquidity Too Low</AlertTitle>
       <AlertDescription>
-        You won't be able to send payments until you{" "}
-        <Link className="underline" to="/channels/outgoing">
-          increase your spending capacity.
-        </Link>
+        Your payment will likely fail because your maximum spendable amount for
+        the next payment is currently{" "}
+        {new Intl.NumberFormat().format(Math.floor(maxSpendable / 1000))} sats.
       </AlertDescription>
     </Alert>
   );

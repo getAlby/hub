@@ -78,17 +78,17 @@ export default function ConfirmPayment() {
     return <Loading />;
   }
 
+  const maxSpendable =
+    balances.lightning.nextMaxSpendableMPP -
+    Math.max(
+      0.01 * balances.lightning.nextMaxSpendableMPP,
+      10000
+    ); /* fee reserve */
+
   return (
     <form onSubmit={onSubmit} className="grid gap-4">
-      {hasChannelManagement &&
-        (amount || 0) * 1000 >=
-          balances.lightning.nextMaxSpendableMPP -
-            Math.max(
-              0.01 * balances.lightning.nextMaxSpendableMPP,
-              10000
-            ) /* fee reserve */ && <SpendingAlert />}
-      <div>
-        <p className="font-medium text-lg mb-2">Payment Details</p>
+      <div className="grid gap-2">
+        <p className="font-medium text-lg">Payment Details</p>
         <div>
           <Label>Amount</Label>
           <p className="text-xl font-bold slashed-zero">
@@ -97,12 +97,16 @@ export default function ConfirmPayment() {
           <FormattedFiatAmount amount={amount || invoice.satoshi} />
         </div>
         {invoice.description && (
-          <div className="mt-2 break-all">
+          <div className="break-all">
             <Label>Description</Label>
             <p className="text-muted-foreground">{invoice.description}</p>
           </div>
         )}
       </div>
+      {hasChannelManagement &&
+        (amount || invoice.satoshi || 0) * 1000 >= maxSpendable && (
+          <SpendingAlert maxSpendable={maxSpendable} />
+        )}
       <div className="flex gap-4">
         <LoadingButton loading={isLoading} type="submit" autoFocus>
           Confirm Payment

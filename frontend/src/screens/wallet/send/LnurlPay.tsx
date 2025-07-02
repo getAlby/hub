@@ -70,26 +70,26 @@ export default function LnurlPay() {
     return <Loading />;
   }
 
+  const maxSpendable =
+    balances.lightning.nextMaxSpendableMPP -
+    Math.max(
+      0.01 * balances.lightning.nextMaxSpendableMPP,
+      10000
+    ); /* fee reserve */
+
   return (
     <form onSubmit={onSubmit} className="grid gap-4">
-      {hasChannelManagement &&
-        parseInt(amount || "0") * 1000 >=
-          balances.lightning.nextMaxSpendableMPP -
-            Math.max(
-              0.01 * balances.lightning.nextMaxSpendableMPP,
-              10000
-            ) /* fee reserve */ && <SpendingAlert />}
-      <div>
-        <p className="font-medium text-lg mb-2">{lnAddress.address}</p>
+      <div className="grid gap-2">
+        <p className="font-medium text-lg">{lnAddress.address}</p>
         {lnAddress.lnurlpData?.description && (
-          <div className="mb-2">
+          <div>
             <Label>Description</Label>
             <p className="text-muted-foreground">
               {lnAddress.lnurlpData.description}
             </p>
           </div>
         )}
-        <div className="mb-2">
+        <div>
           <Label htmlFor="amount">Amount</Label>
           <Input
             id="amount"
@@ -105,7 +105,7 @@ export default function LnurlPay() {
           />
         </div>
         {!!lnAddress.lnurlpData?.commentAllowed && (
-          <div className="mb-2">
+          <div>
             <Label htmlFor="comment">Comment</Label>
             <Input
               id="comment"
@@ -119,6 +119,10 @@ export default function LnurlPay() {
           </div>
         )}
       </div>
+      {hasChannelManagement &&
+        parseInt(amount || "0") * 1000 >= maxSpendable && (
+          <SpendingAlert maxSpendable={maxSpendable} />
+        )}
       <div className="flex gap-4">
         <LoadingButton loading={isLoading} type="submit">
           Continue
