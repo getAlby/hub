@@ -52,6 +52,7 @@ import { useToast } from "src/components/ui/use-toast";
 import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { useCreateSubwalletLightningAddress } from "src/hooks/useCreateSubwalletLightningAddress";
+import { useDeleteSubwalletLightningAddress } from "src/hooks/useDeleteSubwalletLightningAddress";
 
 function ShowApp() {
   const { pubkey } = useParams() as { pubkey: string };
@@ -91,6 +92,8 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
     React.useState("");
   const { createLightningAddress, creatingLightningAddress } =
     useCreateSubwalletLightningAddress(app.appPubkey);
+  const { deleteSubwalletLightningAddress, deletingLightningAddress } =
+    useDeleteSubwalletLightningAddress(app.appPubkey);
 
   React.useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -331,14 +334,15 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                             </div>
                           )}
                           {app.metadata.lud16 && (
-                            <Button
+                            <LoadingButton
                               size="sm"
-                              variant="secondary"
+                              variant="destructive"
                               className="ml-4"
-                              onClick={() => alert("TODO")}
+                              loading={deletingLightningAddress}
+                              onClick={deleteSubwalletLightningAddress}
                             >
                               Remove
-                            </Button>
+                            </LoadingButton>
                           )}
                         </TableCell>
                       </TableRow>

@@ -5,7 +5,7 @@ import { request } from "src/utils/request";
 
 export function useCreateSubwalletLightningAddress(appPubkey?: string) {
   const { toast } = useToast();
-  const { data: app, mutate: refetchApp } = useApp(appPubkey, true);
+  const { data: app, mutate: refetchApp } = useApp(appPubkey);
   const [creatingLightningAddress, setCreatingLightningAddress] =
     React.useState(false);
 
