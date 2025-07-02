@@ -111,7 +111,11 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	}
 
 	ldkConfig.ListeningAddresses = &listeningAddresses
-	logLevel, _ := strconv.Atoi(cfg.GetEnv().LDKLogLevel)
+	logLevel, err := strconv.Atoi(cfg.GetEnv().LDKLogLevel)
+	if err != nil {
+		// If parsing log level fails we default to 3, which is then bumped below
+		logLevel = int(ldk_node.LogLevelDebug)
+	}
 	// LogLevelGossip is added due to bug in go bindings which uses an enum that starts at 1 instead of 0
 	ldkLogger := NewLDKLogger(ldk_node.LogLevel(logLevel) + ldk_node.LogLevelGossip)
 	ldkConfig.TransientNetworkGraph = cfg.GetEnv().LDKTransientNetworkGraph
@@ -126,7 +130,29 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	builder.SetNodeAlias(alias)
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
 	builder.SetNetwork(network)
-	builder.SetChainSourceEsplora(cfg.GetEnv().LDKEsploraServer, nil)
+	var chainSource string
+	if cfg.GetEnv().LDKBitcoindRpcHost != "" {
+		logger.Logger.WithFields(logrus.Fields{
+			"rpc_host": cfg.GetEnv().LDKBitcoindRpcHost,
+			"rpc_port": cfg.GetEnv().LDKBitcoindRpcPort,
+		}).Info("Using LDK node bitcoin RPC chain source")
+		port, err := strconv.ParseUint(cfg.GetEnv().LDKBitcoindRpcPort, 10, 16)
+		if err != nil {
+			return nil, err
+		}
+		builder.SetChainSourceBitcoindRpc(cfg.GetEnv().LDKBitcoindRpcHost, uint16(port), cfg.GetEnv().LDKBitcoindRpcUser, cfg.GetEnv().LDKBitcoindRpcPassword)
+		chainSource = "bitcoind_rpc"
+	} else {
+		logger.Logger.WithFields(logrus.Fields{
+			"esplora_url": cfg.GetEnv().LDKEsploraServer,
+		}).Info("Using LDK node esplora chain source")
+		builder.SetChainSourceEsplora(cfg.GetEnv().LDKEsploraServer, &ldk_node.EsploraSyncConfig{
+			// turn off background sync - we manage syncs ourselves
+			BackgroundSyncConfig: nil,
+		})
+		chainSource = "esplora"
+	}
+
 	if cfg.GetEnv().LDKGossipSource != "" {
 		logger.Logger.WithField("gossipSource", cfg.GetEnv().LDKGossipSource).Warn("LDK RGS instance set")
 		builder.SetGossipSourceRgs(cfg.GetEnv().LDKGossipSource)
@@ -155,6 +181,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		"vss_enabled":         vssToken != "",
 		"node_alias":          alias,
 		"listening_addresses": listeningAddresses,
+		"chain_source":        chainSource,
 	}).Info("Creating LDK node")
 	setStartupState("Loading node data...")
 	var node *ldk_node.Node
@@ -248,7 +275,6 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 				"sync_type":    "full",
 				"initial_sync": true,
 				"node_type":    config.LDKBackendType,
-				"esplora_url":  ls.cfg.GetEnv().LDKEsploraServer,
 			},
 		})
 
@@ -348,10 +374,9 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 						ls.eventPublisher.Publish(&events.Event{
 							Event: "nwc_node_sync_failed",
 							Properties: map[string]interface{}{
-								"error":       err.Error(),
-								"sync_type":   "fee_estimates",
-								"node_type":   config.LDKBackendType,
-								"esplora_url": ls.cfg.GetEnv().LDKEsploraServer,
+								"error":     err.Error(),
+								"sync_type": "fee_estimates",
+								"node_type": config.LDKBackendType,
 							},
 						})
 						continue
@@ -369,10 +394,9 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 					ls.eventPublisher.Publish(&events.Event{
 						Event: "nwc_node_sync_failed",
 						Properties: map[string]interface{}{
-							"error":       err.Error(),
-							"sync_type":   "full",
-							"node_type":   config.LDKBackendType,
-							"esplora_url": ls.cfg.GetEnv().LDKEsploraServer,
+							"error":     err.Error(),
+							"sync_type": "full",
+							"node_type": config.LDKBackendType,
 						},
 					})
 
@@ -501,10 +525,14 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
 	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
-	var paymentHash string
+	saturationPower := ls.cfg.GetEnv().LDKMaxChannelSaturationPowerOfHalf
+	maxPathCount := ls.cfg.GetEnv().LDKMaxPathCount
 	maxTotalRoutingFeeMsat := getMaxTotalRoutingFeeLimit(paymentAmountMsat)
+
 	sendingParams := &ldk_node.SendingParameters{
-		MaxTotalRoutingFeeMsat: &maxTotalRoutingFeeMsat,
+		MaxTotalRoutingFeeMsat:          &maxTotalRoutingFeeMsat,
+		MaxChannelSaturationPowerOfHalf: &saturationPower,
+		MaxPathCount:                    &maxPathCount,
 	}
 
 	invoiceObj, err := ldk_node.Bolt11InvoiceFromStr(invoice)
@@ -513,6 +541,7 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 		return nil, err
 	}
 
+	var paymentHash string
 	if amount == nil {
 		paymentHash, err = ls.node.Bolt11Payment().Send(invoiceObj, sendingParams)
 	} else {
@@ -606,9 +635,14 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
 	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
+	saturationPower := ls.cfg.GetEnv().LDKMaxChannelSaturationPowerOfHalf
+	maxPathCount := ls.cfg.GetEnv().LDKMaxPathCount
 	maxTotalRoutingFeeMsat := getMaxTotalRoutingFeeLimit(amount)
+
 	sendingParams := &ldk_node.SendingParameters{
-		MaxTotalRoutingFeeMsat: &maxTotalRoutingFeeMsat,
+		MaxTotalRoutingFeeMsat:          &maxTotalRoutingFeeMsat,
+		MaxChannelSaturationPowerOfHalf: &saturationPower,
+		MaxPathCount:                    &maxPathCount,
 	}
 
 	paymentHash, err := ls.node.SpontaneousPayment().SendWithTlvsAndPreimage(amount, destination, sendingParams, customTlvs, &preimage)
@@ -2138,6 +2172,7 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uin
 }
 
 const nodeCommandPayBOLT12Offer = "pay_bolt12_offer"
+const nodeCommandExportPathfindingScores = "export_pathfinding_scores"
 
 func (ls *LDKService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
 	return []lnclient.CustomNodeCommandDef{
@@ -2158,6 +2193,11 @@ func (ls *LDKService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCom
 					Description: "note to the recepient",
 				},
 			},
+		},
+		{
+			Name:        nodeCommandExportPathfindingScores,
+			Description: "Exports pathfinding scores from the LDK node. The scores are written to a file in the LDK data directory.",
+			Args:        []lnclient.CustomNodeCommandArgDef{}, // Assuming no arguments for now
 		},
 	}
 }
@@ -2194,6 +2234,17 @@ func (ls *LDKService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 				"paymentHash": payOfferResponse.PaymentHash,
 				"preimage":    payOfferResponse.Preimage,
 				"fee":         payOfferResponse.Fee,
+			},
+		}, nil
+	case nodeCommandExportPathfindingScores:
+		scores, err := ls.node.ExportPathfindingScores()
+		if err != nil {
+			logger.Logger.WithError(err).Error("ExportPathfindingScores command failed")
+			return nil, fmt.Errorf("failed to export pathfinding scores: %w", err)
+		}
+		return &lnclient.CustomNodeCommandResponse{
+			Response: map[string]interface{}{
+				"scores": hex.EncodeToString(scores),
 			},
 		}, nil
 	}

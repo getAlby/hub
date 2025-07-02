@@ -5,7 +5,7 @@ go 1.24.2
 require (
 	github.com/adrg/xdg v0.5.3
 	github.com/elnosh/gonuts v0.4.0
-	github.com/getAlby/ldk-node-go v0.0.0-20250623153121-3fb7c16cfc54
+	github.com/getAlby/ldk-node-go v0.0.0-20250630100602-fc4853954f52
 	github.com/go-gormigrate/gormigrate/v2 v2.1.4
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/nbd-wtf/go-nostr v0.51.12
