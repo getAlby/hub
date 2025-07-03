@@ -1139,6 +1139,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}).WithError(err).Error("Failed to decode request to wails router")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
+
 		err = app.api.SetNodeAlias(setNodeAliasRequest.NodeAlias)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{

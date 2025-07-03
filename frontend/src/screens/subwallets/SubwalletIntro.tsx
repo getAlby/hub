@@ -11,6 +11,9 @@ import ExternalLink from "src/components/ExternalLink";
 import ResponsiveButton from "src/components/ResponsiveButton";
 import { Button } from "src/components/ui/button";
 
+import SubWalletDarkSVG from "public/images/illustrations/sub-wallet-dark.svg";
+import SubWalletLightSVG from "public/images/illustrations/sub-wallet-light.svg";
+
 export function SubwalletIntro() {
   return (
     <div className="grid gap-4">
@@ -33,14 +36,8 @@ export function SubwalletIntro() {
       <div>
         <div className="flex flex-col gap-6 max-w-screen-md">
           <div className="mb-2">
-            <img
-              src="/images/illustrations/sub-wallet-dark.svg"
-              className="w-72 hidden dark:block"
-            />
-            <img
-              src="/images/illustrations/sub-wallet-light.svg"
-              className="w-72 dark:hidden"
-            />
+            <img src={SubWalletDarkSVG} className="w-72 hidden dark:block" />
+            <img src={SubWalletLightSVG} className="w-72 dark:hidden" />
           </div>
           <div>
             <div className="flex flex-row gap-3">

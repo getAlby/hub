@@ -25,6 +25,15 @@ func main() {
 	signal.Notify(osSignalChannel, os.Interrupt, syscall.SIGTERM)
 
 	ctx, cancel := context.WithCancel(context.Background())
+
+	var signal os.Signal
+	go func() {
+		// wait for exit signal
+		signal = <-osSignalChannel
+		logger.Logger.WithField("signal", signal).Info("Received OS signal")
+		cancel()
+	}()
+
 	svc, err := service.NewService(ctx)
 	if err != nil {
 		log.WithError(err).Fatal("Failed to create service")
@@ -42,14 +51,6 @@ func main() {
 			logger.Logger.WithError(err).Error("echo server failed to start")
 			cancel()
 		}
-	}()
-
-	var signal os.Signal
-	go func() {
-		// wait for exit signal
-		signal = <-osSignalChannel
-		logger.Logger.WithField("signal", signal).Info("Received OS signal")
-		cancel()
 	}()
 
 	//handle graceful shutdown

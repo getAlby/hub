@@ -172,6 +172,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/autoswap", httpSvc.getAutoSwapConfigHandler)
 	restrictedApiGroup.POST("/autoswap", httpSvc.enableAutoSwapOutHandler)
 	restrictedApiGroup.DELETE("/autoswap", httpSvc.disableAutoSwapOutHandler)
+	restrictedApiGroup.POST("/node/alias", httpSvc.setNodeAliasHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedApiGroup, e)
 }
