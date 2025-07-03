@@ -734,16 +734,21 @@ func (svc *swapsService) subscribePendingSwaps() {
 
 	logger.Logger.WithField("count", len(swaps)).Info("Resuming pending swaps...")
 
-	boltzWs := svc.boltzApi.NewWebsocket()
-	if err := boltzWs.Connect(); err != nil {
-		logger.Logger.WithError(err).Error("Could not connect to Boltz websocket")
-		return
+	var boltzWs *boltz.Websocket
+	for {
+		boltzWs = svc.boltzApi.NewWebsocket()
+		if err := boltzWs.Connect(); err != nil {
+			logger.Logger.WithError(err).Error("Could not connect to Boltz websocket")
+			time.Sleep(5 * time.Second)
+			continue
+		}
+		break
 	}
 
 	for _, swap := range swaps {
 		if err := boltzWs.Subscribe([]string{swap.SwapId}); err != nil {
 			logger.Logger.WithError(err).WithField("swapId", swap.SwapId).Error("Failed to subscribe to boltz updates")
-			return
+			continue
 		}
 		switch swap.Type {
 		case constants.SWAP_TYPE_IN:
@@ -838,7 +843,7 @@ func (svc *swapsService) startSwapInListener(swap *db.Swap, boltzWs *boltz.Webso
 					if err := boltzWs.Subscribe([]string{swap.SwapId}); err != nil {
 						logger.Logger.WithError(err).WithFields(logrus.Fields{
 							"swapId": swap.SwapId,
-						}).Error("Resubscribe after reconnect failed")
+						}).Error("Failed to resubscribe after reconnecting")
 						return
 					}
 					break
@@ -1056,7 +1061,7 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap, boltzWs *boltz.Webs
 					if err := boltzWs.Subscribe([]string{swap.SwapId}); err != nil {
 						logger.Logger.WithError(err).WithFields(logrus.Fields{
 							"swapId": swap.SwapId,
-						}).Error("Resubscribe after reconnect failed")
+						}).Error("Failed to resubscribe after reconnecting")
 						return
 					}
 					break
