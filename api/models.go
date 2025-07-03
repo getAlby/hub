@@ -170,7 +170,7 @@ type Swap struct {
 	State              string `json:"state"`
 	Invoice            string `json:"invoice"`
 	SendAmount         uint64 `json:"sendAmount"`
-	ReceivedAmount     uint64 `json:"receivedAmount"`
+	ReceiveAmount      uint64 `json:"receiveAmount"`
 	PaymentHash        string `json:"paymentHash"`
 	DestinationAddress string `json:"destinationAddress"`
 	RefundAddress      string `json:"refundAddress"`

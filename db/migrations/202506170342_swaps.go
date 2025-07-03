@@ -16,7 +16,7 @@ CREATE TABLE swaps(
 	state text,
 	invoice text,
 	send_amount integer,
-	received_amount integer,
+	receive_amount integer,
 	destination_address text,
 	refund_address text,
 	lockup_address text,

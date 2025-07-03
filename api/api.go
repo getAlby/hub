@@ -608,7 +608,7 @@ func toApiSwap(swap *swaps.Swap) *Swap {
 		State:              swap.State,
 		Invoice:            swap.Invoice,
 		SendAmount:         swap.SendAmount,
-		ReceivedAmount:     swap.ReceivedAmount,
+		ReceiveAmount:      swap.ReceiveAmount,
 		PaymentHash:        swap.PaymentHash,
 		DestinationAddress: swap.DestinationAddress,
 		RefundAddress:      swap.RefundAddress,

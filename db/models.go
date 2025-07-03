@@ -96,7 +96,7 @@ type Swap struct {
 	State              string
 	Invoice            string
 	SendAmount         uint64
-	ReceivedAmount     uint64
+	ReceiveAmount      uint64
 	Preimage           string
 	PaymentHash        string
 	DestinationAddress string

@@ -212,7 +212,7 @@ export type SwapFees = {
 export type BaseSwap = {
   id: string;
   sendAmount: number;
-  receivedAmount?: number;
+  receiveAmount?: number;
   lockupAddress: string;
   destinationAddress: string;
   paymentHash: string;

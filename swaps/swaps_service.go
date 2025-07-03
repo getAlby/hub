@@ -689,9 +689,9 @@ func (svc *swapsService) RefundSwap(swapId, address string) error {
 	}).Info("Claim transaction broadcasted for refund")
 
 	err = svc.db.Model(&swap).Updates(&db.Swap{
-		ClaimTxId:      claimTxId,
-		ReceivedAmount: refundAmount,
-		State:          constants.SWAP_STATE_REFUNDED,
+		ClaimTxId:     claimTxId,
+		ReceiveAmount: refundAmount,
+		State:         constants.SWAP_STATE_REFUNDED,
 	}).Error
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -913,12 +913,12 @@ func (svc *swapsService) startSwapInListener(swap *db.Swap, boltzWs *boltz.Webso
 				case boltz.TransactionClaimed:
 					svc.markSwapState(swap, constants.SWAP_STATE_SUCCESS)
 					err = svc.db.Model(swap).Updates(&db.Swap{
-						ReceivedAmount: amount,
+						ReceiveAmount: amount,
 					}).Error
 					if err != nil {
 						logger.Logger.WithFields(logrus.Fields{
-							"swapId":         swap.SwapId,
-							"receivedAmount": amount,
+							"swapId":        swap.SwapId,
+							"receiveAmount": amount,
 						}).WithError(err).Error("Failed to save received amount to swap")
 						return
 					}
@@ -1041,7 +1041,7 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap, boltzWs *boltz.Webs
 							Properties: map[string]interface{}{
 								"swapType":    constants.SWAP_TYPE_OUT,
 								"swapId":      swap.SwapId,
-								"amount":      swap.ReceivedAmount,
+								"amount":      swap.ReceiveAmount,
 								"destination": swap.DestinationAddress,
 							},
 						})
@@ -1183,8 +1183,8 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap, boltzWs *boltz.Webs
 					}).Info("Claim transaction broadcasted")
 
 					err = svc.db.Model(swap).Updates(&db.Swap{
-						ClaimTxId:      claimTxId,
-						ReceivedAmount: claimAmount,
+						ClaimTxId:     claimTxId,
+						ReceiveAmount: claimAmount,
 					}).Error
 					if err != nil {
 						logger.Logger.WithFields(logrus.Fields{

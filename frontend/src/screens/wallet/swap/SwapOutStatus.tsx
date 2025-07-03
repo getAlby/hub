@@ -77,11 +77,11 @@ export default function SwapOutStatus() {
                 <div className="flex flex-col gap-2 items-center">
                   <p className="text-xl font-bold slashed-zero text-center">
                     {new Intl.NumberFormat().format(
-                      swap.receivedAmount as number
+                      swap.receiveAmount as number
                     )}{" "}
                     sats
                   </p>
-                  <FormattedFiatAmount amount={swap.receivedAmount as number} />
+                  <FormattedFiatAmount amount={swap.receiveAmount as number} />
                 </div>
                 <div className="flex justify-center gap-4 flex-wrap">
                   <Button onClick={copyTxId} variant="outline">
