@@ -152,49 +152,61 @@ export default function SwapInStatus() {
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
-            {swapStatus === "SUCCESS" && (
-              <CircleCheckIcon className="w-60 h-60" />
-            )}
-            {(swapStatus === "REFUNDED" || swapStatus === "FAILED") && (
-              <CircleXIcon className="w-60 h-60" />
-            )}
-            {swapStatus === "PENDING" &&
-              (swap.lockupTxId ? (
-                <Lottie options={defaultOptions} />
-              ) : (
-                <QRCode value={swap.lockupAddress} />
-              ))}
-            <div className="flex flex-col gap-2 items-center">
-              <p className="text-xl font-bold slashed-zero text-center">
-                {new Intl.NumberFormat().format(swap.sendAmount)} sats
-              </p>
-              <FormattedFiatAmount amount={swap.sendAmount} />
-            </div>
-            {swapStatus === "SUCCESS" && (
-              <Button onClick={copyPaymentHash} variant="outline">
-                <CopyIcon className="w-4 h-4 mr-2" />
-                Copy Payment Hash
-              </Button>
-            )}
-            {!swap.lockupTxId && (
-              <div className="flex justify-center gap-4 flex-wrap">
-                <Button onClick={copyAddress} variant="outline">
+            {swapStatus === "SUCCESS" ? (
+              <>
+                <CircleCheckIcon className="w-60 h-60" />
+                <div className="flex flex-col gap-2 items-center">
+                  <p className="text-xl font-bold slashed-zero text-center">
+                    {new Intl.NumberFormat().format(
+                      swap.receiveAmount as number
+                    )}{" "}
+                    sats
+                  </p>
+                  <FormattedFiatAmount amount={swap.receiveAmount as number} />
+                </div>
+                <Button onClick={copyPaymentHash} variant="outline">
                   <CopyIcon className="w-4 h-4 mr-2" />
-                  Copy Address
+                  Copy Payment Hash
                 </Button>
-                {balances &&
-                  balances.onchain.spendable - 25000 /* anchor reserve */ >
-                    swap.sendAmount && (
-                    <LoadingButton
-                      loading={isPaying}
-                      onClick={payWithAlbyHub}
-                      disabled={!recommendedFees}
-                    >
-                      <ZapIcon className="w-4 h-4 mr-2" />
-                      Use Hub On-Chain Funds
-                    </LoadingButton>
-                  )}
-              </div>
+              </>
+            ) : (
+              <>
+                {(swapStatus === "REFUNDED" || swapStatus === "FAILED") && (
+                  <CircleXIcon className="w-60 h-60" />
+                )}
+                {swapStatus === "PENDING" &&
+                  (swap.lockupTxId ? (
+                    <Lottie options={defaultOptions} />
+                  ) : (
+                    <QRCode value={swap.lockupAddress} />
+                  ))}
+                <div className="flex flex-col gap-2 items-center">
+                  <p className="text-xl font-bold slashed-zero text-center">
+                    {new Intl.NumberFormat().format(swap.sendAmount)} sats
+                  </p>
+                  <FormattedFiatAmount amount={swap.sendAmount} />
+                </div>
+                {!swap.lockupTxId && (
+                  <div className="flex justify-center gap-4 flex-wrap">
+                    <Button onClick={copyAddress} variant="outline">
+                      <CopyIcon className="w-4 h-4 mr-2" />
+                      Copy Address
+                    </Button>
+                    {balances &&
+                      balances.onchain.spendable - 25000 /* anchor reserve */ >
+                        swap.sendAmount && (
+                        <LoadingButton
+                          loading={isPaying}
+                          onClick={payWithAlbyHub}
+                          disabled={!recommendedFees}
+                        >
+                          <ZapIcon className="w-4 h-4 mr-2" />
+                          Use Hub On-Chain Funds
+                        </LoadingButton>
+                      )}
+                  </div>
+                )}
+              </>
             )}
             {/* We only show status screen once bitcoin is locked up */}
             {swap.lockupTxId && (
