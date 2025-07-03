@@ -248,13 +248,7 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 
 		defer func() {
 			if err != nil {
-				err := tx.Model(&dbSwap).Update("state", constants.SWAP_STATE_FAILED).Error
-				if err != nil {
-					logger.Logger.WithError(err).WithFields(logrus.Fields{
-						"dbSwapID":    dbSwap.ID,
-						"paymentHash": paymentHash,
-					}).Error("Failed to mark swap as failed")
-				}
+				svc.markSwapState(&dbSwap, constants.SWAP_STATE_FAILED)
 			}
 		}()
 
@@ -382,13 +376,7 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 
 		defer func() {
 			if err != nil {
-				err := tx.Model(&dbSwap).Update("state", constants.SWAP_STATE_FAILED).Error
-				if err != nil {
-					logger.Logger.WithError(err).WithFields(logrus.Fields{
-						"dbSwapID":    dbSwap.ID,
-						"paymentHash": invoice.PaymentHash,
-					}).Error("Failed to mark swap as failed")
-				}
+				svc.markSwapState(&dbSwap, constants.SWAP_STATE_FAILED)
 			}
 		}()
 
@@ -524,7 +512,9 @@ func (svc *swapsService) markSwapState(dbSwap *db.Swap, state string) {
 		return
 	}
 
-	dbErr := svc.db.Model(dbSwap).Update("state", state).Error
+	dbErr := svc.db.Model(dbSwap).Updates(&db.Swap{
+		State: state,
+	}).Error
 	if dbErr != nil {
 		logger.Logger.WithError(dbErr).WithField("swapId", dbSwap.SwapId).Error("Failed to update swap state")
 	}
@@ -560,7 +550,9 @@ func (svc *swapsService) RefundSwap(swapId, address string) error {
 	}
 
 	if swap.LockupTxId == "" {
-		err = svc.db.Model(&swap).Update("lockup_tx_id", swapTransactionResp.Id).Error
+		err = svc.db.Model(&swap).Updates(&db.Swap{
+			LockupTxId: swapTransactionResp.Id,
+		}).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"swapId":     swapId,
@@ -860,7 +852,9 @@ func (svc *swapsService) startSwapInListener(swap *db.Swap, boltzWs *boltz.Webso
 						"swapId":     swap.SwapId,
 						"lockupTxId": update.Transaction.Id,
 					}).Info("Lockup transaction found in mempool")
-					err = svc.db.Model(swap).Update("lockup_tx_id", update.Transaction.Id).Error
+					err = svc.db.Model(swap).Updates(&db.Swap{
+						LockupTxId: update.Transaction.Id,
+					}).Error
 					if err != nil {
 						logger.Logger.WithFields(logrus.Fields{
 							"swapId":     swap.SwapId,
@@ -1097,7 +1091,9 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap, boltzWs *boltz.Webs
 						"swapId":     swap.SwapId,
 						"lockupTxId": update.Transaction.Id,
 					}).Info("Lockup transaction found in mempool")
-					err := svc.db.Model(swap).Update("lockup_tx_id", update.Transaction.Id).Error
+					err = svc.db.Model(swap).Updates(&db.Swap{
+						LockupTxId: update.Transaction.Id,
+					}).Error
 					if err != nil {
 						logger.Logger.WithFields(logrus.Fields{
 							"swapId":     swap.SwapId,
