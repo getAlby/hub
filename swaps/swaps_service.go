@@ -186,7 +186,7 @@ func (svc *swapsService) EnableAutoSwapOut() error {
 func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap bool) (*SwapResponse, error) {
 	if destination == "" {
 		var err error
-		destination, err = svc.cfg.Get(config.OnchainAddressKey, "")
+		destination, err = svc.lnClient.GetNewOnchainAddress(svc.ctx)
 		if err != nil {
 			return nil, fmt.Errorf("could not get onchain address from config: %s", err)
 		}
@@ -625,11 +625,22 @@ func (svc *swapsService) RefundSwap(swapId, address string) error {
 	}
 
 	if address == "" {
-		address, err = svc.cfg.Get(config.OnchainAddressKey, "")
+		address, err = svc.lnClient.GetNewOnchainAddress(svc.ctx)
 		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to get on-chain address from config")
+			logger.Logger.WithError(err).Error("Failed to get new on-chain address from config")
 			return err
 		}
+	}
+
+	err = svc.db.Model(&swap).Updates(&db.Swap{
+		RefundAddress: address,
+	}).Error
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"swapId":        swapId,
+			"refundAddress": address,
+		}).WithError(err).Error("Failed to save refund address to swap")
+		return err
 	}
 
 	refundTransaction, _, err := boltz.ConstructTransaction(
