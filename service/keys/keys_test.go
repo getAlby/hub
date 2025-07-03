@@ -138,6 +138,7 @@ func TestGenerateSwapMnemonic(t *testing.T) {
 	swapMnemonic, err := keys.GetSwapMnemonic(masterKey)
 	require.NoError(t, err)
 
+	// this matches https://iancoleman.io/bip39/ -> check "Show BIP85" and set BIP85 Index to 128260
 	expectedSwapMnemonic := "truth cargo pluck prefer mosquito symptom review kitchen exile fit corn vault"
 	assert.Equal(t, expectedSwapMnemonic, swapMnemonic)
 }
