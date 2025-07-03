@@ -135,6 +135,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/node/network-graph", httpSvc.nodeNetworkGraphHandler)
 	restrictedApiGroup.POST("/node/migrate-storage", httpSvc.migrateNodeStorageHandler)
 	restrictedApiGroup.GET("/node/transactions", httpSvc.listOnchainTransactionsHandler)
+	restrictedApiGroup.POST("/node/alias", httpSvc.setNodeAliasHandler)
 	restrictedApiGroup.GET("/peers", httpSvc.listPeers)
 	restrictedApiGroup.POST("/peers", httpSvc.connectPeerHandler)
 	restrictedApiGroup.DELETE("/peers/:peerId", httpSvc.disconnectPeerHandler)
@@ -161,14 +162,16 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/health", httpSvc.healthHandler)
 	restrictedApiGroup.GET("/commands", httpSvc.getCustomNodeCommandsHandler)
 	restrictedApiGroup.POST("/command", httpSvc.execCustomNodeCommandHandler)
-	// TODO: rename to /swaps
-	restrictedApiGroup.GET("/wallet/swap/out/fees", httpSvc.getSwapOutFeesHandler)
-	restrictedApiGroup.GET("/wallet/swap/in/fees", httpSvc.getSwapInFeesHandler)
-	restrictedApiGroup.POST("/wallet/swap/out", httpSvc.initiateSwapOutHandler)
-	restrictedApiGroup.POST("/wallet/swap/in", httpSvc.initiateSwapInHandler)
-	restrictedApiGroup.POST("/wallet/autoswap/out", httpSvc.enableAutoSwapOutHandler)
-	restrictedApiGroup.DELETE("/wallet/autoswap/out", httpSvc.disableAutoSwapOutHandler)
-	restrictedApiGroup.GET("/wallet/autoswap", httpSvc.getAutoSwapConfigHandler)
+	restrictedApiGroup.GET("/swaps", httpSvc.listSwapsHandler)
+	restrictedApiGroup.GET("/swaps/:swapId", httpSvc.lookupSwapHandler)
+	restrictedApiGroup.GET("/swaps/out/fees", httpSvc.getSwapOutFeesHandler)
+	restrictedApiGroup.GET("/swaps/in/fees", httpSvc.getSwapInFeesHandler)
+	restrictedApiGroup.POST("/swaps/out", httpSvc.initiateSwapOutHandler)
+	restrictedApiGroup.POST("/swaps/in", httpSvc.initiateSwapInHandler)
+	restrictedApiGroup.POST("/swaps/refund", httpSvc.refundSwapHandler)
+	restrictedApiGroup.GET("/autoswap", httpSvc.getAutoSwapConfigHandler)
+	restrictedApiGroup.POST("/autoswap", httpSvc.enableAutoSwapOutHandler)
+	restrictedApiGroup.DELETE("/autoswap", httpSvc.disableAutoSwapOutHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedApiGroup, e)
 }
@@ -1160,7 +1163,7 @@ func (httpSvc *HttpService) restoreBackupHandler(c echo.Context) error {
 		return err
 	}
 	if info.SetupCompleted {
-		return errors.New("Setup already completed")
+		return errors.New("setup already completed")
 	}
 
 	password := c.FormValue("unlockPassword")
@@ -1201,6 +1204,24 @@ func (httpSvc *HttpService) healthHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, healthResponse)
 }
 
+func (httpSvc *HttpService) refundSwapHandler(c echo.Context) error {
+	var refundSwapInRequest api.RefundSwapRequest
+	if err := c.Bind(&refundSwapInRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.api.RefundSwap(refundSwapInRequest.SwapId, refundSwapInRequest.Address)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
 func (httpSvc *HttpService) initiateSwapOutHandler(c echo.Context) error {
 	var initiateSwapOutRequest api.InitiateSwapRequest
 	if err := c.Bind(&initiateSwapOutRequest); err != nil {
@@ -1235,6 +1256,29 @@ func (httpSvc *HttpService) initiateSwapInHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, txId)
+}
+
+func (httpSvc *HttpService) lookupSwapHandler(c echo.Context) error {
+	swap, err := httpSvc.api.LookupSwap(c.Param("swapId"))
+	if err != nil {
+		return c.JSON(http.StatusNotFound, ErrorResponse{
+			Message: "App not found",
+		})
+	}
+
+	return c.JSON(http.StatusOK, swap)
+}
+
+func (httpSvc *HttpService) listSwapsHandler(c echo.Context) error {
+	swaps, err := httpSvc.api.ListSwaps()
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, swaps)
 }
 
 func (httpSvc *HttpService) getSwapOutFeesHandler(c echo.Context) error {
@@ -1294,6 +1338,24 @@ func (httpSvc *HttpService) disableAutoSwapOutHandler(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) setNodeAliasHandler(c echo.Context) error {
+	var setNodeAliasRequest api.SetNodeAliasRequest
+	if err := c.Bind(&setNodeAliasRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.api.SetNodeAlias(setNodeAliasRequest.NodeAlias)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to set node alias: %s", err.Error()),
 		})
 	}
 

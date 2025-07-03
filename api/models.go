@@ -61,13 +61,17 @@ type API interface {
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
+	RefundSwap(swapId, address string) error
+	LookupSwap(swapId string) (*LookupSwapResponse, error)
+	ListSwaps() (*ListSwapsResponse, error)
 	GetSwapInFees() (*SwapFeesResponse, error)
 	GetSwapOutFees() (*SwapFeesResponse, error)
-	InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (*swaps.SwapInResponse, error)
-	InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (*swaps.SwapOutResponse, error)
+	InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (*swaps.SwapResponse, error)
+	InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (*swaps.SwapResponse, error)
 	GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error)
 	EnableAutoSwapOut(ctx context.Context, autoSwapRequest *EnableAutoSwapRequest) error
 	DisableAutoSwap() error
+	SetNodeAlias(nodeAlias string) error
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
 	SendEvent(event string)
@@ -129,6 +133,11 @@ type InitiateSwapRequest struct {
 	Destination string `json:"destination"`
 }
 
+type RefundSwapRequest struct {
+	SwapId  string `json:"swapId"`
+	Address string `json:"address"`
+}
+
 type EnableAutoSwapRequest struct {
 	BalanceThreshold uint64 `json:"balanceThreshold"`
 	SwapAmount       uint64 `json:"swapAmount"`
@@ -147,6 +156,31 @@ type SwapFeesResponse struct {
 	AlbyServiceFee  float64 `json:"albyServiceFee"`
 	BoltzServiceFee float64 `json:"boltzServiceFee"`
 	BoltzNetworkFee uint64  `json:"boltzNetworkFee"`
+}
+
+type ListSwapsResponse struct {
+	Swaps []Swap `json:"swaps"`
+}
+
+type LookupSwapResponse = Swap
+
+type Swap struct {
+	Id                 string `json:"id"`
+	Type               string `json:"type"`
+	State              string `json:"state"`
+	Invoice            string `json:"invoice"`
+	SendAmount         uint64 `json:"sendAmount"`
+	ReceivedAmount     uint64 `json:"receivedAmount"`
+	PaymentHash        string `json:"paymentHash"`
+	DestinationAddress string `json:"destinationAddress"`
+	RefundAddress      string `json:"refundAddress"`
+	LockupAddress      string `json:"lockupAddress"`
+	LockupTxId         string `json:"lockupTxId"`
+	ClaimTxId          string `json:"claimTxId"`
+	AutoSwap           bool   `json:"autoSwap"`
+	BoltzPubkey        string `json:"boltzPubkey"`
+	CreatedAt          string `json:"createdAt"`
+	UpdatedAt          string `json:"updatedAt"`
 }
 
 type StartRequest struct {
@@ -226,10 +260,16 @@ type InfoResponse struct {
 	AutoUnlockPasswordEnabled   bool      `json:"autoUnlockPasswordEnabled"`
 	Currency                    string    `json:"currency"`
 	Relay                       string    `json:"relay"`
+	NodeAlias                   string    `json:"nodeAlias"`
+	MempoolUrl                  string    `json:"mempoolUrl"`
 }
 
 type UpdateSettingsRequest struct {
 	Currency string `json:"currency"`
+}
+
+type SetNodeAliasRequest struct {
+	NodeAlias string `json:"nodeAlias"`
 }
 
 type MnemonicRequest struct {

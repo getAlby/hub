@@ -1,14 +1,17 @@
 import {
+  CircleAlertIcon,
   CircleCheckIcon,
-  CircleEllipsisIcon,
   CircleXIcon,
   CopyIcon,
-  ExternalLinkIcon,
 } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import Lottie from "react-lottie";
+import { useParams } from "react-router-dom";
+import animationDataDark from "src/assets/lotties/loading-dark.json";
+import animationDataLight from "src/assets/lotties/loading-light.json";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
+import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -16,93 +19,181 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { useTheme } from "src/components/ui/theme-provider";
 import { useToast } from "src/components/ui/use-toast";
-import { useSyncWallet } from "src/hooks/useSyncWallet";
-import { useTransaction } from "src/hooks/useTransaction";
+import { useInfo } from "src/hooks/useInfo";
+import { useSwap } from "src/hooks/useSwaps";
 import { copyToClipboard } from "src/lib/clipboard";
-import { SwapOutResponse } from "src/types";
+import { SwapOut } from "src/types";
 
 export default function SwapOutStatus() {
-  const { state } = useLocation();
   const { toast } = useToast();
-  useSyncWallet(); // ensure funds show up on node page after swap completes
+  const { data: info } = useInfo();
+  const { isDarkMode } = useTheme();
+  const { swapId } = useParams() as { swapId: string };
+  const { data: swap } = useSwap<SwapOut>(swapId, true);
 
-  const swapOutResponse = state.swapOutResponse as SwapOutResponse;
-  const amount = state.amount as number;
-  const { data: lightningPayment } = useTransaction(
-    swapOutResponse.paymentHash,
-    true
-  );
+  if (!swap) {
+    return <Loading />;
+  }
 
-  const copy = () => {
-    copyToClipboard(swapOutResponse.txId as string, toast);
+  const copyTxId = () => {
+    copyToClipboard(swap.claimTxId as string, toast);
   };
 
-  const swapStatus =
-    lightningPayment?.state === "settled"
-      ? "success"
-      : lightningPayment?.state === "failed"
-        ? "failed"
-        : "pending";
+  const defaultOptions = {
+    loop: true,
+    autoplay: true,
+    animationData: isDarkMode ? animationDataDark : animationDataLight,
+    rendererSettings: {
+      preserveAspectRatio: "xMidYMid slice",
+    },
+  };
+
+  const swapStatus = swap.state;
+  const statusText = {
+    SUCCESS: "Swap Successful",
+    FAILED: "Swap Failed",
+    PENDING: swap.lockupTxId
+      ? "Waiting for confirmation"
+      : "Waiting for deposit",
+  };
 
   return (
     <div className="grid gap-5">
       <AppHeader title="Swap Out" />
       <div className="w-full max-w-lg">
-        <Card className="w-full">
+        <Card className="w-full md:max-w-xs">
           <CardHeader>
-            <CardTitle className="text-center">
-              Swap{" "}
-              {swapStatus === "success"
-                ? "Successful"
-                : swapStatus === "failed"
-                  ? "Failed"
-                  : "Pending"}
+            <CardTitle className="flex justify-center">
+              {swapStatus === "PENDING" && <Loading className="w-4 h-4 mr-2" />}
+              {statusText[swapStatus]}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
-            {swapStatus === "success" ? (
-              <CircleCheckIcon className="w-32 h-32 mb-2" />
-            ) : swapStatus === "failed" ? (
-              <CircleXIcon className="w-32 h-32 mb-2" />
-            ) : (
-              <CircleEllipsisIcon className="animate-pulse w-32 h-32 mb-2" />
-            )}
-
-            <div className="flex flex-col gap-2 items-center">
-              <p className="text-xl font-bold slashed-zero">
-                {new Intl.NumberFormat().format(amount)} sats
-              </p>
-              <FormattedFiatAmount amount={amount} />
-            </div>
-            {swapOutResponse.txId && (
-              <div className="flex items-center gap-4">
-                <ExternalLink
-                  to={`https://mempool.space/tx/${swapOutResponse.txId}`}
-                  className="flex items-center"
-                >
-                  <Button variant="outline" className="w-full sm:w-auto">
-                    View on Mempool
-                    <ExternalLinkIcon className="w-4 h-4 ml-2" />
+            {swapStatus === "SUCCESS" ? (
+              <>
+                <CircleCheckIcon className="w-60 h-60" />
+                <div className="flex flex-col gap-2 items-center">
+                  <p className="text-xl font-bold slashed-zero text-center">
+                    {new Intl.NumberFormat().format(
+                      swap.receivedAmount as number
+                    )}{" "}
+                    sats
+                  </p>
+                  <FormattedFiatAmount amount={swap.receivedAmount as number} />
+                </div>
+                <div className="flex justify-center gap-4 flex-wrap">
+                  <Button onClick={copyTxId} variant="outline">
+                    <CopyIcon className="w-4 h-4 mr-2" />
+                    Copy TxId
                   </Button>
-                </ExternalLink>
-                <Button onClick={copy} variant="outline">
-                  <CopyIcon className="w-4 h-4 mr-2" />
-                  Copy TxId
-                </Button>
-              </div>
+                </div>
+              </>
+            ) : (
+              <>
+                {swapStatus === "PENDING" ? (
+                  <Lottie options={defaultOptions} />
+                ) : (
+                  <CircleXIcon className="w-60 h-60" />
+                )}
+                <div className="flex flex-col gap-2 items-center">
+                  <p className="text-xl font-bold slashed-zero text-center">
+                    ~{new Intl.NumberFormat().format(swap.sendAmount)} sats
+                  </p>
+                  <div className="flex items-center">
+                    <span className="text-sm text-muted-foreground">~</span>
+                    <FormattedFiatAmount amount={swap.sendAmount} />
+                  </div>
+                </div>
+              </>
             )}
+            <div className="flex flex-col justify-start gap-2 w-full mt-2">
+              {swapStatus !== "FAILED" ? (
+                swap.lockupTxId ? (
+                  <>
+                    {swapStatus === "SUCCESS" && (
+                      <div className="flex items-center text-muted-foreground text-sm">
+                        <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />
+                        <div className="flex items-center gap-2">
+                          <p>Claimed via onchain</p>
+                          <ExternalLink
+                            to={`${info?.mempoolUrl}/tx/${swap.claimTxId}`}
+                            className="flex items-center underline text-foreground"
+                          >
+                            View
+                          </ExternalLink>
+                        </div>
+                      </div>
+                    )}
+                    {swapStatus === "PENDING" && (
+                      <div className="flex items-center text-muted-foreground text-sm">
+                        <Loading className="w-5 h-5 mr-2" />
+                        <div className="flex items-center gap-2">
+                          <p>Waiting for onchain confirmation...</p>
+                          <ExternalLink
+                            to={`${info?.mempoolUrl}/tx/${swap.claimTxId || swap.lockupTxId}`}
+                            className="flex items-center underline text-foreground"
+                          >
+                            View
+                          </ExternalLink>
+                        </div>
+                      </div>
+                    )}
+                    <Divider color="border-green-600 dark:border-emerald-500" />
+                    <div className="flex items-center text-muted-foreground text-sm">
+                      <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />
+                      Lightning invoice paid
+                    </div>
+                    <Divider color="border-green-600 dark:border-emerald-500" />
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center text-muted-foreground text-sm">
+                      <Loading className="w-5 h-5 mr-2" />
+                      Paying lightning invoice...
+                    </div>
+                    <Divider color="border-green-600 dark:border-emerald-500" />
+                  </>
+                )
+              ) : (
+                <>
+                  <div className="flex items-center text-muted-foreground text-sm">
+                    <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />
+                    Swap invoice cancelled
+                  </div>
+                  <Divider color="border-green-600 dark:border-emerald-500" />
+                  {swap.lockupTxId ? (
+                    <>
+                      <div className="flex items-center text-muted-foreground text-sm">
+                        <CircleAlertIcon className="w-5 h-5 mr-2 text-red-500" />
+                        Failed to claim swap in time
+                      </div>
+                      <Divider color="border-green-600 dark:border-emerald-500" />
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex items-center text-muted-foreground text-sm">
+                        <CircleAlertIcon className="w-5 h-5 mr-2 text-red-500" />
+                        Failed to pay swap hold invoice
+                      </div>
+                      <Divider color="border-red-500" />
+                    </>
+                  )}
+                </>
+              )}
+              <div className="flex items-center text-muted-foreground text-sm">
+                <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />
+                Swap initiated
+              </div>
+            </div>
           </CardContent>
         </Card>
-        <Link to={`/wallet/swap?type=out`}>
-          <Button className="mt-4 w-full">Make Another Swap</Button>
-        </Link>
-        <Link to="/wallet">
-          <Button className="mt-4 w-full" variant="secondary">
-            Back To Wallet
-          </Button>
-        </Link>
       </div>
     </div>
   );
 }
+
+const Divider = ({ color }: { color: string }) => (
+  <div className={`ml-[9px] py-1 border-l ${color}`}></div>
+);

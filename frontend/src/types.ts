@@ -161,6 +161,8 @@ export interface InfoResponse {
   autoUnlockPasswordSupported: boolean;
   autoUnlockPasswordEnabled: boolean;
   currency: string;
+  nodeAlias: string;
+  mempoolUrl: string;
 }
 
 export type HealthAlarmKind =
@@ -193,8 +195,8 @@ export type AppMetadata = { app_store_app_id?: string } & Record<
   unknown
 >;
 
-export type AutoSwapsConfig = {
-  type: "in" | "out";
+export type AutoSwapConfig = {
+  type: "out";
   enabled: boolean;
   balanceThreshold: number;
   swapAmount: number;
@@ -207,14 +209,36 @@ export type SwapFees = {
   boltzNetworkFee: number;
 };
 
-export type SwapInResponse = {
-  onchainAddress: string;
-  amountToDeposit: number;
+export type BaseSwap = {
+  id: string;
+  sendAmount: number;
+  receivedAmount?: number;
+  lockupAddress: string;
+  destinationAddress: string;
   paymentHash: string;
+  invoice: string;
+  autoSwap: boolean;
+  boltzPubkey: string;
+  createdAt: string;
+  updatedAt: string;
+  lockupTxId?: string;
+  claimTxId?: string;
 };
 
-export type SwapOutResponse = {
-  txId: string;
+export type SwapIn = BaseSwap & {
+  type: "in";
+  state: "PENDING" | "SUCCESS" | "FAILED" | "REFUNDED";
+  refundAddress?: string;
+};
+
+export type SwapOut = BaseSwap & {
+  type: "out";
+  state: "PENDING" | "SUCCESS" | "FAILED";
+};
+
+export type Swap = SwapIn | SwapOut;
+
+export type SwapResponse = {
   swapId: string;
   paymentHash: string;
 };
@@ -450,6 +474,9 @@ export type AlbyMe = {
   shared_node: boolean;
   hub: {
     name?: string;
+    config?: {
+      region?: string;
+    };
   };
   subscription: {
     plan_code: string;
@@ -539,6 +566,7 @@ export type TransactionMetadata = {
     id: string;
     payer_note: string;
   }; // BOLT-12
+  swap_id?: string;
 } & Record<string, unknown>;
 
 export type Boostagram = {

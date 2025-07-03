@@ -20,6 +20,7 @@ var expectedTables = []string{
 	"request_events",
 	"response_events",
 	"transactions",
+	"swaps",
 	"user_configs",
 	"migrations",
 }

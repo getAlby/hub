@@ -72,6 +72,7 @@ import { NewSubwallet } from "src/screens/subwallets/NewSubwallet";
 import { SubwalletCreated } from "src/screens/subwallets/SubwalletCreated";
 import { SubwalletList } from "src/screens/subwallets/SubwalletList";
 import Wallet from "src/screens/wallet";
+import NodeAlias from "src/screens/wallet/NodeAlias";
 import Receive from "src/screens/wallet/Receive";
 import Send from "src/screens/wallet/Send";
 import SignMessage from "src/screens/wallet/SignMessage";
@@ -127,16 +128,16 @@ const routes = [
                 element: <Swap />,
               },
               {
-                path: "auto",
-                element: <AutoSwap />,
+                path: "out/status/:swapId",
+                element: <SwapOutStatus />,
               },
               {
-                path: "in/status",
+                path: "in/status/:swapId",
                 element: <SwapInStatus />,
               },
               {
-                path: "out/status",
-                element: <SwapOutStatus />,
+                path: "auto",
+                element: <AutoSwap />,
               },
               {
                 path: "auto/success",
@@ -196,6 +197,11 @@ const routes = [
             path: "sign-message",
             element: <SignMessage />,
             handle: { crumb: () => "Sign Message" },
+          },
+          {
+            path: "node-alias",
+            element: <NodeAlias />,
+            handle: { crumb: () => "Node Alias" },
           },
           {
             path: "withdraw",

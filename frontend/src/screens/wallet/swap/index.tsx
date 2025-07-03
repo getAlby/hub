@@ -21,7 +21,7 @@ import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import { useSwapFees } from "src/hooks/useSwaps";
 import { cn } from "src/lib/utils";
-import { SwapOutResponse } from "src/types";
+import { SwapResponse } from "src/types";
 import { request } from "src/utils/request";
 
 export default function Swap() {
@@ -91,7 +91,7 @@ function SwapInForm() {
 
     try {
       setLoading(true);
-      const swapInResponse = await request("/api/wallet/swap/in", {
+      const swapInResponse = await request<SwapResponse>("/api/swaps/in", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -103,15 +103,11 @@ function SwapInForm() {
       if (!swapInResponse) {
         throw new Error("Error swapping in");
       }
-      navigate(`/wallet/swap/in/status`, {
-        state: {
-          swapInResponse,
-        },
-      });
+      navigate(`/wallet/swap/in/status/${swapInResponse.swapId}`);
       toast({ title: "Initiated swap" });
     } catch (error) {
       toast({
-        title: "Saving swap settings failed",
+        title: "Failed to initiate swap",
         description: (error as Error).message,
         variant: "destructive",
       });
@@ -218,28 +214,20 @@ function SwapOutForm() {
 
     try {
       setLoading(true);
-      const swapOutResponse = await request<SwapOutResponse>(
-        "/api/wallet/swap/out",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            swapAmount: parseInt(swapAmount),
-            destination,
-          }),
-        }
-      );
+      const swapOutResponse = await request<SwapResponse>("/api/swaps/out", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          swapAmount: parseInt(swapAmount),
+          destination,
+        }),
+      });
       if (!swapOutResponse) {
         throw new Error("Error swapping out");
       }
-      navigate(`/wallet/swap/out/status`, {
-        state: {
-          swapOutResponse,
-          amount: parseInt(swapAmount),
-        },
-      });
+      navigate(`/wallet/swap/out/status/${swapOutResponse.swapId}`);
       toast({ title: "Initiated swap" });
     } catch (error) {
       toast({
