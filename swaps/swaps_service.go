@@ -237,7 +237,6 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 		AutoSwap:           autoSwap,
 	}
 
-	var tree *boltz.SwapTree
 	var ourKeys *btcec.PrivateKey
 	var swap *boltz.CreateReverseSwapResponse
 
@@ -278,20 +277,6 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 
 		if err != nil {
 			return fmt.Errorf("could not create swap: %s", err)
-		}
-
-		boltzPubKey, err := btcec.ParsePubKey(swap.RefundPublicKey)
-		if err != nil {
-			return err
-		}
-
-		tree = swap.SwapTree.Deserialize()
-		if err := tree.Init(boltz.CurrencyBtc, true, ourKeys, boltzPubKey); err != nil {
-			return err
-		}
-
-		if err := tree.Check(boltz.ReverseSwap, swap.TimeoutBlockHeight, preimageHash[:]); err != nil {
-			return err
 		}
 
 		swapTreeJson, err := json.Marshal(swap.SwapTree)
@@ -351,16 +336,6 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 		return nil, err
 	}
 
-	decodedPreimageHash, err := hex.DecodeString(invoice.PaymentHash)
-	if err != nil {
-		return nil, fmt.Errorf("invalid preimage hash: %v", err)
-	}
-
-	network, err := boltz.ParseChain(svc.cfg.GetNetwork())
-	if err != nil {
-		return nil, err
-	}
-
 	submarinePairs, err := svc.boltzApi.GetSubmarinePairs()
 	if err != nil {
 		return nil, fmt.Errorf("could not get submarine pairs: %s", err)
@@ -396,7 +371,6 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 		AutoSwap:    autoSwap,
 	}
 
-	var tree *boltz.SwapTree
 	var ourKeys *btcec.PrivateKey
 	var swap *boltz.CreateSwapResponse
 
@@ -434,24 +408,6 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 		})
 		if err != nil {
 			return fmt.Errorf("could not create swap: %s", err)
-		}
-
-		boltzPubKey, err := btcec.ParsePubKey(swap.ClaimPublicKey)
-		if err != nil {
-			return err
-		}
-
-		tree = swap.SwapTree.Deserialize()
-		if err := tree.Init(boltz.CurrencyBtc, false, ourKeys, boltzPubKey); err != nil {
-			return err
-		}
-
-		if err := tree.Check(boltz.NormalSwap, swap.TimeoutBlockHeight, decodedPreimageHash); err != nil {
-			return err
-		}
-
-		if err := tree.CheckAddress(swap.Address, network, nil); err != nil {
-			return err
 		}
 
 		swapTreeJson, err := json.Marshal(swap.SwapTree)
@@ -798,44 +754,59 @@ func (svc *swapsService) subscribePendingSwaps() {
 func (svc *swapsService) startSwapInListener(swap *db.Swap, boltzWs *boltz.Websocket) {
 	network, err := boltz.ParseChain(svc.cfg.GetNetwork())
 	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"swapId": swap.SwapId,
+		}).Error("Failed to parse network")
 		return
 	}
 
 	ourKeys, err := svc.keys.GetSwapKey(swap.ID)
 	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"swapId": swap.SwapId,
+		}).Error("Failed to generate swap child private key")
 		return
 	}
 
 	var serializedTree boltz.SerializedTree
 	if err := json.Unmarshal(swap.SwapTree, &serializedTree); err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"swapId": swap.SwapId,
+		}).Error("Failed to unmarshal swap tree")
 		return
 	}
 
-	boltzPubkeyBytes, err := hex.DecodeString(swap.BoltzPubkey)
-	if err != nil {
-		return
-	}
+	boltzPubkeyBytes, _ := hex.DecodeString(swap.BoltzPubkey)
 
 	boltzPubKey, err := btcec.ParsePubKey(boltzPubkeyBytes)
 	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"swapId": swap.SwapId,
+		}).Error("Failed to parse boltz pubkey")
 		return
 	}
 
-	decodedPreimageHash, err := hex.DecodeString(swap.PaymentHash)
-	if err != nil {
-		return
-	}
+	decodedPreimageHash, _ := hex.DecodeString(swap.PaymentHash)
 
 	tree := serializedTree.Deserialize()
 	if err := tree.Init(boltz.CurrencyBtc, false, ourKeys, boltzPubKey); err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"swapId": swap.SwapId,
+		}).Error("Failed to initialize swap tree")
 		return
 	}
 
 	if err := tree.Check(boltz.NormalSwap, swap.TimeoutBlockHeight, decodedPreimageHash); err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"swapId": swap.SwapId,
+		}).Error("Failed to check swap tree")
 		return
 	}
 
 	if err := tree.CheckAddress(swap.LockupAddress, network, nil); err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"swapId": swap.SwapId,
+		}).Error("Failed to check address")
 		return
 	}
 
@@ -970,36 +941,55 @@ func (svc *swapsService) startSwapInListener(swap *db.Swap, boltzWs *boltz.Webso
 }
 
 func (svc *swapsService) startSwapOutListener(swap *db.Swap, boltzWs *boltz.Websocket) {
-	network, _ := boltz.ParseChain(svc.cfg.GetNetwork())
-	ourKeys, _ := svc.keys.GetSwapKey(swap.ID)
+	network, err := boltz.ParseChain(svc.cfg.GetNetwork())
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"swapId": swap.SwapId,
+		}).Error("Failed to parse network")
+		return
+	}
+
+	ourKeys, err := svc.keys.GetSwapKey(swap.ID)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"swapId": swap.SwapId,
+		}).Error("Failed to generate swap child private key")
+		return
+	}
 
 	var serializedTree boltz.SerializedTree
 	if err := json.Unmarshal(swap.SwapTree, &serializedTree); err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"swapId": swap.SwapId,
+		}).Error("Failed to unmarshal swap tree")
 		return
 	}
 
-	boltzPubkeyBytes, err := hex.DecodeString(swap.BoltzPubkey)
-	if err != nil {
-		return
-	}
+	boltzPubkeyBytes, _ := hex.DecodeString(swap.BoltzPubkey)
 
 	boltzPubKey, err := btcec.ParsePubKey(boltzPubkeyBytes)
 	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"swapId": swap.SwapId,
+		}).Error("Failed to parse boltz pubkey")
 		return
 	}
 
-	preimageBytes, err := hex.DecodeString(swap.Preimage)
-	if err != nil {
-		return
-	}
+	preimageBytes, _ := hex.DecodeString(swap.Preimage)
 	preimageHash := sha256.Sum256(preimageBytes)
 
 	tree := serializedTree.Deserialize()
 	if err := tree.Init(boltz.CurrencyBtc, true, ourKeys, boltzPubKey); err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"swapId": swap.SwapId,
+		}).Error("Failed to initialize swap tree")
 		return
 	}
 
 	if err := tree.Check(boltz.ReverseSwap, swap.TimeoutBlockHeight, preimageHash[:]); err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"swapId": swap.SwapId,
+		}).Error("Failed to check swap tree")
 		return
 	}
 
