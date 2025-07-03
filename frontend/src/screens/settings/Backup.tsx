@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import MnemonicDialog from "src/components/mnemonic/MnemonicDialog";
@@ -201,7 +201,7 @@ export default function Backup() {
                         {me?.subscription.plan_code && info.ldkVssEnabled ? (
                           <Badge variant={"positive"}>Active</Badge>
                         ) : (
-                          <Badge>Alby Cloud</Badge>
+                          <Badge className="shrink-0">Alby Cloud</Badge>
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground mb-4">
@@ -284,10 +284,19 @@ type Props = {
 };
 
 function DynamicChannelsBackupDialog({ info }: Props) {
+  const [open, setOpen] = useState(false);
+  const [searchParams] = useSearchParams();
+
+  React.useEffect(() => {
+    if (searchParams.get("dynamic") === "true") {
+      setOpen(true);
+    }
+  }, [searchParams]);
+
   const { isMigratingStorage, migrateLDKStorage } = useMigrateLDKStorage();
 
   return (
-    <AlertDialog>
+    <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <LoadingButton
           variant="secondary"
@@ -304,8 +313,16 @@ function DynamicChannelsBackupDialog({ info }: Props) {
           <AlertDialogDescription>
             <div>
               <p>
-                As part of enabling VSS your hub will be shut down, and you will
-                need to enter your unlock password to start it again.
+                By enabling dynamic channel backups, your channels state is
+                dynamically updated and stored end-to-end encrypted by Alby's
+                Versioned Storage Service. This allows you to recover your
+                spending balance with your recovery phrase alone, without having
+                to close your channels.
+              </p>
+              <p className="mt-2">
+                As part of enabling dynamic channels backup your hub will be
+                shut down, and you will need to enter your unlock password to
+                start it again.
               </p>
               <p className="mt-2">
                 Please ensure you have no pending payments or channel closures
