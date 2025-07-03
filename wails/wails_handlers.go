@@ -1170,6 +1170,8 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 	}
 
+	// Swap lookup and listing is shifted to the bottom so it
+	// doesn't interfere with other swap endpoints
 	swapRegex := regexp.MustCompile(
 		`/api/swaps/([0-9a-zA-Z]+)`,
 	)
