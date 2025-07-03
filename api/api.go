@@ -734,6 +734,10 @@ func (api *api) DisableAutoSwap() error {
 	return nil
 }
 
+func (api *api) GetSwapMnemonic() string {
+	return api.keys.GetSwapMnemonic()
+}
+
 func (api *api) GetNodeStatus(ctx context.Context) (*lnclient.NodeStatus, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")

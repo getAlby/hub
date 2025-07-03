@@ -168,6 +168,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.POST("/swaps/out", httpSvc.initiateSwapOutHandler)
 	restrictedApiGroup.POST("/swaps/in", httpSvc.initiateSwapInHandler)
 	restrictedApiGroup.POST("/swaps/refund", httpSvc.refundSwapHandler)
+	restrictedApiGroup.GET("/swaps/mnemonic", httpSvc.swapMnemonicHandler)
 	restrictedApiGroup.GET("/autoswap", httpSvc.getAutoSwapConfigHandler)
 	restrictedApiGroup.POST("/autoswap", httpSvc.enableAutoSwapOutHandler)
 	restrictedApiGroup.DELETE("/autoswap", httpSvc.disableAutoSwapOutHandler)
@@ -1301,6 +1302,11 @@ func (httpSvc *HttpService) refundSwapHandler(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) swapMnemonicHandler(c echo.Context) error {
+	mnemonic := httpSvc.api.GetSwapMnemonic()
+	return c.JSON(http.StatusOK, mnemonic)
 }
 
 func (httpSvc *HttpService) getAutoSwapConfigHandler(c echo.Context) error {

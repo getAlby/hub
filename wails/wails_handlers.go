@@ -1128,6 +1128,9 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
+	case "/api/swaps/mnemonic":
+		mnemonic := app.api.GetSwapMnemonic()
+		return WailsRequestRouterResponse{Body: mnemonic, Error: ""}
 	case "/api/node/alias":
 		setNodeAliasRequest := &api.SetNodeAliasRequest{}
 		err := json.Unmarshal([]byte(body), setNodeAliasRequest)

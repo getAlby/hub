@@ -431,6 +431,12 @@ export default function DebugTools() {
               Refund Swap
             </Button>
           </AlertDialogTrigger>
+          <Button
+            variant={"outline"}
+            onClick={() => apiRequest("/api/swaps/mnemonic", "GET")}
+          >
+            Swap Mnemonic
+          </Button>
           <AlertDialogTrigger asChild>
             <Button variant={"outline"} onClick={() => setDialog("getAppLogs")}>
               Get App Logs

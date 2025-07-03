@@ -23,6 +23,8 @@ type Keys interface {
 	GetNostrPublicKey() string
 	// Wallet Service Nostr secret key (DEPRECATED)
 	GetNostrSecretKey() string
+	// Swap rescue key derived from master key using BIP-85
+	GetSwapMnemonic() string
 	// Derives a BIP32 child key from appKey derived child dedicated for app wallet keys
 	GetAppWalletKey(childIndex uint) (string, error)
 	// Derives a child BIP-32 key from the app key (derived from the mnemonic)
@@ -36,6 +38,7 @@ type keys struct {
 	nostrPublicKey string
 	appKey         *bip32.Key
 	swapKey        *hdkeychain.ExtendedKey
+	swapMnemonic   string
 }
 
 func NewKeys() *keys {
@@ -100,11 +103,12 @@ func (keys *keys) Init(cfg config.Config, encryptionKey string) error {
 	}
 	keys.appKey = appKey
 
-	swapMnemonic, err := keys.GetSwapMnemonic(masterKey)
+	swapMnemonic, err := keys.GenerateSwapMnemonic(masterKey)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to generate swap mnemonic")
 		return err
 	}
+	keys.swapMnemonic = swapMnemonic
 
 	netParams := &chaincfg.MainNetParams
 	network := cfg.GetNetwork()
@@ -120,6 +124,10 @@ func (keys *keys) Init(cfg config.Config, encryptionKey string) error {
 	keys.swapKey = swapKey
 
 	return nil
+}
+
+func (keys *keys) GetSwapMnemonic() string {
+	return keys.swapMnemonic
 }
 
 func (keys *keys) GetNostrPublicKey() string {
@@ -175,7 +183,7 @@ func (keys *keys) GetSwapKey(swapID uint) (*btcec.PrivateKey, error) {
 }
 
 // Taken from https://github.com/e4coder/bip85/blob/main/bip85.go
-func (keys *keys) GetSwapMnemonic(key *bip32.Key) (string, error) {
+func (keys *keys) GenerateSwapMnemonic(key *bip32.Key) (string, error) {
 	swapIndex := uint32(bip32.FirstHardenedChild + 128260 /* 🔄 */)
 	path := []uint32{bip32.FirstHardenedChild + 83696968, bip32.FirstHardenedChild + 39, bip32.FirstHardenedChild + 0, bip32.FirstHardenedChild + 12, swapIndex}
 
