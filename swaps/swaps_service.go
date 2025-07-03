@@ -943,6 +943,7 @@ func (svc *swapsService) startSwapInListener(swap *db.Swap, boltzWs *boltz.Webso
 						logger.Logger.WithError(err).WithFields(logrus.Fields{
 							"swapId": swap.SwapId,
 						}).Error("Could not process refund")
+						svc.markSwapState(swap, constants.SWAP_STATE_FAILED)
 					}
 					return
 				}
@@ -1022,6 +1023,7 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap, boltzWs *boltz.Webs
 				logger.Logger.WithError(err).WithFields(logrus.Fields{
 					"swapId": swap.SwapId,
 				}).Error("Failed to pay hold invoice, terminating swap out...")
+				svc.markSwapState(swap, constants.SWAP_STATE_FAILED)
 				return
 			case <-claimTicker.C:
 				if swap.ClaimTxId != "" {
@@ -1199,6 +1201,7 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap, boltzWs *boltz.Webs
 						"swapId": swap.SwapId,
 						"reason": update.Status,
 					}).Info("Swap out failed, HTLC is cancelled")
+					svc.markSwapState(swap, constants.SWAP_STATE_FAILED)
 					return
 				}
 			}
