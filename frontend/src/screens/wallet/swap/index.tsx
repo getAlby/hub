@@ -7,7 +7,6 @@ import {
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
-import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import ResponsiveButton from "src/components/ResponsiveButton";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
@@ -194,18 +193,13 @@ function SwapInForm() {
           <Loading />
         )}
       </div>
-      <div className="grid gap-1">
+      <div className="grid gap-2">
         <LoadingButton className="w-full" loading={loading}>
           Swap In
         </LoadingButton>
-        <p className="text-xs text-muted-foreground text-right">
+        <p className="text-xs text-muted-foreground text-center">
           powered by{" "}
-          <ExternalLink
-            to="https://boltz.exchange"
-            className="font-medium text-foreground"
-          >
-            boltz.exchange
-          </ExternalLink>
+          <span className="font-medium text-foreground">boltz.exchange</span>
         </p>
       </div>
     </form>
@@ -367,18 +361,13 @@ function SwapOutForm() {
           <Loading />
         )}
       </div>
-      <div className="grid gap-1">
+      <div className="grid gap-2">
         <LoadingButton className="w-full" loading={loading}>
           Swap Out
         </LoadingButton>
-        <p className="text-xs text-muted-foreground text-right">
+        <p className="text-xs text-muted-foreground text-center">
           powered by{" "}
-          <ExternalLink
-            to="https://boltz.exchange"
-            className="font-medium text-foreground"
-          >
-            boltz.exchange
-          </ExternalLink>
+          <span className="font-medium text-foreground">boltz.exchange</span>
         </p>
       </div>
     </form>

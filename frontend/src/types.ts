@@ -212,9 +212,7 @@ export type SwapFees = {
 export type BaseSwap = {
   id: string;
   sendAmount: number;
-  receiveAmount?: number;
   lockupAddress: string;
-  destinationAddress: string;
   paymentHash: string;
   invoice: string;
   autoSwap: boolean;
@@ -223,6 +221,7 @@ export type BaseSwap = {
   updatedAt: string;
   lockupTxId?: string;
   claimTxId?: string;
+  receiveAmount?: number;
 };
 
 export type SwapIn = BaseSwap & {
@@ -234,6 +233,7 @@ export type SwapIn = BaseSwap & {
 export type SwapOut = BaseSwap & {
   type: "out";
   state: "PENDING" | "SUCCESS" | "FAILED";
+  destinationAddress: string;
 };
 
 export type Swap = SwapIn | SwapOut;
