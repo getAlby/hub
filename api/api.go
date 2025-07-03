@@ -567,7 +567,7 @@ func (api *api) GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error) {
 	}
 
 	return &GetAutoSwapConfigResponse{
-		Type:             "out",
+		Type:             constants.SWAP_TYPE_OUT,
 		Enabled:          swapOutEnabled,
 		BalanceThreshold: swapOutBalanceThreshold,
 		SwapAmount:       swapOutAmount,
@@ -663,7 +663,7 @@ func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *Ini
 		return nil, errors.New("invalid swap amount")
 	}
 
-	swapoutResponse, err := api.svc.GetSwapsService().SwapOut(amount, destination, false)
+	swapOutResponse, err := api.svc.GetSwapsService().SwapOut(amount, destination, false)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount":      amount,
@@ -672,7 +672,7 @@ func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *Ini
 		return nil, err
 	}
 
-	return swapoutResponse, nil
+	return swapOutResponse, nil
 }
 
 func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (*swaps.SwapResponse, error) {
@@ -687,7 +687,7 @@ func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *Initi
 		return nil, errors.New("invalid swap amount")
 	}
 
-	txId, err := api.svc.GetSwapsService().SwapIn(amount, false)
+	swapInResponse, err := api.svc.GetSwapsService().SwapIn(amount, false)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount": amount,
@@ -695,7 +695,7 @@ func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *Initi
 		return nil, err
 	}
 
-	return txId, nil
+	return swapInResponse, nil
 }
 
 func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *EnableAutoSwapRequest) error {
