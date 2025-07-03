@@ -2,6 +2,8 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import {
   ArrowDownIcon,
+  ArrowDownUpIcon,
+  ArrowUpDownIcon,
   ArrowUpIcon,
   ChevronDownIcon,
   ChevronUpIcon,
@@ -11,7 +13,6 @@ import {
 import { nip19 } from "nostr-tools";
 import React from "react";
 import { Link } from "react-router-dom";
-import boltz from "src/assets/suggested-apps/boltz.png";
 import AppAvatar from "src/components/AppAvatar";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
@@ -50,22 +51,6 @@ function TransactionItem({ tx }: Props) {
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;
 
-  const typeStateText =
-    type == "incoming"
-      ? "Received"
-      : tx.state === "settled" // we only fetch settled incoming payments
-        ? "Sent"
-        : tx.state === "pending"
-          ? "Sending"
-          : "Failed";
-
-  const Icon =
-    tx.state === "failed"
-      ? XIcon
-      : tx.type === "outgoing"
-        ? ArrowUpIcon
-        : ArrowDownIcon;
-
   const app = React.useMemo(
     () =>
       tx.appId != null ? apps?.find((app) => app.id === tx.appId) : undefined,
@@ -95,6 +80,32 @@ function TransactionItem({ tx }: Props) {
 
   const description =
     tx.description || tx.metadata?.comment || bolt12Offer?.payer_note;
+
+  const typeStateText =
+    type == "incoming"
+      ? swapId
+        ? "Swapped in"
+        : "Received"
+      : tx.state === "settled" // we only fetch settled incoming payments
+        ? swapId
+          ? "Swapped out"
+          : "Sent"
+        : tx.state === "pending"
+          ? swapId
+            ? "Swapping out"
+            : "Sending"
+          : "Failed";
+
+  const Icon =
+    tx.state === "failed"
+      ? XIcon
+      : tx.type === "outgoing"
+        ? swapId
+          ? ArrowUpDownIcon
+          : ArrowUpIcon
+        : swapId
+          ? ArrowDownUpIcon
+          : ArrowDownIcon;
 
   const copy = (text: string) => {
     copyToClipboard(text, toast);
@@ -136,13 +147,6 @@ function TransactionItem({ tx }: Props) {
               app={app}
               className="border-none p-0 rounded-full w-[18px] h-[18px] md:w-6 md:h-6 shadow-sm"
             />
-          </div>
-        )}
-        {swapId && (
-          <div className="absolute -bottom-1 -right-1">
-            <div className="w-[18px] h-[18px] md:w-6 md:h-6 shadow-sm">
-              <img src={boltz} className="rounded-full" />
-            </div>
           </div>
         )}
       </div>
@@ -240,7 +244,7 @@ function TransactionItem({ tx }: Props) {
             )}
             {swapId && (
               <div className="mt-8">
-                <p>Boltz Swap Id</p>
+                <p>Swap Id</p>
                 <Link
                   to={`/wallet/swap/${type === "incoming" ? "in" : "out"}/status/${swapId}`}
                   className="flex items-center gap-1"

@@ -263,7 +263,7 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 			ClaimPublicKey: ourKeys.PubKey().SerializeCompressed(),
 			PreimageHash:   preimageHash[:],
 			InvoiceAmount:  amount,
-			Description:    "Boltz swap out",
+			Description:    "Lightning to on-chain swap",
 			PairHash:       pairInfo.Hash,
 			ReferralId:     "alby",
 			ExtraFees:      albyFee,
@@ -325,7 +325,7 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 
 func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, error) {
 	amountMSat := amount * 1000
-	invoice, err := svc.transactionsService.MakeInvoice(svc.ctx, amountMSat, "Boltz swap in", "", 0, nil, svc.lnClient, nil, nil)
+	invoice, err := svc.transactionsService.MakeInvoice(svc.ctx, amountMSat, "On-chain to lightning swap", "", 0, nil, svc.lnClient, nil, nil)
 	if err != nil {
 		return nil, err
 	}
