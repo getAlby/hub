@@ -734,18 +734,17 @@ func (svc *swapsService) subscribePendingSwaps() {
 
 	logger.Logger.WithField("count", len(swaps)).Info("Resuming pending swaps...")
 
-	var boltzWs *boltz.Websocket
-	for {
-		boltzWs = svc.boltzApi.NewWebsocket()
-		if err := boltzWs.Connect(); err != nil {
-			logger.Logger.WithError(err).Error("Could not connect to Boltz websocket")
-			time.Sleep(5 * time.Second)
-			continue
-		}
-		break
-	}
-
 	for _, swap := range swaps {
+		var boltzWs *boltz.Websocket
+		for {
+			boltzWs = svc.boltzApi.NewWebsocket()
+			if err := boltzWs.Connect(); err != nil {
+				logger.Logger.WithError(err).Error("Could not connect to Boltz websocket")
+				time.Sleep(5 * time.Second)
+				continue
+			}
+			break
+		}
 		if err := boltzWs.Subscribe([]string{swap.SwapId}); err != nil {
 			logger.Logger.WithError(err).WithField("swapId", swap.SwapId).Error("Failed to subscribe to boltz updates")
 			continue
