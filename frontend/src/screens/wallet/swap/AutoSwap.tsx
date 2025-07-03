@@ -5,8 +5,9 @@ import {
   XCircleIcon,
 } from "lucide-react";
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
+import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import ResponsiveButton from "src/components/ResponsiveButton";
 import { Button } from "src/components/ui/button";
@@ -56,7 +57,6 @@ function AutoSwapOutForm() {
   const { toast } = useToast();
   const { mutate } = useAutoSwapsConfig();
   const { data: swapFees } = useSwapFees("out");
-  const navigate = useNavigate();
 
   const [isInternalSwap, setInternalSwap] = useState(true);
   const [balanceThreshold, setBalanceThreshold] = useState("");
@@ -80,16 +80,8 @@ function AutoSwapOutForm() {
           destination,
         }),
       });
-      navigate(`/wallet/swap/auto/success`, {
-        state: {
-          type: "out",
-          isAutoSwap: true,
-          balanceThreshold,
-          amount: swapAmount,
-        },
-      });
       toast({
-        title: "Saved successfully",
+        title: "Auto swap enabled successfully",
       });
       await mutate();
     } catch (error) {
@@ -220,7 +212,20 @@ function AutoSwapOutForm() {
           <Loading />
         )}
       </div>
-      <LoadingButton loading={loading}>Set Auto Swap Out</LoadingButton>
+      <div className="grid gap-1">
+        <LoadingButton className="w-full" loading={loading}>
+          Set Auto Swap Out
+        </LoadingButton>
+        <p className="text-xs text-muted-foreground text-right">
+          powered by{" "}
+          <ExternalLink
+            to="https://boltz.exchange"
+            className="font-medium text-foreground"
+          >
+            boltz.exchange
+          </ExternalLink>
+        </p>
+      </div>
     </form>
   );
 }
@@ -241,7 +246,7 @@ function ActiveSwapOutConfig({ swapConfig }: { swapConfig: AutoSwapConfig }) {
           "Content-Type": "application/json",
         },
       });
-      toast({ title: "Deactivated successfully." });
+      toast({ title: "Deactivated auto swap successfully" });
       await mutate();
     } catch (error) {
       toast({
