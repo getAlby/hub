@@ -135,7 +135,7 @@ func TestGenerateSwapMnemonic(t *testing.T) {
 	masterKey, err := bip32.NewMasterKey(seed)
 	require.NoError(t, err)
 
-	swapMnemonic, err := keys.GetSwapMnemonic(masterKey)
+	swapMnemonic, err := keys.GenerateSwapMnemonic(masterKey)
 	require.NoError(t, err)
 
 	// this matches https://iancoleman.io/bip39/ -> check "Show BIP85" and set BIP85 Index to 128260
