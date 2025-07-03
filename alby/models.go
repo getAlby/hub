@@ -25,6 +25,8 @@ type AlbyOAuthService interface {
 	RequestAutoChannel(ctx context.Context, lnClient lnclient.LNClient, isPublic bool) (*AutoChannelResponse, error)
 	GetVssAuthToken(ctx context.Context, nodeIdentifier string) (string, error)
 	RemoveOAuthAccessToken() error
+	CreateLightningAddress(ctx context.Context, address string, appId uint) error
+	DeleteLightningAddress(ctx context.Context, address string) error
 }
 
 type AlbyBalanceResponse struct {
