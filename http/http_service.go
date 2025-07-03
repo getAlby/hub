@@ -135,7 +135,6 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/node/network-graph", httpSvc.nodeNetworkGraphHandler)
 	restrictedApiGroup.POST("/node/migrate-storage", httpSvc.migrateNodeStorageHandler)
 	restrictedApiGroup.GET("/node/transactions", httpSvc.listOnchainTransactionsHandler)
-	restrictedApiGroup.POST("/node/alias", httpSvc.setNodeAliasHandler)
 	restrictedApiGroup.GET("/peers", httpSvc.listPeers)
 	restrictedApiGroup.POST("/peers", httpSvc.connectPeerHandler)
 	restrictedApiGroup.DELETE("/peers/:peerId", httpSvc.disconnectPeerHandler)
@@ -1205,22 +1204,49 @@ func (httpSvc *HttpService) healthHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, healthResponse)
 }
 
-func (httpSvc *HttpService) refundSwapHandler(c echo.Context) error {
-	var refundSwapInRequest api.RefundSwapRequest
-	if err := c.Bind(&refundSwapInRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Message: fmt.Sprintf("Bad request: %s", err.Error()),
-		})
-	}
+func (httpSvc *HttpService) listSwapsHandler(c echo.Context) error {
+	swaps, err := httpSvc.api.ListSwaps()
 
-	err := httpSvc.api.RefundSwap(refundSwapInRequest.SwapId, refundSwapInRequest.Address)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: err.Error(),
 		})
 	}
 
-	return c.NoContent(http.StatusNoContent)
+	return c.JSON(http.StatusOK, swaps)
+}
+
+func (httpSvc *HttpService) lookupSwapHandler(c echo.Context) error {
+	swap, err := httpSvc.api.LookupSwap(c.Param("swapId"))
+	if err != nil {
+		return c.JSON(http.StatusNotFound, ErrorResponse{
+			Message: "App not found",
+		})
+	}
+
+	return c.JSON(http.StatusOK, swap)
+}
+
+func (httpSvc *HttpService) getSwapOutFeesHandler(c echo.Context) error {
+	swapOutFeesResponse, err := httpSvc.api.GetSwapOutFees()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get swap settings: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, swapOutFeesResponse)
+}
+
+func (httpSvc *HttpService) getSwapInFeesHandler(c echo.Context) error {
+	swapOutFeesResponse, err := httpSvc.api.GetSwapInFees()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get swap settings: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, swapOutFeesResponse)
 }
 
 func (httpSvc *HttpService) initiateSwapOutHandler(c echo.Context) error {
@@ -1259,49 +1285,22 @@ func (httpSvc *HttpService) initiateSwapInHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, txId)
 }
 
-func (httpSvc *HttpService) lookupSwapHandler(c echo.Context) error {
-	swap, err := httpSvc.api.LookupSwap(c.Param("swapId"))
-	if err != nil {
-		return c.JSON(http.StatusNotFound, ErrorResponse{
-			Message: "App not found",
+func (httpSvc *HttpService) refundSwapHandler(c echo.Context) error {
+	var refundSwapInRequest api.RefundSwapRequest
+	if err := c.Bind(&refundSwapInRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
 
-	return c.JSON(http.StatusOK, swap)
-}
-
-func (httpSvc *HttpService) listSwapsHandler(c echo.Context) error {
-	swaps, err := httpSvc.api.ListSwaps()
-
+	err := httpSvc.api.RefundSwap(refundSwapInRequest.SwapId, refundSwapInRequest.Address)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: err.Error(),
 		})
 	}
 
-	return c.JSON(http.StatusOK, swaps)
-}
-
-func (httpSvc *HttpService) getSwapOutFeesHandler(c echo.Context) error {
-	swapOutFeesResponse, err := httpSvc.api.GetSwapOutFees()
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to get swap settings: %v", err),
-		})
-	}
-
-	return c.JSON(http.StatusOK, swapOutFeesResponse)
-}
-
-func (httpSvc *HttpService) getSwapInFeesHandler(c echo.Context) error {
-	swapOutFeesResponse, err := httpSvc.api.GetSwapInFees()
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to get swap settings: %v", err),
-		})
-	}
-
-	return c.JSON(http.StatusOK, swapOutFeesResponse)
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (httpSvc *HttpService) getAutoSwapConfigHandler(c echo.Context) error {
