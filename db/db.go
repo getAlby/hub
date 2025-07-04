@@ -53,15 +53,18 @@ func NewDBWithConfig(cfg *Config) (*gorm.DB, error) {
 		if strings.Contains(sqliteURI, "?") {
 			return nil, errors.New("sqlite query parameters should not be passed as they will be configured by Alby Hub")
 		}
-		// see https://github.com/mattn/go-sqlite3?tab=readme-ov-file#connection-string
-		// _txlock: avoid SQLITE_BUSY errors with _txlock=IMMEDIATE
-		// _auto_vacuum: properly cleanup disk when deleting records with auto_vacuum=1
-		// _busy_timeout: avoid SQLITE_BUSY errors with 5 second lock timeout
-		// _journal_mode: enables write-ahead log so that your reads do not block writes and vice-versa.
-		// _synchronous: sqlite will sync less frequently and be more performant, still safe to use because of the enabled WAL mode
-		// _cache_size: 20MB memory cache
 
-		sqliteURI = sqliteURI + "?_txlock=IMMEDIATE&_foreign_keys=1&_auto_vacuum=1&_busy_timeout=5000&_journal_mode=WAL&_synchronous=NORMAL&_cache_size=-20000"
+		// apply pragma if we're not running the tests
+		if !strings.Contains(sqliteURI, "?mode=memory") {
+			// see https://github.com/mattn/go-sqlite3?tab=readme-ov-file#connection-string
+			// _txlock: avoid SQLITE_BUSY errors with _txlock=IMMEDIATE
+			// _auto_vacuum: properly cleanup disk when deleting records with auto_vacuum=1
+			// _busy_timeout: avoid SQLITE_BUSY errors with 5 second lock timeout
+			// _journal_mode: enables write-ahead log so that your reads do not block writes and vice-versa.
+			// _synchronous: sqlite will sync less frequently and be more performant, still safe to use because of the enabled WAL mode
+			// _cache_size: 20MB memory cache
+			sqliteURI = sqliteURI + "?_txlock=IMMEDIATE&_foreign_keys=1&_auto_vacuum=1&_busy_timeout=5000&_journal_mode=WAL&_synchronous=NORMAL&_cache_size=-20000"
+		}
 
 		sqliteConfig := sqlite.Config{
 			DriverName: cfg.DriverName,
