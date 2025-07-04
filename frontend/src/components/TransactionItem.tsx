@@ -2,6 +2,8 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import {
   ArrowDownIcon,
+  ArrowDownUpIcon,
+  ArrowUpDownIcon,
   ArrowUpIcon,
   ChevronDownIcon,
   ChevronUpIcon,
@@ -49,22 +51,6 @@ function TransactionItem({ tx }: Props) {
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;
 
-  const typeStateText =
-    type == "incoming"
-      ? "Received"
-      : tx.state === "settled" // we only fetch settled incoming payments
-        ? "Sent"
-        : tx.state === "pending"
-          ? "Sending"
-          : "Failed";
-
-  const Icon =
-    tx.state === "failed"
-      ? XIcon
-      : tx.type === "outgoing"
-        ? ArrowUpIcon
-        : ArrowDownIcon;
-
   const app = React.useMemo(
     () =>
       tx.appId != null ? apps?.find((app) => app.id === tx.appId) : undefined,
@@ -90,8 +76,36 @@ function TransactionItem({ tx }: Props) {
 
   const bolt12Offer = tx.metadata?.offer;
 
+  const swapId = tx.metadata?.swap_id;
+
   const description =
     tx.description || tx.metadata?.comment || bolt12Offer?.payer_note;
+
+  const typeStateText =
+    type == "incoming"
+      ? swapId
+        ? "Swapped in"
+        : "Received"
+      : tx.state === "settled" // we only fetch settled incoming payments
+        ? swapId
+          ? "Swapped out"
+          : "Sent"
+        : tx.state === "pending"
+          ? swapId
+            ? "Swapping out"
+            : "Sending"
+          : "Failed";
+
+  const Icon =
+    tx.state === "failed"
+      ? XIcon
+      : tx.type === "outgoing"
+        ? swapId
+          ? ArrowUpDownIcon
+          : ArrowUpIcon
+        : swapId
+          ? ArrowDownUpIcon
+          : ArrowDownIcon;
 
   const copy = (text: string) => {
     copyToClipboard(text, toast);
@@ -225,6 +239,17 @@ function TransactionItem({ tx }: Props) {
                   <p className="font-semibold">
                     {app.name === "getalby.com" ? "Alby Account" : app.name}
                   </p>
+                </Link>
+              </div>
+            )}
+            {swapId && (
+              <div className="mt-8">
+                <p>Swap Id</p>
+                <Link
+                  to={`/wallet/swap/${type === "incoming" ? "in" : "out"}/status/${swapId}`}
+                  className="flex items-center gap-1"
+                >
+                  <p className="underline">{swapId}</p>
                 </Link>
               </div>
             )}

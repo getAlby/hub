@@ -11,7 +11,6 @@ func (svc *service) StopApp() {
 	if svc.appCancelFn != nil {
 		logger.Logger.Info("Stopping app...")
 		svc.appCancelFn()
-		svc.swapsService.StopAutoSwaps()
 		svc.wg.Wait()
 		logger.Logger.Info("app stopped")
 	}

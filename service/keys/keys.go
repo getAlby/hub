@@ -1,10 +1,14 @@
 package keys
 
 import (
+	"crypto/hmac"
+	"crypto/sha512"
 	"encoding/hex"
 	"errors"
 
 	"github.com/btcsuite/btcd/btcec/v2"
+	"github.com/btcsuite/btcd/btcutil/hdkeychain"
+	"github.com/btcsuite/btcd/chaincfg"
 
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/logger"
@@ -19,16 +23,22 @@ type Keys interface {
 	GetNostrPublicKey() string
 	// Wallet Service Nostr secret key (DEPRECATED)
 	GetNostrSecretKey() string
+	// Swap rescue key derived from master key using BIP-85
+	GetSwapMnemonic() string
 	// Derives a BIP32 child key from appKey derived child dedicated for app wallet keys
 	GetAppWalletKey(childIndex uint) (string, error)
 	// Derives a child BIP-32 key from the app key (derived from the mnemonic)
 	DeriveKey(path []uint32) (*bip32.Key, error)
+	// Derives a BIP32 child key from appKey derived child dedicated for swaps
+	GetSwapKey(childIndex uint) (*btcec.PrivateKey, error)
 }
 
 type keys struct {
 	nostrSecretKey string
 	nostrPublicKey string
 	appKey         *bip32.Key
+	swapKey        *hdkeychain.ExtendedKey
+	swapMnemonic   string
 }
 
 func NewKeys() *keys {
@@ -88,12 +98,36 @@ func (keys *keys) Init(cfg config.Config, encryptionKey string) error {
 	albyHubIndex := uint32(bip32.FirstHardenedChild + 128029 /* 🐝 */)
 	appKey, err := masterKey.NewChildKey(albyHubIndex)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to create seed from mnemonic")
+		logger.Logger.WithError(err).Error("Failed to derive app key")
 		return err
 	}
 	keys.appKey = appKey
 
+	swapMnemonic, err := keys.GenerateSwapMnemonic(masterKey)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to generate swap mnemonic")
+		return err
+	}
+	keys.swapMnemonic = swapMnemonic
+
+	netParams := &chaincfg.MainNetParams
+	network := cfg.GetNetwork()
+	if network == "testnet" {
+		netParams = &chaincfg.TestNet3Params
+	}
+
+	swapKey, err := hdkeychain.NewMaster(bip39.NewSeed(swapMnemonic, ""), netParams)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to create seed from swap mnemonic")
+		return err
+	}
+	keys.swapKey = swapKey
+
 	return nil
+}
+
+func (keys *keys) GetSwapMnemonic() string {
+	return keys.swapMnemonic
 }
 
 func (keys *keys) GetNostrPublicKey() string {
@@ -131,4 +165,46 @@ func (keys *keys) DeriveKey(path []uint32) (*bip32.Key, error) {
 	}
 
 	return key, nil
+}
+
+func (keys *keys) GetSwapKey(swapID uint) (*btcec.PrivateKey, error) {
+	path := []uint32{44, 0, 0, 0, uint32(swapID)}
+
+	key := keys.swapKey
+	for _, index := range path {
+		var err error
+		key, err = key.Derive(index)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return key.ECPrivKey()
+}
+
+// Taken from https://github.com/e4coder/bip85/blob/main/bip85.go
+func (keys *keys) GenerateSwapMnemonic(key *bip32.Key) (string, error) {
+	swapIndex := uint32(bip32.FirstHardenedChild + 128260 /* 🔄 */)
+	path := []uint32{bip32.FirstHardenedChild + 83696968, bip32.FirstHardenedChild + 39, bip32.FirstHardenedChild + 0, bip32.FirstHardenedChild + 12, swapIndex}
+
+	for _, index := range path {
+		var err error
+		key, err = key.NewChildKey(index)
+		if err != nil {
+			return "", err
+		}
+	}
+
+	hash := hmac.New(sha512.New, []byte("bip-entropy-from-k"))
+	_, err := hash.Write(key.Key)
+	if err != nil {
+		return "", err
+	}
+	entropy := hash.Sum(nil)
+	entropyBIP39 := entropy[:16]
+	mnemonic, err := bip39.NewMnemonic(entropyBIP39)
+	if err != nil {
+		return "", err
+	}
+	return mnemonic, nil
 }

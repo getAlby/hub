@@ -313,7 +313,7 @@ export default function WithdrawOnchainFunds() {
                         to={info?.mempoolUrl}
                         className="underline ml-2"
                       >
-                        mempool.space
+                        View on Mempool
                       </ExternalLink>
                     </p>
                   )}

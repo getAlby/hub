@@ -128,7 +128,6 @@ func NewService(ctx context.Context) (*service, error) {
 		albyOAuthSvc:        albyOAuthSvc,
 		nip47Service:        nip47.NewNip47Service(gormDB, cfg, keys, eventPublisher, albyOAuthSvc),
 		transactionsService: transactionsSvc,
-		swapsService:        swaps.NewSwapsService(cfg, eventPublisher, transactionsSvc),
 		db:                  gormDB,
 		keys:                keys,
 	}

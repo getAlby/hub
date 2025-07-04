@@ -109,3 +109,36 @@ func TestGenerateNewMnemonic(t *testing.T) {
 
 	assert.Equal(t, encryptedChannelsBackupKey.String(), derivedKeyFromKeys.String())
 }
+
+func TestGenerateSwapMnemonic(t *testing.T) {
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+	gormDb, err := db.NewDB(t)
+	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
+
+	mnemonic := "thought turkey ask pottery head say catalog desk pledge elbow naive mimic"
+	unlockPassword := "123"
+
+	config, err := config.NewConfig(&config.AppConfig{}, gormDb)
+	require.NoError(t, err)
+	config.SetUpdate("Mnemonic", mnemonic, unlockPassword)
+
+	keys := NewKeys()
+	err = keys.Init(config, unlockPassword)
+	require.NoError(t, err)
+
+	mnemonicFromConfig, err := config.Get("Mnemonic", unlockPassword)
+	require.NoError(t, err)
+	require.Equal(t, mnemonic, mnemonicFromConfig)
+
+	seed := bip39.NewSeed(mnemonicFromConfig, "")
+	masterKey, err := bip32.NewMasterKey(seed)
+	require.NoError(t, err)
+
+	swapMnemonic, err := keys.GenerateSwapMnemonic(masterKey)
+	require.NoError(t, err)
+
+	// this matches https://iancoleman.io/bip39/ -> check "Show BIP85" and set BIP85 Index to 128260
+	expectedSwapMnemonic := "truth cargo pluck prefer mosquito symptom review kitchen exile fit corn vault"
+	assert.Equal(t, expectedSwapMnemonic, swapMnemonic)
+}
