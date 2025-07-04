@@ -105,6 +105,11 @@ func NewSwapsService(ctx context.Context, db *gorm.DB, cfg config.Config, keys k
 		boltzApi:            &boltz.Api{URL: cfg.GetEnv().BoltzApi},
 	}
 
+	err := svc.EnableAutoSwapOut()
+	if err != nil {
+		logger.Logger.WithError(err).Error("Couldn't enable auto swaps")
+	}
+
 	go svc.subscribePendingSwaps()
 
 	return svc
@@ -602,24 +607,24 @@ func (svc *swapsService) RefundSwap(swapId, address string) error {
 
 	lockupTransaction, err := boltz.NewTxFromHex(boltz.CurrencyBtc, swapTransactionResp.Hex, nil)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to build lockup tx from hex")
+		logger.Logger.WithField("swapId", swapId).WithError(err).Error("Failed to build lockup tx from hex")
 		return err
 	}
 	vout, _, err := lockupTransaction.FindVout(network, swap.LockupAddress)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to find lockup address output")
+		logger.Logger.WithField("swapId", swapId).WithError(err).Error("Failed to find lockup address output")
 		return err
 	}
 	feeRates, err := svc.getFeeRates()
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to fetch fee rate to create claim transaction")
+		logger.Logger.WithField("swapId", swapId).WithError(err).Error("Failed to fetch fee rate to create claim transaction")
 		return err
 	}
 
 	if address == "" {
 		address, err = svc.lnClient.GetNewOnchainAddress(svc.ctx)
 		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to get new on-chain address from config")
+			logger.Logger.WithField("swapId", swapId).WithError(err).Error("Failed to get new on-chain address from config")
 			return err
 		}
 	}
@@ -655,7 +660,7 @@ func (svc *swapsService) RefundSwap(swapId, address string) error {
 		svc.boltzApi,
 	)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Could not create claim transaction")
+		logger.Logger.WithField("swapId", swapId).WithError(err).Error("Could not create claim transaction")
 		return err
 	}
 
@@ -664,14 +669,14 @@ func (svc *swapsService) RefundSwap(swapId, address string) error {
 
 	txHex, err := refundTransaction.Serialize()
 	if err != nil {
-		logger.Logger.WithError(err).Error("Could not serialize refund transaction")
+		logger.Logger.WithField("swapId", swapId).WithError(err).Error("Could not serialize refund transaction")
 		return err
 	}
 
 	// TODO: Replace with LNClient broadcast method to avoid trusting boltz
 	claimTxId, err := svc.boltzApi.BroadcastTransaction(boltz.CurrencyBtc, txHex)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Could not broadcast transaction")
+		logger.Logger.WithField("swapId", swapId).WithError(err).Error("Could not broadcast transaction")
 		return err
 	}
 

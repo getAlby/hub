@@ -287,7 +287,7 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return err
 	}
 
-	svc.startSwapsService()
+	svc.swapsService = swaps.NewSwapsService(svc.ctx, svc.db, svc.cfg, svc.keys, svc.eventPublisher, svc.lnClient, svc.transactionsService)
 
 	svc.publishAllAppInfoEvents()
 
@@ -301,15 +301,6 @@ func (svc *service) StartApp(encryptionKey string) error {
 	svc.appCancelFn = cancelFn
 
 	return nil
-}
-
-func (svc *service) startSwapsService() {
-	swapsService := swaps.NewSwapsService(svc.ctx, svc.db, svc.cfg, svc.keys, svc.eventPublisher, svc.lnClient, svc.transactionsService)
-	svc.swapsService = swapsService
-	err := swapsService.EnableAutoSwapOut()
-	if err != nil {
-		logger.Logger.WithError(err).Error("Couldn't enable auto swaps")
-	}
 }
 
 func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) error {
