@@ -1,7 +1,6 @@
 package db
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -50,9 +49,6 @@ func NewDBWithConfig(cfg *Config) (*gorm.DB, error) {
 		}
 	} else {
 		sqliteURI := cfg.URI
-		if strings.Contains(sqliteURI, "?") {
-			return nil, errors.New("sqlite query parameters should not be passed as they will be configured by Alby Hub")
-		}
 
 		// apply pragma if we're not running the tests
 		if !strings.Contains(sqliteURI, "?mode=memory") {
