@@ -30,6 +30,8 @@ const nodeCommandUnilateralExitAll = "unilateral_exit_all"
 const nodeCommandPollExitStatus = "poll_exit_status"
 const nodeCommandPayToArkAddress = "pay_to_ark_address"
 const nodeCommandListUTXOs = "list_utxos"
+const nodeCommandBolt11Invoice = "bolt11_invoice"
+const nodeCommandClaimBolt11Payment = "claim_bolt11_payment"
 
 type BarkService struct {
 	wallet *bindings.Wallet
@@ -444,6 +446,26 @@ func (s *BarkService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCom
 			Description: "List UTXOs.",
 			Args:        nil,
 		},
+		{
+			Name:        nodeCommandBolt11Invoice,
+			Description: "Create new Bolt11 invoice.",
+			Args: []lnclient.CustomNodeCommandArgDef{
+				{
+					Name:        "amount",
+					Description: "Invoice amount, in satoshis.",
+				},
+			},
+		},
+		{
+			Name:        nodeCommandClaimBolt11Payment,
+			Description: "Claim Bolt11 payment.",
+			Args: []lnclient.CustomNodeCommandArgDef{
+				{
+					Name:        "invoice",
+					Description: "Bolt11 invoice.",
+				},
+			},
+		},
 	}
 }
 
@@ -618,6 +640,50 @@ func (s *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 				"utxos": respUtxos,
 			},
 		}, nil
+	case nodeCommandBolt11Invoice:
+		var amount uint64
+		if len(command.Args) == 1 && command.Args[0].Name == "amount" {
+			var err error
+			amount, err = strconv.ParseUint(command.Args[0].Value, 10, 64)
+			if err != nil {
+				logger.Logger.WithError(err).Error("Failed to parse amount for pay to Ark address")
+				return nil, err
+			}
+		} else {
+			err := errors.New("amount is required to create a Bolt11 invoice")
+			logger.Logger.WithError(err).Error("Invalid argument for Bolt11 invoice")
+			return nil, err
+		}
+
+		invoice, err := s.wallet.Bolt11Invoice(amount)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to create Bolt11 invoice")
+			return nil, err
+		}
+
+		return &lnclient.CustomNodeCommandResponse{
+			Response: map[string]interface{}{
+				"invoice": invoice,
+			},
+		}, nil
+
+	case nodeCommandClaimBolt11Payment:
+		var invoice string
+		if len(command.Args) == 1 && command.Args[0].Name == "invoice" {
+			invoice = command.Args[0].Value
+		} else {
+			err := errors.New("invoice is required to claim a Bolt11 payment")
+			logger.Logger.WithError(err).Error("Invalid argument for claiming Bolt11 payment")
+			return nil, err
+		}
+
+		err := s.wallet.ClaimBolt11Payment(invoice)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to claim Bolt11 payment")
+			return nil, err
+		}
+
+		return lnclient.NewCustomNodeCommandResponseEmpty(), nil
 	}
 
 	return nil, lnclient.ErrUnknownCustomNodeCommand
