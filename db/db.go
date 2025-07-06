@@ -10,6 +10,7 @@ import (
 	gorm_logger "gorm.io/gorm/logger"
 
 	"github.com/getAlby/hub/db/migrations"
+	sqlite_wrapper "github.com/getAlby/hub/db/sqlite-wrapper"
 	"github.com/getAlby/hub/logger"
 )
 
@@ -62,8 +63,13 @@ func NewDBWithConfig(cfg *Config) (*gorm.DB, error) {
 			sqliteURI = sqliteURI + "?_txlock=immediate&_foreign_keys=1&_auto_vacuum=1&_busy_timeout=5000&_journal_mode=WAL&_synchronous=NORMAL&_cache_size=-20000"
 		}
 
+		driverName := sqlite_wrapper.Sqlite3WrapperDriverName
+		if cfg.DriverName != "" {
+			driverName = cfg.DriverName
+		}
+
 		sqliteConfig := sqlite.Config{
-			DriverName: cfg.DriverName,
+			DriverName: driverName,
 			DSN:        sqliteURI,
 		}
 
@@ -90,16 +96,6 @@ func newSqliteDB(sqliteConfig sqlite.Config, gormConfig *gorm.Config) (*gorm.DB,
 	if err != nil {
 		return nil, err
 	}
-
-	// NOTE: PRAGMA command may not apply to all db connections
-	// TODO: find another way to apply this (it's not supported as a connection URI parameter)
-	/*
-		// moves temporary tables from disk into RAM, speeds up performance a lot
-		err = gormDB.Exec("PRAGMA temp_store = memory", nil).Error
-		if err != nil {
-			return nil, err
-		}
-	*/
 
 	return gormDB, nil
 }
