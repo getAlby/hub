@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/logger"
 )
 
 const defaultTestDB = "test.db"
@@ -26,7 +27,16 @@ func GetTestDatabaseURI() string {
 }
 
 func NewDB(t *testing.T) (*gorm.DB, error) {
-	return NewDBWithURI(t, GetTestDatabaseURI())
+	dbUri := GetTestDatabaseURI()
+
+	if dbUri == defaultTestDB {
+		//in case the file was not removed in the last run, remove it before starting the test
+		logger.Logger.WithField("uri", defaultTestDB).Info("removing test db")
+		os.Remove(defaultTestDB)
+	}
+
+	logger.Logger.WithField("uri", dbUri).Info("Creating new test DB with URI")
+	return NewDBWithURI(t, dbUri)
 }
 
 func NewDBWithURI(t *testing.T, uri string) (*gorm.DB, error) {
@@ -68,6 +78,7 @@ func CloseDB(d *gorm.DB) {
 	}
 
 	if GetTestDatabaseURI() == defaultTestDB {
+		logger.Logger.WithField("uri", defaultTestDB).Info("removing test db")
 		os.Remove(defaultTestDB)
 	}
 }

@@ -498,7 +498,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 
 	if selfPayment {
 		// for keysend self-payments we need to create an incoming payment at the time of the payment
-		recipientAppId := svc.getAppIdFromCustomRecords(customRecords)
+		recipientAppId := svc.getAppIdFromCustomRecords(customRecords, svc.db)
 		dbTransaction := db.Transaction{
 			AppId:          recipientAppId,
 			RequestEventId: nil, // it is related to this request but for a different app
@@ -790,7 +790,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 						description = extractedDescription
 					}
 					// find app by custom key/value records
-					appId = svc.getAppIdFromCustomRecords(customRecords)
+					appId = svc.getAppIdFromCustomRecords(customRecords, tx)
 				}
 				var expiresAt *time.Time
 				if lnClientTransaction.ExpiresAt != nil {
@@ -1165,7 +1165,7 @@ func (svc *transactionsService) getDescriptionFromCustomRecords(customRecords []
 	return description
 }
 
-func (svc *transactionsService) getAppIdFromCustomRecords(customRecords []lnclient.TLVRecord) *uint {
+func (svc *transactionsService) getAppIdFromCustomRecords(customRecords []lnclient.TLVRecord, tx *gorm.DB) *uint {
 	app := db.App{}
 	for _, record := range customRecords {
 		if record.Type == CustomKeyTlvType {
@@ -1179,7 +1179,7 @@ func (svc *transactionsService) getAppIdFromCustomRecords(customRecords []lnclie
 				logger.Logger.WithError(err).Error("Failed to parse custom key TLV record as number")
 				continue
 			}
-			err = svc.db.Take(&app, &db.App{
+			err = tx.Take(&app, &db.App{
 				ID: uint(customValue),
 			}).Error
 			if err != nil {
@@ -1362,15 +1362,15 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 	})
 
 	if dbTransaction.Type == constants.TRANSACTION_TYPE_OUTGOING && dbTransaction.AppId != nil {
-		svc.checkBudgetUsage(dbTransaction)
+		svc.checkBudgetUsage(dbTransaction, tx)
 	}
 
 	return dbTransaction, nil
 }
 
-func (svc *transactionsService) checkBudgetUsage(dbTransaction *db.Transaction) {
+func (svc *transactionsService) checkBudgetUsage(dbTransaction *db.Transaction, gormTransaction *gorm.DB) {
 	var app db.App
-	result := svc.db.Limit(1).Find(&app, &db.App{
+	result := gormTransaction.Limit(1).Find(&app, &db.App{
 		ID: *dbTransaction.AppId,
 	})
 	if result.RowsAffected == 0 {
@@ -1382,7 +1382,7 @@ func (svc *transactionsService) checkBudgetUsage(dbTransaction *db.Transaction) 
 	}
 
 	var appPermission db.AppPermission
-	result = svc.db.Limit(1).Find(&appPermission, &db.AppPermission{
+	result = gormTransaction.Limit(1).Find(&appPermission, &db.AppPermission{
 		AppId: app.ID,
 		Scope: constants.PAY_INVOICE_SCOPE,
 	})
@@ -1391,7 +1391,7 @@ func (svc *transactionsService) checkBudgetUsage(dbTransaction *db.Transaction) 
 		return
 	}
 
-	budgetUsage := queries.GetBudgetUsageSat(svc.db, &appPermission)
+	budgetUsage := queries.GetBudgetUsageSat(gormTransaction, &appPermission)
 	warningUsage := uint64(math.Floor(float64(appPermission.MaxAmountSat) * 0.8))
 	if budgetUsage >= warningUsage && budgetUsage-dbTransaction.AmountMsat/1000 < warningUsage {
 		svc.eventPublisher.Publish(&events.Event{
