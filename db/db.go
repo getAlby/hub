@@ -10,6 +10,7 @@ import (
 	gorm_logger "gorm.io/gorm/logger"
 
 	"github.com/getAlby/hub/db/migrations"
+	sqlite_wrapper "github.com/getAlby/hub/db/sqlite-wrapper"
 	"github.com/getAlby/hub/logger"
 )
 
@@ -49,14 +50,29 @@ func NewDBWithConfig(cfg *Config) (*gorm.DB, error) {
 		}
 	} else {
 		sqliteURI := cfg.URI
-		// avoid SQLITE_BUSY errors with _txlock=IMMEDIATE
-		if !strings.Contains(sqliteURI, "_txlock=") {
-			sqliteURI = sqliteURI + "?_txlock=IMMEDIATE"
+
+		// apply pragma if we're not running the tests
+		if !strings.Contains(sqliteURI, "?mode=memory") {
+			// see https://github.com/mattn/go-sqlite3?tab=readme-ov-file#connection-string
+			// _txlock: avoid SQLITE_BUSY errors with _txlock=immediate
+			// _auto_vacuum: properly cleanup disk when deleting records with auto_vacuum=1
+			// _busy_timeout: avoid SQLITE_BUSY errors with 5 second lock timeout
+			// _journal_mode: enables write-ahead log so that your reads do not block writes and vice-versa.
+			// _synchronous: sqlite will sync less frequently and be more performant, still safe to use because of the enabled WAL mode
+			// _cache_size: 20MB memory cache
+			sqliteURI = sqliteURI + "?_txlock=immediate&_foreign_keys=1&_auto_vacuum=1&_busy_timeout=5000&_journal_mode=WAL&_synchronous=NORMAL&_cache_size=-20000"
 		}
+
+		driverName := sqlite_wrapper.Sqlite3WrapperDriverName
+		if cfg.DriverName != "" {
+			driverName = cfg.DriverName
+		}
+
 		sqliteConfig := sqlite.Config{
-			DriverName: cfg.DriverName,
+			DriverName: driverName,
 			DSN:        sqliteURI,
 		}
+
 		var err error
 		ret, err = newSqliteDB(sqliteConfig, gormConfig)
 		if err != nil {
@@ -77,46 +93,6 @@ func NewDBWithConfig(cfg *Config) (*gorm.DB, error) {
 
 func newSqliteDB(sqliteConfig sqlite.Config, gormConfig *gorm.Config) (*gorm.DB, error) {
 	gormDB, err := gorm.Open(sqlite.New(sqliteConfig), gormConfig)
-	if err != nil {
-		return nil, err
-	}
-	err = gormDB.Exec("PRAGMA foreign_keys = ON", nil).Error
-	if err != nil {
-		return nil, err
-	}
-
-	// properly cleanup disk when deleting records
-	err = gormDB.Exec("PRAGMA auto_vacuum = FULL", nil).Error
-	if err != nil {
-		return nil, err
-	}
-
-	// avoid SQLITE_BUSY errors with 5 second lock timeout
-	err = gormDB.Exec("PRAGMA busy_timeout = 5000", nil).Error
-	if err != nil {
-		return nil, err
-	}
-
-	// enables write-ahead log so that your reads do not block writes and vice-versa.
-	err = gormDB.Exec("PRAGMA journal_mode = WAL", nil).Error
-	if err != nil {
-		return nil, err
-	}
-
-	// sqlite will sync less frequently and be more performant, still safe to use because of the enabled WAL mode
-	err = gormDB.Exec("PRAGMA synchronous = NORMAL", nil).Error
-	if err != nil {
-		return nil, err
-	}
-
-	// 20MB memory cache
-	err = gormDB.Exec("PRAGMA cache_size = -20000", nil).Error
-	if err != nil {
-		return nil, err
-	}
-
-	// moves temporary tables from disk into RAM, speeds up performance a lot
-	err = gormDB.Exec("PRAGMA temp_store = memory", nil).Error
 	if err != nil {
 		return nil, err
 	}

@@ -126,6 +126,10 @@ func TestHandleMultiPayInvoiceEvent_Success(t *testing.T) {
 
 	assert.Equal(t, 2, len(responses))
 
+	for i := 0; i < len(responses); i++ {
+		require.Nil(t, responses[i].Error)
+	}
+
 	// we can't guarantee which request was processed first
 	// so swap them if they are back to front
 	if dTags[0].GetFirst([]string{"d"}).Value() != paymentHashes[0] {
@@ -141,7 +145,6 @@ func TestHandleMultiPayInvoiceEvent_Success(t *testing.T) {
 	for i := 0; i < len(responses); i++ {
 		assert.Equal(t, preimages[i], responses[i].Result.(payResponse).Preimage)
 		assert.Equal(t, paymentHashes[i], dTags[i].GetFirst([]string{"d"}).Value())
-		assert.Nil(t, responses[i].Error)
 	}
 }
 
