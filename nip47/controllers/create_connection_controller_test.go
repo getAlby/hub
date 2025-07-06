@@ -21,9 +21,9 @@ import (
 func TestHandleCreateConnectionEvent(t *testing.T) {
 	ctx := context.TODO()
 	svc, err := tests.CreateTestService(t)
-	svc.Cfg.SetUpdate("LNBackendType", config.LDKBackendType, "")
 	require.NoError(t, err)
 	defer svc.Remove()
+	svc.Cfg.SetUpdate("LNBackendType", config.LDKBackendType, "")
 
 	pairingSecretKey := nostr.GeneratePrivateKey()
 	pairingPublicKey, err := nostr.GetPublicKey(pairingSecretKey)
