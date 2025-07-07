@@ -109,8 +109,7 @@ export function RebalanceChannelDialogContent({
           <AlertDialogTitle>Rebalance In</AlertDialogTitle>
           <AlertDialogDescription>
             <p className="mb-4">
-              Rebalance funds from other counterparty channels into channels
-              with this counterparty.
+              Rebalance funds from other channels into this channel.
             </p>
             <Label htmlFor="fee" className="block mb-2">
               Rebalance amount (sats)
@@ -145,7 +144,7 @@ export function RebalanceChannelDialogContent({
               <AlertTriangleIcon className="h-4 w-4" />
               <AlertTitle>Rebalancing is in beta</AlertTitle>
               <AlertDescription>
-                Funds may be rebalanced out of an unexpected channel.
+                Funds may be rebalanced out of unexpected channels.
               </AlertDescription>
             </Alert>
             {channels &&
