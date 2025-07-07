@@ -61,7 +61,9 @@ export function RebalanceChannelDialogContent({
           .filter(
             (channel) => channel.remotePubkey === receiveThroughNodePubkey
           )
-          .every((channel) => channel.localSpendableBalance > parseInt(amount))
+          .every(
+            (channel) => channel.localSpendableBalance / 1000 > parseInt(amount)
+          )
       ) {
         throw new Error(
           "cannot swap a smaller amount than your current channel balance"
