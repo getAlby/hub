@@ -49,7 +49,9 @@ import {
   TooltipTrigger,
 } from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
+import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
+import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { useCreateLightningAddress } from "src/hooks/useCreateLightningAddress";
 import { useDeleteLightningAddress } from "src/hooks/useDeleteLightningAddress";
@@ -96,6 +98,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
     deleteLightningAddress: deleteSubwalletLightningAddress,
     deletingLightningAddress,
   } = useDeleteLightningAddress(app.appPubkey);
+  const { data: albyMe } = useAlbyMe();
 
   React.useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -320,19 +323,31 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                                   </span>
                                 }
                               />
-                              <LoadingButton
-                                className="shrink-0"
-                                size="lg"
-                                variant="secondary"
-                                loading={creatingLightningAddress}
-                                onClick={() =>
-                                  createLightningAddress(
-                                    intendedLightningAddress
-                                  )
-                                }
-                              >
-                                Create
-                              </LoadingButton>
+                              {!albyMe?.subscription.plan_code ? (
+                                <UpgradeDialog>
+                                  <Button
+                                    className="shrink-0"
+                                    size="lg"
+                                    variant="secondary"
+                                  >
+                                    Create
+                                  </Button>
+                                </UpgradeDialog>
+                              ) : (
+                                <LoadingButton
+                                  className="shrink-0"
+                                  size="lg"
+                                  variant="secondary"
+                                  loading={creatingLightningAddress}
+                                  onClick={() =>
+                                    createLightningAddress(
+                                      intendedLightningAddress
+                                    )
+                                  }
+                                >
+                                  Create
+                                </LoadingButton>
+                              )}
                             </div>
                           )}
                           {app.metadata.lud16 && (
