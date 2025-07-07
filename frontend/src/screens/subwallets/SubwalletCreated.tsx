@@ -44,7 +44,7 @@ import { useToast } from "src/components/ui/use-toast";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApp } from "src/hooks/useApp";
-import { useCreateSubwalletLightningAddress } from "src/hooks/useCreateSubwalletLightningAddress";
+import { useCreateLightningAddress } from "src/hooks/useCreateLightningAddress";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
 import { copyToClipboard } from "src/lib/clipboard";
 import { ConnectAppCard } from "src/screens/apps/AppCreated";
@@ -64,7 +64,7 @@ export function SubwalletCreated() {
   const { data: albyMe } = useAlbyMe();
 
   const { createLightningAddress, creatingLightningAddress } =
-    useCreateSubwalletLightningAddress(createAppResponse?.pairingPublicKey);
+    useCreateLightningAddress(createAppResponse?.pairingPublicKey);
 
   if (!createAppResponse?.pairingUri) {
     navigate("/");
