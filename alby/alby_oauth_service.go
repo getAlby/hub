@@ -288,8 +288,8 @@ func (svc *albyOAuthService) GetInfo(ctx context.Context) (*AlbyInfo, error) {
 
 	if res.StatusCode >= 300 {
 		logger.Logger.WithFields(logrus.Fields{
-			"body":       string(body),
-			"statusCode": res.StatusCode,
+			"body":        string(body),
+			"status_code": res.StatusCode,
 		}).Error("info endpoint returned non-success code")
 		return nil, fmt.Errorf("info endpoint returned non-success code: %s", string(body))
 	}
@@ -379,7 +379,7 @@ func (svc *albyOAuthService) GetVssAuthToken(ctx context.Context, nodeIdentifier
 	}
 
 	if vssResponse.Token == "" {
-		logger.Logger.WithField("vssResponse", vssResponse).WithError(err).Error("No token in API response")
+		logger.Logger.WithField("vss_response", vssResponse).WithError(err).Error("No token in API response")
 		return "", errors.New("no token in vss response")
 	}
 
@@ -529,8 +529,8 @@ func (svc *albyOAuthService) GetMe(ctx context.Context) (*AlbyMe, error) {
 
 	if res.StatusCode >= 300 {
 		logger.Logger.WithFields(logrus.Fields{
-			"body":       string(body),
-			"statusCode": res.StatusCode,
+			"body":        string(body),
+			"status_code": res.StatusCode,
 		}).Error("users endpoint returned non-success code")
 		return nil, fmt.Errorf("users endpoint returned non-success code: %s", string(body))
 	}
@@ -583,8 +583,8 @@ func (svc *albyOAuthService) GetBalance(ctx context.Context) (*AlbyBalance, erro
 
 	if res.StatusCode >= 300 {
 		logger.Logger.WithFields(logrus.Fields{
-			"body":       string(body),
-			"statusCode": res.StatusCode,
+			"body":        string(body),
+			"status_code": res.StatusCode,
 		}).Error("balance endpoint returned non-success code")
 		return nil, fmt.Errorf("balance endpoint returned non-success code: %s", string(body))
 	}
@@ -1207,8 +1207,8 @@ func (svc *albyOAuthService) GetChannelPeerSuggestions(ctx context.Context) ([]C
 
 	if res.StatusCode >= 300 {
 		logger.Logger.WithFields(logrus.Fields{
-			"body":       string(body),
-			"statusCode": res.StatusCode,
+			"body":        string(body),
+			"status_code": res.StatusCode,
 		}).Error("channel suggestions endpoint returned non-success code")
 		return nil, fmt.Errorf("channel suggestions endpoint returned non-success code: %s", string(body))
 	}
@@ -1261,9 +1261,9 @@ func (svc *albyOAuthService) GetBitcoinRate(ctx context.Context) (*BitcoinRate, 
 
 	if res.StatusCode >= 300 {
 		logger.Logger.WithFields(logrus.Fields{
-			"currency":   currency,
-			"body":       string(body),
-			"statusCode": res.StatusCode,
+			"currency":    currency,
+			"body":        string(body),
+			"status_code": res.StatusCode,
 		}).Error("Bitcoin rate endpoint returned non-success code")
 		return nil, fmt.Errorf("bitcoin rate endpoint returned non-success code: %s", string(body))
 	}
@@ -1387,9 +1387,9 @@ func (svc *albyOAuthService) requestAutoChannel(ctx context.Context, url string,
 
 	if res.StatusCode >= 300 {
 		logger.Logger.WithFields(logrus.Fields{
-			"newLSPS1ChannelRequest": newAutoChannelRequest,
-			"body":                   string(body),
-			"statusCode":             res.StatusCode,
+			"request":     newAutoChannelRequest,
+			"body":        string(body),
+			"status_code": res.StatusCode,
 		}).Error("auto channel endpoint returned non-success code")
 		return nil, fmt.Errorf("auto channel endpoint returned non-success code: %s", string(body))
 	}
