@@ -141,7 +141,7 @@ func migrateDB(from, to *gorm.DB) error {
 
 	if to.Dialector.Name() == "postgres" {
 		logger.Logger.Info("resetting sequences...")
-		if err := resetSequences(to); err != nil {
+		if err := resetSequences(tx); err != nil {
 			return fmt.Errorf("failed to reset sequences: %w", err)
 		}
 	}
