@@ -36,7 +36,7 @@ type AppConfig struct {
 	LDKVssUrl                          string `envconfig:"LDK_VSS_URL" default:"https://vss.getalbypro.com/vss"`
 	LDKListeningAddresses              string `envconfig:"LDK_LISTENING_ADDRESSES" default:"0.0.0.0:9735,[::]:9735"`
 	LDKTransientNetworkGraph           bool   `envconfig:"LDK_TRANSIENT_NETWORK_GRAPH" default:"false"`
-	RebalanceServiceUrl                string `envconfig:"REBALANCE_SERVICE_URL" default:"https://lsp1.mutiny.megalith-node.com"`
+	RebalanceServiceUrl                string `envconfig:"REBALANCE_SERVICE_URL" default:"https://megalithic.me"`
 	LDKBitcoindRpcHost                 string `envconfig:"LDK_BITCOIND_RPC_HOST"`
 	LDKBitcoindRpcPort                 string `envconfig:"LDK_BITCOIND_RPC_PORT"`
 	LDKBitcoindRpcUser                 string `envconfig:"LDK_BITCOIND_RPC_USER"`

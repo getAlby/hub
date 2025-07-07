@@ -1,13 +1,14 @@
-import { ExternalLinkIcon } from "lucide-react";
+import { AlertTriangleIcon, ExternalLinkIcon } from "lucide-react";
 import React from "react";
 import ExternalLink from "src/components/ExternalLink";
+import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
+import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useChannels } from "src/hooks/useChannels";
 import { request } from "src/utils/request";
 import {
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -25,15 +26,47 @@ export function RebalanceChannelDialogContent({
 }: Props) {
   const [amount, setAmount] = React.useState("");
   const { toast } = useToast();
-  const { mutate: reloadChannels } = useChannels();
+  const { data: channels, mutate: reloadChannels } = useChannels();
+  const [isRebalancing, setRebalancing] = React.useState(false);
 
-  async function confirmRebalance() {
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    setTimeout(() => {
+      // for some reason `autoFocus` is not working on this input
+      inputRef.current?.focus();
+    }, 100);
+  }, [inputRef]);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setRebalancing(true);
     try {
-      // TODO: check that channels in this counterparty have less than other counterparties
+      if (!channels) {
+        throw new Error("channels not loaded");
+      }
 
-      // TODO: ensure the rebalance amount is bigger than the current amount
-      // in the user's channels with this counterparty. Otherwise the funds will be sent
-      // on the same channel and the user just loses fees
+      if (
+        channels
+          .filter(
+            (channel) => channel.remotePubkey === receiveThroughNodePubkey
+          )
+          .every((channel) => channel.remoteBalance / 1000 < parseInt(amount))
+      ) {
+        throw new Error("not enough receiving capacity in this channel");
+      }
+
+      if (
+        channels
+          .filter(
+            (channel) => channel.remotePubkey === receiveThroughNodePubkey
+          )
+          .every((channel) => channel.localSpendableBalance > parseInt(amount))
+      ) {
+        throw new Error(
+          "cannot swap a smaller amount than your current channel balance"
+        );
+      }
 
       const response = await request<{ totalFeeSat: number }>(
         `/api/channels/rebalance`,
@@ -66,53 +99,95 @@ export function RebalanceChannelDialogContent({
         description: "Something went wrong: " + error,
       });
     }
+    setRebalancing(false);
   }
 
   return (
     <AlertDialogContent>
-      <AlertDialogHeader>
-        <AlertDialogTitle>Rebalance In</AlertDialogTitle>
-        <AlertDialogDescription>
-          <p className="mb-4">
-            Rebalance funds from other counterparty channels into channels with
-            this counterparty.
-          </p>
-          <Label htmlFor="fee" className="block mb-2">
-            Rebalance amount (sats)
-          </Label>
-          <Input
-            id="amount"
-            name="amount"
-            type="number"
-            required
-            autoFocus
-            min={0}
-            value={amount}
-            onChange={(e) => {
-              setAmount(e.target.value.trim());
-            }}
-          />
-          <p className="mt-2 text-xs text-muted-foreground">
-            Fee: ~0.1% ({Math.floor(parseInt(amount || "0") * 0.01)} sats)
-          </p>
-          <ExternalLink
-            to="https://guides.getalby.com/user-guide/alby-hub/faq/can-i-rebalance-funds-from-one-of-my-channels-to-another"
-            className="underline flex items-center mt-4"
-          >
-            Learn more about rebalancing between channels
-            <ExternalLinkIcon className="w-4 h-4 ml-2" />
-          </ExternalLink>
-        </AlertDialogDescription>
-      </AlertDialogHeader>
-      <AlertDialogFooter>
-        <AlertDialogCancel>Cancel</AlertDialogCancel>
-        <AlertDialogAction
-          disabled={parseInt(amount) === 0}
-          onClick={confirmRebalance}
-        >
-          Confirm
-        </AlertDialogAction>
-      </AlertDialogFooter>
+      <form onSubmit={handleSubmit}>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Rebalance In</AlertDialogTitle>
+          <AlertDialogDescription>
+            <p className="mb-4">
+              Rebalance funds from other counterparty channels into channels
+              with this counterparty.
+            </p>
+            <Label htmlFor="fee" className="block mb-2">
+              Rebalance amount (sats)
+            </Label>
+            <Input
+              ref={inputRef}
+              id="amount"
+              name="amount"
+              type="number"
+              required
+              autoFocus
+              min={10000}
+              value={amount}
+              onChange={(e) => {
+                setAmount(e.target.value.trim());
+              }}
+            />
+            <p className="mt-2 text-xs text-muted-foreground">
+              Fee: ~0.1%
+              {!!amount && (
+                <> ({Math.floor(parseInt(amount || "0") * 0.01)} sats)</>
+              )}
+            </p>
+            <ExternalLink
+              to="https://guides.getalby.com/user-guide/alby-hub/faq/can-i-rebalance-funds-from-one-of-my-channels-to-another"
+              className="underline flex items-center mt-4"
+            >
+              Learn more about rebalancing between channels
+              <ExternalLinkIcon className="w-4 h-4 ml-2" />
+            </ExternalLink>
+            <Alert className="mt-2">
+              <AlertTriangleIcon className="h-4 w-4" />
+              <AlertTitle>Rebalancing is in beta</AlertTitle>
+              <AlertDescription>
+                Funds may be rebalanced out of an unexpected channel.
+              </AlertDescription>
+            </Alert>
+            {channels &&
+              channels.filter(
+                (channel) => channel.remotePubkey === receiveThroughNodePubkey
+              ).length > 1 && (
+                <Alert className="mt-2">
+                  <AlertTriangleIcon className="h-4 w-4" />
+                  <AlertTitle>
+                    Multiple channels with same counterparty
+                  </AlertTitle>
+                  <AlertDescription>
+                    Funds may be rebalanced to an unexpected channel.
+                  </AlertDescription>
+                </Alert>
+              )}
+            {channels?.some(
+              (channel) =>
+                channel.remotePubkey !== receiveThroughNodePubkey &&
+                channel.localSpendableBalance <
+                  (channels.find(
+                    (other) => other.remotePubkey === receiveThroughNodePubkey
+                  )?.localBalance || 0)
+            ) && (
+              <Alert className="mt-2">
+                <AlertTriangleIcon className="h-4 w-4" />
+                <AlertTitle>
+                  You have another channel with less funds
+                </AlertTitle>
+                <AlertDescription>
+                  Consider choosing a channel with less spending balance to
+                  rebalance into.
+                </AlertDescription>
+              </Alert>
+            )}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="mt-4">
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <LoadingButton loading={isRebalancing}>Confirm</LoadingButton>
+        </AlertDialogFooter>
+      </form>
     </AlertDialogContent>
   );
 }
