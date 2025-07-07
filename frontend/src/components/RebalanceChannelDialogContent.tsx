@@ -1,6 +1,7 @@
 import { AlertTriangleIcon, ExternalLinkIcon } from "lucide-react";
 import React from "react";
 import ExternalLink from "src/components/ExternalLink";
+import Loading from "src/components/Loading";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -40,36 +41,16 @@ export function RebalanceChannelDialogContent({
     }, 100);
   }, [inputRef]);
 
+  if (!channels) {
+    return <Loading />;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setRebalancing(true);
     try {
       if (!channels) {
         throw new Error("channels not loaded");
-      }
-
-      if (
-        channels
-          .filter(
-            (channel) => channel.remotePubkey === receiveThroughNodePubkey
-          )
-          .every((channel) => channel.remoteBalance / 1000 < parseInt(amount))
-      ) {
-        throw new Error("not enough receiving capacity in this channel");
-      }
-
-      if (
-        channels
-          .filter(
-            (channel) => channel.remotePubkey === receiveThroughNodePubkey
-          )
-          .every(
-            (channel) => channel.localSpendableBalance / 1000 > parseInt(amount)
-          )
-      ) {
-        throw new Error(
-          "cannot swap a smaller amount than your current channel balance"
-        );
       }
 
       const response = await request<{ totalFeeSat: number }>(
@@ -101,7 +82,7 @@ export function RebalanceChannelDialogContent({
       console.error(error);
       toast({
         variant: "destructive",
-        description: "Something went wrong: " + error,
+        description: "" + error,
       });
     }
     setRebalancing(false);
@@ -126,7 +107,29 @@ export function RebalanceChannelDialogContent({
               type="number"
               required
               autoFocus
-              min={10000}
+              min={Math.max(
+                10000,
+                Math.floor(
+                  Math.min(
+                    ...channels
+                      .filter(
+                        (channel) =>
+                          channel.remotePubkey === receiveThroughNodePubkey
+                      )
+                      .map((channel) => channel.localSpendableBalance / 1000)
+                  ) + 1
+                )
+              )}
+              max={Math.floor(
+                Math.max(
+                  ...channels
+                    .filter(
+                      (channel) =>
+                        channel.remotePubkey === receiveThroughNodePubkey
+                    )
+                    .map((channel) => channel.remoteBalance / 1000)
+                )
+              )}
               value={amount}
               onChange={(e) => {
                 setAmount(e.target.value.trim());
@@ -152,21 +155,20 @@ export function RebalanceChannelDialogContent({
                 Funds may be rebalanced out of unexpected channels.
               </AlertDescription>
             </Alert>
-            {channels &&
-              channels.filter(
-                (channel) => channel.remotePubkey === receiveThroughNodePubkey
-              ).length > 1 && (
-                <Alert className="mt-2">
-                  <AlertTriangleIcon className="h-4 w-4" />
-                  <AlertTitle>
-                    Multiple channels with same counterparty
-                  </AlertTitle>
-                  <AlertDescription>
-                    Funds may be rebalanced to an unexpected channel.
-                  </AlertDescription>
-                </Alert>
-              )}
-            {channels?.some(
+            {channels.filter(
+              (channel) => channel.remotePubkey === receiveThroughNodePubkey
+            ).length > 1 && (
+              <Alert className="mt-2">
+                <AlertTriangleIcon className="h-4 w-4" />
+                <AlertTitle>
+                  Multiple channels with same counterparty
+                </AlertTitle>
+                <AlertDescription>
+                  Funds may be rebalanced to an unexpected channel.
+                </AlertDescription>
+              </Alert>
+            )}
+            {channels.some(
               (channel) =>
                 channel.remotePubkey !== receiveThroughNodePubkey &&
                 channel.localSpendableBalance <
