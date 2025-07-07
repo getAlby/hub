@@ -266,14 +266,14 @@ func (api *api) CreateLightningAddress(ctx context.Context, createLightningAddre
 		return err
 	}
 
-	err = api.albyOAuthSvc.CreateLightningAddress(ctx, createLightningAddressRequest.Address, createLightningAddressRequest.AppId)
+	createLightningAddressResponse, err := api.albyOAuthSvc.CreateLightningAddress(ctx, createLightningAddressRequest.Address, createLightningAddressRequest.AppId)
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create lightning address for app")
 		return err
 	}
 
-	metadata["lud16"] = createLightningAddressRequest.Address + "@getalby.com"
+	metadata["lud16"] = createLightningAddressResponse.FullAddress
 	err = api.appsSvc.SetAppMetadata(app.ID, metadata)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to add lightning address to app metadata")

@@ -386,7 +386,7 @@ func (svc *albyOAuthService) GetVssAuthToken(ctx context.Context, nodeIdentifier
 	return vssResponse.Token, nil
 }
 
-func (svc *albyOAuthService) CreateLightningAddress(ctx context.Context, address string, appId uint) error {
+func (svc *albyOAuthService) CreateLightningAddress(ctx context.Context, address string, appId uint) (*CreateLightningAddressResponse, error) {
 	logger.Logger.WithFields(logrus.Fields{
 		"address": address,
 		"app_id":  appId,
@@ -394,7 +394,7 @@ func (svc *albyOAuthService) CreateLightningAddress(ctx context.Context, address
 	token, err := svc.fetchUserToken(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
-		return err
+		return nil, err
 	}
 
 	client := svc.oauthConf.Client(ctx, token)
@@ -413,13 +413,13 @@ func (svc *albyOAuthService) CreateLightningAddress(ctx context.Context, address
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to encode request payload")
-		return err
+		return nil, err
 	}
 
 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/internal/lightning_addresses", albyOAuthAPIURL), body)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Error creating request for vss auth token endpoint")
-		return err
+		return nil, err
 	}
 
 	setDefaultRequestHeaders(req)
@@ -427,13 +427,13 @@ func (svc *albyOAuthService) CreateLightningAddress(ctx context.Context, address
 	res, err := client.Do(req)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch vss auth token endpoint")
-		return err
+		return nil, err
 	}
 
 	responseBody, err := io.ReadAll(res.Body)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to read response body")
-		return errors.New("failed to read response body")
+		return nil, errors.New("failed to read response body")
 	}
 
 	if res.StatusCode == 422 {
@@ -444,19 +444,26 @@ func (svc *albyOAuthService) CreateLightningAddress(ctx context.Context, address
 		err = json.Unmarshal(responseBody, lightningAddressErrors)
 		if err != nil {
 			logger.Logger.WithError(err).Error("failed to unmarshal errors response")
-			return err
+			return nil, err
 		}
 		if len(lightningAddressErrors.Address) == 0 {
-			return errors.New("unknown error occurred")
+			return nil, errors.New("unknown error occurred")
 		}
-		return errors.New(lightningAddressErrors.Address[0])
+		return nil, errors.New(lightningAddressErrors.Address[0])
 	}
 
 	if res.StatusCode >= 300 {
-		return fmt.Errorf("POST request to /internal/lightning_addresses/%s returned non-success status: %d %s", address, res.StatusCode, string(responseBody))
+		return nil, fmt.Errorf("POST request to /internal/lightning_addresses/%s returned non-success status: %d %s", address, res.StatusCode, string(responseBody))
 	}
 
-	return nil
+	createLightningAddressResponse := &CreateLightningAddressResponse{}
+	err = json.Unmarshal(responseBody, createLightningAddressResponse)
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to unmarshal response")
+		return nil, err
+	}
+
+	return createLightningAddressResponse, nil
 }
 
 func (svc *albyOAuthService) DeleteLightningAddress(ctx context.Context, address string) error {
