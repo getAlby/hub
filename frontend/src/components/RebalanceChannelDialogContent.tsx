@@ -19,10 +19,12 @@ import {
 
 type Props = {
   receiveThroughNodePubkey: string;
+  closeDialog(): void;
 };
 
 export function RebalanceChannelDialogContent({
   receiveThroughNodePubkey,
+  closeDialog,
 }: Props) {
   const [amount, setAmount] = React.useState("");
   const { toast } = useToast();
@@ -94,6 +96,7 @@ export function RebalanceChannelDialogContent({
           response.totalFeeSat +
           " sats",
       });
+      closeDialog();
     } catch (error) {
       console.error(error);
       toast({
@@ -166,10 +169,10 @@ export function RebalanceChannelDialogContent({
             {channels?.some(
               (channel) =>
                 channel.remotePubkey !== receiveThroughNodePubkey &&
-                channel.localSpendableBalance / 1000 <
+                channel.localSpendableBalance <
                   (channels.find(
                     (other) => other.remotePubkey === receiveThroughNodePubkey
-                  )?.localBalance || 0)
+                  )?.localSpendableBalance || 0)
             ) && (
               <Alert className="mt-2">
                 <AlertTriangleIcon className="h-4 w-4" />

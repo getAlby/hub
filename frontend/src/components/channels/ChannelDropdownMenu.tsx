@@ -120,6 +120,7 @@ export function ChannelDropdownMenu({
       {dialog === "rebalance" && (
         <RebalanceChannelDialogContent
           receiveThroughNodePubkey={channel.remotePubkey}
+          closeDialog={() => setDialog(undefined)}
         />
       )}
     </AlertDialog>
