@@ -375,7 +375,7 @@ export default function Channels() {
                   <AlertTriangleIcon className="h-4 w-4" />
                   <AlertTitle>Low receiving limit</AlertTitle>
                   <AlertDescription>
-                    You likely won't be able to receive payments until you{" "}
+                    You likely won't be able to receive payments until you spend or{" "}
                     <Link
                       className="underline"
                       to="#"

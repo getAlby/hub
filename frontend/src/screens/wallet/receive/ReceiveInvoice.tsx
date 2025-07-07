@@ -113,7 +113,7 @@ export default function ReceiveInvoice() {
                 <AlertTriangleIcon className="h-4 w-4" />
                 <AlertTitle>Low receiving capacity</AlertTitle>
                 <AlertDescription>
-                  You likely won't be able to receive payments until you{" "}
+                  You likely won't be able to receive payments until you spend or{" "}
                   <Link className="underline" to="/channels/incoming">
                     increase your receiving capacity.
                   </Link>
