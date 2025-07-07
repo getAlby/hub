@@ -32,6 +32,7 @@ type API interface {
 	RebalanceChannel(ctx context.Context, rebalanceChannelRequest *RebalanceChannelRequest) (*RebalanceChannelResponse, error)
 	CloseChannel(ctx context.Context, peerId, channelId string, force bool) (*CloseChannelResponse, error)
 	UpdateChannel(ctx context.Context, updateChannelRequest *UpdateChannelRequest) error
+	MakeOffer(ctx context.Context, description string) (string, error)
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	GetUnusedOnchainAddress(ctx context.Context) (string, error)
 	SignMessage(ctx context.Context, message string) (*SignMessageResponse, error)
@@ -60,11 +61,13 @@ type API interface {
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
+	SetNodeAlias(nodeAlias string) error
 	GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error)
 	DisableAutoSwaps() error
 	EnableAutoSwaps(ctx context.Context, autoSwapsRequest *EnableAutoSwapsRequest) error
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
+	SendEvent(event string)
 }
 
 type App struct {
@@ -147,6 +150,10 @@ type BackupReminderRequest struct {
 	NextBackupReminder string `json:"nextBackupReminder"`
 }
 
+type SendEventRequest struct {
+	Event string `json:"event"`
+}
+
 type SetupRequest struct {
 	LNBackendType  string `json:"backendType"`
 	UnlockPassword string `json:"unlockPassword"`
@@ -207,10 +214,16 @@ type InfoResponse struct {
 	AutoUnlockPasswordEnabled   bool      `json:"autoUnlockPasswordEnabled"`
 	Currency                    string    `json:"currency"`
 	Relay                       string    `json:"relay"`
+	NodeAlias                   string    `json:"nodeAlias"`
+	MempoolUrl                  string    `json:"mempoolUrl"`
 }
 
 type UpdateSettingsRequest struct {
 	Currency string `json:"currency"`
+}
+
+type SetNodeAliasRequest struct {
+	NodeAlias string `json:"nodeAlias"`
 }
 
 type MnemonicRequest struct {
@@ -348,6 +361,10 @@ type SignMessageResponse struct {
 type PayInvoiceRequest struct {
 	Amount   *uint64  `json:"amount"`
 	Metadata Metadata `json:"metadata"`
+}
+
+type MakeOfferRequest struct {
+	Description string `json:"description"`
 }
 
 type MakeInvoiceRequest struct {

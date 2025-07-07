@@ -33,7 +33,7 @@ jobs:
           [
             { platform: linux/amd64, os: ubuntu-22.04 },
             { platform: linux/amd64, os: ubuntu-24.04 },
-            { platform: windows/amd64, os: windows-2019 },
+            { platform: windows/amd64, os: windows-2022 },
             { platform: darwin/universal, os: macos-13 },
           ]
     runs-on: ${{ matrix.build.os }}

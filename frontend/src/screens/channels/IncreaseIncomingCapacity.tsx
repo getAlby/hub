@@ -44,6 +44,9 @@ import {
   RecommendedChannelPeer,
 } from "src/types";
 
+import LightningNetworkDarkSVG from "public/images/illustrations/lightning-network-dark.svg";
+import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
+
 function getPeerKey(peer: RecommendedChannelPeer) {
   return JSON.stringify(peer);
 }
@@ -79,6 +82,7 @@ function NewChannelInternal({
     status: "pay",
     amount: presetAmounts[0].toString(),
     prevChannelIds: channels.map((channel) => channel.id),
+    isPublic: !!channels.length && channels.every((channel) => channel.public),
   });
 
   const [showAdvanced, setShowAdvanced] = React.useState(false);
@@ -229,19 +233,16 @@ function NewChannelInternal({
       />
       <div className="md:max-w-md max-w-full flex flex-col gap-5 flex-1">
         <img
-          src="/images/illustrations/lightning-network-dark.svg"
+          src={LightningNetworkDarkSVG}
           className="w-full hidden dark:block"
         />
-        <img
-          src="/images/illustrations/lightning-network-light.svg"
-          className="w-full dark:hidden"
-        />
+        <img src={LightningNetworkLightSVG} className="w-full dark:hidden" />
         <p className="text-muted-foreground">
           Alby Hub works with selected service providers (LSPs) which provide
           the best network connectivity and liquidity to receive payments.{" "}
           <ExternalLink
             className="underline"
-            to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel"
+            to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel"
           >
             Learn more
           </ExternalLink>
@@ -271,7 +272,7 @@ function NewChannelInternal({
                 For a smooth experience consider a opening a channel of 200k
                 sats in size or more.{" "}
                 <ExternalLink
-                  to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/liquidity"
+                  to="https://guides.getalby.com/user-guide/alby-hub/node"
                   className="underline"
                 >
                   Learn more
@@ -405,7 +406,7 @@ function NewChannelInternal({
                     Not recommended for most users.{" "}
                     <ExternalLink
                       className="underline"
-                      to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/should-i-open-a-private-or-public-channel"
+                      to="https://guides.getalby.com/user-guide/alby-hub/faq/should-i-open-a-private-or-public-channel"
                     >
                       Learn more
                     </ExternalLink>

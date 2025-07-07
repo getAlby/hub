@@ -61,6 +61,14 @@ Go to `/frontend`
 1. `yarn install`
 2. `yarn dev`
 
+### HTTP Production build
+
+    $ yarn build:http
+
+If you plan to run Alby Hub on a subpath behind a reverse proxy, you can do:
+
+    $ BASE_PATH="/hub" yarn build:http
+
 ### Wails (Backend + Frontend)
 
 _Make sure to have [wails](https://wails.io/docs/gettingstarted/installation) installed and all platform-specific dependencies installed (see wails doctor)_
@@ -157,7 +165,7 @@ For more information refer to:
 The following configuration options can be set as environment variables or in a .env file
 
 - `RELAY`: default: "wss://relay.getalby.com/v1"
-- `JWT_SECRET`: A randomly generated secret string. (only needed in http mode)
+- `JWT_SECRET`: A randomly generated secret string, applied if no JWT secret is already set. (only needed in http mode). If not provided, one will be automatically generated. On password change, a new JWT secret will be generated.
 - `DATABASE_URI`: A sqlite filename or postgres URL. Default is SQLite DB `nwc.db` without a path, which will be put in the user home directory: $XDG_DATA_HOME/albyhub/nwc.db
 - `PORT`: The port on which the app should listen on (default: 8080)
 - `WORK_DIR`: Directory to store NWC data files. Default: $XDG_DATA_HOME/albyhub
@@ -199,6 +207,8 @@ _To configure via env, the following parameters must be provided:_
 - `LDK_ESPLORA_SERVER`: By default the optimized Alby esplora is used. You can configure your own esplora server (note: the public blockstream one is slow and can cause onchain syncing and issues with opening channels)
 - `LDK_VSS_URL`: Use VSS (encrypted remote storage) rather than local sqlite store for lightning and bitcoin data. Currently this feature only works for brand new Alby Hub instances that are connected to Alby Accounts with an active subscription plan.
 - `LDK_LISTENING_ADDRESSES`: configure listening addresses, required for public channels, and ideally reachable if you would like others to be able to initiate peering with your node.
+- `LDK_MAX_CHANNEL_SATURATION`: Sets the maximum portion of a channel's total capacity that may be used for sending a payment, expressed as a power of 1/2. See `max_channel_saturation_power_of_half` in [LDK docs](https://docs.rs/lightning/latest/lightning/routing/router/struct.PaymentParameters.html#structfield.max_channel_saturation_power_of_half).
+- `LDK_MAX_PATH_COUNT`: Maximum number of paths that may be used by MPP payments.
 
 #### LDK Network Configuration
 
@@ -215,6 +225,13 @@ _To configure via env, the following parameters must be provided:_
 - `NETWORK=testnet`
 - `LDK_ESPLORA_SERVER=https://mempool.space/testnet/api`
 - `LDK_GOSSIP_SOURCE=https://rapidsync.lightningdevkit.org/testnet/snapshot`
+
+###### Connect to your own bitcoind
+
+- `LDK_BITCOIND_RPC_HOST=127.0.0.1`
+- `LDK_BITCOIND_RPC_PORT=8332`
+- `LDK_BITCOIND_RPC_USER=yourusername`
+- `LDK_BITCOIND_RPC_PASSWORD=yourpassword`
 
 ### Phoenixd
 
@@ -400,15 +417,15 @@ Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/script
 
 #### Quick start (Raspberry PI 4/5)
 
-Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/scripts/pi-aarch64) which you can run as a service.
+Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/scripts/pi-aarch64) which you can run as a service. (Experimental – we cannot provide support for installations on Raspberry PI 4/5.)
 
 #### Quick start (Raspberry PI Zero)
 
-Go to the [Quick start script](https://github.com/getAlby/hub/tree/master/scripts/pi-arm) which you can run as a service.
+Go to the [Quick start script](https://github.com/getAlby/hub/tree/master/scripts/pi-arm) which you can run as a service. (Experimental – we cannot provide support for installations on Raspberry PI Zero.)
 
 #### Quick start (Desktop)
 
-View the [release binaries](https://github.com/getAlby/hub/releases/latest)
+View the [release binaries](https://github.com/getAlby/hub/releases/latest). Please use a desktop computer that is always online. 
 
 #### Manual (x86 Linux Server)
 

@@ -39,13 +39,17 @@ import { usePeers } from "src/hooks/usePeers";
 import { cn, formatAmount } from "src/lib/utils";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import {
+  Channel,
+  MempoolNode,
   Network,
   NewChannelOrder,
-  Node,
   OnchainOrder,
   RecommendedChannelPeer,
 } from "src/types";
 import { request } from "src/utils/request";
+
+import LightningNetworkDarkSVG from "public/images/illustrations/lightning-network-dark.svg";
+import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
 
 function getPeerKey(peer: RecommendedChannelPeer) {
   return JSON.stringify(peer);
@@ -53,18 +57,25 @@ function getPeerKey(peer: RecommendedChannelPeer) {
 
 export default function IncreaseOutgoingCapacity() {
   const { data: info } = useInfo();
+  const { data: channels } = useChannels();
 
-  if (!info?.network) {
+  if (!info?.network || !channels) {
     return <Loading />;
   }
 
-  return <NewChannelInternal network={info.network} />;
+  return <NewChannelInternal network={info.network} channels={channels} />;
 }
 
-function NewChannelInternal({ network }: { network: Network }) {
+function NewChannelInternal({
+  network,
+  channels,
+}: {
+  network: Network;
+  channels: Channel[];
+}) {
   const { data: _channelPeerSuggestions } = useChannelPeerSuggestions();
   const { data: balances } = useBalances();
-  const { data: channels } = useChannels();
+
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -74,6 +85,7 @@ function NewChannelInternal({ network }: { network: Network }) {
     paymentMethod: "onchain",
     status: "pay",
     amount: presetAmounts[0].toString(),
+    isPublic: !!channels.length && channels.every((channel) => channel.public),
   });
 
   const [selectedPeer, setSelectedPeer] = React.useState<
@@ -200,13 +212,10 @@ function NewChannelInternal({ network }: { network: Network }) {
       />
       <div className="md:max-w-md max-w-full flex flex-col gap-5 flex-1">
         <img
-          src="/images/illustrations/lightning-network-dark.svg"
+          src={LightningNetworkDarkSVG}
           className="w-full hidden dark:block"
         />
-        <img
-          src="/images/illustrations/lightning-network-light.svg"
-          className="w-full dark:hidden"
-        />
+        <img src={LightningNetworkLightSVG} className="w-full dark:hidden" />
         <p className="text-muted-foreground">
           Open a channel with on-chain funds. Both parties are free to close the
           channel at any time. However, by keeping more funds on your side of
@@ -214,7 +223,7 @@ function NewChannelInternal({ network }: { network: Network }) {
           will stay open.{" "}
           <ExternalLink
             className="underline"
-            to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/node/advanced-increase-spending-balance-with-on-chain-bitcoin"
+            to="https://guides.getalby.com/user-guide/alby-hub/node/advanced-increase-spending-balance-with-on-chain-bitcoin"
           >
             Learn more
           </ExternalLink>
@@ -248,7 +257,7 @@ function NewChannelInternal({ network }: { network: Network }) {
                 For a smooth experience consider a opening a channel of 200k
                 sats in size or more.{" "}
                 <ExternalLink
-                  to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/liquidity"
+                  to="https://guides.getalby.com/user-guide/alby-hub/node"
                   className="underline"
                 >
                   Learn more
@@ -383,7 +392,7 @@ function NewChannelInternal({ network }: { network: Network }) {
                   Not recommended for most users.{" "}
                   <ExternalLink
                     className="underline"
-                    to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/should-i-open-a-private-or-public-channel"
+                    to="https://guides.getalby.com/user-guide/alby-hub/faq/should-i-open-a-private-or-public-channel"
                   >
                     Learn more
                   </ExternalLink>
@@ -435,7 +444,9 @@ type NewChannelOnchainProps = {
 };
 
 function NewChannelOnchain(props: NewChannelOnchainProps) {
-  const [nodeDetails, setNodeDetails] = React.useState<Node | undefined>();
+  const [nodeDetails, setNodeDetails] = React.useState<
+    MempoolNode | undefined
+  >();
   const { data: peers } = usePeers();
 
   if (props.order.paymentMethod !== "onchain") {
@@ -470,7 +481,7 @@ function NewChannelOnchain(props: NewChannelOnchainProps) {
       return;
     }
     try {
-      const data = await request<Node>(
+      const data = await request<MempoolNode>(
         `/api/mempool?endpoint=/v1/lightning/nodes/${pubkey}`
       );
 

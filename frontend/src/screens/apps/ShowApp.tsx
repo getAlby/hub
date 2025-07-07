@@ -349,17 +349,38 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                                 Confirm Update App
                               </AlertDialogTitle>
                               <AlertDialogDescription>
-                                {app.isolated && !permissions.isolated ? (
-                                  <b>
-                                    Are you sure you wish to remove the isolated
-                                    status from this connection?
-                                  </b>
-                                ) : (
-                                  <b>
-                                    Are you sure you wish to give this
-                                    connection pay permissions?
-                                  </b>
-                                )}
+                                <div className="space-y-2">
+                                  {app.isolated && !permissions.isolated ? (
+                                    <p>
+                                      Are you sure you wish to remove the
+                                      <span className="font-bold">
+                                        isolated
+                                      </span>{" "}
+                                      status from this connection?
+                                    </p>
+                                  ) : (
+                                    <p>
+                                      Are you sure you wish to give this
+                                      connection{" "}
+                                      <span className="font-bold">
+                                        pay permissions
+                                      </span>
+                                      ?
+                                    </p>
+                                  )}
+                                  <p className="text-amber-600 dark:text-amber-400 font-medium">
+                                    ⚠️ Warning: This applies to all apps that
+                                    have this connection secret. Only change
+                                    this if you know it is safe to do so,
+                                    otherwise you could potentially lose all
+                                    funds
+                                    {!!permissions.maxAmount &&
+                                      " up to the specified budget"}
+                                    {permissions.isolated &&
+                                      " that are deposited into this isolated app"}
+                                    .
+                                  </p>
+                                </div>
                               </AlertDialogDescription>
                               <AlertDialogFooter className="mt-5">
                                 <AlertDialogCancel

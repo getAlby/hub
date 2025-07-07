@@ -23,6 +23,9 @@ import { PayLightningInvoice } from "src/components/PayLightningInvoice";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import { ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL } from "src/constants";
 
+import LightningNetworkDarkSVG from "public/images/illustrations/lightning-network-dark.svg";
+import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
+
 export function FirstChannel() {
   const { data: info } = useInfo();
   const { data: channels } = useChannels(true);
@@ -120,7 +123,7 @@ export function FirstChannel() {
                 <TableRow>
                   <TableCell className="font-medium p-3 flex items-center gap-2">
                     Duration
-                    <ExternalLink to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel#which-lightning-service-provider-to-choose">
+                    <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel#which-lightning-service-provider-to-choose">
                       <InfoIcon className="w-4 h-4 text-muted-foreground" />
                     </ExternalLink>
                   </TableCell>
@@ -167,11 +170,11 @@ export function FirstChannel() {
         <>
           <div className="flex flex-col gap-6 max-w-md text-muted-foreground">
             <img
-              src="/images/illustrations/lightning-network-dark.svg"
+              src={LightningNetworkDarkSVG}
               className="w-full hidden dark:block"
             />
             <img
-              src="/images/illustrations/lightning-network-light.svg"
+              src={LightningNetworkLightSVG}
               className="w-full dark:hidden"
             />
             {canPayForFirstChannel ? (
@@ -183,7 +186,7 @@ export function FirstChannel() {
                     credits.
                   </span>{" "}
                   <Link
-                    to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-account/faqs-alby-account/what-are-fee-credits-in-my-alby-account"
+                    to="https://guides.getalby.com/user-guide/alby-account/faq/what-are-fee-credits-in-my-alby-account"
                     target="_blank"
                     className="underline"
                   >
@@ -212,7 +215,7 @@ export function FirstChannel() {
                   payments.{" "}
                   <ExternalLink
                     className="underline"
-                    to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel"
+                    to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel"
                   >
                     Learn more
                   </ExternalLink>
@@ -238,7 +241,7 @@ export function FirstChannel() {
                       Not recommended for most users.{" "}
                       <ExternalLink
                         className="underline"
-                        to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/should-i-open-a-private-or-public-channel"
+                        to="https://guides.getalby.com/user-guide/alby-hub/faq/should-i-open-a-private-or-public-channel"
                       >
                         Learn more
                       </ExternalLink>

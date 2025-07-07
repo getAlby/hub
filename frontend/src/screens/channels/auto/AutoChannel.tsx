@@ -20,6 +20,9 @@ import { MempoolAlert } from "src/components/MempoolAlert";
 import { PayLightningInvoice } from "src/components/PayLightningInvoice";
 import { ChannelPublicPrivateAlert } from "src/components/channels/ChannelPublicPrivateAlert";
 
+import LightningNetworkDarkSVG from "public/images/illustrations/lightning-network-dark.svg";
+import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
+
 export function AutoChannel() {
   const { data: info } = useInfo();
   const { data: channels } = useChannels(true);
@@ -134,11 +137,11 @@ export function AutoChannel() {
         <>
           <div className="flex flex-col gap-6 max-w-md text-muted-foreground">
             <img
-              src="/images/illustrations/lightning-network-dark.svg"
+              src={LightningNetworkDarkSVG}
               className="w-full hidden dark:block"
             />
             <img
-              src="/images/illustrations/lightning-network-light.svg"
+              src={LightningNetworkLightSVG}
               className="w-full dark:hidden"
             />
 
@@ -160,7 +163,7 @@ export function AutoChannel() {
                 payments.{" "}
                 <ExternalLink
                   className="underline"
-                  to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel"
+                  to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel"
                 >
                   Learn more
                 </ExternalLink>
@@ -185,7 +188,7 @@ export function AutoChannel() {
                       Not recommended for most users.{" "}
                       <ExternalLink
                         className="underline"
-                        to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/should-i-open-a-private-or-public-channel"
+                        to="https://guides.getalby.com/user-guide/alby-hub/faq/should-i-open-a-private-or-public-channel"
                       >
                         Learn more
                       </ExternalLink>

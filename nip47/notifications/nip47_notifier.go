@@ -3,6 +3,7 @@ package notifications
 import (
 	"context"
 	"encoding/json"
+	"errors"
 
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
@@ -37,13 +38,13 @@ func NewNip47Notifier(relay nostrmodels.Relay, db *gorm.DB, cfg config.Config, k
 	}
 }
 
-func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.Event) {
+func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.Event) error {
 	switch event.Event {
 	case "nwc_payment_received":
 		transaction, ok := event.Properties.(*db.Transaction)
 		if !ok {
 			logger.Logger.WithField("event", event).Error("Failed to cast event")
-			return
+			return errors.New("failed to cast event")
 		}
 
 		notification := PaymentReceivedNotification{
@@ -59,7 +60,7 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 		transaction, ok := event.Properties.(*db.Transaction)
 		if !ok {
 			logger.Logger.WithField("event", event).Error("Failed to cast event")
-			return
+			return errors.New("failed to cast event")
 		}
 
 		notification := PaymentSentNotification{
@@ -75,7 +76,7 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 		dbTransaction, ok := event.Properties.(*db.Transaction)
 		if !ok {
 			logger.Logger.WithField("event", event).Error("Failed to cast event properties to db.Transaction for hold invoice accepted")
-			return
+			return errors.New("failed to cast event")
 		}
 
 		nip47Transaction := models.ToNip47Transaction(dbTransaction)
@@ -89,16 +90,17 @@ func (notifier *Nip47Notifier) ConsumeEvent(ctx context.Context, event *events.E
 			NotificationType: HOLD_INVOICE_ACCEPTED_NOTIFICATION,
 		}, nostr.Tags{}, dbTransaction.AppId)
 	}
+	return nil
 }
 
-func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notification *Notification, tags nostr.Tags, appId *uint) {
+func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notification *Notification, tags nostr.Tags, appId *uint) error {
 	apps := []db.App{}
 
 	// TODO: join apps and permissions
 	err := notifier.db.Find(&apps).Error
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to list apps")
-		return
+		return errors.New("failed to list apps")
 	}
 
 	for _, app := range apps {
@@ -119,7 +121,7 @@ func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notificati
 					"notification": notification,
 					"appId":        app.ID,
 				}).WithError(err).Error("error deriving child key")
-				return
+				return errors.New("failed to derive child key")
 			}
 		}
 
@@ -129,15 +131,24 @@ func (notifier *Nip47Notifier) notifySubscribers(ctx context.Context, notificati
 				"notification": notification,
 				"appId":        app.ID,
 			}).WithError(err).Error("Failed to calculate app wallet pub key")
-			return
+			return errors.New("failed to calculate app wallet pubkey")
 		}
 
-		notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, constants.ENCRYPTION_TYPE_NIP04)
-		notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, constants.ENCRYPTION_TYPE_NIP44_V2)
+		err = notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, constants.ENCRYPTION_TYPE_NIP04)
+		if err != nil {
+			logger.Logger.WithError(err).Error("failed to notify subscriber (NIP-04)")
+			return err
+		}
+		err = notifier.notifySubscriber(ctx, &app, notification, tags, appWalletPubKey, appWalletPrivKey, constants.ENCRYPTION_TYPE_NIP44_V2)
+		if err != nil {
+			logger.Logger.WithError(err).Error("failed to notify subscriber (NIP-44)")
+			return err
+		}
 	}
+	return nil
 }
 
-func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App, notification *Notification, tags nostr.Tags, appWalletPubKey, appWalletPrivKey string, encryption string) {
+func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App, notification *Notification, tags nostr.Tags, appWalletPubKey, appWalletPrivKey string, encryption string) error {
 	logger.Logger.WithFields(logrus.Fields{
 		"notification": notification,
 		"appId":        app.ID,
@@ -153,7 +164,7 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 			"appId":        app.ID,
 			"encryption":   encryption,
 		}).WithError(err).Error("Failed to stringify notification")
-		return
+		return err
 	}
 
 	nip47Cipher, err := cipher.NewNip47Cipher(encryption, app.AppPubkey, appWalletPrivKey)
@@ -163,7 +174,7 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 			"appId":        app.ID,
 			"encryption":   encryption,
 		}).WithError(err).Error("Failed to initialize cipher")
-		return
+		return err
 	}
 
 	msg, err := nip47Cipher.Encrypt(string(payloadBytes))
@@ -173,7 +184,7 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 			"appId":        app.ID,
 			"encryption":   encryption,
 		}).WithError(err).Error("Failed to encrypt notification payload")
-		return
+		return err
 	}
 
 	allTags := nostr.Tags{[]string{"p", app.AppPubkey}}
@@ -198,7 +209,7 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 			"appId":        app.ID,
 			"encryption":   encryption,
 		}).WithError(err).Error("Failed to sign event")
-		return
+		return err
 	}
 
 	err = notifier.relay.Publish(ctx, *event)
@@ -208,10 +219,11 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 			"appId":        app.ID,
 			"encryption":   encryption,
 		}).WithError(err).Error("Failed to publish notification")
-		return
+		return err
 	}
 	logger.Logger.WithFields(logrus.Fields{
 		"appId":      app.ID,
 		"encryption": encryption,
 	}).Debug("Published notification event")
+	return nil
 }

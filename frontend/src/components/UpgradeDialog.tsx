@@ -110,7 +110,7 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
             variant="premium"
             size="lg"
             className="w-full"
-            to="https://www.getalby.com/subscription/new"
+            to="https://www.getalby.com/subscription/pro"
           >
             Upgrade Now
           </ExternalLinkButton>

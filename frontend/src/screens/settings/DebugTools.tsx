@@ -352,6 +352,18 @@ export default function DebugTools() {
               Execute Node Command
             </Button>
           </AlertDialogTrigger>
+          {info?.backendType === "LDK" && (
+            <Button
+              variant={"outline"}
+              onClick={() => {
+                apiRequest(`/api/command`, "POST", {
+                  command: "export_pathfinding_scores",
+                });
+              }}
+            >
+              Export Pathfinding Scores
+            </Button>
+          )}
           {/* probing functions are not useful */}
           {/*info?.backendType === "LDK" && (
             <AlertDialogTrigger asChild>

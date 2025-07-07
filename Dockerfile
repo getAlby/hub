@@ -1,6 +1,12 @@
 FROM node:20-alpine as frontend
+
+# Set the base path for the frontend build
+# This can be overridden at build time with --build-arg BASE_PATH=<url> e.g. --build-arg BASE_PATH=/hub
+# Allows to build a frontend that can be served from a subpath, e.g. /hub
+ARG BASE_PATH
 WORKDIR /build
 COPY frontend ./frontend
+RUN echo "Building frontend with base path $BASE_PATH"
 RUN cd frontend && yarn install --network-timeout 3000000 && yarn build:http
 
 FROM golang:1.24 as builder

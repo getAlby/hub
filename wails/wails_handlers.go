@@ -944,6 +944,27 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: *nodeHealth, Error: ""}
+	case "/api/offers":
+		makeOfferRequest := &api.MakeOfferRequest{}
+		err := json.Unmarshal([]byte(body), makeOfferRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		offer, err := app.api.MakeOffer(ctx, makeOfferRequest.Description)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to generate BOLT-12 offer")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: offer, Error: ""}
 	case "/api/commands":
 		nodeCommandsResponse, err := app.api.GetCustomNodeCommands()
 		if err != nil {
@@ -1021,6 +1042,46 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				}).WithError(err).Error("Failed to disable swaps")
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
+			return WailsRequestRouterResponse{Body: nil, Error: ""}
+		}
+	case "/api/node/alias":
+		setNodeAliasRequest := &api.SetNodeAliasRequest{}
+		err := json.Unmarshal([]byte(body), setNodeAliasRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+
+		err = app.api.SetNodeAlias(setNodeAliasRequest.NodeAlias)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to set node alias")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
+	case "/api/event":
+		switch method {
+		case "POST":
+			sendEventRequest := &api.SendEventRequest{}
+			err := json.Unmarshal([]byte(body), sendEventRequest)
+			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"route":  route,
+					"method": method,
+					"body":   body,
+				}).WithError(err).Error("Failed to send event")
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+
+			app.api.SendEvent(sendEventRequest.Event)
+
 			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		}
 	}

@@ -1,4 +1,9 @@
-import { AlertTriangleIcon, CircleCheckIcon, CopyIcon } from "lucide-react";
+import {
+  AlertTriangleIcon,
+  CircleCheckIcon,
+  CopyIcon,
+  ReceiptTextIcon,
+} from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
@@ -99,7 +104,7 @@ export default function ReceiveInvoice() {
 
   return (
     <div className="flex flex-col md:flex-row gap-6">
-      <div className="w-full md:max-w-xl">
+      <div className="w-full md:max-w-lg">
         <div className="grid gap-5">
           {hasChannelManagement &&
             parseInt(amount || "0") * 1000 >=
@@ -117,57 +122,63 @@ export default function ReceiveInvoice() {
             )}
           <div>
             {transaction ? (
-              <div className="flex flex-col items-center justify-center gap-6 border rounded-xl w-full md:max-w-xs p-4 md:p-6">
+              <Card className="w-full md:max-w-xs">
                 {!paymentDone ? (
                   <>
-                    <div className="flex flex-row items-center gap-2 font-medium">
-                      <Loading className="w-4 h-4" />
-                      <p>Waiting for payment</p>
-                    </div>
-                    <div className="relative flex flex-col items-center justify-center">
+                    <CardHeader>
+                      <CardTitle className="flex justify-center">
+                        <Loading className="w-4 h-4 mr-2" />
+                        <p>Waiting for payment</p>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex flex-col items-center gap-4">
                       <QRCode value={transaction.invoice} className="w-full" />
-                    </div>
-                    <div className="flex flex-col gap-2 items-center">
-                      <p className="text-xl font-semibold slashed-zero">
-                        {new Intl.NumberFormat().format(parseInt(amount))} sats
-                      </p>
-                      <FormattedFiatAmount amount={parseInt(amount)} />
-                    </div>
-                    <div>
-                      <Button onClick={copy} variant="outline">
-                        <CopyIcon className="w-4 h-4 mr-2" />
-                        Copy Invoice
-                      </Button>
-                    </div>
+                      <div className="flex flex-col gap-2 items-center">
+                        <p className="text-xl font-semibold slashed-zero">
+                          {new Intl.NumberFormat().format(parseInt(amount))}{" "}
+                          sats
+                        </p>
+                        <FormattedFiatAmount amount={parseInt(amount)} />
+                      </div>
+                      <div>
+                        <Button onClick={copy} variant="outline">
+                          <CopyIcon className="w-4 h-4 mr-2" />
+                          Copy Invoice
+                        </Button>
+                      </div>
+                    </CardContent>
                   </>
                 ) : (
                   <>
-                    <div className="text-center font-medium">
-                      Payment Received!
-                    </div>
-                    <div className="relative flex flex-col items-center justify-center">
-                      <CircleCheckIcon className="w-64 h-64 mb-1" />
-                    </div>
-                    <div className="flex flex-col gap-2 items-center">
-                      <p className="text-xl font-semibold slashed-zero">
-                        {new Intl.NumberFormat().format(parseInt(amount))} sats
-                      </p>
-                      <FormattedFiatAmount amount={parseInt(amount)} />
-                    </div>
-                    <div>
-                      <Button
-                        variant="outline"
-                        onClick={() => {
-                          setPaymentDone(false);
-                          setTransaction(null);
-                        }}
-                      >
-                        Receive Another Payment
-                      </Button>
-                    </div>
+                    <CardHeader>
+                      <CardTitle className="text-center">
+                        Payment Received!
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex flex-col items-center gap-4">
+                      <CircleCheckIcon className="w-72 h-72 p-2" />
+                      <div className="flex flex-col gap-2 items-center">
+                        <p className="text-xl font-semibold slashed-zero">
+                          {new Intl.NumberFormat().format(parseInt(amount))}{" "}
+                          sats
+                        </p>
+                        <FormattedFiatAmount amount={parseInt(amount)} />
+                      </div>
+                      <div>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setPaymentDone(false);
+                            setTransaction(null);
+                          }}
+                        >
+                          Receive Another Payment
+                        </Button>
+                      </div>
+                    </CardContent>
                   </>
                 )}
-              </div>
+              </Card>
             ) : (
               <form onSubmit={handleSubmit} className="grid gap-5">
                 <div>
@@ -197,7 +208,7 @@ export default function ReceiveInvoice() {
                     }}
                   />
                 </div>
-                <div>
+                <div className="flex flex-col md:flex-row gap-4">
                   <LoadingButton
                     className="w-full md:w-auto"
                     loading={isLoading}
@@ -206,6 +217,15 @@ export default function ReceiveInvoice() {
                   >
                     Create Invoice
                   </LoadingButton>
+                  {!info?.albyAccountConnected &&
+                    info.backendType === "LDK" && (
+                      <Link to="/wallet/receive/offer">
+                        <Button variant="outline" className="w-full">
+                          <ReceiptTextIcon className="h-4 w-4 shrink-0 mr-2" />
+                          BOLT-12 Offer
+                        </Button>
+                      </Link>
+                    )}
                 </div>
               </form>
             )}

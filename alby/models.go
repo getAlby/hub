@@ -72,7 +72,8 @@ type AlbyInfo struct {
 }
 
 type AlbyMeHub struct {
-	Name string `json:"name"`
+	Name   string                 `json:"name"`
+	Config map[string]interface{} `json:"config"`
 }
 
 type AlbyMeSubscription struct {

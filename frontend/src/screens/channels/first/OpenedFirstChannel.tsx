@@ -18,7 +18,7 @@ export function OpenedFirstChannel() {
       <p>
         To ensure you can both send and receive, make sure to balance your{" "}
         <ExternalLink
-          to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/liquidity"
+          to="https://guides.getalby.com/user-guide/alby-hub/node"
           className="underline"
         >
           channel's liquidity

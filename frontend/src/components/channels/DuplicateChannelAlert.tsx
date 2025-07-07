@@ -36,7 +36,7 @@ export function DuplicateChannelAlert({ pubkey, name }: PeerAlertProps) {
         There are other options available rather than opening multiple channels
         with the same counterparty.{" "}
         <ExternalLink
-          to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/should-i-open-multiple-channels-with-the-same-counterparty"
+          to="https://guides.getalby.com/user-guide/alby-hub/faq/should-i-open-multiple-channels-with-the-same-counterparty"
           className="underline"
         >
           Learn more

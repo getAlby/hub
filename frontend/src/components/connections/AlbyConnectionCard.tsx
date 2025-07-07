@@ -46,14 +46,17 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { LinkStatus, useLinkAccount } from "src/hooks/useLinkAccount";
 import { App, BudgetRenewalType } from "src/types";
 
+import AlbyAccountDarkSVG from "public/images/illustrations/alby-account-dark.svg";
+import AlbyAccountLightSVG from "public/images/illustrations/alby-account-light.svg";
+
 function AlbyConnectionCard({ connection }: { connection?: App }) {
   const { data: albyMe } = useAlbyMe();
   const { loading, linkStatus, loadingLinkStatus, linkAccount } =
     useLinkAccount();
 
-  const [maxAmount, setMaxAmount] = useState(1_000_000);
+  const [maxAmount, setMaxAmount] = useState(150_000);
   const [budgetRenewal, setBudgetRenewal] =
-    useState<BudgetRenewalType>("monthly");
+    useState<BudgetRenewalType>("weekly");
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -109,11 +112,11 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
                         every app you access through your Alby Account will
                         handle payments via the Hub.
                         <img
-                          src="/images/illustrations/alby-account-dark.svg"
+                          src={AlbyAccountDarkSVG}
                           className="w-full hidden dark:block"
                         />
                         <img
-                          src="/images/illustrations/alby-account-light.svg"
+                          src={AlbyAccountLightSVG}
                           className="w-full dark:hidden"
                         />
                         You can add a budget that will restrict how much can be
@@ -130,6 +133,11 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
                           minAmount={
                             25000 /* the minimum should be a bit more than the Alby monthly fee */
                           }
+                          budgetOptions={{
+                            "150k": 150_000,
+                            "500k": 500_000,
+                            "1M": 1_000_000,
+                          }}
                         />
                       </div>
                       <DialogFooter>

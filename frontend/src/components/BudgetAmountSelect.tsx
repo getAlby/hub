@@ -2,16 +2,18 @@ import React from "react";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { cn } from "src/lib/utils";
-import { budgetOptions } from "src/types";
+import { budgetOptions as defaultBudgetOptions } from "src/types";
 
 function BudgetAmountSelect({
   value,
   onChange,
   minAmount,
+  budgetOptions = defaultBudgetOptions,
 }: {
   value: number;
   onChange: (value: number) => void;
   minAmount?: number;
+  budgetOptions?: typeof defaultBudgetOptions;
 }) {
   const [customBudget, setCustomBudget] = React.useState(
     value ? !Object.values(budgetOptions).includes(value) : false

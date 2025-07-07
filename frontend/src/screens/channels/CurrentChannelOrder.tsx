@@ -1,8 +1,9 @@
 import React from "react";
 import {
   ConnectPeerRequest,
+  MempoolNode,
+  MempoolUtxo,
   NewChannelOrder,
-  Node,
   OpenChannelRequest,
   OpenChannelResponse,
   PayInvoiceResponse,
@@ -124,7 +125,7 @@ function Success() {
       <p>
         To ensure you can both send and receive, make sure to balance your{" "}
         <ExternalLink
-          to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/liquidity"
+          to="https://guides.getalby.com/user-guide/alby-hub/node"
           className="underline"
         >
           channel's liquidity
@@ -227,9 +228,9 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
     loadingAddress,
   } = useOnchainAddress();
 
-  const { data: mempoolAddressUtxos } = useMempoolApi<{ value: number }[]>(
+  const { data: mempoolAddressUtxos } = useMempoolApi<MempoolUtxo[]>(
     onchainAddress ? `/address/${onchainAddress}/utxo` : undefined,
-    true
+    3000
   );
   const estimatedTransactionFee = useEstimatedTransactionFee();
 
@@ -391,7 +392,9 @@ function PayBitcoinChannelOrderWithSpendableFunds({
     throw new Error("incorrect payment method");
   }
   const { data: peers } = usePeers();
-  const [nodeDetails, setNodeDetails] = React.useState<Node | undefined>();
+  const [nodeDetails, setNodeDetails] = React.useState<
+    MempoolNode | undefined
+  >();
   const [hasLoadedNodeDetails, setLoadedNodeDetails] = React.useState(false);
 
   const { toast } = useToast();
@@ -403,7 +406,7 @@ function PayBitcoinChannelOrderWithSpendableFunds({
       return;
     }
     try {
-      const data = await request<Node>(
+      const data = await request<MempoolNode>(
         `/api/mempool?endpoint=/v1/lightning/nodes/${pubkey}`
       );
       setNodeDetails(data);
@@ -708,7 +711,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                     <TableRow>
                       <TableCell className="font-medium p-3 flex items-center gap-2">
                         Duration
-                        <ExternalLink to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-to-open-a-payment-channel#which-lightning-service-provider-to-choose">
+                        <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel">
                           <InfoIcon className="w-4 h-4 text-muted-foreground" />
                         </ExternalLink>
                       </TableCell>

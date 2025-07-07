@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import {
   AlertTriangleIcon,
   ArrowRightIcon,
@@ -8,6 +9,7 @@ import {
   InfoIcon,
   LinkIcon,
   Settings2Icon,
+  SparklesIcon,
   UnplugIcon,
   ZapIcon,
 } from "lucide-react";
@@ -52,7 +54,9 @@ import {
   TooltipTrigger,
 } from "src/components/ui/tooltip.tsx";
 import { useToast } from "src/components/ui/use-toast.ts";
+import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { ONCHAIN_DUST_SATS } from "src/constants.ts";
+import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useBalances } from "src/hooks/useBalances.ts";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
@@ -60,17 +64,26 @@ import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo.ts";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
 import { copyToClipboard } from "src/lib/clipboard.ts";
 import { cn } from "src/lib/utils.ts";
-import { Channel, Node } from "src/types";
+import {
+  Channel,
+  LongUnconfirmedZeroConfChannel,
+  MempoolNode,
+  MempoolTransaction,
+} from "src/types";
 import { request } from "src/utils/request";
 
 export default function Channels() {
   useSyncWallet();
+  const { data: info } = useInfo();
+  const { data: albyMe } = useAlbyMe();
   const { data: channels } = useChannels();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const { hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
   const navigate = useNavigate();
-  const [nodes, setNodes] = React.useState<Node[]>([]);
+  const [nodes, setNodes] = React.useState<MempoolNode[]>([]);
+  const [longUnconfirmedZeroConfChannels, setLongUnconfirmedZeroConfChannels] =
+    React.useState<LongUnconfirmedZeroConfChannel[]>([]);
   const [swapOutDialogOpen, setSwapOutDialogOpen] = React.useState(false);
   const [swapInDialogOpen, setSwapInDialogOpen] = React.useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -98,9 +111,9 @@ export default function Channels() {
       return [];
     }
     const nodes = await Promise.all(
-      channels?.map(async (channel): Promise<Node | undefined> => {
+      channels?.map(async (channel): Promise<MempoolNode | undefined> => {
         try {
-          const response = await request<Node>(
+          const response = await request<MempoolNode>(
             `/api/mempool?endpoint=/v1/lightning/nodes/${channel.remotePubkey}`
           );
           return response;
@@ -110,12 +123,71 @@ export default function Channels() {
         }
       })
     );
-    setNodes(nodes.filter((node) => !!node) as Node[]);
+    setNodes(nodes.filter((node) => !!node) as MempoolNode[]);
+  }, [channels]);
+
+  const findUnconfirmedChannels = React.useCallback(async () => {
+    if (!channels) {
+      return [];
+    }
+
+    const _longUnconfirmedZeroConfChannels: LongUnconfirmedZeroConfChannel[] =
+      [];
+    for (const channel of channels) {
+      // only check for unconfirmed 0-conf active channels
+      if (
+        channel.status !== "online" ||
+        channel.confirmationsRequired !== 0 ||
+        !!channel.confirmations
+      ) {
+        continue;
+      }
+      try {
+        const mempoolTransactionResponse = await request<MempoolTransaction>(
+          `/api/mempool?endpoint=/tx/${channel.fundingTxId}`
+        );
+        if (!mempoolTransactionResponse) {
+          throw new Error("No response");
+        }
+        if (mempoolTransactionResponse.status.confirmed) {
+          continue;
+        }
+        // see if the transaction is in the mempool, and has been for how long
+        const unconfirmedTransactionTimeResponse = await request<number[]>(
+          `/api/mempool?endpoint=/v1/transaction-times?txId[]=${channel.fundingTxId}`
+        );
+        if (!unconfirmedTransactionTimeResponse?.length) {
+          throw new Error("No response");
+        }
+
+        const timestamp = unconfirmedTransactionTimeResponse[0];
+        const unconfirmedHours = dayjs().diff(timestamp * 1000, "hours");
+        if (unconfirmedHours === 0) {
+          // channel has been unconfirmed for less than an hour
+          continue;
+        }
+
+        _longUnconfirmedZeroConfChannels.push({
+          id: channel.id,
+          message: "Unconfirmed for " + unconfirmedHours + " hours",
+        });
+      } catch (error) {
+        _longUnconfirmedZeroConfChannels.push({
+          id: channel.id,
+          message: "Channel transaction not in the mempool yet",
+        });
+      }
+    }
+    setLongUnconfirmedZeroConfChannels(_longUnconfirmedZeroConfChannels);
   }, [channels]);
 
   React.useEffect(() => {
     loadNodeStats();
   }, [loadNodeStats]);
+
+  React.useEffect(() => {
+    findUnconfirmedChannels();
+  }, [findUnconfirmedChannels]);
 
   return (
     <>
@@ -224,6 +296,28 @@ export default function Channels() {
                         Sign Message
                       </Link>
                     </DropdownMenuItem>
+                    {info?.backendType === "LDK" &&
+                      (!albyMe?.subscription.plan_code ? (
+                        <UpgradeDialog>
+                          <div className="cursor-pointer">
+                            <DropdownMenuItem className="w-full pointer-events-none">
+                              <Link
+                                className="w-full flex items-center"
+                                to="/wallet/node-alias"
+                              >
+                                <SparklesIcon className="w-4 h-4 mr-2" /> Set
+                                Node Alias
+                              </Link>
+                            </DropdownMenuItem>
+                          </div>
+                        </UpgradeDialog>
+                      ) : (
+                        <DropdownMenuItem className="w-full">
+                          <Link className="w-full" to="/wallet/node-alias">
+                            Set Node Alias
+                          </Link>
+                        </DropdownMenuItem>
+                      ))}
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -231,7 +325,7 @@ export default function Channels() {
               <Link to="/channels/incoming">
                 <Button>Open Channel</Button>
               </Link>
-              <ExternalLink to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/liquidity/node-health">
+              <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/node/node-health">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
@@ -537,7 +631,7 @@ export default function Channels() {
                       ({new Intl.NumberFormat().format(details.amount)}{" "}
                       sats)&nbsp;
                       <ExternalLink
-                        to={`https://mempool.space/tx/${details.fundingTxId}#flow=&vout=${details.fundingTxVout}`}
+                        to={`${info?.mempoolUrl}/tx/${details.fundingTxId}#flow=&vout=${details.fundingTxVout}`}
                         className="underline"
                       >
                         funding tx
@@ -552,7 +646,7 @@ export default function Channels() {
                   on-chain balance. Funds from channels that were force closed
                   may take up to 2 weeks to become available.{" "}
                   <ExternalLink
-                    to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/faq-alby-hub/why-was-my-lightning-channel-closed-and-what-to-do-next"
+                    to="https://guides.getalby.com/user-guide/alby-hub/faq/why-was-my-lightning-channel-closed-and-what-to-do-next"
                     className="underline"
                   >
                     Learn more
@@ -571,8 +665,16 @@ export default function Channels() {
             />
           )}
 
-          <ChannelsTable channels={channels} nodes={nodes} />
-          <ChannelsCards channels={channels} nodes={nodes} />
+          <ChannelsTable
+            channels={channels}
+            nodes={nodes}
+            longUnconfirmedZeroConfChannels={longUnconfirmedZeroConfChannels}
+          />
+          <ChannelsCards
+            channels={channels}
+            nodes={nodes}
+            longUnconfirmedZeroConfChannels={longUnconfirmedZeroConfChannels}
+          />
           <OnchainTransactionsTable />
         </>
       )}

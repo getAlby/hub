@@ -488,7 +488,7 @@ func (api *api) ChangeUnlockPassword(changeUnlockPasswordRequest *ChangeUnlockPa
 		return err
 	}
 	if autoUnlockPassword != "" {
-		return errors.New("Please disable auto-unlock before using this feature")
+		return errors.New("please disable auto-unlock before using this feature")
 	}
 
 	err = api.cfg.ChangeUnlockPassword(changeUnlockPasswordRequest.CurrentUnlockPassword, changeUnlockPasswordRequest.NewUnlockPassword)
@@ -685,6 +685,18 @@ func (api *api) UpdateChannel(ctx context.Context, updateChannelRequest *UpdateC
 	return api.svc.GetLNClient().UpdateChannel(ctx, updateChannelRequest)
 }
 
+func (api *api) MakeOffer(ctx context.Context, description string) (string, error) {
+	if api.svc.GetLNClient() == nil {
+		return "", errors.New("LNClient not started")
+	}
+	offer, err := api.svc.GetLNClient().MakeOffer(ctx, description)
+	if err != nil {
+		return "", err
+	}
+
+	return offer, nil
+}
+
 func (api *api) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	if api.svc.GetLNClient() == nil {
 		return "", errors.New("LNClient not started")
@@ -847,6 +859,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.AutoUnlockPasswordEnabled = autoUnlockPassword != ""
 	info.AutoUnlockPasswordSupported = api.cfg.GetEnv().IsDefaultClientId()
 	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
+	info.MempoolUrl = api.cfg.GetMempoolUrl()
 	info.Relay = api.cfg.GetRelayUrl()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get alby user identifier")
@@ -866,6 +879,8 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 
 	info.NextBackupReminder, _ = api.cfg.Get("NextBackupReminder", "")
 
+	info.NodeAlias, _ = api.cfg.Get("NodeAlias", "")
+
 	return &info, nil
 }
 
@@ -877,6 +892,16 @@ func (api *api) SetCurrency(currency string) error {
 	err := api.cfg.SetCurrency(currency)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to update currency")
+		return err
+	}
+
+	return nil
+}
+
+func (api *api) SetNodeAlias(nodeAlias string) error {
+	err := api.cfg.SetUpdate("NodeAlias", nodeAlias, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save node alias to config")
 		return err
 	}
 
@@ -1065,7 +1090,7 @@ func (api *api) MigrateNodeStorage(ctx context.Context, to string) error {
 		return errors.New("LNClient not started")
 	}
 	if to != "VSS" {
-		return fmt.Errorf("Migration type not supported: %s", to)
+		return fmt.Errorf("migration type not supported: %s", to)
 	}
 
 	ldkVssEnabled, err := api.cfg.Get("LdkVssEnabled", "")
@@ -1078,7 +1103,7 @@ func (api *api) MigrateNodeStorage(ctx context.Context, to string) error {
 	}
 
 	if api.cfg.GetEnv().LDKVssUrl == "" {
-		return errors.New("No VSS URL set")
+		return errors.New("no VSS URL set")
 	}
 
 	api.cfg.SetUpdate("LdkVssEnabled", "true", "")
@@ -1294,6 +1319,12 @@ func (api *api) ExecuteCustomNodeCommand(ctx context.Context, command string) (i
 	}
 
 	return nodeResp.Response, nil
+}
+
+func (api *api) SendEvent(event string) {
+	api.svc.GetEventPublisher().Publish(&events.Event{
+		Event: event,
+	})
 }
 
 func (api *api) parseExpiresAt(expiresAtString string) (*time.Time, error) {

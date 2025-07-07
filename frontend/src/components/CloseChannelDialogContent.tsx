@@ -15,6 +15,7 @@ import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
+import { useInfo } from "src/hooks/useInfo";
 import { copyToClipboard } from "src/lib/clipboard";
 import { formatAmount } from "src/lib/utils";
 import { Channel, CloseChannelResponse } from "src/types";
@@ -37,6 +38,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
   const [closeType, setCloseType] = React.useState("normal");
   const [step, setStep] = React.useState(channel.active ? 2 : 1);
   const [fundingTxId, setFundingTxId] = React.useState("");
+  const { data: info } = useInfo();
   const { mutate: reloadBalances } = useBalances();
   const { data: channels, mutate: reloadChannels } = useChannels();
   const { toast } = useToast();
@@ -210,7 +212,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                 </div>
               </RadioGroup>
               <ExternalLink
-                to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-can-i-close-this-channel-what-happens-to-the-sats-in-this-channel"
+                to="https://guides.getalby.com/user-guide/alby-hub/faq/how-can-i-close-a-channel-what-happens-to-the-sats-in-this-channel"
                 className="underline flex items-center mt-4"
               >
                 Learn more about closing channels
@@ -241,7 +243,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                 />
               </div>
               <ExternalLink
-                to={`https://mempool.space/tx/${fundingTxId}`}
+                to={`${info?.mempoolUrl}/tx/${fundingTxId}`}
                 className="underline flex items-center mt-2"
               >
                 View on Mempool

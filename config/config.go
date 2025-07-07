@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/logger"
@@ -16,9 +17,8 @@ import (
 )
 
 type config struct {
-	Env       *AppConfig
-	JWTSecret string
-	db        *gorm.DB
+	Env *AppConfig
+	db  *gorm.DB
 }
 
 const (
@@ -105,20 +105,25 @@ func (cfg *config) init(env *AppConfig) error {
 		}
 	}
 
-	// set the JWT secret to the one from the env
-	// if no JWT secret is configured we create a random one and store it in the DB
-	cfg.JWTSecret = cfg.Env.JWTSecret
-	if cfg.JWTSecret == "" {
-		hex, err := randomHex(32)
+	// set the JWT secret from the env, or generate a new one
+	existingSecret, _ := cfg.Get("JWTSecret", "")
+	if existingSecret == "" {
+		jwtSecret := cfg.Env.JWTSecret
+		if jwtSecret == "" {
+			hexSecret, err := randomHex(32)
+			if err != nil {
+				logger.Logger.WithError(err).Error("failed to generate JWT secret")
+				return err
+			}
+			jwtSecret = hexSecret
+			logger.Logger.Info("Generated new JWT secret")
+		}
+
+		err := cfg.SetIgnore("JWTSecret", jwtSecret, "")
 		if err != nil {
-			logger.Logger.WithError(err).Error("failed to generate JWT secret")
+			logger.Logger.WithError(err).Error("failed to save JWT secret")
 			return err
 		}
-		err = cfg.SetIgnore("JWTSecret", hex, "")
-		if err != nil {
-			return err
-		}
-		cfg.JWTSecret, _ = cfg.Get("JWTSecret", "")
 	}
 	return nil
 }
@@ -138,7 +143,12 @@ func (cfg *config) SetupCompleted() bool {
 }
 
 func (cfg *config) GetJWTSecret() string {
-	return cfg.JWTSecret
+	secret, err := cfg.Get("JWTSecret", "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to retrieve JWTSecret from database")
+		return ""
+	}
+	return secret
 }
 
 func (cfg *config) GetRelayUrl() string {
@@ -158,6 +168,11 @@ func (cfg *config) GetNetwork() string {
 	}
 
 	return "bitcoin"
+}
+
+func (cfg *config) GetMempoolUrl() string {
+	mempoolApiUrl := cfg.GetEnv().MempoolApi
+	return strings.TrimSuffix(mempoolApiUrl, "/api")
 }
 
 func (cfg *config) Get(key string, encryptionKey string) (string, error) {
@@ -227,7 +242,7 @@ func (cfg *config) SetUpdate(key string, value string, encryptionKey string) err
 
 func (cfg *config) ChangeUnlockPassword(currentUnlockPassword string, newUnlockPassword string) error {
 	if newUnlockPassword == "" {
-		return errors.New("New unlock password must not be empty")
+		return errors.New("new unlock password must not be empty")
 	}
 	if !cfg.CheckUnlockPassword(currentUnlockPassword) {
 		return errors.New("incorrect password")
@@ -260,15 +275,30 @@ func (cfg *config) ChangeUnlockPassword(currentUnlockPassword string, newUnlockP
 			logger.Logger.WithField("key", userConfig.Key).Info("re-encrypted key")
 		}
 
-		// commit transaction
+		newSecret, err := randomHex(32)
+		if err != nil {
+			logger.Logger.WithError(err).Error("failed to generate new JWT secret during password change transaction")
+			return fmt.Errorf("failed to generate new JWT secret: %w", err)
+		}
+
+		updateClauses := clause.OnConflict{
+			Columns:   []clause.Column{{Name: "key"}},
+			DoUpdates: clause.AssignmentColumns([]string{"value"}),
+		}
+		err = cfg.set("JWTSecret", newSecret, updateClauses, "", tx)
+		if err != nil {
+			logger.Logger.WithError(err).Error("failed to save new JWT secret during password change transaction")
+			return fmt.Errorf("failed to save new JWT secret: %w", err)
+		}
+		logger.Logger.Info("Successfully regenerated JWT secret as part of password change transaction")
+
 		return nil
 	})
 
 	if err != nil {
-		logger.Logger.WithError(err).Error("failed to execute db transaction")
+		logger.Logger.WithError(err).Error("failed to execute password change transaction")
 		return err
 	}
-
 	return nil
 }
 
