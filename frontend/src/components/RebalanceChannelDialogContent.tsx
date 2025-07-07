@@ -166,7 +166,7 @@ export function RebalanceChannelDialogContent({
             {channels?.some(
               (channel) =>
                 channel.remotePubkey !== receiveThroughNodePubkey &&
-                channel.localSpendableBalance <
+                channel.localSpendableBalance / 1000 <
                   (channels.find(
                     (other) => other.remotePubkey === receiveThroughNodePubkey
                   )?.localBalance || 0)
