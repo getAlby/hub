@@ -548,6 +548,7 @@ func (svc *swapsService) RefundSwap(swapId, address string) error {
 		return err
 	}
 
+	// Fetch raw hex to construct the lockup transaction
 	swapTransactionResp, err := svc.boltzApi.GetSwapTransaction(swapId)
 	if err != nil {
 		logger.Logger.WithField("swapId", swapId).WithError(err).Error("Failed to get lockup tx from swap id")
