@@ -251,6 +251,79 @@ func (api *api) DeleteApp(userApp *db.App) error {
 	return api.appsSvc.DeleteApp(userApp)
 }
 
+func (api *api) CreateLightningAddress(ctx context.Context, createLightningAddressRequest *CreateLightningAddressRequest) error {
+	app := api.appsSvc.GetAppById(createLightningAddressRequest.AppId)
+	if app == nil {
+		return errors.New("app not found")
+	}
+
+	var metadata map[string]interface{}
+	err := json.Unmarshal(app.Metadata, &metadata)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"app_id": app.ID,
+		}).Error("Failed to deserialize app metadata")
+		return err
+	}
+
+	createLightningAddressResponse, err := api.albyOAuthSvc.CreateLightningAddress(ctx, createLightningAddressRequest.Address, createLightningAddressRequest.AppId)
+
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to create lightning address for app")
+		return err
+	}
+
+	metadata["lud16"] = createLightningAddressResponse.FullAddress
+	err = api.appsSvc.SetAppMetadata(app.ID, metadata)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to add lightning address to app metadata")
+		return err
+	}
+	return nil
+}
+
+func (api *api) DeleteLightningAddress(ctx context.Context, appId uint) error {
+	app := api.appsSvc.GetAppById(appId)
+	if app == nil {
+		return errors.New("app not found")
+	}
+
+	var metadata map[string]interface{}
+	err := json.Unmarshal(app.Metadata, &metadata)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"app_id": app.ID,
+		}).Error("Failed to deserialize app metadata")
+		return err
+	}
+
+	if metadata["lud16"] == nil {
+		return errors.New("no lightning address set")
+	}
+
+	lud16 := metadata["lud16"].(string)
+	if !strings.Contains(lud16, "@") {
+		return errors.New("invalid lightning address")
+	}
+	address := strings.Split(lud16, "@")[0]
+
+	// Call the Alby OAuth service to delete the lightning address
+	err = api.albyOAuthSvc.DeleteLightningAddress(ctx, address)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to delete lightning address for app")
+		return err
+	}
+
+	delete(metadata, "lud16")
+	err = api.appsSvc.SetAppMetadata(app.ID, metadata)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to remove lightning address from app metadata")
+		return err
+	}
+
+	return nil
+}
+
 func (api *api) GetApp(dbApp *db.App) *App {
 
 	var lastEvent db.RequestEvent

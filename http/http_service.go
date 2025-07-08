@@ -124,6 +124,8 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.DELETE("/apps/:pubkey", httpSvc.appsDeleteHandler)
 	restrictedApiGroup.POST("/apps/:pubkey/topup", httpSvc.isolatedAppTopupHandler)
 	restrictedApiGroup.POST("/apps", httpSvc.appsCreateHandler)
+	restrictedApiGroup.POST("/lightning-addresses", httpSvc.lightningAddressesCreateHandler)
+	restrictedApiGroup.DELETE("/lightning-addresses/:appId", httpSvc.lightningAddressesDeleteHandler)
 	restrictedApiGroup.POST("/mnemonic", httpSvc.mnemonicHandler)
 	restrictedApiGroup.PATCH("/backup-reminder", httpSvc.backupReminderHandler)
 	restrictedApiGroup.GET("/channels", httpSvc.channelsListHandler)
@@ -1001,6 +1003,52 @@ func (httpSvc *HttpService) appsCreateHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, responseBody)
+}
+
+func (httpSvc *HttpService) lightningAddressesCreateHandler(c echo.Context) error {
+	var requestData api.CreateLightningAddressRequest
+	if err := c.Bind(&requestData); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.api.CreateLightningAddress(c.Request().Context(), &requestData)
+
+	if err != nil {
+		logger.Logger.WithField("request", requestData).WithError(err).Error("Failed to create lightning address")
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) lightningAddressesDeleteHandler(c echo.Context) error {
+	appIdStr := c.Param("appId")
+	if appIdStr == "" {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "App ID is required",
+		})
+	}
+
+	appId, err := strconv.ParseUint(appIdStr, 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "Invalid App ID",
+		})
+	}
+
+	err = httpSvc.api.DeleteLightningAddress(c.Request().Context(), uint(appId))
+	if err != nil {
+		logger.Logger.WithField("appId", appId).WithError(err).Error("Failed to delete lightning address")
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (httpSvc *HttpService) setupHandler(c echo.Context) error {
