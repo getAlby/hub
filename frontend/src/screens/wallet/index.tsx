@@ -5,7 +5,7 @@ import {
   ArrowUpIcon,
   CreditCardIcon,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
@@ -26,7 +26,6 @@ function Wallet() {
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
   const { data: channels } = useChannels();
-  const navigate = useNavigate();
 
   if (!info || !balances) {
     return <Loading />;
@@ -39,18 +38,12 @@ function Wallet() {
         description=""
         contentRight={
           <>
-            <ResponsiveButton
-              icon={ArrowDownIcon}
-              text="Receive"
-              size="lg"
-              onClick={() => navigate("/wallet/receive")}
-            />
-            <ResponsiveButton
-              icon={ArrowUpIcon}
-              text="Send"
-              size="lg"
-              onClick={() => navigate("/wallet/send")}
-            />
+            <Link to="/wallet/receive">
+              <ResponsiveButton icon={ArrowDownIcon} text="Receive" size="lg" />
+            </Link>
+            <Link to="/wallet/send">
+              <ResponsiveButton icon={ArrowUpIcon} text="Send" size="lg" />
+            </Link>
           </>
         }
       />
