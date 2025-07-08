@@ -156,7 +156,7 @@ function RefundSwapDialogContent() {
         }),
       });
       console.info("Processed refund", response);
-      toast({ title: "Claim transaction broadcasted for refund" });
+      toast({ title: "Refund transaction broadcasted" });
     } catch (error) {
       console.error(error);
       toast({

@@ -287,10 +287,10 @@ export default function SwapInStatus() {
                           </TooltipTrigger>
                           <TooltipContent className="w-[300px]">
                             Deposit usually fails when there is an amount
-                            mismatch or if Hub was shut down during the swap
-                            process.
+                            mismatch or if Boltz failed to send the lightning
+                            payment to your node.
                             {swapStatus !== "REFUNDED" &&
-                              " You can use the Swap Refund button in debug tools to claim the locked up bitcoin."}
+                              " You can use the Swap Refund button in Settings -> Debug Tools to claim the locked up bitcoin."}
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
