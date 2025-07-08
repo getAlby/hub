@@ -376,6 +376,10 @@ export default function Channels() {
                   <AlertTitle>Low receiving limit</AlertTitle>
                   <AlertDescription>
                     You likely won't be able to receive payments until you{" "}
+                    <Link className="underline" to="/wallet/send">
+                      spend
+                    </Link>
+                    ,{" "}
                     <Link
                       className="underline"
                       to="#"
