@@ -188,11 +188,14 @@ export default function SwapInStatus() {
                 </div>
                 {!swap.lockupTxId && (
                   <div className="flex justify-center gap-4 flex-wrap">
-                    <Button onClick={copyAddress} variant="outline">
-                      <CopyIcon className="w-4 h-4 mr-2" />
-                      Copy Address
-                    </Button>
-                    {balances &&
+                    {swap.state !== "FAILED" && (
+                      <Button onClick={copyAddress} variant="outline">
+                        <CopyIcon className="w-4 h-4 mr-2" />
+                        Copy Address
+                      </Button>
+                    )}
+                    {swap.state === "PENDING" &&
+                      balances &&
                       balances.onchain.spendable - 25000 /* anchor reserve */ >
                         swap.sendAmount && (
                         <LoadingButton
@@ -209,7 +212,7 @@ export default function SwapInStatus() {
               </>
             )}
             {/* We only show status screen once bitcoin is locked up */}
-            {swap.lockupTxId && (
+            {swap.lockupTxId ? (
               <div className="flex flex-col justify-start gap-2 w-full mt-2">
                 {swapStatus === "SUCCESS" && (
                   <>
@@ -303,7 +306,35 @@ export default function SwapInStatus() {
                   Swap initiated
                 </div>
               </div>
-            )}
+            ) : swapStatus === "FAILED" ? (
+              <>
+                <div className="flex items-center text-muted-foreground text-sm">
+                  <CircleAlertIcon className="w-5 h-5 mr-2 text-red-500" />
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <div className="flex items-center gap-2">
+                          <p>Onchain deposit failed</p>
+                          <ExternalLink
+                            to={`${info?.mempoolUrl}/address/${swap.lockupAddress}`}
+                            className="flex items-center underline text-foreground"
+                          >
+                            View
+                          </ExternalLink>
+                          <CircleHelpIcon className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent className="w-[300px]">
+                        Deposit usually fails when there is an amount mismatch
+                        or if Boltz failed to send the lightning payment to your
+                        node. You can use the Swap Refund button in Settings{" "}
+                        {"->"} Debug Tools to claim the locked up bitcoin.
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </>
+            ) : null}
           </CardContent>
         </Card>
       </div>
