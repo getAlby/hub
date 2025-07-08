@@ -62,17 +62,18 @@ export function ChannelDropdownMenu({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          {channel.status == "online" && (
-            <AlertDialogTrigger asChild>
-              <DropdownMenuItem
-                className="flex flex-row items-center gap-2 cursor-pointer"
-                onClick={() => setDialog("rebalance")}
-              >
-                <ScaleIcon className="h-4 w-4" />
-                Rebalance In
-              </DropdownMenuItem>
-            </AlertDialogTrigger>
-          )}
+          {channel.status == "online" &&
+            channel.remoteBalance > channel.localSpendableBalance && (
+              <AlertDialogTrigger asChild>
+                <DropdownMenuItem
+                  className="flex flex-row items-center gap-2 cursor-pointer"
+                  onClick={() => setDialog("rebalance")}
+                >
+                  <ScaleIcon className="h-4 w-4" />
+                  Rebalance In
+                </DropdownMenuItem>
+              </AlertDialogTrigger>
+            )}
           <DropdownMenuItem className="flex flex-row items-center gap-2 cursor-pointer">
             <ExternalLink
               to={`${info?.mempoolUrl}/tx/${channel.fundingTxId}#flow=&vout=${channel.fundingTxVout}`}
