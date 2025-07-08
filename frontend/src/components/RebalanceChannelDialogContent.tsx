@@ -136,10 +136,11 @@ export function RebalanceChannelDialogContent({
               }}
             />
             <p className="mt-2 text-xs text-muted-foreground">
-              Fee: ~0.2% + routing fees
+              Fee: ~0.2%
               {!!amount && (
                 <> ({Math.floor(parseInt(amount || "0") * 0.01)} sats)</>
-              )}
+              )}{" "}
+              + routing fees
             </p>
             <ExternalLink
               to="https://guides.getalby.com/user-guide/alby-hub/faq/can-i-rebalance-funds-from-one-of-my-channels-to-another"
