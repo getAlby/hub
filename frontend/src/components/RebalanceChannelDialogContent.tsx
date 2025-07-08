@@ -7,6 +7,7 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
+import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 import { request } from "src/utils/request";
 import {
@@ -30,6 +31,7 @@ export function RebalanceChannelDialogContent({
   const [amount, setAmount] = React.useState("");
   const { toast } = useToast();
   const { data: channels, mutate: reloadChannels } = useChannels();
+  const { mutate: reloadBalances } = useBalances();
   const [isRebalancing, setRebalancing] = React.useState(false);
 
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -70,7 +72,7 @@ export function RebalanceChannelDialogContent({
         throw new Error("No rebalance response received");
       }
 
-      await reloadChannels();
+      await Promise.all([reloadChannels(), reloadBalances()]);
       toast({
         title:
           "Successfully rebalanced channels. Total fee: " +
