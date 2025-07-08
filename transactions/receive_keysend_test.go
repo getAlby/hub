@@ -56,7 +56,7 @@ func TestReceiveKeysendWithCustomKey(t *testing.T) {
 	transactionsService.ConsumeEvent(ctx, &event, map[string]interface{}{})
 
 	transaction, err := transactionsService.LookupTransaction(ctx, tx.PaymentHash, nil, svc.LNClient, nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, app.ID, *transaction.AppId)
 	assert.Equal(t, uint(1), app.ID)
 }

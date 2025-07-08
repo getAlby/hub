@@ -31,6 +31,8 @@ func Migrate(gormDB *gorm.DB) error {
 		_202504231037_add_indexes,
 		_202505091314_hold_invoices,
 		_202506170342_swaps,
+		_202508041712_delete_non_cascade_deleted_records,
+		_202508041737_postgres_amount_bigint,
 	})
 
 	return m.Migrate()

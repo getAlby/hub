@@ -9,6 +9,7 @@ import buzzpay from "src/assets/suggested-apps/buzzpay.png";
 import clams from "src/assets/suggested-apps/clams.png";
 import coracle from "src/assets/suggested-apps/coracle.png";
 import damus from "src/assets/suggested-apps/damus.png";
+import goose from "src/assets/suggested-apps/goose.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import lightningMessageboard from "src/assets/suggested-apps/lightning-messageboard.png";
 import lnbits from "src/assets/suggested-apps/lnbits.png";
@@ -78,6 +79,13 @@ export const suggestedApps: SuggestedApp[] = [
     description: "Receive-only PoS you can safely share with your employees",
     internal: true,
     logo: buzzpay,
+  },
+  {
+    id: "goose",
+    title: "Goose",
+    description: "Your local AI agent, automating engineering tasks seamlessly",
+    internal: true,
+    logo: goose,
   },
   {
     id: "simpleboost",
