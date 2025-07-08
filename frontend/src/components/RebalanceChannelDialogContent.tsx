@@ -136,7 +136,7 @@ export function RebalanceChannelDialogContent({
               }}
             />
             <p className="mt-2 text-xs text-muted-foreground">
-              Fee: ~0.2%
+              Fee: ~0.2% + routing fees
               {!!amount && (
                 <> ({Math.floor(parseInt(amount || "0") * 0.01)} sats)</>
               )}
