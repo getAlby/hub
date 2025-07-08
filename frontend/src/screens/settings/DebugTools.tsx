@@ -435,7 +435,7 @@ export default function DebugTools() {
             variant={"outline"}
             onClick={() => apiRequest("/api/swaps/mnemonic", "GET")}
           >
-            Swap Mnemonic
+            Get Swap Mnemonic
           </Button>
           <AlertDialogTrigger asChild>
             <Button variant={"outline"} onClick={() => setDialog("getAppLogs")}>

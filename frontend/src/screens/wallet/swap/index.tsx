@@ -150,6 +150,7 @@ function SwapInForm() {
         <Label>Swap amount</Label>
         <Input
           type="number"
+          autoFocus
           placeholder="Amount in satoshis"
           value={swapAmount}
           min={MIN_AUTO_SWAP_AMOUNT}
@@ -269,6 +270,7 @@ function SwapOutForm() {
         <Label>Swap amount</Label>
         <Input
           type="number"
+          autoFocus
           placeholder="Amount in satoshis"
           value={swapAmount}
           min={MIN_AUTO_SWAP_AMOUNT}
