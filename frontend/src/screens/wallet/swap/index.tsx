@@ -40,13 +40,15 @@ export default function Swap() {
       <AppHeader
         title="Swap"
         contentRight={
-          <Link to="/wallet/swap/auto">
-            <ResponsiveButton
-              variant="outline"
-              icon={RefreshCwIcon}
-              text="Auto Swap"
-            />
-          </Link>
+          swapType === "out" && (
+            <Link to="/wallet/swap/auto">
+              <ResponsiveButton
+                variant="outline"
+                icon={RefreshCwIcon}
+                text="Auto Swap"
+              />
+            </Link>
+          )
         }
       />
       <div className="w-full max-w-lg">

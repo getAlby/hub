@@ -1,6 +1,7 @@
 import {
   ArrowDownUpIcon,
   ClipboardPasteIcon,
+  ClockIcon,
   MoveRightIcon,
   XCircleIcon,
 } from "lucide-react";
@@ -110,6 +111,10 @@ function AutoSwapOutForm() {
           Setup automatic swap of lightning funds into your on-chain balance
           every time a set threshold is reached.
         </p>
+        <p className="mt-2 text-muted-foreground flex gap-2 items-center text-sm">
+          <ClockIcon className="w-4 h-4" />
+          Swaps will be made once per hour
+        </p>
       </div>
 
       <div className="grid gap-1.5">
@@ -214,7 +219,7 @@ function AutoSwapOutForm() {
       </div>
       <div className="grid gap-1">
         <LoadingButton className="w-full" loading={loading}>
-          Set Auto Swap Out
+          Begin Auto Swap
         </LoadingButton>
         <p className="text-xs text-muted-foreground text-right">
           powered by{" "}
