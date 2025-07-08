@@ -136,7 +136,7 @@ export default function SwapInStatus() {
     FAILED: "Swap Failed",
     REFUNDED: "Swap Refunded",
     PENDING: swap.lockupTxId
-      ? "Confirming onchain deposit"
+      ? "Waiting for confirmation"
       : "Waiting for deposit",
   };
 
@@ -238,7 +238,7 @@ export default function SwapInStatus() {
                     <div className="flex items-center text-muted-foreground text-sm">
                       <Loading className="w-5 h-5 mr-2" />
                       <div className="flex items-center gap-2">
-                        <p>Confirming onchain deposit...</p>
+                        <p>Waiting for confirmation...</p>
                         <ExternalLink
                           to={`${info?.mempoolUrl}/tx/${swap.lockupTxId}`}
                           className="flex items-center underline text-foreground"

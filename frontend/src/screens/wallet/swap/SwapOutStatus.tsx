@@ -86,7 +86,7 @@ export default function SwapOutStatus() {
                 <div className="flex justify-center gap-4 flex-wrap">
                   <Button onClick={copyTxId} variant="outline">
                     <CopyIcon className="w-4 h-4 mr-2" />
-                    Copy TxId
+                    Copy Transaction ID
                   </Button>
                 </div>
               </>
@@ -116,7 +116,7 @@ export default function SwapOutStatus() {
                       <div className="flex items-center text-muted-foreground text-sm">
                         <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />
                         <div className="flex items-center gap-2">
-                          <p>Claimed via onchain</p>
+                          <p>Confirmed onchain</p>
                           <ExternalLink
                             to={`${info?.mempoolUrl}/tx/${swap.claimTxId}`}
                             className="flex items-center underline text-foreground"
