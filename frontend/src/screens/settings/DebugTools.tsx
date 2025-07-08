@@ -359,7 +359,7 @@ export default function DebugTools() {
     | "customNodeCommand"
   >();
 
-  const { data: info } = useInfo();
+  const { data: info, hasChannelManagement } = useInfo();
 
   async function apiRequest(
     endpoint: string,
@@ -420,23 +420,30 @@ export default function DebugTools() {
           >
             List Channels
           </Button>
-          <Button
-            variant={"outline"}
-            onClick={() => apiRequest("/api/swaps", "GET")}
-          >
-            List Swaps
-          </Button>
-          <AlertDialogTrigger asChild>
-            <Button variant={"outline"} onClick={() => setDialog("refundSwap")}>
-              Refund Swap
-            </Button>
-          </AlertDialogTrigger>
-          <Button
-            variant={"outline"}
-            onClick={() => apiRequest("/api/swaps/mnemonic", "GET")}
-          >
-            Get Swap Mnemonic
-          </Button>
+          {hasChannelManagement && (
+            <>
+              <Button
+                variant={"outline"}
+                onClick={() => apiRequest("/api/swaps", "GET")}
+              >
+                List Swaps
+              </Button>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  onClick={() => setDialog("refundSwap")}
+                >
+                  Refund Swap
+                </Button>
+              </AlertDialogTrigger>
+              <Button
+                variant={"outline"}
+                onClick={() => apiRequest("/api/swaps/mnemonic", "GET")}
+              >
+                Get Swap Mnemonic
+              </Button>
+            </>
+          )}
           <AlertDialogTrigger asChild>
             <Button variant={"outline"} onClick={() => setDialog("getAppLogs")}>
               Get App Logs

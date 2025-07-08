@@ -234,8 +234,7 @@ export default function Channels() {
                     )}
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
-                  {(info?.backendType === "LDK" ||
-                    info?.backendType === "LND") && (
+                  {hasChannelManagement && (
                     <DropdownMenuGroup>
                       <DropdownMenuLabel>Swaps</DropdownMenuLabel>
                       <DropdownMenuItem
