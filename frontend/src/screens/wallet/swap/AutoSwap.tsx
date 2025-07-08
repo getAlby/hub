@@ -273,6 +273,10 @@ function ActiveSwapOutConfig({ swapConfig }: { swapConfig: AutoSwapConfig }) {
         Alby Hub will try to perform a swap every time the balance reaches the
         threshold.
       </p>
+      <p className="mt-2 text-muted-foreground flex gap-2 items-center text-sm">
+        <ClockIcon className="w-4 h-4" />
+        Swaps will be made once per hour
+      </p>
 
       <div className="my-6 space-y-4 text-sm">
         <div className="flex justify-between items-center gap-2">
