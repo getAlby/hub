@@ -618,8 +618,8 @@ func (api *api) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnec
 	return api.svc.GetLNClient().GetNodeConnectionInfo(ctx)
 }
 
-func (api *api) RefundSwap(swapId, address string) error {
-	return api.svc.GetSwapsService().RefundSwap(swapId, address)
+func (api *api) RefundSwap(refundSwapRequest RefundSwapRequest) error {
+	return api.svc.GetSwapsService().RefundSwap(refundSwapRequest.SwapId, refundSwapRequest.Address)
 }
 
 func (api *api) GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error) {

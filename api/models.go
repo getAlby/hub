@@ -69,7 +69,7 @@ type API interface {
 	GetSwapOutFees() (*SwapFeesResponse, error)
 	InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (*swaps.SwapResponse, error)
 	InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (*swaps.SwapResponse, error)
-	RefundSwap(swapId, address string) error
+	RefundSwap(refundSwapRequest RefundSwapRequest) error
 	GetSwapMnemonic() string
 	GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error)
 	EnableAutoSwapOut(ctx context.Context, autoSwapRequest *EnableAutoSwapRequest) error

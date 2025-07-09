@@ -1342,7 +1342,7 @@ func (httpSvc *HttpService) refundSwapHandler(c echo.Context) error {
 		})
 	}
 
-	err := httpSvc.api.RefundSwap(refundSwapInRequest.SwapId, refundSwapInRequest.Address)
+	err := httpSvc.api.RefundSwap(refundSwapInRequest)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: err.Error(),
