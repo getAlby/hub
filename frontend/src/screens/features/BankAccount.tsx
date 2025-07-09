@@ -29,7 +29,7 @@ function BankAccount() {
     <>
       <AppHeader
         title="Bank Account"
-        description="Receive money from your bank account, pay bills and send payments to bank accounts. Virtual credit cards are coming soon!"
+        description="Receive money from your bank account, pay bills and send payments to bank accounts. Buy and sell bitcoin at competitive rates."
       />
       <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm p-8">
         <div className="flex flex-col items-center gap-1 text-center max-w-sm">
@@ -40,8 +40,8 @@ function BankAccount() {
                 Activate Your Virtual Bank Account
               </h3>
               <p className="text-sm text-muted-foreground">
-                Fund your Hub with fiat, settle traditional payments, and move
-                money to Lightning in seconds. Virtual credit card coming soon!
+                Fund your Hub with fiat, settle traditional payments and buy or
+                sell bitcoin at competitive rates!
               </p>
               <Button onClick={activate} className="mt-4">
                 Request Early Access
