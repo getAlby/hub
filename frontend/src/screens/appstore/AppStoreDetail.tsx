@@ -28,6 +28,12 @@ export function AppStoreDetail() {
     return;
   }
 
+  // Redirect internal apps to their dedicated pages
+  if (app.internal) {
+    navigate(`/internal-apps/${appId}`);
+    return;
+  }
+
   return (
     <div className="grid gap-5">
       <AppHeader
