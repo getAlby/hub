@@ -26,6 +26,7 @@ import (
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/maintenance"
 	"github.com/getAlby/hub/nip47"
 	"github.com/getAlby/hub/nip47/models"
 )
@@ -42,6 +43,7 @@ type service struct {
 	ctx                 context.Context
 	wg                  *sync.WaitGroup
 	nip47Service        nip47.Nip47Service
+	maintenanceService  maintenance.MaintenanceService
 	appCancelFn         context.CancelFunc
 	keys                keys.Keys
 	isRelayReady        atomic.Bool
@@ -129,6 +131,7 @@ func NewService(ctx context.Context) (*service, error) {
 		nip47Service:        nip47.NewNip47Service(gormDB, cfg, keys, eventPublisher, albyOAuthSvc),
 		transactionsService: transactionsSvc,
 		swapsService:        swaps.NewSwapsService(cfg, eventPublisher, transactionsSvc),
+		maintenanceService:  maintenance.NewMaintenanceService(gormDB, cfg),
 		db:                  gormDB,
 		keys:                keys,
 	}
@@ -273,4 +276,8 @@ func (svc *service) IsRelayReady() bool {
 
 func (svc *service) GetStartupState() string {
 	return svc.startupState
+}
+
+func (svc *service) GetMaintenanceService() maintenance.MaintenanceService {
+	return svc.maintenanceService
 }

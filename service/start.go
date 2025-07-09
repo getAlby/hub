@@ -293,6 +293,13 @@ func (svc *service) StartApp(encryptionKey string) error {
 
 	svc.publishAllAppInfoEvents()
 
+	// Start the maintenance service for NIP-47 event cleanup
+	err = svc.maintenanceService.Start(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to start maintenance service")
+		// Continue startup even if maintenance service fails to start
+	}
+
 	svc.startupState = "Connecting To Relay"
 	err = svc.startNostr(ctx)
 	if err != nil {

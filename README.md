@@ -175,6 +175,13 @@ The following configuration options can be set as environment variables or in a 
 - `NETWORK`: On-chain network used for the node. Default: "bitcoin"
 - `REBALANCE_SERVICE_URL`: service url for rebalancing existing channels.
 
+### Maintenance Configuration
+
+The following configuration options control the automatic cleanup of NIP-47 events:
+
+- `MaintenanceMaxRequestEvents`: Maximum number of NIP-47 request events to keep in the database. Default: 10000
+- `MaintenanceCleanupIntervalHours`: Interval in hours between cleanup runs. Default: 24
+
 ### Migrating the database (Sqlite <-> Postgres)
 
 Migration of the database is currently experimental. Please make a backup before continuing.
@@ -556,6 +563,26 @@ Internally Alby Hub uses a basic implementation of the pubsub messaging pattern 
 ### NIP-47 Handlers
 
 Alby Hub subscribes to a standard Nostr relay and listens for whitelisted events from known pubkeys and handles these requests in a similar way as a standard HTTP API controller, and either doing requests to the underling LNClient, or to the transactions service in the case of payments and invoices.
+
+### Maintenance Service
+
+Alby Hub includes an automated maintenance service that runs in the background to manage NIP-47 request and response events in the database. This service helps prevent the database from growing indefinitely by automatically cleaning up old events while preserving recent activity.
+
+#### NIP-47 Event Cleanup
+
+- **Purpose**: Automatically manages the storage of NIP-47 request and response events to prevent unlimited database growth
+- **Schedule**: Runs every 24 hours (configurable via service initialization)
+- **Threshold**: Maintains a maximum of 10,000 request events (configurable)
+- **Cleanup Logic**: 
+  - Checks the total count of request events in the database
+  - If the count exceeds the threshold, deletes the oldest events to maintain the limit
+  - Keeps only the most recent 10,000 events (by default)
+  - Response events are automatically deleted due to foreign key cascade constraints
+- **Performance**: Designed to run efficiently without impacting application performance
+- **Logging**: Provides detailed logging of cleanup operations for monitoring and debugging
+- **Error Handling**: Gracefully handles errors and continues normal operation even if cleanup fails
+
+The maintenance service starts automatically when Alby Hub launches and runs continuously in the background.
 
 ### Frontend
 
