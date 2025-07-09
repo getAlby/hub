@@ -891,14 +891,16 @@ func (svc *swapsService) startSwapInListener(swap *db.Swap, boltzWs *boltz.Webso
 						"lockupTxId": swap.LockupTxId,
 					}).Info("Lockup transaction confirmed in mempool")
 				case boltz.TransactionClaimPending:
-					// this is not a mandatory step as boltz can still claim the locked up funds via the script path
+					// this is not a mandatory step as boltz can still claim
+					// the locked up funds via the script path
 					logger.Logger.WithFields(logrus.Fields{
 						"swapId":      swap.SwapId,
 						"transaction": update.Transaction,
 					}).Info("Sending partial signature to boltz to claim the payment")
 
-					var claimDetails *boltz.SwapClaimDetails
-					claimDetails, err = svc.boltzApi.GetSwapClaimDetails(swap.SwapId)
+					// since this is not a mandatory step, we redeclare err
+					// to avoid running the defer function in case of failure
+					claimDetails, err := svc.boltzApi.GetSwapClaimDetails(swap.SwapId)
 					if err != nil {
 						logger.Logger.WithError(err).WithFields(logrus.Fields{
 							"swapId": swap.SwapId,
@@ -1058,8 +1060,7 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap, boltzWs *boltz.Webs
 				return
 			case <-claimTicker.C:
 				if swap.ClaimTxId != "" {
-					var tx *MempoolTx
-					tx, err = svc.getMempoolTx(swap.ClaimTxId)
+					tx, err := svc.getMempoolTx(swap.ClaimTxId)
 					if err != nil {
 						logger.Logger.WithError(err).WithFields(logrus.Fields{
 							"swapId":    swap.SwapId,
