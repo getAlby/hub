@@ -7,6 +7,7 @@ import bitrefill from "src/assets/suggested-apps/bitrefill.png";
 import btcpay from "src/assets/suggested-apps/btcpay.png";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
 import clams from "src/assets/suggested-apps/clams.png";
+import claude from "src/assets/suggested-apps/claude.png";
 import coracle from "src/assets/suggested-apps/coracle.png";
 import damus from "src/assets/suggested-apps/damus.png";
 import goose from "src/assets/suggested-apps/goose.png";
@@ -86,6 +87,13 @@ export const suggestedApps: SuggestedApp[] = [
     description: "Your local AI agent, automating engineering tasks seamlessly",
     internal: true,
     logo: goose,
+  },
+  {
+    id: "claude",
+    title: "Claude",
+    description: "AI assistant for conversations, analysis, and coding",
+    internal: true,
+    logo: claude,
   },
   {
     id: "simpleboost",

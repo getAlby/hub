@@ -130,6 +130,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.PATCH("/backup-reminder", httpSvc.backupReminderHandler)
 	restrictedApiGroup.GET("/channels", httpSvc.channelsListHandler)
 	restrictedApiGroup.POST("/channels", httpSvc.openChannelHandler)
+	restrictedApiGroup.POST("/channels/rebalance", httpSvc.rebalanceChannelHandler)
 	restrictedApiGroup.GET("/channels/suggestions", httpSvc.channelPeerSuggestionsHandler)
 	restrictedApiGroup.POST("/lsp-orders", httpSvc.newInstantChannelInvoiceHandler)
 	restrictedApiGroup.GET("/node/connection-info", httpSvc.nodeConnectionInfoHandler)
@@ -748,6 +749,27 @@ func (httpSvc *HttpService) openChannelHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, openChannelResponse)
+}
+
+func (httpSvc *HttpService) rebalanceChannelHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	var rebalanceChannelRequest api.RebalanceChannelRequest
+	if err := c.Bind(&rebalanceChannelRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	rebalanceChannelResponse, err := httpSvc.api.RebalanceChannel(ctx, &rebalanceChannelRequest)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to rebalance channel: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, rebalanceChannelResponse)
 }
 
 func (httpSvc *HttpService) disconnectPeerHandler(c echo.Context) error {

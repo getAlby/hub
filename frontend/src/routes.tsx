@@ -40,6 +40,7 @@ import BankAccount from "src/screens/features/BankAccount";
 import { AlbyGo } from "src/screens/internal-apps/AlbyGo";
 import { Bitrefill } from "src/screens/internal-apps/Bitrefill";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
+import { Claude } from "src/screens/internal-apps/Claude";
 import { Goose } from "src/screens/internal-apps/Goose";
 import { LightningMessageboard } from "src/screens/internal-apps/LightningMessageboard";
 import { SimpleBoost } from "src/screens/internal-apps/SimpleBoost";
@@ -339,6 +340,10 @@ const routes = [
           {
             path: "goose",
             element: <Goose />,
+          },
+          {
+            path: "claude",
+            element: <Claude />,
           },
         ],
       },

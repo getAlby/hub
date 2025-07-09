@@ -172,7 +172,8 @@ The following configuration options can be set as environment variables or in a 
 - `LOG_LEVEL`: Log level for the application. Higher is more verbose. Default: 4 (info)
 - `AUTO_UNLOCK_PASSWORD`: Provide unlock password to auto-unlock Alby Hub on startup (e.g. after a machine restart). Unlock password still be required to access the interface.
 - `BOLTZ_API`: The api which provides auto swaps functionality. Default: "https://api.boltz.exchange"
-- `NETWORK`: On-chain network used for auto swaps. Should match the backend network. Default: "bitcoin"
+- `NETWORK`: On-chain network used for the node. Default: "bitcoin"
+- `REBALANCE_SERVICE_URL`: service url for rebalancing existing channels.
 
 ### Boltz Regtest Setup
 
