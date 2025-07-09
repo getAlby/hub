@@ -57,14 +57,30 @@ func (svc *maintenanceService) loadConfig() {
 	// Load max request events threshold
 	if maxEventsStr, err := svc.cfg.Get(ConfigKeyMaxRequestEvents, ""); err == nil && maxEventsStr != "" {
 		if maxEvents, err := strconv.Atoi(maxEventsStr); err == nil && maxEvents > 0 {
+			if maxEvents < 1000 {
+				logger.Logger.WithField("value", maxEvents).Warn("MaintenanceMaxRequestEvents is very low, consider using at least 1000")
+			}
 			svc.maxRequestEvents = maxEvents
+		} else {
+			logger.Logger.WithFields(logrus.Fields{
+				"value": maxEventsStr,
+				"error": err,
+			}).Warn("Invalid MaintenanceMaxRequestEvents configuration, using default")
 		}
 	}
 
 	// Load cleanup interval
 	if intervalStr, err := svc.cfg.Get(ConfigKeyCleanupInterval, ""); err == nil && intervalStr != "" {
 		if intervalHours, err := strconv.Atoi(intervalStr); err == nil && intervalHours > 0 {
+			if intervalHours < 1 {
+				logger.Logger.WithField("value", intervalHours).Warn("MaintenanceCleanupIntervalHours is very low, consider using at least 1 hour")
+			}
 			svc.cleanupInterval = time.Duration(intervalHours) * time.Hour
+		} else {
+			logger.Logger.WithFields(logrus.Fields{
+				"value": intervalStr,
+				"error": err,
+			}).Warn("Invalid MaintenanceCleanupIntervalHours configuration, using default")
 		}
 	}
 }
@@ -83,6 +99,7 @@ func (svc *maintenanceService) Start(ctx context.Context) error {
 	go func() {
 		if err := svc.CleanupOldRequestEvents(); err != nil {
 			logger.Logger.WithError(err).Error("Initial maintenance cleanup failed")
+			// Continue startup even if initial cleanup fails
 		}
 	}()
 
@@ -103,6 +120,7 @@ func (svc *maintenanceService) runPeriodicCleanup(ctx context.Context) {
 			logger.Logger.Debug("Running scheduled NIP-47 event cleanup")
 			if err := svc.CleanupOldRequestEvents(); err != nil {
 				logger.Logger.WithError(err).Error("Scheduled maintenance cleanup failed")
+				// Continue running even if cleanup fails - don't crash the service
 			}
 		}
 	}
