@@ -20,18 +20,18 @@ var _202508041712_delete_non_cascade_deleted_records = &gormigrate.Migration{
 
 		if err := db.Transaction(func(tx *gorm.DB) error {
 
+			// delete orphaned app permissions
 			if err := tx.Exec(`DELETE FROM app_permissions
-WHERE app_id NOT IN (SELECT id FROM apps);`).Error; err != nil {
+WHERE app_id NOT IN (SELECT id FROM apps)`).Error; err != nil {
 				return err
 			}
 
-			if err := tx.Exec(`DELETE FROM request_events
-WHERE app_id NOT IN (SELECT id FROM apps);`).Error; err != nil {
+			// delete request and response events, later we will setup a task to delete excess events
+			if err := tx.Exec(`DELETE FROM request_events`).Error; err != nil {
 				return err
 			}
 
-			if err := tx.Exec(`DELETE FROM response_events
-WHERE request_id NOT IN (SELECT id FROM request_events);`).Error; err != nil {
+			if err := tx.Exec(`DELETE FROM response_events`).Error; err != nil {
 				return err
 			}
 
