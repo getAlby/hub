@@ -146,7 +146,16 @@ export function Claude() {
               <AccordionTrigger>Claude Code</AccordionTrigger>
               <AccordionContent>
                 <ul className="list-decimal list-inside">
-                  <li className="list-item">Install Claude Code</li>
+                  <li className="list-item">
+                    Install{" "}
+                    <a
+                      href="https://www.anthropic.com/claude-code"
+                      target="_blank"
+                      className="underline"
+                    >
+                      Claude Code
+                    </a>
+                  </li>
                   <li className="list-item">
                     Paste the MCP add command into your terminal:{" "}
                     <Button
