@@ -31,6 +31,7 @@ type API interface {
 	ConnectPeer(ctx context.Context, connectPeerRequest *ConnectPeerRequest) error
 	DisconnectPeer(ctx context.Context, peerId string) error
 	OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error)
+	RebalanceChannel(ctx context.Context, rebalanceChannelRequest *RebalanceChannelRequest) (*RebalanceChannelResponse, error)
 	CloseChannel(ctx context.Context, peerId, channelId string, force bool) (*CloseChannelResponse, error)
 	UpdateChannel(ctx context.Context, updateChannelRequest *UpdateChannelRequest) error
 	MakeOffer(ctx context.Context, description string) (string, error)
@@ -253,6 +254,14 @@ type OpenChannelRequest = lnclient.OpenChannelRequest
 type OpenChannelResponse = lnclient.OpenChannelResponse
 type CloseChannelResponse = lnclient.CloseChannelResponse
 type UpdateChannelRequest = lnclient.UpdateChannelRequest
+
+type RebalanceChannelRequest struct {
+	ReceiveThroughNodePubkey string `json:"receiveThroughNodePubkey"`
+	AmountSat                uint64 `json:"amountSat"`
+}
+type RebalanceChannelResponse struct {
+	TotalFeeSat uint64 `json:"totalFeeSat"`
+}
 
 type RedeemOnchainFundsRequest struct {
 	ToAddress string  `json:"toAddress"`
