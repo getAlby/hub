@@ -245,17 +245,17 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 	var ourKeys *btcec.PrivateKey
 	var swap *boltz.CreateReverseSwapResponse
 
+	defer func() {
+		if err != nil && dbSwap.ID != 0 {
+			svc.markSwapState(&dbSwap, constants.SWAP_STATE_FAILED)
+		}
+	}()
+
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
 		err := tx.Save(&dbSwap).Error
 		if err != nil {
 			return err
 		}
-
-		defer func() {
-			if err != nil {
-				svc.markSwapState(&dbSwap, constants.SWAP_STATE_FAILED)
-			}
-		}()
 
 		ourKeys, err = svc.keys.GetSwapKey(dbSwap.ID)
 		if err != nil {
@@ -309,14 +309,12 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 	logger.Logger.WithField("swapId", swap.Id).Info("Swap created")
 
 	boltzWs := svc.boltzApi.NewWebsocket()
-	if err := boltzWs.Connect(); err != nil {
-		svc.markSwapState(&dbSwap, constants.SWAP_STATE_FAILED)
+	if err = boltzWs.Connect(); err != nil {
 		return nil, fmt.Errorf("could not connect to Boltz websocket: %w", err)
 	}
 
-	if err := boltzWs.Subscribe([]string{swap.Id}); err != nil {
+	if err = boltzWs.Subscribe([]string{swap.Id}); err != nil {
 		_ = boltzWs.Close()
-		svc.markSwapState(&dbSwap, constants.SWAP_STATE_FAILED)
 		return nil, err
 	}
 
@@ -372,6 +370,12 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 
 	var ourKeys *btcec.PrivateKey
 	var swap *boltz.CreateSwapResponse
+
+	defer func() {
+		if err != nil && dbSwap.ID != 0 {
+			svc.markSwapState(&dbSwap, constants.SWAP_STATE_FAILED)
+		}
+	}()
 
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
 		err := tx.Save(&dbSwap).Error
@@ -441,19 +445,18 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 			"paymentHash": invoice.PaymentHash,
 			"metadata":    metadata,
 		}).Error("Failed to add swap metadata to lightning payment")
+		return nil, err
 	}
 
 	logger.Logger.WithField("swapId", swap.Id).Info("Swap created")
 
 	boltzWs := svc.boltzApi.NewWebsocket()
-	if err := boltzWs.Connect(); err != nil {
-		svc.markSwapState(&dbSwap, constants.SWAP_STATE_FAILED)
+	if err = boltzWs.Connect(); err != nil {
 		return nil, fmt.Errorf("could not connect to Boltz websocket: %w", err)
 	}
 
-	if err := boltzWs.Subscribe([]string{swap.Id}); err != nil {
+	if err = boltzWs.Subscribe([]string{swap.Id}); err != nil {
 		_ = boltzWs.Close()
-		svc.markSwapState(&dbSwap, constants.SWAP_STATE_FAILED)
 		return nil, err
 	}
 
@@ -1134,6 +1137,7 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap, boltzWs *boltz.Webs
 							"swapId":     swap.SwapId,
 							"lockupTxId": update.Transaction.Id,
 						}).WithError(err).Error("Failed to save lockup txid to swap")
+						return
 					}
 				case boltz.TransactionConfirmed:
 					logger.Logger.WithFields(logrus.Fields{
@@ -1238,8 +1242,8 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap, boltzWs *boltz.Webs
 					logger.Logger.WithFields(logrus.Fields{
 						"swapId": swap.SwapId,
 						"reason": update.Status,
-					}).Info("Swap out failed, HTLC is cancelled")
-					svc.markSwapState(swap, constants.SWAP_STATE_FAILED)
+					}).Error("Swap out failed, HTLC is cancelled")
+					err = errors.New(update.Status)
 					return
 				}
 			}
