@@ -1213,8 +1213,20 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap, boltzWs *boltz.Webs
 					}
 
 					var claimTxId string
-					// TODO: Replace with LNClient broadcast method to avoid trusting boltz
-					claimTxId, err = svc.boltzApi.BroadcastTransaction(boltz.CurrencyBtc, txHex)
+					for attempt := 1; attempt <= 5; attempt++ {
+						// TODO: Replace with LNClient broadcast method to avoid trusting boltz
+						claimTxId, err = svc.boltzApi.BroadcastTransaction(boltz.CurrencyBtc, txHex)
+						if err != nil {
+							logger.Logger.WithError(err).WithFields(logrus.Fields{
+								"swapId":  swap.SwapId,
+								"attempt": attempt,
+							}).Warn("Failed to broadcast transaction, retrying")
+							time.Sleep(1 * time.Second)
+							continue
+						}
+						break
+					}
+
 					if err != nil {
 						logger.Logger.WithError(err).WithFields(logrus.Fields{
 							"swapId": swap.SwapId,
@@ -1270,6 +1282,23 @@ func (svc *swapsService) getFeeRates() (*FeeRates, error) {
 }
 
 func (svc *swapsService) requestMempoolApi(endpoint string, result interface{}) error {
+	for attempt := 1; attempt <= 10; attempt++ {
+		err := svc.doMempoolRequest(endpoint, result)
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"attempt":  attempt,
+				"endpoint": endpoint,
+			}).Error("Mempool API request failed, retrying")
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		return nil
+	}
+
+	return fmt.Errorf("ran out of attempts to request %s", endpoint)
+}
+
+func (svc *swapsService) doMempoolRequest(endpoint string, result interface{}) error {
 	url := svc.cfg.GetEnv().MempoolApi + endpoint
 	url = strings.ReplaceAll(url, "testnet/", "")
 
