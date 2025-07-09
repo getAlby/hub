@@ -1171,6 +1171,49 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 
 			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		}
+	case "/api/lightning-addresses":
+		switch method {
+		case "POST":
+			createLightningAddressRequest := &api.CreateLightningAddressRequest{}
+			err := json.Unmarshal([]byte(body), createLightningAddressRequest)
+			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"route":  route,
+					"method": method,
+					"body":   body,
+				}).WithError(err).Error("Failed to decode request to wails router")
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+
+			err = app.api.CreateLightningAddress(ctx, createLightningAddressRequest)
+			if err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			return WailsRequestRouterResponse{Body: nil, Error: ""}
+		}
+	}
+
+	lightningAddressRegex := regexp.MustCompile(
+		`/api/lightning-addresses/([^/]+)`,
+	)
+	lightningAddressMatch := lightningAddressRegex.FindStringSubmatch(route)
+
+	switch {
+	case len(lightningAddressMatch) == 2:
+		appIdStr := lightningAddressMatch[1]
+		appId, err := strconv.ParseUint(appIdStr, 10, 64)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: "Invalid app ID"}
+		}
+
+		switch method {
+		case "DELETE":
+			err := app.api.DeleteLightningAddress(ctx, uint(appId))
+			if err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			return WailsRequestRouterResponse{Body: nil, Error: ""}
+		}
 	}
 
 	// Swap lookup and listing is shifted to the bottom so it
