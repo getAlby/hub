@@ -1,4 +1,3 @@
-import { LightbulbIcon } from "lucide-react";
 import React from "react";
 import AppHeader from "src/components/AppHeader";
 import { suggestedApps } from "src/components/SuggestedAppData";
@@ -8,7 +7,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "src/components/ui/accordion";
-import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -31,6 +29,8 @@ export function Claude() {
   if (!app) {
     return null;
   }
+
+  const mcpLinkWithEncodedSecret = `https://mcp.getalby.com/mcp?nwc=${encodeURIComponent(connectionSecret)}`;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -75,9 +75,7 @@ export function Claude() {
       {connectionSecret && (
         <div className="max-w-lg flex flex-col gap-5">
           <p>
-            You can connect Claude to your Alby Hub by manually pasting the
-            connection URI into Claude's settings. No automatic linking is
-            supported.
+            Click one of the below options to connect Claude to your Alby Hub.
           </p>
           <Accordion type="single" collapsible>
             <AccordionItem value="web">
@@ -96,16 +94,17 @@ export function Claude() {
                     and sign in
                   </li>
                   <li className="list-item">Go to Settings → Integrations</li>
+                  <li className="list-item">Click +Add integration</li>
+                  <li className="list-item">Integration Name: Alby</li>
                   <li className="list-item">
-                    Find the wallet connection section
-                  </li>
-                  <li className="list-item">
-                    Paste the connection URI:{" "}
+                    Paste the integration URL:{" "}
                     <Button
-                      onClick={() => copyToClipboard(connectionSecret, toast)}
+                      onClick={() =>
+                        copyToClipboard(mcpLinkWithEncodedSecret, toast)
+                      }
                       size="sm"
                     >
-                      Copy URI
+                      Copy URL
                     </Button>
                   </li>
                 </ul>
@@ -127,16 +126,17 @@ export function Claude() {
                   </li>
                   <li className="list-item">Open Claude Desktop and sign in</li>
                   <li className="list-item">Go to Settings → Integrations</li>
+                  <li className="list-item">Click +Add integration</li>
+                  <li className="list-item">Integration Name: Alby</li>
                   <li className="list-item">
-                    Find the wallet connection section
-                  </li>
-                  <li className="list-item">
-                    Paste the connection URI:{" "}
+                    Paste the integration URL:{" "}
                     <Button
-                      onClick={() => copyToClipboard(connectionSecret, toast)}
+                      onClick={() =>
+                        copyToClipboard(mcpLinkWithEncodedSecret, toast)
+                      }
                       size="sm"
                     >
-                      Copy URI
+                      Copy URL
                     </Button>
                   </li>
                 </ul>
@@ -146,38 +146,25 @@ export function Claude() {
               <AccordionTrigger>Claude Code</AccordionTrigger>
               <AccordionContent>
                 <ul className="list-decimal list-inside">
+                  <li className="list-item">Install Claude Code</li>
                   <li className="list-item">
-                    Install the Claude extension in your code editor
-                  </li>
-                  <li className="list-item">Open the extension settings</li>
-                  <li className="list-item">
-                    Find the wallet connection configuration
-                  </li>
-                  <li className="list-item">
-                    Paste the connection URI:{" "}
+                    Paste the MCP add command into your terminal:{" "}
                     <Button
-                      onClick={() => copyToClipboard(connectionSecret, toast)}
+                      onClick={() =>
+                        copyToClipboard(
+                          `claude mcp add --transport http alby https://mcp.getalby.com/mcp --header "Authorization: Bearer ${connectionSecret}"`,
+                          toast
+                        )
+                      }
                       size="sm"
                     >
-                      Copy URI
+                      Copy command
                     </Button>
                   </li>
                 </ul>
               </AccordionContent>
             </AccordionItem>
           </Accordion>
-
-          <Alert>
-            <LightbulbIcon />
-            <AlertTitle>Manual Configuration Required</AlertTitle>
-            <AlertDescription>
-              <p>
-                Unlike some other apps, Claude requires manual configuration.
-                You'll need to copy and paste the connection URI into Claude's
-                settings yourself.
-              </p>
-            </AlertDescription>
-          </Alert>
         </div>
       )}
       {!connectionSecret && (
@@ -199,19 +186,13 @@ export function Claude() {
                 </p>
                 <ul className="text-muted-foreground pl-4 gap-2 flex flex-col">
                   <li>
-                    💬 Ask Claude about your wallet balance:{" "}
-                    <span className="italic">"What's my current balance?"</span>
+                    💬 Interact with your wallet with natural language:{" "}
+                    <span className="italic">"Pay $1 to my friend Rene"</span>
                   </li>
                   <li>
-                    ⚡ Get help with Lightning payments:{" "}
+                    ⚡ Give Goose access to paid tools:{" "}
                     <span className="italic">
-                      "Help me send 1000 sats to this invoice"
-                    </span>
-                  </li>
-                  <li>
-                    📊 Analyze your transaction history:{" "}
-                    <span className="italic">
-                      "Show me my recent transactions"
+                      "Buy a $15 doordash giftcard"
                     </span>
                   </li>
                 </ul>
