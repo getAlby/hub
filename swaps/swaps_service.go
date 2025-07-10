@@ -126,7 +126,13 @@ func NewSwapsService(ctx context.Context, db *gorm.DB, cfg config.Config, keys k
 	}
 
 	go func() {
-		for update := range svc.boltzWs.Updates {
+		for {
+			update, ok := <-svc.boltzWs.Updates
+			if !ok {
+				logger.Logger.Error("Received error from boltz websocket")
+				continue
+			}
+
 			svc.swapListenersLock.Lock()
 			ch, ok := svc.swapListeners[update.Id]
 			svc.swapListenersLock.Unlock()
