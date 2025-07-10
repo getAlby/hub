@@ -43,6 +43,7 @@ type TransactionsService interface {
 	MakeHoldInvoice(ctx context.Context, amount uint64, description string, descriptionHash string, expiry uint64, paymentHash string, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SettleHoldInvoice(ctx context.Context, preimage string, lnClient lnclient.LNClient) (*Transaction, error)
 	CancelHoldInvoice(ctx context.Context, paymentHash string, lnClient lnclient.LNClient) error
+	SetTransactionMetadata(ctx context.Context, id uint, metadata map[string]interface{}) error
 }
 
 const (
@@ -1310,6 +1311,26 @@ func (svc *transactionsService) CancelHoldInvoice(ctx context.Context, paymentHa
 		Event:      "nwc_hold_invoice_canceled",
 		Properties: &dbTransaction,
 	})
+
+	return nil
+}
+
+func (svc *transactionsService) SetTransactionMetadata(ctx context.Context, id uint, metadata map[string]interface{}) error {
+	var metadataBytes []byte
+	metadataBytes, err := json.Marshal(metadata)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to serialize metadata")
+		return err
+	}
+	if len(metadataBytes) > constants.INVOICE_METADATA_MAX_LENGTH {
+		return fmt.Errorf("encoded invoice metadata provided is too large. Limit: %d Received: %d", constants.INVOICE_METADATA_MAX_LENGTH, len(metadataBytes))
+	}
+
+	err = svc.db.Model(&db.Transaction{}).Where("id", id).Update("metadata", datatypes.JSON(metadataBytes)).Error
+	if err != nil {
+		logger.Logger.WithError(err).WithField("metadata", metadata).Error("Failed to update transaction metadata")
+		return err
+	}
 
 	return nil
 }

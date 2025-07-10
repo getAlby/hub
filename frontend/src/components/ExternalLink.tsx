@@ -21,8 +21,8 @@ export default function ExternalLink({ to, className, children }: Props) {
       {children}
     </Link>
   ) : (
-    <div className={className} onClick={() => openLink(to)}>
+    <span className={className} onClick={() => openLink(to)}>
       {children}
-    </div>
+    </span>
   );
 }

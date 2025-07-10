@@ -4,6 +4,8 @@ go 1.24.2
 
 require (
 	github.com/adrg/xdg v0.5.3
+	github.com/btcsuite/btcd v0.24.3-0.20250318170759-4f4ea81776d6
+	github.com/btcsuite/btcd/btcutil v1.1.6
 	github.com/elnosh/gonuts v0.4.0
 	github.com/getAlby/ldk-node-go v0.0.0-20250630100602-fc4853954f52
 	github.com/go-gormigrate/gormigrate/v2 v2.1.4
@@ -43,8 +45,6 @@ require (
 	github.com/aead/siphash v1.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bep/debounce v1.2.1 // indirect
-	github.com/btcsuite/btcd v0.24.3-0.20250318170759-4f4ea81776d6 // indirect
-	github.com/btcsuite/btcd/btcutil v1.1.6 // indirect
 	github.com/btcsuite/btcd/btcutil/psbt v1.1.9 // indirect
 	github.com/btcsuite/btclog v0.0.0-20241003133417-09c4e92e319c // indirect
 	github.com/btcsuite/btclog/v2 v2.0.1-0.20250602222548-9967d19bb084 // indirect
@@ -251,7 +251,7 @@ require (
 )
 
 require (
-	github.com/BoltzExchange/boltz-client/v2 v2.6.0
+	github.com/BoltzExchange/boltz-client/v2 v2.7.2
 	github.com/btcsuite/btcd/btcec/v2 v2.3.5
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0
 	github.com/decred/dcrd/crypto/blake256 v1.1.0 // indirect
@@ -264,7 +264,7 @@ require (
 	github.com/lightningnetwork/lnd v0.19.2-beta.rc2
 	github.com/sirupsen/logrus v1.9.3
 	github.com/tyler-smith/go-bip32 v1.0.0
-	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0 // indirect
+	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6 // indirect
 	gorm.io/datatypes v1.2.6
 )
 

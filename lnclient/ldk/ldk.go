@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"net/http"
 	"os"
 	"path/filepath"
 	"slices"
@@ -1295,7 +1296,50 @@ func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, 
 	ls.redeemedOnchainFundsWithinThisSync = true
 	ls.lastWalletSyncRequest = time.Now()
 
-	return txId, nil
+	// FIXME: remove once LDK-node returns an error if it can't broadcast the transaction
+
+	tryCheckTransactionWasBroadcasted := func() error {
+		url := ls.cfg.GetEnv().MempoolApi + "/tx/" + txId
+
+		client := http.Client{
+			Timeout: time.Second * 10,
+		}
+
+		req, err := http.NewRequest(http.MethodGet, url, nil)
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"url": url,
+			}).Error("Failed to create http request")
+			return err
+		}
+
+		res, err := client.Do(req)
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"url": url,
+			}).Error("Failed to send request")
+			return err
+		}
+
+		if res.StatusCode >= 300 {
+			// transaction not found
+			return errors.New("unexpected status code")
+		}
+
+		return nil
+	}
+
+	for attempt := 1; attempt < 10; attempt++ {
+		err := tryCheckTransactionWasBroadcasted()
+		if err != nil {
+			logger.Logger.WithError(err).WithField("attempt", attempt).Error("Failed to fetch broadcasted transaction")
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		return txId, nil
+	}
+	return "", errors.New("ran out of attempts to fetch broadcasted transaction")
 }
 
 func (ls *LDKService) ResetRouter(key string) error {

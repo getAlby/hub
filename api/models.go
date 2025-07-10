@@ -8,6 +8,7 @@ import (
 	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/swaps"
 )
 
 type API interface {
@@ -63,10 +64,18 @@ type API interface {
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
+	LookupSwap(swapId string) (*LookupSwapResponse, error)
+	ListSwaps() (*ListSwapsResponse, error)
+	GetSwapInFees() (*SwapFeesResponse, error)
+	GetSwapOutFees() (*SwapFeesResponse, error)
+	InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (*swaps.SwapResponse, error)
+	InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (*swaps.SwapResponse, error)
+	RefundSwap(refundSwapRequest *RefundSwapRequest) error
+	GetSwapMnemonic() string
+	GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error)
+	EnableAutoSwapOut(ctx context.Context, autoSwapRequest *EnableAutoSwapRequest) error
+	DisableAutoSwap() error
 	SetNodeAlias(nodeAlias string) error
-	GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error)
-	DisableAutoSwaps() error
-	EnableAutoSwaps(ctx context.Context, autoSwapsRequest *EnableAutoSwapsRequest) error
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
 	SendEvent(event string)
@@ -128,20 +137,59 @@ type CreateLightningAddressRequest struct {
 	AppId   uint   `json:"appId"`
 }
 
-type EnableAutoSwapsRequest struct {
+type InitiateSwapRequest struct {
+	SwapAmount  uint64 `json:"swapAmount"`
+	Destination string `json:"destination"`
+}
+
+type RefundSwapRequest struct {
+	SwapId  string `json:"swapId"`
+	Address string `json:"address"`
+}
+
+type EnableAutoSwapRequest struct {
 	BalanceThreshold uint64 `json:"balanceThreshold"`
 	SwapAmount       uint64 `json:"swapAmount"`
 	Destination      string `json:"destination"`
 }
 
-type GetAutoSwapsConfigResponse struct {
-	Enabled          bool    `json:"enabled"`
-	BalanceThreshold uint64  `json:"balanceThreshold"`
-	SwapAmount       uint64  `json:"swapAmount"`
-	Destination      string  `json:"destination"`
-	AlbyServiceFee   float64 `json:"albyServiceFee"`
-	BoltzServiceFee  float64 `json:"boltzServiceFee"`
-	BoltzNetworkFee  uint64  `json:"boltzNetworkFee"`
+type GetAutoSwapConfigResponse struct {
+	Type             string `json:"type"`
+	Enabled          bool   `json:"enabled"`
+	BalanceThreshold uint64 `json:"balanceThreshold"`
+	SwapAmount       uint64 `json:"swapAmount"`
+	Destination      string `json:"destination"`
+}
+
+type SwapFeesResponse struct {
+	AlbyServiceFee  float64 `json:"albyServiceFee"`
+	BoltzServiceFee float64 `json:"boltzServiceFee"`
+	BoltzNetworkFee uint64  `json:"boltzNetworkFee"`
+}
+
+type ListSwapsResponse struct {
+	Swaps []Swap `json:"swaps"`
+}
+
+type LookupSwapResponse = Swap
+
+type Swap struct {
+	Id                 string `json:"id"`
+	Type               string `json:"type"`
+	State              string `json:"state"`
+	Invoice            string `json:"invoice"`
+	SendAmount         uint64 `json:"sendAmount"`
+	ReceiveAmount      uint64 `json:"receiveAmount"`
+	PaymentHash        string `json:"paymentHash"`
+	DestinationAddress string `json:"destinationAddress"`
+	RefundAddress      string `json:"refundAddress"`
+	LockupAddress      string `json:"lockupAddress"`
+	LockupTxId         string `json:"lockupTxId"`
+	ClaimTxId          string `json:"claimTxId"`
+	AutoSwap           bool   `json:"autoSwap"`
+	BoltzPubkey        string `json:"boltzPubkey"`
+	CreatedAt          string `json:"createdAt"`
+	UpdatedAt          string `json:"updatedAt"`
 }
 
 type StartRequest struct {

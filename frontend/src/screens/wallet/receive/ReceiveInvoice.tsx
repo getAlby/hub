@@ -118,7 +118,7 @@ export default function ReceiveInvoice() {
                     spend
                   </Link>
                   ,{" "}
-                  <Link className="underline" to="/channels?swap=true">
+                  <Link className="underline" to="/wallet/swap?type=out">
                     swap out funds
                   </Link>
                   , or{" "}

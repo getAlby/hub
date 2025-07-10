@@ -1,3 +1,4 @@
+import { ClipboardPasteIcon } from "lucide-react";
 import React from "react";
 import { ExecuteCustomNodeCommandDialogContent } from "src/components/ExecuteCustomNodeCommandDialogContent";
 import { ResetRoutingDataDialogContent } from "src/components/ResetRoutingDataDialogContent";
@@ -16,7 +17,9 @@ import {
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { Textarea } from "src/components/ui/textarea";
+import { useToast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";
 
 import { request } from "src/utils/request";
@@ -134,6 +137,136 @@ function ProbeKeysendDialogContent({ apiRequest }: Props) {
   );
 }
 
+function RefundSwapDialogContent() {
+  const [swapId, setSwapId] = React.useState<string>("");
+  const [address, setAddress] = React.useState<string>("");
+  const [isInternal, setInternal] = React.useState<boolean>(true);
+  const { toast } = useToast();
+
+  async function onConfirm() {
+    try {
+      const response = await request("/api/swaps/refund", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          swapId,
+          ...(address ? { address } : {}),
+        }),
+      });
+      console.info("Processed refund", response);
+      toast({ title: "Refund transaction broadcasted" });
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Failed to process refund",
+        description: "" + error,
+      });
+    }
+    setSwapId("");
+  }
+
+  const paste = async () => {
+    const text = await navigator.clipboard.readText();
+    setAddress(text.trim());
+  };
+
+  return (
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle className="capitalize">Refund Swap</AlertDialogTitle>
+        <AlertDialogDescription className="flex text-foreground flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="swapId">Swap Id</Label>
+            <Input
+              id="swapId"
+              name="swapId"
+              type="text"
+              required
+              autoFocus
+              value={swapId}
+              onChange={(e) => {
+                setSwapId(e.target.value.trim());
+              }}
+            />
+          </div>
+          <div className="flex flex-col gap-4">
+            <Label>Refund to</Label>
+            <RadioGroup
+              defaultValue="normal"
+              value={isInternal ? "internal" : "external"}
+              onValueChange={() => {
+                setAddress("");
+                setInternal(!isInternal);
+              }}
+              className="flex gap-4 flex-row"
+            >
+              <div className="flex items-start space-x-2 mb-2">
+                <RadioGroupItem
+                  value="internal"
+                  id="internal"
+                  className="shrink-0"
+                />
+                <Label
+                  htmlFor="internal"
+                  className="font-medium cursor-pointer"
+                >
+                  On-chain balance
+                </Label>
+              </div>
+              <div className="flex items-start space-x-2">
+                <RadioGroupItem
+                  value="external"
+                  id="external"
+                  className="shrink-0"
+                />
+                <Label
+                  htmlFor="external"
+                  className="font-medium cursor-pointer"
+                >
+                  External on-chain wallet
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+          {!isInternal && (
+            <div className="grid gap-1.5">
+              <Label>On-chain address</Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="bc1..."
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="px-2"
+                  onClick={paste}
+                >
+                  <ClipboardPasteIcon className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>Cancel</AlertDialogCancel>
+        <AlertDialogAction
+          disabled={!swapId || (!isInternal && !address)}
+          onClick={onConfirm}
+        >
+          Confirm
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  );
+}
+
 function GetLogsDialogContent({ apiRequest, target }: Props) {
   const [maxLen, setMaxLen] = React.useState<string>("");
 
@@ -218,6 +351,7 @@ export default function DebugTools() {
   const [dialog, setDialog] = React.useState<
     | "probeInvoice"
     | "probeKeysend"
+    | "refundSwap"
     | "getAppLogs"
     | "getNodeLogs"
     | "getNetworkGraph"
@@ -225,7 +359,7 @@ export default function DebugTools() {
     | "customNodeCommand"
   >();
 
-  const { data: info } = useInfo();
+  const { data: info, hasChannelManagement } = useInfo();
 
   async function apiRequest(
     endpoint: string,
@@ -286,6 +420,30 @@ export default function DebugTools() {
           >
             List Channels
           </Button>
+          {hasChannelManagement && (
+            <>
+              <Button
+                variant={"outline"}
+                onClick={() => apiRequest("/api/swaps", "GET")}
+              >
+                List Swaps
+              </Button>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant={"outline"}
+                  onClick={() => setDialog("refundSwap")}
+                >
+                  Refund Swap
+                </Button>
+              </AlertDialogTrigger>
+              <Button
+                variant={"outline"}
+                onClick={() => apiRequest("/api/swaps/mnemonic", "GET")}
+              >
+                Get Swap Mnemonic
+              </Button>
+            </>
+          )}
           <AlertDialogTrigger asChild>
             <Button variant={"outline"} onClick={() => setDialog("getAppLogs")}>
               Get App Logs
@@ -386,6 +544,7 @@ export default function DebugTools() {
           {dialog === "probeKeysend" && (
             <ProbeKeysendDialogContent apiRequest={apiRequest} />
           )}
+          {dialog === "refundSwap" && <RefundSwapDialogContent />}
           {(dialog === "getAppLogs" || dialog === "getNodeLogs") && (
             <GetLogsDialogContent
               apiRequest={apiRequest}

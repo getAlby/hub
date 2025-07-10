@@ -178,9 +178,8 @@ function PayBitcoinChannelOrder({ order }: { order: NewChannelOrder }) {
     throw new Error("incorrect payment method");
   }
   const { data: balances } = useBalances(true);
-  const estimatedTransactionFee = useEstimatedTransactionFee();
 
-  if (!balances || !estimatedTransactionFee) {
+  if (!balances) {
     return <Loading />;
   }
 
