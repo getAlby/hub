@@ -307,13 +307,22 @@ func (svc *service) removeExcessEvents() {
 		return
 	}
 	deleteEventsBelowId := events[numEventsToDelete].ID
+
 	logger.Logger.WithFields(logrus.Fields{
 		"amount":   numEventsToDelete,
 		"below_id": deleteEventsBelowId,
-	}).Info("Removing excess events")
+	}).Debug("Removing excess events")
 
 	err = svc.db.Exec("delete from request_events where id < ?", deleteEventsBelowId).Error
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to delete excess request events")
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"amount":   numEventsToDelete,
+			"below_id": deleteEventsBelowId,
+		}).Error("Failed to delete excess request events")
+		return
 	}
+	logger.Logger.WithFields(logrus.Fields{
+		"amount":   numEventsToDelete,
+		"below_id": deleteEventsBelowId,
+	}).Info("Removed excess events")
 }
