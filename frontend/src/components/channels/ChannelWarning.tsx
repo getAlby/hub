@@ -34,7 +34,7 @@ export function ChannelWarning({ channel }: ChannelWarningProps) {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger>
-          <AlertTriangleIcon className="w-4 h-4" />
+          <AlertTriangleIcon className="size-4" />
         </TooltipTrigger>
         <TooltipContent className="max-w-[400px]">
           {channelWarning}

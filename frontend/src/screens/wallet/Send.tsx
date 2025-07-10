@@ -94,7 +94,7 @@ export default function Send() {
           className="px-2"
           onClick={paste}
         >
-          <ClipboardPasteIcon className="w-4 h-4" />
+          <ClipboardPasteIcon className="size-4" />
         </Button>
       </div>
       <LoadingButton loading={isLoading} type="submit" disabled={!recipient}>

@@ -97,7 +97,7 @@ function AuthCodeForm({ url }: AuthCodeFormProps) {
                   variant="outline"
                   onClick={() => url && openLink(url)}
                 >
-                  <RefreshCwIcon className="w-4 h-4" />
+                  <RefreshCwIcon className="size-4" />
                 </Button>
               </div>
             </>

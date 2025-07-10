@@ -26,7 +26,7 @@ export default function AppLayout() {
         className={cn(
           "font-sans min-h-screen w-full flex flex-col",
           showBanner
-            ? "[--header-height:calc(theme(spacing.9))]" // Banner height is 36px when visible (sidebar hidden on <md width)
+            ? "[--header-height:calc(--spacing(9))]" // Banner height is 36px when visible (sidebar hidden on <md width)
             : "[--header-height:0]"
         )}
       >

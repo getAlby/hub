@@ -148,7 +148,7 @@ export default function Backup() {
                   variant="secondary"
                   className="flex gap-2 justify-center"
                 >
-                  <EyeIcon className="w-4 h-4 mr-2" />
+                  <EyeIcon className="size-4 mr-2" />
                   View Recovery Phrase
                 </LoadingButton>
               </div>
@@ -239,7 +239,7 @@ export default function Backup() {
                     className="flex gap-2 justify-center"
                     onClick={() => navigate("/alby/account")}
                   >
-                    <Link2Icon className="w-4 h-4 mr-2" />
+                    <Link2Icon className="size-4 mr-2" />
                     Link Alby Account to Enable
                   </Button>
                 </div>
@@ -260,7 +260,7 @@ export default function Backup() {
                       className="underline inline-flex items-center text-sm"
                     >
                       manual backups guide
-                      <ExternalLinkIcon className="w-4 h-4 ml-1" />
+                      <ExternalLinkIcon className="size-4 ml-1" />
                     </ExternalLink>
                   </p>
                 </div>

@@ -39,7 +39,7 @@ export function SetupSecurity() {
             {store.nodeInfo.backendType !== "CASHU" && (
               <div className="flex gap-3 items-center">
                 <div className="shrink-0">
-                  <HandCoinsIcon className="w-6 h-6" />
+                  <HandCoinsIcon className="size-6" />
                 </div>
                 <span className="text-sm text-muted-foreground">
                   Alby Hub is a spending wallet - do not keep all your savings
@@ -50,7 +50,7 @@ export function SetupSecurity() {
             {store.nodeInfo.backendType === "CASHU" && (
               <div className="flex gap-3 items-center">
                 <div className="shrink-0">
-                  <LandmarkIcon className="w-6 h-6" />
+                  <LandmarkIcon className="size-6" />
                 </div>
                 <span className="text-sm text-muted-foreground">
                   Your funds are owned by the cashu mint - use at your own risk
@@ -60,7 +60,7 @@ export function SetupSecurity() {
             )}
             <div className="flex gap-3 items-center">
               <div className="shrink-0">
-                <UnlockIcon className="w-6 h-6" />
+                <UnlockIcon className="size-6" />
               </div>
               <span className="text-sm text-muted-foreground">
                 Access to your Alby Hub is protected by an unlock password you
@@ -71,7 +71,7 @@ export function SetupSecurity() {
             store.nodeInfo.backendType === "PHOENIX" ? (
               <div className="flex gap-3 items-center">
                 <div className="shrink-0">
-                  <ShieldAlertIcon className="w-6 h-6" />
+                  <ShieldAlertIcon className="size-6" />
                 </div>
                 <span className="text-sm text-muted-foreground">
                   Channel backups{" "}
@@ -83,7 +83,7 @@ export function SetupSecurity() {
             ) : (
               <div className="flex gap-3 items-center">
                 <div className="shrink-0">
-                  <ShieldAlertIcon className="w-6 h-6" />
+                  <ShieldAlertIcon className="size-6" />
                 </div>
                 <span className="text-sm text-muted-foreground">
                   Your{store.nodeInfo.backendType === "LDK" && " on-chain"}{" "}

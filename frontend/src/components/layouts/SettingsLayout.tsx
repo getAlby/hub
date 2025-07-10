@@ -74,7 +74,7 @@ export default function SettingsLayout() {
                   size="icon"
                   loading={shuttingDown}
                 >
-                  {!shuttingDown && <PowerIcon className="w-4 h-4" />}
+                  {!shuttingDown && <PowerIcon className="size-4" />}
                 </LoadingButton>
               </AlertDialogTrigger>
               <AlertDialogContent>

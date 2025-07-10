@@ -331,7 +331,7 @@ function NewChannelInternal({
                                   {peer.name !== "Custom" && (
                                     <img
                                       src={peer.image}
-                                      className="w-8 h-8 object-contain"
+                                      className="size-8 object-contain"
                                     />
                                   )}
                                   <div>

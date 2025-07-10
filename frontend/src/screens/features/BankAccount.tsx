@@ -31,7 +31,7 @@ function BankAccount() {
         title="Bank Account"
         description="Receive money from your bank account, pay bills and send payments to bank accounts. Buy and sell bitcoin at competitive rates."
       />
-      <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-sm p-8">
+      <div className="flex flex-1 items-center justify-center rounded-lg border border-dashed shadow-xs p-8">
         <div className="flex flex-col items-center gap-1 text-center max-w-sm">
           {!activated ? (
             <>

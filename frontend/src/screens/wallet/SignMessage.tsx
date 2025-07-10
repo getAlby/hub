@@ -111,7 +111,7 @@ export default function SignMessage() {
                       copyToClipboard(signature, toast);
                     }}
                   >
-                    <CopyIcon className="w-4 h-4" />
+                    <CopyIcon className="size-4" />
                   </Button>
                 </div>
               </CardContent>

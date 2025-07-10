@@ -227,7 +227,7 @@ export default function Channels() {
                           {nodeConnectionInfo?.pubkey || "Loading..."}
                         </div>
                         {nodeConnectionInfo && (
-                          <CopyIcon className="shrink-0 w-4 h-4" />
+                          <CopyIcon className="shrink-0 size-4" />
                         )}
                       </div>
                     </DropdownMenuItem>
@@ -265,9 +265,9 @@ export default function Channels() {
                       className="cursor-pointer"
                     >
                       <div className="mr-2 text-muted-foreground flex flex-row items-center">
-                        <LinkIcon className="w-4 h-4" />
-                        <ArrowRightIcon className="w-4 h-4" />
-                        <ZapIcon className="w-4 h-4" />
+                        <LinkIcon className="size-4" />
+                        <ArrowRightIcon className="size-4" />
+                        <ZapIcon className="size-4" />
                       </div>
                       Swap in
                     </DropdownMenuItem>
@@ -276,9 +276,9 @@ export default function Channels() {
                       className="cursor-pointer"
                     >
                       <div className="mr-2 text-muted-foreground flex flex-row items-center">
-                        <ZapIcon className="w-4 h-4" />
-                        <ArrowRightIcon className="w-4 h-4" />
-                        <LinkIcon className="w-4 h-4" />
+                        <ZapIcon className="size-4" />
+                        <ArrowRightIcon className="size-4" />
+                        <LinkIcon className="size-4" />
                       </div>
                       Swap out
                     </DropdownMenuItem>
@@ -305,7 +305,7 @@ export default function Channels() {
                                 className="w-full flex items-center"
                                 to="/wallet/node-alias"
                               >
-                                <SparklesIcon className="w-4 h-4 mr-2" /> Set
+                                <SparklesIcon className="size-4 mr-2" /> Set
                                 Node Alias
                               </Link>
                             </DropdownMenuItem>
@@ -339,7 +339,7 @@ export default function Channels() {
                           </div>
                         )}
                         <HeartIcon
-                          className="w-4 h-4"
+                          className="size-4"
                           stroke={"hsl(var(--primary))"}
                           strokeWidth={3}
                           fill={
@@ -403,7 +403,7 @@ export default function Channels() {
               "flex flex-col sm:flex-row flex-wrap gap-3 slashed-zero"
             )}
           >
-            <Card className="flex flex-1 sm:flex-[2] flex-col">
+            <Card className="flex flex-1 sm:flex-2 flex-col">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="font-semibold text-2xl">
                   Lightning
@@ -454,7 +454,7 @@ export default function Channels() {
                       </TooltipProvider>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="flex-grow pb-0">
+                  <CardContent className="grow pb-0">
                     {!balances && (
                       <div>
                         <div className="animate-pulse d-inline ">
@@ -497,7 +497,7 @@ export default function Channels() {
                       </TooltipProvider>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="flex-grow pb-0">
+                  <CardContent className="grow pb-0">
                     {balances && (
                       <>
                         <div className="text-xl font-medium balance sensitive mb-1">
@@ -524,7 +524,7 @@ export default function Channels() {
                 </CardTitle>
                 <LinkIcon className="h-6 w-6 text-muted-foreground" />
               </CardHeader>
-              <CardContent className="flex-grow">
+              <CardContent className="grow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pl-0">
                   <CardTitle className="text-sm font-medium">
                     <TooltipProvider>
@@ -570,7 +570,7 @@ export default function Channels() {
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger>
-                                  <AlertTriangleIcon className="w-3 h-3 text-muted-foreground" />
+                                  <AlertTriangleIcon className="size-3 text-muted-foreground" />
                                 </TooltipTrigger>
                                 <TooltipContent className="w-[300px]">
                                   You have insufficient funds in reserve to
@@ -630,7 +630,7 @@ export default function Channels() {
                         {nodes.find(
                           (node) => node.public_key === details.nodeId
                         )?.alias || "Unknown"}
-                        <ExternalLinkIcon className="ml-1 w-4 h-4 inline" />
+                        <ExternalLinkIcon className="ml-1 size-4 inline" />
                       </ExternalLink>{" "}
                       ({new Intl.NumberFormat().format(details.amount)}{" "}
                       sats)&nbsp;
@@ -639,7 +639,7 @@ export default function Channels() {
                         className="underline"
                       >
                         funding tx
-                        <ExternalLinkIcon className="ml-1 w-4 h-4 inline" />
+                        <ExternalLinkIcon className="ml-1 size-4 inline" />
                       </ExternalLink>
                       {index <
                         balances.onchain.pendingBalancesDetails.length - 1 &&

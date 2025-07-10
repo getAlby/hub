@@ -70,14 +70,14 @@ function ChecklistItem({
     >
       {!checked && !disabled && (
         <div className="absolute top-0 left-0 w-full h-full items-center justify-end pr-1.5 hidden group-hover:flex opacity-25">
-          <ChevronRightIcon className="w-8 h-8" />
+          <ChevronRightIcon className="size-8" />
         </div>
       )}
       <div className="flex items-center gap-2">
         {checked ? (
-          <CircleCheckIcon className="w-5 h-5" />
+          <CircleCheckIcon className="size-5" />
         ) : (
-          <CircleIcon className="w-5 h-5" />
+          <CircleIcon className="size-5" />
         )}
         <div
           className={cn(

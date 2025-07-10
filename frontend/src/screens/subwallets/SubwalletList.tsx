@@ -70,7 +70,7 @@ export function SubwalletList() {
           <>
             <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/sub-wallets">
               <Button variant="outline" size="icon">
-                <HelpCircle className="w-4 h-4" />
+                <HelpCircle className="size-4" />
               </Button>
             </ExternalLink>
             <ResponsiveButton
@@ -100,7 +100,7 @@ export function SubwalletList() {
             </div>
             <UpgradeDialog>
               <Button>
-                <SparklesIcon className="w-4 h-4 mr-2" />
+                <SparklesIcon className="size-4 mr-2" />
                 Upgrade
               </Button>
             </UpgradeDialog>
@@ -140,7 +140,7 @@ export function SubwalletList() {
               Total amount of assets under management
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex-grow">
+          <CardContent className="grow">
             <div className="mt-4 mb-1">
               <span className="text-2xl font-medium balance sensitive">
                 {new Intl.NumberFormat().format(
@@ -159,7 +159,7 @@ export function SubwalletList() {
               Number of Sub-wallets backed by your node funds
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex-grow flex flex-col gap-4">
+          <CardContent className="grow flex flex-col gap-4">
             <div className="flex flex-col gap-2 mt-4">
               <span className="text-2xl font-medium">
                 {subwalletApps.length} /{" "}
@@ -167,12 +167,12 @@ export function SubwalletList() {
               </span>
               {isSufficientlyBacked ? (
                 <div className="flex items-center text-positive-foreground text-sm">
-                  <ShieldCheckIcon className="w-4 h-4 mr-2" />
+                  <ShieldCheckIcon className="size-4 mr-2" />
                   <span className="text-sm font-medium">Fully backed</span>
                 </div>
               ) : (
                 <div className="flex items-center text-warning-foreground text-sm">
-                  <TriangleAlertIcon className="w-4 h-4 mr-2" />
+                  <TriangleAlertIcon className="size-4 mr-2" />
                   <span className="text-sm font-medium">
                     Insufficiently backed
                   </span>

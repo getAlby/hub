@@ -83,7 +83,7 @@ export function MigrateNode() {
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-1">
           <div className="flex gap-3 items-center">
-            <TriangleAlertIcon className="w-4 h-4" />
+            <TriangleAlertIcon className="size-4" />
             <h3>Do not run your Alby Hub on multiple devices</h3>
           </div>
           <p className="text-sm ml-7">
@@ -94,7 +94,7 @@ export function MigrateNode() {
         </div>
         <div className="flex flex-col gap-1">
           <div className="flex gap-3 items-center">
-            <TriangleAlertIcon className="w-4 h-4" />
+            <TriangleAlertIcon className="size-4" />
             <h3>Migrate this file only to fresh Alby Hub</h3>
           </div>
           <p className="text-sm ml-7">
@@ -104,7 +104,7 @@ export function MigrateNode() {
         </div>
         <div className="flex flex-col gap-1">
           <div className="flex gap-3 items-center">
-            <InfoIcon className="w-4 h-4" />
+            <InfoIcon className="size-4" />
             <h3>What happens next?</h3>
           </div>
           <p className="text-sm ml-7">

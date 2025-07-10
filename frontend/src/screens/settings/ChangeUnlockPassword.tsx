@@ -66,7 +66,7 @@ export function ChangeUnlockPassword() {
         <Alert variant={"destructive"} className="w-full md:max-w-6xl mb-8">
           <AlertTitle>
             <div className="flex gap-2">
-              <TriangleAlertIcon className="w-4 h-4" /> Important!
+              <TriangleAlertIcon className="size-4" /> Important!
             </div>
           </AlertTitle>
           <AlertDescription>

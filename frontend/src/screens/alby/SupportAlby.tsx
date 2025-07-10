@@ -173,7 +173,7 @@ function SupportAlby() {
           <CardFooter className="flex justify-end">
             <UpgradeDialog>
               <Button>
-                <Sparkles className="w-4 h-4 mr-2" />
+                <Sparkles className="size-4 mr-2" />
                 Upgrade to Pro
               </Button>
             </UpgradeDialog>
@@ -193,7 +193,7 @@ function SupportAlby() {
               <div className="flex flex-col items-center justify-center gap-2">
                 <DialogTrigger asChild>
                   <Button>
-                    <HandCoins className="w-4 h-4 mr-2" />
+                    <HandCoins className="size-4 mr-2" />
                     Setup Donation
                   </Button>
                 </DialogTrigger>
@@ -288,7 +288,7 @@ function SupportAlby() {
         <ul className="flex flex-col gap-5">
           <li className="flex flex-col">
             <div className="flex flex-row items-center">
-              <PlusCircleIcon className="w-4 h-4 mr-2" />
+              <PlusCircleIcon className="size-4 mr-2" />
               Unlock New Features
             </div>
             <div className="text-muted-foreground text-sm">
@@ -305,7 +305,7 @@ function SupportAlby() {
           </li>
           <li className="flex flex-col ">
             <div className="flex flex-row items-center">
-              <RefreshCwIcon className="w-4 h-4 mr-2" />
+              <RefreshCwIcon className="size-4 mr-2" />
               Ensure Continuous Improvement
             </div>
             <div className="text-muted-foreground text-sm">
@@ -322,7 +322,7 @@ function SupportAlby() {
           </li>
           <li className="flex flex-col ">
             <div className="flex flex-row items-center">
-              <CodeIcon className="w-4 h-4 mr-2" />
+              <CodeIcon className="size-4 mr-2" />
               Support Open-Source Freedom
             </div>
             <div className="text-muted-foreground text-sm">

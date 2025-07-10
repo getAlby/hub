@@ -310,12 +310,12 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
                 copyToClipboard(onchainAddress, toast);
               }}
             >
-              <CopyIcon className="w-4 h-4" />
+              <CopyIcon className="size-4" />
             </Button>
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="secondary" size="icon">
-                  <QrCodeIcon className="w-4 h-4" />
+                  <QrCodeIcon className="size-4" />
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -342,7 +342,7 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
                     loading={loadingAddress}
                     className="w-9 h-9"
                   >
-                    {!loadingAddress && <RefreshCwIcon className="w-4 h-4" />}
+                    {!loadingAddress && <RefreshCwIcon className="size-4" />}
                   </LoadingButton>
                 </TooltipTrigger>
                 <TooltipContent>Generate a new address</TooltipContent>
@@ -712,7 +712,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                       <TableCell className="font-medium p-3 flex items-center gap-2">
                         Duration
                         <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel">
-                          <InfoIcon className="w-4 h-4 text-muted-foreground" />
+                          <InfoIcon className="size-4 text-muted-foreground" />
                         </ExternalLink>
                       </TableCell>
 

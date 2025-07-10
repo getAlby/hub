@@ -4,7 +4,7 @@ import { Button, ButtonProps } from "src/components/ui/button.tsx";
 type Props = {
   icon: LucideIcon;
   text: string;
-  variant?: "outline";
+  variant?: "outline-solid";
 };
 
 const ResponsiveButton = ({

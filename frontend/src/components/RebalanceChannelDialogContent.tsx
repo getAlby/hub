@@ -149,7 +149,7 @@ export function RebalanceChannelDialogContent({
               className="underline flex items-center mt-4"
             >
               Learn more about rebalancing between channels
-              <ExternalLinkIcon className="w-4 h-4 ml-2" />
+              <ExternalLinkIcon className="size-4 ml-2" />
             </ExternalLink>
             <Alert className="mt-2">
               <AlertTriangleIcon className="h-4 w-4" />

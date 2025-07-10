@@ -544,7 +544,7 @@ export function ZapPlanner() {
                       to={`https://zapplanner.albylabs.com/subscriptions/${app.metadata.zapplanner_subscription_id}`}
                       size="sm"
                     >
-                      View <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                      View <ExternalLinkIcon className="size-4 ml-2" />
                     </ExternalLinkButton>
                   ) : undefined
                 }

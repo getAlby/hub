@@ -203,7 +203,7 @@ export function LightningMessageboardWidget() {
                     </CardTitle>
                     <div>
                       <Badge className="py-1">
-                        <ZapIcon className="w-4 h-4 mr-1" />{" "}
+                        <ZapIcon className="size-4 mr-1" />{" "}
                         {new Intl.NumberFormat().format(message.amount)}
                       </Badge>
                     </div>
@@ -224,7 +224,7 @@ export function LightningMessageboardWidget() {
                 onChange={(e) => setMessageText(e.target.value)}
               />
               <Button>
-                <ZapIcon className="w-4 h-4 mr-2" /> Send
+                <ZapIcon className="size-4 mr-2" /> Send
               </Button>
             </form>
           </CardContent>
@@ -274,7 +274,7 @@ export function LightningMessageboardWidget() {
                   variant="secondary"
                   onClick={() => setAmount("" + topPlace)}
                 >
-                  <ChevronUpIcon className="w-4 h-4 mr-2" />
+                  <ChevronUpIcon className="size-4 mr-2" />
                   Top
                 </Button>
               </div>

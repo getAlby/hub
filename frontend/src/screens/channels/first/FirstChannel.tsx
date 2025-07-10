@@ -124,7 +124,7 @@ export function FirstChannel() {
                   <TableCell className="font-medium p-3 flex items-center gap-2">
                     Duration
                     <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel#which-lightning-service-provider-to-choose">
-                      <InfoIcon className="w-4 h-4 text-muted-foreground" />
+                      <InfoIcon className="size-4 text-muted-foreground" />
                     </ExternalLink>
                   </TableCell>
 
@@ -259,7 +259,7 @@ export function FirstChannel() {
                   onClick={() => setShowAdvanced((current) => !current)}
                 >
                   Advanced Options
-                  <ChevronDownIcon className="w-4 h-4 ml-1" />
+                  <ChevronDownIcon className="size-4 ml-1" />
                 </Button>
               </div>
             )}
