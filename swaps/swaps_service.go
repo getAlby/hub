@@ -926,7 +926,7 @@ func (svc *swapsService) startSwapInListener(swap *db.Swap, updateCh chan boltz.
 					"swapId":     swap.SwapId,
 					"lockupTxId": swap.LockupTxId,
 				}).Info("Lockup transaction confirmed in mempool")
-			case boltz.InvoicePaid:
+			case boltz.InvoicePaid, boltz.TransactionClaimed:
 				svc.markSwapState(swap, constants.SWAP_STATE_SUCCESS)
 				err = svc.db.Model(swap).Updates(&db.Swap{
 					ReceiveAmount: amount,
