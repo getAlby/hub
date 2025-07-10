@@ -1,7 +1,6 @@
 package swaps
 
 import (
-	"bytes"
 	"context"
 	"crypto/rand"
 	"crypto/sha256"
@@ -921,52 +920,7 @@ func (svc *swapsService) startSwapInListener(swap *db.Swap, updateCh chan boltz.
 					"swapId":     swap.SwapId,
 					"lockupTxId": swap.LockupTxId,
 				}).Info("Lockup transaction confirmed in mempool")
-			case boltz.TransactionClaimPending:
-				// this is not a mandatory step as boltz can still claim
-				// the locked up funds via the script path
-				logger.Logger.WithFields(logrus.Fields{
-					"swapId":      swap.SwapId,
-					"transaction": update.Transaction,
-				}).Info("Sending partial signature to boltz to claim the payment")
-
-				// since this is not a mandatory step, we redeclare err
-				// to avoid running the defer function in case of failure
-				claimDetails, err := svc.boltzApi.GetSwapClaimDetails(swap.SwapId)
-				if err != nil {
-					logger.Logger.WithError(err).WithFields(logrus.Fields{
-						"swapId": swap.SwapId,
-					}).Error("Could not get claim details from Boltz")
-					return
-				}
-
-				preimageHash := sha256.Sum256(claimDetails.Preimage)
-				if !bytes.Equal(decodedPreimageHash, preimageHash[:]) {
-					err = errors.New("preimage mismatch")
-					logger.Logger.WithError(err).WithFields(logrus.Fields{
-						"swapId":   swap.SwapId,
-						"preimage": claimDetails.Preimage,
-					}).Error("Boltz returned wrong preimage")
-					return
-				}
-
-				session, _ := boltz.NewSigningSession(tree)
-
-				var partial *boltz.PartialSignature
-				partial, err = session.Sign(claimDetails.TransactionHash, claimDetails.PubNonce)
-				if err != nil {
-					logger.Logger.WithError(err).WithFields(logrus.Fields{
-						"swapId": swap.SwapId,
-					}).Error("Could not create partial signature")
-					return
-				}
-
-				if err = svc.boltzApi.SendSwapClaimSignature(swap.SwapId, partial); err != nil {
-					logger.Logger.WithError(err).WithFields(logrus.Fields{
-						"swapId": swap.SwapId,
-					}).Error("Could not send partial signature to Boltz")
-					return
-				}
-			case boltz.TransactionClaimed:
+			case boltz.InvoicePaid:
 				svc.markSwapState(swap, constants.SWAP_STATE_SUCCESS)
 				err = svc.db.Model(swap).Updates(&db.Swap{
 					ReceiveAmount: amount,
