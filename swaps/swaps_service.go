@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/BoltzExchange/boltz-client/v2/pkg/boltz"
@@ -42,6 +43,9 @@ type swapsService struct {
 	eventPublisher      events.EventPublisher
 	transactionsService transactions.TransactionsService
 	boltzApi            *boltz.Api
+	boltzWs             *boltz.Websocket
+	swapListeners       map[string]chan boltz.SwapUpdate
+	swapListenersLock   sync.Mutex
 }
 
 type SwapsService interface {
@@ -93,6 +97,32 @@ type SwapResponse struct {
 
 func NewSwapsService(ctx context.Context, db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher,
 	lnClient lnclient.LNClient, transactionsService transactions.TransactionsService) SwapsService {
+	boltzApi := &boltz.Api{URL: cfg.GetEnv().BoltzApi}
+	boltzWs := boltzApi.NewWebsocket()
+
+	for {
+		err := boltzWs.Connect()
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to connect to boltz websocket, retrying in 2s...")
+			time.Sleep(2 * time.Second)
+			continue
+		}
+		break
+	}
+
+	logger.Logger.Info("Connected to boltz websocket")
+
+	swapListeners := make(map[string]chan boltz.SwapUpdate)
+	go func() {
+		for update := range boltzWs.Updates {
+			if ch, ok := swapListeners[update.Id]; ok {
+				ch <- update
+			} else {
+				logger.Logger.WithField("swap_id", update.Id).Error("Failed to receive update from boltz")
+			}
+		}
+	}()
+
 	svc := &swapsService{
 		ctx:                 ctx,
 		cfg:                 cfg,
@@ -101,7 +131,9 @@ func NewSwapsService(ctx context.Context, db *gorm.DB, cfg config.Config, keys k
 		eventPublisher:      eventPublisher,
 		transactionsService: transactionsService,
 		lnClient:            lnClient,
-		boltzApi:            &boltz.Api{URL: cfg.GetEnv().BoltzApi},
+		boltzApi:            boltzApi,
+		boltzWs:             boltzWs,
+		swapListeners:       swapListeners,
 	}
 
 	err := svc.EnableAutoSwapOut()
@@ -307,30 +339,7 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 
 	logger.Logger.WithField("swapId", swap.Id).Info("Swap created")
 
-	boltzWs := svc.boltzApi.NewWebsocket()
-	for {
-		err := boltzWs.Connect()
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to connect to boltz websocket, retrying in 2s...")
-			time.Sleep(2 * time.Second)
-			continue
-		}
-		break
-	}
-
-	for {
-		err := boltzWs.Subscribe([]string{swap.Id})
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to subscribe to boltz websocket, retrying in 2s...")
-			time.Sleep(2 * time.Second)
-			continue
-		}
-		break
-	}
-
-	logger.Logger.Info("Connected to boltz websocket")
-
-	go svc.startSwapOutListener(&dbSwap, boltzWs.Updates)
+	go svc.startSwapOutListener(&dbSwap)
 
 	return &SwapResponse{
 		SwapId:      swap.Id,
@@ -462,30 +471,7 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 
 	logger.Logger.WithField("swapId", swap.Id).Info("Swap created")
 
-	boltzWs := svc.boltzApi.NewWebsocket()
-	for {
-		err := boltzWs.Connect()
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to connect to boltz websocket, retrying in 2s...")
-			time.Sleep(2 * time.Second)
-			continue
-		}
-		break
-	}
-
-	for {
-		err := boltzWs.Subscribe([]string{swap.Id})
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to subscribe to boltz websocket, retrying in 2s...")
-			time.Sleep(2 * time.Second)
-			continue
-		}
-		break
-	}
-
-	logger.Logger.Info("Connected to boltz websocket")
-
-	go svc.startSwapInListener(&dbSwap, boltzWs.Updates)
+	go svc.startSwapInListener(&dbSwap)
 
 	return &SwapResponse{
 		SwapId:      swap.Id,
@@ -768,25 +754,24 @@ func (svc *swapsService) subscribePendingSwaps() {
 
 	logger.Logger.WithField("count", len(swaps)).Info("Resuming pending swaps...")
 
-	boltzWs := svc.boltzApi.NewWebsocket()
-
-	for {
-		err := boltzWs.Connect()
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to connect to boltz websocket, retrying in 2s...")
-			time.Sleep(2 * time.Second)
-			continue
-		}
-		break
-	}
-
 	ids := make([]string, len(swaps))
 	for i, s := range swaps {
 		ids[i] = s.SwapId
 	}
 
+	for _, swap := range swaps {
+		switch swap.Type {
+		case constants.SWAP_TYPE_IN:
+			go svc.startSwapInListener(&swap)
+		case constants.SWAP_TYPE_OUT:
+			go svc.startSwapOutListener(&swap)
+		}
+	}
+}
+
+func (svc *swapsService) startSwapInListener(swap *db.Swap) {
 	for {
-		err := boltzWs.Subscribe(ids)
+		err := svc.boltzWs.Subscribe([]string{swap.SwapId})
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to subscribe to boltz websocket, retrying in 2s...")
 			time.Sleep(2 * time.Second)
@@ -795,32 +780,19 @@ func (svc *swapsService) subscribePendingSwaps() {
 		break
 	}
 
-	chans := make(map[string]chan boltz.SwapUpdate, len(swaps))
-	for _, swap := range swaps {
-		ch := make(chan boltz.SwapUpdate)
-		chans[swap.SwapId] = ch
-		switch swap.Type {
-		case constants.SWAP_TYPE_IN:
-			go svc.startSwapInListener(&swap, ch)
-		case constants.SWAP_TYPE_OUT:
-			go svc.startSwapOutListener(&swap, ch)
-		}
-	}
+	logger.Logger.WithField("swapId", swap.SwapId).Info("Subscribed to boltz websocket")
 
-	go func() {
-		for update := range boltzWs.Updates {
-			if ch, ok := chans[update.Id]; ok {
-				ch <- update
-			} else {
-				logger.Logger.WithField("swap_id", update.Id).Error("Failed to receive update from boltz")
-			}
-		}
-	}()
-}
+	updateCh := make(chan boltz.SwapUpdate)
+	svc.swapListenersLock.Lock()
+	svc.swapListeners[swap.SwapId] = updateCh
+	svc.swapListenersLock.Unlock()
 
-func (svc *swapsService) startSwapInListener(swap *db.Swap, updateCh chan boltz.SwapUpdate) {
 	var err error
 	defer func() {
+		svc.swapListenersLock.Lock()
+		delete(svc.swapListeners, swap.SwapId)
+		svc.swapListenersLock.Unlock()
+		svc.boltzWs.Unsubscribe(swap.SwapId)
 		if err != nil {
 			svc.markSwapState(swap, constants.SWAP_STATE_FAILED)
 		}
@@ -965,9 +937,30 @@ func (svc *swapsService) startSwapInListener(swap *db.Swap, updateCh chan boltz.
 	}
 }
 
-func (svc *swapsService) startSwapOutListener(swap *db.Swap, updateCh chan boltz.SwapUpdate) {
+func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
+	for {
+		err := svc.boltzWs.Subscribe([]string{swap.SwapId})
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to subscribe to boltz websocket, retrying in 2s...")
+			time.Sleep(2 * time.Second)
+			continue
+		}
+		break
+	}
+
+	logger.Logger.WithField("swapId", swap.SwapId).Info("Subscribed to boltz websocket")
+
+	updateCh := make(chan boltz.SwapUpdate)
+	svc.swapListenersLock.Lock()
+	svc.swapListeners[swap.SwapId] = updateCh
+	svc.swapListenersLock.Unlock()
+
 	var err error
 	defer func() {
+		svc.swapListenersLock.Lock()
+		delete(svc.swapListeners, swap.SwapId)
+		svc.swapListenersLock.Unlock()
+		svc.boltzWs.Unsubscribe(swap.SwapId)
 		if err != nil {
 			svc.markSwapState(swap, constants.SWAP_STATE_FAILED)
 		}
