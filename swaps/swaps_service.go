@@ -112,17 +112,6 @@ func NewSwapsService(ctx context.Context, db *gorm.DB, cfg config.Config, keys k
 
 	logger.Logger.Info("Connected to boltz websocket")
 
-	swapListeners := make(map[string]chan boltz.SwapUpdate)
-	go func() {
-		for update := range boltzWs.Updates {
-			if ch, ok := swapListeners[update.Id]; ok {
-				ch <- update
-			} else {
-				logger.Logger.WithField("swap_id", update.Id).Error("Failed to receive update from boltz")
-			}
-		}
-	}()
-
 	svc := &swapsService{
 		ctx:                 ctx,
 		cfg:                 cfg,
@@ -133,8 +122,21 @@ func NewSwapsService(ctx context.Context, db *gorm.DB, cfg config.Config, keys k
 		lnClient:            lnClient,
 		boltzApi:            boltzApi,
 		boltzWs:             boltzWs,
-		swapListeners:       swapListeners,
+		swapListeners:       make(map[string]chan boltz.SwapUpdate),
 	}
+
+	go func() {
+		for update := range svc.boltzWs.Updates {
+			svc.swapListenersLock.Lock()
+			ch, ok := svc.swapListeners[update.Id]
+			svc.swapListenersLock.Unlock()
+			if ok {
+				ch <- update
+			} else {
+				logger.Logger.WithField("swap_id", update.Id).Error("Failed to receive update from boltz")
+			}
+		}
+	}()
 
 	err := svc.EnableAutoSwapOut()
 	if err != nil {
@@ -1283,7 +1285,7 @@ func (svc *swapsService) doMempoolRequest(endpoint string, result interface{}) e
 		}).Error("Failed to create http request")
 		return err
 	}
-
+	req = req.WithContext(svc.ctx)
 	res, err := client.Do(req)
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
