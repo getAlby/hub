@@ -369,7 +369,7 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		barkWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "bark")
 
-		lnClient, err = bark.NewBarkService(ctx, mnemonic, barkWorkdir)
+		lnClient, err = bark.NewBarkService(ctx, mnemonic, barkWorkdir, svc.eventPublisher)
 	default:
 		logger.Logger.WithField("backend_type", lnBackend).Error("Unsupported LNBackendType")
 		return fmt.Errorf("unsupported backend type: %s", lnBackend)

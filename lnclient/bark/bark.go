@@ -2,10 +2,13 @@ package bark
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -13,8 +16,10 @@ import (
 	"github.com/sirupsen/logrus"
 
 	bindings "github.com/getAlby/hub/bark"
+	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/nip47/notifications"
 )
 
 const barkDB = "bark.sqlite"
@@ -34,12 +39,13 @@ const nodeCommandBolt11Invoice = "bolt11_invoice"
 const nodeCommandClaimBolt11Payment = "claim_bolt11_payment"
 
 type BarkService struct {
-	wallet *bindings.Wallet
-	cancel context.CancelFunc
-	wg     *sync.WaitGroup
+	wallet         *bindings.Wallet
+	eventPublisher events.EventPublisher
+	cancel         context.CancelFunc
+	wg             *sync.WaitGroup
 }
 
-func NewBarkService(ctx context.Context, mnemonic, workdir string) (*BarkService, error) {
+func NewBarkService(ctx context.Context, mnemonic, workdir string, eventPublisher events.EventPublisher) (*BarkService, error) {
 	err := os.MkdirAll(workdir, 0755)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create Bark working dir")
@@ -118,9 +124,10 @@ func NewBarkService(ctx context.Context, mnemonic, workdir string) (*BarkService
 	}()
 
 	return &BarkService{
-		wallet: wallet,
-		cancel: cancel,
-		wg:     wg,
+		wallet:         wallet,
+		cancel:         cancel,
+		wg:             wg,
+		eventPublisher: eventPublisher,
 	}, nil
 }
 
@@ -221,7 +228,47 @@ func (s *BarkService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err
 }
 
 func (s *BarkService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
-	return nil, errors.New("not implemented")
+
+	invoice, err := s.wallet.Bolt11Invoice(uint64(amount / 1000))
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to create bolt11 invoice")
+		return nil, err
+	}
+
+	logger.Logger.WithField("invoice", invoice).Info("created bolt11 invoice")
+
+	// FIXME: this fetch the preimage with fetch_offchain_onboard_by_payment_hash
+	fakePreimageBytes := make([]byte, 32) // 32 bytes * 8 bits/byte = 256 bits
+	_, err = rand.Read(fakePreimageBytes)
+	if err != nil {
+		return nil, err
+	}
+	fakePreimage := hex.EncodeToString(fakePreimageBytes)
+
+	transaction, err = invoiceToTransaction(invoice)
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to map bolt11 invoice to transaction")
+		return nil, err
+
+	}
+
+	go func() {
+		err := s.wallet.ClaimBolt11Payment(invoice)
+		if err != nil {
+			logger.Logger.WithError(err).Error("failed to claim bolt11 payment")
+		}
+
+		transaction.Preimage = fakePreimage
+		settledAt := time.Now().Unix()
+		transaction.SettledAt = &settledAt
+
+		s.eventPublisher.Publish(&events.Event{
+			Event:      "nwc_lnclient_payment_received",
+			Properties: transaction,
+		})
+	}()
+
+	return transaction, nil
 }
 
 func (s *BarkService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
@@ -365,11 +412,14 @@ func (s *BarkService) UpdateLastWalletSyncRequest() {
 }
 
 func (s *BarkService) GetSupportedNIP47Methods() []string {
-	return []string{"pay_invoice", "get_balance", "get_info"}
+	return []string{"pay_invoice", "get_balance", "get_info", "make_invoice"}
 }
 
 func (s *BarkService) GetSupportedNIP47NotificationTypes() []string {
-	return []string{}
+	return []string{
+		notifications.PAYMENT_RECEIVED_NOTIFICATION,
+		// TODO: notifications.PAYMENT_SENT_NOTIFICATION,
+	}
 }
 
 func (s *BarkService) MakeOffer(ctx context.Context, description string) (string, error) {
@@ -775,4 +825,46 @@ func convertUtxoToCommandResp(utxo bindings.Utxo) map[string]interface{} {
 	}
 
 	return respUtxo
+}
+
+func invoiceToTransaction(invoice string) (*lnclient.Transaction, error) {
+	transactionType := "incoming"
+
+	var expiresAt *int64
+	var createdAt int64
+	var description string
+	var descriptionHash string
+	var settledAt *int64
+	paymentHash := ""
+	metadata := map[string]interface{}{}
+
+	paymentRequest, err := decodepay.Decodepay(strings.ToLower(invoice))
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"bolt11": invoice,
+		}).WithError(err).Error("Failed to decode bolt11 invoice")
+
+		return nil, err
+	}
+	createdAt = int64(paymentRequest.CreatedAt)
+	expiresAtUnix := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
+	expiresAt = &expiresAtUnix
+	description = paymentRequest.Description
+	descriptionHash = paymentRequest.DescriptionHash
+
+	paymentHash = paymentRequest.PaymentHash
+
+	return &lnclient.Transaction{
+		Type:            transactionType,
+		Preimage:        "",
+		PaymentHash:     paymentHash,
+		SettledAt:       settledAt,
+		Amount:          paymentRequest.MSatoshi,
+		Invoice:         invoice,
+		CreatedAt:       createdAt,
+		Description:     description,
+		DescriptionHash: descriptionHash,
+		ExpiresAt:       expiresAt,
+		Metadata:        metadata,
+	}, nil
 }
