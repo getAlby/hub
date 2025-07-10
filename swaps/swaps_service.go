@@ -944,7 +944,6 @@ func (svc *swapsService) startSwapInListener(swap *db.Swap, updateCh chan boltz.
 					Properties: map[string]interface{}{
 						"swapType": constants.SWAP_TYPE_IN,
 						"swapId":   swap.SwapId,
-						"amount":   amount,
 					},
 				})
 				return
@@ -1062,10 +1061,8 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap, updateCh chan boltz
 					svc.eventPublisher.Publish(&events.Event{
 						Event: "nwc_swap_succeeded",
 						Properties: map[string]interface{}{
-							"swapType":    constants.SWAP_TYPE_OUT,
-							"swapId":      swap.SwapId,
-							"amount":      swap.ReceiveAmount,
-							"destination": swap.DestinationAddress,
+							"swapType": constants.SWAP_TYPE_OUT,
+							"swapId":   swap.SwapId,
 						},
 					})
 					return

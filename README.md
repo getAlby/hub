@@ -573,6 +573,7 @@ Internally Alby Hub uses a basic implementation of the pubsub messaging pattern 
     - `nwc_app_deleted` - a new app connection was deleted
     - `nwc_lnclient_*` - underlying LNClient events, consumed only by the transactions service.
     - `nwc_alby_account_connected` - user connects alby account for first time
+    - `nwc_swap_succeeded` - successfully made a boltz swap
 
 ### NIP-47 Handlers
 
