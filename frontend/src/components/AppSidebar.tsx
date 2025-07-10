@@ -125,7 +125,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar
-      className="top-[--header-height] !h-[calc(100svh-var(--header-height))]"
+      className="top-(--header-height) h-[calc(100svh-var(--header-height))]!"
       collapsible="offcanvas"
     >
       <SidebarHeader>
@@ -207,7 +207,7 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
                 side={isMobile ? "bottom" : "right"}
                 align="end"
                 sideOffset={4}

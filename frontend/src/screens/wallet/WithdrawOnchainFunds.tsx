@@ -137,7 +137,7 @@ export default function WithdrawOnchainFunds() {
         <div className="flex items-center justify-between gap-4 max-w-sm">
           <p className="break-all font-semibold">{transactionId}</p>
           <CopyIcon
-            className="cursor-pointer text-muted-foreground w-4 h-4 flex-shrink-0"
+            className="cursor-pointer text-muted-foreground w-4 h-4 shrink-0"
             onClick={() => {
               copy(transactionId);
             }}

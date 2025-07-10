@@ -267,7 +267,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <AlertCircleIcon className="w-3 h-3 ml-2 flex-shrink-0" />
+                              <AlertCircleIcon className="w-3 h-3 ml-2 shrink-0" />
                             </TooltipTrigger>
                             <TooltipContent className="w-[300px]">
                               This connection does not have its own unique

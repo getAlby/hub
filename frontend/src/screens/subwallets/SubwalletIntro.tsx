@@ -34,7 +34,7 @@ export function SubwalletIntro() {
         }
       />
       <div>
-        <div className="flex flex-col gap-6 max-w-screen-md">
+        <div className="flex flex-col gap-6 max-w-(--breakpoint-md)">
           <div className="mb-2">
             <img src={SubWalletDarkSVG} className="w-72 hidden dark:block" />
             <img src={SubWalletLightSVG} className="w-72 dark:hidden" />

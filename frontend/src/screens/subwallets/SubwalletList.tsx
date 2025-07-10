@@ -140,7 +140,7 @@ export function SubwalletList() {
               Total amount of assets under management
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex-grow">
+          <CardContent className="grow">
             <div className="mt-4 mb-1">
               <span className="text-2xl font-medium balance sensitive">
                 {new Intl.NumberFormat().format(
@@ -159,7 +159,7 @@ export function SubwalletList() {
               Number of Sub-wallets backed by your node funds
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex-grow flex flex-col gap-4">
+          <CardContent className="grow flex flex-col gap-4">
             <div className="flex flex-col gap-2 mt-4">
               <span className="text-2xl font-medium">
                 {subwalletApps.length} /{" "}

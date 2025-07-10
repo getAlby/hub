@@ -37,7 +37,7 @@ export function AppOfTheDayWidget() {
             alt="logo"
             className="inline rounded-lg w-12 h-12"
           />
-          <div className="flex-grow">
+          <div className="grow">
             <CardTitle>{app.title}</CardTitle>
             <CardDescription>{app.description}</CardDescription>
           </div>

@@ -18,7 +18,7 @@ function SuggestedAppCard({ id, title, description, logo }: SuggestedApp) {
               alt="logo"
               className="inline rounded-lg w-12 h-12"
             />
-            <div className="flex-grow">
+            <div className="grow">
               <CardTitle>{title}</CardTitle>
               <CardDescription>{description}</CardDescription>
             </div>
@@ -40,7 +40,7 @@ function InternalAppCard({ id, title, description, logo }: SuggestedApp) {
               alt="logo"
               className="inline rounded-lg w-12 h-12"
             />
-            <div className="flex-grow">
+            <div className="grow">
               <CardTitle>{title}</CardTitle>
               <CardDescription>{description}</CardDescription>
             </div>

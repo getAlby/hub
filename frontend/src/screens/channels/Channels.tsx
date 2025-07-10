@@ -403,7 +403,7 @@ export default function Channels() {
               "flex flex-col sm:flex-row flex-wrap gap-3 slashed-zero"
             )}
           >
-            <Card className="flex flex-1 sm:flex-[2] flex-col">
+            <Card className="flex flex-1 sm:flex-2 flex-col">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="font-semibold text-2xl">
                   Lightning
@@ -454,7 +454,7 @@ export default function Channels() {
                       </TooltipProvider>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="flex-grow pb-0">
+                  <CardContent className="grow pb-0">
                     {!balances && (
                       <div>
                         <div className="animate-pulse d-inline ">
@@ -497,7 +497,7 @@ export default function Channels() {
                       </TooltipProvider>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="flex-grow pb-0">
+                  <CardContent className="grow pb-0">
                     {balances && (
                       <>
                         <div className="text-xl font-medium balance sensitive mb-1">
@@ -524,7 +524,7 @@ export default function Channels() {
                 </CardTitle>
                 <LinkIcon className="h-6 w-6 text-muted-foreground" />
               </CardHeader>
-              <CardContent className="flex-grow">
+              <CardContent className="grow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pl-0">
                   <CardTitle className="text-sm font-medium">
                     <TooltipProvider>
