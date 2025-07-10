@@ -130,7 +130,13 @@ export default function SwapOutStatus() {
                       <div className="flex items-center text-muted-foreground text-sm">
                         <Loading className="w-5 h-5 mr-2" />
                         <div className="flex items-center gap-2">
-                          <p>Waiting for onchain confirmation...</p>
+                          <p>
+                            Waiting for{" "}
+                            {swap.claimTxId
+                              ? "onchain confirmation"
+                              : "2 onchain confirmations"}
+                            ...
+                          </p>
                           <ExternalLink
                             to={`${info?.mempoolUrl}/tx/${swap.claimTxId || swap.lockupTxId}`}
                             className="flex items-center underline text-foreground"
