@@ -22,7 +22,6 @@ func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *R
 
 	receiveMetadata := map[string]interface{}{
 		"receive_through": rebalanceChannelRequest.ReceiveThroughNodePubkey,
-		"amount_sat":      rebalanceChannelRequest.AmountSat,
 	}
 
 	receiveInvoice, err := api.svc.GetTransactionsService().MakeInvoice(ctx, rebalanceChannelRequest.AmountSat*1000, "Alby Hub Rebalance through "+rebalanceChannelRequest.ReceiveThroughNodePubkey, "", 0, receiveMetadata, api.svc.GetLNClient(), nil, nil)
