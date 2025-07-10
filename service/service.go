@@ -7,9 +7,11 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/adrg/xdg"
 	"github.com/nbd-wtf/go-nostr"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
 	"github.com/joho/godotenv"
@@ -158,6 +160,20 @@ func NewService(ctx context.Context) (*service, error) {
 		}
 	}
 
+	go func() {
+		timer := time.NewTicker(1 * time.Hour)
+		defer timer.Stop()
+		for {
+			select {
+			case <-timer.C:
+				svc.removeExcessEvents()
+			case <-ctx.Done():
+				svc.Shutdown()
+				return
+			}
+		}
+	}()
+
 	return svc, nil
 }
 
@@ -272,4 +288,40 @@ func (svc *service) IsRelayReady() bool {
 
 func (svc *service) GetStartupState() string {
 	return svc.startupState
+}
+
+func (svc *service) removeExcessEvents() {
+	logger.Logger.Debug("Cleaning up excess events")
+
+	var events []db.RequestEvent
+	err := svc.db.Select("id").Order("id asc").Find(&events).Error
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch request events")
+	}
+
+	maxEvents := 1000
+	numEventsToDelete := len(events) - maxEvents
+
+	if numEventsToDelete < 1 {
+		return
+	}
+	deleteEventsBelowId := events[numEventsToDelete].ID
+
+	logger.Logger.WithFields(logrus.Fields{
+		"amount":   numEventsToDelete,
+		"below_id": deleteEventsBelowId,
+	}).Debug("Removing excess events")
+
+	err = svc.db.Exec("delete from request_events where id < ?", deleteEventsBelowId).Error
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"amount":   numEventsToDelete,
+			"below_id": deleteEventsBelowId,
+		}).Error("Failed to delete excess request events")
+		return
+	}
+	logger.Logger.WithFields(logrus.Fields{
+		"amount":   numEventsToDelete,
+		"below_id": deleteEventsBelowId,
+	}).Info("Removed excess events")
 }
