@@ -40,7 +40,7 @@ export function SwapAlert({ className, minChannels = 2 }: SwapAlertProps) {
             variant="outline"
           >
             Learn more
-            <ExternalLinkIcon className="w-4 h-4 ml-2" />
+            <ExternalLinkIcon className="size-4 ml-2" />
           </ExternalLinkButton>
           <LinkButton to="/channels?swap=true" variant="secondary">
             Swap {isSwapOut ? "Out" : "In"}

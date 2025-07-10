@@ -43,7 +43,7 @@ export function AlbyAccount() {
               className="flex-1 gap-2 items-center justify-center"
             >
               Alby Account Settings{" "}
-              <SquareArrowOutUpRightIcon className="w-4 h-4 mr-2" />
+              <SquareArrowOutUpRightIcon className="size-4 mr-2" />
             </ExternalLinkButton>
           </div>
         </div>
@@ -65,7 +65,7 @@ export function AlbyAccount() {
                 variant={"destructive_outline"}
                 className="flex-1 gap-2 items-center justify-center py-2 px-4"
               >
-                <RefreshCcwIcon className="w-4 h-4 mr-2" /> Change Alby Account
+                <RefreshCcwIcon className="size-4 mr-2" /> Change Alby Account
               </Button>
             </UnlinkAlbyAccount>
           </div>
@@ -85,7 +85,7 @@ export function AlbyAccount() {
                 variant={"destructive_outline"}
                 className="flex-1 gap-2 items-center justify-center py-2 px-4"
               >
-                <Link2OffIcon className="w-4 h-4 mr-2" /> Unlink Alby Account
+                <Link2OffIcon className="size-4 mr-2" /> Unlink Alby Account
               </Button>
             </UnlinkAlbyAccount>
           </div>

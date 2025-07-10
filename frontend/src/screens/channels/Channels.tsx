@@ -227,7 +227,7 @@ export default function Channels() {
                           {nodeConnectionInfo?.pubkey || "Loading..."}
                         </div>
                         {nodeConnectionInfo && (
-                          <CopyIcon className="shrink-0 w-4 h-4" />
+                          <CopyIcon className="shrink-0 size-4" />
                         )}
                       </div>
                     </DropdownMenuItem>
@@ -265,9 +265,9 @@ export default function Channels() {
                       className="cursor-pointer"
                     >
                       <div className="mr-2 text-muted-foreground flex flex-row items-center">
-                        <LinkIcon className="w-4 h-4" />
-                        <ArrowRightIcon className="w-4 h-4" />
-                        <ZapIcon className="w-4 h-4" />
+                        <LinkIcon className="size-4" />
+                        <ArrowRightIcon className="size-4" />
+                        <ZapIcon className="size-4" />
                       </div>
                       Swap in
                     </DropdownMenuItem>
@@ -276,9 +276,9 @@ export default function Channels() {
                       className="cursor-pointer"
                     >
                       <div className="mr-2 text-muted-foreground flex flex-row items-center">
-                        <ZapIcon className="w-4 h-4" />
-                        <ArrowRightIcon className="w-4 h-4" />
-                        <LinkIcon className="w-4 h-4" />
+                        <ZapIcon className="size-4" />
+                        <ArrowRightIcon className="size-4" />
+                        <LinkIcon className="size-4" />
                       </div>
                       Swap out
                     </DropdownMenuItem>
@@ -305,7 +305,7 @@ export default function Channels() {
                                 className="w-full flex items-center"
                                 to="/wallet/node-alias"
                               >
-                                <SparklesIcon className="w-4 h-4 mr-2" /> Set
+                                <SparklesIcon className="size-4 mr-2" /> Set
                                 Node Alias
                               </Link>
                             </DropdownMenuItem>
@@ -339,7 +339,7 @@ export default function Channels() {
                           </div>
                         )}
                         <HeartIcon
-                          className="w-4 h-4"
+                          className="size-4"
                           stroke={"hsl(var(--primary))"}
                           strokeWidth={3}
                           fill={
@@ -570,7 +570,7 @@ export default function Channels() {
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger>
-                                  <AlertTriangleIcon className="w-3 h-3 text-muted-foreground" />
+                                  <AlertTriangleIcon className="size-3 text-muted-foreground" />
                                 </TooltipTrigger>
                                 <TooltipContent className="w-[300px]">
                                   You have insufficient funds in reserve to
@@ -630,7 +630,7 @@ export default function Channels() {
                         {nodes.find(
                           (node) => node.public_key === details.nodeId
                         )?.alias || "Unknown"}
-                        <ExternalLinkIcon className="ml-1 w-4 h-4 inline" />
+                        <ExternalLinkIcon className="ml-1 size-4 inline" />
                       </ExternalLink>{" "}
                       ({new Intl.NumberFormat().format(details.amount)}{" "}
                       sats)&nbsp;
@@ -639,7 +639,7 @@ export default function Channels() {
                         className="underline"
                       >
                         funding tx
-                        <ExternalLinkIcon className="ml-1 w-4 h-4 inline" />
+                        <ExternalLinkIcon className="ml-1 size-4 inline" />
                       </ExternalLink>
                       {index <
                         balances.onchain.pendingBalancesDetails.length - 1 &&

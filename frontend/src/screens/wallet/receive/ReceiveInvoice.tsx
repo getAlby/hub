@@ -135,7 +135,7 @@ export default function ReceiveInvoice() {
                   <>
                     <CardHeader>
                       <CardTitle className="flex justify-center">
-                        <Loading className="w-4 h-4 mr-2" />
+                        <Loading className="size-4 mr-2" />
                         <p>Waiting for payment</p>
                       </CardTitle>
                     </CardHeader>
@@ -150,7 +150,7 @@ export default function ReceiveInvoice() {
                       </div>
                       <div>
                         <Button onClick={copy} variant="outline">
-                          <CopyIcon className="w-4 h-4 mr-2" />
+                          <CopyIcon className="size-4 mr-2" />
                           Copy Invoice
                         </Button>
                       </div>

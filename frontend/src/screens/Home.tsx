@@ -91,7 +91,7 @@ function Home() {
                 <CardContent className="text-right">
                   <Button variant="outline">
                     Open Alby Account
-                    <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                    <ExternalLinkIcon className="size-4 ml-2" />
                   </Button>
                 </CardContent>
               </Card>
@@ -147,7 +147,7 @@ function Home() {
                 <CardContent className="text-right">
                   <Button variant="outline">
                     Install Alby Extension
-                    <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                    <ExternalLinkIcon className="size-4 ml-2" />
                   </Button>
                 </CardContent>
               </Card>

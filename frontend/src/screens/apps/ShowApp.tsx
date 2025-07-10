@@ -202,7 +202,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button variant="destructive" size="icon">
-                    <Trash2Icon className="w-4 h-4" />
+                    <Trash2Icon className="size-4" />
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -267,7 +267,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <AlertCircleIcon className="w-3 h-3 ml-2 shrink-0" />
+                              <AlertCircleIcon className="size-3 ml-2 shrink-0" />
                             </TooltipTrigger>
                             <TooltipContent className="w-[300px]">
                               This connection does not have its own unique

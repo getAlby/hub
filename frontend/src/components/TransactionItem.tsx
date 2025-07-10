@@ -114,7 +114,7 @@ function TransactionItem({ tx }: Props) {
         <Icon
           strokeWidth={3}
           className={cn(
-            "w-6 h-6 md:w-8 md:h-8",
+            "size-6 md:w-8 md:h-8",
             tx.state === "failed"
               ? "stroke-red-500 dark:stroke-rose-500"
               : tx.state === "pending"
@@ -307,9 +307,9 @@ function TransactionItem({ tx }: Props) {
               >
                 Details
                 {showDetails ? (
-                  <ChevronUpIcon className="w-4 h-4" />
+                  <ChevronUpIcon className="size-4" />
                 ) : (
-                  <ChevronDownIcon className="w-4 h-4" />
+                  <ChevronDownIcon className="size-4" />
                 )}
               </div>
               {showDetails && (
@@ -323,7 +323,7 @@ function TransactionItem({ tx }: Props) {
                           {bolt12Offer.id}
                         </p>
                         <CopyIcon
-                          className="cursor-pointer text-muted-foreground w-4 h-4 shrink-0"
+                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
                           onClick={() => {
                             copy(bolt12Offer.id as string);
                           }}
@@ -339,7 +339,7 @@ function TransactionItem({ tx }: Props) {
                           {tx.preimage}
                         </p>
                         <CopyIcon
-                          className="cursor-pointer text-muted-foreground w-4 h-4 shrink-0"
+                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
                           onClick={() => {
                             if (tx.preimage) {
                               copy(tx.preimage);
@@ -356,7 +356,7 @@ function TransactionItem({ tx }: Props) {
                         {tx.paymentHash}
                       </p>
                       <CopyIcon
-                        className="cursor-pointer text-muted-foreground w-4 h-4 shrink-0"
+                        className="cursor-pointer text-muted-foreground size-4 shrink-0"
                         onClick={() => {
                           copy(tx.paymentHash);
                         }}
@@ -371,7 +371,7 @@ function TransactionItem({ tx }: Props) {
                           {tx.failureReason}
                         </p>
                         <CopyIcon
-                          className="cursor-pointer text-muted-foreground w-4 h-4 shrink-0"
+                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
                           onClick={() => {
                             copy(tx.failureReason);
                           }}
@@ -387,7 +387,7 @@ function TransactionItem({ tx }: Props) {
                           {JSON.stringify(tx.metadata)}
                         </p>
                         <CopyIcon
-                          className="cursor-pointer text-muted-foreground w-4 h-4 shrink-0"
+                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
                           onClick={() => {
                             copy(JSON.stringify(tx.metadata));
                           }}

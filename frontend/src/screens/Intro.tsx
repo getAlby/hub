@@ -158,7 +158,7 @@ function Slide({
         </div>
       </div>
       <Button size="icon" onClick={slideNext} className="">
-        <ArrowRightIcon className="w-4 h-4" />
+        <ArrowRightIcon className="size-4" />
       </Button>
     </div>
   );

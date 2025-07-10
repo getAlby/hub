@@ -177,7 +177,7 @@ function Swaps() {
                   className="px-2"
                   onClick={paste}
                 >
-                  <ClipboardPasteIcon className="w-4 h-4" />
+                  <ClipboardPasteIcon className="size-4" />
                 </Button>
               </div>
             </div>

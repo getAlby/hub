@@ -132,9 +132,7 @@ export default function DepositBitcoin() {
                   className="w-28"
                   loading={loadingAddress}
                 >
-                  {!loadingAddress && (
-                    <RefreshCwIcon className="w-4 h-4 mr-2" />
-                  )}
+                  {!loadingAddress && <RefreshCwIcon className="size-4 mr-2" />}
                   Change
                 </LoadingButton>
                 <Button
@@ -144,7 +142,7 @@ export default function DepositBitcoin() {
                     copyToClipboard(onchainAddress, toast);
                   }}
                 >
-                  <CopyIcon className="w-4 h-4 mr-2" />
+                  <CopyIcon className="size-4 mr-2" />
                   Copy
                 </Button>
               </div>
@@ -197,7 +195,7 @@ function DepositPending({
               className="flex items-center mt-2"
             >
               View on Mempool
-              <ExternalLinkIcon className="w-4 h-4 ml-2" />
+              <ExternalLinkIcon className="size-4 ml-2" />
             </ExternalLink>
           </Button>
         </div>
@@ -230,7 +228,7 @@ function DepositSuccess({ amount, txId }: { amount: number; txId: string }) {
                 className="flex items-center mt-2"
               >
                 View on Mempool
-                <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                <ExternalLinkIcon className="size-4 ml-2" />
               </ExternalLink>
             </Button>
           </div>

@@ -80,7 +80,7 @@ export default function DeveloperSettings() {
             className="flex-1 gap-2 items-center justify-center"
           >
             Learn More on nwc.dev{" "}
-            <SquareArrowOutUpRightIcon className="w-4 h-4 mr-2" />
+            <SquareArrowOutUpRightIcon className="size-4 mr-2" />
           </ExternalLinkButton>
         </div>
       </div>
@@ -150,7 +150,7 @@ export default function DeveloperSettings() {
                   copyToClipboard(token, toast);
                 }}
               >
-                <CopyIcon className="w-4 h-4" />
+                <CopyIcon className="size-4" />
               </Button>
             </div>
             <div className="my-4 border rounded-lg p-4">

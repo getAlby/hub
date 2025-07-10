@@ -56,7 +56,7 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
           variant="outline"
           className="flex-1 flex gap-2 items-center justify-center"
         >
-          <CopyIcon className="w-4 h-4 mr-2" />
+          <CopyIcon className="size-4 mr-2" />
           Copy Invoice
         </Button>
         <ExternalLinkButton
@@ -64,7 +64,7 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
           variant="secondary"
           className="flex-1 flex gap-2 items-center justify-center"
         >
-          <LightbulbIcon className="w-4 h-4" /> How to pay
+          <LightbulbIcon className="size-4" /> How to pay
         </ExternalLinkButton>
       </div>
     </div>

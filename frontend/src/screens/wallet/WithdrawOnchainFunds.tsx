@@ -137,7 +137,7 @@ export default function WithdrawOnchainFunds() {
         <div className="flex items-center justify-between gap-4 max-w-sm">
           <p className="break-all font-semibold">{transactionId}</p>
           <CopyIcon
-            className="cursor-pointer text-muted-foreground w-4 h-4 shrink-0"
+            className="cursor-pointer text-muted-foreground size-4 shrink-0"
             onClick={() => {
               copy(transactionId);
             }}
@@ -148,7 +148,7 @@ export default function WithdrawOnchainFunds() {
           className="underline flex items-center mt-2"
         >
           View on Mempool
-          <ExternalLinkIcon className="w-4 h-4 ml-2" />
+          <ExternalLinkIcon className="size-4 ml-2" />
         </ExternalLink>
         <p>Your on-chain balance in Alby Hub may take some time to update.</p>
       </div>
@@ -326,7 +326,7 @@ export default function WithdrawOnchainFunds() {
                   className="text-muted-foreground text-xs"
                   onClick={() => setShowAdvanced((current) => !current)}
                 >
-                  <ChevronDown className="w-4 h-4 mr-2" />
+                  <ChevronDown className="size-4 mr-2" />
                   Advanced Options
                 </Button>
               )}

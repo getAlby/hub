@@ -174,7 +174,7 @@ export function ConnectAppCard({
         {!app.lastEventAt ? (
           <>
             <div className="flex flex-row items-center gap-2 text-sm">
-              <Loading className="w-4 h-4" />
+              <Loading className="size-4" />
               <p>Waiting for app to connect</p>
             </div>
             {timeout && (
@@ -188,7 +188,7 @@ export function ConnectAppCard({
           </>
         ) : (
           <Badge variant="positive">
-            <CheckIcon className="w-4 h-4 mr-2" />
+            <CheckIcon className="size-4 mr-2" />
             <p>App connected</p>
           </Badge>
         )}
@@ -217,7 +217,7 @@ export function ConnectAppCard({
         </a>
         <div>
           <Button onClick={copy} variant="outline">
-            <CopyIcon className="w-4 h-4 mr-2" />
+            <CopyIcon className="size-4 mr-2" />
             Copy
           </Button>
         </div>

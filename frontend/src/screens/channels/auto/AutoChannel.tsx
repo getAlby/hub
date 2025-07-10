@@ -206,7 +206,7 @@ export function AutoChannel() {
                   onClick={() => setShowAdvanced((current) => !current)}
                 >
                   Advanced Options
-                  <ChevronDownIcon className="w-4 h-4 ml-1" />
+                  <ChevronDownIcon className="size-4 ml-1" />
                 </Button>
               </div>
             )}

@@ -345,7 +345,7 @@ function NewChannelInternal({
                                   {peer.name !== "Custom" && (
                                     <img
                                       src={peer.image}
-                                      className="w-8 h-8 object-contain"
+                                      className="size-8 object-contain"
                                     />
                                   )}
                                   <div>
@@ -422,7 +422,7 @@ function NewChannelInternal({
               className="text-muted-foreground text-xs"
               onClick={() => setShowAdvanced((current) => !current)}
             >
-              <ChevronDownIcon className="w-4 h-4 mr-2" />
+              <ChevronDownIcon className="size-4 mr-2" />
               Advanced Options
             </Button>
           )}

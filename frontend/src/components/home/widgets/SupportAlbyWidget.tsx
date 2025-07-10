@@ -35,7 +35,7 @@ export function SupportAlbyWidget() {
       <CardFooter className="flex justify-end">
         <Link to="/support-alby">
           <Button variant="outline">
-            <HeartIcon className="w-4 h-4 mr-2" />
+            <HeartIcon className="size-4 mr-2" />
             Become a Supporter
           </Button>
         </Link>

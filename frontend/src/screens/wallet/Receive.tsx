@@ -59,7 +59,7 @@ export default function Receive() {
                   }}
                   className="flex-1 flex gap-2 items-center justify-center"
                 >
-                  <CopyIcon className="w-4 h-4" /> Copy Lightning Address
+                  <CopyIcon className="size-4" /> Copy Lightning Address
                 </Button>
               </div>
 
@@ -69,7 +69,7 @@ export default function Receive() {
                   variant="outline"
                   className="flex-1 flex gap-2 items-center justify-center"
                 >
-                  <PencilIcon className="w-4 h-4" /> Amount
+                  <PencilIcon className="size-4" /> Amount
                 </LinkButton>
                 {info.backendType === "LDK" && (
                   <LinkButton

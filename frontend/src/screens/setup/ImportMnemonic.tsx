@@ -83,7 +83,7 @@ export function ImportMnemonic() {
           <div className="flex flex-col gap-4">
             <div className="flex gap-2 items-center">
               <div className="shrink-0 text-muted-foreground">
-                <LifeBuoyIcon className="w-6 h-6" />
+                <LifeBuoyIcon className="size-6" />
               </div>
               <span className="text-muted-foreground">
                 Your recovery phrase is a set of 12 words used to restore your
@@ -92,7 +92,7 @@ export function ImportMnemonic() {
             </div>
             <div className="flex gap-2 items-center">
               <div className="shrink-0 text-muted-foreground">
-                <ShieldCheckIcon className="w-6 h-6" />
+                <ShieldCheckIcon className="size-6" />
               </div>
               <span className="text-muted-foreground">
                 Keep it safe and private to ensure your funds remain secure.
@@ -100,7 +100,7 @@ export function ImportMnemonic() {
             </div>
             <div className="flex gap-2 items-center">
               <div className="shrink-0 text-muted-foreground">
-                <ShieldAlertIcon className="w-6 h-6" />
+                <ShieldAlertIcon className="size-6" />
               </div>
               <span className="text-muted-foreground">
                 Your recovery phrase cannot restore funds from lightning
