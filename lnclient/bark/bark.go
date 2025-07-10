@@ -12,9 +12,9 @@ import (
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 
+	bindings "github.com/getAlby/hub/bark"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
-	bindings "github.com/getAlby/hub/second_ark"
 )
 
 const barkDB = "bark.sqlite"
@@ -540,9 +540,10 @@ func (s *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 		var addr string
 		var amount uint64
 		for _, arg := range command.Args {
-			if arg.Name == "address" {
+			switch arg.Name {
+			case "address":
 				addr = arg.Value
-			} else if arg.Name == "amount" {
+			case "amount":
 				var err error
 				amount, err = strconv.ParseUint(arg.Value, 10, 64)
 				if err != nil {
@@ -593,9 +594,10 @@ func (s *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 		var destination string
 		var amount uint64
 		for _, arg := range command.Args {
-			if arg.Name == "destination" {
+			switch arg.Name {
+			case "destination":
 				destination = arg.Value
-			} else if arg.Name == "amount" {
+			case "amount":
 				var err error
 				amount, err = strconv.ParseUint(arg.Value, 10, 64)
 				if err != nil {
