@@ -923,7 +923,6 @@ func (svc *swapsService) startSwapInListener(swap *db.Swap) {
 					Event: "nwc_swap_succeeded",
 					Properties: map[string]interface{}{
 						"swapType": constants.SWAP_TYPE_IN,
-						"swapId":   swap.SwapId,
 					},
 				})
 				return
@@ -1063,7 +1062,6 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 						Event: "nwc_swap_succeeded",
 						Properties: map[string]interface{}{
 							"swapType": constants.SWAP_TYPE_OUT,
-							"swapId":   swap.SwapId,
 						},
 					})
 					return
