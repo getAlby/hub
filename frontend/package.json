@@ -56,7 +56,7 @@
     "react-router-dom": "^6.21.0",
     "swr": "^2.2.4",
     "tailwind-merge": "^2.2.2",
-    "tailwindcss-animate": "^1.0.7",
+    "tw-animate-css": "^1.3.5",
     "zustand": "^4.5.0"
   },
   "devDependencies": {

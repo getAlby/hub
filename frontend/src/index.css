@@ -1,9 +1,10 @@
-@import './themes/default.css' layer(base);
-@import './themes/alby.css' layer(base);
-@import './themes/bitcoin.css' layer(base);
-@import './themes/nostr.css' layer(base);
+@import "tw-animate-css";
+@import "./themes/default.css" layer(base);
+@import "./themes/alby.css" layer(base);
+@import "./themes/bitcoin.css" layer(base);
+@import "./themes/nostr.css" layer(base);
 
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @source './**/*.{ts,tsx}';
 
@@ -13,9 +14,8 @@
   --font-*: initial;
   --font-emoji: sans-serif;
   --font-mono: monospace;
-  --font-sans:
-    Inter var, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
-    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-sans: Inter var, ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
