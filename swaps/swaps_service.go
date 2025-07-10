@@ -811,6 +811,8 @@ func (svc *swapsService) subscribePendingSwaps() {
 		for update := range boltzWs.Updates {
 			if ch, ok := chans[update.Id]; ok {
 				ch <- update
+			} else {
+				logger.Logger.WithField("swap_id", update.Id).Error("Failed to receive update from boltz")
 			}
 		}
 	}()
@@ -895,7 +897,11 @@ func (svc *swapsService) startSwapInListener(swap *db.Swap, updateCh chan boltz.
 				"swapId": swap.SwapId,
 			}).Error("Swap in context cancelled")
 			return
-		case update := <-updateCh:
+		case update, ok := <-updateCh:
+			if !ok {
+				logger.Logger.WithField("swap_id", update.Id).Error("Failed to receive update from boltz")
+				continue
+			}
 			if update.Id != swap.SwapId {
 				continue
 			}
@@ -1065,7 +1071,11 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap, updateCh chan boltz
 					return
 				}
 			}
-		case update := <-updateCh:
+		case update, ok := <-updateCh:
+			if !ok {
+				logger.Logger.WithField("swap_id", update.Id).Error("Failed to receive update from boltz")
+				continue
+			}
 			if update.Id != swap.SwapId {
 				continue
 			}
