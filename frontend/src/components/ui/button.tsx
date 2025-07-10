@@ -7,32 +7,27 @@ import ExternalLink from "src/components/ExternalLink";
 import { cn } from "src/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
+          "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-xs hover:bg-destructive/90",
-        destructive_outline:
-          "border border-destructive text-destructive shadow-xs hover:text-destructive/90",
+          "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
         outline:
-          "border border-input bg-background shadow-xs hover:bg-accent hover:text-accent-foreground",
+          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
         secondary:
           "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-foreground hover:text-accent-foreground underline underline-offset-4 hover:no-underline",
-        positive:
-          "bg-positive text-positive-foreground shadow-xs hover:bg-positive/90",
-        premium:
-          "text-black shadow-md shadow-amber-500/20 bg-linear-to-r from-amber-500 to-amber-300 hover:from-amber-400 hover:to-amber-200 transition-all duration-200 hover:shadow-lg hover:shadow-amber-500/30",
+        ghost:
+          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+        link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-9 px-4 py-2",
-        sm: "h-8 rounded-md px-3 text-xs",
-        lg: "h-10 rounded-md px-8",
-        icon: "h-9 w-9",
+        default: "h-9 px-4 py-2 has-[>svg]:px-3",
+        sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
+        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
+        icon: "size-9",
       },
     },
     defaultVariants: {
@@ -42,54 +37,73 @@ const buttonVariants = cva(
   }
 );
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
-  asChild?: boolean;
+function Button({
+  className,
+  variant,
+  size,
+  asChild = false,
+  ...props
+}: React.ComponentProps<"button"> &
+  VariantProps<typeof buttonVariants> & {
+    asChild?: boolean;
+  }) {
+  const Comp = asChild ? Slot : "button";
+
+  return (
+    <Comp
+      data-slot="button"
+      className={cn(buttonVariants({ variant, size, className }))}
+      {...props}
+    />
+  );
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button";
-    return (
-      <Comp
-        className={cn(buttonVariants({ variant, size, className }))}
-        ref={ref}
-        {...props}
-      />
-    );
-  }
-);
-Button.displayName = "Button";
-
-type LinkProps = React.PropsWithChildren<
+export function ExternalLinkButton({
+  className,
+  variant,
+  size,
+  to,
+  children,
+  ...props
+}: React.PropsWithChildren<
   VariantProps<typeof buttonVariants> & {
     to: string;
     className?: string;
   }
->;
-const ExternalLinkButton = React.forwardRef<HTMLAnchorElement, LinkProps>(
-  ({ className, variant, size, ...props }, _ref) => {
-    return (
-      <ExternalLink
-        className={cn(buttonVariants({ variant, size, className }))}
-        {...props}
-      />
-    );
-  }
-);
+>) {
+  return (
+    <ExternalLink
+      to={to}
+      className={cn(buttonVariants({ variant, size, className }))}
+      {...props}
+    >
+      {children}
+    </ExternalLink>
+  );
+}
 
-const LinkButton = React.forwardRef<HTMLAnchorElement, LinkProps>(
-  ({ className, variant, size, ...props }, _ref) => {
-    return (
-      <Link
-        className={cn(buttonVariants({ variant, size, className }))}
-        {...props}
-      />
-    );
+export function LinkButton({
+  className,
+  variant,
+  size,
+  to,
+  children,
+  ...props
+}: React.PropsWithChildren<
+  VariantProps<typeof buttonVariants> & {
+    to: string;
+    className?: string;
   }
-);
+>) {
+  return (
+    <Link
+      to={to}
+      className={cn(buttonVariants({ variant, size, className }))}
+      {...props}
+    >
+      {children}
+    </Link>
+  );
+}
 
-//const ExternalLinkButton = LinkButton
-// eslint-disable-next-line react-refresh/only-export-components
-export { Button, buttonVariants, ExternalLinkButton, LinkButton };
+export { Button, buttonVariants };
