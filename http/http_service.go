@@ -1302,7 +1302,7 @@ func (httpSvc *HttpService) getSwapOutFeesHandler(c echo.Context) error {
 	swapOutFeesResponse, err := httpSvc.api.GetSwapOutFees()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to get swap settings: %v", err),
+			Message: fmt.Sprintf("Failed to get swap out fees: %v", err),
 		})
 	}
 
@@ -1313,7 +1313,7 @@ func (httpSvc *HttpService) getSwapInFeesHandler(c echo.Context) error {
 	swapOutFeesResponse, err := httpSvc.api.GetSwapInFees()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to get swap settings: %v", err),
+			Message: fmt.Sprintf("Failed to get swap in fees: %v", err),
 		})
 	}
 
