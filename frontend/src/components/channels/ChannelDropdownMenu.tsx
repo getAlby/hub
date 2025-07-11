@@ -70,7 +70,7 @@ export function ChannelDropdownMenu({
                   onClick={() => setDialog("rebalance")}
                 >
                   <ScaleIcon className="h-4 w-4" />
-                  Rebalance
+                  Rebalance In
                 </DropdownMenuItem>
               </AlertDialogTrigger>
             )}
