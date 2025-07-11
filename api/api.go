@@ -46,6 +46,7 @@ type api struct {
 	albyOAuthSvc     alby.AlbyOAuthService
 	startupError     error
 	startupErrorTime time.Time
+	eventPublisher   events.EventPublisher
 }
 
 func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys keys.Keys, albyOAuthSvc alby.AlbyOAuthService, eventPublisher events.EventPublisher) *api {
@@ -57,6 +58,7 @@ func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys key
 		permissionsSvc: permissions.NewPermissionsService(gormDB, eventPublisher),
 		keys:           keys,
 		albyOAuthSvc:   albyOAuthSvc,
+		eventPublisher: eventPublisher,
 	}
 }
 

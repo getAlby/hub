@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
@@ -129,6 +130,11 @@ func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *R
 		logger.Logger.WithError(err).Error("failed to pay rebalance invoice")
 		return nil, err
 	}
+
+	api.eventPublisher.Publish(&events.Event{
+		Event:      "nwc_rebalance_succeeded",
+		Properties: map[string]interface{}{},
+	})
 
 	return &RebalanceChannelResponse{
 		TotalFeeSat: uint64(paymentRequest.MSatoshi)/1000 + payRebalanceInvoiceResponse.FeeMsat/1000 - rebalanceChannelRequest.AmountSat,
