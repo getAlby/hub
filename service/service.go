@@ -161,14 +161,13 @@ func NewService(ctx context.Context) (*service, error) {
 	}
 
 	go func() {
-		timer := time.NewTicker(1 * time.Hour)
+		timer := time.NewTicker(10 * time.Minute)
 		defer timer.Stop()
 		for {
 			select {
 			case <-timer.C:
 				svc.removeExcessEvents()
 			case <-ctx.Done():
-				svc.Shutdown()
 				return
 			}
 		}
@@ -293,13 +292,16 @@ func (svc *service) GetStartupState() string {
 func (svc *service) removeExcessEvents() {
 	logger.Logger.Debug("Cleaning up excess events")
 
+	maxEvents := 1000
+	// estimated less than 1 second to delete, should not lock DB
+	maxEventsToDelete := 1000
+
 	var events []db.RequestEvent
-	err := svc.db.Select("id").Order("id asc").Find(&events).Error
+	err := svc.db.Select("id").Order("id asc").Limit(maxEvents + maxEventsToDelete).Find(&events).Error
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch request events")
 	}
 
-	maxEvents := 1000
 	numEventsToDelete := len(events) - maxEvents
 
 	if numEventsToDelete < 1 {
