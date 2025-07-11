@@ -574,6 +574,7 @@ Internally Alby Hub uses a basic implementation of the pubsub messaging pattern 
     - `nwc_lnclient_*` - underlying LNClient events, consumed only by the transactions service.
     - `nwc_alby_account_connected` - user connects alby account for first time
     - `nwc_swap_succeeded` - successfully made a boltz swap
+    - `nwc_rebalance_succeeded` - successfully rebalanced channels
 
 ### NIP-47 Handlers
 
