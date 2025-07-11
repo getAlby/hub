@@ -1329,7 +1329,7 @@ func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, 
 		return nil
 	}
 
-	for attempt := 1; attempt < 10; attempt++ {
+	for attempt := 1; attempt < 30; attempt++ {
 		err := tryCheckTransactionWasBroadcasted()
 		if err != nil {
 			logger.Logger.WithError(err).WithField("attempt", attempt).Error("Failed to fetch broadcasted transaction")
