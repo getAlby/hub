@@ -66,9 +66,10 @@ export function Goose() {
     })();
   };
 
-  const sseLinkWithEncodedSecret = `https://mcp.getalby.com/sse?nwc=${encodeURIComponent(connectionSecret)}`;
+  const streamableHttpLink = `https://mcp.getalby.com/mcp`;
+  const streamableHttpLinkWithEncodedSecret = `${streamableHttpLink}?nwc=${encodeURIComponent(connectionSecret)}`;
 
-  const gooseDesktopLink = `goose://extension?url=${encodeURIComponent(sseLinkWithEncodedSecret)}&id=alby&name=Alby&description=Connect%20Goose%20to%20your%20Bitcoin%20Lightning%20Wallet`;
+  const gooseDesktopLink = `goose://extension?transport=streamable_http&url=${encodeURIComponent(streamableHttpLinkWithEncodedSecret)}&id=alby&name=Alby&description=Connect%20Goose%20to%20your%20Bitcoin%20Lightning%20Wallet`;
 
   return (
     <div className="grid gap-5">
@@ -112,17 +113,17 @@ export function Goose() {
                   </li>
                   <li className="list-item">
                     Choose{" "}
-                    <span className="font-semibold">Remote Extension</span>
+                    <span className="font-semibold">
+                      Remote Extension (Streaming HTTP)
+                    </span>
                   </li>
                   <li className="list-item">
                     Set the name: <span className="font-semibold">Alby</span>
                   </li>
                   <li className="list-item">
-                    Set the SSE endpoint URI:{" "}
+                    Set the Streaming HTTP endpoint URI:{" "}
                     <Button
-                      onClick={() =>
-                        copyToClipboard(sseLinkWithEncodedSecret, toast)
-                      }
+                      onClick={() => copyToClipboard(streamableHttpLink, toast)}
                       size="sm"
                     >
                       Copy URI
@@ -133,6 +134,29 @@ export function Goose() {
                   </li>
                   <li className="list-item">
                     Set a description: <span className="font-semibold">no</span>
+                  </li>
+                  <li className="list-item">
+                    Would you like to add custom headers:{" "}
+                    <span className="font-semibold">yes</span>
+                  </li>
+                  <li className="list-item">
+                    Header name:{" "}
+                    <span className="font-semibold">Authorization</span>
+                  </li>
+                  <li className="list-item">
+                    Header value:{" "}
+                    <Button
+                      onClick={() =>
+                        copyToClipboard(`Bearer ${connectionSecret}`, toast)
+                      }
+                      size="sm"
+                    >
+                      Copy value
+                    </Button>
+                  </li>
+                  <li className="list-item">
+                    Add another header:{" "}
+                    <span className="font-semibold">no</span>
                   </li>
                 </ul>
               </AccordionContent>
@@ -157,11 +181,11 @@ export function Goose() {
               <p>
                 You can use{" "}
                 <a
-                  href="https://github.com/getAlby/lmcp"
+                  href="https://github.com/getAlby/paidmcp"
                   target="_blank"
                   className="underline"
                 >
-                  LMCP
+                  PaidMCP
                 </a>{" "}
                 to create paid MCP tools that can be used by Alby MCP.
               </p>
