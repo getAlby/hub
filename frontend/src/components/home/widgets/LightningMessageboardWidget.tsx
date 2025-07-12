@@ -105,8 +105,7 @@ export function LightningMessageboardWidget() {
 
           // Update messages incrementally as they load
           setMessages((prevMessages) => {
-            const combined = [...(prevMessages || []), ...newMessages];
-            return getSortedMessages(combined, currentTab);
+            return [...(prevMessages || []), ...newMessages];
           });
 
           offset += transactions.transactions.length;
@@ -117,7 +116,7 @@ export function LightningMessageboardWidget() {
       }
       setLoading(false);
     })();
-  }, [currentTab]);
+  }, []);
 
   const hasLoadedMessages = !!messages;
 
@@ -127,13 +126,10 @@ export function LightningMessageboardWidget() {
     }
   }, [hasLoadedMessages, isOpen, loadMessages]);
 
-  // Re-sort messages when tab changes
-  const handleTabChange = (tab: TabType) => {
-    setCurrentTab(tab);
-    if (messages) {
-      setMessages(getSortedMessages(messages, tab));
-    }
-  };
+  const sortedMessages = React.useMemo(
+    () => getSortedMessages(messages || [], currentTab),
+    [currentTab, messages]
+  );
 
   function handleSubmitOpenDialog(e: React.FormEvent) {
     e.preventDefault();
@@ -208,25 +204,24 @@ export function LightningMessageboardWidget() {
         </CardHeader>
         {isOpen && (
           <CardContent>
-            {/* Tab buttons */}
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-2 mb-4 -mt-4">
               <Button
                 variant={currentTab === "latest" ? "default" : "outline"}
                 size="sm"
-                onClick={() => handleTabChange("latest")}
+                onClick={() => setCurrentTab("latest")}
               >
                 Latest
               </Button>
               <Button
                 variant={currentTab === "top" ? "default" : "outline"}
                 size="sm"
-                onClick={() => handleTabChange("top")}
+                onClick={() => setCurrentTab("top")}
               >
                 Top
               </Button>
             </div>
             <div className="h-96 overflow-y-visible flex flex-col gap-2 overflow-hidden">
-              {messages?.map((message, index) => (
+              {sortedMessages.map((message, index) => (
                 <div key={index}>
                   <CardHeader>
                     <CardTitle className="leading-6 break-anywhere">
@@ -248,7 +243,7 @@ export function LightningMessageboardWidget() {
                       </Badge>
                     </div>
                   </CardFooter>
-                  {index !== messages.length - 1 && <Separator />}
+                  {index !== sortedMessages.length - 1 && <Separator />}
                 </div>
               ))}
             </div>
