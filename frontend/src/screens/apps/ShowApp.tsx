@@ -50,7 +50,7 @@ import {
 } from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
-import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
+import { ALBY_ACCOUNT_APP_NAME, SUBWALLET_APPSTORE_APP_ID } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { useCreateLightningAddress } from "src/hooks/useCreateLightningAddress";
@@ -153,7 +153,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
     }
   };
 
-  const appName = app.name === "getalby.com" ? "Alby Account" : app.name;
+  const appName = app.name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : app.name;
 
   return (
     <>
@@ -191,7 +191,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                     >
                       {appName}
                     </h2>
-                    {app.name !== "getalby.com" && (
+                    {app.name !== ALBY_ACCOUNT_APP_NAME && (
                       <PencilIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                     )}
                   </div>

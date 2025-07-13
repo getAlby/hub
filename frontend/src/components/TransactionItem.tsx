@@ -26,6 +26,7 @@ import {
   DialogTrigger,
 } from "src/components/ui/dialog";
 import { useToast } from "src/components/ui/use-toast";
+import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
 import { useApps } from "src/hooks/useApps";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
@@ -141,7 +142,7 @@ function TransactionItem({ tx }: Props) {
         {app && (
           <div
             className="absolute -bottom-1 -right-1"
-            title={`${typeStateText} via ${app.name === "getalby.com" ? "Alby Account" : app.name}`}
+            title={`${typeStateText} via ${app.name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : app.name}`}
           >
             <AppAvatar
               app={app}
@@ -237,7 +238,7 @@ function TransactionItem({ tx }: Props) {
                 <p>App</p>
                 <Link to={`/apps/${app.appPubkey}`}>
                   <p className="font-semibold">
-                    {app.name === "getalby.com" ? "Alby Account" : app.name}
+                    {app.name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : app.name}
                   </p>
                 </Link>
               </div>

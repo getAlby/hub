@@ -1,5 +1,6 @@
 // src/hooks/useOnboardingData.ts
 
+import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
 import { useChannels } from "src/hooks/useChannels";
@@ -52,7 +53,7 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
     info.nextBackupReminder !== "" &&
     new Date(info.nextBackupReminder).getTime() > new Date().getTime();
   const hasCustomApp =
-    apps && apps.find((x) => x.name !== "getalby.com") !== undefined;
+    apps && apps.find((x) => x.name !== ALBY_ACCOUNT_APP_NAME) !== undefined;
   const hasTransaction = transactions.totalCount > 0;
 
   const checklistItems: Omit<ChecklistItem, "disabled">[] = [
