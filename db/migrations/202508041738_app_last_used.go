@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-const appLastUsedMigration = `ALTER TABLE apps ADD COLUMN last_used {{ .Timestamp }};`
+const appLastUsedMigration = `ALTER TABLE apps ADD COLUMN last_used_at {{ .Timestamp }};`
 
 var appLastUsedMigrationTmpl = template.Must(template.New("appLastUsedMigration").Parse(appLastUsedMigration))
 

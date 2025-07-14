@@ -386,7 +386,7 @@ func (api *api) GetApp(dbApp *db.App) *App {
 		Metadata:           metadata,
 		WalletPubkey:       walletPubkey,
 		UniqueWalletPubkey: uniqueWalletPubkey,
-		LastUsed:           dbApp.LastUsed,
+		LastUsedAt:         dbApp.LastUsedAt,
 	}
 
 	if dbApp.Isolated {
@@ -435,6 +435,7 @@ func (api *api) ListApps() ([]App, error) {
 			Isolated:           dbApp.Isolated,
 			WalletPubkey:       walletPubkey,
 			UniqueWalletPubkey: uniqueWalletPubkey,
+			LastUsedAt:         dbApp.LastUsedAt,
 		}
 
 		if dbApp.Isolated {
@@ -450,12 +451,6 @@ func (api *api) ListApps() ([]App, error) {
 				apiApp.BudgetUsage = queries.GetBudgetUsageSat(api.db, &appPermission)
 			}
 		}
-
-		var lastEvent db.RequestEvent
-		lastEventResult := api.db.Where("app_id = ?", dbApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
-		if lastEventResult.RowsAffected > 0 {
-		}
-		apiApp.LastUsed = dbApp.LastUsed
 
 		var metadata Metadata
 		if dbApp.Metadata != nil {

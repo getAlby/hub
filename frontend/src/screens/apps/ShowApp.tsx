@@ -371,8 +371,8 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                   <TableRow>
                     <TableCell className="font-medium">Last used</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {app.lastUsed
-                        ? new Date(app.lastUsed).toString()
+                      {app.lastUsedAt
+                        ? new Date(app.lastUsedAt).toString()
                         : "Never"}
                     </TableCell>
                   </TableRow>

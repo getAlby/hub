@@ -52,8 +52,8 @@ export function AppCardConnectionInfo({
           <div className="flex flex-row justify-between text-xs items-end mt-2">
             <div className="text-muted-foreground">
               Last used:{" "}
-              {connection.lastUsed
-                ? dayjs(connection.lastUsed).fromNow()
+              {connection.lastUsedAt
+                ? dayjs(connection.lastUsedAt).fromNow()
                 : "Never"}
             </div>
             <div className="flex flex-col items-end justify-end">
@@ -89,8 +89,8 @@ export function AppCardConnectionInfo({
           <div className="flex flex-row justify-between text-xs items-center text-muted-foreground mt-2">
             <div>
               Last used:{" "}
-              {connection.lastUsed
-                ? dayjs(connection.lastUsed).fromNow()
+              {connection.lastUsedAt
+                ? dayjs(connection.lastUsedAt).fromNow()
                 : "Never"}
             </div>
             <div>
@@ -120,8 +120,8 @@ export function AppCardConnectionInfo({
           <div className="flex flex-row justify-between items-center">
             <div className="text-muted-foreground text-xs">
               Last used:{" "}
-              {connection.lastUsed
-                ? dayjs(connection.lastUsed).fromNow()
+              {connection.lastUsedAt
+                ? dayjs(connection.lastUsedAt).fromNow()
                 : "Never"}
             </div>
             {!readonly && (
@@ -157,8 +157,8 @@ export function AppCardConnectionInfo({
           <div className="flex flex-row justify-between items-center">
             <div className="flex flex-row justify-between text-xs items-center text-muted-foreground">
               Last used:{" "}
-              {connection.lastUsed
-                ? dayjs(connection.lastUsed).fromNow()
+              {connection.lastUsedAt
+                ? dayjs(connection.lastUsedAt).fromNow()
                 : "Never"}
             </div>
             {!readonly && (

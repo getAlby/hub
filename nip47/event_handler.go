@@ -75,7 +75,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	}
 
 	now := time.Now()
-	err = svc.db.Model(&app).Update("last_used", &now).Error
+	err = svc.db.Model(&app).Update("last_used_at", &now).Error
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"it": app.ID,

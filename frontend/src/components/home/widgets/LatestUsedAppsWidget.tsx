@@ -13,7 +13,7 @@ import { useApps } from "src/hooks/useApps";
 
 export function LatestUsedAppsWidget() {
   const { data: apps } = useApps();
-  const usedApps = apps?.filter((x) => x.lastUsed);
+  const usedApps = apps?.filter((x) => x.lastUsedAt);
 
   if (!usedApps?.length) {
     return null;
@@ -28,8 +28,8 @@ export function LatestUsedAppsWidget() {
         {usedApps
           .sort(
             (a, b) =>
-              new Date(b.lastUsed ?? 0).getTime() -
-              new Date(a.lastUsed ?? 0).getTime()
+              new Date(b.lastUsedAt ?? 0).getTime() -
+              new Date(a.lastUsedAt ?? 0).getTime()
           )
           .slice(0, 3)
           .map((app) => (
@@ -42,7 +42,7 @@ export function LatestUsedAppsWidget() {
                     : app.name}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {app.lastUsed ? dayjs(app.lastUsed).fromNow() : "never"}
+                  {app.lastUsedAt ? dayjs(app.lastUsedAt).fromNow() : "never"}
                 </p>
                 <ChevronRightIcon className="text-muted-foreground w-8 h-8" />
               </div>

@@ -47,14 +47,14 @@ function AppCreatedInternal() {
   const { data: app } = useApp(createAppResponse.pairingPublicKey, true);
 
   useEffect(() => {
-    if (app?.lastUsed) {
+    if (app?.lastUsedAt) {
       toast({
         title: "Connection established!",
         description: "You can now use the app with your Alby Hub.",
       });
       navigate("/apps");
     }
-  }, [app?.lastUsed, navigate, toast]);
+  }, [app?.lastUsedAt, navigate, toast]);
 
   useEffect(() => {
     // dispatch a success event which can be listened to by the opener or by the app that embedded the webview
@@ -171,7 +171,7 @@ export function ConnectAppCard({
         <CardTitle className="text-center">Connection Secret</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-5">
-        {!app.lastUsed ? (
+        {!app.lastUsedAt ? (
           <>
             <div className="flex flex-row items-center gap-2 text-sm">
               <Loading className="w-4 h-4" />

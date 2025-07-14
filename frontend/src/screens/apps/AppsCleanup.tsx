@@ -35,8 +35,8 @@ export function AppsCleanup() {
       const _appsToReview = [...unusedApps];
       _appsToReview.sort((a, b) => {
         return (
-          (a.lastUsed ? new Date(a.lastUsed).getTime() : 0) -
-          (b.lastUsed ? new Date(b.lastUsed).getTime() : 0)
+          (a.lastUsedAt ? new Date(a.lastUsedAt).getTime() : 0) -
+          (b.lastUsedAt ? new Date(b.lastUsedAt).getTime() : 0)
         );
       });
       setAppsToReview(_appsToReview);

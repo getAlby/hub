@@ -31,8 +31,8 @@ function AppList() {
     )
     .sort(
       (a, b) =>
-        new Date(b.lastUsed ?? 0).getTime() -
-        new Date(a.lastUsed ?? 0).getTime()
+        new Date(b.lastUsedAt ?? 0).getTime() -
+        new Date(a.lastUsedAt ?? 0).getTime()
     );
 
   return (
