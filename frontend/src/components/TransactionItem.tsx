@@ -238,7 +238,9 @@ function TransactionItem({ tx }: Props) {
                 <p>App</p>
                 <Link to={`/apps/${app.appPubkey}`}>
                   <p className="font-semibold">
-                    {app.name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : app.name}
+                    {app.name === ALBY_ACCOUNT_APP_NAME
+                      ? "Alby Account"
+                      : app.name}
                   </p>
                 </Link>
               </div>
