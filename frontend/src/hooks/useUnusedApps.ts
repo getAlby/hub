@@ -12,7 +12,7 @@ export function useUnusedApps() {
     () =>
       apps?.filter(
         (app) =>
-          (!app.lastEventAt || dayjs(app.lastEventAt).isBefore(OLD_DATE)) &&
+          (!app.lastUsedAt || dayjs(app.lastUsedAt).isBefore(OLD_DATE)) &&
           app.metadata?.app_store_app_id != SUBWALLET_APPSTORE_APP_ID
       ),
     [apps]

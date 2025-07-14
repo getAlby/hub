@@ -119,7 +119,7 @@ export interface App {
   walletPubkey: string;
   createdAt: string;
   updatedAt: string;
-  lastEventAt?: string;
+  lastUsedAt?: string;
   expiresAt?: string;
   isolated: boolean;
   balance: number;
