@@ -6,12 +6,10 @@ import Loading from "src/components/Loading";
 import ResponsiveButton from "src/components/ResponsiveButton";
 import AlbyConnectionCard from "src/components/connections/AlbyConnectionCard";
 import AppCard from "src/components/connections/AppCard";
-import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
+import { ALBY_ACCOUNT_APP_NAME, SUBWALLET_APPSTORE_APP_ID } from "src/constants";
 import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
 import { useUnusedApps } from "src/hooks/useUnusedApps";
-
-const albyConnectionName = "getalby.com";
 
 function AppList() {
   const { data: apps } = useApps();
@@ -22,7 +20,7 @@ function AppList() {
     return <Loading />;
   }
 
-  const albyConnection = apps.find((x) => x.name === albyConnectionName);
+  const albyConnection = apps.find((x) => x.name === ALBY_ACCOUNT_APP_NAME);
   const otherApps = apps
     .filter((app) => app.appPubkey !== albyConnection?.appPubkey)
     .filter(
