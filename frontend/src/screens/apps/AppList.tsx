@@ -6,7 +6,10 @@ import Loading from "src/components/Loading";
 import ResponsiveButton from "src/components/ResponsiveButton";
 import AlbyConnectionCard from "src/components/connections/AlbyConnectionCard";
 import AppCard from "src/components/connections/AppCard";
-import { ALBY_ACCOUNT_APP_NAME, SUBWALLET_APPSTORE_APP_ID } from "src/constants";
+import {
+  ALBY_ACCOUNT_APP_NAME,
+  SUBWALLET_APPSTORE_APP_ID,
+} from "src/constants";
 import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
 import { useUnusedApps } from "src/hooks/useUnusedApps";
@@ -28,8 +31,8 @@ function AppList() {
     )
     .sort(
       (a, b) =>
-        new Date(b.lastEventAt ?? 0).getTime() -
-        new Date(a.lastEventAt ?? 0).getTime()
+        new Date(b.lastUsed ?? 0).getTime() -
+        new Date(a.lastUsed ?? 0).getTime()
     );
 
   return (

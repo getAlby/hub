@@ -50,7 +50,10 @@ import {
 } from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
-import { ALBY_ACCOUNT_APP_NAME, SUBWALLET_APPSTORE_APP_ID } from "src/constants";
+import {
+  ALBY_ACCOUNT_APP_NAME,
+  SUBWALLET_APPSTORE_APP_ID,
+} from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { useCreateLightningAddress } from "src/hooks/useCreateLightningAddress";
@@ -153,7 +156,8 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
     }
   };
 
-  const appName = app.name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : app.name;
+  const appName =
+    app.name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : app.name;
 
   return (
     <>
@@ -367,8 +371,8 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                   <TableRow>
                     <TableCell className="font-medium">Last used</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {app.lastEventAt
-                        ? new Date(app.lastEventAt).toString()
+                      {app.lastUsed
+                        ? new Date(app.lastUsed).toString()
                         : "Never"}
                     </TableCell>
                   </TableRow>

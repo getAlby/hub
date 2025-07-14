@@ -23,6 +23,7 @@ type App struct {
 	WalletPubkey *string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+	LastUsed     *time.Time
 	Isolated     bool
 	Metadata     datatypes.JSON
 }

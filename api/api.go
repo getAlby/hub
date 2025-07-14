@@ -333,9 +333,6 @@ func (api *api) DeleteLightningAddress(ctx context.Context, appId uint) error {
 
 func (api *api) GetApp(dbApp *db.App) *App {
 
-	var lastEvent db.RequestEvent
-	lastEventResult := api.db.Where("app_id = ?", dbApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
-
 	paySpecificPermission := db.AppPermission{}
 	appPermissions := []db.AppPermission{}
 	var expiresAt *time.Time
@@ -389,18 +386,14 @@ func (api *api) GetApp(dbApp *db.App) *App {
 		Metadata:           metadata,
 		WalletPubkey:       walletPubkey,
 		UniqueWalletPubkey: uniqueWalletPubkey,
+		LastUsed:           dbApp.LastUsed,
 	}
 
 	if dbApp.Isolated {
 		response.Balance = queries.GetIsolatedBalance(api.db, dbApp.ID)
 	}
 
-	if lastEventResult.RowsAffected > 0 {
-		response.LastEventAt = &lastEvent.CreatedAt
-	}
-
 	return &response
-
 }
 
 func (api *api) ListApps() ([]App, error) {
@@ -461,8 +454,8 @@ func (api *api) ListApps() ([]App, error) {
 		var lastEvent db.RequestEvent
 		lastEventResult := api.db.Where("app_id = ?", dbApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
 		if lastEventResult.RowsAffected > 0 {
-			apiApp.LastEventAt = &lastEvent.CreatedAt
 		}
+		apiApp.LastUsed = dbApp.LastUsed
 
 		var metadata Metadata
 		if dbApp.Metadata != nil {
