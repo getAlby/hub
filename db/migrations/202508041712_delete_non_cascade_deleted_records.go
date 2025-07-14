@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// NOTE: This was actually 2025-07-08
 var _202508041712_delete_non_cascade_deleted_records = &gormigrate.Migration{
 	ID: "202508041712_delete_non_cascade_deleted_records",
 	Migrate: func(db *gorm.DB) error {
