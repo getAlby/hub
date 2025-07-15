@@ -70,6 +70,10 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		}
 	}
 
+	if createAppRequest.Name == alby.ALBY_ACCOUNT_APP_NAME {
+		return nil, fmt.Errorf("Reserved app name: %s", alby.ALBY_ACCOUNT_APP_NAME)
+	}
+
 	expiresAt, err := api.parseExpiresAt(createAppRequest.ExpiresAt)
 	if err != nil {
 		return nil, fmt.Errorf("invalid expiresAt: %v", err)
@@ -329,9 +333,6 @@ func (api *api) DeleteLightningAddress(ctx context.Context, appId uint) error {
 
 func (api *api) GetApp(dbApp *db.App) *App {
 
-	var lastEvent db.RequestEvent
-	lastEventResult := api.db.Where("app_id = ?", dbApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
-
 	paySpecificPermission := db.AppPermission{}
 	appPermissions := []db.AppPermission{}
 	var expiresAt *time.Time
@@ -385,18 +386,14 @@ func (api *api) GetApp(dbApp *db.App) *App {
 		Metadata:           metadata,
 		WalletPubkey:       walletPubkey,
 		UniqueWalletPubkey: uniqueWalletPubkey,
+		LastUsedAt:         dbApp.LastUsedAt,
 	}
 
 	if dbApp.Isolated {
 		response.Balance = queries.GetIsolatedBalance(api.db, dbApp.ID)
 	}
 
-	if lastEventResult.RowsAffected > 0 {
-		response.LastEventAt = &lastEvent.CreatedAt
-	}
-
 	return &response
-
 }
 
 func (api *api) ListApps() ([]App, error) {
@@ -438,6 +435,7 @@ func (api *api) ListApps() ([]App, error) {
 			Isolated:           dbApp.Isolated,
 			WalletPubkey:       walletPubkey,
 			UniqueWalletPubkey: uniqueWalletPubkey,
+			LastUsedAt:         dbApp.LastUsedAt,
 		}
 
 		if dbApp.Isolated {
@@ -452,12 +450,6 @@ func (api *api) ListApps() ([]App, error) {
 				apiApp.MaxAmountSat = uint64(appPermission.MaxAmountSat)
 				apiApp.BudgetUsage = queries.GetBudgetUsageSat(api.db, &appPermission)
 			}
-		}
-
-		var lastEvent db.RequestEvent
-		lastEventResult := api.db.Where("app_id = ?", dbApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
-		if lastEventResult.RowsAffected > 0 {
-			apiApp.LastEventAt = &lastEvent.CreatedAt
 		}
 
 		var metadata Metadata

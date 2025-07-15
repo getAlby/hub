@@ -1,5 +1,6 @@
 import { suggestedApps } from "src/components/SuggestedAppData";
 import UserAvatar from "src/components/UserAvatar";
+import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
 import { cn } from "src/lib/utils";
 import { App } from "src/types";
 
@@ -9,7 +10,7 @@ type Props = {
 };
 
 export default function AppAvatar({ app, className }: Props) {
-  if (app.name === "getalby.com") {
+  if (app.name === ALBY_ACCOUNT_APP_NAME) {
     return <UserAvatar className={className} />;
   }
   const appStoreApp = app?.metadata?.app_store_app_id

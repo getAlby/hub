@@ -88,7 +88,7 @@ type App struct {
 	AppPubkey          string     `json:"appPubkey"`
 	CreatedAt          time.Time  `json:"createdAt"`
 	UpdatedAt          time.Time  `json:"updatedAt"`
-	LastEventAt        *time.Time `json:"lastEventAt"`
+	LastUsedAt         *time.Time `json:"lastUsedAt"`
 	ExpiresAt          *time.Time `json:"expiresAt"`
 	Scopes             []string   `json:"scopes"`
 	MaxAmountSat       uint64     `json:"maxAmount"`

@@ -14,8 +14,12 @@ export function useTransactions(
   page = 1
 ) {
   const offset = (page - 1) * limit;
+  let url = `/api/transactions?limit=${limit}&offset=${offset}`;
+  if (appId) {
+    url += `&appId=${appId}`;
+  }
   return useSWR<ListTransactionsResponse>(
-    `/api/transactions?limit=${limit}&offset=${offset}&appId=${appId}`,
+    url,
     swrFetcher,
     poll ? pollConfiguration : undefined
   );

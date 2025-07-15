@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// NOTE: This was actually 2025-07-08
 var _202508041737_postgres_amount_bigint = &gormigrate.Migration{
 	ID: "202508041737_postgres_amount_bigint",
 	Migrate: func(db *gorm.DB) error {
