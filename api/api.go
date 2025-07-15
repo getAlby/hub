@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -281,6 +282,13 @@ func (api *api) CreateLightningAddress(ctx context.Context, createLightningAddre
 		}
 		metadata["lud16"] = createLightningAddressResponse.FullAddress
 	} else {
+		matched, err := regexp.MatchString("^[a-zA-Z0-9]+$", createLightningAddressRequest.Address)
+		if err != nil {
+			return err
+		}
+		if !matched {
+			return errors.New("address must contain only a-zA-Z0-9 characters")
+		}
 		app := api.appsSvc.GetAppByLUD16Username(createLightningAddressRequest.Address)
 		if app != nil {
 			return errors.New("lightning address already exists")
