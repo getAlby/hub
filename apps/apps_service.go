@@ -216,7 +216,16 @@ func (svc *appsService) GetAppByName(name string) *db.App {
 
 func (svc *appsService) GetAppByLUD16Username(lud16Username string) *db.App {
 	dbApp := db.App{}
-	findResult := svc.db.Where("app_pubkey = ?", lud16Username).First(&dbApp)
+	var findResult *gorm.DB
+	fullAddress := fmt.Sprintf("%s@%s", lud16Username, svc.cfg.GetEnv().LightningAddressDomain)
+	switch svc.db.Dialector.Name() {
+	case "sqlite":
+		findResult = svc.db.Where("json_extract(metadata, '$.lud16') = ?", fullAddress).Find(&dbApp)
+	case "postgres":
+		findResult = svc.db.Where("metadata->>'lud16' = ?", fullAddress).Find(&dbApp)
+	default:
+		return nil
+	}
 	if findResult.RowsAffected == 0 {
 		return nil
 	}

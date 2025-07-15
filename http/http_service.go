@@ -106,7 +106,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/backup", httpSvc.createBackupHandler, unlockRateLimiter)
 	e.GET("/logout", httpSvc.logoutHandler, unlockRateLimiter)
 
-	if httpSvc.cfg.GetEnv().BaseUrl != "" {
+	if httpSvc.cfg.GetEnv().LightningAddressDomain != "" {
 		e.GET("/.well-known/lnurlp/:username", httpSvc.lnurlpHandler, unlockRateLimiter)
 		e.GET("/lnurlp/:username/callback", httpSvc.lnurlpCallbackHandler, unlockRateLimiter)
 		e.GET("/lnurlp/:username/verify/:paymentHash", httpSvc.lnurlpVerifyHandler, unlockRateLimiter)
@@ -1458,7 +1458,7 @@ func (httpSvc *HttpService) lnurlpHandler(c echo.Context) error {
 		})
 	}
 
-	callback := fmt.Sprintf("%s/lnurlp/%s/callback", httpSvc.cfg.GetEnv().BaseUrl, username)
+	callback := fmt.Sprintf("https://%s/lnurlp/%s/callback", httpSvc.cfg.GetEnv().LightningAddressDomain, username)
 	metadata := fmt.Sprintf("[[\"text/identifier\",\"%s\"],[\"text/plain\",\"Sats for %s\"]]", dbApp.AppPubkey, dbApp.Name)
 
 	response := Lud6Response{
@@ -1530,7 +1530,7 @@ func (httpSvc *HttpService) lnurlpCallbackHandler(c echo.Context) error {
 		})
 	}
 
-	verifyUrl := fmt.Sprintf("%s/lnurlp/%s/verify/%s", httpSvc.cfg.GetEnv().BaseUrl, username, invoice.PaymentHash)
+	verifyUrl := fmt.Sprintf("https://%s/lnurlp/%s/verify/%s", httpSvc.cfg.GetEnv().LightningAddressDomain, username, invoice.PaymentHash)
 
 	response := LNURLPCallbackResponse{
 		Pr:     invoice.PaymentRequest,
