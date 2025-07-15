@@ -326,4 +326,15 @@ func (svc *service) removeExcessEvents() {
 		"amount":   numEventsToDelete,
 		"below_id": deleteEventsBelowId,
 	}).Info("Removed excess events")
+
+	// TODO: REMOVE AFTER 2025-01-01
+	// this is needed due to cascading delete previously not working
+	err = svc.db.Exec("delete from response_events where request_id < ?", deleteEventsBelowId).Error
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"amount":   numEventsToDelete,
+			"below_id": deleteEventsBelowId,
+		}).Error("Failed to delete excess response events")
+		return
+	}
 }
