@@ -62,8 +62,8 @@ export function AlbyAccount() {
               successMessage="Please login with another Alby Account"
             >
               <Button
-                size={"lg"}
-                variant={"destructive_outline"}
+                size="lg"
+                variant="destructive"
                 className="flex-1 gap-2 items-center justify-center py-2 px-4"
               >
                 <RefreshCcwIcon className="size-4 mr-2" /> Change Alby Account

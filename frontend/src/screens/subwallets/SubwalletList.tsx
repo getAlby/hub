@@ -96,7 +96,7 @@ export function SubwalletList() {
               Sub-wallets.
               <UpgradeDialog>
                 <Button>
-                  <SparklesIcon className="size-4 mr-2" />
+                  <SparklesIcon />
                   Upgrade
                 </Button>
               </UpgradeDialog>
