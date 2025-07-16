@@ -7,7 +7,6 @@ import {
   ZapIcon,
 } from "lucide-react";
 import { ReactNode } from "react";
-import { ExternalLinkButton } from "src/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +17,7 @@ import {
 } from "src/components/ui/dialog";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
+import { ExternalLinkButton } from "./ui/custom/external-link-button";
 
 interface UpgradeDialogProps {
   children: ReactNode;

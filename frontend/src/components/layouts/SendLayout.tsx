@@ -9,8 +9,8 @@ import { useTransactions } from "src/hooks/useTransactions";
 
 import dayjs from "dayjs";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { LinkButton } from "src/components/ui/button";
 import { useInfo } from "src/hooks/useInfo";
+import { LinkButton } from "../ui/custom/link-button";
 
 export default function SendLayout() {
   const { hasChannelManagement } = useInfo();

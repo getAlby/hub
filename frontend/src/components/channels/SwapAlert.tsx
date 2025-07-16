@@ -1,8 +1,9 @@
 import { ArrowDownUpIcon, ExternalLinkIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { ExternalLinkButton, LinkButton } from "src/components/ui/button";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
+import { ExternalLinkButton } from "../ui/custom/external-link-button";
+import { LinkButton } from "../ui/custom/link-button";
 
 type SwapAlertProps = {
   className?: string;

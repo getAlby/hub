@@ -2,19 +2,17 @@ import { InfoIcon } from "lucide-react";
 import React, { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
-import ExternalLink from "src/components/ExternalLink";
-import Loading from "src/components/Loading";
-import { MempoolAlert } from "src/components/MempoolAlert";
 import { ChannelPeerNote } from "src/components/channels/ChannelPeerNote";
 import { ChannelPublicPrivateAlert } from "src/components/channels/ChannelPublicPrivateAlert";
 import { DuplicateChannelAlert } from "src/components/channels/DuplicateChannelAlert";
 import { SwapAlert } from "src/components/channels/SwapAlert";
-import {
-  Button,
-  ExternalLinkButton,
-  LinkButton,
-} from "src/components/ui/button";
+import ExternalLink from "src/components/ExternalLink";
+import Loading from "src/components/Loading";
+import { MempoolAlert } from "src/components/MempoolAlert";
+import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import {

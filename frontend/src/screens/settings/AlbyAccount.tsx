@@ -6,7 +6,8 @@ import {
 
 import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
-import { Button, ExternalLinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { Separator } from "src/components/ui/separator";
 import { UnlinkAlbyAccount } from "src/components/UnlinkAlbyAccount";
 import { useAlbyMe } from "src/hooks/useAlbyMe";

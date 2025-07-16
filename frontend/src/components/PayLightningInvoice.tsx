@@ -4,9 +4,10 @@ import React from "react";
 import { LightningIcon } from "src/components/icons/Lightning";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
-import { Button, ExternalLinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
 import { useToast } from "src/components/ui/use-toast";
 import { copyToClipboard } from "src/lib/clipboard";
+import { ExternalLinkButton } from "./ui/custom/external-link-button";
 
 type PayLightningInvoiceProps = {
   invoice: string;

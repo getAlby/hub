@@ -22,7 +22,7 @@ import {
 } from "src/components/ui/accordion";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Badge } from "src/components/ui/badge";
-import { Button, ExternalLinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
@@ -31,6 +31,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";

@@ -4,7 +4,8 @@ import { useNavigate } from "react-router-dom";
 import PasswordInput from "src/components/password/PasswordInput";
 
 import SettingsHeader from "src/components/SettingsHeader";
-import { Button, LinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";

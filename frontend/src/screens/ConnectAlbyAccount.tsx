@@ -11,13 +11,13 @@ import Container from "src/components/Container";
 import ExternalLink from "src/components/ExternalLink";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Badge } from "src/components/ui/badge";
-import { LinkButton } from "src/components/ui/button";
 import {
   Card,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LinkButton } from "src/components/ui/custom/link-button";
 
 type ConnectAlbyAccountProps = {
   connectUrl?: string;

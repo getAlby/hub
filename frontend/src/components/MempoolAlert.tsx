@@ -1,8 +1,8 @@
 import { TriangleAlertIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { ExternalLinkButton } from "src/components/ui/button";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
+import { ExternalLinkButton } from "./ui/custom/external-link-button";
 
 export function MempoolAlert({ className }: { className?: string }) {
   const { data: info } = useInfo();
