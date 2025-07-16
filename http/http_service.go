@@ -1190,10 +1190,7 @@ func (httpSvc *HttpService) execCustomNodeCommandHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) logoutHandler(c echo.Context) error {
-	redirectUrl := httpSvc.cfg.GetEnv().FrontendUrl
-	if redirectUrl == "" {
-		redirectUrl = httpSvc.cfg.GetEnv().BaseUrl
-	}
+	redirectUrl := httpSvc.cfg.GetEnv().GetBaseFrontendUrl()
 	if redirectUrl == "" {
 		redirectUrl = "/"
 	}
