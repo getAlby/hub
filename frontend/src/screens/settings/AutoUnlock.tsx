@@ -69,7 +69,7 @@ export function AutoUnlock() {
           password in plaintext so that Alby Hub can auto-unlock itself.
         </p>
         <Alert className="mt-3">
-          <AlertTriangleIcon className="h-4 w-4" />
+          <AlertTriangleIcon />
           <AlertTitle>Attention</AlertTitle>
           <AlertDescription>
             Everyone who has access to the machine running this hub could read

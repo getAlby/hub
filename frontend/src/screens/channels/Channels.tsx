@@ -371,8 +371,8 @@ export default function Channels() {
                   channel.remoteBalance <
                   (channel.localBalance + channel.remoteBalance) * 0.2
               ) && (
-                <Alert>
-                  <AlertTriangleIcon className="h-4 w-4" />
+                <Alert variant="warning">
+                  <AlertTriangleIcon />
                   <AlertTitle>Low receiving limit</AlertTitle>
                   <AlertDescription>
                     You likely won't be able to receive payments until you{" "}
@@ -609,7 +609,7 @@ export default function Channels() {
           {balances &&
             balances.onchain.pendingBalancesFromChannelClosures > 0 && (
               <Alert>
-                <HourglassIcon className="h-4 w-4" />
+                <HourglassIcon />
                 <AlertTitle>Pending Closed Channels</AlertTitle>
                 <AlertDescription>
                   You have{" "}

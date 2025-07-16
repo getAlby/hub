@@ -73,7 +73,7 @@ export function BuzzPay() {
             you want to use the PoS with.
           </p>
           <Alert>
-            <AlertTriangleIcon className="h-4 w-4" />
+            <AlertTriangleIcon />
             <AlertTitle>
               Save this link and add it to your home screen
             </AlertTitle>

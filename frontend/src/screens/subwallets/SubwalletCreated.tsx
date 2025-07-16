@@ -1,8 +1,8 @@
 import {
   AlertCircle,
-  AlertTriangleIcon,
   CopyIcon,
   ExternalLinkIcon,
+  InfoIcon,
   TriangleAlert,
 } from "lucide-react";
 import React from "react";
@@ -218,7 +218,7 @@ export function SubwalletCreated() {
                     </Button>
                   </div>
                   <Alert className="mt-5">
-                    <AlertTriangleIcon className="h-4 w-4" />
+                    <InfoIcon />
                     <AlertTitle>
                       Use separate browsers or profiles when managing multiple
                       Alby accounts

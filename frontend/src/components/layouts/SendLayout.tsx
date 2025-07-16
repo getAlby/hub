@@ -33,7 +33,7 @@ export default function SendLayout() {
         /* TODO: remove diff check when expired transactions are marked as failed */
       ) && (
         <Alert>
-          <InfoIcon className="h-4 w-4" />
+          <InfoIcon />
           <AlertTitle>Pending Payment</AlertTitle>
           <AlertDescription>
             <div className="mb-2">

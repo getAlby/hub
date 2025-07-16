@@ -4,7 +4,6 @@
 @custom-variant dark (&:is(.dark *));
 
 .theme-default {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -48,6 +47,13 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.705 0.015 286.067);
+
+  /* Custom colors */
+  --positive: hsl(138, 68%, 96%);
+  --positive-foreground: hsl(142 76% 36%);
+
+  --warning: hsl(33, 90%, 96%);
+  --warning-foreground: hsl(21, 90%, 48%);
 }
 
 @theme inline {
@@ -86,6 +92,14 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Custom colors */
+
+  --color-positive: var(--positive);
+  --color-positive-foreground: var(--positive-foreground);
+
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
 }
 
 .theme-default.dark {

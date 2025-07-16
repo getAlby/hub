@@ -217,8 +217,8 @@ export default function WithdrawOnchainFunds() {
             )}
             <MempoolAlert className="mt-4" />
             {sendAll && (
-              <Alert className="mt-4">
-                <AlertTriangleIcon className="h-4 w-4" />
+              <Alert className="mt-4" variant="warning">
+                <AlertTriangleIcon />
                 <AlertTitle>Entire wallet balance will be sent</AlertTitle>
                 <AlertDescription>
                   Your entire wallet balance will be sent minus onchain
@@ -232,7 +232,7 @@ export default function WithdrawOnchainFunds() {
                 +amount >
                   balances.onchain.spendable - channels.length * 25000) && (
                 <Alert className="mt-4">
-                  <AlertTriangleIcon className="h-4 w-4" />
+                  <AlertTriangleIcon />
                   <AlertTitle>
                     Channel Anchor Reserves may be depleted
                   </AlertTitle>

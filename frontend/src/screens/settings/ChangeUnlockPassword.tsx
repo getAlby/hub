@@ -63,12 +63,9 @@ export function ChangeUnlockPassword() {
         description="Change unlock password to your Hub. Your node will restart after password change."
       />
       <div>
-        <Alert variant={"destructive"} className="w-full md:max-w-6xl mb-8">
-          <AlertTitle>
-            <div className="flex gap-2">
-              <TriangleAlertIcon className="size-4" /> Important!
-            </div>
-          </AlertTitle>
+        <Alert variant="destructive" className="w-full md:max-w-6xl mb-8">
+          <TriangleAlertIcon />
+          <AlertTitle>Important!</AlertTitle>
           <AlertDescription>
             Password can't be reset or recovered. Make sure to back it up!
           </AlertDescription>

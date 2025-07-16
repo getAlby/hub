@@ -374,8 +374,8 @@ function CashuMnemonicWarning() {
   }
 
   return (
-    <Alert>
-      <TriangleAlertIcon className="h-4 w-4" />
+    <Alert variant="warning">
+      <TriangleAlertIcon />
       <AlertTitle>
         Your Cashu wallet uses a different recovery phrase
       </AlertTitle>

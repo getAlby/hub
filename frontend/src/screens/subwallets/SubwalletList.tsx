@@ -4,9 +4,10 @@ import {
   InfoIcon,
   ShieldCheckIcon,
   SparklesIcon,
+  TriangleAlert,
   TriangleAlertIcon,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import ExternalLink from "src/components/ExternalLink";
@@ -87,46 +88,35 @@ export function SubwalletList() {
 
       {!albyMe?.subscription.plan_code && subwalletApps.length >= 3 && (
         <>
-          <Alert className="flex items-center gap-4 justify-between">
-            <div className="flex gap-3">
-              <InfoIcon className="h-4 w-4 shrink-0" />
-              <div>
-                <AlertTitle>Need more Sub-wallets?</AlertTitle>
-                <AlertDescription>
-                  Upgrade your subscription plan to Pro unlock unlimited number
-                  of Sub-wallets.
-                </AlertDescription>
-              </div>
-            </div>
-            <UpgradeDialog>
-              <Button>
-                <SparklesIcon className="size-4 mr-2" />
-                Upgrade
-              </Button>
-            </UpgradeDialog>
+          <Alert>
+            <InfoIcon />
+            <AlertTitle>Need more Sub-wallets?</AlertTitle>
+            <AlertDescription>
+              Upgrade your subscription plan to Pro unlock unlimited number of
+              Sub-wallets.
+              <UpgradeDialog>
+                <Button>
+                  <SparklesIcon className="size-4 mr-2" />
+                  Upgrade
+                </Button>
+              </UpgradeDialog>
+            </AlertDescription>
           </Alert>
         </>
       )}
 
       {!isSufficientlyBacked && (
-        <Alert variant="warning" className="flex items-center gap-4">
-          <div className="flex gap-3">
-            <InfoIcon className="h-4 w-4 shrink-0" />
-            <div>
-              <AlertTitle>
-                Sub-wallets you manage are insufficiently backed
-              </AlertTitle>
-              <AlertDescription>
-                There's not enough bitcoin in your spending balance to honor all
-                balances of sub-wallets under your management. Increase spending
-                capacity by opening a channel or review your channel statuses to
-                back them up again.
-              </AlertDescription>
-            </div>
-          </div>
-          <Link to="/wallet/receive">
-            <Button variant="secondary">Deposit Bitcoin</Button>
-          </Link>
+        <Alert variant="warning">
+          <TriangleAlert />
+          <AlertTitle>
+            Sub-wallets you manage are insufficiently backed
+          </AlertTitle>
+          <AlertDescription>
+            There's not enough bitcoin in your spending balance to honor all
+            balances of sub-wallets under your management. Increase spending
+            capacity by opening a channel or review your channel statuses to
+            back them up again.
+          </AlertDescription>
         </Alert>
       )}
 

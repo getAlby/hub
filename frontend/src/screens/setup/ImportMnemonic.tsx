@@ -69,8 +69,8 @@ export function ImportMnemonic() {
           description="Enter the your Master Key recovery phrase to import your Alby Hub."
         />
 
-        <Alert>
-          <AlertTriangleIcon className="h-4 w-4" />
+        <Alert variant="warning">
+          <AlertTriangleIcon />
           <AlertTitle>
             Do not re-use the same key on multiple devices
           </AlertTitle>
