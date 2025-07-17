@@ -282,12 +282,8 @@ func (api *api) CreateLightningAddress(ctx context.Context, createLightningAddre
 		}
 		metadata["lud16"] = createLightningAddressResponse.FullAddress
 	} else {
-		matched, err := regexp.MatchString("^[a-zA-Z0-9]+$", createLightningAddressRequest.Address)
-		if err != nil {
+		if err := ValidateLightningAddress(createLightningAddressRequest.Address); err != nil {
 			return err
-		}
-		if !matched {
-			return errors.New("address must contain only a-zA-Z0-9 characters")
 		}
 		app := api.appsSvc.GetAppByLUD16Username(createLightningAddressRequest.Address)
 		if app != nil {
@@ -1540,4 +1536,15 @@ func (api *api) parseExpiresAt(expiresAtString string) (*time.Time, error) {
 		expiresAt = &expiresAtValue
 	}
 	return expiresAt, nil
+}
+
+func ValidateLightningAddress(address string) error {
+	matched, err := regexp.MatchString("^[a-z0-9-_.]+(?:[+][a-z0-9-_.]+)?$", address)
+	if err != nil {
+		return err
+	}
+	if !matched {
+		return errors.New("address must contain only \"a-z0-9-_.+\" characters")
+	}
+	return nil
 }

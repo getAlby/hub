@@ -1446,7 +1446,14 @@ func (httpSvc *HttpService) setNodeAliasHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) lnurlpHandler(c echo.Context) error {
-	username := c.Param("username")
+	inputUsername := c.Param("username")
+	username, tag := parseUsernameAndTag(inputUsername)
+	if username == "" {
+		return c.JSON(http.StatusOK, LNURLPErrorResponse{
+			Reason: "Not found",
+		})
+	}
+
 	dbApp := httpSvc.appsSvc.GetAppByLUD16Username(username)
 
 	if dbApp == nil {
@@ -1455,8 +1462,12 @@ func (httpSvc *HttpService) lnurlpHandler(c echo.Context) error {
 		})
 	}
 
-	callback := fmt.Sprintf("https://%s/lnurlp/%s/callback", httpSvc.cfg.GetEnv().LightningAddressDomain, username)
-	metadata := fmt.Sprintf("[[\"text/identifier\",\"%s\"],[\"text/plain\",\"Sats for %s\"]]", dbApp.AppPubkey, dbApp.Name)
+	if tag != "" {
+		tag = ",[\"text/tag\",\"" + tag + "\"]"
+	}
+
+	callback := fmt.Sprintf("https://%s/lnurlp/%s/callback", httpSvc.cfg.GetEnv().LightningAddressDomain, inputUsername)
+	metadata := fmt.Sprintf("[[\"text/identifier\",\"%s\"],[\"text/plain\",\"Sats for %s\"]%s]", dbApp.AppPubkey, dbApp.Name, tag)
 
 	response := Lud6Response{
 		Tag:            "payRequest",
@@ -1478,7 +1489,14 @@ func (httpSvc *HttpService) lnurlpCallbackHandler(c echo.Context) error {
 		})
 	}
 
-	username := c.Param("username")
+	inputUsername := c.Param("username")
+	username, _ := parseUsernameAndTag(inputUsername)
+	if username == "" {
+		return c.JSON(http.StatusOK, LNURLPErrorResponse{
+			Reason: "Not found",
+		})
+	}
+
 	dbApp := httpSvc.appsSvc.GetAppByLUD16Username(username)
 
 	if dbApp == nil {
@@ -1546,8 +1564,14 @@ func (httpSvc *HttpService) lnurlpVerifyHandler(c echo.Context) error {
 		})
 	}
 
-	username := c.Param("username")
+	username, _ := parseUsernameAndTag(c.Param("username"))
 	paymentHash := c.Param("paymentHash")
+	if username == "" {
+		return c.JSON(http.StatusOK, LNURLPErrorResponse{
+			Reason: "Not found",
+		})
+	}
+
 	dbApp := httpSvc.appsSvc.GetAppByLUD16Username(username)
 
 	if dbApp == nil {
@@ -1582,4 +1606,17 @@ func (httpSvc *HttpService) lnurlpVerifyHandler(c echo.Context) error {
 		Preimage: preimage,
 		Pr:       transaction.PaymentRequest,
 	})
+}
+
+func parseUsernameAndTag(username string) (string, string) {
+	if err := api.ValidateLightningAddress(username); err != nil {
+		return "", ""
+	}
+
+	parts := strings.SplitN(username, "+", 2)
+
+	if len(parts) == 2 {
+		return parts[0], parts[1]
+	}
+	return username, ""
 }
