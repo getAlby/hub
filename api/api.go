@@ -816,7 +816,42 @@ func (api *api) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	return api.svc.GetLNClient().ListPeers(ctx)
+
+	peers, err := api.svc.GetLNClient().ListPeers(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	channels, err := api.svc.GetLNClient().ListChannels(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	remotePubkeys := make([]string, 0, len(channels))
+	for _, ch := range channels {
+		remotePubkeys = append(remotePubkeys, ch.RemotePubkey)
+	}
+
+	var wg sync.WaitGroup
+	for i := range peers {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			peer := &peers[i]
+			peer.HasOpenedChannel = slices.Contains(remotePubkeys, peer.NodeId)
+			resp, err := api.RequestMempoolApi("/v1/lightning/nodes/" + peer.NodeId)
+			if err == nil {
+				if nodeMap, ok := resp.(map[string]interface{}); ok {
+					if aliasVal, ok := nodeMap["alias"].(string); ok && aliasVal != "" {
+						peer.NodeAlias = &aliasVal
+					}
+				}
+			}
+		}(i)
+	}
+	wg.Wait()
+
+	return peers, nil
 }
 
 func (api *api) ConnectPeer(ctx context.Context, connectPeerRequest *ConnectPeerRequest) error {

@@ -308,9 +308,11 @@ export type UpdateChannelRequest = {
 
 export type Peer = {
   nodeId: string;
+  nodeAlias?: string;
   address: string;
   isPersisted: boolean;
   isConnected: boolean;
+  hasOpenedChannel: boolean;
 };
 
 export type NodeConnectionInfo = {

@@ -173,10 +173,12 @@ type OnchainBalanceResponse struct {
 }
 
 type PeerDetails struct {
-	NodeId      string `json:"nodeId"`
-	Address     string `json:"address"`
-	IsPersisted bool   `json:"isPersisted"`
-	IsConnected bool   `json:"isConnected"`
+	NodeId           string  `json:"nodeId"`
+	NodeAlias        *string `json:"nodeAlias"`
+	Address          string  `json:"address"`
+	IsPersisted      bool    `json:"isPersisted"`
+	IsConnected      bool    `json:"isConnected"`
+	HasOpenedChannel bool    `json:"hasOpenedChannel"`
 }
 type LightningBalanceResponse struct {
 	TotalSpendable       int64 `json:"totalSpendable"`
