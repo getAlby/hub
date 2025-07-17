@@ -113,10 +113,7 @@ func (albyHttpSvc *AlbyHttpService) albyCallbackHandler(c echo.Context) error {
 		return c.NoContent(http.StatusNoContent)
 	}
 
-	redirectUrl := albyHttpSvc.appConfig.FrontendUrl
-	if redirectUrl == "" {
-		redirectUrl = albyHttpSvc.appConfig.BaseUrl
-	}
+	redirectUrl := albyHttpSvc.appConfig.GetBaseFrontendUrl()
 
 	if redirectUrl == "" {
 		// OAuth using a custom client requires a base URL set for the callback

@@ -63,6 +63,14 @@ func (c *AppConfig) IsDefaultClientId() bool {
 	return c.AlbyClientId == "J2PbXS1yOf"
 }
 
+func (c *AppConfig) GetBaseFrontendUrl() string {
+	url := c.FrontendUrl
+	if url == "" {
+		url = c.BaseUrl
+	}
+	return url
+}
+
 type Config interface {
 	Get(key string, encryptionKey string) (string, error)
 	SetIgnore(key string, value string, encryptionKey string) error
