@@ -1545,7 +1545,7 @@ func (httpSvc *HttpService) lnurlpCallbackHandler(c echo.Context) error {
 		})
 	}
 
-	verifyUrl := fmt.Sprintf("https://%s/lnurlp/%s/verify/%s", httpSvc.cfg.GetEnv().LightningAddressDomain, username, invoice.PaymentHash)
+	verifyUrl := fmt.Sprintf("https://%s/lnurlp/%s/verify/%s", httpSvc.cfg.GetEnv().LightningAddressDomain, inputUsername, invoice.PaymentHash)
 
 	response := LNURLPCallbackResponse{
 		Pr:     invoice.PaymentRequest,
