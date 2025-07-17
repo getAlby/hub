@@ -18,21 +18,15 @@ import {
   TooltipTrigger,
 } from "src/components/ui/tooltip";
 import { formatAmount } from "src/lib/utils.ts";
-import {
-  Channel,
-  LongUnconfirmedZeroConfChannel,
-  MempoolNode,
-} from "src/types";
+import { Channel, LongUnconfirmedZeroConfChannel } from "src/types";
 
 type ChannelsCardsProps = {
   channels?: Channel[];
-  nodes?: MempoolNode[];
   longUnconfirmedZeroConfChannels: LongUnconfirmedZeroConfChannel[];
 };
 
 export function ChannelsCards({
   channels,
-  nodes,
   longUnconfirmedZeroConfChannels,
 }: ChannelsCardsProps) {
   if (!channels?.length) {
@@ -52,10 +46,7 @@ export function ChannelsCards({
               : 1
           )
           .map((channel, index) => {
-            const node = nodes?.find(
-              (n) => n.public_key === channel.remotePubkey
-            );
-            const alias = node?.alias || "Unknown";
+            const alias = channel.remoteAlias || "Unknown";
             const capacity = channel.localBalance + channel.remoteBalance;
             const unconfirmedChannel = longUnconfirmedZeroConfChannels.find(
               (uc) => uc.id === channel.id

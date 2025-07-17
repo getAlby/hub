@@ -468,6 +468,7 @@ type Channel struct {
 	RemoteBalance                            int64       `json:"remoteBalance"`
 	Id                                       string      `json:"id"`
 	RemotePubkey                             string      `json:"remotePubkey"`
+	RemoteAlias                              *string     `json:"remoteAlias"`
 	FundingTxId                              string      `json:"fundingTxId"`
 	FundingTxVout                            uint32      `json:"fundingTxVout"`
 	Active                                   bool        `json:"active"`

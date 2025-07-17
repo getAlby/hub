@@ -24,22 +24,16 @@ import {
   TooltipTrigger,
 } from "src/components/ui/tooltip.tsx";
 import { formatAmount } from "src/lib/utils.ts";
-import {
-  Channel,
-  LongUnconfirmedZeroConfChannel,
-  MempoolNode,
-} from "src/types";
+import { Channel, LongUnconfirmedZeroConfChannel } from "src/types";
 import { ChannelDropdownMenu } from "./ChannelDropdownMenu";
 
 type ChannelsTableProps = {
   channels?: Channel[];
-  nodes?: MempoolNode[];
   longUnconfirmedZeroConfChannels: LongUnconfirmedZeroConfChannel[];
 };
 
 export function ChannelsTable({
   channels,
-  nodes,
   longUnconfirmedZeroConfChannels,
 }: ChannelsTableProps) {
   if (channels && !channels.length) {
@@ -136,10 +130,7 @@ export function ChannelsTable({
                       : 1
                   )
                   .map((channel) => {
-                    const node = nodes?.find(
-                      (n) => n.public_key === channel.remotePubkey
-                    );
-                    const alias = node?.alias || "Unknown";
+                    const alias = channel.remoteAlias || "Unknown";
                     const capacity =
                       channel.localBalance + channel.remoteBalance;
 
