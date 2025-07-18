@@ -28,7 +28,7 @@ type API interface {
 	Stop() error
 	GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnectionInfo, error)
 	GetNodeStatus(ctx context.Context) (*lnclient.NodeStatus, error)
-	ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error)
+	ListPeers(ctx context.Context) ([]PeerDetails, error)
 	ConnectPeer(ctx context.Context, connectPeerRequest *ConnectPeerRequest) error
 	DisconnectPeer(ctx context.Context, peerId string) error
 	OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error)
@@ -531,4 +531,13 @@ type CustomNodeCommandsResponse struct {
 
 type ExecuteCustomNodeCommandRequest struct {
 	Command string `json:"command"`
+}
+
+type PeerDetails struct {
+	NodeId           string  `json:"nodeId"`
+	NodeAlias        *string `json:"nodeAlias"`
+	Address          string  `json:"address"`
+	IsPersisted      bool    `json:"isPersisted"`
+	IsConnected      bool    `json:"isConnected"`
+	HasOpenedChannel bool    `json:"hasOpenedChannel"`
 }

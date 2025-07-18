@@ -820,7 +820,7 @@ func (api *api) GetNodeStatus(ctx context.Context) (*lnclient.NodeStatus, error)
 	return api.svc.GetLNClient().GetNodeStatus(ctx)
 }
 
-func (api *api) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
+func (api *api) ListPeers(ctx context.Context) ([]PeerDetails, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
@@ -847,15 +847,24 @@ func (api *api) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
 
 	nodeDetails := api.fetchNodeDetails(nodeIds)
 
-	for i := range peers {
-		peer := &peers[i]
-		peer.HasOpenedChannel = channelPeers[peer.NodeId]
-		if nodeDetail, ok := nodeDetails[peer.NodeId]; ok && nodeDetail.Alias != nil {
-			peer.NodeAlias = nodeDetail.Alias
+	apiPeers := make([]PeerDetails, len(peers))
+	for i, peer := range peers {
+		apiPeer := PeerDetails{
+			NodeId:      peer.NodeId,
+			Address:     peer.Address,
+			IsPersisted: peer.IsPersisted,
+			IsConnected: peer.IsConnected,
 		}
+
+		apiPeer.HasOpenedChannel = channelPeers[peer.NodeId]
+		if nodeDetail, ok := nodeDetails[peer.NodeId]; ok {
+			apiPeer.NodeAlias = nodeDetail.Alias
+		}
+
+		apiPeers[i] = apiPeer
 	}
 
-	return peers, nil
+	return apiPeers, nil
 }
 
 func (api *api) ConnectPeer(ctx context.Context, connectPeerRequest *ConnectPeerRequest) error {
