@@ -28,7 +28,7 @@ type API interface {
 	Stop() error
 	GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnectionInfo, error)
 	GetNodeStatus(ctx context.Context) (*lnclient.NodeStatus, error)
-	ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error)
+	ListPeers(ctx context.Context) ([]PeerDetails, error)
 	ConnectPeer(ctx context.Context, connectPeerRequest *ConnectPeerRequest) error
 	DisconnectPeer(ctx context.Context, peerId string) error
 	OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error)
@@ -468,6 +468,7 @@ type Channel struct {
 	RemoteBalance                            int64       `json:"remoteBalance"`
 	Id                                       string      `json:"id"`
 	RemotePubkey                             string      `json:"remotePubkey"`
+	RemoteAlias                              *string     `json:"remoteAlias"`
 	FundingTxId                              string      `json:"fundingTxId"`
 	FundingTxVout                            uint32      `json:"fundingTxVout"`
 	Active                                   bool        `json:"active"`
@@ -530,4 +531,10 @@ type CustomNodeCommandsResponse struct {
 
 type ExecuteCustomNodeCommandRequest struct {
 	Command string `json:"command"`
+}
+
+type PeerDetails struct {
+	lnclient.PeerDetails
+	NodeAlias        *string `json:"nodeAlias"`
+	HasOpenedChannel bool    `json:"hasOpenedChannel"`
 }

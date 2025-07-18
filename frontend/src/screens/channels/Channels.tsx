@@ -66,7 +66,6 @@ import { cn } from "src/lib/utils.ts";
 import {
   Channel,
   LongUnconfirmedZeroConfChannel,
-  MempoolNode,
   MempoolTransaction,
 } from "src/types";
 import { request } from "src/utils/request";
@@ -79,34 +78,12 @@ export default function Channels() {
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances(true);
   const navigate = useNavigate();
-  const [nodes, setNodes] = React.useState<MempoolNode[]>([]);
   const [longUnconfirmedZeroConfChannels, setLongUnconfirmedZeroConfChannels] =
     React.useState<LongUnconfirmedZeroConfChannel[]>([]);
 
   const { toast } = useToast();
 
   const nodeHealth = channels ? getNodeHealth(channels) : 0;
-
-  // TODO: move to NWC backend
-  const loadNodeStats = React.useCallback(async () => {
-    if (!channels) {
-      return [];
-    }
-    const nodes = await Promise.all(
-      channels?.map(async (channel): Promise<MempoolNode | undefined> => {
-        try {
-          const response = await request<MempoolNode>(
-            `/api/mempool?endpoint=/v1/lightning/nodes/${channel.remotePubkey}`
-          );
-          return response;
-        } catch (error) {
-          console.error(error);
-          return undefined;
-        }
-      })
-    );
-    setNodes(nodes.filter((node) => !!node) as MempoolNode[]);
-  }, [channels]);
 
   const findUnconfirmedChannels = React.useCallback(async () => {
     if (!channels) {
@@ -162,10 +139,6 @@ export default function Channels() {
     }
     setLongUnconfirmedZeroConfChannels(_longUnconfirmedZeroConfChannels);
   }, [channels]);
-
-  React.useEffect(() => {
-    loadNodeStats();
-  }, [loadNodeStats]);
 
   React.useEffect(() => {
     findUnconfirmedChannels();
@@ -600,9 +573,7 @@ export default function Channels() {
                         to={`https://amboss.space/node/${details.nodeId}`}
                         className="underline"
                       >
-                        {nodes.find(
-                          (node) => node.public_key === details.nodeId
-                        )?.alias || "Unknown"}
+                        {details.nodeAlias || "Unknown"}
                         <ExternalLinkIcon className="ml-1 w-4 h-4 inline" />
                       </ExternalLink>{" "}
                       ({new Intl.NumberFormat().format(details.amount)}{" "}
@@ -644,12 +615,10 @@ export default function Channels() {
 
           <ChannelsTable
             channels={channels}
-            nodes={nodes}
             longUnconfirmedZeroConfChannels={longUnconfirmedZeroConfChannels}
           />
           <ChannelsCards
             channels={channels}
-            nodes={nodes}
             longUnconfirmedZeroConfChannels={longUnconfirmedZeroConfChannels}
           />
           <OnchainTransactionsTable />

@@ -157,6 +157,7 @@ type CloseChannelResponse struct {
 type PendingBalanceDetails struct {
 	ChannelId     string `json:"channelId"`
 	NodeId        string `json:"nodeId"`
+	NodeAlias     string `json:"nodeAlias"`
 	Amount        uint64 `json:"amount"`
 	FundingTxId   string `json:"fundingTxId"`
 	FundingTxVout uint32 `json:"fundingTxVout"`
