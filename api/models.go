@@ -534,10 +534,7 @@ type ExecuteCustomNodeCommandRequest struct {
 }
 
 type PeerDetails struct {
-	NodeId           string  `json:"nodeId"`
+	lnclient.PeerDetails
 	NodeAlias        *string `json:"nodeAlias"`
-	Address          string  `json:"address"`
-	IsPersisted      bool    `json:"isPersisted"`
-	IsConnected      bool    `json:"isConnected"`
 	HasOpenedChannel bool    `json:"hasOpenedChannel"`
 }

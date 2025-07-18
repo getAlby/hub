@@ -850,10 +850,7 @@ func (api *api) ListPeers(ctx context.Context) ([]PeerDetails, error) {
 	apiPeers := make([]PeerDetails, len(peers))
 	for i, peer := range peers {
 		apiPeer := PeerDetails{
-			NodeId:      peer.NodeId,
-			Address:     peer.Address,
-			IsPersisted: peer.IsPersisted,
-			IsConnected: peer.IsConnected,
+			PeerDetails: peer,
 		}
 
 		apiPeer.HasOpenedChannel = channelPeers[peer.NodeId]
