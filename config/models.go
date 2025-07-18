@@ -46,7 +46,7 @@ type AppConfig struct {
 	AlbyClientSecret                   string `envconfig:"ALBY_OAUTH_CLIENT_SECRET" default:"rABK2n16IWjLTZ9M1uKU"`
 	BaseUrl                            string `envconfig:"BASE_URL"`
 	FrontendUrl                        string `envconfig:"FRONTEND_URL"`
-	LogEventsToAlby                    bool   `envconfig:"LOG_EVENTS_TO_ALBY" default:"true"`
+	SendEventsToAlby                   bool   `envconfig:"SEND_EVENTS_TO_ALBY" default:"true"`
 	AutoLinkAlbyAccount                bool   `envconfig:"AUTO_LINK_ALBY_ACCOUNT" default:"true"`
 	PhoenixdAddress                    string `envconfig:"PHOENIXD_ADDRESS"`
 	PhoenixdAuthorization              string `envconfig:"PHOENIXD_AUTHORIZATION"`

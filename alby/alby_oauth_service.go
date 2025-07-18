@@ -806,7 +806,7 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 		return
 	}
 
-	if !svc.cfg.GetEnv().LogEventsToAlby {
+	if !svc.cfg.GetEnv().SendEventsToAlby {
 		logger.Logger.WithField("event", event).Debug("Skipped sending to alby events API (alby event logging disabled)")
 		return
 	}
