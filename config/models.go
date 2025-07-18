@@ -56,6 +56,7 @@ type AppConfig struct {
 	AutoUnlockPassword                 string `envconfig:"AUTO_UNLOCK_PASSWORD"`
 	LogDBQueries                       bool   `envconfig:"LOG_DB_QUERIES" default:"false"`
 	BoltzApi                           string `envconfig:"BOLTZ_API" default:"https://api.boltz.exchange"`
+	LightningAddressDomain             string `envconfig:"LIGHTNING_ADDRESS_DOMAIN"`
 }
 
 func (c *AppConfig) IsDefaultClientId() bool {
