@@ -327,7 +327,7 @@ func (svc *service) removeExcessEvents() {
 		"below_id": deleteEventsBelowId,
 	}).Info("Removed excess events")
 
-	// TODO: REMOVE AFTER 2025-01-01
+	// TODO: REMOVE AFTER 2026-01-01
 	// this is needed due to cascading delete previously not working
 	err = svc.db.Exec("delete from response_events where request_id < ?", deleteEventsBelowId).Error
 	if err != nil {
