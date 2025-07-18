@@ -227,8 +227,8 @@ github.com/fsnotify/fsnotify v1.9.0 h1:2Ml+OJNzbYCTzsxtv8vKSFD9PbJjmhYF14k/jKC7S
 github.com/fsnotify/fsnotify v1.9.0/go.mod h1:8jBTzvmWwFyi3Pb8djgCCO5IBqzKJ/Jwo8TRcHyHii0=
 github.com/fxamacker/cbor/v2 v2.7.0 h1:iM5WgngdRBanHcxugY4JySA0nk1wZorNOpTgCMedv5E=
 github.com/fxamacker/cbor/v2 v2.7.0/go.mod h1:pxXPTn3joSm21Gbwsv0w9OSA2y1HFR9qXEeXQVeNoDQ=
-github.com/getAlby/ldk-node-go v0.0.0-20250630100602-fc4853954f52 h1:4Hqj7QxQ7wyp/CzVEGh/scnUUXBcZe+naTS9h3V2P1s=
-github.com/getAlby/ldk-node-go v0.0.0-20250630100602-fc4853954f52/go.mod h1:8BRjtKcz8E0RyYTPEbMS8VIdgredcGSLne8vHDtcRLg=
+github.com/getAlby/ldk-node-go v0.0.0-20250718084435-503d48dfa69f h1:pwcp5252ysSRmuclo1g/ocpKCtFqhpat5cI0hN3ig5c=
+github.com/getAlby/ldk-node-go v0.0.0-20250718084435-503d48dfa69f/go.mod h1:8BRjtKcz8E0RyYTPEbMS8VIdgredcGSLne8vHDtcRLg=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-gormigrate/gormigrate/v2 v2.1.4 h1:KOPEt27qy1cNzHfMZbp9YTmEuzkY4F4wrdsJW9WFk1U=
 github.com/go-gormigrate/gormigrate/v2 v2.1.4/go.mod h1:y/6gPAH6QGAgP1UfHMiXcqGeJ88/GRQbfCReE1JJD5Y=
