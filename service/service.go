@@ -294,6 +294,8 @@ func (svc *service) removeExcessEvents() {
 	maxEvents := 1000
 	// estimated less than 1 second to delete, it should not lock the DB
 	maxEventsToDelete := 5000
+	// if we only have a few excess events, don't run the task
+	minEventsToDelete := 100
 
 	var events []db.RequestEvent
 	err := svc.db.Select("id").Order("id asc").Limit(maxEvents + maxEventsToDelete).Find(&events).Error
@@ -303,7 +305,7 @@ func (svc *service) removeExcessEvents() {
 
 	numEventsToDelete := len(events) - maxEvents
 
-	if numEventsToDelete < 1 {
+	if numEventsToDelete < minEventsToDelete {
 		return
 	}
 	deleteEventsBelowId := events[numEventsToDelete].ID
@@ -311,13 +313,15 @@ func (svc *service) removeExcessEvents() {
 	logger.Logger.WithFields(logrus.Fields{
 		"amount":   numEventsToDelete,
 		"below_id": deleteEventsBelowId,
-	}).Info("Removing excess events")
+	}).Debug("Removing excess events")
 
+	startTime := time.Now()
 	err = svc.db.Exec("delete from request_events where id < ?", deleteEventsBelowId).Error
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"amount":   numEventsToDelete,
-			"below_id": deleteEventsBelowId,
+			"amount":           numEventsToDelete,
+			"below_id":         deleteEventsBelowId,
+			"duration_seconds": time.Since(startTime).Seconds(),
 		}).Error("Failed to delete excess request events")
 		return
 	}
