@@ -1088,18 +1088,20 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 						"swap_id": swap.SwapId,
 					}
 					sendPaymentTimeout := int64(3600)
-					holdInvoicePayment, err := svc.transactionsService.SendPaymentSync(svc.ctx, swap.Invoice, nil, metadata, svc.lnClient, nil, nil, &sendPaymentTimeout)
+					logger.Logger.WithField("swapId", swap.SwapId).Info("Initiating swap invoice payment")
+					_, err = svc.transactionsService.SendPaymentSync(svc.ctx, swap.Invoice, nil, metadata, svc.lnClient, nil, nil, &sendPaymentTimeout)
 					if err != nil {
-						logger.Logger.WithError(err).WithFields(logrus.Fields{
-							"swapId": swap.SwapId,
-						}).Error("Error paying the swap invoice")
-						paymentErrorCh <- err
-						return
-					}
-					logger.Logger.WithField("swapId", swap.SwapId).Info("Initiated swap invoice payment")
-					if holdInvoicePayment.PaymentHash != swap.PaymentHash {
-						paymentErrorCh <- errors.New("swap hold payment hash mismatch")
-						return
+						if errors.Is(err, lnclient.NewTimeoutError()) {
+							logger.Logger.WithFields(logrus.Fields{
+								"swapId": swap.SwapId,
+							}).Info("Ignoring payment timeout while swapping out")
+						} else {
+							logger.Logger.WithError(err).WithFields(logrus.Fields{
+								"swapId": swap.SwapId,
+							}).Error("Error paying the swap invoice")
+							paymentErrorCh <- err
+							return
+						}
 					}
 				}()
 			case boltz.TransactionMempool:
