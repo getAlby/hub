@@ -149,10 +149,6 @@ func NewService(ctx context.Context) (*service, error) {
 		startProfiler(ctx, appConfig.GoProfilerAddr)
 	}
 
-	if appConfig.DdProfilerEnabled {
-		startDataDogProfiler(ctx)
-	}
-
 	if autoUnlockPassword != "" {
 		nodeLastStartTime, _ := cfg.Get("NodeLastStartTime", "")
 		if nodeLastStartTime != "" {

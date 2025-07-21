@@ -6,8 +6,6 @@ import (
 	"errors"
 	"net/http"
 	"net/http/pprof"
-
-	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
 )
 
 func startProfiler(ctx context.Context, addr string) {
@@ -36,28 +34,5 @@ func startProfiler(ctx context.Context, addr string) {
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			panic("pprof server failed: " + err.Error())
 		}
-	}()
-}
-
-func startDataDogProfiler(ctx context.Context) {
-	opts := make([]profiler.Option, 0)
-
-	opts = append(opts, profiler.WithProfileTypes(
-		profiler.CPUProfile,
-		profiler.HeapProfile,
-		// higher overhead
-		profiler.BlockProfile,
-		profiler.MutexProfile,
-		profiler.GoroutineProfile,
-	))
-
-	err := profiler.Start(opts...)
-	if err != nil {
-		panic("failed to start DataDog profiler: " + err.Error())
-	}
-
-	go func() {
-		<-ctx.Done()
-		profiler.Stop()
 	}()
 }
