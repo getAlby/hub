@@ -292,10 +292,8 @@ func (svc *service) removeExcessEvents() {
 	logger.Logger.Debug("Cleaning up excess events")
 
 	maxEvents := 1000
-	// estimated less than 1 second to delete, should not lock DB.
-	// Ideally we should be able to do much more,
-	// however this seems to take longer when the DB has more rows.
-	maxEventsToDelete := 100
+	// estimated less than 1 second to delete, it should not lock the DB
+	maxEventsToDelete := 5000
 
 	var events []db.RequestEvent
 	err := svc.db.Select("id").Order("id asc").Limit(maxEvents + maxEventsToDelete).Find(&events).Error

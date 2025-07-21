@@ -34,6 +34,7 @@ func Migrate(gormDB *gorm.DB) error {
 		_202508041712_delete_non_cascade_deleted_records,
 		_202508041737_postgres_amount_bigint,
 		_202508041738_app_last_used,
+		_202508041739_response_events_index,
 	})
 
 	return m.Migrate()
