@@ -181,7 +181,7 @@ function RefundSwapDialogContent() {
         <AlertDialogDescription className="flex text-foreground flex-col gap-4">
           <div className="flex flex-row gap-1 items-center text-muted-foreground">
             Only On-chain {"->"} Lightning swaps need to be refunded
-            <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/faq/what-happens-if-lose-access-to-my-hub-while-a-swap-is-in-progress">
+            <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/faq/what-happens-if-lose-access-to-my-hub-while-a-swap-is-in-progress#swap-out-lightning-on-chain">
               <InfoIcon className="h-4 w-4 shrink-0" />
             </ExternalLink>
           </div>
