@@ -192,8 +192,13 @@ export function ConnectAppCard({
             <p>App connected</p>
           </Badge>
         )}
-        <a href={pairingUri} target="_blank" className="relative">
-          <div className={!isQRCodeVisible ? "blur-md" : ""}>
+        <div className="relative">
+          <div
+            className={`${!isQRCodeVisible ? "blur-md cursor-pointer" : ""}`}
+            onClick={
+              !isQRCodeVisible ? () => setIsQRCodeVisible(true) : undefined
+            }
+          >
             <QRCode className={"w-full"} value={pairingUri} />
             {appstoreApp && (
               <img
@@ -204,8 +209,7 @@ export function ConnectAppCard({
           </div>
           {!isQRCodeVisible && (
             <Button
-              onClick={(e) => {
-                e.preventDefault();
+              onClick={() => {
                 setIsQRCodeVisible(true);
               }}
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -214,7 +218,7 @@ export function ConnectAppCard({
               Reveal QR
             </Button>
           )}
-        </a>
+        </div>
         <div>
           <Button onClick={copy} variant="outline">
             <CopyIcon className="w-4 h-4 mr-2" />
