@@ -558,7 +558,7 @@ func (svc *swapsService) RefundSwap(swapId, address string) error {
 	}
 
 	if swap.Type != constants.SWAP_TYPE_IN {
-		return fmt.Errorf("cannot process refund for swap id: %s", swapId)
+		return errors.New("only On-chain -> Lightning swaps can be refunded")
 	}
 
 	if swap.ClaimTxId != "" {
