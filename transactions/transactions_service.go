@@ -43,6 +43,7 @@ type TransactionsService interface {
 	MakeHoldInvoice(ctx context.Context, amount uint64, description string, descriptionHash string, expiry uint64, paymentHash string, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SettleHoldInvoice(ctx context.Context, preimage string, lnClient lnclient.LNClient) (*Transaction, error)
 	CancelHoldInvoice(ctx context.Context, paymentHash string, lnClient lnclient.LNClient) error
+	SetTransactionMetadata(ctx context.Context, id uint, metadata map[string]interface{}) error
 }
 
 const (
@@ -498,7 +499,7 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 
 	if selfPayment {
 		// for keysend self-payments we need to create an incoming payment at the time of the payment
-		recipientAppId := svc.getAppIdFromCustomRecords(customRecords)
+		recipientAppId := svc.getAppIdFromCustomRecords(customRecords, svc.db)
 		dbTransaction := db.Transaction{
 			AppId:          recipientAppId,
 			RequestEventId: nil, // it is related to this request but for a different app
@@ -790,7 +791,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 						description = extractedDescription
 					}
 					// find app by custom key/value records
-					appId = svc.getAppIdFromCustomRecords(customRecords)
+					appId = svc.getAppIdFromCustomRecords(customRecords, tx)
 				}
 				var expiresAt *time.Time
 				if lnClientTransaction.ExpiresAt != nil {
@@ -1165,7 +1166,7 @@ func (svc *transactionsService) getDescriptionFromCustomRecords(customRecords []
 	return description
 }
 
-func (svc *transactionsService) getAppIdFromCustomRecords(customRecords []lnclient.TLVRecord) *uint {
+func (svc *transactionsService) getAppIdFromCustomRecords(customRecords []lnclient.TLVRecord, tx *gorm.DB) *uint {
 	app := db.App{}
 	for _, record := range customRecords {
 		if record.Type == CustomKeyTlvType {
@@ -1179,7 +1180,7 @@ func (svc *transactionsService) getAppIdFromCustomRecords(customRecords []lnclie
 				logger.Logger.WithError(err).Error("Failed to parse custom key TLV record as number")
 				continue
 			}
-			err = svc.db.Take(&app, &db.App{
+			err = tx.Take(&app, &db.App{
 				ID: uint(customValue),
 			}).Error
 			if err != nil {
@@ -1314,6 +1315,26 @@ func (svc *transactionsService) CancelHoldInvoice(ctx context.Context, paymentHa
 	return nil
 }
 
+func (svc *transactionsService) SetTransactionMetadata(ctx context.Context, id uint, metadata map[string]interface{}) error {
+	var metadataBytes []byte
+	metadataBytes, err := json.Marshal(metadata)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to serialize metadata")
+		return err
+	}
+	if len(metadataBytes) > constants.INVOICE_METADATA_MAX_LENGTH {
+		return fmt.Errorf("encoded invoice metadata provided is too large. Limit: %d Received: %d", constants.INVOICE_METADATA_MAX_LENGTH, len(metadataBytes))
+	}
+
+	err = svc.db.Model(&db.Transaction{}).Where("id", id).Update("metadata", datatypes.JSON(metadataBytes)).Error
+	if err != nil {
+		logger.Logger.WithError(err).WithField("metadata", metadata).Error("Failed to update transaction metadata")
+		return err
+	}
+
+	return nil
+}
+
 func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransaction *db.Transaction, preimage string, fee uint64, selfPayment bool) (*db.Transaction, error) {
 	// TODO: it would be better to have a database constraint so we cannot have two pending payments
 	var existingSettledTransaction db.Transaction
@@ -1362,15 +1383,15 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 	})
 
 	if dbTransaction.Type == constants.TRANSACTION_TYPE_OUTGOING && dbTransaction.AppId != nil {
-		svc.checkBudgetUsage(dbTransaction)
+		svc.checkBudgetUsage(dbTransaction, tx)
 	}
 
 	return dbTransaction, nil
 }
 
-func (svc *transactionsService) checkBudgetUsage(dbTransaction *db.Transaction) {
+func (svc *transactionsService) checkBudgetUsage(dbTransaction *db.Transaction, gormTransaction *gorm.DB) {
 	var app db.App
-	result := svc.db.Limit(1).Find(&app, &db.App{
+	result := gormTransaction.Limit(1).Find(&app, &db.App{
 		ID: *dbTransaction.AppId,
 	})
 	if result.RowsAffected == 0 {
@@ -1382,7 +1403,7 @@ func (svc *transactionsService) checkBudgetUsage(dbTransaction *db.Transaction) 
 	}
 
 	var appPermission db.AppPermission
-	result = svc.db.Limit(1).Find(&appPermission, &db.AppPermission{
+	result = gormTransaction.Limit(1).Find(&appPermission, &db.AppPermission{
 		AppId: app.ID,
 		Scope: constants.PAY_INVOICE_SCOPE,
 	})
@@ -1391,7 +1412,7 @@ func (svc *transactionsService) checkBudgetUsage(dbTransaction *db.Transaction) 
 		return
 	}
 
-	budgetUsage := queries.GetBudgetUsageSat(svc.db, &appPermission)
+	budgetUsage := queries.GetBudgetUsageSat(gormTransaction, &appPermission)
 	warningUsage := uint64(math.Floor(float64(appPermission.MaxAmountSat) * 0.8))
 	if budgetUsage >= warningUsage && budgetUsage-dbTransaction.AmountMsat/1000 < warningUsage {
 		svc.eventPublisher.Publish(&events.Event{

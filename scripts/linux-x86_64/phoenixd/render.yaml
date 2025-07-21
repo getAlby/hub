@@ -15,8 +15,6 @@ services:
     envVars:
       - key: WORK_DIR
         value: /data/albyhub
-      - key: LOG_EVENTS
-        value: true
       - key: LN_BACKEND_TYPE
         value: PHOENIX
       - key: PHOENIXD_AUTHORIZATION

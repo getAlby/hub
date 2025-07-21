@@ -6,7 +6,7 @@ import {
   SparklesIcon,
   TriangleAlertIcon,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import ExternalLink from "src/components/ExternalLink";
@@ -35,7 +35,6 @@ export function SubwalletList() {
   const { data: apps } = useApps();
   const { data: albyMe, error: albyMeError } = useAlbyMe();
   const { data: balances } = useBalances();
-  const navigate = useNavigate();
 
   if (
     !info ||
@@ -73,14 +72,15 @@ export function SubwalletList() {
                 <HelpCircle className="w-4 h-4" />
               </Button>
             </ExternalLink>
-            <ResponsiveButton
-              icon={CirclePlusIcon}
-              text="New Sub-wallet"
-              disabled={
-                !albyMe?.subscription.plan_code && subwalletApps?.length >= 3
-              }
-              onClick={() => navigate("/sub-wallets/new")}
-            />
+            <Link to="/sub-wallets/new">
+              <ResponsiveButton
+                icon={CirclePlusIcon}
+                text="New Sub-wallet"
+                disabled={
+                  !albyMe?.subscription.plan_code && subwalletApps?.length >= 3
+                }
+              />
+            </Link>
           </>
         }
       />

@@ -40,6 +40,7 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { Input } from "src/components/ui/input";
+import { LoadingButton } from "src/components/ui/loading-button";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import {
   Tooltip,
@@ -48,8 +49,15 @@ import {
   TooltipTrigger,
 } from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
-import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
+import { UpgradeDialog } from "src/components/UpgradeDialog";
+import {
+  ALBY_ACCOUNT_APP_NAME,
+  SUBWALLET_APPSTORE_APP_ID,
+} from "src/constants";
+import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useCapabilities } from "src/hooks/useCapabilities";
+import { useCreateLightningAddress } from "src/hooks/useCreateLightningAddress";
+import { useDeleteLightningAddress } from "src/hooks/useDeleteLightningAddress";
 
 function ShowApp() {
   const { pubkey } = useParams() as { pubkey: string };
@@ -85,6 +93,15 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const location = useLocation();
   const [isEditingName, setIsEditingName] = React.useState(false);
   const [isEditingPermissions, setIsEditingPermissions] = React.useState(false);
+  const [intendedLightningAddress, setIntendedLightningAddress] =
+    React.useState("");
+  const { createLightningAddress, creatingLightningAddress } =
+    useCreateLightningAddress(app.appPubkey);
+  const {
+    deleteLightningAddress: deleteSubwalletLightningAddress,
+    deletingLightningAddress,
+  } = useDeleteLightningAddress(app.appPubkey);
+  const { data: albyMe } = useAlbyMe();
 
   React.useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -139,7 +156,8 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
     }
   };
 
-  const appName = app.name === "getalby.com" ? "Alby Account" : app.name;
+  const appName =
+    app.name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : app.name;
 
   return (
     <>
@@ -177,7 +195,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                     >
                       {appName}
                     </h2>
-                    {app.name !== "getalby.com" && (
+                    {app.name !== ALBY_ACCOUNT_APP_NAME && (
                       <PencilIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                     )}
                   </div>
@@ -284,11 +302,77 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                       </TableCell>
                     </TableRow>
                   )}
+                  {app.isolated &&
+                    app.metadata?.app_store_app_id ===
+                      SUBWALLET_APPSTORE_APP_ID && (
+                      <TableRow>
+                        <TableCell className="font-medium">
+                          Lightning Address
+                        </TableCell>
+                        <TableCell className="text-muted-foreground break-all">
+                          {app.metadata.lud16}
+                          {!app.metadata.lud16 && (
+                            <div className="max-w-96 flex items-center gap-2">
+                              <Input
+                                type="text"
+                                value={intendedLightningAddress}
+                                onChange={(e) =>
+                                  setIntendedLightningAddress(e.target.value)
+                                }
+                                required
+                                autoComplete="off"
+                                endAdornment={
+                                  <span className="mr-1 text-muted-foreground text-xs">
+                                    @getalby.com
+                                  </span>
+                                }
+                              />
+                              {!albyMe?.subscription.plan_code ? (
+                                <UpgradeDialog>
+                                  <Button
+                                    className="shrink-0"
+                                    size="lg"
+                                    variant="secondary"
+                                  >
+                                    Create
+                                  </Button>
+                                </UpgradeDialog>
+                              ) : (
+                                <LoadingButton
+                                  className="shrink-0"
+                                  size="lg"
+                                  variant="secondary"
+                                  loading={creatingLightningAddress}
+                                  onClick={() =>
+                                    createLightningAddress(
+                                      intendedLightningAddress
+                                    )
+                                  }
+                                >
+                                  Create
+                                </LoadingButton>
+                              )}
+                            </div>
+                          )}
+                          {app.metadata.lud16 && (
+                            <LoadingButton
+                              size="sm"
+                              variant="destructive"
+                              className="ml-4"
+                              loading={deletingLightningAddress}
+                              onClick={deleteSubwalletLightningAddress}
+                            >
+                              Remove
+                            </LoadingButton>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    )}
                   <TableRow>
                     <TableCell className="font-medium">Last used</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {app.lastEventAt
-                        ? new Date(app.lastEventAt).toString()
+                      {app.lastUsedAt
+                        ? new Date(app.lastUsedAt).toString()
                         : "Never"}
                     </TableCell>
                   </TableRow>
@@ -349,17 +433,38 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                                 Confirm Update App
                               </AlertDialogTitle>
                               <AlertDialogDescription>
-                                {app.isolated && !permissions.isolated ? (
-                                  <b>
-                                    Are you sure you wish to remove the isolated
-                                    status from this connection?
-                                  </b>
-                                ) : (
-                                  <b>
-                                    Are you sure you wish to give this
-                                    connection pay permissions?
-                                  </b>
-                                )}
+                                <div className="space-y-2">
+                                  {app.isolated && !permissions.isolated ? (
+                                    <p>
+                                      Are you sure you wish to remove the
+                                      <span className="font-bold">
+                                        isolated
+                                      </span>{" "}
+                                      status from this connection?
+                                    </p>
+                                  ) : (
+                                    <p>
+                                      Are you sure you wish to give this
+                                      connection{" "}
+                                      <span className="font-bold">
+                                        pay permissions
+                                      </span>
+                                      ?
+                                    </p>
+                                  )}
+                                  <p className="text-amber-600 dark:text-amber-400 font-medium">
+                                    ⚠️ Warning: This applies to all apps that
+                                    have this connection secret. Only change
+                                    this if you know it is safe to do so,
+                                    otherwise you could potentially lose all
+                                    funds
+                                    {!!permissions.maxAmount &&
+                                      " up to the specified budget"}
+                                    {permissions.isolated &&
+                                      " that are deposited into this isolated app"}
+                                    .
+                                  </p>
+                                </div>
                               </AlertDialogDescription>
                               <AlertDialogFooter className="mt-5">
                                 <AlertDialogCancel

@@ -76,7 +76,7 @@ jobs:
           node-version: "20.x"
 
       - name: Install Wails
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.10.1
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.10.2
         shell: bash
 
       - name: Install Linux Wails deps

@@ -12,6 +12,11 @@ sudo chown -R $USER:$USER /opt/albyhub
 cd /opt/albyhub
 wget https://getalby.com/install/hub/server-linux-armv6.tar.bz2
 
+# add an update script to keep the Hub up to date
+# run this to update the hub
+wget https://raw.githubusercontent.com/getAlby/hub/master/scripts/pi-arm/update.sh
+chmod +x update.sh
+
 if [[ ! -f "verify.sh" ]]; then
   echo "Downloading the verification script..."
   if ! wget -q "$VERIFIER_URL"; then
@@ -65,7 +70,6 @@ CPUQuota=90%
 Environment="PORT=$PORT"
 Environment="WORK_DIR=/opt/albyhub/data"
 Environment="LDK_ESPLORA_SERVER=https://electrs.getalbypro.com"
-Environment="LOG_EVENTS=true"
 Environment="LDK_GOSSIP_SOURCE="
 
 [Install]

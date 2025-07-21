@@ -60,7 +60,7 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 	}
 
 	var nodeInfo *lnclient.NodeInfo
-	maxRetries := 5
+	maxRetries := 60
 	for i := range maxRetries {
 		nodeInfo, err = fetchNodeInfo(ctx, lndClient)
 		if err == nil {
@@ -69,7 +69,13 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 		logger.Logger.WithFields(logrus.Fields{
 			"iteration": i,
 		}).WithError(err).Error("Failed to connect to LND, retrying in 10s")
-		time.Sleep(10 * time.Second)
+
+		select {
+		case <-time.After(10 * time.Second):
+		case <-ctx.Done():
+			logger.Logger.WithError(ctx.Err()).Error("Context cancelled during LND connection retries")
+			return nil, ctx.Err()
+		}
 	}
 
 	if err != nil {
@@ -436,6 +442,10 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amoun
 	}
 
 	if resp.Status != lnrpc.Payment_SUCCEEDED {
+		// In LND, timeout error only happens when there are more routes to try
+		// but we ran out of time in contrast to LDK where the payment is initiated
+		// and might still succeed after receiving timeout error
+		// See https://github.com/lightningnetwork/lnd/issues/4269#issuecomment-626279140
 		failureReasonMessage := resp.FailureReason.String()
 		logger.Logger.WithFields(logrus.Fields{
 			"bolt11": payReq,
@@ -744,7 +754,7 @@ func (svc *LNDService) LookupInvoice(ctx context.Context, paymentHash string) (t
 	paymentHashBytes, err := hex.DecodeString(paymentHash)
 	if err != nil || len(paymentHashBytes) != 32 {
 		if err == nil {
-			err = errors.New("Payment hash must be 32 bytes hex")
+			err = errors.New("payment hash must be 32 bytes hex")
 		}
 		logger.Logger.WithFields(logrus.Fields{
 			"payment_hash": paymentHash,
@@ -973,7 +983,7 @@ func (svc *LNDService) GetNodeConnectionInfo(ctx context.Context) (nodeConnectio
 	}
 
 	addresses := nodeInfo.Node.Addresses
-	if addresses == nil || len(addresses) < 1 {
+	if len(addresses) < 1 {
 		logger.Logger.Error("No available listening addresses")
 		return nodeConnectionInfo, nil
 	}
@@ -1014,6 +1024,10 @@ func (svc *LNDService) ConnectPeer(ctx context.Context, connectPeerRequest *lncl
 
 func (svc *LNDService) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
 	peers, err := svc.ListPeers(ctx)
+	if err != nil {
+		return nil, errors.New("failed to list peers")
+	}
+
 	var foundPeer *lnclient.PeerDetails
 	for _, peer := range peers {
 		if peer.NodeId == openChannelRequest.Pubkey {

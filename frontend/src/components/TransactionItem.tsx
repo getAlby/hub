@@ -2,6 +2,8 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import {
   ArrowDownIcon,
+  ArrowDownUpIcon,
+  ArrowUpDownIcon,
   ArrowUpIcon,
   ChevronDownIcon,
   ChevronUpIcon,
@@ -24,6 +26,7 @@ import {
   DialogTrigger,
 } from "src/components/ui/dialog";
 import { useToast } from "src/components/ui/use-toast";
+import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
 import { useApps } from "src/hooks/useApps";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
@@ -48,22 +51,6 @@ function TransactionItem({ tx }: Props) {
   const { toast } = useToast();
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;
-
-  const typeStateText =
-    type == "incoming"
-      ? "Received"
-      : tx.state === "settled" // we only fetch settled incoming payments
-        ? "Sent"
-        : tx.state === "pending"
-          ? "Sending"
-          : "Failed";
-
-  const Icon =
-    tx.state === "failed"
-      ? XIcon
-      : tx.type === "outgoing"
-        ? ArrowUpIcon
-        : ArrowDownIcon;
 
   const app = React.useMemo(
     () =>
@@ -90,8 +77,36 @@ function TransactionItem({ tx }: Props) {
 
   const bolt12Offer = tx.metadata?.offer;
 
+  const swapId = tx.metadata?.swap_id;
+
   const description =
     tx.description || tx.metadata?.comment || bolt12Offer?.payer_note;
+
+  const typeStateText =
+    type == "incoming"
+      ? swapId
+        ? "Swapped in"
+        : "Received"
+      : tx.state === "settled" // we only fetch settled incoming payments
+        ? swapId
+          ? "Swapped out"
+          : "Sent"
+        : tx.state === "pending"
+          ? swapId
+            ? "Swapping out"
+            : "Sending"
+          : "Failed";
+
+  const Icon =
+    tx.state === "failed"
+      ? XIcon
+      : tx.type === "outgoing"
+        ? swapId
+          ? ArrowUpDownIcon
+          : ArrowUpIcon
+        : swapId
+          ? ArrowDownUpIcon
+          : ArrowDownIcon;
 
   const copy = (text: string) => {
     copyToClipboard(text, toast);
@@ -127,7 +142,7 @@ function TransactionItem({ tx }: Props) {
         {app && (
           <div
             className="absolute -bottom-1 -right-1"
-            title={`${typeStateText} via ${app.name === "getalby.com" ? "Alby Account" : app.name}`}
+            title={`${typeStateText} via ${app.name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : app.name}`}
           >
             <AppAvatar
               app={app}
@@ -223,8 +238,21 @@ function TransactionItem({ tx }: Props) {
                 <p>App</p>
                 <Link to={`/apps/${app.appPubkey}`}>
                   <p className="font-semibold">
-                    {app.name === "getalby.com" ? "Alby Account" : app.name}
+                    {app.name === ALBY_ACCOUNT_APP_NAME
+                      ? "Alby Account"
+                      : app.name}
                   </p>
+                </Link>
+              </div>
+            )}
+            {swapId && (
+              <div className="mt-8">
+                <p>Swap Id</p>
+                <Link
+                  to={`/wallet/swap/${type === "incoming" ? "in" : "out"}/status/${swapId}`}
+                  className="flex items-center gap-1"
+                >
+                  <p className="underline">{swapId}</p>
                 </Link>
               </div>
             )}

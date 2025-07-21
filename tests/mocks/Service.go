@@ -555,14 +555,20 @@ type MockService_StartApp_Call struct {
 }
 
 // StartApp is a helper method to define mock.On call
-//   - encryptionKey
+//   - encryptionKey string
 func (_e *MockService_Expecter) StartApp(encryptionKey interface{}) *MockService_StartApp_Call {
 	return &MockService_StartApp_Call{Call: _e.mock.On("StartApp", encryptionKey)}
 }
 
 func (_c *MockService_StartApp_Call) Run(run func(encryptionKey string)) *MockService_StartApp_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
@@ -573,50 +579,6 @@ func (_c *MockService_StartApp_Call) Return(err error) *MockService_StartApp_Cal
 }
 
 func (_c *MockService_StartApp_Call) RunAndReturn(run func(encryptionKey string) error) *MockService_StartApp_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// StartAutoSwaps provides a mock function for the type MockService
-func (_mock *MockService) StartAutoSwaps() error {
-	ret := _mock.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for StartAutoSwaps")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func() error); ok {
-		r0 = returnFunc()
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockService_StartAutoSwaps_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'StartAutoSwaps'
-type MockService_StartAutoSwaps_Call struct {
-	*mock.Call
-}
-
-// StartAutoSwaps is a helper method to define mock.On call
-func (_e *MockService_Expecter) StartAutoSwaps() *MockService_StartAutoSwaps_Call {
-	return &MockService_StartAutoSwaps_Call{Call: _e.mock.On("StartAutoSwaps")}
-}
-
-func (_c *MockService_StartAutoSwaps_Call) Run(run func()) *MockService_StartAutoSwaps_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *MockService_StartAutoSwaps_Call) Return(err error) *MockService_StartAutoSwaps_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *MockService_StartAutoSwaps_Call) RunAndReturn(run func() error) *MockService_StartAutoSwaps_Call {
 	_c.Call.Return(run)
 	return _c
 }

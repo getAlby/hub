@@ -25,6 +25,13 @@ type AlbyOAuthService interface {
 	RequestAutoChannel(ctx context.Context, lnClient lnclient.LNClient, isPublic bool) (*AutoChannelResponse, error)
 	GetVssAuthToken(ctx context.Context, nodeIdentifier string) (string, error)
 	RemoveOAuthAccessToken() error
+	CreateLightningAddress(ctx context.Context, address string, appId uint) (*CreateLightningAddressResponse, error)
+	DeleteLightningAddress(ctx context.Context, address string) error
+}
+
+type CreateLightningAddressResponse struct {
+	Address     string `json:"address"`
+	FullAddress string `json:"full_address"`
 }
 
 type AlbyBalanceResponse struct {
@@ -72,7 +79,8 @@ type AlbyInfo struct {
 }
 
 type AlbyMeHub struct {
-	Name string `json:"name"`
+	Name   string                 `json:"name"`
+	Config map[string]interface{} `json:"config"`
 }
 
 type AlbyMeSubscription struct {

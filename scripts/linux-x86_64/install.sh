@@ -51,7 +51,7 @@ tee $INSTALL_DIR/start.sh > /dev/null << EOF
 #!/bin/bash
 
 echo "Starting Alby Hub"
-WORK_DIR="$INSTALL_DIR/data" LOG_EVENTS=true LDK_GOSSIP_SOURCE="" $INSTALL_DIR/bin/albyhub
+WORK_DIR="$INSTALL_DIR/data" LDK_GOSSIP_SOURCE="" $INSTALL_DIR/bin/albyhub
 EOF
 chmod +x $INSTALL_DIR/start.sh
 
