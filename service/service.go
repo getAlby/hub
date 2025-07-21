@@ -313,7 +313,7 @@ func (svc *service) removeExcessEvents() {
 	logger.Logger.WithFields(logrus.Fields{
 		"amount":   numEventsToDelete,
 		"below_id": deleteEventsBelowId,
-	}).Debug("Removing excess events")
+	}).Info("Removing excess events")
 
 	err = svc.db.Exec("delete from request_events where id < ?", deleteEventsBelowId).Error
 	if err != nil {
