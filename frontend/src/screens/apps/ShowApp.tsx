@@ -23,7 +23,6 @@ import Permissions from "src/components/Permissions";
 import TransactionsList from "src/components/TransactionsList";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -228,12 +227,12 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
+                    <LoadingButton
                       onClick={() => deleteApp(app.appPubkey)}
-                      disabled={isDeleting}
+                      loading={isDeleting}
                     >
                       Continue
-                    </AlertDialogAction>
+                    </LoadingButton>
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>

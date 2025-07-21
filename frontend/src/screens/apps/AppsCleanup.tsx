@@ -5,6 +5,7 @@ import AppCard from "src/components/connections/AppCard";
 import Loading from "src/components/Loading";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button, LinkButton } from "src/components/ui/button";
+import { LoadingButton } from "src/components/ui/loading-button";
 import {
   Card,
   CardDescription,
@@ -23,7 +24,7 @@ export function AppsCleanup() {
   const [skippedCount, setSkippedCount] = React.useState<number>(0);
   const [deletedCount, setDeletedCount] = React.useState<number>(0);
   const [appsToReview, setAppsToReview] = React.useState<App[]>();
-  const { deleteApp } = useDeleteApp();
+  const { deleteApp, isDeleting } = useDeleteApp();
   React.useEffect(() => {
     if (!unusedApps) {
       return;
@@ -85,8 +86,9 @@ export function AppsCleanup() {
                         <SkipForwardIcon className="h-4 w-4 mr-2" />
                         Skip
                       </Button>
-                      <Button
+                      <LoadingButton
                         variant="destructive"
+                        loading={isDeleting}
                         onClick={() => {
                           deleteApp(currentApp.appPubkey);
                           setAppIndex(appIndex + 1);
@@ -95,7 +97,7 @@ export function AppsCleanup() {
                       >
                         <Trash2Icon className="h-4 w-4 mr-2" />
                         Delete
-                      </Button>
+                      </LoadingButton>
                     </>
                   }
                   readonly
