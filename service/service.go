@@ -161,14 +161,13 @@ func NewService(ctx context.Context) (*service, error) {
 	}
 
 	go func() {
-		timer := time.NewTicker(10 * time.Minute)
-		defer timer.Stop()
 		for {
 			select {
-			case <-timer.C:
-				svc.removeExcessEvents()
 			case <-ctx.Done():
 				return
+			default:
+				time.Sleep(10 * time.Minute)
+				svc.removeExcessEvents()
 			}
 		}
 	}()
@@ -293,8 +292,10 @@ func (svc *service) removeExcessEvents() {
 	logger.Logger.Debug("Cleaning up excess events")
 
 	maxEvents := 1000
-	// estimated less than 1 second to delete, should not lock DB
-	maxEventsToDelete := 1000
+	// estimated less than 1 second to delete, should not lock DB.
+	// Ideally we should be able to do much more,
+	// however this seems to take longer when the DB has more rows.
+	maxEventsToDelete := 100
 
 	var events []db.RequestEvent
 	err := svc.db.Select("id").Order("id asc").Limit(maxEvents + maxEventsToDelete).Find(&events).Error
