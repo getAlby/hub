@@ -19,6 +19,7 @@ import {
 import { useToast } from "src/components/ui/use-toast";
 import { useApp } from "src/hooks/useApp";
 import { copyToClipboard } from "src/lib/clipboard";
+import { cn } from "src/lib/utils";
 import { App, CreateAppResponse } from "src/types";
 
 export default function AppCreated() {
@@ -194,10 +195,8 @@ export function ConnectAppCard({
         )}
         <div className="relative">
           <div
-            className={`${!isQRCodeVisible ? "blur-md cursor-pointer" : ""}`}
-            onClick={
-              !isQRCodeVisible ? () => setIsQRCodeVisible(true) : undefined
-            }
+            className={cn(!isQRCodeVisible && "blur-md cursor-pointer")}
+            onClick={() => setIsQRCodeVisible(true)}
           >
             <QRCode className={"w-full"} value={pairingUri} />
             {appstoreApp && (
