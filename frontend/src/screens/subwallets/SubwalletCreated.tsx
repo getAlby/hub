@@ -21,7 +21,6 @@ import {
   AccordionTrigger,
 } from "src/components/ui/accordion";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { Badge } from "src/components/ui/badge";
 import { Button, ExternalLinkButton } from "src/components/ui/button";
 import {
   Card,
@@ -176,9 +175,7 @@ export function SubwalletCreated() {
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="account">
-                <AccordionTrigger>
-                  Alby Account
-                </AccordionTrigger>
+                <AccordionTrigger>Alby Account</AccordionTrigger>
                 <AccordionContent>
                   <ul className="flex flex-col gap-1 list-inside list-decimal mb-6">
                     <li>
