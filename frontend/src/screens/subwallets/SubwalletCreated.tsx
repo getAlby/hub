@@ -177,10 +177,7 @@ export function SubwalletCreated() {
               </AccordionItem>
               <AccordionItem value="account">
                 <AccordionTrigger>
-                  <div className="flex flex-row gap-3">
-                    <div>Alby Account</div>
-                    <Badge>Lightning Address</Badge>
-                  </div>
+                  Alby Account
                 </AccordionTrigger>
                 <AccordionContent>
                   <ul className="flex flex-col gap-1 list-inside list-decimal mb-6">
