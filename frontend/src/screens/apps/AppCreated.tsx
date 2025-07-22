@@ -1,4 +1,4 @@
-import { CheckIcon, CopyIcon, EyeIcon } from "lucide-react";
+import { CheckIcon, CopyIcon, ExternalLinkIcon, EyeIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
@@ -9,7 +9,7 @@ import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { SuggestedApp, suggestedApps } from "src/components/SuggestedAppData";
 import { Badge } from "src/components/ui/badge";
-import { Button } from "src/components/ui/button";
+import { Button, ExternalLinkButton } from "src/components/ui/button";
 import {
   Card,
   CardContent,
@@ -19,6 +19,7 @@ import {
 import { useToast } from "src/components/ui/use-toast";
 import { useApp } from "src/hooks/useApp";
 import { copyToClipboard } from "src/lib/clipboard";
+import { cn } from "src/lib/utils";
 import { App, CreateAppResponse } from "src/types";
 
 export default function AppCreated() {
@@ -192,8 +193,11 @@ export function ConnectAppCard({
             <p>App connected</p>
           </Badge>
         )}
-        <a href={pairingUri} target="_blank" className="relative">
-          <div className={!isQRCodeVisible ? "blur-md" : ""}>
+        <div className="relative">
+          <div
+            className={cn(!isQRCodeVisible && "blur-md cursor-pointer")}
+            onClick={() => setIsQRCodeVisible(true)}
+          >
             <QRCode className={"w-full"} value={pairingUri} />
             {appstoreApp && (
               <img
@@ -204,8 +208,7 @@ export function ConnectAppCard({
           </div>
           {!isQRCodeVisible && (
             <Button
-              onClick={(e) => {
-                e.preventDefault();
+              onClick={() => {
                 setIsQRCodeVisible(true);
               }}
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -214,12 +217,16 @@ export function ConnectAppCard({
               Reveal QR
             </Button>
           )}
-        </a>
-        <div>
+        </div>
+        <div className="flex gap-2">
           <Button onClick={copy} variant="outline">
             <CopyIcon className="w-4 h-4 mr-2" />
             Copy
           </Button>
+          <ExternalLinkButton to={pairingUri} variant="outline">
+            <ExternalLinkIcon className="w-4 h-4 mr-2" />
+            Open
+          </ExternalLinkButton>
         </div>
       </CardContent>
     </Card>
