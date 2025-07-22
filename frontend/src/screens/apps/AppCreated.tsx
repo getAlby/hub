@@ -1,4 +1,4 @@
-import { CheckIcon, CopyIcon, EyeIcon } from "lucide-react";
+import { CheckIcon, CopyIcon, ExternalLinkIcon, EyeIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
@@ -9,7 +9,7 @@ import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { SuggestedApp, suggestedApps } from "src/components/SuggestedAppData";
 import { Badge } from "src/components/ui/badge";
-import { Button } from "src/components/ui/button";
+import { Button, ExternalLinkButton } from "src/components/ui/button";
 import {
   Card,
   CardContent,
@@ -218,11 +218,15 @@ export function ConnectAppCard({
             </Button>
           )}
         </div>
-        <div>
+        <div className="flex gap-2">
           <Button onClick={copy} variant="outline">
             <CopyIcon className="w-4 h-4 mr-2" />
             Copy
           </Button>
+          <ExternalLinkButton to={pairingUri} variant="outline">
+            <ExternalLinkIcon className="w-4 h-4 mr-2" />
+            Open
+          </ExternalLinkButton>
         </div>
       </CardContent>
     </Card>
