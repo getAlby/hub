@@ -53,9 +53,7 @@ function TransactionItem({ tx }: Props) {
   const type = tx.type;
 
   const amountSatsWithFees = Math.floor(
-    type === "outgoing" && tx.state !== "failed"
-      ? (tx.amount + tx.feesPaid) / 1000
-      : tx.amount / 1000
+    type === "outgoing" ? (tx.amount + tx.feesPaid) / 1000 : tx.amount / 1000
   );
 
   const app = React.useMemo(
