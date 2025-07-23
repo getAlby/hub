@@ -22,7 +22,7 @@ func main() {
 	// Create a channel to receive OS signals.
 	osSignalChannel := make(chan os.Signal, 1)
 	// Notify the channel on os.Interrupt, syscall.SIGTERM. os.Kill cannot be caught.
-	signal.Notify(osSignalChannel, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(osSignalChannel, os.Interrupt, syscall.SIGTERM, syscall.SIGPIPE)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -31,6 +31,12 @@ func main() {
 		// wait for exit signal
 		signal = <-osSignalChannel
 		logger.Logger.WithField("signal", signal).Info("Received OS signal")
+
+		if signal == syscall.SIGPIPE {
+			logger.Logger.WithField("signal", signal).Warn("Ignoring SIGPIPE signal")
+			return
+		}
+
 		cancel()
 	}()
 
