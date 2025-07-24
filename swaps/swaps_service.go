@@ -199,13 +199,13 @@ func (svc *swapsService) EnableAutoSwapOut() error {
 				balance, err := svc.lnClient.GetBalances(ctx, false)
 				if err != nil {
 					logger.Logger.WithError(err).Error("Failed to get balance")
-					return
+					continue
 				}
 				lightningBalance := uint64(balance.Lightning.TotalSpendable)
 				balanceThresholdMilliSats := balanceThreshold * 1000
 				if lightningBalance < balanceThresholdMilliSats {
 					logger.Logger.Info("Threshold requirements not met for swap, ignoring")
-					return
+					continue
 				}
 				logger.Logger.WithFields(logrus.Fields{
 					"amount":      amount,
