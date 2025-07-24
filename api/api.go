@@ -477,6 +477,8 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 		return nil, err
 	}
 
+	nodeDetails := api.fetchNodeDetailsFromChannels(channels)
+
 	apiChannels := []Channel{}
 	for _, channel := range channels {
 		status := "offline"
@@ -486,12 +488,18 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 			status = "opening"
 		}
 
+		var remoteAlias *string
+		if nodeDetail, ok := nodeDetails[channel.RemotePubkey]; ok {
+			remoteAlias = nodeDetail.Alias
+		}
+
 		apiChannels = append(apiChannels, Channel{
 			LocalBalance:                             channel.LocalBalance,
 			LocalSpendableBalance:                    channel.LocalSpendableBalance,
 			RemoteBalance:                            channel.RemoteBalance,
 			Id:                                       channel.Id,
 			RemotePubkey:                             channel.RemotePubkey,
+			RemoteAlias:                              remoteAlias,
 			FundingTxId:                              channel.FundingTxId,
 			FundingTxVout:                            channel.FundingTxVout,
 			Active:                                   channel.Active,
@@ -812,11 +820,48 @@ func (api *api) GetNodeStatus(ctx context.Context) (*lnclient.NodeStatus, error)
 	return api.svc.GetLNClient().GetNodeStatus(ctx)
 }
 
-func (api *api) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
+func (api *api) ListPeers(ctx context.Context) ([]PeerDetails, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	return api.svc.GetLNClient().ListPeers(ctx)
+
+	peers, err := api.svc.GetLNClient().ListPeers(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	channels, err := api.svc.GetLNClient().ListChannels(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	nodeIds := make([]string, len(peers))
+	for i, peer := range peers {
+		nodeIds[i] = peer.NodeId
+	}
+
+	channelPeers := make(map[string]bool)
+	for _, ch := range channels {
+		channelPeers[ch.RemotePubkey] = true
+	}
+
+	nodeDetails := api.fetchNodeDetails(nodeIds)
+
+	apiPeers := make([]PeerDetails, len(peers))
+	for i, peer := range peers {
+		apiPeer := PeerDetails{
+			PeerDetails: peer,
+		}
+
+		apiPeer.HasOpenedChannel = channelPeers[peer.NodeId]
+		if nodeDetail, ok := nodeDetails[peer.NodeId]; ok {
+			apiPeer.NodeAlias = nodeDetail.Alias
+		}
+
+		apiPeers[i] = apiPeer
+	}
+
+	return apiPeers, nil
 }
 
 func (api *api) ConnectPeer(ctx context.Context, connectPeerRequest *ConnectPeerRequest) error {
@@ -1334,7 +1379,8 @@ func (api *api) GetLogOutput(ctx context.Context, logType string, getLogRequest 
 	var err error
 	var logData []byte
 
-	if logType == LogTypeNode {
+	switch logType {
+	case LogTypeNode:
 		if api.svc.GetLNClient() == nil {
 			return nil, errors.New("LNClient not started")
 		}
@@ -1343,7 +1389,7 @@ func (api *api) GetLogOutput(ctx context.Context, logType string, getLogRequest 
 		if err != nil {
 			return nil, err
 		}
-	} else if logType == LogTypeApp {
+	case LogTypeApp:
 		logFileName := logger.GetLogFilePath()
 		if logFileName == "" {
 			logData = []byte("file log is disabled")
@@ -1353,7 +1399,7 @@ func (api *api) GetLogOutput(ctx context.Context, logType string, getLogRequest 
 				return nil, err
 			}
 		}
-	} else {
+	default:
 		return nil, fmt.Errorf("invalid log type: '%s'", logType)
 	}
 
@@ -1523,4 +1569,52 @@ func (api *api) parseExpiresAt(expiresAtString string) (*time.Time, error) {
 		expiresAt = &expiresAtValue
 	}
 	return expiresAt, nil
+}
+
+type NodeDetails struct {
+	NodeId string
+	Alias  *string
+}
+
+func (api *api) fetchNodeDetails(nodeIds []string) map[string]NodeDetails {
+	uniqueNodeIds := make([]string, 0)
+	for _, nodeId := range nodeIds {
+		if !slices.Contains(uniqueNodeIds, nodeId) {
+			uniqueNodeIds = append(uniqueNodeIds, nodeId)
+		}
+	}
+
+	results := make(map[string]NodeDetails)
+	var wg sync.WaitGroup
+
+	for _, nodeId := range uniqueNodeIds {
+		wg.Add(1)
+		go func(nodeId string) {
+			defer wg.Done()
+			result := NodeDetails{
+				NodeId: nodeId,
+			}
+			resp, err := api.RequestMempoolApi("/v1/lightning/nodes/" + nodeId)
+			if err == nil {
+				if nodeMap, ok := resp.(map[string]interface{}); ok {
+					if aliasVal, ok := nodeMap["alias"].(string); ok && aliasVal != "" {
+						result.Alias = &aliasVal
+					}
+				}
+			}
+			results[nodeId] = result
+		}(nodeId)
+	}
+	wg.Wait()
+
+	return results
+}
+
+func (api *api) fetchNodeDetailsFromChannels(channels []lnclient.Channel) map[string]NodeDetails {
+	remotePubkeys := make([]string, len(channels))
+	for i, channel := range channels {
+		remotePubkeys[i] = channel.RemotePubkey
+	}
+
+	return api.fetchNodeDetails(remotePubkeys)
 }

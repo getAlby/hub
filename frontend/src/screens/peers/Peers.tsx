@@ -21,51 +21,19 @@ import {
   TableRow,
 } from "src/components/ui/table.tsx";
 import { useToast } from "src/components/ui/use-toast";
-import { useChannels } from "src/hooks/useChannels";
 import { usePeers } from "src/hooks/usePeers.ts";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
-import { MempoolNode, Peer } from "src/types";
-import { request } from "src/utils/request";
+import { Peer } from "src/types";
 
 export default function Peers() {
   useSyncWallet();
   const { data: peers } = usePeers();
-  const { data: channels } = useChannels();
   const { toast } = useToast();
-  const [nodes, setNodes] = React.useState<MempoolNode[]>([]);
   const [peerToDisconnect, setPeerToDisconnect] = React.useState<Peer>();
-
-  // TODO: move to NWC backend
-  const loadNodeStats = React.useCallback(async () => {
-    if (!peers) {
-      return [];
-    }
-    const nodes = await Promise.all(
-      peers?.map(async (peer): Promise<MempoolNode | undefined> => {
-        try {
-          const response = await request<MempoolNode>(
-            `/api/mempool?endpoint=/v1/lightning/nodes/${peer.nodeId}`
-          );
-          return response;
-        } catch (error) {
-          console.error(error);
-          return undefined;
-        }
-      })
-    );
-    setNodes(nodes.filter((node) => !!node) as MempoolNode[]);
-  }, [peers]);
-
-  React.useEffect(() => {
-    loadNodeStats();
-  }, [loadNodeStats]);
 
   async function checkDisconnectPeer(peer: Peer) {
     try {
-      if (!channels) {
-        throw new Error("channels not loaded");
-      }
-      if (channels.some((channel) => channel.remotePubkey === peer.nodeId)) {
+      if (peer.hasOpenedChannel) {
         throw new Error(
           "you have one or more open channels with " + peer.nodeId
         );
@@ -108,8 +76,7 @@ export default function Peers() {
         <TableBody>
           <>
             {peers?.map((peer) => {
-              const node = nodes.find((n) => n.public_key === peer.nodeId);
-              const alias = node?.alias || "Unknown";
+              const alias = peer.nodeAlias || "Unknown";
 
               return (
                 <TableRow key={peer.nodeId}>
@@ -170,9 +137,7 @@ export default function Peers() {
         {peerToDisconnect && (
           <DisconnectPeerDialogContent
             peer={peerToDisconnect}
-            name={
-              nodes.find((n) => n.public_key === peerToDisconnect.nodeId)?.alias
-            }
+            name={peerToDisconnect.nodeAlias}
           />
         )}
       </AlertDialog>

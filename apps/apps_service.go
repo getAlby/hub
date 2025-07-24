@@ -69,7 +69,7 @@ func (svc *appsService) CreateApp(name string, pubkey string, maxAmountSat uint6
 	}
 
 	// ensure there is at least one scope
-	if scopes == nil || len(scopes) == 0 {
+	if len(scopes) == 0 {
 		return nil, "", errors.New("no scopes provided")
 	}
 

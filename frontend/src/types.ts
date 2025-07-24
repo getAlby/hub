@@ -287,6 +287,7 @@ export type Channel = {
   localSpendableBalance: number;
   remoteBalance: number;
   remotePubkey: string;
+  remoteAlias?: string;
   id: string;
   fundingTxId: string;
   fundingTxVout: number;
@@ -308,9 +309,11 @@ export type UpdateChannelRequest = {
 
 export type Peer = {
   nodeId: string;
+  nodeAlias?: string;
   address: string;
   isPersisted: boolean;
   isConnected: boolean;
+  hasOpenedChannel: boolean;
 };
 
 export type NodeConnectionInfo = {
@@ -364,6 +367,7 @@ export type CloseChannelResponse = {};
 export type PendingBalancesDetails = {
   channelId: string;
   nodeId: string;
+  nodeAlias?: string;
   amount: number;
   fundingTxId: string;
   fundingTxVout: number;
