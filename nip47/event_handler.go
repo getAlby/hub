@@ -102,20 +102,8 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	}
 
 	encryption := constants.ENCRYPTION_TYPE_NIP04
-	encryptionTag := event.Tags.GetFirst([]string{"encryption"})
-	if encryptionTag != nil {
-		encryption = encryptionTag.Value()
-	}
-
-	// TODO: Remove version tag after 01-06-2025
-	if encryptionTag == nil {
-		vTag := event.Tags.GetFirst([]string{"v"})
-		if vTag != nil && vTag.Value() != "" {
-			version := vTag.Value()
-			if version == "1.0" {
-				encryption = constants.ENCRYPTION_TYPE_NIP44_V2
-			}
-		}
+	if encryptionTag := event.Tags.Find("encryption"); encryptionTag != nil {
+		encryption = encryptionTag[1]
 	}
 
 	nip47Cipher, err := cipher.NewNip47Cipher(encryption, app.AppPubkey, appWalletPrivKey)

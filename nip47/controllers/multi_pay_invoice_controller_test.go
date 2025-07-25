@@ -132,7 +132,7 @@ func TestHandleMultiPayInvoiceEvent_Success(t *testing.T) {
 
 	// we can't guarantee which request was processed first
 	// so swap them if they are back to front
-	if dTags[0].GetFirst([]string{"d"}).Value() != paymentHashes[0] {
+	if dTags[0].Find("d")[1] != paymentHashes[0] {
 		responses[0], responses[1] = responses[1], responses[0]
 		dTags[0], dTags[1] = dTags[1], dTags[0]
 	}
@@ -144,7 +144,7 @@ func TestHandleMultiPayInvoiceEvent_Success(t *testing.T) {
 
 	for i := 0; i < len(responses); i++ {
 		assert.Equal(t, preimages[i], responses[i].Result.(payResponse).Preimage)
-		assert.Equal(t, paymentHashes[i], dTags[i].GetFirst([]string{"d"}).Value())
+		assert.Equal(t, paymentHashes[i], dTags[i].Find("d")[1])
 	}
 }
 
@@ -198,11 +198,11 @@ func TestHandleMultiPayInvoiceEvent_OneMalformedInvoice(t *testing.T) {
 		dTags[0], dTags[1] = dTags[1], dTags[0]
 	}
 
-	assert.Equal(t, "invoiceId123", dTags[0].GetFirst([]string{"d"}).Value())
+	assert.Equal(t, "invoiceId123", dTags[0].Find("d")[1])
 	assert.Equal(t, constants.ERROR_BAD_REQUEST, responses[0].Error.Code)
 	assert.Nil(t, responses[0].Result)
 
-	assert.Equal(t, tests.MockPaymentHash, dTags[1].GetFirst([]string{"d"}).Value())
+	assert.Equal(t, tests.MockPaymentHash, dTags[1].Find("d")[1])
 	assert.Equal(t, "123preimage", responses[1].Result.(payResponse).Preimage)
 	assert.Nil(t, responses[1].Error)
 }
@@ -257,12 +257,12 @@ func TestHandleMultiPayInvoiceEvent_OneExpiredInvoice(t *testing.T) {
 		dTags[0], dTags[1] = dTags[1], dTags[0]
 	}
 
-	assert.Equal(t, MockExpiredPaymentHash, dTags[0].GetFirst([]string{"d"}).Value())
+	assert.Equal(t, MockExpiredPaymentHash, dTags[0].Find("d")[1])
 	assert.Equal(t, constants.ERROR_INTERNAL, responses[0].Error.Code)
 	assert.Equal(t, "this invoice has expired", responses[0].Error.Message)
 	assert.Nil(t, responses[0].Result)
 
-	assert.Equal(t, tests.MockPaymentHash, dTags[1].GetFirst([]string{"d"}).Value())
+	assert.Equal(t, tests.MockPaymentHash, dTags[1].Find("d")[1])
 	assert.Equal(t, "123preimage", responses[1].Result.(payResponse).Preimage)
 	assert.Nil(t, responses[1].Error)
 }
@@ -335,13 +335,13 @@ func TestHandleMultiPayInvoiceEvent_IsolatedApp_OneBudgetExceeded(t *testing.T) 
 		"ac1b93f8b65a46e9aea3cc56ac5ac35d163d350cd612d922dd1f8b550f98c338",
 	}
 
-	assert.NotEqual(t, dTags[0].GetFirst([]string{"d"}).Value(), dTags[1].GetFirst([]string{"d"}).Value())
+	assert.NotEqual(t, dTags[0].Find("d")[1], dTags[1].Find("d")[1])
 
-	assert.Contains(t, paymentHashes, dTags[0].GetFirst([]string{"d"}).Value())
+	assert.Contains(t, paymentHashes, dTags[0].Find("d")[1])
 	assert.Equal(t, "123preimage", responses[0].Result.(payResponse).Preimage)
 	assert.Nil(t, responses[0].Error)
 
-	assert.Contains(t, paymentHashes, dTags[1].GetFirst([]string{"d"}).Value())
+	assert.Contains(t, paymentHashes, dTags[1].Find("d")[1])
 	assert.Nil(t, responses[1].Result)
 	assert.Equal(t, constants.ERROR_INSUFFICIENT_BALANCE, responses[1].Error.Code)
 }
@@ -414,13 +414,13 @@ func TestHandleMultiPayInvoiceEvent_LNClient_OnePaymentFailed(t *testing.T) {
 		"ac1b93f8b65a46e9aea3cc56ac5ac35d163d350cd612d922dd1f8b550f98c338",
 	}
 
-	assert.NotEqual(t, dTags[0].GetFirst([]string{"d"}).Value(), dTags[1].GetFirst([]string{"d"}).Value())
+	assert.NotEqual(t, dTags[0].Find("d")[1], dTags[1].Find("d")[1])
 
-	assert.Contains(t, paymentHashes, dTags[0].GetFirst([]string{"d"}).Value())
+	assert.Contains(t, paymentHashes, dTags[0].Find("d")[1])
 	assert.Equal(t, "123preimage", responses[0].Result.(payResponse).Preimage)
 	assert.Nil(t, responses[0].Error)
 
-	assert.Contains(t, paymentHashes, dTags[1].GetFirst([]string{"d"}).Value())
+	assert.Contains(t, paymentHashes, dTags[1].Find("d")[1])
 	assert.Nil(t, responses[1].Result)
 	assert.Equal(t, constants.ERROR_INTERNAL, responses[1].Error.Code)
 	assert.Equal(t, "Some error", responses[1].Error.Message)

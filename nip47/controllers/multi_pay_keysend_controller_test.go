@@ -113,7 +113,7 @@ func TestHandleMultiPayKeysendEvent_Success(t *testing.T) {
 		assert.Equal(t, 64, len(responses[i].Result.(payResponse).Preimage))
 		assert.Equal(t, uint64(1), responses[i].Result.(payResponse).FeesPaid)
 		assert.Nil(t, responses[i].Error)
-		assert.Equal(t, "123pubkey2", dTags[i].GetFirst([]string{"d"}).Value())
+		assert.Equal(t, "123pubkey2", dTags[i].Find("d")[1])
 	}
 }
 
@@ -165,7 +165,7 @@ func TestHandleMultiPayKeysendEvent_OneBudgetExceeded(t *testing.T) {
 		dTags[0], dTags[1] = dTags[1], dTags[0]
 	}
 
-	assert.Equal(t, "customId", dTags[0].GetFirst([]string{"d"}).Value())
+	assert.Equal(t, "customId", dTags[0].Find("d")[1])
 	assert.Nil(t, responses[0].Error)
 	assert.Equal(t, 64, len(responses[0].Result.(payResponse).Preimage))
 	assert.Equal(t, uint64(1), responses[0].Result.(payResponse).FeesPaid)

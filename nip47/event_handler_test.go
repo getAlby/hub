@@ -72,8 +72,8 @@ func doTestCreateResponse(t *testing.T, svc *tests.TestService, nip47Encryption 
 
 	res, err := nip47svc.CreateResponse(reqEvent, nip47Response, nostr.Tags{}, nip47Cipher, svc.Keys.GetNostrSecretKey())
 	assert.NoError(t, err)
-	assert.Equal(t, reqPubkey, res.Tags.GetFirst([]string{"p"}).Value())
-	assert.Equal(t, reqEvent.ID, res.Tags.GetFirst([]string{"e"}).Value())
+	assert.Equal(t, reqPubkey, res.Tags.Find("p")[1])
+	assert.Equal(t, reqEvent.ID, res.Tags.Find("e")[1])
 	assert.Equal(t, svc.Keys.GetNostrPublicKey(), res.PubKey)
 
 	decrypted, err := nip47Cipher.Decrypt(res.Content)
