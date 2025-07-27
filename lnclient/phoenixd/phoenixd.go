@@ -283,10 +283,10 @@ func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, descri
 	form := url.Values{}
 	amountSat := strconv.FormatInt(amount/1000, 10)
 	form.Add("amountSat", amountSat)
-	if descriptionHash != "" {
-		form.Add("descriptionHash", descriptionHash)
-	} else if description != "" {
+	if description != "" {
 		form.Add("description", description)
+	} else if descriptionHash != "" {
+		form.Add("descriptionHash", descriptionHash)
 	} else {
 		form.Add("description", "invoice")
 	}
