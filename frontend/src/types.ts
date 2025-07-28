@@ -608,6 +608,11 @@ export type OnchainTransaction = {
   txId: string;
 };
 
+export type ListAppsResponse = {
+  apps: App[];
+  totalCount: number;
+};
+
 export type ListTransactionsResponse = {
   transactions: Transaction[];
   totalCount: number;

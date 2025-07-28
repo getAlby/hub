@@ -1,11 +1,11 @@
 import React from "react";
 import { useToast } from "src/components/ui/use-toast";
-import { useApp } from "src/hooks/useApp";
+import { useAppByPubkey } from "src/hooks/useApp";
 import { request } from "src/utils/request";
 
 export function useCreateLightningAddress(appPubkey?: string) {
   const { toast } = useToast();
-  const { data: app, mutate: refetchApp } = useApp(appPubkey);
+  const { data: app, mutate: refetchApp } = useAppByPubkey(appPubkey);
   const [creatingLightningAddress, setCreatingLightningAddress] =
     React.useState(false);
 

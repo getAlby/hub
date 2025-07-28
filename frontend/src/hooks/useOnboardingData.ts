@@ -23,14 +23,14 @@ interface UseOnboardingDataResponse {
 
 export const useOnboardingData = (): UseOnboardingDataResponse => {
   const { data: albyMe } = useAlbyMe();
-  const { data: apps } = useApps();
+  const { data: appsData } = useApps();
   const { data: channels } = useChannels();
   const { data: info, hasChannelManagement, hasMnemonic } = useInfo();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const { data: transactions } = useTransactions(undefined, false, 1);
 
   const isLoading =
-    !apps ||
+    !appsData ||
     !channels ||
     !info ||
     !nodeConnectionInfo ||
@@ -53,7 +53,8 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
     info.nextBackupReminder !== "" &&
     new Date(info.nextBackupReminder).getTime() > new Date().getTime();
   const hasCustomApp =
-    apps && apps.find((x) => x.name !== ALBY_ACCOUNT_APP_NAME) !== undefined;
+    appsData &&
+    appsData.apps.find((x) => x.name !== ALBY_ACCOUNT_APP_NAME) !== undefined;
   const hasTransaction = transactions.totalCount > 0;
 
   const checklistItems: Omit<ChecklistItem, "disabled">[] = [

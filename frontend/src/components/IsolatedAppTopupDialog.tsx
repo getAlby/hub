@@ -12,7 +12,7 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
-import { useApp } from "src/hooks/useApp";
+import { useAppByPubkey } from "src/hooks/useApp";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
@@ -24,7 +24,7 @@ export function IsolatedAppTopupDialog({
   appPubkey,
   children,
 }: React.PropsWithChildren<IsolatedAppTopupProps>) {
-  const { mutate: reloadApp } = useApp(appPubkey);
+  const { mutate: reloadApp } = useAppByPubkey(appPubkey);
   const [amountSat, setAmountSat] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [open, setOpen] = React.useState(false);

@@ -44,15 +44,22 @@ import {
 } from "src/components/ui/tooltip";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { LinkStatus, useLinkAccount } from "src/hooks/useLinkAccount";
-import { App, BudgetRenewalType } from "src/types";
+import { BudgetRenewalType } from "src/types";
 
 import AlbyAccountDarkSVG from "public/images/illustrations/alby-account-dark.svg";
 import AlbyAccountLightSVG from "public/images/illustrations/alby-account-light.svg";
+import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
+import { useApps } from "src/hooks/useApps";
 
-function AlbyConnectionCard({ connection }: { connection?: App }) {
+function AlbyConnectionCard() {
+  const { data: linkedAlbyAccountAppsData, mutate: reloadAlbyAccountApp } =
+    useApps(undefined, undefined, {
+      name: ALBY_ACCOUNT_APP_NAME,
+    });
+  const albyAccountApp = linkedAlbyAccountAppsData?.apps[0];
   const { data: albyMe } = useAlbyMe();
   const { loading, linkStatus, loadingLinkStatus, linkAccount } =
-    useLinkAccount();
+    useLinkAccount(reloadAlbyAccountApp);
 
   const [maxAmount, setMaxAmount] = useState(150_000);
   const [budgetRenewal, setBudgetRenewal] =
@@ -69,7 +76,7 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
       <CardHeader>
         <CardTitle className="relative">
           Linked Alby Account
-          {connection && <AppCardNotice app={connection} />}
+          {albyAccountApp && <AppCardNotice app={albyAccountApp} />}
         </CardTitle>
         <CardDescription>
           Link Your Alby Account to use your lightning address with Alby Hub and
@@ -94,7 +101,7 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
             </div>
             <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
               {loadingLinkStatus && <Loading />}
-              {!connection ||
+              {!albyAccountApp ||
               linkStatus === LinkStatus.SharedNode ||
               linkStatus === LinkStatus.Unlinked ? (
                 <Dialog>
@@ -165,7 +172,7 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
                   </Button>
                 )
               )}
-              {!connection && (
+              {!albyAccountApp && (
                 <ExternalLink
                   to="https://www.getalby.com/node"
                   className="w-full sm:w-auto"
@@ -176,7 +183,7 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
                   </Button>
                 </ExternalLink>
               )}
-              {connection && (
+              {albyAccountApp && (
                 <Link to="/settings/alby-account" className="w-full sm:w-auto">
                   <Button variant="outline" className="w-full sm:w-auto">
                     <User2Icon className="w-4 h-4 mr-2" />
@@ -186,16 +193,16 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
               )}
             </div>
           </div>
-          {connection && (
+          {albyAccountApp && (
             <div className="slashed-zero">
               <Link
-                to={`/apps/${connection.appPubkey}?edit=true`}
+                to={`/apps/${albyAccountApp.appPubkey}?edit=true`}
                 className="absolute top-0 right-0"
               >
                 <EditIcon className="w-4 h-4 hidden group-hover:inline text-muted-foreground hover:text-card-foreground" />
               </Link>
               <AppCardConnectionInfo
-                connection={connection}
+                connection={albyAccountApp}
                 budgetRemainingText={
                   <span className="flex items-center gap-2 justify-end">
                     Left in Alby Account budget

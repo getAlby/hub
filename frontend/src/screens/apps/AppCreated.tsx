@@ -17,7 +17,7 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { useToast } from "src/components/ui/use-toast";
-import { useApp } from "src/hooks/useApp";
+import { useAppByPubkey } from "src/hooks/useApp";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
 import { App, CreateAppResponse } from "src/types";
@@ -45,7 +45,10 @@ function AppCreatedInternal() {
   const createAppResponse = state as CreateAppResponse;
 
   const pairingUri = createAppResponse.pairingUri;
-  const { data: app } = useApp(createAppResponse.pairingPublicKey, true);
+  const { data: app } = useAppByPubkey(
+    createAppResponse.pairingPublicKey,
+    true
+  );
 
   useEffect(() => {
     if (app?.lastUsedAt) {

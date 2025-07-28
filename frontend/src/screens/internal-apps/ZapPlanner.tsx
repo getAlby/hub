@@ -83,7 +83,10 @@ const recipients: Recipient[] = [
 ];
 
 export function ZapPlanner() {
-  const { data: apps, mutate: reloadApps } = useApps();
+  const { data: appsData, mutate: reloadApps } = useApps(undefined, undefined, {
+    appStoreAppId: "zapplanner",
+  });
+  const zapplannerApps = appsData?.apps;
   const { toast } = useToast();
 
   const [open, setOpen] = React.useState(false);
@@ -321,10 +324,6 @@ export function ZapPlanner() {
       setSubmitting(false);
     }
   };
-
-  const zapplannerApps = apps?.filter(
-    (app) => app.metadata?.app_store_app_id === "zapplanner"
-  );
 
   return (
     <div className="grid gap-5">

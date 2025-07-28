@@ -42,7 +42,7 @@ import { Textarea } from "src/components/ui/textarea";
 import { useToast } from "src/components/ui/use-toast";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
-import { useApp } from "src/hooks/useApp";
+import { useAppByPubkey } from "src/hooks/useApp";
 import { useCreateLightningAddress } from "src/hooks/useCreateLightningAddress";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -56,7 +56,10 @@ export function SubwalletCreated() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const createAppResponse = state as CreateAppResponse | undefined;
-  const { data: app } = useApp(createAppResponse?.pairingPublicKey, true);
+  const { data: app } = useAppByPubkey(
+    createAppResponse?.pairingPublicKey,
+    true
+  );
   const [intendedLightningAddress, setIntendedLightningAddress] =
     React.useState(createAppResponse?.name || "");
 
