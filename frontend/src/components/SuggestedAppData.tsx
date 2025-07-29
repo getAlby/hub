@@ -790,13 +790,15 @@ export const suggestedApps: SuggestedApp[] = [
     ),
   },
   {
-    id: “wavespace”,
-    title: “wavecard® by wave.space”,
-    description: “Spend Bitcoin from your AlbyHub at 150M+ merchants worldwide.“,
-    webLink: "https://app.wave.space/spend/?utm_source=albyhub&affiliate=AlbyHub“,
+    id: "wavespace",
+    title: "wavecard® by wave.space",
+    description:
+      "Spend Bitcoin from your AlbyHub at 150M+ merchants worldwide.",
+    webLink:
+      "https://app.wave.space/spend/?utm_source=albyhub&affiliate=AlbyHub",
     logo: wavespace,
     extendedDescription:
-      “The world’s first Bitcoin VISA Debit Card that allows you to spend BTC globally, anywhere VISA is accepted – straight from the safety of your own NWC-enabled wallet. ✨ EXCLUSIVE ALBYHUB SPECIAL🐝 → Get 21% cashback on your wavecard transactions until August 31st (up to 10,000 sats) using code AlbyHub”,
+      "The world’s first Bitcoin VISA Debit Card that allows you to spend BTC globally, anywhere VISA is accepted – straight from the safety of your own NWC-enabled wallet. ✨ EXCLUSIVE ALBYHUB SPECIAL🐝 → Get 21% cashback on your wavecard transactions until August 31st (up to 10,000 sats) using code AlbyHub",
     guide: (
       <>
         <div>
@@ -805,16 +807,23 @@ export const suggestedApps: SuggestedApp[] = [
             <li>
               1. Open{" "}
               <ExternalLink
-                to="https://wave.space/spend/?utm_source=albyhub&affiliate=AlbyHub”
+                to="https://wave.space/spend/?utm_source=albyhub&affiliate=AlbyHub"
                 className="font-medium text-foreground underline"
               >
                 wave.space/spend
               </ExternalLink>{" "}
-              in your browser and{“ "}<span className="font-medium text-foreground">Sign up or log in</span>{" “}to your account
+              in your browser and{" "}
+              <span className="font-medium text-foreground">
+                Sign up or log in
+              </span>{" "}
+              to your account
             </li>
             <li>
-              3. Click on{“ "}
-              <span className="font-medium text-foreground">Connect Wallet</span></li>
+              3. Click on{" "}
+              <span className="font-medium text-foreground">
+                Connect Wallet
+              </span>
+            </li>
             <li>
               3. Choose{" "}
               <span className="font-medium text-foreground">
@@ -829,7 +838,7 @@ export const suggestedApps: SuggestedApp[] = [
             <li>
               4. Click{" "}
               <Link
-                to="/apps/new?app=wave.space”
+                to="/apps/new?app=wave.space"
                 className="font-medium text-foreground underline"
               >
                 Connect to wave.space
