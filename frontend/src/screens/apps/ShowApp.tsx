@@ -18,6 +18,7 @@ import {
   AlertCircleIcon,
   PencilIcon,
   Settings2Icon,
+  SquareStackIcon,
   Trash2Icon,
 } from "lucide-react";
 import AppAvatar from "src/components/AppAvatar";
@@ -172,7 +173,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
     try {
       const updateAppRequest: UpdateAppRequest = {
         name: app.name,
-        scopes: Array.from(app.scopes),
+        scopes: app.scopes,
         budgetRenewal: app.budgetRenewal,
         expiresAt: app.expiresAt,
         maxAmount: app.maxAmount,
@@ -250,8 +251,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
             contentRight={
               <div className="flex gap-2 items-center">
                 {app.isolated &&
-                  app.metadata?.app_store_app_id !==
-                    SUBWALLET_APPSTORE_APP_ID &&
+                  !app.metadata?.app_store_app_id &&
                   albyMe?.subscription.plan_code && (
                     <DropdownMenu modal={false}>
                       <DropdownMenuTrigger asChild>
@@ -263,10 +263,11 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                         <DropdownMenuGroup>
                           <DropdownMenuItem>
                             <div
-                              className="w-full cursor-pointer"
+                              className="w-full cursor-pointer flex items-center gap-2"
                               onClick={handleConvertToSubwallet}
                             >
-                              Convert to Sub-wallet
+                              <SquareStackIcon className="w-4 h-4" /> Convert to
+                              Sub-wallet
                             </div>
                           </DropdownMenuItem>
                         </DropdownMenuGroup>
