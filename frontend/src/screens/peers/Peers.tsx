@@ -59,7 +59,7 @@ export default function Peers() {
   }, [loadNodeStats]);
 
   function hasOpenedChannels(peer: Peer) {
-    return channels?.some(channel => channel.remotePubkey === peer.nodeId);
+    return channels?.some((channel) => channel.remotePubkey === peer.nodeId);
   }
 
   return (
@@ -116,22 +116,26 @@ export default function Peers() {
                   <TableCell>{peer.nodeId}</TableCell>
                   <TableCell>{peer.address}</TableCell>
                   <TableCell>
-                    {peer.isConnected && !hasOpenedChannels(peer) && (<DropdownMenu modal={false}>
-                      <DropdownMenuTrigger asChild>
-                        <Button size="icon" variant="ghost">
-                          <MoreHorizontalIcon className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      {channels && (<DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => setPeerToDisconnect(peer)}
-                          className="flex flex-row items-center gap-2"
-                        >
-                          <Trash2Icon className="h-4 w-4 text-destructive" />
-                          Disconnect Peer
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>)}
-                    </DropdownMenu>)}
+                    {peer.isConnected && !hasOpenedChannels(peer) && (
+                      <DropdownMenu modal={false}>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="icon" variant="ghost">
+                            <MoreHorizontalIcon className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        {channels && (
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => setPeerToDisconnect(peer)}
+                              className="flex flex-row items-center gap-2"
+                            >
+                              <Trash2Icon className="h-4 w-4 text-destructive" />
+                              Disconnect Peer
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        )}
+                      </DropdownMenu>
+                    )}
                   </TableCell>
                 </TableRow>
               );
