@@ -72,15 +72,15 @@ export function SubwalletList() {
                 <HelpCircle className="w-4 h-4" />
               </Button>
             </ExternalLink>
-            <Link to="/sub-wallets/new">
-              <ResponsiveButton
-                icon={CirclePlusIcon}
-                text="New Sub-wallet"
-                disabled={
-                  !albyMe?.subscription.plan_code && subwalletApps?.length >= 3
-                }
-              />
-            </Link>
+            {!albyMe?.subscription.plan_code && subwalletApps?.length >= 3 ? (
+              <UpgradeDialog>
+                <ResponsiveButton icon={CirclePlusIcon} text="New Sub-wallet" />
+              </UpgradeDialog>
+            ) : (
+              <Link to="/sub-wallets/new">
+                <ResponsiveButton icon={CirclePlusIcon} text="New Sub-wallet" />
+              </Link>
+            )}
           </>
         }
       />
