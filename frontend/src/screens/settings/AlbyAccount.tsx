@@ -81,12 +81,9 @@ export function AlbyAccount() {
           </div>
           <div>
             <UnlinkAlbyAccount>
-              <Button
-                size={"lg"}
-                variant={"destructive_outline"}
-                className="flex-1 gap-2 items-center justify-center py-2 px-4"
-              >
-                <Link2OffIcon className="size-4 mr-2" /> Unlink Alby Account
+              <Button size="lg" variant="destructive">
+                <Link2OffIcon />
+                Unlink Alby Account
               </Button>
             </UnlinkAlbyAccount>
           </div>
