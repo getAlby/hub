@@ -16,8 +16,8 @@ import { request } from "src/utils/request"; // build the project for this to ap
 
 import {
   AlertCircleIcon,
+  EllipsisIcon,
   PencilIcon,
-  Settings2Icon,
   SquareStackIcon,
   Trash2Icon,
 } from "lucide-react";
@@ -256,7 +256,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                     <DropdownMenu modal={false}>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="icon">
-                          <Settings2Icon className="w-4 h-4" />
+                          <EllipsisIcon className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="w-56">
