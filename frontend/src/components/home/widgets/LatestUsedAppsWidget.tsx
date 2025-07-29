@@ -12,7 +12,8 @@ import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
 import { useApps } from "src/hooks/useApps";
 
 export function LatestUsedAppsWidget() {
-  const { data: apps } = useApps();
+  const { data: appsData } = useApps(3, undefined, undefined, "last_used_at");
+  const apps = appsData?.apps;
   const usedApps = apps?.filter((x) => x.lastUsedAt);
 
   if (!usedApps?.length) {
@@ -31,7 +32,6 @@ export function LatestUsedAppsWidget() {
               new Date(b.lastUsedAt ?? 0).getTime() -
               new Date(a.lastUsedAt ?? 0).getTime()
           )
-          .slice(0, 3)
           .map((app) => (
             <Link key={app.id} to={`/apps/${app.appPubkey}`}>
               <div className="flex items-center w-full gap-4">

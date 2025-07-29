@@ -17,7 +17,7 @@ type API interface {
 	TopupIsolatedApp(ctx context.Context, app *db.App, amountMsat uint64) error
 	DeleteApp(app *db.App) error
 	GetApp(app *db.App) *App
-	ListApps() ([]App, error)
+	ListApps(limit uint64, offset uint64, filters ListAppsFilters, orderBy string) (*ListAppsResponse, error)
 	CreateLightningAddress(ctx context.Context, createLightningAddressRequest *CreateLightningAddressRequest) error
 	DeleteLightningAddress(ctx context.Context, appId uint) error
 	ListChannels(ctx context.Context) ([]Channel, error)
@@ -101,8 +101,15 @@ type App struct {
 	Metadata           Metadata   `json:"metadata,omitempty"`
 }
 
+type ListAppsFilters struct {
+	Name          string `json:"name"`
+	AppStoreAppId string `json:"appStoreAppId"`
+	Unused        bool   `json:"unused"`
+}
+
 type ListAppsResponse struct {
-	Apps []App `json:"apps"`
+	Apps       []App  `json:"apps"`
+	TotalCount uint64 `json:"totalCount"`
 }
 
 type UpdateAppRequest struct {

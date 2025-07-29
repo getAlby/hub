@@ -149,10 +149,6 @@ func NewService(ctx context.Context) (*service, error) {
 		startProfiler(ctx, appConfig.GoProfilerAddr)
 	}
 
-	if appConfig.DdProfilerEnabled {
-		startDataDogProfiler(ctx)
-	}
-
 	if autoUnlockPassword != "" {
 		nodeLastStartTime, _ := cfg.Get("NodeLastStartTime", "")
 		if nodeLastStartTime != "" {
@@ -319,15 +315,15 @@ func (svc *service) removeExcessEvents() {
 	err = svc.db.Exec("delete from request_events where id < ?", deleteEventsBelowId).Error
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"amount":           numEventsToDelete,
-			"below_id":         deleteEventsBelowId,
-			"duration_seconds": time.Since(startTime).Seconds(),
+			"amount":   numEventsToDelete,
+			"below_id": deleteEventsBelowId,
 		}).Error("Failed to delete excess request events")
 		return
 	}
 	logger.Logger.WithFields(logrus.Fields{
-		"amount":   numEventsToDelete,
-		"below_id": deleteEventsBelowId,
+		"amount":           numEventsToDelete,
+		"below_id":         deleteEventsBelowId,
+		"duration_seconds": time.Since(startTime).Seconds(),
 	}).Info("Removed excess events")
 
 	// TODO: REMOVE AFTER 2026-01-01

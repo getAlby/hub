@@ -83,7 +83,10 @@ const recipients: Recipient[] = [
 ];
 
 export function ZapPlanner() {
-  const { data: apps, mutate: reloadApps } = useApps();
+  const { data: appsData, mutate: reloadApps } = useApps(undefined, undefined, {
+    appStoreAppId: "zapplanner",
+  });
+  const zapplannerApps = appsData?.apps;
   const { toast } = useToast();
 
   const [open, setOpen] = React.useState(false);
@@ -230,10 +233,12 @@ export function ZapPlanner() {
       const maxAmount = Math.ceil((rawSpend * 1.01 + 10) * 1.3);
       const isolated = false;
 
+      const budgetRenewal = "monthly";
+
       const createAppRequest: CreateAppRequest = {
         name: `ZapPlanner - ${recipientName}`,
         scopes: ["pay_invoice"],
-        budgetRenewal: "monthly",
+        budgetRenewal,
         maxAmount,
         isolated,
         metadata: {
@@ -251,7 +256,6 @@ export function ZapPlanner() {
           ? `${monthsToDays(frequencyValue)} days`
           : `${frequencyValue} ${frequencyUnit}`;
 
-      // Build a “stable fiat” payload when needed
       const subscriptionBody: Record<string, unknown> = {
         recipientLightningAddress,
         message: comment || "ZapPlanner payment from Alby Hub",
@@ -290,7 +294,7 @@ export function ZapPlanner() {
       const updateAppRequest: UpdateAppRequest = {
         name: createAppRequest.name,
         scopes: createAppRequest.scopes,
-        budgetRenewal: createAppRequest.budgetRenewal!,
+        budgetRenewal,
         expiresAt: createAppRequest.expiresAt,
         maxAmount,
         isolated,
@@ -321,10 +325,6 @@ export function ZapPlanner() {
       setSubmitting(false);
     }
   };
-
-  const zapplannerApps = apps?.filter(
-    (app) => app.metadata?.app_store_app_id === "zapplanner"
-  );
 
   return (
     <div className="grid gap-5">

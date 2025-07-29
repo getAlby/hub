@@ -20,7 +20,6 @@ import {
   TableHeader,
   TableRow,
 } from "src/components/ui/table.tsx";
-import { useToast } from "src/components/ui/use-toast";
 import { useChannels } from "src/hooks/useChannels";
 import { usePeers } from "src/hooks/usePeers.ts";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
@@ -31,7 +30,6 @@ export default function Peers() {
   useSyncWallet();
   const { data: peers } = usePeers();
   const { data: channels } = useChannels();
-  const { toast } = useToast();
   const [nodes, setNodes] = React.useState<MempoolNode[]>([]);
   const [peerToDisconnect, setPeerToDisconnect] = React.useState<Peer>();
 
@@ -60,25 +58,8 @@ export default function Peers() {
     loadNodeStats();
   }, [loadNodeStats]);
 
-  async function checkDisconnectPeer(peer: Peer) {
-    try {
-      if (!channels) {
-        throw new Error("channels not loaded");
-      }
-      if (channels.some((channel) => channel.remotePubkey === peer.nodeId)) {
-        throw new Error(
-          "you have one or more open channels with " + peer.nodeId
-        );
-      }
-      setPeerToDisconnect(peer);
-    } catch (e) {
-      toast({
-        variant: "destructive",
-        title: "Cannot disconnect peer",
-        description: "" + e,
-      });
-      console.error(e);
-    }
+  function hasOpenedChannels(peer: Peer) {
+    return channels?.some((channel) => channel.remotePubkey === peer.nodeId);
   }
 
   return (
@@ -135,22 +116,26 @@ export default function Peers() {
                   <TableCell>{peer.nodeId}</TableCell>
                   <TableCell>{peer.address}</TableCell>
                   <TableCell>
-                    <DropdownMenu modal={false}>
-                      <DropdownMenuTrigger asChild>
-                        <Button size="icon" variant="ghost">
-                          <MoreHorizontalIcon className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={() => checkDisconnectPeer(peer)}
-                          className="flex flex-row items-center gap-2"
-                        >
-                          <Trash2Icon className="h-4 w-4 text-destructive" />
-                          Disconnect Peer
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    {peer.isConnected && !hasOpenedChannels(peer) && (
+                      <DropdownMenu modal={false}>
+                        <DropdownMenuTrigger asChild>
+                          <Button size="icon" variant="ghost">
+                            <MoreHorizontalIcon className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        {channels && (
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => setPeerToDisconnect(peer)}
+                              className="flex flex-row items-center gap-2"
+                            >
+                              <Trash2Icon className="h-4 w-4 text-destructive" />
+                              Disconnect Peer
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        )}
+                      </DropdownMenu>
+                    )}
                   </TableCell>
                 </TableRow>
               );
