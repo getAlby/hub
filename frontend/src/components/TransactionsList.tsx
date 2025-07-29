@@ -79,7 +79,7 @@ function TransactionsList({
     }
 
     try {
-      // Fetch up to 50 transactions for the app
+      // Fetch up to LIST_TRANSACTIONS_LIMIT (20) transactions for the app
       const data = (await request(
         `/api/transactions?appId=${appId}&limit=${LIST_TRANSACTIONS_LIMIT}`
       )) as ListTransactionsResponse;
