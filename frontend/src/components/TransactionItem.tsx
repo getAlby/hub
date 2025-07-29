@@ -27,7 +27,7 @@ import {
 } from "src/components/ui/dialog";
 import { useToast } from "src/components/ui/use-toast";
 import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
-import { useApps } from "src/hooks/useApps";
+import { useApp } from "src/hooks/useApp";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
 import { Transaction } from "src/types";
@@ -47,16 +47,10 @@ function safeNpubEncode(hex: string): string | undefined {
 }
 
 function TransactionItem({ tx }: Props) {
-  const { data: apps } = useApps();
+  const { data: app } = useApp(tx.appId);
   const { toast } = useToast();
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;
-
-  const app = React.useMemo(
-    () =>
-      tx.appId != null ? apps?.find((app) => app.id === tx.appId) : undefined,
-    [apps, tx.appId]
-  );
 
   const pubkey = tx.metadata?.nostr?.pubkey;
   const npub = pubkey ? safeNpubEncode(pubkey) : undefined;

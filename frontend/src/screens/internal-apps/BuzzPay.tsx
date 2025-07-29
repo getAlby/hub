@@ -20,17 +20,15 @@ import { openLink } from "src/utils/openLink";
 export function BuzzPay() {
   const [name, setName] = React.useState("");
   const [isLoading, setLoading] = React.useState(false);
-  const { data: apps, mutate: reloadApps } = useApps();
+  const { data: appsData, mutate: reloadApps } = useApps(undefined, undefined, {
+    appStoreAppId: "buzzpay",
+  });
   const [posUrl, setPosUrl] = React.useState("");
   const { toast } = useToast();
 
-  if (!apps) {
+  if (!appsData) {
     return <Loading />;
   }
-
-  const buzzpayApps = apps?.filter(
-    (app) => app.metadata?.app_store_app_id === "buzzpay"
-  );
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -140,7 +138,7 @@ export function BuzzPay() {
             </form>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list">
-            {buzzpayApps.map((app, index) => (
+            {appsData.apps.map((app, index) => (
               <AppCard key={index} app={app} />
             ))}
           </div>

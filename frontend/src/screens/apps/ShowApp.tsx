@@ -1,7 +1,7 @@
 import React from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
-import { useApp } from "src/hooks/useApp";
+import { useAppByPubkey } from "src/hooks/useApp";
 
 import { useDeleteApp } from "src/hooks/useDeleteApp";
 import {
@@ -74,7 +74,7 @@ import { useDeleteLightningAddress } from "src/hooks/useDeleteLightningAddress";
 
 function ShowApp() {
   const { pubkey } = useParams() as { pubkey: string };
-  const { data: app, mutate: refetchApp, error } = useApp(pubkey);
+  const { data: app, mutate: refetchApp, error } = useAppByPubkey(pubkey);
   const { data: capabilities } = useCapabilities();
 
   if (error) {
