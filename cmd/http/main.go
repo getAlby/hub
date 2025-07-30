@@ -39,6 +39,7 @@ func main() {
 			}
 
 			cancel()
+			break
 		}
 	}()
 
