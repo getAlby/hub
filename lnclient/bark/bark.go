@@ -742,59 +742,13 @@ func (s *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 }
 
 func convertVtxoToCommandResp(vtxo bindings.Vtxo) map[string]interface{} {
-	var respVtxo map[string]interface{}
-
-	switch vtxo := vtxo.(type) {
-	case bindings.VtxoBoard:
-		respVtxo = map[string]interface{}{
-			"type":              "board",
-			"user_pubkey":       vtxo.Spec.UserPubkey,
-			"asp_pubkey":        vtxo.Spec.AspPubkey,
-			"expiry_height":     vtxo.Spec.ExpiryHeight,
-			"amount_sat":        vtxo.Spec.AmountSat,
-			"outpoint_txid":     vtxo.OnchainOutput.Txid,
-			"outpoint_vout":     vtxo.OnchainOutput.Vout,
-			"exit_tx_signature": vtxo.ExitTxSignature,
-		}
-	case bindings.VtxoRound:
-		respVtxo = map[string]interface{}{
-			"type":          "round",
-			"user_pubkey":   vtxo.Spec.UserPubkey,
-			"asp_pubkey":    vtxo.Spec.AspPubkey,
-			"expiry_height": vtxo.Spec.ExpiryHeight,
-			"amount_sat":    vtxo.Spec.AmountSat,
-			"leaf_idx":      vtxo.LeafIdx,
-			"point_txid":    vtxo.Point.Txid,
-			"point_vout":    vtxo.Point.Vout,
-		}
-	case bindings.VtxoArkoor:
-		inputs := make([]map[string]interface{}, 0, len(vtxo.Inputs))
-		for _, input := range vtxo.Inputs {
-			inputs = append(inputs, convertVtxoToCommandResp(input))
-		}
-
-		outputSpecs := make([]map[string]interface{}, 0, len(vtxo.OutputSpecs))
-		for _, spec := range vtxo.OutputSpecs {
-			outputSpecs = append(outputSpecs, map[string]interface{}{
-				"user_pubkey":   spec.UserPubkey,
-				"asp_pubkey":    spec.AspPubkey,
-				"expiry_height": spec.ExpiryHeight,
-				"amount_sat":    spec.AmountSat,
-			})
-		}
-
-		respVtxo = map[string]interface{}{
-			"type":         "arkoor",
-			"inputs":       inputs,
-			"signature":    vtxo.Signature,
-			"output_specs": outputSpecs,
-			"point_txid":   vtxo.Point.Txid,
-			"point_vout":   vtxo.Point.Vout,
-		}
-	default:
-		respVtxo = map[string]interface{}{
-			"type": "<unknown>",
-		}
+	respVtxo := map[string]interface{}{
+		"point":         vtxo.Point,
+		"amount_sat":    vtxo.AmountSat,
+		"user_pubkey":   vtxo.UserPubkey,
+		"asp_pubkey":    vtxo.AspPubkey,
+		"expiry_height": vtxo.ExpiryHeight,
+		"is_arkoor":     vtxo.IsArkoor,
 	}
 
 	return respVtxo
