@@ -102,7 +102,8 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	}
 
 	encryption := constants.ENCRYPTION_TYPE_NIP04
-	if encryptionTag := event.Tags.Find("encryption"); encryptionTag != nil {
+	encryptionTag := event.Tags.Find("encryption")
+	if encryptionTag != nil {
 		encryption = encryptionTag[1]
 	}
 
