@@ -118,7 +118,7 @@ function PeerTableRow(props: PeerTableRowProps) {
       <TableCell>{peer.nodeId}</TableCell>
       <TableCell>{peer.address}</TableCell>
       <TableCell>
-        {peer.isConnected && !hasOpenedChannels(peer) && (
+        {!hasOpenedChannels(peer) && (
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
               <Button size="icon" variant="ghost">
