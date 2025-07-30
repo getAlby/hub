@@ -40,16 +40,15 @@ import { cn, formatAmount } from "src/lib/utils";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import {
   Channel,
-  MempoolNode,
   Network,
   NewChannelOrder,
   OnchainOrder,
   RecommendedChannelPeer,
 } from "src/types";
-import { request } from "src/utils/request";
 
 import LightningNetworkDarkSVG from "public/images/illustrations/lightning-network-dark.svg";
 import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
+import { useNodeDetails } from "src/hooks/useNodeDetails";
 
 function getPeerKey(peer: RecommendedChannelPeer) {
   return JSON.stringify(peer);
@@ -444,9 +443,6 @@ type NewChannelOnchainProps = {
 };
 
 function NewChannelOnchain(props: NewChannelOnchainProps) {
-  const [nodeDetails, setNodeDetails] = React.useState<
-    MempoolNode | undefined
-  >();
   const { data: peers } = usePeers();
 
   if (props.order.paymentMethod !== "onchain") {
@@ -475,30 +471,14 @@ function NewChannelOnchain(props: NewChannelOnchainProps) {
     [setOrder]
   );
 
-  const fetchNodeDetails = React.useCallback(async () => {
-    if (!pubkey) {
-      setNodeDetails(undefined);
-      return;
-    }
-    try {
-      const data = await request<MempoolNode>(
-        `/api/mempool?endpoint=/v1/lightning/nodes/${pubkey}`
-      );
-
-      setNodeDetails(data);
-      const socketAddress = data?.sockets?.split(",")?.[0];
-      if (socketAddress) {
-        setHost(socketAddress);
-      }
-    } catch (error) {
-      console.error(error);
-      setNodeDetails(undefined);
-    }
-  }, [pubkey, setHost]);
+  const { data: nodeDetails } = useNodeDetails(pubkey);
 
   React.useEffect(() => {
-    fetchNodeDetails();
-  }, [fetchNodeDetails]);
+    const socketAddress = nodeDetails?.sockets?.split(",")?.[0];
+    if (socketAddress) {
+      setHost(socketAddress);
+    }
+  }, [nodeDetails, setHost]);
 
   return (
     <>
