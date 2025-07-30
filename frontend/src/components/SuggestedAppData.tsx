@@ -797,7 +797,7 @@ export const suggestedApps: SuggestedApp[] = [
       "https://app.wave.space/spend/?utm_source=albyhub&affiliate=AlbyHub",
     logo: wavespace,
     extendedDescription:
-      "The world's first Bitcoin VISA Debit Card that allows you to spend BTC globally, anywhere VISA is accepted – straight from the safety of your own NWC-enabled wallet. \n✨ EXCLUSIVE ALBYHUB SPECIAL🐝 → Get 21% cashback on your wavecard transactions (up to 10,000 sats) using code »AlbyHub«",
+      "The world's first Bitcoin VISA Debit Card that allows you to spend BTC globally, anywhere VISA is accepted – straight from the safety of your own NWC-enabled wallet. ✨ EXCLUSIVE ALBYHUB SPECIAL🐝 → Get 21% cashback on your wavecard transactions (up to 10,000 sats) using code »AlbyHub«",
     guide: (
       <>
         <div>
