@@ -1,4 +1,4 @@
-FROM node:20-alpine as frontend
+FROM node:20-alpine AS frontend
 
 # Set the base path for the frontend build
 # This can be overridden at build time with --build-arg BASE_PATH=<url> e.g. --build-arg BASE_PATH=/hub
@@ -9,7 +9,7 @@ COPY frontend ./frontend
 RUN echo "Building frontend with base path $BASE_PATH"
 RUN cd frontend && yarn install --network-timeout 3000000 && yarn build:http
 
-FROM golang:1.24 as builder
+FROM golang:1.24 AS builder
 
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
@@ -52,7 +52,7 @@ RUN chmod +x copy_dylibs.sh
 RUN ./copy_dylibs.sh $(echo "$TARGETPLATFORM" | cut -d'/' -f2)
 
 # Start a new, final image to reduce size.
-FROM debian:12-slim as final
+FROM debian:12-slim AS final
 
 ENV LD_LIBRARY_PATH=/usr/lib/nwc
 #

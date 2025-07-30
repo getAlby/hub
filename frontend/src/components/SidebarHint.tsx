@@ -24,7 +24,9 @@ import useChannelOrderStore from "src/state/ChannelOrderStore";
 
 function SidebarHint() {
   const { isLoading, checklistItems } = useOnboardingData();
-  const { data: apps } = useApps();
+  const { data: supportAlbyAppsData } = useApps(undefined, undefined, {
+    name: SUPPORT_ALBY_CONNECTION_NAME,
+  });
   const { data: albyMe } = useAlbyMe();
   const { order } = useChannelOrderStore();
   const location = useLocation();
@@ -86,8 +88,8 @@ function SidebarHint() {
   }
 
   const showSupport =
-    apps &&
-    apps.filter((x) => x.name == SUPPORT_ALBY_CONNECTION_NAME).length === 0 &&
+    supportAlbyAppsData &&
+    supportAlbyAppsData.apps.length === 0 &&
     !albyMe?.subscription.plan_code;
 
   if (

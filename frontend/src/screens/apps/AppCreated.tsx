@@ -1,4 +1,4 @@
-import { CheckIcon, CopyIcon, EyeIcon } from "lucide-react";
+import { CheckIcon, CopyIcon, ExternalLinkIcon, EyeIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
@@ -9,7 +9,7 @@ import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { SuggestedApp, suggestedApps } from "src/components/SuggestedAppData";
 import { Badge } from "src/components/ui/badge";
-import { Button } from "src/components/ui/button";
+import { Button, ExternalLinkButton } from "src/components/ui/button";
 import {
   Card,
   CardContent,
@@ -17,8 +17,9 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { useToast } from "src/components/ui/use-toast";
-import { useApp } from "src/hooks/useApp";
+import { useAppByPubkey } from "src/hooks/useApp";
 import { copyToClipboard } from "src/lib/clipboard";
+import { cn } from "src/lib/utils";
 import { App, CreateAppResponse } from "src/types";
 
 export default function AppCreated() {
@@ -44,17 +45,20 @@ function AppCreatedInternal() {
   const createAppResponse = state as CreateAppResponse;
 
   const pairingUri = createAppResponse.pairingUri;
-  const { data: app } = useApp(createAppResponse.pairingPublicKey, true);
+  const { data: app } = useAppByPubkey(
+    createAppResponse.pairingPublicKey,
+    true
+  );
 
   useEffect(() => {
-    if (app?.lastEventAt) {
+    if (app?.lastUsedAt) {
       toast({
         title: "Connection established!",
         description: "You can now use the app with your Alby Hub.",
       });
       navigate("/apps");
     }
-  }, [app?.lastEventAt, navigate, toast]);
+  }, [app?.lastUsedAt, navigate, toast]);
 
   useEffect(() => {
     // dispatch a success event which can be listened to by the opener or by the app that embedded the webview
@@ -171,7 +175,7 @@ export function ConnectAppCard({
         <CardTitle className="text-center">Connection Secret</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-5">
-        {!app.lastEventAt ? (
+        {!app.lastUsedAt ? (
           <>
             <div className="flex flex-row items-center gap-2 text-sm">
               <Loading className="w-4 h-4" />
@@ -192,8 +196,11 @@ export function ConnectAppCard({
             <p>App connected</p>
           </Badge>
         )}
-        <a href={pairingUri} target="_blank" className="relative">
-          <div className={!isQRCodeVisible ? "blur-md" : ""}>
+        <div className="relative">
+          <div
+            className={cn(!isQRCodeVisible && "blur-md cursor-pointer")}
+            onClick={() => setIsQRCodeVisible(true)}
+          >
             <QRCode className={"w-full"} value={pairingUri} />
             {appstoreApp && (
               <img
@@ -204,8 +211,7 @@ export function ConnectAppCard({
           </div>
           {!isQRCodeVisible && (
             <Button
-              onClick={(e) => {
-                e.preventDefault();
+              onClick={() => {
                 setIsQRCodeVisible(true);
               }}
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -214,12 +220,16 @@ export function ConnectAppCard({
               Reveal QR
             </Button>
           )}
-        </a>
-        <div>
+        </div>
+        <div className="flex gap-2">
           <Button onClick={copy} variant="outline">
             <CopyIcon className="w-4 h-4 mr-2" />
             Copy
           </Button>
+          <ExternalLinkButton to={pairingUri} variant="outline">
+            <ExternalLinkIcon className="w-4 h-4 mr-2" />
+            Open
+          </ExternalLinkButton>
         </div>
       </CardContent>
     </Card>

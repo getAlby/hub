@@ -40,6 +40,8 @@ import BankAccount from "src/screens/features/BankAccount";
 import { AlbyGo } from "src/screens/internal-apps/AlbyGo";
 import { Bitrefill } from "src/screens/internal-apps/Bitrefill";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
+import { Claude } from "src/screens/internal-apps/Claude";
+import { Goose } from "src/screens/internal-apps/Goose";
 import { LightningMessageboard } from "src/screens/internal-apps/LightningMessageboard";
 import { SimpleBoost } from "src/screens/internal-apps/SimpleBoost";
 import { ZapPlanner } from "src/screens/internal-apps/ZapPlanner";
@@ -55,7 +57,6 @@ import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword"
 import DebugTools from "src/screens/settings/DebugTools";
 import DeveloperSettings from "src/screens/settings/DeveloperSettings";
 import Settings from "src/screens/settings/Settings";
-import Swaps from "src/screens/settings/Swaps";
 
 import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
 import { RestoreNode } from "src/screens/setup/RestoreNode";
@@ -84,6 +85,10 @@ import ConfirmPayment from "src/screens/wallet/send/ConfirmPayment";
 import LnurlPay from "src/screens/wallet/send/LnurlPay";
 import PaymentSuccess from "src/screens/wallet/send/PaymentSuccess";
 import ZeroAmount from "src/screens/wallet/send/ZeroAmount";
+import Swap from "src/screens/wallet/swap";
+import AutoSwap from "src/screens/wallet/swap/AutoSwap";
+import SwapInStatus from "src/screens/wallet/swap/SwapInStatus";
+import SwapOutStatus from "src/screens/wallet/swap/SwapOutStatus";
 
 const routes = [
   {
@@ -114,6 +119,28 @@ const routes = [
           {
             index: true,
             element: <Wallet />,
+          },
+          {
+            path: "swap",
+            handle: { crumb: () => "Swap" },
+            children: [
+              {
+                index: true,
+                element: <Swap />,
+              },
+              {
+                path: "out/status/:swapId",
+                element: <SwapOutStatus />,
+              },
+              {
+                path: "in/status/:swapId",
+                element: <SwapInStatus />,
+              },
+              {
+                path: "auto",
+                element: <AutoSwap />,
+              },
+            ],
           },
           {
             path: "receive",
@@ -202,10 +229,6 @@ const routes = [
                 path: "auto-unlock",
                 element: <AutoUnlock />,
                 handle: { crumb: () => "Auto Unlock" },
-              },
-              {
-                path: "swaps",
-                element: <Swaps />,
               },
               {
                 path: "change-unlock-password",
@@ -313,6 +336,14 @@ const routes = [
           {
             path: "bitrefill",
             element: <Bitrefill />,
+          },
+          {
+            path: "goose",
+            element: <Goose />,
+          },
+          {
+            path: "claude",
+            element: <Claude />,
           },
         ],
       },

@@ -119,7 +119,7 @@ export interface App {
   walletPubkey: string;
   createdAt: string;
   updatedAt: string;
-  lastEventAt?: string;
+  lastUsedAt?: string;
   expiresAt?: string;
   isolated: boolean;
   balance: number;
@@ -190,19 +190,57 @@ export type HealthResponse = {
 
 export type Network = "bitcoin" | "testnet" | "signet";
 
-export type AppMetadata = { app_store_app_id?: string } & Record<
-  string,
-  unknown
->;
+export type AppMetadata = {
+  app_store_app_id?: string;
+  lud16?: string;
+} & Record<string, unknown>;
 
-export type SwapsSettingsResponse = {
+export type AutoSwapConfig = {
+  type: "out";
   enabled: boolean;
   balanceThreshold: number;
   swapAmount: number;
   destination: string;
+};
+
+export type SwapFees = {
   albyServiceFee: number;
   boltzServiceFee: number;
   boltzNetworkFee: number;
+};
+
+export type BaseSwap = {
+  id: string;
+  sendAmount: number;
+  lockupAddress: string;
+  paymentHash: string;
+  invoice: string;
+  autoSwap: boolean;
+  boltzPubkey: string;
+  createdAt: string;
+  updatedAt: string;
+  lockupTxId?: string;
+  claimTxId?: string;
+  receiveAmount?: number;
+};
+
+export type SwapIn = BaseSwap & {
+  type: "in";
+  state: "PENDING" | "SUCCESS" | "FAILED" | "REFUNDED";
+  refundAddress?: string;
+};
+
+export type SwapOut = BaseSwap & {
+  type: "out";
+  state: "PENDING" | "SUCCESS" | "FAILED";
+  destinationAddress: string;
+};
+
+export type Swap = SwapIn | SwapOut;
+
+export type SwapResponse = {
+  swapId: string;
+  paymentHash: string;
 };
 
 export interface MnemonicResponse {
@@ -338,6 +376,19 @@ export type OnchainBalanceResponse = {
   pendingBalancesFromChannelClosures: number;
   pendingBalancesDetails: PendingBalancesDetails[];
   pendingSweepBalancesDetails: PendingBalancesDetails[];
+};
+
+// from https://mempool.space/docs/api/rest#get-address-utxo
+export type MempoolUtxo = {
+  txid: string;
+  vout: number;
+  status: {
+    confirmed: boolean;
+    block_height?: number;
+    block_hash?: string;
+    block_time?: number;
+  };
+  value: number;
 };
 
 // from https://mempool.space/docs/api/rest#get-node-stats
@@ -528,6 +579,7 @@ export type TransactionMetadata = {
     id: string;
     payer_note: string;
   }; // BOLT-12
+  swap_id?: string;
 } & Record<string, unknown>;
 
 export type Boostagram = {
@@ -554,6 +606,11 @@ export type OnchainTransaction = {
   state: "confirmed" | "unconfirmed";
   numConfirmations: number;
   txId: string;
+};
+
+export type ListAppsResponse = {
+  apps: App[];
+  totalCount: number;
 };
 
 export type ListTransactionsResponse = {

@@ -1,7 +1,7 @@
 import React from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
-import { useApp } from "src/hooks/useApp";
+import { useAppByPubkey } from "src/hooks/useApp";
 
 import { useDeleteApp } from "src/hooks/useDeleteApp";
 import {
@@ -14,7 +14,13 @@ import {
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request"; // build the project for this to appear
 
-import { AlertCircleIcon, PencilIcon, Trash2Icon } from "lucide-react";
+import {
+  AlertCircleIcon,
+  EllipsisIcon,
+  PencilIcon,
+  SquareStackIcon,
+  Trash2Icon,
+} from "lucide-react";
 import AppAvatar from "src/components/AppAvatar";
 import AppHeader from "src/components/AppHeader";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
@@ -39,7 +45,15 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "src/components/ui/dropdown-menu";
 import { Input } from "src/components/ui/input";
+import { LoadingButton } from "src/components/ui/loading-button";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import {
   Tooltip,
@@ -48,12 +62,19 @@ import {
   TooltipTrigger,
 } from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
-import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
+import { UpgradeDialog } from "src/components/UpgradeDialog";
+import {
+  ALBY_ACCOUNT_APP_NAME,
+  SUBWALLET_APPSTORE_APP_ID,
+} from "src/constants";
+import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useCapabilities } from "src/hooks/useCapabilities";
+import { useCreateLightningAddress } from "src/hooks/useCreateLightningAddress";
+import { useDeleteLightningAddress } from "src/hooks/useDeleteLightningAddress";
 
 function ShowApp() {
   const { pubkey } = useParams() as { pubkey: string };
-  const { data: app, mutate: refetchApp, error } = useApp(pubkey);
+  const { data: app, mutate: refetchApp, error } = useAppByPubkey(pubkey);
   const { data: capabilities } = useCapabilities();
 
   if (error) {
@@ -85,6 +106,15 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const location = useLocation();
   const [isEditingName, setIsEditingName] = React.useState(false);
   const [isEditingPermissions, setIsEditingPermissions] = React.useState(false);
+  const [intendedLightningAddress, setIntendedLightningAddress] =
+    React.useState("");
+  const { createLightningAddress, creatingLightningAddress } =
+    useCreateLightningAddress(app.appPubkey);
+  const {
+    deleteLightningAddress: deleteSubwalletLightningAddress,
+    deletingLightningAddress,
+  } = useDeleteLightningAddress(app.appPubkey);
+  const { data: albyMe } = useAlbyMe();
 
   React.useEffect(() => {
     const queryParams = new URLSearchParams(location.search);
@@ -128,7 +158,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
         body: JSON.stringify(updateAppRequest),
       });
 
-      await refetchApp();
+      refetchApp();
       setIsEditingName(false);
       setIsEditingPermissions(false);
       toast({
@@ -139,7 +169,41 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
     }
   };
 
-  const appName = app.name === "getalby.com" ? "Alby Account" : app.name;
+  const handleConvertToSubwallet = async () => {
+    try {
+      const updateAppRequest: UpdateAppRequest = {
+        name: app.name,
+        scopes: app.scopes,
+        budgetRenewal: app.budgetRenewal,
+        expiresAt: app.expiresAt,
+        maxAmount: app.maxAmount,
+        isolated: app.isolated,
+        metadata: {
+          ...app.metadata,
+          app_store_app_id: SUBWALLET_APPSTORE_APP_ID,
+        },
+      };
+
+      await request(`/api/apps/${app.appPubkey}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updateAppRequest),
+      });
+
+      refetchApp();
+      toast({
+        title: "Successfully converted to sub-wallet",
+        description: "This isolated app is now a sub-wallet.",
+      });
+    } catch (error) {
+      handleRequestError(toast, "Failed to convert to sub-wallet", error);
+    }
+  };
+
+  const appName =
+    app.name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : app.name;
 
   return (
     <>
@@ -177,7 +241,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                     >
                       {appName}
                     </h2>
-                    {app.name !== "getalby.com" && (
+                    {app.name !== ALBY_ACCOUNT_APP_NAME && (
                       <PencilIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                     )}
                   </div>
@@ -185,40 +249,66 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
               </div>
             }
             contentRight={
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="icon">
-                    <Trash2Icon className="w-4 h-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Are you sure you want to delete this connection?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Connected apps will no longer be able to use this
-                      connection.
-                      {app.isolated && (
-                        <>
-                          {" "}
-                          No funds will be lost during this process, the balance
-                          will remain in your wallet.
-                        </>
-                      )}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => deleteApp(app.appPubkey)}
-                      disabled={isDeleting}
-                    >
-                      Continue
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <div className="flex gap-2 items-center">
+                {app.isolated &&
+                  !app.metadata?.app_store_app_id &&
+                  albyMe?.subscription.plan_code && (
+                    <DropdownMenu modal={false}>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="icon">
+                          <EllipsisIcon className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-56">
+                        <DropdownMenuGroup>
+                          <DropdownMenuItem>
+                            <div
+                              className="w-full cursor-pointer flex items-center gap-2"
+                              onClick={handleConvertToSubwallet}
+                            >
+                              <SquareStackIcon className="w-4 h-4" /> Convert to
+                              Sub-wallet
+                            </div>
+                          </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="icon">
+                      <Trash2Icon className="w-4 h-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Are you sure you want to delete this connection?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Connected apps will no longer be able to use this
+                        connection.
+                        {app.isolated && (
+                          <>
+                            {" "}
+                            No funds will be lost during this process, the
+                            balance will remain in your wallet.
+                          </>
+                        )}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => deleteApp(app.appPubkey)}
+                        disabled={isDeleting}
+                      >
+                        Continue
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             }
             description={""}
           />
@@ -284,11 +374,77 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                       </TableCell>
                     </TableRow>
                   )}
+                  {app.isolated &&
+                    app.metadata?.app_store_app_id ===
+                      SUBWALLET_APPSTORE_APP_ID && (
+                      <TableRow>
+                        <TableCell className="font-medium">
+                          Lightning Address
+                        </TableCell>
+                        <TableCell className="text-muted-foreground break-all">
+                          {app.metadata.lud16}
+                          {!app.metadata.lud16 && (
+                            <div className="max-w-96 flex items-center gap-2">
+                              <Input
+                                type="text"
+                                value={intendedLightningAddress}
+                                onChange={(e) =>
+                                  setIntendedLightningAddress(e.target.value)
+                                }
+                                required
+                                autoComplete="off"
+                                endAdornment={
+                                  <span className="mr-1 text-muted-foreground text-xs">
+                                    @getalby.com
+                                  </span>
+                                }
+                              />
+                              {!albyMe?.subscription.plan_code ? (
+                                <UpgradeDialog>
+                                  <Button
+                                    className="shrink-0"
+                                    size="lg"
+                                    variant="secondary"
+                                  >
+                                    Create
+                                  </Button>
+                                </UpgradeDialog>
+                              ) : (
+                                <LoadingButton
+                                  className="shrink-0"
+                                  size="lg"
+                                  variant="secondary"
+                                  loading={creatingLightningAddress}
+                                  onClick={() =>
+                                    createLightningAddress(
+                                      intendedLightningAddress
+                                    )
+                                  }
+                                >
+                                  Create
+                                </LoadingButton>
+                              )}
+                            </div>
+                          )}
+                          {app.metadata.lud16 && (
+                            <LoadingButton
+                              size="sm"
+                              variant="destructive"
+                              className="ml-4"
+                              loading={deletingLightningAddress}
+                              onClick={deleteSubwalletLightningAddress}
+                            >
+                              Remove
+                            </LoadingButton>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    )}
                   <TableRow>
                     <TableCell className="font-medium">Last used</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {app.lastEventAt
-                        ? new Date(app.lastEventAt).toString()
+                      {app.lastUsedAt
+                        ? new Date(app.lastUsedAt).toString()
                         : "Never"}
                     </TableCell>
                   </TableRow>
@@ -349,17 +505,38 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                                 Confirm Update App
                               </AlertDialogTitle>
                               <AlertDialogDescription>
-                                {app.isolated && !permissions.isolated ? (
-                                  <b>
-                                    Are you sure you wish to remove the isolated
-                                    status from this connection?
-                                  </b>
-                                ) : (
-                                  <b>
-                                    Are you sure you wish to give this
-                                    connection pay permissions?
-                                  </b>
-                                )}
+                                <div className="space-y-2">
+                                  {app.isolated && !permissions.isolated ? (
+                                    <p>
+                                      Are you sure you wish to remove the
+                                      <span className="font-bold">
+                                        isolated
+                                      </span>{" "}
+                                      status from this connection?
+                                    </p>
+                                  ) : (
+                                    <p>
+                                      Are you sure you wish to give this
+                                      connection{" "}
+                                      <span className="font-bold">
+                                        pay permissions
+                                      </span>
+                                      ?
+                                    </p>
+                                  )}
+                                  <p className="text-amber-600 dark:text-amber-400 font-medium">
+                                    ⚠️ Warning: This applies to all apps that
+                                    have this connection secret. Only change
+                                    this if you know it is safe to do so,
+                                    otherwise you could potentially lose all
+                                    funds
+                                    {!!permissions.maxAmount &&
+                                      " up to the specified budget"}
+                                    {permissions.isolated &&
+                                      " that are deposited into this isolated app"}
+                                    .
+                                  </p>
+                                </div>
                               </AlertDialogDescription>
                               <AlertDialogFooter className="mt-5">
                                 <AlertDialogCancel

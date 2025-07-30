@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
-import { useApps } from "src/hooks/useApps";
 
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
-import { BudgetRenewalType } from "src/types";
+import { BudgetRenewalType, ListAppsResponse } from "src/types";
 import { request } from "src/utils/request";
+import { KeyedMutator } from "swr";
 
 export enum LinkStatus {
   SharedNode,
@@ -14,9 +14,10 @@ export enum LinkStatus {
   Unlinked,
 }
 
-export function useLinkAccount() {
+export function useLinkAccount(
+  reloadAlbyAccountApp: KeyedMutator<ListAppsResponse>
+) {
   const { data: me, mutate: reloadAlbyMe } = useAlbyMe();
-  const { mutate: reloadApps } = useApps();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -51,7 +52,7 @@ export function useLinkAccount() {
         }),
       });
       // update the link status and get the newly-created Alby Account app
-      await Promise.all([reloadAlbyMe(), reloadApps()]);
+      await Promise.all([reloadAlbyMe(), reloadAlbyAccountApp()]);
       toast({
         title:
           "Your Alby Hub has successfully been linked to your Alby Account",

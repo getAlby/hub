@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -119,15 +120,19 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.PATCH("/auto-unlock", httpSvc.autoUnlockHandler)
 	restrictedApiGroup.PATCH("/settings", httpSvc.updateSettingsHandler)
 	restrictedApiGroup.GET("/apps", httpSvc.appsListHandler)
-	restrictedApiGroup.GET("/apps/:pubkey", httpSvc.appsShowHandler)
+	restrictedApiGroup.GET("/apps/:pubkey", httpSvc.appsShowByPubkeyHandler)
+	restrictedApiGroup.GET("/v2/apps/:id", httpSvc.appsShowHandler)
 	restrictedApiGroup.PATCH("/apps/:pubkey", httpSvc.appsUpdateHandler)
 	restrictedApiGroup.DELETE("/apps/:pubkey", httpSvc.appsDeleteHandler)
 	restrictedApiGroup.POST("/apps/:pubkey/topup", httpSvc.isolatedAppTopupHandler)
 	restrictedApiGroup.POST("/apps", httpSvc.appsCreateHandler)
+	restrictedApiGroup.POST("/lightning-addresses", httpSvc.lightningAddressesCreateHandler)
+	restrictedApiGroup.DELETE("/lightning-addresses/:appId", httpSvc.lightningAddressesDeleteHandler)
 	restrictedApiGroup.POST("/mnemonic", httpSvc.mnemonicHandler)
 	restrictedApiGroup.PATCH("/backup-reminder", httpSvc.backupReminderHandler)
 	restrictedApiGroup.GET("/channels", httpSvc.channelsListHandler)
 	restrictedApiGroup.POST("/channels", httpSvc.openChannelHandler)
+	restrictedApiGroup.POST("/channels/rebalance", httpSvc.rebalanceChannelHandler)
 	restrictedApiGroup.GET("/channels/suggestions", httpSvc.channelPeerSuggestionsHandler)
 	restrictedApiGroup.POST("/lsp-orders", httpSvc.newInstantChannelInvoiceHandler)
 	restrictedApiGroup.GET("/node/connection-info", httpSvc.nodeConnectionInfoHandler)
@@ -161,9 +166,17 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/health", httpSvc.healthHandler)
 	restrictedApiGroup.GET("/commands", httpSvc.getCustomNodeCommandsHandler)
 	restrictedApiGroup.POST("/command", httpSvc.execCustomNodeCommandHandler)
-	restrictedApiGroup.GET("/settings/swaps", httpSvc.getAutoSwapsConfigHandler)
-	restrictedApiGroup.POST("/settings/swaps", httpSvc.enableAutoSwapsHandler)
-	restrictedApiGroup.DELETE("/settings/swaps", httpSvc.disableAutoSwapsHandler)
+	restrictedApiGroup.GET("/swaps", httpSvc.listSwapsHandler)
+	restrictedApiGroup.GET("/swaps/:swapId", httpSvc.lookupSwapHandler)
+	restrictedApiGroup.GET("/swaps/out/fees", httpSvc.getSwapOutFeesHandler)
+	restrictedApiGroup.GET("/swaps/in/fees", httpSvc.getSwapInFeesHandler)
+	restrictedApiGroup.POST("/swaps/out", httpSvc.initiateSwapOutHandler)
+	restrictedApiGroup.POST("/swaps/in", httpSvc.initiateSwapInHandler)
+	restrictedApiGroup.POST("/swaps/refund", httpSvc.refundSwapHandler)
+	restrictedApiGroup.GET("/swaps/mnemonic", httpSvc.swapMnemonicHandler)
+	restrictedApiGroup.GET("/autoswap", httpSvc.getAutoSwapConfigHandler)
+	restrictedApiGroup.POST("/autoswap", httpSvc.enableAutoSwapOutHandler)
+	restrictedApiGroup.DELETE("/autoswap", httpSvc.disableAutoSwapOutHandler)
 	restrictedApiGroup.POST("/node/alias", httpSvc.setNodeAliasHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedApiGroup, e)
@@ -740,6 +753,27 @@ func (httpSvc *HttpService) openChannelHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, openChannelResponse)
 }
 
+func (httpSvc *HttpService) rebalanceChannelHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	var rebalanceChannelRequest api.RebalanceChannelRequest
+	if err := c.Bind(&rebalanceChannelRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	rebalanceChannelResponse, err := httpSvc.api.RebalanceChannel(ctx, &rebalanceChannelRequest)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to rebalance channel: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, rebalanceChannelResponse)
+}
+
 func (httpSvc *HttpService) disconnectPeerHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
@@ -883,8 +917,34 @@ func (httpSvc *HttpService) signMessageHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) appsListHandler(c echo.Context) error {
+	limit := uint64(0)
+	offset := uint64(0)
 
-	apps, err := httpSvc.api.ListApps()
+	if limitParam := c.QueryParam("limit"); limitParam != "" {
+		if parsedLimit, err := strconv.ParseUint(limitParam, 10, 64); err == nil {
+			limit = parsedLimit
+		}
+	}
+
+	if offsetParam := c.QueryParam("offset"); offsetParam != "" {
+		if parsedOffset, err := strconv.ParseUint(offsetParam, 10, 64); err == nil {
+			offset = parsedOffset
+		}
+	}
+
+	filtersJSON := c.QueryParam("filters")
+	var filters api.ListAppsFilters
+	err := json.Unmarshal([]byte(filtersJSON), &filters)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"filters": filtersJSON,
+		}).Error("Failed to deserialize app filters")
+		return err
+	}
+
+	orderBy := c.QueryParam("order_by")
+
+	apps, err := httpSvc.api.ListApps(limit, offset, filters, orderBy)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -895,10 +955,36 @@ func (httpSvc *HttpService) appsListHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, apps)
 }
 
-func (httpSvc *HttpService) appsShowHandler(c echo.Context) error {
-
-	// TODO: move this to DB service
+func (httpSvc *HttpService) appsShowByPubkeyHandler(c echo.Context) error {
 	dbApp := httpSvc.appsSvc.GetAppByPubkey(c.Param("pubkey"))
+
+	if dbApp == nil {
+		return c.JSON(http.StatusNotFound, ErrorResponse{
+			Message: "App not found",
+		})
+	}
+
+	response := httpSvc.api.GetApp(dbApp)
+
+	return c.JSON(http.StatusOK, response)
+}
+
+func (httpSvc *HttpService) appsShowHandler(c echo.Context) error {
+	appIdStr := c.Param("id")
+	if appIdStr == "" {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "App ID is required",
+		})
+	}
+
+	appId, err := strconv.ParseUint(appIdStr, 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "Invalid App ID",
+		})
+	}
+
+	dbApp := httpSvc.appsSvc.GetAppById(uint(appId))
 
 	if dbApp == nil {
 		return c.JSON(http.StatusNotFound, ErrorResponse{
@@ -1001,6 +1087,52 @@ func (httpSvc *HttpService) appsCreateHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, responseBody)
+}
+
+func (httpSvc *HttpService) lightningAddressesCreateHandler(c echo.Context) error {
+	var requestData api.CreateLightningAddressRequest
+	if err := c.Bind(&requestData); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.api.CreateLightningAddress(c.Request().Context(), &requestData)
+
+	if err != nil {
+		logger.Logger.WithField("request", requestData).WithError(err).Error("Failed to create lightning address")
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) lightningAddressesDeleteHandler(c echo.Context) error {
+	appIdStr := c.Param("appId")
+	if appIdStr == "" {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "App ID is required",
+		})
+	}
+
+	appId, err := strconv.ParseUint(appIdStr, 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "Invalid App ID",
+		})
+	}
+
+	err = httpSvc.api.DeleteLightningAddress(c.Request().Context(), uint(appId))
+	if err != nil {
+		logger.Logger.WithField("appId", appId).WithError(err).Error("Failed to delete lightning address")
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (httpSvc *HttpService) setupHandler(c echo.Context) error {
@@ -1112,10 +1244,7 @@ func (httpSvc *HttpService) execCustomNodeCommandHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) logoutHandler(c echo.Context) error {
-	redirectUrl := httpSvc.cfg.GetEnv().FrontendUrl
-	if redirectUrl == "" {
-		redirectUrl = httpSvc.cfg.GetEnv().BaseUrl
-	}
+	redirectUrl := httpSvc.cfg.GetEnv().GetBaseFrontendUrl()
 	if redirectUrl == "" {
 		redirectUrl = "/"
 	}
@@ -1156,7 +1285,7 @@ func (httpSvc *HttpService) restoreBackupHandler(c echo.Context) error {
 		return err
 	}
 	if info.SetupCompleted {
-		return errors.New("Setup already completed")
+		return errors.New("setup already completed")
 	}
 
 	password := c.FormValue("unlockPassword")
@@ -1197,26 +1326,130 @@ func (httpSvc *HttpService) healthHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, healthResponse)
 }
 
-func (httpSvc *HttpService) getAutoSwapsConfigHandler(c echo.Context) error {
-	getAutoSwapsConfigResponse, err := httpSvc.api.GetAutoSwapsConfig()
+func (httpSvc *HttpService) listSwapsHandler(c echo.Context) error {
+	swaps, err := httpSvc.api.ListSwaps()
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, swaps)
+}
+
+func (httpSvc *HttpService) lookupSwapHandler(c echo.Context) error {
+	swap, err := httpSvc.api.LookupSwap(c.Param("swapId"))
+	if err != nil {
+		return c.JSON(http.StatusNotFound, ErrorResponse{
+			Message: "App not found",
+		})
+	}
+
+	return c.JSON(http.StatusOK, swap)
+}
+
+func (httpSvc *HttpService) getSwapOutFeesHandler(c echo.Context) error {
+	swapOutFeesResponse, err := httpSvc.api.GetSwapOutFees()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get swap out fees: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, swapOutFeesResponse)
+}
+
+func (httpSvc *HttpService) getSwapInFeesHandler(c echo.Context) error {
+	swapOutFeesResponse, err := httpSvc.api.GetSwapInFees()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get swap in fees: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, swapOutFeesResponse)
+}
+
+func (httpSvc *HttpService) initiateSwapOutHandler(c echo.Context) error {
+	var initiateSwapOutRequest api.InitiateSwapRequest
+	if err := c.Bind(&initiateSwapOutRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	swapOutResponse, err := httpSvc.api.InitiateSwapOut(c.Request().Context(), &initiateSwapOutRequest)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to initiate swap out: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, swapOutResponse)
+}
+
+func (httpSvc *HttpService) initiateSwapInHandler(c echo.Context) error {
+	var initiateSwapInRequest api.InitiateSwapRequest
+	if err := c.Bind(&initiateSwapInRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	txId, err := httpSvc.api.InitiateSwapIn(c.Request().Context(), &initiateSwapInRequest)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to initiate swap in: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, txId)
+}
+
+func (httpSvc *HttpService) refundSwapHandler(c echo.Context) error {
+	var refundSwapInRequest api.RefundSwapRequest
+	if err := c.Bind(&refundSwapInRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.api.RefundSwap(&refundSwapInRequest)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) swapMnemonicHandler(c echo.Context) error {
+	mnemonic := httpSvc.api.GetSwapMnemonic()
+	return c.JSON(http.StatusOK, mnemonic)
+}
+
+func (httpSvc *HttpService) getAutoSwapConfigHandler(c echo.Context) error {
+	getAutoSwapConfigResponse, err := httpSvc.api.GetAutoSwapConfig()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to get swap settings: %v", err),
 		})
 	}
 
-	return c.JSON(http.StatusOK, getAutoSwapsConfigResponse)
+	return c.JSON(http.StatusOK, getAutoSwapConfigResponse)
 }
 
-func (httpSvc *HttpService) enableAutoSwapsHandler(c echo.Context) error {
-	var enableAutoSwapsRequest api.EnableAutoSwapsRequest
-	if err := c.Bind(&enableAutoSwapsRequest); err != nil {
+func (httpSvc *HttpService) enableAutoSwapOutHandler(c echo.Context) error {
+	var enableAutoSwapRequest api.EnableAutoSwapRequest
+	if err := c.Bind(&enableAutoSwapRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
 
-	err := httpSvc.api.EnableAutoSwaps(c.Request().Context(), &enableAutoSwapsRequest)
+	err := httpSvc.api.EnableAutoSwapOut(c.Request().Context(), &enableAutoSwapRequest)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to save swap settings: %v", err),
@@ -1226,8 +1459,8 @@ func (httpSvc *HttpService) enableAutoSwapsHandler(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (httpSvc *HttpService) disableAutoSwapsHandler(c echo.Context) error {
-	err := httpSvc.api.DisableAutoSwaps()
+func (httpSvc *HttpService) disableAutoSwapOutHandler(c echo.Context) error {
+	err := httpSvc.api.DisableAutoSwap()
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{

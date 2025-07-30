@@ -7,12 +7,15 @@ import bitrefill from "src/assets/suggested-apps/bitrefill.png";
 import btcpay from "src/assets/suggested-apps/btcpay.png";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
 import clams from "src/assets/suggested-apps/clams.png";
+import claude from "src/assets/suggested-apps/claude.png";
 import coracle from "src/assets/suggested-apps/coracle.png";
 import damus from "src/assets/suggested-apps/damus.png";
+import goose from "src/assets/suggested-apps/goose.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import lightningMessageboard from "src/assets/suggested-apps/lightning-messageboard.png";
 import lnbits from "src/assets/suggested-apps/lnbits.png";
 import lume from "src/assets/suggested-apps/lume.png";
+import nakapay from "src/assets/suggested-apps/nakapay.png";
 import nostrcheckserver from "src/assets/suggested-apps/nostrcheck-server.png";
 import nostrudel from "src/assets/suggested-apps/nostrudel.png";
 import nostter from "src/assets/suggested-apps/nostter.png";
@@ -77,6 +80,20 @@ export const suggestedApps: SuggestedApp[] = [
     description: "Receive-only PoS you can safely share with your employees",
     internal: true,
     logo: buzzpay,
+  },
+  {
+    id: "goose",
+    title: "Goose",
+    description: "Your local AI agent, automating engineering tasks seamlessly",
+    internal: true,
+    logo: goose,
+  },
+  {
+    id: "claude",
+    title: "Claude",
+    description: "AI assistant for conversations, analysis, and coding",
+    internal: true,
+    logo: claude,
   },
   {
     id: "simpleboost",
@@ -1242,6 +1259,103 @@ export const suggestedApps: SuggestedApp[] = [
           <h3 className="font-medium">In Lume</h3>
           <ul className="list-inside text-muted-foreground">
             <li>6. Paste the connection secret from Alby Hub</li>
+          </ul>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: "nakapay",
+    title: "NakaPay",
+    description: "Non-custodial Lightning payments for businesses via NWC",
+    webLink: "https://www.nakapay.app",
+    logo: nakapay,
+    extendedDescription:
+      "Accept Bitcoin Lightning payments directly to your Hub wallet. NakaPay generates invoices that customers pay directly to you - your funds never go through NakaPay (fully non-custodial)",
+    guide: (
+      <>
+        <div>
+          <p className="text-sm text-muted-foreground mb-4">
+            NakaPay is a{" "}
+            <span className="font-medium text-foreground">
+              fully non-custodial
+            </span>{" "}
+            payment service. Customer payments go directly to your Alby Hub
+            wallet - NakaPay never holds your funds.
+          </p>
+        </div>
+        <div>
+          <h3 className="font-medium">Connect Your Alby Hub to NakaPay</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              1. Click{" "}
+              <Link
+                to="/apps/new?app=nakapay"
+                className="font-medium text-foreground underline"
+              >
+                Connect to NakaPay
+              </Link>{" "}
+              to create a new app connection
+            </li>
+            <li>
+              2. Choose "Custom" permissions and select: "Read your balance",
+              "Create invoices", and "Send payments". This allows NakaPay to
+              check your wallet balance, create invoices for customers, and
+              process fee payments - all while your funds remain in your Hub
+              wallet
+            </li>
+            <li>
+              3. Copy the NWC connection string that starts with{" "}
+              <code className="bg-muted px-1 py-0.5 rounded text-xs">
+                nostr+walletconnect://
+              </code>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">Set Up Your NakaPay Account</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              4. Visit{" "}
+              <ExternalLink
+                to="https://www.nakapay.app"
+                className="font-medium text-foreground underline"
+              >
+                NakaPay
+              </ExternalLink>{" "}
+              and log in with any Lightning wallet (LNURL-auth)
+            </li>
+            <li>
+              5. Your business account will be automatically created on first
+              login
+            </li>
+            <li>
+              6. Go to{" "}
+              <span className="font-medium text-foreground">Dashboard</span> →{" "}
+              <span className="font-medium text-foreground">Settings</span> →{" "}
+              <span className="font-medium text-foreground">Wallet</span>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">Complete Non-Custodial Setup</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              7. Paste your Alby Hub NWC connection string in the wallet
+              connection field
+            </li>
+            <li>8. Test the connection to verify everything works</li>
+            <li>
+              9. Create API keys in{" "}
+              <span className="font-medium text-foreground">Dashboard</span> →{" "}
+              <span className="font-medium text-foreground">
+                API Management
+              </span>{" "}
+              for your applications
+            </li>
+            <li>
+              10. Start accepting payments directly to your Alby Hub wallet!
+            </li>
           </ul>
         </div>
       </>

@@ -15,7 +15,6 @@ import (
 type Service interface {
 	StartApp(encryptionKey string) error
 	StopApp()
-	StartAutoSwaps() error
 	Shutdown()
 
 	// TODO: remove getters (currently used by http / wails services)

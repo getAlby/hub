@@ -111,9 +111,17 @@ export default function ReceiveInvoice() {
               0.8 * balances.lightning.totalReceivable && (
               <Alert>
                 <AlertTriangleIcon className="h-4 w-4" />
-                <AlertTitle>Low receiving capacity</AlertTitle>
+                <AlertTitle>Low receiving limit</AlertTitle>
                 <AlertDescription>
                   You likely won't be able to receive payments until you{" "}
+                  <Link className="underline" to="/wallet/send">
+                    spend
+                  </Link>
+                  ,{" "}
+                  <Link className="underline" to="/wallet/swap?type=out">
+                    swap out funds
+                  </Link>
+                  , or{" "}
                   <Link className="underline" to="/channels/incoming">
                     increase your receiving capacity.
                   </Link>

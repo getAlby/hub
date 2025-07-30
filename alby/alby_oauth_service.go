@@ -288,8 +288,8 @@ func (svc *albyOAuthService) GetInfo(ctx context.Context) (*AlbyInfo, error) {
 
 	if res.StatusCode >= 300 {
 		logger.Logger.WithFields(logrus.Fields{
-			"body":       string(body),
-			"statusCode": res.StatusCode,
+			"body":        string(body),
+			"status_code": res.StatusCode,
 		}).Error("info endpoint returned non-success code")
 		return nil, fmt.Errorf("info endpoint returned non-success code: %s", string(body))
 	}
@@ -379,11 +379,130 @@ func (svc *albyOAuthService) GetVssAuthToken(ctx context.Context, nodeIdentifier
 	}
 
 	if vssResponse.Token == "" {
-		logger.Logger.WithField("vssResponse", vssResponse).WithError(err).Error("No token in API response")
+		logger.Logger.WithField("vss_response", vssResponse).WithError(err).Error("No token in API response")
 		return "", errors.New("no token in vss response")
 	}
 
 	return vssResponse.Token, nil
+}
+
+func (svc *albyOAuthService) CreateLightningAddress(ctx context.Context, address string, appId uint) (*CreateLightningAddressResponse, error) {
+	logger.Logger.WithFields(logrus.Fields{
+		"address": address,
+		"app_id":  appId,
+	}).Debug("creating lightning address")
+	token, err := svc.fetchUserToken(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch user token")
+		return nil, err
+	}
+
+	client := svc.oauthConf.Client(ctx, token)
+
+	type createLightningAddressRequest struct {
+		Address string `json:"address"`
+		AppId   uint   `json:"app_id"`
+	}
+
+	body := bytes.NewBuffer([]byte{})
+	payload := createLightningAddressRequest{
+		Address: address,
+		AppId:   appId,
+	}
+	err = json.NewEncoder(body).Encode(&payload)
+
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to encode request payload")
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/internal/lightning_addresses", albyOAuthAPIURL), body)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Error creating request for vss auth token endpoint")
+		return nil, err
+	}
+
+	setDefaultRequestHeaders(req)
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch vss auth token endpoint")
+		return nil, err
+	}
+
+	responseBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to read response body")
+		return nil, errors.New("failed to read response body")
+	}
+
+	if res.StatusCode == 422 {
+		type createLightningAddressErrors struct {
+			Address []string `json:"address"`
+		}
+		lightningAddressErrors := &createLightningAddressErrors{}
+		err = json.Unmarshal(responseBody, lightningAddressErrors)
+		if err != nil {
+			logger.Logger.WithError(err).Error("failed to unmarshal errors response")
+			return nil, err
+		}
+		if len(lightningAddressErrors.Address) == 0 {
+			return nil, errors.New("unknown error occurred")
+		}
+		return nil, errors.New(lightningAddressErrors.Address[0])
+	}
+
+	if res.StatusCode >= 300 {
+		return nil, fmt.Errorf("POST request to /internal/lightning_addresses/%s returned non-success status: %d %s", address, res.StatusCode, string(responseBody))
+	}
+
+	createLightningAddressResponse := &CreateLightningAddressResponse{}
+	err = json.Unmarshal(responseBody, createLightningAddressResponse)
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to unmarshal response")
+		return nil, err
+	}
+
+	return createLightningAddressResponse, nil
+}
+
+func (svc *albyOAuthService) DeleteLightningAddress(ctx context.Context, address string) error {
+	logger.Logger.WithFields(logrus.Fields{
+		"address": address,
+	}).Debug("deleting lightning address")
+	token, err := svc.fetchUserToken(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch user token")
+		return err
+	}
+
+	client := svc.oauthConf.Client(ctx, token)
+
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/internal/lightning_addresses/%s", albyOAuthAPIURL, address), nil)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Error creating request for delete lightning address endpoint")
+		return err
+	}
+
+	setDefaultRequestHeaders(req)
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to delete lightning address endpoint")
+		return err
+	}
+
+	responseBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to read response body")
+		return errors.New("failed to read response body")
+	}
+
+	if res.StatusCode >= 300 {
+		return fmt.Errorf("DELETE request to /internal/lightning_addresses/%s returned non-success status: %d %s", address, res.StatusCode, string(responseBody))
+	}
+
+	return nil
 }
 
 func (svc *albyOAuthService) GetMe(ctx context.Context) (*AlbyMe, error) {
@@ -417,8 +536,8 @@ func (svc *albyOAuthService) GetMe(ctx context.Context) (*AlbyMe, error) {
 
 	if res.StatusCode >= 300 {
 		logger.Logger.WithFields(logrus.Fields{
-			"body":       string(body),
-			"statusCode": res.StatusCode,
+			"body":        string(body),
+			"status_code": res.StatusCode,
 		}).Error("users endpoint returned non-success code")
 		return nil, fmt.Errorf("users endpoint returned non-success code: %s", string(body))
 	}
@@ -471,8 +590,8 @@ func (svc *albyOAuthService) GetBalance(ctx context.Context) (*AlbyBalance, erro
 
 	if res.StatusCode >= 300 {
 		logger.Logger.WithFields(logrus.Fields{
-			"body":       string(body),
-			"statusCode": res.StatusCode,
+			"body":        string(body),
+			"status_code": res.StatusCode,
 		}).Error("balance endpoint returned non-success code")
 		return nil, fmt.Errorf("balance endpoint returned non-success code: %s", string(body))
 	}
@@ -687,8 +806,7 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 		return
 	}
 
-	// TODO: rename this config option to be specific to the alby API
-	if !svc.cfg.GetEnv().LogEvents {
+	if !svc.cfg.GetEnv().SendEventsToAlby {
 		logger.Logger.WithField("event", event).Debug("Skipped sending to alby events API (alby event logging disabled)")
 		return
 	}
@@ -1095,8 +1213,8 @@ func (svc *albyOAuthService) GetChannelPeerSuggestions(ctx context.Context) ([]C
 
 	if res.StatusCode >= 300 {
 		logger.Logger.WithFields(logrus.Fields{
-			"body":       string(body),
-			"statusCode": res.StatusCode,
+			"body":        string(body),
+			"status_code": res.StatusCode,
 		}).Error("channel suggestions endpoint returned non-success code")
 		return nil, fmt.Errorf("channel suggestions endpoint returned non-success code: %s", string(body))
 	}
@@ -1149,9 +1267,9 @@ func (svc *albyOAuthService) GetBitcoinRate(ctx context.Context) (*BitcoinRate, 
 
 	if res.StatusCode >= 300 {
 		logger.Logger.WithFields(logrus.Fields{
-			"currency":   currency,
-			"body":       string(body),
-			"statusCode": res.StatusCode,
+			"currency":    currency,
+			"body":        string(body),
+			"status_code": res.StatusCode,
 		}).Error("Bitcoin rate endpoint returned non-success code")
 		return nil, fmt.Errorf("bitcoin rate endpoint returned non-success code: %s", string(body))
 	}
@@ -1275,9 +1393,9 @@ func (svc *albyOAuthService) requestAutoChannel(ctx context.Context, url string,
 
 	if res.StatusCode >= 300 {
 		logger.Logger.WithFields(logrus.Fields{
-			"newLSPS1ChannelRequest": newAutoChannelRequest,
-			"body":                   string(body),
-			"statusCode":             res.StatusCode,
+			"request":     newAutoChannelRequest,
+			"body":        string(body),
+			"status_code": res.StatusCode,
 		}).Error("auto channel endpoint returned non-success code")
 		return nil, fmt.Errorf("auto channel endpoint returned non-success code: %s", string(body))
 	}
@@ -1468,6 +1586,8 @@ func getEventWhitelist() []string {
 		"nwc_node_stop_failed",
 		"nwc_node_stopped",
 		"nwc_alby_account_connected",
+		"nwc_swap_succeeded",
+		"nwc_rebalance_succeeded",
 
 		"interest_virtual_bankaccount",
 	}

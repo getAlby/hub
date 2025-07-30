@@ -7,12 +7,14 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
+import { useBalances } from "src/hooks/useBalances";
 import { TransactionMetadata } from "src/types";
 
 export default function LnurlPay() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { data: balances } = useBalances();
 
   const lnAddress = state?.args?.lnAddress as LightningAddress;
   const identifier = lnAddress.lnurlpData?.identifier;
@@ -61,23 +63,23 @@ export default function LnurlPay() {
     }
   }, [navigate, lnAddress]);
 
-  if (!lnAddress) {
+  if (!balances || !lnAddress) {
     return <Loading />;
   }
 
   return (
     <form onSubmit={onSubmit} className="grid gap-4">
-      <div>
-        <p className="font-medium text-lg mb-2">{lnAddress.address}</p>
+      <div className="grid gap-2">
+        <p className="font-medium text-lg">{lnAddress.address}</p>
         {lnAddress.lnurlpData?.description && (
-          <div className="mb-2">
+          <div>
             <Label>Description</Label>
             <p className="text-muted-foreground">
               {lnAddress.lnurlpData.description}
             </p>
           </div>
         )}
-        <div className="mb-2">
+        <div>
           <Label htmlFor="amount">Amount</Label>
           <Input
             id="amount"
@@ -93,7 +95,7 @@ export default function LnurlPay() {
           />
         </div>
         {!!lnAddress.lnurlpData?.commentAllowed && (
-          <div className="mb-2">
+          <div>
             <Label htmlFor="comment">Comment</Label>
             <Input
               id="comment"

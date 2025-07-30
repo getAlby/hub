@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"net/http"
 	"os"
 	"path/filepath"
 	"slices"
@@ -1295,7 +1296,50 @@ func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, 
 	ls.redeemedOnchainFundsWithinThisSync = true
 	ls.lastWalletSyncRequest = time.Now()
 
-	return txId, nil
+	// FIXME: remove once LDK-node returns an error if it can't broadcast the transaction
+
+	tryCheckTransactionWasBroadcasted := func() error {
+		url := ls.cfg.GetEnv().MempoolApi + "/tx/" + txId
+
+		client := http.Client{
+			Timeout: time.Second * 10,
+		}
+
+		req, err := http.NewRequest(http.MethodGet, url, nil)
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"url": url,
+			}).Error("Failed to create http request")
+			return err
+		}
+
+		res, err := client.Do(req)
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"url": url,
+			}).Error("Failed to send request")
+			return err
+		}
+
+		if res.StatusCode >= 300 {
+			// transaction not found
+			return errors.New("unexpected status code")
+		}
+
+		return nil
+	}
+
+	for attempt := 1; attempt < 30; attempt++ {
+		err := tryCheckTransactionWasBroadcasted()
+		if err != nil {
+			logger.Logger.WithError(err).WithField("attempt", attempt).Error("Failed to fetch broadcasted transaction")
+			time.Sleep(1 * time.Second)
+			continue
+		}
+
+		return txId, nil
+	}
+	return "", errors.New("ran out of attempts to fetch broadcasted transaction")
 }
 
 func (ls *LDKService) ResetRouter(key string) error {
@@ -2172,6 +2216,7 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uin
 }
 
 const nodeCommandPayBOLT12Offer = "pay_bolt12_offer"
+const nodeCommandExportPathfindingScores = "export_pathfinding_scores"
 
 func (ls *LDKService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
 	return []lnclient.CustomNodeCommandDef{
@@ -2192,6 +2237,11 @@ func (ls *LDKService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCom
 					Description: "note to the recepient",
 				},
 			},
+		},
+		{
+			Name:        nodeCommandExportPathfindingScores,
+			Description: "Exports pathfinding scores from the LDK node. The scores are written to a file in the LDK data directory.",
+			Args:        []lnclient.CustomNodeCommandArgDef{}, // Assuming no arguments for now
 		},
 	}
 }
@@ -2228,6 +2278,17 @@ func (ls *LDKService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 				"paymentHash": payOfferResponse.PaymentHash,
 				"preimage":    payOfferResponse.Preimage,
 				"fee":         payOfferResponse.Fee,
+			},
+		}, nil
+	case nodeCommandExportPathfindingScores:
+		scores, err := ls.node.ExportPathfindingScores()
+		if err != nil {
+			logger.Logger.WithError(err).Error("ExportPathfindingScores command failed")
+			return nil, fmt.Errorf("failed to export pathfinding scores: %w", err)
+		}
+		return &lnclient.CustomNodeCommandResponse{
+			Response: map[string]interface{}{
+				"scores": hex.EncodeToString(scores),
 			},
 		}, nil
 	}
