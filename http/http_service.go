@@ -111,7 +111,10 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 		NewClaimsFunc: func(c echo.Context) jwt.Claims {
 			return new(jwtCustomClaims)
 		},
-		SigningKey: []byte(httpSvc.cfg.GetJWTSecret()),
+		// use a custom key func as the JWT secret will change if the user changes their unlock password
+		KeyFunc: func(token *jwt.Token) (interface{}, error) {
+			return []byte(httpSvc.cfg.GetJWTSecret()), nil
+		},
 	}
 	restrictedApiGroup := e.Group("/api")
 	restrictedApiGroup.Use(echojwt.WithConfig(jwtConfig))
