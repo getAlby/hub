@@ -28,16 +28,18 @@ func main() {
 
 	var signal os.Signal
 	go func() {
-		// wait for exit signal
-		signal = <-osSignalChannel
-		logger.Logger.WithField("signal", signal).Info("Received OS signal")
+		for {
+			// wait for exit signal
+			signal = <-osSignalChannel
+			logger.Logger.WithField("signal", signal).Info("Received OS signal")
 
-		if signal == syscall.SIGPIPE {
-			logger.Logger.WithField("signal", signal).Warn("Ignoring SIGPIPE signal")
-			return
+			if signal == syscall.SIGPIPE {
+				logger.Logger.WithField("signal", signal).Warn("Ignoring SIGPIPE signal")
+				continue
+			}
+
+			cancel()
 		}
-
-		cancel()
 	}()
 
 	svc, err := service.NewService(ctx)
