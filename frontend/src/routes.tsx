@@ -58,6 +58,7 @@ import DebugTools from "src/screens/settings/DebugTools";
 import DeveloperSettings from "src/screens/settings/DeveloperSettings";
 import Settings from "src/screens/settings/Settings";
 
+import EarnSats from "src/screens/EarnSats";
 import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
 import { RestoreNode } from "src/screens/setup/RestoreNode";
 import { SetupAdvanced } from "src/screens/setup/SetupAdvanced";
@@ -457,6 +458,11 @@ const routes = [
       {
         path: "bank-account",
         element: <BankAccount />,
+      },
+      {
+        path: "earn-sats",
+        element: <EarnSats />,
+        handle: { crumb: () => "Earn Sats" },
       },
     ],
   },
