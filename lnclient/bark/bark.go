@@ -25,7 +25,7 @@ import (
 const barkDB = "bark.sqlite"
 const vtxoRefreshInterval = 1 * time.Hour
 
-const nodeCommandPubkey = "pubkey"
+const nodeCommandNewAddress = "new_address"
 const nodeCommandMaintenance = "maintenance"
 const nodeCommandArkInfo = "ark_info"
 const nodeCommandListVTXOs = "list_vtxos"
@@ -63,7 +63,6 @@ func NewBarkService(ctx context.Context, mnemonic, workdir string, eventPublishe
 
 		barkConfig := bindings.Config{
 			Network:        "signet",
-			Birthday:       nil,
 			AspAddress:     "https://ark.signet.2nd.dev",
 			EsploraAddress: "https://esplora.signet.2nd.dev",
 		}
@@ -87,12 +86,12 @@ func NewBarkService(ctx context.Context, mnemonic, workdir string, eventPublishe
 		return nil, err
 	}
 
-	pk, err := wallet.OorPubkey()
+	pk, err := wallet.NewAddress()
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to get Ark public key")
+		logger.Logger.WithError(err).Error("Failed to get Ark address")
 		return nil, err
 	}
-	logger.Logger.Info("Ark public key: ", pk)
+	logger.Logger.Info("Ark address: ", pk)
 
 	cctx, cancel := context.WithCancel(ctx)
 	wg := &sync.WaitGroup{}
@@ -199,19 +198,19 @@ func (s *BarkService) SendKeysend(ctx context.Context, amount uint64, destinatio
 }
 
 func (s *BarkService) GetPubkey() string {
-	pk, err := s.wallet.OorPubkey()
+	addr, err := s.wallet.NewAddress()
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to get Ark public key")
+		logger.Logger.WithError(err).Error("Failed to get Ark address")
 		return ""
 	}
 
-	return pk
+	return addr
 }
 
 func (s *BarkService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
-	pk, err := s.wallet.OorPubkey()
+	addr, err := s.wallet.NewAddress()
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to get Ark public key")
+		logger.Logger.WithError(err).Error("Failed to get Ark address")
 		return nil, err
 	}
 
@@ -222,7 +221,7 @@ func (s *BarkService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err
 	}
 
 	return &lnclient.NodeInfo{
-		Pubkey:  pk,
+		Pubkey:  addr,
 		Network: arkInfo.Network,
 	}, nil
 }
@@ -300,14 +299,14 @@ func (s *BarkService) ListChannels(ctx context.Context) (channels []lnclient.Cha
 }
 
 func (s *BarkService) GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *lnclient.NodeConnectionInfo, err error) {
-	pk, err := s.wallet.OorPubkey()
+	addr, err := s.wallet.NewAddress()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get Ark public key")
 		return nil, err
 	}
 
 	return &lnclient.NodeConnectionInfo{
-		Pubkey: pk,
+		Pubkey: addr,
 	}, nil
 }
 
@@ -371,7 +370,7 @@ func (s *BarkService) GetBalances(ctx context.Context, includeInactiveChannels b
 			PendingBalancesFromChannelClosures: balance.PendingExitSat * 1000,
 		},
 		Lightning: lnclient.LightningBalanceResponse{
-			TotalSpendable: int64(balance.OffchainSat * 1000),
+			TotalSpendable: int64(balance.SpendableSat * 1000),
 		},
 	}, nil
 }
@@ -429,8 +428,8 @@ func (s *BarkService) MakeOffer(ctx context.Context, description string) (string
 func (s *BarkService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
 	return []lnclient.CustomNodeCommandDef{
 		{
-			Name:        nodeCommandPubkey,
-			Description: "Get Arc pubkey of the wallet.",
+			Name:        nodeCommandNewAddress,
+			Description: "Get new Arc address of the wallet.",
 			Args:        nil,
 		},
 		{
@@ -521,8 +520,8 @@ func (s *BarkService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCom
 
 func (s *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
 	switch command.Name {
-	case nodeCommandPubkey:
-		pk, err := s.wallet.OorPubkey()
+	case nodeCommandNewAddress:
+		addr, err := s.wallet.NewAddress()
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to get Ark public key")
 			return nil, err
@@ -530,7 +529,7 @@ func (s *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 
 		return &lnclient.CustomNodeCommandResponse{
 			Response: map[string]interface{}{
-				"pubkey": pk,
+				"address": addr,
 			},
 		}, nil
 	case nodeCommandMaintenance:
@@ -760,11 +759,11 @@ func convertUtxoToCommandResp(utxo bindings.Utxo) map[string]interface{} {
 	switch utxo := utxo.(type) {
 	case bindings.UtxoLocal:
 		respUtxo = map[string]interface{}{
-			"type":      "local",
-			"txid":      utxo.Outpoint.Txid,
-			"vout":      utxo.Outpoint.Vout,
-			"value_sat": utxo.ValueSat,
-			"is_spent":  utxo.IsSpent,
+			"type":                "local",
+			"txid":                utxo.Outpoint.Txid,
+			"vout":                utxo.Outpoint.Vout,
+			"amount_sat":          utxo.AmountSat,
+			"confirmation_height": utxo.ConfirmationHeight,
 		}
 	case bindings.UtxoExit:
 		respUtxo = map[string]interface{}{
