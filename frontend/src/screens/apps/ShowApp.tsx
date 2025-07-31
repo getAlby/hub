@@ -26,7 +26,9 @@ import AppHeader from "src/components/AppHeader";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
 import Loading from "src/components/Loading";
 import Permissions from "src/components/Permissions";
-import TransactionsList from "src/components/TransactionsList";
+import TransactionsList, {
+  TransactionsExportMenu,
+} from "src/components/TransactionsList";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -589,6 +591,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
               <CardTitle>
                 <div className="flex flex-row justify-between items-center">
                   Transactions
+                  <TransactionsExportMenu appId={app.id} />
                 </div>
               </CardTitle>
             </CardHeader>
