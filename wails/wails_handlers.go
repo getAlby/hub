@@ -151,6 +151,49 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	}
 
+	// list apps
+	if strings.HasPrefix(route, "/api/apps") && method == "GET" {
+		limit := uint64(0)
+		offset := uint64(0)
+		var filtersJSON string
+		var orderBy string
+
+		// Extract limit and offset parameters
+		paramRegex := regexp.MustCompile(`[?&](limit|offset|filters|order_by)=([^&]+)`)
+		paramMatches := paramRegex.FindAllStringSubmatch(route, -1)
+		for _, match := range paramMatches {
+			switch match[1] {
+			case "limit":
+				if parsedLimit, err := strconv.ParseUint(match[2], 10, 64); err == nil {
+					limit = parsedLimit
+				}
+			case "offset":
+				if parsedOffset, err := strconv.ParseUint(match[2], 10, 64); err == nil {
+					offset = parsedOffset
+				}
+			case "filters":
+				filtersJSON = match[2]
+			case "order_by":
+				orderBy = match[2]
+			}
+		}
+
+		var filters api.ListAppsFilters
+		err := json.Unmarshal([]byte(filtersJSON), &filters)
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"filters": filtersJSON,
+			}).Error("Failed to deserialize app filters")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+
+		apps, err := app.api.ListApps(limit, offset, filters, orderBy)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: apps, Error: ""}
+	}
+
 	peerChannelRegex := regexp.MustCompile(
 		`/api/peers/([^/]+)/channels/([^/]+)`,
 	)
@@ -403,46 +446,6 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		return WailsRequestRouterResponse{Body: rate, Error: ""}
 	case "/api/apps":
 		switch method {
-		case "GET":
-			limit := uint64(0)
-			offset := uint64(0)
-			var filtersJSON string
-			var orderBy string
-
-			// Extract limit and offset parameters
-			paramRegex := regexp.MustCompile(`[?&](limit|offset|name)=([^&]+)`)
-			paramMatches := paramRegex.FindAllStringSubmatch(route, -1)
-			for _, match := range paramMatches {
-				switch match[1] {
-				case "limit":
-					if parsedLimit, err := strconv.ParseUint(match[2], 10, 64); err == nil {
-						limit = parsedLimit
-					}
-				case "offset":
-					if parsedOffset, err := strconv.ParseUint(match[2], 10, 64); err == nil {
-						offset = parsedOffset
-					}
-				case "filters":
-					filtersJSON = match[2]
-				case "order_by":
-					orderBy = match[2]
-				}
-			}
-
-			var filters api.ListAppsFilters
-			err := json.Unmarshal([]byte(filtersJSON), &filters)
-			if err != nil {
-				logger.Logger.WithError(err).WithFields(logrus.Fields{
-					"filters": filtersJSON,
-				}).Error("Failed to deserialize app filters")
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
-
-			apps, err := app.api.ListApps(limit, offset, filters, orderBy)
-			if err != nil {
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
-			return WailsRequestRouterResponse{Body: apps, Error: ""}
 		case "POST":
 			createAppRequest := &api.CreateAppRequest{}
 			err := json.Unmarshal([]byte(body), createAppRequest)
