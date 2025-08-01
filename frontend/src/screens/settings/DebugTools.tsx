@@ -566,6 +566,7 @@ export default function DebugTools() {
             <ExecuteCustomNodeCommandDialogContent
               availableCommands={apiResponse}
               setCommandResponse={setApiResponse}
+              onClose={() => setDialog(undefined)}
             />
           )}
         </AlertDialog>
