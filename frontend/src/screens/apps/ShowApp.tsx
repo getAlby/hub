@@ -65,6 +65,7 @@ import { useToast } from "src/components/ui/use-toast";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import {
   ALBY_ACCOUNT_APP_NAME,
+  LUD16_DOMAIN,
   SUBWALLET_APPSTORE_APP_ID,
 } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
@@ -395,7 +396,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                                 autoComplete="off"
                                 endAdornment={
                                   <span className="mr-1 text-muted-foreground text-xs">
-                                    @getalby.com
+                                    @{LUD16_DOMAIN}
                                   </span>
                                 }
                               />

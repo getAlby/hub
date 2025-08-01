@@ -41,6 +41,7 @@ import {
 import { Textarea } from "src/components/ui/textarea";
 import { useToast } from "src/components/ui/use-toast";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
+import { LUD16_DOMAIN } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useAppByPubkey } from "src/hooks/useApp";
 import { useCreateLightningAddress } from "src/hooks/useCreateLightningAddress";
@@ -398,7 +399,7 @@ export function SubwalletCreated() {
                     autoComplete="off"
                     endAdornment={
                       <span className="mr-1 text-muted-foreground text-xs">
-                        @getalby.com
+                        @{LUD16_DOMAIN}
                       </span>
                     }
                   />

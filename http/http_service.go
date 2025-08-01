@@ -19,9 +19,11 @@ import (
 
 	"github.com/getAlby/hub/apps"
 	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/service"
+	"github.com/getAlby/hub/transactions"
 
 	"github.com/getAlby/hub/api"
 	"github.com/getAlby/hub/frontend"
@@ -39,22 +41,24 @@ type jwtCustomClaims struct {
 }
 
 type HttpService struct {
-	api            api.API
-	albyHttpSvc    *AlbyHttpService
-	cfg            config.Config
-	eventPublisher events.EventPublisher
-	db             *gorm.DB
-	appsSvc        apps.AppsService
+	api             api.API
+	albyHttpSvc     *AlbyHttpService
+	cfg             config.Config
+	eventPublisher  events.EventPublisher
+	db              *gorm.DB
+	appsSvc         apps.AppsService
+	transactionsSvc transactions.TransactionsService
 }
 
 func NewHttpService(svc service.Service, eventPublisher events.EventPublisher) *HttpService {
 	return &HttpService{
-		api:            api.NewAPI(svc, svc.GetDB(), svc.GetConfig(), svc.GetKeys(), svc.GetAlbyOAuthSvc(), svc.GetEventPublisher()),
-		albyHttpSvc:    NewAlbyHttpService(svc, svc.GetAlbyOAuthSvc(), svc.GetConfig().GetEnv()),
-		cfg:            svc.GetConfig(),
-		eventPublisher: eventPublisher,
-		db:             svc.GetDB(),
-		appsSvc:        apps.NewAppsService(svc.GetDB(), eventPublisher, svc.GetKeys(), svc.GetConfig()),
+		api:             api.NewAPI(svc, svc.GetDB(), svc.GetConfig(), svc.GetKeys(), svc.GetAlbyOAuthSvc(), svc.GetEventPublisher()),
+		albyHttpSvc:     NewAlbyHttpService(svc, svc.GetAlbyOAuthSvc(), svc.GetConfig().GetEnv()),
+		cfg:             svc.GetConfig(),
+		eventPublisher:  eventPublisher,
+		db:              svc.GetDB(),
+		appsSvc:         apps.NewAppsService(svc.GetDB(), eventPublisher, svc.GetKeys(), svc.GetConfig()),
+		transactionsSvc: svc.GetTransactionsService(),
 	}
 }
 
@@ -102,6 +106,15 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.POST("/api/unlock", httpSvc.unlockHandler, unlockRateLimiter)
 	e.POST("/api/backup", httpSvc.createBackupHandler, unlockRateLimiter)
 	e.GET("/logout", httpSvc.logoutHandler, unlockRateLimiter)
+
+	if httpSvc.cfg.GetEnv().LightningAddressDomain != "" {
+		corsMiddleware := middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins: []string{"*"},
+		})
+		e.GET("/.well-known/lnurlp/:username", httpSvc.lnurlpHandler, corsMiddleware, unlockRateLimiter)
+		e.GET("/lnurlp/:username/callback", httpSvc.lnurlpCallbackHandler, corsMiddleware, unlockRateLimiter)
+		e.GET("/lnurlp/:username/verify/:paymentHash", httpSvc.lnurlpVerifyHandler, corsMiddleware, unlockRateLimiter)
+	}
 
 	frontend.RegisterHandlers(e)
 
@@ -1490,4 +1503,180 @@ func (httpSvc *HttpService) setNodeAliasHandler(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) lnurlpHandler(c echo.Context) error {
+	inputUsername := c.Param("username")
+	username, tag := parseUsernameAndTag(inputUsername)
+	if username == "" {
+		return c.JSON(http.StatusOK, LNURLPErrorResponse{
+			Reason: "Not found",
+		})
+	}
+
+	dbApp := httpSvc.appsSvc.GetAppByLUD16Username(username)
+
+	if dbApp == nil {
+		return c.JSON(http.StatusOK, LNURLPErrorResponse{
+			Reason: "Not found",
+		})
+	}
+
+	if tag != "" {
+		tag = ",[\"text/tag\",\"" + tag + "\"]"
+	}
+
+	callback := fmt.Sprintf("https://%s/lnurlp/%s/callback", httpSvc.cfg.GetEnv().LightningAddressDomain, inputUsername)
+	metadata := fmt.Sprintf("[[\"text/identifier\",\"%s\"],[\"text/plain\",\"Sats for %s\"]%s]", dbApp.AppPubkey, dbApp.Name, tag)
+
+	response := Lud6Response{
+		Tag:            "payRequest",
+		MinSendable:    1000,
+		MaxSendable:    10000000000,
+		CommentAllowed: 255,
+		Callback:       callback,
+		Metadata:       metadata,
+	}
+
+	return c.JSON(http.StatusOK, response)
+}
+
+func (httpSvc *HttpService) lnurlpCallbackHandler(c echo.Context) error {
+	lnClient := httpSvc.albyHttpSvc.svc.GetLNClient()
+	if lnClient == nil {
+		return c.JSON(http.StatusOK, LNURLPErrorResponse{
+			Reason: "Service not available",
+		})
+	}
+
+	inputUsername := c.Param("username")
+	username, _ := parseUsernameAndTag(inputUsername)
+	if username == "" {
+		return c.JSON(http.StatusOK, LNURLPErrorResponse{
+			Reason: "Not found",
+		})
+	}
+
+	dbApp := httpSvc.appsSvc.GetAppByLUD16Username(username)
+
+	if dbApp == nil {
+		return c.JSON(http.StatusOK, LNURLPErrorResponse{
+			Reason: "Not found",
+		})
+	}
+
+	maxCommentLength := 255
+
+	amountStr := c.QueryParam("amount")
+	if amountStr == "" {
+		return c.JSON(http.StatusOK, LNURLPErrorResponse{
+			Reason: "amount is required",
+		})
+	}
+	amountMsat, err := strconv.ParseUint(amountStr, 10, 64)
+	if err != nil || amountMsat < 1000 {
+		return c.JSON(http.StatusOK, LNURLPErrorResponse{
+			Reason: "amount must be a positive integer.",
+		})
+	}
+
+	comment := c.QueryParam("comment")
+	if len(comment) > maxCommentLength {
+		return c.JSON(http.StatusOK, LNURLPErrorResponse{
+			Reason: fmt.Sprintf("Comment too long. Maximum %d characters allowed.", maxCommentLength),
+		})
+	}
+
+	invoice, err := httpSvc.transactionsSvc.MakeInvoice(
+		c.Request().Context(),
+		amountMsat,
+		comment,
+		"",
+		0,
+		nil,
+		lnClient,
+		&dbApp.ID,
+		nil,
+	)
+
+	if err != nil {
+		return c.JSON(http.StatusOK, LNURLPErrorResponse{
+			Reason: fmt.Sprintf("Failed to create invoice: %v", err),
+		})
+	}
+
+	verifyUrl := fmt.Sprintf("https://%s/lnurlp/%s/verify/%s", httpSvc.cfg.GetEnv().LightningAddressDomain, inputUsername, invoice.PaymentHash)
+
+	response := LNURLPCallbackResponse{
+		Pr:     invoice.PaymentRequest,
+		Verify: verifyUrl,
+		Routes: []string{},
+	}
+
+	return c.JSON(http.StatusOK, response)
+}
+
+func (httpSvc *HttpService) lnurlpVerifyHandler(c echo.Context) error {
+	lnClient := httpSvc.albyHttpSvc.svc.GetLNClient()
+	if lnClient == nil {
+		return c.JSON(http.StatusOK, LNURLPErrorResponse{
+			Reason: "Service not available",
+		})
+	}
+
+	username, _ := parseUsernameAndTag(c.Param("username"))
+	paymentHash := c.Param("paymentHash")
+	if username == "" {
+		return c.JSON(http.StatusOK, LNURLPErrorResponse{
+			Reason: "Not found",
+		})
+	}
+
+	dbApp := httpSvc.appsSvc.GetAppByLUD16Username(username)
+
+	if dbApp == nil {
+		return c.JSON(http.StatusOK, LNURLPErrorResponse{
+			Reason: "Not found",
+		})
+	}
+
+	transactionType := constants.TRANSACTION_TYPE_INCOMING
+	transaction, err := httpSvc.transactionsSvc.LookupTransaction(
+		c.Request().Context(),
+		paymentHash,
+		&transactionType,
+		lnClient,
+		&dbApp.ID,
+	)
+	if err != nil {
+		return c.JSON(http.StatusOK, LNURLPErrorResponse{
+			Reason: "Not found",
+		})
+	}
+
+	settled := transaction.State == constants.TRANSACTION_STATE_SETTLED
+	var preimage *string
+	if settled {
+		preimage = transaction.Preimage
+	}
+
+	return c.JSON(http.StatusOK, LNURLPVerifyResponse{
+		Status:   "OK",
+		Settled:  settled,
+		Preimage: preimage,
+		Pr:       transaction.PaymentRequest,
+	})
+}
+
+func parseUsernameAndTag(username string) (string, string) {
+	if err := api.ValidateLightningAddress(username); err != nil {
+		return "", ""
+	}
+
+	parts := strings.SplitN(username, "+", 2)
+
+	if len(parts) == 2 {
+		return parts[0], parts[1]
+	}
+	return username, ""
 }

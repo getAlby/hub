@@ -24,6 +24,7 @@ type AppsService interface {
 	CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string, isolated bool, metadata map[string]interface{}) (*db.App, string, error)
 	DeleteApp(app *db.App) error
 	GetAppByPubkey(pubkey string) *db.App
+	GetAppByLUD16Username(lud16Username string) *db.App
 	GetAppById(id uint) *db.App
 	SetAppMetadata(appId uint, metadata map[string]interface{}) error
 }
@@ -207,6 +208,24 @@ func (svc *appsService) GetAppById(id uint) *db.App {
 func (svc *appsService) GetAppByName(name string) *db.App {
 	dbApp := db.App{}
 	findResult := svc.db.Where("name = ?", name).First(&dbApp)
+	if findResult.RowsAffected == 0 {
+		return nil
+	}
+	return &dbApp
+}
+
+func (svc *appsService) GetAppByLUD16Username(lud16Username string) *db.App {
+	dbApp := db.App{}
+	var findResult *gorm.DB
+	fullAddress := fmt.Sprintf("%s@%s", lud16Username, svc.cfg.GetEnv().LightningAddressDomain)
+	switch svc.db.Dialector.Name() {
+	case "sqlite":
+		findResult = svc.db.Where("json_extract(metadata, '$.lud16') = ?", fullAddress).Find(&dbApp)
+	case "postgres":
+		findResult = svc.db.Where("metadata->>'lud16' = ?", fullAddress).Find(&dbApp)
+	default:
+		return nil
+	}
 	if findResult.RowsAffected == 0 {
 		return nil
 	}

@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -273,14 +274,24 @@ func (api *api) CreateLightningAddress(ctx context.Context, createLightningAddre
 		return err
 	}
 
-	createLightningAddressResponse, err := api.albyOAuthSvc.CreateLightningAddress(ctx, createLightningAddressRequest.Address, createLightningAddressRequest.AppId)
-
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to create lightning address for app")
-		return err
+	if api.cfg.GetEnv().LightningAddressDomain == "" {
+		createLightningAddressResponse, err := api.albyOAuthSvc.CreateLightningAddress(ctx, createLightningAddressRequest.Address, createLightningAddressRequest.AppId)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to create lightning address for app")
+			return err
+		}
+		metadata["lud16"] = createLightningAddressResponse.FullAddress
+	} else {
+		if err := ValidateLightningAddress(createLightningAddressRequest.Address); err != nil {
+			return err
+		}
+		app := api.appsSvc.GetAppByLUD16Username(createLightningAddressRequest.Address)
+		if app != nil {
+			return errors.New("lightning address already exists")
+		}
+		metadata["lud16"] = fmt.Sprintf("%s@%s", createLightningAddressRequest.Address, api.cfg.GetEnv().LightningAddressDomain)
 	}
 
-	metadata["lud16"] = createLightningAddressResponse.FullAddress
 	err = api.appsSvc.SetAppMetadata(app.ID, metadata)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to add lightning address to app metadata")
@@ -314,11 +325,13 @@ func (api *api) DeleteLightningAddress(ctx context.Context, appId uint) error {
 	}
 	address := strings.Split(lud16, "@")[0]
 
-	// Call the Alby OAuth service to delete the lightning address
-	err = api.albyOAuthSvc.DeleteLightningAddress(ctx, address)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to delete lightning address for app")
-		return err
+	if api.cfg.GetEnv().LightningAddressDomain == "" {
+		// Call the Alby OAuth service to delete the lightning address
+		err = api.albyOAuthSvc.DeleteLightningAddress(ctx, address)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to delete lightning address for app")
+			return err
+		}
 	}
 
 	delete(metadata, "lud16")
@@ -1569,4 +1582,15 @@ func (api *api) parseExpiresAt(expiresAtString string) (*time.Time, error) {
 		expiresAt = &expiresAtValue
 	}
 	return expiresAt, nil
+}
+
+func ValidateLightningAddress(address string) error {
+	matched, err := regexp.MatchString("^[a-z0-9-_.]+(?:[+][a-z0-9-_.]+)?$", address)
+	if err != nil {
+		return err
+	}
+	if !matched {
+		return errors.New("address must contain only \"a-z0-9-_.+\" characters")
+	}
+	return nil
 }
