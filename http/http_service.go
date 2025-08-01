@@ -107,9 +107,12 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.GET("/logout", httpSvc.logoutHandler, unlockRateLimiter)
 
 	if httpSvc.cfg.GetEnv().LightningAddressDomain != "" {
-		e.GET("/.well-known/lnurlp/:username", httpSvc.lnurlpHandler, unlockRateLimiter)
-		e.GET("/lnurlp/:username/callback", httpSvc.lnurlpCallbackHandler, unlockRateLimiter)
-		e.GET("/lnurlp/:username/verify/:paymentHash", httpSvc.lnurlpVerifyHandler, unlockRateLimiter)
+		corsMiddleware := middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins: []string{"*"},
+		})
+		e.GET("/.well-known/lnurlp/:username", httpSvc.lnurlpHandler, corsMiddleware, unlockRateLimiter)
+		e.GET("/lnurlp/:username/callback", httpSvc.lnurlpCallbackHandler, corsMiddleware, unlockRateLimiter)
+		e.GET("/lnurlp/:username/verify/:paymentHash", httpSvc.lnurlpVerifyHandler, corsMiddleware, unlockRateLimiter)
 	}
 
 	frontend.RegisterHandlers(e)
