@@ -1,6 +1,5 @@
 import React from "react";
 import {
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -8,6 +7,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "src/components/ui/alert-dialog";
+import { Button } from "src/components/ui/button";
 import { Textarea } from "src/components/ui/textarea";
 import { useToast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";
@@ -16,11 +16,13 @@ import { request } from "src/utils/request";
 type ExecuteCustomNodeCommandDialogContentProps = {
   availableCommands: string;
   setCommandResponse: (response: string) => void;
+  onClose: () => void;
 };
 
 export function ExecuteCustomNodeCommandDialogContent({
   setCommandResponse,
   availableCommands,
+  onClose,
 }: ExecuteCustomNodeCommandDialogContentProps) {
   const { mutate: reloadInfo } = useInfo();
   const { toast } = useToast();
@@ -56,6 +58,9 @@ export function ExecuteCustomNodeCommandDialogContent({
       setCommandResponse(parsedResponse);
 
       toast({ title: "Command executed", description: parsedResponse });
+
+      // Close the dialog after successful execution
+      onClose();
     } catch (error) {
       console.error(error);
       toast({
@@ -90,7 +95,7 @@ export function ExecuteCustomNodeCommandDialogContent({
           <AlertDialogCancel onClick={() => setCommand("")}>
             Cancel
           </AlertDialogCancel>
-          <AlertDialogAction type="submit">Execute</AlertDialogAction>
+          <Button type="submit">Execute</Button>
         </AlertDialogFooter>
       </form>
     </AlertDialogContent>
