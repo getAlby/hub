@@ -345,32 +345,46 @@ func (s *BarkService) ResetRouter(key string) error {
 }
 
 func (s *BarkService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
-	balance, err := s.wallet.Balance()
+	walletBalance, err := s.wallet.WalletBalance()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get Bark wallet balance")
 		return nil, err
 	}
 
+	onchainBalance, err := s.wallet.OnchainBalance()
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to get Bark wallet onchain balance")
+		return nil, err
+	}
+
 	return &lnclient.OnchainBalanceResponse{
-		Spendable:                          int64(balance.OnchainSat * 1000),
-		PendingBalancesFromChannelClosures: balance.PendingExitSat * 1000,
+		Spendable:                          int64(onchainBalance.TrustedSpendableSat * 1000),
+		Total:                              int64(onchainBalance.TotalSat * 1000),
+		PendingBalancesFromChannelClosures: walletBalance.PendingExitSat * 1000,
 	}, nil
 }
 
 func (s *BarkService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
-	balance, err := s.wallet.Balance()
+	walletBalance, err := s.wallet.WalletBalance()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get Bark wallet balance")
+		return nil, err
+	}
+
+	onchainBalance, err := s.wallet.OnchainBalance()
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to get Bark wallet onchain balance")
 		return nil, err
 	}
 
 	return &lnclient.BalancesResponse{
 		Onchain: lnclient.OnchainBalanceResponse{
-			Spendable:                          int64(balance.OnchainSat * 1000),
-			PendingBalancesFromChannelClosures: balance.PendingExitSat * 1000,
+			Spendable:                          int64(onchainBalance.TrustedSpendableSat * 1000),
+			Total:                              int64(onchainBalance.TotalSat * 1000),
+			PendingBalancesFromChannelClosures: walletBalance.PendingExitSat * 1000,
 		},
 		Lightning: lnclient.LightningBalanceResponse{
-			TotalSpendable: int64(balance.SpendableSat * 1000),
+			TotalSpendable: int64(walletBalance.SpendableSat * 1000),
 		},
 	}, nil
 }
