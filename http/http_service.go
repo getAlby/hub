@@ -269,6 +269,12 @@ func (httpSvc *HttpService) startHandler(c echo.Context) error {
 		})
 	}
 
+	if !httpSvc.cfg.CheckUnlockPassword(startRequest.UnlockPassword) {
+		return c.JSON(http.StatusUnauthorized, ErrorResponse{
+			Message: "Invalid password",
+		})
+	}
+
 	token, err := httpSvc.createJWT(nil)
 
 	if err != nil {
