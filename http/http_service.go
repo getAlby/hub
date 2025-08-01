@@ -2,6 +2,7 @@ package http
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -123,7 +124,10 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 		NewClaimsFunc: func(c echo.Context) jwt.Claims {
 			return new(jwtCustomClaims)
 		},
-		SigningKey: []byte(httpSvc.cfg.GetJWTSecret()),
+		// use a custom key func as the JWT secret will change if the user changes their unlock password
+		KeyFunc: func(token *jwt.Token) (interface{}, error) {
+			return []byte(httpSvc.cfg.GetJWTSecret()), nil
+		},
 	}
 	restrictedApiGroup := e.Group("/api")
 	restrictedApiGroup.Use(echojwt.WithConfig(jwtConfig))
@@ -132,7 +136,8 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.PATCH("/auto-unlock", httpSvc.autoUnlockHandler)
 	restrictedApiGroup.PATCH("/settings", httpSvc.updateSettingsHandler)
 	restrictedApiGroup.GET("/apps", httpSvc.appsListHandler)
-	restrictedApiGroup.GET("/apps/:pubkey", httpSvc.appsShowHandler)
+	restrictedApiGroup.GET("/apps/:pubkey", httpSvc.appsShowByPubkeyHandler)
+	restrictedApiGroup.GET("/v2/apps/:id", httpSvc.appsShowHandler)
 	restrictedApiGroup.PATCH("/apps/:pubkey", httpSvc.appsUpdateHandler)
 	restrictedApiGroup.DELETE("/apps/:pubkey", httpSvc.appsDeleteHandler)
 	restrictedApiGroup.POST("/apps/:pubkey/topup", httpSvc.isolatedAppTopupHandler)
@@ -928,8 +933,34 @@ func (httpSvc *HttpService) signMessageHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) appsListHandler(c echo.Context) error {
+	limit := uint64(0)
+	offset := uint64(0)
 
-	apps, err := httpSvc.api.ListApps()
+	if limitParam := c.QueryParam("limit"); limitParam != "" {
+		if parsedLimit, err := strconv.ParseUint(limitParam, 10, 64); err == nil {
+			limit = parsedLimit
+		}
+	}
+
+	if offsetParam := c.QueryParam("offset"); offsetParam != "" {
+		if parsedOffset, err := strconv.ParseUint(offsetParam, 10, 64); err == nil {
+			offset = parsedOffset
+		}
+	}
+
+	filtersJSON := c.QueryParam("filters")
+	var filters api.ListAppsFilters
+	err := json.Unmarshal([]byte(filtersJSON), &filters)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"filters": filtersJSON,
+		}).Error("Failed to deserialize app filters")
+		return err
+	}
+
+	orderBy := c.QueryParam("order_by")
+
+	apps, err := httpSvc.api.ListApps(limit, offset, filters, orderBy)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -940,10 +971,36 @@ func (httpSvc *HttpService) appsListHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, apps)
 }
 
-func (httpSvc *HttpService) appsShowHandler(c echo.Context) error {
-
-	// TODO: move this to DB service
+func (httpSvc *HttpService) appsShowByPubkeyHandler(c echo.Context) error {
 	dbApp := httpSvc.appsSvc.GetAppByPubkey(c.Param("pubkey"))
+
+	if dbApp == nil {
+		return c.JSON(http.StatusNotFound, ErrorResponse{
+			Message: "App not found",
+		})
+	}
+
+	response := httpSvc.api.GetApp(dbApp)
+
+	return c.JSON(http.StatusOK, response)
+}
+
+func (httpSvc *HttpService) appsShowHandler(c echo.Context) error {
+	appIdStr := c.Param("id")
+	if appIdStr == "" {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "App ID is required",
+		})
+	}
+
+	appId, err := strconv.ParseUint(appIdStr, 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "Invalid App ID",
+		})
+	}
+
+	dbApp := httpSvc.appsSvc.GetAppById(uint(appId))
 
 	if dbApp == nil {
 		return c.JSON(http.StatusNotFound, ErrorResponse{

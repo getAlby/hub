@@ -51,7 +51,7 @@ tee $INSTALL_DIR/albyhub/start.sh > /dev/null << EOF
 echo "Starting Alby Hub"
 phoenix_config_file=$INSTALL_DIR/phoenixd/data/phoenix.conf
 PHOENIXD_AUTHORIZATION=\$(awk -F'=' '/^http-password/{print \$2}' "\$phoenix_config_file")
-WORK_DIR="$INSTALL_DIR/albyhub/data" LN_BACKEND_TYPE=PHOENIX PHOENIXD_ADDRESS="http://localhost:9740" PHOENIXD_AUTHORIZATION=\$PHOENIXD_AUTHORIZATION LOG_EVENTS=true LDK_GOSSIP_SOURCE="" $INSTALL_DIR/albyhub/bin/albyhub
+WORK_DIR="$INSTALL_DIR/albyhub/data" LN_BACKEND_TYPE=PHOENIX PHOENIXD_ADDRESS="http://localhost:9740" PHOENIXD_AUTHORIZATION=\$PHOENIXD_AUTHORIZATION LDK_GOSSIP_SOURCE="" $INSTALL_DIR/albyhub/bin/albyhub
 EOF
 
 tee $INSTALL_DIR/start.sh > /dev/null << EOF

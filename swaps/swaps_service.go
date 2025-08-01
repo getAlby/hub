@@ -199,13 +199,13 @@ func (svc *swapsService) EnableAutoSwapOut() error {
 				balance, err := svc.lnClient.GetBalances(ctx, false)
 				if err != nil {
 					logger.Logger.WithError(err).Error("Failed to get balance")
-					return
+					continue
 				}
 				lightningBalance := uint64(balance.Lightning.TotalSpendable)
 				balanceThresholdMilliSats := balanceThreshold * 1000
 				if lightningBalance < balanceThresholdMilliSats {
 					logger.Logger.Info("Threshold requirements not met for swap, ignoring")
-					return
+					continue
 				}
 				logger.Logger.WithFields(logrus.Fields{
 					"amount":      amount,
@@ -558,7 +558,7 @@ func (svc *swapsService) RefundSwap(swapId, address string) error {
 	}
 
 	if swap.Type != constants.SWAP_TYPE_IN {
-		return fmt.Errorf("cannot process refund for swap id: %s", swapId)
+		return errors.New("only On-chain -> Lightning swaps can be refunded")
 	}
 
 	if swap.ClaimTxId != "" {
@@ -1088,18 +1088,20 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 						"swap_id": swap.SwapId,
 					}
 					sendPaymentTimeout := int64(3600)
-					holdInvoicePayment, err := svc.transactionsService.SendPaymentSync(svc.ctx, swap.Invoice, nil, metadata, svc.lnClient, nil, nil, &sendPaymentTimeout)
+					logger.Logger.WithField("swapId", swap.SwapId).Info("Initiating swap invoice payment")
+					_, err = svc.transactionsService.SendPaymentSync(svc.ctx, swap.Invoice, nil, metadata, svc.lnClient, nil, nil, &sendPaymentTimeout)
 					if err != nil {
-						logger.Logger.WithError(err).WithFields(logrus.Fields{
-							"swapId": swap.SwapId,
-						}).Error("Error paying the swap invoice")
-						paymentErrorCh <- err
-						return
-					}
-					logger.Logger.WithField("swapId", swap.SwapId).Info("Initiated swap invoice payment")
-					if holdInvoicePayment.PaymentHash != swap.PaymentHash {
-						paymentErrorCh <- errors.New("swap hold payment hash mismatch")
-						return
+						if errors.Is(err, lnclient.NewTimeoutError()) {
+							logger.Logger.WithFields(logrus.Fields{
+								"swapId": swap.SwapId,
+							}).Info("Ignoring payment timeout while swapping out")
+						} else {
+							logger.Logger.WithError(err).WithFields(logrus.Fields{
+								"swapId": swap.SwapId,
+							}).Error("Error paying the swap invoice")
+							paymentErrorCh <- err
+							return
+						}
 					}
 				}()
 			case boltz.TransactionMempool:

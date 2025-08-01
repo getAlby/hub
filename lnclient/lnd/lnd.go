@@ -442,6 +442,10 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amoun
 	}
 
 	if resp.Status != lnrpc.Payment_SUCCEEDED {
+		// In LND, timeout error only happens when there are more routes to try
+		// but we ran out of time in contrast to LDK where the payment is initiated
+		// and might still succeed after receiving timeout error
+		// See https://github.com/lightningnetwork/lnd/issues/4269#issuecomment-626279140
 		failureReasonMessage := resp.FailureReason.String()
 		logger.Logger.WithFields(logrus.Fields{
 			"bolt11": payReq,

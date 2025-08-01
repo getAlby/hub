@@ -409,17 +409,60 @@ func (api *api) GetApp(dbApp *db.App) *App {
 	return &response
 }
 
-func (api *api) ListApps() ([]App, error) {
+func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, orderBy string) (*ListAppsResponse, error) {
 	// TODO: join dbApps and permissions
 	dbApps := []db.App{}
-	err := api.db.Find(&dbApps).Error
+	query := api.db
+
+	if filters.Name != "" {
+		query = query.Where("name = ?", filters.Name)
+	}
+
+	if filters.AppStoreAppId != "" {
+		query = query.Where(datatypes.JSONQuery("metadata").Equals(filters.AppStoreAppId, "app_store_app_id"))
+	}
+
+	if filters.Unused {
+		// find unused non-subwallet apps not used in the past 60 days
+		query = query.Where("last_used_at IS NULL OR last_used_at < ?", time.Now().Add(-60*24*time.Hour))
+		// exclude subwallets :scream:
+		if api.db.Dialector.Name() == "sqlite" {
+			query = query.Where("metadata is NULL OR JSON_EXTRACT(metadata, '$.app_store_app_id') IS NULL OR JSON_EXTRACT(metadata, '$.app_store_app_id') != ?", "uncle-jim")
+		} else {
+			query = query.Where("metadata IS NULL OR metadata->>'app_store_app_id' IS NULL OR metadata->>'app_store_app_id' != ?", "uncle-jim")
+		}
+	}
+
+	if orderBy == "" {
+		orderBy = "last_used_at"
+	}
+	query = query.Order(orderBy + " DESC")
+
+	if limit == 0 {
+		limit = 100
+	}
+	var totalCount int64
+	result := query.Model(&db.App{}).Count(&totalCount)
+	if result.Error != nil {
+		logger.Logger.WithError(result.Error).Error("Failed to count DB apps")
+		return nil, result.Error
+	}
+	query = query.Offset(int(offset)).Limit(int(limit))
+
+	err := query.Find(&dbApps).Error
+
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to list apps")
 		return nil, err
 	}
 
+	appIds := []uint64{}
+	for _, app := range dbApps {
+		appIds = append(appIds, uint64(app.ID))
+	}
+
 	appPermissions := []db.AppPermission{}
-	err = api.db.Find(&appPermissions).Error
+	err = api.db.Where("app_id IN ?", appIds).Find(&appPermissions).Error
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to list app permissions")
 		return nil, err
@@ -478,7 +521,10 @@ func (api *api) ListApps() ([]App, error) {
 
 		apiApps = append(apiApps, apiApp)
 	}
-	return apiApps, nil
+	return &ListAppsResponse{
+		Apps:       apiApps,
+		TotalCount: uint64(totalCount),
+	}, nil
 }
 
 func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {

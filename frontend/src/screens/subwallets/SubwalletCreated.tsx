@@ -21,7 +21,6 @@ import {
   AccordionTrigger,
 } from "src/components/ui/accordion";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { Badge } from "src/components/ui/badge";
 import { Button, ExternalLinkButton } from "src/components/ui/button";
 import {
   Card,
@@ -44,7 +43,7 @@ import { useToast } from "src/components/ui/use-toast";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { LUD16_DOMAIN } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
-import { useApp } from "src/hooks/useApp";
+import { useAppByPubkey } from "src/hooks/useApp";
 import { useCreateLightningAddress } from "src/hooks/useCreateLightningAddress";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -58,7 +57,10 @@ export function SubwalletCreated() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const createAppResponse = state as CreateAppResponse | undefined;
-  const { data: app } = useApp(createAppResponse?.pairingPublicKey, true);
+  const { data: app } = useAppByPubkey(
+    createAppResponse?.pairingPublicKey,
+    true
+  );
   const [intendedLightningAddress, setIntendedLightningAddress] =
     React.useState(createAppResponse?.name || "");
 
@@ -177,12 +179,7 @@ export function SubwalletCreated() {
                 </AccordionContent>
               </AccordionItem>
               <AccordionItem value="account">
-                <AccordionTrigger>
-                  <div className="flex flex-row gap-3">
-                    <div>Alby Account</div>
-                    <Badge>Lightning Address</Badge>
-                  </div>
-                </AccordionTrigger>
+                <AccordionTrigger>Alby Account</AccordionTrigger>
                 <AccordionContent>
                   <ul className="flex flex-col gap-1 list-inside list-decimal mb-6">
                     <li>

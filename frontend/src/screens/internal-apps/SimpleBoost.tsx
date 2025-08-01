@@ -2,7 +2,6 @@ import { CopyIcon } from "lucide-react";
 import React from "react";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
-import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -15,7 +14,6 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { Textarea } from "src/components/ui/textarea";
 import { useToast } from "src/components/ui/use-toast";
-import { useApps } from "src/hooks/useApps";
 import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -23,7 +21,6 @@ import { handleRequestError } from "src/utils/handleRequestError";
 export function SimpleBoost() {
   const [name, setName] = React.useState("");
   const [isLoading, setLoading] = React.useState(false);
-  const { data: apps } = useApps();
   const [nwcUri, setNwcUri] = React.useState("");
   const [scriptContent, setScriptContent] = React.useState("");
   const { toast } = useToast();
@@ -34,10 +31,6 @@ export function SimpleBoost() {
 <simple-boost currency="usd" amount="1.0" nwc="${nwcUri}">Boost $1.00</simple-boost>`);
     }
   }, [nwcUri]);
-
-  if (!apps) {
-    return <Loading />;
-  }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

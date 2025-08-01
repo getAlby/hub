@@ -1,7 +1,6 @@
 import React from "react";
 import {
   ConnectPeerRequest,
-  MempoolNode,
   MempoolUtxo,
   NewChannelOrder,
   OpenChannelRequest,
@@ -51,6 +50,7 @@ import { PayLightningInvoice } from "src/components/PayLightningInvoice";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { useChannels } from "src/hooks/useChannels";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
+import { useNodeDetails } from "src/hooks/useNodeDetails";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
 import { usePeers } from "src/hooks/usePeers";
 import { useSyncWallet } from "src/hooks/useSyncWallet";
@@ -59,12 +59,13 @@ import { splitSocketAddress } from "src/lib/utils";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import { LSPOrderRequest, LSPOrderResponse } from "src/types";
 import { request } from "src/utils/request";
+
+// ensures React does not open a duplicate channel
+// this is a hack and will break if the user tries to open
+// 2 outbound channels without refreshing the page (I think an edge case)
 let hasStartedOpenedChannel = false;
 
 export function CurrentChannelOrder() {
-  React.useEffect(() => {
-    hasStartedOpenedChannel = false;
-  }, []);
   const order = useChannelOrderStore((store) => store.order);
   if (!order) {
     return (
@@ -391,34 +392,12 @@ function PayBitcoinChannelOrderWithSpendableFunds({
     throw new Error("incorrect payment method");
   }
   const { data: peers } = usePeers();
-  const [nodeDetails, setNodeDetails] = React.useState<
-    MempoolNode | undefined
-  >();
-  const [hasLoadedNodeDetails, setLoadedNodeDetails] = React.useState(false);
 
   const { toast } = useToast();
 
   const { pubkey, host } = order;
 
-  const fetchNodeDetails = React.useCallback(async () => {
-    if (!pubkey) {
-      return;
-    }
-    try {
-      const data = await request<MempoolNode>(
-        `/api/mempool?endpoint=/v1/lightning/nodes/${pubkey}`
-      );
-      setNodeDetails(data);
-    } catch (error) {
-      console.error(error);
-      setNodeDetails(undefined);
-    }
-    setLoadedNodeDetails(true);
-  }, [pubkey]);
-
-  React.useEffect(() => {
-    fetchNodeDetails();
-  }, [fetchNodeDetails]);
+  const { data: nodeDetails } = useNodeDetails(pubkey);
 
   const connectPeer = React.useCallback(async () => {
     if (!nodeDetails && !host) {
@@ -514,13 +493,13 @@ function PayBitcoinChannelOrderWithSpendableFunds({
   ]);
 
   React.useEffect(() => {
-    if (!peers || !hasLoadedNodeDetails || hasStartedOpenedChannel) {
+    if (!peers || hasStartedOpenedChannel) {
       return;
     }
 
     hasStartedOpenedChannel = true;
     openChannel();
-  }, [hasLoadedNodeDetails, openChannel, order.amount, peers, pubkey]);
+  }, [openChannel, order.amount, peers, pubkey]);
 
   return (
     <div className="flex flex-col gap-5">

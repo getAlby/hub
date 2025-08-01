@@ -18,7 +18,7 @@ import { useUnusedApps } from "src/hooks/useUnusedApps";
 import { App } from "src/types";
 
 export function AppsCleanup() {
-  const unusedApps = useUnusedApps();
+  const unusedApps = useUnusedApps(100_000); // assume never more than 100k apps
   const [appIndex, setAppIndex] = React.useState<number>();
   const [skippedCount, setSkippedCount] = React.useState<number>(0);
   const [deletedCount, setDeletedCount] = React.useState<number>(0);

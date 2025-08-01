@@ -70,7 +70,6 @@ CPUQuota=90%
 Environment="PORT=$PORT"
 Environment="WORK_DIR=/opt/albyhub/data"
 Environment="LDK_ESPLORA_SERVER=https://electrs.getalbypro.com"
-Environment="LOG_EVENTS=true"
 Environment="LDK_GOSSIP_SOURCE="
 
 [Install]
