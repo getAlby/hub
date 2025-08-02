@@ -82,19 +82,7 @@ export function Ark() {
     [toast]
   );
 
-  const board = React.useCallback(() => {
-    executeCommand("board");
-  }, [executeCommand]);
-
-  // TODO: when should this be executed?
-  React.useEffect(() => {
-    (async () => {
-      await executeCommand("maintenance");
-      reloadBalances();
-    })();
-  }, [executeCommand, reloadBalances]);
-
-  React.useEffect(() => {
+  const reloadVtxos = React.useCallback(() => {
     (async () => {
       const response = await executeCommand<{ vtxos: VTXO[] }>("list_vtxos");
       if (!response) {
@@ -105,6 +93,24 @@ export function Ark() {
       setVtxos(response.vtxos);
     })();
   }, [executeCommand]);
+
+  const board = React.useCallback(async () => {
+    await executeCommand("board");
+    await reloadBalances();
+    await reloadVtxos();
+  }, [executeCommand, reloadVtxos, reloadBalances]);
+
+  // TODO: when should this be executed?
+  React.useEffect(() => {
+    (async () => {
+      await executeCommand("maintenance");
+      reloadBalances();
+    })();
+  }, [executeCommand, reloadBalances]);
+
+  React.useEffect(() => {
+    reloadVtxos();
+  }, [executeCommand, reloadVtxos]);
 
   return (
     <>

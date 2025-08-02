@@ -113,7 +113,10 @@ func NewBarkService(ctx context.Context, mnemonic, workdir string, eventPublishe
 		for {
 			select {
 			case <-ticker.C:
+				// TODO: run maintenance here
+
 				logger.Logger.Info("Refreshing vtxos")
+				// TODO: only refresh VTXOs close to expiry
 				if err := wallet.RefreshAll(); err != nil {
 					logger.Logger.WithError(err).Error("Failed to refresh vtxos")
 				}
@@ -606,10 +609,13 @@ func (s *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 			},
 		}, nil
 	case nodeCommandBoard:
+		err := s.wallet.BoardAll()
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to board all")
+			return nil, err
+		}
 		return &lnclient.CustomNodeCommandResponse{
-			Response: map[string]interface{}{
-				"TODO": "TODO",
-			},
+			Response: map[string]interface{}{},
 		}, nil
 	case nodeCommandSendOnchain:
 		var addr string
