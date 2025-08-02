@@ -30,6 +30,7 @@ const nodeCommandMaintenance = "maintenance"
 const nodeCommandArkInfo = "ark_info"
 const nodeCommandListVTXOs = "list_vtxos"
 const nodeCommandGetBoardingAddress = "get_boarding_address"
+const nodeCommandBoard = "board"
 const nodeCommandSendOnchain = "send_onchain"
 const nodeCommandUnilateralExitAll = "unilateral_exit_all"
 const nodeCommandPollExitStatus = "poll_exit_status"
@@ -337,7 +338,11 @@ func (s *BarkService) DisconnectPeer(ctx context.Context, peerId string) error {
 }
 
 func (s *BarkService) GetNewOnchainAddress(ctx context.Context) (string, error) {
-	return "", errors.New("not implemented")
+	address, err := s.wallet.OnchainAddress()
+	if err != nil {
+		return "", err
+	}
+	return address, nil
 }
 
 func (s *BarkService) ResetRouter(key string) error {
@@ -358,9 +363,9 @@ func (s *BarkService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 	}
 
 	return &lnclient.OnchainBalanceResponse{
-		Spendable:                          int64(onchainBalance.TrustedSpendableSat * 1000),
-		Total:                              int64(onchainBalance.TotalSat * 1000),
-		PendingBalancesFromChannelClosures: walletBalance.PendingExitSat * 1000,
+		Spendable:                          int64(onchainBalance.TrustedSpendableSat),
+		Total:                              int64(onchainBalance.TotalSat),
+		PendingBalancesFromChannelClosures: walletBalance.PendingExitSat,
 	}, nil
 }
 
@@ -371,18 +376,14 @@ func (s *BarkService) GetBalances(ctx context.Context, includeInactiveChannels b
 		return nil, err
 	}
 
-	onchainBalance, err := s.wallet.OnchainBalance()
+	onchainBalance, err := s.GetOnchainBalance(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get Bark wallet onchain balance")
 		return nil, err
 	}
 
 	return &lnclient.BalancesResponse{
-		Onchain: lnclient.OnchainBalanceResponse{
-			Spendable:                          int64(onchainBalance.TrustedSpendableSat * 1000),
-			Total:                              int64(onchainBalance.TotalSat * 1000),
-			PendingBalancesFromChannelClosures: walletBalance.PendingExitSat * 1000,
-		},
+		Onchain: *onchainBalance,
 		Lightning: lnclient.LightningBalanceResponse{
 			TotalSpendable: int64(walletBalance.SpendableSat * 1000),
 		},
@@ -464,6 +465,11 @@ func (s *BarkService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCom
 		{
 			Name:        nodeCommandGetBoardingAddress,
 			Description: "Get the boarding address for the Ark network.",
+			Args:        nil,
+		},
+		{
+			Name:        nodeCommandBoard,
+			Description: "Move on-chain bitcoin to off-chain bitcoin",
 			Args:        nil,
 		},
 		{
@@ -597,6 +603,12 @@ func (s *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 		return &lnclient.CustomNodeCommandResponse{
 			Response: map[string]interface{}{
 				"boarding_address": boardAddress,
+			},
+		}, nil
+	case nodeCommandBoard:
+		return &lnclient.CustomNodeCommandResponse{
+			Response: map[string]interface{}{
+				"TODO": "TODO",
 			},
 		}, nil
 	case nodeCommandSendOnchain:
