@@ -26,6 +26,7 @@ import NewApp from "src/screens/apps/NewApp";
 import ShowApp from "src/screens/apps/ShowApp";
 import AppStore from "src/screens/appstore/AppStore";
 import { AppStoreDetail } from "src/screens/appstore/AppStoreDetail";
+import { Ark } from "src/screens/ark/Ark";
 import Channels from "src/screens/channels/Channels";
 import { CurrentChannelOrder } from "src/screens/channels/CurrentChannelOrder";
 import IncreaseIncomingCapacity from "src/screens/channels/IncreaseIncomingCapacity";
@@ -359,6 +360,17 @@ const routes = [
           {
             path: ":appId",
             element: <AppStoreDetail />,
+          },
+        ],
+      },
+      {
+        path: "ark",
+        element: <DefaultRedirect />,
+        handle: { crumb: () => "Node" },
+        children: [
+          {
+            index: true,
+            element: <Ark />,
           },
         ],
       },
