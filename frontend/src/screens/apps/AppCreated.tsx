@@ -9,13 +9,14 @@ import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { SuggestedApp, suggestedApps } from "src/components/SuggestedAppData";
 import { Badge } from "src/components/ui/badge";
-import { Button, ExternalLinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useAppByPubkey } from "src/hooks/useApp";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -227,7 +228,7 @@ export function ConnectAppCard({
             Copy
           </Button>
           <ExternalLinkButton to={pairingUri} variant="outline">
-            <ExternalLinkIcon className="w-4 h-4 mr-2" />
+            <ExternalLinkIcon />
             Open
           </ExternalLinkButton>
         </div>
