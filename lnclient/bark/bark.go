@@ -15,6 +15,7 @@ import (
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 
+	"github.com/getAlby/hub/bark"
 	bindings "github.com/getAlby/hub/bark"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
@@ -37,6 +38,7 @@ const nodeCommandUnilateralExitAll = "unilateral_exit_all"
 const nodeCommandPollExitStatus = "poll_exit_status"
 const nodeCommandPayToArkAddress = "pay_to_ark_address"
 const nodeCommandListUTXOs = "list_utxos"
+const nodeCommandListMovements = "list_movements"
 const nodeCommandBolt11Invoice = "bolt11_invoice"
 const nodeCommandClaimBolt11Payment = "claim_bolt11_payment"
 
@@ -525,6 +527,11 @@ func (s *BarkService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCom
 			Args:        nil,
 		},
 		{
+			Name:        nodeCommandListMovements,
+			Description: "List VTXO movements.",
+			Args:        nil,
+		},
+		{
 			Name:        nodeCommandBolt11Invoice,
 			Description: "Create new Bolt11 invoice.",
 			Args: []lnclient.CustomNodeCommandArgDef{
@@ -738,6 +745,22 @@ func (s *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 				"utxos": respUtxos,
 			},
 		}, nil
+	case nodeCommandListMovements:
+		movements, err := s.wallet.Movements()
+		if err != nil {
+			return nil, err
+		}
+
+		respMovements := make([]map[string]interface{}, 0, len(movements))
+		for _, utxo := range movements {
+			respMovements = append(respMovements, convertMovementToCommandResp(utxo))
+		}
+
+		return &lnclient.CustomNodeCommandResponse{
+			Response: map[string]interface{}{
+				"movements": respMovements,
+			},
+		}, nil
 	case nodeCommandBolt11Invoice:
 		var amount uint64
 		if len(command.Args) == 1 && command.Args[0].Name == "amount" {
@@ -825,6 +848,43 @@ func convertUtxoToCommandResp(utxo bindings.Utxo) map[string]interface{} {
 	}
 
 	return respUtxo
+}
+
+func convertMovementToCommandResp(movement bindings.Movement) map[string]interface{} {
+	var kind string
+	switch movement.Kind {
+	case bark.MovementKindBoard:
+		kind = "Board"
+	case bark.MovementKindRound:
+		kind = "Round"
+	case bark.MovementKindOffboard:
+		kind = "Offboard"
+	case bark.MovementKindExit:
+		kind = "Exit"
+	case bark.MovementKindArkoorSend:
+		kind = "ArkoorSend"
+	case bark.MovementKindArkoorReceive:
+		kind = "ArkoorReceive"
+	case bark.MovementKindLightningSend:
+		kind = "LightningSend"
+	case bark.MovementKindLightningSendRevocation:
+		kind = "LightningSendRevocation"
+	case bark.MovementKindLightningReceive:
+		kind = "LightningReceive"
+	default:
+		kind = "Unknown"
+	}
+
+	respMovement := map[string]interface{}{
+		"id":                  movement.Id,
+		"kind":                kind,
+		"amount_sent_sat":     movement.AmountSentSat,
+		"amount_received_sat": movement.AmountReceivedSat,
+		"fees_sat":            movement.FeesSat,
+		"created_at":          movement.CreatedAt,
+	}
+
+	return respMovement
 }
 
 func invoiceToTransaction(invoice string) (*lnclient.Transaction, error) {

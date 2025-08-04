@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import {
   ArrowRightIcon,
   InfoIcon,
@@ -76,6 +77,15 @@ type UTXO =
     }
   | { type: "<unknown>" };
 
+type Movement = {
+  id: string;
+  kind: string;
+  amount_sent_sat: number;
+  amount_received_sat: number;
+  fees_sat: number;
+  created_at: string;
+};
+
 // eslint-disable-next-line react-refresh/only-export-components
 export const commandFetcher = async (...args: Parameters<typeof fetch>) => {
   return request("/api/command", {
@@ -132,6 +142,10 @@ export function Ark() {
     utxos: UTXO[];
   }>("list_utxos");
   const utxos = utxosResponse?.utxos;
+  const { data: movementsResponse } = useCommand<{
+    movements: Movement[];
+  }>("list_movements");
+  const movements = movementsResponse?.movements;
 
   const board = React.useCallback(async () => {
     await executeCommand("board");
@@ -343,6 +357,64 @@ export function Ark() {
         </Card>
       </div>
 
+      {!movements && <Loading />}
+      {!!movements?.length && (
+        <Card className="">
+          <CardHeader>
+            <CardTitle className="text-2xl">Off-Chain Movements</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[160px] text-muted-foreground">
+                    Amount Sent
+                  </TableHead>
+                  <TableHead className="w-[160px] text-muted-foreground">
+                    Amount Received
+                  </TableHead>
+                  <TableHead className="w-[160px] text-muted-foreground">
+                    Fees
+                  </TableHead>
+                  <TableHead className="w-[160px] text-muted-foreground">
+                    Kind
+                  </TableHead>
+                  <TableHead className="text-muted-foreground">
+                    Created
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {movements.map((movement) => {
+                  return (
+                    <TableRow key={movement.id}>
+                      <TableCell>
+                        {new Intl.NumberFormat().format(
+                          movement.amount_sent_sat
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {new Intl.NumberFormat().format(
+                          movement.amount_received_sat
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {new Intl.NumberFormat().format(movement.fees_sat)}
+                      </TableCell>
+                      <TableCell>{movement.kind}</TableCell>
+                      <TableCell>
+                        {dayjs(movement.created_at + "Z")
+                          .local()
+                          .fromNow()}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
       {!vtxos && <Loading />}
       {!!vtxos?.length && (
         <Card className="">
@@ -354,7 +426,7 @@ export function Ark() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[160px] text-muted-foreground">
-                    Amount (sats)
+                    Amount
                   </TableHead>
                   <TableHead className="w-[160px] text-muted-foreground">
                     Status
