@@ -158,8 +158,8 @@ github.com/dustin/go-humanize v1.0.1/go.mod h1:Mu1zIs6XwVuF/gI1OepvI0qD18qycQx+m
 github.com/dvyukov/go-fuzz v0.0.0-20200318091601-be3528f3a813/go.mod h1:11Gm+ccJnvAhCNLlf5+cS9KjtbaD5I5zaZpFMsTHWTw=
 github.com/elnosh/btc-docker-test v0.0.0-20241223164556-146e52a0433b h1:JbZVAqKBVRkvHuZZJsf8MvO+I7HGaVNCMQvp7WMFGqs=
 github.com/elnosh/btc-docker-test v0.0.0-20241223164556-146e52a0433b/go.mod h1:4PlP53czOHN+XvjyQZh+zgrzkI7BYFvJajxKK2zquyE=
-github.com/elnosh/gonuts v0.4.0 h1:7d80ngsxdA2FrpNh4/9J7p0NSU9iWFK+Wh2nAxR1qM0=
-github.com/elnosh/gonuts v0.4.0/go.mod h1:vgZomh4YQk7R3w4ltZc0sHwCmndfHkuX6V4sga/8oNs=
+github.com/elnosh/gonuts v0.4.1 h1:pSSIWYgI7MfHDAqApk8U4RqAnZ9OtX9lSfdtu9sZqxM=
+github.com/elnosh/gonuts v0.4.1/go.mod h1:vgZomh4YQk7R3w4ltZc0sHwCmndfHkuX6V4sga/8oNs=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=
