@@ -8,6 +8,7 @@ import { DefaultRedirect } from "src/components/redirects/DefaultRedirect";
 import { HomeRedirect } from "src/components/redirects/HomeRedirect";
 import { SetupRedirect } from "src/components/redirects/SetupRedirect";
 import { StartRedirect } from "src/components/redirects/StartRedirect";
+import { AlbyReviews } from "src/screens/AlbyReviews";
 import { ConnectAlbyAccount } from "src/screens/ConnectAlbyAccount";
 import { CreateNodeMigrationFileSuccess } from "src/screens/CreateNodeMigrationFileSuccess";
 import Home from "src/screens/Home";
@@ -58,7 +59,6 @@ import DebugTools from "src/screens/settings/DebugTools";
 import DeveloperSettings from "src/screens/settings/DeveloperSettings";
 import Settings from "src/screens/settings/Settings";
 
-import EarnSats from "src/screens/EarnSats";
 import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
 import { RestoreNode } from "src/screens/setup/RestoreNode";
 import { SetupAdvanced } from "src/screens/setup/SetupAdvanced";
@@ -460,9 +460,9 @@ const routes = [
         element: <BankAccount />,
       },
       {
-        path: "earn-sats",
-        element: <EarnSats />,
-        handle: { crumb: () => "Earn Sats" },
+        path: "review-earn",
+        element: <AlbyReviews />,
+        handle: { crumb: () => "Review & Earn" },
       },
     ],
   },

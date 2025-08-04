@@ -13,6 +13,7 @@ import {
   Settings,
   Sparkles,
   SquareStack,
+  StarIcon,
   WalletIcon,
 } from "lucide-react";
 import React from "react";
@@ -119,6 +120,11 @@ export function AppSidebar() {
         title: "Settings",
         url: "/settings",
         icon: Settings,
+      },
+      {
+        title: "Review & Earn",
+        url: "/review-earn",
+        icon: StarIcon,
       },
     ],
   };
