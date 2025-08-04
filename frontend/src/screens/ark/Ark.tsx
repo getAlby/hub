@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import {
+  ArrowLeftIcon,
   ArrowRightIcon,
   InfoIcon,
   LinkIcon,
@@ -187,6 +188,12 @@ export function Ark() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>
+                    <Link to="/wallet/withdraw" className="w-full">
+                      Withdraw Bitcoin
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem>
                     <div
                       className="flex flex-row gap-4 items-center w-full cursor-pointer"
                       onClick={() => {
@@ -216,12 +223,26 @@ export function Ark() {
                       Offboard
                     </div>
                   </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <div
+                      className="flex flex-row gap-4 items-center w-full cursor-pointer"
+                      onClick={() => {
+                        alert("TODO");
+                      }}
+                    >
+                      <div className="text-muted-foreground flex flex-row items-center">
+                        <PyramidIcon className="w-4 h-4" />
+                        <ArrowRightIcon className="w-4 h-4" />
+                        <LinkIcon className="w-4 h-4" />
+                      </div>
+                      Unilateral Exit
+                    </div>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel>Off-Chain</DropdownMenuLabel>
                   <DropdownMenuItem>
-                    <Link
-                      to="#"
-                      className="w-full"
+                    <div
+                      className="flex flex-row gap-4 items-center w-full cursor-pointer"
                       onClick={async () => {
                         const result = await executeCommand<{
                           address: string;
@@ -229,8 +250,43 @@ export function Ark() {
                         prompt("Copy ark address", result?.address);
                       }}
                     >
-                      Receive via Ark
-                    </Link>
+                      <div className="text-muted-foreground flex flex-row items-center">
+                        <PyramidIcon className="w-4 h-4" />
+                        <ArrowLeftIcon className="w-4 h-4" />
+                        <PyramidIcon className="w-4 h-4" />
+                      </div>
+                      Ark Receive
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <div
+                      className="flex flex-row gap-4 items-center w-full cursor-pointer"
+                      onClick={async () => {
+                        const arkAddress = prompt("Enter ark address", "");
+                        if (!arkAddress) {
+                          return;
+                        }
+                        const amount = prompt("Enter amount in sats", "");
+                        if (!amount) {
+                          return;
+                        }
+                        await executeCommand<{
+                          address: string;
+                        }>(
+                          `pay_to_ark_address --destination=${arkAddress} --amount=${amount}`
+                        );
+                        toast({
+                          title: "Sent via Ark",
+                        });
+                      }}
+                    >
+                      <div className="text-muted-foreground flex flex-row items-center">
+                        <PyramidIcon className="w-4 h-4" />
+                        <ArrowRightIcon className="w-4 h-4" />
+                        <PyramidIcon className="w-4 h-4" />
+                      </div>
+                      Ark Send
+                    </div>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
               </DropdownMenuContent>
