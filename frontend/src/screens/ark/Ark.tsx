@@ -1,5 +1,12 @@
-import { InfoIcon, LinkIcon, Settings2Icon, ZapIcon } from "lucide-react";
-import React, { useState } from "react";
+import {
+  ArrowRightIcon,
+  InfoIcon,
+  LinkIcon,
+  PyramidIcon,
+  Settings2Icon,
+  ZapIcon,
+} from "lucide-react";
+import React from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import { HealthCheckAlert } from "src/components/channels/HealthcheckAlert";
@@ -37,8 +44,10 @@ import {
 } from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
+import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";
 import { request } from "src/utils/request";
+import useSWR from "swr";
 
 type VTXO = {
   point: {
@@ -52,10 +61,41 @@ type VTXO = {
   is_arkoor: boolean;
 };
 
+type UTXO =
+  | {
+      type: "local";
+      txid: string;
+      vout: number;
+      amount_sat: number;
+      confirmation_height: number;
+    }
+  | {
+      type: "exit";
+      vtxo: VTXO;
+      height: number;
+    }
+  | { type: "<unknown>" };
+
+// eslint-disable-next-line react-refresh/only-export-components
+export const commandFetcher = async (...args: Parameters<typeof fetch>) => {
+  return request("/api/command", {
+    method: "POST",
+    body: JSON.stringify({ command: args[0] }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  }) as any;
+};
+
+function useCommand<T>(command: string) {
+  return useSWR<T>(command, commandFetcher);
+}
+
 export function Ark() {
   const { toast } = useToast();
+  const { data: info } = useInfo();
   const { data: balances, mutate: reloadBalances } = useBalances();
-  const [vtxos, setVtxos] = useState<VTXO[]>(); // TODO: use proper hook
   const executeCommand = React.useCallback(
     async function <T>(command: string) {
       try {
@@ -82,35 +122,30 @@ export function Ark() {
     [toast]
   );
 
-  const reloadVtxos = React.useCallback(() => {
-    (async () => {
-      const response = await executeCommand<{ vtxos: VTXO[] }>("list_vtxos");
-      if (!response) {
-        console.error("failed to fetch vtxos");
-        return;
-      }
-      console.info("VTXOs response", response);
-      setVtxos(response.vtxos);
-    })();
-  }, [executeCommand]);
+  // TODO: when should this be executed?
+  useCommand("maintenance");
+  const { data: vtxosResponse, mutate: reloadVtxos } = useCommand<{
+    vtxos: VTXO[];
+  }>("list_vtxos");
+  const vtxos = vtxosResponse?.vtxos;
+  const { data: utxosResponse, mutate: reloadUtxos } = useCommand<{
+    utxos: UTXO[];
+  }>("list_utxos");
+  const utxos = utxosResponse?.utxos;
 
   const board = React.useCallback(async () => {
     await executeCommand("board");
     await reloadBalances();
     await reloadVtxos();
-  }, [executeCommand, reloadVtxos, reloadBalances]);
+    await reloadUtxos();
+  }, [executeCommand, reloadBalances, reloadVtxos, reloadUtxos]);
 
-  // TODO: when should this be executed?
-  React.useEffect(() => {
-    (async () => {
-      await executeCommand("maintenance");
-      reloadBalances();
-    })();
-  }, [executeCommand, reloadBalances]);
-
-  React.useEffect(() => {
-    reloadVtxos();
-  }, [executeCommand, reloadVtxos]);
+  const offboard = React.useCallback(async () => {
+    await executeCommand("offboard");
+    await reloadBalances();
+    await reloadVtxos();
+    await reloadUtxos();
+  }, [executeCommand, reloadBalances, reloadVtxos, reloadUtxos]);
 
   return (
     <>
@@ -144,7 +179,27 @@ export function Ark() {
                         board();
                       }}
                     >
+                      <div className="text-muted-foreground flex flex-row items-center">
+                        <LinkIcon className="w-4 h-4" />
+                        <ArrowRightIcon className="w-4 h-4" />
+                        <PyramidIcon className="w-4 h-4" />
+                      </div>
                       Board
+                    </div>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <div
+                      className="flex flex-row gap-4 items-center w-full cursor-pointer"
+                      onClick={() => {
+                        offboard();
+                      }}
+                    >
+                      <div className="text-muted-foreground flex flex-row items-center">
+                        <PyramidIcon className="w-4 h-4" />
+                        <ArrowRightIcon className="w-4 h-4" />
+                        <LinkIcon className="w-4 h-4" />
+                      </div>
+                      Offboard
                     </div>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -289,7 +344,7 @@ export function Ark() {
       </div>
 
       {!vtxos && <Loading />}
-      {vtxos && (
+      {!!vtxos?.length && (
         <Card className="">
           <CardHeader>
             <CardTitle className="text-2xl">VTXOs</CardTitle>
@@ -301,7 +356,7 @@ export function Ark() {
                   <TableHead className="w-[160px] text-muted-foreground">
                     Amount (sats)
                   </TableHead>
-                  <TableHead className="text-muted-foreground">
+                  <TableHead className="w-[160px] text-muted-foreground">
                     Status
                   </TableHead>
                   <TableHead className="text-muted-foreground">
@@ -323,6 +378,63 @@ export function Ark() {
                     </TableRow>
                   );
                 })}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      )}
+      {!utxos && <Loading />}
+      {!!utxos?.length && (
+        <Card className="">
+          <CardHeader>
+            <CardTitle className="text-2xl">UTXOs</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[160px] text-muted-foreground">
+                    Type
+                  </TableHead>
+                  <TableHead className="w-[160px] text-muted-foreground">
+                    Amount
+                  </TableHead>
+                  <TableHead className="text-muted-foreground">
+                    Status
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {utxos.map((utxo) => (
+                  <TableRow
+                    key={JSON.stringify(utxo)}
+                    className="cursor-pointer"
+                    onClick={() => {
+                      if (utxo.type === "local") {
+                        window.open(
+                          `${info?.mempoolUrl}/tx/${utxo.txid}`,
+                          "_blank"
+                        );
+                      }
+                    }}
+                  >
+                    <TableCell className="capitalize">{utxo.type}</TableCell>
+                    {utxo.type === "local" ? (
+                      <TableCell>{utxo.amount_sat}</TableCell>
+                    ) : utxo.type === "exit" ? (
+                      <TableCell>{utxo.vtxo.amount_sat}</TableCell>
+                    ) : (
+                      <TableCell>Unknown</TableCell>
+                    )}
+                    {utxo.type === "local" ? (
+                      <TableCell>
+                        {utxo.confirmation_height ? "Confirmed" : "Unconfirmed"}
+                      </TableCell>
+                    ) : (
+                      <TableCell>Unknown</TableCell>
+                    )}
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </CardContent>

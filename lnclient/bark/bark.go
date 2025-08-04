@@ -31,6 +31,7 @@ const nodeCommandArkInfo = "ark_info"
 const nodeCommandListVTXOs = "list_vtxos"
 const nodeCommandGetBoardingAddress = "get_boarding_address"
 const nodeCommandBoard = "board"
+const nodeCommandOffboard = "offboard"
 const nodeCommandSendOnchain = "send_onchain"
 const nodeCommandUnilateralExitAll = "unilateral_exit_all"
 const nodeCommandPollExitStatus = "poll_exit_status"
@@ -476,6 +477,11 @@ func (s *BarkService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCom
 			Args:        nil,
 		},
 		{
+			Name:        nodeCommandOffboard,
+			Description: "Move off-chain bitcoin to on-chain bitcoin",
+			Args:        nil,
+		},
+		{
 			Name:        nodeCommandSendOnchain,
 			Description: "Send funds onchain.",
 			Args: []lnclient.CustomNodeCommandArgDef{
@@ -611,7 +617,16 @@ func (s *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 	case nodeCommandBoard:
 		err := s.wallet.BoardAll()
 		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to board all")
+			logger.Logger.WithError(err).Error("Failed to board all on-chain funds")
+			return nil, err
+		}
+		return &lnclient.CustomNodeCommandResponse{
+			Response: map[string]interface{}{},
+		}, nil
+	case nodeCommandOffboard:
+		err := s.wallet.OffboardAll()
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to offboard all off-chain funds")
 			return nil, err
 		}
 		return &lnclient.CustomNodeCommandResponse{
