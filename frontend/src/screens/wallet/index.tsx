@@ -1,6 +1,7 @@
 import {
   AlertTriangleIcon,
   ArrowDownIcon,
+  ArrowDownUpIcon,
   ArrowUpIcon,
   CreditCardIcon,
 } from "lucide-react";
@@ -9,6 +10,7 @@ import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import ResponsiveButton from "src/components/ResponsiveButton";
 import TransactionsList from "src/components/TransactionsList";
 import {
   Alert,
@@ -31,7 +33,20 @@ function Wallet() {
 
   return (
     <>
-      <AppHeader title="Wallet" description="" />
+      <AppHeader
+        title="Wallet"
+        description=""
+        contentRight={
+          <>
+            <Link to="/wallet/receive">
+              <ResponsiveButton icon={ArrowDownIcon} text="Receive" size="lg" />
+            </Link>
+            <Link to="/wallet/send">
+              <ResponsiveButton icon={ArrowUpIcon} text="Send" size="lg" />
+            </Link>
+          </>
+        }
+      />
       {hasChannelManagement &&
         !!channels?.length &&
         channels?.every(
@@ -52,12 +67,21 @@ function Wallet() {
         )}
       {hasChannelManagement &&
         !!channels?.length &&
-        !balances.lightning.totalReceivable && (
+        balances.lightning.totalReceivable <
+          balances.lightning.totalSpendable * 0.1 && (
           <Alert>
             <AlertTriangleIcon className="h-4 w-4" />
             <AlertTitle>Low receiving capacity</AlertTitle>
             <AlertDescription>
-              You won't be able to receive payments until you{" "}
+              You likely won't be able to receive payments until you{" "}
+              <Link className="underline" to="/wallet/send">
+                spend
+              </Link>
+              ,{" "}
+              <Link className="underline" to="/wallet/swap?type=out">
+                swap out funds
+              </Link>
+              , or{" "}
               <Link className="underline" to="/channels/incoming">
                 increase your receiving capacity.
               </Link>
@@ -77,7 +101,7 @@ function Wallet() {
           </AlertDescription>
         </Alert>
       )}
-      <div className="flex flex-col xl:flex-row justify-between xl:items-center gap-5">
+      <div className="flex flex-col xl:flex-row justify-between xl:items-start gap-5">
         <div className="flex flex-col gap-1 text-center xl:text-left">
           <div className="text-5xl font-medium balance sensitive slashed-zero">
             {new Intl.NumberFormat().format(
@@ -90,28 +114,21 @@ function Wallet() {
             amount={balances.lightning.totalSpendable / 1000}
           />
         </div>
-        <div className="grid grid-cols-2 items-center gap-4 sm:grid-cols-3">
-          <ExternalLink
-            to="https://www.getalby.com/topup"
-            className="col-span-2 sm:col-span-1"
-          >
-            <Button size="lg" className="w-full" variant="secondary">
+        <div className="grid grid-cols-2 items-center gap-3">
+          <ExternalLink to="https://www.getalby.com/topup">
+            <Button className="w-full" variant="secondary">
               <CreditCardIcon className="h-4 w-4 shrink-0 mr-2" />
               Buy Bitcoin
             </Button>
           </ExternalLink>
-          <Link to="/wallet/receive">
-            <Button size="lg" className="w-full">
-              <ArrowDownIcon className="h-4 w-4 shrink-0 mr-2" />
-              Receive
-            </Button>
-          </Link>
-          <Link to="/wallet/send">
-            <Button size="lg" className="w-full">
-              <ArrowUpIcon className="h-4 w-4 shrink-0 mr-2" />
-              Send
-            </Button>
-          </Link>
+          {hasChannelManagement && (
+            <Link to="/wallet/swap">
+              <Button className="w-full" variant="secondary">
+                <ArrowDownUpIcon className="h-4 w-4 shrink-0 mr-2" />
+                Swap
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 

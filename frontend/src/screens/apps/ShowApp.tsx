@@ -1,7 +1,7 @@
 import React from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
-import { useApp } from "src/hooks/useApp";
+import { useAppByPubkey } from "src/hooks/useApp";
 
 import { useDeleteApp } from "src/hooks/useDeleteApp";
 import {
@@ -14,7 +14,13 @@ import {
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request"; // build the project for this to appear
 
-import { AlertCircleIcon, PencilIcon, Trash2Icon } from "lucide-react";
+import {
+  AlertCircleIcon,
+  EllipsisIcon,
+  PencilIcon,
+  SquareStackIcon,
+  Trash2Icon,
+} from "lucide-react";
 import AppAvatar from "src/components/AppAvatar";
 import AppHeader from "src/components/AppHeader";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
@@ -39,6 +45,13 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "src/components/ui/dropdown-menu";
 import { Input } from "src/components/ui/input";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
@@ -50,7 +63,10 @@ import {
 } from "src/components/ui/tooltip";
 import { useToast } from "src/components/ui/use-toast";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
-import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
+import {
+  ALBY_ACCOUNT_APP_NAME,
+  SUBWALLET_APPSTORE_APP_ID,
+} from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { useCreateLightningAddress } from "src/hooks/useCreateLightningAddress";
@@ -58,7 +74,7 @@ import { useDeleteLightningAddress } from "src/hooks/useDeleteLightningAddress";
 
 function ShowApp() {
   const { pubkey } = useParams() as { pubkey: string };
-  const { data: app, mutate: refetchApp, error } = useApp(pubkey);
+  const { data: app, mutate: refetchApp, error } = useAppByPubkey(pubkey);
   const { data: capabilities } = useCapabilities();
 
   if (error) {
@@ -142,7 +158,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
         body: JSON.stringify(updateAppRequest),
       });
 
-      await refetchApp();
+      refetchApp();
       setIsEditingName(false);
       setIsEditingPermissions(false);
       toast({
@@ -153,7 +169,41 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
     }
   };
 
-  const appName = app.name === "getalby.com" ? "Alby Account" : app.name;
+  const handleConvertToSubwallet = async () => {
+    try {
+      const updateAppRequest: UpdateAppRequest = {
+        name: app.name,
+        scopes: app.scopes,
+        budgetRenewal: app.budgetRenewal,
+        expiresAt: app.expiresAt,
+        maxAmount: app.maxAmount,
+        isolated: app.isolated,
+        metadata: {
+          ...app.metadata,
+          app_store_app_id: SUBWALLET_APPSTORE_APP_ID,
+        },
+      };
+
+      await request(`/api/apps/${app.appPubkey}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updateAppRequest),
+      });
+
+      refetchApp();
+      toast({
+        title: "Successfully converted to sub-wallet",
+        description: "This isolated app is now a sub-wallet.",
+      });
+    } catch (error) {
+      handleRequestError(toast, "Failed to convert to sub-wallet", error);
+    }
+  };
+
+  const appName =
+    app.name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : app.name;
 
   return (
     <>
@@ -191,7 +241,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                     >
                       {appName}
                     </h2>
-                    {app.name !== "getalby.com" && (
+                    {app.name !== ALBY_ACCOUNT_APP_NAME && (
                       <PencilIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                     )}
                   </div>
@@ -199,40 +249,65 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
               </div>
             }
             contentRight={
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" size="icon">
-                    <Trash2Icon className="size-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      Are you sure you want to delete this connection?
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Connected apps will no longer be able to use this
-                      connection.
-                      {app.isolated && (
-                        <>
-                          {" "}
-                          No funds will be lost during this process, the balance
-                          will remain in your wallet.
-                        </>
-                      )}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => deleteApp(app.appPubkey)}
-                      disabled={isDeleting}
-                    >
-                      Continue
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <div className="flex gap-2 items-center">
+                {app.isolated &&
+                  !app.metadata?.app_store_app_id &&
+                  albyMe?.subscription.plan_code && (
+                    <DropdownMenu modal={false}>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="icon">
+                          <EllipsisIcon />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-56">
+                        <DropdownMenuGroup>
+                          <DropdownMenuItem>
+                            <div
+                              className="w-full cursor-pointer flex items-center gap-2"
+                              onClick={handleConvertToSubwallet}
+                            >
+                              <SquareStackIcon /> Convert to Sub-wallet
+                            </div>
+                          </DropdownMenuItem>
+                        </DropdownMenuGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="icon">
+                      <Trash2Icon />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Are you sure you want to delete this connection?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Connected apps will no longer be able to use this
+                        connection.
+                        {app.isolated && (
+                          <>
+                            {" "}
+                            No funds will be lost during this process, the
+                            balance will remain in your wallet.
+                          </>
+                        )}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => deleteApp(app.appPubkey)}
+                        disabled={isDeleting}
+                      >
+                        Continue
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             }
             description={""}
           />
@@ -267,7 +342,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <AlertCircleIcon className="size-3 ml-2 shrink-0" />
+                              <AlertCircleIcon className="w-3 h-3 ml-2 flex-shrink-0" />
                             </TooltipTrigger>
                             <TooltipContent className="w-[300px]">
                               This connection does not have its own unique
@@ -367,8 +442,8 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                   <TableRow>
                     <TableCell className="font-medium">Last used</TableCell>
                     <TableCell className="text-muted-foreground">
-                      {app.lastEventAt
-                        ? new Date(app.lastEventAt).toString()
+                      {app.lastUsedAt
+                        ? new Date(app.lastUsedAt).toString()
                         : "Never"}
                     </TableCell>
                   </TableRow>

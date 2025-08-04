@@ -7,9 +7,11 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/adrg/xdg"
 	"github.com/nbd-wtf/go-nostr"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
 	"github.com/joho/godotenv"
@@ -128,7 +130,6 @@ func NewService(ctx context.Context) (*service, error) {
 		albyOAuthSvc:        albyOAuthSvc,
 		nip47Service:        nip47.NewNip47Service(gormDB, cfg, keys, eventPublisher, albyOAuthSvc),
 		transactionsService: transactionsSvc,
-		swapsService:        swaps.NewSwapsService(cfg, eventPublisher, transactionsSvc),
 		db:                  gormDB,
 		keys:                keys,
 	}
@@ -148,16 +149,24 @@ func NewService(ctx context.Context) (*service, error) {
 		startProfiler(ctx, appConfig.GoProfilerAddr)
 	}
 
-	if appConfig.DdProfilerEnabled {
-		startDataDogProfiler(ctx)
-	}
-
 	if autoUnlockPassword != "" {
 		nodeLastStartTime, _ := cfg.Get("NodeLastStartTime", "")
 		if nodeLastStartTime != "" {
 			svc.StartApp(autoUnlockPassword)
 		}
 	}
+
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				time.Sleep(10 * time.Minute)
+				svc.removeExcessEvents()
+			}
+		}
+	}()
 
 	return svc, nil
 }
@@ -273,4 +282,58 @@ func (svc *service) IsRelayReady() bool {
 
 func (svc *service) GetStartupState() string {
 	return svc.startupState
+}
+
+func (svc *service) removeExcessEvents() {
+	logger.Logger.Debug("Cleaning up excess events")
+
+	maxEvents := 1000
+	// estimated less than 1 second to delete, it should not lock the DB
+	maxEventsToDelete := 5000
+	// if we only have a few excess events, don't run the task
+	minEventsToDelete := 100
+
+	var events []db.RequestEvent
+	err := svc.db.Select("id").Order("id asc").Limit(maxEvents + maxEventsToDelete).Find(&events).Error
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch request events")
+	}
+
+	numEventsToDelete := len(events) - maxEvents
+
+	if numEventsToDelete < minEventsToDelete {
+		return
+	}
+	deleteEventsBelowId := events[numEventsToDelete].ID
+
+	logger.Logger.WithFields(logrus.Fields{
+		"amount":   numEventsToDelete,
+		"below_id": deleteEventsBelowId,
+	}).Debug("Removing excess events")
+
+	startTime := time.Now()
+	err = svc.db.Exec("delete from request_events where id < ?", deleteEventsBelowId).Error
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"amount":   numEventsToDelete,
+			"below_id": deleteEventsBelowId,
+		}).Error("Failed to delete excess request events")
+		return
+	}
+	logger.Logger.WithFields(logrus.Fields{
+		"amount":           numEventsToDelete,
+		"below_id":         deleteEventsBelowId,
+		"duration_seconds": time.Since(startTime).Seconds(),
+	}).Info("Removed excess events")
+
+	// TODO: REMOVE AFTER 2026-01-01
+	// this is needed due to cascading delete previously not working
+	err = svc.db.Exec("delete from response_events where request_id < ?", deleteEventsBelowId).Error
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"amount":   numEventsToDelete,
+			"below_id": deleteEventsBelowId,
+		}).Error("Failed to delete excess response events")
+		return
+	}
 }

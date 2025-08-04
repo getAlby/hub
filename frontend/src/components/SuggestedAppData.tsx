@@ -26,6 +26,7 @@ import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
 import simpleboost from "src/assets/suggested-apps/simple-boost.png";
 import snort from "src/assets/suggested-apps/snort.png";
 import stackernews from "src/assets/suggested-apps/stacker-news.png";
+import wavespace from "src/assets/suggested-apps/wave-space.png";
 import wavlake from "src/assets/suggested-apps/wavlake.png";
 import wherostr from "src/assets/suggested-apps/wherostr.png";
 import yakihonne from "src/assets/suggested-apps/yakihonne.png";
@@ -783,6 +784,72 @@ export const suggestedApps: SuggestedApp[] = [
           <h3 className="font-medium">In Wavlake</h3>
           <ul className="list-inside text-muted-foreground">
             <li>5. Scan or paste the connection secret from Alby Hub</li>
+          </ul>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: "wavespace",
+    title: "wavecard® by wave.space",
+    description: "Spend Bitcoin from your AlbyHub at 150M+ merchants worldwide",
+    webLink:
+      "https://app.wave.space/spend/?utm_source=albyhub&affiliate=AlbyHub",
+    logo: wavespace,
+    extendedDescription:
+      "The world's first Bitcoin VISA Debit Card that allows you to spend BTC globally, anywhere VISA is accepted – straight from the safety of your own NWC-enabled wallet. ✨ EXCLUSIVE ALBYHUB SPECIAL🐝 → Get 21% cashback on your wavecard transactions (up to 10,000 sats) using code »AlbyHub«",
+    guide: (
+      <>
+        <div>
+          <h3 className="font-medium">In wave.space</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              1. Open{" "}
+              <ExternalLink
+                to="https://wave.space/spend/?utm_source=albyhub&affiliate=AlbyHub"
+                className="font-medium text-foreground underline"
+              >
+                wave.space/spend
+              </ExternalLink>{" "}
+              in your browser and{" "}
+              <span className="font-medium text-foreground">
+                Sign up or log in
+              </span>{" "}
+              to your account
+            </li>
+            <li>
+              3. Click on{" "}
+              <span className="font-medium text-foreground">
+                Connect Wallet
+              </span>
+            </li>
+            <li>
+              3. Choose{" "}
+              <span className="font-medium text-foreground">
+                Nostr Wallet Connect
+              </span>
+            </li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In Alby Hub</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>
+              4. Click{" "}
+              <Link
+                to="/apps/new?app=wave.space"
+                className="font-medium text-foreground underline"
+              >
+                Connect to wave.space
+              </Link>
+            </li>
+            <li>5. Set app's wallet permissions</li>
+          </ul>
+        </div>
+        <div>
+          <h3 className="font-medium">In wave.space</h3>
+          <ul className="list-inside text-muted-foreground">
+            <li>6. Paste the connection secret from Alby Hub</li>
           </ul>
         </div>
       </>

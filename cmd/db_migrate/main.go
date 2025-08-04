@@ -20,6 +20,7 @@ var expectedTables = []string{
 	"request_events",
 	"response_events",
 	"transactions",
+	"swaps",
 	"user_configs",
 	"migrations",
 }
@@ -164,8 +165,19 @@ func migrateTable[T any](from, to *gorm.DB) error {
 		return nil
 	}
 
-	if err := to.Create(data).Error; err != nil {
-		return fmt.Errorf("failed to insert data: %w", err)
+	// to avoid "failed to migrate transactions: failed to insert data: extended protocol limited to 65535 parameters"
+	// see https://stackoverflow.com/questions/77372430/extended-protocol-limited-to-65535-parameters-golang-gorm
+	// max statements is 65535
+	// but it's the number of records * columns
+	// to be safe, using a lower value of 1000.
+	// this will fail if any table has more than 65 columns, which I doubt we will have
+	max := 1000
+	for i := 0; i < len(data); i += max {
+		j := min(i+max, len(data))
+
+		if err := to.Create(data[i:j]).Error; err != nil {
+			return fmt.Errorf("failed to insert data: %w", err)
+		}
 	}
 
 	return nil

@@ -1,37 +1,53 @@
 import { CableIcon, CirclePlusIcon, TrashIcon } from "lucide-react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
+import { CustomPagination } from "src/components/CustomPagination";
 import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
 import ResponsiveButton from "src/components/ResponsiveButton";
 import AlbyConnectionCard from "src/components/connections/AlbyConnectionCard";
 import AppCard from "src/components/connections/AppCard";
-import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
+import {
+  ALBY_ACCOUNT_APP_NAME,
+  LIST_APPS_LIMIT,
+  SUBWALLET_APPSTORE_APP_ID,
+} from "src/constants";
 import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
 import { useUnusedApps } from "src/hooks/useUnusedApps";
+import { ListAppsResponse } from "src/types";
 
-const albyConnectionName = "getalby.com";
+// display previous page while next page is loading
+let prevAppsData: ListAppsResponse | undefined;
 
 function AppList() {
-  const { data: apps } = useApps();
   const { data: info } = useInfo();
+  const [page, setPage] = useState(1);
+  const { data: appsData } = useApps(LIST_APPS_LIMIT, page);
+  const appsListRef = useRef<HTMLDivElement>(null);
+  const handlePageChange = (page: number) => {
+    setPage(page);
+    appsListRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
   const unusedApps = useUnusedApps();
 
-  if (!apps || !unusedApps || !info) {
+  if ((!prevAppsData && !appsData) || !unusedApps || !info) {
     return <Loading />;
   }
+  if (appsData) {
+    prevAppsData = appsData;
+  }
+  const { apps, totalCount } = appsData || prevAppsData!;
 
-  const albyConnection = apps.find((x) => x.name === albyConnectionName);
   const otherApps = apps
-    .filter((app) => app.appPubkey !== albyConnection?.appPubkey)
+    .filter((app) => app.name !== ALBY_ACCOUNT_APP_NAME)
     .filter(
       (app) => app.metadata?.app_store_app_id !== SUBWALLET_APPSTORE_APP_ID
-    )
-    .sort(
-      (a, b) =>
-        new Date(b.lastEventAt ?? 0).getTime() -
-        new Date(a.lastEventAt ?? 0).getTime()
     );
 
   return (
@@ -56,9 +72,7 @@ function AppList() {
         }
       />
 
-      {info.albyAccountConnected && (
-        <AlbyConnectionCard connection={albyConnection} />
-      )}
+      {info.albyAccountConnected && <AlbyConnectionCard />}
 
       {!otherApps.length && (
         <EmptyState
@@ -71,12 +85,22 @@ function AppList() {
       )}
 
       {otherApps.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list">
+        <div
+          ref={appsListRef}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list"
+        >
           {otherApps.map((app, index) => (
             <AppCard key={index} app={app} />
           ))}
         </div>
       )}
+
+      <CustomPagination
+        limit={LIST_APPS_LIMIT}
+        totalCount={totalCount}
+        page={page}
+        handlePageChange={handlePageChange}
+      />
     </>
   );
 }

@@ -42,6 +42,8 @@ type Message = {
   created_at: number;
 };
 
+type TabType = "latest" | "top";
+
 let nwcClient: nwc.NWCClient | undefined;
 function getNWCClient(): nwc.NWCClient {
   if (!nwcClient) {
@@ -50,6 +52,14 @@ function getNWCClient(): nwc.NWCClient {
     });
   }
   return nwcClient;
+}
+
+function getSortedMessages(messages: Message[], tab: TabType): Message[] {
+  if (tab === "latest") {
+    return [...messages].sort((a, b) => b.created_at - a.created_at);
+  } else {
+    return [...messages].sort((a, b) => b.amount - a.amount);
+  }
 }
 
 export function LightningMessageboardWidget() {
@@ -62,6 +72,7 @@ export function LightningMessageboardWidget() {
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const { toast } = useToast();
   const [isOpen, setOpen] = React.useState(false);
+  const [currentTab, setCurrentTab] = React.useState<TabType>("latest");
 
   const loadMessages = React.useCallback(() => {
     (async () => {
@@ -79,18 +90,23 @@ export function LightningMessageboardWidget() {
             break;
           }
 
-          _messages.push(
-            ...transactions.transactions.map((transaction) => ({
-              created_at: transaction.created_at,
-              message: transaction.description,
-              name: (
-                transaction.metadata as
-                  | { payer_data?: { name?: string } }
-                  | undefined
-              )?.payer_data?.name as string | undefined,
-              amount: Math.floor(transaction.amount / 1000),
-            }))
-          );
+          const newMessages = transactions.transactions.map((transaction) => ({
+            created_at: transaction.created_at,
+            message: transaction.description,
+            name: (
+              transaction.metadata as
+                | { payer_data?: { name?: string } }
+                | undefined
+            )?.payer_data?.name as string | undefined,
+            amount: Math.floor(transaction.amount / 1000),
+          }));
+
+          _messages.push(...newMessages);
+
+          // Update messages incrementally as they load
+          setMessages((prevMessages) => {
+            return [...(prevMessages || []), ...newMessages];
+          });
 
           offset += transactions.transactions.length;
         } catch (error) {
@@ -98,8 +114,6 @@ export function LightningMessageboardWidget() {
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }
       }
-      _messages.sort((a, b) => b.amount - a.amount);
-      setMessages(_messages);
       setLoading(false);
     })();
   }, []);
@@ -111,6 +125,11 @@ export function LightningMessageboardWidget() {
       loadMessages();
     }
   }, [hasLoadedMessages, isOpen, loadMessages]);
+
+  const sortedMessages = React.useMemo(
+    () => getSortedMessages(messages || [], currentTab),
+    [currentTab, messages]
+  );
 
   function handleSubmitOpenDialog(e: React.FormEvent) {
     e.preventDefault();
@@ -185,8 +204,24 @@ export function LightningMessageboardWidget() {
         </CardHeader>
         {isOpen && (
           <CardContent>
+            <div className="flex gap-2 mb-4 -mt-4">
+              <Button
+                variant={currentTab === "latest" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCurrentTab("latest")}
+              >
+                Latest
+              </Button>
+              <Button
+                variant={currentTab === "top" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCurrentTab("top")}
+              >
+                Top
+              </Button>
+            </div>
             <div className="h-96 overflow-y-visible flex flex-col gap-2 overflow-hidden">
-              {messages?.map((message, index) => (
+              {sortedMessages.map((message, index) => (
                 <div key={index}>
                   <CardHeader>
                     <CardTitle className="leading-6 break-anywhere">
@@ -208,7 +243,7 @@ export function LightningMessageboardWidget() {
                       </Badge>
                     </div>
                   </CardFooter>
-                  {index !== messages.length - 1 && <Separator />}
+                  {index !== sortedMessages.length - 1 && <Separator />}
                 </div>
               ))}
             </div>

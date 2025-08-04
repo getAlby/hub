@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/swaps"
 
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
@@ -286,10 +287,7 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return err
 	}
 
-	err = svc.StartAutoSwaps()
-	if err != nil {
-		logger.Logger.WithError(err).Error("Couldn't enable auto swaps")
-	}
+	svc.swapsService = swaps.NewSwapsService(svc.ctx, svc.db, svc.cfg, svc.keys, svc.eventPublisher, svc.lnClient, svc.transactionsService)
 
 	svc.publishAllAppInfoEvents()
 
@@ -303,10 +301,6 @@ func (svc *service) StartApp(encryptionKey string) error {
 	svc.appCancelFn = cancelFn
 
 	return nil
-}
-
-func (svc *service) StartAutoSwaps() error {
-	return svc.GetSwapsService().EnableAutoSwaps(svc.ctx, svc.lnClient)
 }
 
 func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) error {

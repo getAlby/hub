@@ -14,13 +14,12 @@ import {
   ZapIcon,
 } from "lucide-react";
 import React from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader.tsx";
 import { ChannelsCards } from "src/components/channels/ChannelsCards.tsx";
 import { ChannelsTable } from "src/components/channels/ChannelsTable.tsx";
 import { HealthCheckAlert } from "src/components/channels/HealthcheckAlert";
 import { OnchainTransactionsTable } from "src/components/channels/OnchainTransactionsTable.tsx";
-import { SwapDialogs } from "src/components/channels/SwapDialogs";
 import EmptyState from "src/components/EmptyState.tsx";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
@@ -61,70 +60,32 @@ import { useBalances } from "src/hooks/useBalances.ts";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo.ts";
+import { useNodeDetails } from "src/hooks/useNodeDetails";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
 import { copyToClipboard } from "src/lib/clipboard.ts";
 import { cn } from "src/lib/utils.ts";
 import {
   Channel,
   LongUnconfirmedZeroConfChannel,
-  MempoolNode,
   MempoolTransaction,
+  PendingBalancesDetails,
 } from "src/types";
 import { request } from "src/utils/request";
 
 export default function Channels() {
   useSyncWallet();
-  const { data: info } = useInfo();
   const { data: albyMe } = useAlbyMe();
   const { data: channels } = useChannels();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
-  const { hasChannelManagement } = useInfo();
-  const { data: balances } = useBalances();
+  const { data: info, hasChannelManagement } = useInfo();
+  const { data: balances } = useBalances(true);
   const navigate = useNavigate();
-  const [nodes, setNodes] = React.useState<MempoolNode[]>([]);
   const [longUnconfirmedZeroConfChannels, setLongUnconfirmedZeroConfChannels] =
     React.useState<LongUnconfirmedZeroConfChannel[]>([]);
-  const [swapOutDialogOpen, setSwapOutDialogOpen] = React.useState(false);
-  const [swapInDialogOpen, setSwapInDialogOpen] = React.useState(false);
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  React.useEffect(() => {
-    if (balances && channels && searchParams.has("swap", "true")) {
-      setSearchParams({});
-      if (
-        balances.lightning.totalSpendable > balances.lightning.totalReceivable
-      ) {
-        setSwapOutDialogOpen(true);
-      } else {
-        setSwapInDialogOpen(true);
-      }
-    }
-  }, [balances, channels, searchParams, setSearchParams]);
 
   const { toast } = useToast();
 
   const nodeHealth = channels ? getNodeHealth(channels) : 0;
-
-  // TODO: move to NWC backend
-  const loadNodeStats = React.useCallback(async () => {
-    if (!channels) {
-      return [];
-    }
-    const nodes = await Promise.all(
-      channels?.map(async (channel): Promise<MempoolNode | undefined> => {
-        try {
-          const response = await request<MempoolNode>(
-            `/api/mempool?endpoint=/v1/lightning/nodes/${channel.remotePubkey}`
-          );
-          return response;
-        } catch (error) {
-          console.error(error);
-          return undefined;
-        }
-      })
-    );
-    setNodes(nodes.filter((node) => !!node) as MempoolNode[]);
-  }, [channels]);
 
   const findUnconfirmedChannels = React.useCallback(async () => {
     if (!channels) {
@@ -182,10 +143,6 @@ export default function Channels() {
   }, [channels]);
 
   React.useEffect(() => {
-    loadNodeStats();
-  }, [loadNodeStats]);
-
-  React.useEffect(() => {
     findUnconfirmedChannels();
   }, [findUnconfirmedChannels]);
 
@@ -196,12 +153,6 @@ export default function Channels() {
         contentRight={
           hasChannelManagement && (
             <div className="flex gap-3 items-center justify-center">
-              <SwapDialogs
-                setSwapOutDialogOpen={setSwapOutDialogOpen}
-                swapOutDialogOpen={swapOutDialogOpen}
-                setSwapInDialogOpen={setSwapInDialogOpen}
-                swapInDialogOpen={swapInDialogOpen}
-              />
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger>
                   <ResponsiveButton
@@ -258,31 +209,33 @@ export default function Channels() {
                     )}
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel>Swaps</DropdownMenuLabel>
-                    <DropdownMenuItem
-                      onClick={() => setSwapInDialogOpen(true)}
-                      className="cursor-pointer"
-                    >
-                      <div className="mr-2 text-muted-foreground flex flex-row items-center">
-                        <LinkIcon className="size-4" />
-                        <ArrowRightIcon className="size-4" />
-                        <ZapIcon className="size-4" />
-                      </div>
-                      Swap in
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setSwapOutDialogOpen(true)}
-                      className="cursor-pointer"
-                    >
-                      <div className="mr-2 text-muted-foreground flex flex-row items-center">
-                        <ZapIcon className="size-4" />
-                        <ArrowRightIcon className="size-4" />
-                        <LinkIcon className="size-4" />
-                      </div>
-                      Swap out
-                    </DropdownMenuItem>
-                  </DropdownMenuGroup>
+                  {hasChannelManagement && (
+                    <DropdownMenuGroup>
+                      <DropdownMenuLabel>Swaps</DropdownMenuLabel>
+                      <DropdownMenuItem
+                        onClick={() => navigate("/wallet/swap?type=in")}
+                        className="cursor-pointer"
+                      >
+                        <div className="mr-2 text-muted-foreground flex flex-row items-center">
+                          <LinkIcon className="size-4" />
+                          <ArrowRightIcon className="size-4" />
+                          <ZapIcon className="size-4" />
+                        </div>
+                        Swap in
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => navigate("/wallet/swap?type=out")}
+                        className="cursor-pointer"
+                      >
+                        <div className="mr-2 text-muted-foreground flex flex-row items-center">
+                          <ZapIcon className="size-4" />
+                          <ArrowRightIcon className="size-4" />
+                          <LinkIcon className="size-4" />
+                        </div>
+                        Swap out
+                      </DropdownMenuItem>
+                    </DropdownMenuGroup>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
                     <DropdownMenuLabel>Management</DropdownMenuLabel>
@@ -321,7 +274,6 @@ export default function Channels() {
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
-
               <Link to="/channels/incoming">
                 <Button>Open Channel</Button>
               </Link>
@@ -380,11 +332,7 @@ export default function Channels() {
                       spend
                     </Link>
                     ,{" "}
-                    <Link
-                      className="underline"
-                      to="#"
-                      onClick={() => setSwapOutDialogOpen(true)}
-                    >
+                    <Link className="underline" to="/wallet/swap?type=out">
                       swap out funds
                     </Link>{" "}
                     or{" "}
@@ -620,32 +568,17 @@ export default function Channels() {
                   {[
                     ...balances.onchain.pendingBalancesDetails,
                     ...balances.onchain.pendingSweepBalancesDetails,
-                  ].map((details, index) => (
-                    <div key={details.channelId} className="inline">
-                      &nbsp;
-                      <ExternalLink
-                        to={`https://amboss.space/node/${details.nodeId}`}
-                        className="underline"
-                      >
-                        {nodes.find(
-                          (node) => node.public_key === details.nodeId
-                        )?.alias || "Unknown"}
-                        <ExternalLinkIcon className="ml-1 size-4 inline" />
-                      </ExternalLink>{" "}
-                      ({new Intl.NumberFormat().format(details.amount)}{" "}
-                      sats)&nbsp;
-                      <ExternalLink
-                        to={`${info?.mempoolUrl}/tx/${details.fundingTxId}#flow=&vout=${details.fundingTxVout}`}
-                        className="underline"
-                      >
-                        funding tx
-                        <ExternalLinkIcon className="ml-1 size-4 inline" />
-                      </ExternalLink>
-                      {index <
-                        balances.onchain.pendingBalancesDetails.length - 1 &&
-                        ","}
-                    </div>
-                  ))}
+                  ].map((details, index) => {
+                    const isLast =
+                      index <
+                      balances.onchain.pendingBalancesDetails.length - 1;
+                    return (
+                      <PendingBalancesDetailsItem
+                        details={details}
+                        isLast={isLast}
+                      />
+                    );
+                  })}
                   . Once spendable again these will become available in your
                   on-chain balance. Funds from channels that were force closed
                   may take up to 2 weeks to become available.{" "}
@@ -671,12 +604,10 @@ export default function Channels() {
 
           <ChannelsTable
             channels={channels}
-            nodes={nodes}
             longUnconfirmedZeroConfChannels={longUnconfirmedZeroConfChannels}
           />
           <ChannelsCards
             channels={channels}
-            nodes={nodes}
             longUnconfirmedZeroConfChannels={longUnconfirmedZeroConfChannels}
           />
           <OnchainTransactionsTable />
@@ -719,4 +650,39 @@ function getNodeHealth(channels: Channel[]) {
   }
 
   return nodeHealth;
+}
+
+type PendingBalancesDetailsItemProps = {
+  details: PendingBalancesDetails;
+  isLast: boolean;
+};
+
+function PendingBalancesDetailsItem({
+  details,
+  isLast,
+}: PendingBalancesDetailsItemProps) {
+  const { data: info } = useInfo();
+  const { data: nodeDetails } = useNodeDetails(details.nodeId);
+
+  return (
+    <div key={details.channelId} className="inline">
+      &nbsp;
+      <ExternalLink
+        to={`https://amboss.space/node/${details.nodeId}`}
+        className="underline"
+      >
+        {nodeDetails?.alias || "Unknown"}
+        <ExternalLinkIcon className="ml-1 w-4 h-4 inline" />
+      </ExternalLink>{" "}
+      ({new Intl.NumberFormat().format(details.amount)} sats)&nbsp;
+      <ExternalLink
+        to={`${info?.mempoolUrl}/tx/${details.fundingTxId}#flow=&vout=${details.fundingTxVout}`}
+        className="underline"
+      >
+        funding tx
+        <ExternalLinkIcon className="ml-1 w-4 h-4 inline" />
+      </ExternalLink>
+      {isLast && ","}
+    </div>
+  );
 }

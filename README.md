@@ -145,17 +145,6 @@ go tool pprof -http=localhost:8081 -seconds=30 http://localhost:6060/debug/pprof
 
 For more information on the Go pprof library, see the [official documentation](https://pkg.go.dev/net/http/pprof).
 
-#### DataDog profiler
-
-To enable the DataDog profiler, set the `DD_PROFILER_ENABLED` environment variable to `true`.
-
-Make sure to specify the required DataDog configuration environment variables as well.
-
-For more information refer to:
-
-- [DataDog Profiler documentation](https://docs.datadoghq.com/profiler/enabling/go/)
-- [DataDog Profiler Go library](https://pkg.go.dev/gopkg.in/DataDog/dd-trace-go.v1/profiler)
-
 ### Versioning
 
     $ go run -ldflags="-X 'github.com/getAlby/hub/version.Tag=v0.6.0'" cmd/http/main.go
@@ -174,6 +163,27 @@ The following configuration options can be set as environment variables or in a 
 - `BOLTZ_API`: The api which provides auto swaps functionality. Default: "https://api.boltz.exchange"
 - `NETWORK`: On-chain network used for the node. Default: "bitcoin"
 - `REBALANCE_SERVICE_URL`: service url for rebalancing existing channels.
+
+### Boltz Regtest Setup
+
+There is a boltz regtest fork with mempool service and alby-specific instructions [here](https://github.com/rolznz/boltz-regtest/tree/alby-hub?tab=readme-ov-file#your-first-swap)
+
+Make sure to update your RPC password below, and change your work directory each time you restart boltz (it is ephemeral):
+
+    WORK_DIR=.data/boltz-regtest-1
+    LDK_BITCOIND_RPC_HOST="127.0.0.1"
+    LDK_BITCOIND_RPC_PORT="18443"
+    LDK_BITCOIND_RPC_USER="__cookie__"
+    LDK_BITCOIND_RPC_PASSWORD="f7460d81974b000b63e46c0e880243cf28bbaf93938b6e38494628f1f1700f23"
+    # or use esplora
+    #LDK_ESPLORA_SERVER=http://localhost:4002/api
+    NETWORK="regtest"
+    LDK_LISTENING_ADDRESSES="0.0.0.0:19735"
+    BOLTZ_API=http://localhost:9001
+    PORT=8082
+    MEMPOOL_API=http://localhost:8123/api
+
+And then run the frontend with: `VITE_API_URL="http://localhost:8082" yarn dev:http`
 
 ### Migrating the database (Sqlite <-> Postgres)
 
@@ -425,7 +435,7 @@ Go to the [Quick start script](https://github.com/getAlby/hub/tree/master/script
 
 #### Quick start (Desktop)
 
-View the [release binaries](https://github.com/getAlby/hub/releases/latest). Please use a desktop computer that is always online. 
+View the [release binaries](https://github.com/getAlby/hub/releases/latest). Please use a desktop computer that is always online.
 
 #### Manual (x86 Linux Server)
 
@@ -552,6 +562,8 @@ Internally Alby Hub uses a basic implementation of the pubsub messaging pattern 
     - `nwc_app_deleted` - a new app connection was deleted
     - `nwc_lnclient_*` - underlying LNClient events, consumed only by the transactions service.
     - `nwc_alby_account_connected` - user connects alby account for first time
+    - `nwc_swap_succeeded` - successfully made a boltz swap
+    - `nwc_rebalance_succeeded` - successfully rebalanced channels
 
 ### NIP-47 Handlers
 

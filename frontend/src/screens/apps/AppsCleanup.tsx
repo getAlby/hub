@@ -19,7 +19,7 @@ import { useUnusedApps } from "src/hooks/useUnusedApps";
 import { App } from "src/types";
 
 export function AppsCleanup() {
-  const unusedApps = useUnusedApps();
+  const unusedApps = useUnusedApps(100_000); // assume never more than 100k apps
   const [appIndex, setAppIndex] = React.useState<number>();
   const [skippedCount, setSkippedCount] = React.useState<number>(0);
   const [deletedCount, setDeletedCount] = React.useState<number>(0);
@@ -36,8 +36,8 @@ export function AppsCleanup() {
       const _appsToReview = [...unusedApps];
       _appsToReview.sort((a, b) => {
         return (
-          (a.lastEventAt ? new Date(a.lastEventAt).getTime() : 0) -
-          (b.lastEventAt ? new Date(b.lastEventAt).getTime() : 0)
+          (a.lastUsedAt ? new Date(a.lastUsedAt).getTime() : 0) -
+          (b.lastUsedAt ? new Date(b.lastUsedAt).getTime() : 0)
         );
       });
       setAppsToReview(_appsToReview);

@@ -7,9 +7,11 @@ import {
   TriangleAlert,
   TriangleAlertIcon,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
+import { CustomPagination } from "src/components/CustomPagination";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
@@ -24,7 +26,7 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
-import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
+import { LIST_APPS_LIMIT, SUBWALLET_APPSTORE_APP_ID } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
 import { useBalances } from "src/hooks/useBalances";
@@ -33,27 +35,39 @@ import { SubwalletIntro } from "src/screens/subwallets/SubwalletIntro";
 
 export function SubwalletList() {
   const { data: info } = useInfo();
-  const { data: apps } = useApps();
+  const [page, setPage] = useState(1);
+  const appsListRef = useRef<HTMLDivElement>(null);
+  const { data: appsData } = useApps(
+    undefined,
+    page,
+    {
+      appStoreAppId: SUBWALLET_APPSTORE_APP_ID,
+    },
+    "created_at"
+  );
   const { data: albyMe, error: albyMeError } = useAlbyMe();
   const { data: balances } = useBalances();
-  const navigate = useNavigate();
+
+  const handlePageChange = (page: number) => {
+    setPage(page);
+    appsListRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
 
   if (
     !info ||
-    !apps ||
+    !appsData ||
     !balances ||
     (info.albyAccountConnected && !albyMe && !albyMeError)
   ) {
     return <Loading />;
   }
 
-  const subwalletApps = apps
-    ?.filter(
-      (app) => app.metadata?.app_store_app_id === SUBWALLET_APPSTORE_APP_ID
-    )
-    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  const subwalletApps = appsData.apps;
 
-  if (!subwalletApps?.length) {
+  if (!subwalletApps.length) {
     return <SubwalletIntro />;
   }
 
@@ -74,14 +88,15 @@ export function SubwalletList() {
                 <HelpCircle className="size-4" />
               </Button>
             </ExternalLink>
-            <ResponsiveButton
-              icon={CirclePlusIcon}
-              text="New Sub-wallet"
-              disabled={
-                !albyMe?.subscription.plan_code && subwalletApps?.length >= 3
-              }
-              onClick={() => navigate("/sub-wallets/new")}
-            />
+            {!albyMe?.subscription.plan_code && subwalletApps?.length >= 3 ? (
+              <UpgradeDialog>
+                <ResponsiveButton icon={CirclePlusIcon} text="New Sub-wallet" />
+              </UpgradeDialog>
+            ) : (
+              <Link to="/sub-wallets/new">
+                <ResponsiveButton icon={CirclePlusIcon} text="New Sub-wallet" />
+              </Link>
+            )}
           </>
         }
       />
@@ -174,12 +189,22 @@ export function SubwalletList() {
       </div>
       <div className="mt-8">
         <h3 className="font-semibold text-2xl mb-4">Managed Sub-wallets</h3>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list">
+        <div
+          ref={appsListRef}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list"
+        >
           {subwalletApps.map((app, index) => (
             <AppCard key={index} app={app} />
           ))}
         </div>
       </div>
+
+      <CustomPagination
+        limit={LIST_APPS_LIMIT}
+        totalCount={appsData.totalCount}
+        page={page}
+        handlePageChange={handlePageChange}
+      />
     </div>
   );
 }

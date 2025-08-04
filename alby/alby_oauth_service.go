@@ -806,8 +806,7 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 		return
 	}
 
-	// TODO: rename this config option to be specific to the alby API
-	if !svc.cfg.GetEnv().LogEvents {
+	if !svc.cfg.GetEnv().SendEventsToAlby {
 		logger.Logger.WithField("event", event).Debug("Skipped sending to alby events API (alby event logging disabled)")
 		return
 	}
@@ -1587,6 +1586,8 @@ func getEventWhitelist() []string {
 		"nwc_node_stop_failed",
 		"nwc_node_stopped",
 		"nwc_alby_account_connected",
+		"nwc_swap_succeeded",
+		"nwc_rebalance_succeeded",
 
 		"interest_virtual_bankaccount",
 	}

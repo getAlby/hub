@@ -31,6 +31,7 @@ import (
 	permissions "github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/service"
 	"github.com/getAlby/hub/service/keys"
+	"github.com/getAlby/hub/swaps"
 	"github.com/getAlby/hub/utils"
 	"github.com/getAlby/hub/version"
 )
@@ -45,6 +46,7 @@ type api struct {
 	albyOAuthSvc     alby.AlbyOAuthService
 	startupError     error
 	startupErrorTime time.Time
+	eventPublisher   events.EventPublisher
 }
 
 func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys keys.Keys, albyOAuthSvc alby.AlbyOAuthService, eventPublisher events.EventPublisher) *api {
@@ -56,6 +58,7 @@ func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys key
 		permissionsSvc: permissions.NewPermissionsService(gormDB, eventPublisher),
 		keys:           keys,
 		albyOAuthSvc:   albyOAuthSvc,
+		eventPublisher: eventPublisher,
 	}
 }
 
@@ -65,6 +68,10 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 			return nil, fmt.Errorf(
 				"incorrect unlock password to create app with superuser permission")
 		}
+	}
+
+	if createAppRequest.Name == alby.ALBY_ACCOUNT_APP_NAME {
+		return nil, fmt.Errorf("Reserved app name: %s", alby.ALBY_ACCOUNT_APP_NAME)
 	}
 
 	expiresAt, err := api.parseExpiresAt(createAppRequest.ExpiresAt)
@@ -326,9 +333,6 @@ func (api *api) DeleteLightningAddress(ctx context.Context, appId uint) error {
 
 func (api *api) GetApp(dbApp *db.App) *App {
 
-	var lastEvent db.RequestEvent
-	lastEventResult := api.db.Where("app_id = ?", dbApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
-
 	paySpecificPermission := db.AppPermission{}
 	appPermissions := []db.AppPermission{}
 	var expiresAt *time.Time
@@ -382,31 +386,70 @@ func (api *api) GetApp(dbApp *db.App) *App {
 		Metadata:           metadata,
 		WalletPubkey:       walletPubkey,
 		UniqueWalletPubkey: uniqueWalletPubkey,
+		LastUsedAt:         dbApp.LastUsedAt,
 	}
 
 	if dbApp.Isolated {
 		response.Balance = queries.GetIsolatedBalance(api.db, dbApp.ID)
 	}
 
-	if lastEventResult.RowsAffected > 0 {
-		response.LastEventAt = &lastEvent.CreatedAt
-	}
-
 	return &response
-
 }
 
-func (api *api) ListApps() ([]App, error) {
+func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, orderBy string) (*ListAppsResponse, error) {
 	// TODO: join dbApps and permissions
 	dbApps := []db.App{}
-	err := api.db.Find(&dbApps).Error
+	query := api.db
+
+	if filters.Name != "" {
+		query = query.Where("name = ?", filters.Name)
+	}
+
+	if filters.AppStoreAppId != "" {
+		query = query.Where(datatypes.JSONQuery("metadata").Equals(filters.AppStoreAppId, "app_store_app_id"))
+	}
+
+	if filters.Unused {
+		// find unused non-subwallet apps not used in the past 60 days
+		query = query.Where("last_used_at IS NULL OR last_used_at < ?", time.Now().Add(-60*24*time.Hour))
+		// exclude subwallets :scream:
+		if api.db.Dialector.Name() == "sqlite" {
+			query = query.Where("metadata is NULL OR JSON_EXTRACT(metadata, '$.app_store_app_id') IS NULL OR JSON_EXTRACT(metadata, '$.app_store_app_id') != ?", "uncle-jim")
+		} else {
+			query = query.Where("metadata IS NULL OR metadata->>'app_store_app_id' IS NULL OR metadata->>'app_store_app_id' != ?", "uncle-jim")
+		}
+	}
+
+	if orderBy == "" {
+		orderBy = "last_used_at"
+	}
+	query = query.Order(orderBy + " DESC")
+
+	if limit == 0 {
+		limit = 100
+	}
+	var totalCount int64
+	result := query.Model(&db.App{}).Count(&totalCount)
+	if result.Error != nil {
+		logger.Logger.WithError(result.Error).Error("Failed to count DB apps")
+		return nil, result.Error
+	}
+	query = query.Offset(int(offset)).Limit(int(limit))
+
+	err := query.Find(&dbApps).Error
+
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to list apps")
 		return nil, err
 	}
 
+	appIds := []uint64{}
+	for _, app := range dbApps {
+		appIds = append(appIds, uint64(app.ID))
+	}
+
 	appPermissions := []db.AppPermission{}
-	err = api.db.Find(&appPermissions).Error
+	err = api.db.Where("app_id IN ?", appIds).Find(&appPermissions).Error
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to list app permissions")
 		return nil, err
@@ -435,6 +478,7 @@ func (api *api) ListApps() ([]App, error) {
 			Isolated:           dbApp.Isolated,
 			WalletPubkey:       walletPubkey,
 			UniqueWalletPubkey: uniqueWalletPubkey,
+			LastUsedAt:         dbApp.LastUsedAt,
 		}
 
 		if dbApp.Isolated {
@@ -451,12 +495,6 @@ func (api *api) ListApps() ([]App, error) {
 			}
 		}
 
-		var lastEvent db.RequestEvent
-		lastEventResult := api.db.Where("app_id = ?", dbApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
-		if lastEventResult.RowsAffected > 0 {
-			apiApp.LastEventAt = &lastEvent.CreatedAt
-		}
-
 		var metadata Metadata
 		if dbApp.Metadata != nil {
 			jsonErr := json.Unmarshal(dbApp.Metadata, &metadata)
@@ -470,7 +508,10 @@ func (api *api) ListApps() ([]App, error) {
 
 		apiApps = append(apiApps, apiApp)
 	}
-	return apiApps, nil
+	return &ListAppsResponse{
+		Apps:       apiApps,
+		TotalCount: uint64(totalCount),
+	}, nil
 }
 
 func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
@@ -617,43 +658,160 @@ func (api *api) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnec
 	return api.svc.GetLNClient().GetNodeConnectionInfo(ctx)
 }
 
-func (api *api) GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error) {
-	swapBalanceThresholdStr, _ := api.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
-	swapAmountStr, _ := api.cfg.Get(config.AutoSwapAmountKey, "")
-	swapDestination, _ := api.cfg.Get(config.AutoSwapDestinationKey, "")
+func (api *api) RefundSwap(refundSwapRequest *RefundSwapRequest) error {
+	return api.svc.GetSwapsService().RefundSwap(refundSwapRequest.SwapId, refundSwapRequest.Address)
+}
 
-	enabled := swapBalanceThresholdStr != "" &&
-		swapAmountStr != "" &&
-		swapDestination != ""
-	var swapBalanceThreshold, swapAmount uint64
-	if enabled {
+func (api *api) GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error) {
+	swapOutBalanceThresholdStr, _ := api.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
+	swapOutAmountStr, _ := api.cfg.Get(config.AutoSwapAmountKey, "")
+	swapOutDestination, _ := api.cfg.Get(config.AutoSwapDestinationKey, "")
+
+	swapOutEnabled := swapOutBalanceThresholdStr != "" && swapOutAmountStr != ""
+	var swapOutBalanceThreshold, swapOutAmount uint64
+	if swapOutEnabled {
 		var err error
-		if swapBalanceThreshold, err = strconv.ParseUint(swapBalanceThresholdStr, 10, 64); err != nil {
-			return nil, fmt.Errorf("invalid autoswap balance threshold: %w", err)
+		if swapOutBalanceThreshold, err = strconv.ParseUint(swapOutBalanceThresholdStr, 10, 64); err != nil {
+			return nil, fmt.Errorf("invalid autoswap out balance threshold: %w", err)
 		}
-		if swapAmount, err = strconv.ParseUint(swapAmountStr, 10, 64); err != nil {
-			return nil, fmt.Errorf("invalid autoswap amount: %w", err)
+		if swapOutAmount, err = strconv.ParseUint(swapOutAmountStr, 10, 64); err != nil {
+			return nil, fmt.Errorf("invalid autoswap out amount: %w", err)
 		}
 	}
 
-	swapFees, err := api.svc.GetSwapsService().CalculateFee()
+	return &GetAutoSwapConfigResponse{
+		Type:             constants.SWAP_TYPE_OUT,
+		Enabled:          swapOutEnabled,
+		BalanceThreshold: swapOutBalanceThreshold,
+		SwapAmount:       swapOutAmount,
+		Destination:      swapOutDestination,
+	}, nil
+}
+
+func (api *api) LookupSwap(swapId string) (*LookupSwapResponse, error) {
+	dbSwap, err := api.svc.GetSwapsService().GetSwap(swapId)
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to fetch swap info")
+		return nil, err
+	}
+
+	return toApiSwap(dbSwap), nil
+}
+
+func (api *api) ListSwaps() (*ListSwapsResponse, error) {
+	swaps, err := api.svc.GetSwapsService().ListSwaps()
+	if err != nil {
+		return nil, err
+	}
+
+	apiSwaps := []Swap{}
+	for _, swap := range swaps {
+		apiSwaps = append(apiSwaps, *toApiSwap(&swap))
+	}
+
+	return &ListSwapsResponse{
+		Swaps: apiSwaps,
+	}, nil
+}
+
+func toApiSwap(swap *swaps.Swap) *Swap {
+	return &Swap{
+		Id:                 swap.SwapId,
+		Type:               swap.Type,
+		State:              swap.State,
+		Invoice:            swap.Invoice,
+		SendAmount:         swap.SendAmount,
+		ReceiveAmount:      swap.ReceiveAmount,
+		PaymentHash:        swap.PaymentHash,
+		DestinationAddress: swap.DestinationAddress,
+		RefundAddress:      swap.RefundAddress,
+		LockupAddress:      swap.LockupAddress,
+		LockupTxId:         swap.LockupTxId,
+		ClaimTxId:          swap.ClaimTxId,
+		AutoSwap:           swap.AutoSwap,
+		BoltzPubkey:        swap.BoltzPubkey,
+		CreatedAt:          swap.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:          swap.UpdatedAt.Format(time.RFC3339),
+	}
+}
+
+func (api *api) GetSwapInFees() (*SwapFeesResponse, error) {
+	swapInFees, err := api.svc.GetSwapsService().CalculateSwapInFee()
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to calculate fee info")
 		return nil, err
 	}
 
-	return &GetAutoSwapsConfigResponse{
-		Enabled:          enabled,
-		BalanceThreshold: swapBalanceThreshold,
-		SwapAmount:       swapAmount,
-		Destination:      swapDestination,
-		AlbyServiceFee:   swapFees.AlbyServiceFee,
-		BoltzServiceFee:  swapFees.BoltzServiceFee,
-		BoltzNetworkFee:  swapFees.BoltzNetworkFee,
+	return &SwapFeesResponse{
+		AlbyServiceFee:  swapInFees.AlbyServiceFee,
+		BoltzServiceFee: swapInFees.BoltzServiceFee,
+		BoltzNetworkFee: swapInFees.BoltzNetworkFee,
 	}, nil
 }
 
-func (api *api) EnableAutoSwaps(ctx context.Context, enableAutoSwapsRequest *EnableAutoSwapsRequest) error {
+func (api *api) GetSwapOutFees() (*SwapFeesResponse, error) {
+	swapOutFees, err := api.svc.GetSwapsService().CalculateSwapOutFee()
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to calculate fee info")
+		return nil, err
+	}
+
+	return &SwapFeesResponse{
+		AlbyServiceFee:  swapOutFees.AlbyServiceFee,
+		BoltzServiceFee: swapOutFees.BoltzServiceFee,
+		BoltzNetworkFee: swapOutFees.BoltzNetworkFee,
+	}, nil
+}
+
+func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (*swaps.SwapResponse, error) {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+
+	amount := initiateSwapOutRequest.SwapAmount
+	destination := initiateSwapOutRequest.Destination
+
+	if amount == 0 {
+		return nil, errors.New("invalid swap amount")
+	}
+
+	swapOutResponse, err := api.svc.GetSwapsService().SwapOut(amount, destination, false)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"amount":      amount,
+			"destination": destination,
+		}).WithError(err).Error("Failed to initiate swap out")
+		return nil, err
+	}
+
+	return swapOutResponse, nil
+}
+
+func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (*swaps.SwapResponse, error) {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+
+	amount := initiateSwapInRequest.SwapAmount
+
+	if amount == 0 {
+		return nil, errors.New("invalid swap amount")
+	}
+
+	swapInResponse, err := api.svc.GetSwapsService().SwapIn(amount, false)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"amount": amount,
+		}).WithError(err).Error("Failed to initiate swap in")
+		return nil, err
+	}
+
+	return swapInResponse, nil
+}
+
+func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *EnableAutoSwapRequest) error {
 	err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, strconv.FormatUint(enableAutoSwapsRequest.BalanceThreshold, 10), "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save autoswap balance threshold to config")
@@ -672,26 +830,25 @@ func (api *api) EnableAutoSwaps(ctx context.Context, enableAutoSwapsRequest *Ena
 		return err
 	}
 
-	return api.svc.StartAutoSwaps()
+	return api.svc.GetSwapsService().EnableAutoSwapOut()
 }
 
-func (api *api) DisableAutoSwaps() error {
-	if err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, "", ""); err != nil {
-		logger.Logger.WithError(err).Error("Failed to remove autoswap balance threshold")
-		return err
-	}
-	if err := api.cfg.SetUpdate(config.AutoSwapAmountKey, "", ""); err != nil {
-		logger.Logger.WithError(err).Error("Failed to remove autoswap amount")
-		return err
-	}
-	if err := api.cfg.SetUpdate(config.AutoSwapDestinationKey, "", ""); err != nil {
-		logger.Logger.WithError(err).Error("Failed to remove autoswap destination")
-		return err
+func (api *api) DisableAutoSwap() error {
+	keys := []string{config.AutoSwapBalanceThresholdKey, config.AutoSwapAmountKey, config.AutoSwapDestinationKey}
+
+	for _, key := range keys {
+		if err := api.cfg.SetUpdate(key, "", ""); err != nil {
+			logger.Logger.WithError(err).Errorf("Failed to remove autoswap config for key: %s", key)
+			return err
+		}
 	}
 
-	api.svc.GetSwapsService().StopAutoSwaps()
-
+	api.svc.GetSwapsService().StopAutoSwapOut()
 	return nil
+}
+
+func (api *api) GetSwapMnemonic() string {
+	return api.keys.GetSwapMnemonic()
 }
 
 func (api *api) GetNodeStatus(ctx context.Context) (*lnclient.NodeStatus, error) {

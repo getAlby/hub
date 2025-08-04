@@ -421,6 +421,7 @@ func (cs *CashuService) checkIncomingPayment(mintQuote *storage.MintQuote) {
 			logger.Logger.WithFields(logrus.Fields{
 				"paymentHash": bolt11.PaymentHash,
 			}).WithError(err).Warn("failed to check invoice state")
+			return
 		}
 
 		if mintQuoteState.State == nut04.Paid {
