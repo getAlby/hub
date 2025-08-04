@@ -179,12 +179,14 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 
 		var filters api.ListAppsFilters
-		err := json.Unmarshal([]byte(filtersJSON), &filters)
-		if err != nil {
-			logger.Logger.WithError(err).WithFields(logrus.Fields{
-				"filters": filtersJSON,
-			}).Error("Failed to deserialize app filters")
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		if filtersJSON != "" {
+			err := json.Unmarshal([]byte(filtersJSON), &filters)
+			if err != nil {
+				logger.Logger.WithError(err).WithFields(logrus.Fields{
+					"filters": filtersJSON,
+				}).Error("Failed to deserialize app filters")
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
 		}
 
 		apps, err := app.api.ListApps(limit, offset, filters, orderBy)
