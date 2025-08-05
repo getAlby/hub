@@ -1,4 +1,4 @@
-import { Invoice } from "@getalby/lightning-tools";
+import { Invoice } from "@getalby/lightning-tools/bolt11";
 import React, { useEffect } from "react";
 import AppHeader from "src/components/AppHeader";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
