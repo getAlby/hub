@@ -411,7 +411,14 @@ func (s *BarkService) GetBalances(ctx context.Context, includeInactiveChannels b
 }
 
 func (s *BarkService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (txId string, err error) {
-	return "", errors.New("not implemented")
+	// TODO: support fee rate
+	txId, err = s.wallet.SendOnchain(toAddress, amount)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to send onchain transaction")
+		return "", err
+	}
+
+	return txId, nil
 }
 
 func (s *BarkService) SendPaymentProbes(ctx context.Context, invoice string) error {
