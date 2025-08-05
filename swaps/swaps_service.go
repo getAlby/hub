@@ -195,7 +195,7 @@ func (svc *swapsService) EnableAutoSwapOut() error {
 	logger.Logger.Info("Starting auto swap workflow")
 
 	go func() {
-		ticker := time.NewTicker(1 * time.Minute)
+		ticker := time.NewTicker(1 * time.Hour)
 		for {
 			select {
 			case <-ticker.C:
