@@ -127,7 +127,7 @@ export function AppCardConnectionInfo({
             {!readonly && (
               <Link to={`/apps/${connection.appPubkey}?edit=true`}>
                 <Button variant="outline">
-                  <PlusCircleIcon className="size-4 mr-2" />
+                  <PlusCircleIcon />
                   Set Budget
                 </Button>
               </Link>
@@ -167,7 +167,7 @@ export function AppCardConnectionInfo({
                 onClick={(e) => e.stopPropagation()}
               >
                 <Button variant="outline">
-                  <PlusCircleIcon className="size-4 mr-2" />
+                  <PlusCircleIcon />
                   Enable Payments
                 </Button>
               </Link>

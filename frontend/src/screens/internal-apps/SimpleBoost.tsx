@@ -81,7 +81,7 @@ export function SimpleBoost() {
                 onClick={() => copyToClipboard(scriptContent, toast)}
                 variant="outline"
               >
-                <CopyIcon className="size-4 mr-2" />
+                <CopyIcon />
                 Copy
               </Button>
             </div>

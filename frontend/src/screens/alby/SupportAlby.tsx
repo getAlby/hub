@@ -173,7 +173,7 @@ function SupportAlby() {
           <CardFooter className="flex justify-end">
             <UpgradeDialog>
               <Button>
-                <Sparkles className="size-4 mr-2" />
+                <Sparkles />
                 Upgrade to Pro
               </Button>
             </UpgradeDialog>
@@ -193,7 +193,7 @@ function SupportAlby() {
               <div className="flex flex-col items-center justify-center gap-2">
                 <DialogTrigger asChild>
                   <Button>
-                    <HandCoins className="size-4 mr-2" />
+                    <HandCoins />
                     Setup Donation
                   </Button>
                 </DialogTrigger>

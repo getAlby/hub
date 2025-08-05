@@ -420,7 +420,7 @@ function NewChannelInternal({
               className="text-muted-foreground text-xs"
               onClick={() => setShowAdvanced((current) => !current)}
             >
-              <ChevronDownIcon className="size-4 mr-2" />
+              <ChevronDownIcon />
               Advanced Options
             </Button>
           )}

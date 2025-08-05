@@ -66,7 +66,7 @@ export function AlbyAccount() {
                 variant="destructive"
                 className="flex-1 gap-2 items-center justify-center py-2 px-4"
               >
-                <RefreshCcwIcon className="size-4 mr-2" /> Change Alby Account
+                <RefreshCcwIcon /> Change Alby Account
               </Button>
             </UnlinkAlbyAccount>
           </div>

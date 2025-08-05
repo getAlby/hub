@@ -126,7 +126,7 @@ export function Bitrefill() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction disabled={loading} onClick={confirmPayment}>
-              {loading && <Loading className="size-4 mr-2" />}
+              {loading && <Loading />}
               Pay now
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -326,7 +326,7 @@ export default function WithdrawOnchainFunds() {
                   className="text-muted-foreground text-xs"
                   onClick={() => setShowAdvanced((current) => !current)}
                 >
-                  <ChevronDown className="size-4 mr-2" />
+                  <ChevronDown />
                   Advanced Options
                 </Button>
               )}

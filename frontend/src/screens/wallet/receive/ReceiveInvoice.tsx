@@ -150,7 +150,7 @@ export default function ReceiveInvoice() {
                       </div>
                       <div>
                         <Button onClick={copy} variant="outline">
-                          <CopyIcon className="size-4 mr-2" />
+                          <CopyIcon />
                           Copy Invoice
                         </Button>
                       </div>

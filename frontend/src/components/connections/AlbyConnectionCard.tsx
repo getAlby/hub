@@ -107,7 +107,7 @@ function AlbyConnectionCard() {
                 <Dialog>
                   <DialogTrigger asChild>
                     <LoadingButton loading={loading}>
-                      {!loading && <Link2Icon className="size-4 mr-2" />}
+                      {!loading && <Link2Icon />}
                       Link your Alby Account
                     </LoadingButton>
                   </DialogTrigger>
@@ -161,13 +161,13 @@ function AlbyConnectionCard() {
                   disabled
                   className="disabled:opacity-100"
                 >
-                  <CheckCircle2Icon className="size-4 mr-2" />
+                  <CheckCircle2Icon />
                   Alby Account Linked
                 </Button>
               ) : (
                 linkStatus === LinkStatus.OtherNode && (
                   <Button variant="destructive" disabled>
-                    <CircleXIcon className="size-4 mr-2" />
+                    <CircleXIcon />
                     Linked to another wallet
                   </Button>
                 )
@@ -178,7 +178,7 @@ function AlbyConnectionCard() {
                   className="w-full sm:w-auto"
                 >
                   <Button variant="outline" className="w-full sm:w-auto">
-                    <ExternalLinkIcon className="size-4 mr-2" />
+                    <ExternalLinkIcon />
                     Alby Account Settings
                   </Button>
                 </ExternalLink>
@@ -186,7 +186,7 @@ function AlbyConnectionCard() {
               {albyAccountApp && (
                 <Link to="/settings/alby-account" className="w-full sm:w-auto">
                   <Button variant="outline" className="w-full sm:w-auto">
-                    <User2Icon className="size-4 mr-2" />
+                    <User2Icon />
                     Alby Account Settings
                   </Button>
                 </Link>

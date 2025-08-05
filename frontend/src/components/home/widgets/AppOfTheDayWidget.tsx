@@ -48,7 +48,7 @@ export function AppOfTheDayWidget() {
           to={app.internal ? `/internal-apps/${app.id}` : `/appstore/${app.id}`}
         >
           <Button variant="outline">
-            <ExternalLinkIcon className="size-4 mr-2" />
+            <ExternalLinkIcon />
             Open
           </Button>
         </Link>

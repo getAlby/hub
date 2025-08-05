@@ -224,7 +224,7 @@ export function ConnectAppCard({
         </div>
         <div className="flex gap-2">
           <Button onClick={copy} variant="outline">
-            <CopyIcon className="size-4 mr-2" />
+            <CopyIcon />
             Copy
           </Button>
           <ExternalLinkButton to={pairingUri} variant="outline">

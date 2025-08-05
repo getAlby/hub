@@ -237,7 +237,7 @@ export function AlbyGo() {
                 {app.playLink && (
                   <ExternalLink to={app.playLink}>
                     <Button variant="outline">
-                      <PlayStoreIcon className="size-4 mr-2" />
+                      <PlayStoreIcon />
                       Play Store
                     </Button>
                   </ExternalLink>
@@ -245,7 +245,7 @@ export function AlbyGo() {
                 {app.appleLink && (
                   <ExternalLink to={app.appleLink}>
                     <Button variant="outline">
-                      <AppleIcon className="size-4 mr-2" />
+                      <AppleIcon />
                       App Store
                     </Button>
                   </ExternalLink>
@@ -253,7 +253,7 @@ export function AlbyGo() {
                 {app.zapStoreLink && (
                   <ExternalLink to={app.zapStoreLink}>
                     <Button variant="outline">
-                      <ZapStoreIcon className="size-4 mr-2" />
+                      <ZapStoreIcon />
                       Zapstore
                     </Button>
                   </ExternalLink>
@@ -261,7 +261,7 @@ export function AlbyGo() {
                 {app.chromeLink && (
                   <ExternalLink to={app.chromeLink}>
                     <Button variant="outline">
-                      <ChromeIcon className="size-4 mr-2" />
+                      <ChromeIcon />
                       Chrome Web Store
                     </Button>
                   </ExternalLink>
@@ -269,7 +269,7 @@ export function AlbyGo() {
                 {app.firefoxLink && (
                   <ExternalLink to={app.firefoxLink}>
                     <Button variant="outline">
-                      <FirefoxIcon className="size-4 mr-2" />
+                      <FirefoxIcon />
                       Firefox Add-Ons
                     </Button>
                   </ExternalLink>
@@ -286,7 +286,7 @@ export function AlbyGo() {
                 {app.webLink && (
                   <ExternalLink to={app.webLink}>
                     <Button variant="outline">
-                      <GlobeIcon className="size-4 mr-2" />
+                      <GlobeIcon />
                       Website
                     </Button>
                   </ExternalLink>
@@ -306,7 +306,7 @@ export function AlbyGo() {
               </p>
               {
                 <Button className="mt-8" onClick={onClickCreateConnection}>
-                  <NostrWalletConnectIcon className="size-4 mr-2" />
+                  <NostrWalletConnectIcon />
                   Connect with One Tap Connections
                 </Button>
               }

@@ -131,7 +131,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                   }}
                   className={cn("mr-4", showExpiryOptions && "mb-4")}
                 >
-                  <PlusCircleIcon className="size-4 mr-2" />
+                  <PlusCircleIcon />
                   Set budget
                 </Button>
               )}
@@ -188,7 +188,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                 variant="secondary"
                 onClick={() => setShowExpiryOptions(true)}
               >
-                <PlusCircleIcon className="size-4 mr-2" />
+                <PlusCircleIcon />
                 Set expiration time
               </Button>
             )}

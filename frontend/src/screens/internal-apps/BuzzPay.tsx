@@ -94,11 +94,11 @@ export function BuzzPay() {
               onClick={() => copyToClipboard(posUrl, toast)}
               variant="outline"
             >
-              <CopyIcon className="size-4 mr-2" />
+              <CopyIcon />
               Copy
             </Button>
             <Button onClick={() => openLink(posUrl)} variant="outline">
-              <ExternalLinkIcon className="size-4 mr-2" />
+              <ExternalLinkIcon />
               Open
             </Button>
           </div>

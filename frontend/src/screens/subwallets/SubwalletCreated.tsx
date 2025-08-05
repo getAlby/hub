@@ -114,7 +114,7 @@ export function SubwalletCreated() {
                         <Popover>
                           <PopoverTrigger>
                             <Button variant="outline">
-                              <PlayStoreIcon className="size-4 mr-2" />
+                              <PlayStoreIcon />
                               Play Store
                             </Button>
                           </PopoverTrigger>
@@ -132,7 +132,7 @@ export function SubwalletCreated() {
                         <Popover>
                           <PopoverTrigger>
                             <Button variant="outline">
-                              <AppleIcon className="size-4 mr-2" />
+                              <AppleIcon />
                               Apple App Store
                             </Button>
                           </PopoverTrigger>
@@ -150,7 +150,7 @@ export function SubwalletCreated() {
                         <Popover>
                           <PopoverTrigger>
                             <Button variant="outline">
-                              <ZapStoreIcon className="size-4 mr-2" />
+                              <ZapStoreIcon />
                               Zapstore
                             </Button>
                           </PopoverTrigger>
@@ -211,7 +211,7 @@ export function SubwalletCreated() {
                       onClick={() => copyToClipboard(albyAccountUrl, toast)}
                       variant="outline"
                     >
-                      <CopyIcon className="size-4 mr-2" />
+                      <CopyIcon />
                       Copy URL
                     </Button>
                   </div>
@@ -275,7 +275,7 @@ export function SubwalletCreated() {
                       onClick={() => copyToClipboard(connectionSecret, toast)}
                       variant="outline"
                     >
-                      <CopyIcon className="size-4 mr-2" />
+                      <CopyIcon />
                       Copy
                     </Button>
                   </div>
@@ -306,7 +306,7 @@ export function SubwalletCreated() {
                         onClick={() => copyToClipboard(connectionSecret, toast)}
                         variant="outline"
                       >
-                        <CopyIcon className="size-4 mr-2" />
+                        <CopyIcon />
                         Copy
                       </Button>
                     </div>
@@ -335,7 +335,7 @@ export function SubwalletCreated() {
                       onClick={() => copyToClipboard(valueTag, toast)}
                       variant="outline"
                     >
-                      <CopyIcon className="size-4 mr-2" />
+                      <CopyIcon />
                       Copy
                     </Button>
                     <Alert>

@@ -54,7 +54,7 @@ export function AppStoreDetail() {
         contentRight={
           <Link to={`/apps/new?app=${app.id}`}>
             <Button>
-              <NostrWalletConnectIcon className="size-4 mr-2" />
+              <NostrWalletConnectIcon />
               Connect to {app.title}
             </Button>
           </Link>
@@ -112,7 +112,7 @@ export function AppStoreDetail() {
                 {app.playLink && (
                   <ExternalLink to={app.playLink}>
                     <Button variant="outline">
-                      <PlayStoreIcon className="size-4 mr-2" />
+                      <PlayStoreIcon />
                       Play Store
                     </Button>
                   </ExternalLink>
@@ -120,7 +120,7 @@ export function AppStoreDetail() {
                 {app.appleLink && (
                   <ExternalLink to={app.appleLink}>
                     <Button variant="outline">
-                      <AppleIcon className="size-4 mr-2" />
+                      <AppleIcon />
                       App Store
                     </Button>
                   </ExternalLink>
@@ -128,7 +128,7 @@ export function AppStoreDetail() {
                 {app.zapStoreLink && (
                   <ExternalLink to={app.zapStoreLink}>
                     <Button variant="outline">
-                      <ZapStoreIcon className="size-4 mr-2" />
+                      <ZapStoreIcon />
                       Zapstore
                     </Button>
                   </ExternalLink>
@@ -136,7 +136,7 @@ export function AppStoreDetail() {
                 {app.chromeLink && (
                   <ExternalLink to={app.chromeLink}>
                     <Button variant="outline">
-                      <ChromeIcon className="size-4 mr-2" />
+                      <ChromeIcon />
                       Chrome Web Store
                     </Button>
                   </ExternalLink>
@@ -144,7 +144,7 @@ export function AppStoreDetail() {
                 {app.firefoxLink && (
                   <ExternalLink to={app.firefoxLink}>
                     <Button variant="outline">
-                      <FirefoxIcon className="size-4 mr-2" />
+                      <FirefoxIcon />
                       Firefox Add-Ons
                     </Button>
                   </ExternalLink>
@@ -161,7 +161,7 @@ export function AppStoreDetail() {
                 {app.webLink && (
                   <ExternalLink to={app.webLink}>
                     <Button variant="outline">
-                      <GlobeIcon className="size-4 mr-2" />
+                      <GlobeIcon />
                       Website
                     </Button>
                   </ExternalLink>

@@ -80,8 +80,8 @@ export default function DeveloperSettings() {
             to="https://nwc.dev"
             className="flex-1 gap-2 items-center justify-center"
           >
-            Learn More on nwc.dev{" "}
-            <SquareArrowOutUpRightIcon className="size-4 mr-2" />
+            Learn More on nwc.dev
+            <SquareArrowOutUpRightIcon />
           </ExternalLinkButton>
         </div>
       </div>

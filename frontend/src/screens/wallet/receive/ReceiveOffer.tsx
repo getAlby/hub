@@ -100,7 +100,7 @@ export default function ReceiveOffer() {
                   New Offer
                 </Button>
                 <Button className="flex-1" onClick={copy} variant="secondary">
-                  <CopyIcon className="size-4 mr-2" />
+                  <CopyIcon />
                   Copy
                 </Button>
               </div>

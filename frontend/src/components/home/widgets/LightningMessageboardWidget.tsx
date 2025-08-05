@@ -259,7 +259,8 @@ export function LightningMessageboardWidget() {
                 onChange={(e) => setMessageText(e.target.value)}
               />
               <Button>
-                <ZapIcon className="size-4 mr-2" /> Send
+                <ZapIcon />
+                Send
               </Button>
             </form>
           </CardContent>
@@ -309,7 +310,7 @@ export function LightningMessageboardWidget() {
                   variant="secondary"
                   onClick={() => setAmount("" + topPlace)}
                 >
-                  <ChevronUpIcon className="size-4 mr-2" />
+                  <ChevronUpIcon />
                   Top
                 </Button>
               </div>

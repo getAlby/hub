@@ -132,7 +132,7 @@ export default function DepositBitcoin() {
                   className="w-28"
                   loading={loadingAddress}
                 >
-                  {!loadingAddress && <RefreshCwIcon className="size-4 mr-2" />}
+                  {!loadingAddress && <RefreshCwIcon />}
                   Change
                 </LoadingButton>
                 <Button
@@ -142,7 +142,7 @@ export default function DepositBitcoin() {
                     copyToClipboard(onchainAddress, toast);
                   }}
                 >
-                  <CopyIcon className="size-4 mr-2" />
+                  <CopyIcon />
                   Copy
                 </Button>
               </div>

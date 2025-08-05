@@ -50,7 +50,7 @@ export default function PaymentSuccess() {
             <FormattedFiatAmount amount={invoice.satoshi} />
           </div>
           <Button onClick={copy} variant="outline">
-            <CopyIcon className="size-4 mr-2" />
+            <CopyIcon />
             Copy Preimage
           </Button>
         </CardContent>
