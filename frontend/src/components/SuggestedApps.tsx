@@ -10,8 +10,8 @@ import { SuggestedApp, suggestedApps } from "./SuggestedAppData";
 function SuggestedAppCard({ id, title, description, logo }: SuggestedApp) {
   return (
     <Link to={`/appstore/${id}`}>
-      <Card className="h-full">
-        <CardContent className="p-4">
+      <Card>
+        <CardContent>
           <div className="flex gap-3 items-center">
             <img
               src={logo}
@@ -32,8 +32,8 @@ function SuggestedAppCard({ id, title, description, logo }: SuggestedApp) {
 function InternalAppCard({ id, title, description, logo }: SuggestedApp) {
   return (
     <Link to={`/internal-apps/${id}`}>
-      <Card className="h-full">
-        <CardContent className="p-4">
+      <Card>
+        <CardContent>
           <div className="flex gap-3 items-center">
             <img
               src={logo}
