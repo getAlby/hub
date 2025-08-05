@@ -63,6 +63,9 @@ function AutoSwapOutForm() {
   const [balanceThreshold, setBalanceThreshold] = useState("");
   const [swapAmount, setSwapAmount] = useState("");
   const [destination, setDestination] = useState("");
+  const [externalType, setExternalType] = useState<"address" | "xpub">(
+    "address"
+  );
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -185,23 +188,78 @@ function AutoSwapOutForm() {
         </RadioGroup>
       </div>
       {!isInternalSwap && (
-        <div className="grid gap-1.5">
-          <Label>Receiving on-chain address</Label>
-          <div className="flex gap-2 mb-4">
-            <Input
-              placeholder="bc1..."
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-              required
-            />
-            <Button
-              type="button"
-              variant="outline"
-              className="px-2"
-              onClick={paste}
+        <div className="grid gap-4">
+          <div className="flex flex-col gap-3">
+            <Label>Destination Type</Label>
+            <RadioGroup
+              value={externalType}
+              onValueChange={(value) => {
+                setExternalType(value as "address" | "xpub");
+                setDestination("");
+              }}
+              className="flex gap-4 flex-row"
             >
-              <ClipboardPasteIcon className="w-4 h-4" />
-            </Button>
+              <div className="flex items-start space-x-2">
+                <RadioGroupItem
+                  value="address"
+                  id="address"
+                  className="shrink-0"
+                />
+                <div className="grid gap-1.5">
+                  <Label
+                    htmlFor="address"
+                    className="text-sm font-medium cursor-pointer"
+                  >
+                    Single Address
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Send to the same address each time
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-2">
+                <RadioGroupItem value="xpub" id="xpub" className="shrink-0" />
+                <div className="grid gap-1.5">
+                  <Label
+                    htmlFor="xpub"
+                    className="text-sm font-medium cursor-pointer"
+                  >
+                    XPUB
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Generate new addresses from extended public key
+                  </p>
+                </div>
+              </div>
+            </RadioGroup>
+          </div>
+          <div className="grid gap-1.5">
+            <Label>
+              {externalType === "address"
+                ? "Receiving on-chain address"
+                : "Extended Public Key (XPUB)"}
+            </Label>
+            <div className="flex gap-2">
+              <Input
+                placeholder={externalType === "address" ? "bc1..." : "xpub..."}
+                value={destination}
+                onChange={(e) => setDestination(e.target.value)}
+                required
+              />
+              <Button
+                type="button"
+                variant="outline"
+                className="px-2"
+                onClick={paste}
+              >
+                <ClipboardPasteIcon className="w-4 h-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {externalType === "address"
+                ? "Enter a Bitcoin address to receive swapped funds"
+                : "Enter an XPUB to automatically generate new addresses for each swap"}
+            </p>
           </div>
         </div>
       )}

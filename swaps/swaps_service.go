@@ -17,6 +17,9 @@ import (
 
 	"github.com/BoltzExchange/boltz-client/v2/pkg/boltz"
 	"github.com/btcsuite/btcd/btcec/v2"
+	"github.com/btcsuite/btcd/btcutil"
+	"github.com/btcsuite/btcd/btcutil/hdkeychain"
+	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
@@ -46,6 +49,7 @@ type swapsService struct {
 	boltzWs             *boltz.Websocket
 	swapListeners       map[string]chan boltz.SwapUpdate
 	swapListenersLock   sync.Mutex
+	autoSwapXpub        string // Decrypted xpub for auto swaps
 }
 
 type SwapsService interface {
@@ -191,7 +195,7 @@ func (svc *swapsService) EnableAutoSwapOut() error {
 	logger.Logger.Info("Starting auto swap workflow")
 
 	go func() {
-		ticker := time.NewTicker(1 * time.Hour)
+		ticker := time.NewTicker(1 * time.Minute)
 		for {
 			select {
 			case <-ticker.C:
@@ -207,13 +211,35 @@ func (svc *swapsService) EnableAutoSwapOut() error {
 					logger.Logger.Info("Threshold requirements not met for swap, ignoring")
 					continue
 				}
+
+				actualDestination := swapDestination
+				var addressIndex uint32
+				if swapDestination != "" {
+					if err := svc.validateXpub(swapDestination); err == nil {
+						actualDestination, addressIndex, err = svc.getNextUnusedAddressFromXpub()
+						if err != nil {
+							logger.Logger.WithError(err).Error("Failed to get next address from xpub")
+							actualDestination = "" // Fallback to empty address if we can't get one
+						}
+					}
+				}
+
 				logger.Logger.WithFields(logrus.Fields{
 					"amount":      amount,
-					"destination": swapDestination,
+					"destination": actualDestination,
 				}).Info("Initiating swap")
-				_, err = svc.SwapOut(amount, swapDestination, true)
+				swapResponse, err := svc.SwapOut(amount, actualDestination, true)
 				if err != nil {
 					logger.Logger.WithError(err).Error("Failed to swap")
+				} else if addressIndex > 0 {
+					err = svc.cfg.SetUpdate(config.AutoSwapXpubIndexStart, strconv.FormatUint(uint64(addressIndex), 10), "")
+					if err != nil {
+						logger.Logger.WithError(err).Error("Failed to update xpub index start after creating swap")
+					}
+					logger.Logger.WithFields(logrus.Fields{
+						"swapId":    swapResponse.SwapId,
+						"nextIndex": addressIndex,
+					}).Info("Updated xpub index start for swap address")
 				}
 			case <-ctx.Done():
 				logger.Logger.Info("Stopping auto swap workflow")
@@ -1316,6 +1342,137 @@ func (svc *swapsService) doMempoolRequest(endpoint string, result interface{}) e
 			"url": url,
 		}).Error("Failed to deserialize json")
 		return fmt.Errorf("failed to deserialize json %s %s", url, string(body))
+	}
+	return nil
+}
+
+func (svc *swapsService) deriveAddressFromXpub(xpub string, index uint32) (string, error) {
+	var netParams *chaincfg.Params
+	switch svc.cfg.GetNetwork() {
+	case "bitcoin", "mainnet":
+		netParams = &chaincfg.MainNetParams
+	case "testnet":
+		netParams = &chaincfg.TestNet3Params
+	case "regtest":
+		netParams = &chaincfg.RegressionNetParams
+	case "signet":
+		netParams = &chaincfg.SigNetParams
+	default:
+		return "", fmt.Errorf("unsupported network: %s", svc.cfg.GetNetwork())
+	}
+
+	extPubKey, err := hdkeychain.NewKeyFromString(xpub)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse xpub: %w", err)
+	}
+
+	externalChain, err := extPubKey.Derive(0)
+	if err != nil {
+		return "", fmt.Errorf("failed to derive external chain: %w", err)
+	}
+
+	addressKey, err := externalChain.Derive(index)
+	if err != nil {
+		return "", fmt.Errorf("failed to derive address key at index %d: %w", index, err)
+	}
+
+	pubKey, err := addressKey.ECPubKey()
+	if err != nil {
+		return "", fmt.Errorf("failed to get public key: %w", err)
+	}
+
+	pubKeyHash := btcutil.Hash160(pubKey.SerializeCompressed())
+	address, err := btcutil.NewAddressWitnessPubKeyHash(pubKeyHash, netParams)
+	if err != nil {
+		return "", fmt.Errorf("failed to create address: %w", err)
+	}
+
+	return address.EncodeAddress(), nil
+}
+
+func (svc *swapsService) checkAddressHasTransactions(address string, esploraApiRequester func(endpoint string) (interface{}, error)) (bool, error) {
+	response, err := esploraApiRequester("/address/" + address + "/txs")
+	if err != nil {
+		return false, fmt.Errorf("failed to get address transactions: %w", err)
+	}
+
+	transactions, ok := response.([]interface{})
+	if !ok {
+		return false, fmt.Errorf("unexpected response format from esplora API")
+	}
+
+	return len(transactions) > 0, nil
+}
+
+func (svc *swapsService) getNextUnusedAddressFromXpub() (string, uint32, error) {
+	destination, _ := svc.cfg.Get(config.AutoSwapDestinationKey, "")
+	if destination == "" {
+		return "", 0, errors.New("no destination configured")
+	}
+
+	if err := svc.validateXpub(destination); err != nil {
+		return "", 0, errors.New("destination is not a valid XPUB")
+	}
+
+	indexStr, _ := svc.cfg.Get(config.AutoSwapXpubIndexStart, "0")
+	index, _ := strconv.ParseUint(indexStr, 10, 32)
+
+	esploraApiRequester := func(endpoint string) (interface{}, error) {
+		url := svc.cfg.GetEnv().LDKEsploraServer + endpoint
+
+		client := http.Client{
+			Timeout: time.Second * 10,
+		}
+
+		req, err := http.NewRequest(http.MethodGet, url, nil)
+		if err != nil {
+			return nil, err
+		}
+		req = req.WithContext(svc.ctx)
+		res, err := client.Do(req)
+		if err != nil {
+			return nil, err
+		}
+		defer res.Body.Close()
+
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			return nil, err
+		}
+
+		var jsonContent interface{}
+		err = json.Unmarshal(body, &jsonContent)
+		if err != nil {
+			return nil, err
+		}
+		return jsonContent, nil
+	}
+
+	const addressLookAheadLimit = 100
+
+	for i := uint32(index); i < uint32(index)+addressLookAheadLimit; i++ {
+		address, err := svc.deriveAddressFromXpub(destination, i)
+		if err != nil {
+			return "", 0, fmt.Errorf("failed to derive address at index %d: %w", i, err)
+		}
+
+		hasTransactions, err := svc.checkAddressHasTransactions(address, esploraApiRequester)
+		if err != nil {
+			return "", 0, fmt.Errorf("failed to check address for transactions at index %d: %w", i, err)
+		}
+
+		if !hasTransactions {
+			return address, i, nil
+		}
+	}
+
+	return "", 0, fmt.Errorf("could not find unused address within %d addresses starting from index %d", addressLookAheadLimit, index)
+}
+
+func (svc *swapsService) validateXpub(xpub string) error {
+	_, err := hdkeychain.NewKeyFromString(xpub)
+	if err != nil {
+		return fmt.Errorf("invalid xpub: %w", err)
 	}
 	return nil
 }
