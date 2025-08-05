@@ -298,7 +298,21 @@ func (s *BarkService) ListTransactions(ctx context.Context, from, until, limit, 
 }
 
 func (s *BarkService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
-	return nil, errors.New("not implemented")
+	bdkTransactions := s.wallet.OnchainTransactions()
+
+	transactions := []lnclient.OnchainTransaction{}
+	for _, bdkTransaction := range bdkTransactions {
+		transactions = append(transactions, lnclient.OnchainTransaction{
+			AmountSat:        bdkTransaction.AmountSat,
+			CreatedAt:        bdkTransaction.CreatedAt,
+			State:            bdkTransaction.State,
+			Type:             bdkTransaction.TxType,
+			NumConfirmations: bdkTransaction.NumConfirmations,
+			TxId:             bdkTransaction.Txid,
+		})
+	}
+
+	return transactions, nil
 }
 
 func (s *BarkService) ListChannels(ctx context.Context) (channels []lnclient.Channel, err error) {

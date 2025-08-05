@@ -12,6 +12,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import { HealthCheckAlert } from "src/components/channels/HealthcheckAlert";
+import { OnchainTransactionsTable } from "src/components/channels/OnchainTransactionsTable";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import ResponsiveButton from "src/components/ResponsiveButton";
@@ -471,6 +472,7 @@ export function Ark() {
           </CardContent>
         </Card>
       )}
+      <OnchainTransactionsTable />
       {!vtxos && <Loading />}
       {!!vtxos?.length && (
         <Card className="">
