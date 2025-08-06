@@ -18,7 +18,6 @@ interface Platform {
 }
 
 interface ProductOpportunity {
-  id: string;
   title: string;
   logo: string;
   reward: string;
@@ -27,7 +26,6 @@ interface ProductOpportunity {
 
 const productOpportunities: ProductOpportunity[] = [
   {
-    id: "alby-go",
     title: "Alby Go",
     logo: albyGo,
     reward: "1,000 sats",
@@ -43,7 +41,6 @@ const productOpportunities: ProductOpportunity[] = [
     ],
   },
   {
-    id: "alby-extension",
     title: "Alby Extension",
     logo: albyExtension,
     reward: "1,000 sats",
@@ -59,7 +56,6 @@ const productOpportunities: ProductOpportunity[] = [
     ],
   },
   {
-    id: "alby-trustpilot",
     title: "Alby",
     logo: albyExtension,
     reward: "2,000 sats",
@@ -82,13 +78,13 @@ export function AlbyReviews() {
           <CardHeader>
             <CardTitle>Write a review, earn bitcoin</CardTitle>
             <CardDescription>
-              Help others discover Alby by sharing your experience. Send your
-              review link to{" "}
+              Help others discover Alby by sharing your experience. Send a link
+              to your review (or a screenshot) review link to{" "}
               <ExternalLink
-                to="mailto:hello@getalby.com"
+                to="mailto:support@getalby.com"
                 className="text-primary"
               >
-                hello@getalby.com
+                support@getalby.com
               </ExternalLink>{" "}
               to receive sats.
             </CardDescription>
@@ -96,7 +92,7 @@ export function AlbyReviews() {
           <CardContent>
             <div className="space-y-6">
               {productOpportunities.map((product) => (
-                <div key={product.id} className="flex items-center gap-4">
+                <div key={product.title} className="flex items-center gap-4">
                   <img
                     src={product.logo}
                     className="w-10 h-10 rounded-lg"
