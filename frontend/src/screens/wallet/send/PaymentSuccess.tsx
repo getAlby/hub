@@ -36,7 +36,7 @@ export default function PaymentSuccess() {
   };
 
   return (
-    <>
+    <div className="w-full md:max-w-lg">
       <Card className="w-full">
         <CardHeader>
           <CardTitle className="text-center">Payment Successful</CardTitle>
@@ -87,6 +87,6 @@ export default function PaymentSuccess() {
           Back To Wallet
         </Button>
       </Link>
-    </>
+    </div>
   );
 }

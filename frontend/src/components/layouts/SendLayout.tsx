@@ -1,7 +1,6 @@
-import { ArrowUpIcon, InfoIcon } from "lucide-react";
+import { InfoIcon } from "lucide-react";
 import { Outlet } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
-import BalanceCard from "src/components/BalanceCard";
 import Loading from "src/components/Loading";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
@@ -10,10 +9,8 @@ import { useTransactions } from "src/hooks/useTransactions";
 import dayjs from "dayjs";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { LinkButton } from "src/components/ui/button";
-import { useInfo } from "src/hooks/useInfo";
 
 export default function SendLayout() {
-  const { hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
   const { data: channels } = useChannels();
   const { data: transactionData } = useTransactions();
@@ -32,7 +29,7 @@ export default function SendLayout() {
             1000 * 60 * 60 * 24 /* payment pending in last 24h */
         /* TODO: remove diff check when expired transactions are marked as failed */
       ) && (
-        <Alert>
+        <Alert className="md:max-w-lg">
           <InfoIcon className="h-4 w-4" />
           <AlertTitle>Pending Payment</AlertTitle>
           <AlertDescription>
@@ -45,19 +42,7 @@ export default function SendLayout() {
           </AlertDescription>
         </Alert>
       )}
-      <div className="flex gap-12 w-full">
-        <div className="w-full max-w-lg">
-          <Outlet />
-        </div>
-        <BalanceCard
-          balance={balances.lightning.totalSpendable}
-          title="Spending Balance"
-          buttonTitle="Top Up"
-          buttonLink="/channels/outgoing"
-          BalanceCardIcon={ArrowUpIcon}
-          hasChannelManagement={!!hasChannelManagement}
-        />
-      </div>
+      <Outlet />
     </div>
   );
 }

@@ -75,31 +75,33 @@ export default function Send() {
   }
 
   return (
-    <form onSubmit={onSubmit}>
-      <Label htmlFor="recipient">Recipient</Label>
-      <div className="flex gap-2 mb-4">
-        <Input
-          id="recipient"
-          type="text"
-          value={recipient}
-          autoFocus
-          placeholder="Enter an invoice or Lightning Address"
-          onChange={(e) => {
-            setRecipient(e.target.value.trim());
-          }}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          className="px-2"
-          onClick={paste}
-        >
-          <ClipboardPasteIcon className="w-4 h-4" />
-        </Button>
-      </div>
-      <LoadingButton loading={isLoading} type="submit" disabled={!recipient}>
-        Continue
-      </LoadingButton>
-    </form>
+    <div className="w-full md:max-w-lg">
+      <form onSubmit={onSubmit}>
+        <Label htmlFor="recipient">Recipient</Label>
+        <div className="flex gap-2 mb-4">
+          <Input
+            id="recipient"
+            type="text"
+            value={recipient}
+            autoFocus
+            placeholder="Enter an invoice or Lightning Address"
+            onChange={(e) => {
+              setRecipient(e.target.value.trim());
+            }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            className="px-2"
+            onClick={paste}
+          >
+            <ClipboardPasteIcon className="w-4 h-4" />
+          </Button>
+        </div>
+        <LoadingButton loading={isLoading} type="submit" disabled={!recipient}>
+          Continue
+        </LoadingButton>
+      </form>
+    </div>
   );
 }
