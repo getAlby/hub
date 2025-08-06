@@ -43,6 +43,7 @@ export default function Receive() {
             <CardContent className="flex flex-col items-center gap-6 pt-6">
               <div className="relative flex items-center justify-center">
                 <QRCode
+                  level="Q"
                   value={me.lightning_address}
                   className="w-full h-auto"
                 />
