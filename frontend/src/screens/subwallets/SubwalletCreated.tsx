@@ -31,6 +31,7 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
@@ -389,7 +390,7 @@ export function SubwalletCreated() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Input
+                  <InputWithAdornment
                     type="text"
                     value={intendedLightningAddress}
                     onChange={(e) =>

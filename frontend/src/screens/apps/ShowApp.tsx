@@ -45,6 +45,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -384,7 +385,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                           {app.metadata.lud16}
                           {!app.metadata.lud16 && (
                             <div className="max-w-96 flex items-center gap-2">
-                              <Input
+                              <InputWithAdornment
                                 type="text"
                                 value={intendedLightningAddress}
                                 onChange={(e) =>
