@@ -22,9 +22,9 @@ import {
 } from "src/components/ui/alert-dialog";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { ONCHAIN_DUST_SATS } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
@@ -230,7 +230,7 @@ export default function WithdrawOnchainFunds() {
             {!!channels?.length &&
               (sendAll ||
                 +amount >
-                  balances.onchain.spendable - channels.length * 25000) && (
+                balances.onchain.spendable - channels.length * 25000) && (
                 <Alert className="mt-4">
                   <AlertTriangleIcon />
                   <AlertTitle>

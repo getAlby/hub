@@ -23,6 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Dialog,
   DialogContent,
@@ -33,7 +34,6 @@ import {
 } from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import {
@@ -524,11 +524,11 @@ function useWaitForNewChannel() {
   const newChannel =
     channels && order?.prevChannelIds
       ? channels.find(
-          (newChannel) =>
-            !order.prevChannelIds.some(
-              (current) => newChannel.id === current
-            ) && newChannel.fundingTxId
-        )
+        (newChannel) =>
+          !order.prevChannelIds.some(
+            (current) => newChannel.id === current
+          ) && newChannel.fundingTxId
+      )
       : undefined;
 
   React.useEffect(() => {

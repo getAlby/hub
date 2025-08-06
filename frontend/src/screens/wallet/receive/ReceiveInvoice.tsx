@@ -14,9 +14,9 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useBalances } from "src/hooks/useBalances";
@@ -99,7 +99,7 @@ export default function ReceiveInvoice() {
         <div className="grid gap-5">
           {hasChannelManagement &&
             parseInt(amount || "0") * 1000 >=
-              0.8 * balances.lightning.totalReceivable && (
+            0.8 * balances.lightning.totalReceivable && (
               <LowReceivingCapacityAlert />
             )}
           <div>

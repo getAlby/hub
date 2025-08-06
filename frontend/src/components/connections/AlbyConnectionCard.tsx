@@ -26,6 +26,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Dialog,
   DialogContent,
@@ -34,7 +35,6 @@ import {
   DialogHeader,
   DialogTrigger,
 } from "src/components/ui/dialog";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
 import {
   Tooltip,
@@ -102,8 +102,8 @@ function AlbyConnectionCard() {
             <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
               {loadingLinkStatus && <Loading />}
               {!albyAccountApp ||
-              linkStatus === LinkStatus.SharedNode ||
-              linkStatus === LinkStatus.Unlinked ? (
+                linkStatus === LinkStatus.SharedNode ||
+                linkStatus === LinkStatus.Unlinked ? (
                 <Dialog>
                   <DialogTrigger asChild>
                     <LoadingButton loading={loading}>

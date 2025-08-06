@@ -23,7 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { LoadingButton } from "src/components/ui/loading-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { useTheme } from "src/components/ui/theme-provider";
 import { useToast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";

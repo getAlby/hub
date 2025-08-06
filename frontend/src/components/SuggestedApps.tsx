@@ -10,7 +10,7 @@ import { SuggestedApp, suggestedApps } from "./SuggestedAppData";
 function SuggestedAppCard({ id, title, description, logo }: SuggestedApp) {
   return (
     <Link to={`/appstore/${id}`}>
-      <Card>
+      <Card className="h-full">
         <CardContent>
           <div className="flex gap-3 items-center">
             <img

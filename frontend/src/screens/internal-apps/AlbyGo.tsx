@@ -29,8 +29,8 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { createApp } from "src/requests/createApp";
@@ -229,54 +229,54 @@ export function AlbyGo() {
             app.zapStoreLink ||
             app.chromeLink ||
             app.firefoxLink) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl">Get This App</CardTitle>
-              </CardHeader>
-              <CardFooter className="flex flex-row gap-2">
-                {app.playLink && (
-                  <ExternalLink to={app.playLink}>
-                    <Button variant="outline">
-                      <PlayStoreIcon />
-                      Play Store
-                    </Button>
-                  </ExternalLink>
-                )}
-                {app.appleLink && (
-                  <ExternalLink to={app.appleLink}>
-                    <Button variant="outline">
-                      <AppleIcon />
-                      App Store
-                    </Button>
-                  </ExternalLink>
-                )}
-                {app.zapStoreLink && (
-                  <ExternalLink to={app.zapStoreLink}>
-                    <Button variant="outline">
-                      <ZapStoreIcon />
-                      Zapstore
-                    </Button>
-                  </ExternalLink>
-                )}
-                {app.chromeLink && (
-                  <ExternalLink to={app.chromeLink}>
-                    <Button variant="outline">
-                      <ChromeIcon />
-                      Chrome Web Store
-                    </Button>
-                  </ExternalLink>
-                )}
-                {app.firefoxLink && (
-                  <ExternalLink to={app.firefoxLink}>
-                    <Button variant="outline">
-                      <FirefoxIcon />
-                      Firefox Add-Ons
-                    </Button>
-                  </ExternalLink>
-                )}
-              </CardFooter>
-            </Card>
-          )}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-2xl">Get This App</CardTitle>
+                </CardHeader>
+                <CardFooter className="flex flex-row gap-2">
+                  {app.playLink && (
+                    <ExternalLink to={app.playLink}>
+                      <Button variant="outline">
+                        <PlayStoreIcon />
+                        Play Store
+                      </Button>
+                    </ExternalLink>
+                  )}
+                  {app.appleLink && (
+                    <ExternalLink to={app.appleLink}>
+                      <Button variant="outline">
+                        <AppleIcon />
+                        App Store
+                      </Button>
+                    </ExternalLink>
+                  )}
+                  {app.zapStoreLink && (
+                    <ExternalLink to={app.zapStoreLink}>
+                      <Button variant="outline">
+                        <ZapStoreIcon />
+                        Zapstore
+                      </Button>
+                    </ExternalLink>
+                  )}
+                  {app.chromeLink && (
+                    <ExternalLink to={app.chromeLink}>
+                      <Button variant="outline">
+                        <ChromeIcon />
+                        Chrome Web Store
+                      </Button>
+                    </ExternalLink>
+                  )}
+                  {app.firefoxLink && (
+                    <ExternalLink to={app.firefoxLink}>
+                      <Button variant="outline">
+                        <FirefoxIcon />
+                        Firefox Add-Ons
+                      </Button>
+                    </ExternalLink>
+                  )}
+                </CardFooter>
+              </Card>
+            )}
           {app.webLink && (
             <Card>
               <CardHeader>
