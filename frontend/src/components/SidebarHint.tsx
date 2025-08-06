@@ -141,7 +141,7 @@ function SidebarHintCard({
   onClose,
 }: SidebarHintCardProps) {
   return (
-    <Card>
+    <Card className="gap-3">
       <CardHeader>
         <Icon className="h-8 w-8 mb-2" />
         <CardTitle>{title}</CardTitle>
@@ -154,7 +154,7 @@ function SidebarHintCard({
           </button>
         )}
       </CardHeader>
-      <CardContent className="flex flex-col gap-2">
+      <CardContent className="flex flex-col gap-3">
         <div className="text-muted-foreground text-sm">{description}</div>
         <Link to={buttonLink}>
           <Button size="sm" className="w-full">
