@@ -1,15 +1,10 @@
-import {
-  AlertTriangleIcon,
-  ClipboardPasteIcon,
-  MoveRightIcon,
-  RefreshCwIcon,
-} from "lucide-react";
+import { ClipboardPasteIcon, MoveRightIcon, RefreshCwIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
+import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import ResponsiveButton from "src/components/ResponsiveButton";
-import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
@@ -128,18 +123,9 @@ function SwapInForm() {
         {hasChannelManagement &&
           parseInt(swapAmount || "0") * 1000 >=
           0.8 * balances.lightning.totalReceivable && (
-            <Alert className="mb-6">
-              <AlertTriangleIcon className="h-4 w-4" />
-              <AlertTitle>Low receiving capacity</AlertTitle>
-              <AlertDescription>
-                You likely won't be able to receive payments until you{" "}
-                <Link className="underline" to="/channels/incoming">
-                  increase your receiving capacity.
-                </Link>
-              </AlertDescription>
-            </Alert>
+            <LowReceivingCapacityAlert />
           )}
-        <h2 className="font-medium text-foreground flex items-center gap-1">
+        <h2 className="mt-4 font-medium text-foreground flex items-center gap-1">
           On-chain <MoveRightIcon /> Lightning
         </h2>
         <p className="mt-1 text-muted-foreground">

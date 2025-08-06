@@ -90,7 +90,7 @@ export function SubwalletCreated() {
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Important</AlertTitle>
-        <AlertDescription>
+        <AlertDescription className="[&]:!flex [&]:flex-wrap">
           For your security, these connection details are only visible now and{" "}
           <span className="font-semibold">cannot be retrieved later</span>. If
           needed, you can store them in a password manager for future reference.
