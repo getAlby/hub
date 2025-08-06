@@ -101,7 +101,7 @@ func main() {
 
 	// NOTE: we assume that excess response events have already been cleaned up due to the background task
 	// and only a maximum of ~1000 remain.
-	logger.Logger.Info("Deleting orphaned request events.")
+	logger.Logger.Info("Deleting orphaned response events.")
 	err = fromDB.Exec("DELETE FROM response_events WHERE request_id NOT IN (SELECT id FROM request_events);").Error
 
 	if err != nil {
