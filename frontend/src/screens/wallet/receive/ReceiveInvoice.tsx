@@ -1,20 +1,11 @@
-import {
-  AlertTriangleIcon,
-  CircleCheckIcon,
-  CopyIcon,
-  ReceiptTextIcon,
-} from "lucide-react";
+import { CircleCheckIcon, CopyIcon, ReceiptTextIcon } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import QRCode from "src/components/QRCode";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "src/components/ui/alert.tsx";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -109,24 +100,7 @@ export default function ReceiveInvoice() {
           {hasChannelManagement &&
             parseInt(amount || "0") * 1000 >=
               0.8 * balances.lightning.totalReceivable && (
-              <Alert>
-                <AlertTriangleIcon className="h-4 w-4" />
-                <AlertTitle>Low receiving limit</AlertTitle>
-                <AlertDescription>
-                  You likely won't be able to receive payments until you{" "}
-                  <Link className="underline" to="/wallet/send">
-                    spend
-                  </Link>
-                  ,{" "}
-                  <Link className="underline" to="/wallet/swap?type=out">
-                    swap out funds
-                  </Link>
-                  , or{" "}
-                  <Link className="underline" to="/channels/incoming">
-                    increase your receiving capacity.
-                  </Link>
-                </AlertDescription>
-              </Alert>
+              <LowReceivingCapacityAlert />
             )}
           <div>
             {transaction ? (
