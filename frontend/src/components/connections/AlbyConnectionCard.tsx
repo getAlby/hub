@@ -85,7 +85,7 @@ function AlbyConnectionCard() {
       </CardHeader>
       <Separator />
       <CardContent className="group">
-        <div className="grid grid-cols-1 xl:grid-cols-2 mt-5 gap-3 items-center relative">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 items-center relative">
           <div className="flex flex-col gap-4">
             <div className="flex flex-row gap-4">
               <UserAvatar className="h-14 w-14" />
@@ -102,8 +102,8 @@ function AlbyConnectionCard() {
             <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
               {loadingLinkStatus && <Loading />}
               {!albyAccountApp ||
-                linkStatus === LinkStatus.SharedNode ||
-                linkStatus === LinkStatus.Unlinked ? (
+              linkStatus === LinkStatus.SharedNode ||
+              linkStatus === LinkStatus.Unlinked ? (
                 <Dialog>
                   <DialogTrigger asChild>
                     <LoadingButton loading={loading}>
