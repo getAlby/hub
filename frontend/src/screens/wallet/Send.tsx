@@ -1,3 +1,4 @@
+import { validate } from "bitcoin-address-validation";
 import { ClipboardPasteIcon } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
@@ -30,6 +31,15 @@ export default function Send() {
     event.preventDefault();
     try {
       setLoading(true);
+      if (validate(recipient)) {
+        navigate(`/wallet/send/onchain`, {
+          state: {
+            args: { address: recipient },
+          },
+        });
+        return;
+      }
+
       if (recipient.includes("@")) {
         const lnAddress = new LightningAddress(recipient);
         await lnAddress.fetch();
@@ -75,31 +85,33 @@ export default function Send() {
   }
 
   return (
-    <form onSubmit={onSubmit}>
-      <Label htmlFor="recipient">Recipient</Label>
-      <div className="flex gap-2 mb-4">
-        <Input
-          id="recipient"
-          type="text"
-          value={recipient}
-          autoFocus
-          placeholder="Enter an invoice or Lightning Address"
-          onChange={(e) => {
-            setRecipient(e.target.value.trim());
-          }}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          className="px-2"
-          onClick={paste}
-        >
-          <ClipboardPasteIcon className="w-4 h-4" />
-        </Button>
-      </div>
-      <LoadingButton loading={isLoading} type="submit" disabled={!recipient}>
-        Continue
-      </LoadingButton>
-    </form>
+    <div className="w-full md:max-w-lg">
+      <form onSubmit={onSubmit}>
+        <Label htmlFor="recipient">Recipient</Label>
+        <div className="flex gap-2 mb-4">
+          <Input
+            id="recipient"
+            type="text"
+            value={recipient}
+            autoFocus
+            placeholder="Invoice, lightning address, on-chain"
+            onChange={(e) => {
+              setRecipient(e.target.value.trim());
+            }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            className="px-2"
+            onClick={paste}
+          >
+            <ClipboardPasteIcon className="w-4 h-4" />
+          </Button>
+        </div>
+        <LoadingButton loading={isLoading} type="submit" disabled={!recipient}>
+          Continue
+        </LoadingButton>
+      </form>
+    </div>
   );
 }

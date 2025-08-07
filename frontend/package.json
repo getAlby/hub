@@ -41,6 +41,7 @@
     "@radix-ui/react-tooltip": "^1.1.8",
     "@scure/bip39": "^1.2.2",
     "argon2-wasm-esm": "^1.0.3",
+    "bitcoin-address-validation": "^3.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.0",
     "compare-versions": "^6.1.1",
