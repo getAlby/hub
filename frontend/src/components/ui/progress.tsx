@@ -26,23 +26,4 @@ function Progress({
   );
 }
 
-function CircleProgress({
-  className,
-  value,
-  ...props
-}: React.ComponentProps<typeof ProgressPrimitive.Root>) {
-  <ProgressPrimitive.Root
-    className={cn(
-      `relative h-20 w-20 overflow-hidden rounded-full flex justify-center items-center`,
-      className
-    )}
-    {...props}
-    style={{
-      background: `radial-gradient(closest-side, hsl(var(--background)) 79%, transparent 80% 100%), conic-gradient(hsl(var(--primary)) ${value || 0}%, hsl(var(--secondary)) 0)`,
-    }}
-  >
-    {props.children || <div className="">{`${value || 0}%`}</div>}
-  </ProgressPrimitive.Root>;
-}
-
-export { CircleProgress, Progress };
+export { Progress };

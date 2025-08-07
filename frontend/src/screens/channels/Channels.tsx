@@ -36,6 +36,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card.tsx";
+import CircleProgress from "src/components/ui/custom/circle-progress";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,7 +46,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu.tsx";
-import { CircleProgress } from "src/components/ui/progress.tsx";
 import {
   Tooltip,
   TooltipContent,
@@ -292,11 +292,11 @@ export default function Channels() {
                         )}
                         <HeartIcon
                           className="size-4"
-                          stroke={"hsl(var(--primary))"}
+                          stroke={"var(--color-primary)"}
                           strokeWidth={3}
                           fill={
                             nodeHealth === 100
-                              ? "hsl(var(--primary))"
+                              ? "var(--color-primary)"
                               : "transparent"
                           }
                         />
