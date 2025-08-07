@@ -32,9 +32,9 @@ import {
 } from "src/components/ui/card";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import {
   Popover,
   PopoverContent,
@@ -90,7 +90,7 @@ export function SubwalletCreated() {
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Important</AlertTitle>
-        <AlertDescription>
+        <AlertDescription className="[&]:!flex [&]:flex-wrap">
           For your security, these connection details are only visible now and{" "}
           <span className="font-semibold">cannot be retrieved later</span>. If
           needed, you can store them in a password manager for future reference.

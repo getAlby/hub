@@ -1,8 +1,8 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "src/components/ui/button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 
 import { Invoice } from "@getalby/lightning-tools";
@@ -80,10 +80,10 @@ export default function ConfirmPayment() {
 
   const maxSpendable = Math.max(
     balances.lightning.nextMaxSpendableMPP -
-      Math.max(
-        0.01 * balances.lightning.nextMaxSpendableMPP,
-        10000 /* fee reserve */
-      ),
+    Math.max(
+      0.01 * balances.lightning.nextMaxSpendableMPP,
+      10000 /* fee reserve */
+    ),
     0
   );
 

@@ -23,6 +23,7 @@ import { OnchainTransactionsTable } from "src/components/channels/OnchainTransac
 import EmptyState from "src/components/EmptyState.tsx";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
+import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import ResponsiveButton from "src/components/ResponsiveButton";
 import {
   Alert,
@@ -322,27 +323,7 @@ export default function Channels() {
                 (channel) =>
                   channel.remoteBalance <
                   (channel.localBalance + channel.remoteBalance) * 0.2
-              ) && (
-                <Alert variant="warning">
-                  <AlertTriangleIcon />
-                  <AlertTitle>Low receiving limit</AlertTitle>
-                  <AlertDescription>
-                    You likely won't be able to receive payments until you{" "}
-                    <Link className="underline" to="/wallet/send">
-                      spend
-                    </Link>
-                    ,{" "}
-                    <Link className="underline" to="/wallet/swap?type=out">
-                      swap out funds
-                    </Link>{" "}
-                    or{" "}
-                    <Link className="underline" to="/channels/incoming">
-                      increase your receiving limits
-                    </Link>
-                    .
-                  </AlertDescription>
-                </Alert>
-              )}
+              ) && <LowReceivingCapacityAlert />}
             </>
           )}
 

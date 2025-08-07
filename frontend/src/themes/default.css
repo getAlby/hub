@@ -6,6 +6,7 @@
 /* Use generalized selector (:root, .dark) here because all themes 
    should fall back to these values */
 :root {
+  --font-sans: "Inter var", serif;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -134,4 +135,7 @@
 
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+
+  --animate-spin-slow: spin 3s linear infinite;
+  --animate-highlight: pulse 1s 2 cubic-bezier(0.4, 0, 0.6, 1);
 }

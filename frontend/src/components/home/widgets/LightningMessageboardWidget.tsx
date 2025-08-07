@@ -13,6 +13,7 @@ import React from "react";
 import Loading from "src/components/Loading";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +24,6 @@ import {
 } from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
 import { Textarea } from "src/components/ui/textarea";
 import { useToast } from "src/components/ui/use-toast";
@@ -95,8 +95,8 @@ export function LightningMessageboardWidget() {
             message: transaction.description,
             name: (
               transaction.metadata as
-                | { payer_data?: { name?: string } }
-                | undefined
+              | { payer_data?: { name?: string } }
+              | undefined
             )?.payer_data?.name as string | undefined,
             amount: Math.floor(transaction.amount / 1000),
           }));

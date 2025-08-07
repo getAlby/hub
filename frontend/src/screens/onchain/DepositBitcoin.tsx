@@ -23,7 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { LoadingButton } from "src/components/ui/loading-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { useTheme } from "src/components/ui/theme-provider";
 import { useToast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";
@@ -98,7 +98,7 @@ export default function DepositBitcoin() {
           <DepositPending amount={pendingAmount} txId={txId} />
         ) : (
           <Card>
-            <CardContent className="grid gap-6 p-8 justify-center border border-muted">
+            <CardContent className="grid gap-6 p-8 justify-center">
               <a
                 href={`bitcoin:${onchainAddress}`}
                 target="_blank"

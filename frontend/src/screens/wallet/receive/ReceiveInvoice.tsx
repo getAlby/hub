@@ -1,20 +1,11 @@
-import {
-  AlertTriangleIcon,
-  CircleCheckIcon,
-  CopyIcon,
-  ReceiptTextIcon,
-} from "lucide-react";
+import { CircleCheckIcon, CopyIcon, ReceiptTextIcon } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import QRCode from "src/components/QRCode";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "src/components/ui/alert.tsx";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -23,9 +14,9 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useBalances } from "src/hooks/useBalances";
@@ -108,25 +99,8 @@ export default function ReceiveInvoice() {
         <div className="grid gap-5">
           {hasChannelManagement &&
             parseInt(amount || "0") * 1000 >=
-              0.8 * balances.lightning.totalReceivable && (
-              <Alert>
-                <AlertTriangleIcon className="h-4 w-4" />
-                <AlertTitle>Low receiving limit</AlertTitle>
-                <AlertDescription>
-                  You likely won't be able to receive payments until you{" "}
-                  <Link className="underline" to="/wallet/send">
-                    spend
-                  </Link>
-                  ,{" "}
-                  <Link className="underline" to="/wallet/swap?type=out">
-                    swap out funds
-                  </Link>
-                  , or{" "}
-                  <Link className="underline" to="/channels/incoming">
-                    increase your receiving capacity.
-                  </Link>
-                </AlertDescription>
-              </Alert>
+            0.8 * balances.lightning.totalReceivable && (
+              <LowReceivingCapacityAlert />
             )}
           <div>
             {transaction ? (

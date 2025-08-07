@@ -26,6 +26,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Dialog,
   DialogContent,
@@ -34,7 +35,6 @@ import {
   DialogHeader,
   DialogTrigger,
 } from "src/components/ui/dialog";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
 import {
   Tooltip,
@@ -85,7 +85,7 @@ function AlbyConnectionCard() {
       </CardHeader>
       <Separator />
       <CardContent className="group">
-        <div className="grid grid-cols-1 xl:grid-cols-2 mt-5 gap-3 items-center relative">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 items-center relative">
           <div className="flex flex-col gap-4">
             <div className="flex flex-row gap-4">
               <UserAvatar className="h-14 w-14" />
