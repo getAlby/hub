@@ -943,12 +943,14 @@ func (httpSvc *HttpService) appsListHandler(c echo.Context) error {
 
 	filtersJSON := c.QueryParam("filters")
 	var filters api.ListAppsFilters
-	err := json.Unmarshal([]byte(filtersJSON), &filters)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"filters": filtersJSON,
-		}).Error("Failed to deserialize app filters")
-		return err
+	if filtersJSON != "" {
+		err := json.Unmarshal([]byte(filtersJSON), &filters)
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"filters": filtersJSON,
+			}).Error("Failed to deserialize app filters")
+			return err
+		}
 	}
 
 	orderBy := c.QueryParam("order_by")
