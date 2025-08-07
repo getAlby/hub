@@ -1,11 +1,14 @@
 import {
   AlertTriangleIcon,
-  CircleCheckIcon,
+  ArrowLeftIcon,
   CopyIcon,
+  PlusIcon,
   ReceiptTextIcon,
 } from "lucide-react";
+import TickSVG from "public/images/illustrations/tick.svg";
 import React from "react";
 import { Link } from "react-router-dom";
+import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
@@ -15,7 +18,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "src/components/ui/alert.tsx";
-import { Button } from "src/components/ui/button";
+import { Button, LinkButton } from "src/components/ui/button";
 import {
   Card,
   CardContent,
@@ -103,9 +106,10 @@ export default function ReceiveInvoice() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-6">
-      <div className="w-full md:max-w-lg">
-        <div className="grid gap-5">
+    <div className="grid gap-5">
+      <AppHeader title={transaction ? "Lightning Invoice" : "Create Invoice"} />
+      <div className="flex flex-col md:flex-row gap-6">
+        <div className="w-full md:max-w-lg grid gap-6">
           {hasChannelManagement &&
             parseInt(amount || "0") * 1000 >=
               0.8 * balances.lightning.totalReceivable && (
@@ -130,7 +134,7 @@ export default function ReceiveInvoice() {
             )}
           <div>
             {transaction ? (
-              <Card className="w-full md:max-w-xs">
+              <Card>
                 {!paymentDone ? (
                   <>
                     <CardHeader>
@@ -139,56 +143,72 @@ export default function ReceiveInvoice() {
                         <p>Waiting for payment</p>
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="flex flex-col items-center gap-4">
+                    <CardContent className="flex flex-col items-center gap-6">
                       <QRCode value={transaction.invoice} className="w-full" />
-                      <div className="flex flex-col gap-2 items-center">
-                        <p className="text-xl font-semibold slashed-zero">
-                          {new Intl.NumberFormat().format(parseInt(amount))}{" "}
-                          sats
+                      <div className="flex flex-col gap-1 items-center">
+                        <p className="text-2xl font-medium slashed-zero">
+                          {new Intl.NumberFormat().format(+amount)} sats
                         </p>
-                        <FormattedFiatAmount amount={parseInt(amount)} />
-                      </div>
-                      <div>
-                        <Button onClick={copy} variant="outline">
-                          <CopyIcon className="w-4 h-4 mr-2" />
-                          Copy Invoice
-                        </Button>
+                        <FormattedFiatAmount
+                          amount={+amount}
+                          className="text-xl"
+                        />
                       </div>
                     </CardContent>
+                    <CardFooter className="flex flex-col gap-2">
+                      <Button
+                        className="w-full"
+                        onClick={copy}
+                        variant="outline"
+                      >
+                        <CopyIcon className="w-4 h-4 mr-2" />
+                        Copy Invoice
+                      </Button>
+                    </CardFooter>
                   </>
                 ) : (
                   <>
                     <CardHeader>
                       <CardTitle className="text-center">
-                        Payment Received!
+                        Payment Received
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="flex flex-col items-center gap-4">
-                      <CircleCheckIcon className="w-72 h-72 p-2" />
-                      <div className="flex flex-col gap-2 items-center">
-                        <p className="text-xl font-semibold slashed-zero">
+                    <CardContent className="flex flex-col items-center gap-6">
+                      <img src={TickSVG} className="w-48" />
+                      <div className="flex flex-col gap-1 items-center">
+                        <p className="text-2xl font-medium slashed-zero">
                           {new Intl.NumberFormat().format(parseInt(amount))}{" "}
                           sats
                         </p>
-                        <FormattedFiatAmount amount={parseInt(amount)} />
-                      </div>
-                      <div>
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setPaymentDone(false);
-                            setTransaction(null);
-                          }}
-                        >
-                          Receive Another Payment
-                        </Button>
+                        <FormattedFiatAmount
+                          amount={parseInt(amount)}
+                          className="text-xl"
+                        />
                       </div>
                     </CardContent>
+                    <CardFooter className="flex flex-col gap-2 pt-2">
+                      <Button
+                        onClick={copy}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        <PlusIcon className="w-4 h-4 mr-2" />
+                        Create Another Invoice
+                      </Button>
+                      <LinkButton
+                        to="/wallet"
+                        variant="link"
+                        className="w-full"
+                      >
+                        <ArrowLeftIcon className="w-4 h-4 mr-2" />
+                        Back to Wallet
+                      </LinkButton>
+                    </CardFooter>
                   </>
                 )}
               </Card>
             ) : (
-              <form onSubmit={handleSubmit} className="grid gap-5">
+              <form onSubmit={handleSubmit} className="grid gap-6">
                 <div>
                   <Label htmlFor="amount">Amount</Label>
                   <Input
@@ -201,8 +221,11 @@ export default function ReceiveInvoice() {
                     }}
                     min={1}
                     autoFocus
+                    className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    endAdornment={
+                      <FormattedFiatAmount amount={+amount} className="mr-2" />
+                    }
                   />
-                  <FormattedFiatAmount amount={+amount} className="mt-2" />
                 </div>
                 <div>
                   <Label htmlFor="description">Description</Label>
@@ -239,11 +262,11 @@ export default function ReceiveInvoice() {
             )}
           </div>
         </div>
+        {!transaction &&
+          (!info?.albyAccountConnected || !me?.lightning_address) && (
+            <LightningAddressCard />
+          )}
       </div>
-      {!transaction &&
-        (!info?.albyAccountConnected || !me?.lightning_address) && (
-          <LightningAddressCard />
-        )}
     </div>
   );
 }

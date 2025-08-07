@@ -1,6 +1,5 @@
 import { Navigate } from "react-router-dom";
 import AppLayout from "src/components/layouts/AppLayout";
-import ReceiveLayout from "src/components/layouts/ReceiveLayout";
 import SendLayout from "src/components/layouts/SendLayout";
 import SettingsLayout from "src/components/layouts/SettingsLayout";
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
@@ -148,7 +147,6 @@ const routes = [
           {
             path: "receive",
             handle: { crumb: () => "Receive" },
-            element: <ReceiveLayout />,
             children: [
               {
                 index: true,
