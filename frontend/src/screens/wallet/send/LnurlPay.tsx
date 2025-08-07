@@ -1,14 +1,16 @@
 import { LightningAddress } from "@getalby/lightning-tools";
 import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
-import { Button } from "src/components/ui/button";
+import { LinkButton } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
-import { TransactionMetadata } from "src/types";
+import { PayInvoiceResponse, TransactionMetadata } from "src/types";
+import { request } from "src/utils/request";
 
 export default function LnurlPay() {
   const { state } = useLocation();
@@ -37,13 +39,30 @@ export default function LnurlPay() {
         ...(comment && { comment }),
         ...(identifier && { recipient_data: { identifier } }),
       };
-      navigate(`/wallet/send/confirm-payment`, {
-        state: {
-          args: {
-            paymentRequest: invoice,
+      const payInvoiceResponse = await request<PayInvoiceResponse>(
+        `/api/payments/${invoice.paymentRequest}`,
+        {
+          method: "POST",
+          body: JSON.stringify({
             metadata,
+          }),
+          headers: {
+            "Content-Type": "application/json",
           },
+        }
+      );
+      if (!payInvoiceResponse?.preimage) {
+        throw new Error("No preimage in response");
+      }
+      navigate(`/wallet/send/success`, {
+        state: {
+          preimage: payInvoiceResponse.preimage,
+          invoice,
+          to: lnAddress.address,
         },
+      });
+      toast({
+        title: "Successfully paid invoice",
       });
     } catch (e) {
       toast({
@@ -68,54 +87,75 @@ export default function LnurlPay() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-5 md:max-w-lg">
+    <form onSubmit={onSubmit} className="grid gap-6 md:max-w-lg">
       <div className="grid gap-2">
-        <p className="font-medium text-lg">{lnAddress.address}</p>
-        {lnAddress.lnurlpData?.description && (
+        <Label>Recipient</Label>
+        <p>{lnAddress.address}</p>
+      </div>
+      {lnAddress.lnurlpData?.description && (
+        <div className="grid gap-2">
+          <Label>Description</Label>
+          <p className="text-muted-foreground">
+            {lnAddress.lnurlpData.description}
+          </p>
+        </div>
+      )}
+      <div className="grid gap-2">
+        <Label htmlFor="amount">Amount</Label>
+        <Input
+          id="amount"
+          type="number"
+          value={amount}
+          placeholder="Amount in Satoshi..."
+          onChange={(e) => {
+            setAmount(e.target.value.trim());
+          }}
+          min={1}
+          required
+          autoFocus
+          className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          endAdornment={
+            <FormattedFiatAmount amount={Number(amount)} className="mr-2" />
+          }
+        />
+        <div className="flex justify-between text-muted-foreground text-sm sensitive slashed-zero">
           <div>
-            <Label>Description</Label>
-            <p className="text-muted-foreground">
-              {lnAddress.lnurlpData.description}
-            </p>
+            Spending Balance:{" "}
+            {new Intl.NumberFormat().format(
+              balances.lightning.totalSpendable / 1000
+            )}{" "}
+            sats
           </div>
-        )}
-        <div>
-          <Label htmlFor="amount">Amount</Label>
-          <Input
-            id="amount"
-            type="number"
-            value={amount}
-            placeholder="Amount in Satoshi..."
-            onChange={(e) => {
-              setAmount(e.target.value.trim());
-            }}
-            min={1}
-            required
-            autoFocus
+          <FormattedFiatAmount
+            amount={balances.lightning.totalSpendable / 1000}
           />
         </div>
-        {!!lnAddress.lnurlpData?.commentAllowed && (
-          <div>
-            <Label htmlFor="comment">Comment</Label>
-            <Input
-              id="comment"
-              type="text"
-              value={comment}
-              placeholder="Optional"
-              onChange={(e) => {
-                setComment(e.target.value);
-              }}
-            />
-          </div>
-        )}
       </div>
-      <div className="flex gap-4">
-        <LoadingButton loading={isLoading} type="submit">
-          Continue
+      {!!lnAddress.lnurlpData?.commentAllowed && (
+        <div className="grid gap-2">
+          <Label htmlFor="comment">Comment</Label>
+          <Input
+            id="comment"
+            type="text"
+            value={comment}
+            placeholder="Optional"
+            onChange={(e) => {
+              setComment(e.target.value);
+            }}
+          />
+        </div>
+      )}
+      <div className="flex gap-2">
+        <LinkButton to="/wallet/send" variant="outline">
+          Back
+        </LinkButton>
+        <LoadingButton
+          loading={isLoading}
+          type="submit"
+          className="w-full md:w"
+        >
+          Send
         </LoadingButton>
-        <Link to="/wallet/send">
-          <Button variant="secondary">Back</Button>
-        </Link>
       </div>
     </form>
   );
