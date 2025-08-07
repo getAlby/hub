@@ -1,3 +1,4 @@
+import { validate } from "bitcoin-address-validation";
 import { ClipboardPasteIcon } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
@@ -30,6 +31,15 @@ export default function Send() {
     event.preventDefault();
     try {
       setLoading(true);
+      if (validate(recipient)) {
+        navigate(`/wallet/send/onchain`, {
+          state: {
+            args: { address: recipient },
+          },
+        });
+        return;
+      }
+
       if (recipient.includes("@")) {
         const lnAddress = new LightningAddress(recipient);
         await lnAddress.fetch();
@@ -84,7 +94,7 @@ export default function Send() {
             type="text"
             value={recipient}
             autoFocus
-            placeholder="Enter an invoice or Lightning Address"
+            placeholder="Invoice, lightning address, on-chain"
             onChange={(e) => {
               setRecipient(e.target.value.trim());
             }}

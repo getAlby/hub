@@ -84,6 +84,8 @@ import ReceiveInvoice from "src/screens/wallet/receive/ReceiveInvoice";
 import ReceiveOffer from "src/screens/wallet/receive/ReceiveOffer";
 import ConfirmPayment from "src/screens/wallet/send/ConfirmPayment";
 import LnurlPay from "src/screens/wallet/send/LnurlPay";
+import Onchain from "src/screens/wallet/send/Onchain";
+import OnchainSuccess from "src/screens/wallet/send/OnchainSuccess";
 import PaymentSuccess from "src/screens/wallet/send/PaymentSuccess";
 import ZeroAmount from "src/screens/wallet/send/ZeroAmount";
 import Swap from "src/screens/wallet/swap";
@@ -174,6 +176,10 @@ const routes = [
                 element: <Send />,
               },
               {
+                path: "onchain",
+                element: <Onchain />,
+              },
+              {
                 path: "lnurl-pay",
                 element: <LnurlPay />,
               },
@@ -184,6 +190,10 @@ const routes = [
               {
                 path: "confirm-payment",
                 element: <ConfirmPayment />,
+              },
+              {
+                path: "onchain-success",
+                element: <OnchainSuccess />,
               },
               {
                 path: "success",

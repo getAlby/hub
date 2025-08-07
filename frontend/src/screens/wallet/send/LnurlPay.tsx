@@ -118,7 +118,7 @@ export default function LnurlPay() {
             <FormattedFiatAmount amount={Number(amount)} className="mr-2" />
           }
         />
-        <div className="flex justify-between text-muted-foreground text-sm sensitive slashed-zero">
+        <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
           <div>
             Spending Balance:{" "}
             {new Intl.NumberFormat().format(
@@ -127,6 +127,7 @@ export default function LnurlPay() {
             sats
           </div>
           <FormattedFiatAmount
+            className="text-xs"
             amount={balances.lightning.totalSpendable / 1000}
           />
         </div>
