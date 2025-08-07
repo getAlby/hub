@@ -3,8 +3,9 @@
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from "embla-carousel-react";
-import { ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import * as React from "react";
+
 import { Button } from "src/components/ui/button";
 import { cn } from "src/lib/utils";
 
@@ -200,7 +201,7 @@ function CarouselPrevious({
       onClick={scrollPrev}
       {...props}
     >
-      <ArrowLeftIcon />
+      <ArrowLeft />
       <span className="sr-only">Previous slide</span>
     </Button>
   );
@@ -230,49 +231,15 @@ function CarouselNext({
       onClick={scrollNext}
       {...props}
     >
-      <ArrowRightIcon />
+      <ArrowRight />
       <span className="sr-only">Next slide</span>
     </Button>
-  );
-}
-
-function CarouselDots({ className, ...props }: React.ComponentProps<"div">) {
-  const { selectedIndex, scrollTo, api } = useCarousel();
-
-  return (
-    <div
-      role="tablist"
-      className={cn(
-        "absolute bottom-0 w-full flex items-center justify-center gap-2",
-        className
-      )}
-      {...props}
-    >
-      {api
-        ?.scrollSnapList()
-        .map((_, index) => (
-          <button
-            key={index}
-            role="tab"
-            data-slot="carousel-dot"
-            aria-selected={index === selectedIndex}
-            aria-controls="carousel-item"
-            aria-label={`Slide ${index + 1}`}
-            className={cn(
-              "size-2.5 rounded-full border border-ring cursor-pointer",
-              index === selectedIndex ? "bg-ring" : "bg-transparent"
-            )}
-            onClick={() => scrollTo(index)}
-          />
-        ))}
-    </div>
   );
 }
 
 export {
   Carousel,
   CarouselContent,
-  CarouselDots,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
