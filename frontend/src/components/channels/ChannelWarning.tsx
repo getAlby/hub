@@ -19,7 +19,7 @@ export function ChannelWarning({ channel }: ChannelWarningProps) {
   }
   if (!channelWarning && channel.status === "offline") {
     channelWarning =
-      "This channel is currently offline and cannot be used to send or receive payments. Please contact Alby Support for more information.";
+      "This channel is currently offline and cannot be used to send or receive payments.";
   }
   if (!channelWarning && channel.localSpendableBalance > capacity * 0.9) {
     channelWarning =
