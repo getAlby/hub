@@ -20,8 +20,8 @@ import {
 import {
   CarouselDotButton,
   CarouselDots,
-  useDotButton,
 } from "src/components/ui/custom/carousel-dots";
+import { useDotButton } from "src/components/ui/custom/useDotButton";
 import { useTheme } from "src/components/ui/theme-provider";
 import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";

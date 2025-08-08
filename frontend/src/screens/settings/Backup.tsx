@@ -1,4 +1,5 @@
 import {
+  AlertTriangle,
   ExternalLinkIcon,
   EyeIcon,
   Link2Icon,
@@ -108,10 +109,14 @@ export default function Backup() {
               your unlock password.
             </p>
           </div>
-          <p className="text-sm text-destructive">
-            If you loose access to your Hub and do not have your recovery
-            phrase, you will loose access to your funds.
-          </p>
+          <Alert variant="destructive">
+            <AlertTriangle />
+            <AlertTitle>Important</AlertTitle>
+            <AlertDescription>
+              If you loose access to your Hub and do not have your recovery
+              phrase, you will loose access to your funds.
+            </AlertDescription>
+          </Alert>
           {info?.backendType === "CASHU" && <CashuMnemonicWarning />}
 
           <div>

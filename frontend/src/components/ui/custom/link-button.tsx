@@ -1,8 +1,8 @@
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
 import { Link } from "react-router-dom";
-import { buttonVariants } from "src/components/ui/button";
 import { cn } from "src/lib/utils";
+import { buttonVariants } from "../buttonVariants";
 
 export function LinkButton({
   className,

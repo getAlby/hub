@@ -1,7 +1,8 @@
 import { VariantProps } from "class-variance-authority";
 import { LucideIcon } from "lucide-react";
 import * as React from "react";
-import { Button, buttonVariants } from "./ui/button";
+import { Button } from "./ui/button";
+import { buttonVariants } from "./ui/buttonVariants";
 
 type Props = {
   icon: LucideIcon;

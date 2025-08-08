@@ -42,7 +42,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "src/components/ui/sidebar";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import UserAvatar from "src/components/UserAvatar";
@@ -51,6 +50,7 @@ import { useHealthCheck } from "src/hooks/useHealthCheck";
 import { useInfo } from "src/hooks/useInfo";
 import { deleteAuthToken } from "src/lib/auth";
 import { isHttpMode } from "src/utils/isHttpMode";
+import { useSidebar } from "./ui/useSidebar";
 
 export function AppSidebar() {
   const { data: albyMe } = useAlbyMe();

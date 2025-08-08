@@ -1,15 +1,23 @@
 import { Loader2Icon } from "lucide-react";
 import * as React from "react";
-import { Button, buttonVariants } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
 
-export interface ButtonProps
-  extends React.ComponentProps<typeof Button> {
+export interface ButtonProps extends React.ComponentProps<typeof Button> {
   loading?: boolean;
 }
 
 const LoadingButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
   (
-    { className, variant, size, asChild = false, loading, children, disabled, ...props },
+    {
+      className,
+      variant,
+      size,
+      asChild = false,
+      loading,
+      children,
+      disabled,
+      ...props
+    },
     ref
   ) => {
     return (
@@ -22,9 +30,7 @@ const LoadingButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         {...props}
       >
-        {loading && (
-          <Loader2Icon className="size-4 animate-spin" />
-        )}
+        {loading && <Loader2Icon className="size-4 animate-spin" />}
         {children}
       </Button>
     );
@@ -32,4 +38,4 @@ const LoadingButton = React.forwardRef<HTMLButtonElement, ButtonProps>(
 );
 LoadingButton.displayName = "LoadingButton";
 
-export { buttonVariants, LoadingButton };
+export { LoadingButton };

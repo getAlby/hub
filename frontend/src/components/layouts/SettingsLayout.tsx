@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
-import { buttonVariants } from "src/components/ui/button";
+import { buttonVariants } from "../ui/buttonVariants";
 
 import { useInfo } from "src/hooks/useInfo";
 
