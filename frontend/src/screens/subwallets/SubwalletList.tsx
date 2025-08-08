@@ -105,10 +105,14 @@ export function SubwalletList() {
         <>
           <Alert>
             <InfoIcon />
-            <AlertTitle>Need more Sub-wallets?</AlertTitle>
-            <AlertDescription>
-              Upgrade your subscription plan to Pro unlock unlimited number of
-              Sub-wallets.
+            <AlertTitle className="flex flex-row">
+              Need more Sub-wallets?
+            </AlertTitle>
+            <AlertDescription className="flex flex-row">
+              <p className="grow">
+                Upgrade your subscription plan to Pro unlock unlimited number of
+                Sub-wallets.
+              </p>
               <UpgradeDialog>
                 <Button>
                   <SparklesIcon />
