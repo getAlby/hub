@@ -1,5 +1,4 @@
-import { Invoice } from "@getalby/lightning-tools/bolt11";
-import { getFiatValue } from "@getalby/lightning-tools/fiat";
+import { Invoice, getFiatValue } from "@getalby/lightning-tools";
 import { CopyIcon, LightbulbIcon } from "lucide-react";
 import React from "react";
 import { LightningIcon } from "src/components/icons/Lightning";

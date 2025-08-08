@@ -1,4 +1,4 @@
-import type { LightningAddress } from "@getalby/lightning-tools/lnurl";
+import type { LightningAddress } from "@getalby/lightning-tools";
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";

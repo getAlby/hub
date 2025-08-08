@@ -16,8 +16,8 @@ import { handleRequestError } from "src/utils/handleRequestError";
 import {
   getFormattedFiatValue,
   getSatoshiValue,
-} from "@getalby/lightning-tools/fiat";
-import { LightningAddress } from "@getalby/lightning-tools/lnurl";
+  LightningAddress,
+} from "@getalby/lightning-tools";
 import { ExternalLinkIcon, PlusCircleIcon } from "lucide-react";
 import alby from "src/assets/suggested-apps/alby.png";
 import bitcoinbrink from "src/assets/zapplanner/bitcoinbrink.png";

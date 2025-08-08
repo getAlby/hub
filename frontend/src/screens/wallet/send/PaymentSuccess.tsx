@@ -1,4 +1,4 @@
-import type { Invoice } from "@getalby/lightning-tools/bolt11";
+import type { Invoice } from "@getalby/lightning-tools";
 import { CircleCheckIcon, CopyIcon, ExternalLinkIcon } from "lucide-react";
 import { useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";

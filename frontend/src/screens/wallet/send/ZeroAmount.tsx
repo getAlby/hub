@@ -5,7 +5,7 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { useToast } from "src/components/ui/use-toast";
 
-import type { Invoice } from "@getalby/lightning-tools/bolt11";
+import type { Invoice } from "@getalby/lightning-tools";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
 
