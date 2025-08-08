@@ -49,7 +49,6 @@ type swapsService struct {
 	boltzWs             *boltz.Websocket
 	swapListeners       map[string]chan boltz.SwapUpdate
 	swapListenersLock   sync.Mutex
-	autoSwapXpub        string // Decrypted xpub for auto swaps
 }
 
 type SwapsService interface {
