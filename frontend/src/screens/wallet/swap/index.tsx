@@ -52,11 +52,11 @@ export default function Swap() {
         }
       />
       <div className="w-full max-w-lg">
-        <div className="flex items-center text-center text-foreground font-medium rounded-lg bg-muted p-1">
+        <div className="flex items-center text-center text-foreground font-medium rounded-xl bg-muted p-1">
           <div
             className={cn(
-              "cursor-pointer rounded-md flex-1 py-1.5 text-sm",
-              swapType == "in" && "text-foreground bg-background font-semibold"
+              "cursor-pointer rounded-lg flex-1 py-1.5 text-sm",
+              swapType == "in" && "text-foreground bg-background shadow-md"
             )}
             onClick={() => setSwapType("in")}
           >
@@ -64,8 +64,8 @@ export default function Swap() {
           </div>
           <div
             className={cn(
-              "cursor-pointer rounded-md flex-1 py-1.5 text-sm",
-              swapType == "out" && "text-foreground bg-background font-semibold"
+              "cursor-pointer rounded-lg flex-1 py-1.5 text-sm",
+              swapType == "out" && "text-foreground bg-background shadow-md"
             )}
             onClick={() => setSwapType("out")}
           >
