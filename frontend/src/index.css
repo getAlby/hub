@@ -15,6 +15,7 @@ body {
 @import "./themes/alby.css";
 @import "./themes/bitcoin.css";
 @import "./themes/nostr.css";
+@import "./themes/matrix.css";
 
 @import "./themes/index.css";
 

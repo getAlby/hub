@@ -1,7 +1,13 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 export type DarkMode = "system" | "light" | "dark";
-export const Themes = ["default", "alby", "bitcoin", "nostr"] as const;
+export const Themes = [
+  "default",
+  "alby",
+  "bitcoin",
+  "nostr",
+  "matrix",
+] as const;
 export type Theme = (typeof Themes)[number];
 
 type ThemeProviderProps = {
