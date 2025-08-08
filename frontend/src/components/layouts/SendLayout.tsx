@@ -36,9 +36,7 @@ export default function SendLayout() {
           <InfoIcon />
           <AlertTitle>Pending Payment</AlertTitle>
           <AlertDescription>
-            <div className="mb-2">
-              You have one or more payments that have not settled.
-            </div>
+            You have one or more payments that have not settled.
             <LinkButton to={"/wallet"} size={"sm"}>
               View Payments
             </LinkButton>

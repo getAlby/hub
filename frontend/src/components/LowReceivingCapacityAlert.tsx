@@ -11,7 +11,7 @@ export default function LowReceivingCapacityAlert() {
     <Alert variant="warning">
       <AlertTriangleIcon className="h-4 w-4" />
       <AlertTitle>Low receiving capacity</AlertTitle>
-      <AlertDescription className="flex-none grid-none [&]:!flex [&]:!flex-row [&]:flex-wrap [&>*]:inline-flex">
+      <AlertDescription className="inline">
         You likely won't be able to receive payments until you{" "}
         <Link className="underline" to="/wallet/send">
           spend
