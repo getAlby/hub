@@ -81,6 +81,7 @@ import SignMessage from "src/screens/wallet/SignMessage";
 import WithdrawOnchainFunds from "src/screens/wallet/WithdrawOnchainFunds";
 import ReceiveInvoice from "src/screens/wallet/receive/ReceiveInvoice";
 import ReceiveOffer from "src/screens/wallet/receive/ReceiveOffer";
+import ReceiveOnchain from "src/screens/wallet/receive/ReceiveOnchain";
 import ConfirmPayment from "src/screens/wallet/send/ConfirmPayment";
 import LnurlPay from "src/screens/wallet/send/LnurlPay";
 import Onchain from "src/screens/wallet/send/Onchain";
@@ -151,6 +152,11 @@ const routes = [
               {
                 index: true,
                 element: <Receive />,
+              },
+              {
+                handle: { crumb: () => "Receive On-chain" },
+                path: "onchain",
+                element: <ReceiveOnchain />,
               },
               {
                 handle: { crumb: () => "Invoice" },
