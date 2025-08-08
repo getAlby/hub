@@ -15,9 +15,9 @@ import {
 import React from "react";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
 import { useToast } from "src/components/ui/use-toast";
 import { useCapabilities } from "src/hooks/useCapabilities";
@@ -84,7 +84,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     if (unsupportedMethods.length) {
       setUnsupportedError(
         "This app requests methods not supported by your wallet: " +
-          unsupportedMethods
+        unsupportedMethods
       );
     }
 
@@ -106,7 +106,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     if (unsupportedNotificationTypes.length) {
       setUnsupportedError(
         "This app requests notification types not supported by your wallet: " +
-          unsupportedNotificationTypes
+        unsupportedNotificationTypes
       );
     }
 

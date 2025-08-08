@@ -111,11 +111,7 @@ export default function MnemonicDialog({
             )}
           </div>
           <div className="flex justify-end items-center mt-2">
-            <Button
-              type="submit"
-              size="lg"
-              className="flex-grow sm:flex-grow-0"
-            >
+            <Button type="submit" size="lg" className="grow sm:grow-0">
               Finish
             </Button>
           </div>

@@ -410,19 +410,19 @@ export default function DebugTools() {
           }}
         >
           <Button
-            variant={"outline"}
+            variant="outline"
             onClick={() => apiRequest("/api/info", "GET")}
           >
             Get Info
           </Button>
           <Button
-            variant={"outline"}
+            variant="outline"
             onClick={() => apiRequest("/api/peers", "GET")}
           >
             List Peers
           </Button>
           <Button
-            variant={"outline"}
+            variant="outline"
             onClick={() => apiRequest("/api/channels", "GET")}
           >
             List Channels
@@ -452,20 +452,17 @@ export default function DebugTools() {
             </>
           )}
           <AlertDialogTrigger asChild>
-            <Button variant={"outline"} onClick={() => setDialog("getAppLogs")}>
+            <Button variant="outline" onClick={() => setDialog("getAppLogs")}>
               Get App Logs
             </Button>
           </AlertDialogTrigger>
           <AlertDialogTrigger asChild>
-            <Button
-              variant={"outline"}
-              onClick={() => setDialog("getNodeLogs")}
-            >
+            <Button variant="outline" onClick={() => setDialog("getNodeLogs")}>
               Get Node Logs
             </Button>
           </AlertDialogTrigger>
           <Button
-            variant={"outline"}
+            variant="outline"
             onClick={() => {
               apiRequest(`/api/node/status`, "GET");
             }}
@@ -473,7 +470,7 @@ export default function DebugTools() {
             Get Node Status
           </Button>
           <Button
-            variant={"outline"}
+            variant="outline"
             onClick={() => {
               apiRequest(`/api/balances`, "GET");
             }}
@@ -482,7 +479,7 @@ export default function DebugTools() {
           </Button>
           <AlertDialogTrigger asChild>
             <Button
-              variant={"outline"}
+              variant="outline"
               onClick={() => setDialog("getNetworkGraph")}
             >
               Get Network Graph
@@ -491,7 +488,7 @@ export default function DebugTools() {
           {(info?.backendType === "LDK" || info?.backendType === "CASHU") && (
             <AlertDialogTrigger asChild>
               <Button
-                variant={"outline"}
+                variant="outline"
                 onClick={() => setDialog("resetRoutingData")}
               >
                 Clear Routing Data
@@ -499,7 +496,7 @@ export default function DebugTools() {
             </AlertDialogTrigger>
           )}
           <Button
-            variant={"outline"}
+            variant="outline"
             onClick={() => {
               apiRequest(`/api/commands`, "GET");
             }}
@@ -508,7 +505,7 @@ export default function DebugTools() {
           </Button>
           <AlertDialogTrigger asChild>
             <Button
-              variant={"outline"}
+              variant="outline"
               onClick={() => {
                 apiRequest(`/api/commands`, "GET");
                 setDialog("customNodeCommand");
@@ -519,7 +516,7 @@ export default function DebugTools() {
           </AlertDialogTrigger>
           {info?.backendType === "LDK" && (
             <Button
-              variant={"outline"}
+              variant="outline"
               onClick={() => {
                 apiRequest(`/api/command`, "POST", {
                   command: "export_pathfinding_scores",

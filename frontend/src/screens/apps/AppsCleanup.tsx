@@ -4,7 +4,7 @@ import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import Loading from "src/components/Loading";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { Button, LinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
 import {
   Card,
   CardDescription,
@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { Progress } from "src/components/ui/progress";
 import { useDeleteApp } from "src/hooks/useDeleteApp";
 import { useUnusedApps } from "src/hooks/useUnusedApps";

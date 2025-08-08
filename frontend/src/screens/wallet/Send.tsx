@@ -3,15 +3,14 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 
-import { Invoice } from "@getalby/lightning-tools/bolt11";
-import { LightningAddress } from "@getalby/lightning-tools/lnurl";
+import { Invoice, LightningAddress } from "@getalby/lightning-tools";
 
 export default function Send() {
   const { data: balances } = useBalances();
@@ -95,7 +94,7 @@ export default function Send() {
           className="px-2"
           onClick={paste}
         >
-          <ClipboardPasteIcon className="w-4 h-4" />
+          <ClipboardPasteIcon className="size-4" />
         </Button>
       </div>
       <LoadingButton loading={isLoading} type="submit" disabled={!recipient}>

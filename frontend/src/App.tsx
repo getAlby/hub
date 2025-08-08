@@ -7,7 +7,7 @@ import {
 import { ThemeProvider } from "src/components/ui/theme-provider";
 
 import { Toaster } from "src/components/ui/toaster";
-import { TouchProvider } from "src/components/ui/tooltip";
+// TODO: import { TouchProvider } from "src/components/ui/tooltip";
 import { useInfo } from "src/hooks/useInfo";
 import routes from "src/routes.tsx";
 import { isHttpMode } from "src/utils/isHttpMode";
@@ -25,16 +25,14 @@ function App() {
 
   return (
     <>
-      <TouchProvider>
-        <ThemeProvider
-          defaultTheme="default"
-          defaultDarkMode="system"
-          storageKey="vite-ui-theme"
-        >
-          <Toaster />
-          {info && <RouterProvider router={router} />}
-        </ThemeProvider>
-      </TouchProvider>
+      <ThemeProvider
+        defaultTheme="default"
+        defaultDarkMode="system"
+        storageKey="vite-ui-theme"
+      >
+        <Toaster />
+        {info && <RouterProvider router={router} />}
+      </ThemeProvider>
     </>
   );
 }

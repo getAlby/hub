@@ -1,8 +1,8 @@
 import { AlertTriangleIcon, CheckCircle2Icon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { ExternalLinkButton } from "src/components/ui/button";
 import { useHealthCheck } from "src/hooks/useHealthCheck";
 import { AlbyInfoIncident, HealthAlarm } from "src/types";
+import { ExternalLinkButton } from "../ui/custom/external-link-button";
 
 export function HealthCheckAlert() {
   const { data: health } = useHealthCheck();

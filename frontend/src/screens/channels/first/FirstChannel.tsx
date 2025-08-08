@@ -6,8 +6,8 @@ import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
 import { useToast } from "src/components/ui/use-toast";
 import { useAlbyBalance } from "src/hooks/useAlbyBalance";
@@ -17,7 +17,7 @@ import { useInfo } from "src/hooks/useInfo";
 import { AutoChannelRequest, AutoChannelResponse } from "src/types";
 import { request } from "src/utils/request";
 
-import { Invoice } from "@getalby/lightning-tools/bolt11";
+import { Invoice } from "@getalby/lightning-tools";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import { PayLightningInvoice } from "src/components/PayLightningInvoice";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
@@ -124,7 +124,7 @@ export function FirstChannel() {
                   <TableCell className="font-medium p-3 flex items-center gap-2">
                     Duration
                     <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel#which-lightning-service-provider-to-choose">
-                      <InfoIcon className="w-4 h-4 text-muted-foreground" />
+                      <InfoIcon className="size-4 text-muted-foreground" />
                     </ExternalLink>
                   </TableCell>
 
@@ -259,7 +259,7 @@ export function FirstChannel() {
                   onClick={() => setShowAdvanced((current) => !current)}
                 >
                   Advanced Options
-                  <ChevronDownIcon className="w-4 h-4 ml-1" />
+                  <ChevronDownIcon className="size-4 ml-1" />
                 </Button>
               </div>
             )}

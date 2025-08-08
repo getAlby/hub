@@ -45,6 +45,8 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,7 +55,6 @@ import {
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu";
 import { Input } from "src/components/ui/input";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import {
   Tooltip,
@@ -256,7 +257,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                     <DropdownMenu modal={false}>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="icon">
-                          <EllipsisIcon className="w-4 h-4" />
+                          <EllipsisIcon />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="w-56">
@@ -266,8 +267,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                               className="w-full cursor-pointer flex items-center gap-2"
                               onClick={handleConvertToSubwallet}
                             >
-                              <SquareStackIcon className="w-4 h-4" /> Convert to
-                              Sub-wallet
+                              <SquareStackIcon /> Convert to Sub-wallet
                             </div>
                           </DropdownMenuItem>
                         </DropdownMenuGroup>
@@ -277,7 +277,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" size="icon">
-                      <Trash2Icon className="w-4 h-4" />
+                      <Trash2Icon />
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
@@ -376,7 +376,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                   )}
                   {app.isolated &&
                     app.metadata?.app_store_app_id ===
-                      SUBWALLET_APPSTORE_APP_ID && (
+                    SUBWALLET_APPSTORE_APP_ID && (
                       <TableRow>
                         <TableCell className="font-medium">
                           Lightning Address
@@ -385,7 +385,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                           {app.metadata.lud16}
                           {!app.metadata.lud16 && (
                             <div className="max-w-96 flex items-center gap-2">
-                              <Input
+                              <InputWithAdornment
                                 type="text"
                                 value={intendedLightningAddress}
                                 onChange={(e) =>
@@ -494,8 +494,8 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                         </Button>
 
                         {(app.isolated && !permissions.isolated) ||
-                        (!app.scopes.includes("pay_invoice") &&
-                          permissions.scopes.includes("pay_invoice")) ? (
+                          (!app.scopes.includes("pay_invoice") &&
+                            permissions.scopes.includes("pay_invoice")) ? (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button type="button">Save</Button>

@@ -21,7 +21,7 @@ import {
   AccordionTrigger,
 } from "src/components/ui/accordion";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { Button, ExternalLinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
@@ -30,9 +30,11 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import {
   Popover,
   PopoverContent,
@@ -111,7 +113,7 @@ export function SubwalletCreated() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <Input
+                      <InputWithAdornment
                         type="text"
                         value={intendedLightningAddress}
                         onChange={(e) =>
@@ -207,7 +209,7 @@ export function SubwalletCreated() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Important</AlertTitle>
-                <AlertDescription>
+                <AlertDescription className="inline">
                   For your security, these connection details are only visible
                   now and{" "}
                   <span className="font-semibold">
@@ -331,7 +333,7 @@ export function SubwalletCreated() {
                       </Button>
                     </div>
                     <Alert className="mt-5">
-                      <AlertTriangleIcon className="h-4 w-4" />
+                      <AlertTriangleIcon />
                       <AlertTitle>
                         Use separate browsers or profiles when managing multiple
                         Alby accounts

@@ -1,13 +1,13 @@
-import { Invoice } from "@getalby/lightning-tools/bolt11";
-import { getFiatValue } from "@getalby/lightning-tools/fiat";
+import { Invoice, getFiatValue } from "@getalby/lightning-tools";
 import { CopyIcon, LightbulbIcon } from "lucide-react";
 import React from "react";
 import { LightningIcon } from "src/components/icons/Lightning";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
-import { Button, ExternalLinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
 import { useToast } from "src/components/ui/use-toast";
 import { copyToClipboard } from "src/lib/clipboard";
+import { ExternalLinkButton } from "./ui/custom/external-link-button";
 
 type PayLightningInvoiceProps = {
   invoice: string;
@@ -57,7 +57,7 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
           variant="outline"
           className="flex-1 flex gap-2 items-center justify-center"
         >
-          <CopyIcon className="w-4 h-4 mr-2" />
+          <CopyIcon />
           Copy Invoice
         </Button>
         <ExternalLinkButton
@@ -65,7 +65,7 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
           variant="secondary"
           className="flex-1 flex gap-2 items-center justify-center"
         >
-          <LightbulbIcon className="w-4 h-4" /> How to pay
+          <LightbulbIcon className="size-4" /> How to pay
         </ExternalLinkButton>
       </div>
     </div>

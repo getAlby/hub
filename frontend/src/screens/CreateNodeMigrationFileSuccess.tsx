@@ -16,7 +16,7 @@ export function CreateNodeMigrationFileSuccess() {
             <div className="flex justify-center flex-col gap-4 text-foreground">
               <div className="flex gap-2 items-center ">
                 <div className="shrink-0 ">
-                  <SaveIcon className="w-6 h-6" />
+                  <SaveIcon className="size-6" />
                 </div>
                 <span>
                   Your Alby Hub migration file has been successfully saved to
@@ -25,7 +25,7 @@ export function CreateNodeMigrationFileSuccess() {
               </div>
               <div className="flex gap-2 items-center">
                 <div className="shrink-0">
-                  <PowerOffIcon className="w-6 h-6" />
+                  <PowerOffIcon className="size-6" />
                 </div>
                 <span>
                   This Alby Hub has is now in a halted state to prevent further
@@ -38,7 +38,7 @@ export function CreateNodeMigrationFileSuccess() {
               </div>
               <div className="flex gap-2 items-center">
                 <div className="shrink-0 ">
-                  <BadgePlusIcon className="w-6 h-6" />
+                  <BadgePlusIcon className="size-6" />
                 </div>
                 <span>
                   Start your new Alby Hub on another machine and choose the

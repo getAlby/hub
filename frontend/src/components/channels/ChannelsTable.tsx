@@ -116,7 +116,7 @@ export function ChannelsTable({
                   <div>Receiving</div>
                 </div>
               </TableHead>
-              <TableHead className="w-[1px]"></TableHead>
+              <TableHead className="w-px"></TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>

@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { Input } from "src/components/ui/input";
+import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
 
 type MnemonicInputsProps = {
   mnemonic?: string;
@@ -46,7 +46,7 @@ export default function MnemonicInputs({
             <div key={i} className="flex justify-center items-center gap-2">
               <span className="text-foreground text-right">{i + 1}.</span>
               <div className="relative">
-                <Input
+                <InputWithAdornment
                   id={inputId}
                   autoFocus={!readOnly && i === 0}
                   readOnly={readOnly}

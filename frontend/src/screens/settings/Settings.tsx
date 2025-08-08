@@ -1,6 +1,8 @@
+import { StarsIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
+import { Badge } from "src/components/ui/badge";
 import { Label } from "src/components/ui/label";
 import {
   Select,
@@ -16,11 +18,13 @@ import {
   useTheme,
 } from "src/components/ui/theme-provider";
 import { useToast } from "src/components/ui/use-toast";
+import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
 function Settings() {
+  const { data: albyMe } = useAlbyMe();
   const { theme, darkMode, setTheme, setDarkMode } = useTheme();
   const { toast } = useToast();
 
@@ -71,6 +75,9 @@ function Settings() {
     return <Loading />;
   }
 
+  const paidThemes = ["matrix"];
+  const hasPlan = !!albyMe?.subscription.plan_code;
+
   return (
     <>
       <SettingsHeader
@@ -91,11 +98,28 @@ function Settings() {
               <SelectValue placeholder="Theme" />
             </SelectTrigger>
             <SelectContent>
-              {Themes.map((theme) => (
-                <SelectItem key={theme} value={theme}>
-                  {theme.charAt(0).toUpperCase() + theme.substring(1)}
-                </SelectItem>
-              ))}
+              {Themes.map((theme) => {
+                const isPaidTheme = paidThemes.includes(theme);
+                const isDisabled = isPaidTheme && !hasPlan;
+
+                return (
+                  <SelectItem key={theme} value={theme} disabled={isDisabled}>
+                    <div className="flex items-center justify-between w-full">
+                      <span
+                        className={isDisabled ? "text-muted-foreground" : ""}
+                      >
+                        {theme.charAt(0).toUpperCase() + theme.substring(1)}
+                      </span>
+                      {isPaidTheme && (
+                        <Badge variant="outline">
+                          <StarsIcon />
+                          Pro
+                        </Badge>
+                      )}
+                    </div>
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>

@@ -23,7 +23,7 @@ export function DuplicateChannelAlert({ pubkey, name }: PeerAlertProps) {
 
   return (
     <Alert>
-      <TriangleAlertIcon className="h-4 w-4" />
+      <TriangleAlertIcon />
       <AlertTitle>
         You already have a channel with{" "}
         {name && name !== "Custom" ? (

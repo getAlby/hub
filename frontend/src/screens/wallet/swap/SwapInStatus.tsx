@@ -23,7 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { LoadingButton } from "src/components/ui/loading-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { useTheme } from "src/components/ui/theme-provider";
 import {
   Tooltip,
@@ -197,7 +197,7 @@ export default function SwapInStatus() {
                     {swap.state === "PENDING" &&
                       balances &&
                       balances.onchain.spendable - 25000 /* anchor reserve */ >
-                        swap.sendAmount && (
+                      swap.sendAmount && (
                         <LoadingButton
                           loading={isPaying}
                           onClick={payWithAlbyHub}

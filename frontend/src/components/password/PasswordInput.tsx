@@ -1,6 +1,6 @@
 import React from "react";
 import RevealPasswordToggle from "src/components/password/RevealPasswordToggle";
-import { Input } from "src/components/ui/input";
+import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
 
 type PasswordInputProps = Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
@@ -19,7 +19,7 @@ export default function PasswordInput({
   const [passwordVisible, setPasswordVisible] = React.useState(false);
 
   return (
-    <Input
+    <InputWithAdornment
       type={passwordVisible ? "text" : "password"}
       value={value}
       required
