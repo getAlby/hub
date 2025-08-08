@@ -806,7 +806,7 @@ export const suggestedApps: SuggestedApp[] = [
             <li>
               1. Open{" "}
               <ExternalLink
-                to="https://wave.space/spend/?utm_source=albyhub&affiliate=AlbyHub"
+                to="https://app.wave.space/spend/?utm_source=albyhub&affiliate=AlbyHub"
                 className="font-medium text-foreground underline"
               >
                 wave.space/spend

@@ -1,4 +1,5 @@
-import { Invoice, fiat } from "@getalby/lightning-tools";
+import { Invoice } from "@getalby/lightning-tools/bolt11";
+import { getFiatValue } from "@getalby/lightning-tools/fiat";
 import { CopyIcon, LightbulbIcon } from "lucide-react";
 import React from "react";
 import { LightningIcon } from "src/components/icons/Lightning";
@@ -19,9 +20,9 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
   }).satoshi;
   const [fiatAmount, setFiatAmount] = React.useState(0);
   React.useEffect(() => {
-    fiat
-      .getFiatValue({ satoshi: amount, currency: "USD" })
-      .then((fiatAmount) => setFiatAmount(fiatAmount));
+    getFiatValue({ satoshi: amount, currency: "USD" }).then((fiatAmount) =>
+      setFiatAmount(fiatAmount)
+    );
   }, [amount]);
   const { toast } = useToast();
   const copy = () => {

@@ -13,7 +13,11 @@ import { createApp } from "src/requests/createApp";
 import { CreateAppRequest, UpdateAppRequest } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 
-import { fiat, LightningAddress } from "@getalby/lightning-tools";
+import {
+  getFormattedFiatValue,
+  getSatoshiValue,
+} from "@getalby/lightning-tools/fiat";
+import { LightningAddress } from "@getalby/lightning-tools/lnurl";
 import { ExternalLinkIcon, PlusCircleIcon } from "lucide-react";
 import alby from "src/assets/suggested-apps/alby.png";
 import bitcoinbrink from "src/assets/zapplanner/bitcoinbrink.png";
@@ -163,7 +167,7 @@ export function ZapPlanner() {
       try {
         // any fiat (not BTC) → sats
         if (currency !== "SATS") {
-          const sats = await fiat.getSatoshiValue({
+          const sats = await getSatoshiValue({
             amount: parseFloat(amount),
             currency: currency,
           });
@@ -173,7 +177,7 @@ export function ZapPlanner() {
           // Convert satoshis to USD
           const sats = parseInt(amount, 10);
           setSatoshiAmount(sats);
-          const fiatValue = await fiat.getFormattedFiatValue({
+          const fiatValue = await getFormattedFiatValue({
             satoshi: sats,
             currency: "USD",
             locale: "en-US",
