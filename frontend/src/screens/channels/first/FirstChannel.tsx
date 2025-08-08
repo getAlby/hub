@@ -17,7 +17,7 @@ import { useInfo } from "src/hooks/useInfo";
 import { AutoChannelRequest, AutoChannelResponse } from "src/types";
 import { request } from "src/utils/request";
 
-import { Invoice } from "@getalby/lightning-tools";
+import { Invoice } from "@getalby/lightning-tools/bolt11";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import { PayLightningInvoice } from "src/components/PayLightningInvoice";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";

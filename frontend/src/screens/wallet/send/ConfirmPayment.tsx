@@ -5,7 +5,7 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 
-import { Invoice } from "@getalby/lightning-tools";
+import type { Invoice } from "@getalby/lightning-tools/bolt11";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import { SpendingAlert } from "src/components/SpendingAlert";
