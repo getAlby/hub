@@ -104,7 +104,7 @@ function Settings() {
 
                 return (
                   <SelectItem key={theme} value={theme} disabled={isDisabled}>
-                    <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center justify-between gap-2 w-full">
                       <span
                         className={isDisabled ? "text-muted-foreground" : ""}
                       >
