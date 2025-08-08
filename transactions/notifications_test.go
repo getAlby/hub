@@ -204,7 +204,7 @@ func TestNotifications_SentUnknownPayment(t *testing.T) {
 	assert.ErrorIs(t, err, NewNotFoundError())
 }
 
-func TestNotifications_FailedKnownPayment(t *testing.T) {
+func TestNotifications_FailedKnownPendingPayment(t *testing.T) {
 	ctx := context.TODO()
 
 	svc, err := tests.CreateTestService(t)
@@ -240,4 +240,50 @@ func TestNotifications_FailedKnownPayment(t *testing.T) {
 	transactions := []db.Transaction{}
 	result := svc.DB.Find(&transactions)
 	assert.Equal(t, int64(1), result.RowsAffected)
+}
+
+func TestNotifications_FailedKnownPendingAndExistingFailedPayment(t *testing.T) {
+	ctx := context.TODO()
+
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	// in this test, a user tries to pay again, and the payment fails again.
+	// The second (pending) payment should be marked as failed.
+
+	svc.DB.Create(&db.Transaction{
+		State:          constants.TRANSACTION_STATE_FAILED,
+		Type:           constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		AmountMsat:     123000,
+		FeeReserveMsat: uint64(10000),
+	})
+
+	svc.DB.Create(&db.Transaction{
+		State:          constants.TRANSACTION_STATE_PENDING,
+		Type:           constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		AmountMsat:     123000,
+		FeeReserveMsat: uint64(10000),
+	})
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+
+	transactionsService.ConsumeEvent(ctx, &events.Event{
+		Event: "nwc_lnclient_payment_failed",
+		Properties: &lnclient.PaymentFailedEventProperties{
+			Transaction: tests.MockLNClientTransaction,
+			Reason:      "Some failure reason",
+		},
+	}, map[string]interface{}{})
+
+	transactions, totalCount, err := transactionsService.ListTransactions(ctx, uint64(0), uint64(0), uint64(0), uint64(0), true, false, nil, svc.LNClient, nil, false)
+	assert.NoError(t, err)
+	assert.Equal(t, uint64(2), totalCount)
+	for _, transaction := range transactions {
+		assert.Equal(t, constants.TRANSACTION_STATE_FAILED, transaction.State)
+	}
 }
