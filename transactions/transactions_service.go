@@ -890,11 +890,12 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 		var dbTransaction db.Transaction
 		result := svc.db.Limit(1).Find(&dbTransaction, &db.Transaction{
 			Type:        constants.TRANSACTION_TYPE_OUTGOING,
+			State:       constants.TRANSACTION_STATE_PENDING,
 			PaymentHash: lnClientTransaction.PaymentHash,
 		})
 
 		if result.RowsAffected == 0 {
-			logger.Logger.WithField("event", event).Error("Failed to find outgoing transaction by payment hash")
+			logger.Logger.WithField("event", event).Error("Failed to find pending outgoing transaction by payment hash")
 			return
 		}
 
