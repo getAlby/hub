@@ -423,6 +423,11 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 	if orderBy == "" {
 		orderBy = "last_used_at"
 	}
+	if orderBy == "last_used_at" {
+		// when ordering by last used at, apps with last_used_at is NULL should be ordered last
+		orderBy = "last_used_at IS NULL, " + orderBy
+	}
+
 	query = query.Order(orderBy + " DESC")
 
 	if limit == 0 {
