@@ -6,7 +6,7 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 
-import { nwc } from "@getalby/sdk";
+import { NWCClient } from "@getalby/sdk/nwc";
 import dayjs from "dayjs";
 import { ChevronUpIcon, ZapIcon } from "lucide-react";
 import React from "react";
@@ -44,10 +44,10 @@ type Message = {
 
 type TabType = "latest" | "top";
 
-let nwcClient: nwc.NWCClient | undefined;
-function getNWCClient(): nwc.NWCClient {
+let nwcClient: NWCClient | undefined;
+function getNWCClient(): NWCClient {
   if (!nwcClient) {
-    nwcClient = new nwc.NWCClient({
+    nwcClient = new NWCClient({
       nostrWalletConnectUrl: LIGHTNING_MESSAGEBOARD_NWC_URL,
     });
   }

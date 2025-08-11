@@ -1,4 +1,4 @@
-import { LightningAddress } from "@getalby/lightning-tools";
+import type { LightningAddress } from "@getalby/lightning-tools/lnurl";
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";

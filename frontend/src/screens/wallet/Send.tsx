@@ -11,7 +11,8 @@ import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 
-import { Invoice, LightningAddress } from "@getalby/lightning-tools";
+import { Invoice } from "@getalby/lightning-tools/bolt11";
+import { LightningAddress } from "@getalby/lightning-tools/lnurl";
 
 export default function Send() {
   const { data: balances } = useBalances();
