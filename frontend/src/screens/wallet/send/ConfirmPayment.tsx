@@ -8,6 +8,7 @@ import { useToast } from "src/components/ui/use-toast";
 import type { Invoice } from "@getalby/lightning-tools/bolt11";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import { PaymentFailedAlert } from "src/components/PaymentFailedAlert";
 import { SpendingAlert } from "src/components/SpendingAlert";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
@@ -25,9 +26,11 @@ export default function ConfirmPayment() {
   const invoice = state?.args?.paymentRequest as Invoice;
   const metadata = state?.args?.metadata as TransactionMetadata;
   const [isLoading, setLoading] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState("");
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setErrorMessage("");
     try {
       setLoading(true);
       const payInvoiceResponse = await request<PayInvoiceResponse>(
@@ -62,6 +65,7 @@ export default function ConfirmPayment() {
         title: "Failed to send payment",
         description: "" + e,
       });
+      setErrorMessage("" + e);
       console.error(e);
     } finally {
       setLoading(false);
@@ -90,6 +94,12 @@ export default function ConfirmPayment() {
   return (
     <form onSubmit={onSubmit} className="grid gap-4">
       <div className="grid gap-2">
+        {errorMessage && (
+          <PaymentFailedAlert
+            errorMessage={errorMessage}
+            invoice={invoice.paymentRequest}
+          />
+        )}
         <p className="font-medium text-lg">Payment Details</p>
         <div>
           <Label>Amount</Label>

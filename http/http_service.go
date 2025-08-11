@@ -219,7 +219,7 @@ func (httpSvc *HttpService) eventHandler(c echo.Context) error {
 		})
 	}
 
-	httpSvc.api.SendEvent(sendEventRequest.Event)
+	httpSvc.api.SendEvent(sendEventRequest.Event, sendEventRequest.Properties)
 
 	return c.NoContent(http.StatusOK)
 }

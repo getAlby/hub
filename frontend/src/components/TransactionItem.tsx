@@ -16,6 +16,7 @@ import { Link } from "react-router-dom";
 import AppAvatar from "src/components/AppAvatar";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
+import { PaymentFailedAlert } from "src/components/PaymentFailedAlert";
 import PodcastingInfo from "src/components/PodcastingInfo";
 import {
   Dialog,
@@ -320,6 +321,14 @@ function TransactionItem({ tx }: Props) {
                     from {npub}
                   </span>
                 </p>
+              </div>
+            )}
+            {tx.state === "failed" && (
+              <div className="mt-2">
+                <PaymentFailedAlert
+                  errorMessage={tx.failureReason}
+                  invoice={tx.invoice}
+                />
               </div>
             )}
             <div className="mt-4 w-full">
