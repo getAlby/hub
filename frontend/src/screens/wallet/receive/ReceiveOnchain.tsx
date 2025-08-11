@@ -41,7 +41,7 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useTheme } from "src/components/ui/theme-provider";
-import { MIN_AUTO_SWAP_AMOUNT } from "src/constants";
+import { MIN_SWAP_AMOUNT } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useSwapFees } from "src/hooks/useSwaps";
 import { request } from "src/utils/request";
@@ -361,7 +361,7 @@ function ReceiveToSpending() {
             autoFocus
             placeholder="Amount in satoshis"
             value={swapAmount}
-            min={MIN_AUTO_SWAP_AMOUNT}
+            min={MIN_SWAP_AMOUNT}
             max={(balances.lightning.totalReceivable / 1000) * 0.99}
             onChange={(e) => setSwapAmount(e.target.value)}
             required
