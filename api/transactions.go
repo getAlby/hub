@@ -65,7 +65,7 @@ func (api *api) SendPayment(ctx context.Context, invoice string, amountMsat *uin
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	transaction, err := api.svc.GetTransactionsService().SendPaymentSync(ctx, invoice, amountMsat, metadata, api.svc.GetLNClient(), nil, nil, nil)
+	transaction, err := api.svc.GetTransactionsService().SendPaymentSync(ctx, invoice, amountMsat, metadata, api.svc.GetLNClient(), nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +142,7 @@ func (api *api) TopupIsolatedApp(ctx context.Context, userApp *db.App, amountMsa
 		return err
 	}
 
-	_, err = api.svc.GetTransactionsService().SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, api.svc.GetLNClient(), nil, nil, nil)
+	_, err = api.svc.GetTransactionsService().SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, api.svc.GetLNClient(), nil, nil)
 	return err
 }
 

@@ -362,7 +362,7 @@ func (svc *PhoenixService) LookupInvoice(ctx context.Context, paymentHash string
 	return transaction, nil
 }
 
-func (svc *PhoenixService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64, timeoutSeconds *int64) (*lnclient.PayInvoiceResponse, error) {
+func (svc *PhoenixService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
 	// TODO: support 0-amount invoices
 	if amount != nil {
 		return nil, errors.New("0-amount invoices not supported")
