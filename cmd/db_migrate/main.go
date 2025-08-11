@@ -89,6 +89,26 @@ func main() {
 	}
 	logger.Logger.Info("LdkVssEnabled check passed.")
 
+	// NOTE: we assume that excess request events have already been cleaned up due to the background task
+	// and only a maximum of ~1000 remain.
+	logger.Logger.Info("Deleting orphaned request events.")
+	err = fromDB.Exec("DELETE FROM request_events WHERE app_id NOT IN (SELECT id FROM apps);").Error
+
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to delete orphaned request events")
+		os.Exit(1)
+	}
+
+	// NOTE: we assume that excess response events have already been cleaned up due to the background task
+	// and only a maximum of ~1000 remain.
+	logger.Logger.Info("Deleting orphaned response events.")
+	err = fromDB.Exec("DELETE FROM response_events WHERE request_id NOT IN (SELECT id FROM request_events);").Error
+
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to delete orphaned response events")
+		os.Exit(1)
+	}
+
 	logger.Logger.Info("migrating...")
 	err = migrateDB(fromDB, toDB)
 	if err != nil {

@@ -1,4 +1,4 @@
-import { LightningAddress } from "@getalby/lightning-tools";
+import type { LightningAddress } from "@getalby/lightning-tools/lnurl";
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
@@ -111,6 +111,7 @@ export default function LnurlPay() {
             setAmount(e.target.value.trim());
           }}
           min={1}
+          max={Math.floor(balances.lightning.totalSpendable / 1000)}
           required
           autoFocus
           className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -122,7 +123,7 @@ export default function LnurlPay() {
           <div>
             Spending Balance:{" "}
             {new Intl.NumberFormat().format(
-              balances.lightning.totalSpendable / 1000
+              Math.floor(balances.lightning.totalSpendable / 1000)
             )}{" "}
             sats
           </div>
@@ -153,7 +154,7 @@ export default function LnurlPay() {
         <LoadingButton
           loading={isLoading}
           type="submit"
-          className="w-full md:w"
+          className="w-full md:w-fit"
         >
           Send
         </LoadingButton>

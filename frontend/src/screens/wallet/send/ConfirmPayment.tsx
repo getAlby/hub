@@ -4,7 +4,7 @@ import { LinkButton } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 
-import { Invoice } from "@getalby/lightning-tools";
+import type { Invoice } from "@getalby/lightning-tools/bolt11";
 import { ArrowLeftIcon } from "lucide-react";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";

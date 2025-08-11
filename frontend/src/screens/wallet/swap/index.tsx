@@ -16,7 +16,7 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useToast } from "src/components/ui/use-toast";
-import { MIN_AUTO_SWAP_AMOUNT } from "src/constants";
+import { MIN_SWAP_AMOUNT } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import { useSwapFees } from "src/hooks/useSwaps";
@@ -153,7 +153,7 @@ function SwapInForm() {
           autoFocus
           placeholder="Amount in satoshis"
           value={swapAmount}
-          min={MIN_AUTO_SWAP_AMOUNT}
+          min={MIN_SWAP_AMOUNT}
           max={(balances.lightning.totalReceivable / 1000) * 0.99}
           onChange={(e) => setSwapAmount(e.target.value)}
           required
@@ -165,7 +165,7 @@ function SwapInForm() {
               <p className="text-xs text-muted-foreground">
                 Receiving Capacity:{" "}
                 {new Intl.NumberFormat().format(
-                  balances.lightning.totalReceivable / 1000
+                  Math.floor(balances.lightning.totalReceivable / 1000)
                 )}{" "}
                 sats{" "}
                 <Link className="underline" to="/channels/incoming">
@@ -180,7 +180,7 @@ function SwapInForm() {
             </div>
           )}
           <p className="text-xs text-muted-foreground">
-            Minimum: {new Intl.NumberFormat().format(MIN_AUTO_SWAP_AMOUNT)} sats
+            Minimum: {new Intl.NumberFormat().format(MIN_SWAP_AMOUNT)} sats
           </p>
         </div>
       </div>
@@ -273,7 +273,7 @@ function SwapOutForm() {
           autoFocus
           placeholder="Amount in satoshis"
           value={swapAmount}
-          min={MIN_AUTO_SWAP_AMOUNT}
+          min={MIN_SWAP_AMOUNT}
           onChange={(e) => setSwapAmount(e.target.value)}
           required
         />
@@ -283,13 +283,13 @@ function SwapOutForm() {
             <p className="text-xs text-muted-foreground">
               Balance:{" "}
               {new Intl.NumberFormat().format(
-                balances.lightning.totalSpendable / 1000
+                Math.floor(balances.lightning.totalSpendable / 1000)
               )}{" "}
               sats
             </p>
           )}
           <p className="text-xs text-muted-foreground">
-            Minimum: {new Intl.NumberFormat().format(MIN_AUTO_SWAP_AMOUNT)} sats
+            Minimum: {new Intl.NumberFormat().format(MIN_SWAP_AMOUNT)} sats
           </p>
         </div>
       </div>

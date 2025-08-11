@@ -1,4 +1,4 @@
-import { validate } from "bitcoin-address-validation";
+import { validate as validateBitcoinAddress } from "bitcoin-address-validation";
 import { ClipboardPasteIcon } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
@@ -11,7 +11,8 @@ import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 
-import { Invoice, LightningAddress } from "@getalby/lightning-tools";
+import { Invoice } from "@getalby/lightning-tools/bolt11";
+import { LightningAddress } from "@getalby/lightning-tools/lnurl";
 
 export default function Send() {
   const { data: balances } = useBalances();
@@ -31,7 +32,7 @@ export default function Send() {
     event.preventDefault();
     try {
       setLoading(true);
-      if (validate(recipient)) {
+      if (validateBitcoinAddress(recipient)) {
         navigate(`/wallet/send/onchain`, {
           state: {
             args: { address: recipient },
@@ -94,7 +95,7 @@ export default function Send() {
             type="text"
             value={recipient}
             autoFocus
-            placeholder="Invoice, lightning address, on-chain"
+            placeholder="Invoice, lightning address, on-chain address"
             onChange={(e) => {
               setRecipient(e.target.value.trim());
             }}

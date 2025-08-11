@@ -1,4 +1,4 @@
-import { Invoice } from "@getalby/lightning-tools";
+import type { Invoice } from "@getalby/lightning-tools/bolt11";
 import {
   ArrowLeftIcon,
   CopyIcon,
