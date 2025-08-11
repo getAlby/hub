@@ -128,6 +128,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.PATCH("/apps/:pubkey", httpSvc.appsUpdateHandler)
 	restrictedApiGroup.DELETE("/apps/:pubkey", httpSvc.appsDeleteHandler)
 	restrictedApiGroup.POST("/apps/:pubkey/topup", httpSvc.isolatedAppTopupHandler)
+	restrictedApiGroup.POST("/apps/:pubkey/drawdown", httpSvc.isolatedAppDrawDownHandler)
 	restrictedApiGroup.POST("/apps", httpSvc.appsCreateHandler)
 	restrictedApiGroup.POST("/lightning-addresses", httpSvc.lightningAddressesCreateHandler)
 	restrictedApiGroup.DELETE("/lightning-addresses/:appId", httpSvc.lightningAddressesDeleteHandler)
@@ -1058,6 +1059,34 @@ func (httpSvc *HttpService) isolatedAppTopupHandler(c echo.Context) error {
 		logger.Logger.WithError(err).Error("Failed to topup sub-wallet")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to topup sub-wallet: %v", err),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) isolatedAppDrawDownHandler(c echo.Context) error {
+	var requestData api.DrawDownIsolatedAppRequest
+	if err := c.Bind(&requestData); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	dbApp := httpSvc.appsSvc.GetAppByPubkey(c.Param("pubkey"))
+
+	if dbApp == nil {
+		return c.JSON(http.StatusNotFound, ErrorResponse{
+			Message: "App not found",
+		})
+	}
+
+	err := httpSvc.api.DrawDownIsolatedApp(c.Request().Context(), dbApp, requestData.AmountSat*1000)
+
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to draw down sub-wallet")
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to draw down sub-wallet: %v", err),
 		})
 	}
 

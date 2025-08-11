@@ -151,6 +151,37 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	}
 
+	appDrawDownRegex := regexp.MustCompile(
+		`/api/apps/([0-9a-f]+)/drawdown`,
+	)
+
+	appDrawDownMatch := appDrawDownRegex.FindStringSubmatch(route)
+
+	switch {
+	case len(appDrawDownMatch) > 1:
+		pubkey := appDrawDownMatch[1]
+		dbApp := app.appsSvc.GetAppByPubkey(pubkey)
+		if dbApp == nil {
+			return WailsRequestRouterResponse{Body: nil, Error: "App does not exist"}
+		}
+
+		drawDownIsolatedAppRequest := &api.DrawDownIsolatedAppRequest{}
+		err := json.Unmarshal([]byte(body), drawDownIsolatedAppRequest)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		err = app.api.DrawDownIsolatedApp(ctx, dbApp, drawDownIsolatedAppRequest.AmountSat*1000)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
+	}
+
 	// list apps
 	if strings.HasPrefix(route, "/api/apps") && method == "GET" {
 		limit := uint64(0)

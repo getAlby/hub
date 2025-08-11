@@ -15,6 +15,7 @@ type API interface {
 	CreateApp(createAppRequest *CreateAppRequest) (*CreateAppResponse, error)
 	UpdateApp(app *db.App, updateAppRequest *UpdateAppRequest) error
 	TopupIsolatedApp(ctx context.Context, app *db.App, amountMsat uint64) error
+	DrawDownIsolatedApp(ctx context.Context, app *db.App, amountMsat uint64) error
 	DeleteApp(app *db.App) error
 	GetApp(app *db.App) *App
 	ListApps(limit uint64, offset uint64, filters ListAppsFilters, orderBy string) (*ListAppsResponse, error)
@@ -123,6 +124,10 @@ type UpdateAppRequest struct {
 }
 
 type TopupIsolatedAppRequest struct {
+	AmountSat uint64 `json:"amountSat"`
+}
+
+type DrawDownIsolatedAppRequest struct {
 	AmountSat uint64 `json:"amountSat"`
 }
 

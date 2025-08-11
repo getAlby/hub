@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import AppAvatar from "src/components/AppAvatar";
 import AppHeader from "src/components/AppHeader";
+import { IsolatedAppDrawDownDialog } from "src/components/IsolatedAppDrawDownDialog";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
 import Loading from "src/components/Loading";
 import Permissions from "src/components/Permissions";
@@ -370,7 +371,18 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                           >
                             Top Up
                           </Button>
-                        </IsolatedAppTopupDialog>
+                        </IsolatedAppTopupDialog>{" "}
+                        {app.balance > 0 && (
+                          <IsolatedAppDrawDownDialog appPubkey={app.appPubkey}>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="ml-4"
+                            >
+                              Draw Down
+                            </Button>
+                          </IsolatedAppDrawDownDialog>
+                        )}
                       </TableCell>
                     </TableRow>
                   )}

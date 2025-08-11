@@ -136,13 +136,31 @@ func (api *api) TopupIsolatedApp(ctx context.Context, userApp *db.App, amountMsa
 		return errors.New("this app is not a sub-wallet")
 	}
 
-	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, "top up", "", 0, nil, api.svc.GetLNClient(), &userApp.ID, nil)
+	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, "top up sub-wallet", "", 0, nil, api.svc.GetLNClient(), &userApp.ID, nil)
 
 	if err != nil {
 		return err
 	}
 
 	_, err = api.svc.GetTransactionsService().SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, api.svc.GetLNClient(), nil, nil)
+	return err
+}
+
+func (api *api) DrawDownIsolatedApp(ctx context.Context, userApp *db.App, amountMsat uint64) error {
+	if api.svc.GetLNClient() == nil {
+		return errors.New("LNClient not started")
+	}
+	if !userApp.Isolated {
+		return errors.New("this app is not a sub-wallet")
+	}
+
+	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, "draw down sub-wallet", "", 0, nil, api.svc.GetLNClient(), nil, nil)
+
+	if err != nil {
+		return err
+	}
+
+	_, err = api.svc.GetTransactionsService().SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, api.svc.GetLNClient(), &userApp.ID, nil)
 	return err
 }
 

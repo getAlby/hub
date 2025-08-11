@@ -20,7 +20,7 @@ type IsolatedAppTopupProps = {
   appPubkey: string;
 };
 
-export function IsolatedAppTopupDialog({
+export function IsolatedAppDrawDownDialog({
   appPubkey,
   children,
 }: React.PropsWithChildren<IsolatedAppTopupProps>) {
@@ -33,7 +33,7 @@ export function IsolatedAppTopupDialog({
     e.preventDefault();
     setLoading(true);
     try {
-      await request(`/api/apps/${appPubkey}/topup`, {
+      await request(`/api/apps/${appPubkey}/drawdown`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -44,7 +44,7 @@ export function IsolatedAppTopupDialog({
       });
       await reloadApp();
       toast({
-        title: `Successfully increased balance by ${+amountSat} sats`,
+        title: `Successfully reduced balance by ${+amountSat} sats`,
       });
       reset();
     } catch (error) {
@@ -64,11 +64,9 @@ export function IsolatedAppTopupDialog({
       <DialogContent>
         <form onSubmit={onSubmit}>
           <DialogHeader>
-            <DialogTitle>Top Up</DialogTitle>
+            <DialogTitle>Draw Down</DialogTitle>
             <DialogDescription>
-              Increase the balance of this sub-wallet. Make sure you always
-              maintain enough funds in your spending balance to prevent
-              sub-wallets becoming unspendable.
+              Decrease the balance of this sub-wallet.
             </DialogDescription>
           </DialogHeader>
           <div className="my-5">
@@ -85,7 +83,7 @@ export function IsolatedAppTopupDialog({
             />
           </div>
           <DialogFooter className="mt-5">
-            <LoadingButton loading={loading}>Top Up</LoadingButton>
+            <LoadingButton loading={loading}>Draw Down</LoadingButton>
           </DialogFooter>
         </form>
       </DialogContent>
