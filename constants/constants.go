@@ -56,8 +56,6 @@ const (
 // accounting for encryption and other metadata in the response, this is set to 4096 characters
 const INVOICE_METADATA_MAX_LENGTH = 4096
 
-const SEND_PAYMENT_TIMEOUT = 50
-
 // errors used by NIP-47 and the transaction service
 const (
 	ERROR_INTERNAL               = "INTERNAL"
