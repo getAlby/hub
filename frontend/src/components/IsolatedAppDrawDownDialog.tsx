@@ -48,7 +48,11 @@ export function IsolatedAppDrawDownDialog({
       });
       reset();
     } catch (error) {
-      handleRequestError(toast, "Failed to top up sub-wallet balance", error);
+      handleRequestError(
+        toast,
+        "Failed to draw down sub-wallet balance",
+        error
+      );
     }
     setLoading(false);
   }
