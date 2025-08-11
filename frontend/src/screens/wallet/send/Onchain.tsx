@@ -1,14 +1,16 @@
+import { InfoIcon } from "lucide-react";
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { LinkButton } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { Switch } from "src/components/ui/switch";
 import { useToast } from "src/components/ui/use-toast";
-import { ONCHAIN_DUST_SATS } from "src/constants";
+import { MIN_SWAP_AMOUNT, ONCHAIN_DUST_SATS } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useSwapFees } from "src/hooks/useSwaps";
@@ -154,7 +156,12 @@ export default function Onchain() {
           onChange={(e) => {
             setAmount(e.target.value.trim());
           }}
-          min={isSwap ? 50000 : 1}
+          min={isSwap ? MIN_SWAP_AMOUNT : ONCHAIN_DUST_SATS}
+          max={Math.floor(
+            isSwap
+              ? balances.lightning.totalSpendable / 1000
+              : balances.onchain.spendable
+          )}
           required
           autoFocus
           className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -162,33 +169,38 @@ export default function Onchain() {
             <FormattedFiatAmount amount={Number(amount)} className="mr-2" />
           }
         />
-        <div className="grid">
-          <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
-            <div>
-              {isSwap ? "Spending Balance: " : "On-chain Balance: "}
-              {new Intl.NumberFormat().format(
-                isSwap
-                  ? balances.lightning.totalSpendable / 1000
-                  : balances.onchain.spendable
-              )}{" "}
-              sats
+        {isSwap ? (
+          <div className="grid gap-1">
+            <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
+              <div>
+                Spending Balance:{" "}
+                {new Intl.NumberFormat().format(
+                  Math.floor(balances.lightning.totalSpendable / 1000)
+                )}{" "}
+                sats
+              </div>
+              <FormattedFiatAmount
+                className="text-xs"
+                amount={Math.floor(balances.lightning.totalSpendable / 1000)}
+              />
             </div>
-            <FormattedFiatAmount
-              className="text-xs"
-              amount={
-                isSwap
-                  ? balances.lightning.totalSpendable / 1000
-                  : balances.onchain.spendable
-              }
-            />
-          </div>
-          {isSwap && (
             <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
               <div>Minimum: 50000 sats</div>
               <FormattedFiatAmount className="text-xs" amount={50000} />
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
+            <div>
+              On-chain Balance:{" "}
+              {new Intl.NumberFormat().format(balances.onchain.spendable)} sats
+            </div>
+            <FormattedFiatAmount
+              className="text-xs"
+              amount={balances.onchain.spendable}
+            />
+          </div>
+        )}
       </div>
       <div className="flex items-center justify-between">
         <Label htmlFor="swap" className="font-medium text-sm cursor-pointer">
@@ -218,6 +230,16 @@ export default function Onchain() {
           </div>
         )}
       </div>
+      {amount && +amount < 10_000 && (
+        <Alert>
+          <InfoIcon className="h-4 w-4" />
+          <AlertTitle>Amount not ideal for On-chain transaction</AlertTitle>
+          <AlertDescription>
+            Small amounts can become unspendable during fee spikes. Consider
+            using Lightning instead.
+          </AlertDescription>
+        </Alert>
+      )}
       <div className="flex gap-2">
         <LinkButton to="/wallet/send" variant="outline">
           Back
@@ -225,7 +247,7 @@ export default function Onchain() {
         <LoadingButton
           loading={isLoading}
           type="submit"
-          className="w-full md:w"
+          className="w-full md:w-fit"
         >
           Send
         </LoadingButton>

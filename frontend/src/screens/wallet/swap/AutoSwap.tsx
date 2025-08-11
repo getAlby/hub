@@ -17,7 +17,7 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useToast } from "src/components/ui/use-toast";
-import { MIN_AUTO_SWAP_AMOUNT } from "src/constants";
+import { MIN_SWAP_AMOUNT } from "src/constants";
 import { useAutoSwapsConfig, useSwapFees } from "src/hooks/useSwaps";
 import { AutoSwapConfig } from "src/types";
 import { request } from "src/utils/request";
@@ -137,12 +137,12 @@ function AutoSwapOutForm() {
           type="number"
           placeholder="Amount in satoshis"
           value={swapAmount}
-          min={MIN_AUTO_SWAP_AMOUNT}
+          min={MIN_SWAP_AMOUNT}
           onChange={(e) => setSwapAmount(e.target.value)}
           required
         />
         <p className="text-xs text-muted-foreground">
-          Minimum {new Intl.NumberFormat().format(MIN_AUTO_SWAP_AMOUNT)} sats
+          Minimum {new Intl.NumberFormat().format(MIN_SWAP_AMOUNT)} sats
         </p>
       </div>
       <div className="flex flex-col gap-4">
