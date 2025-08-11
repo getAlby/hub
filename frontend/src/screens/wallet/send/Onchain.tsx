@@ -64,6 +64,7 @@ export default function Onchain() {
           body: JSON.stringify({
             swapAmount: +amount,
             destination: address,
+            isSending: true,
           }),
         });
         if (!swapOutResponse) {
