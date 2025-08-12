@@ -109,11 +109,11 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const [intendedLightningAddress, setIntendedLightningAddress] =
     React.useState("");
   const { createLightningAddress, creatingLightningAddress } =
-    useCreateLightningAddress(app.appPubkey);
+    useCreateLightningAddress(app.id);
   const {
     deleteLightningAddress: deleteSubwalletLightningAddress,
     deletingLightningAddress,
-  } = useDeleteLightningAddress(app.appPubkey);
+  } = useDeleteLightningAddress(app.id);
   const { data: albyMe } = useAlbyMe();
 
   React.useEffect(() => {
