@@ -1,6 +1,7 @@
 import type { LightningAddress } from "@getalby/lightning-tools/lnurl";
+import { XIcon } from "lucide-react";
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import { LinkButton } from "src/components/ui/button";
@@ -89,13 +90,18 @@ export default function LnurlPay() {
   return (
     <form onSubmit={onSubmit} className="grid gap-6 md:max-w-lg">
       <div className="grid gap-2">
-        <Label>Recipient</Label>
-        <p>{lnAddress.address}</p>
+        <div className="text-sm font-medium">Recipient</div>
+        <div className="flex items-center justify-between">
+          <p className="text-sm">{lnAddress.address}</p>
+          <Link to="/wallet/send">
+            <XIcon className="w-4 h-4 cursor-pointer" />
+          </Link>
+        </div>
       </div>
       {lnAddress.lnurlpData?.description && (
         <div className="grid gap-2">
           <Label>Description</Label>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             {lnAddress.lnurlpData.description}
           </p>
         </div>
