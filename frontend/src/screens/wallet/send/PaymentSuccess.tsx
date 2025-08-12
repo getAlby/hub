@@ -21,6 +21,7 @@ import { useToast } from "src/components/ui/use-toast";
 import { copyToClipboard } from "src/lib/clipboard";
 
 import TickSVG from "public/images/illustrations/tick.svg";
+import AppHeader from "src/components/AppHeader";
 
 export default function PaymentSuccess() {
   const { state } = useLocation();
@@ -38,6 +39,7 @@ export default function PaymentSuccess() {
   }
 
   const to = state?.to as string;
+  const pageTitle = state?.pageTitle as string;
   const invoice = state?.invoice as Invoice;
 
   const copy = () => {
@@ -45,48 +47,54 @@ export default function PaymentSuccess() {
   };
 
   return (
-    <div className="w-full md:max-w-lg">
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle className="text-center">Payment Successful</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center gap-6">
-          <img src={TickSVG} className="w-48" />
-          <div className="flex flex-col gap-1 items-center">
-            <p className="text-2xl font-medium slashed-zero">
-              {new Intl.NumberFormat().format(invoice.satoshi)} sats
-            </p>
-            <FormattedFiatAmount amount={invoice.satoshi} className="text-xl" />
-          </div>
-          {(to || invoice.description || invoice.successAction) && (
-            <div className="flex flex-col items-center w-full gap-4">
-              {to && (
-                <p className="text-muted-foreground">
-                  to <span className="text-foreground">{to}</span>
-                </p>
-              )}
-              {invoice.description && (
-                <p className="text-muted-foreground">{invoice.description}</p>
-              )}
-              <SuccessAction action={invoice.successAction} />
+    <div className="grid gap-4">
+      <AppHeader title={pageTitle || "Send"} />
+      <div className="w-full md:max-w-lg">
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle className="text-center">Payment Successful</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center gap-6">
+            <img src={TickSVG} className="w-48" />
+            <div className="flex flex-col gap-1 items-center">
+              <p className="text-2xl font-medium slashed-zero">
+                {new Intl.NumberFormat().format(invoice.satoshi)} sats
+              </p>
+              <FormattedFiatAmount
+                amount={invoice.satoshi}
+                className="text-xl"
+              />
             </div>
-          )}
-        </CardContent>
-        <CardFooter className="flex flex-col gap-2 pt-2">
-          <Button onClick={copy} variant="outline" className="w-full">
-            <CopyIcon className="w-4 h-4 mr-2" />
-            Copy Preimage
-          </Button>
-          <LinkButton to="/wallet/send" variant="outline" className="w-full">
-            <HandCoinsIcon className="w-4 h-4 mr-2" />
-            Make Another Payment
-          </LinkButton>
-          <LinkButton to="/wallet" variant="link" className="w-full">
-            <ArrowLeftIcon className="w-4 h-4 mr-2" />
-            Back to Wallet
-          </LinkButton>
-        </CardFooter>
-      </Card>
+            {(to || invoice.description || invoice.successAction) && (
+              <div className="flex flex-col items-center w-full gap-4">
+                {to && (
+                  <p className="text-muted-foreground">
+                    to <span className="text-foreground">{to}</span>
+                  </p>
+                )}
+                {invoice.description && (
+                  <p className="text-muted-foreground">{invoice.description}</p>
+                )}
+                <SuccessAction action={invoice.successAction} />
+              </div>
+            )}
+          </CardContent>
+          <CardFooter className="flex flex-col gap-2 pt-2">
+            <Button onClick={copy} variant="outline" className="w-full">
+              <CopyIcon className="w-4 h-4 mr-2" />
+              Copy Preimage
+            </Button>
+            <LinkButton to="/wallet/send" variant="outline" className="w-full">
+              <HandCoinsIcon className="w-4 h-4 mr-2" />
+              Make Another Payment
+            </LinkButton>
+            <LinkButton to="/wallet" variant="link" className="w-full">
+              <ArrowLeftIcon className="w-4 h-4 mr-2" />
+              Back to Wallet
+            </LinkButton>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
 }

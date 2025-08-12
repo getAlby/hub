@@ -1,6 +1,7 @@
 import { InfoIcon, XIcon } from "lucide-react";
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import AppHeader from "src/components/AppHeader";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
@@ -35,37 +36,40 @@ export default function Onchain() {
   }
 
   return (
-    <div className="grid gap-6 md:max-w-lg">
-      <div className="grid gap-2">
-        <div className="text-sm font-medium">Recipient</div>
-        <div className="flex items-center justify-between">
-          <div className="flex flex-wrap gap-2 items-center font-mono">
-            {address.match(/.{1,4}/g)?.map((word, index) => {
-              if (index % 2 === 0) {
-                return (
-                  <span key={index} className="text-foreground">
-                    {word}
-                  </span>
-                );
-              } else {
-                return (
-                  <span key={index} className="text-muted-foreground">
-                    {word}
-                  </span>
-                );
-              }
-            })}
+    <div className="grid gap-4">
+      <AppHeader title="Send to On-chain" />
+      <div className="grid gap-6 md:max-w-lg">
+        <div className="grid gap-2">
+          <div className="text-sm font-medium">Recipient</div>
+          <div className="flex items-center justify-between">
+            <div className="flex flex-wrap gap-2 items-center font-mono">
+              {address.match(/.{1,4}/g)?.map((word, index) => {
+                if (index % 2 === 0) {
+                  return (
+                    <span key={index} className="text-foreground">
+                      {word}
+                    </span>
+                  );
+                } else {
+                  return (
+                    <span key={index} className="text-muted-foreground">
+                      {word}
+                    </span>
+                  );
+                }
+              })}
+            </div>
+            <Link to="/wallet/send">
+              <XIcon className="w-4 h-4 cursor-pointer" />
+            </Link>
           </div>
-          <Link to="/wallet/send">
-            <XIcon className="w-4 h-4 cursor-pointer" />
-          </Link>
         </div>
+        {isSwap ? (
+          <SwapForm address={address} setSwap={setSwap} />
+        ) : (
+          <OnchainForm address={address} setSwap={setSwap} />
+        )}
       </div>
-      {isSwap ? (
-        <SwapForm address={address} setSwap={setSwap} />
-      ) : (
-        <OnchainForm address={address} setSwap={setSwap} />
-      )}
     </div>
   );
 }

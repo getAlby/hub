@@ -6,8 +6,10 @@ import { useToast } from "src/components/ui/use-toast";
 
 import type { Invoice } from "@getalby/lightning-tools/bolt11";
 import { ArrowLeftIcon } from "lucide-react";
+import AppHeader from "src/components/AppHeader";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import { SendAlert } from "src/components/SendAlert";
 import { SpendingAlert } from "src/components/SpendingAlert";
 import {
   Card,
@@ -54,6 +56,7 @@ export default function ConfirmPayment() {
       navigate(`/wallet/send/success`, {
         state: {
           preimage: payInvoiceResponse.preimage,
+          pageTitle: "Pay Invoice",
           invoice,
         },
       });
@@ -92,58 +95,65 @@ export default function ConfirmPayment() {
   );
 
   return (
-    <div className="w-full md:max-w-lg">
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-center">Confirm Payment</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center gap-6 pt-2">
-          <div className="flex flex-col gap-1 items-center">
-            <p className="text-2xl font-medium slashed-zero">
-              {new Intl.NumberFormat().format(invoice.satoshi)} sats
-            </p>
-            <FormattedFiatAmount amount={invoice.satoshi} className="text-xl" />
-          </div>
-          {invoice.description && (
-            <p className="text-lg text-muted-foreground">
-              {invoice.description}
-            </p>
-          )}
-        </CardContent>
-        <CardFooter className="flex flex-col gap-2 pt-2">
-          {hasChannelManagement &&
-            (invoice.satoshi || 0) * 1000 >= maxSpendable && (
-              <SpendingAlert className="mb-2" maxSpendable={maxSpendable} />
-            )}
-          <LoadingButton
-            onClick={confirmPayment}
-            loading={isLoading}
-            type="submit"
-            className="w-full"
-            autoFocus
-          >
-            Confirm Payment
-          </LoadingButton>
-          <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
-            Spending Balance:{" "}
-            {new Intl.NumberFormat().format(
-              Math.floor(balances.lightning.totalSpendable / 1000)
-            )}{" "}
-            sats (
-            {
+    <div className="grid gap-4">
+      <AppHeader title="Pay Invoice" />
+      <SendAlert />
+      <div className="w-full md:max-w-lg">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-center">Confirm Payment</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center gap-6 pt-2">
+            <div className="flex flex-col gap-1 items-center">
+              <p className="text-2xl font-medium slashed-zero">
+                {new Intl.NumberFormat().format(invoice.satoshi)} sats
+              </p>
               <FormattedFiatAmount
-                className="text-xs"
-                amount={balances.lightning.totalSpendable / 1000}
+                amount={invoice.satoshi}
+                className="text-xl"
               />
-            }
-            )
-          </div>
-          <LinkButton to="/wallet/send" variant="link" className="w-full">
-            <ArrowLeftIcon className="w-4 h-4 mr-2" />
-            Back
-          </LinkButton>
-        </CardFooter>
-      </Card>
+            </div>
+            {invoice.description && (
+              <p className="text-lg text-muted-foreground">
+                {invoice.description}
+              </p>
+            )}
+          </CardContent>
+          <CardFooter className="flex flex-col gap-2 pt-2">
+            {hasChannelManagement &&
+              (invoice.satoshi || 0) * 1000 >= maxSpendable && (
+                <SpendingAlert className="mb-2" maxSpendable={maxSpendable} />
+              )}
+            <LoadingButton
+              onClick={confirmPayment}
+              loading={isLoading}
+              type="submit"
+              className="w-full"
+              autoFocus
+            >
+              Confirm Payment
+            </LoadingButton>
+            <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
+              Spending Balance:{" "}
+              {new Intl.NumberFormat().format(
+                Math.floor(balances.lightning.totalSpendable / 1000)
+              )}{" "}
+              sats (
+              {
+                <FormattedFiatAmount
+                  className="text-xs"
+                  amount={balances.lightning.totalSpendable / 1000}
+                />
+              }
+              )
+            </div>
+            <LinkButton to="/wallet/send" variant="link" className="w-full">
+              <ArrowLeftIcon className="w-4 h-4 mr-2" />
+              Back
+            </LinkButton>
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
 }
