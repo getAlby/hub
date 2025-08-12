@@ -1,6 +1,6 @@
-import { InfoIcon } from "lucide-react";
+import { InfoIcon, XIcon } from "lucide-react";
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
@@ -20,9 +20,66 @@ import { request } from "src/utils/request";
 export default function Onchain() {
   const { state } = useLocation();
   const navigate = useNavigate();
+  const [isSwap, setSwap] = React.useState(false);
+
+  const address = state?.args?.address as string;
+
+  React.useEffect(() => {
+    if (!address) {
+      navigate("/wallet/send");
+    }
+  }, [navigate, address]);
+
+  if (!address) {
+    return <Loading />;
+  }
+
+  return (
+    <div className="grid gap-6 md:max-w-lg">
+      <div className="grid gap-2">
+        <div className="text-sm font-medium">Recipient</div>
+        <div className="flex items-center justify-between">
+          <div className="flex flex-wrap gap-2 items-center font-mono">
+            {address.match(/.{1,4}/g)?.map((word, index) => {
+              if (index % 2 === 0) {
+                return (
+                  <span key={index} className="text-foreground">
+                    {word}
+                  </span>
+                );
+              } else {
+                return (
+                  <span key={index} className="text-muted-foreground">
+                    {word}
+                  </span>
+                );
+              }
+            })}
+          </div>
+          <Link to="/wallet/send">
+            <XIcon className="w-4 h-4 cursor-pointer" />
+          </Link>
+        </div>
+      </div>
+      {isSwap ? (
+        <SwapForm address={address} setSwap={setSwap} />
+      ) : (
+        <OnchainForm address={address} setSwap={setSwap} />
+      )}
+    </div>
+  );
+}
+
+function OnchainForm({
+  address,
+  setSwap,
+}: {
+  address: string;
+  setSwap: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const { data: balances } = useBalances();
-  const { data: swapFees } = useSwapFees("out");
   const { data: recommendedFees, error: mempoolError } = useMempoolApi<{
     fastestFee: number;
     halfHourFee: number;
@@ -30,8 +87,6 @@ export default function Onchain() {
     minimumFee: number;
   }>("/v1/fees/recommended");
 
-  const address = state?.args?.address as string;
-  const [isSwap, setSwap] = React.useState(false);
   const [amount, setAmount] = React.useState("");
   const [feeRate, setFeeRate] = React.useState("");
   const [isLoading, setLoading] = React.useState(false);
@@ -48,60 +103,38 @@ export default function Onchain() {
       if (!balances) {
         return;
       }
-      if (!address) {
-        throw new Error("no BTC address set");
-      }
       if (balances.onchain.spendable <= ONCHAIN_DUST_SATS) {
         throw new Error(
-          "You currently don't have enough sats to pay for an onchain transaction. Consider swapping from Spending Balance."
+          "You currently don't have enough sats to pay for an on-chain transaction. Consider swapping from Spending Balance."
         );
       }
       setLoading(true);
-      if (isSwap) {
-        const swapOutResponse = await request<SwapResponse>("/api/swaps/out", {
+      const response = await request<RedeemOnchainFundsResponse>(
+        "/api/wallet/redeem-onchain-funds",
+        {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            swapAmount: +amount,
-            destination: address,
-            isSending: true,
-          }),
-        });
-        if (!swapOutResponse) {
-          throw new Error("Error swapping out");
-        }
-        navigate(`/wallet/swap/out/status/${swapOutResponse.swapId}`);
-        toast({ title: "Initiated swap" });
-      } else {
-        const response = await request<RedeemOnchainFundsResponse>(
-          "/api/wallet/redeem-onchain-funds",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              toAddress: address,
-              amount: +amount,
-              feeRate: +feeRate,
-            }),
-          }
-        );
-        if (!response?.txId) {
-          throw new Error("No address in response");
-        }
-        navigate(`/wallet/send/onchain-success`, {
-          state: {
+            toAddress: address,
             amount: +amount,
-            txId: response.txId,
-          },
-        });
-        toast({
-          title: "Successfully broadcasted transaction",
-        });
+            feeRate: +feeRate,
+          }),
+        }
+      );
+      if (!response?.txId) {
+        throw new Error("No address in response");
       }
+      navigate(`/wallet/send/onchain-success`, {
+        state: {
+          amount: +amount,
+          txId: response.txId,
+        },
+      });
+      toast({
+        title: "Successfully broadcasted transaction",
+      });
     } catch (e) {
       toast({
         variant: "destructive",
@@ -114,38 +147,12 @@ export default function Onchain() {
     }
   };
 
-  React.useEffect(() => {
-    if (!address) {
-      navigate("/wallet/send");
-    }
-  }, [navigate, address]);
-
-  if (!balances || !address || (!recommendedFees && !mempoolError)) {
+  if (!balances || (!recommendedFees && !mempoolError)) {
     return <Loading />;
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-6 md:max-w-lg">
-      <div className="grid gap-2">
-        <Label>Recipient</Label>
-        <div className="flex flex-wrap gap-2 items-center">
-          {address.match(/.{1,4}/g)?.map((word, index) => {
-            if (index % 2 === 0) {
-              return (
-                <span key={index} className="text-foreground">
-                  {word}
-                </span>
-              );
-            } else {
-              return (
-                <span key={index} className="text-muted-foreground">
-                  {word}
-                </span>
-              );
-            }
-          })}
-        </div>
-      </div>
+    <form onSubmit={onSubmit} className="grid gap-6">
       <div className="grid gap-2">
         <Label htmlFor="amount">Amount</Label>
         <Input
@@ -156,12 +163,8 @@ export default function Onchain() {
           onChange={(e) => {
             setAmount(e.target.value.trim());
           }}
-          min={isSwap ? MIN_SWAP_AMOUNT : ONCHAIN_DUST_SATS}
-          max={Math.floor(
-            isSwap
-              ? balances.lightning.totalSpendable / 1000
-              : balances.onchain.spendable
-          )}
+          min={ONCHAIN_DUST_SATS}
+          max={balances.onchain.spendable}
           required
           autoFocus
           className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -169,66 +172,28 @@ export default function Onchain() {
             <FormattedFiatAmount amount={Number(amount)} className="mr-2" />
           }
         />
-        {isSwap ? (
-          <div className="grid gap-1">
-            <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
-              <div>
-                Spending Balance:{" "}
-                {new Intl.NumberFormat().format(
-                  Math.floor(balances.lightning.totalSpendable / 1000)
-                )}{" "}
-                sats
-              </div>
-              <FormattedFiatAmount
-                className="text-xs"
-                amount={Math.floor(balances.lightning.totalSpendable / 1000)}
-              />
-            </div>
-            <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
-              <div>Minimum: 50000 sats</div>
-              <FormattedFiatAmount className="text-xs" amount={50000} />
-            </div>
+        <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
+          <div>
+            On-chain Balance:{" "}
+            {new Intl.NumberFormat().format(balances.onchain.spendable)} sats
           </div>
-        ) : (
-          <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
-            <div>
-              On-chain Balance:{" "}
-              {new Intl.NumberFormat().format(balances.onchain.spendable)} sats
-            </div>
-            <FormattedFiatAmount
-              className="text-xs"
-              amount={balances.onchain.spendable}
-            />
-          </div>
-        )}
+          <FormattedFiatAmount
+            className="text-xs"
+            amount={balances.onchain.spendable}
+          />
+        </div>
       </div>
       <div className="flex items-center justify-between">
         <Label htmlFor="swap" className="font-medium text-sm cursor-pointer">
           Swap from Spending Balance
         </Label>
-        <Switch id="swap" checked={isSwap} onCheckedChange={setSwap} />
+        <Switch id="swap" onCheckedChange={setSwap} />
       </div>
       <div className="grid gap-2 text-sm border-t pt-4">
         <div className="flex items-center justify-between">
           <p className="text-muted-foreground">On-chain Fee</p>
-          {swapFees ? (
-            <p>
-              ~{new Intl.NumberFormat().format(swapFees.boltzNetworkFee)} sats
-            </p>
-          ) : (
-            <Loading />
-          )}
+          {feeRate ? <p>{feeRate} sat/vB</p> : <Loading className="w-4 h-4" />}
         </div>
-        {isSwap && (
-          <div className="flex items-center justify-between">
-            <p className="text-muted-foreground">Swap Fee</p>
-            {swapFees ? (
-              <p>{swapFees.albyServiceFee + swapFees.boltzServiceFee}%</p>
-            ) : (
-              <Loading />
-            )}
-          </div>
-        )}
       </div>
       {amount && +amount < 10_000 && (
         <Alert>
@@ -240,6 +205,140 @@ export default function Onchain() {
           </AlertDescription>
         </Alert>
       )}
+      <div className="flex gap-2">
+        <LinkButton to="/wallet/send" variant="outline">
+          Back
+        </LinkButton>
+        <LoadingButton
+          loading={isLoading}
+          type="submit"
+          className="w-full md:w-fit"
+        >
+          Send
+        </LoadingButton>
+      </div>
+    </form>
+  );
+}
+
+function SwapForm({
+  address,
+  setSwap,
+}: {
+  address: string;
+  setSwap: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { data: balances } = useBalances();
+  const { data: swapFees } = useSwapFees("out");
+
+  const [amount, setAmount] = React.useState("");
+  const [isLoading, setLoading] = React.useState(false);
+
+  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    try {
+      setLoading(true);
+      const swapOutResponse = await request<SwapResponse>("/api/swaps/out", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          swapAmount: +amount,
+          destination: address,
+          isSending: true,
+        }),
+      });
+      if (!swapOutResponse) {
+        throw new Error("Error swapping out");
+      }
+      navigate(`/wallet/swap/out/status/${swapOutResponse.swapId}`);
+      toast({ title: "Initiated swap" });
+    } catch (e) {
+      toast({
+        variant: "destructive",
+        title: "Failed to send payment",
+        description: "" + e,
+      });
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!balances) {
+    return <Loading />;
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="grid gap-6">
+      <div className="grid gap-2">
+        <Label htmlFor="amount">Amount</Label>
+        <Input
+          id="amount"
+          type="number"
+          value={amount}
+          placeholder="Amount in Satoshi..."
+          onChange={(e) => {
+            setAmount(e.target.value.trim());
+          }}
+          min={MIN_SWAP_AMOUNT}
+          max={Math.floor(balances.lightning.totalSpendable / 1000)}
+          required
+          autoFocus
+          className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          endAdornment={
+            <FormattedFiatAmount amount={Number(amount)} className="mr-2" />
+          }
+        />
+        <div className="grid gap-1">
+          <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
+            <div>
+              Spending Balance:{" "}
+              {new Intl.NumberFormat().format(
+                Math.floor(balances.lightning.totalSpendable / 1000)
+              )}{" "}
+              sats
+            </div>
+            <FormattedFiatAmount
+              className="text-xs"
+              amount={Math.floor(balances.lightning.totalSpendable / 1000)}
+            />
+          </div>
+          <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
+            <div>Minimum: 50000 sats</div>
+            <FormattedFiatAmount className="text-xs" amount={50000} />
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center justify-between">
+        <Label htmlFor="swap" className="font-medium text-sm cursor-pointer">
+          Swap from Spending Balance
+        </Label>
+        <Switch id="swap" checked onCheckedChange={setSwap} />
+      </div>
+      <div className="grid gap-2 text-sm border-t pt-4">
+        <div className="flex items-center justify-between">
+          <p className="text-muted-foreground">On-chain Fee</p>
+          {swapFees ? (
+            <p>
+              ~{new Intl.NumberFormat().format(swapFees.boltzNetworkFee)} sats
+            </p>
+          ) : (
+            <Loading className="w-4 h-4" />
+          )}
+        </div>
+        <div className="flex items-center justify-between">
+          <p className="text-muted-foreground">Swap Fee</p>
+          {swapFees ? (
+            <p>{swapFees.albyServiceFee + swapFees.boltzServiceFee}%</p>
+          ) : (
+            <Loading className="w-4 h-4" />
+          )}
+        </div>
+      </div>
       <div className="flex gap-2">
         <LinkButton to="/wallet/send" variant="outline">
           Back
