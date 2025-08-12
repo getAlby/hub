@@ -268,7 +268,7 @@ export default function ReceiveInvoice() {
                         </LinkButton>
                       )}
                     <LinkButton
-                      to="/wallet/receive/offer"
+                      to="/wallet/receive/onchain"
                       variant="outline"
                       className="w-full"
                     >
