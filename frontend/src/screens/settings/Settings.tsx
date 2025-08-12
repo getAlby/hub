@@ -75,7 +75,7 @@ function Settings() {
     return <Loading />;
   }
 
-  const paidThemes = ["matrix"];
+  const paidThemes = ["matrix", "ghibli", "claymorphism"];
   const hasPlan = !!albyMe?.subscription.plan_code;
 
   return (

@@ -16,6 +16,8 @@ body {
 @import "./themes/bitcoin.css";
 @import "./themes/nostr.css";
 @import "./themes/matrix.css";
+@import "./themes/ghibli.css";
+@import "./themes/claymorphism.css";
 
 @import "./themes/index.css";
 

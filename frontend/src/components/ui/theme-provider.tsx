@@ -7,6 +7,8 @@ export const Themes = [
   "bitcoin",
   "nostr",
   "matrix",
+  "ghibli",
+  "claymorphism",
 ] as const;
 export type Theme = (typeof Themes)[number];
 
