@@ -161,35 +161,35 @@ export function RebalanceChannelDialogContent({
             {channels.filter(
               (channel) => channel.remotePubkey === receiveThroughNodePubkey
             ).length > 1 && (
-                <Alert className="mt-2">
-                  <AlertTriangleIcon className="h-4 w-4" />
-                  <AlertTitle>
-                    Multiple channels with same counterparty
-                  </AlertTitle>
-                  <AlertDescription>
-                    Funds may be rebalanced to an unexpected channel.
-                  </AlertDescription>
-                </Alert>
-              )}
+              <Alert className="mt-2">
+                <AlertTriangleIcon className="h-4 w-4" />
+                <AlertTitle>
+                  Multiple channels with same counterparty
+                </AlertTitle>
+                <AlertDescription>
+                  Funds may be rebalanced to an unexpected channel.
+                </AlertDescription>
+              </Alert>
+            )}
             {channels.some(
               (channel) =>
                 channel.remotePubkey !== receiveThroughNodePubkey &&
                 channel.localSpendableBalance <
-                (channels.find(
-                  (other) => other.remotePubkey === receiveThroughNodePubkey
-                )?.localSpendableBalance || 0)
+                  (channels.find(
+                    (other) => other.remotePubkey === receiveThroughNodePubkey
+                  )?.localSpendableBalance || 0)
             ) && (
-                <Alert className="mt-2">
-                  <AlertTriangleIcon className="h-4 w-4" />
-                  <AlertTitle>
-                    You have another channel with less funds
-                  </AlertTitle>
-                  <AlertDescription>
-                    Consider choosing a channel with less spending balance to
-                    rebalance into.
-                  </AlertDescription>
-                </Alert>
-              )}
+              <Alert className="mt-2">
+                <AlertTriangleIcon className="h-4 w-4" />
+                <AlertTitle>
+                  You have another channel with less funds
+                </AlertTitle>
+                <AlertDescription>
+                  Consider choosing a channel with less spending balance to
+                  rebalance into.
+                </AlertDescription>
+              </Alert>
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className="mt-4">

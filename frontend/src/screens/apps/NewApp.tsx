@@ -84,7 +84,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     if (unsupportedMethods.length) {
       setUnsupportedError(
         "This app requests methods not supported by your wallet: " +
-        unsupportedMethods
+          unsupportedMethods
       );
     }
 
@@ -106,7 +106,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     if (unsupportedNotificationTypes.length) {
       setUnsupportedError(
         "This app requests notification types not supported by your wallet: " +
-        unsupportedNotificationTypes
+          unsupportedNotificationTypes
       );
     }
 

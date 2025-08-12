@@ -197,7 +197,7 @@ export default function SwapInStatus() {
                     {swap.state === "PENDING" &&
                       balances &&
                       balances.onchain.spendable - 25000 /* anchor reserve */ >
-                      swap.sendAmount && (
+                        swap.sendAmount && (
                         <LoadingButton
                           loading={isPaying}
                           onClick={payWithAlbyHub}

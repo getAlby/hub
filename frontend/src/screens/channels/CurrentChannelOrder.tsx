@@ -524,11 +524,11 @@ function useWaitForNewChannel() {
   const newChannel =
     channels && order?.prevChannelIds
       ? channels.find(
-        (newChannel) =>
-          !order.prevChannelIds.some(
-            (current) => newChannel.id === current
-          ) && newChannel.fundingTxId
-      )
+          (newChannel) =>
+            !order.prevChannelIds.some(
+              (current) => newChannel.id === current
+            ) && newChannel.fundingTxId
+        )
       : undefined;
 
   React.useEffect(() => {

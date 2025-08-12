@@ -230,7 +230,7 @@ export default function WithdrawOnchainFunds() {
             {!!channels?.length &&
               (sendAll ||
                 +amount >
-                balances.onchain.spendable - channels.length * 25000) && (
+                  balances.onchain.spendable - channels.length * 25000) && (
                 <Alert className="mt-4">
                   <AlertTriangleIcon />
                   <AlertTitle>

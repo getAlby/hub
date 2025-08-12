@@ -122,7 +122,7 @@ function SwapInForm() {
       <div className="mt-6">
         {hasChannelManagement &&
           parseInt(swapAmount || "0") * 1000 >=
-          0.8 * balances.lightning.totalReceivable && (
+            0.8 * balances.lightning.totalReceivable && (
             <LowReceivingCapacityAlert />
           )}
         <h2 className="mt-4 font-medium text-foreground flex items-center gap-1">

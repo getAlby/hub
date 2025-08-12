@@ -99,7 +99,7 @@ export default function ReceiveInvoice() {
         <div className="grid gap-5">
           {hasChannelManagement &&
             parseInt(amount || "0") * 1000 >=
-            0.8 * balances.lightning.totalReceivable && (
+              0.8 * balances.lightning.totalReceivable && (
               <LowReceivingCapacityAlert />
             )}
           <div>

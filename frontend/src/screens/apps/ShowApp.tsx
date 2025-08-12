@@ -376,7 +376,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                   )}
                   {app.isolated &&
                     app.metadata?.app_store_app_id ===
-                    SUBWALLET_APPSTORE_APP_ID && (
+                      SUBWALLET_APPSTORE_APP_ID && (
                       <TableRow>
                         <TableCell className="font-medium">
                           Lightning Address
@@ -494,8 +494,8 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                         </Button>
 
                         {(app.isolated && !permissions.isolated) ||
-                          (!app.scopes.includes("pay_invoice") &&
-                            permissions.scopes.includes("pay_invoice")) ? (
+                        (!app.scopes.includes("pay_invoice") &&
+                          permissions.scopes.includes("pay_invoice")) ? (
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button type="button">Save</Button>
