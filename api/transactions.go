@@ -144,7 +144,7 @@ func (api *api) Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, am
 		}
 	}
 
-	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, "top up sub-wallet", "", 0, nil, api.svc.GetLNClient(), toAppId, nil)
+	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, "transfer", "", 0, nil, api.svc.GetLNClient(), toAppId, nil)
 
 	if err != nil {
 		return err
