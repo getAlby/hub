@@ -28,7 +28,6 @@ export default function ConfirmPayment() {
   const { hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
 
-  const amount = state?.args?.amount as number | undefined;
   const invoice = state?.args?.paymentRequest as Invoice;
   const metadata = state?.args?.metadata as TransactionMetadata;
   const [isLoading, setLoading] = React.useState(false);
@@ -41,7 +40,6 @@ export default function ConfirmPayment() {
         {
           method: "POST",
           body: JSON.stringify({
-            amount: amount ? amount * 1000 : undefined,
             metadata,
           }),
           headers: {
@@ -102,12 +100,9 @@ export default function ConfirmPayment() {
         <CardContent className="flex flex-col items-center gap-6 pt-2">
           <div className="flex flex-col gap-1 items-center">
             <p className="text-2xl font-medium slashed-zero">
-              {new Intl.NumberFormat().format(amount || invoice.satoshi)} sats
+              {new Intl.NumberFormat().format(invoice.satoshi)} sats
             </p>
-            <FormattedFiatAmount
-              amount={amount || invoice.satoshi}
-              className="text-xl"
-            />
+            <FormattedFiatAmount amount={invoice.satoshi} className="text-xl" />
           </div>
           {invoice.description && (
             <p className="text-lg text-muted-foreground">
@@ -117,7 +112,7 @@ export default function ConfirmPayment() {
         </CardContent>
         <CardFooter className="flex flex-col gap-2 pt-2">
           {hasChannelManagement &&
-            (amount || invoice.satoshi || 0) * 1000 >= maxSpendable && (
+            (invoice.satoshi || 0) * 1000 >= maxSpendable && (
               <SpendingAlert className="mb-2" maxSpendable={maxSpendable} />
             )}
           <LoadingButton
@@ -129,6 +124,20 @@ export default function ConfirmPayment() {
           >
             Confirm Payment
           </LoadingButton>
+          <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
+            Spending Balance:{" "}
+            {new Intl.NumberFormat().format(
+              Math.floor(balances.lightning.totalSpendable / 1000)
+            )}{" "}
+            sats (
+            {
+              <FormattedFiatAmount
+                className="text-xs"
+                amount={balances.lightning.totalSpendable / 1000}
+              />
+            }
+            )
+          </div>
           <LinkButton to="/wallet/send" variant="link" className="w-full">
             <ArrowLeftIcon className="w-4 h-4 mr-2" />
             Back
