@@ -78,7 +78,6 @@ export function SubwalletCreated() {
   }
 
   const name = createAppResponse.name;
-  const appPublicKey = createAppResponse.pairingPublicKey;
   let connectionSecret = createAppResponse.pairingUri;
   if (app?.metadata?.lud16) {
     connectionSecret += `&lud16=${app.metadata.lud16}`;
@@ -186,7 +185,7 @@ export function SubwalletCreated() {
                     </CardDescription>
                   </CardHeader>
                   <CardFooter className="flex flex-row justify-end">
-                    <IsolatedAppTopupDialog appPubkey={appPublicKey}>
+                    <IsolatedAppTopupDialog appId={app.id}>
                       <Button size="sm" variant="secondary">
                         Top Up
                       </Button>

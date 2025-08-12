@@ -12,19 +12,19 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
-import { useAppByPubkey } from "src/hooks/useApp";
+import { useApp } from "src/hooks/useApp";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
 type IsolatedAppTopupProps = {
-  appPubkey: string;
+  appId: number;
 };
 
 export function IsolatedAppDrawDownDialog({
-  appPubkey,
+  appId,
   children,
 }: React.PropsWithChildren<IsolatedAppTopupProps>) {
-  const { mutate: reloadApp } = useAppByPubkey(appPubkey);
+  const { mutate: reloadApp } = useApp(appId);
   const [amountSat, setAmountSat] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [open, setOpen] = React.useState(false);
@@ -33,12 +33,13 @@ export function IsolatedAppDrawDownDialog({
     e.preventDefault();
     setLoading(true);
     try {
-      await request(`/api/apps/${appPubkey}/drawdown`, {
+      await request(`/api/transfers`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          fromAppId: appId,
           amountSat: +amountSat,
         }),
       });

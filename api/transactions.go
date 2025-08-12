@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/transactions"
 	"github.com/sirupsen/logrus"
@@ -128,39 +127,30 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 	}
 }
 
-func (api *api) TopupIsolatedApp(ctx context.Context, userApp *db.App, amountMsat uint64) error {
+func (api *api) Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, amountMsat uint64) error {
 	if api.svc.GetLNClient() == nil {
 		return errors.New("LNClient not started")
 	}
-	if !userApp.Isolated {
-		return errors.New("this app is not a sub-wallet")
+
+	for _, appId := range []*uint{fromAppId, toAppId} {
+		if appId != nil {
+			dbApp := api.appsSvc.GetAppById(*appId)
+			if dbApp == nil {
+				return errors.New("app does not exist")
+			}
+			if !dbApp.Isolated {
+				return errors.New("app is not isolated")
+			}
+		}
 	}
 
-	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, "top up sub-wallet", "", 0, nil, api.svc.GetLNClient(), &userApp.ID, nil)
+	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, "top up sub-wallet", "", 0, nil, api.svc.GetLNClient(), toAppId, nil)
 
 	if err != nil {
 		return err
 	}
 
-	_, err = api.svc.GetTransactionsService().SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, api.svc.GetLNClient(), nil, nil)
-	return err
-}
-
-func (api *api) DrawDownIsolatedApp(ctx context.Context, userApp *db.App, amountMsat uint64) error {
-	if api.svc.GetLNClient() == nil {
-		return errors.New("LNClient not started")
-	}
-	if !userApp.Isolated {
-		return errors.New("this app is not a sub-wallet")
-	}
-
-	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, "draw down sub-wallet", "", 0, nil, api.svc.GetLNClient(), nil, nil)
-
-	if err != nil {
-		return err
-	}
-
-	_, err = api.svc.GetTransactionsService().SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, api.svc.GetLNClient(), &userApp.ID, nil)
+	_, err = api.svc.GetTransactionsService().SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, api.svc.GetLNClient(), fromAppId, nil)
 	return err
 }
 
