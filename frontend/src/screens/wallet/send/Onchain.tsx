@@ -60,7 +60,7 @@ export default function Onchain() {
               })}
             </div>
             <Link to="/wallet/send">
-              <XIcon className="w-4 h-4 cursor-pointer" />
+              <XIcon className="w-4 h-4 cursor-pointer text-muted-foreground" />
             </Link>
           </div>
         </div>

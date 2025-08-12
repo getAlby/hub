@@ -36,7 +36,7 @@ export function PendingPaymentAlert({ className }: { className?: string }) {
         <div className="mb-2">
           You have one or more payments that have not settled.
         </div>
-        <LinkButton to={"/wallet"} size={"sm"}>
+        <LinkButton to="/wallet" size="sm">
           View Payments
         </LinkButton>
       </AlertDescription>
