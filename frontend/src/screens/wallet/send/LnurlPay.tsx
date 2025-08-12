@@ -5,7 +5,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
-import { SendAlert } from "src/components/SendAlert";
+import { PendingPaymentAlert } from "src/components/PendingPaymentAlert";
 import { LinkButton } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -93,7 +93,7 @@ export default function LnurlPay() {
   return (
     <div className="grid gap-4">
       <AppHeader title="Send to Lightning Address" />
-      <SendAlert />
+      <PendingPaymentAlert />
       <form onSubmit={onSubmit} className="grid gap-6 md:max-w-lg">
         <div className="grid gap-2">
           <div className="text-sm font-medium">Recipient</div>

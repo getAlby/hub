@@ -9,7 +9,7 @@ import { ArrowLeftIcon } from "lucide-react";
 import AppHeader from "src/components/AppHeader";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
-import { SendAlert } from "src/components/SendAlert";
+import { PendingPaymentAlert } from "src/components/PendingPaymentAlert";
 import { SpendingAlert } from "src/components/SpendingAlert";
 import {
   Card,
@@ -100,7 +100,7 @@ export default function ConfirmPayment() {
   return (
     <div className="grid gap-4">
       <AppHeader title="Pay Invoice" />
-      <SendAlert />
+      <PendingPaymentAlert />
       <div className="w-full md:max-w-lg">
         <Card>
           <CardHeader>

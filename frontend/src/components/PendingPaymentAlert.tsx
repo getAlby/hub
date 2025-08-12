@@ -7,7 +7,7 @@ import { useChannels } from "src/hooks/useChannels";
 import { useTransactions } from "src/hooks/useTransactions";
 import { cn } from "src/lib/utils";
 
-export function SendAlert({ className }: { className?: string }) {
+export function PendingPaymentAlert({ className }: { className?: string }) {
   const { data: balances } = useBalances();
   const { data: channels } = useChannels();
   const { data: transactionData } = useTransactions();
