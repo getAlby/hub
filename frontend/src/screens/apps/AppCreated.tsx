@@ -7,7 +7,10 @@ import ExternalLink from "src/components/ExternalLink";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
-import { SuggestedApp, suggestedApps } from "src/components/SuggestedAppData";
+import {
+  SuggestedApp,
+  suggestedApps,
+} from "src/components/connections/SuggestedAppData";
 import { Badge } from "src/components/ui/badge";
 import { Button, ExternalLinkButton } from "src/components/ui/button";
 import {

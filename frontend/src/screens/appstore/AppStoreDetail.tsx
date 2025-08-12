@@ -1,14 +1,14 @@
 import { GlobeIcon } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import AppHeader from "src/components/AppHeader";
+import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
+import { AppDetailHeader } from "src/components/connections/AppDetailHeader";
+import { suggestedApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
 import { AppleIcon } from "src/components/icons/Apple";
 import { ChromeIcon } from "src/components/icons/Chrome";
 import { FirefoxIcon } from "src/components/icons/Firefox";
-import { NostrWalletConnectIcon } from "src/components/icons/NostrWalletConnectIcon";
 import { PlayStoreIcon } from "src/components/icons/PlayStore";
 import { ZapStoreIcon } from "src/components/icons/ZapStore";
-import { suggestedApps } from "src/components/SuggestedAppData";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -19,57 +19,36 @@ import {
 } from "src/components/ui/card";
 
 export function AppStoreDetail() {
-  const { appId } = useParams() as { appId: string };
-  const app = suggestedApps.find((x) => x.id === appId);
+  const { appStoreId } = useParams() as { appStoreId: string };
+  const appStoreApp = suggestedApps.find((x) => x.id === appStoreId);
   const navigate = useNavigate();
 
-  if (!app) {
-    navigate("/appstore");
+  if (!appStoreApp) {
+    navigate("/apps?tab=app-store");
     return;
   }
 
   // Redirect internal apps to their dedicated pages
-  if (app.internal) {
-    navigate(`/internal-apps/${appId}`);
+  if (appStoreApp.internal) {
+    navigate(`/internal-apps/${appStoreId}`);
     return;
   }
 
   return (
     <div className="grid gap-5">
-      <AppHeader
-        title={
-          <>
-            <div className="flex flex-row items-center">
-              <img src={app.logo} className="w-14 h-14 rounded-lg mr-4" />
-              <div className="flex flex-col">
-                <div>{app.title}</div>
-                <div className="text-sm font-normal text-muted-foreground">
-                  {app.description}
-                </div>
-              </div>
-            </div>
-          </>
-        }
-        description=""
-        contentRight={
-          <Link to={`/apps/new?app=${app.id}`}>
-            <Button>
-              <NostrWalletConnectIcon className="w-4 h-4 mr-2" />
-              Connect to {app.title}
-            </Button>
-          </Link>
-        }
-      />
+      <AppDetailHeader appStoreApp={appStoreApp} />
+      <AppDetailConnectedApps appStoreApp={appStoreApp} />
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="flex flex-col w-full gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="text-2xl">About the App</CardTitle>
             </CardHeader>
-            {app.extendedDescription && (
+            {appStoreApp.extendedDescription && (
               <CardContent className="flex flex-col gap-3">
                 <p className="text-muted-foreground">
-                  {app.extendedDescription}
+                  {appStoreApp.extendedDescription}
                 </p>
               </CardContent>
             )}
@@ -79,14 +58,14 @@ export function AppStoreDetail() {
               <CardTitle className="text-2xl">How to Connect</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
-              {app.guide || (
+              {appStoreApp.guide || (
                 <ul className="list-inside list-decimal">
                   <li>Install the app</li>
                   <li>
                     Click{" "}
-                    <Link to={`/apps/new?app=${appId}`}>
+                    <Link to={`/apps/new?app=${appStoreId}`}>
                       <Button variant="link" className="px-0">
-                        Connect to {app.title}
+                        Connect to {appStoreApp.title}
                       </Button>
                     </Link>
                   </li>
@@ -99,50 +78,50 @@ export function AppStoreDetail() {
           </Card>
         </div>
         <div className="flex flex-col w-full gap-6">
-          {(app.appleLink ||
-            app.playLink ||
-            app.zapStoreLink ||
-            app.chromeLink ||
-            app.firefoxLink) && (
+          {(appStoreApp.appleLink ||
+            appStoreApp.playLink ||
+            appStoreApp.zapStoreLink ||
+            appStoreApp.chromeLink ||
+            appStoreApp.firefoxLink) && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-2xl">Get This App</CardTitle>
               </CardHeader>
               <CardFooter className="flex flex-row gap-2">
-                {app.playLink && (
-                  <ExternalLink to={app.playLink}>
+                {appStoreApp.playLink && (
+                  <ExternalLink to={appStoreApp.playLink}>
                     <Button variant="outline">
                       <PlayStoreIcon className="w-4 h-4 mr-2" />
                       Play Store
                     </Button>
                   </ExternalLink>
                 )}
-                {app.appleLink && (
-                  <ExternalLink to={app.appleLink}>
+                {appStoreApp.appleLink && (
+                  <ExternalLink to={appStoreApp.appleLink}>
                     <Button variant="outline">
                       <AppleIcon className="w-4 h-4 mr-2" />
                       App Store
                     </Button>
                   </ExternalLink>
                 )}
-                {app.zapStoreLink && (
-                  <ExternalLink to={app.zapStoreLink}>
+                {appStoreApp.zapStoreLink && (
+                  <ExternalLink to={appStoreApp.zapStoreLink}>
                     <Button variant="outline">
                       <ZapStoreIcon className="w-4 h-4 mr-2" />
                       Zapstore
                     </Button>
                   </ExternalLink>
                 )}
-                {app.chromeLink && (
-                  <ExternalLink to={app.chromeLink}>
+                {appStoreApp.chromeLink && (
+                  <ExternalLink to={appStoreApp.chromeLink}>
                     <Button variant="outline">
                       <ChromeIcon className="w-4 h-4 mr-2" />
                       Chrome Web Store
                     </Button>
                   </ExternalLink>
                 )}
-                {app.firefoxLink && (
-                  <ExternalLink to={app.firefoxLink}>
+                {appStoreApp.firefoxLink && (
+                  <ExternalLink to={appStoreApp.firefoxLink}>
                     <Button variant="outline">
                       <FirefoxIcon className="w-4 h-4 mr-2" />
                       Firefox Add-Ons
@@ -152,14 +131,14 @@ export function AppStoreDetail() {
               </CardFooter>
             </Card>
           )}
-          {app.webLink && (
+          {appStoreApp.webLink && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-2xl">Links</CardTitle>
               </CardHeader>
               <CardFooter className="flex flex-row gap-2">
-                {app.webLink && (
-                  <ExternalLink to={app.webLink}>
+                {appStoreApp.webLink && (
+                  <ExternalLink to={appStoreApp.webLink}>
                     <Button variant="outline">
                       <GlobeIcon className="w-4 h-4 mr-2" />
                       Website

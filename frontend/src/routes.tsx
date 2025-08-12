@@ -1,4 +1,5 @@
 import { Navigate } from "react-router-dom";
+import AppStore from "src/components/connections/AppStore";
 import AppLayout from "src/components/layouts/AppLayout";
 import ReceiveLayout from "src/components/layouts/ReceiveLayout";
 import SendLayout from "src/components/layouts/SendLayout";
@@ -21,11 +22,10 @@ import AlbyAuthRedirect from "src/screens/alby/AlbyAuthRedirect";
 import { AlbyReviews } from "src/screens/alby/AlbyReviews";
 import SupportAlby from "src/screens/alby/SupportAlby";
 import AppCreated from "src/screens/apps/AppCreated";
-import AppList from "src/screens/apps/AppList";
 import { AppsCleanup } from "src/screens/apps/AppsCleanup";
+import { Connections } from "src/screens/apps/Connections";
 import NewApp from "src/screens/apps/NewApp";
 import ShowApp from "src/screens/apps/ShowApp";
-import AppStore from "src/screens/appstore/AppStore";
 import { AppStoreDetail } from "src/screens/appstore/AppStoreDetail";
 import Channels from "src/screens/channels/Channels";
 import { CurrentChannelOrder } from "src/screens/channels/CurrentChannelOrder";
@@ -268,7 +268,7 @@ const routes = [
         children: [
           {
             index: true,
-            element: <AppList />,
+            element: <Connections />,
           },
           {
             path: ":pubkey",
@@ -358,7 +358,7 @@ const routes = [
             element: <AppStore />,
           },
           {
-            path: ":appId",
+            path: ":appStoreId",
             element: <AppStoreDetail />,
           },
         ],

@@ -1,5 +1,4 @@
 import React from "react";
-import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import {
   Card,
@@ -23,6 +22,8 @@ import alby from "src/assets/suggested-apps/alby.png";
 import bitcoinbrink from "src/assets/zapplanner/bitcoinbrink.png";
 import hrf from "src/assets/zapplanner/hrf.png";
 import opensats from "src/assets/zapplanner/opensats.png";
+import { AppDetailHeader } from "src/components/connections/AppDetailHeader";
+import { suggestedApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
 import { Button, ExternalLinkButton } from "src/components/ui/button";
 import {
@@ -192,6 +193,11 @@ export function ZapPlanner() {
     convertCurrency();
   }, [amount, currency, open]);
 
+  const appStoreApp = suggestedApps.find((app) => app.id === "zapplanner");
+  if (!appStoreApp) {
+    return null;
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -332,9 +338,8 @@ export function ZapPlanner() {
 
   return (
     <div className="grid gap-5">
-      <AppHeader
-        title="ZapPlanner"
-        description="Schedule automatic recurring lightning payments"
+      <AppDetailHeader
+        appStoreApp={appStoreApp}
         contentRight={
           <>
             <Dialog open={open} onOpenChange={setOpen}>

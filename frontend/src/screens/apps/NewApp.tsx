@@ -24,7 +24,7 @@ import { useCapabilities } from "src/hooks/useCapabilities";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
 import Permissions from "../../components/Permissions";
-import { suggestedApps } from "../../components/SuggestedAppData";
+import { suggestedApps } from "../../components/connections/SuggestedAppData";
 
 const NewApp = () => {
   const { data: capabilities } = useCapabilities();

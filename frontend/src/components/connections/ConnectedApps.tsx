@@ -1,4 +1,4 @@
-import { CableIcon, CirclePlusIcon, TrashIcon } from "lucide-react";
+import { CableIcon, TrashIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
@@ -21,7 +21,7 @@ import { ListAppsResponse } from "src/types";
 // display previous page while next page is loading
 let prevAppsData: ListAppsResponse | undefined;
 
-function AppList() {
+function ConnectedApps() {
   const { data: info } = useInfo();
   const [page, setPage] = useState(1);
   const { data: appsData } = useApps(LIST_APPS_LIMIT, page);
@@ -54,6 +54,7 @@ function AppList() {
     <>
       <AppHeader
         title="Connections"
+        titleClassName="text-xl lg:text-2xl"
         contentRight={
           <>
             {!!unusedApps.length && (
@@ -65,14 +66,20 @@ function AppList() {
                 />
               </Link>
             )}
-            <Link to="/apps/new">
+            {/* <Link to="/apps/new">
               <ResponsiveButton icon={CirclePlusIcon} text="Add Connection" />
-            </Link>
+            </Link> */}
           </>
         }
       />
 
-      {info.albyAccountConnected && <AlbyConnectionCard />}
+      {info.albyAccountConnected && (
+        <div className="mt-6">
+          <AlbyConnectionCard />
+        </div>
+      )}
+
+      <div className="mt-6" />
 
       {!otherApps.length && (
         <EmptyState
@@ -80,7 +87,7 @@ function AppList() {
           title="Connect Your First App"
           description="Connect your app of choice, fine-tune permissions and enjoy a seamless and secure wallet experience."
           buttonText="See Recommended Apps"
-          buttonLink="/appstore"
+          buttonLink="/apps?tab=app-store"
         />
       )}
 
@@ -105,4 +112,4 @@ function AppList() {
   );
 }
 
-export default AppList;
+export default ConnectedApps;

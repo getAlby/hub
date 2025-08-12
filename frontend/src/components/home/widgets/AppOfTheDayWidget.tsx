@@ -1,6 +1,6 @@
 import { ExternalLinkIcon } from "lucide-react";
 import { Link } from "react-router-dom";
-import { suggestedApps } from "src/components/SuggestedAppData";
+import { suggestedApps } from "src/components/connections/SuggestedAppData";
 import { Button } from "src/components/ui/button";
 import {
   Card,

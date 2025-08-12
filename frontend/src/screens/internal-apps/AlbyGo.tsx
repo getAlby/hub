@@ -1,7 +1,9 @@
 import { GlobeIcon } from "lucide-react";
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
-import AppHeader from "src/components/AppHeader";
+import { useNavigate } from "react-router-dom";
+import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
+import { AppDetailHeader } from "src/components/connections/AppDetailHeader";
+import { suggestedApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
 import { AppleIcon } from "src/components/icons/Apple";
 import { ChromeIcon } from "src/components/icons/Chrome";
@@ -11,7 +13,6 @@ import { PlayStoreIcon } from "src/components/icons/PlayStore";
 import { ZapStoreIcon } from "src/components/icons/ZapStore";
 import Loading from "src/components/Loading";
 import PasswordInput from "src/components/password/PasswordInput";
-import { suggestedApps } from "src/components/SuggestedAppData";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -44,8 +45,8 @@ export function AlbyGo() {
   const { data: capabilities } = useCapabilities();
   const navigate = useNavigate();
 
-  const app = suggestedApps.find((app) => app.id === "alby-go");
-  if (!app) {
+  const appStoreApp = suggestedApps.find((app) => app.id === "alby-go");
+  if (!appStoreApp) {
     return null;
   }
 
@@ -57,7 +58,7 @@ export function AlbyGo() {
     e.preventDefault();
     setLoading(true);
     try {
-      if (!app) {
+      if (!appStoreApp) {
         throw new Error("Alby go app not found");
       }
       if (!capabilities) {
@@ -70,13 +71,13 @@ export function AlbyGo() {
         scopes: [...capabilities.scopes, "superuser"],
         isolated: false,
         metadata: {
-          app_store_app_id: app.id,
+          app_store_app_id: appStoreApp.id,
         },
         unlockPassword,
         maxAmount: 100_000,
         budgetRenewal: "monthly",
       });
-      navigate(`/apps/created?app=${app.id}`, {
+      navigate(`/apps/created?app=${appStoreApp.id}`, {
         state: createAppResponse,
       });
       toast({ title: "Alby Go connection created" });
@@ -149,40 +150,20 @@ export function AlbyGo() {
           </form>
         </AlertDialogContent>
       </AlertDialog>
-      <AppHeader
-        title={
-          <>
-            <div className="flex flex-row items-center">
-              <img src={app.logo} className="w-14 h-14 rounded-lg mr-4" />
-              <div className="flex flex-col">
-                <div>{app.title}</div>
-                <div className="text-sm font-normal text-muted-foreground">
-                  {app.description}
-                </div>
-              </div>
-            </div>
-          </>
-        }
-        description=""
-        contentRight={
-          <Link to={`/apps/new?app=${app.id}`}>
-            <Button>
-              <NostrWalletConnectIcon className="w-4 h-4 mr-2" />
-              Connect to {app.title}
-            </Button>
-          </Link>
-        }
-      />
+      <AppDetailHeader appStoreApp={appStoreApp} />
+
+      <AppDetailConnectedApps appStoreApp={appStoreApp} />
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="flex flex-col w-full gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="text-2xl">About the App</CardTitle>
             </CardHeader>
-            {app.extendedDescription && (
+            {appStoreApp.extendedDescription && (
               <CardContent className="flex flex-col gap-3">
                 <p className="text-muted-foreground">
-                  {app.extendedDescription}
+                  {appStoreApp.extendedDescription}
                 </p>
               </CardContent>
             )}
@@ -224,50 +205,50 @@ export function AlbyGo() {
           </Card>
         </div>
         <div className="flex flex-col w-full gap-6">
-          {(app.appleLink ||
-            app.playLink ||
-            app.zapStoreLink ||
-            app.chromeLink ||
-            app.firefoxLink) && (
+          {(appStoreApp.appleLink ||
+            appStoreApp.playLink ||
+            appStoreApp.zapStoreLink ||
+            appStoreApp.chromeLink ||
+            appStoreApp.firefoxLink) && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-2xl">Get This App</CardTitle>
               </CardHeader>
               <CardFooter className="flex flex-row gap-2">
-                {app.playLink && (
-                  <ExternalLink to={app.playLink}>
+                {appStoreApp.playLink && (
+                  <ExternalLink to={appStoreApp.playLink}>
                     <Button variant="outline">
                       <PlayStoreIcon className="w-4 h-4 mr-2" />
                       Play Store
                     </Button>
                   </ExternalLink>
                 )}
-                {app.appleLink && (
-                  <ExternalLink to={app.appleLink}>
+                {appStoreApp.appleLink && (
+                  <ExternalLink to={appStoreApp.appleLink}>
                     <Button variant="outline">
                       <AppleIcon className="w-4 h-4 mr-2" />
                       App Store
                     </Button>
                   </ExternalLink>
                 )}
-                {app.zapStoreLink && (
-                  <ExternalLink to={app.zapStoreLink}>
+                {appStoreApp.zapStoreLink && (
+                  <ExternalLink to={appStoreApp.zapStoreLink}>
                     <Button variant="outline">
                       <ZapStoreIcon className="w-4 h-4 mr-2" />
                       Zapstore
                     </Button>
                   </ExternalLink>
                 )}
-                {app.chromeLink && (
-                  <ExternalLink to={app.chromeLink}>
+                {appStoreApp.chromeLink && (
+                  <ExternalLink to={appStoreApp.chromeLink}>
                     <Button variant="outline">
                       <ChromeIcon className="w-4 h-4 mr-2" />
                       Chrome Web Store
                     </Button>
                   </ExternalLink>
                 )}
-                {app.firefoxLink && (
-                  <ExternalLink to={app.firefoxLink}>
+                {appStoreApp.firefoxLink && (
+                  <ExternalLink to={appStoreApp.firefoxLink}>
                     <Button variant="outline">
                       <FirefoxIcon className="w-4 h-4 mr-2" />
                       Firefox Add-Ons
@@ -277,14 +258,14 @@ export function AlbyGo() {
               </CardFooter>
             </Card>
           )}
-          {app.webLink && (
+          {appStoreApp.webLink && (
             <Card>
               <CardHeader>
                 <CardTitle className="text-2xl">Links</CardTitle>
               </CardHeader>
               <CardFooter className="flex flex-row gap-2">
-                {app.webLink && (
-                  <ExternalLink to={app.webLink}>
+                {appStoreApp.webLink && (
+                  <ExternalLink to={appStoreApp.webLink}>
                     <Button variant="outline">
                       <GlobeIcon className="w-4 h-4 mr-2" />
                       Website

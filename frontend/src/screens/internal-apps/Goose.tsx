@@ -1,7 +1,8 @@
 import { HammerIcon, LightbulbIcon } from "lucide-react";
 import React from "react";
-import AppHeader from "src/components/AppHeader";
-import { suggestedApps } from "src/components/SuggestedAppData";
+import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
+import { AppDetailHeader } from "src/components/connections/AppDetailHeader";
+import { suggestedApps } from "src/components/connections/SuggestedAppData";
 import {
   Accordion,
   AccordionContent,
@@ -27,8 +28,8 @@ export function Goose() {
   const [connectionSecret, setConnectionSecret] = React.useState("");
   const { toast } = useToast();
 
-  const app = suggestedApps.find((app) => app.id === "goose");
-  if (!app) {
+  const appStoreApp = suggestedApps.find((app) => app.id === "goose");
+  if (!appStoreApp) {
     return null;
   }
 
@@ -38,7 +39,7 @@ export function Goose() {
     (async () => {
       try {
         const createAppResponse = await createApp({
-          name: app.title,
+          name: appStoreApp.title,
           scopes: [
             "get_info",
             "get_balance",
@@ -73,10 +74,7 @@ export function Goose() {
 
   return (
     <div className="grid gap-5">
-      <AppHeader
-        title="Goose"
-        description="Your local AI agent, automating engineering tasks seamlessly."
-      />
+      <AppDetailHeader appStoreApp={appStoreApp} contentRight={null} />
       {connectionSecret && (
         <div className="max-w-lg flex flex-col gap-5">
           <p>
@@ -240,6 +238,7 @@ export function Goose() {
               </div>
             </CardContent>
           </Card>
+          <AppDetailConnectedApps appStoreApp={appStoreApp} />
         </>
       )}
     </div>
