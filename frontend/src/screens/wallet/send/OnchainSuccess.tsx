@@ -71,13 +71,6 @@ export default function OnchainSuccess() {
               </p>
               <FormattedFiatAmount amount={amount} className="text-xl" />
             </div>
-            {!mempoolTx?.status.confirmed && (
-              <p className="text-muted-foreground text-center">
-                You can now leave this page.
-                <br />
-                You'll be notified when transaction arrives.
-              </p>
-            )}
           </CardContent>
           <CardFooter className="flex flex-col gap-2 pt-2">
             <ExternalLinkButton
