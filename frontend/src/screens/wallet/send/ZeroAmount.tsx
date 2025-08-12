@@ -12,6 +12,7 @@ import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import { LinkButton } from "src/components/ui/button";
 import { useBalances } from "src/hooks/useBalances";
+import { cn } from "src/lib/utils";
 import { PayInvoiceResponse } from "src/types";
 import { request } from "src/utils/request";
 
@@ -87,7 +88,7 @@ export default function ZeroAmount() {
               {invoice.paymentRequest}
             </p>
             <Link to="/wallet/send">
-              <XIcon className="w-4 h-4 cursor-pointer" />
+              <XIcon className="w-4 h-4 cursor-pointer text-muted-foreground" />
             </Link>
           </div>
         </div>
@@ -118,18 +119,41 @@ export default function ZeroAmount() {
               <FormattedFiatAmount amount={Number(amount)} className="mr-2" />
             }
           />
-          <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
-            <div>
-              Spending Balance:{" "}
-              {new Intl.NumberFormat().format(
-                Math.floor(balances.lightning.totalSpendable / 1000)
-              )}{" "}
-              sats
+          <div className="grid gap-2">
+            <div
+              className={cn(
+                "flex justify-between text-xs sensitive slashed-zero",
+                +amount > Math.floor(balances.lightning.totalSpendable / 1000)
+                  ? "text-destructive"
+                  : "text-muted-foreground"
+              )}
+            >
+              <div>
+                Spending Balance:{" "}
+                {new Intl.NumberFormat().format(
+                  Math.floor(balances.lightning.totalSpendable / 1000)
+                )}{" "}
+                sats
+              </div>
+              <FormattedFiatAmount
+                className={cn(
+                  "text-xs",
+                  +amount > Math.floor(balances.lightning.totalSpendable / 1000)
+                    ? "text-destructive"
+                    : "text-muted-foreground"
+                )}
+                amount={balances.lightning.totalSpendable / 1000}
+              />
             </div>
-            <FormattedFiatAmount
-              className="text-xs"
-              amount={balances.lightning.totalSpendable / 1000}
-            />
+            {+amount > Math.floor(balances.lightning.totalSpendable / 1000) && (
+              <LinkButton
+                to="/channels/outgoing"
+                variant="secondary"
+                className="w-fit"
+              >
+                Increase Spending Balance
+              </LinkButton>
+            )}
           </div>
         </div>
         <div className="flex gap-2">
