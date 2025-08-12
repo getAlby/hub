@@ -2,6 +2,7 @@ import {
   AlertTriangleIcon,
   ArrowLeftIcon,
   CopyIcon,
+  LinkIcon,
   PlusIcon,
   ReceiptTextIcon,
 } from "lucide-react";
@@ -36,6 +37,7 @@ import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import { useTransaction } from "src/hooks/useTransaction";
 import { copyToClipboard } from "src/lib/clipboard";
+import { cn } from "src/lib/utils";
 import { CreateInvoiceRequest, Transaction } from "src/types";
 import { request } from "src/utils/request";
 
@@ -108,7 +110,7 @@ export default function ReceiveInvoice() {
   return (
     <div className="grid gap-5">
       <AppHeader title={transaction ? "Lightning Invoice" : "Create Invoice"} />
-      <div className="flex flex-col md:flex-row gap-6">
+      <div className="flex flex-col md:flex-row gap-12">
         <div className="w-full md:max-w-lg grid gap-6">
           {hasChannelManagement &&
             parseInt(amount || "0") * 1000 >=
@@ -239,25 +241,42 @@ export default function ReceiveInvoice() {
                     }}
                   />
                 </div>
-                <div className="flex flex-col md:flex-row gap-4">
-                  <LoadingButton
-                    className="w-full md:w-auto"
-                    loading={isLoading}
-                    type="submit"
-                    disabled={!amount}
-                  >
-                    Create Invoice
-                  </LoadingButton>
-                  {!info?.albyAccountConnected &&
-                    info.backendType === "LDK" && (
-                      <Link to="/wallet/receive/offer">
-                        <Button variant="outline" className="w-full">
+                <LoadingButton
+                  className={cn(
+                    "w-full",
+                    info?.albyAccountConnected &&
+                      me?.lightning_address &&
+                      "md:w-fit"
+                  )}
+                  loading={isLoading}
+                  type="submit"
+                  disabled={!amount}
+                >
+                  Create Invoice
+                </LoadingButton>
+                {(!info?.albyAccountConnected || !me?.lightning_address) && (
+                  <div className="grid gap-2 border-t pt-6">
+                    {!info?.albyAccountConnected &&
+                      info.backendType === "LDK" && (
+                        <LinkButton
+                          to="/wallet/receive/offer"
+                          variant="outline"
+                          className="w-full"
+                        >
                           <ReceiptTextIcon className="h-4 w-4 shrink-0 mr-2" />
-                          BOLT-12 Offer
-                        </Button>
-                      </Link>
-                    )}
-                </div>
+                          Lightning Offer
+                        </LinkButton>
+                      )}
+                    <LinkButton
+                      to="/wallet/receive/offer"
+                      variant="outline"
+                      className="w-full"
+                    >
+                      <LinkIcon className="h-4 w-4 shrink-0 mr-2" />
+                      Receive from On-chain
+                    </LinkButton>
+                  </div>
+                )}
               </form>
             )}
           </div>
@@ -297,7 +316,7 @@ function LightningAddressCard() {
       </CardContent>
       <CardFooter className="flex justify-end">
         <ExternalLink to="https://getalby.com/auth/users/new">
-          <Button variant="secondary">Create Alby Account</Button>
+          <Button variant="secondary">Get Alby Account</Button>
         </ExternalLink>
       </CardFooter>
     </Card>
