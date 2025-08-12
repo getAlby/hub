@@ -1,14 +1,18 @@
 import type { LightningAddress } from "@getalby/lightning-tools/lnurl";
+import { XIcon } from "lucide-react";
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import AppHeader from "src/components/AppHeader";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import { PendingPaymentAlert } from "src/components/PendingPaymentAlert";
 import { LinkButton } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
+import { cn } from "src/lib/utils";
 import { PayInvoiceResponse, TransactionMetadata } from "src/types";
 import { request } from "src/utils/request";
 
@@ -59,6 +63,7 @@ export default function LnurlPay() {
           preimage: payInvoiceResponse.preimage,
           invoice,
           to: lnAddress.address,
+          pageTitle: "Send to Lightning Address",
         },
       });
       toast({
@@ -87,78 +92,110 @@ export default function LnurlPay() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-6 md:max-w-lg">
-      <div className="grid gap-2">
-        <Label>Recipient</Label>
-        <p>{lnAddress.address}</p>
-      </div>
-      {lnAddress.lnurlpData?.description && (
+    <div className="grid gap-4">
+      <AppHeader title="Send to Lightning Address" />
+      <PendingPaymentAlert />
+      <form onSubmit={onSubmit} className="grid gap-6 md:max-w-lg">
         <div className="grid gap-2">
-          <Label>Description</Label>
-          <p className="text-muted-foreground">
-            {lnAddress.lnurlpData.description}
-          </p>
-        </div>
-      )}
-      <div className="grid gap-2">
-        <Label htmlFor="amount">Amount</Label>
-        <Input
-          id="amount"
-          type="number"
-          value={amount}
-          placeholder="Amount in Satoshi..."
-          onChange={(e) => {
-            setAmount(e.target.value.trim());
-          }}
-          min={1}
-          max={Math.floor(balances.lightning.totalSpendable / 1000)}
-          required
-          autoFocus
-          className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-          endAdornment={
-            <FormattedFiatAmount amount={Number(amount)} className="mr-2" />
-          }
-        />
-        <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
-          <div>
-            Spending Balance:{" "}
-            {new Intl.NumberFormat().format(
-              Math.floor(balances.lightning.totalSpendable / 1000)
-            )}{" "}
-            sats
+          <div className="text-sm font-medium">Recipient</div>
+          <div className="flex items-center justify-between">
+            <p className="text-sm">{lnAddress.address}</p>
+            <Link to="/wallet/send">
+              <XIcon className="w-4 h-4 cursor-pointer text-muted-foreground" />
+            </Link>
           </div>
-          <FormattedFiatAmount
-            className="text-xs"
-            amount={balances.lightning.totalSpendable / 1000}
-          />
         </div>
-      </div>
-      {!!lnAddress.lnurlpData?.commentAllowed && (
+        {lnAddress.lnurlpData?.description && (
+          <div className="grid gap-2">
+            <Label>Description</Label>
+            <p className="text-muted-foreground text-sm">
+              {lnAddress.lnurlpData.description}
+            </p>
+          </div>
+        )}
         <div className="grid gap-2">
-          <Label htmlFor="comment">Comment</Label>
+          <Label htmlFor="amount">Amount</Label>
           <Input
-            id="comment"
-            type="text"
-            value={comment}
-            placeholder="Optional"
+            id="amount"
+            type="number"
+            value={amount}
+            placeholder="Amount in Satoshi..."
             onChange={(e) => {
-              setComment(e.target.value);
+              setAmount(e.target.value.trim());
             }}
+            min={1}
+            max={Math.floor(balances.lightning.totalSpendable / 1000)}
+            required
+            autoFocus
+            className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            endAdornment={
+              <FormattedFiatAmount amount={Number(amount)} className="mr-2" />
+            }
           />
+          <div className="grid gap-2">
+            <div
+              className={cn(
+                "flex justify-between text-xs sensitive slashed-zero",
+                +amount > Math.floor(balances.lightning.totalSpendable / 1000)
+                  ? "text-destructive"
+                  : "text-muted-foreground"
+              )}
+            >
+              <div>
+                Spending Balance:{" "}
+                {new Intl.NumberFormat().format(
+                  Math.floor(balances.lightning.totalSpendable / 1000)
+                )}{" "}
+                sats
+              </div>
+              <FormattedFiatAmount
+                className={cn(
+                  "text-xs",
+                  +amount > Math.floor(balances.lightning.totalSpendable / 1000)
+                    ? "text-destructive"
+                    : "text-muted-foreground"
+                )}
+                amount={balances.lightning.totalSpendable / 1000}
+              />
+            </div>
+            {+amount > Math.floor(balances.lightning.totalSpendable / 1000) && (
+              <LinkButton
+                to="/channels/outgoing"
+                variant="secondary"
+                className="w-fit"
+              >
+                Increase Spending Balance
+              </LinkButton>
+            )}
+          </div>
         </div>
-      )}
-      <div className="flex gap-2">
-        <LinkButton to="/wallet/send" variant="outline">
-          Back
-        </LinkButton>
-        <LoadingButton
-          loading={isLoading}
-          type="submit"
-          className="w-full md:w-fit"
-        >
-          Send
-        </LoadingButton>
-      </div>
-    </form>
+        {!!lnAddress.lnurlpData?.commentAllowed && (
+          <div className="grid gap-2">
+            <Label htmlFor="comment">Comment</Label>
+            <Input
+              id="comment"
+              type="text"
+              value={comment}
+              placeholder="Optional"
+              onChange={(e) => {
+                setComment(e.target.value);
+              }}
+            />
+          </div>
+        )}
+        <div className="flex gap-2">
+          <LinkButton to="/wallet/send" variant="outline">
+            Back
+          </LinkButton>
+          <LoadingButton
+            loading={isLoading}
+            type="submit"
+            className="w-full md:w-fit"
+          >
+            Send
+          </LoadingButton>
+        </div>
+      </form>
+    </div>
   );
 }

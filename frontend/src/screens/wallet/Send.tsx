@@ -13,6 +13,7 @@ import { useChannels } from "src/hooks/useChannels";
 
 import { Invoice } from "@getalby/lightning-tools/bolt11";
 import { LightningAddress } from "@getalby/lightning-tools/lnurl";
+import AppHeader from "src/components/AppHeader";
 
 export default function Send() {
   const { data: balances } = useBalances();
@@ -86,33 +87,41 @@ export default function Send() {
   }
 
   return (
-    <div className="w-full md:max-w-lg">
-      <form onSubmit={onSubmit}>
-        <Label htmlFor="recipient">Recipient</Label>
-        <div className="flex gap-2 mb-4">
-          <Input
-            id="recipient"
-            type="text"
-            value={recipient}
-            autoFocus
-            placeholder="Invoice, lightning address, on-chain address"
-            onChange={(e) => {
-              setRecipient(e.target.value.trim());
-            }}
-          />
-          <Button
-            type="button"
-            variant="outline"
-            className="px-2"
-            onClick={paste}
+    <div className="grid gap-4">
+      <AppHeader title="Send" />
+      <div className="w-full md:max-w-lg">
+        <form onSubmit={onSubmit}>
+          <Label htmlFor="recipient">Recipient</Label>
+          <div className="flex gap-2 mb-4">
+            <Input
+              id="recipient"
+              type="text"
+              value={recipient}
+              autoFocus
+              placeholder="Invoice, lightning address, on-chain address"
+              onChange={(e) => {
+                setRecipient(e.target.value.trim());
+              }}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              className="px-2"
+              onClick={paste}
+            >
+              <ClipboardPasteIcon className="w-4 h-4" />
+            </Button>
+          </div>
+          <LoadingButton
+            loading={isLoading}
+            type="submit"
+            disabled={!recipient}
+            className="w-full md:w-fit"
           >
-            <ClipboardPasteIcon className="w-4 h-4" />
-          </Button>
-        </div>
-        <LoadingButton loading={isLoading} type="submit" disabled={!recipient}>
-          Continue
-        </LoadingButton>
-      </form>
+            Continue
+          </LoadingButton>
+        </form>
+      </div>
     </div>
   );
 }

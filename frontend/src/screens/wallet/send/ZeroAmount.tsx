@@ -1,35 +1,59 @@
 import React from "react";
-import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 
 import type { Invoice } from "@getalby/lightning-tools/bolt11";
+import { XIcon } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import AppHeader from "src/components/AppHeader";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import { LinkButton } from "src/components/ui/button";
+import { useBalances } from "src/hooks/useBalances";
+import { cn } from "src/lib/utils";
+import { PayInvoiceResponse } from "src/types";
+import { request } from "src/utils/request";
 
 export default function ZeroAmount() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { data: balances } = useBalances();
 
-  const paymentRequest = state?.args?.paymentRequest as Invoice;
+  const invoice = state?.args?.paymentRequest as Invoice;
   const [amount, setAmount] = React.useState("");
   const [isLoading, setLoading] = React.useState(false);
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
-      if (!paymentRequest) {
+      if (!invoice) {
         throw new Error("no invoice set");
       }
       setLoading(true);
-
-      navigate(`/wallet/send/confirm-payment`, {
+      const payInvoiceResponse = await request<PayInvoiceResponse>(
+        `/api/payments/${invoice.paymentRequest}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (!payInvoiceResponse?.preimage) {
+        throw new Error("No preimage in response");
+      }
+      navigate(`/wallet/send/success`, {
         state: {
-          args: { paymentRequest, amount: parseInt(amount) },
+          preimage: payInvoiceResponse.preimage,
+          pageTitle: "Pay Invoice",
+          invoice,
         },
+      });
+      toast({
+        title: "Successfully paid invoice",
       });
     } catch (e) {
       toast({
@@ -44,27 +68,39 @@ export default function ZeroAmount() {
   };
 
   React.useEffect(() => {
-    if (!paymentRequest) {
+    if (!invoice) {
       navigate("/wallet/send");
     }
-  }, [navigate, paymentRequest]);
+  }, [navigate, invoice]);
 
-  if (!paymentRequest) {
+  if (!balances || !invoice) {
     return <Loading />;
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-4">
-      <div>
-        {paymentRequest.description && (
-          <div className="mt-2">
+    <div className="grid gap-4">
+      <AppHeader title="Pay Invoice" />
+      <form onSubmit={onSubmit} className="grid gap-6 md:max-w-lg">
+        <div className="grid gap-2">
+          <div className="text-sm font-medium">Recipient</div>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm break-all line-clamp-1">
+              {invoice.paymentRequest}
+            </p>
+            <Link to="/wallet/send">
+              <XIcon className="w-4 h-4 cursor-pointer text-muted-foreground" />
+            </Link>
+          </div>
+        </div>
+        {invoice.description && (
+          <div className="grid gap-2">
             <Label>Description</Label>
-            <p className="text-muted-foreground">
-              {paymentRequest.description}
+            <p className="text-muted-foreground text-sm truncate max-w-full">
+              {invoice.description}
             </p>
           </div>
         )}
-        <div className="mb-2">
+        <div className="grid gap-2">
           <Label htmlFor="amount">Amount</Label>
           <Input
             id="amount"
@@ -75,19 +111,64 @@ export default function ZeroAmount() {
               setAmount(e.target.value.trim());
             }}
             min={1}
+            max={Math.floor(balances.lightning.totalSpendable / 1000)}
             required
             autoFocus
+            className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            endAdornment={
+              <FormattedFiatAmount amount={Number(amount)} className="mr-2" />
+            }
           />
+          <div className="grid gap-2">
+            <div
+              className={cn(
+                "flex justify-between text-xs sensitive slashed-zero",
+                +amount > Math.floor(balances.lightning.totalSpendable / 1000)
+                  ? "text-destructive"
+                  : "text-muted-foreground"
+              )}
+            >
+              <div>
+                Spending Balance:{" "}
+                {new Intl.NumberFormat().format(
+                  Math.floor(balances.lightning.totalSpendable / 1000)
+                )}{" "}
+                sats
+              </div>
+              <FormattedFiatAmount
+                className={cn(
+                  "text-xs",
+                  +amount > Math.floor(balances.lightning.totalSpendable / 1000)
+                    ? "text-destructive"
+                    : "text-muted-foreground"
+                )}
+                amount={balances.lightning.totalSpendable / 1000}
+              />
+            </div>
+            {+amount > Math.floor(balances.lightning.totalSpendable / 1000) && (
+              <LinkButton
+                to="/channels/outgoing"
+                variant="secondary"
+                className="w-fit"
+              >
+                Increase Spending Balance
+              </LinkButton>
+            )}
+          </div>
         </div>
-      </div>
-      <div className="flex gap-4">
-        <LoadingButton loading={isLoading} type="submit">
-          Continue
-        </LoadingButton>
-        <Link to="/wallet/send">
-          <Button variant="secondary">Back</Button>
-        </Link>
-      </div>
-    </form>
+        <div className="flex gap-2">
+          <LinkButton to="/wallet/send" variant="outline">
+            Back
+          </LinkButton>
+          <LoadingButton
+            loading={isLoading}
+            type="submit"
+            className="w-full md:w-fit"
+          >
+            Send
+          </LoadingButton>
+        </div>
+      </form>
+    </div>
   );
 }

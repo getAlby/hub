@@ -1,6 +1,5 @@
 import { Navigate } from "react-router-dom";
 import AppLayout from "src/components/layouts/AppLayout";
-import SendLayout from "src/components/layouts/SendLayout";
 import SettingsLayout from "src/components/layouts/SettingsLayout";
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
 import { DefaultRedirect } from "src/components/redirects/DefaultRedirect";
@@ -172,7 +171,6 @@ const routes = [
           },
           {
             path: "send",
-            element: <SendLayout />,
             handle: { crumb: () => "Send" },
             children: [
               {
