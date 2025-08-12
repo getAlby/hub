@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LinkButton } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
@@ -94,6 +94,9 @@ export default function ConfirmPayment() {
     0
   );
 
+  const exceedsBalance =
+    hasChannelManagement && (invoice.satoshi || 0) * 1000 > maxSpendable;
+
   return (
     <div className="grid gap-4">
       <AppHeader title="Pay Invoice" />
@@ -120,10 +123,9 @@ export default function ConfirmPayment() {
             )}
           </CardContent>
           <CardFooter className="flex flex-col gap-2 pt-2">
-            {hasChannelManagement &&
-              (invoice.satoshi || 0) * 1000 >= maxSpendable && (
-                <SpendingAlert className="mb-2" maxSpendable={maxSpendable} />
-              )}
+            {exceedsBalance && (
+              <SpendingAlert className="mb-2" maxSpendable={maxSpendable} />
+            )}
             <LoadingButton
               onClick={confirmPayment}
               loading={isLoading}
@@ -133,19 +135,23 @@ export default function ConfirmPayment() {
             >
               Confirm Payment
             </LoadingButton>
-            <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
-              Spending Balance:{" "}
-              {new Intl.NumberFormat().format(
-                Math.floor(balances.lightning.totalSpendable / 1000)
-              )}{" "}
-              sats (
-              {
-                <FormattedFiatAmount
-                  className="text-xs"
-                  amount={balances.lightning.totalSpendable / 1000}
-                />
-              }
-              )
+            <div className="flex items-center justify-between gap-2 text-muted-foreground text-xs sensitive slashed-zero">
+              <span className={exceedsBalance ? "text-destructive" : ""}>
+                {exceedsBalance && "Not Enough "}
+                Spending Balance:{" "}
+                {new Intl.NumberFormat().format(
+                  Math.floor(balances.lightning.totalSpendable / 1000)
+                )}{" "}
+                sats
+              </span>
+              {exceedsBalance && (
+                <Link
+                  to="/channels/outgoing"
+                  className="text-foreground underline"
+                >
+                  Increase
+                </Link>
+              )}
             </div>
             <LinkButton to="/wallet/send" variant="link" className="w-full">
               <ArrowLeftIcon className="w-4 h-4 mr-2" />
