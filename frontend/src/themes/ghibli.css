@@ -31,10 +31,6 @@
   --sidebar-border: oklch(0.91 0 0);
   --sidebar-ring: oklch(0.71 0 0);
 
-  --font-sans: Nunito, sans-serif;
-  --font-serif: PT Serif, serif;
-  --font-mono: JetBrains Mono, monospace;
-
   --radius: 0.625rem;
 
   --shadow-2xs: 0 1px 3px 0px oklch(0 0 0 / 0.05);
