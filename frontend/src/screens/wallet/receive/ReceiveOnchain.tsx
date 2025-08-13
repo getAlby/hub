@@ -42,7 +42,6 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useTheme } from "src/components/ui/theme-provider";
-import { MIN_SWAP_AMOUNT } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useSwapFees } from "src/hooks/useSwaps";
 import { request } from "src/utils/request";
@@ -315,7 +314,7 @@ function ReceiveToSpending() {
     }
   };
 
-  if (!info || !balances) {
+  if (!info || !balances || !swapFees) {
     return <Loading />;
   }
 
@@ -343,8 +342,11 @@ function ReceiveToSpending() {
             autoFocus
             placeholder="Amount in satoshis"
             value={swapAmount}
-            min={MIN_SWAP_AMOUNT}
-            max={(balances.lightning.totalReceivable / 1000) * 0.99}
+            min={swapFees.minAmount}
+            max={Math.min(
+              swapFees.maxAmount,
+              (balances.lightning.totalReceivable / 1000) * 0.99
+            )}
             onChange={(e) => setSwapAmount(e.target.value)}
             required
             className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
@@ -370,8 +372,14 @@ function ReceiveToSpending() {
               />
             </div>
             <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
-              <div>Minimum: 50000 sats</div>
-              <FormattedFiatAmount className="text-xs" amount={50000} />
+              <div>
+                Minimum: {new Intl.NumberFormat().format(swapFees.minAmount)}{" "}
+                sats
+              </div>
+              <FormattedFiatAmount
+                className="text-xs"
+                amount={swapFees.minAmount}
+              />
             </div>
           </div>
         </div>
@@ -379,21 +387,13 @@ function ReceiveToSpending() {
         <div className="border-t pt-4 text-sm grid gap-2">
           <div className="flex items-center justify-between">
             <p className="text-muted-foreground">On-chain Fee</p>
-            {swapFees ? (
-              <p>
-                ~{new Intl.NumberFormat().format(swapFees.boltzNetworkFee)} sats
-              </p>
-            ) : (
-              <Loading />
-            )}
+            <p>
+              ~{new Intl.NumberFormat().format(swapFees.boltzNetworkFee)} sats
+            </p>
           </div>
           <div className="flex items-center justify-between">
             <p className="text-muted-foreground">Swap Fee</p>
-            {swapFees ? (
-              <p>{swapFees.albyServiceFee + swapFees.boltzServiceFee}%</p>
-            ) : (
-              <Loading />
-            )}
+            <p>{swapFees.albyServiceFee + swapFees.boltzServiceFee}%</p>
           </div>
         </div>
         <div className="grid gap-2">

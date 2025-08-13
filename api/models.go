@@ -173,6 +173,8 @@ type SwapFeesResponse struct {
 	AlbyServiceFee  float64 `json:"albyServiceFee"`
 	BoltzServiceFee float64 `json:"boltzServiceFee"`
 	BoltzNetworkFee uint64  `json:"boltzNetworkFee"`
+	MinAmount       uint64  `json:"minAmount"`
+	MaxAmount       uint64  `json:"maxAmount"`
 }
 
 type ListSwapsResponse struct {

@@ -207,6 +207,8 @@ export type SwapFees = {
   albyServiceFee: number;
   boltzServiceFee: number;
   boltzNetworkFee: number;
+  minAmount: number;
+  maxAmount: number;
 };
 
 export type BaseSwap = {
