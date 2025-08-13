@@ -279,10 +279,23 @@ function ReceiveToSpending() {
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
   const { data: swapFees } = useSwapFees("in");
+  const { data: recommendedFees, error: mempoolError } = useMempoolApi<{
+    fastestFee: number;
+    halfHourFee: number;
+    economyFee: number;
+    minimumFee: number;
+  }>("/v1/fees/recommended");
   const navigate = useNavigate();
 
   const [swapAmount, setSwapAmount] = useState("");
   const [loading, setLoading] = useState(false);
+  const [feeRate, setFeeRate] = useState("");
+
+  useEffect(() => {
+    if (recommendedFees?.fastestFee) {
+      setFeeRate(recommendedFees.fastestFee.toString());
+    }
+  }, [recommendedFees]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -314,94 +327,89 @@ function ReceiveToSpending() {
     }
   };
 
-  if (!info || !balances || !swapFees) {
+  if (!info || !balances || !swapFees || (!recommendedFees && !mempoolError)) {
     return <Loading />;
   }
 
   return (
-    <>
-      <form onSubmit={onSubmit} className="flex flex-col gap-6">
-        {hasChannelManagement &&
-          parseInt(swapAmount || "0") * 1000 >=
-            0.8 * balances.lightning.totalReceivable && (
-            <Alert>
-              <AlertTriangleIcon className="h-4 w-4" />
-              <AlertTitle>Low receiving capacity</AlertTitle>
-              <AlertDescription>
-                You likely won't be able to receive payments until you{" "}
-                <Link className="underline" to="/channels/incoming">
-                  increase your receiving capacity.
-                </Link>
-              </AlertDescription>
-            </Alert>
+    <form onSubmit={onSubmit} className="flex flex-col gap-6">
+      {hasChannelManagement &&
+        parseInt(swapAmount || "0") * 1000 >=
+          0.8 * balances.lightning.totalReceivable && (
+          <Alert>
+            <AlertTriangleIcon className="h-4 w-4" />
+            <AlertTitle>Low receiving capacity</AlertTitle>
+            <AlertDescription>
+              You likely won't be able to receive payments until you{" "}
+              <Link className="underline" to="/channels/incoming">
+                increase your receiving capacity.
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
+      <div className="grid gap-1.5">
+        <Label>Amount</Label>
+        <Input
+          type="number"
+          autoFocus
+          placeholder="Amount in satoshis"
+          value={swapAmount}
+          min={swapFees.minAmount}
+          max={Math.min(
+            swapFees.maxAmount,
+            (balances.lightning.totalReceivable / 1000) * 0.99
           )}
-        <div className="grid gap-1.5">
-          <Label>Amount</Label>
-          <Input
-            type="number"
-            autoFocus
-            placeholder="Amount in satoshis"
-            value={swapAmount}
-            min={swapFees.minAmount}
-            max={Math.min(
-              swapFees.maxAmount,
-              (balances.lightning.totalReceivable / 1000) * 0.99
-            )}
-            onChange={(e) => setSwapAmount(e.target.value)}
-            required
-            className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            endAdornment={
-              <FormattedFiatAmount amount={+swapAmount} className="mr-2" />
-            }
-          />
-          <div className="grid">
-            <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
-              <div>
-                Receiving Capacity:{" "}
-                {new Intl.NumberFormat().format(
-                  Math.floor(balances.lightning.totalReceivable / 1000)
-                )}{" "}
-                sats{" "}
-                <Link className="underline" to="/channels/incoming">
-                  increase
-                </Link>
-              </div>
-              <FormattedFiatAmount
-                className="text-xs"
-                amount={balances.lightning.totalReceivable / 1000}
-              />
+          onChange={(e) => setSwapAmount(e.target.value)}
+          required
+          className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+          endAdornment={
+            <FormattedFiatAmount amount={+swapAmount} className="mr-2" />
+          }
+        />
+        <div className="grid">
+          <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
+            <div>
+              Receiving Capacity:{" "}
+              {new Intl.NumberFormat().format(
+                Math.floor(balances.lightning.totalReceivable / 1000)
+              )}{" "}
+              sats{" "}
+              <Link className="underline" to="/channels/incoming">
+                increase
+              </Link>
             </div>
-            <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
-              <div>
-                Minimum: {new Intl.NumberFormat().format(swapFees.minAmount)}{" "}
-                sats
-              </div>
-              <FormattedFiatAmount
-                className="text-xs"
-                amount={swapFees.minAmount}
-              />
+            <FormattedFiatAmount
+              className="text-xs"
+              amount={balances.lightning.totalReceivable / 1000}
+            />
+          </div>
+          <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
+            <div>
+              Minimum: {new Intl.NumberFormat().format(swapFees.minAmount)} sats
             </div>
+            <FormattedFiatAmount
+              className="text-xs"
+              amount={swapFees.minAmount}
+            />
           </div>
         </div>
+      </div>
 
-        <div className="border-t pt-4 text-sm grid gap-2">
-          <div className="flex items-center justify-between">
-            <p className="text-muted-foreground">On-chain Fee</p>
-            <p>
-              ~{new Intl.NumberFormat().format(swapFees.boltzNetworkFee)} sats
-            </p>
-          </div>
-          <div className="flex items-center justify-between">
-            <p className="text-muted-foreground">Swap Fee</p>
-            <p>{swapFees.albyServiceFee + swapFees.boltzServiceFee}%</p>
-          </div>
+      <div className="border-t pt-4 text-sm grid gap-2">
+        <div className="flex items-center justify-between">
+          <p className="text-muted-foreground">On-chain Fee</p>
+          {feeRate ? <p>{feeRate} sat/vB</p> : <Loading className="w-4 h-4" />}
         </div>
-        <div className="grid gap-2">
-          <LoadingButton className="w-full" loading={loading}>
-            Continue
-          </LoadingButton>
+        <div className="flex items-center justify-between">
+          <p className="text-muted-foreground">Swap Fee</p>
+          <p>{swapFees.albyServiceFee + swapFees.boltzServiceFee}%</p>
         </div>
-      </form>
-    </>
+      </div>
+      <div className="grid gap-2">
+        <LoadingButton className="w-full" loading={loading}>
+          Continue
+        </LoadingButton>
+      </div>
+    </form>
   );
 }
