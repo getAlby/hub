@@ -87,7 +87,8 @@ export default function ReceiveInvoice() {
 
       if (invoice) {
         setTransaction(invoice);
-
+        setAmount("");
+        setDescription("");
         toast({
           title: "Successfully created invoice",
         });
@@ -113,7 +114,7 @@ export default function ReceiveInvoice() {
       <div className="flex flex-col md:flex-row gap-12">
         <div className="w-full md:max-w-lg grid gap-6">
           {hasChannelManagement &&
-            parseInt(amount || "0") * 1000 >=
+            (+amount || transaction?.amount || 0) * 1000 >=
               0.8 * balances.lightning.totalReceivable && (
               <Alert>
                 <AlertTriangleIcon className="h-4 w-4" />
@@ -149,10 +150,11 @@ export default function ReceiveInvoice() {
                       <QRCode value={transaction.invoice} className="w-full" />
                       <div className="flex flex-col gap-1 items-center">
                         <p className="text-2xl font-medium slashed-zero">
-                          {new Intl.NumberFormat().format(+amount)} sats
+                          {new Intl.NumberFormat().format(transaction.amount)}{" "}
+                          sats
                         </p>
                         <FormattedFiatAmount
-                          amount={+amount}
+                          amount={transaction.amount}
                           className="text-xl"
                         />
                       </div>
@@ -179,18 +181,21 @@ export default function ReceiveInvoice() {
                       <img src={TickSVG} className="w-48" />
                       <div className="flex flex-col gap-1 items-center">
                         <p className="text-2xl font-medium slashed-zero">
-                          {new Intl.NumberFormat().format(parseInt(amount))}{" "}
+                          {new Intl.NumberFormat().format(transaction.amount)}{" "}
                           sats
                         </p>
                         <FormattedFiatAmount
-                          amount={parseInt(amount)}
+                          amount={transaction.amount}
                           className="text-xl"
                         />
                       </div>
                     </CardContent>
                     <CardFooter className="flex flex-col gap-2 pt-2">
                       <Button
-                        onClick={copy}
+                        onClick={() => {
+                          setPaymentDone(false);
+                          setTransaction(null);
+                        }}
                         variant="outline"
                         className="w-full"
                       >
