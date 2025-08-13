@@ -52,6 +52,7 @@ export function ChannelsCards({
             );
             return (
               <ChannelCard
+                key={index}
                 addSeparator={index > 0}
                 channel={channel}
                 unconfirmedChannel={unconfirmedChannel}
