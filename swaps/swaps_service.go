@@ -232,7 +232,7 @@ func (svc *swapsService) EnableAutoSwapOut() error {
 					logger.Logger.WithError(err).Error("Failed to swap")
 					continue
 				}
-				if addressIndex > 0 && swapResponse != nil && swapResponse.SwapId != "" && swapResponse.PaymentHash != "" {
+				if addressIndex > 0 {
 					err = svc.cfg.SetUpdate(config.AutoSwapXpubIndexStart, strconv.FormatUint(uint64(addressIndex+1), 10), "")
 					if err != nil {
 						logger.Logger.WithError(err).Error("Failed to update xpub index start after creating swap")
