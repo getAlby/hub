@@ -16,7 +16,6 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useToast } from "src/components/ui/use-toast";
-import { MIN_SWAP_AMOUNT } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import { useSwapFees } from "src/hooks/useSwaps";
@@ -118,7 +117,7 @@ function SwapInForm() {
     }
   };
 
-  if (!info || !balances) {
+  if (!info || !balances || !swapFees) {
     return <Loading />;
   }
 
@@ -153,8 +152,11 @@ function SwapInForm() {
           autoFocus
           placeholder="Amount in satoshis"
           value={swapAmount}
-          min={MIN_SWAP_AMOUNT}
-          max={(balances.lightning.totalReceivable / 1000) * 0.99}
+          min={swapFees.minAmount}
+          max={Math.min(
+            swapFees.maxAmount,
+            (balances.lightning.totalReceivable / 1000) * 0.99
+          )}
           onChange={(e) => setSwapAmount(e.target.value)}
           required
         />
@@ -180,21 +182,16 @@ function SwapInForm() {
             </div>
           )}
           <p className="text-xs text-muted-foreground">
-            Minimum: {new Intl.NumberFormat().format(MIN_SWAP_AMOUNT)} sats
+            Minimum: {new Intl.NumberFormat().format(swapFees.minAmount)} sats
           </p>
         </div>
       </div>
 
       <div className="flex items-center justify-between border-t pt-4">
         <Label>Fee</Label>
-        {swapFees ? (
-          <p className="text-muted-foreground text-sm">
-            {swapFees.albyServiceFee + swapFees.boltzServiceFee}% + on-chain
-            fees
-          </p>
-        ) : (
-          <Loading />
-        )}
+        <p className="text-muted-foreground text-sm">
+          {swapFees.albyServiceFee + swapFees.boltzServiceFee}% + on-chain fees
+        </p>
       </div>
       <div className="grid gap-2">
         <LoadingButton className="w-full" loading={loading}>
@@ -256,6 +253,10 @@ function SwapOutForm() {
     setDestination(text.trim());
   };
 
+  if (!balances || !swapFees) {
+    return <Loading />;
+  }
+
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
       <div className="mt-6">
@@ -273,7 +274,11 @@ function SwapOutForm() {
           autoFocus
           placeholder="Amount in satoshis"
           value={swapAmount}
-          min={MIN_SWAP_AMOUNT}
+          min={swapFees.minAmount}
+          max={Math.min(
+            swapFees.maxAmount,
+            Math.floor(balances.lightning.totalSpendable / 1000)
+          )}
           onChange={(e) => setSwapAmount(e.target.value)}
           required
         />
@@ -289,7 +294,7 @@ function SwapOutForm() {
             </p>
           )}
           <p className="text-xs text-muted-foreground">
-            Minimum: {new Intl.NumberFormat().format(MIN_SWAP_AMOUNT)} sats
+            Minimum: {new Intl.NumberFormat().format(swapFees.minAmount)} sats
           </p>
         </div>
       </div>
@@ -356,14 +361,9 @@ function SwapOutForm() {
 
       <div className="flex items-center justify-between border-t pt-4">
         <Label>Fee</Label>
-        {swapFees ? (
-          <p className="text-muted-foreground text-sm">
-            {swapFees.albyServiceFee + swapFees.boltzServiceFee}% + on-chain
-            fees
-          </p>
-        ) : (
-          <Loading />
-        )}
+        <p className="text-muted-foreground text-sm">
+          {swapFees.albyServiceFee + swapFees.boltzServiceFee}% + on-chain fees
+        </p>
       </div>
       <div className="grid gap-2">
         <LoadingButton className="w-full" loading={loading}>

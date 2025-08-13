@@ -746,6 +746,8 @@ func (api *api) GetSwapInFees() (*SwapFeesResponse, error) {
 		AlbyServiceFee:  swapInFees.AlbyServiceFee,
 		BoltzServiceFee: swapInFees.BoltzServiceFee,
 		BoltzNetworkFee: swapInFees.BoltzNetworkFee,
+		MinAmount:       swapInFees.MinAmount,
+		MaxAmount:       swapInFees.MaxAmount,
 	}, nil
 }
 
@@ -760,6 +762,8 @@ func (api *api) GetSwapOutFees() (*SwapFeesResponse, error) {
 		AlbyServiceFee:  swapOutFees.AlbyServiceFee,
 		BoltzServiceFee: swapOutFees.BoltzServiceFee,
 		BoltzNetworkFee: swapOutFees.BoltzNetworkFee,
+		MinAmount:       swapOutFees.MinAmount,
+		MaxAmount:       swapOutFees.MaxAmount,
 	}, nil
 }
 

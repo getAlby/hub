@@ -17,7 +17,7 @@ import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useToast } from "src/components/ui/use-toast";
-import { MIN_SWAP_AMOUNT } from "src/constants";
+import { useBalances } from "src/hooks/useBalances";
 import { useAutoSwapsConfig, useSwapFees } from "src/hooks/useSwaps";
 import { AutoSwapConfig } from "src/types";
 import { request } from "src/utils/request";
@@ -56,6 +56,7 @@ export default function AutoSwap() {
 
 function AutoSwapOutForm() {
   const { toast } = useToast();
+  const { data: balances } = useBalances();
   const { mutate } = useAutoSwapsConfig();
   const { data: swapFees } = useSwapFees("out");
 
@@ -101,6 +102,10 @@ function AutoSwapOutForm() {
     setDestination(text.trim());
   };
 
+  if (!balances || !swapFees) {
+    return <Loading />;
+  }
+
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
       <div>
@@ -137,12 +142,16 @@ function AutoSwapOutForm() {
           type="number"
           placeholder="Amount in satoshis"
           value={swapAmount}
-          min={MIN_SWAP_AMOUNT}
+          min={swapFees.minAmount}
+          max={Math.min(
+            swapFees.maxAmount,
+            Math.floor(balances.lightning.totalSpendable / 1000)
+          )}
           onChange={(e) => setSwapAmount(e.target.value)}
           required
         />
         <p className="text-xs text-muted-foreground">
-          Minimum {new Intl.NumberFormat().format(MIN_SWAP_AMOUNT)} sats
+          Minimum {new Intl.NumberFormat().format(swapFees.minAmount)} sats
         </p>
       </div>
       <div className="flex flex-col gap-4">

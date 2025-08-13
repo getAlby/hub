@@ -88,6 +88,8 @@ type SwapFees struct {
 	AlbyServiceFee  float64 `json:"albyServiceFee"`
 	BoltzServiceFee float64 `json:"boltzServiceFee"`
 	BoltzNetworkFee uint64  `json:"boltzNetworkFee"`
+	MinAmount       uint64  `json:"minAmount"`
+	MaxAmount       uint64  `json:"maxAmount"`
 }
 
 type SwapResponse struct {
@@ -517,11 +519,14 @@ func (svc *swapsService) CalculateSwapOutFee() (*SwapFees, error) {
 
 	fees := pairInfo.Fees
 	networkFee := fees.MinerFees.Lockup + fees.MinerFees.Claim
+	limits := pairInfo.Limits
 
 	return &SwapFees{
 		AlbyServiceFee:  AlbySwapServiceFee,
 		BoltzServiceFee: fees.Percentage,
 		BoltzNetworkFee: networkFee,
+		MinAmount:       limits.Minimal,
+		MaxAmount:       limits.Maximal,
 	}, nil
 }
 
@@ -538,11 +543,14 @@ func (svc *swapsService) CalculateSwapInFee() (*SwapFees, error) {
 	}
 
 	fees := pairInfo.Fees
+	limits := pairInfo.Limits
 
 	return &SwapFees{
 		AlbyServiceFee:  AlbySwapServiceFee,
 		BoltzServiceFee: fees.Percentage,
 		BoltzNetworkFee: fees.MinerFees,
+		MinAmount:       limits.Minimal,
+		MaxAmount:       limits.Maximal,
 	}, nil
 }
 
