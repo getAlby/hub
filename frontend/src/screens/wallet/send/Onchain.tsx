@@ -22,6 +22,7 @@ export default function Onchain() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const [isSwap, setSwap] = React.useState(false);
+  const [amount, setAmount] = React.useState("");
 
   const address = state?.args?.address as string;
 
@@ -65,9 +66,19 @@ export default function Onchain() {
           </div>
         </div>
         {isSwap ? (
-          <SwapForm address={address} setSwap={setSwap} />
+          <SwapForm
+            address={address}
+            setSwap={setSwap}
+            amount={amount}
+            setAmount={setAmount}
+          />
         ) : (
-          <OnchainForm address={address} setSwap={setSwap} />
+          <OnchainForm
+            address={address}
+            setSwap={setSwap}
+            amount={amount}
+            setAmount={setAmount}
+          />
         )}
       </div>
     </div>
@@ -77,8 +88,12 @@ export default function Onchain() {
 function OnchainForm({
   address,
   setSwap,
+  amount,
+  setAmount,
 }: {
   address: string;
+  amount: string;
+  setAmount: React.Dispatch<React.SetStateAction<string>>;
   setSwap: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const navigate = useNavigate();
@@ -91,7 +106,6 @@ function OnchainForm({
     minimumFee: number;
   }>("/v1/fees/recommended");
 
-  const [amount, setAmount] = React.useState("");
   const [feeRate, setFeeRate] = React.useState("");
   const [isLoading, setLoading] = React.useState(false);
 
@@ -228,8 +242,12 @@ function OnchainForm({
 function SwapForm({
   address,
   setSwap,
+  amount,
+  setAmount,
 }: {
   address: string;
+  amount: string;
+  setAmount: React.Dispatch<React.SetStateAction<string>>;
   setSwap: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const navigate = useNavigate();
@@ -237,7 +255,6 @@ function SwapForm({
   const { data: balances } = useBalances();
   const { data: swapFees } = useSwapFees("out");
 
-  const [amount, setAmount] = React.useState("");
   const [isLoading, setLoading] = React.useState(false);
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
