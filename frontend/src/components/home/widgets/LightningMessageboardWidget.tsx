@@ -228,7 +228,7 @@ export function LightningMessageboardWidget() {
                       {message.message}
                     </CardTitle>
                   </CardHeader>
-                  <CardFooter className="flex items-center justify-between text-sm">
+                  <CardFooter className="flex items-center justify-between text-sm pb-2">
                     <CardTitle className="break-all font-normal text-xs">
                       <span className="text-muted-foreground">by</span>{" "}
                       {message.name || "Anonymous"}{" "}
@@ -237,8 +237,8 @@ export function LightningMessageboardWidget() {
                       </span>
                     </CardTitle>
                     <div>
-                      <Badge className="py-1">
-                        <ZapIcon className="size-4 mr-1" />{" "}
+                      <Badge>
+                        <ZapIcon />
                         {new Intl.NumberFormat().format(message.amount)}
                       </Badge>
                     </div>
