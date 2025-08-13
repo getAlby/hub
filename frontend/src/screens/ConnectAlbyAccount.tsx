@@ -32,7 +32,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
           description="Your Alby Account brings several benefits to your Alby Hub"
         />
         <div className="grid grid-cols-1 md:grid-cols-2 w-full gap-2 mt-5">
-          <Card className="w-full relative">
+          <Card className="w-full relative py-2">
             <CardHeader className="flex flex-col justify-center items-center text-center p-4">
               <ZapIcon className="size-6" />
               <CardTitle className="text-sm">
@@ -44,7 +44,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
               </CardDescription>
             </CardHeader>
           </Card>
-          <Card className="w-full relative">
+          <Card className="w-full relative py-2">
             <CardHeader className="flex flex-col justify-center items-center text-center p-4">
               <MailIcon className="size-6" />
               <CardTitle className="text-sm">
@@ -56,7 +56,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
               </CardDescription>
             </CardHeader>
           </Card>
-          <Card className="w-full relative">
+          <Card className="w-full relative py-2">
             <CardHeader className="flex flex-col justify-center items-center text-center p-4">
               <DatabaseBackupIcon className="size-6" />
               <CardTitle className="text-sm">
@@ -68,7 +68,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
               </CardDescription>
             </CardHeader>
           </Card>
-          <Card className="w-full relative">
+          <Card className="w-full relative py-2">
             <CardHeader className="flex flex-col justify-center items-center text-center p-4">
               <LifeBuoyIcon className="size-6" />
               <CardTitle className="text-sm">
@@ -80,7 +80,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
               </CardDescription>
             </CardHeader>
           </Card>
-          <Card className="w-full">
+          <Card className="w-full relative py-2">
             <CardHeader className="flex flex-col justify-center items-center text-center p-4">
               <CreditCardIcon className="size-6" />
               <CardTitle className="text-sm">Fiat Topups</CardTitle>
@@ -89,7 +89,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
               </CardDescription>
             </CardHeader>
           </Card>
-          <Card className="w-full">
+          <Card className="w-full relative py-2">
             <CardHeader className="flex flex-col justify-center items-center text-center p-4">
               <HeadphonesIcon className="size-6" />
               <CardTitle className="text-sm">Podcasting 2.0</CardTitle>
