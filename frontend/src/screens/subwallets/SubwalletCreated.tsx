@@ -42,7 +42,7 @@ import { Textarea } from "src/components/ui/textarea";
 import { useToast } from "src/components/ui/use-toast";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
-import { useAppByPubkey } from "src/hooks/useApp";
+import { useApp } from "src/hooks/useApp";
 import { useCreateLightningAddress } from "src/hooks/useCreateLightningAddress";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -56,10 +56,7 @@ export function SubwalletCreated() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const createAppResponse = state as CreateAppResponse | undefined;
-  const { data: app } = useAppByPubkey(
-    createAppResponse?.pairingPublicKey,
-    true
-  );
+  const { data: app } = useApp(createAppResponse?.id, true);
   const [intendedLightningAddress, setIntendedLightningAddress] =
     React.useState(
       createAppResponse?.name.toLowerCase().replace(/[^a-z0-9]/g, "") || ""
@@ -68,7 +65,7 @@ export function SubwalletCreated() {
   const { data: albyMe } = useAlbyMe();
 
   const { createLightningAddress, creatingLightningAddress } =
-    useCreateLightningAddress(createAppResponse?.pairingPublicKey);
+    useCreateLightningAddress(createAppResponse?.id);
 
   const [step, setStep] = React.useState(1);
 
@@ -78,7 +75,6 @@ export function SubwalletCreated() {
   }
 
   const name = createAppResponse.name;
-  const appPublicKey = createAppResponse.pairingPublicKey;
   let connectionSecret = createAppResponse.pairingUri;
   if (app?.metadata?.lud16) {
     connectionSecret += `&lud16=${app.metadata.lud16}`;
@@ -186,7 +182,7 @@ export function SubwalletCreated() {
                     </CardDescription>
                   </CardHeader>
                   <CardFooter className="flex flex-row justify-end">
-                    <IsolatedAppTopupDialog appPubkey={appPublicKey}>
+                    <IsolatedAppTopupDialog appId={app.id}>
                       <Button size="sm" variant="secondary">
                         Top Up
                       </Button>

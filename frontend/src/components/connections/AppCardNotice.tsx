@@ -30,7 +30,7 @@ export function AppCardNotice({ app }: AppCardNoticeProps) {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Link to={`/apps/${app.appPubkey}`}>
+                <Link to={`/apps/${app.id}`}>
                   <Badge variant="destructive">
                     <CalendarClockIcon className="w-3 h-3 mr-2" />
                     Expired
@@ -44,7 +44,7 @@ export function AppCardNotice({ app }: AppCardNoticeProps) {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Link to={`/apps/${app.appPubkey}`}>
+                <Link to={`/apps/${app.id}`}>
                   <Badge variant="outline">
                     <CalendarClockIcon className="w-3 h-3 mr-2" />
                     Expires Soon
