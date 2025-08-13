@@ -10,6 +10,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import { PendingPaymentAlert } from "src/components/PendingPaymentAlert";
+import { SpendingAlert } from "src/components/SpendingAlert";
 import { LinkButton } from "src/components/ui/button";
 import { useBalances } from "src/hooks/useBalances";
 import { cn } from "src/lib/utils";
@@ -80,6 +82,7 @@ export default function ZeroAmount() {
   return (
     <div className="grid gap-4">
       <AppHeader title="Pay Invoice" />
+      <PendingPaymentAlert />
       <form onSubmit={onSubmit} className="grid gap-6 md:max-w-lg">
         <div className="grid gap-2">
           <div className="text-sm font-medium">Recipient</div>
@@ -156,6 +159,7 @@ export default function ZeroAmount() {
             )}
           </div>
         </div>
+        <SpendingAlert amount={+amount} />
         <div className="flex gap-2">
           <LinkButton to="/wallet/send" variant="outline">
             Back

@@ -6,6 +6,7 @@ import AppHeader from "src/components/AppHeader";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import { PendingPaymentAlert } from "src/components/PendingPaymentAlert";
+import { SpendingAlert } from "src/components/SpendingAlert";
 import { LinkButton } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -183,6 +184,7 @@ export default function LnurlPay() {
             />
           </div>
         )}
+        <SpendingAlert amount={+amount} />
         <div className="flex gap-2">
           <LinkButton to="/wallet/send" variant="outline">
             Back

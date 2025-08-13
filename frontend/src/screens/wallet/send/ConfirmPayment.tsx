@@ -19,7 +19,6 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { useBalances } from "src/hooks/useBalances";
-import { useInfo } from "src/hooks/useInfo";
 import { PayInvoiceResponse, TransactionMetadata } from "src/types";
 import { request } from "src/utils/request";
 
@@ -27,7 +26,6 @@ export default function ConfirmPayment() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
 
   const invoice = state?.args?.paymentRequest as Invoice;
@@ -85,17 +83,8 @@ export default function ConfirmPayment() {
     return <Loading />;
   }
 
-  const maxSpendable = Math.max(
-    balances.lightning.nextMaxSpendableMPP -
-      Math.max(
-        0.01 * balances.lightning.nextMaxSpendableMPP,
-        10000 /* fee reserve */
-      ),
-    0
-  );
-
   const exceedsBalance =
-    hasChannelManagement && (invoice.satoshi || 0) * 1000 > maxSpendable;
+    invoice.satoshi * 1000 > balances.lightning.totalSpendable;
 
   return (
     <div className="grid gap-4">
@@ -123,9 +112,7 @@ export default function ConfirmPayment() {
             )}
           </CardContent>
           <CardFooter className="flex flex-col gap-2 pt-2">
-            {exceedsBalance && (
-              <SpendingAlert className="mb-2" maxSpendable={maxSpendable} />
-            )}
+            <SpendingAlert className="mb-2" amount={invoice.satoshi} />
             <LoadingButton
               onClick={confirmPayment}
               loading={isLoading}
