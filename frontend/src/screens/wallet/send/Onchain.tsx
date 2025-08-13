@@ -218,8 +218,8 @@ function OnchainForm({
           <InfoIcon className="h-4 w-4" />
           <AlertTitle>Amount not ideal for On-chain transaction</AlertTitle>
           <AlertDescription>
-            Small amounts can become unspendable during fee spikes. Consider
-            using Lightning instead.
+            Small amounts can become unspendable when mempool fees increase.
+            Consider using Lightning instead.
           </AlertDescription>
         </Alert>
       )}
