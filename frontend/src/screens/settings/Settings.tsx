@@ -20,6 +20,7 @@ import {
 import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
+import { cn } from "src/lib/utils";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
@@ -106,9 +107,12 @@ function Settings() {
                   <SelectItem key={theme} value={theme} disabled={isDisabled}>
                     <div className="flex items-center justify-between gap-2 w-full">
                       <span
-                        className={isDisabled ? "text-muted-foreground" : ""}
+                        className={cn(
+                          "capitalize",
+                          isDisabled && "text-muted-foreground"
+                        )}
                       >
-                        {theme.charAt(0).toUpperCase() + theme.substring(1)}
+                        {theme}
                       </span>
                       {isPaidTheme && (
                         <Badge variant="outline">
