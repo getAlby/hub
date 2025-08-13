@@ -218,7 +218,7 @@ func (svc *swapsService) EnableAutoSwapOut() error {
 						actualDestination, addressIndex, err = svc.getNextUnusedAddressFromXpub()
 						if err != nil {
 							logger.Logger.WithError(err).Error("Failed to get next address from xpub")
-							actualDestination = "" // Fallback to empty address if we can't get one
+							continue
 						}
 					}
 				}
@@ -230,8 +230,10 @@ func (svc *swapsService) EnableAutoSwapOut() error {
 				swapResponse, err := svc.SwapOut(amount, actualDestination, true)
 				if err != nil {
 					logger.Logger.WithError(err).Error("Failed to swap")
-				} else if addressIndex > 0 {
-					err = svc.cfg.SetUpdate(config.AutoSwapXpubIndexStart, strconv.FormatUint(uint64(addressIndex), 10), "")
+					continue
+				}
+				if addressIndex > 0 && swapResponse != nil && swapResponse.SwapId != "" && swapResponse.PaymentHash != "" {
+					err = svc.cfg.SetUpdate(config.AutoSwapXpubIndexStart, strconv.FormatUint(uint64(addressIndex+1), 10), "")
 					if err != nil {
 						logger.Logger.WithError(err).Error("Failed to update xpub index start after creating swap")
 					}
