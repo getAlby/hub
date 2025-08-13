@@ -1,6 +1,8 @@
 import { CopyIcon } from "lucide-react";
 import React from "react";
-import AppHeader from "src/components/AppHeader";
+import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
+import { AppDetailHeader } from "src/components/connections/AppDetailHeader";
+import { suggestedApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
 import { Button } from "src/components/ui/button";
 import {
@@ -28,9 +30,16 @@ export function LightningMessageboard() {
   React.useEffect(() => {
     if (nwcUri) {
       setScriptContent(`<script type="module" src="https://esm.sh/@getalby/lightning-messageboard@latest"></script>
-<lightning-messageboard nwc-url="${nwcUri}"></lightning-messageboard>`);
+        <lightning-messageboard nwc-url="${nwcUri}"></lightning-messageboard>`);
     }
   }, [nwcUri]);
+
+  const appStoreApp = suggestedApps.find(
+    (app) => app.id === "lightning-messageboard"
+  );
+  if (!appStoreApp) {
+    return null;
+  }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -58,10 +67,7 @@ export function LightningMessageboard() {
 
   return (
     <div className="grid gap-5">
-      <AppHeader
-        title="Lightning Messageboard"
-        description="A paid message board for your website."
-      />
+      <AppDetailHeader appStoreApp={appStoreApp} contentRight={null} />
       {nwcUri && (
         <Card>
           <CardHeader>
@@ -135,6 +141,7 @@ export function LightningMessageboard() {
               </LoadingButton>
             </form>
           </div>
+          <AppDetailConnectedApps appStoreApp={appStoreApp} />
         </>
       )}
     </div>

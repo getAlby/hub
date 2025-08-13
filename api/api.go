@@ -402,7 +402,8 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 	query := api.db
 
 	if filters.Name != "" {
-		query = query.Where("name = ?", filters.Name)
+		// searching for "Damus" will return "Damus" and "Damus (1)"
+		query = query.Where("name LIKE ?", filters.Name+"%")
 	}
 
 	if filters.AppStoreAppId != "" {

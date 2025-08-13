@@ -125,7 +125,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const { deleteApp, isDeleting } = useDeleteApp(() => {
     navigate(
       app.metadata?.app_store_app_id !== SUBWALLET_APPSTORE_APP_ID
-        ? "/apps"
+        ? "/apps?tab=connected-apps"
         : "/sub-wallets"
     );
   });

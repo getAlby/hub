@@ -43,7 +43,7 @@ export function ChannelWaitingForConfirmations({
           title="Browse While You Wait"
           description="Feel free to leave this page or browse around Alby Hub! We'll send you an email as soon as your channel is active."
           buttonText="Explore Apps"
-          buttonLink="/appstore"
+          buttonLink="/apps?tab=app-store"
         />
       </div>
     </div>

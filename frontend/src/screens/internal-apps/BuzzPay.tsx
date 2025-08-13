@@ -1,8 +1,9 @@
 import { AlertTriangleIcon, CopyIcon, ExternalLinkIcon } from "lucide-react";
 import React from "react";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
-import AppHeader from "src/components/AppHeader";
-import AppCard from "src/components/connections/AppCard";
+import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
+import { AppDetailHeader } from "src/components/connections/AppDetailHeader";
+import { suggestedApps } from "src/components/connections/SuggestedAppData";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
@@ -26,6 +27,10 @@ export function BuzzPay() {
   const [posUrl, setPosUrl] = React.useState("");
   const { toast } = useToast();
 
+  const appStoreApp = suggestedApps.find((app) => app.id === "buzzpay");
+  if (!appStoreApp) {
+    return null;
+  }
   if (!appsData) {
     return <Loading />;
   }
@@ -60,10 +65,7 @@ export function BuzzPay() {
 
   return (
     <div className="grid gap-5">
-      <AppHeader
-        title="BuzzPay"
-        description="The easiest Bitcoin Point-of-Sale (PoS) system."
-      />
+      <AppDetailHeader appStoreApp={appStoreApp} contentRight={null} />
       {posUrl && (
         <div className="max-w-lg flex flex-col gap-5">
           <p>
@@ -137,11 +139,7 @@ export function BuzzPay() {
               </LoadingButton>
             </form>
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list">
-            {appsData.apps.map((app, index) => (
-              <AppCard key={index} app={app} />
-            ))}
-          </div>
+          <AppDetailConnectedApps appStoreApp={appStoreApp} />
         </>
       )}
     </div>
