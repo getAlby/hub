@@ -181,7 +181,7 @@ export function ConnectAppCard({
             {timeout && (
               <div className="text-sm flex flex-col gap-2 items-center text-center">
                 Connecting is taking longer than usual.
-                <Link to={`/apps/${app?.appPubkey}`}>
+                <Link to={`/apps/${app?.id}`}>
                   <Button variant="secondary">Continue anyway</Button>
                 </Link>
               </div>
