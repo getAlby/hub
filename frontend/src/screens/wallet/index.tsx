@@ -76,7 +76,7 @@ function Wallet() {
         <Alert>
           <AlertTriangleIcon className="h-4 w-4" />
           <AlertTitle>Open Your First Channel</AlertTitle>
-          <AlertDescription>
+          <AlertDescription className="inline">
             You won't be able to receive or send payments until you{" "}
             <Link className="underline" to="/channels/first">
               open your first channel
@@ -101,14 +101,14 @@ function Wallet() {
         <div className="grid grid-cols-2 items-center gap-3">
           <ExternalLink to="https://www.getalby.com/topup">
             <Button className="w-full" variant="secondary">
-              <CreditCardIcon className="h-4 w-4 shrink-0 mr-2" />
+              <CreditCardIcon />
               Buy Bitcoin
             </Button>
           </ExternalLink>
           {hasChannelManagement && (
             <Link to="/wallet/swap">
               <Button className="w-full" variant="secondary">
-                <ArrowDownUpIcon className="h-4 w-4 shrink-0 mr-2" />
+                <ArrowDownUpIcon />
                 Swap
               </Button>
             </Link>

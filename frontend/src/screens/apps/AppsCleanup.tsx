@@ -83,7 +83,7 @@ export function AppsCleanup() {
                           setSkippedCount((current) => current + 1);
                         }}
                       >
-                        <SkipForwardIcon className="h-4 w-4 mr-2" />
+                        <SkipForwardIcon />
                         Skip
                       </Button>
                       <Button
@@ -94,7 +94,7 @@ export function AppsCleanup() {
                           setDeletedCount((current) => current + 1);
                         }}
                       >
-                        <Trash2Icon className="h-4 w-4 mr-2" />
+                        <Trash2Icon />
                         Delete
                       </Button>
                     </>

@@ -96,7 +96,7 @@ export default function ReceiveOffer() {
                     setOffer(null);
                   }}
                 >
-                  <RefreshCwIcon className="h-4 w-4 shrink-0 mr-2" />
+                  <RefreshCwIcon />
                   New Offer
                 </Button>
                 <Button className="flex-1" onClick={copy} variant="secondary">

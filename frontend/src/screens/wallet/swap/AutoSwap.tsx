@@ -324,7 +324,7 @@ function ActiveSwapOutConfig({ swapConfig }: { swapConfig: AutoSwapConfig }) {
         disabled={loading}
         variant="outline"
       >
-        <XCircleIcon className="h-4 w-4 mr-2" />
+        <XCircleIcon />
         Deactivate Auto Swap
       </Button>
     </>

@@ -43,8 +43,7 @@ export function AlbyAccount() {
               to="https://getalby.com/settings"
               className="flex-1 gap-2 items-center justify-center"
             >
-              Alby Account Settings{" "}
-              <SquareArrowOutUpRightIcon className="size-4 mr-2" />
+              Alby Account Settings <SquareArrowOutUpRightIcon />
             </ExternalLinkButton>
           </div>
         </div>

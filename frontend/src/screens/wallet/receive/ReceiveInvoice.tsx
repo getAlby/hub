@@ -203,7 +203,7 @@ export default function ReceiveInvoice() {
                     info.backendType === "LDK" && (
                       <Link to="/wallet/receive/offer">
                         <Button variant="outline" className="w-full">
-                          <ReceiptTextIcon className="h-4 w-4 shrink-0 mr-2" />
+                          <ReceiptTextIcon />
                           BOLT-12 Offer
                         </Button>
                       </Link>

@@ -230,7 +230,7 @@ export function SubwalletCreated() {
                           <Popover>
                             <PopoverTrigger>
                               <Button variant="outline">
-                                <PlayStoreIcon className="w-4 h-4 mr-2" />
+                                <PlayStoreIcon />
                                 Play Store
                               </Button>
                             </PopoverTrigger>
@@ -241,14 +241,14 @@ export function SubwalletCreated() {
                                 to="https://play.google.com/store/apps/details?id=com.getalby.mobile"
                               >
                                 Open
-                                <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                                <ExternalLinkIcon />
                               </ExternalLinkButton>
                             </PopoverContent>
                           </Popover>
                           <Popover>
                             <PopoverTrigger>
                               <Button variant="outline">
-                                <AppleIcon className="w-4 h-4 mr-2" />
+                                <AppleIcon />
                                 Apple App Store
                               </Button>
                             </PopoverTrigger>
@@ -259,14 +259,14 @@ export function SubwalletCreated() {
                                 to="https://apps.apple.com/us/app/alby-go/id6471335774"
                               >
                                 Open
-                                <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                                <ExternalLinkIcon />
                               </ExternalLinkButton>
                             </PopoverContent>
                           </Popover>
                           <Popover>
                             <PopoverTrigger>
                               <Button variant="outline">
-                                <ZapStoreIcon className="w-4 h-4 mr-2" />
+                                <ZapStoreIcon />
                                 Zapstore
                               </Button>
                             </PopoverTrigger>
@@ -282,7 +282,7 @@ export function SubwalletCreated() {
                                 to="https://zapstore.dev"
                               >
                                 Open
-                                <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                                <ExternalLinkIcon />
                               </ExternalLinkButton>
                             </PopoverContent>
                           </Popover>
@@ -328,7 +328,7 @@ export function SubwalletCreated() {
                         onClick={() => copyToClipboard(albyAccountUrl, toast)}
                         variant="outline"
                       >
-                        <CopyIcon className="w-4 h-4 mr-2" />
+                        <CopyIcon />
                         Copy URL
                       </Button>
                     </div>
@@ -396,7 +396,7 @@ export function SubwalletCreated() {
                         onClick={() => copyToClipboard(connectionSecret, toast)}
                         variant="outline"
                       >
-                        <CopyIcon className="w-4 h-4 mr-2" />
+                        <CopyIcon />
                         Copy
                       </Button>
                     </div>
@@ -431,7 +431,7 @@ export function SubwalletCreated() {
                           }
                           variant="outline"
                         >
-                          <CopyIcon className="w-4 h-4 mr-2" />
+                          <CopyIcon />
                           Copy
                         </Button>
                       </div>
@@ -462,7 +462,7 @@ export function SubwalletCreated() {
                         onClick={() => copyToClipboard(valueTag, toast)}
                         variant="outline"
                       >
-                        <CopyIcon className="w-4 h-4 mr-2" />
+                        <CopyIcon />
                         Copy
                       </Button>
                       <Alert>

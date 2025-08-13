@@ -16,11 +16,11 @@ const ResponsiveButton = ({ icon: Icon, text, variant, ...props }: Props) => {
   return (
     <>
       <Button {...props} className="hidden lg:inline-flex" variant={variant}>
-        <Icon className="h-4 w-4 mr-2" />
+        <Icon />
         {text}
       </Button>
       <Button {...props} size="icon" className="lg:hidden" variant={variant}>
-        <Icon className="h-4 w-4" />
+        <Icon />
       </Button>
     </>
   );

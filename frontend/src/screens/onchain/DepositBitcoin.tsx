@@ -84,7 +84,7 @@ export default function DepositBitcoin() {
         contentRight={
           <Link to="/channels/onchain/buy-bitcoin">
             <Button>
-              <CreditCardIcon className="h-4 w-4 mr-2" />
+              <CreditCardIcon />
               Buy Bitcoin
             </Button>
           </Link>

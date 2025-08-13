@@ -341,7 +341,7 @@ export function ZapPlanner() {
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button>
-                  <PlusCircleIcon className="h-4 w-4 mr-2" />
+                  <PlusCircleIcon />
                   New Recurring Payment
                 </Button>
               </DialogTrigger>
