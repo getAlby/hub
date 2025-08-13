@@ -15,6 +15,7 @@ import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
+import OnchainAddressDisplay from "src/components/OnchainAddressDisplay";
 import QRCode from "src/components/QRCode";
 import { Button } from "src/components/ui/button";
 import {
@@ -108,21 +109,7 @@ export default function DepositBitcoin() {
               </a>
 
               <div className="flex flex-wrap gap-2 items-center justify-center">
-                {onchainAddress.match(/.{1,4}/g)?.map((word, index) => {
-                  if (index % 2 === 0) {
-                    return (
-                      <span key={index} className="text-foreground">
-                        {word}
-                      </span>
-                    );
-                  } else {
-                    return (
-                      <span key={index} className="text-muted-foreground">
-                        {word}
-                      </span>
-                    );
-                  }
-                })}
+                <OnchainAddressDisplay address={onchainAddress} />
               </div>
 
               <div className="flex flex-row gap-4 justify-center">

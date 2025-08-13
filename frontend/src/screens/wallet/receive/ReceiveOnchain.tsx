@@ -34,8 +34,9 @@ import { MempoolUtxo, SwapResponse } from "src/types";
 
 import TickSVG from "public/images/illustrations/tick.svg";
 import Lottie from "react-lottie";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
+import OnchainAddressDisplay from "src/components/OnchainAddressDisplay";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -47,15 +48,15 @@ import { useSwapFees } from "src/hooks/useSwaps";
 import { request } from "src/utils/request";
 
 export default function ReceiveOnchain() {
-  const [receiveType, setReceiveType] = useState("onchain");
+  const [receiveType, setReceiveType] = useState("spending");
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const receiveType = queryParams.get("type");
+    const receiveType = searchParams.get("type");
     if (receiveType) {
       setReceiveType(receiveType);
     }
-  }, []);
+  }, [searchParams]);
 
   return (
     <div className="grid gap-5">
@@ -154,21 +155,7 @@ function ReceiveToOnchain() {
               <QRCode value={onchainAddress} />
             </a>
             <div className="flex flex-wrap max-w-64 gap-2 items-center justify-center">
-              {onchainAddress.match(/.{1,4}/g)?.map((word, index) => {
-                if (index % 2 === 0) {
-                  return (
-                    <span key={index} className="text-foreground">
-                      {word}
-                    </span>
-                  );
-                } else {
-                  return (
-                    <span key={index} className="text-muted-foreground">
-                      {word}
-                    </span>
-                  );
-                }
-              })}
+              <OnchainAddressDisplay address={onchainAddress} />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-2 pt-2">
@@ -234,11 +221,6 @@ function DepositPending({
             <FormattedFiatAmount amount={amount} className="text-xl" />
           </div>
         )}
-        <p className="text-muted-foreground text-center mt-6">
-          You can now leave this page.
-          <br />
-          You'll be notified when transaction arrives.
-        </p>
       </CardContent>
       <CardFooter className="flex flex-col gap-2 pt-2">
         <ExternalLinkButton
@@ -375,7 +357,7 @@ function ReceiveToSpending() {
               <div>
                 Receiving Capacity:{" "}
                 {new Intl.NumberFormat().format(
-                  balances.lightning.totalReceivable / 1000
+                  Math.floor(balances.lightning.totalReceivable / 1000)
                 )}{" "}
                 sats{" "}
                 <Link className="underline" to="/channels/incoming">
