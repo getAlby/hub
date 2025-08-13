@@ -71,7 +71,7 @@ export function IsolatedAppTopupDialog({
               sub-wallets becoming unspendable.
             </DialogDescription>
           </DialogHeader>
-          <div className="my-5">
+          <div className="grid gap-2 mt-5">
             <Label htmlFor="amount">Amount (sats)</Label>
             <Input
               autoFocus

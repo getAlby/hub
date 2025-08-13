@@ -73,7 +73,7 @@ export default function ConnectPeer() {
       />
       <div className="max-w-lg">
         <form onSubmit={handleSubmit}>
-          <div className="">
+          <div className="grid gap-2">
             <Label htmlFor="connectionString">Peer</Label>
             <Input
               id="connectionString"

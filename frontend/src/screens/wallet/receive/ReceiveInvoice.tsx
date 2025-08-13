@@ -163,7 +163,7 @@ export default function ReceiveInvoice() {
               </Card>
             ) : (
               <form onSubmit={handleSubmit} className="grid gap-5">
-                <div>
+                <div className="grid gap-2">
                   <Label htmlFor="amount">Amount</Label>
                   <Input
                     id="amount"
@@ -178,7 +178,7 @@ export default function ReceiveInvoice() {
                   />
                   <FormattedFiatAmount amount={+amount} className="mt-2" />
                 </div>
-                <div>
+                <div className="grid gap-2">
                   <Label htmlFor="description">Description</Label>
                   <Input
                     id="description"
