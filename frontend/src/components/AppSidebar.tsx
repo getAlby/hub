@@ -180,7 +180,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+              <DropdownMenuTrigger className="w-full">
                 <SidebarMenuButton size="lg">
                   {info?.albyAccountConnected ? (
                     <>
@@ -210,7 +210,7 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+                className="min-w-56"
                 side={isMobile ? "bottom" : "right"}
                 align="end"
                 sideOffset={4}

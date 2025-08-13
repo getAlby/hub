@@ -57,7 +57,7 @@ export function ChannelDropdownMenu({
       }}
     >
       <DropdownMenu modal={false}>
-        <DropdownMenuTrigger asChild>
+        <DropdownMenuTrigger>
           <Button size="icon" variant="ghost">
             <MoreHorizontalIcon className="h-4 w-4" />
           </Button>
