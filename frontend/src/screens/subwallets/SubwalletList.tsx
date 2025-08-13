@@ -105,10 +105,8 @@ export function SubwalletList() {
         <>
           <Alert>
             <InfoIcon />
-            <AlertTitle className="flex flex-row">
-              Need more Sub-wallets?
-            </AlertTitle>
-            <AlertDescription className="flex flex-row">
+            <AlertTitle>Need more Sub-wallets?</AlertTitle>
+            <AlertDescription className="flex flex-row gap-3">
               <p className="grow">
                 Upgrade your subscription plan to Pro unlock unlimited number of
                 Sub-wallets.
@@ -130,11 +128,14 @@ export function SubwalletList() {
           <AlertTitle>
             Sub-wallets you manage are insufficiently backed
           </AlertTitle>
-          <AlertDescription>
+          <AlertDescription className="flex flex-row gap-3">
             There's not enough bitcoin in your spending balance to honor all
             balances of sub-wallets under your management. Increase spending
             capacity by opening a channel or review your channel statuses to
             back them up again.
+            <Link to="/wallet/receive">
+              <Button variant="secondary">Deposit Bitcoin</Button>
+            </Link>
           </AlertDescription>
         </Alert>
       )}
