@@ -7,9 +7,9 @@ import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -71,7 +71,7 @@ export function BuzzPay() {
             you want to use the PoS with.
           </p>
           <Alert>
-            <AlertTriangleIcon className="h-4 w-4" />
+            <AlertTriangleIcon />
             <AlertTitle>
               Save this link and add it to your home screen
             </AlertTitle>
@@ -94,11 +94,11 @@ export function BuzzPay() {
               onClick={() => copyToClipboard(posUrl, toast)}
               variant="outline"
             >
-              <CopyIcon className="w-4 h-4 mr-2" />
+              <CopyIcon />
               Copy
             </Button>
             <Button onClick={() => openLink(posUrl)} variant="outline">
-              <ExternalLinkIcon className="w-4 h-4 mr-2" />
+              <ExternalLinkIcon />
               Open
             </Button>
           </div>

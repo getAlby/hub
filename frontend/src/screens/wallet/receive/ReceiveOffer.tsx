@@ -13,9 +13,9 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 
 import { copyToClipboard } from "src/lib/clipboard";
@@ -96,11 +96,11 @@ export default function ReceiveOffer() {
                     setOffer(null);
                   }}
                 >
-                  <RefreshCwIcon className="h-4 w-4 shrink-0 mr-2" />
+                  <RefreshCwIcon />
                   New Offer
                 </Button>
                 <Button className="flex-1" onClick={copy} variant="secondary">
-                  <CopyIcon className="w-4 h-4 mr-2" />
+                  <CopyIcon />
                   Copy
                 </Button>
               </div>

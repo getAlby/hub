@@ -9,13 +9,14 @@ import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { SuggestedApp, suggestedApps } from "src/components/SuggestedAppData";
 import { Badge } from "src/components/ui/badge";
-import { Button, ExternalLinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useApp } from "src/hooks/useApp";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -175,7 +176,7 @@ export function ConnectAppCard({
         {!app.lastUsedAt ? (
           <>
             <div className="flex flex-row items-center gap-2 text-sm">
-              <Loading className="w-4 h-4" />
+              <Loading className="size-4" />
               <p>Waiting for app to connect</p>
             </div>
             {timeout && (
@@ -189,7 +190,7 @@ export function ConnectAppCard({
           </>
         ) : (
           <Badge variant="positive">
-            <CheckIcon className="w-4 h-4 mr-2" />
+            <CheckIcon className="size-4 mr-2" />
             <p>App connected</p>
           </Badge>
         )}
@@ -213,18 +214,18 @@ export function ConnectAppCard({
               }}
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
             >
-              <EyeIcon className="h-4 w-4 mr-2" />
+              <EyeIcon />
               Reveal QR
             </Button>
           )}
         </div>
         <div className="flex gap-2">
           <Button onClick={copy} variant="outline">
-            <CopyIcon className="w-4 h-4 mr-2" />
+            <CopyIcon />
             Copy
           </Button>
           <ExternalLinkButton to={pairingUri} variant="outline">
-            <ExternalLinkIcon className="w-4 h-4 mr-2" />
+            <ExternalLinkIcon />
             Open
           </ExternalLinkButton>
         </div>

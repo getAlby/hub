@@ -1,4 +1,4 @@
-import type { Invoice } from "@getalby/lightning-tools/bolt11";
+import type { Invoice } from "@getalby/lightning-tools";
 import { CircleCheckIcon, CopyIcon, ExternalLinkIcon } from "lucide-react";
 import { useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -50,7 +50,7 @@ export default function PaymentSuccess() {
             <FormattedFiatAmount amount={invoice.satoshi} />
           </div>
           <Button onClick={copy} variant="outline">
-            <CopyIcon className="w-4 h-4 mr-2" />
+            <CopyIcon />
             Copy Preimage
           </Button>
         </CardContent>
@@ -74,7 +74,7 @@ export default function PaymentSuccess() {
               className="underline flex items-center"
             >
               <p className="text-sm">{invoice.successAction.url}</p>
-              <ExternalLinkIcon className="w-4 h-4 ml-2" />
+              <ExternalLinkIcon className="size-4 ml-2" />
             </ExternalLink>
           </div>
         </>

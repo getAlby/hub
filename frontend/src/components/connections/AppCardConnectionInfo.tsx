@@ -41,7 +41,7 @@ export function AppCardConnectionInfo({
         <>
           <div className="text-sm text-secondary-foreground font-medium w-full h-full flex flex-col gap-2">
             <div className="flex flex-row items-center gap-2">
-              <BrickWallIcon className="w-4 h-4" />
+              <BrickWallIcon className="size-4" />
 
               {connection.metadata?.app_store_app_id ===
               SUBWALLET_APPSTORE_APP_ID
@@ -127,7 +127,7 @@ export function AppCardConnectionInfo({
             {!readonly && (
               <Link to={`/apps/${connection.id}?edit=true`}>
                 <Button variant="outline">
-                  <PlusCircleIcon className="w-4 h-4 mr-2" />
+                  <PlusCircleIcon />
                   Set Budget
                 </Button>
               </Link>
@@ -138,18 +138,18 @@ export function AppCardConnectionInfo({
         <>
           <div className="text-sm text-secondary-foreground font-medium w-full h-full flex flex-col gap-2">
             <div className="flex flex-row items-center gap-2">
-              <CircleCheckIcon className="w-4 h-4" />
+              <CircleCheckIcon className="size-4" />
               Share wallet information
             </div>
             {connection.scopes.indexOf("make_invoice") > -1 && (
               <div className="flex flex-row items-center gap-2">
-                <CircleCheckIcon className="w-4 h-4" />
+                <CircleCheckIcon className="size-4" />
                 Receive payments
               </div>
             )}
             {connection.scopes.indexOf("list_transactions") > -1 && (
               <div className="flex flex-row items-center gap-2">
-                <CircleCheckIcon className="w-4 h-4" />
+                <CircleCheckIcon className="size-4" />
                 Read transaction history
               </div>
             )}
@@ -167,7 +167,7 @@ export function AppCardConnectionInfo({
                 onClick={(e) => e.stopPropagation()}
               >
                 <Button variant="outline">
-                  <PlusCircleIcon className="w-4 h-4 mr-2" />
+                  <PlusCircleIcon />
                   Enable Payments
                 </Button>
               </Link>

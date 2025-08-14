@@ -1,20 +1,11 @@
-import {
-  AlertTriangleIcon,
-  CircleCheckIcon,
-  CopyIcon,
-  ReceiptTextIcon,
-} from "lucide-react";
+import { CircleCheckIcon, CopyIcon, ReceiptTextIcon } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import QRCode from "src/components/QRCode";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "src/components/ui/alert.tsx";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -23,9 +14,9 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useBalances } from "src/hooks/useBalances";
@@ -109,24 +100,7 @@ export default function ReceiveInvoice() {
           {hasChannelManagement &&
             parseInt(amount || "0") * 1000 >=
               0.8 * balances.lightning.totalReceivable && (
-              <Alert>
-                <AlertTriangleIcon className="h-4 w-4" />
-                <AlertTitle>Low receiving limit</AlertTitle>
-                <AlertDescription>
-                  You likely won't be able to receive payments until you{" "}
-                  <Link className="underline" to="/wallet/send">
-                    spend
-                  </Link>
-                  ,{" "}
-                  <Link className="underline" to="/wallet/swap?type=out">
-                    swap out funds
-                  </Link>
-                  , or{" "}
-                  <Link className="underline" to="/channels/incoming">
-                    increase your receiving capacity.
-                  </Link>
-                </AlertDescription>
-              </Alert>
+              <LowReceivingCapacityAlert />
             )}
           <div>
             {transaction ? (
@@ -135,7 +109,7 @@ export default function ReceiveInvoice() {
                   <>
                     <CardHeader>
                       <CardTitle className="flex justify-center">
-                        <Loading className="w-4 h-4 mr-2" />
+                        <Loading className="size-4 mr-2" />
                         <p>Waiting for payment</p>
                       </CardTitle>
                     </CardHeader>
@@ -150,7 +124,7 @@ export default function ReceiveInvoice() {
                       </div>
                       <div>
                         <Button onClick={copy} variant="outline">
-                          <CopyIcon className="w-4 h-4 mr-2" />
+                          <CopyIcon />
                           Copy Invoice
                         </Button>
                       </div>
@@ -189,7 +163,7 @@ export default function ReceiveInvoice() {
               </Card>
             ) : (
               <form onSubmit={handleSubmit} className="grid gap-5">
-                <div>
+                <div className="grid gap-2">
                   <Label htmlFor="amount">Amount</Label>
                   <Input
                     id="amount"
@@ -204,7 +178,7 @@ export default function ReceiveInvoice() {
                   />
                   <FormattedFiatAmount amount={+amount} className="mt-2" />
                 </div>
-                <div>
+                <div className="grid gap-2">
                   <Label htmlFor="description">Description</Label>
                   <Input
                     id="description"
@@ -229,7 +203,7 @@ export default function ReceiveInvoice() {
                     info.backendType === "LDK" && (
                       <Link to="/wallet/receive/offer">
                         <Button variant="outline" className="w-full">
-                          <ReceiptTextIcon className="h-4 w-4 shrink-0 mr-2" />
+                          <ReceiptTextIcon />
                           BOLT-12 Offer
                         </Button>
                       </Link>

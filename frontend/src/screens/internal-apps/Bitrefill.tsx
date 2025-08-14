@@ -1,4 +1,4 @@
-import { Invoice } from "@getalby/lightning-tools/bolt11";
+import { Invoice } from "@getalby/lightning-tools";
 import React, { useEffect } from "react";
 import AppHeader from "src/components/AppHeader";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
@@ -126,7 +126,7 @@ export function Bitrefill() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction disabled={loading} onClick={confirmPayment}>
-              {loading && <Loading className="w-4 h-4 mr-2" />}
+              {loading && <Loading />}
               Pay now
             </AlertDialogAction>
           </AlertDialogFooter>
