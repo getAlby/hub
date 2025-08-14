@@ -1,4 +1,5 @@
 import React from "react";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Dialog,
   DialogContent,
@@ -10,7 +11,6 @@ import {
 } from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useApp } from "src/hooks/useApp";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -74,7 +74,7 @@ export function IsolatedAppDrawDownDialog({
               Decrease the balance of this sub-wallet.
             </DialogDescription>
           </DialogHeader>
-          <div className="my-5">
+          <div className="grid gap-2 mt-5">
             <Label htmlFor="amount">Amount (sats)</Label>
             <Input
               autoFocus
