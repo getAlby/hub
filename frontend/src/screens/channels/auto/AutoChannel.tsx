@@ -6,8 +6,8 @@ import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
 import { useToast } from "src/components/ui/use-toast";
 import { useChannels } from "src/hooks/useChannels";
@@ -206,7 +206,7 @@ export function AutoChannel() {
                   onClick={() => setShowAdvanced((current) => !current)}
                 >
                   Advanced Options
-                  <ChevronDownIcon className="w-4 h-4 ml-1" />
+                  <ChevronDownIcon className="size-4 ml-1" />
                 </Button>
               </div>
             )}

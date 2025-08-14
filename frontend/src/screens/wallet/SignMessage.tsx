@@ -9,9 +9,9 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 
 import { copyToClipboard } from "src/lib/clipboard";
@@ -67,7 +67,7 @@ export default function SignMessage() {
       />
       <div className="max-w-lg">
         <form onSubmit={handleSubmit} className="grid gap-5">
-          <div className="">
+          <div className="grid gap-2">
             <Label htmlFor="message">Message</Label>
             <Input
               id="message"
@@ -111,7 +111,7 @@ export default function SignMessage() {
                       copyToClipboard(signature, toast);
                     }}
                   >
-                    <CopyIcon className="w-4 h-4" />
+                    <CopyIcon className="size-4" />
                   </Button>
                 </div>
               </CardContent>

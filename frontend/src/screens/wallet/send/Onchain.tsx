@@ -15,10 +15,12 @@ import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import { SpendingAlert } from "src/components/SpendingAlert";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { Button, LinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
+import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
+import { LinkButton } from "src/components/ui/custom/link-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Switch } from "src/components/ui/switch";
 import { useToast } from "src/components/ui/use-toast";
 import { MIN_SWAP_AMOUNT, ONCHAIN_DUST_SATS } from "src/constants";
@@ -187,7 +189,7 @@ function OnchainForm({
     <form onSubmit={onSubmit} className="grid gap-6">
       <div className="grid gap-2">
         <Label htmlFor="amount">Amount</Label>
-        <Input
+        <InputWithAdornment
           id="amount"
           type="number"
           value={amount}
@@ -378,7 +380,7 @@ function SwapForm({
     <form onSubmit={onSubmit} className="grid gap-6">
       <div className="grid gap-2">
         <Label htmlFor="amount">Amount</Label>
-        <Input
+        <InputWithAdornment
           id="amount"
           type="number"
           value={amount}

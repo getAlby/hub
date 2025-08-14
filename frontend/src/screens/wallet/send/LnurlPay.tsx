@@ -7,10 +7,11 @@ import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import { PendingPaymentAlert } from "src/components/PendingPaymentAlert";
 import { SpendingAlert } from "src/components/SpendingAlert";
-import { LinkButton } from "src/components/ui/button";
+import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
+import { LinkButton } from "src/components/ui/custom/link-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { PayInvoiceResponse, TransactionMetadata } from "src/types";
@@ -115,7 +116,7 @@ export default function LnurlPay() {
         )}
         <div className="grid gap-2">
           <Label htmlFor="amount">Amount</Label>
-          <Input
+          <InputWithAdornment
             id="amount"
             type="number"
             value={amount}

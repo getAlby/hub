@@ -53,7 +53,7 @@ export function OnchainTransactionsTable() {
                       <Icon
                         strokeWidth={3}
                         className={cn(
-                          "w-6 h-6",
+                          "size-6",
                           tx.state === "unconfirmed"
                             ? "stroke-blue-500 dark:stroke-sky-500"
                             : tx.type === "outgoing"

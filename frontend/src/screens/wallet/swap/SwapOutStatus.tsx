@@ -85,7 +85,7 @@ export default function SwapOutStatus() {
                 </div>
                 <div className="flex justify-center gap-4 flex-wrap">
                   <Button onClick={copyTxId} variant="outline">
-                    <CopyIcon className="w-4 h-4 mr-2" />
+                    <CopyIcon />
                     Copy Transaction ID
                   </Button>
                 </div>

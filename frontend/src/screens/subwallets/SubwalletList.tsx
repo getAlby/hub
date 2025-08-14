@@ -4,6 +4,7 @@ import {
   InfoIcon,
   ShieldCheckIcon,
   SparklesIcon,
+  TriangleAlert,
   TriangleAlertIcon,
 } from "lucide-react";
 import { useRef, useState } from "react";
@@ -84,7 +85,7 @@ export function SubwalletList() {
           <>
             <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/sub-wallets">
               <Button variant="outline" size="icon">
-                <HelpCircle className="w-4 h-4" />
+                <HelpCircle className="size-4" />
               </Button>
             </ExternalLink>
             {!albyMe?.subscription.plan_code && subwalletApps?.length >= 3 ? (
@@ -102,46 +103,40 @@ export function SubwalletList() {
 
       {!albyMe?.subscription.plan_code && subwalletApps.length >= 3 && (
         <>
-          <Alert className="flex items-center gap-4 justify-between">
-            <div className="flex gap-3">
-              <InfoIcon className="h-4 w-4 shrink-0" />
-              <div>
-                <AlertTitle>Need more Sub-wallets?</AlertTitle>
-                <AlertDescription>
-                  Upgrade your subscription plan to Pro unlock unlimited number
-                  of Sub-wallets.
-                </AlertDescription>
-              </div>
-            </div>
-            <UpgradeDialog>
-              <Button>
-                <SparklesIcon className="w-4 h-4 mr-2" />
-                Upgrade
-              </Button>
-            </UpgradeDialog>
+          <Alert>
+            <InfoIcon />
+            <AlertTitle>Need more Sub-wallets?</AlertTitle>
+            <AlertDescription className="flex flex-row gap-3">
+              <p className="grow">
+                Upgrade your subscription plan to Pro unlock unlimited number of
+                Sub-wallets.
+              </p>
+              <UpgradeDialog>
+                <Button>
+                  <SparklesIcon />
+                  Upgrade
+                </Button>
+              </UpgradeDialog>
+            </AlertDescription>
           </Alert>
         </>
       )}
 
       {!isSufficientlyBacked && (
-        <Alert variant="warning" className="flex items-center gap-4">
-          <div className="flex gap-3">
-            <InfoIcon className="h-4 w-4 shrink-0" />
-            <div>
-              <AlertTitle>
-                Sub-wallets you manage are insufficiently backed
-              </AlertTitle>
-              <AlertDescription>
-                There's not enough bitcoin in your spending balance to honor all
-                balances of sub-wallets under your management. Increase spending
-                capacity by opening a channel or review your channel statuses to
-                back them up again.
-              </AlertDescription>
-            </div>
-          </div>
-          <Link to="/wallet/receive">
-            <Button variant="secondary">Deposit Bitcoin</Button>
-          </Link>
+        <Alert variant="warning">
+          <TriangleAlert />
+          <AlertTitle>
+            Sub-wallets you manage are insufficiently backed
+          </AlertTitle>
+          <AlertDescription className="flex flex-row gap-3">
+            There's not enough bitcoin in your spending balance to honor all
+            balances of sub-wallets under your management. Increase spending
+            capacity by opening a channel or review your channel statuses to
+            back them up again.
+            <Link to="/wallet/receive">
+              <Button variant="secondary">Deposit Bitcoin</Button>
+            </Link>
+          </AlertDescription>
         </Alert>
       )}
 
@@ -155,7 +150,7 @@ export function SubwalletList() {
               Total amount of assets under management
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex-grow">
+          <CardContent className="grow">
             <div className="mt-4 mb-1">
               <span className="text-2xl font-medium balance sensitive">
                 {new Intl.NumberFormat().format(
@@ -174,7 +169,7 @@ export function SubwalletList() {
               Number of Sub-wallets backed by your node funds
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex-grow flex flex-col gap-4">
+          <CardContent className="grow flex flex-col gap-4">
             <div className="flex flex-col gap-2 mt-4">
               <span className="text-2xl font-medium">
                 {subwalletApps.length} /{" "}
@@ -182,12 +177,12 @@ export function SubwalletList() {
               </span>
               {isSufficientlyBacked ? (
                 <div className="flex items-center text-positive-foreground text-sm">
-                  <ShieldCheckIcon className="w-4 h-4 mr-2" />
+                  <ShieldCheckIcon className="size-4 mr-2" />
                   <span className="text-sm font-medium">Fully backed</span>
                 </div>
               ) : (
                 <div className="flex items-center text-warning-foreground text-sm">
-                  <TriangleAlertIcon className="w-4 h-4 mr-2" />
+                  <TriangleAlertIcon className="size-4 mr-2" />
                   <span className="text-sm font-medium">
                     Insufficiently backed
                   </span>

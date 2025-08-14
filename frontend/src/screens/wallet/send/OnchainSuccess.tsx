@@ -3,7 +3,6 @@ import { useLocation } from "react-router-dom";
 import animationDataDark from "src/assets/lotties/loading-dark.json";
 import animationDataLight from "src/assets/lotties/loading-light.json";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
-import { ExternalLinkButton, LinkButton } from "src/components/ui/button";
 import {
   Card,
   CardContent,
@@ -16,6 +15,8 @@ import TickSVG from "public/images/illustrations/tick.svg";
 import Lottie from "react-lottie";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { useTheme } from "src/components/ui/theme-provider";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";

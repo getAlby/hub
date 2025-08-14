@@ -1,41 +1,46 @@
-@import "themes/default.css";
-@import "themes/alby.css";
-@import "themes/bitcoin.css";
-@import "themes/nostr.css";
+@import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+html,
+body {
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@import "./themes/default.css";
+@import "./themes/alby.css";
+@import "./themes/bitcoin.css";
+@import "./themes/nostr.css";
+@import "./themes/matrix.css";
+@import "./themes/ghibli.css";
+@import "./themes/claymorphism.css";
+
+@import "./themes/index.css";
 
 @layer base {
-  * {
-    @apply border-border;
+  button:not([disabled]),
+  [role="button"]:not([disabled]) {
+    cursor: pointer;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
+}
 
-  :root {
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+@layer base {
+  [role="menuitem"]:not([disabled]) {
+    cursor: pointer !important;
   }
+}
 
-  .dark {
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
+/* bitcoin-connect styles */
+html {
+  --bc-color-brand: hsl(0 0% 0%); /* use a different brand color in dark mode */
+  --bc-color-brand-dark: hsl(
+    0 0% 100%
+  ); /* use a different brand color in dark mode */
+  --bc-brand-mix: 100%; /* how much to mix the brand color with default foreground color */
 }
 
 /* https://github.com/tailwindlabs/tailwindcss/discussions/12127 */
@@ -51,72 +56,32 @@ input[type="text"]::-webkit-calendar-picker-indicator {
 
 /* used by AppAvatar as fallback for apps without known images  */
 .avatar-gradient-0 {
-  background: linear-gradient(
-    135deg,
-    #ff7e5f,
-    #feb47b
-  ); /* Warm colors: orange */
+  background: linear-gradient(135deg, var(--chart-1), var(--chart-3));
 }
 .avatar-gradient-1 {
-  background: linear-gradient(
-    135deg,
-    #43cea2,
-    #185a9d
-  ); /* Cool colors: green to blue */
+  background: linear-gradient(135deg, var(--chart-2), var(--chart-4));
 }
 .avatar-gradient-2 {
-  background: linear-gradient(
-    135deg,
-    #ff9966,
-    #ff5e62
-  ); /* Warm colors: orange to red */
+  background: linear-gradient(135deg, var(--chart-3), var(--chart-5));
 }
 .avatar-gradient-3 {
-  background: linear-gradient(
-    135deg,
-    #36d1dc,
-    #5b86e5
-  ); /* Cool colors: cyan to blue */
+  background: linear-gradient(135deg, var(--chart-4), var(--chart-1));
 }
 .avatar-gradient-4 {
-  background: linear-gradient(
-    135deg,
-    #f7971e,
-    #ffd200
-  ); /* Warm colors: yellow to orange */
+  background: linear-gradient(135deg, var(--chart-5), var(--chart-2));
 }
 .avatar-gradient-5 {
-  background: linear-gradient(
-    135deg,
-    #6a11cb,
-    #2575fc
-  ); /* Cool colors: purple to blue */
+  background: linear-gradient(135deg, var(--chart-1), var(--chart-4));
 }
 .avatar-gradient-6 {
-  background: linear-gradient(
-    135deg,
-    #ff4b1f,
-    #ff9068
-  ); /* Warm colors: red to peach */
+  background: linear-gradient(135deg, var(--chart-2), var(--chart-5));
 }
 .avatar-gradient-7 {
-  background: linear-gradient(
-    135deg,
-    #8e2de2,
-    #4a00e0
-  ); /* Cool colors: violet to dark blue */
+  background: linear-gradient(135deg, var(--chart-3), var(--chart-1));
 }
 .avatar-gradient-8 {
-  background: linear-gradient(
-    135deg,
-    #00c6ff,
-    #0072ff
-  ); /* Cool colors: light blue to blue */
+  background: linear-gradient(135deg, var(--chart-4), var(--chart-2));
 }
 .avatar-gradient-9 {
-  background: linear-gradient(
-    135deg,
-    #f953c6,
-    #b91d73
-  ); /* Bright colors: pink to purple */
+  background: linear-gradient(135deg, var(--chart-5), var(--chart-3));
 }
