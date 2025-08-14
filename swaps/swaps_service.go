@@ -53,8 +53,8 @@ type SwapsService interface {
 	EnableAutoSwapOut() error
 	SwapOut(amount uint64, destination string, useExactReceiveAmount, autoSwap bool) (*SwapResponse, error)
 	SwapIn(amount uint64, autoSwap bool) (*SwapResponse, error)
-	CalculateSwapOutFee() (*SwapFees, error)
-	CalculateSwapInFee() (*SwapFees, error)
+	GetSwapOutInfo() (*SwapInfo, error)
+	GetSwapInInfo() (*SwapInfo, error)
 	RefundSwap(swapId, address string) error
 	GetSwap(swapId string) (*Swap, error)
 	ListSwaps() ([]Swap, error)
@@ -84,7 +84,7 @@ type MempoolTx struct {
 	Status TxStatusInfo `json:"status"`
 }
 
-type SwapFees struct {
+type SwapInfo struct {
 	AlbyServiceFee  float64 `json:"albyServiceFee"`
 	BoltzServiceFee float64 `json:"boltzServiceFee"`
 	BoltzNetworkFee uint64  `json:"boltzNetworkFee"`
@@ -505,7 +505,7 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 	}, nil
 }
 
-func (svc *swapsService) CalculateSwapOutFee() (*SwapFees, error) {
+func (svc *swapsService) GetSwapOutInfo() (*SwapInfo, error) {
 	reversePairs, err := svc.boltzApi.GetReversePairs()
 	if err != nil {
 		return nil, fmt.Errorf("could not get reverse pairs: %s", err)
@@ -521,7 +521,7 @@ func (svc *swapsService) CalculateSwapOutFee() (*SwapFees, error) {
 	networkFee := fees.MinerFees.Lockup + fees.MinerFees.Claim
 	limits := pairInfo.Limits
 
-	return &SwapFees{
+	return &SwapInfo{
 		AlbyServiceFee:  AlbySwapServiceFee,
 		BoltzServiceFee: fees.Percentage,
 		BoltzNetworkFee: networkFee,
@@ -530,7 +530,7 @@ func (svc *swapsService) CalculateSwapOutFee() (*SwapFees, error) {
 	}, nil
 }
 
-func (svc *swapsService) CalculateSwapInFee() (*SwapFees, error) {
+func (svc *swapsService) GetSwapInInfo() (*SwapInfo, error) {
 	submarinePairs, err := svc.boltzApi.GetSubmarinePairs()
 	if err != nil {
 		return nil, fmt.Errorf("could not get reverse pairs: %s", err)
@@ -545,7 +545,7 @@ func (svc *swapsService) CalculateSwapInFee() (*SwapFees, error) {
 	fees := pairInfo.Fees
 	limits := pairInfo.Limits
 
-	return &SwapFees{
+	return &SwapInfo{
 		AlbyServiceFee:  AlbySwapServiceFee,
 		BoltzServiceFee: fees.Percentage,
 		BoltzNetworkFee: fees.MinerFees,

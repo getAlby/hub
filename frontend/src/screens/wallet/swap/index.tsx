@@ -13,7 +13,7 @@ import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
-import { useSwapFees } from "src/hooks/useSwaps";
+import { useSwapInfo } from "src/hooks/useSwaps";
 import { cn } from "src/lib/utils";
 import { SwapResponse } from "src/types";
 import { request } from "src/utils/request";
@@ -76,7 +76,7 @@ function SwapInForm() {
   const { toast } = useToast();
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
-  const { data: swapFees } = useSwapFees("in");
+  const { data: swapInfo } = useSwapInfo("in");
   const navigate = useNavigate();
 
   const [swapAmount, setSwapAmount] = useState("");
@@ -112,7 +112,7 @@ function SwapInForm() {
     }
   };
 
-  if (!info || !balances || !swapFees) {
+  if (!info || !balances || !swapInfo) {
     return <Loading />;
   }
 
@@ -138,9 +138,9 @@ function SwapInForm() {
           autoFocus
           placeholder="Amount in satoshis"
           value={swapAmount}
-          min={swapFees.minAmount}
+          min={swapInfo.minAmount}
           max={Math.min(
-            swapFees.maxAmount,
+            swapInfo.maxAmount,
             (balances.lightning.totalReceivable / 1000) * 0.99
           )}
           onChange={(e) => setSwapAmount(e.target.value)}
@@ -168,7 +168,7 @@ function SwapInForm() {
             </div>
           )}
           <p className="text-xs text-muted-foreground">
-            Minimum: {new Intl.NumberFormat().format(swapFees.minAmount)} sats
+            Minimum: {new Intl.NumberFormat().format(swapInfo.minAmount)} sats
           </p>
         </div>
       </div>
@@ -176,7 +176,7 @@ function SwapInForm() {
       <div className="flex items-center justify-between border-t pt-4">
         <Label>Fee</Label>
         <p className="text-muted-foreground text-sm">
-          {swapFees.albyServiceFee + swapFees.boltzServiceFee}% + on-chain fees
+          {swapInfo.albyServiceFee + swapInfo.boltzServiceFee}% + on-chain fees
         </p>
       </div>
       <div className="grid gap-2">
@@ -194,7 +194,7 @@ function SwapInForm() {
 
 function SwapOutForm() {
   const { toast } = useToast();
-  const { data: swapFees } = useSwapFees("out");
+  const { data: swapInfo } = useSwapInfo("out");
   const navigate = useNavigate();
   const { data: balances } = useBalances();
 
@@ -239,7 +239,7 @@ function SwapOutForm() {
     setDestination(text.trim());
   };
 
-  if (!balances || !swapFees) {
+  if (!balances || !swapInfo) {
     return <Loading />;
   }
 
@@ -260,9 +260,9 @@ function SwapOutForm() {
           autoFocus
           placeholder="Amount in satoshis"
           value={swapAmount}
-          min={swapFees.minAmount}
+          min={swapInfo.minAmount}
           max={Math.min(
-            swapFees.maxAmount,
+            swapInfo.maxAmount,
             Math.floor(balances.lightning.totalSpendable / 1000)
           )}
           onChange={(e) => setSwapAmount(e.target.value)}
@@ -280,7 +280,7 @@ function SwapOutForm() {
             </p>
           )}
           <p className="text-xs text-muted-foreground">
-            Minimum: {new Intl.NumberFormat().format(swapFees.minAmount)} sats
+            Minimum: {new Intl.NumberFormat().format(swapInfo.minAmount)} sats
           </p>
         </div>
       </div>
@@ -348,7 +348,7 @@ function SwapOutForm() {
       <div className="flex items-center justify-between border-t pt-4">
         <Label>Fee</Label>
         <p className="text-muted-foreground text-sm">
-          {swapFees.albyServiceFee + swapFees.boltzServiceFee}% + on-chain fees
+          {swapInfo.albyServiceFee + swapInfo.boltzServiceFee}% + on-chain fees
         </p>
       </div>
       <div className="grid gap-2">

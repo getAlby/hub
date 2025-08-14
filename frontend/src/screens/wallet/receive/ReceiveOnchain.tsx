@@ -41,7 +41,7 @@ import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
 import { useTheme } from "src/components/ui/theme-provider";
 import { useBalances } from "src/hooks/useBalances";
-import { useSwapFees } from "src/hooks/useSwaps";
+import { useSwapInfo } from "src/hooks/useSwaps";
 import { request } from "src/utils/request";
 
 export default function ReceiveOnchain() {
@@ -276,7 +276,7 @@ function ReceiveToSpending() {
   const { toast } = useToast();
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
-  const { data: swapFees } = useSwapFees("in");
+  const { data: swapInfo } = useSwapInfo("in");
   const { data: recommendedFees, error: mempoolError } = useMempoolApi<{
     fastestFee: number;
     halfHourFee: number;
@@ -325,7 +325,7 @@ function ReceiveToSpending() {
     }
   };
 
-  if (!info || !balances || !swapFees || (!recommendedFees && !mempoolError)) {
+  if (!info || !balances || !swapInfo || (!recommendedFees && !mempoolError)) {
     return <Loading />;
   }
 
@@ -352,9 +352,9 @@ function ReceiveToSpending() {
           autoFocus
           placeholder="Amount in satoshis"
           value={swapAmount}
-          min={swapFees.minAmount}
+          min={swapInfo.minAmount}
           max={Math.min(
-            swapFees.maxAmount,
+            swapInfo.maxAmount,
             (balances.lightning.totalReceivable / 1000) * 0.99
           )}
           onChange={(e) => setSwapAmount(e.target.value)}
@@ -382,11 +382,11 @@ function ReceiveToSpending() {
           </div>
           <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
             <div>
-              Minimum: {new Intl.NumberFormat().format(swapFees.minAmount)} sats
+              Minimum: {new Intl.NumberFormat().format(swapInfo.minAmount)} sats
             </div>
             <FormattedFiatAmount
               className="text-xs"
-              amount={swapFees.minAmount}
+              amount={swapInfo.minAmount}
             />
           </div>
         </div>
@@ -399,7 +399,7 @@ function ReceiveToSpending() {
         </div>
         <div className="flex items-center justify-between">
           <p className="text-muted-foreground">Swap Fee</p>
-          <p>{swapFees.albyServiceFee + swapFees.boltzServiceFee}%</p>
+          <p>{swapInfo.albyServiceFee + swapInfo.boltzServiceFee}%</p>
         </div>
       </div>
       <div className="grid gap-2">

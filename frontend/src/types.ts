@@ -203,7 +203,7 @@ export type AutoSwapConfig = {
   destination: string;
 };
 
-export type SwapFees = {
+export type SwapInfo = {
   albyServiceFee: number;
   boltzServiceFee: number;
   boltzNetworkFee: number;

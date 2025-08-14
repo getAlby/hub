@@ -66,8 +66,8 @@ type API interface {
 	SetCurrency(currency string) error
 	LookupSwap(swapId string) (*LookupSwapResponse, error)
 	ListSwaps() (*ListSwapsResponse, error)
-	GetSwapInFees() (*SwapFeesResponse, error)
-	GetSwapOutFees() (*SwapFeesResponse, error)
+	GetSwapInInfo() (*SwapInfoResponse, error)
+	GetSwapOutInfo() (*SwapInfoResponse, error)
 	InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (*swaps.SwapResponse, error)
 	InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (*swaps.SwapResponse, error)
 	RefundSwap(refundSwapRequest *RefundSwapRequest) error
@@ -171,7 +171,7 @@ type GetAutoSwapConfigResponse struct {
 	Destination      string `json:"destination"`
 }
 
-type SwapFeesResponse struct {
+type SwapInfoResponse struct {
 	AlbyServiceFee  float64 `json:"albyServiceFee"`
 	BoltzServiceFee float64 `json:"boltzServiceFee"`
 	BoltzNetworkFee uint64  `json:"boltzNetworkFee"`

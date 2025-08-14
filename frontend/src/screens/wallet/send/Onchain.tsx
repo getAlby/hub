@@ -27,7 +27,7 @@ import { ONCHAIN_DUST_SATS } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
-import { useSwapFees } from "src/hooks/useSwaps";
+import { useSwapInfo } from "src/hooks/useSwaps";
 import { RedeemOnchainFundsResponse, SwapResponse } from "src/types";
 import { request } from "src/utils/request";
 
@@ -333,7 +333,7 @@ function SwapForm({
   const navigate = useNavigate();
   const { toast } = useToast();
   const { data: balances } = useBalances();
-  const { data: swapFees } = useSwapFees("out");
+  const { data: swapInfo } = useSwapInfo("out");
 
   const [isLoading, setLoading] = React.useState(false);
 
@@ -369,7 +369,7 @@ function SwapForm({
     }
   };
 
-  if (!balances || !swapFees) {
+  if (!balances || !swapInfo) {
     return <Loading />;
   }
 
@@ -385,9 +385,9 @@ function SwapForm({
           onChange={(e) => {
             setAmount(e.target.value.trim());
           }}
-          min={swapFees.minAmount}
+          min={swapInfo.minAmount}
           max={Math.min(
-            swapFees.maxAmount,
+            swapInfo.maxAmount,
             Math.floor(balances.lightning.totalSpendable / 1000)
           )}
           required
@@ -412,11 +412,11 @@ function SwapForm({
           </div>
           <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
             <div>
-              Minimum: {new Intl.NumberFormat().format(swapFees.minAmount)} sats
+              Minimum: {new Intl.NumberFormat().format(swapInfo.minAmount)} sats
             </div>
             <FormattedFiatAmount
               className="text-xs"
-              amount={swapFees.minAmount}
+              amount={swapInfo.minAmount}
             />
           </div>
         </div>
@@ -431,12 +431,12 @@ function SwapForm({
         <div className="flex items-center justify-between">
           <p className="text-muted-foreground">On-chain Fee</p>
           <p>
-            ~{new Intl.NumberFormat().format(swapFees.boltzNetworkFee)} sats
+            ~{new Intl.NumberFormat().format(swapInfo.boltzNetworkFee)} sats
           </p>
         </div>
         <div className="flex items-center justify-between">
           <p className="text-muted-foreground">Swap Fee</p>
-          <p>{swapFees.albyServiceFee + swapFees.boltzServiceFee}%</p>
+          <p>{swapInfo.albyServiceFee + swapInfo.boltzServiceFee}%</p>
         </div>
       </div>
       <SpendingAlert amount={+amount} />
