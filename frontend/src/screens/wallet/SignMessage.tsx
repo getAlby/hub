@@ -67,7 +67,7 @@ export default function SignMessage() {
       />
       <div className="max-w-lg">
         <form onSubmit={handleSubmit} className="grid gap-5">
-          <div className="">
+          <div className="grid gap-2">
             <Label htmlFor="message">Message</Label>
             <Input
               id="message"
