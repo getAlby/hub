@@ -329,6 +329,11 @@ export function FirstChannel() {
                               <p>{lspChannelOffer.terms}</p>
 
                               <p>
+                                The purchase of a payment channel is
+                                non-refundable.
+                              </p>
+
+                              <p>
                                 To learn more about opening channels, see{" "}
                                 <ExternalLink
                                   className="underline"
