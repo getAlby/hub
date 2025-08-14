@@ -269,7 +269,7 @@ function SwapForm({
         body: JSON.stringify({
           swapAmount: +amount,
           destination: address,
-          isSending: true,
+          useExactReceiveAmount: true,
         }),
       });
       if (!swapOutResponse) {

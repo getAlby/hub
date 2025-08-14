@@ -776,7 +776,7 @@ func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *Ini
 		return nil, errors.New("invalid swap amount")
 	}
 
-	swapOutResponse, err := api.svc.GetSwapsService().SwapOut(amount, destination, initiateSwapOutRequest.IsSending, false)
+	swapOutResponse, err := api.svc.GetSwapsService().SwapOut(amount, destination, initiateSwapOutRequest.UseExactReceiveAmount, false)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount":      amount,
