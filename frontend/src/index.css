@@ -28,6 +28,12 @@ body {
   }
 }
 
+@layer base {
+  [role="menuitem"]:not([disabled]) {
+    cursor: pointer !important;
+  }
+}
+
 /* bitcoin-connect styles */
 html {
   --bc-color-brand: hsl(0 0% 0%); /* use a different brand color in dark mode */
