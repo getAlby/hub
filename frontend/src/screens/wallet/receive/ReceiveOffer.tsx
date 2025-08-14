@@ -119,7 +119,7 @@ export default function ReceiveOffer() {
           </Card>
         ) : (
           <form onSubmit={handleSubmit} className="grid gap-6">
-            <div>
+            <div className="grid gap-2">
               <Label htmlFor="description">Description</Label>
               <Input
                 id="description"

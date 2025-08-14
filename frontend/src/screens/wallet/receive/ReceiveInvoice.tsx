@@ -195,7 +195,7 @@ export default function ReceiveInvoice() {
               </Card>
             ) : (
               <form onSubmit={handleSubmit} className="grid gap-6">
-                <div>
+                <div className="grid gap-2">
                   <Label htmlFor="amount">Amount</Label>
                   <InputWithAdornment
                     id="amount"
@@ -246,7 +246,7 @@ export default function ReceiveInvoice() {
                           variant="outline"
                           className="w-full"
                         >
-                          <ReceiptTextIcon className="h-4 w-4 shrink-0 mr-2" />
+                          <ReceiptTextIcon className="h-4 w-4" />
                           Lightning Offer
                         </LinkButton>
                       )}
@@ -255,7 +255,7 @@ export default function ReceiveInvoice() {
                       variant="outline"
                       className="w-full"
                     >
-                      <LinkIcon className="h-4 w-4 shrink-0 mr-2" />
+                      <LinkIcon className="h-4 w-4" />
                       Receive from On-chain
                     </LinkButton>
                   </div>

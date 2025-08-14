@@ -29,7 +29,7 @@ export default function Receive() {
         });
       }
 
-      navigate("/wallet/receive/invoice");
+      navigate("/wallet/receive/invoice", { replace: true });
     }
   }, [info, meError, navigate, toast]);
 
