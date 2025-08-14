@@ -1,7 +1,5 @@
 import { ArrowLeftIcon, ExternalLinkIcon, HandCoinsIcon } from "lucide-react";
 import { useLocation } from "react-router-dom";
-import animationDataDark from "src/assets/lotties/loading-dark.json";
-import animationDataLight from "src/assets/lotties/loading-light.json";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import {
   Card,
@@ -12,12 +10,11 @@ import {
 } from "src/components/ui/card";
 
 import TickSVG from "public/images/illustrations/tick.svg";
-import Lottie from "react-lottie";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
+import LottieLoading from "src/components/LottieLoading";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LinkButton } from "src/components/ui/custom/link-button";
-import { useTheme } from "src/components/ui/theme-provider";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { MempoolTransaction } from "src/types";
@@ -25,16 +22,6 @@ import { MempoolTransaction } from "src/types";
 export default function OnchainSuccess() {
   const { state } = useLocation();
   const { data: info } = useInfo();
-  const { isDarkMode } = useTheme();
-
-  const defaultOptions = {
-    loop: true,
-    autoplay: true,
-    animationData: isDarkMode ? animationDataDark : animationDataLight,
-    rendererSettings: {
-      preserveAspectRatio: "xMidYMid slice",
-    },
-  };
 
   const amount = state?.amount as number;
   const txId = state?.txId as string;
@@ -64,7 +51,7 @@ export default function OnchainSuccess() {
             {mempoolTx?.status.confirmed ? (
               <img src={TickSVG} className="w-48" />
             ) : (
-              <Lottie options={defaultOptions} height={288} width={288} />
+              <LottieLoading size={288} />
             )}
             <div className="flex flex-col gap-1 items-center">
               <p className="text-2xl font-medium slashed-zero">

@@ -7,8 +7,6 @@ import {
   RefreshCwIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import animationDataDark from "src/assets/lotties/loading-dark.json";
-import animationDataLight from "src/assets/lotties/loading-light.json";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
@@ -29,9 +27,9 @@ import { cn } from "src/lib/utils";
 import { MempoolUtxo, SwapResponse } from "src/types";
 
 import TickSVG from "public/images/illustrations/tick.svg";
-import Lottie from "react-lottie";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
+import LottieLoading from "src/components/LottieLoading";
 import OnchainAddressDisplay from "src/components/OnchainAddressDisplay";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
@@ -39,7 +37,6 @@ import { InputWithAdornment } from "src/components/ui/custom/input-with-adornmen
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
-import { useTheme } from "src/components/ui/theme-provider";
 import { useBalances } from "src/hooks/useBalances";
 import { useSwapInfo } from "src/hooks/useSwaps";
 import { request } from "src/utils/request";
@@ -189,16 +186,6 @@ function DepositPending({
   txId: string;
 }) {
   const { data: info } = useInfo();
-  const { isDarkMode } = useTheme();
-
-  const defaultOptions = {
-    loop: true,
-    autoplay: true,
-    animationData: isDarkMode ? animationDataDark : animationDataLight,
-    rendererSettings: {
-      preserveAspectRatio: "xMidYMid slice",
-    },
-  };
 
   return (
     <Card className="w-full">
@@ -209,7 +196,7 @@ function DepositPending({
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-4">
-        <Lottie options={defaultOptions} height={288} width={288} />
+        <LottieLoading size={288} />
         {amount && (
           <div className="flex flex-col gap-1 items-center">
             <p className="text-2xl font-medium slashed-zero">
