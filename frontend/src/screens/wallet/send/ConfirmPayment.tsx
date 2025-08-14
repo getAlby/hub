@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { LinkButton } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
@@ -83,9 +83,6 @@ export default function ConfirmPayment() {
     return <Loading />;
   }
 
-  const exceedsBalance =
-    invoice.satoshi * 1000 > balances.lightning.totalSpendable;
-
   return (
     <div className="grid gap-4">
       <AppHeader title="Pay Invoice" />
@@ -123,22 +120,11 @@ export default function ConfirmPayment() {
               Confirm Payment
             </LoadingButton>
             <div className="flex items-center justify-between gap-2 text-muted-foreground text-xs sensitive slashed-zero">
-              <span className={exceedsBalance ? "text-destructive" : ""}>
-                {exceedsBalance && "Not Enough "}
-                Spending Balance:{" "}
-                {new Intl.NumberFormat().format(
-                  Math.floor(balances.lightning.totalSpendable / 1000)
-                )}{" "}
-                sats
-              </span>
-              {exceedsBalance && (
-                <Link
-                  to="/channels/outgoing"
-                  className="text-foreground underline"
-                >
-                  Increase
-                </Link>
-              )}
+              Spending Balance:{" "}
+              {new Intl.NumberFormat().format(
+                Math.floor(balances.lightning.totalSpendable / 1000)
+              )}{" "}
+              sats
             </div>
             <LinkButton to="/wallet/send" variant="link" className="w-full">
               <ArrowLeftIcon className="w-4 h-4 mr-2" />

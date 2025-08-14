@@ -1,5 +1,6 @@
 import { AlertTriangleIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
+import { LinkButton } from "src/components/ui/button";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 
@@ -37,9 +38,22 @@ export function SpendingAlert({
       <AlertTriangleIcon className="h-4 w-4" />
       <AlertTitle>Maximum Spendable Balance Too Low</AlertTitle>
       <AlertDescription>
-        Your payment will likely fail because your maximum spendable balance for
-        the next payment is currently{" "}
-        {new Intl.NumberFormat().format(Math.floor(maxSpendable / 1000))} sats.
+        <p>
+          Your payment will likely fail because your maximum spendable balance
+          for the next payment is currently{" "}
+          {new Intl.NumberFormat().format(Math.floor(maxSpendable / 1000))}{" "}
+          sats.
+        </p>
+        <div className="flex gap-2 mt-2">
+          <LinkButton
+            to="/channels/outgoing"
+            size="sm"
+            variant="secondary"
+            className="w-full"
+          >
+            Increase Spending Balance
+          </LinkButton>
+        </div>
       </AlertDescription>
     </Alert>
   );

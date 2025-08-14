@@ -6,6 +6,7 @@ import AppHeader from "src/components/AppHeader";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
+import { SpendingAlert } from "src/components/SpendingAlert";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { LinkButton } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
@@ -43,7 +44,6 @@ export default function Onchain() {
       <AppHeader title="Send to On-chain" />
       <div className="grid gap-6 md:max-w-lg">
         <MempoolAlert />
-        <AnchorReserveAlert amount={+amount} />
         <div className="grid gap-2">
           <div className="text-sm font-medium">Recipient</div>
           <div className="flex items-center justify-between">
@@ -227,6 +227,7 @@ function OnchainForm({
           </AlertDescription>
         </Alert>
       )}
+      <AnchorReserveAlert amount={+amount} />
       <div className="flex gap-2">
         <LinkButton to="/wallet/send" variant="outline">
           Back
@@ -319,7 +320,7 @@ function SwapForm({
           }
         />
         <div className="grid gap-1">
-          <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
+          <div className="flex justify-between text-xs text-muted-foreground sensitive slashed-zero">
             <div>
               Spending Balance:{" "}
               {new Intl.NumberFormat().format(
@@ -364,6 +365,7 @@ function SwapForm({
           )}
         </div>
       </div>
+      <SpendingAlert amount={+amount} />
       <div className="flex gap-2">
         <LinkButton to="/wallet/send" variant="outline">
           Back

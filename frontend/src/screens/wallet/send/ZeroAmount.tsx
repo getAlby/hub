@@ -14,7 +14,6 @@ import { PendingPaymentAlert } from "src/components/PendingPaymentAlert";
 import { SpendingAlert } from "src/components/SpendingAlert";
 import { LinkButton } from "src/components/ui/button";
 import { useBalances } from "src/hooks/useBalances";
-import { cn } from "src/lib/utils";
 import { PayInvoiceResponse } from "src/types";
 import { request } from "src/utils/request";
 
@@ -123,14 +122,7 @@ export default function ZeroAmount() {
             }
           />
           <div className="grid gap-2">
-            <div
-              className={cn(
-                "flex justify-between text-xs sensitive slashed-zero",
-                +amount > Math.floor(balances.lightning.totalSpendable / 1000)
-                  ? "text-destructive"
-                  : "text-muted-foreground"
-              )}
-            >
+            <div className="flex justify-between text-xs text-muted-foreground sensitive slashed-zero">
               <div>
                 Spending Balance:{" "}
                 {new Intl.NumberFormat().format(
@@ -139,24 +131,10 @@ export default function ZeroAmount() {
                 sats
               </div>
               <FormattedFiatAmount
-                className={cn(
-                  "text-xs",
-                  +amount > Math.floor(balances.lightning.totalSpendable / 1000)
-                    ? "text-destructive"
-                    : "text-muted-foreground"
-                )}
+                className="text-xs"
                 amount={balances.lightning.totalSpendable / 1000}
               />
             </div>
-            {+amount > Math.floor(balances.lightning.totalSpendable / 1000) && (
-              <LinkButton
-                to="/channels/outgoing"
-                variant="secondary"
-                className="w-fit"
-              >
-                Increase Spending Balance
-              </LinkButton>
-            )}
           </div>
         </div>
         <SpendingAlert amount={+amount} />
