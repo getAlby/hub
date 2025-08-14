@@ -12,11 +12,7 @@ import animationDataLight from "src/assets/lotties/loading-light.json";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
-import {
-  Button,
-  ExternalLinkButton,
-  LinkButton,
-} from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
@@ -38,9 +34,11 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import OnchainAddressDisplay from "src/components/OnchainAddressDisplay";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { Input } from "src/components/ui/input";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
+import { LinkButton } from "src/components/ui/custom/link-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { useTheme } from "src/components/ui/theme-provider";
 import { useBalances } from "src/hooks/useBalances";
 import { useSwapFees } from "src/hooks/useSwaps";
@@ -349,7 +347,7 @@ function ReceiveToSpending() {
         )}
       <div className="grid gap-1.5">
         <Label>Amount</Label>
-        <Input
+        <InputWithAdornment
           type="number"
           autoFocus
           placeholder="Amount in satoshis"
@@ -361,7 +359,6 @@ function ReceiveToSpending() {
           )}
           onChange={(e) => setSwapAmount(e.target.value)}
           required
-          className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           endAdornment={
             <FormattedFiatAmount amount={+swapAmount} className="mr-2" />
           }

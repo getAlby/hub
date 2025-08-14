@@ -1,15 +1,19 @@
+import dayjs from "dayjs";
 import {
   AlertTriangleIcon,
   ArrowDownIcon,
   ArrowDownUpIcon,
   ArrowUpIcon,
   CreditCardIcon,
+  ExternalLinkIcon,
+  LightbulbIcon,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import ResponsiveButton from "src/components/ResponsiveButton";
 import TransactionsList from "src/components/TransactionsList";
 import {
@@ -18,9 +22,11 @@ import {
   AlertTitle,
 } from "src/components/ui/alert.tsx";
 import { Button } from "src/components/ui/button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
+import { useOnchainTransactions } from "src/hooks/useOnchainTransactions";
 
 function Wallet() {
   const { data: info, hasChannelManagement } = useInfo();
@@ -69,30 +75,13 @@ function Wallet() {
         !!channels?.length &&
         balances.lightning.totalReceivable <
           balances.lightning.totalSpendable * 0.1 && (
-          <Alert>
-            <AlertTriangleIcon className="h-4 w-4" />
-            <AlertTitle>Low receiving capacity</AlertTitle>
-            <AlertDescription>
-              You likely won't be able to receive payments until you{" "}
-              <Link className="underline" to="/wallet/send">
-                spend
-              </Link>
-              ,{" "}
-              <Link className="underline" to="/wallet/swap?type=out">
-                swap out funds
-              </Link>
-              , or{" "}
-              <Link className="underline" to="/channels/incoming">
-                increase your receiving capacity.
-              </Link>
-            </AlertDescription>
-          </Alert>
+          <LowReceivingCapacityAlert />
         )}
       {hasChannelManagement && !channels?.length && (
         <Alert>
           <AlertTriangleIcon className="h-4 w-4" />
           <AlertTitle>Open Your First Channel</AlertTitle>
-          <AlertDescription>
+          <AlertDescription className="inline">
             You won't be able to receive or send payments until you{" "}
             <Link className="underline" to="/channels/first">
               open your first channel
@@ -117,14 +106,14 @@ function Wallet() {
         <div className="grid grid-cols-2 items-center gap-3">
           <ExternalLink to="https://www.getalby.com/topup">
             <Button className="w-full" variant="secondary">
-              <CreditCardIcon className="h-4 w-4 shrink-0 mr-2" />
+              <CreditCardIcon />
               Buy Bitcoin
             </Button>
           </ExternalLink>
           {hasChannelManagement && (
             <Link to="/wallet/swap">
               <Button className="w-full" variant="secondary">
-                <ArrowDownUpIcon className="h-4 w-4 shrink-0 mr-2" />
+                <ArrowDownUpIcon />
                 Swap
               </Button>
             </Link>
@@ -132,9 +121,39 @@ function Wallet() {
         </div>
       </div>
 
+      <OnchainTransactionsAlert />
       <TransactionsList />
     </>
   );
 }
 
 export default Wallet;
+
+function OnchainTransactionsAlert() {
+  const { data: onchainTransactions } = useOnchainTransactions();
+  if (
+    onchainTransactions?.some(
+      (tx) => dayjs().diff(tx.createdAt * 1000, "hours") < 24
+    )
+  ) {
+    return (
+      <Alert>
+        <AlertTitle className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-sm">
+            <LightbulbIcon className="w-4 h-4" /> On-chain transactions are
+            shown on the node page
+          </div>
+          <LinkButton
+            to="/channels"
+            variant="secondary"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <ExternalLinkIcon className="w-4 h-4" /> View On-chain transactions
+          </LinkButton>
+        </AlertTitle>
+      </Alert>
+    );
+  }
+  return null;
+}

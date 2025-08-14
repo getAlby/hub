@@ -12,9 +12,9 @@ import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import ResponsiveButton from "src/components/ResponsiveButton";
 import { Button } from "src/components/ui/button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
@@ -333,7 +333,7 @@ function ActiveSwapOutConfig({ swapConfig }: { swapConfig: AutoSwapConfig }) {
         disabled={loading}
         variant="outline"
       >
-        <XCircleIcon className="h-4 w-4 mr-2" />
+        <XCircleIcon />
         Deactivate Auto Swap
       </Button>
     </>

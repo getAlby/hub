@@ -51,7 +51,7 @@ type swapsService struct {
 type SwapsService interface {
 	StopAutoSwapOut()
 	EnableAutoSwapOut() error
-	SwapOut(amount uint64, destination string, isSending, autoSwap bool) (*SwapResponse, error)
+	SwapOut(amount uint64, destination string, useExactReceiveAmount, autoSwap bool) (*SwapResponse, error)
 	SwapIn(amount uint64, autoSwap bool) (*SwapResponse, error)
 	CalculateSwapOutFee() (*SwapFees, error)
 	CalculateSwapInFee() (*SwapFees, error)
@@ -229,7 +229,7 @@ func (svc *swapsService) EnableAutoSwapOut() error {
 	return nil
 }
 
-func (svc *swapsService) SwapOut(amount uint64, destination string, isSending, autoSwap bool) (*SwapResponse, error) {
+func (svc *swapsService) SwapOut(amount uint64, destination string, useExactReceiveAmount, autoSwap bool) (*SwapResponse, error) {
 	if destination == "" {
 		var err error
 		destination, err = svc.lnClient.GetNewOnchainAddress(svc.ctx)
@@ -282,7 +282,7 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, isSending, a
 		AutoSwap:           autoSwap,
 	}
 
-	if isSending {
+	if useExactReceiveAmount {
 		dbSwap.ReceiveAmount = amount
 	}
 
@@ -317,7 +317,7 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, isSending, a
 			ExtraFees:      albyFee,
 		}
 
-		if isSending {
+		if useExactReceiveAmount {
 			swapRequest.OnchainAmount = amount + fees.MinerFees.Claim
 		} else {
 			swapRequest.InvoiceAmount = amount
@@ -1111,21 +1111,14 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 					metadata := map[string]interface{}{
 						"swap_id": swap.SwapId,
 					}
-					sendPaymentTimeout := int64(3600)
 					logger.Logger.WithField("swapId", swap.SwapId).Info("Initiating swap invoice payment")
-					_, err = svc.transactionsService.SendPaymentSync(svc.ctx, swap.Invoice, nil, metadata, svc.lnClient, nil, nil, &sendPaymentTimeout)
+					_, err = svc.transactionsService.SendPaymentSync(svc.ctx, swap.Invoice, nil, metadata, svc.lnClient, nil, nil)
 					if err != nil {
-						if errors.Is(err, lnclient.NewTimeoutError()) {
-							logger.Logger.WithFields(logrus.Fields{
-								"swapId": swap.SwapId,
-							}).Info("Ignoring payment timeout while swapping out")
-						} else {
-							logger.Logger.WithError(err).WithFields(logrus.Fields{
-								"swapId": swap.SwapId,
-							}).Error("Error paying the swap invoice")
-							paymentErrorCh <- err
-							return
-						}
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"swapId": swap.SwapId,
+						}).Error("Error paying the swap invoice")
+						paymentErrorCh <- err
+						return
 					}
 				}()
 			case boltz.TransactionMempool:

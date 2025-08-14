@@ -4,8 +4,9 @@ import { useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
-import { Button, LinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
 import { Card, CardContent } from "src/components/ui/card";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { useToast } from "src/components/ui/use-toast";
 import UserAvatar from "src/components/UserAvatar";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
@@ -61,7 +62,7 @@ export default function Receive() {
                   }}
                   className="flex-1 flex gap-2 items-center justify-center"
                 >
-                  <CopyIcon className="w-4 h-4" /> Copy Lightning Address
+                  <CopyIcon className="size-4" /> Copy Lightning Address
                 </Button>
               </div>
               <div className="flex flex-col gap-2 w-full border-t pt-6">

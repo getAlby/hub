@@ -1,5 +1,4 @@
 import {
-  AlertTriangleIcon,
   ArrowLeftIcon,
   CopyIcon,
   LinkIcon,
@@ -8,18 +7,13 @@ import {
 } from "lucide-react";
 import TickSVG from "public/images/illustrations/tick.svg";
 import React from "react";
-import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import QRCode from "src/components/QRCode";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "src/components/ui/alert.tsx";
-import { Button, LinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
@@ -27,9 +21,11 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
+import { LinkButton } from "src/components/ui/custom/link-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useBalances } from "src/hooks/useBalances";
@@ -116,24 +112,7 @@ export default function ReceiveInvoice() {
           {hasChannelManagement &&
             (+amount || transaction?.amount || 0) * 1000 >=
               0.8 * balances.lightning.totalReceivable && (
-              <Alert>
-                <AlertTriangleIcon className="h-4 w-4" />
-                <AlertTitle>Low receiving limit</AlertTitle>
-                <AlertDescription>
-                  You likely won't be able to receive payments until you{" "}
-                  <Link className="underline" to="/wallet/send">
-                    spend
-                  </Link>
-                  ,{" "}
-                  <Link className="underline" to="/wallet/swap?type=out">
-                    swap out funds
-                  </Link>
-                  , or{" "}
-                  <Link className="underline" to="/channels/incoming">
-                    increase your receiving capacity.
-                  </Link>
-                </AlertDescription>
-              </Alert>
+              <LowReceivingCapacityAlert />
             )}
           <div>
             {transaction ? (
@@ -142,7 +121,7 @@ export default function ReceiveInvoice() {
                   <>
                     <CardHeader>
                       <CardTitle className="flex justify-center">
-                        <Loading className="w-4 h-4 mr-2" />
+                        <Loading className="size-4 mr-2" />
                         <p>Waiting for payment</p>
                       </CardTitle>
                     </CardHeader>
@@ -218,7 +197,7 @@ export default function ReceiveInvoice() {
               <form onSubmit={handleSubmit} className="grid gap-6">
                 <div>
                   <Label htmlFor="amount">Amount</Label>
-                  <Input
+                  <InputWithAdornment
                     id="amount"
                     type="number"
                     value={amount?.toString()}
@@ -228,13 +207,12 @@ export default function ReceiveInvoice() {
                     }}
                     min={1}
                     autoFocus
-                    className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     endAdornment={
                       <FormattedFiatAmount amount={+amount} className="mr-2" />
                     }
                   />
                 </div>
-                <div>
+                <div className="grid gap-2">
                   <Label htmlFor="description">Description</Label>
                   <Input
                     id="description"

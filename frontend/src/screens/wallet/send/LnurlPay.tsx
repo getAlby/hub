@@ -6,13 +6,14 @@ import AppHeader from "src/components/AppHeader";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import { PendingPaymentAlert } from "src/components/PendingPaymentAlert";
-import { LinkButton } from "src/components/ui/button";
+import { SpendingAlert } from "src/components/SpendingAlert";
+import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
+import { LinkButton } from "src/components/ui/custom/link-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
-import { cn } from "src/lib/utils";
 import { PayInvoiceResponse, TransactionMetadata } from "src/types";
 import { request } from "src/utils/request";
 
@@ -115,7 +116,7 @@ export default function LnurlPay() {
         )}
         <div className="grid gap-2">
           <Label htmlFor="amount">Amount</Label>
-          <Input
+          <InputWithAdornment
             id="amount"
             type="number"
             value={amount}
@@ -127,20 +128,12 @@ export default function LnurlPay() {
             max={Math.floor(balances.lightning.totalSpendable / 1000)}
             required
             autoFocus
-            className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             endAdornment={
               <FormattedFiatAmount amount={Number(amount)} className="mr-2" />
             }
           />
           <div className="grid gap-2">
-            <div
-              className={cn(
-                "flex justify-between text-xs sensitive slashed-zero",
-                +amount > Math.floor(balances.lightning.totalSpendable / 1000)
-                  ? "text-destructive"
-                  : "text-muted-foreground"
-              )}
-            >
+            <div className="flex justify-between text-xs text-muted-foreground sensitive slashed-zero">
               <div>
                 Spending Balance:{" "}
                 {new Intl.NumberFormat().format(
@@ -149,24 +142,10 @@ export default function LnurlPay() {
                 sats
               </div>
               <FormattedFiatAmount
-                className={cn(
-                  "text-xs",
-                  +amount > Math.floor(balances.lightning.totalSpendable / 1000)
-                    ? "text-destructive"
-                    : "text-muted-foreground"
-                )}
-                amount={balances.lightning.totalSpendable / 1000}
+                className="text-xs"
+                amount={Math.floor(balances.lightning.totalSpendable / 1000)}
               />
             </div>
-            {+amount > Math.floor(balances.lightning.totalSpendable / 1000) && (
-              <LinkButton
-                to="/channels/outgoing"
-                variant="secondary"
-                className="w-fit"
-              >
-                Increase Spending Balance
-              </LinkButton>
-            )}
           </div>
         </div>
         {!!lnAddress.lnurlpData?.commentAllowed && (
@@ -183,6 +162,7 @@ export default function LnurlPay() {
             />
           </div>
         )}
+        <SpendingAlert amount={+amount} />
         <div className="flex gap-2">
           <LinkButton to="/wallet/send" variant="outline">
             Back

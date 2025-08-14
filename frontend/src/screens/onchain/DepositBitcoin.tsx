@@ -24,7 +24,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { LoadingButton } from "src/components/ui/loading-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { useTheme } from "src/components/ui/theme-provider";
 import { useToast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";
@@ -85,7 +85,7 @@ export default function DepositBitcoin() {
         contentRight={
           <Link to="/channels/onchain/buy-bitcoin">
             <Button>
-              <CreditCardIcon className="h-4 w-4 mr-2" />
+              <CreditCardIcon />
               Buy Bitcoin
             </Button>
           </Link>
@@ -99,7 +99,7 @@ export default function DepositBitcoin() {
           <DepositPending amount={pendingAmount} txId={txId} />
         ) : (
           <Card>
-            <CardContent className="grid gap-6 p-8 justify-center border border-muted">
+            <CardContent className="grid gap-6 p-8 justify-center">
               <a
                 href={`bitcoin:${onchainAddress}`}
                 target="_blank"
@@ -119,9 +119,7 @@ export default function DepositBitcoin() {
                   className="w-28"
                   loading={loadingAddress}
                 >
-                  {!loadingAddress && (
-                    <RefreshCwIcon className="w-4 h-4 mr-2" />
-                  )}
+                  {!loadingAddress && <RefreshCwIcon />}
                   Change
                 </LoadingButton>
                 <Button
@@ -131,7 +129,7 @@ export default function DepositBitcoin() {
                     copyToClipboard(onchainAddress, toast);
                   }}
                 >
-                  <CopyIcon className="w-4 h-4 mr-2" />
+                  <CopyIcon />
                   Copy
                 </Button>
               </div>
@@ -184,7 +182,7 @@ function DepositPending({
               className="flex items-center mt-2"
             >
               View on Mempool
-              <ExternalLinkIcon className="w-4 h-4 ml-2" />
+              <ExternalLinkIcon className="size-4 ml-2" />
             </ExternalLink>
           </Button>
         </div>
@@ -217,7 +215,7 @@ function DepositSuccess({ amount, txId }: { amount: number; txId: string }) {
                 className="flex items-center mt-2"
               >
                 View on Mempool
-                <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                <ExternalLinkIcon className="size-4 ml-2" />
               </ExternalLink>
             </Button>
           </div>

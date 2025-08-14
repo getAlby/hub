@@ -9,7 +9,7 @@ import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
-import { Button, LinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
@@ -22,6 +22,7 @@ import { copyToClipboard } from "src/lib/clipboard";
 
 import TickSVG from "public/images/illustrations/tick.svg";
 import AppHeader from "src/components/AppHeader";
+import { LinkButton } from "src/components/ui/custom/link-button";
 
 export default function PaymentSuccess() {
   const { state } = useLocation();

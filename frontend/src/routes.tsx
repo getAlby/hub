@@ -283,7 +283,7 @@ const routes = [
             element: <AppList />,
           },
           {
-            path: ":pubkey",
+            path: ":id",
             element: <ShowApp />,
           },
           {

@@ -38,7 +38,7 @@ type TransactionsService interface {
 	MakeInvoice(ctx context.Context, amount uint64, description string, descriptionHash string, expiry uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
 	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, totalCount uint64, err error)
-	SendPaymentSync(ctx context.Context, payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint, timeoutSeconds *int64) (*Transaction, error)
+	SendPaymentSync(ctx context.Context, payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	MakeHoldInvoice(ctx context.Context, amount uint64, description string, descriptionHash string, expiry uint64, paymentHash string, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SettleHoldInvoice(ctx context.Context, preimage string, lnClient lnclient.LNClient) (*Transaction, error)
@@ -266,7 +266,7 @@ func (svc *transactionsService) MakeHoldInvoice(ctx context.Context, amount uint
 	return &dbTransaction, nil
 }
 
-func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint, timeoutSeconds *int64) (*Transaction, error) {
+func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
 	var metadataBytes []byte
 	if metadata != nil {
 		var err error
@@ -382,7 +382,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 	if selfPayment {
 		response, err = svc.interceptSelfPayment(ctx, paymentRequest.PaymentHash, lnClient)
 	} else {
-		response, err = lnClient.SendPaymentSync(ctx, payReq, amountMsat, timeoutSeconds)
+		response, err = lnClient.SendPaymentSync(ctx, payReq, amountMsat)
 	}
 
 	if err != nil {
@@ -390,16 +390,6 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 			"bolt11": payReq,
 		}).WithError(err).Error("Failed to send payment")
 
-		if errors.Is(err, lnclient.NewTimeoutError()) {
-			logger.Logger.WithFields(logrus.Fields{
-				"bolt11": payReq,
-			}).WithError(err).Error("Timed out waiting for payment to be sent. It may still succeed. Skipping update of transaction status")
-			// we cannot update the payment to failed as it still might succeed.
-			// we'll need to check the status of it later
-			return nil, err
-		}
-
-		// As the LNClient did not return a timeout error, we assume the payment definitely failed
 		svc.db.Transaction(func(tx *gorm.DB) error {
 			return svc.markPaymentFailed(tx, &dbTransaction, err.Error())
 		})
@@ -535,29 +525,6 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 			"amount":      amount,
 		}).WithError(err).Error("Failed to send payment")
 
-		if errors.Is(err, lnclient.NewTimeoutError()) {
-
-			logger.Logger.WithFields(logrus.Fields{
-				"destination": destination,
-				"amount":      amount,
-			}).WithError(err).Error("Timed out waiting for payment to be sent. It may still succeed. Skipping update of transaction status")
-
-			// we cannot update the payment to failed as it still might succeed.
-			// we'll need to check the status of it later
-			// but we have the payment hash now, so save it on the transaction
-			dbErr := svc.db.Model(&dbTransaction).Updates(&db.Transaction{
-				PaymentHash: paymentHash,
-			}).Error
-			if dbErr != nil {
-				logger.Logger.WithFields(logrus.Fields{
-					"destination": destination,
-					"amount":      amount,
-				}).WithError(dbErr).Error("Failed to update DB transaction")
-			}
-			return nil, err
-		}
-
-		// As the LNClient did not return a timeout error, we assume the payment definitely failed
 		dbErr := svc.db.Model(&dbTransaction).Updates(&db.Transaction{
 			PaymentHash: paymentHash,
 			State:       constants.TRANSACTION_STATE_FAILED,
@@ -1004,6 +971,7 @@ func (svc *transactionsService) interceptSelfHoldPayment(ctx context.Context, pa
 	holdInvoiceUpdatedConsumer := newHoldInvoiceUpdatedConsumer(paymentHash, settledChannel, canceledChannel)
 
 	svc.eventPublisher.RegisterSubscriber(holdInvoiceUpdatedConsumer)
+	defer svc.eventPublisher.RemoveSubscriber(holdInvoiceUpdatedConsumer)
 
 	clientInfo, err := lnClient.GetInfo(ctx)
 	if err != nil {
@@ -1031,15 +999,7 @@ func (svc *transactionsService) interceptSelfHoldPayment(ctx context.Context, pa
 	case canceledTransaction := <-canceledChannel:
 		logger.Logger.WithField("canceled_transaction", canceledTransaction).Info("self hold payment was canceled")
 		return nil, lnclient.NewHoldInvoiceCanceledError()
-	case <-time.After(50 * time.Second):
-		logger.Logger.WithFields(logrus.Fields{
-			"payment_hash": paymentHash,
-		}).Error("Timeout executing self payment for hold invoice")
 	}
-
-	svc.eventPublisher.RemoveSubscriber(holdInvoiceUpdatedConsumer)
-
-	return nil, lnclient.NewTimeoutError()
 }
 
 func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount uint64, description string, selfPayment bool) error {

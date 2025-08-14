@@ -1,7 +1,5 @@
 import React from "react";
-import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 
 import type { Invoice } from "@getalby/lightning-tools/bolt11";
@@ -10,9 +8,12 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
-import { LinkButton } from "src/components/ui/button";
+import { PendingPaymentAlert } from "src/components/PendingPaymentAlert";
+import { SpendingAlert } from "src/components/SpendingAlert";
+import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
+import { LinkButton } from "src/components/ui/custom/link-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { useBalances } from "src/hooks/useBalances";
-import { cn } from "src/lib/utils";
 import { PayInvoiceResponse } from "src/types";
 import { request } from "src/utils/request";
 
@@ -80,6 +81,7 @@ export default function ZeroAmount() {
   return (
     <div className="grid gap-4">
       <AppHeader title="Pay Invoice" />
+      <PendingPaymentAlert />
       <form onSubmit={onSubmit} className="grid gap-6 md:max-w-lg">
         <div className="grid gap-2">
           <div className="text-sm font-medium">Recipient</div>
@@ -102,7 +104,7 @@ export default function ZeroAmount() {
         )}
         <div className="grid gap-2">
           <Label htmlFor="amount">Amount</Label>
-          <Input
+          <InputWithAdornment
             id="amount"
             type="number"
             value={amount}
@@ -114,20 +116,12 @@ export default function ZeroAmount() {
             max={Math.floor(balances.lightning.totalSpendable / 1000)}
             required
             autoFocus
-            className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             endAdornment={
               <FormattedFiatAmount amount={Number(amount)} className="mr-2" />
             }
           />
           <div className="grid gap-2">
-            <div
-              className={cn(
-                "flex justify-between text-xs sensitive slashed-zero",
-                +amount > Math.floor(balances.lightning.totalSpendable / 1000)
-                  ? "text-destructive"
-                  : "text-muted-foreground"
-              )}
-            >
+            <div className="flex justify-between text-xs text-muted-foreground sensitive slashed-zero">
               <div>
                 Spending Balance:{" "}
                 {new Intl.NumberFormat().format(
@@ -136,26 +130,13 @@ export default function ZeroAmount() {
                 sats
               </div>
               <FormattedFiatAmount
-                className={cn(
-                  "text-xs",
-                  +amount > Math.floor(balances.lightning.totalSpendable / 1000)
-                    ? "text-destructive"
-                    : "text-muted-foreground"
-                )}
+                className="text-xs"
                 amount={balances.lightning.totalSpendable / 1000}
               />
             </div>
-            {+amount > Math.floor(balances.lightning.totalSpendable / 1000) && (
-              <LinkButton
-                to="/channels/outgoing"
-                variant="secondary"
-                className="w-fit"
-              >
-                Increase Spending Balance
-              </LinkButton>
-            )}
           </div>
         </div>
+        <SpendingAlert amount={+amount} />
         <div className="flex gap-2">
           <LinkButton to="/wallet/send" variant="outline">
             Back

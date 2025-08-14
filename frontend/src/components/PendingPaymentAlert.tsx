@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import { InfoIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { LinkButton } from "src/components/ui/button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 import { useTransactions } from "src/hooks/useTransactions";
@@ -33,9 +33,7 @@ export function PendingPaymentAlert({ className }: { className?: string }) {
       <InfoIcon className="h-4 w-4" />
       <AlertTitle>Pending Payment</AlertTitle>
       <AlertDescription>
-        <div className="mb-2">
-          You have one or more payments that have not settled.
-        </div>
+        You have one or more payments that have not settled.
         <LinkButton to="/wallet" size="sm">
           View Payments
         </LinkButton>

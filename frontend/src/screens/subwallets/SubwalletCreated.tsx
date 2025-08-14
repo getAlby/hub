@@ -21,7 +21,7 @@ import {
   AccordionTrigger,
 } from "src/components/ui/accordion";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { Button, ExternalLinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
@@ -30,9 +30,11 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import {
   Popover,
   PopoverContent,
@@ -42,7 +44,7 @@ import { Textarea } from "src/components/ui/textarea";
 import { useToast } from "src/components/ui/use-toast";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
-import { useAppByPubkey } from "src/hooks/useApp";
+import { useApp } from "src/hooks/useApp";
 import { useCreateLightningAddress } from "src/hooks/useCreateLightningAddress";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -56,10 +58,7 @@ export function SubwalletCreated() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const createAppResponse = state as CreateAppResponse | undefined;
-  const { data: app } = useAppByPubkey(
-    createAppResponse?.pairingPublicKey,
-    true
-  );
+  const { data: app } = useApp(createAppResponse?.id, true);
   const [intendedLightningAddress, setIntendedLightningAddress] =
     React.useState(
       createAppResponse?.name.toLowerCase().replace(/[^a-z0-9]/g, "") || ""
@@ -68,7 +67,7 @@ export function SubwalletCreated() {
   const { data: albyMe } = useAlbyMe();
 
   const { createLightningAddress, creatingLightningAddress } =
-    useCreateLightningAddress(createAppResponse?.pairingPublicKey);
+    useCreateLightningAddress(createAppResponse?.id);
 
   const [step, setStep] = React.useState(1);
 
@@ -78,7 +77,6 @@ export function SubwalletCreated() {
   }
 
   const name = createAppResponse.name;
-  const appPublicKey = createAppResponse.pairingPublicKey;
   let connectionSecret = createAppResponse.pairingUri;
   if (app?.metadata?.lud16) {
     connectionSecret += `&lud16=${app.metadata.lud16}`;
@@ -111,7 +109,7 @@ export function SubwalletCreated() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <Input
+                      <InputWithAdornment
                         type="text"
                         value={intendedLightningAddress}
                         onChange={(e) =>
@@ -186,7 +184,7 @@ export function SubwalletCreated() {
                     </CardDescription>
                   </CardHeader>
                   <CardFooter className="flex flex-row justify-end">
-                    <IsolatedAppTopupDialog appPubkey={appPublicKey}>
+                    <IsolatedAppTopupDialog appId={app.id}>
                       <Button size="sm" variant="secondary">
                         Top Up
                       </Button>
@@ -207,7 +205,7 @@ export function SubwalletCreated() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Important</AlertTitle>
-                <AlertDescription>
+                <AlertDescription className="inline">
                   For your security, these connection details are only visible
                   now and{" "}
                   <span className="font-semibold">
@@ -228,7 +226,7 @@ export function SubwalletCreated() {
                           <Popover>
                             <PopoverTrigger>
                               <Button variant="outline">
-                                <PlayStoreIcon className="w-4 h-4 mr-2" />
+                                <PlayStoreIcon />
                                 Play Store
                               </Button>
                             </PopoverTrigger>
@@ -239,14 +237,14 @@ export function SubwalletCreated() {
                                 to="https://play.google.com/store/apps/details?id=com.getalby.mobile"
                               >
                                 Open
-                                <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                                <ExternalLinkIcon />
                               </ExternalLinkButton>
                             </PopoverContent>
                           </Popover>
                           <Popover>
                             <PopoverTrigger>
                               <Button variant="outline">
-                                <AppleIcon className="w-4 h-4 mr-2" />
+                                <AppleIcon />
                                 Apple App Store
                               </Button>
                             </PopoverTrigger>
@@ -257,14 +255,14 @@ export function SubwalletCreated() {
                                 to="https://apps.apple.com/us/app/alby-go/id6471335774"
                               >
                                 Open
-                                <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                                <ExternalLinkIcon />
                               </ExternalLinkButton>
                             </PopoverContent>
                           </Popover>
                           <Popover>
                             <PopoverTrigger>
                               <Button variant="outline">
-                                <ZapStoreIcon className="w-4 h-4 mr-2" />
+                                <ZapStoreIcon />
                                 Zapstore
                               </Button>
                             </PopoverTrigger>
@@ -280,7 +278,7 @@ export function SubwalletCreated() {
                                 to="https://zapstore.dev"
                               >
                                 Open
-                                <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                                <ExternalLinkIcon />
                               </ExternalLinkButton>
                             </PopoverContent>
                           </Popover>
@@ -326,12 +324,12 @@ export function SubwalletCreated() {
                         onClick={() => copyToClipboard(albyAccountUrl, toast)}
                         variant="outline"
                       >
-                        <CopyIcon className="w-4 h-4 mr-2" />
+                        <CopyIcon />
                         Copy URL
                       </Button>
                     </div>
                     <Alert className="mt-5">
-                      <AlertTriangleIcon className="h-4 w-4" />
+                      <AlertTriangleIcon />
                       <AlertTitle>
                         Use separate browsers or profiles when managing multiple
                         Alby accounts
@@ -394,7 +392,7 @@ export function SubwalletCreated() {
                         onClick={() => copyToClipboard(connectionSecret, toast)}
                         variant="outline"
                       >
-                        <CopyIcon className="w-4 h-4 mr-2" />
+                        <CopyIcon />
                         Copy
                       </Button>
                     </div>
@@ -429,7 +427,7 @@ export function SubwalletCreated() {
                           }
                           variant="outline"
                         >
-                          <CopyIcon className="w-4 h-4 mr-2" />
+                          <CopyIcon />
                           Copy
                         </Button>
                       </div>
@@ -460,7 +458,7 @@ export function SubwalletCreated() {
                         onClick={() => copyToClipboard(valueTag, toast)}
                         variant="outline"
                       >
-                        <CopyIcon className="w-4 h-4 mr-2" />
+                        <CopyIcon />
                         Copy
                       </Button>
                       <Alert>

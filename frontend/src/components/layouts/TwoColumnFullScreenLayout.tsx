@@ -111,7 +111,7 @@ export default function TwoColumnFullScreenLayout() {
               }}
               className="top-4 left-4 md:top-10 md:left-10 absolute mr-4"
             >
-              <ChevronLeftIcon className="w-4 h-4 mr-2" />
+              <ChevronLeftIcon />
               Back
             </Button>
           )}
