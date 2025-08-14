@@ -185,35 +185,37 @@ export default function WithdrawOnchainFunds() {
           }}
           className="grid gap-5 mt-4"
         >
-          <div className="">
-            <Label htmlFor="amount">Amount</Label>
-            <div className="flex justify-between items-center mb-1">
-              <p className="text-sm text-muted-foreground sensitive slashed-zero">
-                Current onchain balance:{" "}
-                {new Intl.NumberFormat().format(balances.onchain.spendable)}{" "}
-                sats
-              </p>
-              <div className="flex items-center gap-1">
-                <Checkbox
-                  id="send-all"
-                  onCheckedChange={() => setSendAll(!sendAll)}
-                />
-                <Label htmlFor="send-all" className="text-xs">
-                  Send All
-                </Label>
+          <div>
+            <div className="grid gap-2">
+              <Label htmlFor="amount">Amount</Label>
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-muted-foreground sensitive slashed-zero">
+                  Current onchain balance:{" "}
+                  {new Intl.NumberFormat().format(balances.onchain.spendable)}{" "}
+                  sats
+                </p>
+                <div className="flex items-center gap-1">
+                  <Checkbox
+                    id="send-all"
+                    onCheckedChange={() => setSendAll(!sendAll)}
+                  />
+                  <Label htmlFor="send-all" className="text-xs">
+                    Send All
+                  </Label>
+                </div>
               </div>
+              {!sendAll && (
+                <Input
+                  id="amount"
+                  type="number"
+                  value={amount}
+                  required
+                  onChange={(e) => {
+                    setAmount(e.target.value);
+                  }}
+                />
+              )}
             </div>
-            {!sendAll && (
-              <Input
-                id="amount"
-                type="number"
-                value={amount}
-                required
-                onChange={(e) => {
-                  setAmount(e.target.value);
-                }}
-              />
-            )}
             <MempoolAlert className="mt-4" />
             {sendAll && (
               <Alert className="mt-4" variant="warning">
@@ -231,7 +233,7 @@ export default function WithdrawOnchainFunds() {
               className="mt-4"
             />
           </div>
-          <div className="">
+          <div className="grid gap-2">
             <Label htmlFor="onchain-address">Onchain Address</Label>
             <Input
               id="onchain-address"
@@ -242,7 +244,7 @@ export default function WithdrawOnchainFunds() {
                 setOnchainAddress(e.target.value);
               }}
             />
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Please double-check the destination address. This transaction
               cannot be reversed.
             </p>
@@ -250,7 +252,7 @@ export default function WithdrawOnchainFunds() {
           {(info?.backendType === "LDK" || info?.backendType === "LND") && (
             <>
               {showAdvanced && (
-                <div className="">
+                <div className="grid gap-2">
                   <Label htmlFor="fee-rate">Fee Rate (Sat/vB)</Label>
                   {mempoolError && (
                     <div className="text-muted-foreground text-xs flex gap-1 items-center">
@@ -270,9 +272,8 @@ export default function WithdrawOnchainFunds() {
                     }}
                   />
                   {recommendedFees && (
-                    <div className="flex items-center mt-4 gap-4">
+                    <div className="flex items-center mt-2 gap-4">
                       <Button
-                        size="sm"
                         variant="positive"
                         className="rounded-full"
                         type="button"
@@ -283,7 +284,6 @@ export default function WithdrawOnchainFunds() {
                         Low priority: {recommendedFees.economyFee}
                       </Button>{" "}
                       <Button
-                        size="sm"
                         variant="positive"
                         className="rounded-full"
                         type="button"

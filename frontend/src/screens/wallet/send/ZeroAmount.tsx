@@ -116,7 +116,6 @@ export default function ZeroAmount() {
             max={Math.floor(balances.lightning.totalSpendable / 1000)}
             required
             autoFocus
-            className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             endAdornment={
               <FormattedFiatAmount amount={Number(amount)} className="mr-2" />
             }

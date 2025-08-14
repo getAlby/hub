@@ -57,7 +57,7 @@ export default function Onchain() {
         <div className="grid gap-2">
           <div className="text-sm font-medium">Recipient</div>
           <div className="flex items-center justify-between">
-            <div className="flex flex-wrap gap-2 items-center font-mono">
+            <div className="flex flex-wrap gap-2 items-center font-mono text-sm">
               {address.match(/.{1,4}/g)?.map((word, index) => {
                 if (index % 2 === 0) {
                   return (
@@ -201,7 +201,6 @@ function OnchainForm({
           max={balances.onchain.spendable}
           required
           autoFocus
-          className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           endAdornment={
             <FormattedFiatAmount amount={Number(amount)} className="mr-2" />
           }
@@ -262,7 +261,6 @@ function OnchainForm({
             {recommendedFees && (
               <div className="flex items-center mt-2 gap-4">
                 <Button
-                  size="sm"
                   variant="positive"
                   className="rounded-full"
                   type="button"
@@ -273,7 +271,6 @@ function OnchainForm({
                   Low priority: {recommendedFees.economyFee}
                 </Button>{" "}
                 <Button
-                  size="sm"
                   variant="positive"
                   className="rounded-full"
                   type="button"
@@ -392,7 +389,6 @@ function SwapForm({
           max={Math.floor(balances.lightning.totalSpendable / 1000)}
           required
           autoFocus
-          className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           endAdornment={
             <FormattedFiatAmount amount={Number(amount)} className="mr-2" />
           }

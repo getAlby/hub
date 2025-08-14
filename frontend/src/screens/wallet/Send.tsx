@@ -90,27 +90,29 @@ export default function Send() {
     <div className="grid gap-4">
       <AppHeader title="Send" />
       <div className="w-full md:max-w-lg">
-        <form onSubmit={onSubmit}>
-          <Label htmlFor="recipient">Recipient</Label>
-          <div className="flex gap-2 mb-4">
-            <Input
-              id="recipient"
-              type="text"
-              value={recipient}
-              autoFocus
-              placeholder="Invoice, lightning address, on-chain address"
-              onChange={(e) => {
-                setRecipient(e.target.value.trim());
-              }}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              className="px-2"
-              onClick={paste}
-            >
-              <ClipboardPasteIcon className="w-4 h-4" />
-            </Button>
+        <form onSubmit={onSubmit} className="grid gap-6">
+          <div className="grid gap-2">
+            <Label htmlFor="recipient">Recipient</Label>
+            <div className="flex gap-2">
+              <Input
+                id="recipient"
+                type="text"
+                value={recipient}
+                autoFocus
+                placeholder="Invoice, lightning address, on-chain address"
+                onChange={(e) => {
+                  setRecipient(e.target.value.trim());
+                }}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                className="px-2"
+                onClick={paste}
+              >
+                <ClipboardPasteIcon className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
           <LoadingButton
             loading={isLoading}
