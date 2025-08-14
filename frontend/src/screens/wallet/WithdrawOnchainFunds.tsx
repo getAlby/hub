@@ -270,7 +270,7 @@ export default function WithdrawOnchainFunds() {
                     }}
                   />
                   {recommendedFees && (
-                    <p className="text-muted-foreground text-sm mt-4">
+                    <div className="flex items-center mt-4 gap-4">
                       <Button
                         size="sm"
                         variant="positive"
@@ -295,11 +295,12 @@ export default function WithdrawOnchainFunds() {
                       </Button>{" "}
                       <ExternalLink
                         to={info?.mempoolUrl}
-                        className="underline ml-2"
+                        className="text-sm text-muted-foreground underline flex items-center gap-2"
                       >
                         View on Mempool
+                        <ExternalLinkIcon className="w-4 h-4" />
                       </ExternalLink>
-                    </p>
+                    </div>
                   )}
                 </div>
               )}

@@ -1,14 +1,21 @@
-import { InfoIcon, XIcon } from "lucide-react";
+import {
+  AlertTriangleIcon,
+  ExternalLinkIcon,
+  InfoIcon,
+  PencilIcon,
+  XIcon,
+} from "lucide-react";
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
+import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import { SpendingAlert } from "src/components/SpendingAlert";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { LinkButton } from "src/components/ui/button";
+import { Button, LinkButton } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { LoadingButton } from "src/components/ui/loading-button";
@@ -16,6 +23,7 @@ import { Switch } from "src/components/ui/switch";
 import { useToast } from "src/components/ui/use-toast";
 import { MIN_SWAP_AMOUNT, ONCHAIN_DUST_SATS } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
+import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useSwapFees } from "src/hooks/useSwaps";
 import { RedeemOnchainFundsResponse, SwapResponse } from "src/types";
@@ -101,6 +109,7 @@ function OnchainForm({
   setSwap: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const navigate = useNavigate();
+  const { data: info } = useInfo();
   const { toast } = useToast();
   const { data: balances } = useBalances();
   const { data: recommendedFees, error: mempoolError } = useMempoolApi<{
@@ -112,6 +121,7 @@ function OnchainForm({
 
   const [feeRate, setFeeRate] = React.useState("");
   const [isLoading, setLoading] = React.useState(false);
+  const [editFee, setEditFee] = React.useState(false);
 
   React.useEffect(() => {
     if (recommendedFees?.fastestFee) {
@@ -169,7 +179,7 @@ function OnchainForm({
     }
   };
 
-  if (!balances || (!recommendedFees && !mempoolError)) {
+  if (!info || !balances || (!recommendedFees && !mempoolError)) {
     return <Loading />;
   }
 
@@ -211,11 +221,77 @@ function OnchainForm({
         </Label>
         <Switch id="swap" onCheckedChange={setSwap} />
       </div>
-      <div className="grid gap-2 text-sm border-t pt-4">
-        <div className="flex items-center justify-between">
-          <p className="text-muted-foreground">On-chain Fee</p>
-          {feeRate ? <p>{feeRate} sat/vB</p> : <Loading className="w-4 h-4" />}
-        </div>
+      <div className="grid gap-2 text-sm border-t pt-6">
+        {!editFee ? (
+          <div className="flex items-center justify-between">
+            <p className="text-muted-foreground">On-chain Fee</p>
+            <div
+              className="flex items-center gap-2 cursor-pointer"
+              onClick={() => setEditFee(true)}
+            >
+              {feeRate ? (
+                <p>{feeRate} sat/vB</p>
+              ) : (
+                <Loading className="w-4 h-4" />
+              )}
+              <PencilIcon className="w-4 h-4" />
+            </div>
+          </div>
+        ) : (
+          <div className="grid gap-2">
+            <Label htmlFor="fee-rate">Fee Rate (Sat/vB)</Label>
+            {mempoolError && (
+              <div className="text-muted-foreground text-xs flex gap-1 items-center">
+                <AlertTriangleIcon className="h-3 w-3" />
+                Failed to fetch fee estimates. Try refreshing the page.
+              </div>
+            )}
+            <Input
+              id="fee-rate"
+              type="number"
+              value={feeRate}
+              step={1}
+              required
+              min={recommendedFees?.minimumFee || 1}
+              onChange={(e) => {
+                setFeeRate(e.target.value);
+              }}
+            />
+            {recommendedFees && (
+              <div className="flex items-center mt-2 gap-4">
+                <Button
+                  size="sm"
+                  variant="positive"
+                  className="rounded-full"
+                  type="button"
+                  onClick={() =>
+                    setFeeRate(recommendedFees.economyFee.toString())
+                  }
+                >
+                  Low priority: {recommendedFees.economyFee}
+                </Button>{" "}
+                <Button
+                  size="sm"
+                  variant="positive"
+                  className="rounded-full"
+                  type="button"
+                  onClick={() =>
+                    setFeeRate(recommendedFees.fastestFee.toString())
+                  }
+                >
+                  High priority: {recommendedFees.fastestFee}
+                </Button>{" "}
+                <ExternalLink
+                  to={info?.mempoolUrl}
+                  className="text-muted-foreground underline flex items-center gap-2"
+                >
+                  View on Mempool
+                  <ExternalLinkIcon className="w-4 h-4" />
+                </ExternalLink>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       {amount && +amount < 10_000 && (
         <Alert>
@@ -345,7 +421,7 @@ function SwapForm({
         </Label>
         <Switch id="swap" checked onCheckedChange={setSwap} />
       </div>
-      <div className="grid gap-2 text-sm border-t pt-4">
+      <div className="grid gap-2 text-sm border-t pt-6">
         <div className="flex items-center justify-between">
           <p className="text-muted-foreground">On-chain Fee</p>
           {swapFees ? (
