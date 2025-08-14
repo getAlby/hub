@@ -112,7 +112,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
             Maybe later
           </LinkButton>
         </div>
-        <div className="text-muted-foreground flex flex-col items-center text-xs gap-2 mt-10">
+        <div className="text-muted-foreground flex flex-col items-center text-xs gap-2 mt-5 -mb-10">
           <Badge title="Pro" variant="outline">
             <SparklesIcon className="size-4" />
           </Badge>

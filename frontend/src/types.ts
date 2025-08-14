@@ -438,6 +438,17 @@ export type SetupNodeInfo = Partial<{
 
 export type LSPType = "LSPS1";
 
+export type LSPChannelOffer = {
+  lspName: string;
+  lspContactUrl: string;
+  lspBalanceSats: number;
+  feeTotalSat: number;
+  feeTotalUsd: number;
+  // TODO: what about fee credits?
+  currentPaymentMethod: "card" | "wallet" | "prepaid";
+  terms: string;
+};
+
 export type RecommendedChannelPeer = {
   network: Network;
   image: string;

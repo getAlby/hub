@@ -578,6 +578,10 @@ func (api *api) GetChannelPeerSuggestions(ctx context.Context) ([]alby.ChannelPe
 	return api.albyOAuthSvc.GetChannelPeerSuggestions(ctx)
 }
 
+func (api *api) GetLSPChannelOffer(ctx context.Context) (*alby.LSPChannelOffer, error) {
+	return api.albyOAuthSvc.GetLSPChannelOffer(ctx)
+}
+
 func (api *api) ResetRouter(key string) error {
 	if api.svc.GetLNClient() == nil {
 		return errors.New("LNClient not started")
