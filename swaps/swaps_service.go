@@ -213,6 +213,7 @@ func (svc *swapsService) EnableAutoSwapOut() error {
 
 				actualDestination := swapDestination
 				var addressIndex uint32
+				var usedXpubDerivation bool
 				if swapDestination != "" {
 					if err := svc.validateXpub(swapDestination); err == nil {
 						actualDestination, addressIndex, err = svc.getNextUnusedAddressFromXpub()
@@ -220,6 +221,7 @@ func (svc *swapsService) EnableAutoSwapOut() error {
 							logger.Logger.WithError(err).Error("Failed to get next address from xpub")
 							continue
 						}
+						usedXpubDerivation = true
 					}
 				}
 
@@ -232,14 +234,14 @@ func (svc *swapsService) EnableAutoSwapOut() error {
 					logger.Logger.WithError(err).Error("Failed to swap")
 					continue
 				}
-				if addressIndex > 0 {
+				if usedXpubDerivation {
 					err = svc.cfg.SetUpdate(config.AutoSwapXpubIndexStart, strconv.FormatUint(uint64(addressIndex+1), 10), "")
 					if err != nil {
 						logger.Logger.WithError(err).Error("Failed to update xpub index start after creating swap")
 					}
 					logger.Logger.WithFields(logrus.Fields{
 						"swapId":    swapResponse.SwapId,
-						"nextIndex": addressIndex,
+						"nextIndex": addressIndex + 1,
 					}).Info("Updated xpub index start for swap address")
 				}
 			case <-ctx.Done():
