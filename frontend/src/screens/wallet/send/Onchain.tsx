@@ -1,9 +1,11 @@
 import { InfoIcon, XIcon } from "lucide-react";
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import { MempoolAlert } from "src/components/MempoolAlert";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { LinkButton } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
@@ -40,6 +42,8 @@ export default function Onchain() {
     <div className="grid gap-4">
       <AppHeader title="Send to On-chain" />
       <div className="grid gap-6 md:max-w-lg">
+        <MempoolAlert />
+        <AnchorReserveAlert amount={+amount} />
         <div className="grid gap-2">
           <div className="text-sm font-medium">Recipient</div>
           <div className="flex items-center justify-between">

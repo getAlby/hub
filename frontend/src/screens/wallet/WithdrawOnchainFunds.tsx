@@ -6,6 +6,7 @@ import {
   InfoIcon,
 } from "lucide-react";
 import React from "react";
+import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
@@ -28,7 +29,6 @@ import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { ONCHAIN_DUST_SATS } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
-import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 
@@ -47,7 +47,6 @@ export default function WithdrawOnchainFunds() {
     economyFee: number;
     minimumFee: number;
   }>("/v1/fees/recommended");
-  const { data: channels } = useChannels();
   const [onchainAddress, setOnchainAddress] = React.useState("");
   const [amount, setAmount] = React.useState("");
   const [feeRate, setFeeRate] = React.useState("");
@@ -227,25 +226,10 @@ export default function WithdrawOnchainFunds() {
                 </AlertDescription>
               </Alert>
             )}
-            {!!channels?.length &&
-              (sendAll ||
-                +amount >
-                  balances.onchain.spendable - channels.length * 25000) && (
-                <Alert className="mt-4">
-                  <AlertTriangleIcon className="h-4 w-4" />
-                  <AlertTitle>
-                    Channel Anchor Reserves may be depleted
-                  </AlertTitle>
-                  <AlertDescription>
-                    You have channels open and this withdrawal may deplete your
-                    anchor reserves which may make it harder to close channels
-                    without depositing additional onchain funds to your savings
-                    balance. To avoid this, set aside at least{" "}
-                    {new Intl.NumberFormat().format(channels.length * 25000)}{" "}
-                    sats on-chain.
-                  </AlertDescription>
-                </Alert>
-              )}
+            <AnchorReserveAlert
+              amount={sendAll ? balances.onchain.spendable : +amount}
+              className="mt-4"
+            />
           </div>
           <div className="">
             <Label htmlFor="onchain-address">Onchain Address</Label>
