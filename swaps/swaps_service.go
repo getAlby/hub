@@ -1087,21 +1087,14 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 					metadata := map[string]interface{}{
 						"swap_id": swap.SwapId,
 					}
-					sendPaymentTimeout := int64(3600)
 					logger.Logger.WithField("swapId", swap.SwapId).Info("Initiating swap invoice payment")
-					_, err = svc.transactionsService.SendPaymentSync(svc.ctx, swap.Invoice, nil, metadata, svc.lnClient, nil, nil, &sendPaymentTimeout)
+					_, err = svc.transactionsService.SendPaymentSync(svc.ctx, swap.Invoice, nil, metadata, svc.lnClient, nil, nil)
 					if err != nil {
-						if errors.Is(err, lnclient.NewTimeoutError()) {
-							logger.Logger.WithFields(logrus.Fields{
-								"swapId": swap.SwapId,
-							}).Info("Ignoring payment timeout while swapping out")
-						} else {
-							logger.Logger.WithError(err).WithFields(logrus.Fields{
-								"swapId": swap.SwapId,
-							}).Error("Error paying the swap invoice")
-							paymentErrorCh <- err
-							return
-						}
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"swapId": swap.SwapId,
+						}).Error("Error paying the swap invoice")
+						paymentErrorCh <- err
+						return
 					}
 				}()
 			case boltz.TransactionMempool:

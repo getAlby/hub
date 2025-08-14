@@ -1,5 +1,4 @@
 import React from "react";
-import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +10,7 @@ import {
 } from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
+import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useApp } from "src/hooks/useApp";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -20,7 +20,7 @@ type IsolatedAppTopupProps = {
   appId: number;
 };
 
-export function IsolatedAppTopupDialog({
+export function IsolatedAppDrawDownDialog({
   appId,
   children,
 }: React.PropsWithChildren<IsolatedAppTopupProps>) {
@@ -39,17 +39,21 @@ export function IsolatedAppTopupDialog({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          toAppId: appId,
+          fromAppId: appId,
           amountSat: +amountSat,
         }),
       });
       await reloadApp();
       toast({
-        title: `Successfully increased balance by ${+amountSat} sats`,
+        title: `Successfully reduced balance by ${+amountSat} sats`,
       });
       reset();
     } catch (error) {
-      handleRequestError(toast, "Failed to top up sub-wallet balance", error);
+      handleRequestError(
+        toast,
+        "Failed to draw down sub-wallet balance",
+        error
+      );
     }
     setLoading(false);
   }
@@ -65,14 +69,12 @@ export function IsolatedAppTopupDialog({
       <DialogContent>
         <form onSubmit={onSubmit}>
           <DialogHeader>
-            <DialogTitle>Top Up</DialogTitle>
+            <DialogTitle>Draw Down</DialogTitle>
             <DialogDescription>
-              Increase the balance of this sub-wallet. Make sure you always
-              maintain enough funds in your spending balance to prevent
-              sub-wallets becoming unspendable.
+              Decrease the balance of this sub-wallet.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-2 mt-5">
+          <div className="my-5">
             <Label htmlFor="amount">Amount (sats)</Label>
             <Input
               autoFocus
@@ -86,7 +88,7 @@ export function IsolatedAppTopupDialog({
             />
           </div>
           <DialogFooter className="mt-5">
-            <LoadingButton loading={loading}>Top Up</LoadingButton>
+            <LoadingButton loading={loading}>Draw Down</LoadingButton>
           </DialogFooter>
         </form>
       </DialogContent>

@@ -1,8 +1,6 @@
 import React from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 
-import { useAppByPubkey } from "src/hooks/useApp";
-
 import { useDeleteApp } from "src/hooks/useDeleteApp";
 import {
   App,
@@ -23,6 +21,7 @@ import {
 } from "lucide-react";
 import AppAvatar from "src/components/AppAvatar";
 import AppHeader from "src/components/AppHeader";
+import { IsolatedAppDrawDownDialog } from "src/components/IsolatedAppDrawDownDialog";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
 import Loading from "src/components/Loading";
 import Permissions from "src/components/Permissions";
@@ -69,13 +68,14 @@ import {
   SUBWALLET_APPSTORE_APP_ID,
 } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
+import { useApp } from "src/hooks/useApp";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { useCreateLightningAddress } from "src/hooks/useCreateLightningAddress";
 import { useDeleteLightningAddress } from "src/hooks/useDeleteLightningAddress";
 
 function ShowApp() {
-  const { pubkey } = useParams() as { pubkey: string };
-  const { data: app, mutate: refetchApp, error } = useAppByPubkey(pubkey);
+  const { id } = useParams() as { id: string };
+  const { data: app, mutate: refetchApp, error } = useApp(parseInt(id));
   const { data: capabilities } = useCapabilities();
 
   if (error) {
@@ -110,11 +110,11 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const [intendedLightningAddress, setIntendedLightningAddress] =
     React.useState("");
   const { createLightningAddress, creatingLightningAddress } =
-    useCreateLightningAddress(app.appPubkey);
+    useCreateLightningAddress(app.id);
   const {
     deleteLightningAddress: deleteSubwalletLightningAddress,
     deletingLightningAddress,
-  } = useDeleteLightningAddress(app.appPubkey);
+  } = useDeleteLightningAddress(app.id);
   const { data: albyMe } = useAlbyMe();
 
   React.useEffect(() => {
@@ -362,7 +362,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                           Math.floor(app.balance / 1000)
                         )}{" "}
                         sats{" "}
-                        <IsolatedAppTopupDialog appPubkey={app.appPubkey}>
+                        <IsolatedAppTopupDialog appId={app.id}>
                           <Button
                             size="sm"
                             variant="secondary"
@@ -370,7 +370,18 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                           >
                             Top Up
                           </Button>
-                        </IsolatedAppTopupDialog>
+                        </IsolatedAppTopupDialog>{" "}
+                        {app.balance > 0 && (
+                          <IsolatedAppDrawDownDialog appId={app.id}>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="ml-4"
+                            >
+                              Draw Down
+                            </Button>
+                          </IsolatedAppDrawDownDialog>
+                        )}
                       </TableCell>
                     </TableRow>
                   )}

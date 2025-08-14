@@ -18,7 +18,7 @@ import {
 } from "src/components/ui/card";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { useToast } from "src/components/ui/use-toast";
-import { useAppByPubkey } from "src/hooks/useApp";
+import { useApp } from "src/hooks/useApp";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
 import { App, CreateAppResponse } from "src/types";
@@ -46,10 +46,7 @@ function AppCreatedInternal() {
   const createAppResponse = state as CreateAppResponse;
 
   const pairingUri = createAppResponse.pairingUri;
-  const { data: app } = useAppByPubkey(
-    createAppResponse.pairingPublicKey,
-    true
-  );
+  const { data: app } = useApp(createAppResponse.id, true);
 
   useEffect(() => {
     if (app?.lastUsedAt) {
@@ -124,7 +121,7 @@ function AppCreatedInternal() {
                 Optional: Top up sub-wallet balance (
                 {new Intl.NumberFormat().format(Math.floor(app.balance / 1000))}{" "}
                 sats){" "}
-                <IsolatedAppTopupDialog appPubkey={app.appPubkey}>
+                <IsolatedAppTopupDialog appId={app.id}>
                   <Button size="sm" variant="secondary">
                     Top Up
                   </Button>
@@ -185,7 +182,7 @@ export function ConnectAppCard({
             {timeout && (
               <div className="text-sm flex flex-col gap-2 items-center text-center">
                 Connecting is taking longer than usual.
-                <Link to={`/apps/${app?.appPubkey}`}>
+                <Link to={`/apps/${app?.id}`}>
                   <Button variant="secondary">Continue anyway</Button>
                 </Link>
               </div>

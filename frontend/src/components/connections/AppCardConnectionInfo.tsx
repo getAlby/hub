@@ -125,7 +125,7 @@ export function AppCardConnectionInfo({
                 : "Never"}
             </div>
             {!readonly && (
-              <Link to={`/apps/${connection.appPubkey}?edit=true`}>
+              <Link to={`/apps/${connection.id}?edit=true`}>
                 <Button variant="outline">
                   <PlusCircleIcon />
                   Set Budget
@@ -163,7 +163,7 @@ export function AppCardConnectionInfo({
             </div>
             {!readonly && (
               <Link
-                to={`/apps/${connection.appPubkey}?edit=true`}
+                to={`/apps/${connection.id}?edit=true`}
                 onClick={(e) => e.stopPropagation()}
               >
                 <Button variant="outline">

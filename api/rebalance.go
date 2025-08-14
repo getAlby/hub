@@ -124,7 +124,7 @@ func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *R
 		"order_id":        rebalanceCreateOrderResponse.OrderId,
 	}
 
-	payRebalanceInvoiceResponse, err := api.svc.GetTransactionsService().SendPaymentSync(ctx, rebalanceCreateOrderResponse.PayRequest, nil, payMetadata, api.svc.GetLNClient(), nil, nil, nil)
+	payRebalanceInvoiceResponse, err := api.svc.GetTransactionsService().SendPaymentSync(ctx, rebalanceCreateOrderResponse.PayRequest, nil, payMetadata, api.svc.GetLNClient(), nil, nil)
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to pay rebalance invoice")

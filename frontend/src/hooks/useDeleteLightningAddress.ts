@@ -1,11 +1,11 @@
 import React from "react";
 import { useToast } from "src/components/ui/use-toast";
-import { useAppByPubkey } from "src/hooks/useApp";
+import { useApp } from "src/hooks/useApp";
 import { request } from "src/utils/request";
 
-export function useDeleteLightningAddress(appPubkey?: string) {
+export function useDeleteLightningAddress(appId?: number) {
   const { toast } = useToast();
-  const { data: app, mutate: refetchApp } = useAppByPubkey(appPubkey);
+  const { data: app, mutate: refetchApp } = useApp(appId);
   const [deletingLightningAddress, setDeletingLightningAddress] =
     React.useState(false);
 

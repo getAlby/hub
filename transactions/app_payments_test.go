@@ -28,7 +28,7 @@ func TestSendPaymentSync_App_NoPermission(t *testing.T) {
 	assert.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID, nil)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.Error(t, err)
 	assert.Equal(t, "app does not have pay_invoice scope", err.Error())
@@ -57,7 +57,7 @@ func TestSendPaymentSync_App_WithPermission(t *testing.T) {
 	assert.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID, nil)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
@@ -94,7 +94,7 @@ func TestSendPaymentSync_App_BudgetExceeded(t *testing.T) {
 	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID, nil)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.Error(t, err)
 	assert.ErrorIs(t, err, NewQuotaExceededError())
@@ -141,7 +141,7 @@ func TestSendPaymentSync_App_BudgetExceeded_SettledPayment(t *testing.T) {
 	assert.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID, nil)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.Error(t, err)
 	assert.ErrorIs(t, err, NewQuotaExceededError())
@@ -180,7 +180,7 @@ func TestSendPaymentSync_App_BudgetExceeded_UnsettledPayment(t *testing.T) {
 	assert.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID, nil)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.Error(t, err)
 	assert.ErrorIs(t, err, NewQuotaExceededError())
@@ -220,7 +220,7 @@ func TestSendPaymentSync_App_BudgetNotExceeded_FailedPayment(t *testing.T) {
 	assert.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID, nil)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
