@@ -472,6 +472,14 @@ export default function DebugTools() {
           <Button
             variant="outline"
             onClick={() => {
+              apiRequest(`/api/node/connection-info`, "GET");
+            }}
+          >
+            Get Node Connection Info
+          </Button>
+          <Button
+            variant={"outline"}
+            onClick={() => {
               apiRequest(`/api/balances`, "GET");
             }}
           >
