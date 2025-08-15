@@ -15,12 +15,12 @@ import (
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 
-	"github.com/getAlby/hub/bark"
-	bindings "github.com/getAlby/hub/bark"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/notifications"
+	//bindings "github.com/getAlby/hub/bark"
+	bindings "github.com/getAlby/second-hub-go/bark"
 )
 
 const barkDB = "bark.sqlite"
@@ -874,23 +874,23 @@ func convertUtxoToCommandResp(utxo bindings.Utxo) map[string]interface{} {
 func convertMovementToCommandResp(movement bindings.Movement) map[string]interface{} {
 	var kind string
 	switch movement.Kind {
-	case bark.MovementKindBoard:
+	case bindings.bark.MovementKindBoard:
 		kind = "Board"
-	case bark.MovementKindRound:
+	case bindings.bark.MovementKindRound:
 		kind = "Round"
-	case bark.MovementKindOffboard:
+	case bindings.bark.MovementKindOffboard:
 		kind = "Offboard"
-	case bark.MovementKindExit:
+	case bindings.bark.MovementKindExit:
 		kind = "Exit"
-	case bark.MovementKindArkoorSend:
+	case bindings.bark.MovementKindArkoorSend:
 		kind = "ArkoorSend"
-	case bark.MovementKindArkoorReceive:
+	case bindings.bark.MovementKindArkoorReceive:
 		kind = "ArkoorReceive"
-	case bark.MovementKindLightningSend:
+	case bindings.bark.MovementKindLightningSend:
 		kind = "LightningSend"
-	case bark.MovementKindLightningSendRevocation:
+	case bindings.bark.MovementKindLightningSendRevocation:
 		kind = "LightningSendRevocation"
-	case bark.MovementKindLightningReceive:
+	case bindings.bark.MovementKindLightningReceive:
 		kind = "LightningReceive"
 	default:
 		kind = "Unknown"
