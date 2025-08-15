@@ -6,6 +6,7 @@ import {
   InfoIcon,
 } from "lucide-react";
 import React from "react";
+import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
@@ -28,7 +29,6 @@ import { Label } from "src/components/ui/label";
 import { useToast } from "src/components/ui/use-toast";
 import { ONCHAIN_DUST_SATS } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
-import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 
@@ -47,7 +47,6 @@ export default function WithdrawOnchainFunds() {
     economyFee: number;
     minimumFee: number;
   }>("/v1/fees/recommended");
-  const { data: channels } = useChannels();
   const [onchainAddress, setOnchainAddress] = React.useState("");
   const [amount, setAmount] = React.useState("");
   const [feeRate, setFeeRate] = React.useState("");
@@ -186,35 +185,37 @@ export default function WithdrawOnchainFunds() {
           }}
           className="grid gap-5 mt-4"
         >
-          <div className="">
-            <Label htmlFor="amount">Amount</Label>
-            <div className="flex justify-between items-center mb-1">
-              <p className="text-sm text-muted-foreground sensitive slashed-zero">
-                Current onchain balance:{" "}
-                {new Intl.NumberFormat().format(balances.onchain.spendable)}{" "}
-                sats
-              </p>
-              <div className="flex items-center gap-1">
-                <Checkbox
-                  id="send-all"
-                  onCheckedChange={() => setSendAll(!sendAll)}
-                />
-                <Label htmlFor="send-all" className="text-xs">
-                  Send All
-                </Label>
+          <div>
+            <div className="grid gap-2">
+              <Label htmlFor="amount">Amount</Label>
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-muted-foreground sensitive slashed-zero">
+                  Current onchain balance:{" "}
+                  {new Intl.NumberFormat().format(balances.onchain.spendable)}{" "}
+                  sats
+                </p>
+                <div className="flex items-center gap-1">
+                  <Checkbox
+                    id="send-all"
+                    onCheckedChange={() => setSendAll(!sendAll)}
+                  />
+                  <Label htmlFor="send-all" className="text-xs">
+                    Send All
+                  </Label>
+                </div>
               </div>
+              {!sendAll && (
+                <Input
+                  id="amount"
+                  type="number"
+                  value={amount}
+                  required
+                  onChange={(e) => {
+                    setAmount(e.target.value);
+                  }}
+                />
+              )}
             </div>
-            {!sendAll && (
-              <Input
-                id="amount"
-                type="number"
-                value={amount}
-                required
-                onChange={(e) => {
-                  setAmount(e.target.value);
-                }}
-              />
-            )}
             <MempoolAlert className="mt-4" />
             {sendAll && (
               <Alert className="mt-4" variant="warning">
@@ -227,27 +228,12 @@ export default function WithdrawOnchainFunds() {
                 </AlertDescription>
               </Alert>
             )}
-            {!!channels?.length &&
-              (sendAll ||
-                +amount >
-                  balances.onchain.spendable - channels.length * 25000) && (
-                <Alert className="mt-4">
-                  <AlertTriangleIcon />
-                  <AlertTitle>
-                    Channel Anchor Reserves may be depleted
-                  </AlertTitle>
-                  <AlertDescription>
-                    You have channels open and this withdrawal may deplete your
-                    anchor reserves which may make it harder to close channels
-                    without depositing additional onchain funds to your savings
-                    balance. To avoid this, set aside at least{" "}
-                    {new Intl.NumberFormat().format(channels.length * 25000)}{" "}
-                    sats on-chain.
-                  </AlertDescription>
-                </Alert>
-              )}
+            <AnchorReserveAlert
+              amount={sendAll ? balances.onchain.spendable : +amount}
+              className="mt-4"
+            />
           </div>
-          <div className="">
+          <div className="grid gap-2">
             <Label htmlFor="onchain-address">Onchain Address</Label>
             <Input
               id="onchain-address"
@@ -258,7 +244,7 @@ export default function WithdrawOnchainFunds() {
                 setOnchainAddress(e.target.value);
               }}
             />
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Please double-check the destination address. This transaction
               cannot be reversed.
             </p>
@@ -266,7 +252,7 @@ export default function WithdrawOnchainFunds() {
           {(info?.backendType === "LDK" || info?.backendType === "LND") && (
             <>
               {showAdvanced && (
-                <div className="">
+                <div className="grid gap-2">
                   <Label htmlFor="fee-rate">Fee Rate (Sat/vB)</Label>
                   {mempoolError && (
                     <div className="text-muted-foreground text-xs flex gap-1 items-center">
@@ -286,9 +272,8 @@ export default function WithdrawOnchainFunds() {
                     }}
                   />
                   {recommendedFees && (
-                    <p className="text-muted-foreground text-sm mt-4">
+                    <div className="flex items-center mt-2 gap-4">
                       <Button
-                        size="sm"
                         variant="positive"
                         className="rounded-full"
                         type="button"
@@ -299,7 +284,6 @@ export default function WithdrawOnchainFunds() {
                         Low priority: {recommendedFees.economyFee}
                       </Button>{" "}
                       <Button
-                        size="sm"
                         variant="positive"
                         className="rounded-full"
                         type="button"
@@ -311,11 +295,12 @@ export default function WithdrawOnchainFunds() {
                       </Button>{" "}
                       <ExternalLink
                         to={info?.mempoolUrl}
-                        className="underline ml-2"
+                        className="text-sm text-muted-foreground underline flex items-center gap-2"
                       >
                         View on Mempool
+                        <ExternalLinkIcon className="w-4 h-4" />
                       </ExternalLink>
-                    </p>
+                    </div>
                   )}
                 </div>
               )}

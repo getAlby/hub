@@ -66,8 +66,8 @@ type API interface {
 	SetCurrency(currency string) error
 	LookupSwap(swapId string) (*LookupSwapResponse, error)
 	ListSwaps() (*ListSwapsResponse, error)
-	GetSwapInFees() (*SwapFeesResponse, error)
-	GetSwapOutFees() (*SwapFeesResponse, error)
+	GetSwapInInfo() (*SwapInfoResponse, error)
+	GetSwapOutInfo() (*SwapInfoResponse, error)
 	InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (*swaps.SwapResponse, error)
 	InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (*swaps.SwapResponse, error)
 	RefundSwap(refundSwapRequest *RefundSwapRequest) error
@@ -147,8 +147,9 @@ type CreateLightningAddressRequest struct {
 }
 
 type InitiateSwapRequest struct {
-	SwapAmount  uint64 `json:"swapAmount"`
-	Destination string `json:"destination"`
+	SwapAmount            uint64 `json:"swapAmount"`
+	Destination           string `json:"destination"`
+	UseExactReceiveAmount bool   `json:"useExactReceiveAmount"`
 }
 
 type RefundSwapRequest struct {
@@ -170,10 +171,12 @@ type GetAutoSwapConfigResponse struct {
 	Destination      string `json:"destination"`
 }
 
-type SwapFeesResponse struct {
+type SwapInfoResponse struct {
 	AlbyServiceFee  float64 `json:"albyServiceFee"`
 	BoltzServiceFee float64 `json:"boltzServiceFee"`
 	BoltzNetworkFee uint64  `json:"boltzNetworkFee"`
+	MinAmount       uint64  `json:"minAmount"`
+	MaxAmount       uint64  `json:"maxAmount"`
 }
 
 type ListSwapsResponse struct {
