@@ -23,18 +23,18 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { Switch } from "src/components/ui/switch";
 import { useToast } from "src/components/ui/use-toast";
-import { MIN_SWAP_AMOUNT, ONCHAIN_DUST_SATS } from "src/constants";
+import { ONCHAIN_DUST_SATS } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
-import { useSwapFees } from "src/hooks/useSwaps";
+import { useSwapInfo } from "src/hooks/useSwaps";
 import { RedeemOnchainFundsResponse, SwapResponse } from "src/types";
 import { request } from "src/utils/request";
 
 export default function Onchain() {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const [isSwap, setSwap] = React.useState(false);
+  const [isSwap, setSwap] = React.useState(true);
   const [amount, setAmount] = React.useState("");
 
   const address = state?.args?.address as string;
@@ -333,7 +333,7 @@ function SwapForm({
   const navigate = useNavigate();
   const { toast } = useToast();
   const { data: balances } = useBalances();
-  const { data: swapFees } = useSwapFees("out");
+  const { data: swapInfo } = useSwapInfo("out");
 
   const [isLoading, setLoading] = React.useState(false);
 
@@ -369,7 +369,7 @@ function SwapForm({
     }
   };
 
-  if (!balances) {
+  if (!balances || !swapInfo) {
     return <Loading />;
   }
 
@@ -385,8 +385,11 @@ function SwapForm({
           onChange={(e) => {
             setAmount(e.target.value.trim());
           }}
-          min={MIN_SWAP_AMOUNT}
-          max={Math.floor(balances.lightning.totalSpendable / 1000)}
+          min={swapInfo.minAmount}
+          max={Math.min(
+            swapInfo.maxAmount,
+            Math.floor(balances.lightning.totalSpendable / 1000)
+          )}
           required
           autoFocus
           endAdornment={
@@ -408,8 +411,13 @@ function SwapForm({
             />
           </div>
           <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
-            <div>Minimum: 50000 sats</div>
-            <FormattedFiatAmount className="text-xs" amount={50000} />
+            <div>
+              Minimum: {new Intl.NumberFormat().format(swapInfo.minAmount)} sats
+            </div>
+            <FormattedFiatAmount
+              className="text-xs"
+              amount={swapInfo.minAmount}
+            />
           </div>
         </div>
       </div>
@@ -422,21 +430,13 @@ function SwapForm({
       <div className="grid gap-2 text-sm border-t pt-6">
         <div className="flex items-center justify-between">
           <p className="text-muted-foreground">On-chain Fee</p>
-          {swapFees ? (
-            <p>
-              ~{new Intl.NumberFormat().format(swapFees.boltzNetworkFee)} sats
-            </p>
-          ) : (
-            <Loading className="w-4 h-4" />
-          )}
+          <p>
+            ~{new Intl.NumberFormat().format(swapInfo.boltzNetworkFee)} sats
+          </p>
         </div>
         <div className="flex items-center justify-between">
           <p className="text-muted-foreground">Swap Fee</p>
-          {swapFees ? (
-            <p>{swapFees.albyServiceFee + swapFees.boltzServiceFee}%</p>
-          ) : (
-            <Loading className="w-4 h-4" />
-          )}
+          <p>{swapInfo.albyServiceFee + swapInfo.boltzServiceFee}%</p>
         </div>
       </div>
       <SpendingAlert amount={+amount} />

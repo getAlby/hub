@@ -1,6 +1,5 @@
 import { Navigate } from "react-router-dom";
 import AppLayout from "src/components/layouts/AppLayout";
-import ReceiveLayout from "src/components/layouts/ReceiveLayout";
 import SettingsLayout from "src/components/layouts/SettingsLayout";
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
 import { DefaultRedirect } from "src/components/redirects/DefaultRedirect";
@@ -81,6 +80,7 @@ import SignMessage from "src/screens/wallet/SignMessage";
 import WithdrawOnchainFunds from "src/screens/wallet/WithdrawOnchainFunds";
 import ReceiveInvoice from "src/screens/wallet/receive/ReceiveInvoice";
 import ReceiveOffer from "src/screens/wallet/receive/ReceiveOffer";
+import ReceiveOnchain from "src/screens/wallet/receive/ReceiveOnchain";
 import ConfirmPayment from "src/screens/wallet/send/ConfirmPayment";
 import LnurlPay from "src/screens/wallet/send/LnurlPay";
 import Onchain from "src/screens/wallet/send/Onchain";
@@ -147,11 +147,15 @@ const routes = [
           {
             path: "receive",
             handle: { crumb: () => "Receive" },
-            element: <ReceiveLayout />,
             children: [
               {
                 index: true,
                 element: <Receive />,
+              },
+              {
+                handle: { crumb: () => "Receive On-chain" },
+                path: "onchain",
+                element: <ReceiveOnchain />,
               },
               {
                 handle: { crumb: () => "Invoice" },

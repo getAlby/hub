@@ -141,7 +141,7 @@ function OnchainTransactionsAlert() {
         <AlertTitle className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-sm">
             <LightbulbIcon className="w-4 h-4" /> On-chain transactions are
-            shown on the node page
+            shown on the Node page
           </div>
           <LinkButton
             to="/channels"

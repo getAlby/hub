@@ -735,31 +735,35 @@ func toApiSwap(swap *swaps.Swap) *Swap {
 	}
 }
 
-func (api *api) GetSwapInFees() (*SwapFeesResponse, error) {
-	swapInFees, err := api.svc.GetSwapsService().CalculateSwapInFee()
+func (api *api) GetSwapInInfo() (*SwapInfoResponse, error) {
+	swapInInfo, err := api.svc.GetSwapsService().GetSwapInInfo()
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to calculate fee info")
 		return nil, err
 	}
 
-	return &SwapFeesResponse{
-		AlbyServiceFee:  swapInFees.AlbyServiceFee,
-		BoltzServiceFee: swapInFees.BoltzServiceFee,
-		BoltzNetworkFee: swapInFees.BoltzNetworkFee,
+	return &SwapInfoResponse{
+		AlbyServiceFee:  swapInInfo.AlbyServiceFee,
+		BoltzServiceFee: swapInInfo.BoltzServiceFee,
+		BoltzNetworkFee: swapInInfo.BoltzNetworkFee,
+		MinAmount:       swapInInfo.MinAmount,
+		MaxAmount:       swapInInfo.MaxAmount,
 	}, nil
 }
 
-func (api *api) GetSwapOutFees() (*SwapFeesResponse, error) {
-	swapOutFees, err := api.svc.GetSwapsService().CalculateSwapOutFee()
+func (api *api) GetSwapOutInfo() (*SwapInfoResponse, error) {
+	swapOutInfo, err := api.svc.GetSwapsService().GetSwapOutInfo()
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to calculate fee info")
 		return nil, err
 	}
 
-	return &SwapFeesResponse{
-		AlbyServiceFee:  swapOutFees.AlbyServiceFee,
-		BoltzServiceFee: swapOutFees.BoltzServiceFee,
-		BoltzNetworkFee: swapOutFees.BoltzNetworkFee,
+	return &SwapInfoResponse{
+		AlbyServiceFee:  swapOutInfo.AlbyServiceFee,
+		BoltzServiceFee: swapOutInfo.BoltzServiceFee,
+		BoltzNetworkFee: swapOutInfo.BoltzNetworkFee,
+		MinAmount:       swapOutInfo.MinAmount,
+		MaxAmount:       swapOutInfo.MaxAmount,
 	}, nil
 }
 

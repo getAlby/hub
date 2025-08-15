@@ -17,8 +17,8 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useToast } from "src/components/ui/use-toast";
-import { MIN_SWAP_AMOUNT } from "src/constants";
-import { useAutoSwapsConfig, useSwapFees } from "src/hooks/useSwaps";
+import { useBalances } from "src/hooks/useBalances";
+import { useAutoSwapsConfig, useSwapInfo } from "src/hooks/useSwaps";
 import { AutoSwapConfig } from "src/types";
 import { request } from "src/utils/request";
 
@@ -56,8 +56,9 @@ export default function AutoSwap() {
 
 function AutoSwapOutForm() {
   const { toast } = useToast();
+  const { data: balances } = useBalances();
   const { mutate } = useAutoSwapsConfig();
-  const { data: swapFees } = useSwapFees("out");
+  const { data: swapInfo } = useSwapInfo("out");
 
   const [isInternalSwap, setInternalSwap] = useState(true);
   const [balanceThreshold, setBalanceThreshold] = useState("");
@@ -101,6 +102,10 @@ function AutoSwapOutForm() {
     setDestination(text.trim());
   };
 
+  if (!balances || !swapInfo) {
+    return <Loading />;
+  }
+
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
       <div>
@@ -137,12 +142,16 @@ function AutoSwapOutForm() {
           type="number"
           placeholder="Amount in satoshis"
           value={swapAmount}
-          min={MIN_SWAP_AMOUNT}
+          min={swapInfo.minAmount}
+          max={Math.min(
+            swapInfo.maxAmount,
+            Math.floor(balances.lightning.totalSpendable / 1000)
+          )}
           onChange={(e) => setSwapAmount(e.target.value)}
           required
         />
         <p className="text-xs text-muted-foreground">
-          Minimum {new Intl.NumberFormat().format(MIN_SWAP_AMOUNT)} sats
+          Minimum {new Intl.NumberFormat().format(swapInfo.minAmount)} sats
         </p>
       </div>
       <div className="flex flex-col gap-4">
@@ -208,9 +217,9 @@ function AutoSwapOutForm() {
 
       <div className="flex items-center justify-between border-t pt-4">
         <Label>Fee</Label>
-        {swapFees ? (
+        {swapInfo ? (
           <p className="text-muted-foreground text-sm">
-            {swapFees.albyServiceFee + swapFees.boltzServiceFee}% + on-chain
+            {swapInfo.albyServiceFee + swapInfo.boltzServiceFee}% + on-chain
             fees
           </p>
         ) : (
@@ -238,7 +247,7 @@ function AutoSwapOutForm() {
 function ActiveSwapOutConfig({ swapConfig }: { swapConfig: AutoSwapConfig }) {
   const { toast } = useToast();
   const { mutate } = useAutoSwapsConfig();
-  const { data: swapFees } = useSwapFees("out");
+  const { data: swapInfo } = useSwapInfo("out");
 
   const [loading, setLoading] = useState(false);
 
@@ -309,9 +318,9 @@ function ActiveSwapOutConfig({ swapConfig }: { swapConfig: AutoSwapConfig }) {
         </div>
         <div className="flex justify-between items-center gap-2">
           <span className="font-medium">Fee</span>
-          {swapFees ? (
+          {swapInfo ? (
             <span className="truncate text-muted-foreground text-right">
-              {swapFees.albyServiceFee + swapFees.boltzServiceFee}% + on-chain
+              {swapInfo.albyServiceFee + swapInfo.boltzServiceFee}% + on-chain
               fees
             </span>
           ) : (
