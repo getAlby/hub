@@ -137,6 +137,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.POST("/channels", httpSvc.openChannelHandler)
 	restrictedApiGroup.POST("/channels/rebalance", httpSvc.rebalanceChannelHandler)
 	restrictedApiGroup.GET("/channels/suggestions", httpSvc.channelPeerSuggestionsHandler)
+	restrictedApiGroup.GET("/channel-offer", httpSvc.channelOfferHandler)
 	restrictedApiGroup.POST("/lsp-orders", httpSvc.newInstantChannelInvoiceHandler)
 	restrictedApiGroup.GET("/node/connection-info", httpSvc.nodeConnectionInfoHandler)
 	restrictedApiGroup.GET("/node/status", httpSvc.nodeStatusHandler)
@@ -426,6 +427,20 @@ func (httpSvc *HttpService) channelPeerSuggestionsHandler(c echo.Context) error 
 	ctx := c.Request().Context()
 
 	suggestions, err := httpSvc.api.GetChannelPeerSuggestions(ctx)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, suggestions)
+}
+
+func (httpSvc *HttpService) channelOfferHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	suggestions, err := httpSvc.api.GetLSPChannelOffer(ctx)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{

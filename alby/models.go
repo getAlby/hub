@@ -11,6 +11,7 @@ type AlbyOAuthService interface {
 	events.EventSubscriber
 	GetInfo(ctx context.Context) (*AlbyInfo, error)
 	GetChannelPeerSuggestions(ctx context.Context) ([]ChannelPeerSuggestion, error)
+	GetLSPChannelOffer(ctx context.Context) (*LSPChannelOffer, error)
 	GetBitcoinRate(ctx context.Context) (*BitcoinRate, error)
 	GetAuthUrl() string
 	GetUserIdentifier() (string, error)
@@ -121,6 +122,16 @@ type ChannelPeerSuggestion struct {
 	LspType               string `json:"lspType"`
 	Note                  string `json:"note"`
 	PublicChannelsAllowed bool   `json:"publicChannelsAllowed"`
+}
+
+type LSPChannelOffer struct {
+	LspName              string `json:"lspName"`
+	LspContactUrl        string `json:"lspContactUrl"`
+	LspBalanceSats       uint64 `json:"lspBalanceSats"`
+	FeeTotalSat          uint64 `json:"feeTotalSat"`
+	FeeTotalUsd          uint64 `json:"feeTotalUsd"` // in cents
+	CurrentPaymentMethod string `json:"currentPaymentMethod"`
+	Terms                string `json:"terms"`
 }
 
 type BitcoinRate struct {

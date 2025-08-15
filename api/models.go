@@ -22,6 +22,7 @@ type API interface {
 	DeleteLightningAddress(ctx context.Context, appId uint) error
 	ListChannels(ctx context.Context) ([]Channel, error)
 	GetChannelPeerSuggestions(ctx context.Context) ([]alby.ChannelPeerSuggestion, error)
+	GetLSPChannelOffer(ctx context.Context) (*alby.LSPChannelOffer, error)
 	ResetRouter(key string) error
 	ChangeUnlockPassword(changeUnlockPasswordRequest *ChangeUnlockPasswordRequest) error
 	SetAutoUnlockPassword(unlockPassword string) error

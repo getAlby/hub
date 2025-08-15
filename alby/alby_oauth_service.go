@@ -1230,6 +1230,19 @@ func (svc *albyOAuthService) GetChannelPeerSuggestions(ctx context.Context) ([]C
 	return suggestions, nil
 }
 
+func (svc *albyOAuthService) GetLSPChannelOffer(ctx context.Context) (*LSPChannelOffer, error) {
+	// TODO: do actual API call
+	return &LSPChannelOffer{
+		LspName:              "Megalith LSP",
+		LspContactUrl:        "https://megalithic.me/contact",
+		LspBalanceSats:       uint64(1_000_000),
+		FeeTotalSat:          uint64(10_000),
+		FeeTotalUsd:          uint64(10_00),
+		CurrentPaymentMethod: "card",
+		Terms:                "Megalith will do its best to keep your channel open for at least 3 months. Your channel will stay open indefinitely if you use it regularly and keep your hub online.",
+	}, nil
+}
+
 func (svc *albyOAuthService) GetBitcoinRate(ctx context.Context) (*BitcoinRate, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
 	currency := svc.cfg.GetCurrency()
@@ -1295,7 +1308,7 @@ func (svc *albyOAuthService) RequestAutoChannel(ctx context.Context, lnClient ln
 		return nil, err
 	}
 
-	requestUrl := fmt.Sprintf("https://api.getalby.com/internal/lsp/alby/%s", nodeInfo.Network)
+	requestUrl := fmt.Sprintf("https://api.getalby.com/internal/lsp/alby/%s?version=%s", nodeInfo.Network, version.Tag)
 
 	pubkey, address, port, err := svc.getLSPInfo(ctx, requestUrl+"/v1/get_info")
 
