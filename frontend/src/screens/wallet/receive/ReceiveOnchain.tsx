@@ -62,22 +62,22 @@ export default function ReceiveOnchain() {
           <div
             className={cn(
               "cursor-pointer rounded-lg flex-1 py-1.5 text-sm",
-              receiveType == "onchain" &&
-                "text-foreground bg-background shadow-md"
-            )}
-            onClick={() => setReceiveType("onchain")}
-          >
-            Receive to On-chain
-          </div>
-          <div
-            className={cn(
-              "cursor-pointer rounded-lg flex-1 py-1.5 text-sm",
               receiveType == "spending" &&
                 "text-foreground bg-background shadow-md"
             )}
             onClick={() => setReceiveType("spending")}
           >
             Receive to Spending
+          </div>
+          <div
+            className={cn(
+              "cursor-pointer rounded-lg flex-1 py-1.5 text-sm",
+              receiveType == "onchain" &&
+                "text-foreground bg-background shadow-md"
+            )}
+            onClick={() => setReceiveType("onchain")}
+          >
+            Receive to On-chain
           </div>
         </div>
         {receiveType == "onchain" ? (
