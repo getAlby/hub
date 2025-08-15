@@ -3,8 +3,9 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
-import { Button, LinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
 import { Card, CardContent } from "src/components/ui/card";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { useToast } from "src/components/ui/use-toast";
 import UserAvatar from "src/components/UserAvatar";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
@@ -59,7 +60,7 @@ export default function Receive() {
                   }}
                   className="flex-1 flex gap-2 items-center justify-center"
                 >
-                  <CopyIcon className="w-4 h-4" /> Copy Lightning Address
+                  <CopyIcon className="size-4" /> Copy Lightning Address
                 </Button>
               </div>
 
@@ -69,7 +70,7 @@ export default function Receive() {
                   variant="outline"
                   className="flex-1 flex gap-2 items-center justify-center"
                 >
-                  <PencilIcon className="w-4 h-4" /> Amount
+                  <PencilIcon className="size-4" /> Amount
                 </LinkButton>
                 {info.backendType === "LDK" && (
                   <LinkButton
@@ -77,7 +78,7 @@ export default function Receive() {
                     variant="outline"
                     className="flex-1"
                   >
-                    <ReceiptTextIcon className="h-4 w-4 shrink-0 mr-2" />
+                    <ReceiptTextIcon />
                     BOLT-12
                   </LinkButton>
                 )}

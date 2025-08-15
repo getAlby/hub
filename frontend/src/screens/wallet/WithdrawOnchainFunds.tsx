@@ -22,9 +22,9 @@ import {
 } from "src/components/ui/alert-dialog";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { ONCHAIN_DUST_SATS } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
@@ -137,7 +137,7 @@ export default function WithdrawOnchainFunds() {
         <div className="flex items-center justify-between gap-4 max-w-sm">
           <p className="break-all font-semibold">{transactionId}</p>
           <CopyIcon
-            className="cursor-pointer text-muted-foreground w-4 h-4 flex-shrink-0"
+            className="cursor-pointer text-muted-foreground size-4 shrink-0"
             onClick={() => {
               copy(transactionId);
             }}
@@ -148,7 +148,7 @@ export default function WithdrawOnchainFunds() {
           className="underline flex items-center mt-2"
         >
           View on Mempool
-          <ExternalLinkIcon className="w-4 h-4 ml-2" />
+          <ExternalLinkIcon className="size-4 ml-2" />
         </ExternalLink>
         <p>Your on-chain balance in Alby Hub may take some time to update.</p>
       </div>
@@ -217,8 +217,8 @@ export default function WithdrawOnchainFunds() {
             )}
             <MempoolAlert className="mt-4" />
             {sendAll && (
-              <Alert className="mt-4">
-                <AlertTriangleIcon className="h-4 w-4" />
+              <Alert className="mt-4" variant="warning">
+                <AlertTriangleIcon />
                 <AlertTitle>Entire wallet balance will be sent</AlertTitle>
                 <AlertDescription>
                   Your entire wallet balance will be sent minus onchain
@@ -232,7 +232,7 @@ export default function WithdrawOnchainFunds() {
                 +amount >
                   balances.onchain.spendable - channels.length * 25000) && (
                 <Alert className="mt-4">
-                  <AlertTriangleIcon className="h-4 w-4" />
+                  <AlertTriangleIcon />
                   <AlertTitle>
                     Channel Anchor Reserves may be depleted
                   </AlertTitle>
@@ -326,7 +326,7 @@ export default function WithdrawOnchainFunds() {
                   className="text-muted-foreground text-xs"
                   onClick={() => setShowAdvanced((current) => !current)}
                 >
-                  <ChevronDown className="w-4 h-4 mr-2" />
+                  <ChevronDown />
                   Advanced Options
                 </Button>
               )}

@@ -1,4 +1,5 @@
 import {
+  AlertTriangle,
   ExternalLinkIcon,
   EyeIcon,
   Link2Icon,
@@ -28,8 +29,8 @@ import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
 
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
 import { useToast } from "src/components/ui/use-toast";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
@@ -108,10 +109,14 @@ export default function Backup() {
               your unlock password.
             </p>
           </div>
-          <p className="text-sm text-destructive">
-            If you loose access to your Hub and do not have your recovery
-            phrase, you will loose access to your funds.
-          </p>
+          <Alert variant="destructive">
+            <AlertTriangle />
+            <AlertTitle>Important</AlertTitle>
+            <AlertDescription>
+              If you loose access to your Hub and do not have your recovery
+              phrase, you will loose access to your funds.
+            </AlertDescription>
+          </Alert>
           {info?.backendType === "CASHU" && <CashuMnemonicWarning />}
 
           <div>
@@ -148,7 +153,7 @@ export default function Backup() {
                   variant="secondary"
                   className="flex gap-2 justify-center"
                 >
-                  <EyeIcon className="w-4 h-4 mr-2" />
+                  <EyeIcon />
                   View Recovery Phrase
                 </LoadingButton>
               </div>
@@ -239,7 +244,7 @@ export default function Backup() {
                     className="flex gap-2 justify-center"
                     onClick={() => navigate("/alby/account")}
                   >
-                    <Link2Icon className="w-4 h-4 mr-2" />
+                    <Link2Icon />
                     Link Alby Account to Enable
                   </Button>
                 </div>
@@ -260,7 +265,7 @@ export default function Backup() {
                       className="underline inline-flex items-center text-sm"
                     >
                       manual backups guide
-                      <ExternalLinkIcon className="w-4 h-4 ml-1" />
+                      <ExternalLinkIcon className="size-4 ml-1" />
                     </ExternalLink>
                   </p>
                 </div>
@@ -374,8 +379,8 @@ function CashuMnemonicWarning() {
   }
 
   return (
-    <Alert>
-      <TriangleAlertIcon className="h-4 w-4" />
+    <Alert variant="warning">
+      <TriangleAlertIcon />
       <AlertTitle>
         Your Cashu wallet uses a different recovery phrase
       </AlertTitle>

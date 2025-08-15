@@ -13,6 +13,7 @@ import {
   Settings,
   Sparkles,
   SquareStack,
+  StarIcon,
   WalletIcon,
 } from "lucide-react";
 import React from "react";
@@ -120,12 +121,17 @@ export function AppSidebar() {
         url: "/settings",
         icon: Settings,
       },
+      {
+        title: "Review & Earn",
+        url: "/review-earn",
+        icon: StarIcon,
+      },
     ],
   };
 
   return (
     <Sidebar
-      className="top-[--header-height] !h-[calc(100svh-var(--header-height))]"
+      className="top-(--header-height) h-[calc(100svh-var(--header-height))]!"
       collapsible="offcanvas"
     >
       <SidebarHeader>
@@ -174,11 +180,8 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                  size="lg"
-                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                >
+              <DropdownMenuTrigger className="w-full">
+                <SidebarMenuButton size="lg">
                   {info?.albyAccountConnected ? (
                     <>
                       <UserAvatar />
@@ -196,7 +199,7 @@ export function AppSidebar() {
                       <img
                         src={albyHub}
                         alt="logo"
-                        className="w-8 h-8 rounded-lg "
+                        className="size-8 rounded-lg "
                       />
                       <div className="font-semibold text-left text-sm leading-tight">
                         My Alby Hub
@@ -207,7 +210,7 @@ export function AppSidebar() {
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                className="min-w-56"
                 side={isMobile ? "bottom" : "right"}
                 align="end"
                 sideOffset={4}
@@ -236,7 +239,7 @@ export function AppSidebar() {
                       to="/alby/account"
                       className="w-full flex flex-row items-center gap-2"
                     >
-                      <PlugZapIcon className="w-4 h-4" />
+                      <PlugZapIcon className="size-4" />
                       <p>Connect Alby Account</p>
                     </Link>
                   </DropdownMenuItem>
@@ -246,7 +249,7 @@ export function AppSidebar() {
                       to="https://getalby.com/user/edit"
                       className="flex items-center"
                     >
-                      <AlbyIcon className="w-4 h-4 mr-2" />
+                      <AlbyIcon className="size-4 mr-2" />
                       Alby Account Settings
                     </ExternalLink>
                   </DropdownMenuItem>
@@ -255,7 +258,7 @@ export function AppSidebar() {
                   <>
                     <UpgradeDialog>
                       <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <Sparkles className="w-4 h-4 mr-2" />
+                        <Sparkles className="size-4 mr-2" />
                         Upgrade to Pro
                       </DropdownMenuItem>
                     </UpgradeDialog>
@@ -265,7 +268,7 @@ export function AppSidebar() {
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={logout}>
-                      <LogOut className="w-4 h-4 mr-2" />
+                      <LogOut className="size-4 mr-2" />
                       Log out
                     </DropdownMenuItem>
                   </>

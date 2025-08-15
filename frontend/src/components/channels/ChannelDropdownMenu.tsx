@@ -57,7 +57,7 @@ export function ChannelDropdownMenu({
       }}
     >
       <DropdownMenu modal={false}>
-        <DropdownMenuTrigger asChild>
+        <DropdownMenuTrigger>
           <Button size="icon" variant="ghost">
             <MoreHorizontalIcon className="h-4 w-4" />
           </Button>
@@ -80,7 +80,7 @@ export function ChannelDropdownMenu({
               to={`${info?.mempoolUrl}/tx/${channel.fundingTxId}#flow=&vout=${channel.fundingTxVout}`}
               className="w-full flex flex-row items-center gap-2"
             >
-              <ExternalLinkIcon className="w-4 h-4" />
+              <ExternalLinkIcon className="size-4" />
               <p>View Funding Transaction</p>
             </ExternalLink>
           </DropdownMenuItem>
@@ -89,7 +89,7 @@ export function ChannelDropdownMenu({
               to={`https://amboss.space/node/${channel.remotePubkey}`}
               className="w-full flex flex-row items-center gap-2"
             >
-              <ExternalLinkIcon className="w-4 h-4" />
+              <ExternalLinkIcon className="size-4" />
               <p>View Node on amboss.space</p>
             </ExternalLink>
           </DropdownMenuItem>

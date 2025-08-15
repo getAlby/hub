@@ -23,7 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { LoadingButton } from "src/components/ui/loading-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { useTheme } from "src/components/ui/theme-provider";
 import {
   Tooltip,
@@ -165,7 +165,7 @@ export default function SwapInStatus() {
                   <FormattedFiatAmount amount={swap.receiveAmount as number} />
                 </div>
                 <Button onClick={copyPaymentHash} variant="outline">
-                  <CopyIcon className="w-4 h-4 mr-2" />
+                  <CopyIcon />
                   Copy Payment Hash
                 </Button>
               </>
@@ -190,7 +190,7 @@ export default function SwapInStatus() {
                   <div className="flex justify-center gap-4 flex-wrap">
                     {swap.state !== "FAILED" && (
                       <Button onClick={copyAddress} variant="outline">
-                        <CopyIcon className="w-4 h-4 mr-2" />
+                        <CopyIcon />
                         Copy Address
                       </Button>
                     )}
@@ -203,7 +203,7 @@ export default function SwapInStatus() {
                           onClick={payWithAlbyHub}
                           disabled={!recommendedFees}
                         >
-                          <ZapIcon className="w-4 h-4 mr-2" />
+                          <ZapIcon />
                           Use Hub On-Chain Funds
                         </LoadingButton>
                       )}

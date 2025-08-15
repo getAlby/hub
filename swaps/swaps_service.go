@@ -194,10 +194,9 @@ func (svc *swapsService) EnableAutoSwapOut() error {
 	logger.Logger.Info("Starting auto swap workflow")
 
 	go func() {
-		ticker := time.NewTicker(1 * time.Hour)
 		for {
 			select {
-			case <-ticker.C:
+			case <-time.After(1 * time.Hour):
 				logger.Logger.Debug("Checking to see if we can swap")
 				balance, err := svc.lnClient.GetBalances(ctx, false)
 				if err != nil {
@@ -376,7 +375,13 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 
 	logger.Logger.WithField("swapId", swap.Id).Info("Swap created")
 
-	go svc.startSwapOutListener(&dbSwap)
+	if autoSwap {
+		// block until the swap finishes to ensure we can't do multiple concurrent auto swaps
+		svc.startSwapOutListener(&dbSwap)
+	} else {
+		// run in parallel as we need to return the swap ID in the HTTP response
+		go svc.startSwapOutListener(&dbSwap)
+	}
 
 	return &SwapResponse{
 		SwapId:      swap.Id,
@@ -1116,21 +1121,14 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 					metadata := map[string]interface{}{
 						"swap_id": swap.SwapId,
 					}
-					sendPaymentTimeout := int64(3600)
 					logger.Logger.WithField("swapId", swap.SwapId).Info("Initiating swap invoice payment")
-					_, err = svc.transactionsService.SendPaymentSync(svc.ctx, swap.Invoice, nil, metadata, svc.lnClient, nil, nil, &sendPaymentTimeout)
+					_, err = svc.transactionsService.SendPaymentSync(svc.ctx, swap.Invoice, nil, metadata, svc.lnClient, nil, nil)
 					if err != nil {
-						if errors.Is(err, lnclient.NewTimeoutError()) {
-							logger.Logger.WithFields(logrus.Fields{
-								"swapId": swap.SwapId,
-							}).Info("Ignoring payment timeout while swapping out")
-						} else {
-							logger.Logger.WithError(err).WithFields(logrus.Fields{
-								"swapId": swap.SwapId,
-							}).Error("Error paying the swap invoice")
-							paymentErrorCh <- err
-							return
-						}
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"swapId": swap.SwapId,
+						}).Error("Error paying the swap invoice")
+						paymentErrorCh <- err
+						return
 					}
 				}()
 			case boltz.TransactionMempool:

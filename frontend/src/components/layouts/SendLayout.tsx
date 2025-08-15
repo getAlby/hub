@@ -9,8 +9,8 @@ import { useTransactions } from "src/hooks/useTransactions";
 
 import dayjs from "dayjs";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { LinkButton } from "src/components/ui/button";
 import { useInfo } from "src/hooks/useInfo";
+import { LinkButton } from "../ui/custom/link-button";
 
 export default function SendLayout() {
   const { hasChannelManagement } = useInfo();
@@ -33,12 +33,10 @@ export default function SendLayout() {
         /* TODO: remove diff check when expired transactions are marked as failed */
       ) && (
         <Alert>
-          <InfoIcon className="h-4 w-4" />
+          <InfoIcon />
           <AlertTitle>Pending Payment</AlertTitle>
           <AlertDescription>
-            <div className="mb-2">
-              You have one or more payments that have not settled.
-            </div>
+            You have one or more payments that have not settled.
             <LinkButton to={"/wallet"} size={"sm"}>
               View Payments
             </LinkButton>

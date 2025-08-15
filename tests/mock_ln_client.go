@@ -79,6 +79,7 @@ var MockLNClientHoldTransaction = &lnclient.Transaction{
 type MockLn struct {
 	PayInvoiceResponses        []*lnclient.PayInvoiceResponse
 	PayInvoiceErrors           []error
+	PaymentDelay               *time.Duration
 	Pubkey                     string
 	MockTransaction            *lnclient.Transaction
 	SupportedNotificationTypes *[]string
@@ -88,13 +89,16 @@ func NewMockLn() (*MockLn, error) {
 	return &MockLn{}, nil
 }
 
-func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string, amount *uint64, timeoutSeconds *int64) (*lnclient.PayInvoiceResponse, error) {
+func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
 	if len(mln.PayInvoiceResponses) > 0 {
 		response := mln.PayInvoiceResponses[0]
 		err := mln.PayInvoiceErrors[0]
 		mln.PayInvoiceResponses = mln.PayInvoiceResponses[1:]
 		mln.PayInvoiceErrors = mln.PayInvoiceErrors[1:]
 		return response, err
+	}
+	if mln.PaymentDelay != nil {
+		time.Sleep(*mln.PaymentDelay)
 	}
 
 	return &lnclient.PayInvoiceResponse{
