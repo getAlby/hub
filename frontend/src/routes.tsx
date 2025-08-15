@@ -35,7 +35,6 @@ import { OpeningAutoChannel } from "src/screens/channels/auto/OpeningAutoChannel
 import { FirstChannel } from "src/screens/channels/first/FirstChannel";
 import { OpenedFirstChannel } from "src/screens/channels/first/OpenedFirstChannel";
 import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChannel";
-import BankAccount from "src/screens/features/BankAccount";
 import { AlbyGo } from "src/screens/internal-apps/AlbyGo";
 import { Bitrefill } from "src/screens/internal-apps/Bitrefill";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
@@ -466,10 +465,6 @@ const routes = [
       {
         path: "support-alby",
         element: <SupportAlby />,
-      },
-      {
-        path: "bank-account",
-        element: <BankAccount />,
       },
       {
         path: "review-earn",
