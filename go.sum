@@ -185,6 +185,8 @@ github.com/fxamacker/cbor/v2 v2.7.0 h1:iM5WgngdRBanHcxugY4JySA0nk1wZorNOpTgCMedv
 github.com/fxamacker/cbor/v2 v2.7.0/go.mod h1:pxXPTn3joSm21Gbwsv0w9OSA2y1HFR9qXEeXQVeNoDQ=
 github.com/getAlby/ldk-node-go v0.0.0-20250718084435-503d48dfa69f h1:pwcp5252ysSRmuclo1g/ocpKCtFqhpat5cI0hN3ig5c=
 github.com/getAlby/ldk-node-go v0.0.0-20250718084435-503d48dfa69f/go.mod h1:8BRjtKcz8E0RyYTPEbMS8VIdgredcGSLne8vHDtcRLg=
+github.com/getAlby/second-hub-go v0.0.0-20250815155237-cf711619e75e h1:E3R+Hq7ovMYIuWKPBsAf/kbsJOWv9DQLTyeAkGE1JIw=
+github.com/getAlby/second-hub-go v0.0.0-20250815155237-cf711619e75e/go.mod h1:pVGKv6YZyqSkrcjp2x3CHciaGX5+Z0nWZ6clectWXr8=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-gormigrate/gormigrate/v2 v2.1.4 h1:KOPEt27qy1cNzHfMZbp9YTmEuzkY4F4wrdsJW9WFk1U=
 github.com/go-gormigrate/gormigrate/v2 v2.1.4/go.mod h1:y/6gPAH6QGAgP1UfHMiXcqGeJ88/GRQbfCReE1JJD5Y=

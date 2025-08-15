@@ -19,7 +19,7 @@ import (
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/notifications"
-	//bindings "github.com/getAlby/hub/bark"
+	// bindings "github.com/getAlby/hub/bark"
 	bindings "github.com/getAlby/second-hub-go/bark"
 )
 
@@ -874,23 +874,23 @@ func convertUtxoToCommandResp(utxo bindings.Utxo) map[string]interface{} {
 func convertMovementToCommandResp(movement bindings.Movement) map[string]interface{} {
 	var kind string
 	switch movement.Kind {
-	case bindings.bark.MovementKindBoard:
+	case bindings.MovementKindBoard:
 		kind = "Board"
-	case bindings.bark.MovementKindRound:
+	case bindings.MovementKindRound:
 		kind = "Round"
-	case bindings.bark.MovementKindOffboard:
+	case bindings.MovementKindOffboard:
 		kind = "Offboard"
-	case bindings.bark.MovementKindExit:
+	case bindings.MovementKindExit:
 		kind = "Exit"
-	case bindings.bark.MovementKindArkoorSend:
+	case bindings.MovementKindArkoorSend:
 		kind = "ArkoorSend"
-	case bindings.bark.MovementKindArkoorReceive:
+	case bindings.MovementKindArkoorReceive:
 		kind = "ArkoorReceive"
-	case bindings.bark.MovementKindLightningSend:
+	case bindings.MovementKindLightningSend:
 		kind = "LightningSend"
-	case bindings.bark.MovementKindLightningSendRevocation:
+	case bindings.MovementKindLightningSendRevocation:
 		kind = "LightningSendRevocation"
-	case bindings.bark.MovementKindLightningReceive:
+	case bindings.MovementKindLightningReceive:
 		kind = "LightningReceive"
 	default:
 		kind = "Unknown"
