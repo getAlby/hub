@@ -1234,7 +1234,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
 
-			app.api.SendEvent(sendEventRequest.Event)
+			app.api.SendEvent(sendEventRequest.Event, sendEventRequest.Properties)
 
 			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		}
