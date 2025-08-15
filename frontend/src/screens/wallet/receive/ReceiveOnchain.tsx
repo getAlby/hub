@@ -30,6 +30,7 @@ import TickSVG from "public/images/illustrations/tick.svg";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import LottieLoading from "src/components/LottieLoading";
+import { MempoolAlert } from "src/components/MempoolAlert";
 import OnchainAddressDisplay from "src/components/OnchainAddressDisplay";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
@@ -56,6 +57,7 @@ export default function ReceiveOnchain() {
     <div className="grid gap-5">
       <AppHeader title="Receive On-chain" />
       <div className="w-full max-w-lg grid gap-5">
+        <MempoolAlert />
         <div className="flex items-center text-center text-foreground font-medium rounded-xl bg-muted p-1">
           <div
             className={cn(
