@@ -43,7 +43,7 @@ export default function SwapOutStatus() {
     FAILED: "Swap Failed",
     PENDING: swap.lockupTxId
       ? "Waiting for confirmation"
-      : "Waiting for deposit",
+      : "Making lightning payment",
   };
 
   return (
@@ -86,7 +86,7 @@ export default function SwapOutStatus() {
                 )}
                 <div className="flex flex-col gap-2 items-center">
                   <p className="text-xl font-bold slashed-zero text-center">
-                    ~{new Intl.NumberFormat().format(swap.sendAmount)} sats
+                    {new Intl.NumberFormat().format(swap.sendAmount)} sats
                   </p>
                   <div className="flex items-center">
                     <span className="text-sm text-muted-foreground">~</span>
