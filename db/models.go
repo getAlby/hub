@@ -106,6 +106,7 @@ type Swap struct {
 	LockupTxId         string
 	ClaimTxId          string
 	AutoSwap           bool
+	UsedXpub           bool
 	TimeoutBlockHeight uint32
 	BoltzPubkey        string
 	SwapTree           datatypes.JSON
