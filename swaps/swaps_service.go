@@ -54,7 +54,7 @@ type swapsService struct {
 type SwapsService interface {
 	StopAutoSwapOut()
 	EnableAutoSwapOut() error
-	SwapOut(amount uint64, destination string, autoSwap bool) (*SwapResponse, error)
+	SwapOut(amount uint64, destination string, autoSwap bool, usedXpubDerivation bool) (*SwapResponse, error)
 	SwapIn(amount uint64, autoSwap bool) (*SwapResponse, error)
 	CalculateSwapOutFee() (*SwapFees, error)
 	CalculateSwapInFee() (*SwapFees, error)
@@ -211,11 +211,10 @@ func (svc *swapsService) EnableAutoSwapOut() error {
 				}
 
 				actualDestination := swapDestination
-				var addressIndex uint32
 				var usedXpubDerivation bool
 				if swapDestination != "" {
 					if err := svc.validateXpub(swapDestination); err == nil {
-						actualDestination, addressIndex, err = svc.getNextUnusedAddressFromXpub()
+						actualDestination, err = svc.getNextUnusedAddressFromXpub()
 						if err != nil {
 							logger.Logger.WithError(err).Error("Failed to get next address from xpub")
 							continue
@@ -228,20 +227,10 @@ func (svc *swapsService) EnableAutoSwapOut() error {
 					"amount":      amount,
 					"destination": actualDestination,
 				}).Info("Initiating swap")
-				swapResponse, err := svc.SwapOut(amount, actualDestination, true)
+				_, err = svc.SwapOut(amount, actualDestination, true, usedXpubDerivation)
 				if err != nil {
-					logger.Logger.WithError(err).Error("Failed to swap")
+					logger.Logger.WithError(err).Error("Failed to initiate swap")
 					continue
-				}
-				if usedXpubDerivation {
-					err = svc.cfg.SetUpdate(config.AutoSwapXpubIndexStart, strconv.FormatUint(uint64(addressIndex+1), 10), "")
-					if err != nil {
-						logger.Logger.WithError(err).Error("Failed to update xpub index start after creating swap")
-					}
-					logger.Logger.WithFields(logrus.Fields{
-						"swapId":    swapResponse.SwapId,
-						"nextIndex": addressIndex + 1,
-					}).Info("Updated xpub index start for swap address")
 				}
 			case <-ctx.Done():
 				logger.Logger.Info("Stopping auto swap workflow")
@@ -255,7 +244,7 @@ func (svc *swapsService) EnableAutoSwapOut() error {
 	return nil
 }
 
-func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap bool) (*SwapResponse, error) {
+func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap bool, usedXpubDerivation bool) (*SwapResponse, error) {
 	if destination == "" {
 		var err error
 		destination, err = svc.lnClient.GetNewOnchainAddress(svc.ctx)
@@ -307,6 +296,7 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap boo
 		PaymentHash:        paymentHash,
 		Preimage:           hex.EncodeToString(preimage),
 		AutoSwap:           autoSwap,
+		UsedXpub:           usedXpubDerivation,
 	}
 
 	var ourKeys *btcec.PrivateKey
@@ -1092,6 +1082,9 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 				if tx.Status.Confirmed {
 					svc.markSwapState(swap, constants.SWAP_STATE_SUCCESS)
 					logger.Logger.WithField("swapId", swap.SwapId).Info("Swap succeeded")
+					if swap.UsedXpub {
+						svc.bumpAutoswapXpubIndex(swap.ID)
+					}
 					svc.eventPublisher.Publish(&events.Event{
 						Event: "nwc_swap_succeeded",
 						Properties: map[string]interface{}{
@@ -1347,6 +1340,31 @@ func (svc *swapsService) doMempoolRequest(endpoint string, result interface{}) e
 	return nil
 }
 
+func (svc *swapsService) bumpAutoswapXpubIndex(swapId uint) {
+	indexStr, err := svc.cfg.Get(config.AutoSwapXpubIndexStart, "")
+	if err != nil {
+		logger.Logger.Error("failed to get auto swap xpub index")
+		return
+	}
+	if indexStr == "" {
+		indexStr = "0"
+	}
+	index, err := strconv.ParseUint(indexStr, 10, 32)
+	if err != nil {
+		logger.Logger.Error("failed to parse auto swap xpub index")
+		return
+	}
+
+	err = svc.cfg.SetUpdate(config.AutoSwapXpubIndexStart, strconv.FormatUint(uint64(index+1), 10), "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to update auto swap xpub index")
+	}
+	logger.Logger.WithFields(logrus.Fields{
+		"swapId":    swapId,
+		"nextIndex": index + 1,
+	}).Info("Updated xpub index start for swap address")
+}
+
 func (svc *swapsService) deriveAddressFromXpub(xpub string, index uint32) (string, error) {
 	var netParams *chaincfg.Params
 	switch svc.cfg.GetNetwork() {
@@ -1405,18 +1423,27 @@ func (svc *swapsService) checkAddressHasTransactions(address string, esploraApiR
 	return len(transactions) > 0, nil
 }
 
-func (svc *swapsService) getNextUnusedAddressFromXpub() (string, uint32, error) {
+func (svc *swapsService) getNextUnusedAddressFromXpub() (string, error) {
 	destination, _ := svc.cfg.Get(config.AutoSwapDestinationKey, "")
 	if destination == "" {
-		return "", 0, errors.New("no destination configured")
+		return "", errors.New("no destination configured")
 	}
 
 	if err := svc.validateXpub(destination); err != nil {
-		return "", 0, errors.New("destination is not a valid XPUB")
+		return "", errors.New("destination is not a valid XPUB")
 	}
 
-	indexStr, _ := svc.cfg.Get(config.AutoSwapXpubIndexStart, "0")
-	index, _ := strconv.ParseUint(indexStr, 10, 32)
+	indexStr, err := svc.cfg.Get(config.AutoSwapXpubIndexStart, "")
+	if err != nil {
+		return "", err
+	}
+	if indexStr == "" {
+		indexStr = "0"
+	}
+	index, err := strconv.ParseUint(indexStr, 10, 32)
+	if err != nil {
+		return "", err
+	}
 
 	esploraApiRequester := func(endpoint string) (interface{}, error) {
 		url := svc.cfg.GetEnv().LDKEsploraServer + endpoint
@@ -1454,20 +1481,20 @@ func (svc *swapsService) getNextUnusedAddressFromXpub() (string, uint32, error) 
 	for i := uint32(index); i < uint32(index)+addressLookAheadLimit; i++ {
 		address, err := svc.deriveAddressFromXpub(destination, i)
 		if err != nil {
-			return "", 0, fmt.Errorf("failed to derive address at index %d: %w", i, err)
+			return "", fmt.Errorf("failed to derive address at index %d: %w", i, err)
 		}
 
 		hasTransactions, err := svc.checkAddressHasTransactions(address, esploraApiRequester)
 		if err != nil {
-			return "", 0, fmt.Errorf("failed to check address for transactions at index %d: %w", i, err)
+			return "", fmt.Errorf("failed to check address for transactions at index %d: %w", i, err)
 		}
 
 		if !hasTransactions {
-			return address, i, nil
+			return address, nil
 		}
 	}
 
-	return "", 0, fmt.Errorf("could not find unused address within %d addresses starting from index %d", addressLookAheadLimit, index)
+	return "", fmt.Errorf("could not find unused address within %d addresses starting from index %d", addressLookAheadLimit, index)
 }
 
 func (svc *swapsService) validateXpub(xpub string) error {
