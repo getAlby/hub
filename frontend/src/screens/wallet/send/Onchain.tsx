@@ -225,7 +225,7 @@ function OnchainForm({
       <div className="grid gap-2 text-sm border-t pt-6">
         {!editFee ? (
           <div className="flex items-center justify-between">
-            <p className="text-muted-foreground">On-chain Fee</p>
+            <p className="text-muted-foreground">On-chain Fee Rate</p>
             <div
               className="flex items-center gap-2 cursor-pointer"
               onClick={() => setEditFee(true)}
@@ -368,6 +368,9 @@ function SwapForm({
       setLoading(false);
     }
   };
+  const { data: recommendedFees } = useMempoolApi<{
+    fastestFee: number;
+  }>("/v1/fees/recommended");
 
   if (!balances || !swapInfo) {
     return <Loading />;
@@ -429,9 +432,14 @@ function SwapForm({
       </div>
       <div className="grid gap-2 text-sm border-t pt-6">
         <div className="flex items-center justify-between">
-          <p className="text-muted-foreground">On-chain Fee</p>
+          <p className="text-muted-foreground">On-chain Fee Rate</p>
           <p>
-            ~{new Intl.NumberFormat().format(swapInfo.boltzNetworkFee)} sats
+            {/* ~{new Intl.NumberFormat().format(swapInfo.boltzNetworkFee)} sats */}
+            {recommendedFees?.fastestFee ? (
+              <p>{recommendedFees?.fastestFee} sat/vB</p>
+            ) : (
+              <Loading className="w-4 h-4" />
+            )}
           </p>
         </div>
         <div className="flex items-center justify-between">
