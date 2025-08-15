@@ -14,7 +14,6 @@ import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
-import ResponsiveButton from "src/components/ResponsiveButton";
 import TransactionsList from "src/components/TransactionsList";
 import {
   Alert,
@@ -44,12 +43,22 @@ function Wallet() {
         description=""
         contentRight={
           <>
-            <Link to="/wallet/receive">
-              <ResponsiveButton icon={ArrowDownIcon} text="Receive" size="lg" />
-            </Link>
-            <Link to="/wallet/send">
-              <ResponsiveButton icon={ArrowUpIcon} text="Send" size="lg" />
-            </Link>
+            <LinkButton
+              to="/wallet/receive"
+              size="lg"
+              className="hidden xl:inline-flex !px-12"
+            >
+              <ArrowDownIcon />
+              Receive
+            </LinkButton>
+            <LinkButton
+              to="/wallet/send"
+              size="lg"
+              className="hidden xl:inline-flex !px-12"
+            >
+              <ArrowUpIcon />
+              Send
+            </LinkButton>
           </>
         }
       />
@@ -90,8 +99,8 @@ function Wallet() {
           </AlertDescription>
         </Alert>
       )}
-      <div className="flex flex-col xl:flex-row justify-between xl:items-start gap-5">
-        <div className="flex flex-col gap-1 text-center xl:text-left">
+      <div className="flex flex-col xl:flex-row justify-between xl:items-start gap-3">
+        <div className="flex flex-col gap-1 p-6 xl:p-0 text-center xl:text-left">
           <div className="text-5xl font-medium balance sensitive slashed-zero">
             {new Intl.NumberFormat().format(
               Math.floor(balances.lightning.totalSpendable / 1000)
@@ -102,6 +111,14 @@ function Wallet() {
             className="text-xl"
             amount={balances.lightning.totalSpendable / 1000}
           />
+        </div>
+        <div className="grid grid-cols-2 items-center gap-3 xl:hidden">
+          <LinkButton to="/wallet/receive" size="lg">
+            Receive
+          </LinkButton>
+          <LinkButton to="/wallet/send" size="lg">
+            Send
+          </LinkButton>
         </div>
         <div className="grid grid-cols-2 items-center gap-3">
           <ExternalLink to="https://www.getalby.com/topup">
