@@ -43,6 +43,7 @@ import { Claude } from "src/screens/internal-apps/Claude";
 import { Goose } from "src/screens/internal-apps/Goose";
 import { LightningMessageboard } from "src/screens/internal-apps/LightningMessageboard";
 import { SimpleBoost } from "src/screens/internal-apps/SimpleBoost";
+import { Tictactoe } from "src/screens/internal-apps/Tictactoe";
 import { ZapPlanner } from "src/screens/internal-apps/ZapPlanner";
 import BuyBitcoin from "src/screens/onchain/BuyBitcoin";
 import DepositBitcoin from "src/screens/onchain/DepositBitcoin";
@@ -357,6 +358,10 @@ const routes = [
           {
             path: "claude",
             element: <Claude />,
+          },
+          {
+            path: "tictactoe",
+            element: <Tictactoe />,
           },
         ],
       },
