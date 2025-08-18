@@ -1,11 +1,8 @@
 import React, { useEffect } from "react";
-import Lottie from "react-lottie";
 import { useNavigate } from "react-router-dom";
-import animationDataDark from "src/assets/lotties/loading-dark.json";
-import animationDataLight from "src/assets/lotties/loading-light.json";
 import Container from "src/components/Container";
+import LottieLoading from "src/components/LottieLoading";
 import { Button } from "src/components/ui/button";
-import { useTheme } from "src/components/ui/theme-provider";
 import { ToastSignature, useToast } from "src/components/ui/use-toast";
 
 import { useInfo } from "src/hooks/useInfo";
@@ -17,7 +14,6 @@ import { request } from "src/utils/request";
 
 let lastStartupErrorTime: string;
 export function SetupFinish() {
-  const { isDarkMode } = useTheme();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { data: info } = useInfo(true); // poll the info endpoint to auto-redirect when app is running
@@ -25,15 +21,6 @@ export function SetupFinish() {
   const [loading, setLoading] = React.useState(false);
   const [connectionError, setConnectionError] = React.useState(false);
   const hasFetchedRef = React.useRef(false);
-
-  const defaultOptions = {
-    loop: true,
-    autoplay: true,
-    animationData: isDarkMode ? animationDataDark : animationDataLight,
-    rendererSettings: {
-      preserveAspectRatio: "xMidYMid slice",
-    },
-  };
 
   const startupError = info?.startupError;
   const startupErrorTime = info?.startupErrorTime;
@@ -122,7 +109,7 @@ export function SetupFinish() {
   return (
     <Container>
       <div className="flex flex-col gap-5 justify-center text-center">
-        <Lottie options={defaultOptions} height={400} width={400} />
+        <LottieLoading size={400} />
         <h1 className="font-semibold text-lg font-headline">
           Setting up your Hub...
         </h1>

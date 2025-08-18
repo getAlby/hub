@@ -424,6 +424,11 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 	if orderBy == "" {
 		orderBy = "last_used_at"
 	}
+	if orderBy == "last_used_at" {
+		// when ordering by last used at, apps with last_used_at is NULL should be ordered last
+		orderBy = "last_used_at IS NULL, " + orderBy
+	}
+
 	query = query.Order(orderBy + " DESC")
 
 	if limit == 0 {
@@ -736,31 +741,35 @@ func toApiSwap(swap *swaps.Swap) *Swap {
 	}
 }
 
-func (api *api) GetSwapInFees() (*SwapFeesResponse, error) {
-	swapInFees, err := api.svc.GetSwapsService().CalculateSwapInFee()
+func (api *api) GetSwapInInfo() (*SwapInfoResponse, error) {
+	swapInInfo, err := api.svc.GetSwapsService().GetSwapInInfo()
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to calculate fee info")
 		return nil, err
 	}
 
-	return &SwapFeesResponse{
-		AlbyServiceFee:  swapInFees.AlbyServiceFee,
-		BoltzServiceFee: swapInFees.BoltzServiceFee,
-		BoltzNetworkFee: swapInFees.BoltzNetworkFee,
+	return &SwapInfoResponse{
+		AlbyServiceFee:  swapInInfo.AlbyServiceFee,
+		BoltzServiceFee: swapInInfo.BoltzServiceFee,
+		BoltzNetworkFee: swapInInfo.BoltzNetworkFee,
+		MinAmount:       swapInInfo.MinAmount,
+		MaxAmount:       swapInInfo.MaxAmount,
 	}, nil
 }
 
-func (api *api) GetSwapOutFees() (*SwapFeesResponse, error) {
-	swapOutFees, err := api.svc.GetSwapsService().CalculateSwapOutFee()
+func (api *api) GetSwapOutInfo() (*SwapInfoResponse, error) {
+	swapOutInfo, err := api.svc.GetSwapsService().GetSwapOutInfo()
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to calculate fee info")
 		return nil, err
 	}
 
-	return &SwapFeesResponse{
-		AlbyServiceFee:  swapOutFees.AlbyServiceFee,
-		BoltzServiceFee: swapOutFees.BoltzServiceFee,
-		BoltzNetworkFee: swapOutFees.BoltzNetworkFee,
+	return &SwapInfoResponse{
+		AlbyServiceFee:  swapOutInfo.AlbyServiceFee,
+		BoltzServiceFee: swapOutInfo.BoltzServiceFee,
+		BoltzNetworkFee: swapOutInfo.BoltzNetworkFee,
+		MinAmount:       swapOutInfo.MinAmount,
+		MaxAmount:       swapOutInfo.MaxAmount,
 	}, nil
 }
 
@@ -777,7 +786,7 @@ func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *Ini
 		return nil, errors.New("invalid swap amount")
 	}
 
-	swapOutResponse, err := api.svc.GetSwapsService().SwapOut(amount, destination, false)
+	swapOutResponse, err := api.svc.GetSwapsService().SwapOut(amount, destination, initiateSwapOutRequest.UseExactReceiveAmount, false, false)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount":      amount,

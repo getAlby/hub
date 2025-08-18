@@ -1588,7 +1588,5 @@ func getEventWhitelist() []string {
 		"nwc_alby_account_connected",
 		"nwc_swap_succeeded",
 		"nwc_rebalance_succeeded",
-
-		"interest_virtual_bankaccount",
 	}
 }

@@ -11,9 +11,9 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Textarea } from "src/components/ui/textarea";
 import { useToast } from "src/components/ui/use-toast";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -85,7 +85,7 @@ export function SimpleBoost() {
                 onClick={() => copyToClipboard(scriptContent, toast)}
                 variant="outline"
               >
-                <CopyIcon className="w-4 h-4 mr-2" />
+                <CopyIcon />
                 Copy
               </Button>
             </div>

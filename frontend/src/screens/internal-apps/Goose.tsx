@@ -10,14 +10,15 @@ import {
   AccordionTrigger,
 } from "src/components/ui/accordion";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { Button, ExternalLinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { LoadingButton } from "src/components/ui/loading-button";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";

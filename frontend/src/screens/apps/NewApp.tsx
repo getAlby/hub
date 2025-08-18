@@ -15,9 +15,9 @@ import {
 import React from "react";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
 import { useToast } from "src/components/ui/use-toast";
 import { useCapabilities } from "src/hooks/useCapabilities";

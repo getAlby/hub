@@ -91,7 +91,7 @@ export function AppStoreDetail() {
                 {appStoreApp.playLink && (
                   <ExternalLink to={appStoreApp.playLink}>
                     <Button variant="outline">
-                      <PlayStoreIcon className="w-4 h-4 mr-2" />
+                      <PlayStoreIcon />
                       Play Store
                     </Button>
                   </ExternalLink>
@@ -99,7 +99,7 @@ export function AppStoreDetail() {
                 {appStoreApp.appleLink && (
                   <ExternalLink to={appStoreApp.appleLink}>
                     <Button variant="outline">
-                      <AppleIcon className="w-4 h-4 mr-2" />
+                      <AppleIcon />
                       App Store
                     </Button>
                   </ExternalLink>
@@ -107,7 +107,7 @@ export function AppStoreDetail() {
                 {appStoreApp.zapStoreLink && (
                   <ExternalLink to={appStoreApp.zapStoreLink}>
                     <Button variant="outline">
-                      <ZapStoreIcon className="w-4 h-4 mr-2" />
+                      <ZapStoreIcon />
                       Zapstore
                     </Button>
                   </ExternalLink>
@@ -115,7 +115,7 @@ export function AppStoreDetail() {
                 {appStoreApp.chromeLink && (
                   <ExternalLink to={appStoreApp.chromeLink}>
                     <Button variant="outline">
-                      <ChromeIcon className="w-4 h-4 mr-2" />
+                      <ChromeIcon />
                       Chrome Web Store
                     </Button>
                   </ExternalLink>
@@ -123,7 +123,7 @@ export function AppStoreDetail() {
                 {appStoreApp.firefoxLink && (
                   <ExternalLink to={appStoreApp.firefoxLink}>
                     <Button variant="outline">
-                      <FirefoxIcon className="w-4 h-4 mr-2" />
+                      <FirefoxIcon />
                       Firefox Add-Ons
                     </Button>
                   </ExternalLink>
@@ -140,7 +140,7 @@ export function AppStoreDetail() {
                 {appStoreApp.webLink && (
                   <ExternalLink to={appStoreApp.webLink}>
                     <Button variant="outline">
-                      <GlobeIcon className="w-4 h-4 mr-2" />
+                      <GlobeIcon />
                       Website
                     </Button>
                   </ExternalLink>

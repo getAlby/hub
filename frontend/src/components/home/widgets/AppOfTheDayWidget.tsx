@@ -37,7 +37,7 @@ export function AppOfTheDayWidget() {
             alt="logo"
             className="inline rounded-lg w-12 h-12"
           />
-          <div className="flex-grow">
+          <div className="grow">
             <CardTitle>{app.title}</CardTitle>
             <CardDescription>{app.description}</CardDescription>
           </div>
@@ -48,7 +48,7 @@ export function AppOfTheDayWidget() {
           to={app.internal ? `/internal-apps/${app.id}` : `/appstore/${app.id}`}
         >
           <Button variant="outline">
-            <ExternalLinkIcon className="w-4 h-4 mr-2" />
+            <ExternalLinkIcon />
             Open
           </Button>
         </Link>

@@ -49,7 +49,7 @@ export function AppDetailHeader({
         ) : (
           <Link to={`/apps/new?app=${appStoreApp.id}`}>
             <Button>
-              <NostrWalletConnectIcon className="w-4 h-4 mr-2" />
+              <NostrWalletConnectIcon className="size-4" />
               Connect to {appStoreApp.title}
             </Button>
           </Link>

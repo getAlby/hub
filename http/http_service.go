@@ -127,7 +127,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/v2/apps/:id", httpSvc.appsShowHandler)
 	restrictedApiGroup.PATCH("/apps/:pubkey", httpSvc.appsUpdateHandler)
 	restrictedApiGroup.DELETE("/apps/:pubkey", httpSvc.appsDeleteHandler)
-	restrictedApiGroup.POST("/apps/:pubkey/topup", httpSvc.isolatedAppTopupHandler)
+	restrictedApiGroup.POST("/transfers", httpSvc.transfersHandler)
 	restrictedApiGroup.POST("/apps", httpSvc.appsCreateHandler)
 	restrictedApiGroup.POST("/lightning-addresses", httpSvc.lightningAddressesCreateHandler)
 	restrictedApiGroup.DELETE("/lightning-addresses/:appId", httpSvc.lightningAddressesDeleteHandler)
@@ -171,8 +171,8 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.POST("/command", httpSvc.execCustomNodeCommandHandler)
 	restrictedApiGroup.GET("/swaps", httpSvc.listSwapsHandler)
 	restrictedApiGroup.GET("/swaps/:swapId", httpSvc.lookupSwapHandler)
-	restrictedApiGroup.GET("/swaps/out/fees", httpSvc.getSwapOutFeesHandler)
-	restrictedApiGroup.GET("/swaps/in/fees", httpSvc.getSwapInFeesHandler)
+	restrictedApiGroup.GET("/swaps/out/info", httpSvc.getSwapOutInfoHandler)
+	restrictedApiGroup.GET("/swaps/in/info", httpSvc.getSwapInInfoHandler)
 	restrictedApiGroup.POST("/swaps/out", httpSvc.initiateSwapOutHandler)
 	restrictedApiGroup.POST("/swaps/in", httpSvc.initiateSwapInHandler)
 	restrictedApiGroup.POST("/swaps/refund", httpSvc.refundSwapHandler)
@@ -1036,28 +1036,20 @@ func (httpSvc *HttpService) appsUpdateHandler(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (httpSvc *HttpService) isolatedAppTopupHandler(c echo.Context) error {
-	var requestData api.TopupIsolatedAppRequest
+func (httpSvc *HttpService) transfersHandler(c echo.Context) error {
+	var requestData api.TransferRequest
 	if err := c.Bind(&requestData); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
 
-	dbApp := httpSvc.appsSvc.GetAppByPubkey(c.Param("pubkey"))
-
-	if dbApp == nil {
-		return c.JSON(http.StatusNotFound, ErrorResponse{
-			Message: "App not found",
-		})
-	}
-
-	err := httpSvc.api.TopupIsolatedApp(c.Request().Context(), dbApp, requestData.AmountSat*1000)
+	err := httpSvc.api.Transfer(c.Request().Context(), requestData.FromAppId, requestData.ToAppId, requestData.AmountSat*1000)
 
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to topup sub-wallet")
+		logger.Logger.WithError(err).Error("Failed to transfer funds")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to topup sub-wallet: %v", err),
+			Message: fmt.Sprintf("Failed to transfer funds: %v", err),
 		})
 	}
 
@@ -1360,22 +1352,22 @@ func (httpSvc *HttpService) lookupSwapHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, swap)
 }
 
-func (httpSvc *HttpService) getSwapOutFeesHandler(c echo.Context) error {
-	swapOutFeesResponse, err := httpSvc.api.GetSwapOutFees()
+func (httpSvc *HttpService) getSwapOutInfoHandler(c echo.Context) error {
+	swapOutFeesResponse, err := httpSvc.api.GetSwapOutInfo()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to get swap out fees: %v", err),
+			Message: fmt.Sprintf("Failed to get swap out info: %v", err),
 		})
 	}
 
 	return c.JSON(http.StatusOK, swapOutFeesResponse)
 }
 
-func (httpSvc *HttpService) getSwapInFeesHandler(c echo.Context) error {
-	swapOutFeesResponse, err := httpSvc.api.GetSwapInFees()
+func (httpSvc *HttpService) getSwapInInfoHandler(c echo.Context) error {
+	swapOutFeesResponse, err := httpSvc.api.GetSwapInInfo()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to get swap in fees: %v", err),
+			Message: fmt.Sprintf("Failed to get swap in info: %v", err),
 		})
 	}
 

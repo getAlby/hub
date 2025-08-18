@@ -30,8 +30,8 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { createApp } from "src/requests/createApp";
@@ -151,7 +151,6 @@ export function AlbyGo() {
         </AlertDialogContent>
       </AlertDialog>
       <AppDetailHeader appStoreApp={appStoreApp} />
-
       <AppDetailConnectedApps appStoreApp={appStoreApp} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -218,7 +217,7 @@ export function AlbyGo() {
                 {appStoreApp.playLink && (
                   <ExternalLink to={appStoreApp.playLink}>
                     <Button variant="outline">
-                      <PlayStoreIcon className="w-4 h-4 mr-2" />
+                      <PlayStoreIcon />
                       Play Store
                     </Button>
                   </ExternalLink>
@@ -226,7 +225,7 @@ export function AlbyGo() {
                 {appStoreApp.appleLink && (
                   <ExternalLink to={appStoreApp.appleLink}>
                     <Button variant="outline">
-                      <AppleIcon className="w-4 h-4 mr-2" />
+                      <AppleIcon />
                       App Store
                     </Button>
                   </ExternalLink>
@@ -234,7 +233,7 @@ export function AlbyGo() {
                 {appStoreApp.zapStoreLink && (
                   <ExternalLink to={appStoreApp.zapStoreLink}>
                     <Button variant="outline">
-                      <ZapStoreIcon className="w-4 h-4 mr-2" />
+                      <ZapStoreIcon />
                       Zapstore
                     </Button>
                   </ExternalLink>
@@ -242,7 +241,7 @@ export function AlbyGo() {
                 {appStoreApp.chromeLink && (
                   <ExternalLink to={appStoreApp.chromeLink}>
                     <Button variant="outline">
-                      <ChromeIcon className="w-4 h-4 mr-2" />
+                      <ChromeIcon />
                       Chrome Web Store
                     </Button>
                   </ExternalLink>
@@ -250,7 +249,7 @@ export function AlbyGo() {
                 {appStoreApp.firefoxLink && (
                   <ExternalLink to={appStoreApp.firefoxLink}>
                     <Button variant="outline">
-                      <FirefoxIcon className="w-4 h-4 mr-2" />
+                      <FirefoxIcon />
                       Firefox Add-Ons
                     </Button>
                   </ExternalLink>
@@ -267,7 +266,7 @@ export function AlbyGo() {
                 {appStoreApp.webLink && (
                   <ExternalLink to={appStoreApp.webLink}>
                     <Button variant="outline">
-                      <GlobeIcon className="w-4 h-4 mr-2" />
+                      <GlobeIcon />
                       Website
                     </Button>
                   </ExternalLink>
@@ -287,7 +286,7 @@ export function AlbyGo() {
               </p>
               {
                 <Button className="mt-8" onClick={onClickCreateConnection}>
-                  <NostrWalletConnectIcon className="w-4 h-4 mr-2" />
+                  <NostrWalletConnectIcon />
                   Connect with One Tap Connections
                 </Button>
               }

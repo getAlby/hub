@@ -4,7 +4,7 @@ import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import Loading from "src/components/Loading";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { Button, LinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
 import {
   Card,
   CardDescription,
@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { Progress } from "src/components/ui/progress";
 import { useDeleteApp } from "src/hooks/useDeleteApp";
 import { useUnusedApps } from "src/hooks/useUnusedApps";
@@ -82,7 +83,7 @@ export function AppsCleanup() {
                           setSkippedCount((current) => current + 1);
                         }}
                       >
-                        <SkipForwardIcon className="h-4 w-4 mr-2" />
+                        <SkipForwardIcon />
                         Skip
                       </Button>
                       <Button
@@ -93,7 +94,7 @@ export function AppsCleanup() {
                           setDeletedCount((current) => current + 1);
                         }}
                       >
-                        <Trash2Icon className="h-4 w-4 mr-2" />
+                        <Trash2Icon />
                         Delete
                       </Button>
                     </>

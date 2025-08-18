@@ -73,7 +73,6 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	}
 
 	ldkConfig := ldk_node.DefaultConfig()
-	listeningAddresses := strings.Split(cfg.GetEnv().LDKListeningAddresses, ",")
 
 	ldkConfig.TrustedPeers0conf = []string{
 		lsp.OlympusLSP().Pubkey,
@@ -110,7 +109,13 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		"035e8a9034a8c68f219aacadae748c7a3cd719109309db39b09886e5ff17696b1b", // lqwd*/
 	}
 
+	listeningAddresses := strings.Split(cfg.GetEnv().LDKListeningAddresses, ",")
 	ldkConfig.ListeningAddresses = &listeningAddresses
+	if cfg.GetEnv().LDKAnnouncementAddresses != "" {
+		announcementAddresses := strings.Split(cfg.GetEnv().LDKAnnouncementAddresses, ",")
+		ldkConfig.AnnouncementAddresses = &announcementAddresses
+	}
+
 	logLevel, err := strconv.Atoi(cfg.GetEnv().LDKLogLevel)
 	if err != nil {
 		// If parsing log level fails we default to 3, which is then bumped below

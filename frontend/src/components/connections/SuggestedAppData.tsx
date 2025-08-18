@@ -38,6 +38,7 @@ import zappybird from "src/assets/suggested-apps/zappy-bird.png";
 import zapstore from "src/assets/suggested-apps/zapstore.png";
 import zeus from "src/assets/suggested-apps/zeus.png";
 import ExternalLink from "src/components/ExternalLink";
+import { App } from "src/types";
 
 export type SuggestedApp = {
   id: string;
@@ -2126,3 +2127,11 @@ export const suggestedApps: SuggestedApp[] = (
     },
   ] satisfies SuggestedApp[]
 ).sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
+
+export const getAppDetails = (app: App) => {
+  return suggestedApps.find(
+    (suggestedApp) =>
+      suggestedApp.id === (app.metadata?.app_store_app_id ?? "") ||
+      app.name.includes(suggestedApp.title)
+  );
+};

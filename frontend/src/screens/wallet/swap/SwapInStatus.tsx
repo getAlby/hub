@@ -7,14 +7,12 @@ import {
   ZapIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import Lottie from "react-lottie";
 import { useParams } from "react-router-dom";
-import animationDataDark from "src/assets/lotties/loading-dark.json";
-import animationDataLight from "src/assets/lotties/loading-light.json";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import LottieLoading from "src/components/LottieLoading";
 import QRCode from "src/components/QRCode";
 import { Button } from "src/components/ui/button";
 import {
@@ -23,8 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { LoadingButton } from "src/components/ui/loading-button";
-import { useTheme } from "src/components/ui/theme-provider";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Tooltip,
   TooltipContent,
@@ -43,7 +40,6 @@ import { request } from "src/utils/request";
 
 export default function SwapInStatus() {
   const { toast } = useToast();
-  const { isDarkMode } = useTheme();
   const { data: info } = useInfo();
   const { data: balances } = useBalances();
   const { data: recommendedFees } = useMempoolApi<{
@@ -81,15 +77,6 @@ export default function SwapInStatus() {
 
   const copyAddress = () => {
     copyToClipboard(swap.lockupAddress, toast);
-  };
-
-  const defaultOptions = {
-    loop: true,
-    autoplay: true,
-    animationData: isDarkMode ? animationDataDark : animationDataLight,
-    rendererSettings: {
-      preserveAspectRatio: "xMidYMid slice",
-    },
   };
 
   async function payWithAlbyHub() {
@@ -165,7 +152,7 @@ export default function SwapInStatus() {
                   <FormattedFiatAmount amount={swap.receiveAmount as number} />
                 </div>
                 <Button onClick={copyPaymentHash} variant="outline">
-                  <CopyIcon className="w-4 h-4 mr-2" />
+                  <CopyIcon />
                   Copy Payment Hash
                 </Button>
               </>
@@ -176,7 +163,7 @@ export default function SwapInStatus() {
                 )}
                 {swapStatus === "PENDING" &&
                   (swap.lockupTxId ? (
-                    <Lottie options={defaultOptions} />
+                    <LottieLoading />
                   ) : (
                     <QRCode value={swap.lockupAddress} />
                   ))}
@@ -190,7 +177,7 @@ export default function SwapInStatus() {
                   <div className="flex justify-center gap-4 flex-wrap">
                     {swap.state !== "FAILED" && (
                       <Button onClick={copyAddress} variant="outline">
-                        <CopyIcon className="w-4 h-4 mr-2" />
+                        <CopyIcon />
                         Copy Address
                       </Button>
                     )}
@@ -203,7 +190,7 @@ export default function SwapInStatus() {
                           onClick={payWithAlbyHub}
                           disabled={!recommendedFees}
                         >
-                          <ZapIcon className="w-4 h-4 mr-2" />
+                          <ZapIcon />
                           Use Hub On-Chain Funds
                         </LoadingButton>
                       )}

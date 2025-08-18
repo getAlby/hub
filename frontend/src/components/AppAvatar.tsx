@@ -29,7 +29,7 @@ export default function AppAvatar({ app, className }: Props) {
   return (
     <div
       className={cn(
-        "rounded-lg border relative overflow-hidden",
+        "rounded-lg relative overflow-hidden",
         !image && `avatar-gradient-${gradient}`,
         className
       )}
