@@ -1,3 +1,4 @@
+import { Invoice } from "@getalby/lightning-tools";
 import type { LightningAddress } from "@getalby/lightning-tools/lnurl";
 import { XIcon } from "lucide-react";
 import React from "react";
@@ -5,6 +6,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import { PaymentFailedAlert } from "src/components/PaymentFailedAlert";
 import { PendingPaymentAlert } from "src/components/PendingPaymentAlert";
 import { SpendingAlert } from "src/components/SpendingAlert";
 import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
@@ -28,9 +30,12 @@ export default function LnurlPay() {
   const [amount, setAmount] = React.useState("");
   const [comment, setComment] = React.useState("");
   const [isLoading, setLoading] = React.useState(false);
+  const [invoice, setInvoice] = React.useState<Invoice>();
+  const [errorMessage, setErrorMessage] = React.useState("");
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setErrorMessage("");
     try {
       if (!lnAddress) {
         throw new Error("no lightning address set");
@@ -40,6 +45,7 @@ export default function LnurlPay() {
         satoshi: parseInt(amount),
         comment,
       });
+      setInvoice(invoice);
       const metadata: TransactionMetadata = {
         ...(comment && { comment }),
         ...(identifier && { recipient_data: { identifier } }),
@@ -71,12 +77,13 @@ export default function LnurlPay() {
         title: "Successfully paid invoice",
       });
     } catch (e) {
+      console.error(e);
+      setErrorMessage("" + e);
       toast({
         variant: "destructive",
         title: "Failed to send payment",
         description: "" + e,
       });
-      console.error(e);
     } finally {
       setLoading(false);
     }
@@ -95,8 +102,16 @@ export default function LnurlPay() {
   return (
     <div className="grid gap-4">
       <AppHeader title="Send to Lightning Address" />
-      <PendingPaymentAlert />
-      <form onSubmit={onSubmit} className="grid gap-6 md:max-w-lg">
+      <div className="max-w-lg">
+        <PendingPaymentAlert />
+        {errorMessage && invoice && (
+          <PaymentFailedAlert
+            errorMessage={errorMessage}
+            invoice={invoice.paymentRequest}
+          />
+        )}
+      </div>
+      <form onSubmit={onSubmit} className="grid gap-6 max-w-lg">
         <div className="grid gap-2">
           <div className="text-sm font-medium">Recipient</div>
           <div className="flex items-center justify-between">
@@ -167,11 +182,7 @@ export default function LnurlPay() {
           <LinkButton to="/wallet/send" variant="outline">
             Back
           </LinkButton>
-          <LoadingButton
-            loading={isLoading}
-            type="submit"
-            className="w-full md:w-fit"
-          >
+          <LoadingButton loading={isLoading} type="submit" className="flex-1">
             Send
           </LoadingButton>
         </div>

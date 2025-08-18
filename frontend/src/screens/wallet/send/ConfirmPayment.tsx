@@ -65,13 +65,13 @@ export default function ConfirmPayment() {
         title: "Successfully paid invoice",
       });
     } catch (e) {
+      console.error(e);
+      setErrorMessage("" + e);
       toast({
         variant: "destructive",
         title: "Failed to send payment",
         description: "" + e,
       });
-      setErrorMessage("" + e);
-      console.error(e);
     } finally {
       setLoading(false);
     }
@@ -90,13 +90,15 @@ export default function ConfirmPayment() {
   return (
     <div className="grid gap-4">
       <AppHeader title="Pay Invoice" />
-      <PendingPaymentAlert />
-      {errorMessage && (
-        <PaymentFailedAlert
-          errorMessage={errorMessage}
-          invoice={invoice.paymentRequest}
-        />
-      )}
+      <div className="max-w-lg">
+        <PendingPaymentAlert />
+        {errorMessage && (
+          <PaymentFailedAlert
+            errorMessage={errorMessage}
+            invoice={invoice.paymentRequest}
+          />
+        )}
+      </div>
       <div className="w-full md:max-w-lg">
         <Card>
           <CardHeader>

@@ -307,11 +307,7 @@ function OnchainForm({
         <LinkButton to="/wallet/send" variant="outline">
           Back
         </LinkButton>
-        <LoadingButton
-          loading={isLoading}
-          type="submit"
-          className="w-full md:w-fit"
-        >
+        <LoadingButton loading={isLoading} type="submit" className="flex-1">
           Send
         </LoadingButton>
       </div>
@@ -452,11 +448,7 @@ function SwapForm({
         <LinkButton to="/wallet/send" variant="outline">
           Back
         </LinkButton>
-        <LoadingButton
-          loading={isLoading}
-          type="submit"
-          className="w-full md:w-fit"
-        >
+        <LoadingButton loading={isLoading} type="submit" className="flex-1">
           Send
         </LoadingButton>
       </div>

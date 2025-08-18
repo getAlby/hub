@@ -8,6 +8,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import { PaymentFailedAlert } from "src/components/PaymentFailedAlert";
 import { PendingPaymentAlert } from "src/components/PendingPaymentAlert";
 import { SpendingAlert } from "src/components/SpendingAlert";
 import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
@@ -26,9 +27,11 @@ export default function ZeroAmount() {
   const invoice = state?.args?.paymentRequest as Invoice;
   const [amount, setAmount] = React.useState("");
   const [isLoading, setLoading] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState("");
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setErrorMessage("");
     try {
       if (!invoice) {
         throw new Error("no invoice set");
@@ -57,12 +60,13 @@ export default function ZeroAmount() {
         title: "Successfully paid invoice",
       });
     } catch (e) {
+      console.error(e);
+      setErrorMessage("" + e);
       toast({
         variant: "destructive",
         title: "Failed to send payment",
         description: "" + e,
       });
-      console.error(e);
     } finally {
       setLoading(false);
     }
@@ -81,7 +85,15 @@ export default function ZeroAmount() {
   return (
     <div className="grid gap-4">
       <AppHeader title="Pay Invoice" />
-      <PendingPaymentAlert />
+      <div className="max-w-lg">
+        <PendingPaymentAlert />
+        {errorMessage && (
+          <PaymentFailedAlert
+            errorMessage={errorMessage}
+            invoice={invoice.paymentRequest}
+          />
+        )}
+      </div>
       <form onSubmit={onSubmit} className="grid gap-6 md:max-w-lg">
         <div className="grid gap-2">
           <div className="text-sm font-medium">Recipient</div>
@@ -141,11 +153,7 @@ export default function ZeroAmount() {
           <LinkButton to="/wallet/send" variant="outline">
             Back
           </LinkButton>
-          <LoadingButton
-            loading={isLoading}
-            type="submit"
-            className="w-full md:w-fit"
-          >
+          <LoadingButton loading={isLoading} type="submit" className="flex-1">
             Send
           </LoadingButton>
         </div>
