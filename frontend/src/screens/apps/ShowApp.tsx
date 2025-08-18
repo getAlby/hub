@@ -15,6 +15,7 @@ import { request } from "src/utils/request"; // build the project for this to ap
 import {
   AlertCircleIcon,
   EllipsisIcon,
+  ExternalLinkIcon,
   PencilIcon,
   SquareStackIcon,
   Trash2Icon,
@@ -207,6 +208,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const appName =
     app.name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : app.name;
 
+  // TODO: also support finding by name prefix
   const appDetails = getAppDetails(app.metadata?.app_store_app_id ?? "");
 
   return (
@@ -494,8 +496,10 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                               ? `/internal-apps/${appDetails.id}`
                               : `/appstore/${appDetails.id}`
                           }
+                          className="flex items-center gap-2"
                         >
-                          View app details
+                          <ExternalLinkIcon className="size-4" />{" "}
+                          {appDetails.title}
                         </Link>
                       </TableCell>
                     </TableRow>
