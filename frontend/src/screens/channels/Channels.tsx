@@ -352,7 +352,7 @@ export default function Channels() {
                               <InfoIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
                             </div>
                           </TooltipTrigger>
-                          <TooltipContent className="w-[300px]">
+                          <TooltipContent>
                             Your spending balance is the funds on your side of
                             your channels, which you can use to make lightning
                             payments. Your total lightning balance is{" "}
@@ -417,7 +417,7 @@ export default function Channels() {
                               <InfoIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
                             </div>
                           </TooltipTrigger>
-                          <TooltipContent className="w-[300px]">
+                          <TooltipContent>
                             Your receiving limit is the funds owned by your
                             channel partner, which will be moved to your side
                             when you receive lightning payments.
@@ -464,7 +464,7 @@ export default function Channels() {
                             <InfoIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent className="w-[300px]">
+                        <TooltipContent>
                           Your on-chain balance can be used to open new outgoing
                           lightning channels and to ensure channels can be
                           closed when required. When channels are closed, funds
@@ -501,7 +501,7 @@ export default function Channels() {
                                 <TooltipTrigger>
                                   <AlertTriangleIcon className="size-3 text-muted-foreground" />
                                 </TooltipTrigger>
-                                <TooltipContent className="w-[300px]">
+                                <TooltipContent>
                                   You have insufficient funds in reserve to
                                   close channels or bump on-chain transactions
                                   and currently rely on the counterparty. It is

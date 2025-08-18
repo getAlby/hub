@@ -257,7 +257,7 @@ function NewChannelInternal({
                     <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                   </div>
                 </TooltipTrigger>
-                <TooltipContent className="w-[300px]">
+                <TooltipContent>
                   Configure the amount of receiving capacity you need. You will
                   only pay for the liquidity fee which will be shown in the next
                   step.

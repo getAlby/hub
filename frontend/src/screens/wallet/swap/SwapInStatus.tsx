@@ -288,7 +288,7 @@ export default function SwapInStatus() {
                               <CircleHelpIcon className="h-4 w-4 text-muted-foreground" />
                             </div>
                           </TooltipTrigger>
-                          <TooltipContent className="w-[300px]">
+                          <TooltipContent>
                             Deposit usually fails when there is an amount
                             mismatch or if Boltz failed to send the lightning
                             payment to your node.
@@ -324,7 +324,7 @@ export default function SwapInStatus() {
                           <CircleHelpIcon className="h-4 w-4 text-muted-foreground" />
                         </div>
                       </TooltipTrigger>
-                      <TooltipContent className="w-[300px]">
+                      <TooltipContent>
                         Deposit usually fails when there is an amount mismatch
                         or if Boltz failed to send the lightning payment to your
                         node. You can use the Swap Refund button in Settings{" "}

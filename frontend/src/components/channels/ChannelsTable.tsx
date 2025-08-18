@@ -62,7 +62,7 @@ export function ChannelsTable({
                         <InfoIcon className="h-3 w-3 shrink-0" />
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent className="w-[400px]">
+                    <TooltipContent>
                       The type of lightning channel, By default private channel
                       is recommended. If you a podcaster or musician and expect
                       to receive keysend or Value4Value payments you will need a
@@ -83,7 +83,7 @@ export function ChannelsTable({
                         <InfoIcon className="h-3 w-3 shrink-0" />
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent className="w-[400px]">
+                    <TooltipContent>
                       Total Spending and Receiving capacity of your lightning
                       channel.
                     </TooltipContent>
@@ -99,7 +99,7 @@ export function ChannelsTable({
                         <InfoIcon className="h-3 w-3 shrink-0" />
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent className="w-[400px]">
+                    <TooltipContent>
                       Funds each participant sets aside to discourage cheating
                       by ensuring each party has something at stake. This
                       reserve cannot be spent during the channel's lifetime and
