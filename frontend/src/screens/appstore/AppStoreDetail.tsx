@@ -1,8 +1,12 @@
 import { GlobeIcon } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import AppCard from "src/components/connections/AppCard";
 import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
 import { AppDetailHeader } from "src/components/connections/AppDetailHeader";
-import { suggestedApps } from "src/components/connections/SuggestedAppData";
+import {
+  SuggestedApp,
+  suggestedApps,
+} from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
 import { AppleIcon } from "src/components/icons/Apple";
 import { ChromeIcon } from "src/components/icons/Chrome";
@@ -17,6 +21,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { useAppsForAppStoreApp } from "src/hooks/useApps";
 
 export function AppStoreDetail() {
   const { appStoreId } = useParams() as { appStoreId: string };
@@ -25,19 +30,36 @@ export function AppStoreDetail() {
 
   if (!appStoreApp) {
     navigate("/apps?tab=app-store");
-    return;
+    return null;
   }
 
   // Redirect internal apps to their dedicated pages
   if (appStoreApp.internal) {
     navigate(`/internal-apps/${appStoreId}`);
-    return;
+    return null;
   }
+
+  return (
+    <AppStoreDetailInternal appStoreId={appStoreId} appStoreApp={appStoreApp} />
+  );
+}
+
+function AppStoreDetailInternal({
+  appStoreApp,
+  appStoreId,
+}: {
+  appStoreApp: SuggestedApp;
+  appStoreId: string;
+}) {
+  const connectedApps = useAppsForAppStoreApp(appStoreApp);
 
   return (
     <div className="grid gap-5">
       <AppDetailHeader appStoreApp={appStoreApp} />
-      <AppDetailConnectedApps appStoreApp={appStoreApp} />
+      {connectedApps.length > 1 && (
+        <AppDetailConnectedApps appStoreApp={appStoreApp} />
+      )}
+      {connectedApps.length === 1 && <AppCard app={connectedApps[0]} />}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="flex flex-col w-full gap-6">

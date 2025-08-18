@@ -20,11 +20,7 @@ function SuggestedAppCard({ id, title, description, logo }: SuggestedApp) {
       <Card className="h-full">
         <CardContent>
           <div className="flex gap-3 items-center">
-            <img
-              src={logo}
-              alt="logo"
-              className="inline rounded-lg w-12 h-12"
-            />
+            <img src={logo} alt="logo" className="inline rounded-lg size-12" />
             <div className="grow">
               <CardTitle>{title}</CardTitle>
               <CardDescription>{description}</CardDescription>
@@ -40,14 +36,10 @@ function InternalAppCard({ id, title, description, logo }: SuggestedApp) {
   return (
     <Link to={`/internal-apps/${id}`}>
       <Card className="h-full">
-        <CardContent className="p-4">
+        <CardContent>
           <div className="flex gap-3 items-center">
-            <img
-              src={logo}
-              alt="logo"
-              className="inline rounded-lg w-12 h-12"
-            />
-            <div className="flex-grow">
+            <img src={logo} alt="logo" className="inline rounded-lg size-12" />
+            <div className="grow">
               <CardTitle>{title}</CardTitle>
               <CardDescription>{description}</CardDescription>
             </div>
