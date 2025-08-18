@@ -29,6 +29,7 @@ import {
 import { useToast } from "src/components/ui/use-toast";
 import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
 import { useApp } from "src/hooks/useApp";
+import { useSwap } from "src/hooks/useSwaps";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
 import { Transaction } from "src/types";
@@ -49,6 +50,8 @@ function safeNpubEncode(hex: string): string | undefined {
 
 function TransactionItem({ tx }: Props) {
   const { data: app } = useApp(tx.appId);
+  const swapId = tx.metadata?.swap_id;
+  const { data: swap } = useSwap(swapId);
   const { toast } = useToast();
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;
@@ -64,32 +67,23 @@ function TransactionItem({ tx }: Props) {
       : undefined;
 
   const recipientIdentifier = tx.metadata?.recipient_data?.identifier;
-  const to = recipientIdentifier
-    ? `${tx.state === "failed" ? "payment " : ""}to ${recipientIdentifier}`
-    : undefined;
+  const to =
+    swap?.type === "out" ? swap.destinationAddress : recipientIdentifier;
 
   const eventId = tx.metadata?.nostr?.tags?.find((t) => t[0] === "e")?.[1];
 
   const bolt12Offer = tx.metadata?.offer;
-
-  const swapId = tx.metadata?.swap_id;
 
   const description =
     tx.description || tx.metadata?.comment || bolt12Offer?.payer_note;
 
   const typeStateText =
     type == "incoming"
-      ? swapId
-        ? "Swapped in"
-        : "Received"
+      ? "Received"
       : tx.state === "settled" // we only fetch settled incoming payments
-        ? swapId
-          ? "Swapped out"
-          : "Sent"
+        ? "Sent"
         : tx.state === "pending"
-          ? swapId
-            ? "Swapping out"
-            : "Sending"
+          ? "Sending"
           : "Failed";
 
   const Icon =
@@ -124,7 +118,7 @@ function TransactionItem({ tx }: Props) {
         <Icon
           strokeWidth={3}
           className={cn(
-            "w-6 h-6 md:w-8 md:h-8",
+            "size-6 md:w-8 md:h-8",
             tx.state === "failed"
               ? "stroke-red-500 dark:stroke-rose-500"
               : tx.state === "pending"
@@ -141,7 +135,7 @@ function TransactionItem({ tx }: Props) {
           >
             <AppAvatar
               app={app}
-              className="border-none p-0 rounded-full w-[18px] h-[18px] md:w-6 md:h-6 shadow-sm"
+              className="border-none p-0 rounded-full w-[18px] h-[18px] md:w-6 md:h-6 shadow-xs"
             />
           </div>
         )}
@@ -170,9 +164,13 @@ function TransactionItem({ tx }: Props) {
               <span className="md:text-xl font-semibold break-all line-clamp-1">
                 {typeStateText}
                 {from !== undefined && <>&nbsp;{from}</>}
-                {to !== undefined && <>&nbsp;{to}</>}
+                {to !== undefined && (
+                  <>
+                    &nbsp;{tx.state === "failed" ? "payment " : ""}to {to}
+                  </>
+                )}
               </span>
-              <span className="text-xs md:text-base text-muted-foreground flex-shrink-0">
+              <span className="text-xs md:text-base text-muted-foreground shrink-0">
                 {dayjs(tx.updatedAt).fromNow()}
               </span>
             </div>
@@ -231,7 +229,7 @@ function TransactionItem({ tx }: Props) {
             {app && (
               <div className="mt-8">
                 <p>App</p>
-                <Link to={`/apps/${app.appPubkey}`}>
+                <Link to={`/apps/${app.id}`}>
                   <p className="font-semibold">
                     {app.name === ALBY_ACCOUNT_APP_NAME
                       ? "Alby Account"
@@ -251,10 +249,10 @@ function TransactionItem({ tx }: Props) {
                 </Link>
               </div>
             )}
-            {recipientIdentifier && (
+            {to && (
               <div className="mt-6">
                 <p>To</p>
-                <p className="text-muted-foreground">{recipientIdentifier}</p>
+                <p className="text-muted-foreground">{to}</p>
               </div>
             )}
             {payerName && (
@@ -338,9 +336,9 @@ function TransactionItem({ tx }: Props) {
               >
                 Details
                 {showDetails ? (
-                  <ChevronUpIcon className="w-4 h-4" />
+                  <ChevronUpIcon className="size-4" />
                 ) : (
-                  <ChevronDownIcon className="w-4 h-4" />
+                  <ChevronDownIcon className="size-4" />
                 )}
               </div>
               {showDetails && (
@@ -354,7 +352,7 @@ function TransactionItem({ tx }: Props) {
                           {bolt12Offer.id}
                         </p>
                         <CopyIcon
-                          className="cursor-pointer text-muted-foreground w-4 h-4 flex-shrink-0"
+                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
                           onClick={() => {
                             copy(bolt12Offer.id as string);
                           }}
@@ -370,7 +368,7 @@ function TransactionItem({ tx }: Props) {
                           {tx.preimage}
                         </p>
                         <CopyIcon
-                          className="cursor-pointer text-muted-foreground w-4 h-4 flex-shrink-0"
+                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
                           onClick={() => {
                             if (tx.preimage) {
                               copy(tx.preimage);
@@ -387,7 +385,7 @@ function TransactionItem({ tx }: Props) {
                         {tx.paymentHash}
                       </p>
                       <CopyIcon
-                        className="cursor-pointer text-muted-foreground w-4 h-4 flex-shrink-0"
+                        className="cursor-pointer text-muted-foreground size-4 shrink-0"
                         onClick={() => {
                           copy(tx.paymentHash);
                         }}
@@ -402,7 +400,7 @@ function TransactionItem({ tx }: Props) {
                           {tx.failureReason}
                         </p>
                         <CopyIcon
-                          className="cursor-pointer text-muted-foreground w-4 h-4 flex-shrink-0"
+                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
                           onClick={() => {
                             copy(tx.failureReason);
                           }}
@@ -418,7 +416,7 @@ function TransactionItem({ tx }: Props) {
                           {JSON.stringify(tx.metadata)}
                         </p>
                         <CopyIcon
-                          className="cursor-pointer text-muted-foreground w-4 h-4 flex-shrink-0"
+                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
                           onClick={() => {
                             copy(JSON.stringify(tx.metadata));
                           }}

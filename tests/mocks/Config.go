@@ -59,26 +59,15 @@ type MockConfig_ChangeUnlockPassword_Call struct {
 }
 
 // ChangeUnlockPassword is a helper method to define mock.On call
-//   - currentUnlockPassword string
-//   - newUnlockPassword string
+//   - currentUnlockPassword
+//   - newUnlockPassword
 func (_e *MockConfig_Expecter) ChangeUnlockPassword(currentUnlockPassword interface{}, newUnlockPassword interface{}) *MockConfig_ChangeUnlockPassword_Call {
 	return &MockConfig_ChangeUnlockPassword_Call{Call: _e.mock.On("ChangeUnlockPassword", currentUnlockPassword, newUnlockPassword)}
 }
 
 func (_c *MockConfig_ChangeUnlockPassword_Call) Run(run func(currentUnlockPassword string, newUnlockPassword string)) *MockConfig_ChangeUnlockPassword_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
-		if args[0] != nil {
-			arg0 = args[0].(string)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		run(
-			arg0,
-			arg1,
-		)
+		run(args[0].(string), args[1].(string))
 	})
 	return _c
 }
@@ -116,20 +105,14 @@ type MockConfig_CheckUnlockPassword_Call struct {
 }
 
 // CheckUnlockPassword is a helper method to define mock.On call
-//   - password string
+//   - password
 func (_e *MockConfig_Expecter) CheckUnlockPassword(password interface{}) *MockConfig_CheckUnlockPassword_Call {
 	return &MockConfig_CheckUnlockPassword_Call{Call: _e.mock.On("CheckUnlockPassword", password)}
 }
 
 func (_c *MockConfig_CheckUnlockPassword_Call) Run(run func(password string)) *MockConfig_CheckUnlockPassword_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
-		if args[0] != nil {
-			arg0 = args[0].(string)
-		}
-		run(
-			arg0,
-		)
+		run(args[0].(string))
 	})
 	return _c
 }
@@ -176,26 +159,15 @@ type MockConfig_Get_Call struct {
 }
 
 // Get is a helper method to define mock.On call
-//   - key string
-//   - encryptionKey string
+//   - key
+//   - encryptionKey
 func (_e *MockConfig_Expecter) Get(key interface{}, encryptionKey interface{}) *MockConfig_Get_Call {
 	return &MockConfig_Get_Call{Call: _e.mock.On("Get", key, encryptionKey)}
 }
 
 func (_c *MockConfig_Get_Call) Run(run func(key string, encryptionKey string)) *MockConfig_Get_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
-		if args[0] != nil {
-			arg0 = args[0].(string)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		run(
-			arg0,
-			arg1,
-		)
+		run(args[0].(string), args[1].(string))
 	})
 	return _c
 }
@@ -499,20 +471,14 @@ type MockConfig_SaveUnlockPasswordCheck_Call struct {
 }
 
 // SaveUnlockPasswordCheck is a helper method to define mock.On call
-//   - encryptionKey string
+//   - encryptionKey
 func (_e *MockConfig_Expecter) SaveUnlockPasswordCheck(encryptionKey interface{}) *MockConfig_SaveUnlockPasswordCheck_Call {
 	return &MockConfig_SaveUnlockPasswordCheck_Call{Call: _e.mock.On("SaveUnlockPasswordCheck", encryptionKey)}
 }
 
 func (_c *MockConfig_SaveUnlockPasswordCheck_Call) Run(run func(encryptionKey string)) *MockConfig_SaveUnlockPasswordCheck_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
-		if args[0] != nil {
-			arg0 = args[0].(string)
-		}
-		run(
-			arg0,
-		)
+		run(args[0].(string))
 	})
 	return _c
 }
@@ -550,20 +516,14 @@ type MockConfig_SetAutoUnlockPassword_Call struct {
 }
 
 // SetAutoUnlockPassword is a helper method to define mock.On call
-//   - unlockPassword string
+//   - unlockPassword
 func (_e *MockConfig_Expecter) SetAutoUnlockPassword(unlockPassword interface{}) *MockConfig_SetAutoUnlockPassword_Call {
 	return &MockConfig_SetAutoUnlockPassword_Call{Call: _e.mock.On("SetAutoUnlockPassword", unlockPassword)}
 }
 
 func (_c *MockConfig_SetAutoUnlockPassword_Call) Run(run func(unlockPassword string)) *MockConfig_SetAutoUnlockPassword_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
-		if args[0] != nil {
-			arg0 = args[0].(string)
-		}
-		run(
-			arg0,
-		)
+		run(args[0].(string))
 	})
 	return _c
 }
@@ -601,20 +561,14 @@ type MockConfig_SetCurrency_Call struct {
 }
 
 // SetCurrency is a helper method to define mock.On call
-//   - value string
+//   - value
 func (_e *MockConfig_Expecter) SetCurrency(value interface{}) *MockConfig_SetCurrency_Call {
 	return &MockConfig_SetCurrency_Call{Call: _e.mock.On("SetCurrency", value)}
 }
 
 func (_c *MockConfig_SetCurrency_Call) Run(run func(value string)) *MockConfig_SetCurrency_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
-		if args[0] != nil {
-			arg0 = args[0].(string)
-		}
-		run(
-			arg0,
-		)
+		run(args[0].(string))
 	})
 	return _c
 }
@@ -652,32 +606,16 @@ type MockConfig_SetIgnore_Call struct {
 }
 
 // SetIgnore is a helper method to define mock.On call
-//   - key string
-//   - value string
-//   - encryptionKey string
+//   - key
+//   - value
+//   - encryptionKey
 func (_e *MockConfig_Expecter) SetIgnore(key interface{}, value interface{}, encryptionKey interface{}) *MockConfig_SetIgnore_Call {
 	return &MockConfig_SetIgnore_Call{Call: _e.mock.On("SetIgnore", key, value, encryptionKey)}
 }
 
 func (_c *MockConfig_SetIgnore_Call) Run(run func(key string, value string, encryptionKey string)) *MockConfig_SetIgnore_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
-		if args[0] != nil {
-			arg0 = args[0].(string)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-		)
+		run(args[0].(string), args[1].(string), args[2].(string))
 	})
 	return _c
 }
@@ -715,32 +653,16 @@ type MockConfig_SetUpdate_Call struct {
 }
 
 // SetUpdate is a helper method to define mock.On call
-//   - key string
-//   - value string
-//   - encryptionKey string
+//   - key
+//   - value
+//   - encryptionKey
 func (_e *MockConfig_Expecter) SetUpdate(key interface{}, value interface{}, encryptionKey interface{}) *MockConfig_SetUpdate_Call {
 	return &MockConfig_SetUpdate_Call{Call: _e.mock.On("SetUpdate", key, value, encryptionKey)}
 }
 
 func (_c *MockConfig_SetUpdate_Call) Run(run func(key string, value string, encryptionKey string)) *MockConfig_SetUpdate_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
-		if args[0] != nil {
-			arg0 = args[0].(string)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-		)
+		run(args[0].(string), args[1].(string), args[2].(string))
 	})
 	return _c
 }

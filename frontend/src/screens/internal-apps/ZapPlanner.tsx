@@ -16,15 +16,17 @@ import { handleRequestError } from "src/utils/handleRequestError";
 import {
   getFormattedFiatValue,
   getSatoshiValue,
-} from "@getalby/lightning-tools/fiat";
-import { LightningAddress } from "@getalby/lightning-tools/lnurl";
+  LightningAddress,
+} from "@getalby/lightning-tools";
 import { ExternalLinkIcon, PlusCircleIcon } from "lucide-react";
 import alby from "src/assets/suggested-apps/alby.png";
 import bitcoinbrink from "src/assets/zapplanner/bitcoinbrink.png";
 import hrf from "src/assets/zapplanner/hrf.png";
 import opensats from "src/assets/zapplanner/opensats.png";
 import ExternalLink from "src/components/ExternalLink";
-import { Button, ExternalLinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Dialog,
   DialogContent,
@@ -36,7 +38,6 @@ import {
 } from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import {
   Select,
   SelectContent,
@@ -340,7 +341,7 @@ export function ZapPlanner() {
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button>
-                  <PlusCircleIcon className="h-4 w-4 mr-2" />
+                  <PlusCircleIcon />
                   New Recurring Payment
                 </Button>
               </DialogTrigger>
@@ -548,7 +549,7 @@ export function ZapPlanner() {
                       to={`https://zapplanner.albylabs.com/subscriptions/${app.metadata.zapplanner_subscription_id}`}
                       size="sm"
                     >
-                      View <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                      View <ExternalLinkIcon className="size-4 ml-2" />
                     </ExternalLinkButton>
                   ) : undefined
                 }

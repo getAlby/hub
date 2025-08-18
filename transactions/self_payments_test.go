@@ -34,7 +34,7 @@ func TestSendPaymentSync_SelfPayment_NoAppToNoApp(t *testing.T) {
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, nil, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, nil, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
@@ -86,7 +86,7 @@ func TestSendPaymentSync_SelfPayment_NoAppToIsolatedApp(t *testing.T) {
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, nil, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, nil, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
@@ -139,7 +139,7 @@ func TestSendPaymentSync_SelfPayment_NoAppToApp(t *testing.T) {
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, nil, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, nil, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
@@ -208,7 +208,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToNoApp(t *testing.T) {
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID, nil)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
@@ -283,7 +283,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToApp(t *testing.T) {
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID, nil)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
@@ -365,7 +365,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToIsolatedApp(t *testing.T) {
 	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID, nil)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
@@ -457,7 +457,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToSelf(t *testing.T) {
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID, nil)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)

@@ -14,8 +14,6 @@ export const ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL = 30_000;
 export const LIST_TRANSACTIONS_LIMIT = 20;
 export const LIST_APPS_LIMIT = 20;
 
-export const MIN_AUTO_SWAP_AMOUNT = 50_000;
-
 export const SUPPORT_ALBY_CONNECTION_NAME = `ZapPlanner - Alby Hub`;
 export const SUPPORT_ALBY_LIGHTNING_ADDRESS = "hub@getalby.com";
 

@@ -1,8 +1,8 @@
 import { TriangleAlertIcon } from "lucide-react";
 import React from "react";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { ExternalLinkButton } from "src/components/ui/button";
-import { LoadingButton } from "src/components/ui/loading-button";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 import { useChannels } from "src/hooks/useChannels";
 import { request } from "src/utils/request";

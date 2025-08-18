@@ -2008,3 +2008,7 @@ export const suggestedApps: SuggestedApp[] = [
     logo: bitrefill,
   },
 ].sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
+
+export const getAppDetails = (appId: string) => {
+  return suggestedApps.find((app) => app.id === appId);
+};

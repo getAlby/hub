@@ -72,7 +72,7 @@ func (cs *CashuService) Shutdown() error {
 	return cs.wallet.Shutdown()
 }
 
-func (cs *CashuService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64, timeoutSeconds *int64) (response *lnclient.PayInvoiceResponse, err error) {
+func (cs *CashuService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64) (response *lnclient.PayInvoiceResponse, err error) {
 	// TODO: support 0-amount invoices
 	if amount != nil {
 		return nil, errors.New("0-amount invoices not supported")

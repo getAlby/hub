@@ -5,8 +5,8 @@ import Loading from "src/components/Loading";
 import PasswordInput from "src/components/password/PasswordInput";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 
 import { useInfo } from "src/hooks/useInfo";
@@ -69,7 +69,7 @@ export function AutoUnlock() {
           password in plaintext so that Alby Hub can auto-unlock itself.
         </p>
         <Alert className="mt-3">
-          <AlertTriangleIcon className="h-4 w-4" />
+          <AlertTriangleIcon />
           <AlertTitle>Attention</AlertTitle>
           <AlertDescription>
             Everyone who has access to the machine running this hub could read
