@@ -49,7 +49,7 @@ export function PaymentFailedAlert({
       <AlertDescription>
         <p>
           Try the payment again, read our payments guide, and optionally send
-          details about the payment to help improve Alby Hub.
+          details about the failed payment to help improve Alby Hub.
         </p>
         <div className="flex gap-2 mt-2">
           <ExternalLinkButton
