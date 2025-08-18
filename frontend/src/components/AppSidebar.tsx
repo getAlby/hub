@@ -234,7 +234,7 @@ export function AppSidebar() {
                   </>
                 )}
                 {!info?.albyAccountConnected ? (
-                  <DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link
                       to="/alby/account"
                       className="w-full flex flex-row items-center gap-2"
@@ -244,7 +244,7 @@ export function AppSidebar() {
                     </Link>
                   </DropdownMenuItem>
                 ) : (
-                  <DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <ExternalLink
                       to="https://getalby.com/user/edit"
                       className="flex items-center"
