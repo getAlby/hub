@@ -255,27 +255,22 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                   !app.metadata?.app_store_app_id &&
                   albyMe?.subscription.plan_code && (
                     <DropdownMenu modal={false}>
-                      <DropdownMenuTrigger asChild>
+                      <DropdownMenuTrigger>
                         <Button variant="outline" size="icon">
                           <EllipsisIcon />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-56">
+                      <DropdownMenuContent align="end">
                         <DropdownMenuGroup>
-                          <DropdownMenuItem>
-                            <div
-                              className="w-full cursor-pointer flex items-center gap-2"
-                              onClick={handleConvertToSubwallet}
-                            >
-                              <SquareStackIcon /> Convert to Sub-wallet
-                            </div>
+                          <DropdownMenuItem onClick={handleConvertToSubwallet}>
+                            <SquareStackIcon /> Convert to Sub-wallet
                           </DropdownMenuItem>
                         </DropdownMenuGroup>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   )}
                 <AlertDialog>
-                  <AlertDialogTrigger asChild>
+                  <AlertDialogTrigger>
                     <Button variant="destructive" size="icon">
                       <Trash2Icon />
                     </Button>

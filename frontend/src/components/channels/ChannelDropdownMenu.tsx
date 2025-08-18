@@ -59,57 +59,48 @@ export function ChannelDropdownMenu({
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger>
           <Button size="icon" variant="ghost">
-            <MoreHorizontalIcon className="h-4 w-4" />
+            <MoreHorizontalIcon />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="end" className="w-64">
           {channel.status == "online" &&
             channel.remoteBalance > channel.localSpendableBalance && (
               <AlertDialogTrigger asChild>
-                <DropdownMenuItem
-                  className="flex flex-row items-center gap-2 cursor-pointer"
-                  onClick={() => setDialog("rebalance")}
-                >
-                  <ScaleIcon className="h-4 w-4" />
+                <DropdownMenuItem onClick={() => setDialog("rebalance")}>
+                  <ScaleIcon />
                   Rebalance In
                 </DropdownMenuItem>
               </AlertDialogTrigger>
             )}
-          <DropdownMenuItem className="flex flex-row items-center gap-2 cursor-pointer">
+          <DropdownMenuItem>
             <ExternalLink
+              className="flex flex-row items-center gap-2"
               to={`${info?.mempoolUrl}/tx/${channel.fundingTxId}#flow=&vout=${channel.fundingTxVout}`}
-              className="w-full flex flex-row items-center gap-2"
             >
-              <ExternalLinkIcon className="size-4" />
-              <p>View Funding Transaction</p>
+              <ExternalLinkIcon />
+              View Funding Transaction
             </ExternalLink>
           </DropdownMenuItem>
-          <DropdownMenuItem className="flex flex-row items-center gap-2 cursor-pointer">
+          <DropdownMenuItem>
             <ExternalLink
+              className="flex flex-row items-center gap-2"
               to={`https://amboss.space/node/${channel.remotePubkey}`}
-              className="w-full flex flex-row items-center gap-2"
             >
-              <ExternalLinkIcon className="size-4" />
-              <p>View Node on amboss.space</p>
+              <ExternalLinkIcon />
+              View Node on amboss.space
             </ExternalLink>
           </DropdownMenuItem>
           {channel.public && (
             <AlertDialogTrigger asChild>
-              <DropdownMenuItem
-                className="flex flex-row items-center gap-2 cursor-pointer"
-                onClick={() => setDialog("routingFee")}
-              >
-                <HandCoinsIcon className="h-4 w-4" />
+              <DropdownMenuItem onClick={() => setDialog("routingFee")}>
+                <HandCoinsIcon />
                 Set Routing Fee
               </DropdownMenuItem>
             </AlertDialogTrigger>
           )}
           <AlertDialogTrigger asChild>
-            <DropdownMenuItem
-              className="flex flex-row items-center gap-2 cursor-pointer"
-              onClick={() => setDialog("closeChannel")}
-            >
-              <Trash2Icon className="h-4 w-4 text-destructive" />
+            <DropdownMenuItem onClick={() => setDialog("closeChannel")}>
+              <Trash2Icon className="text-destructive" />
               Close Channel
             </DropdownMenuItem>
           </AlertDialogTrigger>
