@@ -4,7 +4,6 @@ export const localStorageKeys = {
   channelOrder: "channelOrder",
   authToken: "authToken",
   supportAlbySidebarHintHiddenUntil: "supportAlbySidebarHintHiddenUntil",
-  interestVirtualBankAccount: "interestVirtualBankAccount",
 };
 
 export const ONCHAIN_DUST_SATS = 1000;
