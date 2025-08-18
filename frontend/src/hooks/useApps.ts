@@ -11,6 +11,7 @@ export function useApps(
     name?: string;
     appStoreAppId?: string;
     unused?: boolean;
+    subWallets?: boolean;
   },
   orderBy?: "last_used_at" | "created_at"
 ) {
