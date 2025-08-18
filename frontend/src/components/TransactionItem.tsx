@@ -25,7 +25,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "src/components/ui/dialog";
-import { useToast } from "src/components/ui/use-toast";
 import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
 import { useApp } from "src/hooks/useApp";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -48,7 +47,6 @@ function safeNpubEncode(hex: string): string | undefined {
 
 function TransactionItem({ tx }: Props) {
   const { data: app } = useApp(tx.appId);
-  const { toast } = useToast();
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;
 
@@ -103,7 +101,7 @@ function TransactionItem({ tx }: Props) {
           : ArrowDownIcon;
 
   const copy = (text: string) => {
-    copyToClipboard(text, toast);
+    copyToClipboard(text);
   };
 
   const typeStateIcon = (

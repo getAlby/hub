@@ -1,19 +1,18 @@
 import type { LightningAddress } from "@getalby/lightning-tools";
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { TransactionMetadata } from "src/types";
 
 export default function LnurlPay() {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { data: balances } = useBalances();
 
   const lnAddress = state?.args?.lnAddress as LightningAddress;
@@ -46,9 +45,7 @@ export default function LnurlPay() {
         },
       });
     } catch (e) {
-      toast({
-        variant: "destructive",
-        title: "Failed to send payment",
+      toast.error("Failed to send payment", {
         description: "" + e,
       });
       console.error(e);

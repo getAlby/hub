@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { Button } from "src/components/ui/button";
@@ -30,7 +31,6 @@ import {
 } from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import {
   SUPPORT_ALBY_CONNECTION_NAME,
@@ -43,7 +43,6 @@ import { request } from "src/utils/request";
 
 function SupportAlby() {
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const [amount, setAmount] = React.useState("");
   const [senderName, setSenderName] = React.useState("");
@@ -61,10 +60,8 @@ function SupportAlby() {
       }
 
       if (+amount < 1000) {
-        toast({
-          title: "Amount too low",
+        toast.error("Amount too low", {
           description: "Minimum payment is 1000 sats",
-          variant: "destructive",
         });
         return;
       }
@@ -141,14 +138,13 @@ function SupportAlby() {
         body: JSON.stringify(updateAppRequest),
       });
 
-      toast({
-        title: "Thank you for becoming a supporter",
+      toast("Thank you for becoming a supporter", {
         description: "The first payment is scheduled immediately.",
       });
 
       navigate("/");
     } catch (error) {
-      handleRequestError(toast, "Failed to create app", error);
+      handleRequestError("Failed to create app", error);
     } finally {
       setSubmitting(false);
     }

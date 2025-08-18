@@ -2,18 +2,17 @@ import React, { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useSetupStore from "src/state/SetupStore";
 
+import { toast } from "sonner";
 import PasswordInput from "src/components/password/PasswordInput";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";
 
 export function SetupPassword() {
   const navigate = useNavigate();
   const store = useSetupStore();
-  const { toast } = useToast();
   const { data: info } = useInfo();
   const [confirmPassword, setConfirmPassword] = React.useState("");
   const [isPasswordSecured, setIsPasswordSecured] = useState<boolean>(false);
@@ -29,17 +28,11 @@ export function SetupPassword() {
       return;
     }
     if (!isPasswordSecured || !isPasswordSecured2) {
-      toast({
-        title: "Please confirm you have saved your password",
-        variant: "destructive",
-      });
+      toast.error("Please confirm you have saved your password");
       return;
     }
     if (store.unlockPassword !== confirmPassword) {
-      toast({
-        title: "Passwords don't match",
-        variant: "destructive",
-      });
+      toast.error("Passwords don't match");
       return;
     }
 

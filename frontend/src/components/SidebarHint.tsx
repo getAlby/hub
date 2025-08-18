@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import React, { ReactElement } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { toast } from "sonner";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -15,7 +16,6 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { Progress } from "src/components/ui/progress";
-import { useToast } from "src/components/ui/use-toast";
 import { localStorageKeys, SUPPORT_ALBY_CONNECTION_NAME } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
@@ -30,7 +30,6 @@ function SidebarHint() {
   const { data: albyMe } = useAlbyMe();
   const { order } = useChannelOrderStore();
   const location = useLocation();
-  const { toast } = useToast();
 
   const [hiddenUntil, setHiddenUntil] = React.useState(
     localStorage.getItem(localStorageKeys.supportAlbySidebarHintHiddenUntil)
@@ -112,7 +111,7 @@ function SidebarHint() {
             next21st
           );
           setHiddenUntil(next21st);
-          toast({ title: "No worries, we'll remind you again!" });
+          toast("No worries, we'll remind you again!");
         }}
         icon={HeartIcon}
         title="Support Alby Hub"

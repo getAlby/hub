@@ -1,12 +1,12 @@
 import { ClipboardPasteIcon } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 
@@ -15,7 +15,6 @@ import { Invoice, LightningAddress } from "@getalby/lightning-tools";
 export default function Send() {
   const { data: balances } = useBalances();
   const { data: channels } = useChannels();
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   const [recipient, setRecipient] = React.useState("");
@@ -59,9 +58,7 @@ export default function Send() {
         },
       });
     } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Invalid recipient",
+      toast.error("Invalid recipient", {
         description: "" + error,
       });
       console.error(error);

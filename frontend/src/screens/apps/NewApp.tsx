@@ -13,13 +13,13 @@ import {
 } from "src/types";
 
 import React from "react";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { Separator } from "src/components/ui/separator";
-import { useToast } from "src/components/ui/use-toast";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -42,7 +42,6 @@ type NewAppInternalProps = {
 const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   const location = useLocation();
 
-  const { toast } = useToast();
   const navigate = useNavigate();
   const [unsupportedError, setUnsupportedError] = useState<string>();
   const [isLoading, setLoading] = React.useState(false);
@@ -184,7 +183,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     event.preventDefault();
 
     if (!permissions.scopes.length) {
-      toast({ title: "Please specify wallet permissions." });
+      toast("Please specify wallet permissions.");
       return;
     }
 
@@ -214,9 +213,9 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       navigate(`/apps/created${appStoreApp ? `?app=${appStoreApp.id}` : ""}`, {
         state: createAppResponse,
       });
-      toast({ title: "App created" });
+      toast("App created");
     } catch (error) {
-      handleRequestError(toast, "Failed to create app", error);
+      handleRequestError("Failed to create app", error);
     }
     setLoading(false);
   };

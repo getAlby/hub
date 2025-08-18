@@ -1,6 +1,7 @@
 import { InfoIcon } from "lucide-react";
 import React, { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { ChannelPeerNote } from "src/components/channels/ChannelPeerNote";
 import { ChannelPublicPrivateAlert } from "src/components/channels/ChannelPublicPrivateAlert";
@@ -28,7 +29,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
-import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannelPeerSuggestions } from "src/hooks/useChannelPeerSuggestions";
 import { useChannels } from "src/hooks/useChannels";
@@ -73,7 +73,6 @@ function NewChannelInternal({
   const { data: _channelPeerSuggestions } = useChannelPeerSuggestions();
   const { data: balances } = useBalances();
 
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   const presetAmounts = [250_000, 500_000, 1_000_000];
@@ -177,9 +176,8 @@ function NewChannelInternal({
       useChannelOrderStore.getState().setOrder(order as NewChannelOrder);
       navigate("/channels/order");
     } catch (error) {
-      toast({
-        variant: "destructive",
-        description: "Something went wrong: " + error,
+      toast.error("Something went wrong", {
+        description: "" + error,
       });
       console.error(error);
     }

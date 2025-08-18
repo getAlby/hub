@@ -5,7 +5,6 @@ import { LightningIcon } from "src/components/icons/Lightning";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { Button } from "src/components/ui/button";
-import { useToast } from "src/components/ui/use-toast";
 import { copyToClipboard } from "src/lib/clipboard";
 import { ExternalLinkButton } from "./ui/custom/external-link-button";
 
@@ -23,9 +22,8 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
       setFiatAmount(fiatAmount)
     );
   }, [amount]);
-  const { toast } = useToast();
   const copy = () => {
-    copyToClipboard(invoice, toast);
+    copyToClipboard(invoice);
   };
 
   return (

@@ -11,13 +11,11 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { useToast } from "src/components/ui/use-toast";
 import { copyToClipboard } from "src/lib/clipboard";
 
 export default function PaymentSuccess() {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   useEffect(() => {
     if (!state?.preimage) {
@@ -32,7 +30,7 @@ export default function PaymentSuccess() {
   const invoice = state?.invoice as Invoice;
 
   const copy = () => {
-    copyToClipboard(state.preimage as string, toast);
+    copyToClipboard(state.preimage as string);
   };
 
   return (

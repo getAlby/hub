@@ -20,14 +20,12 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { useTheme } from "src/components/ui/theme-provider";
-import { useToast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";
 import { useSwap } from "src/hooks/useSwaps";
 import { copyToClipboard } from "src/lib/clipboard";
 import { SwapOut } from "src/types";
 
 export default function SwapOutStatus() {
-  const { toast } = useToast();
   const { data: info } = useInfo();
   const { isDarkMode } = useTheme();
   const { swapId } = useParams() as { swapId: string };
@@ -38,7 +36,7 @@ export default function SwapOutStatus() {
   }
 
   const copyTxId = () => {
-    copyToClipboard(swap.claimTxId as string, toast);
+    copyToClipboard(swap.claimTxId as string);
   };
 
   const defaultOptions = {

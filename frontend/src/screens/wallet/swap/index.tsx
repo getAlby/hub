@@ -1,6 +1,7 @@
 import { ClipboardPasteIcon, MoveRightIcon, RefreshCwIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
@@ -10,7 +11,6 @@ import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
-import { useToast } from "src/components/ui/use-toast";
 import { MIN_AUTO_SWAP_AMOUNT } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
@@ -74,7 +74,6 @@ export default function Swap() {
 }
 
 function SwapInForm() {
-  const { toast } = useToast();
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
   const { data: swapFees } = useSwapFees("in");
@@ -101,12 +100,10 @@ function SwapInForm() {
         throw new Error("Error swapping in");
       }
       navigate(`/wallet/swap/in/status/${swapInResponse.swapId}`);
-      toast({ title: "Initiated swap" });
+      toast("Initiated swap");
     } catch (error) {
-      toast({
-        title: "Failed to initiate swap",
+      toast.error("Failed to initiate swap", {
         description: (error as Error).message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -196,7 +193,6 @@ function SwapInForm() {
 }
 
 function SwapOutForm() {
-  const { toast } = useToast();
   const { data: swapFees } = useSwapFees("out");
   const navigate = useNavigate();
   const { data: balances } = useBalances();
@@ -225,12 +221,10 @@ function SwapOutForm() {
         throw new Error("Error swapping out");
       }
       navigate(`/wallet/swap/out/status/${swapOutResponse.swapId}`);
-      toast({ title: "Initiated swap" });
+      toast("Initiated swap");
     } catch (error) {
-      toast({
-        title: "Failed to initiate swap",
+      toast.error("Failed to initiate swap", {
         description: (error as Error).message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);

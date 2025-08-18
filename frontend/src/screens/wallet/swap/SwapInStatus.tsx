@@ -9,6 +9,7 @@ import {
 import { useEffect, useState } from "react";
 import Lottie from "react-lottie";
 import { useParams } from "react-router-dom";
+import { toast } from "sonner";
 import animationDataDark from "src/assets/lotties/loading-dark.json";
 import animationDataLight from "src/assets/lotties/loading-light.json";
 import AppHeader from "src/components/AppHeader";
@@ -31,7 +32,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
-import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
@@ -42,7 +42,6 @@ import { RedeemOnchainFundsResponse, SwapIn } from "src/types";
 import { request } from "src/utils/request";
 
 export default function SwapInStatus() {
-  const { toast } = useToast();
   const { isDarkMode } = useTheme();
   const { data: info } = useInfo();
   const { data: balances } = useBalances();
@@ -76,11 +75,11 @@ export default function SwapInStatus() {
   }
 
   const copyPaymentHash = () => {
-    copyToClipboard(swap.paymentHash, toast);
+    copyToClipboard(swap.paymentHash);
   };
 
   const copyAddress = () => {
-    copyToClipboard(swap.lockupAddress, toast);
+    copyToClipboard(swap.lockupAddress);
   };
 
   const defaultOptions = {
@@ -121,9 +120,7 @@ export default function SwapInStatus() {
       console.info("Redeemed onchain funds", response);
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Failed to redeem onchain funds",
+      toast.error("Failed to redeem onchain funds", {
         description: "" + error,
       });
       setPaying(false);

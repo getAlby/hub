@@ -19,6 +19,7 @@ import {
   SquareStackIcon,
   Trash2Icon,
 } from "lucide-react";
+import { toast } from "sonner";
 import AppAvatar from "src/components/AppAvatar";
 import AppHeader from "src/components/AppHeader";
 import { IsolatedAppDrawDownDialog } from "src/components/IsolatedAppDrawDownDialog";
@@ -61,7 +62,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
-import { useToast } from "src/components/ui/use-toast";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import {
   ALBY_ACCOUNT_APP_NAME,
@@ -102,7 +102,6 @@ type AppInternalProps = {
 };
 
 function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
-  const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const [isEditingName, setIsEditingName] = React.useState(false);
@@ -162,11 +161,9 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
       refetchApp();
       setIsEditingName(false);
       setIsEditingPermissions(false);
-      toast({
-        title: "Successfully updated connection",
-      });
+      toast("Successfully updated connection");
     } catch (error) {
-      handleRequestError(toast, "Failed to update connection", error);
+      handleRequestError("Failed to update connection", error);
     }
   };
 
@@ -194,12 +191,11 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
       });
 
       refetchApp();
-      toast({
-        title: "Successfully converted to sub-wallet",
+      toast("Successfully converted to sub-wallet", {
         description: "This isolated app is now a sub-wallet.",
       });
     } catch (error) {
-      handleRequestError(toast, "Failed to convert to sub-wallet", error);
+      handleRequestError("Failed to convert to sub-wallet", error);
     }
   };
 

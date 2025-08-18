@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import MnemonicInputs from "src/components/mnemonic/MnemonicInputs";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
@@ -11,7 +12,6 @@ import {
   DialogTitle,
 } from "src/components/ui/dialog";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
@@ -33,7 +33,6 @@ export default function MnemonicDialog({
   const { mutate: refetchInfo } = useInfo();
   const [backedUp, setIsBackedUp] = useState<boolean>(false);
   const [backedUp2, setIsBackedUp2] = useState<boolean>(false);
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   async function onSubmit(e: React.FormEvent) {
@@ -54,9 +53,9 @@ export default function MnemonicDialog({
       });
       await refetchInfo();
       navigate("/");
-      toast({ title: "Recovery phrase backed up!" });
+      toast("Recovery phrase backed up!");
     } catch (error) {
-      handleRequestError(toast, "Failed to store back up info", error);
+      handleRequestError("Failed to store back up info", error);
     }
   }
 

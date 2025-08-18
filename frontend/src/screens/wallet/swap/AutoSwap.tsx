@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
@@ -16,7 +17,6 @@ import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
-import { useToast } from "src/components/ui/use-toast";
 import { MIN_AUTO_SWAP_AMOUNT } from "src/constants";
 import { useAutoSwapsConfig, useSwapFees } from "src/hooks/useSwaps";
 import { AutoSwapConfig } from "src/types";
@@ -55,7 +55,6 @@ export default function AutoSwap() {
 }
 
 function AutoSwapOutForm() {
-  const { toast } = useToast();
   const { mutate } = useAutoSwapsConfig();
   const { data: swapFees } = useSwapFees("out");
 
@@ -81,15 +80,11 @@ function AutoSwapOutForm() {
           destination,
         }),
       });
-      toast({
-        title: "Auto swap enabled successfully",
-      });
+      toast("Auto swap enabled successfully");
       await mutate();
     } catch (error) {
-      toast({
-        title: "Failed to save auto swap settings",
+      toast("Failed to save auto swap settings", {
         description: (error as Error).message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -236,7 +231,6 @@ function AutoSwapOutForm() {
 }
 
 function ActiveSwapOutConfig({ swapConfig }: { swapConfig: AutoSwapConfig }) {
-  const { toast } = useToast();
   const { mutate } = useAutoSwapsConfig();
   const { data: swapFees } = useSwapFees("out");
 
@@ -251,13 +245,11 @@ function ActiveSwapOutConfig({ swapConfig }: { swapConfig: AutoSwapConfig }) {
           "Content-Type": "application/json",
         },
       });
-      toast({ title: "Deactivated auto swap successfully" });
+      toast("Deactivated auto swap successfully");
       await mutate();
     } catch (error) {
-      toast({
-        title: "Deactivating auto swaps failed",
+      toast.error("Deactivating auto swaps failed", {
         description: (error as Error).message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);

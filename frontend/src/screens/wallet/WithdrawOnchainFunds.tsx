@@ -6,6 +6,7 @@ import {
   InfoIcon,
 } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
@@ -25,7 +26,6 @@ import { Checkbox } from "src/components/ui/checkbox";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 import { ONCHAIN_DUST_SATS } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
@@ -38,7 +38,6 @@ import { request } from "src/utils/request";
 
 export default function WithdrawOnchainFunds() {
   const [isLoading, setLoading] = React.useState(false);
-  const { toast } = useToast();
   const { data: info } = useInfo();
   const { data: balances } = useBalances();
   const { data: recommendedFees, error: mempoolError } = useMempoolApi<{
@@ -69,7 +68,7 @@ export default function WithdrawOnchainFunds() {
   }, [recommendedFees]);
 
   const copy = (text: string) => {
-    copyToClipboard(text, toast);
+    copyToClipboard(text);
   };
 
   const redeemFunds = React.useCallback(async () => {
@@ -83,10 +82,8 @@ export default function WithdrawOnchainFunds() {
       }
     } catch (error) {
       console.error(error);
-      toast({
-        title: "Something went wrong",
+      toast.error("Something went wrong", {
         description: "" + error,
-        variant: "destructive",
       });
       setLoading(false);
       return;
@@ -115,14 +112,12 @@ export default function WithdrawOnchainFunds() {
       setTransactionId(response.txId);
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Failed to redeem onchain funds",
+      toast.error("Failed to redeem onchain funds", {
         description: "" + error,
       });
     }
     setLoading(false);
-  }, [amount, feeRate, onchainAddress, sendAll, toast]);
+  }, [amount, feeRate, onchainAddress, sendAll]);
 
   if (transactionId) {
     return (

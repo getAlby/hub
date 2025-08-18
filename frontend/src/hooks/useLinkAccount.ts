@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useToast } from "src/components/ui/use-toast";
+import { toast } from "sonner";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
@@ -19,7 +19,6 @@ export function useLinkAccount(
 ) {
   const { data: me, mutate: reloadAlbyMe } = useAlbyMe();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
-  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
   let linkStatus: LinkStatus | undefined;
@@ -53,14 +52,10 @@ export function useLinkAccount(
       });
       // update the link status and get the newly-created Alby Account app
       await Promise.all([reloadAlbyMe(), reloadAlbyAccountApp()]);
-      toast({
-        title:
-          "Your Alby Hub has successfully been linked to your Alby Account",
-      });
+      toast("Your Alby Hub has successfully been linked to your Alby Account");
     } catch (e) {
       console.error(e);
-      toast({
-        title: "Your Alby Hub couldn't be linked to your Alby Account",
+      toast.error("Your Alby Hub couldn't be linked to your Alby Account", {
         description: "Did you already link another Alby Hub?",
       });
     } finally {

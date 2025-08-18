@@ -53,7 +53,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip.tsx";
-import { useToast } from "src/components/ui/use-toast.ts";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { ONCHAIN_DUST_SATS } from "src/constants.ts";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
@@ -83,8 +82,6 @@ export default function Channels() {
   const navigate = useNavigate();
   const [longUnconfirmedZeroConfChannels, setLongUnconfirmedZeroConfChannels] =
     React.useState<LongUnconfirmedZeroConfChannel[]>([]);
-
-  const { toast } = useToast();
 
   const nodeHealth = channels ? getNodeHealth(channels) : 0;
 
@@ -171,7 +168,7 @@ export default function Channels() {
                           if (!nodeConnectionInfo) {
                             return;
                           }
-                          copyToClipboard(nodeConnectionInfo.pubkey, toast);
+                          copyToClipboard(nodeConnectionInfo.pubkey);
                         }}
                       >
                         <div>Node</div>

@@ -1,6 +1,7 @@
 import { CircleCheckIcon, CopyIcon, ReceiptTextIcon } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
@@ -17,7 +18,6 @@ import {
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useBalances } from "src/hooks/useBalances";
 
@@ -32,7 +32,6 @@ export default function ReceiveInvoice() {
   const { data: me } = useAlbyMe();
   const { data: balances } = useBalances();
 
-  const { toast } = useToast();
   const [isLoading, setLoading] = React.useState(false);
   const [amount, setAmount] = React.useState<string>("");
   const [description, setDescription] = React.useState<string>("");
@@ -49,7 +48,7 @@ export default function ReceiveInvoice() {
     if (invoiceData?.settledAt) {
       setPaymentDone(true);
     }
-  }, [invoiceData, toast]);
+  }, [invoiceData]);
 
   if (!balances || !info || (info.albyAccountConnected && !me)) {
     return <Loading />;
@@ -74,14 +73,11 @@ export default function ReceiveInvoice() {
       if (invoice) {
         setTransaction(invoice);
 
-        toast({
-          title: "Successfully created invoice",
-        });
+        toast("Successfully created invoice");
       }
     } catch (e) {
-      toast({
-        variant: "destructive",
-        title: "Failed to create invoice: " + e,
+      toast.error("Failed to create invoice", {
+        description: "" + e,
       });
       console.error(e);
     } finally {
@@ -90,7 +86,7 @@ export default function ReceiveInvoice() {
   };
 
   const copy = () => {
-    copyToClipboard(transaction?.invoice as string, toast);
+    copyToClipboard(transaction?.invoice as string);
   };
 
   return (

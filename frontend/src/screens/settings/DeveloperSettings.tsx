@@ -1,5 +1,6 @@
 import { CopyIcon, SquareArrowOutUpRightIcon } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import PasswordInput from "src/components/password/PasswordInput";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Button } from "src/components/ui/button";
@@ -8,7 +9,6 @@ import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { Separator } from "src/components/ui/separator";
-import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { copyToClipboard } from "src/lib/clipboard";
 import { AuthTokenResponse } from "src/types";
@@ -22,7 +22,6 @@ export default function DeveloperSettings() {
   const [showCreateTokenForm, setShowCreateTokenForm] =
     React.useState<boolean>();
   const [loading, setLoading] = React.useState<boolean>();
-  const { toast } = useToast();
 
   async function createToken(e: React.FormEvent) {
     e.preventDefault();
@@ -49,9 +48,8 @@ export default function DeveloperSettings() {
       }
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        description: "Something went wrong: " + error,
+      toast.error("Something went wrong", {
+        description: "" + error,
       });
     }
     setLoading(false);
@@ -148,7 +146,7 @@ export default function DeveloperSettings() {
                 variant="secondary"
                 size="icon"
                 onClick={() => {
-                  copyToClipboard(token, toast);
+                  copyToClipboard(token);
                 }}
               >
                 <CopyIcon className="size-4" />

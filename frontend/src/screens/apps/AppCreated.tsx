@@ -2,6 +2,7 @@ import { CheckIcon, CopyIcon, ExternalLinkIcon, EyeIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
@@ -17,7 +18,6 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
-import { useToast } from "src/components/ui/use-toast";
 import { useApp } from "src/hooks/useApp";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
@@ -37,7 +37,6 @@ export default function AppCreated() {
 function AppCreatedInternal() {
   const { search, state } = useLocation();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const queryParams = new URLSearchParams(search);
   const appId = queryParams.get("app") ?? "";
@@ -50,13 +49,12 @@ function AppCreatedInternal() {
 
   useEffect(() => {
     if (app?.lastUsedAt) {
-      toast({
-        title: "Connection established!",
+      toast("Connection established!", {
         description: "You can now use the app with your Alby Hub.",
       });
       navigate("/apps");
     }
-  }, [app?.lastUsedAt, navigate, toast]);
+  }, [app?.lastUsedAt, navigate]);
 
   useEffect(() => {
     // dispatch a success event which can be listened to by the opener or by the app that embedded the webview
@@ -154,9 +152,8 @@ export function ConnectAppCard({
 }) {
   const [timeout, setTimeout] = useState(false);
   const [isQRCodeVisible, setIsQRCodeVisible] = useState(false);
-  const { toast } = useToast();
   const copy = () => {
-    copyToClipboard(pairingUri, toast);
+    copyToClipboard(pairingUri);
   };
 
   useEffect(() => {

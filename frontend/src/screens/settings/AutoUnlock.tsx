@@ -1,19 +1,18 @@
 import { AlertTriangleIcon } from "lucide-react";
 import React from "react";
 
+import { toast } from "sonner";
 import Loading from "src/components/Loading";
 import PasswordInput from "src/components/password/PasswordInput";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 
 import { useInfo } from "src/hooks/useInfo";
 import { request } from "src/utils/request";
 
 export function AutoUnlock() {
-  const { toast } = useToast();
   const { data: info, mutate: refetchInfo } = useInfo();
 
   const [unlockPassword, setUnlockPassword] = React.useState("");
@@ -35,14 +34,12 @@ export function AutoUnlock() {
       });
       await refetchInfo();
       setUnlockPassword("");
-      toast({
-        title: `Successfully ${unlockPassword ? "enabled" : "disabled"} auto-unlock`,
-      });
+      toast(
+        `Successfully ${unlockPassword ? "enabled" : "disabled"} auto-unlock`
+      );
     } catch (error) {
-      toast({
-        title: "Auto Unlock change failed",
+      toast("Auto Unlock change failed", {
         description: (error as Error).message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);

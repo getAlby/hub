@@ -1,4 +1,5 @@
 import React from "react";
+import { toast } from "sonner";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Dialog,
@@ -11,7 +12,6 @@ import {
 } from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 import { useApp } from "src/hooks/useApp";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
@@ -28,7 +28,6 @@ export function IsolatedAppDrawDownDialog({
   const [amountSat, setAmountSat] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [open, setOpen] = React.useState(false);
-  const { toast } = useToast();
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -44,16 +43,10 @@ export function IsolatedAppDrawDownDialog({
         }),
       });
       await reloadApp();
-      toast({
-        title: `Successfully reduced balance by ${+amountSat} sats`,
-      });
+      toast(`Successfully reduced balance by ${+amountSat} sats`);
       reset();
     } catch (error) {
-      handleRequestError(
-        toast,
-        "Failed to draw down sub-wallet balance",
-        error
-      );
+      handleRequestError("Failed to draw down sub-wallet balance", error);
     }
     setLoading(false);
   }

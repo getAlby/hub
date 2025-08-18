@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +12,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "src/components/ui/alert-dialog";
-import { useToast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";
 import { request } from "src/utils/request";
 
@@ -25,7 +25,6 @@ export function UnlinkAlbyAccount({
   navigateTo = "/",
   successMessage = "Your hub is no longer connected to an Alby Account.",
 }: React.PropsWithChildren<UnlinkAlbyAccountProps>) {
-  const { toast } = useToast();
   const navigate = useNavigate();
   const { mutate: refetchInfo } = useInfo();
 
@@ -39,18 +38,15 @@ export function UnlinkAlbyAccount({
       });
       await refetchInfo();
       navigate(navigateTo);
-      toast({
-        title: "Alby Account Disconnected",
+      toast("Alby Account Disconnected", {
         description: successMessage,
       });
     } catch (error) {
-      toast({
-        title: "Disconnect account failed",
+      toast.error("Disconnect account failed", {
         description: (error as Error).message,
-        variant: "destructive",
       });
     }
-  }, [refetchInfo, navigate, navigateTo, toast, successMessage]);
+  }, [refetchInfo, navigate, navigateTo, successMessage]);
 
   return (
     <AlertDialog>

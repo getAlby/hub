@@ -50,7 +50,6 @@ function Home() {
   const { data: balances } = useBalances();
   const { data: albyMe } = useAlbyMe();
   const [isNerd, setNerd] = React.useState(false);
-
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   const extensionInstalled = (window as any).alby !== undefined;
 

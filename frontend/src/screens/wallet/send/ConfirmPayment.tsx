@@ -1,9 +1,9 @@
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { Button } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 
 import type { Invoice } from "@getalby/lightning-tools";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
@@ -17,7 +17,6 @@ import { request } from "src/utils/request";
 export default function ConfirmPayment() {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
 
@@ -53,13 +52,9 @@ export default function ConfirmPayment() {
           invoice,
         },
       });
-      toast({
-        title: "Successfully paid invoice",
-      });
+      toast("Successfully paid invoice");
     } catch (e) {
-      toast({
-        variant: "destructive",
-        title: "Failed to send payment",
+      toast.error("Failed to send payment", {
         description: "" + e,
       });
       console.error(e);

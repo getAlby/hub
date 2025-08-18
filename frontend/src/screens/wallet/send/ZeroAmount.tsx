@@ -1,9 +1,9 @@
 import React from "react";
+import { toast } from "sonner";
 import { Button } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 
 import type { Invoice } from "@getalby/lightning-tools";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -12,7 +12,6 @@ import Loading from "src/components/Loading";
 export default function ZeroAmount() {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const paymentRequest = state?.args?.paymentRequest as Invoice;
   const [amount, setAmount] = React.useState("");
@@ -32,9 +31,7 @@ export default function ZeroAmount() {
         },
       });
     } catch (e) {
-      toast({
-        variant: "destructive",
-        title: "Failed to send payment",
+      toast.error("Failed to send payment", {
         description: "" + e,
       });
       console.error(e);
