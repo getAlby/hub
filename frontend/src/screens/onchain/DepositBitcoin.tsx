@@ -98,7 +98,7 @@ export default function DepositBitcoin() {
           <DepositPending amount={pendingAmount} txId={txId} />
         ) : (
           <Card>
-            <CardContent className="grid gap-6 p-8 justify-center">
+            <CardContent className="grid gap-6 justify-center">
               <a
                 href={`bitcoin:${onchainAddress}`}
                 target="_blank"
