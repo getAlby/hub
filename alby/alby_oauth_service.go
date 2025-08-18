@@ -1590,7 +1590,6 @@ func getEventWhitelist() []string {
 		"nwc_rebalance_succeeded",
 
 		// client-side events
-		"interest_virtual_bankaccount",
 		"payment_failed_details",
 	}
 }
