@@ -23,7 +23,7 @@ export function ForwardsWidget() {
       <CardContent>
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <p className="text-muted-foreground text-xs">Earnings</p>
+            <p className="text-muted-foreground text-xs">Fees Earned</p>
             <p className="text-xl font-semibold">
               {new Intl.NumberFormat().format(
                 Math.floor(forwards.totalFeeEarnedMsat / 1000)
