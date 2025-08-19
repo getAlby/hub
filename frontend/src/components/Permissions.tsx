@@ -26,6 +26,7 @@ interface PermissionsProps {
   expiresAtReadOnly?: boolean;
   budgetUsage?: number;
   isNewConnection: boolean;
+  showBudgetUsage?: boolean;
 }
 
 const Permissions: React.FC<PermissionsProps> = ({
@@ -38,6 +39,7 @@ const Permissions: React.FC<PermissionsProps> = ({
   scopesReadOnly,
   budgetReadOnly,
   expiresAtReadOnly,
+  showBudgetUsage = true,
 }) => {
   const [showBudgetOptions, setShowBudgetOptions] = React.useState(
     permissions.scopes.includes("pay_invoice") && permissions.maxAmount > 0
@@ -123,68 +125,70 @@ const Permissions: React.FC<PermissionsProps> = ({
         </>
       )}
 
-      {!permissions.isolated && permissions.scopes.includes("pay_invoice") && (
-        <>
-          {!readOnly && !budgetReadOnly ? (
-            <>
-              {!showBudgetOptions && (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => {
-                    handleBudgetRenewalChange("monthly");
-                    handleBudgetMaxAmountChange(100_000);
-                    setShowBudgetOptions(true);
-                  }}
-                  className={cn("mr-4", showExpiryOptions && "mb-4")}
-                >
-                  <PlusCircleIcon />
-                  Set budget
-                </Button>
-              )}
-              {showBudgetOptions && (
-                <>
-                  <BudgetRenewalSelect
-                    value={permissions.budgetRenewal}
-                    onChange={handleBudgetRenewalChange}
-                    onClose={() => {
-                      handleBudgetRenewalChange("never");
-                      handleBudgetMaxAmountChange(0);
-                      setShowBudgetOptions(false);
+      {!permissions.isolated &&
+        permissions.scopes.includes("pay_invoice") &&
+        showBudgetUsage && (
+          <>
+            {!readOnly && !budgetReadOnly ? (
+              <>
+                {!showBudgetOptions && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => {
+                      handleBudgetRenewalChange("monthly");
+                      handleBudgetMaxAmountChange(100_000);
+                      setShowBudgetOptions(true);
                     }}
-                  />
-                  <BudgetAmountSelect
-                    value={permissions.maxAmount}
-                    onChange={handleBudgetMaxAmountChange}
-                  />
-                </>
-              )}
-            </>
-          ) : (
-            <div className="pl-4 ml-2 border-l-2 border-l-primary mb-4">
-              <div className="flex flex-col gap-2 text-muted-foreground text-sm">
-                <p className="capitalize">
-                  <span className="text-primary font-medium">
-                    Budget Renewal:
-                  </span>{" "}
-                  {permissions.budgetRenewal || "Never"}
-                </p>
-                <p className="slashed-zero">
-                  <span className="text-primary font-medium">
-                    Budget Amount:
-                  </span>{" "}
-                  {permissions.maxAmount
-                    ? new Intl.NumberFormat().format(permissions.maxAmount)
-                    : "∞"}
-                  {" sats "}
-                  {!isNewConnection &&
-                    `(${new Intl.NumberFormat().format(budgetUsage || 0)} sats used)`}
-                </p>
+                    className={cn("mr-4", showExpiryOptions && "mb-4")}
+                  >
+                    <PlusCircleIcon />
+                    Set budget
+                  </Button>
+                )}
+                {showBudgetOptions && (
+                  <>
+                    <BudgetRenewalSelect
+                      value={permissions.budgetRenewal}
+                      onChange={handleBudgetRenewalChange}
+                      onClose={() => {
+                        handleBudgetRenewalChange("never");
+                        handleBudgetMaxAmountChange(0);
+                        setShowBudgetOptions(false);
+                      }}
+                    />
+                    <BudgetAmountSelect
+                      value={permissions.maxAmount}
+                      onChange={handleBudgetMaxAmountChange}
+                    />
+                  </>
+                )}
+              </>
+            ) : (
+              <div className="pl-4 ml-2 border-l-2 border-l-primary mb-4">
+                <div className="flex flex-col gap-2 text-muted-foreground text-sm">
+                  <p className="capitalize">
+                    <span className="text-primary font-medium">
+                      Budget Renewal:
+                    </span>{" "}
+                    {permissions.budgetRenewal || "Never"}
+                  </p>
+                  <p className="slashed-zero">
+                    <span className="text-primary font-medium">
+                      Budget Amount:
+                    </span>{" "}
+                    {permissions.maxAmount
+                      ? new Intl.NumberFormat().format(permissions.maxAmount)
+                      : "∞"}
+                    {" sats "}
+                    {!isNewConnection &&
+                      `(${new Intl.NumberFormat().format(budgetUsage || 0)} sats used)`}
+                  </p>
+                </div>
               </div>
-            </div>
-          )}
-        </>
-      )}
+            )}
+          </>
+        )}
 
       <>
         {!readOnly && !expiresAtReadOnly ? (

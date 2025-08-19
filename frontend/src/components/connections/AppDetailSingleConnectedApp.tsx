@@ -34,7 +34,7 @@ export function AppDetailSingleConnectedApp({ app }: { app: App }) {
             }}
             readOnly
             isNewConnection={false}
-            budgetUsage={app.budgetUsage}
+            showBudgetUsage={false}
           />
         </CardContent>
       </Card>
