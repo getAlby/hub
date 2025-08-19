@@ -239,7 +239,7 @@ export function Goose() {
               </div>
             </CardContent>
           </Card>
-          <AppDetailConnectedApps appStoreApp={appStoreApp} />
+          <AppDetailConnectedApps appStoreApp={appStoreApp} showTitle />
         </>
       )}
     </div>

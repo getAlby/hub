@@ -1,7 +1,7 @@
 import { AlertCircleIcon, ExternalLinkIcon } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
-import { getAppDetails } from "src/components/connections/SuggestedAppData";
+import { getAppStoreApp } from "src/components/connections/SuggestedAppData";
 import { IsolatedAppDrawDownDialog } from "src/components/IsolatedAppDrawDownDialog";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
 import { Button } from "src/components/ui/button";
@@ -29,7 +29,7 @@ import { App } from "src/types";
 
 export function ConnectionSummary({ app }: { app: App }) {
   const { data: albyMe } = useAlbyMe();
-  const appDetails = getAppDetails(app);
+  const appStoreApp = getAppStoreApp(app);
   const [intendedLightningAddress, setIntendedLightningAddress] =
     React.useState("");
   const { createLightningAddress, creatingLightningAddress } =
@@ -189,19 +189,19 @@ export function ConnectionSummary({ app }: { app: App }) {
                 </TableCell>
               </TableRow>
             )}
-            {appDetails && (
+            {appStoreApp && (
               <TableRow>
                 <TableCell className="font-medium">App</TableCell>
                 <TableCell className="text-muted-foreground">
                   <Link
                     to={
-                      appDetails.internal
-                        ? `/internal-apps/${appDetails.id}`
-                        : `/appstore/${appDetails.id}`
+                      appStoreApp.internal
+                        ? `/internal-apps/${appStoreApp.id}`
+                        : `/appstore/${appStoreApp.id}`
                     }
                     className="flex items-center gap-2"
                   >
-                    <ExternalLinkIcon className="size-4" /> {appDetails.title}
+                    <ExternalLinkIcon className="size-4" /> {appStoreApp.title}
                   </Link>
                 </TableCell>
               </TableRow>

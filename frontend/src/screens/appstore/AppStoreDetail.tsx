@@ -2,8 +2,7 @@ import { GlobeIcon } from "lucide-react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
 import { AppDetailHeader } from "src/components/connections/AppDetailHeader";
-import { AppTransactionList } from "src/components/connections/AppTransactionList";
-import { AppUsage } from "src/components/connections/AppUsage";
+import { AppDetailSingleConnectedApp } from "src/components/connections/AppDetailSingleConnectedApp";
 import {
   SuggestedApp,
   suggestedApps,
@@ -14,7 +13,6 @@ import { ChromeIcon } from "src/components/icons/Chrome";
 import { FirefoxIcon } from "src/components/icons/Firefox";
 import { PlayStoreIcon } from "src/components/icons/PlayStore";
 import { ZapStoreIcon } from "src/components/icons/ZapStore";
-import Permissions from "src/components/Permissions";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -24,7 +22,6 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { useAppsForAppStoreApp } from "src/hooks/useApps";
-import { useCapabilities } from "src/hooks/useCapabilities";
 
 export function AppStoreDetail() {
   const { appStoreId } = useParams() as { appStoreId: string };
@@ -55,7 +52,7 @@ function AppStoreDetailInternal({
   appStoreId: string;
 }) {
   const connectedApps = useAppsForAppStoreApp(appStoreApp);
-  const { data: capabilities } = useCapabilities();
+
   if (!connectedApps) {
     return null;
   }
@@ -67,34 +64,7 @@ function AppStoreDetailInternal({
         <AppDetailConnectedApps appStoreApp={appStoreApp} />
       )}
       {connectedApps.length === 1 && (
-        <>
-          <AppUsage app={connectedApps[0]} />
-          {capabilities && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Permissions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Permissions
-                  capabilities={capabilities}
-                  permissions={{
-                    scopes: connectedApps[0].scopes,
-                    maxAmount: connectedApps[0].maxAmount,
-                    budgetRenewal: connectedApps[0].budgetRenewal,
-                    expiresAt: connectedApps[0].expiresAt
-                      ? new Date(connectedApps[0].expiresAt)
-                      : undefined,
-                    isolated: connectedApps[0].isolated,
-                  }}
-                  readOnly
-                  isNewConnection={false}
-                  budgetUsage={connectedApps[0].budgetUsage}
-                />
-              </CardContent>
-            </Card>
-          )}
-          <AppTransactionList appId={connectedApps[0].id} />
-        </>
+        <AppDetailSingleConnectedApp app={connectedApps[0]} />
       )}
 
       {connectedApps.length === 0 && (

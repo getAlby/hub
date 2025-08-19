@@ -11,13 +11,19 @@ import {
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request"; // build the project for this to appear
 
-import { EllipsisIcon, PencilIcon, SquareStackIcon } from "lucide-react";
+import {
+  EllipsisIcon,
+  LayoutGridIcon,
+  PencilIcon,
+  SquareStackIcon,
+} from "lucide-react";
 import AppAvatar from "src/components/AppAvatar";
 import AppHeader from "src/components/AppHeader";
 import { AppTransactionList } from "src/components/connections/AppTransactionList";
 import { AppUsage } from "src/components/connections/AppUsage";
 import { ConnectionSummary } from "src/components/connections/ConnectionSummary";
 import { DisconnectApp } from "src/components/connections/DisconnectApp";
+import { getAppStoreApp } from "src/components/connections/SuggestedAppData";
 import Loading from "src/components/Loading";
 import Permissions from "src/components/Permissions";
 import {
@@ -36,6 +42,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -173,6 +180,8 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const appName =
     app.name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : app.name;
 
+  const appStoreApp = getAppStoreApp(app);
+
   return (
     <>
       <div className="w-full">
@@ -222,7 +231,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                   !app.metadata?.app_store_app_id &&
                   albyMe?.subscription.plan_code && (
                     <DropdownMenu modal={false}>
-                      <DropdownMenuTrigger asChild>
+                      <DropdownMenuTrigger>
                         <Button variant="outline" size="icon">
                           <EllipsisIcon />
                         </Button>
@@ -242,6 +251,18 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                     </DropdownMenu>
                   )}
                 <DisconnectApp app={app} />
+                {appStoreApp && (
+                  <LinkButton
+                    variant="secondary"
+                    to={
+                      appStoreApp.internal
+                        ? `/internal-apps/${appStoreApp.id}`
+                        : `/appstore/${appStoreApp.id}`
+                    }
+                  >
+                    <LayoutGridIcon /> View in App Store
+                  </LinkButton>
+                )}
               </div>
             }
             description={""}

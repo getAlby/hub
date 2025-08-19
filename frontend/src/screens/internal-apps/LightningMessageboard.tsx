@@ -141,7 +141,7 @@ export function LightningMessageboard() {
               </LoadingButton>
             </form>
           </div>
-          <AppDetailConnectedApps appStoreApp={appStoreApp} />
+          <AppDetailConnectedApps appStoreApp={appStoreApp} showTitle />
         </>
       )}
     </div>

@@ -139,7 +139,7 @@ export function BuzzPay() {
               </LoadingButton>
             </form>
           </div>
-          <AppDetailConnectedApps appStoreApp={appStoreApp} />
+          <AppDetailConnectedApps appStoreApp={appStoreApp} showTitle />
         </>
       )}
     </div>

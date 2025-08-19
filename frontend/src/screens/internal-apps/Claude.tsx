@@ -215,7 +215,7 @@ export function Claude() {
               </div>
             </CardContent>
           </Card>
-          <AppDetailConnectedApps appStoreApp={appStoreApp} />
+          <AppDetailConnectedApps appStoreApp={appStoreApp} showTitle />
         </>
       )}
     </div>

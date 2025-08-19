@@ -25,9 +25,11 @@ import { App } from "src/types";
 export function AppDetailHeader({
   appStoreApp,
   contentRight,
+  advancedActions,
 }: {
   appStoreApp: SuggestedApp;
   contentRight?: React.ReactNode | null;
+  advancedActions?: React.ReactNode | null;
 }) {
   const connectedApps = useAppsForAppStoreApp(appStoreApp);
   if (!connectedApps) {
@@ -75,13 +77,18 @@ export function AppDetailHeader({
               <AppsActions
                 appStoreApp={appStoreApp}
                 connectedApps={connectedApps}
+                advancedActions={advancedActions}
               />
             </div>
           )
         }
       />
       <div className="flex justify-end lg:hidden">
-        <AppsActions appStoreApp={appStoreApp} connectedApps={connectedApps} />
+        <AppsActions
+          appStoreApp={appStoreApp}
+          connectedApps={connectedApps}
+          advancedActions={advancedActions}
+        />
       </div>
     </>
   );
@@ -90,9 +97,11 @@ export function AppDetailHeader({
 function AppsActions({
   appStoreApp,
   connectedApps,
+  advancedActions,
 }: {
   appStoreApp: SuggestedApp;
   connectedApps: App[];
+  advancedActions: React.ReactNode | null;
 }) {
   return (
     <div className="flex items-center gap-2">
@@ -104,9 +113,16 @@ function AppsActions({
           </Button>
         </Link>
       ) : connectedApps.length === 1 ? (
-        <SingleAppActions app={connectedApps[0]} appStoreApp={appStoreApp} />
+        <SingleAppActions
+          app={connectedApps[0]}
+          appStoreApp={appStoreApp}
+          advancedActions={advancedActions}
+        />
       ) : (
-        <MultipleAppActions appStoreApp={appStoreApp} />
+        <AdvancedActions
+          appStoreApp={appStoreApp}
+          advancedActions={advancedActions}
+        />
       )}
     </div>
   );
@@ -115,15 +131,20 @@ function AppsActions({
 function SingleAppActions({
   app,
   appStoreApp,
+  advancedActions,
 }: {
   app: App;
   appStoreApp: SuggestedApp;
+  advancedActions: React.ReactNode | null;
 }) {
   return (
     <>
-      <MultipleAppActions appStoreApp={appStoreApp} />
+      <AdvancedActions
+        appStoreApp={appStoreApp}
+        advancedActions={advancedActions}
+      />
       <DisconnectApp app={app} />
-      <Link to={`/apps/${app.id}?edit=true`}>
+      <Link to={`/apps/${app.id}`}>
         <Button variant="secondary">
           <SquarePenIcon className="size-4" /> Edit Connection
         </Button>
@@ -132,7 +153,13 @@ function SingleAppActions({
   );
 }
 
-function MultipleAppActions({ appStoreApp }: { appStoreApp: SuggestedApp }) {
+function AdvancedActions({
+  appStoreApp,
+  advancedActions,
+}: {
+  appStoreApp: SuggestedApp;
+  advancedActions: React.ReactNode | null;
+}) {
   return (
     <>
       <DropdownMenu modal={false}>
@@ -151,6 +178,7 @@ function MultipleAppActions({ appStoreApp }: { appStoreApp: SuggestedApp }) {
                 <PlusCircleIcon className="w-4" /> Connect Again
               </Link>
             </DropdownMenuItem>
+            {advancedActions}
           </DropdownMenuGroup>
         </DropdownMenuContent>
       </DropdownMenu>

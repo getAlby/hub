@@ -2128,7 +2128,7 @@ export const suggestedApps: SuggestedApp[] = (
   ] satisfies SuggestedApp[]
 ).sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
 
-export const getAppDetails = (app: App) => {
+export const getAppStoreApp = (app: App) => {
   return suggestedApps.find(
     (suggestedApp) =>
       suggestedApp.id === (app.metadata?.app_store_app_id ?? "") ||
