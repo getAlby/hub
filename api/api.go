@@ -1582,3 +1582,27 @@ func (api *api) parseExpiresAt(expiresAtString string) (*time.Time, error) {
 	}
 	return expiresAt, nil
 }
+
+func (api *api) GetForwards() (*GetForwardsResponse, error) {
+	var forwards []db.Forward
+	err := api.db.Find(&forwards).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var totalOutboundAmount uint64
+	var totalFeeEarned uint64
+
+	for _, forward := range forwards {
+		totalOutboundAmount += forward.OutboundAmountForwardedMsat
+		totalFeeEarned += forward.TotalFeeEarnedMsat
+	}
+
+	numForwards := len(forwards)
+
+	return &GetForwardsResponse{
+		OutboundAmountForwardedMsat: totalOutboundAmount,
+		TotalFeeEarnedMsat:          totalFeeEarned,
+		NumForwards:                 uint64(numForwards),
+	}, nil
+}

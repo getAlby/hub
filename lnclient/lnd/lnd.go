@@ -96,10 +96,43 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 	go lndService.subscribeInvoices(lndCtx)
 	go lndService.subscribeChannelEvents(lndCtx)
 	go lndService.subscribeOpenHoldInvoices(lndCtx)
+	go lndService.trackForwardedPayments(lndCtx)
 
 	logger.Logger.WithField("alias", nodeInfo.Alias).Info("Connected to LND")
 
 	return lndService, nil
+}
+
+func (svc *LNDService) trackForwardedPayments(ctx context.Context) {
+	// NOTE: this only tracks payments when hub is online and attached
+	lastTime := time.Now()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			time.Sleep(1 * time.Minute)
+			nextTime := time.Now()
+			forwardedPayments, err := svc.client.ForwardingHistory(ctx, &lnrpc.ForwardingHistoryRequest{
+				StartTime: uint64(lastTime.Unix()),
+				EndTime:   uint64(nextTime.Unix()),
+			})
+			if err != nil {
+				logger.Logger.WithError(err).Error("failed to read forwarding history")
+				continue
+			}
+			for _, forwardingEvent := range forwardedPayments.ForwardingEvents {
+				svc.eventPublisher.Publish(&events.Event{
+					Event: "nwc_payment_forwarded",
+					Properties: &lnclient.PaymentForwardedEventProperties{
+						TotalFeeEarnedMsat:          forwardingEvent.FeeMsat,
+						OutboundAmountForwardedMsat: forwardingEvent.AmtOutMsat,
+					},
+				})
+			}
+			lastTime = nextTime
+		}
+	}
 }
 
 func (svc *LNDService) subscribePayments(ctx context.Context) {

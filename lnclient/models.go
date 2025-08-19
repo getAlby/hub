@@ -214,6 +214,11 @@ type PaymentFailedEventProperties struct {
 	Reason      string
 }
 
+type PaymentForwardedEventProperties struct {
+	TotalFeeEarnedMsat          uint64
+	OutboundAmountForwardedMsat uint64
+}
+
 type CustomNodeCommandArgDef struct {
 	Name        string
 	Description string

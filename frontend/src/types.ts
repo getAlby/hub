@@ -647,3 +647,9 @@ export type NewChannelOrder = OnchainOrder | LightningOrder;
 export type AuthTokenResponse = {
   token: string;
 };
+
+export type GetForwardsResponse = {
+  outboundAmountForwardedMsat: number;
+  totalFeeEarnedMsat: number;
+  numForwards: number;
+};

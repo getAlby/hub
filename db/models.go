@@ -114,6 +114,14 @@ type Swap struct {
 	UpdatedAt          time.Time
 }
 
+type Forward struct {
+	ID                          uint
+	OutboundAmountForwardedMsat uint64
+	TotalFeeEarnedMsat          uint64
+	CreatedAt                   time.Time
+	UpdatedAt                   time.Time
+}
+
 const (
 	REQUEST_EVENT_STATE_HANDLER_EXECUTING = "executing"
 	REQUEST_EVENT_STATE_HANDLER_EXECUTED  = "executed"

@@ -79,6 +79,7 @@ type API interface {
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
 	SendEvent(event string)
+	GetForwards() (*GetForwardsResponse, error)
 }
 
 type App struct {
@@ -543,4 +544,10 @@ type CustomNodeCommandsResponse struct {
 
 type ExecuteCustomNodeCommandRequest struct {
 	Command string `json:"command"`
+}
+
+type GetForwardsResponse struct {
+	OutboundAmountForwardedMsat uint64 `json:"outboundAmountForwardedMsat"`
+	TotalFeeEarnedMsat          uint64 `json:"totalFeeEarnedMsat"`
+	NumForwards                 uint64 `json:"numForwards"`
 }

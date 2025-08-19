@@ -1744,6 +1744,20 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			"total_fee_earned_msat":          eventType.TotalFeeEarnedMsat,
 			"outbound_amount_forwarded_msat": eventType.OutboundAmountForwardedMsat,
 		}).Info("LDK Payment forwarded")
+		if eventType.TotalFeeEarnedMsat == nil || eventType.OutboundAmountForwardedMsat == nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"earned_msat":                    eventType.TotalFeeEarnedMsat,
+				"outbound_amount_forwarded_msat": eventType.OutboundAmountForwardedMsat,
+			}).Error("forwarded payment has missing required fields")
+			return
+		}
+		ls.eventPublisher.Publish(&events.Event{
+			Event: "nwc_payment_forwarded",
+			Properties: &lnclient.PaymentForwardedEventProperties{
+				TotalFeeEarnedMsat:          *eventType.TotalFeeEarnedMsat,
+				OutboundAmountForwardedMsat: *eventType.OutboundAmountForwardedMsat,
+			},
+		})
 
 	case ldk_node.EventPaymentClaimable:
 		if eventType.ClaimDeadline == nil {
