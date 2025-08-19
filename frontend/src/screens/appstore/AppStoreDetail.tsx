@@ -58,7 +58,7 @@ function AppStoreDetailInternal({
   const { data: capabilities } = useCapabilities();
 
   return (
-    <div className="grid gap-5">
+    <div className="grid gap-2">
       <AppDetailHeader appStoreApp={appStoreApp} />
       {connectedApps.length > 1 && (
         <AppDetailConnectedApps appStoreApp={appStoreApp} />

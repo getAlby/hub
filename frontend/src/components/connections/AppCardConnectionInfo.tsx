@@ -4,8 +4,8 @@ import { Link } from "react-router-dom";
 import { Button } from "src/components/ui/button";
 import { Progress } from "src/components/ui/progress";
 import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
-import { formatAmount } from "src/lib/utils";
-import { App, BudgetRenewalType } from "src/types";
+import { formatAmount, getBudgetRenewalLabel } from "src/lib/utils";
+import { App } from "src/types";
 
 type AppCardConnectionInfoProps = {
   connection: App;
@@ -18,23 +18,6 @@ export function AppCardConnectionInfo({
   budgetRemainingText = "Left in budget",
   readonly = false,
 }: AppCardConnectionInfoProps) {
-  function getBudgetRenewalLabel(renewalType: BudgetRenewalType): string {
-    switch (renewalType) {
-      case "daily":
-        return "day";
-      case "weekly":
-        return "week";
-      case "monthly":
-        return "month";
-      case "yearly":
-        return "year";
-      case "never":
-        return "never";
-      case "":
-        return "";
-    }
-  }
-
   return (
     <>
       {connection.isolated ? (
@@ -84,7 +67,7 @@ export function AppCardConnectionInfo({
           </div>
           <Progress
             className="h-4"
-            value={(connection.budgetUsage * 100) / connection.maxAmount}
+            value={100 - (connection.budgetUsage * 100) / connection.maxAmount}
           />
           <div className="flex flex-row justify-between text-xs items-center text-muted-foreground mt-2">
             <div>
