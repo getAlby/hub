@@ -1,6 +1,5 @@
 import { UnplugIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import ResponsiveButton from "src/components/ResponsiveButton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,6 +11,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "src/components/ui/alert-dialog";
+import { Button } from "src/components/ui/button";
 import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
 import { useDeleteApp } from "src/hooks/useDeleteApp";
 import { App } from "src/types";
@@ -30,11 +30,9 @@ export function DisconnectApp({ app }: { app: App }) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <ResponsiveButton
-          icon={UnplugIcon}
-          variant="outline"
-          text="Disconnect"
-        />
+        <Button variant="outline">
+          <UnplugIcon className="size-4" /> Disconnect
+        </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>

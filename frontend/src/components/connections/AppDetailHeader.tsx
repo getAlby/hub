@@ -10,7 +10,6 @@ import AppHeader from "src/components/AppHeader";
 import { DisconnectApp } from "src/components/connections/DisconnectApp";
 import { SuggestedApp } from "src/components/connections/SuggestedAppData";
 import { NostrWalletConnectIcon } from "src/components/icons/NostrWalletConnectIcon";
-import ResponsiveButton from "src/components/ResponsiveButton";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
 import {
@@ -36,48 +35,80 @@ export function AppDetailHeader({
   }
 
   return (
-    <AppHeader
-      title={
-        <>
-          <div className="flex flex-row items-center">
-            <img src={appStoreApp.logo} className="w-14 h-14 rounded-lg mr-4" />
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                {appStoreApp.title}
-                {!!connectedApps.length && (
-                  <Badge variant="positive" className="flex items-center gap-1">
-                    <CheckCircleIcon className="w-3 h-3" />{" "}
-                    {connectedApps.length > 1
-                      ? `${connectedApps.length} Connections`
-                      : "Connected"}
-                  </Badge>
-                )}
-              </div>
-              <div className="text-sm font-normal text-muted-foreground">
-                {appStoreApp.description}
+    <>
+      <AppHeader
+        title={
+          <>
+            <div className="flex flex-row items-center">
+              <img
+                src={appStoreApp.logo}
+                className="w-14 h-14 rounded-lg mr-4"
+              />
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  {appStoreApp.title}
+                  {!!connectedApps.length && (
+                    <Badge
+                      variant="positive"
+                      className="flex items-center gap-1"
+                    >
+                      <CheckCircleIcon className="w-3 h-3" />{" "}
+                      {connectedApps.length > 1
+                        ? `${connectedApps.length} Connections`
+                        : "Connected"}
+                    </Badge>
+                  )}
+                </div>
+                <div className="text-sm font-normal text-muted-foreground">
+                  {appStoreApp.description}
+                </div>
               </div>
             </div>
-          </div>
-        </>
-      }
-      description=""
-      contentRight={
-        contentRight !== undefined ? (
-          contentRight
-        ) : connectedApps.length === 0 ? (
-          <Link to={`/apps/new?app=${appStoreApp.id}`}>
-            <Button>
-              <NostrWalletConnectIcon className="size-4" />
-              Connect to {appStoreApp.title}
-            </Button>
-          </Link>
-        ) : connectedApps.length === 1 ? (
-          <SingleAppActions app={connectedApps[0]} appStoreApp={appStoreApp} />
-        ) : (
-          <MultipleAppActions appStoreApp={appStoreApp} />
-        )
-      }
-    />
+          </>
+        }
+        description=""
+        contentRight={
+          contentRight !== undefined ? (
+            contentRight
+          ) : (
+            <div className="hidden lg:block">
+              <AppsActions
+                appStoreApp={appStoreApp}
+                connectedApps={connectedApps}
+              />
+            </div>
+          )
+        }
+      />
+      <div className="flex justify-end lg:hidden">
+        <AppsActions appStoreApp={appStoreApp} connectedApps={connectedApps} />
+      </div>
+    </>
+  );
+}
+
+function AppsActions({
+  appStoreApp,
+  connectedApps,
+}: {
+  appStoreApp: SuggestedApp;
+  connectedApps: App[];
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      {connectedApps.length === 0 ? (
+        <Link to={`/apps/new?app=${appStoreApp.id}`}>
+          <Button>
+            <NostrWalletConnectIcon className="size-4" />
+            Connect to {appStoreApp.title}
+          </Button>
+        </Link>
+      ) : connectedApps.length === 1 ? (
+        <SingleAppActions app={connectedApps[0]} appStoreApp={appStoreApp} />
+      ) : (
+        <MultipleAppActions appStoreApp={appStoreApp} />
+      )}
+    </div>
   );
 }
 
@@ -93,11 +124,9 @@ function SingleAppActions({
       <MultipleAppActions appStoreApp={appStoreApp} />
       <DisconnectApp app={app} />
       <Link to={`/apps/${app.id}?edit=true`}>
-        <ResponsiveButton
-          variant="secondary"
-          icon={SquarePenIcon}
-          text="Edit Connection"
-        />
+        <Button variant="secondary">
+          <SquarePenIcon className="size-4" /> Edit Connection
+        </Button>
       </Link>
     </>
   );
