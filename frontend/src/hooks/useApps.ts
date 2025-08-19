@@ -33,10 +33,12 @@ export function useAppsForAppStoreApp(appStoreApp: SuggestedApp) {
 
   const connectedApps = React.useMemo(
     () =>
-      [
-        ...(connectedAppsByAppStoreId?.apps || []),
-        ...(connectedAppsByAppName?.apps || []),
-      ].filter((v, i, a) => a.findIndex((value) => value.id === v.id) === i),
+      connectedAppsByAppStoreId?.apps && connectedAppsByAppName?.apps
+        ? [
+            ...connectedAppsByAppStoreId.apps,
+            ...connectedAppsByAppName.apps,
+          ].filter((v, i, a) => a.findIndex((value) => value.id === v.id) === i)
+        : undefined,
     [connectedAppsByAppName?.apps, connectedAppsByAppStoreId?.apps]
   );
   return connectedApps;

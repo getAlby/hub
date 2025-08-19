@@ -10,9 +10,9 @@ import AppHeader from "src/components/AppHeader";
 import { DisconnectApp } from "src/components/connections/DisconnectApp";
 import { SuggestedApp } from "src/components/connections/SuggestedAppData";
 import { NostrWalletConnectIcon } from "src/components/icons/NostrWalletConnectIcon";
+import ResponsiveButton from "src/components/ResponsiveButton";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
-import { LinkButton } from "src/components/ui/custom/link-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +31,9 @@ export function AppDetailHeader({
   contentRight?: React.ReactNode | null;
 }) {
   const connectedApps = useAppsForAppStoreApp(appStoreApp);
+  if (!connectedApps) {
+    return null;
+  }
 
   return (
     <AppHeader
@@ -89,9 +92,13 @@ function SingleAppActions({
     <>
       <MultipleAppActions appStoreApp={appStoreApp} />
       <DisconnectApp app={app} />
-      <LinkButton to={`/apps/${app.id}?edit=true`} variant="secondary">
-        <SquarePenIcon className="size-4" /> Edit Connection
-      </LinkButton>
+      <Link to={`/apps/${app.id}?edit=true`}>
+        <ResponsiveButton
+          variant="secondary"
+          icon={SquarePenIcon}
+          text="Edit Connection"
+        />
+      </Link>
     </>
   );
 }

@@ -1,7 +1,6 @@
 import { CableIcon, TrashIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import AppHeader from "src/components/AppHeader";
 import { CustomPagination } from "src/components/CustomPagination";
 import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
@@ -52,26 +51,29 @@ function ConnectedApps() {
 
   return (
     <>
-      <AppHeader
-        title="Connections"
-        titleClassName="text-xl lg:text-2xl"
-        contentRight={
-          <>
-            {!!unusedApps.length && (
-              <Link to="/apps/cleanup">
-                <ResponsiveButton
-                  icon={TrashIcon}
-                  text="Cleanup Unused"
-                  variant="outline"
-                />
-              </Link>
-            )}
-            {/* <Link to="/apps/new">
+      <div className="flex flex-col flex-1">
+        <div className="flex justify-between items-center">
+          <div className="flex-1">
+            <h1 className="text-xl lg:text-2xl font-semibold">Connections</h1>
+          </div>
+          <div className="flex gap-3 h-full">
+            <>
+              {!!unusedApps.length && (
+                <Link to="/apps/cleanup">
+                  <ResponsiveButton
+                    icon={TrashIcon}
+                    text="Cleanup Unused"
+                    variant="outline"
+                  />
+                </Link>
+              )}
+              {/* <Link to="/apps/new">
               <ResponsiveButton icon={CirclePlusIcon} text="Add Connection" />
             </Link> */}
-          </>
-        }
-      />
+            </>
+          </div>
+        </div>
+      </div>
 
       {info.albyAccountConnected && (
         <div className="mt-6">

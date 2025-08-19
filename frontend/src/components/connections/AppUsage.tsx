@@ -16,7 +16,7 @@ export function AppUsage({ app }: { app: App }) {
   const { data: transactionsResponse } = useTransactions(
     app.id,
     false,
-    1,
+    100,
     page
   );
   const [allTransactions, setAllTransactions] = React.useState<Transaction[]>(

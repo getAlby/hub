@@ -9,7 +9,7 @@ export function AppDetailConnectedApps({
 }) {
   const connectedApps = useAppsForAppStoreApp(appStoreApp);
 
-  if (!connectedApps.length) {
+  if (!connectedApps?.length) {
     return null;
   }
 

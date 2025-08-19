@@ -36,8 +36,8 @@ export function Connections() {
           </>
         }
       />
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="mb-6">
+      <Tabs value={tab} onValueChange={setTab} className="px-2 lg:px-0">
+        <TabsList className="mb-2 lg:mb-6">
           <TabsTrigger value="app-store" className="flex gap-2 items-center">
             <LayoutGridIcon className="w-5 h-5" /> App Store
           </TabsTrigger>

@@ -56,6 +56,9 @@ function AppStoreDetailInternal({
 }) {
   const connectedApps = useAppsForAppStoreApp(appStoreApp);
   const { data: capabilities } = useCapabilities();
+  if (!connectedApps) {
+    return null;
+  }
 
   return (
     <div className="grid gap-2">

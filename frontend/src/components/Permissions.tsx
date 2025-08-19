@@ -111,11 +111,10 @@ const Permissions: React.FC<PermissionsProps> = ({
                   variant="secondary"
                   key={scope}
                   className={cn(
-                    "flex items-center mb-2",
-                    scope == "pay_invoice" && "order-last"
+                    "flex items-center mb-2 font-normal py-1 rounded-full px-3"
                   )}
                 >
-                  <PermissionIcon className="mr-2 size-4" />
+                  <PermissionIcon className="mr-1 size-4" />
                   <p className="text-sm">{scopeDescriptions[scope]}</p>
                 </Badge>
               );
