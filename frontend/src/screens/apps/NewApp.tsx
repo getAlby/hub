@@ -24,7 +24,7 @@ import { useCapabilities } from "src/hooks/useCapabilities";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
 import Permissions from "../../components/Permissions";
-import { suggestedApps } from "../../components/connections/SuggestedAppData";
+import { appStoreApps } from "../../components/connections/SuggestedAppData";
 
 const NewApp = () => {
   const { data: capabilities } = useCapabilities();
@@ -50,7 +50,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   const queryParams = new URLSearchParams(location.search);
 
   const appId = queryParams.get("app") ?? "";
-  const appStoreApp = suggestedApps.find((app) => app.id === appId);
+  const appStoreApp = appStoreApps.find((app) => app.id === appId);
 
   const pubkey = queryParams.get("pubkey") ?? "";
   const returnTo = queryParams.get("return_to") ?? "";

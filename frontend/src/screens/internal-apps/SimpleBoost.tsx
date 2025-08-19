@@ -2,7 +2,7 @@ import { CopyIcon } from "lucide-react";
 import React from "react";
 import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
 import { AppDetailHeader } from "src/components/connections/AppDetailHeader";
-import { suggestedApps } from "src/components/connections/SuggestedAppData";
+import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
 import { Button } from "src/components/ui/button";
 import {
@@ -34,7 +34,7 @@ export function SimpleBoost() {
     }
   }, [nwcUri]);
 
-  const appStoreApp = suggestedApps.find((app) => app.id === "simpleboost");
+  const appStoreApp = appStoreApps.find((app) => app.id === "simpleboost");
   if (!appStoreApp) {
     return null;
   }

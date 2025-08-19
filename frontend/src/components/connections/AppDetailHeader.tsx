@@ -8,7 +8,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import { DisconnectApp } from "src/components/connections/DisconnectApp";
-import { SuggestedApp } from "src/components/connections/SuggestedAppData";
+import { AppStoreApp } from "src/components/connections/SuggestedAppData";
 import { NostrWalletConnectIcon } from "src/components/icons/NostrWalletConnectIcon";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
@@ -27,7 +27,7 @@ export function AppDetailHeader({
   contentRight,
   advancedActions,
 }: {
-  appStoreApp: SuggestedApp;
+  appStoreApp: AppStoreApp;
   contentRight?: React.ReactNode | null;
   advancedActions?: React.ReactNode | null;
 }) {
@@ -99,7 +99,7 @@ function AppsActions({
   connectedApps,
   advancedActions,
 }: {
-  appStoreApp: SuggestedApp;
+  appStoreApp: AppStoreApp;
   connectedApps: App[];
   advancedActions: React.ReactNode | null;
 }) {
@@ -134,7 +134,7 @@ function SingleAppActions({
   advancedActions,
 }: {
   app: App;
-  appStoreApp: SuggestedApp;
+  appStoreApp: AppStoreApp;
   advancedActions: React.ReactNode | null;
 }) {
   return (
@@ -157,7 +157,7 @@ function AdvancedActions({
   appStoreApp,
   advancedActions,
 }: {
-  appStoreApp: SuggestedApp;
+  appStoreApp: AppStoreApp;
   advancedActions: React.ReactNode | null;
 }) {
   return (

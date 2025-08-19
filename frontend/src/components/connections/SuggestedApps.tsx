@@ -9,12 +9,12 @@ import {
 } from "src/components/ui/card";
 import { cn } from "src/lib/utils";
 import {
-  SuggestedApp,
-  suggestedAppCategories,
-  suggestedApps,
+  AppStoreApp,
+  appStoreApps,
+  appStoreCategories,
 } from "./SuggestedAppData";
 
-function SuggestedAppCard({ id, title, description, logo }: SuggestedApp) {
+function SuggestedAppCard({ id, title, description, logo }: AppStoreApp) {
   return (
     <Link to={`/appstore/${id}`}>
       <Card className="h-full">
@@ -32,7 +32,7 @@ function SuggestedAppCard({ id, title, description, logo }: SuggestedApp) {
   );
 }
 
-function InternalAppCard({ id, title, description, logo }: SuggestedApp) {
+function InternalAppCard({ id, title, description, logo }: AppStoreApp) {
   return (
     <Link to={`/internal-apps/${id}`}>
       <Card className="h-full">
@@ -58,35 +58,31 @@ export default function SuggestedApps() {
   return (
     <>
       <div className="flex gap-2 flex-wrap mt-6 mb-2">
-        {Object.entries(suggestedAppCategories).map(
-          ([categoryId, category]) => (
-            <Badge
-              key={categoryId}
-              variant={
-                selectedCategories.includes(categoryId)
-                  ? "default"
-                  : "secondary"
-              }
-              className={cn(
-                "cursor-pointer",
-                selectedCategories.includes(categoryId)
-                  ? ""
-                  : "border-transparent font-normal select-none"
-              )}
-              onClick={() =>
-                setSelectedCategories((current) => [
-                  ...current.filter((c) => c !== categoryId),
-                  ...(current.includes(categoryId) ? [] : [categoryId]),
-                ])
-              }
-            >
-              {category.title}
-            </Badge>
-          )
-        )}
+        {Object.entries(appStoreCategories).map(([categoryId, category]) => (
+          <Badge
+            key={categoryId}
+            variant={
+              selectedCategories.includes(categoryId) ? "default" : "secondary"
+            }
+            className={cn(
+              "cursor-pointer",
+              selectedCategories.includes(categoryId)
+                ? ""
+                : "border-transparent font-normal select-none"
+            )}
+            onClick={() =>
+              setSelectedCategories((current) => [
+                ...current.filter((c) => c !== categoryId),
+                ...(current.includes(categoryId) ? [] : [categoryId]),
+              ])
+            }
+          >
+            {category.title}
+          </Badge>
+        ))}
       </div>
       <div className="flex flex-col gap-8">
-        {Object.entries(suggestedAppCategories)
+        {Object.entries(appStoreCategories)
           .filter(
             ([categoryId]) =>
               !selectedCategories.length ||
@@ -97,7 +93,7 @@ export default function SuggestedApps() {
               <div key={categoryId} className="pt-4">
                 <h3 className="font-semibold text-xl">{category.title}</h3>
                 <div className="grid md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
-                  {suggestedApps
+                  {appStoreApps
                     .filter((app) =>
                       (app.categories as string[]).includes(categoryId)
                     )

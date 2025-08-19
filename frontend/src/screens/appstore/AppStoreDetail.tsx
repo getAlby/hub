@@ -4,8 +4,8 @@ import { AppDetailConnectedApps } from "src/components/connections/AppDetailConn
 import { AppDetailHeader } from "src/components/connections/AppDetailHeader";
 import { AppDetailSingleConnectedApp } from "src/components/connections/AppDetailSingleConnectedApp";
 import {
-  SuggestedApp,
-  suggestedApps,
+  AppStoreApp,
+  appStoreApps,
 } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
 import { AppleIcon } from "src/components/icons/Apple";
@@ -25,7 +25,7 @@ import { useAppsForAppStoreApp } from "src/hooks/useApps";
 
 export function AppStoreDetail() {
   const { appStoreId } = useParams() as { appStoreId: string };
-  const appStoreApp = suggestedApps.find((x) => x.id === appStoreId);
+  const appStoreApp = appStoreApps.find((x) => x.id === appStoreId);
   const navigate = useNavigate();
 
   if (!appStoreApp) {
@@ -48,7 +48,7 @@ function AppStoreDetailInternal({
   appStoreApp,
   appStoreId,
 }: {
-  appStoreApp: SuggestedApp;
+  appStoreApp: AppStoreApp;
   appStoreId: string;
 }) {
   const connectedApps = useAppsForAppStoreApp(appStoreApp);

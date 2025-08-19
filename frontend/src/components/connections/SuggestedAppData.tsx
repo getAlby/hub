@@ -40,12 +40,12 @@ import zeus from "src/assets/suggested-apps/zeus.png";
 import ExternalLink from "src/components/ExternalLink";
 import { App } from "src/types";
 
-export type SuggestedApp = {
+export type AppStoreApp = {
   id: string;
   title: string;
   description: string;
   logo?: string;
-  categories: (keyof typeof suggestedAppCategories)[];
+  categories: (keyof typeof appStoreCategories)[];
 
   // General links
   webLink?: string;
@@ -64,7 +64,7 @@ export type SuggestedApp = {
   internal?: boolean;
 };
 
-export const suggestedAppCategories = {
+export const appStoreCategories = {
   "wallet-interfaces": {
     title: "Wallet Interfaces",
     priority: 1,
@@ -111,7 +111,7 @@ export const suggestedAppCategories = {
   },
 } as const;
 
-export const suggestedApps: SuggestedApp[] = (
+export const appStoreApps: AppStoreApp[] = (
   [
     {
       id: "alby-go",
@@ -2125,11 +2125,11 @@ export const suggestedApps: SuggestedApp[] = (
       logo: bitrefill,
       categories: ["shopping"],
     },
-  ] satisfies SuggestedApp[]
+  ] satisfies AppStoreApp[]
 ).sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
 
 export const getAppStoreApp = (app: App) => {
-  return suggestedApps.find(
+  return appStoreApps.find(
     (suggestedApp) =>
       suggestedApp.id === (app.metadata?.app_store_app_id ?? "") ||
       app.name.includes(suggestedApp.title)

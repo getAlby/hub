@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
 import { AppDetailHeader } from "src/components/connections/AppDetailHeader";
 import { AppDetailSingleConnectedApp } from "src/components/connections/AppDetailSingleConnectedApp";
-import { suggestedApps } from "src/components/connections/SuggestedAppData";
+import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
 import { AppleIcon } from "src/components/icons/Apple";
 import { ChromeIcon } from "src/components/icons/Chrome";
@@ -50,7 +50,7 @@ export function AlbyGo() {
   const { data: capabilities } = useCapabilities();
   const navigate = useNavigate();
 
-  const appStoreApp = suggestedApps.find((app) => app.id === "alby-go");
+  const appStoreApp = appStoreApps.find((app) => app.id === "alby-go");
   if (!appStoreApp) {
     throw new Error("Alby go app not found");
   }

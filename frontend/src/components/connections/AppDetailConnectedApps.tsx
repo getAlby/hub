@@ -1,12 +1,12 @@
 import AppCard from "src/components/connections/AppCard";
-import { SuggestedApp } from "src/components/connections/SuggestedAppData";
+import { AppStoreApp } from "src/components/connections/SuggestedAppData";
 import { useAppsForAppStoreApp } from "src/hooks/useApps";
 
 export function AppDetailConnectedApps({
   appStoreApp,
   showTitle,
 }: {
-  appStoreApp: SuggestedApp;
+  appStoreApp: AppStoreApp;
   showTitle?: boolean;
 }) {
   const connectedApps = useAppsForAppStoreApp(appStoreApp);

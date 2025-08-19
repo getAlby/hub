@@ -1,7 +1,7 @@
 import React from "react";
 import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
 import { AppDetailHeader } from "src/components/connections/AppDetailHeader";
-import { suggestedApps } from "src/components/connections/SuggestedAppData";
+import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import {
   Accordion,
   AccordionContent,
@@ -26,7 +26,7 @@ export function Claude() {
   const [connectionSecret, setConnectionSecret] = React.useState("");
   const { toast } = useToast();
 
-  const appStoreApp = suggestedApps.find((app) => app.id === "claude");
+  const appStoreApp = appStoreApps.find((app) => app.id === "claude");
   if (!appStoreApp) {
     return null;
   }

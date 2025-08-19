@@ -8,8 +8,8 @@ import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import {
-  SuggestedApp,
-  suggestedApps,
+  AppStoreApp,
+  appStoreApps,
 } from "src/components/connections/SuggestedAppData";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
@@ -44,7 +44,7 @@ function AppCreatedInternal() {
 
   const queryParams = new URLSearchParams(search);
   const appId = queryParams.get("app") ?? "";
-  const appstoreApp = suggestedApps.find((app) => app.id === appId);
+  const appstoreApp = appStoreApps.find((app) => app.id === appId);
 
   const createAppResponse = state as CreateAppResponse;
 
@@ -153,7 +153,7 @@ export function ConnectAppCard({
 }: {
   app: App;
   pairingUri: string;
-  appstoreApp?: SuggestedApp;
+  appstoreApp?: AppStoreApp;
 }) {
   const [timeout, setTimeout] = useState(false);
   const [isQRCodeVisible, setIsQRCodeVisible] = useState(false);

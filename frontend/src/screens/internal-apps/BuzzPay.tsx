@@ -3,7 +3,7 @@ import React from "react";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
 import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
 import { AppDetailHeader } from "src/components/connections/AppDetailHeader";
-import { suggestedApps } from "src/components/connections/SuggestedAppData";
+import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
@@ -27,7 +27,7 @@ export function BuzzPay() {
   const [posUrl, setPosUrl] = React.useState("");
   const { toast } = useToast();
 
-  const appStoreApp = suggestedApps.find((app) => app.id === "buzzpay");
+  const appStoreApp = appStoreApps.find((app) => app.id === "buzzpay");
   if (!appStoreApp) {
     return null;
   }

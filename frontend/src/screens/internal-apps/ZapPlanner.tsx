@@ -23,7 +23,7 @@ import bitcoinbrink from "src/assets/zapplanner/bitcoinbrink.png";
 import hrf from "src/assets/zapplanner/hrf.png";
 import opensats from "src/assets/zapplanner/opensats.png";
 import { AppDetailHeader } from "src/components/connections/AppDetailHeader";
-import { suggestedApps } from "src/components/connections/SuggestedAppData";
+import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
 import { Button } from "src/components/ui/button";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
@@ -194,7 +194,7 @@ export function ZapPlanner() {
     convertCurrency();
   }, [amount, currency, open]);
 
-  const appStoreApp = suggestedApps.find((app) => app.id === "zapplanner");
+  const appStoreApp = appStoreApps.find((app) => app.id === "zapplanner");
   if (!appStoreApp) {
     return null;
   }

@@ -1,7 +1,7 @@
 import useSWR from "swr";
 
 import React from "react";
-import { SuggestedApp } from "src/components/connections/SuggestedAppData";
+import { AppStoreApp } from "src/components/connections/SuggestedAppData";
 import { LIST_APPS_LIMIT } from "src/constants";
 import { ListAppsResponse } from "src/types";
 import { swrFetcher } from "src/utils/swr";
@@ -23,7 +23,7 @@ export function useApps(
   );
 }
 
-export function useAppsForAppStoreApp(appStoreApp: SuggestedApp) {
+export function useAppsForAppStoreApp(appStoreApp: AppStoreApp) {
   const { data: connectedAppsByAppStoreId } = useApps(undefined, undefined, {
     appStoreAppId: appStoreApp.id,
   });
