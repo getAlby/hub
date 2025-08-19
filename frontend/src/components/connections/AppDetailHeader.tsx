@@ -3,15 +3,16 @@ import {
   EllipsisVerticalIcon,
   PlusCircleIcon,
   SquarePenIcon,
-  UnplugIcon,
 } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
+import { DisconnectApp } from "src/components/connections/DisconnectApp";
 import { SuggestedApp } from "src/components/connections/SuggestedAppData";
 import { NostrWalletConnectIcon } from "src/components/icons/NostrWalletConnectIcon";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -68,45 +69,51 @@ export function AppDetailHeader({
             </Button>
           </Link>
         ) : connectedApps.length === 1 ? (
-          <SingleAppActions app={connectedApps[0]} />
+          <SingleAppActions app={connectedApps[0]} appStoreApp={appStoreApp} />
         ) : (
-          <MultipleAppActions />
+          <MultipleAppActions appStoreApp={appStoreApp} />
         )
       }
     />
   );
 }
 
-function SingleAppActions({ app }: { app: App }) {
+function SingleAppActions({
+  app,
+  appStoreApp,
+}: {
+  app: App;
+  appStoreApp: SuggestedApp;
+}) {
   return (
     <>
-      <MultipleAppActions />
-      <Button variant="outline" onClick={() => alert("TODO")}>
-        <UnplugIcon className="size-4" /> Disconnect
-      </Button>
-      <Button variant="secondary" onClick={() => alert("TODO")}>
+      <MultipleAppActions appStoreApp={appStoreApp} />
+      <DisconnectApp app={app} />
+      <LinkButton to={`/apps/${app.id}?edit=true`} variant="secondary">
         <SquarePenIcon className="size-4" /> Edit Connection
-      </Button>
+      </LinkButton>
     </>
   );
 }
 
-function MultipleAppActions() {
+function MultipleAppActions({ appStoreApp }: { appStoreApp: SuggestedApp }) {
   return (
     <>
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger>
-          <EllipsisVerticalIcon className="size-4" />
+          <Button variant="outline" className="!px-2.5">
+            <EllipsisVerticalIcon className="size-4" />
+          </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56">
           <DropdownMenuGroup>
             <DropdownMenuItem className="w-full">
-              <div
-                className="w-full cursor-pointer flex items-center gap-2"
-                onClick={() => alert("TODO")}
+              <Link
+                to={`/apps/new?app=${appStoreApp.id}`}
+                className="flex items-center gap-2"
               >
                 <PlusCircleIcon className="w-4" /> Connect Again
-              </div>
+              </Link>
             </DropdownMenuItem>
           </DropdownMenuGroup>
         </DropdownMenuContent>

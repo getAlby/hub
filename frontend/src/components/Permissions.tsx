@@ -1,4 +1,4 @@
-import { AlertTriangleIcon, PlusCircleIcon } from "lucide-react";
+import { AlertTriangleIcon, BrickWallIcon, PlusCircleIcon } from "lucide-react";
 import React from "react";
 import BudgetAmountSelect from "src/components/BudgetAmountSelect";
 import BudgetRenewalSelect from "src/components/BudgetRenewalSelect";
@@ -18,7 +18,7 @@ import {
 interface PermissionsProps {
   capabilities: WalletCapabilities;
   permissions: AppPermissions;
-  setPermissions: React.Dispatch<React.SetStateAction<AppPermissions>>;
+  setPermissions?: React.Dispatch<React.SetStateAction<AppPermissions>>;
   readOnly?: boolean;
   scopesReadOnly?: boolean;
   budgetReadOnly?: boolean;
@@ -47,7 +47,7 @@ const Permissions: React.FC<PermissionsProps> = ({
 
   const handlePermissionsChange = React.useCallback(
     (changedPermissions: Partial<AppPermissions>) => {
-      setPermissions((currentPermissions) => ({
+      setPermissions?.((currentPermissions) => ({
         ...currentPermissions,
         ...changedPermissions,
       }));
@@ -95,6 +95,12 @@ const Permissions: React.FC<PermissionsProps> = ({
         />
       ) : (
         <>
+          {permissions.isolated && (
+            <div className="flex items-center gap-2 mb-4">
+              <BrickWallIcon className="size-4" />
+              <p className="font-medium text-sm">This connection is isolated</p>
+            </div>
+          )}
           <p className="text-sm font-medium mb-2">This app can:</p>
           <div className="flex flex-col mb-2">
             {[...permissions.scopes].map((scope) => {
