@@ -4,6 +4,7 @@ import BudgetAmountSelect from "src/components/BudgetAmountSelect";
 import BudgetRenewalSelect from "src/components/BudgetRenewalSelect";
 import ExpirySelect from "src/components/ExpirySelect";
 import Scopes from "src/components/Scopes";
+import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
 import { cn } from "src/lib/utils";
 import {
@@ -84,7 +85,7 @@ const Permissions: React.FC<PermissionsProps> = ({
   );
 
   return (
-    <div className="max-w-lg">
+    <div className={cn(!readOnly && "max-w-lg")}>
       {!readOnly && !scopesReadOnly ? (
         <Scopes
           capabilities={capabilities}
@@ -98,15 +99,16 @@ const Permissions: React.FC<PermissionsProps> = ({
           {permissions.isolated && (
             <div className="flex items-center gap-2 mb-4">
               <BrickWallIcon className="size-4" />
-              <p className="font-medium text-sm">This connection is isolated</p>
+              <p className="text-sm">This connection is isolated</p>
             </div>
           )}
-          <p className="text-sm font-medium mb-2">This app can:</p>
-          <div className="flex flex-col mb-2">
+          <p className="text-sm font-medium mb-2">This app is authorized to:</p>
+          <div className="flex flex-wrap gap-2 mb-2">
             {[...permissions.scopes].map((scope) => {
               const PermissionIcon = scopeIconMap[scope];
               return (
-                <div
+                <Badge
+                  variant="secondary"
                   key={scope}
                   className={cn(
                     "flex items-center mb-2",
@@ -115,7 +117,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                 >
                   <PermissionIcon className="mr-2 size-4" />
                   <p className="text-sm">{scopeDescriptions[scope]}</p>
-                </div>
+                </Badge>
               );
             })}
           </div>
