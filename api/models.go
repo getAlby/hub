@@ -105,6 +105,7 @@ type ListAppsFilters struct {
 	Name          string `json:"name"`
 	AppStoreAppId string `json:"appStoreAppId"`
 	Unused        bool   `json:"unused"`
+	SubWallets    *bool  `json:"subWallets"`
 }
 
 type ListAppsResponse struct {

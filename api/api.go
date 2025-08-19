@@ -412,6 +412,9 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 	if filters.Unused {
 		// find unused non-subwallet apps not used in the past 60 days
 		query = query.Where("last_used_at IS NULL OR last_used_at < ?", time.Now().Add(-60*24*time.Hour))
+	}
+
+	if filters.SubWallets != nil && !*filters.SubWallets {
 		// exclude subwallets :scream:
 		if api.db.Dialector.Name() == "sqlite" {
 			query = query.Where("metadata is NULL OR JSON_EXTRACT(metadata, '$.app_store_app_id') IS NULL OR JSON_EXTRACT(metadata, '$.app_store_app_id') != ?", "uncle-jim")
