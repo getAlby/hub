@@ -967,6 +967,7 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			Confirmations:                            ldkChannel.Confirmations,
 			ConfirmationsRequired:                    ldkChannel.ConfirmationsRequired,
 			ForwardingFeeBaseMsat:                    ldkChannel.Config.ForwardingFeeBaseMsat,
+			ForwardingFeeProportionalMillionths:      ldkChannel.Config.ForwardingFeeProportionalMillionths,
 			UnspendablePunishmentReserve:             unspendablePunishmentReserve,
 			CounterpartyUnspendablePunishmentReserve: ldkChannel.CounterpartyUnspendablePunishmentReserve,
 			Error:                                    channelError,
@@ -1100,6 +1101,7 @@ func (ls *LDKService) UpdateChannel(ctx context.Context, updateChannelRequest *l
 
 	existingConfig := foundChannel.Config
 	existingConfig.ForwardingFeeBaseMsat = updateChannelRequest.ForwardingFeeBaseMsat
+	existingConfig.ForwardingFeeProportionalMillionths = updateChannelRequest.ForwardingFeeProportionalMillionths
 
 	if updateChannelRequest.MaxDustHtlcExposureFromFeeRateMultiplier > 0 {
 		existingConfig.MaxDustHtlcExposure = ldk_node.MaxDustHtlcExposureFeeRateMultiplier{

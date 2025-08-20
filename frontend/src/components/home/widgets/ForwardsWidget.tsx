@@ -18,7 +18,7 @@ export function ForwardsWidget() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Routing Earnings</CardTitle>
+        <CardTitle>Routing</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-6">

@@ -297,6 +297,7 @@ export type Channel = {
   confirmations?: number;
   confirmationsRequired?: number;
   forwardingFeeBaseMsat: number;
+  forwardingFeeProportionalMillionths: number;
   unspendablePunishmentReserve: number;
   counterpartyUnspendablePunishmentReserve: number;
   error?: string;

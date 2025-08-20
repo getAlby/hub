@@ -554,6 +554,7 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 			Confirmations:                            channel.Confirmations,
 			ConfirmationsRequired:                    channel.ConfirmationsRequired,
 			ForwardingFeeBaseMsat:                    channel.ForwardingFeeBaseMsat,
+			ForwardingFeeProportionalMillionths:      channel.ForwardingFeeProportionalMillionths,
 			UnspendablePunishmentReserve:             channel.UnspendablePunishmentReserve,
 			CounterpartyUnspendablePunishmentReserve: channel.CounterpartyUnspendablePunishmentReserve,
 			Error:                                    channel.Error,
