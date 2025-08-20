@@ -1001,14 +1001,31 @@ func (ls *LDKService) GetNodeConnectionInfo(ctx context.Context) (nodeConnection
 }
 
 func (ls *LDKService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
-	// disconnect first to ensure new IP address is saved in case of re-connecting
-	err := ls.node.Disconnect(connectPeerRequest.Pubkey)
-	if err != nil {
-		// non-critical: only log an error
-		logger.Logger.WithField("request", connectPeerRequest).WithError(err).Error("Disconnect failed while connecting peer")
+	peers := ls.node.ListPeers()
+
+	var foundPeer *ldk_node.PeerDetails
+	for _, peer := range peers {
+		if peer.NodeId == connectPeerRequest.Pubkey {
+
+			foundPeer = &peer
+			break
+		}
 	}
 
-	err = ls.node.Connect(connectPeerRequest.Pubkey, connectPeerRequest.Address+":"+strconv.Itoa(int(connectPeerRequest.Port)), true)
+	if foundPeer != nil && !strings.Contains(foundPeer.Address, connectPeerRequest.Address) {
+		logger.Logger.WithFields(logrus.Fields{
+			"existing_address": foundPeer.Address,
+			"new_address":      connectPeerRequest.Address,
+		}).Warn("peer address changed, disconnecting first")
+		// disconnect first to ensure new IP address is saved in case of re-connecting
+		err := ls.node.Disconnect(connectPeerRequest.Pubkey)
+		if err != nil {
+			// non-critical: only log an error
+			logger.Logger.WithField("request", connectPeerRequest).WithError(err).Error("Disconnect failed while connecting peer")
+		}
+	}
+
+	err := ls.node.Connect(connectPeerRequest.Pubkey, connectPeerRequest.Address+":"+strconv.Itoa(int(connectPeerRequest.Port)), true)
 	if err != nil {
 		logger.Logger.WithField("request", connectPeerRequest).WithError(err).Error("ConnectPeer failed")
 		return err

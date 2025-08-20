@@ -1,4 +1,4 @@
-import { MoreHorizontalIcon, Trash2Icon } from "lucide-react";
+import { MoreHorizontalIcon, PlugZapIcon, Trash2Icon } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader.tsx";
@@ -24,7 +24,9 @@ import { useChannels } from "src/hooks/useChannels";
 import { useNodeDetails } from "src/hooks/useNodeDetails";
 import { usePeers } from "src/hooks/usePeers.ts";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
-import { Peer } from "src/types";
+import { splitSocketAddress } from "src/lib/utils";
+import { ConnectPeerRequest, Peer } from "src/types";
+import { request } from "src/utils/request";
 
 export default function Peers() {
   useSyncWallet();
@@ -94,6 +96,27 @@ function PeerTableRow(props: PeerTableRowProps) {
     return channels?.some((channel) => channel.remotePubkey === peer.nodeId);
   }
 
+  const connectPeer = async (peer: Peer) => {
+    const { address, port } = splitSocketAddress(peer.address);
+
+    if (!address || !port) {
+      throw new Error("host not found");
+    }
+    console.info(`🔌 Peering with ${peer.nodeId}`);
+    const connectPeerRequest: ConnectPeerRequest = {
+      pubkey: peer.nodeId,
+      address,
+      port: +port,
+    };
+    await request("/api/peers", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(connectPeerRequest),
+    });
+  };
+
   return (
     <TableRow key={peer.nodeId}>
       <TableCell>
@@ -118,22 +141,33 @@ function PeerTableRow(props: PeerTableRowProps) {
       <TableCell>{peer.nodeId}</TableCell>
       <TableCell>{peer.address}</TableCell>
       <TableCell>
-        {!hasOpenedChannels(peer) && (
+        {(!hasOpenedChannels(peer) || !peer.isConnected) && (
           <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger>
               <Button size="icon" variant="ghost">
                 <MoreHorizontalIcon className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             {channels && (
               <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() => props.setPeerToDisconnect(peer)}
-                  className="flex flex-row items-center gap-2"
-                >
-                  <Trash2Icon className="h-4 w-4 text-destructive" />
-                  Disconnect Peer
-                </DropdownMenuItem>
+                {!hasOpenedChannels(peer) && (
+                  <DropdownMenuItem
+                    onClick={() => props.setPeerToDisconnect(peer)}
+                    className="flex flex-row items-center gap-2"
+                  >
+                    <Trash2Icon className="size-4 text-destructive" />
+                    Disconnect Peer
+                  </DropdownMenuItem>
+                )}
+                {!peer.isConnected && (
+                  <DropdownMenuItem
+                    onClick={() => connectPeer(peer)}
+                    className="flex flex-row items-center gap-2"
+                  >
+                    <PlugZapIcon className="size-4" />
+                    Try to Reconnect
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             )}
           </DropdownMenu>
