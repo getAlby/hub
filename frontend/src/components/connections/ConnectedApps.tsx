@@ -54,7 +54,9 @@ function ConnectedApps() {
       <div className="flex flex-col flex-1">
         <div className="flex justify-between items-center">
           <div className="flex-1">
-            <h1 className="text-xl lg:text-2xl font-semibold">Connections</h1>
+            <h1 className="text-xl lg:text-2xl font-semibold">
+              Connected Apps
+            </h1>
           </div>
           <div className="flex gap-3 h-full">
             <>
