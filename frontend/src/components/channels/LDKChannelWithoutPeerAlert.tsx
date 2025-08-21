@@ -1,4 +1,4 @@
-import { AlertTriangleIcon } from "lucide-react";
+import { AlertTriangleIcon, ExternalLinkIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
@@ -38,7 +38,7 @@ function ChannelWithoutPeerAlertInternal({ channel }: { channel: Channel }) {
         {nodeDetails?.alias || channel.remotePubkey.substring(0, 8) + "..."} is
         not peered
       </AlertTitle>
-      <AlertDescription>
+      <AlertDescription className="gap-0">
         <p>
           Your channel will be offline until you manually reconnect to this
           peer.
@@ -47,8 +47,9 @@ function ChannelWithoutPeerAlertInternal({ channel }: { channel: Channel }) {
           1. Copy the peer connection details from{" "}
           <ExternalLink
             to={`https://amboss.space/node/${channel.remotePubkey}`}
-            className="font-semibold inline-flex gap-2"
+            className="font-semibold inline-flex gap-1"
           >
+            <ExternalLinkIcon className="size-4" />
             amboss.space
           </ExternalLink>{" "}
         </p>
