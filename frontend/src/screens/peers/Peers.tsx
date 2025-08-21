@@ -20,6 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "src/components/ui/table.tsx";
+import { useToast } from "src/components/ui/use-toast";
 import { useChannels } from "src/hooks/useChannels";
 import { useNodeDetails } from "src/hooks/useNodeDetails";
 import { usePeers } from "src/hooks/usePeers.ts";
@@ -91,30 +92,40 @@ function PeerTableRow(props: PeerTableRowProps) {
   const { peer } = props;
   const { data: channels } = useChannels();
   const { data: peerDetails } = useNodeDetails(peer.nodeId);
+  const { toast } = useToast();
 
   function hasOpenedChannels(peer: Peer) {
     return channels?.some((channel) => channel.remotePubkey === peer.nodeId);
   }
 
   const connectPeer = async (peer: Peer) => {
-    const { address, port } = splitSocketAddress(peer.address);
+    try {
+      const { address, port } = splitSocketAddress(peer.address);
 
-    if (!address || !port) {
-      throw new Error("host not found");
+      if (!address || !port) {
+        throw new Error("host not found");
+      }
+      console.info(`🔌 Peering with ${peer.nodeId}`);
+      const connectPeerRequest: ConnectPeerRequest = {
+        pubkey: peer.nodeId,
+        address,
+        port: +port,
+      };
+      await request("/api/peers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(connectPeerRequest),
+      });
+      toast({ title: "Peer connected" });
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Something went wrong: " + error,
+      });
     }
-    console.info(`🔌 Peering with ${peer.nodeId}`);
-    const connectPeerRequest: ConnectPeerRequest = {
-      pubkey: peer.nodeId,
-      address,
-      port: +port,
-    };
-    await request("/api/peers", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(connectPeerRequest),
-    });
   };
 
   return (
