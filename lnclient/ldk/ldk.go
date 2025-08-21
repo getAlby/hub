@@ -972,6 +972,7 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			Confirmations:                            ldkChannel.Confirmations,
 			ConfirmationsRequired:                    ldkChannel.ConfirmationsRequired,
 			ForwardingFeeBaseMsat:                    ldkChannel.Config.ForwardingFeeBaseMsat,
+			ForwardingFeeProportionalMillionths:      ldkChannel.Config.ForwardingFeeProportionalMillionths,
 			UnspendablePunishmentReserve:             unspendablePunishmentReserve,
 			CounterpartyUnspendablePunishmentReserve: ldkChannel.CounterpartyUnspendablePunishmentReserve,
 			Error:                                    channelError,
@@ -1121,6 +1122,7 @@ func (ls *LDKService) UpdateChannel(ctx context.Context, updateChannelRequest *l
 
 	existingConfig := foundChannel.Config
 	existingConfig.ForwardingFeeBaseMsat = updateChannelRequest.ForwardingFeeBaseMsat
+	existingConfig.ForwardingFeeProportionalMillionths = updateChannelRequest.ForwardingFeeProportionalMillionths
 
 	if updateChannelRequest.MaxDustHtlcExposureFromFeeRateMultiplier > 0 {
 		existingConfig.MaxDustHtlcExposure = ldk_node.MaxDustHtlcExposureFeeRateMultiplier{
@@ -1765,6 +1767,20 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			"total_fee_earned_msat":          eventType.TotalFeeEarnedMsat,
 			"outbound_amount_forwarded_msat": eventType.OutboundAmountForwardedMsat,
 		}).Info("LDK Payment forwarded")
+		if eventType.TotalFeeEarnedMsat == nil || eventType.OutboundAmountForwardedMsat == nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"earned_msat":                    eventType.TotalFeeEarnedMsat,
+				"outbound_amount_forwarded_msat": eventType.OutboundAmountForwardedMsat,
+			}).Error("forwarded payment has missing required fields")
+			return
+		}
+		ls.eventPublisher.Publish(&events.Event{
+			Event: "nwc_payment_forwarded",
+			Properties: &lnclient.PaymentForwardedEventProperties{
+				TotalFeeEarnedMsat:          *eventType.TotalFeeEarnedMsat,
+				OutboundAmountForwardedMsat: *eventType.OutboundAmountForwardedMsat,
+			},
+		})
 
 	case ldk_node.EventPaymentClaimable:
 		if eventType.ClaimDeadline == nil {
