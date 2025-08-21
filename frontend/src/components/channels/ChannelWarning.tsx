@@ -1,4 +1,5 @@
 import { AlertTriangleIcon } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   Tooltip,
   TooltipContent,
@@ -13,17 +14,38 @@ type ChannelWarningProps = {
 
 export function ChannelWarning({ channel }: ChannelWarningProps) {
   const capacity = channel.localBalance + channel.remoteBalance;
-  let channelWarning = channel.error;
-  if (!channelWarning && channel.status === "opening") {
-    channelWarning = `Channel is currently being opened (${channel.confirmations} of ${channel.confirmationsRequired} confirmations). Once the required confirmation are reached, you will be able to send and receive on this channel.`;
+  let channelWarning = <> {channel.error} </>;
+  if (!channel.error && channel.status === "opening") {
+    channelWarning = (
+      <>
+        {`Channel is currently being opened (${channel.confirmations} of ${channel.confirmationsRequired} confirmations). Once the required confirmation are reached, you will be able to send and receive on this channel.`}{" "}
+      </>
+    );
   }
-  if (!channelWarning && channel.status === "offline") {
-    channelWarning =
-      "This channel is currently offline and cannot be used to send or receive payments.";
+  // console.info(channel.error);
+  if (!channel.error && channel.status === "offline") {
+    channelWarning = (
+      <>
+        This channel is currently offline and cannot be used to send or receive
+        payments.
+        <Link to="https://guides.getalby.com/user-guide/alby-hub/faq/why-is-my-channel-offline-and-what-should-i-do-now">
+          Learn more here.
+        </Link>
+      </>
+    );
   }
-  if (!channelWarning && channel.localSpendableBalance > capacity * 0.9) {
-    channelWarning =
-      "Receiving capacity low. You may have trouble receiving payments through this channel.";
+
+  if (
+    !channel.error &&
+    channel.status === "online" &&
+    channel.localSpendableBalance > capacity * 0.9
+  ) {
+    channelWarning = (
+      <>
+        Receiving capacity low. You may have trouble receiving payments through
+        this channel.
+      </>
+    );
   }
 
   if (!channelWarning) {

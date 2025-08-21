@@ -87,7 +87,6 @@ export default function Backup() {
               href="https://guides.getalby.com/user-guide/alby-hub/backups-and-recover"
               target="_blank"
               rel="noreferrer noopener"
-              className="text-foreground underline"
             >
               Learn more about backups
             </a>
