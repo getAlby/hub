@@ -8,7 +8,6 @@ import { Button } from "src/components/ui/button";
 import { Card, CardContent } from "src/components/ui/card";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { useToast } from "src/components/ui/use-toast";
-import UserAvatar from "src/components/UserAvatar";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -44,13 +43,7 @@ export default function Receive() {
         {info?.albyAccountConnected && me?.lightning_address && (
           <Card>
             <CardContent className="flex flex-col items-center gap-6 pt-6">
-              <div className="relative flex items-center justify-center">
-                <QRCode
-                  value={me.lightning_address}
-                  className="w-full h-auto"
-                />
-                <UserAvatar className="w-14 h-14 absolute border-4 border-white bg-white" />
-              </div>
+              <QRCode value={me.lightning_address} className="w-full h-auto" />
               <p className="text-center font-medium text-lg break-all my-1">
                 {me.lightning_address}
               </p>
