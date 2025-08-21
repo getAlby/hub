@@ -56,7 +56,7 @@ func (s *createAppConsumer) ConsumeEvent(ctx context.Context, event *events.Even
 		logger.Logger.WithError(err).Error("Failed to calculate app wallet pub key")
 		return
 	}
-	s.svc.nip47Service.EnqueueNip47InfoPublishRequest(walletPubKey, walletPrivKey)
+	s.svc.nip47Service.EnqueueNip47InfoPublishRequest(id, walletPubKey, walletPrivKey)
 
 	go func() {
 		err = s.svc.startAppWalletSubscription(ctx, s.relay, walletPubKey)

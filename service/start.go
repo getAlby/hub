@@ -169,7 +169,7 @@ func (svc *service) publishAllAppInfoEvents() {
 		}
 		if legacyAppCount > 0 {
 			logger.Logger.WithField("legacy_app_count", legacyAppCount).Debug("Enqueuing publish of legacy info event")
-			svc.nip47Service.EnqueueNip47InfoPublishRequest(svc.keys.GetNostrPublicKey(), svc.keys.GetNostrSecretKey())
+			svc.nip47Service.EnqueueNip47InfoPublishRequest(0 /* unused */, svc.keys.GetNostrPublicKey(), svc.keys.GetNostrSecretKey())
 		}
 	}()
 
@@ -190,7 +190,7 @@ func (svc *service) publishAllAppInfoEvents() {
 				return
 			}
 			logger.Logger.WithField("app_id", app.ID).Debug("Enqueuing publish of app info event")
-			svc.nip47Service.EnqueueNip47InfoPublishRequest(*app.WalletPubkey, walletPrivKey)
+			svc.nip47Service.EnqueueNip47InfoPublishRequest(app.ID, *app.WalletPubkey, walletPrivKey)
 		}(app)
 	}
 }
