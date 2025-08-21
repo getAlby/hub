@@ -102,7 +102,7 @@ export default function LnurlPay() {
   return (
     <div className="grid gap-4">
       <AppHeader title="Send to Lightning Address" />
-      <div className="max-w-lg">
+      <div className="max-w-lg grid gap-4">
         <PendingPaymentAlert />
         {errorMessage && invoice && (
           <PaymentFailedAlert

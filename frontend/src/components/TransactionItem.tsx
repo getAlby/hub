@@ -322,7 +322,7 @@ function TransactionItem({ tx }: Props) {
               </div>
             )}
             {tx.state === "failed" && (
-              <div className="mt-2">
+              <div className="mt-6">
                 <PaymentFailedAlert
                   errorMessage={tx.failureReason}
                   invoice={tx.invoice}
