@@ -42,6 +42,7 @@ export default function PaymentSuccess() {
   const to = state?.to as string;
   const pageTitle = state?.pageTitle as string;
   const invoice = state?.invoice as Invoice;
+  const amount = state?.amount as number;
 
   const copy = () => {
     copyToClipboard(state.preimage as string, toast);
@@ -59,10 +60,10 @@ export default function PaymentSuccess() {
             <img src={TickSVG} className="w-48" />
             <div className="flex flex-col gap-1 items-center">
               <p className="text-2xl font-medium slashed-zero">
-                {new Intl.NumberFormat().format(invoice.satoshi)} sats
+                {new Intl.NumberFormat().format(invoice.satoshi || amount)} sats
               </p>
               <FormattedFiatAmount
-                amount={invoice.satoshi}
+                amount={invoice.satoshi || amount}
                 className="text-xl"
               />
             </div>

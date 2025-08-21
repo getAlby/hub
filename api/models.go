@@ -79,6 +79,7 @@ type API interface {
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
 	SendEvent(event string, properties interface{})
+	GetForwards() (*GetForwardsResponse, error)
 }
 
 type App struct {
@@ -105,6 +106,7 @@ type ListAppsFilters struct {
 	Name          string `json:"name"`
 	AppStoreAppId string `json:"appStoreAppId"`
 	Unused        bool   `json:"unused"`
+	SubWallets    *bool  `json:"subWallets"`
 }
 
 type ListAppsResponse struct {
@@ -489,6 +491,7 @@ type Channel struct {
 	Confirmations                            *uint32     `json:"confirmations"`
 	ConfirmationsRequired                    *uint32     `json:"confirmationsRequired"`
 	ForwardingFeeBaseMsat                    uint32      `json:"forwardingFeeBaseMsat"`
+	ForwardingFeeProportionalMillionths      uint32      `json:"forwardingFeeProportionalMillionths"`
 	UnspendablePunishmentReserve             uint64      `json:"unspendablePunishmentReserve"`
 	CounterpartyUnspendablePunishmentReserve uint64      `json:"counterpartyUnspendablePunishmentReserve"`
 	Error                                    *string     `json:"error"`
@@ -543,4 +546,10 @@ type CustomNodeCommandsResponse struct {
 
 type ExecuteCustomNodeCommandRequest struct {
 	Command string `json:"command"`
+}
+
+type GetForwardsResponse struct {
+	OutboundAmountForwardedMsat uint64 `json:"outboundAmountForwardedMsat"`
+	TotalFeeEarnedMsat          uint64 `json:"totalFeeEarnedMsat"`
+	NumForwards                 uint64 `json:"numForwards"`
 }

@@ -54,6 +54,7 @@ export default function ZeroAmount() {
           preimage: payInvoiceResponse.preimage,
           pageTitle: "Pay Invoice",
           invoice,
+          amount,
         },
       });
       toast({

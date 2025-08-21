@@ -26,6 +26,7 @@ import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
 import simpleboost from "src/assets/suggested-apps/simple-boost.png";
 import snort from "src/assets/suggested-apps/snort.png";
 import stackernews from "src/assets/suggested-apps/stacker-news.png";
+import tictactoe from "src/assets/suggested-apps/tictactoe.png";
 import wavespace from "src/assets/suggested-apps/wave-space.png";
 import wavlake from "src/assets/suggested-apps/wavlake.png";
 import wherostr from "src/assets/suggested-apps/wherostr.png";
@@ -1547,6 +1548,15 @@ export const suggestedApps: SuggestedApp[] = [
         </div>
       </>
     ),
+  },
+  {
+    id: "tictactoe",
+    title: "Tic Tac Toe",
+    description:
+      "Earn satoshis while playing multiplayer tic-tac-toe. Lightning network fast.",
+    webLink: "https://lntictactoe.com/",
+    internal: true,
+    logo: tictactoe,
   },
   {
     id: "nostur",

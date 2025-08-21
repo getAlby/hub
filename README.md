@@ -565,6 +565,7 @@ Internally Alby Hub uses a basic implementation of the pubsub messaging pattern 
     - `nwc_alby_account_connected` - user connects alby account for first time
     - `nwc_swap_succeeded` - successfully made a boltz swap
     - `nwc_rebalance_succeeded` - successfully rebalanced channels
+    - `nwc_payment_forwarded` - successfully forwarded a payment and earned routing fees
 
 ### NIP-47 Handlers
 

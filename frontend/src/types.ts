@@ -297,6 +297,7 @@ export type Channel = {
   confirmations?: number;
   confirmationsRequired?: number;
   forwardingFeeBaseMsat: number;
+  forwardingFeeProportionalMillionths: number;
   unspendablePunishmentReserve: number;
   counterpartyUnspendablePunishmentReserve: number;
   error?: string;
@@ -646,4 +647,10 @@ export type NewChannelOrder = OnchainOrder | LightningOrder;
 
 export type AuthTokenResponse = {
   token: string;
+};
+
+export type GetForwardsResponse = {
+  outboundAmountForwardedMsat: number;
+  totalFeeEarnedMsat: number;
+  numForwards: number;
 };

@@ -1258,6 +1258,12 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}
 			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		}
+	case "/api/forwards":
+		forwards, err := app.api.GetForwards()
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: forwards, Error: ""}
 	}
 
 	lightningAddressRegex := regexp.MustCompile(

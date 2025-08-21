@@ -23,6 +23,7 @@ import albyGo from "src/assets/suggested-apps/alby-go.png";
 import zapplanner from "src/assets/suggested-apps/zapplanner.png";
 import { AppOfTheDayWidget } from "src/components/home/widgets/AppOfTheDayWidget";
 import { BlockHeightWidget } from "src/components/home/widgets/BlockHeightWidget";
+import { ForwardsWidget } from "src/components/home/widgets/ForwardsWidget";
 import { LatestUsedAppsWidget } from "src/components/home/widgets/LatestUsedAppsWidget";
 import { LightningMessageboardWidget } from "src/components/home/widgets/LightningMessageboardWidget";
 import { NodeStatusWidget } from "src/components/home/widgets/NodeStatusWidget";
@@ -204,6 +205,7 @@ function Home() {
                   <NodeStatusWidget />
                   <BlockHeightWidget />
                   <OnchainFeesWidget />
+                  <ForwardsWidget />
                 </div>
               </CardContent>
             )}
