@@ -110,7 +110,7 @@ export default function ReceiveInvoice() {
       <div className="flex flex-col md:flex-row gap-12">
         <div className="w-full md:max-w-lg grid gap-6">
           {hasChannelManagement &&
-            (+amount || transaction?.amount || 0) * 1000 >=
+            (+amount * 1000 || transaction?.amount || 0) >=
               0.8 * balances.lightning.totalReceivable && (
               <LowReceivingCapacityAlert />
             )}
@@ -129,11 +129,13 @@ export default function ReceiveInvoice() {
                       <QRCode value={transaction.invoice} className="w-full" />
                       <div className="flex flex-col gap-1 items-center">
                         <p className="text-2xl font-medium slashed-zero">
-                          {new Intl.NumberFormat().format(transaction.amount)}{" "}
+                          {new Intl.NumberFormat().format(
+                            Math.floor(transaction.amount / 1000)
+                          )}{" "}
                           sats
                         </p>
                         <FormattedFiatAmount
-                          amount={transaction.amount}
+                          amount={Math.floor(transaction.amount / 1000)}
                           className="text-xl"
                         />
                       </div>
@@ -160,11 +162,13 @@ export default function ReceiveInvoice() {
                       <img src={TickSVG} className="w-48" />
                       <div className="flex flex-col gap-1 items-center">
                         <p className="text-2xl font-medium slashed-zero">
-                          {new Intl.NumberFormat().format(transaction.amount)}{" "}
+                          {new Intl.NumberFormat().format(
+                            Math.floor(transaction.amount / 1000)
+                          )}{" "}
                           sats
                         </p>
                         <FormattedFiatAmount
-                          amount={transaction.amount}
+                          amount={Math.floor(transaction.amount / 1000)}
                           className="text-xl"
                         />
                       </div>
