@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"path"
 	"strconv"
 	"time"
 
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/swaps"
+	"github.com/getAlby/hub/version"
 
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
@@ -71,7 +73,13 @@ func (svc *service) startNostr(ctx context.Context) error {
 				"iteration": i,
 			}).Info("Connecting to the relay")
 
-			relay, err = nostr.RelayConnect(ctx, relayUrl, nostr.WithNoticeHandler(svc.noticeHandler))
+			relay, err = nostr.RelayConnect(
+				ctx,
+				relayUrl,
+				nostr.WithNoticeHandler(svc.noticeHandler),
+				nostr.WithRequestHeader(http.Header{
+					"User-Agent": {"AlbyHub/" + version.Tag},
+				}))
 			if err != nil {
 				// exponential backoff from 2 - 60 seconds
 				waitToReconnectSeconds = max(waitToReconnectSeconds, 1)
