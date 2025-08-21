@@ -23,6 +23,7 @@ var expectedTables = []string{
 	"swaps",
 	"user_configs",
 	"migrations",
+	"forwards",
 }
 
 func main() {

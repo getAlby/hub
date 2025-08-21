@@ -181,6 +181,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.POST("/autoswap", httpSvc.enableAutoSwapOutHandler)
 	restrictedApiGroup.DELETE("/autoswap", httpSvc.disableAutoSwapOutHandler)
 	restrictedApiGroup.POST("/node/alias", httpSvc.setNodeAliasHandler)
+	restrictedApiGroup.GET("/forwards", httpSvc.forwardsHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedApiGroup, e)
 }
@@ -219,7 +220,7 @@ func (httpSvc *HttpService) eventHandler(c echo.Context) error {
 		})
 	}
 
-	httpSvc.api.SendEvent(sendEventRequest.Event)
+	httpSvc.api.SendEvent(sendEventRequest.Event, sendEventRequest.Properties)
 
 	return c.NoContent(http.StatusOK)
 }
@@ -1490,4 +1491,15 @@ func (httpSvc *HttpService) setNodeAliasHandler(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) forwardsHandler(c echo.Context) error {
+	forwards, err := httpSvc.api.GetForwards()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get forwards: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, forwards)
 }

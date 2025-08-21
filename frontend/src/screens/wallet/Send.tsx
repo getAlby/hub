@@ -118,7 +118,7 @@ export default function Send() {
             loading={isLoading}
             type="submit"
             disabled={!recipient}
-            className="w-full md:w-fit"
+            className="flex-1"
           >
             Continue
           </LoadingButton>

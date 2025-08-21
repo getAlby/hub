@@ -96,10 +96,43 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 	go lndService.subscribeInvoices(lndCtx)
 	go lndService.subscribeChannelEvents(lndCtx)
 	go lndService.subscribeOpenHoldInvoices(lndCtx)
+	go lndService.trackForwardedPayments(lndCtx)
 
 	logger.Logger.WithField("alias", nodeInfo.Alias).Info("Connected to LND")
 
 	return lndService, nil
+}
+
+func (svc *LNDService) trackForwardedPayments(ctx context.Context) {
+	// NOTE: this only tracks payments when hub is online and attached
+	lastTime := time.Now()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			time.Sleep(1 * time.Minute)
+			nextTime := time.Now()
+			forwardedPayments, err := svc.client.ForwardingHistory(ctx, &lnrpc.ForwardingHistoryRequest{
+				StartTime: uint64(lastTime.Unix()),
+				EndTime:   uint64(nextTime.Unix()),
+			})
+			if err != nil {
+				logger.Logger.WithError(err).Error("failed to read forwarding history")
+				continue
+			}
+			for _, forwardingEvent := range forwardedPayments.ForwardingEvents {
+				svc.eventPublisher.Publish(&events.Event{
+					Event: "nwc_payment_forwarded",
+					Properties: &lnclient.PaymentForwardedEventProperties{
+						TotalFeeEarnedMsat:          forwardingEvent.FeeMsat,
+						OutboundAmountForwardedMsat: forwardingEvent.AmtOutMsat,
+					},
+				})
+			}
+			lastTime = nextTime
+		}
+	}
 }
 
 func (svc *LNDService) subscribePayments(ctx context.Context) {
@@ -867,7 +900,8 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 		channelOpeningBlockHeight := lndChannel.ChanId >> 40
 		confirmations := nodeInfo.BlockHeight - uint32(channelOpeningBlockHeight) + 1
 
-		var forwardingFee uint32
+		var forwardingFeeBaseMsat uint32
+		var forwardingFeeProportionalMillionths uint32
 		if !lndChannel.Private {
 			channelEdge, err := svc.client.GetChanInfo(ctx, &lnrpc.ChanInfoRequest{
 				ChanId: lndChannel.ChanId,
@@ -883,7 +917,8 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 				policy = channelEdge.Node2Policy
 			}
 			if policy != nil {
-				forwardingFee = uint32(policy.FeeBaseMsat)
+				forwardingFeeBaseMsat = uint32(policy.FeeBaseMsat)
+				forwardingFeeProportionalMillionths = uint32(policy.FeeRateMilliMsat)
 			}
 		}
 
@@ -903,7 +938,8 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 			UnspendablePunishmentReserve:             lndChannel.LocalConstraints.ChanReserveSat,
 			CounterpartyUnspendablePunishmentReserve: lndChannel.RemoteConstraints.ChanReserveSat,
 			IsOutbound:                               lndChannel.Initiator,
-			ForwardingFeeBaseMsat:                    forwardingFee,
+			ForwardingFeeBaseMsat:                    forwardingFeeBaseMsat,
+			ForwardingFeeProportionalMillionths:      forwardingFeeProportionalMillionths,
 		}
 	}
 
@@ -1101,7 +1137,7 @@ func (svc *LNDService) UpdateChannel(ctx context.Context, updateChannelRequest *
 			ChanPoint: channelPoint,
 		},
 		BaseFeeMsat:   int64(updateChannelRequest.ForwardingFeeBaseMsat),
-		FeeRatePpm:    uint32(nodePolicy.FeeRateMilliMsat),
+		FeeRatePpm:    updateChannelRequest.ForwardingFeeProportionalMillionths,
 		TimeLockDelta: nodePolicy.TimeLockDelta,
 		MaxHtlcMsat:   nodePolicy.MaxHtlcMsat,
 	})

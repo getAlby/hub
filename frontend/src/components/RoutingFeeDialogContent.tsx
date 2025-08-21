@@ -22,18 +22,26 @@ type Props = {
 };
 
 export function RoutingFeeDialogContent({ channel }: Props) {
-  const currentFee: number = React.useMemo(() => {
-    return Math.floor(channel.forwardingFeeBaseMsat / 1000);
-  }, [channel.forwardingFeeBaseMsat]);
-  const [forwardingFee, setForwardingFee] = React.useState(
-    currentFee ? currentFee.toString() : ""
+  const currentBaseFeeSats: number = Math.floor(
+    channel.forwardingFeeBaseMsat / 1000
+  );
+  const currentFeePPM: number = channel.forwardingFeeProportionalMillionths;
+
+  const [baseFeeSats, setBaseFeeSats] = React.useState(
+    currentBaseFeeSats !== undefined ? currentBaseFeeSats.toString() : ""
+  );
+  const [
+    forwardingFeeProportionalMillionths,
+    setForwardingFeeProportionalMillionths,
+  ] = React.useState(
+    currentFeePPM !== undefined ? currentFeePPM.toString() : ""
   );
   const { toast } = useToast();
   const { mutate: reloadChannels } = useChannels();
 
   async function updateFee() {
     try {
-      const forwardingFeeBaseMsat = +forwardingFee * 1000;
+      const forwardingFeeBaseMsat = +baseFeeSats * 1000;
 
       console.info(
         `🎬 Updating channel ${channel.id} with ${channel.remotePubkey}`
@@ -48,6 +56,8 @@ export function RoutingFeeDialogContent({ channel }: Props) {
           },
           body: JSON.stringify({
             forwardingFeeBaseMsat: forwardingFeeBaseMsat,
+            forwardingFeeProportionalMillionths:
+              +forwardingFeeProportionalMillionths,
           } as UpdateChannelRequest),
         }
       );
@@ -74,7 +84,7 @@ export function RoutingFeeDialogContent({ channel }: Props) {
             unwanted routing. No matter the fee, you can still receive payments.{" "}
           </p>
           <Label htmlFor="fee" className="block mb-2">
-            Routing Fee (sats)
+            Base Routing Fee (sats)
           </Label>
           <Input
             id="fee"
@@ -83,9 +93,24 @@ export function RoutingFeeDialogContent({ channel }: Props) {
             required
             autoFocus
             min={0}
-            value={forwardingFee}
+            value={baseFeeSats}
             onChange={(e) => {
-              setForwardingFee(e.target.value.trim());
+              setBaseFeeSats(e.target.value.trim());
+            }}
+          />
+          <Label htmlFor="fee" className="block mt-4 mb-2">
+            PPM Fee (1 PPM = 1 per 1 million sats)
+          </Label>
+          <Input
+            id="fee"
+            name="fee"
+            type="number"
+            required
+            autoFocus
+            min={0}
+            value={forwardingFeeProportionalMillionths}
+            onChange={(e) => {
+              setForwardingFeeProportionalMillionths(e.target.value.trim());
             }}
           />
           <ExternalLink
@@ -100,7 +125,11 @@ export function RoutingFeeDialogContent({ channel }: Props) {
       <AlertDialogFooter>
         <AlertDialogCancel>Cancel</AlertDialogCancel>
         <AlertDialogAction
-          disabled={(parseInt(forwardingFee) || 0) == currentFee}
+          disabled={
+            (parseInt(baseFeeSats) || 0) === currentBaseFeeSats &&
+            (parseInt(forwardingFeeProportionalMillionths) || 0) ===
+              currentFeePPM
+          }
           onClick={updateFee}
         >
           Confirm

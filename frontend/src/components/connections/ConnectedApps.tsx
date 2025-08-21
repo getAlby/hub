@@ -23,7 +23,9 @@ let prevAppsData: ListAppsResponse | undefined;
 function ConnectedApps() {
   const { data: info } = useInfo();
   const [page, setPage] = useState(1);
-  const { data: appsData } = useApps(LIST_APPS_LIMIT, page);
+  const { data: appsData } = useApps(LIST_APPS_LIMIT, page, {
+    subWallets: false,
+  });
   const appsListRef = useRef<HTMLDivElement>(null);
   const handlePageChange = (page: number) => {
     setPage(page);

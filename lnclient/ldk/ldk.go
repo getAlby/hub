@@ -445,9 +445,14 @@ func (ls *LDKService) Shutdown() error {
 	logger.Logger.Info("cancelling LDK context")
 	ls.cancel()
 
-	for ls.syncing {
-		logger.Logger.Warn("Waiting for background sync to finish before stopping LDK node...")
+	maxAttempts := 40
+	for i := 0; ls.syncing; i++ {
+		logger.Logger.WithField("attempt", i).Warn("Waiting for background sync to finish before stopping LDK node...")
 		time.Sleep(1 * time.Second)
+		if i > maxAttempts {
+			logger.Logger.Error("Timed out waiting for background sync to finish before stopping LDK node")
+			break
+		}
 	}
 
 	logger.Logger.Info("stopping LDK node")
@@ -967,6 +972,7 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			Confirmations:                            ldkChannel.Confirmations,
 			ConfirmationsRequired:                    ldkChannel.ConfirmationsRequired,
 			ForwardingFeeBaseMsat:                    ldkChannel.Config.ForwardingFeeBaseMsat,
+			ForwardingFeeProportionalMillionths:      ldkChannel.Config.ForwardingFeeProportionalMillionths,
 			UnspendablePunishmentReserve:             unspendablePunishmentReserve,
 			CounterpartyUnspendablePunishmentReserve: ldkChannel.CounterpartyUnspendablePunishmentReserve,
 			Error:                                    channelError,
@@ -1001,14 +1007,30 @@ func (ls *LDKService) GetNodeConnectionInfo(ctx context.Context) (nodeConnection
 }
 
 func (ls *LDKService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
-	// disconnect first to ensure new IP address is saved in case of re-connecting
-	err := ls.node.Disconnect(connectPeerRequest.Pubkey)
-	if err != nil {
-		// non-critical: only log an error
-		logger.Logger.WithField("request", connectPeerRequest).WithError(err).Error("Disconnect failed while connecting peer")
+	peers := ls.node.ListPeers()
+
+	var foundPeer *ldk_node.PeerDetails
+	for _, peer := range peers {
+		if peer.NodeId == connectPeerRequest.Pubkey {
+			foundPeer = &peer
+			break
+		}
 	}
 
-	err = ls.node.Connect(connectPeerRequest.Pubkey, connectPeerRequest.Address+":"+strconv.Itoa(int(connectPeerRequest.Port)), true)
+	if foundPeer != nil && !strings.Contains(foundPeer.Address, connectPeerRequest.Address) {
+		logger.Logger.WithFields(logrus.Fields{
+			"existing_address": foundPeer.Address,
+			"new_address":      connectPeerRequest.Address,
+		}).Warn("peer address changed, disconnecting first")
+		// disconnect first to ensure new IP address is saved in case of re-connecting
+		err := ls.node.Disconnect(connectPeerRequest.Pubkey)
+		if err != nil {
+			// non-critical: only log an error
+			logger.Logger.WithField("request", connectPeerRequest).WithError(err).Error("Disconnect failed while connecting peer")
+		}
+	}
+
+	err := ls.node.Connect(connectPeerRequest.Pubkey, connectPeerRequest.Address+":"+strconv.Itoa(int(connectPeerRequest.Port)), true)
 	if err != nil {
 		logger.Logger.WithField("request", connectPeerRequest).WithError(err).Error("ConnectPeer failed")
 		return err
@@ -1100,6 +1122,7 @@ func (ls *LDKService) UpdateChannel(ctx context.Context, updateChannelRequest *l
 
 	existingConfig := foundChannel.Config
 	existingConfig.ForwardingFeeBaseMsat = updateChannelRequest.ForwardingFeeBaseMsat
+	existingConfig.ForwardingFeeProportionalMillionths = updateChannelRequest.ForwardingFeeProportionalMillionths
 
 	if updateChannelRequest.MaxDustHtlcExposureFromFeeRateMultiplier > 0 {
 		existingConfig.MaxDustHtlcExposure = ldk_node.MaxDustHtlcExposureFeeRateMultiplier{
@@ -1744,6 +1767,20 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			"total_fee_earned_msat":          eventType.TotalFeeEarnedMsat,
 			"outbound_amount_forwarded_msat": eventType.OutboundAmountForwardedMsat,
 		}).Info("LDK Payment forwarded")
+		if eventType.TotalFeeEarnedMsat == nil || eventType.OutboundAmountForwardedMsat == nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"earned_msat":                    eventType.TotalFeeEarnedMsat,
+				"outbound_amount_forwarded_msat": eventType.OutboundAmountForwardedMsat,
+			}).Error("forwarded payment has missing required fields")
+			return
+		}
+		ls.eventPublisher.Publish(&events.Event{
+			Event: "nwc_payment_forwarded",
+			Properties: &lnclient.PaymentForwardedEventProperties{
+				TotalFeeEarnedMsat:          *eventType.TotalFeeEarnedMsat,
+				OutboundAmountForwardedMsat: *eventType.OutboundAmountForwardedMsat,
+			},
+		})
 
 	case ldk_node.EventPaymentClaimable:
 		if eventType.ClaimDeadline == nil {
