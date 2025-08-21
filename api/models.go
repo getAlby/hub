@@ -78,7 +78,7 @@ type API interface {
 	SetNodeAlias(nodeAlias string) error
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
-	SendEvent(event string)
+	SendEvent(event string, properties interface{})
 	GetForwards() (*GetForwardsResponse, error)
 }
 
@@ -220,7 +220,8 @@ type BackupReminderRequest struct {
 }
 
 type SendEventRequest struct {
-	Event string `json:"event"`
+	Event      string      `json:"event"`
+	Properties interface{} `json:"properties"`
 }
 
 type SetupRequest struct {

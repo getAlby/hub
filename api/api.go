@@ -1564,9 +1564,10 @@ func (api *api) ExecuteCustomNodeCommand(ctx context.Context, command string) (i
 	return nodeResp.Response, nil
 }
 
-func (api *api) SendEvent(event string) {
+func (api *api) SendEvent(event string, properties interface{}) {
 	api.svc.GetEventPublisher().Publish(&events.Event{
-		Event: event,
+		Event:      event,
+		Properties: properties,
 	})
 }
 
