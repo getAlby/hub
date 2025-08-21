@@ -537,7 +537,7 @@ export default function Channels() {
               <Alert>
                 <HourglassIcon />
                 <AlertTitle>Pending Closed Channels</AlertTitle>
-                <AlertDescription>
+                <AlertDescription className="block">
                   You have{" "}
                   {new Intl.NumberFormat().format(
                     balances.onchain.pendingBalancesFromChannelClosures
