@@ -14,7 +14,7 @@ import (
 type API interface {
 	CreateApp(createAppRequest *CreateAppRequest) (*CreateAppResponse, error)
 	UpdateApp(app *db.App, updateAppRequest *UpdateAppRequest) error
-	TopupIsolatedApp(ctx context.Context, app *db.App, amountMsat uint64) error
+	Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, amountMsat uint64) error
 	DeleteApp(app *db.App) error
 	GetApp(app *db.App) *App
 	ListApps(limit uint64, offset uint64, filters ListAppsFilters, orderBy string) (*ListAppsResponse, error)
@@ -66,8 +66,8 @@ type API interface {
 	SetCurrency(currency string) error
 	LookupSwap(swapId string) (*LookupSwapResponse, error)
 	ListSwaps() (*ListSwapsResponse, error)
-	GetSwapInFees() (*SwapFeesResponse, error)
-	GetSwapOutFees() (*SwapFeesResponse, error)
+	GetSwapInInfo() (*SwapInfoResponse, error)
+	GetSwapOutInfo() (*SwapInfoResponse, error)
 	InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (*swaps.SwapResponse, error)
 	InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (*swaps.SwapResponse, error)
 	RefundSwap(refundSwapRequest *RefundSwapRequest) error
@@ -105,6 +105,7 @@ type ListAppsFilters struct {
 	Name          string `json:"name"`
 	AppStoreAppId string `json:"appStoreAppId"`
 	Unused        bool   `json:"unused"`
+	SubWallets    *bool  `json:"subWallets"`
 }
 
 type ListAppsResponse struct {
@@ -122,8 +123,10 @@ type UpdateAppRequest struct {
 	Isolated      bool     `json:"isolated"`
 }
 
-type TopupIsolatedAppRequest struct {
+type TransferRequest struct {
 	AmountSat uint64 `json:"amountSat"`
+	FromAppId *uint  `json:"fromAppId"`
+	ToAppId   *uint  `json:"toAppId"`
 }
 
 type CreateAppRequest struct {
@@ -145,8 +148,9 @@ type CreateLightningAddressRequest struct {
 }
 
 type InitiateSwapRequest struct {
-	SwapAmount  uint64 `json:"swapAmount"`
-	Destination string `json:"destination"`
+	SwapAmount            uint64 `json:"swapAmount"`
+	Destination           string `json:"destination"`
+	UseExactReceiveAmount bool   `json:"useExactReceiveAmount"`
 }
 
 type RefundSwapRequest struct {
@@ -168,10 +172,12 @@ type GetAutoSwapConfigResponse struct {
 	Destination      string `json:"destination"`
 }
 
-type SwapFeesResponse struct {
+type SwapInfoResponse struct {
 	AlbyServiceFee  float64 `json:"albyServiceFee"`
 	BoltzServiceFee float64 `json:"boltzServiceFee"`
 	BoltzNetworkFee uint64  `json:"boltzNetworkFee"`
+	MinAmount       uint64  `json:"minAmount"`
+	MaxAmount       uint64  `json:"maxAmount"`
 }
 
 type ListSwapsResponse struct {

@@ -93,7 +93,7 @@ export function RoutingFeeDialogContent({ channel }: Props) {
             className="underline flex items-center mt-4"
           >
             Learn more about routing fees
-            <ExternalLinkIcon className="w-4 h-4 ml-2" />
+            <ExternalLinkIcon className="size-4 ml-2" />
           </ExternalLink>
         </AlertDialogDescription>
       </AlertDialogHeader>

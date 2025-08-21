@@ -27,7 +27,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/getAlby/hub/config"
-	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
@@ -74,7 +73,6 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	}
 
 	ldkConfig := ldk_node.DefaultConfig()
-	listeningAddresses := strings.Split(cfg.GetEnv().LDKListeningAddresses, ",")
 
 	ldkConfig.TrustedPeers0conf = []string{
 		lsp.OlympusLSP().Pubkey,
@@ -111,7 +109,13 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		"035e8a9034a8c68f219aacadae748c7a3cd719109309db39b09886e5ff17696b1b", // lqwd*/
 	}
 
+	listeningAddresses := strings.Split(cfg.GetEnv().LDKListeningAddresses, ",")
 	ldkConfig.ListeningAddresses = &listeningAddresses
+	if cfg.GetEnv().LDKAnnouncementAddresses != "" {
+		announcementAddresses := strings.Split(cfg.GetEnv().LDKAnnouncementAddresses, ",")
+		ldkConfig.AnnouncementAddresses = &announcementAddresses
+	}
+
 	logLevel, err := strconv.Atoi(cfg.GetEnv().LDKLogLevel)
 	if err != nil {
 		// If parsing log level fails we default to 3, which is then bumped below
@@ -441,9 +445,14 @@ func (ls *LDKService) Shutdown() error {
 	logger.Logger.Info("cancelling LDK context")
 	ls.cancel()
 
-	for ls.syncing {
-		logger.Logger.Warn("Waiting for background sync to finish before stopping LDK node...")
+	maxAttempts := 40
+	for i := 0; ls.syncing; i++ {
+		logger.Logger.WithField("attempt", i).Warn("Waiting for background sync to finish before stopping LDK node...")
 		time.Sleep(1 * time.Second)
+		if i > maxAttempts {
+			logger.Logger.Error("Timed out waiting for background sync to finish before stopping LDK node")
+			break
+		}
 	}
 
 	logger.Logger.Info("stopping LDK node")
@@ -489,12 +498,7 @@ func (ls *LDKService) MakeOffer(ctx context.Context, description string) (string
 	return offer, nil
 }
 
-func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64, timeoutSeconds *int64) (*lnclient.PayInvoiceResponse, error) {
-	sendPaymentTimeout := int64(constants.SEND_PAYMENT_TIMEOUT)
-	if timeoutSeconds != nil {
-		sendPaymentTimeout = *timeoutSeconds
-	}
-
+func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
 	paymentRequest, err := decodepay.Decodepay(invoice)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -555,20 +559,10 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 	fee := uint64(0)
 	preimage := ""
 
-	timeout := time.Second * time.Duration(sendPaymentTimeout)
-	timer := time.NewTimer(timeout)
-	defer timer.Stop()
-
 	for {
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
-
-		case <-timer.C:
-			logger.Logger.WithFields(logrus.Fields{
-				"paymentHash": paymentHash,
-			}).Warn("Timed out waiting for payment to be sent")
-			return nil, lnclient.NewTimeoutError()
 
 		case ev := <-ldkEventSubscription:
 			switch event := (*ev).(type) {
@@ -652,8 +646,7 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 		return nil, err
 	}
 	fee := uint64(0)
-	paid := false
-	for start := time.Now(); time.Since(start) < time.Second*50; {
+	for {
 		event := <-ldkEventSubscription
 
 		eventPaymentSuccessful, isEventPaymentSuccessfulEvent := (*event).(ldk_node.EventPaymentSuccessful)
@@ -661,8 +654,6 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 
 		if isEventPaymentSuccessfulEvent && eventPaymentSuccessful.PaymentHash == paymentHash {
 			logger.Logger.Info("Got payment success event")
-
-			paid = true
 
 			if eventPaymentSuccessful.FeePaidMsat != nil {
 				fee = *eventPaymentSuccessful.FeePaidMsat
@@ -680,12 +671,6 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 
 			return nil, fmt.Errorf("payment failed event: %s", failureReasonMessage)
 		}
-	}
-	if !paid {
-		logger.Logger.WithFields(logrus.Fields{
-			"payment_hash": paymentHash,
-		}).Warn("Timed out waiting for keysend to be sent")
-		return nil, lnclient.NewTimeoutError()
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
@@ -2194,13 +2179,6 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uin
 
 			return nil, fmt.Errorf("received payment failed event: %s", reason)
 		}
-	}
-
-	if preimage == "" {
-		logger.Logger.WithFields(logrus.Fields{
-			"payment_id": paymentId,
-		}).Warn("Timed out waiting for payment to be sent")
-		return nil, lnclient.NewTimeoutError()
 	}
 
 	logger.Logger.WithFields(logrus.Fields{

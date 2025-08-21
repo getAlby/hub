@@ -1,7 +1,5 @@
 import React from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
-
-import { useAppByPubkey } from "src/hooks/useApp";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { useDeleteApp } from "src/hooks/useDeleteApp";
 import {
@@ -17,15 +15,18 @@ import { request } from "src/utils/request"; // build the project for this to ap
 import {
   AlertCircleIcon,
   EllipsisIcon,
+  ExternalLinkIcon,
   PencilIcon,
   SquareStackIcon,
   Trash2Icon,
 } from "lucide-react";
 import AppAvatar from "src/components/AppAvatar";
 import AppHeader from "src/components/AppHeader";
+import { IsolatedAppDrawDownDialog } from "src/components/IsolatedAppDrawDownDialog";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
 import Loading from "src/components/Loading";
 import Permissions from "src/components/Permissions";
+import { getAppDetails } from "src/components/SuggestedAppData";
 import TransactionsList from "src/components/TransactionsList";
 import {
   AlertDialog,
@@ -45,6 +46,8 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,7 +56,6 @@ import {
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu";
 import { Input } from "src/components/ui/input";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import {
   Tooltip,
@@ -68,13 +70,14 @@ import {
   SUBWALLET_APPSTORE_APP_ID,
 } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
+import { useApp } from "src/hooks/useApp";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { useCreateLightningAddress } from "src/hooks/useCreateLightningAddress";
 import { useDeleteLightningAddress } from "src/hooks/useDeleteLightningAddress";
 
 function ShowApp() {
-  const { pubkey } = useParams() as { pubkey: string };
-  const { data: app, mutate: refetchApp, error } = useAppByPubkey(pubkey);
+  const { id } = useParams() as { id: string };
+  const { data: app, mutate: refetchApp, error } = useApp(parseInt(id));
   const { data: capabilities } = useCapabilities();
 
   if (error) {
@@ -109,11 +112,11 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const [intendedLightningAddress, setIntendedLightningAddress] =
     React.useState("");
   const { createLightningAddress, creatingLightningAddress } =
-    useCreateLightningAddress(app.appPubkey);
+    useCreateLightningAddress(app.id);
   const {
     deleteLightningAddress: deleteSubwalletLightningAddress,
     deletingLightningAddress,
-  } = useDeleteLightningAddress(app.appPubkey);
+  } = useDeleteLightningAddress(app.id);
   const { data: albyMe } = useAlbyMe();
 
   React.useEffect(() => {
@@ -205,6 +208,9 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const appName =
     app.name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : app.name;
 
+  // TODO: also support finding by name prefix
+  const appDetails = getAppDetails(app.metadata?.app_store_app_id ?? "");
+
   return (
     <>
       <div className="w-full">
@@ -256,7 +262,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                     <DropdownMenu modal={false}>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="icon">
-                          <EllipsisIcon className="w-4 h-4" />
+                          <EllipsisIcon />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="w-56">
@@ -266,8 +272,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                               className="w-full cursor-pointer flex items-center gap-2"
                               onClick={handleConvertToSubwallet}
                             >
-                              <SquareStackIcon className="w-4 h-4" /> Convert to
-                              Sub-wallet
+                              <SquareStackIcon /> Convert to Sub-wallet
                             </div>
                           </DropdownMenuItem>
                         </DropdownMenuGroup>
@@ -277,7 +282,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button variant="destructive" size="icon">
-                      <Trash2Icon className="w-4 h-4" />
+                      <Trash2Icon />
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
@@ -362,7 +367,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                           Math.floor(app.balance / 1000)
                         )}{" "}
                         sats{" "}
-                        <IsolatedAppTopupDialog appPubkey={app.appPubkey}>
+                        <IsolatedAppTopupDialog appId={app.id}>
                           <Button
                             size="sm"
                             variant="secondary"
@@ -370,7 +375,18 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                           >
                             Top Up
                           </Button>
-                        </IsolatedAppTopupDialog>
+                        </IsolatedAppTopupDialog>{" "}
+                        {app.balance > 0 && (
+                          <IsolatedAppDrawDownDialog appId={app.id}>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="ml-4"
+                            >
+                              Draw Down
+                            </Button>
+                          </IsolatedAppDrawDownDialog>
+                        )}
                       </TableCell>
                     </TableRow>
                   )}
@@ -385,7 +401,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                           {app.metadata.lud16}
                           {!app.metadata.lud16 && (
                             <div className="max-w-96 flex items-center gap-2">
-                              <Input
+                              <InputWithAdornment
                                 type="text"
                                 value={intendedLightningAddress}
                                 onChange={(e) =>
@@ -467,6 +483,24 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                       <TableCell className="font-medium">Metadata</TableCell>
                       <TableCell className="text-muted-foreground whitespace-pre-wrap">
                         {JSON.stringify(app.metadata, null, 4)}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {appDetails && (
+                    <TableRow>
+                      <TableCell className="font-medium">App</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        <Link
+                          to={
+                            appDetails.internal
+                              ? `/internal-apps/${appDetails.id}`
+                              : `/appstore/${appDetails.id}`
+                          }
+                          className="flex items-center gap-2"
+                        >
+                          <ExternalLinkIcon className="size-4" />{" "}
+                          {appDetails.title}
+                        </Link>
                       </TableCell>
                     </TableRow>
                   )}

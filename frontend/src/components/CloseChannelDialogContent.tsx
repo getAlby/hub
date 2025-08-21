@@ -216,7 +216,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                 className="underline flex items-center mt-4"
               >
                 Learn more about closing channels
-                <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                <ExternalLinkIcon className="size-4 ml-2" />
               </ExternalLink>
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -236,7 +236,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
               <div className="flex items-center justify-between gap-4">
                 <p className="break-all">{fundingTxId}</p>
                 <CopyIcon
-                  className="cursor-pointer text-muted-foreground w-4 h-4"
+                  className="cursor-pointer text-muted-foreground size-4"
                   onClick={() => {
                     copy(fundingTxId);
                   }}
@@ -247,7 +247,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                 className="underline flex items-center mt-2"
               >
                 View on Mempool
-                <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                <ExternalLinkIcon className="size-4 ml-2" />
               </ExternalLink>
             </AlertDialogDescription>
           </AlertDialogHeader>

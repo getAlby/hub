@@ -33,7 +33,7 @@ export function LatestUsedAppsWidget() {
               new Date(a.lastUsedAt ?? 0).getTime()
           )
           .map((app) => (
-            <Link key={app.id} to={`/apps/${app.appPubkey}`}>
+            <Link key={app.id} to={`/apps/${app.id}`}>
               <div className="flex items-center w-full gap-4">
                 <AppAvatar app={app} className="w-14 h-14 rounded-lg" />
                 <p className="text-sm font-medium flex-1 truncate">
@@ -44,7 +44,7 @@ export function LatestUsedAppsWidget() {
                 <p className="text-xs text-muted-foreground">
                   {app.lastUsedAt ? dayjs(app.lastUsedAt).fromNow() : "never"}
                 </p>
-                <ChevronRightIcon className="text-muted-foreground w-8 h-8" />
+                <ChevronRightIcon className="text-muted-foreground size-8" />
               </div>
             </Link>
           ))}

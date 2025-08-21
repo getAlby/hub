@@ -107,7 +107,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                     scope == "pay_invoice" && "order-last"
                   )}
                 >
-                  <PermissionIcon className="mr-2 w-4 h-4" />
+                  <PermissionIcon className="mr-2 size-4" />
                   <p className="text-sm">{scopeDescriptions[scope]}</p>
                 </div>
               );
@@ -131,7 +131,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                   }}
                   className={cn("mr-4", showExpiryOptions && "mb-4")}
                 >
-                  <PlusCircleIcon className="w-4 h-4 mr-2" />
+                  <PlusCircleIcon />
                   Set budget
                 </Button>
               )}
@@ -188,7 +188,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                 variant="secondary"
                 onClick={() => setShowExpiryOptions(true)}
               >
-                <PlusCircleIcon className="w-4 h-4 mr-2" />
+                <PlusCircleIcon />
                 Set expiration time
               </Button>
             )}
@@ -215,7 +215,7 @@ const Permissions: React.FC<PermissionsProps> = ({
       {permissions.scopes.includes("superuser") && (
         <>
           <div className="flex items-center gap-2 mt-4">
-            <AlertTriangleIcon className="w-4 h-4" />
+            <AlertTriangleIcon className="size-4" />
             <p className="text-sm font-medium">
               This app can create other app connections
             </p>

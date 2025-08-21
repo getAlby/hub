@@ -1,9 +1,9 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { useToast } from "src/components/ui/use-toast";
 
 import { splitSocketAddress } from "src/lib/utils";
@@ -73,7 +73,7 @@ export default function ConnectPeer() {
       />
       <div className="max-w-lg">
         <form onSubmit={handleSubmit}>
-          <div className="">
+          <div className="grid gap-2">
             <Label htmlFor="connectionString">Peer</Label>
             <Input
               id="connectionString"

@@ -15,9 +15,13 @@ import {
   Carousel,
   CarouselApi,
   CarouselContent,
-  CarouselDots,
   CarouselItem,
 } from "src/components/ui/carousel";
+import {
+  CarouselDotButton,
+  CarouselDots,
+} from "src/components/ui/custom/carousel-dots";
+import { useDotButton } from "src/components/ui/custom/useDotButton";
 import { useTheme } from "src/components/ui/theme-provider";
 import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";
@@ -27,6 +31,7 @@ export function Intro() {
   const navigate = useNavigate();
   const [api, setApi] = React.useState<CarouselApi>();
   const [progress, setProgress] = React.useState<number>(0);
+  const { selectedIndex, scrollSnaps, onDotButtonClick } = useDotButton(api);
   const { setDarkMode } = useTheme();
   const windowWidth = useWindowWidth();
 
@@ -118,7 +123,16 @@ export function Intro() {
         </CarouselItem>
       </CarouselContent>
       <div className="absolute bottom-5 left-1/2 -translate-x-1/2">
-        <CarouselDots />
+        <CarouselDots>
+          {scrollSnaps.map((_, index) => (
+            <CarouselDotButton
+              key={index}
+              data-selected={index === selectedIndex}
+              onClick={() => onDotButtonClick(index)}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </CarouselDots>
       </div>
     </Carousel>
   );
@@ -158,7 +172,7 @@ function Slide({
         </div>
       </div>
       <Button size="icon" onClick={slideNext} className="">
-        <ArrowRightIcon className="w-4 h-4" />
+        <ArrowRightIcon className="size-4" />
       </Button>
     </div>
   );

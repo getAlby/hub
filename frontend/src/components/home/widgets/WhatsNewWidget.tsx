@@ -1,5 +1,4 @@
 import { compare } from "compare-versions";
-import { ExternalLinkButton } from "src/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { useAlbyInfo } from "src/hooks/useAlbyInfo";
 import { useInfo } from "src/hooks/useInfo";
 

@@ -26,6 +26,7 @@ import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
 import simpleboost from "src/assets/suggested-apps/simple-boost.png";
 import snort from "src/assets/suggested-apps/snort.png";
 import stackernews from "src/assets/suggested-apps/stacker-news.png";
+import tictactoe from "src/assets/suggested-apps/tictactoe.png";
 import wavespace from "src/assets/suggested-apps/wave-space.png";
 import wavlake from "src/assets/suggested-apps/wavlake.png";
 import wherostr from "src/assets/suggested-apps/wherostr.png";
@@ -806,7 +807,7 @@ export const suggestedApps: SuggestedApp[] = [
             <li>
               1. Open{" "}
               <ExternalLink
-                to="https://wave.space/spend/?utm_source=albyhub&affiliate=AlbyHub"
+                to="https://app.wave.space/spend/?utm_source=albyhub&affiliate=AlbyHub"
                 className="font-medium text-foreground underline"
               >
                 wave.space/spend
@@ -1549,6 +1550,15 @@ export const suggestedApps: SuggestedApp[] = [
     ),
   },
   {
+    id: "tictactoe",
+    title: "Tic Tac Toe",
+    description:
+      "Earn satoshis while playing multiplayer tic-tac-toe. Lightning network fast.",
+    webLink: "https://lntictactoe.com/",
+    internal: true,
+    logo: tictactoe,
+  },
+  {
     id: "nostur",
     title: "Nostur",
     description: "Social media",
@@ -2008,3 +2018,7 @@ export const suggestedApps: SuggestedApp[] = [
     logo: bitrefill,
   },
 ].sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
+
+export const getAppDetails = (appId: string) => {
+  return suggestedApps.find((app) => app.id === appId);
+};
