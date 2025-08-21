@@ -445,9 +445,14 @@ func (ls *LDKService) Shutdown() error {
 	logger.Logger.Info("cancelling LDK context")
 	ls.cancel()
 
-	for ls.syncing {
-		logger.Logger.Warn("Waiting for background sync to finish before stopping LDK node...")
+	maxAttempts := 40
+	for i := 0; ls.syncing; i++ {
+		logger.Logger.WithField("attempt", i).Warn("Waiting for background sync to finish before stopping LDK node...")
 		time.Sleep(1 * time.Second)
+		if i > maxAttempts {
+			logger.Logger.Error("Timed out waiting for background sync to finish before stopping LDK node")
+			break
+		}
 	}
 
 	logger.Logger.Info("stopping LDK node")
