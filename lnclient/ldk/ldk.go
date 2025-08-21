@@ -1006,7 +1006,6 @@ func (ls *LDKService) ConnectPeer(ctx context.Context, connectPeerRequest *lncli
 	var foundPeer *ldk_node.PeerDetails
 	for _, peer := range peers {
 		if peer.NodeId == connectPeerRequest.Pubkey {
-
 			foundPeer = &peer
 			break
 		}
