@@ -4,14 +4,12 @@ import {
   CircleXIcon,
   CopyIcon,
 } from "lucide-react";
-import Lottie from "react-lottie";
 import { useParams } from "react-router-dom";
-import animationDataDark from "src/assets/lotties/loading-dark.json";
-import animationDataLight from "src/assets/lotties/loading-light.json";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import LottieLoading from "src/components/LottieLoading";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -19,7 +17,6 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { useTheme } from "src/components/ui/theme-provider";
 import { useInfo } from "src/hooks/useInfo";
 import { useSwap } from "src/hooks/useSwaps";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -27,7 +24,6 @@ import { SwapOut } from "src/types";
 
 export default function SwapOutStatus() {
   const { data: info } = useInfo();
-  const { isDarkMode } = useTheme();
   const { swapId } = useParams() as { swapId: string };
   const { data: swap } = useSwap<SwapOut>(swapId, true);
 
@@ -39,22 +35,13 @@ export default function SwapOutStatus() {
     copyToClipboard(swap.claimTxId as string);
   };
 
-  const defaultOptions = {
-    loop: true,
-    autoplay: true,
-    animationData: isDarkMode ? animationDataDark : animationDataLight,
-    rendererSettings: {
-      preserveAspectRatio: "xMidYMid slice",
-    },
-  };
-
   const swapStatus = swap.state;
   const statusText = {
     SUCCESS: "Swap Successful",
     FAILED: "Swap Failed",
     PENDING: swap.lockupTxId
       ? "Waiting for confirmation"
-      : "Waiting for deposit",
+      : "Making lightning payment",
   };
 
   return (
@@ -91,13 +78,13 @@ export default function SwapOutStatus() {
             ) : (
               <>
                 {swapStatus === "PENDING" ? (
-                  <Lottie options={defaultOptions} />
+                  <LottieLoading />
                 ) : (
                   <CircleXIcon className="w-60 h-60" />
                 )}
                 <div className="flex flex-col gap-2 items-center">
                   <p className="text-xl font-bold slashed-zero text-center">
-                    ~{new Intl.NumberFormat().format(swap.sendAmount)} sats
+                    {new Intl.NumberFormat().format(swap.sendAmount)} sats
                   </p>
                   <div className="flex items-center">
                     <span className="text-sm text-muted-foreground">~</span>

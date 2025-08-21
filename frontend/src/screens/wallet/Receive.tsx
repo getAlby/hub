@@ -1,13 +1,13 @@
-import { CopyIcon, PencilIcon, ReceiptTextIcon } from "lucide-react";
+import { CopyIcon, LinkIcon, ReceiptTextIcon, ZapIcon } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { Button } from "src/components/ui/button";
 import { Card, CardContent } from "src/components/ui/card";
 import { LinkButton } from "src/components/ui/custom/link-button";
-import UserAvatar from "src/components/UserAvatar";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -24,7 +24,7 @@ export default function Receive() {
         toast.error("Failed to load lightning address");
       }
 
-      navigate("/wallet/receive/invoice");
+      navigate("/wallet/receive/invoice", { replace: true });
     }
   }, [info, meError, navigate]);
 
@@ -33,19 +33,14 @@ export default function Receive() {
   }
 
   return (
-    <div className="w-full md:max-w-lg">
-      <div className="grid gap-5">
+    <div className="grid gap-5">
+      <AppHeader title="Receive" />
+      <div className="w-full max-w-lg">
         {info?.albyAccountConnected && me?.lightning_address && (
-          <Card className="w-full md:max-w-xs">
+          <Card>
             <CardContent className="flex flex-col items-center gap-6 pt-6">
-              <div className="relative flex items-center justify-center">
-                <QRCode
-                  value={me.lightning_address}
-                  className="w-full h-auto"
-                />
-                <UserAvatar className="w-14 h-14 absolute border-4 border-white bg-white" />
-              </div>
-              <p className="text-center font-semibold break-all">
+              <QRCode value={me.lightning_address} className="w-full h-auto" />
+              <p className="text-center font-medium text-lg break-all my-1">
                 {me.lightning_address}
               </p>
               <div className="flex gap-4 w-full">
@@ -59,14 +54,10 @@ export default function Receive() {
                   <CopyIcon className="size-4" /> Copy Lightning Address
                 </Button>
               </div>
-
-              <div className="flex gap-4 w-full border-t pt-6">
-                <LinkButton
-                  to="invoice"
-                  variant="outline"
-                  className="flex-1 flex gap-2 items-center justify-center"
-                >
-                  <PencilIcon className="size-4" /> Amount
+              <div className="flex flex-col gap-2 w-full border-t pt-6">
+                <LinkButton to="invoice" variant="outline" className="flex-1">
+                  <ZapIcon className="w-4 h-4 mr-2" />
+                  Create Invoice
                 </LinkButton>
                 {info.backendType === "LDK" && (
                   <LinkButton
@@ -74,10 +65,14 @@ export default function Receive() {
                     variant="outline"
                     className="flex-1"
                   >
-                    <ReceiptTextIcon />
-                    BOLT-12
+                    <ReceiptTextIcon className="h-4 w-4 mr-2" />
+                    Lightning Offer
                   </LinkButton>
                 )}
+                <LinkButton to="onchain" variant="outline" className="flex-1">
+                  <LinkIcon className="w-4 h-4 mr-2" />
+                  Receive On-chain
+                </LinkButton>
               </div>
             </CardContent>
           </Card>

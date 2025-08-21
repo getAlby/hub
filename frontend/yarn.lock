@@ -2803,6 +2803,25 @@ balanced-match@^1.0.0:
   resolved "https://registry.yarnpkg.com/balanced-match/-/balanced-match-1.0.2.tgz#e83e3a7e3f300b34cb9d87f615fa0cbf357690ee"
   integrity sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==
 
+base58-js@^3.0.2:
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/base58-js/-/base58-js-3.0.3.tgz#a753af5e0c484f1c73906e3883baa34805bf0e10"
+  integrity sha512-3hf42BysHnUqmZO7mK6e5X/hs1AvyEJIhdVLbG/Mxn/fhFnhGxOO37mWbMHg1RT4TxqcPKXgqj9/bp1YG0GBXA==
+
+bech32@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/bech32/-/bech32-2.0.0.tgz#078d3686535075c8c79709f054b1b226a133b355"
+  integrity sha512-LcknSilhIGatDAsY1ak2I8VtGaHNhgMSYVxFrGLXv+xLHytaKZKcaUJJUE7qmBr7h33o5YQwP55pMI0xmkpJwg==
+
+bitcoin-address-validation@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/bitcoin-address-validation/-/bitcoin-address-validation-3.0.0.tgz#a94ce7c73f9122d6849db992a180dba54227019a"
+  integrity sha512-R1X1c9EdgjgjTpjshjk5e16TbgF7HYasxBcu7l5ScWMxVs53845vMUg5PvnQ/R/3h8Grly6Y52DgH6/77gazLQ==
+  dependencies:
+    base58-js "^3.0.2"
+    bech32 "^2.0.0"
+    sha256-uint8array "^0.10.3"
+
 brace-expansion@^1.1.7:
   version "1.1.12"
   resolved "https://registry.yarnpkg.com/brace-expansion/-/brace-expansion-1.1.12.tgz#ab9b454466e5a8cc3a187beaad580412a9c5b843"
@@ -5411,6 +5430,11 @@ set-proto@^1.0.0:
     dunder-proto "^1.0.1"
     es-errors "^1.3.0"
     es-object-atoms "^1.0.0"
+
+sha256-uint8array@^0.10.3:
+  version "0.10.7"
+  resolved "https://registry.yarnpkg.com/sha256-uint8array/-/sha256-uint8array-0.10.7.tgz#c751fc914f4227b26d996980562065fa4eadcf99"
+  integrity sha512-1Q6JQU4tX9NqsDGodej6pkrUVQVNapLZnvkwIhddH/JqzBZF1fSaxSWNY6sziXBE8aEa2twtGkXUrwzGeZCMpQ==
 
 shebang-command@^2.0.0:
   version "2.0.0"

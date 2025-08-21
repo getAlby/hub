@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 
 import { useDeleteApp } from "src/hooks/useDeleteApp";
 import {
@@ -15,6 +15,7 @@ import { request } from "src/utils/request"; // build the project for this to ap
 import {
   AlertCircleIcon,
   EllipsisIcon,
+  ExternalLinkIcon,
   PencilIcon,
   SquareStackIcon,
   Trash2Icon,
@@ -26,6 +27,7 @@ import { IsolatedAppDrawDownDialog } from "src/components/IsolatedAppDrawDownDia
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
 import Loading from "src/components/Loading";
 import Permissions from "src/components/Permissions";
+import { getAppDetails } from "src/components/SuggestedAppData";
 import TransactionsList from "src/components/TransactionsList";
 import {
   AlertDialog,
@@ -201,6 +203,9 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
 
   const appName =
     app.name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : app.name;
+
+  // TODO: also support finding by name prefix
+  const appDetails = getAppDetails(app.metadata?.app_store_app_id ?? "");
 
   return (
     <>
@@ -469,6 +474,24 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                       <TableCell className="font-medium">Metadata</TableCell>
                       <TableCell className="text-muted-foreground whitespace-pre-wrap">
                         {JSON.stringify(app.metadata, null, 4)}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {appDetails && (
+                    <TableRow>
+                      <TableCell className="font-medium">App</TableCell>
+                      <TableCell className="text-muted-foreground">
+                        <Link
+                          to={
+                            appDetails.internal
+                              ? `/internal-apps/${appDetails.id}`
+                              : `/appstore/${appDetails.id}`
+                          }
+                          className="flex items-center gap-2"
+                        >
+                          <ExternalLinkIcon className="size-4" />{" "}
+                          {appDetails.title}
+                        </Link>
                       </TableCell>
                     </TableRow>
                   )}

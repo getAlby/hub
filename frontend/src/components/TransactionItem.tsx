@@ -16,6 +16,7 @@ import { Link } from "react-router-dom";
 import AppAvatar from "src/components/AppAvatar";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
+import { PaymentFailedAlert } from "src/components/PaymentFailedAlert";
 import PodcastingInfo from "src/components/PodcastingInfo";
 import {
   Dialog,
@@ -27,6 +28,7 @@ import {
 } from "src/components/ui/dialog";
 import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
 import { useApp } from "src/hooks/useApp";
+import { useSwap } from "src/hooks/useSwaps";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
 import { Transaction } from "src/types";
@@ -47,6 +49,8 @@ function safeNpubEncode(hex: string): string | undefined {
 
 function TransactionItem({ tx }: Props) {
   const { data: app } = useApp(tx.appId);
+  const swapId = tx.metadata?.swap_id;
+  const { data: swap } = useSwap(swapId);
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;
 
@@ -61,32 +65,23 @@ function TransactionItem({ tx }: Props) {
       : undefined;
 
   const recipientIdentifier = tx.metadata?.recipient_data?.identifier;
-  const to = recipientIdentifier
-    ? `${tx.state === "failed" ? "payment " : ""}to ${recipientIdentifier}`
-    : undefined;
+  const to =
+    swap?.type === "out" ? swap.destinationAddress : recipientIdentifier;
 
   const eventId = tx.metadata?.nostr?.tags?.find((t) => t[0] === "e")?.[1];
 
   const bolt12Offer = tx.metadata?.offer;
-
-  const swapId = tx.metadata?.swap_id;
 
   const description =
     tx.description || tx.metadata?.comment || bolt12Offer?.payer_note;
 
   const typeStateText =
     type == "incoming"
-      ? swapId
-        ? "Swapped in"
-        : "Received"
+      ? "Received"
       : tx.state === "settled" // we only fetch settled incoming payments
-        ? swapId
-          ? "Swapped out"
-          : "Sent"
+        ? "Sent"
         : tx.state === "pending"
-          ? swapId
-            ? "Swapping out"
-            : "Sending"
+          ? "Sending"
           : "Failed";
 
   const Icon =
@@ -167,7 +162,11 @@ function TransactionItem({ tx }: Props) {
               <span className="md:text-xl font-semibold break-all line-clamp-1">
                 {typeStateText}
                 {from !== undefined && <>&nbsp;{from}</>}
-                {to !== undefined && <>&nbsp;{to}</>}
+                {to !== undefined && (
+                  <>
+                    &nbsp;{tx.state === "failed" ? "payment " : ""}to {to}
+                  </>
+                )}
               </span>
               <span className="text-xs md:text-base text-muted-foreground shrink-0">
                 {dayjs(tx.updatedAt).fromNow()}
@@ -248,10 +247,10 @@ function TransactionItem({ tx }: Props) {
                 </Link>
               </div>
             )}
-            {recipientIdentifier && (
+            {to && (
               <div className="mt-6">
                 <p>To</p>
-                <p className="text-muted-foreground">{recipientIdentifier}</p>
+                <p className="text-muted-foreground">{to}</p>
               </div>
             )}
             {payerName && (
@@ -318,6 +317,14 @@ function TransactionItem({ tx }: Props) {
                     from {npub}
                   </span>
                 </p>
+              </div>
+            )}
+            {tx.state === "failed" && (
+              <div className="mt-6">
+                <PaymentFailedAlert
+                  errorMessage={tx.failureReason}
+                  invoice={tx.invoice}
+                />
               </div>
             )}
             <div className="mt-4 w-full">

@@ -333,6 +333,7 @@ func (svc *albyOAuthService) GetVssAuthToken(ctx context.Context, nodeIdentifier
 	}
 
 	client := svc.oauthConf.Client(ctx, token)
+	client.Timeout = 10 * time.Second
 
 	type vssAuthTokenRequest struct {
 		Identifier string `json:"identifier"`
@@ -398,6 +399,7 @@ func (svc *albyOAuthService) CreateLightningAddress(ctx context.Context, address
 	}
 
 	client := svc.oauthConf.Client(ctx, token)
+	client.Timeout = 10 * time.Second
 
 	type createLightningAddressRequest struct {
 		Address string `json:"address"`
@@ -477,6 +479,7 @@ func (svc *albyOAuthService) DeleteLightningAddress(ctx context.Context, address
 	}
 
 	client := svc.oauthConf.Client(ctx, token)
+	client.Timeout = 10 * time.Second
 
 	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/internal/lightning_addresses/%s", albyOAuthAPIURL, address), nil)
 	if err != nil {
@@ -513,6 +516,7 @@ func (svc *albyOAuthService) GetMe(ctx context.Context) (*AlbyMe, error) {
 	}
 
 	client := svc.oauthConf.Client(ctx, token)
+	client.Timeout = 10 * time.Second
 
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/internal/users", albyOAuthAPIURL), nil)
 	if err != nil {
@@ -567,6 +571,7 @@ func (svc *albyOAuthService) GetBalance(ctx context.Context) (*AlbyBalance, erro
 	}
 
 	client := svc.oauthConf.Client(ctx, token)
+	client.Timeout = 10 * time.Second
 
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/internal/lndhub/balance", albyOAuthAPIURL), nil)
 	if err != nil {
@@ -615,6 +620,7 @@ func (svc *albyOAuthService) SendPayment(ctx context.Context, invoice string) er
 	}
 
 	client := svc.oauthConf.Client(ctx, token)
+	client.Timeout = 10 * time.Second
 
 	type payRequest struct {
 		Invoice string `json:"invoice"`
@@ -887,6 +893,7 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 	}
 
 	client := svc.oauthConf.Client(ctx, token)
+	client.Timeout = 10 * time.Second
 
 	// encode event without global properties
 	originalEventBuffer := bytes.NewBuffer([]byte{})
@@ -1005,6 +1012,7 @@ func (svc *albyOAuthService) backupChannels(ctx context.Context, event *events.E
 	}
 
 	client := svc.oauthConf.Client(ctx, token)
+	client.Timeout = 10 * time.Second
 
 	body := bytes.NewBuffer([]byte{})
 	err = json.NewEncoder(body).Encode(backup)
@@ -1038,6 +1046,7 @@ func (svc *albyOAuthService) createAlbyAccountNWCNode(ctx context.Context) (stri
 	}
 
 	client := svc.oauthConf.Client(ctx, token)
+	client.Timeout = 10 * time.Second
 
 	type createNWCNodeRequest struct {
 	}
@@ -1098,6 +1107,7 @@ func (svc *albyOAuthService) destroyAlbyAccountNWCNode(ctx context.Context) erro
 	}
 
 	client := svc.oauthConf.Client(ctx, token)
+	client.Timeout = 10 * time.Second
 
 	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/internal/nwcs", albyOAuthAPIURL), nil)
 	if err != nil {
@@ -1132,6 +1142,7 @@ func (svc *albyOAuthService) activateAlbyAccountNWCNode(ctx context.Context, wal
 	}
 
 	client := svc.oauthConf.Client(ctx, token)
+	client.Timeout = 10 * time.Second
 
 	type activateNWCNodeRequest struct {
 		WalletPubkey string `json:"wallet_pubkey"`
@@ -1589,6 +1600,7 @@ func getEventWhitelist() []string {
 		"nwc_swap_succeeded",
 		"nwc_rebalance_succeeded",
 
-		"interest_virtual_bankaccount",
+		// client-side events
+		"payment_failed_details",
 	}
 }

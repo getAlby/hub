@@ -11,10 +11,9 @@ import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
-import { MIN_AUTO_SWAP_AMOUNT } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
-import { useSwapFees } from "src/hooks/useSwaps";
+import { useSwapInfo } from "src/hooks/useSwaps";
 import { cn } from "src/lib/utils";
 import { SwapResponse } from "src/types";
 import { request } from "src/utils/request";
@@ -47,11 +46,11 @@ export default function Swap() {
         }
       />
       <div className="w-full max-w-lg">
-        <div className="flex items-center text-center text-foreground font-medium rounded-lg bg-muted p-1">
+        <div className="flex items-center text-center text-foreground font-medium rounded-xl bg-muted p-1">
           <div
             className={cn(
-              "cursor-pointer rounded-md flex-1 py-1.5 text-sm",
-              swapType == "in" && "text-foreground bg-background font-semibold"
+              "cursor-pointer rounded-lg flex-1 py-1.5 text-sm",
+              swapType == "in" && "text-foreground bg-background shadow-md"
             )}
             onClick={() => setSwapType("in")}
           >
@@ -59,8 +58,8 @@ export default function Swap() {
           </div>
           <div
             className={cn(
-              "cursor-pointer rounded-md flex-1 py-1.5 text-sm",
-              swapType == "out" && "text-foreground bg-background font-semibold"
+              "cursor-pointer rounded-lg flex-1 py-1.5 text-sm",
+              swapType == "out" && "text-foreground bg-background shadow-md"
             )}
             onClick={() => setSwapType("out")}
           >
@@ -76,7 +75,7 @@ export default function Swap() {
 function SwapInForm() {
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
-  const { data: swapFees } = useSwapFees("in");
+  const { data: swapInfo } = useSwapInfo("in");
   const navigate = useNavigate();
 
   const [swapAmount, setSwapAmount] = useState("");
@@ -110,7 +109,7 @@ function SwapInForm() {
     }
   };
 
-  if (!info || !balances) {
+  if (!info || !balances || !swapInfo) {
     return <Loading />;
   }
 
@@ -136,8 +135,11 @@ function SwapInForm() {
           autoFocus
           placeholder="Amount in satoshis"
           value={swapAmount}
-          min={MIN_AUTO_SWAP_AMOUNT}
-          max={(balances.lightning.totalReceivable / 1000) * 0.99}
+          min={swapInfo.minAmount}
+          max={Math.min(
+            swapInfo.maxAmount,
+            (balances.lightning.totalReceivable / 1000) * 0.99
+          )}
           onChange={(e) => setSwapAmount(e.target.value)}
           required
         />
@@ -148,7 +150,7 @@ function SwapInForm() {
               <p className="text-xs text-muted-foreground">
                 Receiving Capacity:{" "}
                 {new Intl.NumberFormat().format(
-                  balances.lightning.totalReceivable / 1000
+                  Math.floor(balances.lightning.totalReceivable / 1000)
                 )}{" "}
                 sats{" "}
                 <Link className="underline" to="/channels/incoming">
@@ -163,21 +165,16 @@ function SwapInForm() {
             </div>
           )}
           <p className="text-xs text-muted-foreground">
-            Minimum: {new Intl.NumberFormat().format(MIN_AUTO_SWAP_AMOUNT)} sats
+            Minimum: {new Intl.NumberFormat().format(swapInfo.minAmount)} sats
           </p>
         </div>
       </div>
 
       <div className="flex items-center justify-between border-t pt-4">
         <Label>Fee</Label>
-        {swapFees ? (
-          <p className="text-muted-foreground text-sm">
-            {swapFees.albyServiceFee + swapFees.boltzServiceFee}% + on-chain
-            fees
-          </p>
-        ) : (
-          <Loading />
-        )}
+        <p className="text-muted-foreground text-sm">
+          {swapInfo.albyServiceFee + swapInfo.boltzServiceFee}% + on-chain fees
+        </p>
       </div>
       <div className="grid gap-2">
         <LoadingButton className="w-full" loading={loading}>
@@ -193,7 +190,7 @@ function SwapInForm() {
 }
 
 function SwapOutForm() {
-  const { data: swapFees } = useSwapFees("out");
+  const { data: swapInfo } = useSwapInfo("out");
   const navigate = useNavigate();
   const { data: balances } = useBalances();
 
@@ -236,6 +233,10 @@ function SwapOutForm() {
     setDestination(text.trim());
   };
 
+  if (!balances || !swapInfo) {
+    return <Loading />;
+  }
+
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
       <div className="mt-6">
@@ -253,7 +254,11 @@ function SwapOutForm() {
           autoFocus
           placeholder="Amount in satoshis"
           value={swapAmount}
-          min={MIN_AUTO_SWAP_AMOUNT}
+          min={swapInfo.minAmount}
+          max={Math.min(
+            swapInfo.maxAmount,
+            Math.floor(balances.lightning.totalSpendable / 1000)
+          )}
           onChange={(e) => setSwapAmount(e.target.value)}
           required
         />
@@ -263,13 +268,13 @@ function SwapOutForm() {
             <p className="text-xs text-muted-foreground">
               Balance:{" "}
               {new Intl.NumberFormat().format(
-                balances.lightning.totalSpendable / 1000
+                Math.floor(balances.lightning.totalSpendable / 1000)
               )}{" "}
               sats
             </p>
           )}
           <p className="text-xs text-muted-foreground">
-            Minimum: {new Intl.NumberFormat().format(MIN_AUTO_SWAP_AMOUNT)} sats
+            Minimum: {new Intl.NumberFormat().format(swapInfo.minAmount)} sats
           </p>
         </div>
       </div>
@@ -336,14 +341,9 @@ function SwapOutForm() {
 
       <div className="flex items-center justify-between border-t pt-4">
         <Label>Fee</Label>
-        {swapFees ? (
-          <p className="text-muted-foreground text-sm">
-            {swapFees.albyServiceFee + swapFees.boltzServiceFee}% + on-chain
-            fees
-          </p>
-        ) : (
-          <Loading />
-        )}
+        <p className="text-muted-foreground text-sm">
+          {swapInfo.albyServiceFee + swapInfo.boltzServiceFee}% + on-chain fees
+        </p>
       </div>
       <div className="grid gap-2">
         <LoadingButton className="w-full" loading={loading}>

@@ -111,6 +111,7 @@ type Channel struct {
 	Confirmations                            *uint32
 	ConfirmationsRequired                    *uint32
 	ForwardingFeeBaseMsat                    uint32
+	ForwardingFeeProportionalMillionths      uint32
 	UnspendablePunishmentReserve             uint64
 	CounterpartyUnspendablePunishmentReserve uint64
 	Error                                    *string
@@ -148,6 +149,7 @@ type UpdateChannelRequest struct {
 	ChannelId                                string `json:"channelId"`
 	NodeId                                   string `json:"nodeId"`
 	ForwardingFeeBaseMsat                    uint32 `json:"forwardingFeeBaseMsat"`
+	ForwardingFeeProportionalMillionths      uint32 `json:"forwardingFeeProportionalMillionths"`
 	MaxDustHtlcExposureFromFeeRateMultiplier uint64 `json:"maxDustHtlcExposureFromFeeRateMultiplier"`
 }
 
@@ -212,6 +214,11 @@ type NetworkGraphResponse = interface{}
 type PaymentFailedEventProperties struct {
 	Transaction *Transaction
 	Reason      string
+}
+
+type PaymentForwardedEventProperties struct {
+	TotalFeeEarnedMsat          uint64
+	OutboundAmountForwardedMsat uint64
 }
 
 type CustomNodeCommandArgDef struct {
