@@ -228,6 +228,14 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                       value={name}
                       id="name"
                       onChange={(e) => setName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleSave();
+                        } else if (e.key === "Escape") {
+                          setName(app.name);
+                          setIsEditingName(false);
+                        }
+                      }}
                       required
                       className="text-xl font-semibold w-max max-w-40 md:max-w-fit"
                       autoComplete="off"
@@ -239,7 +247,11 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                 ) : (
                   <div
                     className="flex flex-row gap-2 items-center cursor-pointer"
-                    onClick={() => setIsEditingName(true)}
+                    onClick={() => {
+                      if (app.name !== ALBY_ACCOUNT_APP_NAME) {
+                        setIsEditingName(true);
+                      }
+                    }}
                   >
                     <h2
                       title={appName}
