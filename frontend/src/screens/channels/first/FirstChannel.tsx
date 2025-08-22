@@ -26,7 +26,6 @@ import { Invoice } from "@getalby/lightning-tools";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import { PayLightningInvoice } from "src/components/PayLightningInvoice";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
-import { ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL } from "src/constants";
 
 import LightningNetworkDarkSVG from "public/images/illustrations/lightning-network-dark.svg";
 import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
@@ -113,10 +112,6 @@ export function FirstChannel() {
       });
     }
   }
-
-  const canPayForFirstChannelWithFeeCredits =
-    albyBalance &&
-    albyBalance.sats >= ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL;
 
   return (
     <>
@@ -286,7 +281,10 @@ export function FirstChannel() {
                           ) : (
                             <WalletIcon className="size-4" />
                           )}
-                          {lspChannelOffer.currentPaymentMethod}
+                          {lspChannelOffer.currentPaymentMethod.replace(
+                            "_",
+                            " "
+                          )}
                         </div>
                       </ExternalLink>
                     </TableCell>
@@ -392,30 +390,27 @@ export function FirstChannel() {
                 </Button>
               </div>
             )}
-            {canPayForFirstChannelWithFeeCredits && (
+            {lspChannelOffer.currentPaymentMethod === "fee_credits" && (
               <>
-                <p>
+                <p className="text-sm">
                   You currently have{" "}
                   <span className="font-medium text-foreground sensitive slashed-zero">
-                    {new Intl.NumberFormat().format(albyBalance?.sats)} Alby fee
-                    credits.
+                    {new Intl.NumberFormat().format(albyBalance?.sats || 0)}{" "}
                   </span>{" "}
-                  <Link
+                  Alby fee credits which will be used to open your first
+                  Lightning channel.{" "}
+                  <ExternalLink
                     to="https://guides.getalby.com/user-guide/alby-account/faq/what-are-fee-credits-in-my-alby-account"
                     target="_blank"
                     className="underline"
                   >
                     Learn more
-                  </Link>
-                </p>
-                <p>
-                  These fee credits will be applied to open your first Lightning
-                  channel.
+                  </ExternalLink>
                 </p>
               </>
             )}
             {lspChannelOffer.currentPaymentMethod !== "prepaid" &&
-              !canPayForFirstChannelWithFeeCredits && (
+              lspChannelOffer.currentPaymentMethod !== "fee_credits" && (
                 <p className="text-xs text-muted-foreground flex items-center justify-center -mb-2">
                   The cost will be included in your next subscription payment
                 </p>
