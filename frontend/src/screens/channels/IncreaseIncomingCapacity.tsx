@@ -152,6 +152,20 @@ function NewChannelInternal({
     }
   }, [order.paymentMethod, selectedPeer]);
 
+  // find the best channel partner
+  const okPartners = channelPeerSuggestions?.filter(
+    (partner) =>
+      parseInt(order.amount || "0") >= partner.minimumChannelSize &&
+      parseInt(order.amount || "0") <= partner.maximumChannelSize &&
+      partner.network === network &&
+      partner.paymentMethod === "lightning" &&
+      partner.lspType === "LSPS1" &&
+      partner.pubkey &&
+      !channels.some((channel) => channel.remotePubkey === partner.pubkey)
+  );
+
+  const bestPartner = okPartners?.[0];
+
   function onSubmit(e: FormEvent) {
     e.preventDefault();
     try {
@@ -167,20 +181,7 @@ function NewChannelInternal({
           throw new Error("No amount set");
         }
 
-        // find the best channel partner
-        const okPartners = channelPeerSuggestions.filter(
-          (partner) =>
-            amount >= partner.minimumChannelSize &&
-            amount <= partner.maximumChannelSize &&
-            partner.network === network &&
-            partner.paymentMethod === "lightning" &&
-            partner.lspType === "LSPS1" &&
-            partner.pubkey &&
-            !channels.some((channel) => channel.remotePubkey === partner.pubkey)
-        );
-
-        const partner = okPartners[0];
-        if (!partner) {
+        if (!bestPartner) {
           toast({
             description:
               "No ideal channel partner found. Please choose from the advanced options to continue",
@@ -190,12 +191,12 @@ function NewChannelInternal({
         order.paymentMethod = "lightning";
         if (
           order.paymentMethod !== "lightning" ||
-          partner.paymentMethod !== "lightning"
+          bestPartner.paymentMethod !== "lightning"
         ) {
           throw new Error("Unexpected order or partner payment method");
         }
-        order.lspType = partner.lspType;
-        order.lspUrl = partner.lspUrl;
+        order.lspType = bestPartner.lspType;
+        order.lspUrl = bestPartner.lspUrl;
       }
 
       useChannelOrderStore.getState().setOrder(order as NewChannelOrder);
@@ -212,6 +213,17 @@ function NewChannelInternal({
   if (!channelPeerSuggestions) {
     return <Loading />;
   }
+
+  const estimatedChannelPrice =
+    bestPartner?.paymentMethod === "lightning"
+      ? order.amount === "1000000"
+        ? bestPartner["feeTotalSat1m"]
+        : order.amount === "2000000"
+          ? bestPartner["feeTotalSat2m"]
+          : order.amount === "3000000"
+            ? bestPartner["feeTotalSat3m"]
+            : undefined
+      : undefined;
 
   return (
     <>
@@ -306,6 +318,26 @@ function NewChannelInternal({
                 </div>
               ))}
             </div>
+            {!showAdvanced && bestPartner?.paymentMethod === "lightning" && (
+              <p className="text-sm">
+                You will receive a channel from{" "}
+                <ExternalLink
+                  to={bestPartner.lspContactUrl}
+                  className="underline"
+                >
+                  {bestPartner.name}
+                </ExternalLink>
+              </p>
+            )}
+            {estimatedChannelPrice && (
+              <span className="text-muted-foreground text-xs">
+                {" "}
+                Estimated channel price:{" "}
+                <span className="font-semibold">
+                  {new Intl.NumberFormat().format(estimatedChannelPrice)} sats
+                </span>
+              </span>
+            )}
           </div>
           {showAdvanced && (
             <>
@@ -413,6 +445,7 @@ function NewChannelInternal({
               </div>
             </>
           )}
+
           {!showAdvanced && (
             <Button
               type="button"

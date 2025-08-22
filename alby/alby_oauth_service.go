@@ -1156,6 +1156,9 @@ func (svc *albyOAuthService) activateAlbyAccountNWCNode(ctx context.Context, wal
 
 	body := bytes.NewBuffer([]byte{})
 	err = json.NewEncoder(body).Encode(&activateNodeRequest)
+	if err != nil {
+		return err
+	}
 
 	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/internal/nwcs/activate", albyOAuthAPIURL), body)
 	if err != nil {
@@ -1199,7 +1202,6 @@ func (svc *albyOAuthService) activateAlbyAccountNWCNode(ctx context.Context, wal
 }
 
 func (svc *albyOAuthService) GetChannelPeerSuggestions(ctx context.Context) ([]ChannelPeerSuggestion, error) {
-
 	client := &http.Client{Timeout: 10 * time.Second}
 
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/internal/channel_suggestions", albyInternalAPIURL), nil)
@@ -1239,6 +1241,54 @@ func (svc *albyOAuthService) GetChannelPeerSuggestions(ctx context.Context) ([]C
 
 	logger.Logger.WithFields(logrus.Fields{"channel_suggestions": suggestions}).Debug("Alby channel peer suggestions response")
 	return suggestions, nil
+}
+
+func (svc *albyOAuthService) GetLSPChannelOffer(ctx context.Context) (*LSPChannelOffer, error) {
+	token, err := svc.fetchUserToken(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch user token")
+		return nil, err
+	}
+
+	client := svc.oauthConf.Client(ctx, token)
+	client.Timeout = 10 * time.Second
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/internal/lsp", albyOAuthAPIURL), nil)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Error creating request /me")
+		return nil, err
+	}
+
+	setDefaultRequestHeaders(req)
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch /me")
+		return nil, err
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to read response body")
+		return nil, errors.New("failed to read response body")
+	}
+
+	if res.StatusCode >= 300 {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":        string(body),
+			"status_code": res.StatusCode,
+		}).Error("users endpoint returned non-success code")
+		return nil, fmt.Errorf("users endpoint returned non-success code: %s", string(body))
+	}
+
+	lspChannelOffer := &LSPChannelOffer{}
+	err = json.Unmarshal(body, lspChannelOffer)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to decode API response")
+		return nil, err
+	}
+
+	return lspChannelOffer, nil
 }
 
 func (svc *albyOAuthService) GetBitcoinRate(ctx context.Context) (*BitcoinRate, error) {
