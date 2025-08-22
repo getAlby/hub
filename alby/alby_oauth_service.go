@@ -1156,6 +1156,9 @@ func (svc *albyOAuthService) activateAlbyAccountNWCNode(ctx context.Context, wal
 
 	body := bytes.NewBuffer([]byte{})
 	err = json.NewEncoder(body).Encode(&activateNodeRequest)
+	if err != nil {
+		return err
+	}
 
 	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/internal/nwcs/activate", albyOAuthAPIURL), body)
 	if err != nil {
@@ -1199,7 +1202,6 @@ func (svc *albyOAuthService) activateAlbyAccountNWCNode(ctx context.Context, wal
 }
 
 func (svc *albyOAuthService) GetChannelPeerSuggestions(ctx context.Context) ([]ChannelPeerSuggestion, error) {
-
 	client := &http.Client{Timeout: 10 * time.Second}
 
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/internal/channel_suggestions", albyInternalAPIURL), nil)
@@ -1242,16 +1244,51 @@ func (svc *albyOAuthService) GetChannelPeerSuggestions(ctx context.Context) ([]C
 }
 
 func (svc *albyOAuthService) GetLSPChannelOffer(ctx context.Context) (*LSPChannelOffer, error) {
-	// TODO: do actual API call
-	return &LSPChannelOffer{
-		LspName:              "Megalith LSP",
-		LspContactUrl:        "https://megalithic.me/contact",
-		LspBalanceSats:       uint64(1_000_000),
-		FeeTotalSat:          uint64(10_000),
-		FeeTotalUsd:          uint64(10_00),
-		CurrentPaymentMethod: "card",
-		Terms:                "Megalith will do its best to keep your channel open for at least 3 months. Your channel will stay open indefinitely if you use it regularly and keep your hub online.",
-	}, nil
+	token, err := svc.fetchUserToken(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch user token")
+		return nil, err
+	}
+
+	client := svc.oauthConf.Client(ctx, token)
+	client.Timeout = 10 * time.Second
+
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/internal/lsp", albyOAuthAPIURL), nil)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Error creating request /me")
+		return nil, err
+	}
+
+	setDefaultRequestHeaders(req)
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch /me")
+		return nil, err
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to read response body")
+		return nil, errors.New("failed to read response body")
+	}
+
+	if res.StatusCode >= 300 {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":        string(body),
+			"status_code": res.StatusCode,
+		}).Error("users endpoint returned non-success code")
+		return nil, fmt.Errorf("users endpoint returned non-success code: %s", string(body))
+	}
+
+	lspChannelOffer := &LSPChannelOffer{}
+	err = json.Unmarshal(body, lspChannelOffer)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to decode API response")
+		return nil, err
+	}
+
+	return lspChannelOffer, nil
 }
 
 func (svc *albyOAuthService) GetBitcoinRate(ctx context.Context) (*BitcoinRate, error) {
@@ -1319,7 +1356,7 @@ func (svc *albyOAuthService) RequestAutoChannel(ctx context.Context, lnClient ln
 		return nil, err
 	}
 
-	requestUrl := fmt.Sprintf("https://api.getalby.com/internal/lsp/alby/%s?version=%s", nodeInfo.Network, version.Tag)
+	requestUrl := fmt.Sprintf("https://api.getalby.com/internal/lsp/alby/%s", nodeInfo.Network)
 
 	pubkey, address, port, err := svc.getLSPInfo(ctx, requestUrl+"/v1/get_info")
 

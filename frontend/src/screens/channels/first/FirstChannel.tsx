@@ -232,10 +232,10 @@ export function FirstChannel() {
                   </TableCell>
                   <TableCell className="p-3 flex flex-col gap-2 items-end justify-center">
                     <span>
-                      $
-                      {new Intl.NumberFormat().format(
-                        lspChannelOffer.feeTotalUsd / 100
-                      )}{" "}
+                      {new Intl.NumberFormat(undefined, {
+                        style: "currency",
+                        currency: "USD",
+                      }).format(lspChannelOffer.feeTotalUsd / 100)}{" "}
                     </span>
                   </TableCell>
                 </TableRow>
@@ -276,14 +276,10 @@ export function FirstChannel() {
                   <TableRow>
                     <TableCell className="font-medium p-3 flex items-center gap-2">
                       Payment method
-                      {/* <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel">
-                      <InfoIcon className="size-4 text-muted-foreground" />
-                    </ExternalLink> */}
                     </TableCell>
 
                     <TableCell className="p-3 text-right">
-                      {/* FIXME: change link */}
-                      <ExternalLink to="https://getalby.com/settings">
+                      <ExternalLink to="https://getalby.com/payment_details">
                         <div className="capitalize flex items-center justify-end gap-1">
                           {lspChannelOffer.currentPaymentMethod === "card" ? (
                             <CreditCardIcon className="size-4" />
@@ -316,6 +312,7 @@ export function FirstChannel() {
                           </AlertDialogTitle>
                           <AlertDialogDescription>
                             <div className="grid gap-4">
+                              <p>{lspChannelOffer.lspDescription}</p>
                               <p>
                                 Learn more about{" "}
                                 <ExternalLink
