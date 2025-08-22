@@ -1,11 +1,11 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 
 import type { Invoice } from "@getalby/lightning-tools/bolt11";
 import { ArrowLeftIcon } from "lucide-react";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";

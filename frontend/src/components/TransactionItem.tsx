@@ -50,6 +50,8 @@ function safeNpubEncode(hex: string): string | undefined {
 function TransactionItem({ tx }: Props) {
   const { data: app } = useApp(tx.appId);
   const swapId = tx.metadata?.swap_id;
+  const swapId = tx.metadata?.swap_id;
+  const { data: swap } = useSwap(swapId);
   const { data: swap } = useSwap(swapId);
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;

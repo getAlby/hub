@@ -167,10 +167,10 @@ function OnchainForm({
       });
       toast("Successfully broadcasted transaction");
     } catch (e) {
-      console.error(e);
       toast.error("Failed to send payment", {
         description: "" + e,
       });
+      console.error(e);
     } finally {
       setLoading(false);
     }

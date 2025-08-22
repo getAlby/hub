@@ -1,5 +1,4 @@
 import React from "react";
-import { toast } from "sonner";
 import { Label } from "src/components/ui/label";
 
 import type { Invoice } from "@getalby/lightning-tools/bolt11";
