@@ -1,5 +1,5 @@
 import { AlertTriangleIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import ExternalLink from "src/components/ExternalLink";
 import {
   Tooltip,
   TooltipContent,
@@ -27,10 +27,13 @@ export function ChannelWarning({ channel }: ChannelWarningProps) {
     channelWarning = (
       <>
         This channel is currently offline and cannot be used to send or receive
-        payments.
-        <Link to="https://guides.getalby.com/user-guide/alby-hub/faq/why-is-my-channel-offline-and-what-should-i-do-now">
+        payments.{" "}
+        <ExternalLink
+          to="https://guides.getalby.com/user-guide/alby-hub/faq/why-is-my-channel-offline-and-what-should-i-do-now"
+          className="underline"
+        >
           Learn more here.
-        </Link>
+        </ExternalLink>
       </>
     );
   }
