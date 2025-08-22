@@ -203,10 +203,12 @@ export type AutoSwapConfig = {
   destination: string;
 };
 
-export type SwapFees = {
+export type SwapInfo = {
   albyServiceFee: number;
   boltzServiceFee: number;
   boltzNetworkFee: number;
+  minAmount: number;
+  maxAmount: number;
 };
 
 export type BaseSwap = {
@@ -295,6 +297,7 @@ export type Channel = {
   confirmations?: number;
   confirmationsRequired?: number;
   forwardingFeeBaseMsat: number;
+  forwardingFeeProportionalMillionths: number;
   unspendablePunishmentReserve: number;
   counterpartyUnspendablePunishmentReserve: number;
   error?: string;
@@ -655,4 +658,10 @@ export type NewChannelOrder = OnchainOrder | LightningOrder;
 
 export type AuthTokenResponse = {
   token: string;
+};
+
+export type GetForwardsResponse = {
+  outboundAmountForwardedMsat: number;
+  totalFeeEarnedMsat: number;
+  numForwards: number;
 };

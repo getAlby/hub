@@ -137,6 +137,9 @@ func NewService(ctx context.Context) (*service, error) {
 	eventPublisher.RegisterSubscriber(svc.transactionsService)
 	eventPublisher.RegisterSubscriber(svc.nip47Service)
 	eventPublisher.RegisterSubscriber(svc.albyOAuthSvc)
+	eventPublisher.RegisterSubscriber(&paymentForwardedConsumer{
+		db: gormDB,
+	})
 
 	eventPublisher.Publish(&events.Event{
 		Event: "nwc_started",

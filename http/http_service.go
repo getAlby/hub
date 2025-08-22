@@ -172,8 +172,8 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.POST("/command", httpSvc.execCustomNodeCommandHandler)
 	restrictedApiGroup.GET("/swaps", httpSvc.listSwapsHandler)
 	restrictedApiGroup.GET("/swaps/:swapId", httpSvc.lookupSwapHandler)
-	restrictedApiGroup.GET("/swaps/out/fees", httpSvc.getSwapOutFeesHandler)
-	restrictedApiGroup.GET("/swaps/in/fees", httpSvc.getSwapInFeesHandler)
+	restrictedApiGroup.GET("/swaps/out/info", httpSvc.getSwapOutInfoHandler)
+	restrictedApiGroup.GET("/swaps/in/info", httpSvc.getSwapInInfoHandler)
 	restrictedApiGroup.POST("/swaps/out", httpSvc.initiateSwapOutHandler)
 	restrictedApiGroup.POST("/swaps/in", httpSvc.initiateSwapInHandler)
 	restrictedApiGroup.POST("/swaps/refund", httpSvc.refundSwapHandler)
@@ -182,6 +182,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.POST("/autoswap", httpSvc.enableAutoSwapOutHandler)
 	restrictedApiGroup.DELETE("/autoswap", httpSvc.disableAutoSwapOutHandler)
 	restrictedApiGroup.POST("/node/alias", httpSvc.setNodeAliasHandler)
+	restrictedApiGroup.GET("/forwards", httpSvc.forwardsHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedApiGroup, e)
 }
@@ -220,7 +221,7 @@ func (httpSvc *HttpService) eventHandler(c echo.Context) error {
 		})
 	}
 
-	httpSvc.api.SendEvent(sendEventRequest.Event)
+	httpSvc.api.SendEvent(sendEventRequest.Event, sendEventRequest.Properties)
 
 	return c.NoContent(http.StatusOK)
 }
@@ -1367,22 +1368,22 @@ func (httpSvc *HttpService) lookupSwapHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, swap)
 }
 
-func (httpSvc *HttpService) getSwapOutFeesHandler(c echo.Context) error {
-	swapOutFeesResponse, err := httpSvc.api.GetSwapOutFees()
+func (httpSvc *HttpService) getSwapOutInfoHandler(c echo.Context) error {
+	swapOutFeesResponse, err := httpSvc.api.GetSwapOutInfo()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to get swap out fees: %v", err),
+			Message: fmt.Sprintf("Failed to get swap out info: %v", err),
 		})
 	}
 
 	return c.JSON(http.StatusOK, swapOutFeesResponse)
 }
 
-func (httpSvc *HttpService) getSwapInFeesHandler(c echo.Context) error {
-	swapOutFeesResponse, err := httpSvc.api.GetSwapInFees()
+func (httpSvc *HttpService) getSwapInInfoHandler(c echo.Context) error {
+	swapOutFeesResponse, err := httpSvc.api.GetSwapInInfo()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to get swap in fees: %v", err),
+			Message: fmt.Sprintf("Failed to get swap in info: %v", err),
 		})
 	}
 
@@ -1505,4 +1506,15 @@ func (httpSvc *HttpService) setNodeAliasHandler(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) forwardsHandler(c echo.Context) error {
+	forwards, err := httpSvc.api.GetForwards()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get forwards: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, forwards)
 }

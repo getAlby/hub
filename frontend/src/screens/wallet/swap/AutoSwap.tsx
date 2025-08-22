@@ -17,8 +17,8 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useToast } from "src/components/ui/use-toast";
-import { MIN_AUTO_SWAP_AMOUNT } from "src/constants";
-import { useAutoSwapsConfig, useSwapFees } from "src/hooks/useSwaps";
+import { useBalances } from "src/hooks/useBalances";
+import { useAutoSwapsConfig, useSwapInfo } from "src/hooks/useSwaps";
 import { AutoSwapConfig } from "src/types";
 import { request } from "src/utils/request";
 
@@ -56,13 +56,17 @@ export default function AutoSwap() {
 
 function AutoSwapOutForm() {
   const { toast } = useToast();
+  const { data: balances } = useBalances();
   const { mutate } = useAutoSwapsConfig();
-  const { data: swapFees } = useSwapFees("out");
+  const { data: swapInfo } = useSwapInfo("out");
 
   const [isInternalSwap, setInternalSwap] = useState(true);
   const [balanceThreshold, setBalanceThreshold] = useState("");
   const [swapAmount, setSwapAmount] = useState("");
   const [destination, setDestination] = useState("");
+  const [externalType, setExternalType] = useState<"address" | "xpub">(
+    "address"
+  );
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -101,6 +105,10 @@ function AutoSwapOutForm() {
     setDestination(text.trim());
   };
 
+  if (!balances || !swapInfo) {
+    return <Loading />;
+  }
+
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
       <div>
@@ -137,12 +145,16 @@ function AutoSwapOutForm() {
           type="number"
           placeholder="Amount in satoshis"
           value={swapAmount}
-          min={MIN_AUTO_SWAP_AMOUNT}
+          min={swapInfo.minAmount}
+          max={Math.min(
+            swapInfo.maxAmount,
+            Math.floor(balances.lightning.totalSpendable / 1000)
+          )}
           onChange={(e) => setSwapAmount(e.target.value)}
           required
         />
         <p className="text-xs text-muted-foreground">
-          Minimum {new Intl.NumberFormat().format(MIN_AUTO_SWAP_AMOUNT)} sats
+          Minimum {new Intl.NumberFormat().format(swapInfo.minAmount)} sats
         </p>
       </div>
       <div className="flex flex-col gap-4">
@@ -185,32 +197,87 @@ function AutoSwapOutForm() {
         </RadioGroup>
       </div>
       {!isInternalSwap && (
-        <div className="grid gap-1.5">
-          <Label>Receiving on-chain address</Label>
-          <div className="flex gap-2 mb-4">
-            <Input
-              placeholder="bc1..."
-              value={destination}
-              onChange={(e) => setDestination(e.target.value)}
-              required
-            />
-            <Button
-              type="button"
-              variant="outline"
-              className="px-2"
-              onClick={paste}
+        <div className="grid gap-4">
+          <div className="flex flex-col gap-3">
+            <Label>Destination Type</Label>
+            <RadioGroup
+              value={externalType}
+              onValueChange={(value) => {
+                setExternalType(value as "address" | "xpub");
+                setDestination("");
+              }}
+              className="flex gap-4 flex-row"
             >
-              <ClipboardPasteIcon className="w-4 h-4" />
-            </Button>
+              <div className="flex items-start space-x-2">
+                <RadioGroupItem
+                  value="address"
+                  id="address"
+                  className="shrink-0"
+                />
+                <div className="grid gap-1.5">
+                  <Label
+                    htmlFor="address"
+                    className="text-sm font-medium cursor-pointer"
+                  >
+                    Single Address
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Send to the same address each time
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-2">
+                <RadioGroupItem value="xpub" id="xpub" className="shrink-0" />
+                <div className="grid gap-1.5">
+                  <Label
+                    htmlFor="xpub"
+                    className="text-sm font-medium cursor-pointer"
+                  >
+                    XPUB
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Generate new addresses from extended public key
+                  </p>
+                </div>
+              </div>
+            </RadioGroup>
+          </div>
+          <div className="grid gap-1.5">
+            <Label>
+              {externalType === "address"
+                ? "Receiving on-chain address"
+                : "Extended Public Key (XPUB)"}
+            </Label>
+            <div className="flex gap-2">
+              <Input
+                placeholder={externalType === "address" ? "bc1..." : "xpub..."}
+                value={destination}
+                onChange={(e) => setDestination(e.target.value)}
+                required
+              />
+              <Button
+                type="button"
+                variant="outline"
+                className="px-2"
+                onClick={paste}
+              >
+                <ClipboardPasteIcon className="w-4 h-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {externalType === "address"
+                ? "Enter a Bitcoin address to receive swapped funds"
+                : "Enter an XPUB to automatically generate new addresses for each swap"}
+            </p>
           </div>
         </div>
       )}
 
       <div className="flex items-center justify-between border-t pt-4">
         <Label>Fee</Label>
-        {swapFees ? (
+        {swapInfo ? (
           <p className="text-muted-foreground text-sm">
-            {swapFees.albyServiceFee + swapFees.boltzServiceFee}% + on-chain
+            {swapInfo.albyServiceFee + swapInfo.boltzServiceFee}% + on-chain
             fees
           </p>
         ) : (
@@ -238,7 +305,7 @@ function AutoSwapOutForm() {
 function ActiveSwapOutConfig({ swapConfig }: { swapConfig: AutoSwapConfig }) {
   const { toast } = useToast();
   const { mutate } = useAutoSwapsConfig();
-  const { data: swapFees } = useSwapFees("out");
+  const { data: swapInfo } = useSwapInfo("out");
 
   const [loading, setLoading] = useState(false);
 
@@ -309,9 +376,9 @@ function ActiveSwapOutConfig({ swapConfig }: { swapConfig: AutoSwapConfig }) {
         </div>
         <div className="flex justify-between items-center gap-2">
           <span className="font-medium">Fee</span>
-          {swapFees ? (
+          {swapInfo ? (
             <span className="truncate text-muted-foreground text-right">
-              {swapFees.albyServiceFee + swapFees.boltzServiceFee}% + on-chain
+              {swapInfo.albyServiceFee + swapInfo.boltzServiceFee}% + on-chain
               fees
             </span>
           ) : (

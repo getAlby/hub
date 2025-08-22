@@ -1117,28 +1117,28 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}
 			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		}
-	case "/api/swaps/out/fees":
-		swapOutFees, err := app.api.GetSwapOutFees()
+	case "/api/swaps/out/info":
+		swapOutInfo, err := app.api.GetSwapOutInfo()
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,
 				"method": method,
 				"body":   body,
-			}).WithError(err).Error("Failed to get swap out fees")
+			}).WithError(err).Error("Failed to get swap out info")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		return WailsRequestRouterResponse{Body: swapOutFees, Error: ""}
-	case "/api/swaps/in/fees":
-		swapInFees, err := app.api.GetSwapInFees()
+		return WailsRequestRouterResponse{Body: swapOutInfo, Error: ""}
+	case "/api/swaps/in/info":
+		swapInInfo, err := app.api.GetSwapInInfo()
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,
 				"method": method,
 				"body":   body,
-			}).WithError(err).Error("Failed to get swap in fees")
+			}).WithError(err).Error("Failed to get swap in info")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		return WailsRequestRouterResponse{Body: swapInFees, Error: ""}
+		return WailsRequestRouterResponse{Body: swapInInfo, Error: ""}
 	case "/api/swaps/out":
 		initiateSwapOutRequest := &api.InitiateSwapRequest{}
 		err := json.Unmarshal([]byte(body), initiateSwapOutRequest)
@@ -1241,7 +1241,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
 
-			app.api.SendEvent(sendEventRequest.Event)
+			app.api.SendEvent(sendEventRequest.Event, sendEventRequest.Properties)
 
 			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		}
@@ -1265,6 +1265,12 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}
 			return WailsRequestRouterResponse{Body: nil, Error: ""}
 		}
+	case "/api/forwards":
+		forwards, err := app.api.GetForwards()
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: forwards, Error: ""}
 	}
 
 	lightningAddressRegex := regexp.MustCompile(

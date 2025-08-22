@@ -412,6 +412,9 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 	if filters.Unused {
 		// find unused non-subwallet apps not used in the past 60 days
 		query = query.Where("last_used_at IS NULL OR last_used_at < ?", time.Now().Add(-60*24*time.Hour))
+	}
+
+	if filters.SubWallets != nil && !*filters.SubWallets {
 		// exclude subwallets :scream:
 		if api.db.Dialector.Name() == "sqlite" {
 			query = query.Where("metadata is NULL OR JSON_EXTRACT(metadata, '$.app_store_app_id') IS NULL OR JSON_EXTRACT(metadata, '$.app_store_app_id') != ?", "uncle-jim")
@@ -423,6 +426,11 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 	if orderBy == "" {
 		orderBy = "last_used_at"
 	}
+	if orderBy == "last_used_at" {
+		// when ordering by last used at, apps with last_used_at is NULL should be ordered last
+		orderBy = "last_used_at IS NULL, " + orderBy
+	}
+
 	query = query.Order(orderBy + " DESC")
 
 	if limit == 0 {
@@ -546,6 +554,7 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 			Confirmations:                            channel.Confirmations,
 			ConfirmationsRequired:                    channel.ConfirmationsRequired,
 			ForwardingFeeBaseMsat:                    channel.ForwardingFeeBaseMsat,
+			ForwardingFeeProportionalMillionths:      channel.ForwardingFeeProportionalMillionths,
 			UnspendablePunishmentReserve:             channel.UnspendablePunishmentReserve,
 			CounterpartyUnspendablePunishmentReserve: channel.CounterpartyUnspendablePunishmentReserve,
 			Error:                                    channel.Error,
@@ -739,31 +748,35 @@ func toApiSwap(swap *swaps.Swap) *Swap {
 	}
 }
 
-func (api *api) GetSwapInFees() (*SwapFeesResponse, error) {
-	swapInFees, err := api.svc.GetSwapsService().CalculateSwapInFee()
+func (api *api) GetSwapInInfo() (*SwapInfoResponse, error) {
+	swapInInfo, err := api.svc.GetSwapsService().GetSwapInInfo()
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to calculate fee info")
 		return nil, err
 	}
 
-	return &SwapFeesResponse{
-		AlbyServiceFee:  swapInFees.AlbyServiceFee,
-		BoltzServiceFee: swapInFees.BoltzServiceFee,
-		BoltzNetworkFee: swapInFees.BoltzNetworkFee,
+	return &SwapInfoResponse{
+		AlbyServiceFee:  swapInInfo.AlbyServiceFee,
+		BoltzServiceFee: swapInInfo.BoltzServiceFee,
+		BoltzNetworkFee: swapInInfo.BoltzNetworkFee,
+		MinAmount:       swapInInfo.MinAmount,
+		MaxAmount:       swapInInfo.MaxAmount,
 	}, nil
 }
 
-func (api *api) GetSwapOutFees() (*SwapFeesResponse, error) {
-	swapOutFees, err := api.svc.GetSwapsService().CalculateSwapOutFee()
+func (api *api) GetSwapOutInfo() (*SwapInfoResponse, error) {
+	swapOutInfo, err := api.svc.GetSwapsService().GetSwapOutInfo()
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to calculate fee info")
 		return nil, err
 	}
 
-	return &SwapFeesResponse{
-		AlbyServiceFee:  swapOutFees.AlbyServiceFee,
-		BoltzServiceFee: swapOutFees.BoltzServiceFee,
-		BoltzNetworkFee: swapOutFees.BoltzNetworkFee,
+	return &SwapInfoResponse{
+		AlbyServiceFee:  swapOutInfo.AlbyServiceFee,
+		BoltzServiceFee: swapOutInfo.BoltzServiceFee,
+		BoltzNetworkFee: swapOutInfo.BoltzNetworkFee,
+		MinAmount:       swapOutInfo.MinAmount,
+		MaxAmount:       swapOutInfo.MaxAmount,
 	}, nil
 }
 
@@ -780,7 +793,7 @@ func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *Ini
 		return nil, errors.New("invalid swap amount")
 	}
 
-	swapOutResponse, err := api.svc.GetSwapsService().SwapOut(amount, destination, false)
+	swapOutResponse, err := api.svc.GetSwapsService().SwapOut(amount, destination, initiateSwapOutRequest.UseExactReceiveAmount, false, false)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"amount":      amount,
@@ -1555,9 +1568,10 @@ func (api *api) ExecuteCustomNodeCommand(ctx context.Context, command string) (i
 	return nodeResp.Response, nil
 }
 
-func (api *api) SendEvent(event string) {
+func (api *api) SendEvent(event string, properties interface{}) {
 	api.svc.GetEventPublisher().Publish(&events.Event{
-		Event: event,
+		Event:      event,
+		Properties: properties,
 	})
 }
 
@@ -1573,4 +1587,28 @@ func (api *api) parseExpiresAt(expiresAtString string) (*time.Time, error) {
 		expiresAt = &expiresAtValue
 	}
 	return expiresAt, nil
+}
+
+func (api *api) GetForwards() (*GetForwardsResponse, error) {
+	var forwards []db.Forward
+	err := api.db.Find(&forwards).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var totalOutboundAmount uint64
+	var totalFeeEarned uint64
+
+	for _, forward := range forwards {
+		totalOutboundAmount += forward.OutboundAmountForwardedMsat
+		totalFeeEarned += forward.TotalFeeEarnedMsat
+	}
+
+	numForwards := len(forwards)
+
+	return &GetForwardsResponse{
+		OutboundAmountForwardedMsat: totalOutboundAmount,
+		TotalFeeEarnedMsat:          totalFeeEarned,
+		NumForwards:                 uint64(numForwards),
+	}, nil
 }
