@@ -119,6 +119,8 @@ type ChannelPeerSuggestion struct {
 	LspUrl                string  `json:"lspUrl"`
 	LspContactUrl         string  `json:"lspContactUrl"`
 	LspType               string  `json:"lspType"`
+	Terms                 string  `json:"terms"`
+	Description           string  `json:"description"`
 	Note                  string  `json:"note"`
 	PublicChannelsAllowed bool    `json:"publicChannelsAllowed"`
 	FeeTotalSat1m         *uint32 `json:"feeTotalSat1m"`
