@@ -15,7 +15,8 @@ import {
   CheckCircleIcon,
   ChevronDownIcon,
   EllipsisIcon,
-  PlusCircleIcon,
+  InfoIcon,
+  PlusIcon,
   SquarePenIcon,
   SquareStackIcon,
 } from "lucide-react";
@@ -64,6 +65,7 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApp } from "src/hooks/useApp";
 import { useAppsForAppStoreApp } from "src/hooks/useApps";
 import { useCapabilities } from "src/hooks/useCapabilities";
+import { cn } from "src/lib/utils";
 
 function AppDetails() {
   const { id } = useParams() as { id: string };
@@ -212,13 +214,16 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="w-56">
                         <DropdownMenuGroup>
-                          {connectedApps?.map((app) => (
-                            <DropdownMenuItem key={app.id}>
+                          {connectedApps?.map((connectedApp) => (
+                            <DropdownMenuItem key={connectedApp.id}>
                               <Link
-                                to={`/apps/${app.id}`}
-                                className="flex items-center gap-2"
+                                to={`/apps/${connectedApp.id}`}
+                                className={cn(
+                                  "flex flex-1 items-center gap-2",
+                                  connectedApp.id === app.id && "font-semibold"
+                                )}
                               >
-                                {app.name}
+                                {connectedApp.name}
                               </Link>
                             </DropdownMenuItem>
                           ))}
@@ -262,8 +267,8 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                                 to={`/apps/new?app=${appStoreApp.id}`}
                                 className="flex flex-1 items-center gap-2"
                               >
-                                <PlusCircleIcon className="size-4" /> Connect
-                                Again
+                                <PlusIcon className="size-4" /> Add Another
+                                Connection
                               </Link>
                             </DropdownMenuItem>
                           )}
@@ -272,7 +277,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                               className="flex items-center gap-2"
                               onClick={() => setShowConnectionDetails(true)}
                             >
-                              <EllipsisIcon className="size-4" /> Connection
+                              <InfoIcon className="size-4" /> More Connection
                               Details
                             </div>
                           </DropdownMenuItem>
