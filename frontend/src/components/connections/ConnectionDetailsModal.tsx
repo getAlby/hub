@@ -71,7 +71,7 @@ export function ConnectionDetailsModal({
           {app.metadata && (
             <div>
               <p className="font-medium">Metadata</p>
-              <p className="text-muted-foreground break-all whitespace-pre-wrap bg-neutral-100 p-2">
+              <p className="text-muted-foreground break-all whitespace-pre-wrap p-2">
                 {JSON.stringify(app.metadata, null, 4)}
               </p>
             </div>
