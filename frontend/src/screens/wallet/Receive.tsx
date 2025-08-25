@@ -1,13 +1,13 @@
 import { CopyIcon, LinkIcon, ReceiptTextIcon, ZapIcon } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { Button } from "src/components/ui/button";
 import { Card, CardContent } from "src/components/ui/card";
 import { LinkButton } from "src/components/ui/custom/link-button";
-import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -15,22 +15,18 @@ import { copyToClipboard } from "src/lib/clipboard";
 export default function Receive() {
   const { data: info } = useInfo();
   const { data: me, error: meError } = useAlbyMe();
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   // TODO: remove this once we have a CTA to connect an Alby Account to use a lightning address
   React.useEffect(() => {
     if (info && (!info.albyAccountConnected || meError)) {
       if (meError) {
-        toast({
-          variant: "destructive",
-          title: "Failed to load lightning address",
-        });
+        toast.error("Failed to load lightning address");
       }
 
       navigate("/wallet/receive/invoice", { replace: true });
     }
-  }, [info, meError, navigate, toast]);
+  }, [info, meError, navigate]);
 
   if (!info || (info.albyAccountConnected && !me)) {
     return <Loading />;
@@ -51,7 +47,7 @@ export default function Receive() {
                 <Button
                   variant="secondary"
                   onClick={() => {
-                    copyToClipboard(me.lightning_address, toast);
+                    copyToClipboard(me.lightning_address);
                   }}
                   className="flex-1 flex gap-2 items-center justify-center"
                 >

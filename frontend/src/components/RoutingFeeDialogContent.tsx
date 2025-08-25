@@ -1,9 +1,9 @@
 import { ExternalLinkIcon } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import ExternalLink from "src/components/ExternalLink";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 import { useChannels } from "src/hooks/useChannels";
 import { Channel, UpdateChannelRequest } from "src/types";
 import { request } from "src/utils/request";
@@ -36,7 +36,6 @@ export function RoutingFeeDialogContent({ channel }: Props) {
   ] = React.useState(
     currentFeePPM !== undefined ? currentFeePPM.toString() : ""
   );
-  const { toast } = useToast();
   const { mutate: reloadChannels } = useChannels();
 
   async function updateFee() {
@@ -63,12 +62,11 @@ export function RoutingFeeDialogContent({ channel }: Props) {
       );
 
       await reloadChannels();
-      toast({ title: "Successfully updated channel" });
+      toast("Successfully updated channel");
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        description: "Something went wrong: " + error,
+      toast.error("Something went wrong", {
+        description: "" + error,
       });
     }
   }

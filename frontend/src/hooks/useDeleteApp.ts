@@ -1,12 +1,11 @@
 import React from "react";
-import { useToast } from "src/components/ui/use-toast";
+import { toast } from "sonner";
 
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
 export function useDeleteApp(onSuccess?: (appPubkey: string) => void) {
   const [isDeleting, setDeleting] = React.useState(false);
-  const { toast } = useToast();
 
   const deleteApp = React.useCallback(
     async (appPubkey: string) => {
@@ -18,17 +17,17 @@ export function useDeleteApp(onSuccess?: (appPubkey: string) => void) {
             "Content-Type": "application/json",
           },
         });
-        toast({ title: "Connection deleted" });
+        toast("Connection deleted");
         if (onSuccess) {
           onSuccess(appPubkey);
         }
       } catch (error) {
-        await handleRequestError(toast, "Failed to delete connection", error);
+        await handleRequestError("Failed to delete connection", error);
       } finally {
         setDeleting(false);
       }
     },
-    [onSuccess, toast]
+    [onSuccess]
   );
 
   return React.useMemo(

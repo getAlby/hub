@@ -29,10 +29,10 @@ import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
 
+import { toast } from "sonner";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
 import { Separator } from "src/components/ui/separator";
-import { useToast } from "src/components/ui/use-toast";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
@@ -41,7 +41,6 @@ import { InfoResponse, MnemonicResponse } from "src/types";
 import { request } from "src/utils/request";
 
 export default function Backup() {
-  const { toast } = useToast();
   const { data: info, hasMnemonic } = useInfo();
   const { data: me } = useAlbyMe();
   const [unlockPassword, setUnlockPassword] = useState("");
@@ -65,10 +64,8 @@ export default function Backup() {
       setDecryptedMnemonic(result?.mnemonic ?? "");
       setIsDialogOpen(true);
     } catch (error) {
-      toast({
-        title: "Incorrect password",
+      toast.error("Incorrect password", {
         description: "Failed to decrypt mnemonic.",
-        variant: "destructive",
       });
     } finally {
       setLoading(false);

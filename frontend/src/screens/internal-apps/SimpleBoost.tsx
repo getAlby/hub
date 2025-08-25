@@ -1,5 +1,6 @@
 import { CopyIcon } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { Button } from "src/components/ui/button";
@@ -13,7 +14,6 @@ import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { Textarea } from "src/components/ui/textarea";
-import { useToast } from "src/components/ui/use-toast";
 import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -23,7 +23,6 @@ export function SimpleBoost() {
   const [isLoading, setLoading] = React.useState(false);
   const [nwcUri, setNwcUri] = React.useState("");
   const [scriptContent, setScriptContent] = React.useState("");
-  const { toast } = useToast();
 
   React.useEffect(() => {
     if (nwcUri) {
@@ -48,9 +47,9 @@ export function SimpleBoost() {
 
         setNwcUri(createAppResponse.pairingUri);
 
-        toast({ title: "Simple Boost connection created" });
+        toast("Simple Boost connection created");
       } catch (error) {
-        handleRequestError(toast, "Failed to create connection", error);
+        handleRequestError("Failed to create connection", error);
       }
       setLoading(false);
     })();
@@ -78,7 +77,7 @@ export function SimpleBoost() {
                 onChange={(e) => setScriptContent(e.target.value)}
               />
               <Button
-                onClick={() => copyToClipboard(scriptContent, toast)}
+                onClick={() => copyToClipboard(scriptContent)}
                 variant="outline"
               >
                 <CopyIcon />

@@ -1,6 +1,7 @@
 import { GlobeIcon } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { AppleIcon } from "src/components/icons/Apple";
@@ -31,7 +32,6 @@ import {
 } from "src/components/ui/card";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { createApp } from "src/requests/createApp";
 
@@ -40,7 +40,6 @@ export function AlbyGo() {
   const [unlockPassword, setUnlockPassword] = React.useState("");
   const [showCreateConnectionDialog, setShowCreateConnectionDialog] =
     React.useState(false);
-  const { toast } = useToast();
   const { data: capabilities } = useCapabilities();
   const navigate = useNavigate();
 
@@ -79,12 +78,11 @@ export function AlbyGo() {
       navigate(`/apps/created?app=${app.id}`, {
         state: createAppResponse,
       });
-      toast({ title: "Alby Go connection created" });
+      toast("Alby Go connection created");
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Something went wrong: " + error,
+      toast.error("Something went wrong", {
+        description: "" + error,
       });
     }
     setLoading(false);

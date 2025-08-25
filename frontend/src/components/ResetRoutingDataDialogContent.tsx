@@ -1,4 +1,5 @@
 import React from "react";
+import { toast } from "sonner";
 import {
   AlertDialogAction,
   AlertDialogCancel,
@@ -16,7 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "src/components/ui/select";
-import { useToast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";
 import { request } from "src/utils/request";
 
@@ -47,7 +47,6 @@ const RESET_KEY_OPTIONS = [
 
 export function ResetRoutingDataDialogContent() {
   const { mutate: reloadInfo } = useInfo();
-  const { toast } = useToast();
   const [resetKey, setResetKey] = React.useState<string>();
 
   async function resetRouter() {
@@ -60,12 +59,11 @@ export function ResetRoutingDataDialogContent() {
         },
       });
       await reloadInfo();
-      toast({ title: "🎉 Router reset" });
+      toast("🎉 Router reset");
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Something went wrong: " + error,
+      toast.error("Something went wrong", {
+        description: "" + error,
       });
     }
   }

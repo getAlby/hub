@@ -1,6 +1,7 @@
 import { MoreHorizontalIcon, PlugZapIcon, Trash2Icon } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader.tsx";
 import { DisconnectPeerDialogContent } from "src/components/DisconnectPeerDialogContent";
 import { AlertDialog } from "src/components/ui/alert-dialog.tsx";
@@ -20,7 +21,6 @@ import {
   TableHeader,
   TableRow,
 } from "src/components/ui/table.tsx";
-import { useToast } from "src/components/ui/use-toast";
 import { useChannels } from "src/hooks/useChannels";
 import { useNodeDetails } from "src/hooks/useNodeDetails";
 import { usePeers } from "src/hooks/usePeers.ts";
@@ -92,7 +92,6 @@ function PeerTableRow(props: PeerTableRowProps) {
   const { peer } = props;
   const { data: channels } = useChannels();
   const { data: peerDetails } = useNodeDetails(peer.nodeId);
-  const { toast } = useToast();
 
   function hasOpenedChannels(peer: Peer) {
     return channels?.some((channel) => channel.remotePubkey === peer.nodeId);
@@ -118,12 +117,11 @@ function PeerTableRow(props: PeerTableRowProps) {
         },
         body: JSON.stringify(connectPeerRequest),
       });
-      toast({ title: "Peer connected" });
+      toast("Peer connected");
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Something went wrong: " + error,
+      toast.error("Something went wrong", {
+        description: "" + error,
       });
     }
   };

@@ -3,10 +3,8 @@ import {
   createBrowserRouter,
   createHashRouter,
 } from "react-router-dom";
-
+import { Toaster } from "src/components/ui/sonner";
 import { ThemeProvider } from "src/components/ui/theme-provider";
-
-import { Toaster } from "src/components/ui/toaster";
 import { TouchProvider } from "src/components/ui/tooltip";
 import { useInfo } from "src/hooks/useInfo";
 import routes from "src/routes.tsx";
@@ -31,8 +29,8 @@ function App() {
           defaultDarkMode="system"
           storageKey="vite-ui-theme"
         >
-          <Toaster />
           {info && <RouterProvider router={router} />}
+          <Toaster position="bottom-right" richColors={true} />
         </ThemeProvider>
       </TouchProvider>
     </>
