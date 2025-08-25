@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 
 import {
   App,
@@ -12,13 +12,17 @@ import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request"; // build the project for this to appear
 
 import {
+  CheckCircleIcon,
+  ChevronDownIcon,
   EllipsisIcon,
-  LayoutGridIcon,
-  PencilIcon,
+  PlusCircleIcon,
+  SquarePenIcon,
   SquareStackIcon,
 } from "lucide-react";
 import AppAvatar from "src/components/AppAvatar";
 import AppHeader from "src/components/AppHeader";
+import { AboutAppCard } from "src/components/connections/AboutAppCard";
+import { AppLinksCard } from "src/components/connections/AppLinksCard";
 import { AppTransactionList } from "src/components/connections/AppTransactionList";
 import { AppUsage } from "src/components/connections/AppUsage";
 import { ConnectionSummary } from "src/components/connections/ConnectionSummary";
@@ -35,6 +39,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "src/components/ui/alert-dialog";
+import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -42,7 +47,6 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { LinkButton } from "src/components/ui/custom/link-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,9 +62,10 @@ import {
 } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApp } from "src/hooks/useApp";
+import { useAppsForAppStoreApp } from "src/hooks/useApps";
 import { useCapabilities } from "src/hooks/useCapabilities";
 
-function ShowApp() {
+function AppDetails() {
   const { id } = useParams() as { id: string };
   const { data: app, mutate: refetchApp, error } = useApp(parseInt(id));
   const { data: capabilities } = useCapabilities();
@@ -91,7 +96,6 @@ type AppInternalProps = {
 function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const { toast } = useToast();
   const location = useLocation();
-  const [isEditingName, setIsEditingName] = React.useState(false);
   const [isEditingPermissions, setIsEditingPermissions] = React.useState(false);
 
   const { data: albyMe } = useAlbyMe();
@@ -133,7 +137,6 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
       });
 
       refetchApp();
-      setIsEditingName(false);
       setIsEditingPermissions(false);
       setSavedPermissions(permissions);
       toast({
@@ -181,55 +184,61 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
     app.name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : app.name;
 
   const appStoreApp = getAppStoreApp(app);
+  const connectedApps = useAppsForAppStoreApp(appStoreApp);
 
   return (
     <>
       <div className="w-full">
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-2">
           <AppHeader
             title={
-              <div className="flex flex-row items-center">
-                <AppAvatar app={app} className="w-10 h-10 mr-2" />
-                {isEditingName ? (
-                  <div className="flex flex-row gap-2 items-center">
-                    <Input
-                      autoFocus
-                      type="text"
-                      name="name"
-                      value={name}
-                      id="name"
-                      onChange={(e) => setName(e.target.value)}
-                      required
-                      className="text-xl font-semibold w-max max-w-40 md:max-w-fit"
-                      autoComplete="off"
-                    />
-                    <Button type="button" onClick={handleSave}>
-                      Save
-                    </Button>
-                  </div>
-                ) : (
-                  <div
-                    className="flex flex-row gap-2 items-center cursor-pointer"
-                    onClick={() => setIsEditingName(true)}
-                  >
-                    <h2
-                      title={appName}
-                      className="text-xl font-semibold overflow-hidden text-ellipsis whitespace-nowrap"
+              <div className="flex flex-row gap-2 items-center">
+                <AppAvatar app={app} className="w-10 h-10" />
+                <h2
+                  title={appName}
+                  className="text-xl font-semibold overflow-hidden text-ellipsis whitespace-nowrap"
+                >
+                  {appName}
+                </h2>
+                <Badge variant="positive" className="flex items-center gap-1">
+                  {(connectedApps?.length || 0) > 1 ? (
+                    <DropdownMenu
+                      modal={false}
+                      key={JSON.stringify(app) /* force reload on app change */}
                     >
-                      {appName}
-                    </h2>
-                    {app.name !== ALBY_ACCOUNT_APP_NAME && (
-                      <PencilIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    )}
-                  </div>
-                )}
+                      <DropdownMenuTrigger>
+                        <div className="flex items-center gap-1">
+                          {`${connectedApps?.length} Connections`}{" "}
+                          <ChevronDownIcon className="size-3 -mr-1" />
+                        </div>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-56">
+                        <DropdownMenuGroup>
+                          {connectedApps?.map((app) => (
+                            <DropdownMenuItem key={app.id}>
+                              <Link
+                                to={`/apps/${app.id}`}
+                                className="flex items-center gap-2"
+                              >
+                                {app.name}
+                              </Link>
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuGroup>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : (
+                    <>
+                      <CheckCircleIcon className="w-3 h-3" /> Connected
+                    </>
+                  )}
+                </Badge>
               </div>
             }
             contentRight={
               <div className="flex gap-2 items-center">
-                {app.isolated &&
-                  !app.metadata?.app_store_app_id &&
-                  albyMe?.subscription.plan_code && (
+                {!isEditingPermissions && (
+                  <>
                     <DropdownMenu modal={false}>
                       <DropdownMenuTrigger>
                         <Button variant="outline" size="icon">
@@ -237,43 +246,45 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="w-56">
+                        {app.isolated &&
+                          !app.metadata?.app_store_app_id &&
+                          albyMe?.subscription.plan_code && (
+                            <DropdownMenuGroup>
+                              <DropdownMenuItem>
+                                <div
+                                  className="w-full cursor-pointer flex items-center gap-2"
+                                  onClick={handleConvertToSubwallet}
+                                >
+                                  <SquareStackIcon /> Convert to Sub-wallet
+                                </div>
+                              </DropdownMenuItem>
+                            </DropdownMenuGroup>
+                          )}
                         <DropdownMenuGroup>
-                          <DropdownMenuItem>
-                            <div
-                              className="w-full cursor-pointer flex items-center gap-2"
-                              onClick={handleConvertToSubwallet}
-                            >
-                              <SquareStackIcon /> Convert to Sub-wallet
-                            </div>
-                          </DropdownMenuItem>
+                          {appStoreApp && (
+                            <DropdownMenuItem className="w-full">
+                              <Link
+                                to={`/apps/new?app=${appStoreApp.id}`}
+                                className="flex items-center gap-2"
+                              >
+                                <PlusCircleIcon className="w-4" /> Connect Again
+                              </Link>
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuGroup>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  )}
-                <DisconnectApp app={app} />
-                {appStoreApp && (
-                  <LinkButton
-                    variant="secondary"
-                    to={
-                      appStoreApp.internal
-                        ? `/internal-apps/${appStoreApp.id}`
-                        : `/appstore/${appStoreApp.id}`
-                    }
-                  >
-                    <LayoutGridIcon /> View in App Store
-                  </LinkButton>
+                    <DisconnectApp app={app} />
+                    <Button
+                      variant="secondary"
+                      onClick={() => setIsEditingPermissions(true)}
+                    >
+                      <SquarePenIcon className="size-4" /> Edit Connection
+                    </Button>
+                  </>
                 )}
-              </div>
-            }
-            description={""}
-          />
-          <h2 className="font-semibold text-2xl">Manage Connection</h2>
-          <Card className="gap-0">
-            <CardHeader>
-              <CardTitle>
-                <div className="flex flex-row justify-between items-center">
-                  Permissions
-                  <div className="flex flex-row gap-2">
+                {isEditingPermissions && (
+                  <>
                     {isEditingPermissions && (
                       <div className="flex justify-center items-center gap-2">
                         <Button
@@ -342,20 +353,49 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                         )}
                       </div>
                     )}
-
-                    {!isEditingPermissions && (
-                      <>
-                        <Button
-                          variant="outline"
-                          onClick={() =>
-                            setIsEditingPermissions(!isEditingPermissions)
-                          }
-                        >
-                          Edit
-                        </Button>
-                      </>
-                    )}
-                  </div>
+                  </>
+                )}
+              </div>
+            }
+            description={""}
+          />
+          {!isEditingPermissions && (
+            <>
+              {appStoreApp && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <AboutAppCard appStoreApp={appStoreApp} />
+                  <AppLinksCard appStoreApp={appStoreApp} />
+                </div>
+              )}
+              <AppUsage app={app} />
+            </>
+          )}
+          {isEditingPermissions && app.name !== ALBY_ACCOUNT_APP_NAME && (
+            <Card>
+              <CardHeader>
+                <CardTitle>App Name</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-row gap-2 items-center">
+                  <Input
+                    autoFocus
+                    type="text"
+                    name="name"
+                    value={name}
+                    id="name"
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    autoComplete="off"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          <Card>
+            <CardHeader>
+              <CardTitle>
+                <div className="flex flex-row justify-between items-center">
+                  Permissions
                 </div>
               </CardTitle>
             </CardHeader>
@@ -369,16 +409,20 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                 readOnly={!isEditingPermissions}
                 isNewConnection={false}
                 budgetUsage={app.budgetUsage}
+                showBudgetUsage={false}
               />
             </CardContent>
           </Card>
-          <ConnectionSummary app={app} />
-          <AppUsage app={app} />
-          <AppTransactionList appId={app.id} />
+          {!isEditingPermissions && (
+            <>
+              <ConnectionSummary app={app} />
+              <AppTransactionList appId={app.id} />
+            </>
+          )}
         </div>
       </div>
     </>
   );
 }
 
-export default ShowApp;
+export default AppDetails;

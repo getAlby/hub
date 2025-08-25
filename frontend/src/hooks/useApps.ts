@@ -15,22 +15,37 @@ export function useApps(
     unused?: boolean;
     subWallets?: boolean;
   },
-  orderBy?: "last_used_at" | "created_at"
+  orderBy?: "last_used_at" | "created_at",
+  isEnabled = true
 ) {
   const offset = (page - 1) * limit;
   return useSWR<ListAppsResponse>(
-    `/api/apps?limit=${limit}&offset=${offset}&filters=${JSON.stringify(filters || {})}&order_by=${orderBy || ""}`,
+    isEnabled
+      ? `/api/apps?limit=${limit}&offset=${offset}&filters=${JSON.stringify(filters || {})}&order_by=${orderBy || ""}`
+      : undefined,
     swrFetcher
   );
 }
 
-export function useAppsForAppStoreApp(appStoreApp: AppStoreApp) {
-  const { data: connectedAppsByAppStoreId } = useApps(undefined, undefined, {
-    appStoreAppId: appStoreApp.id,
-  });
-  const { data: connectedAppsByAppName } = useApps(undefined, undefined, {
-    name: appStoreApp.title,
-  });
+export function useAppsForAppStoreApp(appStoreApp: AppStoreApp | undefined) {
+  const { data: connectedAppsByAppStoreId } = useApps(
+    undefined,
+    undefined,
+    {
+      appStoreAppId: appStoreApp?.id,
+    },
+    undefined,
+    !!appStoreApp
+  );
+  const { data: connectedAppsByAppName } = useApps(
+    undefined,
+    undefined,
+    {
+      name: appStoreApp?.title,
+    },
+    undefined,
+    !!appStoreApp
+  );
 
   const connectedApps = React.useMemo(
     () =>

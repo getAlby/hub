@@ -2,8 +2,8 @@ import { CopyPlusIcon, GlobeIcon } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
-import { AppDetailHeader } from "src/components/connections/AppDetailHeader";
 import { AppDetailSingleConnectedApp } from "src/components/connections/AppDetailSingleConnectedApp";
+import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
 import { AppleIcon } from "src/components/icons/Apple";
@@ -157,7 +157,7 @@ export function AlbyGo() {
           </form>
         </AlertDialogContent>
       </AlertDialog>
-      <AppDetailHeader
+      <AppStoreDetailHeader
         appStoreApp={appStoreApp}
         advancedActions={
           <DropdownMenuItem className="w-full">

@@ -1,7 +1,7 @@
 import { HammerIcon, LightbulbIcon } from "lucide-react";
 import React from "react";
 import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
-import { AppDetailHeader } from "src/components/connections/AppDetailHeader";
+import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import {
   Accordion,
@@ -75,7 +75,7 @@ export function Goose() {
 
   return (
     <div className="grid gap-5">
-      <AppDetailHeader appStoreApp={appStoreApp} contentRight={null} />
+      <AppStoreDetailHeader appStoreApp={appStoreApp} contentRight={null} />
       {connectionSecret && (
         <div className="max-w-lg flex flex-col gap-5">
           <p>

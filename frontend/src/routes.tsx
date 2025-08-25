@@ -20,10 +20,10 @@ import AlbyAuthRedirect from "src/screens/alby/AlbyAuthRedirect";
 import { AlbyReviews } from "src/screens/alby/AlbyReviews";
 import SupportAlby from "src/screens/alby/SupportAlby";
 import AppCreated from "src/screens/apps/AppCreated";
+import AppDetails from "src/screens/apps/AppDetails";
 import { AppsCleanup } from "src/screens/apps/AppsCleanup";
 import { Connections } from "src/screens/apps/Connections";
 import NewApp from "src/screens/apps/NewApp";
-import ShowApp from "src/screens/apps/ShowApp";
 import { AppStoreDetail } from "src/screens/appstore/AppStoreDetail";
 import Channels from "src/screens/channels/Channels";
 import { CurrentChannelOrder } from "src/screens/channels/CurrentChannelOrder";
@@ -284,7 +284,7 @@ const routes = [
           },
           {
             path: ":id",
-            element: <ShowApp />,
+            element: <AppDetails />,
           },
           {
             path: "new",

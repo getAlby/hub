@@ -2,7 +2,7 @@ import { AlertTriangleIcon, CopyIcon, ExternalLinkIcon } from "lucide-react";
 import React from "react";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
 import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
-import { AppDetailHeader } from "src/components/connections/AppDetailHeader";
+import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
@@ -65,7 +65,7 @@ export function BuzzPay() {
 
   return (
     <div className="grid gap-5">
-      <AppDetailHeader appStoreApp={appStoreApp} contentRight={null} />
+      <AppStoreDetailHeader appStoreApp={appStoreApp} contentRight={null} />
       {posUrl && (
         <div className="max-w-lg flex flex-col gap-5">
           <p>

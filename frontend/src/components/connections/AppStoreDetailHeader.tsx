@@ -22,7 +22,8 @@ import {
 import { useAppsForAppStoreApp } from "src/hooks/useApps";
 import { App } from "src/types";
 
-export function AppDetailHeader({
+// TODO: remove once new connection wizard is added
+export function AppStoreDetailHeader({
   appStoreApp,
   contentRight,
   advancedActions,

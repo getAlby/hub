@@ -22,7 +22,7 @@ import alby from "src/assets/suggested-apps/alby.png";
 import bitcoinbrink from "src/assets/zapplanner/bitcoinbrink.png";
 import hrf from "src/assets/zapplanner/hrf.png";
 import opensats from "src/assets/zapplanner/opensats.png";
-import { AppDetailHeader } from "src/components/connections/AppDetailHeader";
+import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
 import { Button } from "src/components/ui/button";
@@ -339,7 +339,7 @@ export function ZapPlanner() {
 
   return (
     <div className="grid gap-5">
-      <AppDetailHeader
+      <AppStoreDetailHeader
         appStoreApp={appStoreApp}
         contentRight={
           <>

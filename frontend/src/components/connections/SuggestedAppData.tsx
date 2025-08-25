@@ -297,8 +297,7 @@ export const appStoreApps: AppStoreApp[] = (
       id: "amethyst",
       title: "Amethyst",
       description: "Android Nostr client",
-      webLink:
-        "https://play.google.com/store/apps/details?id=com.vitorpamplona.amethyst",
+      webLink: "https://github.com/vitorpamplona/amethyst",
       playLink:
         "https://play.google.com/store/apps/details?id=com.vitorpamplona.amethyst",
       logo: amethyst,
@@ -320,7 +319,7 @@ export const appStoreApps: AppStoreApp[] = (
                 below a post in your feed
               </li>
               <li>
-                3. Click on the
+                3. Click on the{" "}
                 <span className="font-medium text-foreground">
                   QR code icon
                 </span>{" "}
