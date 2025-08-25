@@ -25,7 +25,7 @@ import { AboutAppCard } from "src/components/connections/AboutAppCard";
 import { AppLinksCard } from "src/components/connections/AppLinksCard";
 import { AppTransactionList } from "src/components/connections/AppTransactionList";
 import { AppUsage } from "src/components/connections/AppUsage";
-import { ConnectionSummary } from "src/components/connections/ConnectionSummary";
+import { ConnectionDetailsModal } from "src/components/connections/ConnectionDetailsModal";
 import { DisconnectApp } from "src/components/connections/DisconnectApp";
 import { getAppStoreApp } from "src/components/connections/SuggestedAppData";
 import Loading from "src/components/Loading";
@@ -97,6 +97,8 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const { toast } = useToast();
   const location = useLocation();
   const [isEditingPermissions, setIsEditingPermissions] = React.useState(false);
+  const [showConnectionDetails, setShowConnectionDetails] =
+    React.useState(false);
 
   const { data: albyMe } = useAlbyMe();
 
@@ -267,10 +269,20 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                                 to={`/apps/new?app=${appStoreApp.id}`}
                                 className="flex items-center gap-2"
                               >
-                                <PlusCircleIcon className="w-4" /> Connect Again
+                                <PlusCircleIcon className="size-4" /> Connect
+                                Again
                               </Link>
                             </DropdownMenuItem>
                           )}
+                          <DropdownMenuItem className="w-full">
+                            <div
+                              className="flex items-center gap-2"
+                              onClick={() => setShowConnectionDetails(true)}
+                            >
+                              <EllipsisIcon className="size-4" /> Connection
+                              Details
+                            </div>
+                          </DropdownMenuItem>
                         </DropdownMenuGroup>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -409,13 +421,18 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                 readOnly={!isEditingPermissions}
                 isNewConnection={false}
                 budgetUsage={app.budgetUsage}
-                showBudgetUsage={false}
+                showBudgetUsage={isEditingPermissions}
               />
             </CardContent>
           </Card>
           {!isEditingPermissions && (
             <>
-              <ConnectionSummary app={app} />
+              {showConnectionDetails && (
+                <ConnectionDetailsModal
+                  app={app}
+                  onClose={() => setShowConnectionDetails(false)}
+                />
+              )}
               <AppTransactionList appId={app.id} />
             </>
           )}

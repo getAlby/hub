@@ -2,7 +2,6 @@ import { CopyPlusIcon, GlobeIcon } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
-import { AppDetailSingleConnectedApp } from "src/components/connections/AppDetailSingleConnectedApp";
 import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
@@ -56,6 +55,18 @@ export function AlbyGo() {
   }
 
   const connectedApps = useAppsForAppStoreApp(appStoreApp);
+
+  React.useEffect(() => {
+    if (connectedApps && connectedApps.length > 0) {
+      navigate(`/apps/${connectedApps[0].id}`, {
+        replace: true,
+      });
+    }
+  }, [connectedApps, navigate]);
+
+  if (!connectedApps) {
+    return <Loading />;
+  }
 
   function onClickCreateConnection() {
     setShowCreateSuperuserConnectionDialog(true);
@@ -172,10 +183,6 @@ export function AlbyGo() {
       />
       {connectedApps.length > 1 && (
         <AppDetailConnectedApps appStoreApp={appStoreApp} />
-      )}
-
-      {connectedApps.length === 1 && (
-        <AppDetailSingleConnectedApp app={connectedApps[0]} />
       )}
 
       {connectedApps.length === 0 && (

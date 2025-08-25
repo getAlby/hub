@@ -229,7 +229,7 @@ export function ConnectAppCard({
           </Button>
           <ExternalLinkButton to={pairingUri} variant="outline">
             <ExternalLinkIcon />
-            Open
+            Open In App
           </ExternalLinkButton>
         </div>
       </CardContent>
