@@ -87,14 +87,14 @@ export function AppUsage({ app }: { app: App }) {
                   <IsolatedAppTopupDialog appId={app.id}>
                     <Button size="sm" variant="outline">
                       <CirclePlusIcon className="size-4" />
-                      Top Up
+                      Increase
                     </Button>
                   </IsolatedAppTopupDialog>{" "}
                   {app.balance > 0 && (
                     <IsolatedAppDrawDownDialog appId={app.id}>
                       <Button size="sm" variant="outline">
                         <CircleMinusIcon className="size-4" />
-                        Draw Down
+                        Decrease
                       </Button>
                     </IsolatedAppDrawDownDialog>
                   )}

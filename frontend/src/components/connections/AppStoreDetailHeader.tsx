@@ -171,10 +171,10 @@ function AdvancedActions({
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-56">
           <DropdownMenuGroup>
-            <DropdownMenuItem className="w-full">
+            <DropdownMenuItem>
               <Link
                 to={`/apps/new?app=${appStoreApp.id}`}
-                className="flex items-center gap-2"
+                className="w-full flex items-center gap-2"
               >
                 <PlusCircleIcon className="w-4" /> Connect Again
               </Link>

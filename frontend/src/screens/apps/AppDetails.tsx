@@ -260,7 +260,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                             <DropdownMenuItem className="w-full">
                               <Link
                                 to={`/apps/new?app=${appStoreApp.id}`}
-                                className="flex items-center gap-2"
+                                className="flex flex-1 items-center gap-2"
                               >
                                 <PlusCircleIcon className="size-4" /> Connect
                                 Again
