@@ -1,7 +1,6 @@
 import { CopyPlusIcon, GlobeIcon } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
 import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
@@ -181,153 +180,148 @@ export function AlbyGo() {
           </DropdownMenuItem>
         }
       />
-      {connectedApps.length > 1 && (
-        <AppDetailConnectedApps appStoreApp={appStoreApp} />
-      )}
 
-      {connectedApps.length === 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="flex flex-col w-full gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl">About the App</CardTitle>
-              </CardHeader>
-              {appStoreApp.extendedDescription && (
-                <CardContent className="flex flex-col gap-3">
-                  <p className="text-muted-foreground">
-                    {appStoreApp.extendedDescription}
-                  </p>
-                </CardContent>
-              )}
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl">How to Connect</CardTitle>
-              </CardHeader>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="flex flex-col w-full gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">About the App</CardTitle>
+            </CardHeader>
+            {appStoreApp.extendedDescription && (
               <CardContent className="flex flex-col gap-3">
-                <>
-                  <div>
-                    <h3 className="font-medium">In Alby Go</h3>
-                    <ul className="list-inside text-muted-foreground">
-                      <li>
-                        1. Download and open{" "}
-                        <span className="font-medium text-foreground">
-                          Alby Go
-                        </span>{" "}
-                        on your Android or iOS device
-                      </li>
-                      <li>
-                        2. Click on{" "}
-                        <span className="font-medium text-foreground">
-                          Connect Wallet
-                        </span>
-                      </li>
-                      <li>
-                        3.{" "}
-                        <span className="font-medium text-foreground">
-                          Scan or paste
-                        </span>{" "}
-                        the connection secret from Alby Hub that will be
-                        revealed once you create the connection below.
-                      </li>
-                    </ul>
-                  </div>
-                </>
+                <p className="text-muted-foreground">
+                  {appStoreApp.extendedDescription}
+                </p>
               </CardContent>
-            </Card>
-          </div>
-          <div className="flex flex-col w-full gap-6">
-            {(appStoreApp.appleLink ||
-              appStoreApp.playLink ||
-              appStoreApp.zapStoreLink ||
-              appStoreApp.chromeLink ||
-              appStoreApp.firefoxLink) && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-2xl">Get This App</CardTitle>
-                </CardHeader>
-                <CardFooter className="flex flex-row gap-2">
-                  {appStoreApp.playLink && (
-                    <ExternalLink to={appStoreApp.playLink}>
-                      <Button variant="outline">
-                        <PlayStoreIcon />
-                        Play Store
-                      </Button>
-                    </ExternalLink>
-                  )}
-                  {appStoreApp.appleLink && (
-                    <ExternalLink to={appStoreApp.appleLink}>
-                      <Button variant="outline">
-                        <AppleIcon />
-                        App Store
-                      </Button>
-                    </ExternalLink>
-                  )}
-                  {appStoreApp.zapStoreLink && (
-                    <ExternalLink to={appStoreApp.zapStoreLink}>
-                      <Button variant="outline">
-                        <ZapStoreIcon />
-                        Zapstore
-                      </Button>
-                    </ExternalLink>
-                  )}
-                  {appStoreApp.chromeLink && (
-                    <ExternalLink to={appStoreApp.chromeLink}>
-                      <Button variant="outline">
-                        <ChromeIcon />
-                        Chrome Web Store
-                      </Button>
-                    </ExternalLink>
-                  )}
-                  {appStoreApp.firefoxLink && (
-                    <ExternalLink to={appStoreApp.firefoxLink}>
-                      <Button variant="outline">
-                        <FirefoxIcon />
-                        Firefox Add-Ons
-                      </Button>
-                    </ExternalLink>
-                  )}
-                </CardFooter>
-              </Card>
             )}
-            {appStoreApp.webLink && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-2xl">Links</CardTitle>
-                </CardHeader>
-                <CardFooter className="flex flex-row gap-2">
-                  {appStoreApp.webLink && (
-                    <ExternalLink to={appStoreApp.webLink}>
-                      <Button variant="outline">
-                        <GlobeIcon />
-                        Website
-                      </Button>
-                    </ExternalLink>
-                  )}
-                </CardFooter>
-              </Card>
-            )}
-
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">How to Connect</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3">
+              <>
+                <div>
+                  <h3 className="font-medium">In Alby Go</h3>
+                  <ul className="list-inside text-muted-foreground">
+                    <li>
+                      1. Download and open{" "}
+                      <span className="font-medium text-foreground">
+                        Alby Go
+                      </span>{" "}
+                      on your Android or iOS device
+                    </li>
+                    <li>
+                      2. Click on{" "}
+                      <span className="font-medium text-foreground">
+                        Connect Wallet
+                      </span>
+                    </li>
+                    <li>
+                      3.{" "}
+                      <span className="font-medium text-foreground">
+                        Scan or paste
+                      </span>{" "}
+                      the connection secret from Alby Hub that will be revealed
+                      once you create the connection below.
+                    </li>
+                  </ul>
+                </div>
+              </>
+            </CardContent>
+          </Card>
+        </div>
+        <div className="flex flex-col w-full gap-6">
+          {(appStoreApp.appleLink ||
+            appStoreApp.playLink ||
+            appStoreApp.zapStoreLink ||
+            appStoreApp.chromeLink ||
+            appStoreApp.firefoxLink) && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-2xl">One Tap Connections</CardTitle>
+                <CardTitle className="text-2xl">Get This App</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Use Alby Go to quickly connect other apps to your hub with one
-                  tap on mobile.
-                </p>
-                {
-                  <Button className="mt-8" onClick={onClickCreateConnection}>
-                    <NostrWalletConnectIcon />
-                    Connect with One Tap Connections
-                  </Button>
-                }
-              </CardContent>
+              <CardFooter className="flex flex-row gap-2">
+                {appStoreApp.playLink && (
+                  <ExternalLink to={appStoreApp.playLink}>
+                    <Button variant="outline">
+                      <PlayStoreIcon />
+                      Play Store
+                    </Button>
+                  </ExternalLink>
+                )}
+                {appStoreApp.appleLink && (
+                  <ExternalLink to={appStoreApp.appleLink}>
+                    <Button variant="outline">
+                      <AppleIcon />
+                      App Store
+                    </Button>
+                  </ExternalLink>
+                )}
+                {appStoreApp.zapStoreLink && (
+                  <ExternalLink to={appStoreApp.zapStoreLink}>
+                    <Button variant="outline">
+                      <ZapStoreIcon />
+                      Zapstore
+                    </Button>
+                  </ExternalLink>
+                )}
+                {appStoreApp.chromeLink && (
+                  <ExternalLink to={appStoreApp.chromeLink}>
+                    <Button variant="outline">
+                      <ChromeIcon />
+                      Chrome Web Store
+                    </Button>
+                  </ExternalLink>
+                )}
+                {appStoreApp.firefoxLink && (
+                  <ExternalLink to={appStoreApp.firefoxLink}>
+                    <Button variant="outline">
+                      <FirefoxIcon />
+                      Firefox Add-Ons
+                    </Button>
+                  </ExternalLink>
+                )}
+              </CardFooter>
             </Card>
-          </div>
+          )}
+          {appStoreApp.webLink && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl">Links</CardTitle>
+              </CardHeader>
+              <CardFooter className="flex flex-row gap-2">
+                {appStoreApp.webLink && (
+                  <ExternalLink to={appStoreApp.webLink}>
+                    <Button variant="outline">
+                      <GlobeIcon />
+                      Website
+                    </Button>
+                  </ExternalLink>
+                )}
+              </CardFooter>
+            </Card>
+          )}
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">One Tap Connections</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                Use Alby Go to quickly connect other apps to your hub with one
+                tap on mobile.
+              </p>
+              {
+                <Button className="mt-8" onClick={onClickCreateConnection}>
+                  <NostrWalletConnectIcon />
+                  Connect with One Tap Connections
+                </Button>
+              }
+            </CardContent>
+          </Card>
         </div>
-      )}
+      </div>
     </div>
   );
 }
