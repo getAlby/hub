@@ -4,7 +4,6 @@ import {
   CircleHelp,
   Cloud,
   HomeIcon,
-  LayoutGridIcon,
   LogOut,
   LucideIcon,
   Plug2Icon,
@@ -88,11 +87,6 @@ export function AppSidebar() {
         title: "Sub-wallets",
         url: "/sub-wallets",
         icon: SquareStack,
-      },
-      {
-        title: "App Store",
-        url: "/appstore",
-        icon: LayoutGridIcon,
       },
       {
         title: "Connections",

@@ -46,7 +46,7 @@ export function IsolatedAppDrawDownDialog({
       toast(`Successfully reduced balance by ${+amountSat} sats`);
       reset();
     } catch (error) {
-      handleRequestError("Failed to draw down sub-wallet balance", error);
+      handleRequestError("Failed to decrease sub-wallet balance", error);
     }
     setLoading(false);
   }
@@ -62,7 +62,7 @@ export function IsolatedAppDrawDownDialog({
       <DialogContent>
         <form onSubmit={onSubmit}>
           <DialogHeader>
-            <DialogTitle>Draw Down</DialogTitle>
+            <DialogTitle>Decrease Balance</DialogTitle>
             <DialogDescription>
               Decrease the balance of this sub-wallet.
             </DialogDescription>
@@ -81,7 +81,7 @@ export function IsolatedAppDrawDownDialog({
             />
           </div>
           <DialogFooter className="mt-5">
-            <LoadingButton loading={loading}>Draw Down</LoadingButton>
+            <LoadingButton loading={loading}>Decrease</LoadingButton>
           </DialogFooter>
         </form>
       </DialogContent>

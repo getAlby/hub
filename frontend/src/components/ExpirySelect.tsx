@@ -40,7 +40,7 @@ const ExpirySelect: React.FC<ExpiryProps> = ({ value, onChange }) => {
       <div className="grid grid-cols-2 md:grid-cols-6 gap-2 text-xs">
         {Object.keys(expiryOptions).map((expiry) => {
           return (
-            <div
+            <button
               key={expiry}
               onClick={() => {
                 setCustomExpiry(false);
@@ -62,12 +62,12 @@ const ExpirySelect: React.FC<ExpiryProps> = ({ value, onChange }) => {
               )}
             >
               {expiry}
-            </div>
+            </button>
           );
         })}
         <Popover>
           <PopoverTrigger asChild>
-            <div
+            <button
               onClick={() => {}}
               className={cn(
                 "flex items-center justify-center md:col-span-2 cursor-pointer rounded text-nowrap border-2 p-4",
@@ -80,7 +80,7 @@ const ExpirySelect: React.FC<ExpiryProps> = ({ value, onChange }) => {
                   ? dayjs(value).format("DD MMMM YYYY")
                   : "Custom..."}
               </span>
-            </div>
+            </button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0">
             <Calendar
@@ -98,7 +98,7 @@ const ExpirySelect: React.FC<ExpiryProps> = ({ value, onChange }) => {
                 onChange(date);
                 setExpiryDays(daysFromNow(date));
               }}
-              initialFocus
+              autoFocus
             />
           </PopoverContent>
         </Popover>

@@ -46,7 +46,7 @@ export function IsolatedAppTopupDialog({
       toast(`Successfully increased balance by ${+amountSat} sats`);
       reset();
     } catch (error) {
-      handleRequestError("Failed to top up sub-wallet balance", error);
+      handleRequestError("Failed to increase sub-wallet balance", error);
     }
     setLoading(false);
   }
@@ -62,7 +62,7 @@ export function IsolatedAppTopupDialog({
       <DialogContent>
         <form onSubmit={onSubmit}>
           <DialogHeader>
-            <DialogTitle>Top Up</DialogTitle>
+            <DialogTitle>Increase Balance</DialogTitle>
             <DialogDescription>
               Increase the balance of this sub-wallet. Make sure you always
               maintain enough funds in your spending balance to prevent
@@ -83,7 +83,7 @@ export function IsolatedAppTopupDialog({
             />
           </div>
           <DialogFooter className="mt-5">
-            <LoadingButton loading={loading}>Top Up</LoadingButton>
+            <LoadingButton loading={loading}>Increase</LoadingButton>
           </DialogFooter>
         </form>
       </DialogContent>
