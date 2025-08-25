@@ -238,10 +238,10 @@ export function AppSidebar() {
                     </Link>
                   </DropdownMenuItem>
                 ) : (
-                  <DropdownMenuItem asChild>
+                  <DropdownMenuItem>
                     <ExternalLink
                       to="https://getalby.com/user/edit"
-                      className="flex items-center"
+                      className="flex items-center flex-1"
                     >
                       <AlbyIcon className="size-4 mr-2" />
                       Alby Account Settings

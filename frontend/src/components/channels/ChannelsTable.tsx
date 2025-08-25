@@ -140,6 +140,7 @@ export function ChannelsTable({
                         key={channel.id}
                         channel={channel}
                         unconfirmedChannel={unconfirmedChannel}
+                        hasMultipleChannels={channels.length > 1}
                       />
                     );
                   })}
@@ -162,11 +163,13 @@ export function ChannelsTable({
 type ChannelTableRowProps = {
   channel: Channel;
   unconfirmedChannel: LongUnconfirmedZeroConfChannel | undefined;
+  hasMultipleChannels: boolean;
 };
 
 function ChannelTableRow({
   channel,
   unconfirmedChannel,
+  hasMultipleChannels,
 }: ChannelTableRowProps) {
   const { data: peerDetails } = useNodeDetails(channel.remotePubkey);
   const capacity = channel.localBalance + channel.remoteBalance;
@@ -230,7 +233,11 @@ function ChannelTableRow({
         <ChannelWarning channel={channel} />
       </TableCell>
       <TableCell>
-        <ChannelDropdownMenu alias={alias} channel={channel} />
+        <ChannelDropdownMenu
+          alias={alias}
+          channel={channel}
+          hasMultipleChannels={hasMultipleChannels}
+        />
       </TableCell>
     </TableRow>
   );

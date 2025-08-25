@@ -1,6 +1,5 @@
 import { toast } from "sonner";
 
-// TODO: change this function to a hook and then toast does not need to be passed in
 export async function copyToClipboard(content: string) {
   const copyPromise = new Promise((resolve, reject) => {
     if (navigator.clipboard && window.isSecureContext) {

@@ -28,11 +28,13 @@ import { Channel } from "src/types";
 type ChannelDropdownMenuProps = {
   alias: string;
   channel: Channel;
+  hasMultipleChannels: boolean;
 };
 
 export function ChannelDropdownMenu({
   alias,
   channel,
+  hasMultipleChannels,
 }: ChannelDropdownMenuProps) {
   const { data: info } = useInfo();
   const [searchParams] = useSearchParams();
@@ -64,7 +66,8 @@ export function ChannelDropdownMenu({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-64">
           {channel.status == "online" &&
-            channel.remoteBalance > channel.localSpendableBalance && (
+            channel.remoteBalance > channel.localSpendableBalance &&
+            hasMultipleChannels && (
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem onClick={() => setDialog("rebalance")}>
                   <ScaleIcon />
@@ -74,7 +77,7 @@ export function ChannelDropdownMenu({
             )}
           <DropdownMenuItem>
             <ExternalLink
-              className="flex flex-row items-center gap-2"
+              className="flex flex-1 flex-row items-center gap-2"
               to={`${info?.mempoolUrl}/tx/${channel.fundingTxId}#flow=&vout=${channel.fundingTxVout}`}
             >
               <ExternalLinkIcon />
@@ -83,7 +86,7 @@ export function ChannelDropdownMenu({
           </DropdownMenuItem>
           <DropdownMenuItem>
             <ExternalLink
-              className="flex flex-row items-center gap-2"
+              className="flex flex-1 flex-row items-center gap-2"
               to={`https://amboss.space/node/${channel.remotePubkey}`}
             >
               <ExternalLinkIcon />
