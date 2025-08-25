@@ -76,7 +76,7 @@ export const appStoreCategories = {
   },
   ai: {
     title: "AI",
-    priority: 3,
+    priority: 20,
   },
   "merchant-tools": {
     title: "Merchant Tools",
@@ -84,15 +84,15 @@ export const appStoreCategories = {
   },
   music: {
     title: "Music",
-    priority: 10,
+    priority: 20,
   },
   blogging: {
     title: "Blogging",
-    priority: 10,
+    priority: 20,
   },
   "payment-tools": {
     title: "Payment Tools",
-    priority: 20,
+    priority: 10,
   },
   shopping: {
     title: "Shopping",
@@ -111,6 +111,10 @@ export const appStoreCategories = {
     priority: 100,
   },
 } as const;
+
+export const sortedAppStoreCategories = Object.entries(appStoreCategories).sort(
+  (a, b) => a[1].priority - b[1].priority
+);
 
 export const appStoreApps: AppStoreApp[] = (
   [

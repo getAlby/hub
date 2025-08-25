@@ -11,7 +11,7 @@ import { cn } from "src/lib/utils";
 import {
   AppStoreApp,
   appStoreApps,
-  appStoreCategories,
+  sortedAppStoreCategories,
 } from "./SuggestedAppData";
 
 function SuggestedAppCard({ id, title, description, logo }: AppStoreApp) {
@@ -58,7 +58,7 @@ export default function SuggestedApps() {
   return (
     <>
       <div className="flex gap-2 flex-wrap mt-6 mb-2">
-        {Object.entries(appStoreCategories).map(([categoryId, category]) => (
+        {sortedAppStoreCategories.map(([categoryId, category]) => (
           <Badge
             key={categoryId}
             variant={
@@ -82,7 +82,7 @@ export default function SuggestedApps() {
         ))}
       </div>
       <div className="flex flex-col gap-8">
-        {Object.entries(appStoreCategories)
+        {sortedAppStoreCategories
           .filter(
             ([categoryId]) =>
               !selectedCategories.length ||
