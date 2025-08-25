@@ -1,4 +1,4 @@
-import { CopyPlusIcon, GlobeIcon } from "lucide-react";
+import { GlobeIcon } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -31,7 +31,6 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
-import { DropdownMenuItem } from "src/components/ui/dropdown-menu";
 import { Label } from "src/components/ui/label";
 import { useAppsForAppStoreApp } from "src/hooks/useApps";
 import { useCapabilities } from "src/hooks/useCapabilities";
@@ -165,19 +164,7 @@ export function AlbyGo() {
           </form>
         </AlertDialogContent>
       </AlertDialog>
-      <AppStoreDetailHeader
-        appStoreApp={appStoreApp}
-        advancedActions={
-          <DropdownMenuItem className="w-full">
-            <div
-              className="flex items-center gap-2 cursor-pointer"
-              onClick={() => setShowCreateSuperuserConnectionDialog(true)}
-            >
-              <CopyPlusIcon className="w-4" /> One Tap Connection
-            </div>
-          </DropdownMenuItem>
-        }
-      />
+      <AppStoreDetailHeader appStoreApp={appStoreApp} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="flex flex-col w-full gap-6">
