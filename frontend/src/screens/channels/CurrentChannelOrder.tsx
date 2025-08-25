@@ -10,6 +10,7 @@ import {
 
 import { CopyIcon, InfoIcon, QrCodeIcon, RefreshCwIcon } from "lucide-react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
@@ -42,7 +43,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
-import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 
 import { ChannelWaitingForConfirmations } from "src/components/channels/ChannelWaitingForConfirmations";
@@ -234,8 +234,6 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
   );
   const estimatedTransactionFee = useEstimatedTransactionFee();
 
-  const { toast } = useToast();
-
   if (!onchainAddress || !balances || !estimatedTransactionFee) {
     return (
       <div className="flex justify-center">
@@ -307,7 +305,7 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
               variant="secondary"
               size="icon"
               onClick={() => {
-                copyToClipboard(onchainAddress, toast);
+                copyToClipboard(onchainAddress);
               }}
             >
               <CopyIcon className="size-4" />
@@ -393,8 +391,6 @@ function PayBitcoinChannelOrderWithSpendableFunds({
   }
   const { data: peers } = usePeers();
 
-  const { toast } = useToast();
-
   const { pubkey, host } = order;
 
   const { data: nodeDetails } = useNodeDetails(pubkey);
@@ -468,18 +464,15 @@ function PayBitcoinChannelOrderWithSpendableFunds({
         "Channel opening transaction published",
         openChannelResponse.fundingTxId
       );
-      toast({
-        title: "Successfully published channel opening transaction",
-      });
+      toast("Successfully published channel opening transaction");
       useChannelOrderStore.getState().updateOrder({
         fundingTxId: openChannelResponse.fundingTxId,
         status: "opening",
       });
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Something went wrong: " + error,
+      toast.error("Something went wrong", {
+        description: "" + error,
       });
     }
   }, [
@@ -489,7 +482,6 @@ function PayBitcoinChannelOrderWithSpendableFunds({
     order.paymentMethod,
     peers,
     pubkey,
-    toast,
   ]);
 
   React.useEffect(() => {
@@ -519,7 +511,6 @@ function PayBitcoinChannelOrderWithSpendableFunds({
 function useWaitForNewChannel() {
   const order = useChannelOrderStore((store) => store.order);
   const { data: channels } = useChannels(true);
-  const { toast } = useToast();
 
   const newChannel =
     channels && order?.prevChannelIds
@@ -534,7 +525,7 @@ function useWaitForNewChannel() {
   React.useEffect(() => {
     if (newChannel) {
       (async () => {
-        toast({ title: "Successfully opened channel" });
+        toast("Successfully opened channel");
         setTimeout(() => {
           useChannelOrderStore.getState().updateOrder({
             status: "opening",
@@ -543,7 +534,7 @@ function useWaitForNewChannel() {
         }, 3000);
       })();
     }
-  }, [newChannel, toast]);
+  }, [newChannel]);
 }
 
 function PaidLightningChannelOrder() {
@@ -561,7 +552,6 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
     throw new Error("incorrect payment method");
   }
 
-  const { toast } = useToast();
   const { data: channels } = useChannels(true);
   const [, setRequestedInvoice] = React.useState(false);
 
@@ -603,9 +593,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
             }
             setLspOrderResponse(response);
           } catch (error) {
-            toast({
-              variant: "destructive",
-              title: "Something went wrong",
+            toast.error("Something went wrong", {
               description: "" + error,
             });
           }
@@ -613,14 +601,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
       }
       return true;
     });
-  }, [
-    channels,
-    order.amount,
-    order.isPublic,
-    order.lspType,
-    order.lspUrl,
-    toast,
-  ]);
+  }, [channels, order.amount, order.isPublic, order.lspType, order.lspUrl]);
 
   const canPayInternally =
     channels &&
@@ -736,13 +717,10 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                         useChannelOrderStore.getState().updateOrder({
                           status: "paid",
                         });
-                        toast({
-                          title: "Channel successfully requested",
-                        });
+                        toast("Channel successfully requested");
                       } catch (e) {
-                        toast({
-                          variant: "destructive",
-                          title: "Failed to send: " + e,
+                        toast.error("Failed to send: ", {
+                          description: "" + e,
                         });
                         console.error(e);
                       }

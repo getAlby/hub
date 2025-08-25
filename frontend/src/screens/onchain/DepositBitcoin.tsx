@@ -23,7 +23,6 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
-import { useToast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
@@ -38,7 +37,6 @@ export default function DepositBitcoin() {
     getNewAddress,
     loadingAddress,
   } = useOnchainAddress();
-  const { toast } = useToast();
   const { data: mempoolAddressUtxos } = useMempoolApi<MempoolUtxo[]>(
     onchainAddress ? `/address/${onchainAddress}/utxo` : undefined,
     3000
@@ -96,7 +94,7 @@ export default function DepositBitcoin() {
           <DepositPending amount={pendingAmount} txId={txId} />
         ) : (
           <Card>
-            <CardContent className="grid gap-6 p-8 justify-center">
+            <CardContent className="grid gap-6 justify-center">
               <a
                 href={`bitcoin:${onchainAddress}`}
                 target="_blank"
@@ -123,7 +121,7 @@ export default function DepositBitcoin() {
                   variant="secondary"
                   className="w-28"
                   onClick={() => {
-                    copyToClipboard(onchainAddress, toast);
+                    copyToClipboard(onchainAddress);
                   }}
                 >
                   <CopyIcon />

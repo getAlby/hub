@@ -17,7 +17,6 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { useToast } from "src/components/ui/use-toast";
 import { copyToClipboard } from "src/lib/clipboard";
 
 import TickSVG from "public/images/illustrations/tick.svg";
@@ -27,7 +26,6 @@ import { LinkButton } from "src/components/ui/custom/link-button";
 export default function PaymentSuccess() {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   useEffect(() => {
     if (!state?.preimage) {
@@ -45,7 +43,7 @@ export default function PaymentSuccess() {
   const amount = state?.amount as number;
 
   const copy = () => {
-    copyToClipboard(state.preimage as string, toast);
+    copyToClipboard(state.preimage as string);
   };
 
   return (

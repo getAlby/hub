@@ -1,5 +1,6 @@
 import { AlertTriangleIcon, CopyIcon, ExternalLinkIcon } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
 import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
 import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
@@ -11,7 +12,6 @@ import { Button } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
 import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
@@ -25,7 +25,6 @@ export function BuzzPay() {
     appStoreAppId: "buzzpay",
   });
   const [posUrl, setPosUrl] = React.useState("");
-  const { toast } = useToast();
 
   const appStoreApp = appStoreApps.find((app) => app.id === "buzzpay");
   if (!appStoreApp) {
@@ -55,9 +54,9 @@ export function BuzzPay() {
 
         await reloadApps();
 
-        toast({ title: "BuzzPay PoS connection created" });
+        toast("BuzzPay PoS connection created");
       } catch (error) {
-        handleRequestError(toast, "Failed to create PoS connection", error);
+        handleRequestError("Failed to create PoS connection", error);
       }
       setLoading(false);
     })();
@@ -92,10 +91,7 @@ export function BuzzPay() {
           </div>
           <div className="flex gap-2">
             <Input disabled readOnly type="text" value={posUrl} />
-            <Button
-              onClick={() => copyToClipboard(posUrl, toast)}
-              variant="outline"
-            >
+            <Button onClick={() => copyToClipboard(posUrl)} variant="outline">
               <CopyIcon />
               Copy
             </Button>

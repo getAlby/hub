@@ -10,6 +10,7 @@ import { NWCClient } from "@getalby/sdk/nwc";
 import dayjs from "dayjs";
 import { ChevronUpIcon, ZapIcon } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import Loading from "src/components/Loading";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
@@ -26,7 +27,6 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { Separator } from "src/components/ui/separator";
 import { Textarea } from "src/components/ui/textarea";
-import { useToast } from "src/components/ui/use-toast";
 import { PayInvoiceResponse } from "src/types";
 import { request } from "src/utils/request";
 
@@ -70,7 +70,6 @@ export function LightningMessageboardWidget() {
   const [isLoading, setLoading] = React.useState(false);
   const [isSubmitting, setSubmitting] = React.useState(false);
   const [dialogOpen, setDialogOpen] = React.useState(false);
-  const { toast } = useToast();
   const [isOpen, setOpen] = React.useState(false);
   const [currentTab, setCurrentTab] = React.useState<TabType>("latest");
 
@@ -139,10 +138,8 @@ export function LightningMessageboardWidget() {
     e.preventDefault();
 
     if (+amount < 1000) {
-      toast({
-        title: "Amount too low",
+      toast.error("Amount too low", {
         description: "Minimum payment is 1000 sats",
-        variant: "destructive",
       });
       return;
     }
@@ -172,13 +169,12 @@ export function LightningMessageboardWidget() {
 
       setMessageText("");
       loadMessages();
-      toast({ title: "Successfully sent message" });
+      toast("Successfully sent message");
       setDialogOpen(false);
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        description: "Something went wrong: " + error,
+      toast.error("Something went wrong", {
+        description: "" + error,
       });
     }
     setSubmitting(false);

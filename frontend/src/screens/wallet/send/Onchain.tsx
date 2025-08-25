@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
@@ -22,7 +23,6 @@ import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { Switch } from "src/components/ui/switch";
-import { useToast } from "src/components/ui/use-toast";
 import { ONCHAIN_DUST_SATS } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
@@ -112,7 +112,6 @@ function OnchainForm({
 }) {
   const navigate = useNavigate();
   const { data: info } = useInfo();
-  const { toast } = useToast();
   const { data: balances } = useBalances();
   const { data: recommendedFees, error: mempoolError } = useMempoolApi<{
     fastestFee: number;
@@ -166,13 +165,9 @@ function OnchainForm({
           txId: response.txId,
         },
       });
-      toast({
-        title: "Successfully broadcasted transaction",
-      });
+      toast("Successfully broadcasted transaction");
     } catch (e) {
-      toast({
-        variant: "destructive",
-        title: "Failed to send payment",
+      toast.error("Failed to send payment", {
         description: "" + e,
       });
       console.error(e);
@@ -327,7 +322,6 @@ function SwapForm({
   setSwap: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { data: balances } = useBalances();
   const { data: swapInfo } = useSwapInfo("out");
 
@@ -352,14 +346,12 @@ function SwapForm({
         throw new Error("Error swapping out");
       }
       navigate(`/wallet/swap/out/status/${swapOutResponse.swapId}`);
-      toast({ title: "Initiated swap" });
+      toast("Initiated swap");
     } catch (e) {
-      toast({
-        variant: "destructive",
-        title: "Failed to send payment",
+      console.error(e);
+      toast.error("Failed to send payment", {
         description: "" + e,
       });
-      console.error(e);
     } finally {
       setLoading(false);
     }

@@ -8,7 +8,6 @@ import { Button } from "src/components/ui/button";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 
 import { handleRequestError } from "src/utils/handleRequestError";
 import { isHttpMode } from "src/utils/isHttpMode";
@@ -16,8 +15,6 @@ import { request } from "src/utils/request";
 
 export function MigrateNode() {
   const navigate = useNavigate();
-
-  const { toast } = useToast();
 
   const [unlockPassword, setUnlockPassword] = React.useState("");
   const [showPasswordScreen, setShowPasswordScreen] = useState<boolean>(false);
@@ -68,7 +65,7 @@ export function MigrateNode() {
 
       navigate("/create-node-migration-file-success");
     } catch (error) {
-      handleRequestError(toast, "Failed to backup the node", error);
+      handleRequestError("Failed to backup the node", error);
     } finally {
       setLoading(false);
     }

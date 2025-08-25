@@ -1,10 +1,9 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import Container from "src/components/Container";
 import LottieLoading from "src/components/LottieLoading";
 import { Button } from "src/components/ui/button";
-import { ToastSignature, useToast } from "src/components/ui/use-toast";
-
 import { useInfo } from "src/hooks/useInfo";
 import { saveAuthToken } from "src/lib/auth";
 import useSetupStore from "src/state/SetupStore";
@@ -15,7 +14,6 @@ import { request } from "src/utils/request";
 let lastStartupErrorTime: string;
 export function SetupFinish() {
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { data: info } = useInfo(true); // poll the info endpoint to auto-redirect when app is running
 
   const [loading, setLoading] = React.useState(false);
@@ -34,15 +32,13 @@ export function SetupFinish() {
       startupErrorTime !== lastStartupErrorTime
     ) {
       lastStartupErrorTime = startupErrorTime;
-      toast({
-        title: "Failed to start",
+      toast.error("Failed to start", {
         description: startupError,
-        variant: "destructive",
       });
       setLoading(false);
       setConnectionError(true);
     }
-  }, [startupError, toast, startupErrorTime]);
+  }, [startupError, startupErrorTime]);
 
   useEffect(() => {
     if (!loading) {
@@ -75,8 +71,7 @@ export function SetupFinish() {
       setLoading(true);
       const succeeded = await finishSetup(
         useSetupStore.getState().nodeInfo,
-        useSetupStore.getState().unlockPassword,
-        toast
+        useSetupStore.getState().unlockPassword
       );
       // only setup call is successful as start is async
       if (!succeeded) {
@@ -84,7 +79,7 @@ export function SetupFinish() {
         setConnectionError(true);
       }
     })();
-  }, [navigate, toast, info]);
+  }, [navigate, info]);
 
   if (connectionError) {
     return (
@@ -120,8 +115,7 @@ export function SetupFinish() {
 
 const finishSetup = async (
   nodeInfo: SetupNodeInfo,
-  unlockPassword: string,
-  toast: ToastSignature
+  unlockPassword: string
 ): Promise<boolean> => {
   try {
     await request("/api/setup", {
@@ -149,7 +143,7 @@ const finishSetup = async (
     }
     return true;
   } catch (error) {
-    handleRequestError(toast, "Failed to connect", error);
+    handleRequestError("Failed to connect", error);
     return false;
   }
 };

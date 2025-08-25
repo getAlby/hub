@@ -1,4 +1,4 @@
-import { useToast } from "src/components/ui/use-toast";
+import { toast } from "sonner";
 import { useNodeDetails } from "src/hooks/useNodeDetails";
 import { usePeers } from "src/hooks/usePeers";
 import { Peer } from "src/types";
@@ -20,7 +20,6 @@ type Props = {
 export function DisconnectPeerDialogContent({ peer }: Props) {
   const { mutate: reloadPeers } = usePeers();
   const { data: peerDetails } = useNodeDetails(peer.nodeId);
-  const { toast } = useToast();
 
   async function disconnectPeer() {
     try {
@@ -32,18 +31,15 @@ export function DisconnectPeerDialogContent({ peer }: Props) {
           "Content-Type": "application/json",
         },
       });
-      toast({
-        title: "Successfully disconnected from peer",
+      toast("Successfully disconnected from peer", {
         description: peer.nodeId,
       });
       await reloadPeers();
     } catch (e) {
-      toast({
-        variant: "destructive",
-        title: "Failed to disconnect peer",
+      console.error(e);
+      toast.error("Failed to disconnect peer", {
         description: "" + e,
       });
-      console.error(e);
     }
   }
 

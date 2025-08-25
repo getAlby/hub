@@ -45,7 +45,7 @@ export function ConnectionDetailsModal({
                     <TooltipTrigger asChild>
                       <AlertCircleIcon className="w-3 h-3 ml-2 flex-shrink-0" />
                     </TooltipTrigger>
-                    <TooltipContent className="w-[300px]">
+                    <TooltipContent>
                       This connection does not have its own unique wallet
                       pubkey. Re-connect for additional privacy.
                     </TooltipContent>

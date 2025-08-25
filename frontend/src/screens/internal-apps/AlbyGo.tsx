@@ -1,6 +1,7 @@
 import { CopyPlusIcon, GlobeIcon } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
@@ -32,7 +33,6 @@ import {
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { DropdownMenuItem } from "src/components/ui/dropdown-menu";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 import { useAppsForAppStoreApp } from "src/hooks/useApps";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { createApp } from "src/requests/createApp";
@@ -44,7 +44,6 @@ export function AlbyGo() {
     showCreateSuperuserConnectionDialog,
     setShowCreateSuperuserConnectionDialog,
   ] = React.useState(false);
-  const { toast } = useToast();
   const { data: capabilities } = useCapabilities();
   const navigate = useNavigate();
 
@@ -97,12 +96,11 @@ export function AlbyGo() {
       navigate(`/apps/created?app=${appStoreApp.id}`, {
         state: createAppResponse,
       });
-      toast({ title: "Alby Go connection created" });
+      toast("Alby Go connection created");
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Something went wrong: " + error,
+      toast.error("Something went wrong", {
+        description: "" + error,
       });
     }
     setLoading(false);

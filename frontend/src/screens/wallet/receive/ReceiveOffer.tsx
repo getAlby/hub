@@ -1,5 +1,6 @@
 import { CircleAlertIcon, CopyIcon, RefreshCwIcon } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import QRCode from "src/components/QRCode";
 import {
@@ -18,14 +19,12 @@ import {
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 
 import { copyToClipboard } from "src/lib/clipboard";
 import { CreateOfferRequest } from "src/types";
 import { request } from "src/utils/request";
 
 export default function ReceiveOffer() {
-  const { toast } = useToast();
   const [isLoading, setLoading] = React.useState(false);
   const [description, setDescription] = React.useState<string>("");
   const [offer, setOffer] = React.useState<string | null>(null);
@@ -48,14 +47,11 @@ export default function ReceiveOffer() {
       if (offer) {
         setOffer(offer);
 
-        toast({
-          title: "Successfully created BOLT-12 offer",
-        });
+        toast("Successfully created BOLT-12 offer");
       }
     } catch (e) {
-      toast({
-        variant: "destructive",
-        title: "Failed to create offer: " + e,
+      toast.error("Failed to create offer", {
+        description: "" + e,
       });
       console.error(e);
     } finally {
@@ -64,7 +60,7 @@ export default function ReceiveOffer() {
   };
 
   const copy = () => {
-    copyToClipboard(offer as string, toast);
+    copyToClipboard(offer as string);
   };
 
   return (

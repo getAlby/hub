@@ -6,7 +6,6 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { useToast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
 import { createApp } from "src/requests/createApp";
 import { CreateAppRequest, UpdateAppRequest } from "src/types";
@@ -18,6 +17,7 @@ import {
   LightningAddress,
 } from "@getalby/lightning-tools";
 import { ExternalLinkIcon, PlusCircleIcon } from "lucide-react";
+import { toast } from "sonner";
 import alby from "src/assets/suggested-apps/alby.png";
 import bitcoinbrink from "src/assets/zapplanner/bitcoinbrink.png";
 import hrf from "src/assets/zapplanner/hrf.png";
@@ -93,7 +93,6 @@ export function ZapPlanner() {
     appStoreAppId: "zapplanner",
   });
   const zapplannerApps = appsData?.apps;
-  const { toast } = useToast();
 
   const [open, setOpen] = React.useState(false);
   const [isSubmitting, setSubmitting] = React.useState(false);
@@ -323,15 +322,14 @@ export function ZapPlanner() {
         body: JSON.stringify(updateAppRequest),
       });
 
-      toast({
-        title: "Created subscription",
+      toast("Created subscription", {
         description: "The first payment is scheduled immediately.",
       });
 
       reloadApps();
       setOpen(false);
     } catch (error) {
-      handleRequestError(toast, "Failed to create app", error);
+      handleRequestError("Failed to create app", error);
     } finally {
       setSubmitting(false);
     }

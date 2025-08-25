@@ -1,6 +1,7 @@
 import { ChevronDownIcon } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
@@ -9,7 +10,6 @@ import { Checkbox } from "src/components/ui/checkbox";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
 import { Separator } from "src/components/ui/separator";
-import { useToast } from "src/components/ui/use-toast";
 import { useChannels } from "src/hooks/useChannels";
 
 import { useInfo } from "src/hooks/useInfo";
@@ -31,7 +31,6 @@ export function AutoChannel() {
   const [isPublic, setPublic] = React.useState(false);
 
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [invoice, setInvoice] = React.useState<string>();
   const [channelSize, setChannelSize] = React.useState<number>();
   const [, setPrevChannelIds] = React.useState<string[]>();
@@ -93,10 +92,7 @@ export function AutoChannel() {
     } catch (error) {
       setLoading(false);
       console.error(error);
-      toast({
-        title: "Something went wrong. Please try again",
-        variant: "destructive",
-      });
+      toast.error("Something went wrong. Please try again");
     }
   }
 

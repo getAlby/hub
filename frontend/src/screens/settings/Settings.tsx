@@ -1,5 +1,6 @@
 import { StarsIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Badge } from "src/components/ui/badge";
@@ -17,7 +18,6 @@ import {
   Themes,
   useTheme,
 } from "src/components/ui/theme-provider";
-import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";
@@ -27,7 +27,6 @@ import { request } from "src/utils/request";
 function Settings() {
   const { data: albyMe } = useAlbyMe();
   const { theme, darkMode, setTheme, setDarkMode } = useTheme();
-  const { toast } = useToast();
 
   const [fiatCurrencies, setFiatCurrencies] = useState<[string, string][]>([]);
 
@@ -48,12 +47,12 @@ function Settings() {
         setFiatCurrencies(mappedCurrencies);
       } catch (error) {
         console.error(error);
-        handleRequestError(toast, "Failed to fetch currencies", error);
+        handleRequestError("Failed to fetch currencies", error);
       }
     }
 
     fetchCurrencies();
-  }, [toast]);
+  }, []);
 
   async function updateCurrency(currency: string) {
     try {
@@ -65,10 +64,10 @@ function Settings() {
         body: JSON.stringify({ currency }),
       });
       await reloadInfo();
-      toast({ title: `Currency set to ${currency}` });
+      toast(`Currency set to ${currency}`);
     } catch (error) {
       console.error(error);
-      handleRequestError(toast, "Failed to update currencies", error);
+      handleRequestError("Failed to update currencies", error);
     }
   }
 
@@ -92,7 +91,7 @@ function Settings() {
             value={theme}
             onValueChange={(value) => {
               setTheme(value as Theme);
-              toast({ title: "Theme updated." });
+              toast("Theme updated.");
             }}
           >
             <SelectTrigger className="w-full md:w-60">
@@ -133,7 +132,7 @@ function Settings() {
             value={darkMode}
             onValueChange={(value) => {
               setDarkMode(value as DarkMode);
-              toast({ title: "Appearance updated." });
+              toast("Appearance updated.");
             }}
           >
             <SelectTrigger className="w-full md:w-60">

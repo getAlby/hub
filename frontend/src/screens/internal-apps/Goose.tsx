@@ -1,5 +1,6 @@
 import { HammerIcon, LightbulbIcon } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
 import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
@@ -19,7 +20,6 @@ import {
 } from "src/components/ui/card";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
-import { useToast } from "src/components/ui/use-toast";
 import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -27,7 +27,6 @@ import { handleRequestError } from "src/utils/handleRequestError";
 export function Goose() {
   const [isLoading, setLoading] = React.useState(false);
   const [connectionSecret, setConnectionSecret] = React.useState("");
-  const { toast } = useToast();
 
   const appStoreApp = appStoreApps.find((app) => app.id === "goose");
   if (!appStoreApp) {
@@ -60,9 +59,9 @@ export function Goose() {
 
         setConnectionSecret(createAppResponse.pairingUri);
 
-        toast({ title: "Goose connection created" });
+        toast("Goose connection created");
       } catch (error) {
-        handleRequestError(toast, "Failed to create connection", error);
+        handleRequestError("Failed to create connection", error);
       }
       setLoading(false);
     })();
@@ -122,7 +121,7 @@ export function Goose() {
                   <li className="list-item">
                     Set the Streaming HTTP endpoint URI:{" "}
                     <Button
-                      onClick={() => copyToClipboard(streamableHttpLink, toast)}
+                      onClick={() => copyToClipboard(streamableHttpLink)}
                       size="sm"
                     >
                       Copy URI
@@ -146,7 +145,7 @@ export function Goose() {
                     Header value:{" "}
                     <Button
                       onClick={() =>
-                        copyToClipboard(`Bearer ${connectionSecret}`, toast)
+                        copyToClipboard(`Bearer ${connectionSecret}`)
                       }
                       size="sm"
                     >

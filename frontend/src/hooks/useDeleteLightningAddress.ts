@@ -1,10 +1,9 @@
 import React from "react";
-import { useToast } from "src/components/ui/use-toast";
+import { toast } from "sonner";
 import { useApp } from "src/hooks/useApp";
 import { request } from "src/utils/request";
 
 export function useDeleteLightningAddress(appId?: number) {
-  const { toast } = useToast();
   const { data: app, mutate: refetchApp } = useApp(appId);
   const [deletingLightningAddress, setDeletingLightningAddress] =
     React.useState(false);
@@ -22,14 +21,10 @@ export function useDeleteLightningAddress(appId?: number) {
         },
       });
       await refetchApp();
-      toast({
-        title: "Successfully deleted lightning address",
-      });
+      toast("Successfully deleted lightning address");
     } catch (error) {
-      toast({
-        title: "Failed to delete lightning address",
+      toast.error("Failed to delete lightning address", {
         description: (error as Error).message,
-        variant: "destructive",
       });
     }
     setDeletingLightningAddress(false);

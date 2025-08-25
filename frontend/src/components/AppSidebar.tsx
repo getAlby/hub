@@ -222,20 +222,20 @@ export function AppSidebar() {
                   </>
                 )}
                 {!info?.albyAccountConnected ? (
-                  <DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link
                       to="/alby/account"
                       className="w-full flex flex-row items-center gap-2"
                     >
-                      <PlugZapIcon className="size-4" />
-                      <p>Connect Alby Account</p>
+                      <PlugZapIcon />
+                      Connect Alby Account
                     </Link>
                   </DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem>
                     <ExternalLink
                       to="https://getalby.com/user/edit"
-                      className="flex items-center"
+                      className="flex items-center flex-1"
                     >
                       <AlbyIcon className="size-4 mr-2" />
                       Alby Account Settings
@@ -246,7 +246,7 @@ export function AppSidebar() {
                   <>
                     <UpgradeDialog>
                       <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <Sparkles className="size-4 mr-2" />
+                        <Sparkles />
                         Upgrade to Pro
                       </DropdownMenuItem>
                     </UpgradeDialog>

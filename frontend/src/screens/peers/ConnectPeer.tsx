@@ -1,17 +1,16 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 
 import { splitSocketAddress } from "src/lib/utils";
 import { ConnectPeerRequest } from "src/types";
 import { request } from "src/utils/request";
 
 export default function ConnectPeer() {
-  const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -48,7 +47,7 @@ export default function ConnectPeer() {
         },
         body: JSON.stringify(connectPeerRequest),
       });
-      toast({ title: "Successfully connected with peer" });
+      toast("Successfully connected with peer");
       if (returnTo) {
         window.location.href = returnTo;
         return;
@@ -56,9 +55,8 @@ export default function ConnectPeer() {
       setConnectionString("");
       navigate("/peers");
     } catch (e) {
-      toast({
-        variant: "destructive",
-        title: "Failed to connect peer: " + e,
+      toast.error("Failed to connect peer", {
+        description: "" + e,
       });
       console.error(e);
     }

@@ -19,6 +19,7 @@ import {
   SquarePenIcon,
   SquareStackIcon,
 } from "lucide-react";
+import { toast } from "sonner";
 import AppAvatar from "src/components/AppAvatar";
 import AppHeader from "src/components/AppHeader";
 import { AboutAppCard } from "src/components/connections/AboutAppCard";
@@ -55,7 +56,6 @@ import {
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu";
 import { Input } from "src/components/ui/input";
-import { useToast } from "src/components/ui/use-toast";
 import {
   ALBY_ACCOUNT_APP_NAME,
   SUBWALLET_APPSTORE_APP_ID,
@@ -94,7 +94,6 @@ type AppInternalProps = {
 };
 
 function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
-  const { toast } = useToast();
   const location = useLocation();
   const [isEditingPermissions, setIsEditingPermissions] = React.useState(false);
   const [showConnectionDetails, setShowConnectionDetails] =
@@ -141,11 +140,9 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
       refetchApp();
       setIsEditingPermissions(false);
       setSavedPermissions(permissions);
-      toast({
-        title: "Successfully updated connection",
-      });
+      toast("Successfully updated connection");
     } catch (error) {
-      handleRequestError(toast, "Failed to update connection", error);
+      handleRequestError("Failed to update connection", error);
     }
   };
 
@@ -173,12 +170,11 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
       });
 
       refetchApp();
-      toast({
-        title: "Successfully converted to sub-wallet",
+      toast("Successfully converted to sub-wallet", {
         description: "This isolated app is now a sub-wallet.",
       });
     } catch (error) {
-      handleRequestError(toast, "Failed to convert to sub-wallet", error);
+      handleRequestError("Failed to convert to sub-wallet", error);
     }
   };
 
@@ -247,18 +243,15 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                           <EllipsisIcon />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-56">
+                      <DropdownMenuContent align="end">
                         {app.isolated &&
                           !app.metadata?.app_store_app_id &&
                           albyMe?.subscription.plan_code && (
                             <DropdownMenuGroup>
-                              <DropdownMenuItem>
-                                <div
-                                  className="w-full cursor-pointer flex items-center gap-2"
-                                  onClick={handleConvertToSubwallet}
-                                >
-                                  <SquareStackIcon /> Convert to Sub-wallet
-                                </div>
+                              <DropdownMenuItem
+                                onClick={handleConvertToSubwallet}
+                              >
+                                <SquareStackIcon /> Convert to Sub-wallet
                               </DropdownMenuItem>
                             </DropdownMenuGroup>
                           )}
@@ -313,7 +306,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                         (!app.scopes.includes("pay_invoice") &&
                           permissions.scopes.includes("pay_invoice")) ? (
                           <AlertDialog>
-                            <AlertDialogTrigger asChild>
+                            <AlertDialogTrigger>
                               <Button type="button">Save</Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>

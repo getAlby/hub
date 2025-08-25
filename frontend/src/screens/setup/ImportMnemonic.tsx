@@ -9,17 +9,16 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { toast } from "sonner";
 import MnemonicInputs from "src/components/mnemonic/MnemonicInputs";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 import useSetupStore from "src/state/SetupStore";
 
 export function ImportMnemonic() {
-  const { toast } = useToast();
   const navigate = useNavigate();
   const setupStore = useSetupStore();
   const [backedUp, setIsBackedUp] = useState<boolean>(false);
@@ -38,10 +37,7 @@ export function ImportMnemonic() {
       mnemonic.split(" ").length !== 12 ||
       !bip39.validateMnemonic(mnemonic, wordlist)
     ) {
-      toast({
-        title: "Invalid recovery phrase",
-        variant: "destructive",
-      });
+      toast.error("Invalid recovery phrase");
       return;
     }
 

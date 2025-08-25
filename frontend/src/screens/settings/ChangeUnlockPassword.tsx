@@ -2,17 +2,16 @@ import { TriangleAlertIcon } from "lucide-react";
 import React from "react";
 import PasswordInput from "src/components/password/PasswordInput";
 
+import { toast } from "sonner";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 
 import { useInfo } from "src/hooks/useInfo";
 import { request } from "src/utils/request";
 
 export function ChangeUnlockPassword() {
-  const { toast } = useToast();
   const { mutate: refetchInfo } = useInfo();
 
   const [currentUnlockPassword, setCurrentUnlockPassword] = React.useState("");
@@ -41,15 +40,12 @@ export function ChangeUnlockPassword() {
         }),
       });
       await refetchInfo();
-      toast({
-        title: "Successfully changed password",
+      toast("Successfully changed password", {
         description: "Please start your node with your new password",
       });
     } catch (error) {
-      toast({
-        title: "Password change failed",
+      toast.error("Password change failed", {
         description: (error as Error).message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);

@@ -1,6 +1,7 @@
 import { ChevronDownIcon, InfoIcon } from "lucide-react";
 import React, { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { ChannelPeerNote } from "src/components/channels/ChannelPeerNote";
 import { ChannelPublicPrivateAlert } from "src/components/channels/ChannelPublicPrivateAlert";
@@ -28,7 +29,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
-import { useToast } from "src/components/ui/use-toast";
 import { useChannelPeerSuggestions } from "src/hooks/useChannelPeerSuggestions";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
@@ -71,8 +71,6 @@ function NewChannelInternal({
     useChannelPeerSuggestions();
   const navigate = useNavigate();
 
-  const { toast } = useToast();
-
   const presetAmounts = [1_000_000, 2_000_000, 3_000_000];
 
   const [order, setOrder] = React.useState<Partial<LightningOrder>>({
@@ -91,13 +89,10 @@ function NewChannelInternal({
 
   React.useEffect(() => {
     if (channelPeerSuggestionsError) {
-      toast({
-        variant: "destructive",
-        title: "Failed to load channel suggestions",
-      });
+      toast.error("Failed to load channel suggestions");
       navigate("/channels/outgoing");
     }
-  }, [channelPeerSuggestionsError, navigate, toast]);
+  }, [channelPeerSuggestionsError, navigate]);
 
   const channelPeerSuggestions = React.useMemo(() => {
     return _channelPeerSuggestions
@@ -181,7 +176,7 @@ function NewChannelInternal({
 
         const partner = okPartners[0];
         if (!partner) {
-          toast({
+          toast.error("No channel partner found", {
             description:
               "No ideal channel partner found. Please choose from the advanced options to continue",
           });
@@ -201,9 +196,8 @@ function NewChannelInternal({
       useChannelOrderStore.getState().setOrder(order as NewChannelOrder);
       navigate("/channels/order");
     } catch (error) {
-      toast({
-        variant: "destructive",
-        description: "Something went wrong: " + error,
+      toast.error("Something went wrong", {
+        description: "" + error,
       });
       console.error(error);
     }
@@ -257,7 +251,7 @@ function NewChannelInternal({
                     <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                   </div>
                 </TooltipTrigger>
-                <TooltipContent className="w-[300px]">
+                <TooltipContent>
                   Configure the amount of receiving capacity you need. You will
                   only pay for the liquidity fee which will be shown in the next
                   step.
