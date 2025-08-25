@@ -174,7 +174,7 @@ export const appStoreApps: AppStoreApp[] = (
       id: "alby-extension",
       title: "Alby Extension",
       description: "Wallet in your browser",
-      webLink: "https://getalby.com/",
+      webLink: "https://getalby.com/products/browser-extension",
       chromeLink:
         "https://chromewebstore.google.com/detail/iokeahhehimjnekafflcihljlcjccdbe",
       firefoxLink: "https://addons.mozilla.org/en-US/firefox/addon/alby/",
