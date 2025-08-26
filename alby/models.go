@@ -131,7 +131,7 @@ type ChannelPeerSuggestion struct {
 type LSPChannelOffer struct {
 	LspName              string `json:"lspName"`
 	LspContactUrl        string `json:"lspContactUrl"`
-	LspBalanceSats       uint64 `json:"lspBalanceSats"`
+	LspBalanceSat        uint64 `json:"lspBalanceSat"`
 	FeeTotalSat          uint64 `json:"feeTotalSat"`
 	FeeTotalUsd          uint64 `json:"feeTotalUsd"` // in cents
 	CurrentPaymentMethod string `json:"currentPaymentMethod"`

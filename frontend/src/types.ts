@@ -445,7 +445,7 @@ export type LSPChannelOffer = {
   lspName: string;
   lspDescription: string;
   lspContactUrl: string;
-  lspBalanceSats: number;
+  lspBalanceSat: number;
   feeTotalSat: number;
   feeTotalUsd: number;
   currentPaymentMethod: "card" | "wallet" | "prepaid" | "fee_credits";

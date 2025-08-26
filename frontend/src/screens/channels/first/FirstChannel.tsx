@@ -243,12 +243,12 @@ export function FirstChannel() {
                   <TableCell className="p-3 flex flex-col gap-2 items-end justify-center align-top">
                     <span>
                       {new Intl.NumberFormat().format(
-                        lspChannelOffer.lspBalanceSats
+                        lspChannelOffer.lspBalanceSat
                       )}{" "}
                       sats
                     </span>
                     <FormattedFiatAmount
-                      amount={lspChannelOffer.lspBalanceSats}
+                      amount={lspChannelOffer.lspBalanceSat}
                       className="text-xs"
                       showApprox
                     />
