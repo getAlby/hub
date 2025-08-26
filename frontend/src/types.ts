@@ -528,7 +528,7 @@ export type LSPOrderRequest = {
 };
 
 export type LSPOrderResponse = {
-  invoice: string;
+  invoice?: string;
   fee: number;
   invoiceAmount: number;
   incomingLiquidity: number;

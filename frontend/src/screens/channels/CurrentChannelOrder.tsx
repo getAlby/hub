@@ -588,8 +588,16 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                 body: JSON.stringify(newLSPOrderRequest),
               }
             );
-            if (!response?.invoice) {
-              throw new Error("No invoice in response");
+            if (!response) {
+              throw new Error("no LSP order response");
+            }
+
+            if (!response.invoice) {
+              // assume payment is handled by Alby Account
+              // we will wait for a channel to be opened to us
+              useChannelOrderStore.getState().updateOrder({
+                status: "paid",
+              });
             }
             setLspOrderResponse(response);
           } catch (error) {
@@ -623,9 +631,9 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
             : "Please wait, loading..."
         }
       />
-      {!lspOrderResponse && <Loading />}
+      {!lspOrderResponse?.invoice && <Loading />}
 
-      {lspOrderResponse && (
+      {lspOrderResponse?.invoice && (
         <>
           <div className="max-w-md flex flex-col gap-5">
             <div className="border rounded-lg slashed-zero">
