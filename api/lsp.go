@@ -42,7 +42,7 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 		return nil, fmt.Errorf("unsupported LSP type: %v", request.LSPType)
 	}
 
-	logger.Logger.Infoln("Requesting LSP info")
+	logger.Logger.Info("Requesting LSP info")
 	lspInfo, err := api.getLSPS1LSPInfo(request.LSPUrl + "/get_info")
 
 	if err != nil {
@@ -50,7 +50,7 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 		return nil, err
 	}
 
-	logger.Logger.Infoln("Requesting own node info")
+	logger.Logger.Info("Requesting own node info")
 
 	nodeInfo, err := api.svc.GetLNClient().GetInfo(ctx)
 	if err != nil {
