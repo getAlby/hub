@@ -152,6 +152,15 @@ func (api *api) getLSPS1LSPInfo(url string) (*lspInfo, error) {
 		return nil, errors.New("failed to read response body")
 	}
 
+	if res.StatusCode >= 300 {
+		logger.Logger.WithFields(logrus.Fields{
+			"url":        url,
+			"body":       string(body),
+			"statusCode": res.StatusCode,
+		}).Error("get_info endpoint returned non-success code")
+		return nil, fmt.Errorf("get info endpoint returned non-success code: %s", string(body))
+	}
+
 	err = json.Unmarshal(body, &lsps1LspInfo)
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
