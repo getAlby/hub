@@ -95,6 +95,7 @@ function NewChannelInternal({
       paymentMethod: "onchain",
       minimumChannelSize: 0,
       maximumChannelSize: 0,
+      description: "",
       pubkey: "",
       host: "",
       image: "",

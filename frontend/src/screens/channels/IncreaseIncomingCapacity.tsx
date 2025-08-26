@@ -44,6 +44,7 @@ import {
 
 import LightningNetworkDarkSVG from "public/images/illustrations/lightning-network-dark.svg";
 import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
+import { LSPTermsDialog } from "src/components/channels/LSPTermsDialog";
 
 function getPeerKey(peer: RecommendedChannelPeer) {
   return JSON.stringify(peer);
@@ -208,14 +209,16 @@ function NewChannelInternal({
     return <Loading />;
   }
 
+  const selectedPartner = showAdvanced ? selectedPeer : bestPartner;
+
   const estimatedChannelPrice =
-    bestPartner?.paymentMethod === "lightning"
+    selectedPartner?.paymentMethod === "lightning"
       ? order.amount === "1000000"
-        ? bestPartner["feeTotalSat1m"]
+        ? selectedPartner["feeTotalSat1m"]
         : order.amount === "2000000"
-          ? bestPartner["feeTotalSat2m"]
+          ? selectedPartner["feeTotalSat2m"]
           : order.amount === "3000000"
-            ? bestPartner["feeTotalSat3m"]
+            ? selectedPartner["feeTotalSat3m"]
             : undefined
       : undefined;
 
@@ -312,17 +315,6 @@ function NewChannelInternal({
                 </div>
               ))}
             </div>
-            {!showAdvanced && bestPartner?.paymentMethod === "lightning" && (
-              <p className="text-sm">
-                You will receive a channel from{" "}
-                <ExternalLink
-                  to={bestPartner.lspContactUrl}
-                  className="underline"
-                >
-                  {bestPartner.name}
-                </ExternalLink>
-              </p>
-            )}
             {estimatedChannelPrice && (
               <span className="text-muted-foreground text-xs">
                 {" "}
@@ -331,6 +323,21 @@ function NewChannelInternal({
                   {new Intl.NumberFormat().format(estimatedChannelPrice)} sats
                 </span>
               </span>
+            )}
+            {selectedPartner?.paymentMethod === "lightning" && (
+              <div className="flex justify-between items-center">
+                <p className="text-sm">
+                  You will receive a channel from{" "}
+                  <span className="font-medium">{selectedPartner.name}</span>.{" "}
+                </p>
+                <LSPTermsDialog
+                  contactUrl={selectedPartner.contactUrl}
+                  description={selectedPartner.description}
+                  name={selectedPartner.name}
+                  terms={selectedPartner.terms}
+                  trigger={<p className="text-xs underline">View Terms</p>}
+                />
+              </div>
             )}
           </div>
           {showAdvanced && (

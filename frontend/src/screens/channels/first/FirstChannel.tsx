@@ -29,17 +29,8 @@ import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 
 import LightningNetworkDarkSVG from "public/images/illustrations/lightning-network-dark.svg";
 import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
+import { LSPTermsDialog } from "src/components/channels/LSPTermsDialog";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
-import {
-  AlertDialog,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "src/components/ui/alert-dialog";
 import {
   Tooltip,
   TooltipContent,
@@ -295,52 +286,12 @@ export function FirstChannel() {
                   </TableCell>
 
                   <TableCell className="p-3 text-right">
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <div className="cursor-pointer">View</div>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            Channel Terms - {lspChannelOffer.lspName}
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            <div className="grid gap-4">
-                              <p>{lspChannelOffer.lspDescription}</p>
-                              <p>
-                                Learn more about{" "}
-                                <ExternalLink
-                                  to={lspChannelOffer.lspContactUrl}
-                                  className="underline"
-                                >
-                                  {lspChannelOffer.lspName}
-                                </ExternalLink>
-                              </p>
-
-                              <p>{lspChannelOffer.terms}</p>
-
-                              <p>
-                                The purchase of a payment channel is
-                                non-refundable.
-                              </p>
-
-                              <p>
-                                To learn more about opening channels, see{" "}
-                                <ExternalLink
-                                  className="underline"
-                                  to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel"
-                                >
-                                  How to open a payment channel?
-                                </ExternalLink>
-                              </p>
-                            </div>
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Close</AlertDialogCancel>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <LSPTermsDialog
+                      contactUrl={lspChannelOffer.lspContactUrl}
+                      description={lspChannelOffer.lspDescription}
+                      name={lspChannelOffer.lspName}
+                      terms={lspChannelOffer.terms}
+                    />
                   </TableCell>
                 </TableRow>
               </TableBody>

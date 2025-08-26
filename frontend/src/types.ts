@@ -460,6 +460,7 @@ export type RecommendedChannelPeer = {
   maximumChannelSize: number;
   note: string;
   publicChannelsAllowed: boolean;
+  description: string;
 } & (
   | {
       paymentMethod: "onchain";
@@ -470,7 +471,8 @@ export type RecommendedChannelPeer = {
       paymentMethod: "lightning";
       lspType: LSPType;
       lspUrl: string;
-      lspContactUrl: string;
+      contactUrl: string;
+      terms?: string;
       pubkey?: string;
       feeTotalSat1m?: number;
       feeTotalSat2m?: number;

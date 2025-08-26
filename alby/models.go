@@ -117,7 +117,7 @@ type ChannelPeerSuggestion struct {
 	Name                  string  `json:"name"`
 	Image                 string  `json:"image"`
 	LspUrl                string  `json:"lspUrl"`
-	LspContactUrl         string  `json:"lspContactUrl"`
+	ContactUrl            string  `json:"contactUrl"`
 	LspType               string  `json:"lspType"`
 	Terms                 string  `json:"terms"`
 	Description           string  `json:"description"`
