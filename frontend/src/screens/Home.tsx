@@ -1,4 +1,4 @@
-import { ExternalLinkIcon } from "lucide-react";
+import { ChevronDown, ExternalLinkIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
@@ -13,6 +13,13 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { Stories, Story } from "src/components/ui/custom/stories";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
+} from "src/components/ui/dialog";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
@@ -54,6 +61,58 @@ function Home() {
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   const extensionInstalled = (window as any).alby !== undefined;
 
+  // State for dialog
+  const [selectedStory, setSelectedStory] = React.useState<Story | null>(null);
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+
+  // Sample stories data
+  const [stories, setStories] = React.useState<Story[]>([
+    {
+      id: "1",
+      username: "Release Notes",
+      avatar: "https://i.pravatar.cc/150?img=1",
+      seen: false,
+      videoUrl: "https://www.youtube.com/embed/s4g1XFU8Gto" // Bitcoin explained
+    },
+    {
+      id: "2",
+      username: "Auto-Swaps",
+      avatar: "https://i.pravatar.cc/150?img=2",
+      seen: false,
+      videoUrl: "https://www.youtube.com/embed/QiwSmlQzHF0" // Lightning Network explained
+    },
+    {
+      id: "3",
+      username: "Apps",
+      avatar: "https://i.pravatar.cc/150?img=3",
+      seen: true,
+      videoUrl: "https://www.youtube.com/embed/l1si5ZWLgy0" // How Bitcoin works
+    }
+  ]);
+
+  // Handler for story clicks
+  const handleStoryClick = (id: string) => {
+    // Find the clicked story
+    const story = stories.find(s => s.id === id);
+    if (story) {
+      // Open dialog with the story
+      setSelectedStory(story);
+      setDialogOpen(true);
+
+      // Mark story as seen
+      setStories(prevStories =>
+        prevStories.map(s =>
+          s.id === id ? { ...s, seen: true } : s
+        )
+      );
+    }
+  };
+
+  // Close dialog handler
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+  };
+
   if (!info || !balances) {
     return <Loading />;
   }
@@ -61,6 +120,19 @@ function Home() {
   return (
     <>
       <AppHeader title={getGreeting(albyMe?.name)} />
+
+      <div className="flex gap-2 items-center">
+        <ChevronDown className="size-4" />
+        Stories
+      </div>
+      <div>
+        <Stories
+          stories={[...stories].sort((a, b) => (a.seen === b.seen ? 0 : a.seen ? 1 : -1))}
+          onStoryClick={handleStoryClick}
+          className="px-1"
+          size="md"
+        />
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start justify-start">
         {/* LEFT */}
         <div className="grid gap-5">
@@ -211,6 +283,28 @@ function Home() {
           </Card>
         </div>
       </div>
+
+      {/* YouTube Video Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-[800px]">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedStory?.username}'s Story
+            </DialogTitle>
+          </DialogHeader>
+          <div className="aspect-video w-full">
+            {selectedStory?.videoUrl && (
+              <iframe
+                src={selectedStory.videoUrl}
+                title={`${selectedStory.username}'s story`}
+                className="w-full h-full rounded-md"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              ></iframe>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
