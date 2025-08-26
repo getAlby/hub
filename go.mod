@@ -1,6 +1,6 @@
 module github.com/getAlby/hub
 
-go 1.24.2
+go 1.24.6
 
 require (
 	github.com/adrg/xdg v0.5.3
@@ -246,7 +246,7 @@ require (
 )
 
 require (
-	github.com/BoltzExchange/boltz-client/v2 v2.8.2
+	github.com/BoltzExchange/boltz-client/v2 v2.8.4
 	github.com/btcsuite/btcd/btcec/v2 v2.3.5
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0
 	github.com/decred/dcrd/crypto/blake256 v1.1.0 // indirect
