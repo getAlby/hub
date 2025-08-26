@@ -84,20 +84,20 @@ export function AppUsage({ app }: { app: App }) {
                   <FormattedFiatAmount amount={totalSpent} />
                 </div>
                 <div className="flex gap-2 items-center">
-                  <IsolatedAppTopupDialog appId={app.id}>
-                    <Button size="sm" variant="outline">
-                      <CirclePlusIcon className="size-4" />
-                      Increase
-                    </Button>
-                  </IsolatedAppTopupDialog>{" "}
                   {app.balance > 0 && (
                     <IsolatedAppDrawDownDialog appId={app.id}>
                       <Button size="sm" variant="outline">
-                        <CircleMinusIcon className="size-4" />
+                        <CircleMinusIcon />
                         Decrease
                       </Button>
                     </IsolatedAppDrawDownDialog>
                   )}
+                  <IsolatedAppTopupDialog appId={app.id}>
+                    <Button size="sm" variant="outline">
+                      <CirclePlusIcon />
+                      Increase
+                    </Button>
+                  </IsolatedAppTopupDialog>
                 </div>
               </div>
             </CardContent>
