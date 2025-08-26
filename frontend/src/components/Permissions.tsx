@@ -105,7 +105,7 @@ const Permissions: React.FC<PermissionsProps> = ({
             </div>
           )} */}
           <p className="text-sm font-medium mb-2">This app is authorized to:</p>
-          <div className="flex flex-wrap gap-2 mb-2">
+          <div className="flex flex-wrap gap-2 mb-4">
             {[...permissions.scopes].map((scope) => {
               const PermissionIcon = scopeIconMap[scope];
               return (
@@ -113,7 +113,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                   variant="secondary"
                   key={scope}
                   className={cn(
-                    "flex items-center mb-2 font-normal py-1 rounded-full px-3"
+                    "flex items-center font-normal py-1 rounded-full px-3"
                   )}
                 >
                   <PermissionIcon className="mr-1 size-4" />
