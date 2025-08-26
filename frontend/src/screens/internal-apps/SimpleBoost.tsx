@@ -64,7 +64,7 @@ export function SimpleBoost() {
 
   return (
     <div className="grid gap-5">
-      <AppStoreDetailHeader appStoreApp={appStoreApp} contentRight={null} />
+      <AppStoreDetailHeader appStoreApp={appStoreApp} />
       {nwcUri && (
         <Card>
           <CardHeader>

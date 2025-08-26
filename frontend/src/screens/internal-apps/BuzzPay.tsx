@@ -64,7 +64,7 @@ export function BuzzPay() {
 
   return (
     <div className="grid gap-5">
-      <AppStoreDetailHeader appStoreApp={appStoreApp} contentRight={null} />
+      <AppStoreDetailHeader appStoreApp={appStoreApp} />
       {posUrl && (
         <div className="max-w-lg flex flex-col gap-5">
           <p>

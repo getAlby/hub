@@ -68,7 +68,7 @@ export function Claude() {
 
   return (
     <div className="grid gap-5">
-      <AppStoreDetailHeader appStoreApp={appStoreApp} contentRight={null} />
+      <AppStoreDetailHeader appStoreApp={appStoreApp} />
       {connectionSecret && (
         <div className="max-w-lg flex flex-col gap-5">
           <p>
