@@ -469,8 +469,8 @@ export type RecommendedChannelPeer = {
     }
   | {
       paymentMethod: "lightning";
-      lspType: LSPType;
-      lspUrl: string;
+      type: LSPType;
+      url: string;
       contactUrl: string;
       terms?: string;
       pubkey?: string;

@@ -100,7 +100,7 @@ function NewChannelInternal({
       ? [
           ..._channelPeerSuggestions.filter(
             (peer) =>
-              peer.paymentMethod === "lightning" && peer.lspType === "LSPS1"
+              peer.paymentMethod === "lightning" && peer.type === "LSPS1"
           ),
         ]
       : undefined;
@@ -140,8 +140,8 @@ function NewChannelInternal({
       ) {
         setOrder((current) => ({
           ...current,
-          lspType: selectedPeer.lspType,
-          lspUrl: selectedPeer.lspUrl,
+          lspType: selectedPeer.type,
+          lspUrl: selectedPeer.url,
           ...(!selectedPeer.publicChannelsAllowed && { isPublic: false }),
         }));
       }
@@ -155,7 +155,7 @@ function NewChannelInternal({
       parseInt(order.amount || "0") <= partner.maximumChannelSize &&
       partner.network === network &&
       partner.paymentMethod === "lightning" &&
-      partner.lspType === "LSPS1" &&
+      partner.type === "LSPS1" &&
       partner.pubkey &&
       !channels.some((channel) => channel.remotePubkey === partner.pubkey)
   );
@@ -191,8 +191,8 @@ function NewChannelInternal({
         ) {
           throw new Error("Unexpected order or partner payment method");
         }
-        order.lspType = bestPartner.lspType;
-        order.lspUrl = bestPartner.lspUrl;
+        order.lspType = bestPartner.type;
+        order.lspUrl = bestPartner.url;
       }
 
       useChannelOrderStore.getState().setOrder(order as NewChannelOrder);

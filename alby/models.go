@@ -116,9 +116,9 @@ type ChannelPeerSuggestion struct {
 	MaximumChannelSize    uint64  `json:"maximumChannelSize"`
 	Name                  string  `json:"name"`
 	Image                 string  `json:"image"`
-	LspUrl                string  `json:"lspUrl"`
+	Url                   string  `json:"url"`
 	ContactUrl            string  `json:"contactUrl"`
-	LspType               string  `json:"lspType"`
+	Type                  string  `json:"type"`
 	Terms                 string  `json:"terms"`
 	Description           string  `json:"description"`
 	Note                  string  `json:"note"`
