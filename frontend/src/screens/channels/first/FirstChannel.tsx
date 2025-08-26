@@ -38,6 +38,7 @@ import {
   TooltipTrigger,
 } from "src/components/ui/tooltip";
 import { useLSPChannelOffer } from "src/hooks/useLSPChannelOffer";
+import { cn } from "src/lib/utils";
 
 export function FirstChannel() {
   const { data: info } = useInfo();
@@ -213,12 +214,22 @@ export function FirstChannel() {
                     Channel Cost
                   </TableCell>
                   <TableCell className="p-3 flex flex-col gap-2 items-end justify-center">
-                    <span>
-                      {new Intl.NumberFormat(undefined, {
-                        style: "currency",
-                        currency: "USD",
-                      }).format(lspChannelOffer.feeTotalUsd / 100)}{" "}
-                    </span>
+                    <p>
+                      <span
+                        className={cn(
+                          lspChannelOffer.currentPaymentMethod === "included" &&
+                            "line-through"
+                        )}
+                      >
+                        {new Intl.NumberFormat(undefined, {
+                          style: "currency",
+                          currency: "USD",
+                        }).format(lspChannelOffer.feeTotalUsd / 100)}
+                      </span>
+                      {lspChannelOffer.currentPaymentMethod === "included" && (
+                        <span> $0.00</span>
+                      )}
+                    </p>
                   </TableCell>
                 </TableRow>
                 <TableRow>
@@ -254,29 +265,30 @@ export function FirstChannel() {
                     />
                   </TableCell>
                 </TableRow>
-                {lspChannelOffer.currentPaymentMethod !== "prepaid" && (
-                  <TableRow>
-                    <TableCell className="font-medium p-3 flex items-center gap-2">
-                      Payment method
-                    </TableCell>
+                {lspChannelOffer.currentPaymentMethod !== "prepaid" &&
+                  lspChannelOffer.currentPaymentMethod !== "included" && (
+                    <TableRow>
+                      <TableCell className="font-medium p-3 flex items-center gap-2">
+                        Payment method
+                      </TableCell>
 
-                    <TableCell className="p-3 text-right">
-                      <ExternalLink to="https://getalby.com/payment_details">
-                        <div className="capitalize flex items-center justify-end gap-1">
-                          {lspChannelOffer.currentPaymentMethod === "card" ? (
-                            <CreditCardIcon className="size-4" />
-                          ) : (
-                            <WalletIcon className="size-4" />
-                          )}
-                          {lspChannelOffer.currentPaymentMethod.replace(
-                            "_",
-                            " "
-                          )}
-                        </div>
-                      </ExternalLink>
-                    </TableCell>
-                  </TableRow>
-                )}
+                      <TableCell className="p-3 text-right">
+                        <ExternalLink to="https://getalby.com/payment_details">
+                          <div className="capitalize flex items-center justify-end gap-1">
+                            {lspChannelOffer.currentPaymentMethod === "card" ? (
+                              <CreditCardIcon className="size-4" />
+                            ) : (
+                              <WalletIcon className="size-4" />
+                            )}
+                            {lspChannelOffer.currentPaymentMethod.replace(
+                              "_",
+                              " "
+                            )}
+                          </div>
+                        </ExternalLink>
+                      </TableCell>
+                    </TableRow>
+                  )}
                 <TableRow>
                   <TableCell className="font-medium p-3 flex items-center gap-2">
                     Terms
@@ -356,11 +368,17 @@ export function FirstChannel() {
               </>
             )}
             {lspChannelOffer.currentPaymentMethod !== "prepaid" &&
-              lspChannelOffer.currentPaymentMethod !== "fee_credits" && (
+              lspChannelOffer.currentPaymentMethod !== "fee_credits" &&
+              lspChannelOffer.currentPaymentMethod !== "included" && (
                 <p className="text-xs text-muted-foreground flex items-center justify-center -mb-2">
                   The cost will be included in your next subscription payment
                 </p>
               )}
+            {lspChannelOffer.currentPaymentMethod === "included" && (
+              <p className="text-xs text-muted-foreground flex items-center justify-center -mb-2">
+                This channel comes free with your Alby Pro subscription
+              </p>
+            )}
             <LoadingButton
               loading={isLoading}
               onClick={openChannel}
@@ -368,6 +386,8 @@ export function FirstChannel() {
             >
               {lspChannelOffer.currentPaymentMethod === "prepaid" ? (
                 <>Continue</>
+              ) : lspChannelOffer.currentPaymentMethod === "included" ? (
+                <>Confirm</>
               ) : (
                 <>Confirm Payment</>
               )}

@@ -448,7 +448,12 @@ export type LSPChannelOffer = {
   lspBalanceSat: number;
   feeTotalSat: number;
   feeTotalUsd: number;
-  currentPaymentMethod: "card" | "wallet" | "prepaid" | "fee_credits";
+  currentPaymentMethod:
+    | "card"
+    | "wallet"
+    | "prepaid"
+    | "fee_credits"
+    | "included";
   terms: string;
 };
 
