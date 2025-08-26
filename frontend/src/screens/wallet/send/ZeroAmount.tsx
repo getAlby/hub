@@ -1,10 +1,10 @@
 import React from "react";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 
 import type { Invoice } from "@getalby/lightning-tools/bolt11";
 import { XIcon } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
@@ -21,7 +21,6 @@ import { request } from "src/utils/request";
 export default function ZeroAmount() {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { data: balances } = useBalances();
 
   const invoice = state?.args?.paymentRequest as Invoice;
@@ -57,15 +56,11 @@ export default function ZeroAmount() {
           amount,
         },
       });
-      toast({
-        title: "Successfully paid invoice",
-      });
+      toast("Successfully paid invoice");
     } catch (e) {
       console.error(e);
       setErrorMessage("" + e);
-      toast({
-        variant: "destructive",
-        title: "Failed to send payment",
+      toast.error("Failed to send payment", {
         description: "" + e,
       });
     } finally {

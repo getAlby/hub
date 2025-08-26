@@ -1,4 +1,5 @@
 import React from "react";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import {
@@ -7,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { useToast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
 import { createApp } from "src/requests/createApp";
 import { CreateAppRequest, UpdateAppRequest } from "src/types";
@@ -92,7 +92,6 @@ export function ZapPlanner() {
     appStoreAppId: "zapplanner",
   });
   const zapplannerApps = appsData?.apps;
-  const { toast } = useToast();
 
   const [open, setOpen] = React.useState(false);
   const [isSubmitting, setSubmitting] = React.useState(false);
@@ -317,15 +316,14 @@ export function ZapPlanner() {
         body: JSON.stringify(updateAppRequest),
       });
 
-      toast({
-        title: "Created subscription",
+      toast("Created subscription", {
         description: "The first payment is scheduled immediately.",
       });
 
       reloadApps();
       setOpen(false);
     } catch (error) {
-      handleRequestError(toast, "Failed to create app", error);
+      handleRequestError("Failed to create app", error);
     } finally {
       setSubmitting(false);
     }

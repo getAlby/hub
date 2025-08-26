@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
@@ -28,7 +29,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
-import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
@@ -39,7 +39,6 @@ import { RedeemOnchainFundsResponse, SwapIn } from "src/types";
 import { request } from "src/utils/request";
 
 export default function SwapInStatus() {
-  const { toast } = useToast();
   const { data: info } = useInfo();
   const { data: balances } = useBalances();
   const { data: recommendedFees } = useMempoolApi<{
@@ -72,11 +71,11 @@ export default function SwapInStatus() {
   }
 
   const copyPaymentHash = () => {
-    copyToClipboard(swap.paymentHash, toast);
+    copyToClipboard(swap.paymentHash);
   };
 
   const copyAddress = () => {
-    copyToClipboard(swap.lockupAddress, toast);
+    copyToClipboard(swap.lockupAddress);
   };
 
   async function payWithAlbyHub() {
@@ -108,9 +107,7 @@ export default function SwapInStatus() {
       console.info("Redeemed onchain funds", response);
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Failed to redeem onchain funds",
+      toast.error("Failed to redeem onchain funds", {
         description: "" + error,
       });
       setPaying(false);
@@ -275,7 +272,7 @@ export default function SwapInStatus() {
                               <CircleHelpIcon className="h-4 w-4 text-muted-foreground" />
                             </div>
                           </TooltipTrigger>
-                          <TooltipContent className="w-[300px]">
+                          <TooltipContent>
                             Deposit usually fails when there is an amount
                             mismatch or if Boltz failed to send the lightning
                             payment to your node.
@@ -311,7 +308,7 @@ export default function SwapInStatus() {
                           <CircleHelpIcon className="h-4 w-4 text-muted-foreground" />
                         </div>
                       </TooltipTrigger>
-                      <TooltipContent className="w-[300px]">
+                      <TooltipContent>
                         Deposit usually fails when there is an amount mismatch
                         or if Boltz failed to send the lightning payment to your
                         node. You can use the Swap Refund button in Settings{" "}

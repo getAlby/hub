@@ -41,7 +41,6 @@ import {
   PopoverTrigger,
 } from "src/components/ui/popover";
 import { Textarea } from "src/components/ui/textarea";
-import { useToast } from "src/components/ui/use-toast";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApp } from "src/hooks/useApp";
@@ -53,7 +52,6 @@ import { CreateAppResponse } from "src/types";
 
 export function SubwalletCreated() {
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
-  const { toast } = useToast();
 
   const { state } = useLocation();
   const navigate = useNavigate();
@@ -161,7 +159,7 @@ export function SubwalletCreated() {
                       <Button
                         onClick={() => {
                           if (app.metadata?.lud16) {
-                            copyToClipboard(app.metadata.lud16, toast);
+                            copyToClipboard(app.metadata.lud16);
                           }
                         }}
                         size="sm"
@@ -321,7 +319,7 @@ export function SubwalletCreated() {
                         value={albyAccountUrl}
                       />
                       <Button
-                        onClick={() => copyToClipboard(albyAccountUrl, toast)}
+                        onClick={() => copyToClipboard(albyAccountUrl)}
                         variant="outline"
                       >
                         <CopyIcon />
@@ -389,7 +387,7 @@ export function SubwalletCreated() {
                         value={connectionSecret}
                       />
                       <Button
-                        onClick={() => copyToClipboard(connectionSecret, toast)}
+                        onClick={() => copyToClipboard(connectionSecret)}
                         variant="outline"
                       >
                         <CopyIcon />
@@ -422,9 +420,7 @@ export function SubwalletCreated() {
                           value={connectionSecret}
                         />
                         <Button
-                          onClick={() =>
-                            copyToClipboard(connectionSecret, toast)
-                          }
+                          onClick={() => copyToClipboard(connectionSecret)}
                           variant="outline"
                         >
                           <CopyIcon />
@@ -455,7 +451,7 @@ export function SubwalletCreated() {
                         />
                       </div>
                       <Button
-                        onClick={() => copyToClipboard(valueTag, toast)}
+                        onClick={() => copyToClipboard(valueTag)}
                         variant="outline"
                       >
                         <CopyIcon />

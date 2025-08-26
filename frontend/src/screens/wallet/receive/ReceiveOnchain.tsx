@@ -18,7 +18,6 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { useToast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
@@ -28,6 +27,7 @@ import { MempoolUtxo, SwapResponse } from "src/types";
 
 import TickSVG from "public/images/illustrations/tick.svg";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import LottieLoading from "src/components/LottieLoading";
 import { MempoolAlert } from "src/components/MempoolAlert";
@@ -92,7 +92,6 @@ export default function ReceiveOnchain() {
 
 function ReceiveToOnchain() {
   const { data: onchainAddress, getNewAddress } = useOnchainAddress();
-  const { toast } = useToast();
   const { data: mempoolAddressUtxos } = useMempoolApi<MempoolUtxo[]>(
     onchainAddress ? `/address/${onchainAddress}/utxo` : undefined,
     3000
@@ -158,7 +157,7 @@ function ReceiveToOnchain() {
             <Button
               className="w-full"
               onClick={() => {
-                copyToClipboard(onchainAddress, toast);
+                copyToClipboard(onchainAddress);
               }}
               variant="secondary"
             >
@@ -262,7 +261,6 @@ function DepositSuccess({ amount, txId }: { amount: number; txId: string }) {
 }
 
 function ReceiveToSpending() {
-  const { toast } = useToast();
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
   const { data: swapInfo } = useSwapInfo("in");
@@ -302,12 +300,10 @@ function ReceiveToSpending() {
         throw new Error("Error swapping in");
       }
       navigate(`/wallet/swap/in/status/${swapInResponse.swapId}`);
-      toast({ title: "Initiated swap" });
+      toast("Initiated swap");
     } catch (error) {
-      toast({
-        title: "Failed to initiate swap",
+      toast.error("Failed to initiate swap", {
         description: (error as Error).message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);

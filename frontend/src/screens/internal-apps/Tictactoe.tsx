@@ -1,5 +1,6 @@
 import { AlertTriangleIcon, CopyIcon, ExternalLinkIcon } from "lucide-react";
 import React, { useEffect } from "react";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import QRCode from "src/components/QRCode";
@@ -14,7 +15,6 @@ import {
 } from "src/components/ui/card";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
-import { useToast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
 import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
@@ -23,7 +23,6 @@ import { openLink } from "src/utils/openLink";
 
 export function Tictactoe() {
   const appId = "tictactoe";
-  const { toast } = useToast();
   const [isLoading, setLoading] = React.useState(false);
   const [appLink, setAppLink] = React.useState("");
   const { data: appsData, mutate: reloadApps } = useApps(undefined, undefined, {
@@ -56,9 +55,9 @@ export function Tictactoe() {
         setAppLink(
           `https://lntictactoe.com/#nwc=${encodeURIComponent(createAppResponse.pairingUri)}`
         );
-        toast({ title: "Tic Tac Toe connection created" });
+        toast("Tic Tac Toe connection created");
       } catch (error) {
-        handleRequestError(toast, "Failed to create connection", error);
+        handleRequestError("Failed to create connection", error);
       }
       setLoading(false);
       reloadApps();
@@ -105,10 +104,7 @@ export function Tictactoe() {
           </div>
           <div className="flex gap-2">
             <Input disabled readOnly type="text" value={appLink} />
-            <Button
-              onClick={() => copyToClipboard(appLink, toast)}
-              variant="outline"
-            >
+            <Button onClick={() => copyToClipboard(appLink)} variant="outline">
               <CopyIcon />
               Copy
             </Button>

@@ -1,4 +1,5 @@
 import React from "react";
+import { toast } from "sonner";
 import {
   AlertDialogAction,
   AlertDialogCancel,
@@ -9,7 +10,6 @@ import {
   AlertDialogTitle,
 } from "src/components/ui/alert-dialog";
 import { Textarea } from "src/components/ui/textarea";
-import { useToast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";
 import { request } from "src/utils/request";
 
@@ -23,7 +23,6 @@ export function ExecuteCustomNodeCommandDialogContent({
   availableCommands,
 }: ExecuteCustomNodeCommandDialogContentProps) {
   const { mutate: reloadInfo } = useInfo();
-  const { toast } = useToast();
   const [command, setCommand] = React.useState<string>();
 
   let parsedAvailableCommands = availableCommands;
@@ -54,13 +53,10 @@ export function ExecuteCustomNodeCommandDialogContent({
       const parsedResponse = JSON.stringify(result);
       setCommandResponse(parsedResponse);
 
-      toast({ title: "Command executed", description: parsedResponse });
+      toast("Command executed", { description: parsedResponse });
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Something went wrong: " + error,
-      });
+      toast.error("Something went wrong: " + error);
     }
   }
 

@@ -1,9 +1,9 @@
 import { TriangleAlertIcon } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
-import { useToast } from "src/components/ui/use-toast";
 import { useChannels } from "src/hooks/useChannels";
 import { request } from "src/utils/request";
 
@@ -16,7 +16,6 @@ export function PaymentFailedAlert({
 }) {
   const [sendingDetailsToAlby, setSendingDetailsToAlby] = React.useState(false);
   const { data: channels } = useChannels();
-  const { toast } = useToast();
 
   async function sendDetailsToAlby() {
     setSendingDetailsToAlby(true);
@@ -35,7 +34,7 @@ export function PaymentFailedAlert({
           },
         }),
       });
-      toast({ title: "Thanks for improving Alby Hub." });
+      toast("Thanks for improving Alby Hub.");
     } catch (error) {
       console.error(error);
     }

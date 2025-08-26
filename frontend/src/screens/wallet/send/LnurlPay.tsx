@@ -3,6 +3,7 @@ import type { LightningAddress } from "@getalby/lightning-tools/lnurl";
 import { XIcon } from "lucide-react";
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
@@ -14,7 +15,6 @@ import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { PayInvoiceResponse, TransactionMetadata } from "src/types";
 import { request } from "src/utils/request";
@@ -22,7 +22,6 @@ import { request } from "src/utils/request";
 export default function LnurlPay() {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { data: balances } = useBalances();
 
   const lnAddress = state?.args?.lnAddress as LightningAddress;
@@ -73,15 +72,11 @@ export default function LnurlPay() {
           pageTitle: "Send to Lightning Address",
         },
       });
-      toast({
-        title: "Successfully paid invoice",
-      });
+      toast("Successfully paid invoice");
     } catch (e) {
       console.error(e);
       setErrorMessage("" + e);
-      toast({
-        variant: "destructive",
-        title: "Failed to send payment",
+      toast.error("Failed to send payment", {
         description: "" + e,
       });
     } finally {

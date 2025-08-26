@@ -213,7 +213,7 @@ function AlbyConnectionCard() {
                             <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent className="max-w-sm">
+                        <TooltipContent>
                           Control what access your Alby Account has to your Hub
                           by editing the budget. Every app you access through
                           your Alby Account (such as your lightning address,

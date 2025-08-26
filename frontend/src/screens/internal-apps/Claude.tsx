@@ -1,4 +1,5 @@
 import React from "react";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { suggestedApps } from "src/components/SuggestedAppData";
 import {
@@ -15,7 +16,6 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
-import { useToast } from "src/components/ui/use-toast";
 import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -23,7 +23,6 @@ import { handleRequestError } from "src/utils/handleRequestError";
 export function Claude() {
   const [isLoading, setLoading] = React.useState(false);
   const [connectionSecret, setConnectionSecret] = React.useState("");
-  const { toast } = useToast();
 
   const app = suggestedApps.find((app) => app.id === "claude");
   if (!app) {
@@ -58,9 +57,9 @@ export function Claude() {
 
         setConnectionSecret(createAppResponse.pairingUri);
 
-        toast({ title: "Claude connection created" });
+        toast("Claude connection created");
       } catch (error) {
-        handleRequestError(toast, "Failed to create connection", error);
+        handleRequestError("Failed to create connection", error);
       }
       setLoading(false);
     })();
@@ -99,9 +98,7 @@ export function Claude() {
                   <li className="list-item">
                     Paste the integration URL:{" "}
                     <Button
-                      onClick={() =>
-                        copyToClipboard(mcpLinkWithEncodedSecret, toast)
-                      }
+                      onClick={() => copyToClipboard(mcpLinkWithEncodedSecret)}
                       size="sm"
                     >
                       Copy URL
@@ -131,9 +128,7 @@ export function Claude() {
                   <li className="list-item">
                     Paste the integration URL:{" "}
                     <Button
-                      onClick={() =>
-                        copyToClipboard(mcpLinkWithEncodedSecret, toast)
-                      }
+                      onClick={() => copyToClipboard(mcpLinkWithEncodedSecret)}
                       size="sm"
                     >
                       Copy URL
@@ -161,8 +156,7 @@ export function Claude() {
                     <Button
                       onClick={() =>
                         copyToClipboard(
-                          `claude mcp add --transport http alby https://mcp.getalby.com/mcp --header "Authorization: Bearer ${connectionSecret}"`,
-                          toast
+                          `claude mcp add --transport http alby https://mcp.getalby.com/mcp --header "Authorization: Bearer ${connectionSecret}"`
                         )
                       }
                       size="sm"
