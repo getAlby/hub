@@ -49,8 +49,8 @@ type HttpService struct {
 
 func NewHttpService(svc service.Service, eventPublisher events.EventPublisher) *HttpService {
 	return &HttpService{
-		api:            api.NewAPI(svc, svc.GetDB(), svc.GetConfig(), svc.GetKeys(), svc.GetAlbyOAuthSvc(), svc.GetEventPublisher()),
-		albyHttpSvc:    NewAlbyHttpService(svc, svc.GetAlbyOAuthSvc(), svc.GetConfig().GetEnv()),
+		api:            api.NewAPI(svc, svc.GetDB(), svc.GetConfig(), svc.GetKeys(), svc.GetAlbySvc(), svc.GetAlbyOAuthSvc(), svc.GetEventPublisher()),
+		albyHttpSvc:    NewAlbyHttpService(svc, svc.GetAlbySvc(), svc.GetAlbyOAuthSvc(), svc.GetConfig().GetEnv()),
 		cfg:            svc.GetConfig(),
 		eventPublisher: eventPublisher,
 		db:             svc.GetDB(),

@@ -364,7 +364,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	case "/api/alby/info":
-		info, err := app.svc.GetAlbyOAuthSvc().GetInfo(ctx)
+		info, err := app.svc.GetAlbySvc().GetInfo(ctx)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,
@@ -421,7 +421,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	case "/api/alby/rates":
-		rate, err := app.svc.GetAlbyOAuthSvc().GetBitcoinRate(ctx)
+		rate, err := app.svc.GetAlbySvc().GetBitcoinRate(ctx)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,

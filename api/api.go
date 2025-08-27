@@ -44,12 +44,13 @@ type api struct {
 	permissionsSvc   permissions.PermissionsService
 	keys             keys.Keys
 	albyOAuthSvc     alby.AlbyOAuthService
+	albySvc          alby.AlbyService
 	startupError     error
 	startupErrorTime time.Time
 	eventPublisher   events.EventPublisher
 }
 
-func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys keys.Keys, albyOAuthSvc alby.AlbyOAuthService, eventPublisher events.EventPublisher) *api {
+func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys keys.Keys, albySvc alby.AlbyService, albyOAuthSvc alby.AlbyOAuthService, eventPublisher events.EventPublisher) *api {
 	return &api{
 		db:             gormDB,
 		appsSvc:        apps.NewAppsService(gormDB, eventPublisher, keys, config),
@@ -57,6 +58,7 @@ func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys key
 		svc:            svc,
 		permissionsSvc: permissions.NewPermissionsService(gormDB, eventPublisher),
 		keys:           keys,
+		albySvc:        albySvc,
 		albyOAuthSvc:   albyOAuthSvc,
 		eventPublisher: eventPublisher,
 	}
@@ -584,7 +586,7 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 }
 
 func (api *api) GetChannelPeerSuggestions(ctx context.Context) ([]alby.ChannelPeerSuggestion, error) {
-	return api.albyOAuthSvc.GetChannelPeerSuggestions(ctx)
+	return api.albySvc.GetChannelPeerSuggestions(ctx)
 }
 
 func (api *api) GetLSPChannelOffer(ctx context.Context) (*alby.LSPChannelOffer, error) {
@@ -1426,7 +1428,7 @@ func (api *api) GetLogOutput(ctx context.Context, logType string, getLogRequest 
 func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 	var alarms []HealthAlarm
 
-	albyInfo, err := api.albyOAuthSvc.GetInfo(ctx)
+	albyInfo, err := api.albySvc.GetInfo(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -18,6 +18,7 @@ type Service interface {
 	Shutdown()
 
 	// TODO: remove getters (currently used by http / wails services)
+	GetAlbySvc() alby.AlbyService
 	GetAlbyOAuthSvc() alby.AlbyOAuthService
 	GetEventPublisher() events.EventPublisher
 	GetLNClient() lnclient.LNClient

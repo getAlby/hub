@@ -7,12 +7,15 @@ import (
 	"github.com/getAlby/hub/lnclient"
 )
 
+type AlbyService interface {
+	GetInfo(ctx context.Context) (*AlbyInfo, error)
+	GetBitcoinRate(ctx context.Context) (*BitcoinRate, error)
+	GetChannelPeerSuggestions(ctx context.Context) ([]ChannelPeerSuggestion, error)
+}
+
 type AlbyOAuthService interface {
 	events.EventSubscriber
-	GetInfo(ctx context.Context) (*AlbyInfo, error)
-	GetChannelPeerSuggestions(ctx context.Context) ([]ChannelPeerSuggestion, error)
 	GetLSPChannelOffer(ctx context.Context) (*LSPChannelOffer, error)
-	GetBitcoinRate(ctx context.Context) (*BitcoinRate, error)
 	GetAuthUrl() string
 	GetUserIdentifier() (string, error)
 	GetLightningAddress() (string, error)
