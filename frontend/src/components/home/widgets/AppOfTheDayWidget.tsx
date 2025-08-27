@@ -1,6 +1,6 @@
 import { ExternalLinkIcon } from "lucide-react";
 import { Link } from "react-router-dom";
-import { suggestedApps } from "src/components/SuggestedAppData";
+import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -19,7 +19,7 @@ export function AppOfTheDayWidget() {
 
   // filter out apps which already have a widget
   const excludedAppIds = ["alby-go", "zapplanner"];
-  const apps = suggestedApps.filter((a) => !excludedAppIds.includes(a.id));
+  const apps = appStoreApps.filter((a) => !excludedAppIds.includes(a.id));
 
   const daysSinceEpoch = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
   const todayIndex = Math.floor(seededRandom(daysSinceEpoch) * apps.length);

@@ -4,6 +4,7 @@ import BudgetAmountSelect from "src/components/BudgetAmountSelect";
 import BudgetRenewalSelect from "src/components/BudgetRenewalSelect";
 import ExpirySelect from "src/components/ExpirySelect";
 import Scopes from "src/components/Scopes";
+import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
 import { cn } from "src/lib/utils";
 import {
@@ -18,13 +19,14 @@ import {
 interface PermissionsProps {
   capabilities: WalletCapabilities;
   permissions: AppPermissions;
-  setPermissions: React.Dispatch<React.SetStateAction<AppPermissions>>;
+  setPermissions?: React.Dispatch<React.SetStateAction<AppPermissions>>;
   readOnly?: boolean;
   scopesReadOnly?: boolean;
   budgetReadOnly?: boolean;
   expiresAtReadOnly?: boolean;
   budgetUsage?: number;
   isNewConnection: boolean;
+  showBudgetUsage?: boolean;
 }
 
 const Permissions: React.FC<PermissionsProps> = ({
@@ -37,6 +39,7 @@ const Permissions: React.FC<PermissionsProps> = ({
   scopesReadOnly,
   budgetReadOnly,
   expiresAtReadOnly,
+  showBudgetUsage = true,
 }) => {
   const [showBudgetOptions, setShowBudgetOptions] = React.useState(
     permissions.scopes.includes("pay_invoice") && permissions.maxAmount > 0
@@ -47,7 +50,7 @@ const Permissions: React.FC<PermissionsProps> = ({
 
   const handlePermissionsChange = React.useCallback(
     (changedPermissions: Partial<AppPermissions>) => {
-      setPermissions((currentPermissions) => ({
+      setPermissions?.((currentPermissions) => ({
         ...currentPermissions,
         ...changedPermissions,
       }));
@@ -84,7 +87,7 @@ const Permissions: React.FC<PermissionsProps> = ({
   );
 
   return (
-    <div className="max-w-lg">
+    <div className={cn(!readOnly && "max-w-lg")}>
       {!readOnly && !scopesReadOnly ? (
         <Scopes
           capabilities={capabilities}
@@ -95,28 +98,28 @@ const Permissions: React.FC<PermissionsProps> = ({
         />
       ) : (
         <>
-          <p className="text-sm font-medium mb-2">This app can:</p>
-          <div className="flex flex-col mb-2">
+          <p className="text-sm font-medium mb-2">This app is authorized to:</p>
+          <div className="flex flex-wrap gap-2 mb-4">
             {[...permissions.scopes].map((scope) => {
               const PermissionIcon = scopeIconMap[scope];
               return (
-                <div
+                <Badge
+                  variant="secondary"
                   key={scope}
                   className={cn(
-                    "flex items-center mb-2",
-                    scope == "pay_invoice" && "order-last"
+                    "flex items-center font-normal py-1 rounded-full px-3"
                   )}
                 >
-                  <PermissionIcon className="mr-2 size-4" />
+                  <PermissionIcon className="mr-1 size-4" />
                   <p className="text-sm">{scopeDescriptions[scope]}</p>
-                </div>
+                </Badge>
               );
             })}
           </div>
         </>
       )}
 
-      {!permissions.isolated && permissions.scopes.includes("pay_invoice") && (
+      {permissions.scopes.includes("pay_invoice") && showBudgetUsage && (
         <>
           {!readOnly && !budgetReadOnly ? (
             <>
