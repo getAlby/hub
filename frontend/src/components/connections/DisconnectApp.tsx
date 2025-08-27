@@ -16,7 +16,13 @@ import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
 import { useDeleteApp } from "src/hooks/useDeleteApp";
 import { App } from "src/types";
 
-export function DisconnectApp({ app }: { app: App }) {
+export function DisconnectApp({
+  app,
+  onClose,
+}: {
+  app: App;
+  onClose: () => void;
+}) {
   const navigate = useNavigate();
 
   const { deleteApp, isDeleting } = useDeleteApp(() => {
@@ -28,7 +34,7 @@ export function DisconnectApp({ app }: { app: App }) {
   });
 
   return (
-    <AlertDialog>
+    <AlertDialog open>
       <AlertDialogTrigger asChild>
         <Button variant="outline">
           <UnplugIcon className="size-4" /> Disconnect
@@ -51,12 +57,12 @@ export function DisconnectApp({ app }: { app: App }) {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
           <AlertDialogAction
             onClick={() => deleteApp(app.appPubkey)}
             disabled={isDeleting}
           >
-            Continue
+            Confirm
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

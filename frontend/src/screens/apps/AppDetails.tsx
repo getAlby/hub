@@ -19,6 +19,7 @@ import {
   PlusIcon,
   SquarePenIcon,
   SquareStackIcon,
+  UnplugIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import AppAvatar from "src/components/AppAvatar";
@@ -99,6 +100,8 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const location = useLocation();
   const [isEditingPermissions, setIsEditingPermissions] = React.useState(false);
   const [showConnectionDetails, setShowConnectionDetails] =
+    React.useState(false);
+  const [showDisconnectAppDialog, setShowDisconnectAppDialog] =
     React.useState(false);
 
   const { data: albyMe } = useAlbyMe();
@@ -281,10 +284,18 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                               Details
                             </div>
                           </DropdownMenuItem>
+                          <DropdownMenuItem className="w-full">
+                            <div
+                              className="flex items-center gap-2"
+                              onClick={() => setShowDisconnectAppDialog(true)}
+                            >
+                              <UnplugIcon className="size-4" /> Disconnect{" "}
+                              {appName}
+                            </div>
+                          </DropdownMenuItem>
                         </DropdownMenuGroup>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <DisconnectApp app={app} />
                     <Button
                       variant="secondary"
                       onClick={() => setIsEditingPermissions(true)}
@@ -429,6 +440,12 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                 <ConnectionDetailsModal
                   app={app}
                   onClose={() => setShowConnectionDetails(false)}
+                />
+              )}
+              {showDisconnectAppDialog && (
+                <DisconnectApp
+                  app={app}
+                  onClose={() => setShowDisconnectAppDialog(false)}
                 />
               )}
               <AppTransactionList appId={app.id} />
