@@ -711,6 +711,7 @@ func (svc *swapsService) RefundSwap(swapId, address string) error {
 		return err
 	}
 
+	fastestFee := float64(feeRates.FastestFee)
 	refundTransaction, _, err := boltz.ConstructTransaction(
 		network,
 		boltz.CurrencyBtc,
@@ -727,7 +728,9 @@ func (svc *swapsService) RefundSwap(swapId, address string) error {
 				Cooperative:        true,
 			},
 		},
-		float64(feeRates.FastestFee),
+		boltz.Fee{
+			SatsPerVbyte: &fastestFee,
+		},
 		svc.boltzApi,
 	)
 	if err != nil {
@@ -1201,7 +1204,7 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 					},
 				}
 
-				var satPerVbyte float64
+				var boltzFee boltz.Fee
 				if swap.ReceiveAmount != 0 {
 					lockupAmount, err := lockupTransaction.VoutValue(vout)
 					if err != nil {
@@ -1211,9 +1214,7 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 						return
 					}
 					fee := lockupAmount - swap.ReceiveAmount
-					// TODO: Remove this once construct transaction is fixed
-					claimTransaction, _, _ := boltz.ConstructTransaction(network, boltz.CurrencyBtc, outputs, 0, svc.boltzApi)
-					satPerVbyte = float64(fee) / float64(claimTransaction.VSize())
+					boltzFee.Sats = &fee
 				} else {
 					var feeRates *FeeRates
 					feeRates, err = svc.getFeeRates()
@@ -1223,11 +1224,12 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 						}).Error("Failed to fetch fee rate to create claim transaction")
 						return
 					}
-					satPerVbyte = float64(feeRates.FastestFee)
+					fastestFee := float64(feeRates.FastestFee)
+					boltzFee.SatsPerVbyte = &fastestFee
 				}
 
 				var claimTransaction boltz.Transaction
-				claimTransaction, _, err = boltz.ConstructTransaction(network, boltz.CurrencyBtc, outputs, satPerVbyte, svc.boltzApi)
+				claimTransaction, _, err = boltz.ConstructTransaction(network, boltz.CurrencyBtc, outputs, boltzFee, svc.boltzApi)
 				if err != nil {
 					logger.Logger.WithError(err).WithFields(logrus.Fields{
 						"swapId": swap.SwapId,
