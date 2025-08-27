@@ -8,7 +8,10 @@ import ExternalLink from "src/components/ExternalLink";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
-import { SuggestedApp, suggestedApps } from "src/components/SuggestedAppData";
+import {
+  AppStoreApp,
+  appStoreApps,
+} from "src/components/connections/SuggestedAppData";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
 import {
@@ -40,7 +43,7 @@ function AppCreatedInternal() {
 
   const queryParams = new URLSearchParams(search);
   const appId = queryParams.get("app") ?? "";
-  const appstoreApp = suggestedApps.find((app) => app.id === appId);
+  const appstoreApp = appStoreApps.find((app) => app.id === appId);
 
   const createAppResponse = state as CreateAppResponse;
 
@@ -148,7 +151,7 @@ export function ConnectAppCard({
 }: {
   app: App;
   pairingUri: string;
-  appstoreApp?: SuggestedApp;
+  appstoreApp?: AppStoreApp;
 }) {
   const [timeout, setTimeout] = useState(false);
   const [isQRCodeVisible, setIsQRCodeVisible] = useState(false);
@@ -223,7 +226,7 @@ export function ConnectAppCard({
           </Button>
           <ExternalLinkButton to={pairingUri} variant="outline">
             <ExternalLinkIcon />
-            Open
+            Open In App
           </ExternalLinkButton>
         </div>
       </CardContent>

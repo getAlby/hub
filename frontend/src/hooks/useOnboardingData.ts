@@ -92,7 +92,7 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
       description:
         "Seamlessly connect apps and integrate your wallet with other apps from your Hub.",
       checked: hasCustomApp,
-      to: "/appstore",
+      to: "/apps?tab=app-store",
     },
     ...(hasMnemonic
       ? [

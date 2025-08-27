@@ -1,7 +1,9 @@
 import { CopyIcon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
-import AppHeader from "src/components/AppHeader";
+import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
+import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
+import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
 import { Button } from "src/components/ui/button";
 import {
@@ -31,6 +33,11 @@ export function SimpleBoost() {
     }
   }, [nwcUri]);
 
+  const appStoreApp = appStoreApps.find((app) => app.id === "simpleboost");
+  if (!appStoreApp) {
+    return null;
+  }
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
@@ -57,10 +64,7 @@ export function SimpleBoost() {
 
   return (
     <div className="grid gap-5">
-      <AppHeader
-        title="SimpleBoost"
-        description="The donation button for your website."
-      />
+      <AppStoreDetailHeader appStoreApp={appStoreApp} />
       {nwcUri && (
         <Card>
           <CardHeader>
@@ -135,6 +139,7 @@ export function SimpleBoost() {
               </LoadingButton>
             </form>
           </div>
+          <AppDetailConnectedApps appStoreApp={appStoreApp} showTitle />
         </>
       )}
     </div>
