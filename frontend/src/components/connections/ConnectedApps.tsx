@@ -71,9 +71,6 @@ function ConnectedApps() {
                   />
                 </Link>
               )}
-              {/* <Link to="/apps/new">
-              <ResponsiveButton icon={CirclePlusIcon} text="Add Connection" />
-            </Link> */}
             </>
           </div>
         </div>

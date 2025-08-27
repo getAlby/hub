@@ -98,12 +98,6 @@ const Permissions: React.FC<PermissionsProps> = ({
         />
       ) : (
         <>
-          {/* {permissions.isolated && (
-            <div className="flex items-center gap-2 mb-4">
-              <BrickWallIcon className="size-4" />
-              <p className="text-sm">This connection is isolated</p>
-            </div>
-          )} */}
           <p className="text-sm font-medium mb-2">This app is authorized to:</p>
           <div className="flex flex-wrap gap-2 mb-4">
             {[...permissions.scopes].map((scope) => {

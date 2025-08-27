@@ -6,7 +6,6 @@ type Props = {
   title: string | ReactElement;
   description?: string | ReactElement;
   contentRight?: React.ReactNode;
-  contentRightOnNewLine?: boolean;
   breadcrumb?: boolean;
   addSidebarTrigger?: boolean;
 };

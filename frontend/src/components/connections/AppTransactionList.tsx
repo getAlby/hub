@@ -10,11 +10,7 @@ export function AppTransactionList({ appId }: { appId: number }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
-          <div className="flex flex-row justify-between items-center">
-            Transactions
-          </div>
-        </CardTitle>
+        <CardTitle>Transactions</CardTitle>
       </CardHeader>
       <CardContent>
         <TransactionsList appId={appId} showReceiveButton={false} />
