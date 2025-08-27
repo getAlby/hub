@@ -12,13 +12,11 @@ export function AboutAppCard({ appStoreApp }: { appStoreApp: AppStoreApp }) {
       <CardHeader>
         <CardTitle className="text-2xl">About the App</CardTitle>
       </CardHeader>
-      {appStoreApp.extendedDescription && (
-        <CardContent className="flex flex-col gap-3">
-          <p className="text-muted-foreground">
-            {appStoreApp.extendedDescription}
-          </p>
-        </CardContent>
-      )}
+      <CardContent className="flex flex-col gap-3">
+        <p className="text-muted-foreground">
+          {appStoreApp.extendedDescription}
+        </p>
+      </CardContent>
     </Card>
   );
 }

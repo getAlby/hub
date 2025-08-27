@@ -20,7 +20,7 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useCreateLightningAddress } from "src/hooks/useCreateLightningAddress";
 import { useDeleteLightningAddress } from "src/hooks/useDeleteLightningAddress";
 import { useTransactions } from "src/hooks/useTransactions";
-import { formatAmount, getBudgetRenewalLabel } from "src/lib/utils";
+import { cn, formatAmount, getBudgetRenewalLabel } from "src/lib/utils";
 import { App, Transaction } from "src/types";
 
 export function AppUsage({ app }: { app: App }) {
@@ -67,7 +67,13 @@ export function AppUsage({ app }: { app: App }) {
   return (
     <>
       {app.isolated && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+        <div
+          className={cn(
+            "grid grid-cols-1 gap-2",
+            app.metadata?.app_store_app_id === SUBWALLET_APPSTORE_APP_ID &&
+              "lg:grid-cols-2"
+          )}
+        >
           <Card className="justify-between">
             <CardHeader>
               <CardTitle>Isolated Balance</CardTitle>

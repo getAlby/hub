@@ -45,6 +45,8 @@ export type AppStoreApp = {
   id: string;
   title: string;
   description: string;
+  extendedDescription: string;
+
   logo?: string;
   categories: (keyof typeof appStoreCategories)[];
 
@@ -60,7 +62,6 @@ export type AppStoreApp = {
   chromeLink?: string;
   firefoxLink?: string;
 
-  extendedDescription?: string;
   guide?: React.ReactNode;
   internal?: boolean;
 };
@@ -137,9 +138,12 @@ export const appStoreApps: AppStoreApp[] = (
       id: "buzzpay",
       title: "BuzzPay PoS",
       description: "Receive-only PoS you can safely share with your employees",
+      extendedDescription:
+        "Receive-only PoS you can safely share with your employees",
       internal: true,
       logo: buzzpay,
       categories: ["merchant-tools"],
+      webLink: "https://pos.albylabs.com",
     },
     {
       id: "goose",
@@ -149,30 +153,40 @@ export const appStoreApps: AppStoreApp[] = (
       internal: true,
       logo: goose,
       categories: ["ai"],
+      extendedDescription:
+        "Your local AI agent, automating engineering tasks seamlessly",
+      webLink: "https://block.github.io/goose",
     },
     {
       id: "claude",
       title: "Claude",
       description: "AI assistant for conversations, analysis, and coding",
+      extendedDescription:
+        "AI assistant for conversations, analysis, and coding",
       internal: true,
       logo: claude,
       categories: ["ai"],
+      webLink: "https://claude.ai/",
     },
     {
       id: "simpleboost",
       title: "SimpleBoost",
       description: "Donation widget for your website",
+      extendedDescription: "Donation widget for your website",
       internal: true,
       logo: simpleboost,
       categories: ["merchant-tools"],
+      webLink: "https://getalby.github.io/simple-boost/",
     },
     {
       id: "lightning-messageboard",
       title: "Lightning Messageboard",
       description: "Paid messageboard widget for your website",
+      extendedDescription: "Paid messageboard widget for your website",
       internal: true,
       logo: lightningMessageboard,
       categories: ["merchant-tools"],
+      webLink: "https://github.com/getAlby/lightning-messageboard",
     },
     {
       id: "alby-extension",
@@ -1369,6 +1383,7 @@ export const appStoreApps: AppStoreApp[] = (
       id: "zapplanner",
       title: "ZapPlanner",
       description: "Schedule payments",
+      extendedDescription: "Schedule payments to a lightning address",
       webLink: "https://zapplanner.albylabs.com/",
       logo: zapplanner,
       internal: true,
@@ -1660,6 +1675,8 @@ export const appStoreApps: AppStoreApp[] = (
       id: "tictactoe",
       title: "Tic Tac Toe",
       description:
+        "Earn satoshis while playing multiplayer tic-tac-toe. Lightning network fast.",
+      extendedDescription:
         "Earn satoshis while playing multiplayer tic-tac-toe. Lightning network fast.",
       webLink: "https://lntictactoe.com/",
       internal: true,
@@ -2134,6 +2151,7 @@ export const appStoreApps: AppStoreApp[] = (
       id: "bitrefill",
       title: "Bitrefill",
       description: "Live on bitcoin",
+      extendedDescription: "Buy gift cards and e-sims with no KYC",
       internal: true,
       webLink: "https://bitrefill.com",
       logo: bitrefill,
