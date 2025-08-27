@@ -1,4 +1,9 @@
-import { ChevronDownIcon, InfoIcon } from "lucide-react";
+import {
+  ChevronDownIcon,
+  CreditCardIcon,
+  InfoIcon,
+  WalletIcon,
+} from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -21,10 +26,19 @@ import { Invoice } from "@getalby/lightning-tools";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import { PayLightningInvoice } from "src/components/PayLightningInvoice";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
-import { ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL } from "src/constants";
 
 import LightningNetworkDarkSVG from "public/images/illustrations/lightning-network-dark.svg";
 import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
+import { LSPTermsDialog } from "src/components/channels/LSPTermsDialog";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "src/components/ui/tooltip";
+import { useLSPChannelOffer } from "src/hooks/useLSPChannelOffer";
+import { cn } from "src/lib/utils";
 
 export function FirstChannel() {
   const { data: info } = useInfo();
@@ -32,6 +46,7 @@ export function FirstChannel() {
   const [isLoading, setLoading] = React.useState(false);
   const [showAdvanced, setShowAdvanced] = React.useState(false);
   const [isPublic, setPublic] = React.useState(false);
+  const { data: lspChannelOffer } = useLSPChannelOffer();
 
   const navigate = useNavigate();
   const [invoice, setInvoice] = React.useState<string>();
@@ -50,7 +65,7 @@ export function FirstChannel() {
     }
   }, [info, navigate]);
 
-  if (!info?.albyAccountConnected || !channels) {
+  if (!info?.albyAccountConnected || !channels || !lspChannelOffer) {
     return <Loading />;
   }
 
@@ -86,10 +101,6 @@ export function FirstChannel() {
     }
   }
 
-  const canPayForFirstChannel =
-    albyBalance &&
-    albyBalance.sats >= ALBY_MIN_HOSTED_BALANCE_FOR_FIRST_CHANNEL;
-
   return (
     <>
       <AppHeader
@@ -114,18 +125,6 @@ export function FirstChannel() {
                   </TableCell>
                   <TableCell className="text-right p-3">
                     {new Intl.NumberFormat().format(channelSize)} sats
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium p-3 flex items-center gap-2">
-                    Duration
-                    <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel#which-lightning-service-provider-to-choose">
-                      <InfoIcon className="size-4 text-muted-foreground" />
-                    </ExternalLink>
-                  </TableCell>
-
-                  <TableCell className="p-3 text-right">
-                    at least 3 months
                   </TableCell>
                 </TableRow>
                 {invoice && (
@@ -173,51 +172,131 @@ export function FirstChannel() {
               src={LightningNetworkLightSVG}
               className="w-full dark:hidden"
             />
-            {canPayForFirstChannel ? (
-              <>
-                <p>
-                  You currently have{" "}
-                  <span className="font-medium text-foreground sensitive slashed-zero">
-                    {new Intl.NumberFormat().format(albyBalance?.sats)} Alby fee
-                    credits.
-                  </span>{" "}
-                  <Link
-                    to="https://guides.getalby.com/user-guide/alby-account/faq/what-are-fee-credits-in-my-alby-account"
-                    target="_blank"
-                    className="underline"
-                  >
-                    Learn more
-                  </Link>
-                </p>
-                <p>
-                  These fee credits will be applied to open your first Lightning
-                  channel.
-                </p>
-              </>
-            ) : (
-              <>
-                <p>
-                  You're now going to open your first lightning channel and can
-                  begin using your Hub in the booming bitcoin economy!
-                </p>
-                <p>
-                  After paying a lightning invoice to cover on-chain fees,
-                  you'll immediately be able to receive and send bitcoin with
-                  your Hub.
-                </p>
-                <p className="text-muted-foreground">
-                  Alby Hub works with selected service providers (LSPs) which
-                  provide the best network connectivity and liquidity to receive
-                  payments.{" "}
-                  <ExternalLink
-                    className="underline"
-                    to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel"
-                  >
-                    Learn more
-                  </ExternalLink>
-                </p>
-              </>
-            )}
+            <>
+              <p>
+                You're now going to open your first lightning channel and can
+                begin using your Hub in the booming bitcoin economy!
+              </p>
+              <p className="text-muted-foreground">
+                Alby Hub works with selected service providers (LSPs) which
+                provide the best network connectivity and liquidity to receive
+                payments.
+              </p>
+              <p>
+                A payment is required to purchase a channel from{" "}
+                <ExternalLink
+                  to={lspChannelOffer.lspContactUrl}
+                  className="underline"
+                >
+                  {lspChannelOffer.lspName}
+                </ExternalLink>
+                . Once your channel is opened, you'll immediately be able to
+                receive and send bitcoin with your Hub.
+              </p>
+            </>
+
+            <Table>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="font-medium p-3">
+                    Channel Cost
+                  </TableCell>
+                  <TableCell className="p-3 flex flex-col gap-2 items-end justify-center">
+                    <p>
+                      <span
+                        className={cn(
+                          lspChannelOffer.currentPaymentMethod === "included" &&
+                            "line-through"
+                        )}
+                      >
+                        {new Intl.NumberFormat(undefined, {
+                          style: "currency",
+                          currency: "USD",
+                        }).format(lspChannelOffer.feeTotalUsd / 100)}
+                      </span>
+                      {lspChannelOffer.currentPaymentMethod === "included" && (
+                        <span> $0.00</span>
+                      )}
+                    </p>
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell className="font-medium p-3 align-top">
+                    <div className="flex flex-1 items-center gap-1">
+                      Receiving Capacity{" "}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <div className="flex flex-row items-center">
+                              <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-sm">
+                            You will be able to receive up to this amount of
+                            sats in this channel.
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </TableCell>
+                  <TableCell className="p-3 flex flex-col gap-2 items-end justify-center align-top">
+                    <span>
+                      {new Intl.NumberFormat().format(
+                        lspChannelOffer.lspBalanceSat
+                      )}{" "}
+                      sats
+                    </span>
+                    <FormattedFiatAmount
+                      amount={lspChannelOffer.lspBalanceSat}
+                      className="text-xs"
+                      showApprox
+                    />
+                  </TableCell>
+                </TableRow>
+                {lspChannelOffer.currentPaymentMethod !== "prepaid" &&
+                  lspChannelOffer.currentPaymentMethod !== "included" && (
+                    <TableRow>
+                      <TableCell className="font-medium p-3 flex items-center gap-2">
+                        Payment method
+                      </TableCell>
+
+                      <TableCell className="p-3 text-right">
+                        <ExternalLink to="https://getalby.com/payment_details">
+                          <div className="capitalize flex items-center justify-end gap-1 font-medium">
+                            {lspChannelOffer.currentPaymentMethod === "card" ? (
+                              <CreditCardIcon className="size-4" />
+                            ) : (
+                              <WalletIcon className="size-4" />
+                            )}
+                            {lspChannelOffer.currentPaymentMethod.replace(
+                              "_",
+                              " "
+                            )}
+                          </div>
+                        </ExternalLink>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                <TableRow>
+                  <TableCell className="font-medium p-3 flex items-center gap-2">
+                    Terms
+                    {/* <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel">
+                      <InfoIcon className="size-4 text-muted-foreground" />
+                    </ExternalLink> */}
+                  </TableCell>
+
+                  <TableCell className="p-3 text-right">
+                    <LSPTermsDialog
+                      contactUrl={lspChannelOffer.lspContactUrl}
+                      description={lspChannelOffer.lspDescription}
+                      name={lspChannelOffer.lspName}
+                      terms={lspChannelOffer.terms}
+                      trigger=<span className="font-medium">View</span>
+                    />
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
             {showAdvanced && (
               <>
                 <div className="mt-2 flex items-top space-x-2">
@@ -247,7 +326,7 @@ export function FirstChannel() {
               </>
             )}
             {!showAdvanced && (
-              <div>
+              <div className="flex items-center justify-center -mt-5">
                 <Button
                   type="button"
                   variant="link"
@@ -255,12 +334,52 @@ export function FirstChannel() {
                   onClick={() => setShowAdvanced((current) => !current)}
                 >
                   Advanced Options
-                  <ChevronDownIcon className="size-4 ml-1" />
+                  <ChevronDownIcon className="size-4" />
                 </Button>
               </div>
             )}
-            <LoadingButton loading={isLoading} onClick={openChannel}>
-              Open Channel
+            {lspChannelOffer.currentPaymentMethod === "fee_credits" && (
+              <>
+                <p className="text-sm">
+                  You currently have{" "}
+                  <span className="font-medium text-foreground sensitive slashed-zero">
+                    {new Intl.NumberFormat().format(albyBalance?.sats || 0)}{" "}
+                  </span>{" "}
+                  Alby fee credits which will be used to open your first
+                  Lightning channel.{" "}
+                  <ExternalLink
+                    to="https://guides.getalby.com/user-guide/alby-account/faq/what-are-fee-credits-in-my-alby-account"
+                    className="underline"
+                  >
+                    Learn more
+                  </ExternalLink>
+                </p>
+              </>
+            )}
+            {lspChannelOffer.currentPaymentMethod !== "prepaid" &&
+              lspChannelOffer.currentPaymentMethod !== "fee_credits" &&
+              lspChannelOffer.currentPaymentMethod !== "included" && (
+                <p className="text-xs text-muted-foreground flex items-center justify-center -mb-2">
+                  The cost will be included in your next subscription payment
+                </p>
+              )}
+            {lspChannelOffer.currentPaymentMethod === "included" && (
+              <p className="text-xs text-muted-foreground flex items-center justify-center -mb-2">
+                This channel comes free with your Alby Pro subscription
+              </p>
+            )}
+            <LoadingButton
+              loading={isLoading}
+              onClick={openChannel}
+              className="gap-0"
+            >
+              {lspChannelOffer.currentPaymentMethod === "prepaid" ? (
+                <>Continue</>
+              ) : lspChannelOffer.currentPaymentMethod === "included" ? (
+                <>Confirm</>
+              ) : (
+                <>Confirm Payment</>
+              )}
             </LoadingButton>
           </div>
         </>

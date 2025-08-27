@@ -42,7 +42,7 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 		return nil, fmt.Errorf("unsupported LSP type: %v", request.LSPType)
 	}
 
-	logger.Logger.Infoln("Requesting LSP info")
+	logger.Logger.Info("Requesting LSP info")
 	lspInfo, err := api.getLSPS1LSPInfo(request.LSPUrl + "/get_info")
 
 	if err != nil {
@@ -50,7 +50,7 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 		return nil, err
 	}
 
-	logger.Logger.Infoln("Requesting own node info")
+	logger.Logger.Info("Requesting own node info")
 
 	nodeInfo, err := api.svc.GetLNClient().GetInfo(ctx)
 	if err != nil {
@@ -150,6 +150,15 @@ func (api *api) getLSPS1LSPInfo(url string) (*lspInfo, error) {
 			"url": url,
 		}).Error("Failed to read response body")
 		return nil, errors.New("failed to read response body")
+	}
+
+	if res.StatusCode >= 300 {
+		logger.Logger.WithFields(logrus.Fields{
+			"url":        url,
+			"body":       string(body),
+			"statusCode": res.StatusCode,
+		}).Error("get_info endpoint returned non-success code")
+		return nil, fmt.Errorf("get info endpoint returned non-success code: %s", string(body))
 	}
 
 	err = json.Unmarshal(body, &lsps1LspInfo)

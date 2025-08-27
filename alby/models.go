@@ -7,11 +7,15 @@ import (
 	"github.com/getAlby/hub/lnclient"
 )
 
+type AlbyService interface {
+	GetInfo(ctx context.Context) (*AlbyInfo, error)
+	GetBitcoinRate(ctx context.Context) (*BitcoinRate, error)
+	GetChannelPeerSuggestions(ctx context.Context) ([]ChannelPeerSuggestion, error)
+}
+
 type AlbyOAuthService interface {
 	events.EventSubscriber
-	GetInfo(ctx context.Context) (*AlbyInfo, error)
-	GetChannelPeerSuggestions(ctx context.Context) ([]ChannelPeerSuggestion, error)
-	GetBitcoinRate(ctx context.Context) (*BitcoinRate, error)
+	GetLSPChannelOffer(ctx context.Context) (*LSPChannelOffer, error)
 	GetAuthUrl() string
 	GetUserIdentifier() (string, error)
 	GetLightningAddress() (string, error)
@@ -107,20 +111,35 @@ type AlbyBalance struct {
 }
 
 type ChannelPeerSuggestion struct {
-	Network               string `json:"network"`
-	PaymentMethod         string `json:"paymentMethod"`
-	Pubkey                string `json:"pubkey"`
-	Host                  string `json:"host"`
-	MinimumChannelSize    uint64 `json:"minimumChannelSize"`
-	MaximumChannelSize    uint64 `json:"maximumChannelSize"`
-	Name                  string `json:"name"`
-	Image                 string `json:"image"`
-	BrokenLspUrl          string `json:"lsp_url"`
-	BrokenLspType         string `json:"lsp_type"`
-	LspUrl                string `json:"lspUrl"`
-	LspType               string `json:"lspType"`
-	Note                  string `json:"note"`
-	PublicChannelsAllowed bool   `json:"publicChannelsAllowed"`
+	Network               string  `json:"network"`
+	PaymentMethod         string  `json:"paymentMethod"`
+	Pubkey                string  `json:"pubkey"`
+	Host                  string  `json:"host"`
+	MinimumChannelSize    uint64  `json:"minimumChannelSize"`
+	MaximumChannelSize    uint64  `json:"maximumChannelSize"`
+	Name                  string  `json:"name"`
+	Image                 string  `json:"image"`
+	Url                   string  `json:"url"`
+	ContactUrl            string  `json:"contactUrl"`
+	Type                  string  `json:"type"`
+	Terms                 string  `json:"terms"`
+	Description           string  `json:"description"`
+	Note                  string  `json:"note"`
+	PublicChannelsAllowed bool    `json:"publicChannelsAllowed"`
+	FeeTotalSat1m         *uint32 `json:"feeTotalSat1m"`
+	FeeTotalSat2m         *uint32 `json:"feeTotalSat2m"`
+	FeeTotalSat3m         *uint32 `json:"feeTotalSat3m"`
+}
+
+type LSPChannelOffer struct {
+	LspName              string `json:"lspName"`
+	LspContactUrl        string `json:"lspContactUrl"`
+	LspBalanceSat        uint64 `json:"lspBalanceSat"`
+	FeeTotalSat          uint64 `json:"feeTotalSat"`
+	FeeTotalUsd          uint64 `json:"feeTotalUsd"` // in cents
+	CurrentPaymentMethod string `json:"currentPaymentMethod"`
+	Terms                string `json:"terms"`
+	LspDescription       string `json:"lspDescription"`
 }
 
 type BitcoinRate struct {

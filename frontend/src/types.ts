@@ -441,6 +441,22 @@ export type SetupNodeInfo = Partial<{
 
 export type LSPType = "LSPS1";
 
+export type LSPChannelOffer = {
+  lspName: string;
+  lspDescription: string;
+  lspContactUrl: string;
+  lspBalanceSat: number;
+  feeTotalSat: number;
+  feeTotalUsd: number;
+  currentPaymentMethod:
+    | "card"
+    | "wallet"
+    | "prepaid"
+    | "fee_credits"
+    | "included";
+  terms: string;
+};
+
 export type RecommendedChannelPeer = {
   network: Network;
   image: string;
@@ -449,6 +465,7 @@ export type RecommendedChannelPeer = {
   maximumChannelSize: number;
   note: string;
   publicChannelsAllowed: boolean;
+  description: string;
 } & (
   | {
       paymentMethod: "onchain";
@@ -457,9 +474,14 @@ export type RecommendedChannelPeer = {
     }
   | {
       paymentMethod: "lightning";
-      lspType: LSPType;
-      lspUrl: string;
+      type: LSPType;
+      url: string;
+      contactUrl: string;
+      terms?: string;
       pubkey?: string;
+      feeTotalSat1m?: number;
+      feeTotalSat2m?: number;
+      feeTotalSat3m?: number;
     }
 );
 
@@ -511,7 +533,7 @@ export type LSPOrderRequest = {
 };
 
 export type LSPOrderResponse = {
-  invoice: string;
+  invoice?: string;
   fee: number;
   invoiceAmount: number;
   incomingLiquidity: number;

@@ -44,6 +44,7 @@ import {
 
 import LightningNetworkDarkSVG from "public/images/illustrations/lightning-network-dark.svg";
 import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
+import { LSPTermsDialog } from "src/components/channels/LSPTermsDialog";
 
 function getPeerKey(peer: RecommendedChannelPeer) {
   return JSON.stringify(peer);
@@ -99,7 +100,7 @@ function NewChannelInternal({
       ? [
           ..._channelPeerSuggestions.filter(
             (peer) =>
-              peer.paymentMethod === "lightning" && peer.lspType === "LSPS1"
+              peer.paymentMethod === "lightning" && peer.type === "LSPS1"
           ),
         ]
       : undefined;
@@ -139,13 +140,27 @@ function NewChannelInternal({
       ) {
         setOrder((current) => ({
           ...current,
-          lspType: selectedPeer.lspType,
-          lspUrl: selectedPeer.lspUrl,
+          lspType: selectedPeer.type,
+          lspUrl: selectedPeer.url,
           ...(!selectedPeer.publicChannelsAllowed && { isPublic: false }),
         }));
       }
     }
   }, [order.paymentMethod, selectedPeer]);
+
+  // find the best channel partner
+  const okPartners = channelPeerSuggestions?.filter(
+    (partner) =>
+      parseInt(order.amount || "0") >= partner.minimumChannelSize &&
+      parseInt(order.amount || "0") <= partner.maximumChannelSize &&
+      partner.network === network &&
+      partner.paymentMethod === "lightning" &&
+      partner.type === "LSPS1" &&
+      partner.pubkey &&
+      !channels.some((channel) => channel.remotePubkey === partner.pubkey)
+  );
+
+  const bestPartner = okPartners?.[0];
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -162,20 +177,7 @@ function NewChannelInternal({
           throw new Error("No amount set");
         }
 
-        // find the best channel partner
-        const okPartners = channelPeerSuggestions.filter(
-          (partner) =>
-            amount >= partner.minimumChannelSize &&
-            amount <= partner.maximumChannelSize &&
-            partner.network === network &&
-            partner.paymentMethod === "lightning" &&
-            partner.lspType === "LSPS1" &&
-            partner.pubkey &&
-            !channels.some((channel) => channel.remotePubkey === partner.pubkey)
-        );
-
-        const partner = okPartners[0];
-        if (!partner) {
+        if (!bestPartner) {
           toast.error("No channel partner found", {
             description:
               "No ideal channel partner found. Please choose from the advanced options to continue",
@@ -185,12 +187,12 @@ function NewChannelInternal({
         order.paymentMethod = "lightning";
         if (
           order.paymentMethod !== "lightning" ||
-          partner.paymentMethod !== "lightning"
+          bestPartner.paymentMethod !== "lightning"
         ) {
           throw new Error("Unexpected order or partner payment method");
         }
-        order.lspType = partner.lspType;
-        order.lspUrl = partner.lspUrl;
+        order.lspType = bestPartner.type;
+        order.lspUrl = bestPartner.url;
       }
 
       useChannelOrderStore.getState().setOrder(order as NewChannelOrder);
@@ -206,6 +208,19 @@ function NewChannelInternal({
   if (!channelPeerSuggestions) {
     return <Loading />;
   }
+
+  const selectedPartner = showAdvanced ? selectedPeer : bestPartner;
+
+  const estimatedChannelPrice =
+    selectedPartner?.paymentMethod === "lightning"
+      ? order.amount === "1000000"
+        ? selectedPartner["feeTotalSat1m"]
+        : order.amount === "2000000"
+          ? selectedPartner["feeTotalSat2m"]
+          : order.amount === "3000000"
+            ? selectedPartner["feeTotalSat3m"]
+            : undefined
+      : undefined;
 
   return (
     <>
@@ -300,6 +315,30 @@ function NewChannelInternal({
                 </div>
               ))}
             </div>
+            {estimatedChannelPrice && (
+              <span className="text-muted-foreground text-xs">
+                {" "}
+                Estimated channel price:{" "}
+                <span className="font-semibold">
+                  {new Intl.NumberFormat().format(estimatedChannelPrice)} sats
+                </span>
+              </span>
+            )}
+            {selectedPartner?.paymentMethod === "lightning" && (
+              <div className="flex justify-between items-center">
+                <p className="text-sm">
+                  You will receive a channel from{" "}
+                  <span className="font-medium">{selectedPartner.name}</span>.{" "}
+                </p>
+                <LSPTermsDialog
+                  contactUrl={selectedPartner.contactUrl}
+                  description={selectedPartner.description}
+                  name={selectedPartner.name}
+                  terms={selectedPartner.terms}
+                  trigger={<p className="text-xs underline">View Terms</p>}
+                />
+              </div>
+            )}
           </div>
           {showAdvanced && (
             <>
@@ -346,9 +385,9 @@ function NewChannelInternal({
                                       Min.{" "}
                                       {new Intl.NumberFormat().format(
                                         peer.minimumChannelSize
-                                      )}
+                                      )}{" "}
                                       sats
-                                      <span className="mr-10" />
+                                      <span className="mr-5" />
                                       Max.{" "}
                                       {new Intl.NumberFormat().format(
                                         peer.maximumChannelSize
@@ -407,6 +446,7 @@ function NewChannelInternal({
               </div>
             </>
           )}
+
           {!showAdvanced && (
             <Button
               type="button"

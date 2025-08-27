@@ -8,7 +8,7 @@ import {
   PayInvoiceResponse,
 } from "src/types";
 
-import { CopyIcon, InfoIcon, QrCodeIcon, RefreshCwIcon } from "lucide-react";
+import { CopyIcon, QrCodeIcon, RefreshCwIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
@@ -588,8 +588,16 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                 body: JSON.stringify(newLSPOrderRequest),
               }
             );
-            if (!response?.invoice) {
-              throw new Error("No invoice in response");
+            if (!response) {
+              throw new Error("no LSP order response");
+            }
+
+            if (!response.invoice) {
+              // assume payment is handled by Alby Account
+              // we will wait for a channel to be opened to us
+              useChannelOrderStore.getState().updateOrder({
+                status: "paid",
+              });
             }
             setLspOrderResponse(response);
           } catch (error) {
@@ -623,9 +631,9 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
             : "Please wait, loading..."
         }
       />
-      {!lspOrderResponse && <Loading />}
+      {!lspOrderResponse?.invoice && <Loading />}
 
-      {lspOrderResponse && (
+      {lspOrderResponse?.invoice && (
         <>
           <div className="max-w-md flex flex-col gap-5">
             <div className="border rounded-lg slashed-zero">
@@ -654,29 +662,6 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                           lspOrderResponse.incomingLiquidity
                         )}{" "}
                         sats
-                      </TableCell>
-                    </TableRow>
-                  )}
-                  {/* <TableRow>
-                    <TableCell className="font-medium p-3 flex flex-row gap-1.5 items-center">
-                      Fee
-                    </TableCell>
-                    <TableCell className="text-right p-3">
-                      {new Intl.NumberFormat().format(lspOrderResponse.fee)}{" "}
-                      sats
-                    </TableCell>
-                  </TableRow> */}
-                  {lspOrderResponse.incomingLiquidity > 0 && (
-                    <TableRow>
-                      <TableCell className="font-medium p-3 flex items-center gap-2">
-                        Duration
-                        <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel">
-                          <InfoIcon className="size-4 text-muted-foreground" />
-                        </ExternalLink>
-                      </TableCell>
-
-                      <TableCell className="p-3 text-right">
-                        at least 3 months
                       </TableCell>
                     </TableRow>
                   )}
