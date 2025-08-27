@@ -385,9 +385,9 @@ function NewChannelInternal({
                                       Min.{" "}
                                       {new Intl.NumberFormat().format(
                                         peer.minimumChannelSize
-                                      )}
+                                      )}{" "}
                                       sats
-                                      <span className="mr-10" />
+                                      <span className="mr-5" />
                                       Max.{" "}
                                       {new Intl.NumberFormat().format(
                                         peer.maximumChannelSize

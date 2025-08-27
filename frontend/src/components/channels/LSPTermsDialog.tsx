@@ -16,14 +16,14 @@ type LSPTermsDialogProps = {
   description: string;
   contactUrl: string;
   terms: string | undefined;
-  trigger?: React.ReactNode;
+  trigger: React.ReactNode;
 };
 export function LSPTermsDialog({
   name,
   description,
   contactUrl,
   terms,
-  trigger = "View",
+  trigger,
 }: LSPTermsDialogProps) {
   return (
     <AlertDialog>
@@ -44,12 +44,21 @@ export function LSPTermsDialog({
               </p>
 
               <div className="flex items-center gap-2">
-                Lifetime: at least 3 months
+                Duration: at least 3 months
                 <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel">
                   <InfoIcon className="size-4 text-muted-foreground" />
                 </ExternalLink>
               </div>
               {terms && <p>{terms}</p>}
+
+              <p>
+                The duration for which a Lightning Channel remains open is not
+                determined or guaranteed by Alby; we will make reasonable
+                efforts to share information provided by the relevant LSP, but
+                actual availability depends on the Lightning Network and the
+                LSP's operations. Channels may be closed at any time, including
+                by force closure initiated by the network or counterparties.
+              </p>
 
               <p>The purchase of a payment channel is non-refundable.</p>
 

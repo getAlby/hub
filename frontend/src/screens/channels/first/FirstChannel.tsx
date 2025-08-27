@@ -127,18 +127,6 @@ export function FirstChannel() {
                     {new Intl.NumberFormat().format(channelSize)} sats
                   </TableCell>
                 </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium p-3 flex items-center gap-2">
-                    Duration
-                    <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel#which-lightning-service-provider-to-choose">
-                      <InfoIcon className="size-4 text-muted-foreground" />
-                    </ExternalLink>
-                  </TableCell>
-
-                  <TableCell className="p-3 text-right">
-                    at least 3 months
-                  </TableCell>
-                </TableRow>
                 {invoice && (
                   <TableRow>
                     <TableCell className="font-medium p-3">
@@ -274,7 +262,7 @@ export function FirstChannel() {
 
                       <TableCell className="p-3 text-right">
                         <ExternalLink to="https://getalby.com/payment_details">
-                          <div className="capitalize flex items-center justify-end gap-1">
+                          <div className="capitalize flex items-center justify-end gap-1 font-medium">
                             {lspChannelOffer.currentPaymentMethod === "card" ? (
                               <CreditCardIcon className="size-4" />
                             ) : (
@@ -303,6 +291,7 @@ export function FirstChannel() {
                       description={lspChannelOffer.lspDescription}
                       name={lspChannelOffer.lspName}
                       terms={lspChannelOffer.terms}
+                      trigger=<span className="font-medium">View</span>
                     />
                   </TableCell>
                 </TableRow>

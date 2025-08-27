@@ -8,7 +8,7 @@ import {
   PayInvoiceResponse,
 } from "src/types";
 
-import { CopyIcon, InfoIcon, QrCodeIcon, RefreshCwIcon } from "lucide-react";
+import { CopyIcon, QrCodeIcon, RefreshCwIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
@@ -662,29 +662,6 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                           lspOrderResponse.incomingLiquidity
                         )}{" "}
                         sats
-                      </TableCell>
-                    </TableRow>
-                  )}
-                  {/* <TableRow>
-                    <TableCell className="font-medium p-3 flex flex-row gap-1.5 items-center">
-                      Fee
-                    </TableCell>
-                    <TableCell className="text-right p-3">
-                      {new Intl.NumberFormat().format(lspOrderResponse.fee)}{" "}
-                      sats
-                    </TableCell>
-                  </TableRow> */}
-                  {lspOrderResponse.incomingLiquidity > 0 && (
-                    <TableRow>
-                      <TableCell className="font-medium p-3 flex items-center gap-2">
-                        Duration
-                        <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel">
-                          <InfoIcon className="size-4 text-muted-foreground" />
-                        </ExternalLink>
-                      </TableCell>
-
-                      <TableCell className="p-3 text-right">
-                        at least 3 months
                       </TableCell>
                     </TableRow>
                   )}
