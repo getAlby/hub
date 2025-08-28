@@ -41,6 +41,7 @@ const ExpirySelect: React.FC<ExpiryProps> = ({ value, onChange }) => {
         {Object.keys(expiryOptions).map((expiry) => {
           return (
             <button
+              type="button"
               key={expiry}
               onClick={() => {
                 setCustomExpiry(false);
