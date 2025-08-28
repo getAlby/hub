@@ -55,6 +55,7 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu";
 import { Input } from "src/components/ui/input";
@@ -265,7 +266,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                           )}
                         <DropdownMenuGroup>
                           {appStoreApp && (
-                            <DropdownMenuItem className="w-full">
+                            <DropdownMenuItem asChild>
                               <Link
                                 to={`/apps/new?app=${appStoreApp.id}`}
                                 className="flex flex-1 items-center gap-2"
@@ -275,16 +276,16 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                               </Link>
                             </DropdownMenuItem>
                           )}
-                          <DropdownMenuItem className="w-full">
+                          <DropdownMenuItem asChild>
                             <div
                               className="flex items-center gap-2"
                               onClick={() => setShowConnectionDetails(true)}
                             >
-                              <InfoIcon className="size-4" /> More Connection
-                              Details
+                              <InfoIcon className="size-4" /> Connection Details
                             </div>
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="w-full">
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem variant="destructive" asChild>
                             <div
                               className="flex items-center gap-2"
                               onClick={() => setShowDisconnectAppDialog(true)}
