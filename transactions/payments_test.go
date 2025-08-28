@@ -49,7 +49,7 @@ func TestSendPaymentSync_NoApp(t *testing.T) {
 	assert.Equal(t, 123, decodedMetadata.A)
 }
 
-func TestSendPaymentSync_0Amount(t *testing.T) {
+func TestSendPaymentSync_ZeroAmount(t *testing.T) {
 	ctx := context.TODO()
 
 	svc, err := tests.CreateTestService(t)
@@ -62,10 +62,33 @@ func TestSendPaymentSync_0Amount(t *testing.T) {
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	amount := uint64(1234)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.Mock0AmountInvoice, &amount, metadata, svc.LNClient, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockZeroAmountInvoice, &amount, metadata, svc.LNClient, nil, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, amount, transaction.AmountMsat)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
+	assert.Zero(t, transaction.FeeReserveMsat)
+	assert.Equal(t, "123preimage", *transaction.Preimage)
+}
+
+func TestSendPaymentSync_AmountOnNonZeroAmountInvoice(t *testing.T) {
+	ctx := context.TODO()
+
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	metadata := map[string]interface{}{
+		"a": 123,
+	}
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	amount := uint64(1234)
+	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, &amount, metadata, svc.LNClient, nil, nil)
+
+	assert.NoError(t, err)
+	// amount is from the invoice, not what was specified
+	assert.Equal(t, uint64(123_000), transaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
 	assert.Zero(t, transaction.FeeReserveMsat)
 	assert.Equal(t, "123preimage", *transaction.Preimage)
