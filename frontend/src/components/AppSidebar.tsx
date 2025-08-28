@@ -2,7 +2,6 @@ import {
   BoxIcon,
   ChevronsUpDown,
   CircleHelp,
-  Cloud,
   HomeIcon,
   LogOut,
   LucideIcon,
@@ -316,8 +315,8 @@ export function NavSecondary({
             <ExternalLink to="https://getalby.com/subscription/pro">
               <SidebarMenuItem>
                 <SidebarMenuButton>
-                  <Cloud className="h-4 w-4" />
-                  Alby Cloud
+                  <Sparkles className="h-4 w-4" />
+                  Alby Pro
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </ExternalLink>
