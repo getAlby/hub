@@ -304,7 +304,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 	var dbTransaction db.Transaction
 
 	paymentAmount := uint64(paymentRequest.MSatoshi)
-	if amountMsat != nil {
+	if amountMsat != nil && paymentRequest.MSatoshi == 0 {
 		paymentAmount = *amountMsat
 	}
 
@@ -1031,6 +1031,12 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 			balance := queries.GetIsolatedBalance(tx, appPermission.AppId)
 
 			if int64(amountWithFeeReserve) > balance {
+				logger.Logger.WithFields(logrus.Fields{
+					"balance":                 balance,
+					"self_payment":            selfPayment,
+					"amount":                  amount,
+					"amount_with_fee_reserve": amountWithFeeReserve,
+				}).Debug("Insufficient budget to make payment from isolated app")
 				message := NewInsufficientBalanceError().Error()
 				if description != "" {
 					message += " " + description
