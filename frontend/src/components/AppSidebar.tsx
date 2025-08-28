@@ -279,8 +279,6 @@ export function NavSecondary({
     icon: LucideIcon;
   }[];
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
-  const { data: albyMe } = useAlbyMe();
-  const { data: info } = useInfo();
   const { setOpenMobile } = useSidebar();
 
   return (
@@ -311,16 +309,6 @@ export function NavSecondary({
               </SidebarMenuButton>
             </SidebarMenuItem>
           </ExternalLink>
-          {!albyMe?.subscription.plan_code && info?.albyAccountConnected && (
-            <ExternalLink to="https://getalby.com/subscription/pro">
-              <SidebarMenuItem>
-                <SidebarMenuButton>
-                  <Sparkles className="h-4 w-4" />
-                  Alby Pro
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </ExternalLink>
-          )}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
