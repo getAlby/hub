@@ -149,6 +149,7 @@ const Scopes: React.FC<ScopesProps> = ({
             const ScopeGroupIcon = scopeGroupIconMap[sg];
             return (
               <button
+                type="button"
                 key={index}
                 className={`flex flex-col items-center border-2 rounded cursor-pointer ${scopeGroup == sg ? "border-primary" : "border-muted"} p-4`}
                 onClick={() => {
