@@ -1,4 +1,9 @@
-import { CircleMinusIcon, CirclePlusIcon } from "lucide-react";
+import {
+  CircleMinusIcon,
+  CirclePlusIcon,
+  CopyIcon,
+  Trash2Icon,
+} from "lucide-react";
 import React from "react";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import { IsolatedAppDrawDownDialog } from "src/components/IsolatedAppDrawDownDialog";
@@ -20,6 +25,7 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useCreateLightningAddress } from "src/hooks/useCreateLightningAddress";
 import { useDeleteLightningAddress } from "src/hooks/useDeleteLightningAddress";
 import { useTransactions } from "src/hooks/useTransactions";
+import { copyToClipboard } from "src/lib/clipboard";
 import { cn, formatAmount, getBudgetRenewalLabel } from "src/lib/utils";
 import { App, Transaction } from "src/types";
 
@@ -36,10 +42,11 @@ export function AppUsage({ app }: { app: App }) {
   );
   React.useEffect(() => {
     if (transactionsResponse?.transactions.length) {
-      setAllTransactions((current) => [
-        ...current,
-        ...transactionsResponse.transactions,
-      ]);
+      setAllTransactions((current) =>
+        [...current, ...transactionsResponse.transactions].filter(
+          (v, i, a) => a.findIndex((t) => t.paymentHash === v.paymentHash) === i // remove duplicates
+        )
+      );
       setPage((current) => current + 1);
     }
   }, [transactionsResponse?.transactions]);
@@ -163,14 +170,27 @@ export function AppUsage({ app }: { app: App }) {
                 {app.metadata.lud16 && (
                   <div className="flex items-center justify-between">
                     <p className="font-semibold">{app.metadata.lud16}</p>
-                    <LoadingButton
-                      size="sm"
-                      variant="outline"
-                      loading={deletingLightningAddress}
-                      onClick={deleteSubwalletLightningAddress}
-                    >
-                      Remove
-                    </LoadingButton>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() =>
+                          copyToClipboard(app.metadata?.lud16 || "")
+                        }
+                        variant="outline"
+                      >
+                        <CopyIcon />
+                        Copy
+                      </Button>
+                      <LoadingButton
+                        size="sm"
+                        variant="outline"
+                        loading={deletingLightningAddress}
+                        onClick={deleteSubwalletLightningAddress}
+                      >
+                        <Trash2Icon />
+                        Remove
+                      </LoadingButton>
+                    </div>
                   </div>
                 )}
               </CardContent>
