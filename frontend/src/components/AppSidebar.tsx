@@ -311,7 +311,7 @@ export function NavSecondary({
               </SidebarMenuButton>
             </SidebarMenuItem>
           </ExternalLink>
-          {!albyMe?.hub.name && info?.albyAccountConnected && (
+          {!albyMe?.subscription.plan_code && info?.albyAccountConnected && (
             <ExternalLink to="https://getalby.com/subscription/pro">
               <SidebarMenuItem>
                 <SidebarMenuButton>
