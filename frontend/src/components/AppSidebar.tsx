@@ -2,7 +2,6 @@ import {
   BoxIcon,
   ChevronsUpDown,
   CircleHelp,
-  Cloud,
   HomeIcon,
   LogOut,
   LucideIcon,
@@ -280,8 +279,6 @@ export function NavSecondary({
     icon: LucideIcon;
   }[];
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
-  const { data: albyMe } = useAlbyMe();
-  const { data: info } = useInfo();
   const { setOpenMobile } = useSidebar();
 
   return (
@@ -312,16 +309,6 @@ export function NavSecondary({
               </SidebarMenuButton>
             </SidebarMenuItem>
           </ExternalLink>
-          {!albyMe?.hub.name && info?.albyAccountConnected && (
-            <ExternalLink to="https://getalby.com/subscription/pro">
-              <SidebarMenuItem>
-                <SidebarMenuButton>
-                  <Cloud className="h-4 w-4" />
-                  Alby Cloud
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </ExternalLink>
-          )}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
