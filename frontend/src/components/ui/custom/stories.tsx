@@ -65,7 +65,13 @@ export function StoryItem({
           )}
         </Avatar>
       </div>
-      <div className={cn("text-center max-w-14 text-xs")}>{story.title}</div>
+      <div
+        className={cn(
+          "text-center max-w-18 text-xs overflow-hidden overflow-ellipsis"
+        )}
+      >
+        {story.title}
+      </div>
     </div>
   );
 }
@@ -78,7 +84,7 @@ export function Stories({
 }: StoriesProps) {
   return (
     <div
-      className={cn("flex gap-4 overflow-x-auto pb-2", className)}
+      className={cn("flex gap-3 overflow-x-auto mb-2", className)}
       {...props}
     >
       {stories.map((story) => (
