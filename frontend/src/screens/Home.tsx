@@ -1,4 +1,4 @@
-import { ExternalLinkIcon } from "lucide-react";
+import { ChevronDown, ExternalLinkIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
@@ -13,6 +13,13 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { Stories, Story } from "src/components/ui/custom/stories";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "src/components/ui/dialog";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
@@ -30,6 +37,12 @@ import { NodeStatusWidget } from "src/components/home/widgets/NodeStatusWidget";
 import { OnchainFeesWidget } from "src/components/home/widgets/OnchainFeesWidget";
 import { SupportAlbyWidget } from "src/components/home/widgets/SupportAlbyWidget";
 import { WhatsNewWidget } from "src/components/home/widgets/WhatsNewWidget";
+import { AlbyHubIcon } from "src/components/icons/AlbyHubIcon";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "src/components/ui/collapsible";
 
 function getGreeting(name: string | undefined) {
   const hours = new Date().getHours();
@@ -51,8 +64,60 @@ function Home() {
   const { data: balances } = useBalances();
   const { data: albyMe } = useAlbyMe();
   const [isNerd, setNerd] = React.useState(false);
+  const [isStoriesOpen, setIsStoriesOpen] = React.useState(true);
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   const extensionInstalled = (window as any).alby !== undefined;
+
+  // State for dialog
+  const [selectedStory, setSelectedStory] = React.useState<Story | null>(null);
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+
+  const [stories, setStories] = React.useState<Story[]>([
+    {
+      id: 1,
+      title: "Update",
+      avatar: AlbyHubIcon,
+      seen: false,
+      videoUrl: "https://www.youtube.com/embed/Nw8vU46KoTY",
+    },
+    {
+      id: 2,
+      title: "getalby.com",
+      avatar: AlbyHead,
+      seen: false,
+      videoUrl: "https://www.youtube.com/embed/Nw8vU46KoTY",
+    },
+    {
+      id: 3,
+      title: "Auto-Swaps",
+      avatar: AlbyHubIcon,
+      seen: false,
+      videoUrl: "https://www.youtube.com/embed/Nw8vU46KoTY",
+    },
+    {
+      id: 4,
+      title: "Alby Go",
+      avatar: albyGo,
+      seen: true,
+      videoUrl: "https://www.youtube.com/embed/Nw8vU46KoTY",
+    },
+  ]);
+
+  // Handler for story clicks
+  const handleStoryClick = (id: number) => {
+    // Find the clicked story
+    const story = stories.find((s) => s.id === id);
+    if (story) {
+      // Open dialog with the story
+      setSelectedStory(story);
+      setDialogOpen(true);
+
+      // Mark story as seen
+      setStories((prevStories) =>
+        prevStories.map((s) => (s.id === id ? { ...s, seen: true } : s))
+      );
+    }
+  };
 
   if (!info || !balances) {
     return <Loading />;
@@ -61,6 +126,23 @@ function Home() {
   return (
     <>
       <AppHeader title={getGreeting(albyMe?.name)} />
+      <Collapsible open={isStoriesOpen} onOpenChange={setIsStoriesOpen}>
+        <CollapsibleTrigger>
+          <div className="flex gap-2 items-center">
+            <ChevronDown className="size-4" />
+            Stories
+          </div>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <Stories
+            stories={[...stories].sort((a, b) =>
+              a.seen === b.seen ? 0 : a.seen ? 1 : -1
+            )}
+            onStoryClick={handleStoryClick}
+          />
+        </CollapsibleContent>
+      </Collapsible>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start justify-start">
         {/* LEFT */}
         <div className="grid gap-5">
@@ -211,6 +293,25 @@ function Home() {
           </Card>
         </div>
       </div>
+
+      {/* YouTube Video Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-[800px]">
+          <DialogHeader>
+            <DialogTitle>{selectedStory?.title}</DialogTitle>
+          </DialogHeader>
+          <div className="aspect-video w-full">
+            {selectedStory?.videoUrl && (
+              <iframe
+                src={selectedStory.videoUrl}
+                title={`${selectedStory.title}`}
+                className="w-full h-full rounded-md"
+                allowFullScreen
+              ></iframe>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
