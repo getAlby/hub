@@ -185,6 +185,12 @@ Make sure to update your RPC password below, and change your work directory each
 
 And then run the frontend with: `VITE_API_URL="http://localhost:8082" yarn dev:http`
 
+To test auto-swaps to xpub you can use sparrow wallet in regtest:
+
+    /opt/sparrow/bin/Sparrow -n regtest
+
+Sparrow needs to be connected to regtest boltz setup Bitcoin Core RPC (127.0.0.1:18443 with user:password as `__cookie__:cookiepassword`) with an imported mnemonic and copied the tpub from the settings page
+
 ### Migrating the database (Sqlite <-> Postgres)
 
 Migration of the database is currently experimental. Please make a backup before continuing.
