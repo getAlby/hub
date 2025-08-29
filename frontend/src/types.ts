@@ -218,6 +218,7 @@ export type BaseSwap = {
   paymentHash: string;
   invoice: string;
   autoSwap: boolean;
+  usedXpub: boolean;
   boltzPubkey: string;
   createdAt: string;
   updatedAt: string;

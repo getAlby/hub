@@ -14,6 +14,7 @@ import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
@@ -54,6 +55,11 @@ export default function SwapOutStatus() {
               {swapStatus === "PENDING" && <Loading className="w-4 h-4 mr-2" />}
               {statusText[swapStatus]}
             </CardTitle>
+            {swap.autoSwap && (
+              <CardDescription className="flex justify-center">
+                Auto swap{swap.usedXpub && <> to xpub</>}
+              </CardDescription>
+            )}
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
             {swapStatus === "SUCCESS" ? (

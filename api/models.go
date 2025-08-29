@@ -205,6 +205,7 @@ type Swap struct {
 	BoltzPubkey        string `json:"boltzPubkey"`
 	CreatedAt          string `json:"createdAt"`
 	UpdatedAt          string `json:"updatedAt"`
+	UsedXpub           bool   `json:"usedXpub"`
 }
 
 type StartRequest struct {

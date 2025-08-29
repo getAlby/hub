@@ -229,7 +229,7 @@ func (svc *swapsService) EnableAutoSwapOut() error {
 					"amount":      amount,
 					"destination": actualDestination,
 				}).Info("Initiating swap")
-				_, err = svc.SwapOut(amount, swapDestination, false, true, usedXpubDerivation)
+				_, err = svc.SwapOut(amount, actualDestination, false, true, usedXpubDerivation)
 				if err != nil {
 					logger.Logger.WithError(err).Error("Failed to initiate swap")
 					continue
@@ -309,6 +309,7 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, useExactRece
 
 	defer func() {
 		if err != nil && dbSwap.ID != 0 {
+			logger.Logger.WithError(err).Error("Marking swap state as failed")
 			svc.markSwapState(&dbSwap, constants.SWAP_STATE_FAILED)
 		}
 	}()
@@ -444,6 +445,7 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 
 	defer func() {
 		if err != nil && dbSwap.ID != 0 {
+			logger.Logger.WithError(err).Error("Marking swap state as failed")
 			svc.markSwapState(&dbSwap, constants.SWAP_STATE_FAILED)
 		}
 	}()
@@ -453,12 +455,6 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 		if err != nil {
 			return err
 		}
-
-		defer func() {
-			if err != nil {
-				svc.markSwapState(&dbSwap, constants.SWAP_STATE_FAILED)
-			}
-		}()
 
 		ourKeys, err = svc.keys.GetSwapKey(dbSwap.ID)
 		if err != nil {
@@ -853,6 +849,7 @@ func (svc *swapsService) startSwapInListener(swap *db.Swap) {
 		svc.swapListenersLock.Unlock()
 		svc.boltzWs.Unsubscribe(swap.SwapId)
 		if err != nil {
+			logger.Logger.WithError(err).Error("Marking swap state as failed")
 			svc.markSwapState(swap, constants.SWAP_STATE_FAILED)
 		}
 	}()
@@ -1020,6 +1017,7 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 		svc.swapListenersLock.Unlock()
 		svc.boltzWs.Unsubscribe(swap.SwapId)
 		if err != nil {
+			logger.Logger.WithError(err).Error("Marking swap state as failed")
 			svc.markSwapState(swap, constants.SWAP_STATE_FAILED)
 		}
 	}()
