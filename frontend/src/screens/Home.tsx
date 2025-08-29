@@ -75,7 +75,7 @@ function Home() {
   const [stories, setStories] = React.useState<Story[]>([
     {
       id: 1,
-      title: "Release Notes",
+      title: "Update",
       avatar: AlbyHubIcon,
       seen: false,
       videoUrl: "https://www.youtube.com/embed/Nw8vU46KoTY",
