@@ -6,23 +6,21 @@ import { cn } from "src/lib/utils";
 
 // Types for our Stories component
 export interface Story {
-  id: string;
-  avatar: string;
-  username: string;
+  id: number;
+  avatar: string | React.ComponentType<{ className?: string }>;
+  title: string;
   seen: boolean;
   videoUrl?: string; // YouTube video URL
 }
 
 interface StoryItemProps extends React.HTMLAttributes<HTMLDivElement> {
   story: Story;
-  size?: "sm" | "md" | "lg";
-  onStoryClick?: (id: string) => void;
+  onStoryClick?: (id: number) => void;
 }
 
 interface StoriesProps extends React.HTMLAttributes<HTMLDivElement> {
   stories: Story[];
-  size?: "sm" | "md" | "lg";
-  onStoryClick?: (id: string) => void;
+  onStoryClick?: (id: number) => void;
 }
 
 // Individual story item component
@@ -52,24 +50,28 @@ export function StoryItem({
         )}
         onClick={handleClick}
       >
-        <Avatar className={cn("border-2 border-background size-14")}>
-          <AvatarImage src={story.avatar} alt={story.username} />
-          <AvatarFallback>
-            {story.username.substring(0, 2).toUpperCase()}
-          </AvatarFallback>
+        <Avatar className={cn("border-background size-14")}>
+          {typeof story.avatar === "string" ? (
+            <>
+              <AvatarImage src={story.avatar} alt={story.title} />
+              <AvatarFallback>
+                {story.title.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <story.avatar className="size-8" />
+            </div>
+          )}
         </Avatar>
       </div>
-      <span className={cn("text-center max-w-14 text-xs")}>
-        {story.username}
-      </span>
+      <div className={cn("text-center max-w-14 text-xs")}>{story.title}</div>
     </div>
   );
 }
 
-// Main Stories component with horizontal scrolling
 export function Stories({
   stories,
-  size = "md",
   onStoryClick,
   className,
   ...props
@@ -81,7 +83,7 @@ export function Stories({
     >
       {stories.map((story) => (
         <div key={story.id}>
-          <StoryItem story={story} size={size} onStoryClick={onStoryClick} />
+          <StoryItem story={story} onStoryClick={onStoryClick} />
         </div>
       ))}
     </div>
