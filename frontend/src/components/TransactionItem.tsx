@@ -208,7 +208,7 @@ function TransactionItem({ tx }: Props) {
           <DialogTitle
             className={cn(tx.state === "pending" && "animate-pulse")}
           >{`${typeStateText} Bitcoin Payment`}</DialogTitle>
-          <DialogDescription className="text-start text-foreground max-h-96 overflow-y-auto">
+          <DialogDescription className="text-start text-foreground max-h-96 overflow-y-auto pr-2">
             <div
               className={cn(
                 "flex items-center mt-6",
