@@ -55,7 +55,7 @@ function AppCreatedInternal() {
       toast("Connection established!", {
         description: "You can now use the app with your Alby Hub.",
       });
-      navigate("/apps");
+      navigate("/apps?tab=connected-apps");
     }
   }, [app?.lastUsedAt, navigate]);
 

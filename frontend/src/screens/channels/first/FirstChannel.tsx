@@ -368,11 +368,7 @@ export function FirstChannel() {
                 This channel comes free with your Alby Pro subscription
               </p>
             )}
-            <LoadingButton
-              loading={isLoading}
-              onClick={openChannel}
-              className="gap-0"
-            >
+            <LoadingButton loading={isLoading} onClick={openChannel}>
               {lspChannelOffer.currentPaymentMethod === "prepaid" ? (
                 <>Continue</>
               ) : lspChannelOffer.currentPaymentMethod === "included" ? (
