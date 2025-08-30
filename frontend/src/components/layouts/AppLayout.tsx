@@ -2,16 +2,22 @@ import { Outlet } from "react-router-dom";
 
 import { AppSidebar } from "src/components/AppSidebar";
 import { Banner } from "src/components/Banner";
+import { CommandPalette } from "src/components/CommandPalette";
 import { SidebarInset, SidebarProvider } from "src/components/ui/sidebar";
+import {
+  CommandPaletteProvider,
+  useCommandPaletteContext,
+} from "src/contexts/CommandPaletteContext";
 import { useBanner } from "src/hooks/useBanner";
 import { useInfo } from "src/hooks/useInfo";
 import { useNotifyReceivedPayments } from "src/hooks/useNotifyReceivedPayments";
 import { useRemoveSuccessfulChannelOrder } from "src/hooks/useRemoveSuccessfulChannelOrder";
 import { cn } from "src/lib/utils";
 
-export default function AppLayout() {
+function AppLayoutInner() {
   const { data: info } = useInfo();
   const { showBanner, dismissBanner } = useBanner();
+  const { open, setOpen } = useCommandPaletteContext();
 
   useRemoveSuccessfulChannelOrder();
   useNotifyReceivedPayments();
@@ -47,6 +53,15 @@ export default function AppLayout() {
           </div>
         </SidebarProvider>
       </div>
+      <CommandPalette open={open} onOpenChange={setOpen} />
     </>
+  );
+}
+
+export default function AppLayout() {
+  return (
+    <CommandPaletteProvider>
+      <AppLayoutInner />
+    </CommandPaletteProvider>
   );
 }
