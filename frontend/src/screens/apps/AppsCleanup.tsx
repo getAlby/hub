@@ -108,7 +108,9 @@ export function AppsCleanup() {
             <>
               <div>No more unused apps to review.</div>
               <div>
-                <LinkButton to="/apps">Back to overview</LinkButton>
+                <LinkButton to="/apps?tab=connected-apps">
+                  Back to overview
+                </LinkButton>
               </div>
             </>
           )}

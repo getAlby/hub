@@ -76,7 +76,7 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
             description:
               "Link your lightning address & other apps to this Hub.",
             checked: isLinked,
-            to: "/apps",
+            to: "/apps?tab=connected-apps",
           },
         ]
       : []),
