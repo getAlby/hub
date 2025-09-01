@@ -60,7 +60,11 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             <Wallet />
             <span>Wallet</span>
           </CommandItem>
-          <CommandItem onSelect={() => runCommand(() => navigate("/apps"))}>
+          <CommandItem
+            onSelect={() =>
+              runCommand(() => navigate("/apps?tab=connected-apps"))
+            }
+          >
             <Plug />
             <span>Connections</span>
           </CommandItem>
@@ -78,7 +82,9 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             <Users />
             <span>Peers</span>
           </CommandItem>
-          <CommandItem onSelect={() => runCommand(() => navigate("/appstore"))}>
+          <CommandItem
+            onSelect={() => runCommand(() => navigate("/apps?tab=app-store"))}
+          >
             <Store />
             <span>App Store</span>
           </CommandItem>
