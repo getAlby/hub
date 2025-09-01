@@ -19,16 +19,17 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
+import AppAvatar from "src/components/AppAvatar";
 
 import {
   CommandDialog,
-  CommandEmpty,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
   CommandSeparator,
 } from "src/components/ui/command";
+import { useApps } from "src/hooks/useApps";
 
 interface CommandPaletteProps {
   open?: boolean;
@@ -37,6 +38,17 @@ interface CommandPaletteProps {
 
 export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const navigate = useNavigate();
+  const [searchText, setSearchText] = React.useState("");
+
+  const { data: connectedAppsByAppName } = useApps(
+    undefined,
+    undefined,
+    {
+      name: searchText,
+    },
+    undefined,
+    !!searchText?.length
+  );
 
   const runCommand = React.useCallback(
     (command: () => void) => {
@@ -48,9 +60,14 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
 
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
-      <CommandInput placeholder="Type a command or search..." />
+      <CommandInput
+        placeholder="Type a command or search..."
+        value={searchText}
+        onValueChange={setSearchText}
+      />
+
       <CommandList>
-        <CommandEmpty>No results found.</CommandEmpty>
+        {/* <CommandEmpty>No results found</CommandEmpty> */}
         <CommandGroup heading="Navigation">
           <CommandItem onSelect={() => runCommand(() => navigate("/home"))}>
             <Home />
@@ -190,6 +207,19 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             <span>Open First Channel</span>
           </CommandItem>
         </CommandGroup>
+        {!!connectedAppsByAppName?.apps.length && (
+          <CommandGroup heading="Connected Apps" forceMount>
+            {connectedAppsByAppName?.apps.map((app) => (
+              <CommandItem
+                key={app.id}
+                onSelect={() => runCommand(() => navigate(`/apps/${app.id}`))}
+              >
+                <AppAvatar app={app} className="w-4 h-4" />
+                <span>{app.name}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        )}
       </CommandList>
     </CommandDialog>
   );
