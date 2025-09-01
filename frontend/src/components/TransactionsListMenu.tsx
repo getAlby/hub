@@ -30,12 +30,10 @@ const convertToCSV = (transactions: Transaction[]) => {
         if (value === undefined || value === null) {
           return "";
         }
+        const stringValue =
+          typeof value === "object" ? JSON.stringify(value) : String(value);
         // based on https://stackoverflow.com/a/68146412
-        return `"${
-          value
-            .toString() // convert every value to String
-            .replaceAll('"', '""') // escape double quotes
-        }"`; // quote it
+        return `"${stringValue.replaceAll('"', '""')}"`; // escape double quotes
       })
       .join(",");
   });
@@ -101,7 +99,7 @@ export const TransactionsListMenu = ({ appId }: { appId?: number }) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {!albyMe?.subscription.plan_code ? (
+        {albyMe?.subscription.plan_code ? (
           <UpgradeDialog>
             <div className="cursor-pointer">
               <DropdownMenuItem className="w-full pointer-events-none">
