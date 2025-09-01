@@ -1,6 +1,5 @@
-import TransactionsList, {
-  TransactionsListMenu,
-} from "src/components/TransactionsList";
+import TransactionsList from "src/components/TransactionsList";
+import { TransactionsListMenu } from "src/components/TransactionsListMenu";
 import {
   Card,
   CardContent,

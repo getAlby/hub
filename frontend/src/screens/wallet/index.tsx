@@ -14,9 +14,8 @@ import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
-import TransactionsList, {
-  TransactionsListMenu,
-} from "src/components/TransactionsList";
+import TransactionsList from "src/components/TransactionsList";
+import { TransactionsListMenu } from "src/components/TransactionsListMenu";
 import {
   Alert,
   AlertDescription,
