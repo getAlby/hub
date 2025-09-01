@@ -4,18 +4,19 @@ import {
   HelpCircle,
   Home,
   Info,
+  LayoutGrid,
+  Link,
   Network,
   Plug,
   QrCode,
+  RefreshCw,
   Send,
   Settings,
   Shield,
   Shuffle,
-  Store,
   User,
   Users,
   Wallet,
-  Zap,
 } from "lucide-react";
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
@@ -69,9 +70,12 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       <CommandList>
         {/* <CommandEmpty>No results found</CommandEmpty> */}
         <CommandGroup heading="Navigation">
-          <CommandItem onSelect={() => runCommand(() => navigate("/home"))}>
+          <CommandItem
+            onSelect={() => runCommand(() => navigate("/home"))}
+            keywords={["dashboard"]}
+          >
             <Home />
-            <span>Dashboard</span>
+            <span>Home</span>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => navigate("/wallet"))}>
             <Wallet />
@@ -83,7 +87,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             }
           >
             <Plug />
-            <span>Connections</span>
+            <span>Connected Apps</span>
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => navigate("/sub-wallets"))}
@@ -91,7 +95,10 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             <CreditCard />
             <span>Sub-wallets</span>
           </CommandItem>
-          <CommandItem onSelect={() => runCommand(() => navigate("/channels"))}>
+          <CommandItem
+            onSelect={() => runCommand(() => navigate("/channels"))}
+            keywords={["node", "liquidity"]}
+          >
             <Network />
             <span>Channels</span>
           </CommandItem>
@@ -102,7 +109,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
           <CommandItem
             onSelect={() => runCommand(() => navigate("/apps?tab=app-store"))}
           >
-            <Store />
+            <LayoutGrid />
             <span>App Store</span>
           </CommandItem>
         </CommandGroup>
@@ -127,6 +134,12 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             <span>Swap</span>
           </CommandItem>
           <CommandItem
+            onSelect={() => runCommand(() => navigate("/wallet/swap/auto"))}
+          >
+            <RefreshCw />
+            <span>Auto Swap</span>
+          </CommandItem>
+          <CommandItem
             onSelect={() =>
               runCommand(() => navigate("/wallet/receive/invoice"))
             }
@@ -139,7 +152,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
               runCommand(() => navigate("/wallet/receive/onchain"))
             }
           >
-            <Zap />
+            <Link />
             <span>Receive On-chain</span>
           </CommandItem>
           <CommandItem
@@ -151,7 +164,10 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         </CommandGroup>
         <CommandSeparator />
         <CommandGroup heading="Settings">
-          <CommandItem onSelect={() => runCommand(() => navigate("/settings"))}>
+          <CommandItem
+            onSelect={() => runCommand(() => navigate("/settings"))}
+            keywords={["theme", "fiat", "currency", "dark"]}
+          >
             <Settings />
             <span>Settings</span>
           </CommandItem>
@@ -170,6 +186,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             <span>Alby Account</span>
           </CommandItem>
           <CommandItem
+            keywords={["info"]}
             onSelect={() => runCommand(() => navigate("/settings/about"))}
           >
             <Info />
@@ -200,12 +217,6 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             <Users />
             <span>Connect Peer</span>
           </CommandItem>
-          <CommandItem
-            onSelect={() => runCommand(() => navigate("/channels/first"))}
-          >
-            <Network />
-            <span>Open First Channel</span>
-          </CommandItem>
         </CommandGroup>
         {!!connectedAppsByAppName?.apps.length && (
           <CommandGroup heading="Connected Apps" forceMount>
@@ -214,7 +225,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                 key={app.id}
                 onSelect={() => runCommand(() => navigate(`/apps/${app.id}`))}
               >
-                <AppAvatar app={app} className="w-4 h-4" />
+                <AppAvatar app={app} className="size-4" />
                 <span>{app.name}</span>
               </CommandItem>
             ))}
