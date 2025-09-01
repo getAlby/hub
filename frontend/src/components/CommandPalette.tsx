@@ -55,6 +55,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     (command: () => void) => {
       onOpenChange?.(false);
       command();
+      setSearchText("");
     },
     [onOpenChange]
   );
