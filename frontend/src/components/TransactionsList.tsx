@@ -1,5 +1,6 @@
 import { DownloadIcon, DrumIcon, MoreHorizontalIcon } from "lucide-react";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import { CustomPagination } from "src/components/CustomPagination";
 import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
@@ -23,7 +24,7 @@ const convertToCSV = (transactions: Transaction[]) => {
     return "";
   }
 
-  // Get headers from the first transaction
+  // Get headers from all transactions
   const headers = Object.keys(transactions[0]);
   const csvHeaders = headers.join(",");
 
@@ -31,15 +32,16 @@ const convertToCSV = (transactions: Transaction[]) => {
   const csvRows = transactions.map((tx) => {
     return headers
       .map((header) => {
-        const value = (tx as Record<string, unknown>)[header];
-        // Escape commas and quotes in values
-        if (
-          typeof value === "string" &&
-          (value.includes(",") || value.includes('"'))
-        ) {
-          return `"${value.replace(/"/g, '""')}"`;
+        const value = tx[header as keyof typeof tx];
+        if (value === undefined || value === null) {
+          return "";
         }
-        return value;
+        // based on https://stackoverflow.com/a/68146412
+        return `"${
+          value
+            .toString() // convert every value to String
+            .replaceAll('"', '""') // escape double quotes
+        }"`; // quote it
       })
       .join(",");
   });
@@ -47,27 +49,30 @@ const convertToCSV = (transactions: Transaction[]) => {
   return [csvHeaders, ...csvRows].join("\n");
 };
 
-const handleDownloadTransactions = async (appId?: number) => {
+const handleExportTransactions = async (appId?: number) => {
   try {
     // Fetch all transactions by paginating through all pages
     let allTransactions: Transaction[] = [];
     let offset = 0;
-    let hasMoreTransactions = true;
 
-    while (hasMoreTransactions) {
+    while (true) {
       let url = `/api/transactions?limit=${LIST_TRANSACTIONS_LIMIT}&offset=${offset}`;
       if (appId) {
         url += `&appId=${appId}`;
       }
 
-      const data = (await request(url)) as ListTransactionsResponse;
+      const data = await request<ListTransactionsResponse>(url);
 
-      if (data.transactions && data.transactions.length > 0) {
-        allTransactions = [...allTransactions, ...data.transactions];
-        offset += LIST_TRANSACTIONS_LIMIT;
-      } else {
-        hasMoreTransactions = false;
+      if (!data) {
+        throw new Error("no list transactions response");
       }
+
+      allTransactions = [...allTransactions, ...data.transactions];
+
+      if (data.transactions.length < LIST_TRANSACTIONS_LIMIT) {
+        break;
+      }
+      offset += LIST_TRANSACTIONS_LIMIT;
     }
 
     // Convert to CSV and create download
@@ -84,17 +89,19 @@ const handleDownloadTransactions = async (appId?: number) => {
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
+    toast("Transactions saved to your downloads folder");
   } catch (error) {
     console.error("Error downloading transactions:", error);
+    toast.error("Failed to export transactions");
   }
 };
 
-export const TransactionsExportMenu = ({ appId }: { appId?: number }) => {
+export const TransactionsListMenu = ({ appId }: { appId?: number }) => {
   const { data: albyMe } = useAlbyMe();
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenuTrigger>
         <Button size="icon" variant="ghost">
           <MoreHorizontalIcon className="h-4 w-4" />
         </Button>
@@ -114,7 +121,7 @@ export const TransactionsExportMenu = ({ appId }: { appId?: number }) => {
         ) : (
           <DropdownMenuItem
             className="flex flex-row items-center gap-2 cursor-pointer"
-            onClick={() => handleDownloadTransactions(appId)}
+            onClick={() => handleExportTransactions(appId)}
           >
             <DownloadIcon className="h-4 w-4" />
             Export Transactions
@@ -171,11 +178,6 @@ function TransactionsList({
         />
       ) : (
         <>
-          {!appId && transactions.length > 0 && (
-            <div className="mb-4 flex justify-end">
-              <TransactionsExportMenu />
-            </div>
-          )}
           {transactions?.map((tx, i) => {
             return (
               <TransactionItem key={tx.paymentHash + tx.type + i} tx={tx} />
