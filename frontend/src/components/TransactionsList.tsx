@@ -167,6 +167,7 @@ function TransactionsList({
           buttonText="Receive Your First Payment"
           buttonLink="/wallet/receive"
           showButton={showReceiveButton}
+          showBorder={false}
         />
       ) : (
         <>

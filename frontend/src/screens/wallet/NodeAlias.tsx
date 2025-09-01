@@ -1,9 +1,9 @@
 import React, { useState } from "react";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 
@@ -11,7 +11,6 @@ import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
 export default function NodeAlias() {
-  const { toast } = useToast();
   const { data: info, mutate: reloadInfo } = useInfo();
   const { data: albyMe } = useAlbyMe();
   const [nodeAlias, setNodeAlias] = useState("");
@@ -30,10 +29,7 @@ export default function NodeAlias() {
     e.preventDefault();
 
     if (!hasPaid) {
-      toast({
-        title: "Please upgrade to change your node alias",
-        variant: "destructive",
-      });
+      toast.error("Please upgrade to change your node alias");
       return;
     }
 
@@ -48,13 +44,12 @@ export default function NodeAlias() {
       });
 
       await reloadInfo();
-      toast({
-        title: "Alias changed. Restart your node to apply the change.",
+      toast("Alias changed. Restart your node to apply the change.", {
         description: "Your node alias has been updated successfully.",
       });
     } catch (error) {
       console.error("Failed to update node alias:", error);
-      handleRequestError(toast, "Failed to update node alias", error);
+      handleRequestError("Failed to update node alias", error);
     } finally {
       setIsLoading(false);
     }

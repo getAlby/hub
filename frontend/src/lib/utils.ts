@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
+import { BudgetRenewalType } from "src/types";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -56,4 +57,21 @@ export function generatePageNumbers(currentPage: number, totalPages: number) {
   }
 
   return pageNumbers;
+}
+
+export function getBudgetRenewalLabel(renewalType: BudgetRenewalType): string {
+  switch (renewalType) {
+    case "daily":
+      return "day";
+    case "weekly":
+      return "week";
+    case "monthly":
+      return "month";
+    case "yearly":
+      return "year";
+    case "never":
+      return "never";
+    case "":
+      return "";
+  }
 }

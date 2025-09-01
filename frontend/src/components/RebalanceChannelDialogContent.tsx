@@ -1,12 +1,12 @@
 import { AlertTriangleIcon, ExternalLinkIcon } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
-import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 import { request } from "src/utils/request";
@@ -29,7 +29,6 @@ export function RebalanceChannelDialogContent({
   closeDialog,
 }: Props) {
   const [amount, setAmount] = React.useState("");
-  const { toast } = useToast();
   const { data: channels, mutate: reloadChannels } = useChannels();
   const { mutate: reloadBalances } = useBalances();
   const [isRebalancing, setRebalancing] = React.useState(false);
@@ -73,19 +72,15 @@ export function RebalanceChannelDialogContent({
       }
 
       await Promise.all([reloadChannels(), reloadBalances()]);
-      toast({
-        title:
-          "Successfully rebalanced channels. Total fee: " +
+      toast(
+        "Successfully rebalanced channels. Total fee: " +
           response.totalFeeSat +
-          " sats",
-      });
+          " sats"
+      );
       closeDialog();
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        description: "" + error,
-      });
+      toast.error("" + error);
     }
     setRebalancing(false);
   }
@@ -149,7 +144,7 @@ export function RebalanceChannelDialogContent({
               className="underline flex items-center mt-4"
             >
               Learn more about rebalancing between channels
-              <ExternalLinkIcon className="w-4 h-4 ml-2" />
+              <ExternalLinkIcon className="size-4 ml-2" />
             </ExternalLink>
             <Alert className="mt-2">
               <AlertTriangleIcon className="h-4 w-4" />

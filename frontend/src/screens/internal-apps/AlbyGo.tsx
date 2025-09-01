@@ -1,17 +1,12 @@
-import { GlobeIcon } from "lucide-react";
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
-import AppHeader from "src/components/AppHeader";
-import ExternalLink from "src/components/ExternalLink";
-import { AppleIcon } from "src/components/icons/Apple";
-import { ChromeIcon } from "src/components/icons/Chrome";
-import { FirefoxIcon } from "src/components/icons/Firefox";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { AppLinksCard } from "src/components/connections/AppLinksCard";
+import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
+import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import { NostrWalletConnectIcon } from "src/components/icons/NostrWalletConnectIcon";
-import { PlayStoreIcon } from "src/components/icons/PlayStore";
-import { ZapStoreIcon } from "src/components/icons/ZapStore";
 import Loading from "src/components/Loading";
 import PasswordInput from "src/components/password/PasswordInput";
-import { suggestedApps } from "src/components/SuggestedAppData";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -25,39 +20,53 @@ import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
-import { useToast } from "src/components/ui/use-toast";
+import { useAppsForAppStoreApp } from "src/hooks/useApps";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { createApp } from "src/requests/createApp";
 
 export function AlbyGo() {
   const [loading, setLoading] = React.useState(false);
   const [unlockPassword, setUnlockPassword] = React.useState("");
-  const [showCreateConnectionDialog, setShowCreateConnectionDialog] =
-    React.useState(false);
-  const { toast } = useToast();
+  const [
+    showCreateSuperuserConnectionDialog,
+    setShowCreateSuperuserConnectionDialog,
+  ] = React.useState(false);
   const { data: capabilities } = useCapabilities();
   const navigate = useNavigate();
 
-  const app = suggestedApps.find((app) => app.id === "alby-go");
-  if (!app) {
-    return null;
+  const appStoreApp = appStoreApps.find((app) => app.id === "alby-go");
+  if (!appStoreApp) {
+    throw new Error("Alby go app not found");
+  }
+
+  const connectedApps = useAppsForAppStoreApp(appStoreApp);
+
+  React.useEffect(() => {
+    if (connectedApps && connectedApps.length > 0) {
+      navigate(`/apps/${connectedApps[0].id}`, {
+        replace: true,
+      });
+    }
+  }, [connectedApps, navigate]);
+
+  if (!connectedApps) {
+    return <Loading />;
   }
 
   function onClickCreateConnection() {
-    setShowCreateConnectionDialog(true);
+    setShowCreateSuperuserConnectionDialog(true);
   }
 
-  async function onSubmitCreateConnection(e: React.FormEvent) {
+  async function onSubmitCreateSuperuserConnection(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      if (!app) {
+      if (!appStoreApp) {
         throw new Error("Alby go app not found");
       }
       if (!capabilities) {
@@ -70,37 +79,36 @@ export function AlbyGo() {
         scopes: [...capabilities.scopes, "superuser"],
         isolated: false,
         metadata: {
-          app_store_app_id: app.id,
+          app_store_app_id: appStoreApp.id,
         },
         unlockPassword,
         maxAmount: 100_000,
         budgetRenewal: "monthly",
       });
-      navigate(`/apps/created?app=${app.id}`, {
+      navigate(`/apps/created?app=${appStoreApp.id}`, {
         state: createAppResponse,
       });
-      toast({ title: "Alby Go connection created" });
+      toast("Alby Go connection created");
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Something went wrong: " + error,
+      toast.error("Something went wrong", {
+        description: "" + error,
       });
     }
     setLoading(false);
-    setShowCreateConnectionDialog(false);
+    setShowCreateSuperuserConnectionDialog(false);
     setUnlockPassword("");
   }
 
-  if (!capabilities) {
+  if (!capabilities || !connectedApps) {
     return <Loading />;
   }
 
   return (
     <div className="grid gap-5">
-      <AlertDialog open={showCreateConnectionDialog}>
+      <AlertDialog open={showCreateSuperuserConnectionDialog}>
         <AlertDialogContent>
-          <form onSubmit={onSubmitCreateConnection}>
+          <form onSubmit={onSubmitCreateSuperuserConnection}>
             <AlertDialogHeader>
               <AlertDialogTitle>Confirm New Connection</AlertDialogTitle>
               <AlertDialogDescription>
@@ -138,7 +146,7 @@ export function AlbyGo() {
             </AlertDialogHeader>
             <AlertDialogFooter className="mt-3">
               <AlertDialogCancel
-                onClick={() => setShowCreateConnectionDialog(false)}
+                onClick={() => setShowCreateSuperuserConnectionDialog(false)}
               >
                 Cancel
               </AlertDialogCancel>
@@ -149,40 +157,18 @@ export function AlbyGo() {
           </form>
         </AlertDialogContent>
       </AlertDialog>
-      <AppHeader
-        title={
-          <>
-            <div className="flex flex-row items-center">
-              <img src={app.logo} className="w-14 h-14 rounded-lg mr-4" />
-              <div className="flex flex-col">
-                <div>{app.title}</div>
-                <div className="text-sm font-normal text-muted-foreground">
-                  {app.description}
-                </div>
-              </div>
-            </div>
-          </>
-        }
-        description=""
-        contentRight={
-          <Link to={`/apps/new?app=${app.id}`}>
-            <Button>
-              <NostrWalletConnectIcon className="w-4 h-4 mr-2" />
-              Connect to {app.title}
-            </Button>
-          </Link>
-        }
-      />
+      <AppStoreDetailHeader appStoreApp={appStoreApp} />
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="flex flex-col w-full gap-6">
           <Card>
             <CardHeader>
               <CardTitle className="text-2xl">About the App</CardTitle>
             </CardHeader>
-            {app.extendedDescription && (
+            {appStoreApp.extendedDescription && (
               <CardContent className="flex flex-col gap-3">
                 <p className="text-muted-foreground">
-                  {app.extendedDescription}
+                  {appStoreApp.extendedDescription}
                 </p>
               </CardContent>
             )}
@@ -224,76 +210,7 @@ export function AlbyGo() {
           </Card>
         </div>
         <div className="flex flex-col w-full gap-6">
-          {(app.appleLink ||
-            app.playLink ||
-            app.zapStoreLink ||
-            app.chromeLink ||
-            app.firefoxLink) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl">Get This App</CardTitle>
-              </CardHeader>
-              <CardFooter className="flex flex-row gap-2">
-                {app.playLink && (
-                  <ExternalLink to={app.playLink}>
-                    <Button variant="outline">
-                      <PlayStoreIcon className="w-4 h-4 mr-2" />
-                      Play Store
-                    </Button>
-                  </ExternalLink>
-                )}
-                {app.appleLink && (
-                  <ExternalLink to={app.appleLink}>
-                    <Button variant="outline">
-                      <AppleIcon className="w-4 h-4 mr-2" />
-                      App Store
-                    </Button>
-                  </ExternalLink>
-                )}
-                {app.zapStoreLink && (
-                  <ExternalLink to={app.zapStoreLink}>
-                    <Button variant="outline">
-                      <ZapStoreIcon className="w-4 h-4 mr-2" />
-                      Zapstore
-                    </Button>
-                  </ExternalLink>
-                )}
-                {app.chromeLink && (
-                  <ExternalLink to={app.chromeLink}>
-                    <Button variant="outline">
-                      <ChromeIcon className="w-4 h-4 mr-2" />
-                      Chrome Web Store
-                    </Button>
-                  </ExternalLink>
-                )}
-                {app.firefoxLink && (
-                  <ExternalLink to={app.firefoxLink}>
-                    <Button variant="outline">
-                      <FirefoxIcon className="w-4 h-4 mr-2" />
-                      Firefox Add-Ons
-                    </Button>
-                  </ExternalLink>
-                )}
-              </CardFooter>
-            </Card>
-          )}
-          {app.webLink && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl">Links</CardTitle>
-              </CardHeader>
-              <CardFooter className="flex flex-row gap-2">
-                {app.webLink && (
-                  <ExternalLink to={app.webLink}>
-                    <Button variant="outline">
-                      <GlobeIcon className="w-4 h-4 mr-2" />
-                      Website
-                    </Button>
-                  </ExternalLink>
-                )}
-              </CardFooter>
-            </Card>
-          )}
+          <AppLinksCard appStoreApp={appStoreApp} />
 
           <Card>
             <CardHeader>
@@ -306,7 +223,7 @@ export function AlbyGo() {
               </p>
               {
                 <Button className="mt-8" onClick={onClickCreateConnection}>
-                  <NostrWalletConnectIcon className="w-4 h-4 mr-2" />
+                  <NostrWalletConnectIcon />
                   Connect with One Tap Connections
                 </Button>
               }

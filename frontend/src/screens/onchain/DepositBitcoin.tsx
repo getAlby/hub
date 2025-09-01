@@ -6,15 +6,14 @@ import {
   RefreshCwIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import Lottie from "react-lottie";
 import { Link } from "react-router-dom";
-import animationDataDark from "src/assets/lotties/loading-dark.json";
-import animationDataLight from "src/assets/lotties/loading-light.json";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import LottieLoading from "src/components/LottieLoading";
 import { MempoolAlert } from "src/components/MempoolAlert";
+import OnchainAddressDisplay from "src/components/OnchainAddressDisplay";
 import QRCode from "src/components/QRCode";
 import { Button } from "src/components/ui/button";
 import {
@@ -23,9 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { LoadingButton } from "src/components/ui/loading-button";
-import { useTheme } from "src/components/ui/theme-provider";
-import { useToast } from "src/components/ui/use-toast";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
@@ -40,7 +37,6 @@ export default function DepositBitcoin() {
     getNewAddress,
     loadingAddress,
   } = useOnchainAddress();
-  const { toast } = useToast();
   const { data: mempoolAddressUtxos } = useMempoolApi<MempoolUtxo[]>(
     onchainAddress ? `/address/${onchainAddress}/utxo` : undefined,
     3000
@@ -84,7 +80,7 @@ export default function DepositBitcoin() {
         contentRight={
           <Link to="/channels/onchain/buy-bitcoin">
             <Button>
-              <CreditCardIcon className="h-4 w-4 mr-2" />
+              <CreditCardIcon />
               Buy Bitcoin
             </Button>
           </Link>
@@ -98,7 +94,7 @@ export default function DepositBitcoin() {
           <DepositPending amount={pendingAmount} txId={txId} />
         ) : (
           <Card>
-            <CardContent className="grid gap-6 p-8 justify-center border border-muted">
+            <CardContent className="grid gap-6 justify-center">
               <a
                 href={`bitcoin:${onchainAddress}`}
                 target="_blank"
@@ -108,21 +104,7 @@ export default function DepositBitcoin() {
               </a>
 
               <div className="flex flex-wrap gap-2 items-center justify-center">
-                {onchainAddress.match(/.{1,4}/g)?.map((word, index) => {
-                  if (index % 2 === 0) {
-                    return (
-                      <span key={index} className="text-foreground">
-                        {word}
-                      </span>
-                    );
-                  } else {
-                    return (
-                      <span key={index} className="text-muted-foreground">
-                        {word}
-                      </span>
-                    );
-                  }
-                })}
+                <OnchainAddressDisplay address={onchainAddress} />
               </div>
 
               <div className="flex flex-row gap-4 justify-center">
@@ -132,19 +114,17 @@ export default function DepositBitcoin() {
                   className="w-28"
                   loading={loadingAddress}
                 >
-                  {!loadingAddress && (
-                    <RefreshCwIcon className="w-4 h-4 mr-2" />
-                  )}
+                  {!loadingAddress && <RefreshCwIcon />}
                   Change
                 </LoadingButton>
                 <Button
                   variant="secondary"
                   className="w-28"
                   onClick={() => {
-                    copyToClipboard(onchainAddress, toast);
+                    copyToClipboard(onchainAddress);
                   }}
                 >
-                  <CopyIcon className="w-4 h-4 mr-2" />
+                  <CopyIcon />
                   Copy
                 </Button>
               </div>
@@ -164,16 +144,6 @@ function DepositPending({
   txId: string;
 }) {
   const { data: info } = useInfo();
-  const { isDarkMode } = useTheme();
-
-  const defaultOptions = {
-    loop: true,
-    autoplay: true,
-    animationData: isDarkMode ? animationDataDark : animationDataLight,
-    rendererSettings: {
-      preserveAspectRatio: "xMidYMid slice",
-    },
-  };
 
   return (
     <Card className="w-full">
@@ -181,7 +151,7 @@ function DepositPending({
         <CardTitle className="text-center">Awaiting Confirmation</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-4">
-        <Lottie options={defaultOptions} height={288} width={288} />
+        <LottieLoading size={288} />
         {amount && (
           <div className="flex flex-col gap-2 items-center">
             <p className="text-xl font-semibold slashed-zero">
@@ -197,7 +167,7 @@ function DepositPending({
               className="flex items-center mt-2"
             >
               View on Mempool
-              <ExternalLinkIcon className="w-4 h-4 ml-2" />
+              <ExternalLinkIcon className="size-4 ml-2" />
             </ExternalLink>
           </Button>
         </div>
@@ -230,7 +200,7 @@ function DepositSuccess({ amount, txId }: { amount: number; txId: string }) {
                 className="flex items-center mt-2"
               >
                 View on Mempool
-                <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                <ExternalLinkIcon className="size-4 ml-2" />
               </ExternalLink>
             </Button>
           </div>

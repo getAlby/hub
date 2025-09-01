@@ -35,6 +35,8 @@ func Migrate(gormDB *gorm.DB) error {
 		_202508041737_postgres_amount_bigint,
 		_202508041738_app_last_used,
 		_202508041739_response_events_index,
+		_202508151405_swap_xpub,
+		_202508192137_forwards,
 	})
 
 	return m.Migrate()

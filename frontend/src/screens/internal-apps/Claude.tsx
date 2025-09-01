@@ -1,6 +1,8 @@
 import React from "react";
-import AppHeader from "src/components/AppHeader";
-import { suggestedApps } from "src/components/SuggestedAppData";
+import { toast } from "sonner";
+import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
+import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
+import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import {
   Accordion,
   AccordionContent,
@@ -14,8 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { LoadingButton } from "src/components/ui/loading-button";
-import { useToast } from "src/components/ui/use-toast";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -23,10 +24,9 @@ import { handleRequestError } from "src/utils/handleRequestError";
 export function Claude() {
   const [isLoading, setLoading] = React.useState(false);
   const [connectionSecret, setConnectionSecret] = React.useState("");
-  const { toast } = useToast();
 
-  const app = suggestedApps.find((app) => app.id === "claude");
-  if (!app) {
+  const appStoreApp = appStoreApps.find((app) => app.id === "claude");
+  if (!appStoreApp) {
     return null;
   }
 
@@ -38,7 +38,7 @@ export function Claude() {
     (async () => {
       try {
         const createAppResponse = await createApp({
-          name: app.title,
+          name: appStoreApp.title,
           scopes: [
             "get_info",
             "get_balance",
@@ -58,9 +58,9 @@ export function Claude() {
 
         setConnectionSecret(createAppResponse.pairingUri);
 
-        toast({ title: "Claude connection created" });
+        toast("Claude connection created");
       } catch (error) {
-        handleRequestError(toast, "Failed to create connection", error);
+        handleRequestError("Failed to create connection", error);
       }
       setLoading(false);
     })();
@@ -68,10 +68,7 @@ export function Claude() {
 
   return (
     <div className="grid gap-5">
-      <AppHeader
-        title="Claude"
-        description="AI assistant for conversations, analysis, and coding."
-      />
+      <AppStoreDetailHeader appStoreApp={appStoreApp} />
       {connectionSecret && (
         <div className="max-w-lg flex flex-col gap-5">
           <p>
@@ -99,9 +96,7 @@ export function Claude() {
                   <li className="list-item">
                     Paste the integration URL:{" "}
                     <Button
-                      onClick={() =>
-                        copyToClipboard(mcpLinkWithEncodedSecret, toast)
-                      }
+                      onClick={() => copyToClipboard(mcpLinkWithEncodedSecret)}
                       size="sm"
                     >
                       Copy URL
@@ -131,9 +126,7 @@ export function Claude() {
                   <li className="list-item">
                     Paste the integration URL:{" "}
                     <Button
-                      onClick={() =>
-                        copyToClipboard(mcpLinkWithEncodedSecret, toast)
-                      }
+                      onClick={() => copyToClipboard(mcpLinkWithEncodedSecret)}
                       size="sm"
                     >
                       Copy URL
@@ -161,8 +154,7 @@ export function Claude() {
                     <Button
                       onClick={() =>
                         copyToClipboard(
-                          `claude mcp add --transport http alby https://mcp.getalby.com/mcp --header "Authorization: Bearer ${connectionSecret}"`,
-                          toast
+                          `claude mcp add --transport http alby https://mcp.getalby.com/mcp --header "Authorization: Bearer ${connectionSecret}"`
                         )
                       }
                       size="sm"
@@ -199,7 +191,7 @@ export function Claude() {
                     <span className="italic">"Pay $1 to my friend Rene"</span>
                   </li>
                   <li>
-                    ⚡ Give Goose access to paid tools:{" "}
+                    ⚡ Give Claude access to paid tools:{" "}
                     <span className="italic">
                       "Buy a $15 doordash giftcard"
                     </span>
@@ -217,6 +209,7 @@ export function Claude() {
               </div>
             </CardContent>
           </Card>
+          <AppDetailConnectedApps appStoreApp={appStoreApp} showTitle />
         </>
       )}
     </div>

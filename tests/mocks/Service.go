@@ -89,6 +89,52 @@ func (_c *MockService_GetAlbyOAuthSvc_Call) RunAndReturn(run func() alby.AlbyOAu
 	return _c
 }
 
+// GetAlbySvc provides a mock function for the type MockService
+func (_mock *MockService) GetAlbySvc() alby.AlbyService {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAlbySvc")
+	}
+
+	var r0 alby.AlbyService
+	if returnFunc, ok := ret.Get(0).(func() alby.AlbyService); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(alby.AlbyService)
+		}
+	}
+	return r0
+}
+
+// MockService_GetAlbySvc_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetAlbySvc'
+type MockService_GetAlbySvc_Call struct {
+	*mock.Call
+}
+
+// GetAlbySvc is a helper method to define mock.On call
+func (_e *MockService_Expecter) GetAlbySvc() *MockService_GetAlbySvc_Call {
+	return &MockService_GetAlbySvc_Call{Call: _e.mock.On("GetAlbySvc")}
+}
+
+func (_c *MockService_GetAlbySvc_Call) Run(run func()) *MockService_GetAlbySvc_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockService_GetAlbySvc_Call) Return(albyService alby.AlbyService) *MockService_GetAlbySvc_Call {
+	_c.Call.Return(albyService)
+	return _c
+}
+
+func (_c *MockService_GetAlbySvc_Call) RunAndReturn(run func() alby.AlbyService) *MockService_GetAlbySvc_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetConfig provides a mock function for the type MockService
 func (_mock *MockService) GetConfig() config.Config {
 	ret := _mock.Called()
@@ -555,20 +601,14 @@ type MockService_StartApp_Call struct {
 }
 
 // StartApp is a helper method to define mock.On call
-//   - encryptionKey string
+//   - encryptionKey
 func (_e *MockService_Expecter) StartApp(encryptionKey interface{}) *MockService_StartApp_Call {
 	return &MockService_StartApp_Call{Call: _e.mock.On("StartApp", encryptionKey)}
 }
 
 func (_c *MockService_StartApp_Call) Run(run func(encryptionKey string)) *MockService_StartApp_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
-		if args[0] != nil {
-			arg0 = args[0].(string)
-		}
-		run(
-			arg0,
-		)
+		run(args[0].(string))
 	})
 	return _c
 }

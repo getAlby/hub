@@ -26,6 +26,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Dialog,
   DialogContent,
@@ -34,7 +35,6 @@ import {
   DialogHeader,
   DialogTrigger,
 } from "src/components/ui/dialog";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
 import {
   Tooltip,
@@ -85,7 +85,7 @@ function AlbyConnectionCard() {
       </CardHeader>
       <Separator />
       <CardContent className="group">
-        <div className="grid grid-cols-1 xl:grid-cols-2 mt-5 gap-3 items-center relative">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 items-center relative">
           <div className="flex flex-col gap-4">
             <div className="flex flex-row gap-4">
               <UserAvatar className="h-14 w-14" />
@@ -94,7 +94,7 @@ function AlbyConnectionCard() {
                   {albyMe?.name || albyMe?.email}
                 </div>
                 <div className="flex flex-row items-center gap-1 text-sm text-muted-foreground">
-                  <ZapIcon className="w-4 h-4" />
+                  <ZapIcon className="size-4" />
                   {albyMe?.lightning_address}
                 </div>
               </div>
@@ -107,7 +107,7 @@ function AlbyConnectionCard() {
                 <Dialog>
                   <DialogTrigger asChild>
                     <LoadingButton loading={loading}>
-                      {!loading && <Link2Icon className="w-4 h-4 mr-2" />}
+                      {!loading && <Link2Icon />}
                       Link your Alby Account
                     </LoadingButton>
                   </DialogTrigger>
@@ -161,13 +161,13 @@ function AlbyConnectionCard() {
                   disabled
                   className="disabled:opacity-100"
                 >
-                  <CheckCircle2Icon className="w-4 h-4 mr-2" />
+                  <CheckCircle2Icon />
                   Alby Account Linked
                 </Button>
               ) : (
                 linkStatus === LinkStatus.OtherNode && (
                   <Button variant="destructive" disabled>
-                    <CircleXIcon className="w-4 h-4 mr-2" />
+                    <CircleXIcon />
                     Linked to another wallet
                   </Button>
                 )
@@ -178,7 +178,7 @@ function AlbyConnectionCard() {
                   className="w-full sm:w-auto"
                 >
                   <Button variant="outline" className="w-full sm:w-auto">
-                    <ExternalLinkIcon className="w-4 h-4 mr-2" />
+                    <ExternalLinkIcon />
                     Alby Account Settings
                   </Button>
                 </ExternalLink>
@@ -186,7 +186,7 @@ function AlbyConnectionCard() {
               {albyAccountApp && (
                 <Link to="/settings/alby-account" className="w-full sm:w-auto">
                   <Button variant="outline" className="w-full sm:w-auto">
-                    <User2Icon className="w-4 h-4 mr-2" />
+                    <User2Icon />
                     Alby Account Settings
                   </Button>
                 </Link>
@@ -196,10 +196,10 @@ function AlbyConnectionCard() {
           {albyAccountApp && (
             <div className="slashed-zero">
               <Link
-                to={`/apps/${albyAccountApp.appPubkey}?edit=true`}
+                to={`/apps/${albyAccountApp.id}?edit=true`}
                 className="absolute top-0 right-0"
               >
-                <EditIcon className="w-4 h-4 hidden group-hover:inline text-muted-foreground hover:text-card-foreground" />
+                <EditIcon className="size-4 hidden group-hover:inline text-muted-foreground hover:text-card-foreground" />
               </Link>
               <AppCardConnectionInfo
                 connection={albyAccountApp}
@@ -213,7 +213,7 @@ function AlbyConnectionCard() {
                             <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent className="max-w-sm">
+                        <TooltipContent>
                           Control what access your Alby Account has to your Hub
                           by editing the budget. Every app you access through
                           your Alby Account (such as your lightning address,

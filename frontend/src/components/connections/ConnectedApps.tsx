@@ -1,7 +1,6 @@
-import { CableIcon, CirclePlusIcon, TrashIcon } from "lucide-react";
+import { CableIcon, TrashIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import AppHeader from "src/components/AppHeader";
 import { CustomPagination } from "src/components/CustomPagination";
 import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
@@ -21,10 +20,12 @@ import { ListAppsResponse } from "src/types";
 // display previous page while next page is loading
 let prevAppsData: ListAppsResponse | undefined;
 
-function AppList() {
+function ConnectedApps() {
   const { data: info } = useInfo();
   const [page, setPage] = useState(1);
-  const { data: appsData } = useApps(LIST_APPS_LIMIT, page);
+  const { data: appsData } = useApps(LIST_APPS_LIMIT, page, {
+    subWallets: false,
+  });
   const appsListRef = useRef<HTMLDivElement>(null);
   const handlePageChange = (page: number) => {
     setPage(page);
@@ -52,27 +53,36 @@ function AppList() {
 
   return (
     <>
-      <AppHeader
-        title="Connections"
-        contentRight={
-          <>
-            {!!unusedApps.length && (
-              <Link to="/apps/cleanup">
-                <ResponsiveButton
-                  icon={TrashIcon}
-                  text="Cleanup Unused"
-                  variant="outline"
-                />
-              </Link>
-            )}
-            <Link to="/apps/new">
-              <ResponsiveButton icon={CirclePlusIcon} text="Add Connection" />
-            </Link>
-          </>
-        }
-      />
+      <div className="flex flex-col flex-1">
+        <div className="flex justify-between items-center">
+          <div className="flex-1">
+            <h1 className="text-xl lg:text-2xl font-semibold">
+              Connected Apps
+            </h1>
+          </div>
+          <div className="flex gap-3 h-full">
+            <>
+              {!!unusedApps.length && (
+                <Link to="/apps/cleanup">
+                  <ResponsiveButton
+                    icon={TrashIcon}
+                    text="Cleanup Unused"
+                    variant="outline"
+                  />
+                </Link>
+              )}
+            </>
+          </div>
+        </div>
+      </div>
 
-      {info.albyAccountConnected && <AlbyConnectionCard />}
+      {info.albyAccountConnected && (
+        <div className="mt-6">
+          <AlbyConnectionCard />
+        </div>
+      )}
+
+      <div className="mt-6" />
 
       {!otherApps.length && (
         <EmptyState
@@ -80,7 +90,7 @@ function AppList() {
           title="Connect Your First App"
           description="Connect your app of choice, fine-tune permissions and enjoy a seamless and secure wallet experience."
           buttonText="See Recommended Apps"
-          buttonLink="/appstore"
+          buttonLink="/apps?tab=app-store"
         />
       )}
 
@@ -105,4 +115,4 @@ function AppList() {
   );
 }
 
-export default AppList;
+export default ConnectedApps;

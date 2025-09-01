@@ -6,6 +6,7 @@ export function useUnusedApps(limit?: number) {
     undefined,
     {
       unused: true,
+      subWallets: false,
     },
     undefined
   );

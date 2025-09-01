@@ -39,6 +39,7 @@ type service struct {
 	lnClient            lnclient.LNClient
 	transactionsService transactions.TransactionsService
 	swapsService        swaps.SwapsService
+	albySvc             alby.AlbyService
 	albyOAuthSvc        alby.AlbyOAuthService
 	eventPublisher      events.EventPublisher
 	ctx                 context.Context
@@ -117,6 +118,7 @@ func NewService(ctx context.Context) (*service, error) {
 
 	keys := keys.NewKeys()
 
+	albySvc := alby.NewAlbyService(cfg)
 	albyOAuthSvc := alby.NewAlbyOAuthService(gormDB, cfg, keys, eventPublisher)
 
 	transactionsSvc := transactions.NewTransactionsService(gormDB, eventPublisher)
@@ -127,6 +129,7 @@ func NewService(ctx context.Context) (*service, error) {
 		ctx:                 ctx,
 		wg:                  &wg,
 		eventPublisher:      eventPublisher,
+		albySvc:             albySvc,
 		albyOAuthSvc:        albyOAuthSvc,
 		nip47Service:        nip47.NewNip47Service(gormDB, cfg, keys, eventPublisher, albyOAuthSvc),
 		transactionsService: transactionsSvc,
@@ -137,6 +140,9 @@ func NewService(ctx context.Context) (*service, error) {
 	eventPublisher.RegisterSubscriber(svc.transactionsService)
 	eventPublisher.RegisterSubscriber(svc.nip47Service)
 	eventPublisher.RegisterSubscriber(svc.albyOAuthSvc)
+	eventPublisher.RegisterSubscriber(&paymentForwardedConsumer{
+		db: gormDB,
+	})
 
 	eventPublisher.Publish(&events.Event{
 		Event: "nwc_started",
@@ -242,6 +248,10 @@ func (svc *service) GetDB() *gorm.DB {
 
 func (svc *service) GetConfig() config.Config {
 	return svc.cfg
+}
+
+func (svc *service) GetAlbySvc() alby.AlbyService {
+	return svc.albySvc
 }
 
 func (svc *service) GetAlbyOAuthSvc() alby.AlbyOAuthService {

@@ -2,22 +2,26 @@ import { CheckIcon, CopyIcon, ExternalLinkIcon, EyeIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
-import { SuggestedApp, suggestedApps } from "src/components/SuggestedAppData";
+import {
+  AppStoreApp,
+  appStoreApps,
+} from "src/components/connections/SuggestedAppData";
 import { Badge } from "src/components/ui/badge";
-import { Button, ExternalLinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { useToast } from "src/components/ui/use-toast";
-import { useAppByPubkey } from "src/hooks/useApp";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { useApp } from "src/hooks/useApp";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
 import { App, CreateAppResponse } from "src/types";
@@ -36,29 +40,24 @@ export default function AppCreated() {
 function AppCreatedInternal() {
   const { search, state } = useLocation();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const queryParams = new URLSearchParams(search);
   const appId = queryParams.get("app") ?? "";
-  const appstoreApp = suggestedApps.find((app) => app.id === appId);
+  const appstoreApp = appStoreApps.find((app) => app.id === appId);
 
   const createAppResponse = state as CreateAppResponse;
 
   const pairingUri = createAppResponse.pairingUri;
-  const { data: app } = useAppByPubkey(
-    createAppResponse.pairingPublicKey,
-    true
-  );
+  const { data: app } = useApp(createAppResponse.id, true);
 
   useEffect(() => {
     if (app?.lastUsedAt) {
-      toast({
-        title: "Connection established!",
+      toast("Connection established!", {
         description: "You can now use the app with your Alby Hub.",
       });
-      navigate("/apps");
+      navigate("/apps?tab=connected-apps");
     }
-  }, [app?.lastUsedAt, navigate, toast]);
+  }, [app?.lastUsedAt, navigate]);
 
   useEffect(() => {
     // dispatch a success event which can be listened to by the opener or by the app that embedded the webview
@@ -123,7 +122,7 @@ function AppCreatedInternal() {
                 Optional: Top up sub-wallet balance (
                 {new Intl.NumberFormat().format(Math.floor(app.balance / 1000))}{" "}
                 sats){" "}
-                <IsolatedAppTopupDialog appPubkey={app.appPubkey}>
+                <IsolatedAppTopupDialog appId={app.id}>
                   <Button size="sm" variant="secondary">
                     Top Up
                   </Button>
@@ -152,13 +151,12 @@ export function ConnectAppCard({
 }: {
   app: App;
   pairingUri: string;
-  appstoreApp?: SuggestedApp;
+  appstoreApp?: AppStoreApp;
 }) {
   const [timeout, setTimeout] = useState(false);
   const [isQRCodeVisible, setIsQRCodeVisible] = useState(false);
-  const { toast } = useToast();
   const copy = () => {
-    copyToClipboard(pairingUri, toast);
+    copyToClipboard(pairingUri);
   };
 
   useEffect(() => {
@@ -178,13 +176,13 @@ export function ConnectAppCard({
         {!app.lastUsedAt ? (
           <>
             <div className="flex flex-row items-center gap-2 text-sm">
-              <Loading className="w-4 h-4" />
+              <Loading className="size-4" />
               <p>Waiting for app to connect</p>
             </div>
             {timeout && (
               <div className="text-sm flex flex-col gap-2 items-center text-center">
                 Connecting is taking longer than usual.
-                <Link to={`/apps/${app?.appPubkey}`}>
+                <Link to={`/apps/${app?.id}`}>
                   <Button variant="secondary">Continue anyway</Button>
                 </Link>
               </div>
@@ -192,7 +190,7 @@ export function ConnectAppCard({
           </>
         ) : (
           <Badge variant="positive">
-            <CheckIcon className="w-4 h-4 mr-2" />
+            <CheckIcon className="size-4 mr-2" />
             <p>App connected</p>
           </Badge>
         )}
@@ -216,19 +214,19 @@ export function ConnectAppCard({
               }}
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
             >
-              <EyeIcon className="h-4 w-4 mr-2" />
+              <EyeIcon />
               Reveal QR
             </Button>
           )}
         </div>
         <div className="flex gap-2">
           <Button onClick={copy} variant="outline">
-            <CopyIcon className="w-4 h-4 mr-2" />
+            <CopyIcon />
             Copy
           </Button>
           <ExternalLinkButton to={pairingUri} variant="outline">
-            <ExternalLinkIcon className="w-4 h-4 mr-2" />
-            Open
+            <ExternalLinkIcon />
+            Open In App
           </ExternalLinkButton>
         </div>
       </CardContent>

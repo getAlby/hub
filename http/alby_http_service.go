@@ -13,13 +13,15 @@ import (
 )
 
 type AlbyHttpService struct {
+	albySvc      alby.AlbyService
 	albyOAuthSvc alby.AlbyOAuthService
 	appConfig    *config.AppConfig
 	svc          service.Service
 }
 
-func NewAlbyHttpService(svc service.Service, albyOAuthSvc alby.AlbyOAuthService, appConfig *config.AppConfig) *AlbyHttpService {
+func NewAlbyHttpService(svc service.Service, albySvc alby.AlbyService, albyOAuthSvc alby.AlbyOAuthService, appConfig *config.AppConfig) *AlbyHttpService {
 	return &AlbyHttpService{
+		albySvc:      albySvc,
 		albyOAuthSvc: albyOAuthSvc,
 		appConfig:    appConfig,
 		svc:          svc,
@@ -74,7 +76,7 @@ func (albyHttpSvc *AlbyHttpService) unlinkHandler(c echo.Context) error {
 }
 
 func (albyHttpSvc *AlbyHttpService) albyInfoHandler(c echo.Context) error {
-	info, err := albyHttpSvc.albyOAuthSvc.GetInfo(c.Request().Context())
+	info, err := albyHttpSvc.albySvc.GetInfo(c.Request().Context())
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to request alby info endpoint")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -86,7 +88,7 @@ func (albyHttpSvc *AlbyHttpService) albyInfoHandler(c echo.Context) error {
 }
 
 func (albyHttpSvc *AlbyHttpService) albyBitcoinRateHandler(c echo.Context) error {
-	rate, err := albyHttpSvc.albyOAuthSvc.GetBitcoinRate(c.Request().Context())
+	rate, err := albyHttpSvc.albySvc.GetBitcoinRate(c.Request().Context())
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get Bitcoin rate")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{

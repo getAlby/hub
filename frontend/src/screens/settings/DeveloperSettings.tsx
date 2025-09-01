@@ -1,13 +1,14 @@
 import { CopyIcon, SquareArrowOutUpRightIcon } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import PasswordInput from "src/components/password/PasswordInput";
 import SettingsHeader from "src/components/SettingsHeader";
-import { Button, ExternalLinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
-import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { copyToClipboard } from "src/lib/clipboard";
 import { AuthTokenResponse } from "src/types";
@@ -21,7 +22,6 @@ export default function DeveloperSettings() {
   const [showCreateTokenForm, setShowCreateTokenForm] =
     React.useState<boolean>();
   const [loading, setLoading] = React.useState<boolean>();
-  const { toast } = useToast();
 
   async function createToken(e: React.FormEvent) {
     e.preventDefault();
@@ -48,9 +48,8 @@ export default function DeveloperSettings() {
       }
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        description: "Something went wrong: " + error,
+      toast.error("Something went wrong", {
+        description: "" + error,
       });
     }
     setLoading(false);
@@ -79,8 +78,8 @@ export default function DeveloperSettings() {
             to="https://nwc.dev"
             className="flex-1 gap-2 items-center justify-center"
           >
-            Learn More on nwc.dev{" "}
-            <SquareArrowOutUpRightIcon className="w-4 h-4 mr-2" />
+            Learn More on nwc.dev
+            <SquareArrowOutUpRightIcon />
           </ExternalLinkButton>
         </div>
       </div>
@@ -147,10 +146,10 @@ export default function DeveloperSettings() {
                 variant="secondary"
                 size="icon"
                 onClick={() => {
-                  copyToClipboard(token, toast);
+                  copyToClipboard(token);
                 }}
               >
-                <CopyIcon className="w-4 h-4" />
+                <CopyIcon className="size-4" />
               </Button>
             </div>
             <div className="my-4 border rounded-lg p-4">

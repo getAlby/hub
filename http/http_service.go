@@ -49,8 +49,8 @@ type HttpService struct {
 
 func NewHttpService(svc service.Service, eventPublisher events.EventPublisher) *HttpService {
 	return &HttpService{
-		api:            api.NewAPI(svc, svc.GetDB(), svc.GetConfig(), svc.GetKeys(), svc.GetAlbyOAuthSvc(), svc.GetEventPublisher()),
-		albyHttpSvc:    NewAlbyHttpService(svc, svc.GetAlbyOAuthSvc(), svc.GetConfig().GetEnv()),
+		api:            api.NewAPI(svc, svc.GetDB(), svc.GetConfig(), svc.GetKeys(), svc.GetAlbySvc(), svc.GetAlbyOAuthSvc(), svc.GetEventPublisher()),
+		albyHttpSvc:    NewAlbyHttpService(svc, svc.GetAlbySvc(), svc.GetAlbyOAuthSvc(), svc.GetConfig().GetEnv()),
 		cfg:            svc.GetConfig(),
 		eventPublisher: eventPublisher,
 		db:             svc.GetDB(),
@@ -111,7 +111,10 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 		NewClaimsFunc: func(c echo.Context) jwt.Claims {
 			return new(jwtCustomClaims)
 		},
-		SigningKey: []byte(httpSvc.cfg.GetJWTSecret()),
+		// use a custom key func as the JWT secret will change if the user changes their unlock password
+		KeyFunc: func(token *jwt.Token) (interface{}, error) {
+			return []byte(httpSvc.cfg.GetJWTSecret()), nil
+		},
 	}
 	restrictedApiGroup := e.Group("/api")
 	restrictedApiGroup.Use(echojwt.WithConfig(jwtConfig))
@@ -124,7 +127,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.GET("/v2/apps/:id", httpSvc.appsShowHandler)
 	restrictedApiGroup.PATCH("/apps/:pubkey", httpSvc.appsUpdateHandler)
 	restrictedApiGroup.DELETE("/apps/:pubkey", httpSvc.appsDeleteHandler)
-	restrictedApiGroup.POST("/apps/:pubkey/topup", httpSvc.isolatedAppTopupHandler)
+	restrictedApiGroup.POST("/transfers", httpSvc.transfersHandler)
 	restrictedApiGroup.POST("/apps", httpSvc.appsCreateHandler)
 	restrictedApiGroup.POST("/lightning-addresses", httpSvc.lightningAddressesCreateHandler)
 	restrictedApiGroup.DELETE("/lightning-addresses/:appId", httpSvc.lightningAddressesDeleteHandler)
@@ -134,6 +137,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.POST("/channels", httpSvc.openChannelHandler)
 	restrictedApiGroup.POST("/channels/rebalance", httpSvc.rebalanceChannelHandler)
 	restrictedApiGroup.GET("/channels/suggestions", httpSvc.channelPeerSuggestionsHandler)
+	restrictedApiGroup.GET("/channel-offer", httpSvc.channelOfferHandler)
 	restrictedApiGroup.POST("/lsp-orders", httpSvc.newInstantChannelInvoiceHandler)
 	restrictedApiGroup.GET("/node/connection-info", httpSvc.nodeConnectionInfoHandler)
 	restrictedApiGroup.GET("/node/status", httpSvc.nodeStatusHandler)
@@ -168,8 +172,8 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.POST("/command", httpSvc.execCustomNodeCommandHandler)
 	restrictedApiGroup.GET("/swaps", httpSvc.listSwapsHandler)
 	restrictedApiGroup.GET("/swaps/:swapId", httpSvc.lookupSwapHandler)
-	restrictedApiGroup.GET("/swaps/out/fees", httpSvc.getSwapOutFeesHandler)
-	restrictedApiGroup.GET("/swaps/in/fees", httpSvc.getSwapInFeesHandler)
+	restrictedApiGroup.GET("/swaps/out/info", httpSvc.getSwapOutInfoHandler)
+	restrictedApiGroup.GET("/swaps/in/info", httpSvc.getSwapInInfoHandler)
 	restrictedApiGroup.POST("/swaps/out", httpSvc.initiateSwapOutHandler)
 	restrictedApiGroup.POST("/swaps/in", httpSvc.initiateSwapInHandler)
 	restrictedApiGroup.POST("/swaps/refund", httpSvc.refundSwapHandler)
@@ -178,6 +182,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	restrictedApiGroup.POST("/autoswap", httpSvc.enableAutoSwapOutHandler)
 	restrictedApiGroup.DELETE("/autoswap", httpSvc.disableAutoSwapOutHandler)
 	restrictedApiGroup.POST("/node/alias", httpSvc.setNodeAliasHandler)
+	restrictedApiGroup.GET("/forwards", httpSvc.forwardsHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedApiGroup, e)
 }
@@ -216,7 +221,7 @@ func (httpSvc *HttpService) eventHandler(c echo.Context) error {
 		})
 	}
 
-	httpSvc.api.SendEvent(sendEventRequest.Event)
+	httpSvc.api.SendEvent(sendEventRequest.Event, sendEventRequest.Properties)
 
 	return c.NoContent(http.StatusOK)
 }
@@ -263,6 +268,12 @@ func (httpSvc *HttpService) startHandler(c echo.Context) error {
 	if err := c.Bind(&startRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	if !httpSvc.cfg.CheckUnlockPassword(startRequest.UnlockPassword) {
+		return c.JSON(http.StatusUnauthorized, ErrorResponse{
+			Message: "Invalid password",
 		})
 	}
 
@@ -417,6 +428,20 @@ func (httpSvc *HttpService) channelPeerSuggestionsHandler(c echo.Context) error 
 	ctx := c.Request().Context()
 
 	suggestions, err := httpSvc.api.GetChannelPeerSuggestions(ctx)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, suggestions)
+}
+
+func (httpSvc *HttpService) channelOfferHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	suggestions, err := httpSvc.api.GetLSPChannelOffer(ctx)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -934,12 +959,14 @@ func (httpSvc *HttpService) appsListHandler(c echo.Context) error {
 
 	filtersJSON := c.QueryParam("filters")
 	var filters api.ListAppsFilters
-	err := json.Unmarshal([]byte(filtersJSON), &filters)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"filters": filtersJSON,
-		}).Error("Failed to deserialize app filters")
-		return err
+	if filtersJSON != "" {
+		err := json.Unmarshal([]byte(filtersJSON), &filters)
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"filters": filtersJSON,
+			}).Error("Failed to deserialize app filters")
+			return err
+		}
 	}
 
 	orderBy := c.QueryParam("order_by")
@@ -1025,28 +1052,20 @@ func (httpSvc *HttpService) appsUpdateHandler(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (httpSvc *HttpService) isolatedAppTopupHandler(c echo.Context) error {
-	var requestData api.TopupIsolatedAppRequest
+func (httpSvc *HttpService) transfersHandler(c echo.Context) error {
+	var requestData api.TransferRequest
 	if err := c.Bind(&requestData); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
 
-	dbApp := httpSvc.appsSvc.GetAppByPubkey(c.Param("pubkey"))
-
-	if dbApp == nil {
-		return c.JSON(http.StatusNotFound, ErrorResponse{
-			Message: "App not found",
-		})
-	}
-
-	err := httpSvc.api.TopupIsolatedApp(c.Request().Context(), dbApp, requestData.AmountSat*1000)
+	err := httpSvc.api.Transfer(c.Request().Context(), requestData.FromAppId, requestData.ToAppId, requestData.AmountSat*1000)
 
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to topup sub-wallet")
+		logger.Logger.WithError(err).Error("Failed to transfer funds")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to topup sub-wallet: %v", err),
+			Message: fmt.Sprintf("Failed to transfer funds: %v", err),
 		})
 	}
 
@@ -1349,22 +1368,22 @@ func (httpSvc *HttpService) lookupSwapHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, swap)
 }
 
-func (httpSvc *HttpService) getSwapOutFeesHandler(c echo.Context) error {
-	swapOutFeesResponse, err := httpSvc.api.GetSwapOutFees()
+func (httpSvc *HttpService) getSwapOutInfoHandler(c echo.Context) error {
+	swapOutFeesResponse, err := httpSvc.api.GetSwapOutInfo()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to get swap out fees: %v", err),
+			Message: fmt.Sprintf("Failed to get swap out info: %v", err),
 		})
 	}
 
 	return c.JSON(http.StatusOK, swapOutFeesResponse)
 }
 
-func (httpSvc *HttpService) getSwapInFeesHandler(c echo.Context) error {
-	swapOutFeesResponse, err := httpSvc.api.GetSwapInFees()
+func (httpSvc *HttpService) getSwapInInfoHandler(c echo.Context) error {
+	swapOutFeesResponse, err := httpSvc.api.GetSwapInInfo()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to get swap in fees: %v", err),
+			Message: fmt.Sprintf("Failed to get swap in info: %v", err),
 		})
 	}
 
@@ -1487,4 +1506,15 @@ func (httpSvc *HttpService) setNodeAliasHandler(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) forwardsHandler(c echo.Context) error {
+	forwards, err := httpSvc.api.GetForwards()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get forwards: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, forwards)
 }

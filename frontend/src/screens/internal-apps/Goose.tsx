@@ -1,7 +1,9 @@
 import { HammerIcon, LightbulbIcon } from "lucide-react";
 import React from "react";
-import AppHeader from "src/components/AppHeader";
-import { suggestedApps } from "src/components/SuggestedAppData";
+import { toast } from "sonner";
+import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
+import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
+import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import {
   Accordion,
   AccordionContent,
@@ -9,15 +11,15 @@ import {
   AccordionTrigger,
 } from "src/components/ui/accordion";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { Button, ExternalLinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { LoadingButton } from "src/components/ui/loading-button";
-import { useToast } from "src/components/ui/use-toast";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -25,10 +27,9 @@ import { handleRequestError } from "src/utils/handleRequestError";
 export function Goose() {
   const [isLoading, setLoading] = React.useState(false);
   const [connectionSecret, setConnectionSecret] = React.useState("");
-  const { toast } = useToast();
 
-  const app = suggestedApps.find((app) => app.id === "goose");
-  if (!app) {
+  const appStoreApp = appStoreApps.find((app) => app.id === "goose");
+  if (!appStoreApp) {
     return null;
   }
 
@@ -38,7 +39,7 @@ export function Goose() {
     (async () => {
       try {
         const createAppResponse = await createApp({
-          name: app.title,
+          name: appStoreApp.title,
           scopes: [
             "get_info",
             "get_balance",
@@ -58,9 +59,9 @@ export function Goose() {
 
         setConnectionSecret(createAppResponse.pairingUri);
 
-        toast({ title: "Goose connection created" });
+        toast("Goose connection created");
       } catch (error) {
-        handleRequestError(toast, "Failed to create connection", error);
+        handleRequestError("Failed to create connection", error);
       }
       setLoading(false);
     })();
@@ -73,10 +74,7 @@ export function Goose() {
 
   return (
     <div className="grid gap-5">
-      <AppHeader
-        title="Goose"
-        description="Your local AI agent, automating engineering tasks seamlessly."
-      />
+      <AppStoreDetailHeader appStoreApp={appStoreApp} />
       {connectionSecret && (
         <div className="max-w-lg flex flex-col gap-5">
           <p>
@@ -123,7 +121,7 @@ export function Goose() {
                   <li className="list-item">
                     Set the Streaming HTTP endpoint URI:{" "}
                     <Button
-                      onClick={() => copyToClipboard(streamableHttpLink, toast)}
+                      onClick={() => copyToClipboard(streamableHttpLink)}
                       size="sm"
                     >
                       Copy URI
@@ -147,7 +145,7 @@ export function Goose() {
                     Header value:{" "}
                     <Button
                       onClick={() =>
-                        copyToClipboard(`Bearer ${connectionSecret}`, toast)
+                        copyToClipboard(`Bearer ${connectionSecret}`)
                       }
                       size="sm"
                     >
@@ -240,6 +238,7 @@ export function Goose() {
               </div>
             </CardContent>
           </Card>
+          <AppDetailConnectedApps appStoreApp={appStoreApp} showTitle />
         </>
       )}
     </div>

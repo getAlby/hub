@@ -76,7 +76,7 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
             description:
               "Link your lightning address & other apps to this Hub.",
             checked: isLinked,
-            to: "/apps",
+            to: "/apps?tab=connected-apps",
           },
         ]
       : []),
@@ -92,7 +92,7 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
       description:
         "Seamlessly connect apps and integrate your wallet with other apps from your Hub.",
       checked: hasCustomApp,
-      to: "/appstore",
+      to: "/apps?tab=app-store",
     },
     ...(hasMnemonic
       ? [

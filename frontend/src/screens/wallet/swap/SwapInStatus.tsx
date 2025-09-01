@@ -7,14 +7,13 @@ import {
   ZapIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import Lottie from "react-lottie";
 import { useParams } from "react-router-dom";
-import animationDataDark from "src/assets/lotties/loading-dark.json";
-import animationDataLight from "src/assets/lotties/loading-light.json";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import LottieLoading from "src/components/LottieLoading";
 import QRCode from "src/components/QRCode";
 import { Button } from "src/components/ui/button";
 import {
@@ -23,15 +22,13 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { LoadingButton } from "src/components/ui/loading-button";
-import { useTheme } from "src/components/ui/theme-provider";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
-import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
@@ -42,8 +39,6 @@ import { RedeemOnchainFundsResponse, SwapIn } from "src/types";
 import { request } from "src/utils/request";
 
 export default function SwapInStatus() {
-  const { toast } = useToast();
-  const { isDarkMode } = useTheme();
   const { data: info } = useInfo();
   const { data: balances } = useBalances();
   const { data: recommendedFees } = useMempoolApi<{
@@ -76,20 +71,11 @@ export default function SwapInStatus() {
   }
 
   const copyPaymentHash = () => {
-    copyToClipboard(swap.paymentHash, toast);
+    copyToClipboard(swap.paymentHash);
   };
 
   const copyAddress = () => {
-    copyToClipboard(swap.lockupAddress, toast);
-  };
-
-  const defaultOptions = {
-    loop: true,
-    autoplay: true,
-    animationData: isDarkMode ? animationDataDark : animationDataLight,
-    rendererSettings: {
-      preserveAspectRatio: "xMidYMid slice",
-    },
+    copyToClipboard(swap.lockupAddress);
   };
 
   async function payWithAlbyHub() {
@@ -121,9 +107,7 @@ export default function SwapInStatus() {
       console.info("Redeemed onchain funds", response);
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Failed to redeem onchain funds",
+      toast.error("Failed to redeem onchain funds", {
         description: "" + error,
       });
       setPaying(false);
@@ -165,7 +149,7 @@ export default function SwapInStatus() {
                   <FormattedFiatAmount amount={swap.receiveAmount as number} />
                 </div>
                 <Button onClick={copyPaymentHash} variant="outline">
-                  <CopyIcon className="w-4 h-4 mr-2" />
+                  <CopyIcon />
                   Copy Payment Hash
                 </Button>
               </>
@@ -176,7 +160,7 @@ export default function SwapInStatus() {
                 )}
                 {swapStatus === "PENDING" &&
                   (swap.lockupTxId ? (
-                    <Lottie options={defaultOptions} />
+                    <LottieLoading />
                   ) : (
                     <QRCode value={swap.lockupAddress} />
                   ))}
@@ -190,7 +174,7 @@ export default function SwapInStatus() {
                   <div className="flex justify-center gap-4 flex-wrap">
                     {swap.state !== "FAILED" && (
                       <Button onClick={copyAddress} variant="outline">
-                        <CopyIcon className="w-4 h-4 mr-2" />
+                        <CopyIcon />
                         Copy Address
                       </Button>
                     )}
@@ -203,7 +187,7 @@ export default function SwapInStatus() {
                           onClick={payWithAlbyHub}
                           disabled={!recommendedFees}
                         >
-                          <ZapIcon className="w-4 h-4 mr-2" />
+                          <ZapIcon />
                           Use Hub On-Chain Funds
                         </LoadingButton>
                       )}
@@ -288,7 +272,7 @@ export default function SwapInStatus() {
                               <CircleHelpIcon className="h-4 w-4 text-muted-foreground" />
                             </div>
                           </TooltipTrigger>
-                          <TooltipContent className="w-[300px]">
+                          <TooltipContent>
                             Deposit usually fails when there is an amount
                             mismatch or if Boltz failed to send the lightning
                             payment to your node.
@@ -324,7 +308,7 @@ export default function SwapInStatus() {
                           <CircleHelpIcon className="h-4 w-4 text-muted-foreground" />
                         </div>
                       </TooltipTrigger>
-                      <TooltipContent className="w-[300px]">
+                      <TooltipContent>
                         Deposit usually fails when there is an amount mismatch
                         or if Boltz failed to send the lightning payment to your
                         node. You can use the Swap Refund button in Settings{" "}

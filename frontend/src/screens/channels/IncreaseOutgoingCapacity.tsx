@@ -1,20 +1,19 @@
 import { InfoIcon } from "lucide-react";
 import React, { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
-import ExternalLink from "src/components/ExternalLink";
-import Loading from "src/components/Loading";
-import { MempoolAlert } from "src/components/MempoolAlert";
 import { ChannelPeerNote } from "src/components/channels/ChannelPeerNote";
 import { ChannelPublicPrivateAlert } from "src/components/channels/ChannelPublicPrivateAlert";
 import { DuplicateChannelAlert } from "src/components/channels/DuplicateChannelAlert";
 import { SwapAlert } from "src/components/channels/SwapAlert";
-import {
-  Button,
-  ExternalLinkButton,
-  LinkButton,
-} from "src/components/ui/button";
+import ExternalLink from "src/components/ExternalLink";
+import Loading from "src/components/Loading";
+import { MempoolAlert } from "src/components/MempoolAlert";
+import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import {
@@ -30,7 +29,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
-import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannelPeerSuggestions } from "src/hooks/useChannelPeerSuggestions";
 import { useChannels } from "src/hooks/useChannels";
@@ -40,16 +38,15 @@ import { cn, formatAmount } from "src/lib/utils";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import {
   Channel,
-  MempoolNode,
   Network,
   NewChannelOrder,
   OnchainOrder,
   RecommendedChannelPeer,
 } from "src/types";
-import { request } from "src/utils/request";
 
 import LightningNetworkDarkSVG from "public/images/illustrations/lightning-network-dark.svg";
 import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
+import { useNodeDetails } from "src/hooks/useNodeDetails";
 
 function getPeerKey(peer: RecommendedChannelPeer) {
   return JSON.stringify(peer);
@@ -76,7 +73,6 @@ function NewChannelInternal({
   const { data: _channelPeerSuggestions } = useChannelPeerSuggestions();
   const { data: balances } = useBalances();
 
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   const presetAmounts = [250_000, 500_000, 1_000_000];
@@ -99,6 +95,7 @@ function NewChannelInternal({
       paymentMethod: "onchain",
       minimumChannelSize: 0,
       maximumChannelSize: 0,
+      description: "",
       pubkey: "",
       host: "",
       image: "",
@@ -180,9 +177,8 @@ function NewChannelInternal({
       useChannelOrderStore.getState().setOrder(order as NewChannelOrder);
       navigate("/channels/order");
     } catch (error) {
-      toast({
-        variant: "destructive",
-        description: "Something went wrong: " + error,
+      toast.error("Something went wrong", {
+        description: "" + error,
       });
       console.error(error);
     }
@@ -244,7 +240,7 @@ function NewChannelInternal({
                     <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                   </div>
                 </TooltipTrigger>
-                <TooltipContent className="w-[300px]">
+                <TooltipContent>
                   Configure the amount of spending capacity you need. You will
                   need to deposit on-chain bitcoin to cover the entire channel
                   size, plus on-chain fees.
@@ -331,7 +327,7 @@ function NewChannelInternal({
                                   {peer.name !== "Custom" && (
                                     <img
                                       src={peer.image}
-                                      className="w-8 h-8 object-contain"
+                                      className="size-8 object-contain"
                                     />
                                   )}
                                   <div>
@@ -444,9 +440,6 @@ type NewChannelOnchainProps = {
 };
 
 function NewChannelOnchain(props: NewChannelOnchainProps) {
-  const [nodeDetails, setNodeDetails] = React.useState<
-    MempoolNode | undefined
-  >();
   const { data: peers } = usePeers();
 
   if (props.order.paymentMethod !== "onchain") {
@@ -475,30 +468,14 @@ function NewChannelOnchain(props: NewChannelOnchainProps) {
     [setOrder]
   );
 
-  const fetchNodeDetails = React.useCallback(async () => {
-    if (!pubkey) {
-      setNodeDetails(undefined);
-      return;
-    }
-    try {
-      const data = await request<MempoolNode>(
-        `/api/mempool?endpoint=/v1/lightning/nodes/${pubkey}`
-      );
-
-      setNodeDetails(data);
-      const socketAddress = data?.sockets?.split(",")?.[0];
-      if (socketAddress) {
-        setHost(socketAddress);
-      }
-    } catch (error) {
-      console.error(error);
-      setNodeDetails(undefined);
-    }
-  }, [pubkey, setHost]);
+  const { data: nodeDetails } = useNodeDetails(pubkey);
 
   React.useEffect(() => {
-    fetchNodeDetails();
-  }, [fetchNodeDetails]);
+    const socketAddress = nodeDetails?.sockets?.split(",")?.[0];
+    if (socketAddress) {
+      setHost(socketAddress);
+    }
+  }, [nodeDetails, setHost]);
 
   return (
     <>

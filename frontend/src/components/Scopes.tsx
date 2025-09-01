@@ -148,7 +148,8 @@ const Scopes: React.FC<ScopesProps> = ({
           {scopeGroups.map((sg, index) => {
             const ScopeGroupIcon = scopeGroupIconMap[sg];
             return (
-              <div
+              <button
+                type="button"
                 key={index}
                 className={`flex flex-col items-center border-2 rounded cursor-pointer ${scopeGroup == sg ? "border-primary" : "border-muted"} p-4`}
                 onClick={() => {
@@ -160,7 +161,7 @@ const Scopes: React.FC<ScopesProps> = ({
                 <span className="w-full text-center text-xs text-muted-foreground">
                   {scopeGroupDescriptions[sg]}
                 </span>
-              </div>
+              </button>
             );
           })}
         </div>

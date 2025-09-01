@@ -106,11 +106,20 @@ type Swap struct {
 	LockupTxId         string
 	ClaimTxId          string
 	AutoSwap           bool
+	UsedXpub           bool
 	TimeoutBlockHeight uint32
 	BoltzPubkey        string
 	SwapTree           datatypes.JSON
 	CreatedAt          time.Time
 	UpdatedAt          time.Time
+}
+
+type Forward struct {
+	ID                          uint
+	OutboundAmountForwardedMsat uint64
+	TotalFeeEarnedMsat          uint64
+	CreatedAt                   time.Time
+	UpdatedAt                   time.Time
 }
 
 const (

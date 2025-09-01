@@ -1,14 +1,14 @@
 import { HelpCircleIcon } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import ResponsiveButton from "src/components/ResponsiveButton";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
-import { useToast } from "src/components/ui/use-toast";
 import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
@@ -20,7 +20,6 @@ import { handleRequestError } from "src/utils/handleRequestError";
 export function NewSubwallet() {
   const navigate = useNavigate();
   const [name, setName] = React.useState("");
-  const { toast } = useToast();
   const { data: appsData } = useApps(
     undefined,
     undefined,
@@ -77,9 +76,9 @@ export function NewSubwallet() {
         state: createAppResponse,
       });
 
-      toast({ title: "New sub-wallet created for " + name });
+      toast("New sub-wallet created for " + name);
     } catch (error) {
-      handleRequestError(toast, "Failed to create app", error);
+      handleRequestError("Failed to create app", error);
     }
     setLoading(false);
   };

@@ -1,5 +1,6 @@
 import { ClipboardPasteIcon, InfoIcon } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import { ExecuteCustomNodeCommandDialogContent } from "src/components/ExecuteCustomNodeCommandDialogContent";
 import ExternalLink from "src/components/ExternalLink";
 import { ResetRoutingDataDialogContent } from "src/components/ResetRoutingDataDialogContent";
@@ -20,7 +21,6 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { Textarea } from "src/components/ui/textarea";
-import { useToast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";
 
 import { request } from "src/utils/request";
@@ -142,7 +142,6 @@ function RefundSwapDialogContent() {
   const [swapId, setSwapId] = React.useState<string>("");
   const [address, setAddress] = React.useState<string>("");
   const [isInternal, setInternal] = React.useState<boolean>(true);
-  const { toast } = useToast();
 
   async function onConfirm() {
     try {
@@ -157,12 +156,10 @@ function RefundSwapDialogContent() {
         }),
       });
       console.info("Processed refund", response);
-      toast({ title: "Refund transaction broadcasted" });
+      toast("Refund transaction broadcasted");
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Failed to process refund",
+      toast.error("Failed to process refund", {
         description: "" + error,
       });
     }
@@ -410,19 +407,19 @@ export default function DebugTools() {
           }}
         >
           <Button
-            variant={"outline"}
+            variant="outline"
             onClick={() => apiRequest("/api/info", "GET")}
           >
             Get Info
           </Button>
           <Button
-            variant={"outline"}
+            variant="outline"
             onClick={() => apiRequest("/api/peers", "GET")}
           >
             List Peers
           </Button>
           <Button
-            variant={"outline"}
+            variant="outline"
             onClick={() => apiRequest("/api/channels", "GET")}
           >
             List Channels
@@ -452,20 +449,17 @@ export default function DebugTools() {
             </>
           )}
           <AlertDialogTrigger asChild>
-            <Button variant={"outline"} onClick={() => setDialog("getAppLogs")}>
+            <Button variant="outline" onClick={() => setDialog("getAppLogs")}>
               Get App Logs
             </Button>
           </AlertDialogTrigger>
           <AlertDialogTrigger asChild>
-            <Button
-              variant={"outline"}
-              onClick={() => setDialog("getNodeLogs")}
-            >
+            <Button variant="outline" onClick={() => setDialog("getNodeLogs")}>
               Get Node Logs
             </Button>
           </AlertDialogTrigger>
           <Button
-            variant={"outline"}
+            variant="outline"
             onClick={() => {
               apiRequest(`/api/node/status`, "GET");
             }}
@@ -473,7 +467,7 @@ export default function DebugTools() {
             Get Node Status
           </Button>
           <Button
-            variant={"outline"}
+            variant="outline"
             onClick={() => {
               apiRequest(`/api/balances`, "GET");
             }}
@@ -482,7 +476,7 @@ export default function DebugTools() {
           </Button>
           <AlertDialogTrigger asChild>
             <Button
-              variant={"outline"}
+              variant="outline"
               onClick={() => setDialog("getNetworkGraph")}
             >
               Get Network Graph
@@ -491,7 +485,7 @@ export default function DebugTools() {
           {(info?.backendType === "LDK" || info?.backendType === "CASHU") && (
             <AlertDialogTrigger asChild>
               <Button
-                variant={"outline"}
+                variant="outline"
                 onClick={() => setDialog("resetRoutingData")}
               >
                 Clear Routing Data
@@ -499,7 +493,7 @@ export default function DebugTools() {
             </AlertDialogTrigger>
           )}
           <Button
-            variant={"outline"}
+            variant="outline"
             onClick={() => {
               apiRequest(`/api/commands`, "GET");
             }}
@@ -508,7 +502,7 @@ export default function DebugTools() {
           </Button>
           <AlertDialogTrigger asChild>
             <Button
-              variant={"outline"}
+              variant="outline"
               onClick={() => {
                 apiRequest(`/api/commands`, "GET");
                 setDialog("customNodeCommand");
@@ -519,7 +513,7 @@ export default function DebugTools() {
           </AlertDialogTrigger>
           {info?.backendType === "LDK" && (
             <Button
-              variant={"outline"}
+              variant="outline"
               onClick={() => {
                 apiRequest(`/api/command`, "POST", {
                   command: "export_pathfinding_scores",
