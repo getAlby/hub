@@ -978,7 +978,7 @@ func (api *api) GetUnusedOnchainAddress(ctx context.Context) (string, error) {
 
 	if currentAddress != "" {
 		// check if address has any transactions
-		response, err := api.RequestEsploraApi("/address/" + currentAddress + "/txs")
+		response, err := api.RequestEsploraApi(ctx, "/address/"+currentAddress+"/txs")
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to get current address transactions")
 			return currentAddress, nil
@@ -1043,14 +1043,14 @@ func (api *api) GetBalances(ctx context.Context) (*BalancesResponse, error) {
 }
 
 // TODO: remove dependency on this endpoint
-func (api *api) RequestMempoolApi(endpoint string) (interface{}, error) {
+func (api *api) RequestMempoolApi(ctx context.Context, endpoint string) (interface{}, error) {
 	url := api.cfg.GetEnv().MempoolApi + endpoint
 
 	client := http.Client{
 		Timeout: time.Second * 10,
 	}
 
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
 			"url": url,

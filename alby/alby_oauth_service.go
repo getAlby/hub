@@ -267,7 +267,7 @@ func (svc *albyOAuthService) GetVssAuthToken(ctx context.Context, nodeIdentifier
 		return "", err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/internal/auth_tokens", albyOAuthAPIURL), body)
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/internal/auth_tokens", albyOAuthAPIURL), body)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Error creating request for vss auth token endpoint")
 		return "", err
@@ -335,7 +335,7 @@ func (svc *albyOAuthService) CreateLightningAddress(ctx context.Context, address
 		return nil, err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/internal/lightning_addresses", albyOAuthAPIURL), body)
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/internal/lightning_addresses", albyOAuthAPIURL), body)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Error creating request for vss auth token endpoint")
 		return nil, err
@@ -398,7 +398,7 @@ func (svc *albyOAuthService) DeleteLightningAddress(ctx context.Context, address
 	client := svc.oauthConf.Client(ctx, token)
 	client.Timeout = 10 * time.Second
 
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/internal/lightning_addresses/%s", albyOAuthAPIURL, address), nil)
+	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/internal/lightning_addresses/%s", albyOAuthAPIURL, address), nil)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Error creating request for delete lightning address endpoint")
 		return err
@@ -435,7 +435,7 @@ func (svc *albyOAuthService) GetMe(ctx context.Context) (*AlbyMe, error) {
 	client := svc.oauthConf.Client(ctx, token)
 	client.Timeout = 10 * time.Second
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/internal/users", albyOAuthAPIURL), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/internal/users", albyOAuthAPIURL), nil)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Error creating request /me")
 		return nil, err
@@ -490,7 +490,7 @@ func (svc *albyOAuthService) GetBalance(ctx context.Context) (*AlbyBalance, erro
 	client := svc.oauthConf.Client(ctx, token)
 	client.Timeout = 10 * time.Second
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/internal/lndhub/balance", albyOAuthAPIURL), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/internal/lndhub/balance", albyOAuthAPIURL), nil)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Error creating request to balance endpoint")
 		return nil, err
@@ -554,7 +554,7 @@ func (svc *albyOAuthService) SendPayment(ctx context.Context, invoice string) er
 		return err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/internal/lndhub/bolt11", albyOAuthAPIURL), body)
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/internal/lndhub/bolt11", albyOAuthAPIURL), body)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Error creating request bolt11 endpoint")
 		return err
@@ -854,7 +854,7 @@ func (svc *albyOAuthService) ConsumeEvent(ctx context.Context, event *events.Eve
 		return
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/events", albyOAuthAPIURL), body)
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/events", albyOAuthAPIURL), body)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Error creating request /events")
 		return
@@ -937,7 +937,7 @@ func (svc *albyOAuthService) backupChannels(ctx context.Context, event *events.E
 		return fmt.Errorf("failed to encode channels backup request payload: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/internal/backups", albyOAuthAPIURL), body)
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/internal/backups", albyOAuthAPIURL), body)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}
@@ -978,7 +978,7 @@ func (svc *albyOAuthService) createAlbyAccountNWCNode(ctx context.Context) (stri
 		return "", err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/internal/nwcs", albyOAuthAPIURL), body)
+	req, err := http.NewRequestWithContext(ctx, "POST", fmt.Sprintf("%s/internal/nwcs", albyOAuthAPIURL), body)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Error creating request /internal/nwcs")
 		return "", err
@@ -1026,7 +1026,7 @@ func (svc *albyOAuthService) destroyAlbyAccountNWCNode(ctx context.Context) erro
 	client := svc.oauthConf.Client(ctx, token)
 	client.Timeout = 10 * time.Second
 
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/internal/nwcs", albyOAuthAPIURL), nil)
+	req, err := http.NewRequestWithContext(ctx, "DELETE", fmt.Sprintf("%s/internal/nwcs", albyOAuthAPIURL), nil)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Error creating request /internal/nwcs")
 		return err
@@ -1077,7 +1077,7 @@ func (svc *albyOAuthService) activateAlbyAccountNWCNode(ctx context.Context, wal
 		return err
 	}
 
-	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/internal/nwcs/activate", albyOAuthAPIURL), body)
+	req, err := http.NewRequestWithContext(ctx, "PUT", fmt.Sprintf("%s/internal/nwcs/activate", albyOAuthAPIURL), body)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Error creating request /internal/nwcs/activate")
 		return err
@@ -1128,7 +1128,7 @@ func (svc *albyOAuthService) GetLSPChannelOffer(ctx context.Context) (*LSPChanne
 	client := svc.oauthConf.Client(ctx, token)
 	client.Timeout = 10 * time.Second
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/internal/lsp", albyOAuthAPIURL), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/internal/lsp", albyOAuthAPIURL), nil)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Error creating request /me")
 		return nil, err
@@ -1241,7 +1241,7 @@ func (svc *albyOAuthService) requestAutoChannel(ctx context.Context, url string,
 	}
 	bodyReader := bytes.NewReader(payloadBytes)
 
-	req, err := http.NewRequest(http.MethodPost, url, bodyReader)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bodyReader)
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
 			"url": url,
@@ -1360,7 +1360,7 @@ func (svc *albyOAuthService) getLSPInfo(ctx context.Context, url string) (pubkey
 	}
 	var lsps1LspInfo lsps1LSPInfo
 
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
 			"url": url,

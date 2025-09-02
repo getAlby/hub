@@ -359,7 +359,7 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		PhoenixdAddress, _ := svc.cfg.Get("PhoenixdAddress", encryptionKey)
 		PhoenixdAuthorization, _ := svc.cfg.Get("PhoenixdAuthorization", encryptionKey)
 
-		lnClient, err = phoenixd.NewPhoenixService(PhoenixdAddress, PhoenixdAuthorization)
+		lnClient, err = phoenixd.NewPhoenixService(ctx, PhoenixdAddress, PhoenixdAuthorization)
 	case config.CashuBackendType:
 		mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		cashuMintUrl, _ := svc.cfg.Get("CashuMintUrl", encryptionKey)

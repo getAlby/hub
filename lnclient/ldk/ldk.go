@@ -1314,7 +1314,7 @@ func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, 
 			Timeout: time.Second * 10,
 		}
 
-		req, err := http.NewRequest(http.MethodGet, url, nil)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		if err != nil {
 			logger.Logger.WithError(err).WithFields(logrus.Fields{
 				"url": url,

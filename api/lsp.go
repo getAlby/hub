@@ -43,7 +43,7 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 	}
 
 	logger.Logger.Info("Requesting LSP info")
-	lspInfo, err := api.getLSPS1LSPInfo(request.LSPUrl + "/get_info")
+	lspInfo, err := api.getLSPS1LSPInfo(ctx, request.LSPUrl+"/get_info")
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to request LSP info")
@@ -113,7 +113,7 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 	return newChannelResponse, nil
 }
 
-func (api *api) getLSPS1LSPInfo(url string) (*lspInfo, error) {
+func (api *api) getLSPS1LSPInfo(ctx context.Context, url string) (*lspInfo, error) {
 
 	type lsps1LSPInfo struct {
 		MinRequiredChannelConfirmations uint64   `json:"min_required_channel_confirmations"`
@@ -125,7 +125,7 @@ func (api *api) getLSPS1LSPInfo(url string) (*lspInfo, error) {
 	client := http.Client{
 		Timeout: time.Second * 10,
 	}
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
 			"url": url,
@@ -278,7 +278,7 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderReques
 	}
 	bodyReader := bytes.NewReader(payloadBytes)
 
-	req, err := http.NewRequest(http.MethodPost, request.LSPUrl+"/create_order", bodyReader)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, request.LSPUrl+"/create_order", bodyReader)
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
 			"url": request.LSPUrl,
