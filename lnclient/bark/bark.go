@@ -2,8 +2,6 @@ package bark
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/hex"
 	"errors"
 	"os"
 	"path/filepath"
@@ -15,12 +13,12 @@ import (
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 
+	bindings "github.com/getAlby/hub/bark"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/notifications"
-	// bindings "github.com/getAlby/hub/bark"
-	bindings "github.com/getAlby/second-hub-go/bark"
+	//bindings "github.com/getAlby/second-hub-go/bark"
 )
 
 const barkDB = "bark.sqlite"
@@ -150,7 +148,7 @@ func (s *BarkService) Shutdown() error {
 	return nil
 }
 
-func (s *BarkService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64, timeoutSeconds *int64) (*lnclient.PayInvoiceResponse, error) {
+func (s *BarkService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
 	paymentRequest, err := decodepay.Decodepay(invoice)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -243,14 +241,6 @@ func (s *BarkService) MakeInvoice(ctx context.Context, amount int64, description
 
 	logger.Logger.WithField("invoice", invoice).Info("created bolt11 invoice")
 
-	// FIXME: this fetch the preimage with fetch_offchain_onboard_by_payment_hash
-	fakePreimageBytes := make([]byte, 32) // 32 bytes * 8 bits/byte = 256 bits
-	_, err = rand.Read(fakePreimageBytes)
-	if err != nil {
-		return nil, err
-	}
-	fakePreimage := hex.EncodeToString(fakePreimageBytes)
-
 	transaction, err = invoiceToTransaction(invoice)
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to map bolt11 invoice to transaction")
@@ -258,13 +248,20 @@ func (s *BarkService) MakeInvoice(ctx context.Context, amount int64, description
 
 	}
 
+	barkInvoice, err := s.wallet.LookupInvoice(transaction.PaymentHash)
+	if err != nil {
+		return nil, err
+	}
+	transaction.Preimage = barkInvoice.PaymentPreimage
+
+	// FIXME: if Alby Hub is restarted we won't be able to claim previously-created invoices
 	go func() {
 		err := s.wallet.ClaimBolt11Payment(invoice)
 		if err != nil {
 			logger.Logger.WithError(err).Error("failed to claim bolt11 payment")
+			return
 		}
 
-		transaction.Preimage = fakePreimage
 		settledAt := time.Now().Unix()
 		transaction.SettledAt = &settledAt
 
