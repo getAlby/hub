@@ -99,7 +99,7 @@ export const TransactionsListMenu = ({ appId }: { appId?: number }) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {albyMe?.subscription.plan_code ? (
+        {!albyMe?.subscription.plan_code ? (
           <UpgradeDialog>
             <div className="cursor-pointer">
               <DropdownMenuItem className="w-full pointer-events-none">
