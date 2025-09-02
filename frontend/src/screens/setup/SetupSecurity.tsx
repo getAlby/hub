@@ -68,7 +68,8 @@ export function SetupSecurity() {
               </span>
             </div>
             {store.nodeInfo.backendType === "LND" ||
-            store.nodeInfo.backendType === "PHOENIX" ? (
+            store.nodeInfo.backendType === "PHOENIX" ||
+            store.nodeInfo.backendType === "BARK" ? (
               <div className="flex gap-3 items-center">
                 <div className="shrink-0">
                   <ShieldAlertIcon className="size-6" />
