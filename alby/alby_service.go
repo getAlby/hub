@@ -33,7 +33,7 @@ func (svc *albyService) GetBitcoinRate(ctx context.Context) (*BitcoinRate, error
 
 	url := fmt.Sprintf("%s/rates/%s", albyInternalAPIURL, currency)
 
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"currency": currency,
@@ -88,7 +88,7 @@ func (svc *albyService) GetBitcoinRate(ctx context.Context) (*BitcoinRate, error
 func (svc *albyService) GetChannelPeerSuggestions(ctx context.Context) ([]ChannelPeerSuggestion, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/internal/channel_suggestions", albyInternalAPIURL), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/internal/channel_suggestions", albyInternalAPIURL), nil)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Error creating request to channel_suggestions endpoint")
 		return nil, err
@@ -130,7 +130,7 @@ func (svc *albyService) GetChannelPeerSuggestions(ctx context.Context) ([]Channe
 func (svc *albyService) GetInfo(ctx context.Context) (*AlbyInfo, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/internal/info", albyInternalAPIURL), nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/internal/info", albyInternalAPIURL), nil)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Error creating request to alby info endpoint")
 		return nil, err

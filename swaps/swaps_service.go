@@ -1340,14 +1340,13 @@ func (svc *swapsService) doMempoolRequest(endpoint string, result interface{}) e
 		Timeout: time.Second * 10,
 	}
 
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(svc.ctx, http.MethodGet, url, nil)
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
 			"url": url,
 		}).Error("Failed to create http request")
 		return err
 	}
-	req = req.WithContext(svc.ctx)
 	res, err := client.Do(req)
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
@@ -1488,11 +1487,10 @@ func (svc *swapsService) getNextUnusedAddressFromXpub() (string, error) {
 			Timeout: time.Second * 10,
 		}
 
-		req, err := http.NewRequest(http.MethodGet, url, nil)
+		req, err := http.NewRequestWithContext(svc.ctx, http.MethodGet, url, nil)
 		if err != nil {
 			return nil, err
 		}
-		req = req.WithContext(svc.ctx)
 		res, err := client.Do(req)
 		if err != nil {
 			return nil, err
