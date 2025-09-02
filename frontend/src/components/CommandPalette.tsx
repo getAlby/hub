@@ -57,8 +57,9 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const runCommand = React.useCallback(
     (command: () => void) => {
       onOpenChange?.(false);
-      command();
       setSearchText("");
+      // hack: run the command after 1ms delay to fix autofocus
+      setTimeout(command, 1);
     },
     [onOpenChange]
   );
