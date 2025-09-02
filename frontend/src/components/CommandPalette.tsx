@@ -1,7 +1,9 @@
 import {
+  ArrowUpDown,
+  Code2,
   CreditCard,
+  FileSignature,
   FileText,
-  HelpCircle,
   Home,
   Info,
   LayoutGrid,
@@ -14,8 +16,9 @@ import {
   Settings,
   Shield,
   Shuffle,
+  SquareStack,
   User,
-  Users,
+  UserPlus2,
   Wallet,
 } from "lucide-react";
 import * as React from "react";
@@ -98,13 +101,13 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => navigate("/channels"))}
-            keywords={["node", "liquidity"]}
+            keywords={["node", "liquidity", "channels"]}
           >
             <Network />
-            <span>Channels</span>
+            <span>Node</span>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => navigate("/peers"))}>
-            <Users />
+            <Network />
             <span>Peers</span>
           </CommandItem>
           <CommandItem
@@ -159,7 +162,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
           <CommandItem
             onSelect={() => runCommand(() => navigate("/wallet/sign-message"))}
           >
-            <Shield />
+            <FileSignature />
             <span>Sign Message</span>
           </CommandItem>
         </CommandGroup>
@@ -196,7 +199,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
           <CommandItem
             onSelect={() => runCommand(() => navigate("/settings/developer"))}
           >
-            <HelpCircle />
+            <Code2 />
             <span>Developer Settings</span>
           </CommandItem>
         </CommandGroup>
@@ -207,15 +210,23 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             <span>Connect New App</span>
           </CommandItem>
           <CommandItem
+            keywords={["New Sub-Wallet"]}
             onSelect={() => runCommand(() => navigate("/sub-wallets/new"))}
           >
-            <CreditCard />
+            <SquareStack />
             <span>Create Sub-wallet</span>
+          </CommandItem>
+          <CommandItem
+            keywords={["New Channel"]}
+            onSelect={() => runCommand(() => navigate("/channels/incoming"))}
+          >
+            <ArrowUpDown />
+            <span>Open Channel</span>
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => navigate("/peers/new"))}
           >
-            <Users />
+            <UserPlus2 />
             <span>Connect Peer</span>
           </CommandItem>
         </CommandGroup>
