@@ -6,10 +6,18 @@ import {
   HandCoinsIcon,
   RefreshCwIcon,
 } from "lucide-react";
+import TickSVG from "public/images/illustrations/tick.svg";
 import { useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import LottieLoading from "src/components/LottieLoading";
+import { MempoolAlert } from "src/components/MempoolAlert";
+import OnchainAddressDisplay from "src/components/OnchainAddressDisplay";
 import QRCode from "src/components/QRCode";
+import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -18,73 +26,65 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { useInfo } from "src/hooks/useInfo";
-import { useMempoolApi } from "src/hooks/useMempoolApi";
-import { useOnchainAddress } from "src/hooks/useOnchainAddress";
-import { copyToClipboard } from "src/lib/clipboard";
-import { cn } from "src/lib/utils";
-import { MempoolUtxo, SwapResponse } from "src/types";
-
-import TickSVG from "public/images/illustrations/tick.svg";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { toast } from "sonner";
-import FormattedFiatAmount from "src/components/FormattedFiatAmount";
-import LottieLoading from "src/components/LottieLoading";
-import { MempoolAlert } from "src/components/MempoolAlert";
-import OnchainAddressDisplay from "src/components/OnchainAddressDisplay";
-import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "src/components/ui/tabs";
 import { useBalances } from "src/hooks/useBalances";
+import { useInfo } from "src/hooks/useInfo";
+import { useMempoolApi } from "src/hooks/useMempoolApi";
+import { useOnchainAddress } from "src/hooks/useOnchainAddress";
 import { useSwapInfo } from "src/hooks/useSwaps";
+import { copyToClipboard } from "src/lib/clipboard";
+import { MempoolUtxo, SwapResponse } from "src/types";
 import { request } from "src/utils/request";
 
 export default function ReceiveOnchain() {
-  const [receiveType, setReceiveType] = useState("spending");
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [tab, setTab] = useState(searchParams.get("type") || "onchain");
 
   useEffect(() => {
-    const receiveType = searchParams.get("type");
-    if (receiveType) {
-      setReceiveType(receiveType);
+    const newTabValue = searchParams.get("type");
+    if (newTabValue) {
+      setTab(newTabValue);
+      setSearchParams({});
     }
-  }, [searchParams]);
+  }, [searchParams, setSearchParams]);
 
   return (
     <div className="grid gap-5">
       <AppHeader title="Receive On-chain" />
       <div className="w-full max-w-lg grid gap-5">
         <MempoolAlert />
-        <div className="flex items-center text-center text-foreground font-medium rounded-xl bg-muted p-1">
-          <div
-            className={cn(
-              "cursor-pointer rounded-lg flex-1 py-1.5 text-sm",
-              receiveType == "spending" &&
-                "text-foreground bg-background shadow-md"
-            )}
-            onClick={() => setReceiveType("spending")}
-          >
-            Receive to Spending
-          </div>
-          <div
-            className={cn(
-              "cursor-pointer rounded-lg flex-1 py-1.5 text-sm",
-              receiveType == "onchain" &&
-                "text-foreground bg-background shadow-md"
-            )}
-            onClick={() => setReceiveType("onchain")}
-          >
-            Receive to On-chain
-          </div>
-        </div>
-        {receiveType == "onchain" ? (
-          <ReceiveToOnchain />
-        ) : (
-          <ReceiveToSpending />
-        )}
+        <Tabs value={tab} onValueChange={setTab} className="w-full">
+          <TabsList className="w-full mb-2">
+            <TabsTrigger
+              value="onchain"
+              className="flex gap-2 items-center w-full"
+            >
+              Receive to On-chain
+            </TabsTrigger>
+            <TabsTrigger
+              value="spending"
+              className="flex gap-2 items-center w-full"
+            >
+              Receive to Spending
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="onchain">
+            <ReceiveToOnchain />
+          </TabsContent>
+          <TabsContent value="spending">
+            <ReceiveToSpending />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
