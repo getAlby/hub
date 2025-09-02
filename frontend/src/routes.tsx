@@ -1,5 +1,4 @@
 import { Navigate } from "react-router-dom";
-import AppStore from "src/components/connections/AppStore";
 import AppLayout from "src/components/layouts/AppLayout";
 import SettingsLayout from "src/components/layouts/SettingsLayout";
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
@@ -369,10 +368,6 @@ const routes = [
         element: <DefaultRedirect />,
         handle: { crumb: () => "App Store" },
         children: [
-          {
-            index: true,
-            element: <AppStore />,
-          },
           {
             path: ":appStoreId",
             element: <AppStoreDetail />,
