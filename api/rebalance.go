@@ -49,7 +49,7 @@ func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *R
 	}
 	bodyReader := bytes.NewReader(payloadBytes)
 
-	req, err := http.NewRequest(http.MethodPost, api.cfg.GetEnv().RebalanceServiceUrl+"/api/rebalance/v1/create_order", bodyReader)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, api.cfg.GetEnv().RebalanceServiceUrl+"/api/rebalance/v1/create_order", bodyReader)
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
 			"request": newRspCreateOrderRequest,
@@ -124,7 +124,7 @@ func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *R
 		"order_id":        rebalanceCreateOrderResponse.OrderId,
 	}
 
-	payRebalanceInvoiceResponse, err := api.svc.GetTransactionsService().SendPaymentSync(ctx, rebalanceCreateOrderResponse.PayRequest, nil, payMetadata, api.svc.GetLNClient(), nil, nil, nil)
+	payRebalanceInvoiceResponse, err := api.svc.GetTransactionsService().SendPaymentSync(ctx, rebalanceCreateOrderResponse.PayRequest, nil, payMetadata, api.svc.GetLNClient(), nil, nil)
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to pay rebalance invoice")

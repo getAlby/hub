@@ -6,13 +6,15 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 
-import { nwc } from "@getalby/sdk";
+import { NWCClient } from "@getalby/sdk/nwc";
 import dayjs from "dayjs";
 import { ChevronUpIcon, ZapIcon } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import Loading from "src/components/Loading";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Dialog,
   DialogContent,
@@ -23,10 +25,8 @@ import {
 } from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
 import { Textarea } from "src/components/ui/textarea";
-import { useToast } from "src/components/ui/use-toast";
 import { PayInvoiceResponse } from "src/types";
 import { request } from "src/utils/request";
 
@@ -44,10 +44,10 @@ type Message = {
 
 type TabType = "latest" | "top";
 
-let nwcClient: nwc.NWCClient | undefined;
-function getNWCClient(): nwc.NWCClient {
+let nwcClient: NWCClient | undefined;
+function getNWCClient(): NWCClient {
   if (!nwcClient) {
-    nwcClient = new nwc.NWCClient({
+    nwcClient = new NWCClient({
       nostrWalletConnectUrl: LIGHTNING_MESSAGEBOARD_NWC_URL,
     });
   }
@@ -70,7 +70,6 @@ export function LightningMessageboardWidget() {
   const [isLoading, setLoading] = React.useState(false);
   const [isSubmitting, setSubmitting] = React.useState(false);
   const [dialogOpen, setDialogOpen] = React.useState(false);
-  const { toast } = useToast();
   const [isOpen, setOpen] = React.useState(false);
   const [currentTab, setCurrentTab] = React.useState<TabType>("latest");
 
@@ -139,10 +138,8 @@ export function LightningMessageboardWidget() {
     e.preventDefault();
 
     if (+amount < 1000) {
-      toast({
-        title: "Amount too low",
+      toast.error("Amount too low", {
         description: "Minimum payment is 1000 sats",
-        variant: "destructive",
       });
       return;
     }
@@ -172,13 +169,12 @@ export function LightningMessageboardWidget() {
 
       setMessageText("");
       loadMessages();
-      toast({ title: "Successfully sent message" });
+      toast("Successfully sent message");
       setDialogOpen(false);
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        description: "Something went wrong: " + error,
+      toast.error("Something went wrong", {
+        description: "" + error,
       });
     }
     setSubmitting(false);
@@ -228,7 +224,7 @@ export function LightningMessageboardWidget() {
                       {message.message}
                     </CardTitle>
                   </CardHeader>
-                  <CardFooter className="flex items-center justify-between text-sm">
+                  <CardFooter className="flex items-center justify-between text-sm pb-2">
                     <CardTitle className="break-all font-normal text-xs">
                       <span className="text-muted-foreground">by</span>{" "}
                       {message.name || "Anonymous"}{" "}
@@ -237,8 +233,8 @@ export function LightningMessageboardWidget() {
                       </span>
                     </CardTitle>
                     <div>
-                      <Badge className="py-1">
-                        <ZapIcon className="w-4 h-4 mr-1" />{" "}
+                      <Badge>
+                        <ZapIcon />
                         {new Intl.NumberFormat().format(message.amount)}
                       </Badge>
                     </div>
@@ -259,7 +255,8 @@ export function LightningMessageboardWidget() {
                 onChange={(e) => setMessageText(e.target.value)}
               />
               <Button>
-                <ZapIcon className="w-4 h-4 mr-2" /> Send
+                <ZapIcon />
+                Send
               </Button>
             </form>
           </CardContent>
@@ -309,7 +306,7 @@ export function LightningMessageboardWidget() {
                   variant="secondary"
                   onClick={() => setAmount("" + topPlace)}
                 >
-                  <ChevronUpIcon className="w-4 h-4 mr-2" />
+                  <ChevronUpIcon />
                   Top
                 </Button>
               </div>

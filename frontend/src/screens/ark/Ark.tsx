@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { HealthCheckAlert } from "src/components/channels/HealthcheckAlert";
 import { OnchainTransactionsTable } from "src/components/channels/OnchainTransactionsTable";
@@ -45,7 +46,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
-import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";
@@ -105,34 +105,27 @@ function useCommand<T>(command: string) {
 }
 
 export function Ark() {
-  const { toast } = useToast();
   const { data: info } = useInfo();
   const { data: balances, mutate: reloadBalances } = useBalances();
-  const executeCommand = React.useCallback(
-    async function <T>(command: string) {
-      try {
-        if (!command) {
-          throw new Error("No command set");
-        }
-        const result = await request("/api/command", {
-          method: "POST",
-          body: JSON.stringify({ command }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        return result as T;
-      } catch (error) {
-        console.error(error);
-        toast({
-          variant: "destructive",
-          title: "Something went wrong: " + error,
-        });
+  const executeCommand = React.useCallback(async function <T>(command: string) {
+    try {
+      if (!command) {
+        throw new Error("No command set");
       }
-    },
-    [toast]
-  );
+      const result = await request("/api/command", {
+        method: "POST",
+        body: JSON.stringify({ command }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      return result as T;
+    } catch (error) {
+      console.error(error);
+      toast.error("Something went wrong: " + error);
+    }
+  }, []);
 
   // TODO: when should this be executed?
   useCommand("maintenance");
@@ -276,9 +269,7 @@ export function Ark() {
                         }>(
                           `pay_to_ark_address --destination=${arkAddress} --amount=${amount}`
                         );
-                        toast({
-                          title: "Sent via Ark",
-                        });
+                        toast("Sent via Ark");
                       }}
                     >
                       <div className="text-muted-foreground flex flex-row items-center">

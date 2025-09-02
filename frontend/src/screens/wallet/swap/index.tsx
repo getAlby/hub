@@ -1,46 +1,46 @@
-import {
-  AlertTriangleIcon,
-  ClipboardPasteIcon,
-  MoveRightIcon,
-  RefreshCwIcon,
-} from "lucide-react";
+import { ClipboardPasteIcon, MoveRightIcon, RefreshCwIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
+import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import ResponsiveButton from "src/components/ResponsiveButton";
-import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
-import { useToast } from "src/components/ui/use-toast";
-import { MIN_AUTO_SWAP_AMOUNT } from "src/constants";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "src/components/ui/tabs";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
-import { useSwapFees } from "src/hooks/useSwaps";
-import { cn } from "src/lib/utils";
+import { useSwapInfo } from "src/hooks/useSwaps";
 import { SwapResponse } from "src/types";
 import { request } from "src/utils/request";
 
 export default function Swap() {
-  const [swapType, setSwapType] = useState("in");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [tab, setTab] = useState(searchParams.get("type") || "in");
 
   useEffect(() => {
-    const queryParams = new URLSearchParams(location.search);
-    const swapType = queryParams.get("type");
-    if (swapType) {
-      setSwapType(swapType);
+    const newTabValue = searchParams.get("type");
+    if (newTabValue) {
+      setTab(newTabValue);
+      setSearchParams({});
     }
-  }, []);
+  }, [searchParams, setSearchParams]);
 
   return (
     <div className="grid gap-5">
       <AppHeader
         title="Swap"
         contentRight={
-          swapType === "out" && (
+          tab === "out" && (
             <Link to="/wallet/swap/auto">
               <ResponsiveButton
                 variant="outline"
@@ -51,38 +51,30 @@ export default function Swap() {
           )
         }
       />
-      <div className="w-full max-w-lg">
-        <div className="flex items-center text-center text-foreground font-medium rounded-lg bg-muted p-1">
-          <div
-            className={cn(
-              "cursor-pointer rounded-md flex-1 py-1.5 text-sm",
-              swapType == "in" && "text-foreground bg-background font-semibold"
-            )}
-            onClick={() => setSwapType("in")}
-          >
+      <Tabs value={tab} onValueChange={setTab} className="w-full max-w-lg">
+        <TabsList className="w-full mb-4">
+          <TabsTrigger value="in" className="flex gap-2 items-center w-full">
             Swap In
-          </div>
-          <div
-            className={cn(
-              "cursor-pointer rounded-md flex-1 py-1.5 text-sm",
-              swapType == "out" && "text-foreground bg-background font-semibold"
-            )}
-            onClick={() => setSwapType("out")}
-          >
+          </TabsTrigger>
+          <TabsTrigger value="out" className="flex gap-2 items-center w-full">
             Swap Out
-          </div>
-        </div>
-        {swapType == "in" ? <SwapInForm /> : <SwapOutForm />}
-      </div>
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="in">
+          <SwapInForm />
+        </TabsContent>
+        <TabsContent value="out">
+          <SwapOutForm />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
 
 function SwapInForm() {
-  const { toast } = useToast();
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
-  const { data: swapFees } = useSwapFees("in");
+  const { data: swapInfo } = useSwapInfo("in");
   const navigate = useNavigate();
 
   const [swapAmount, setSwapAmount] = useState("");
@@ -106,38 +98,27 @@ function SwapInForm() {
         throw new Error("Error swapping in");
       }
       navigate(`/wallet/swap/in/status/${swapInResponse.swapId}`);
-      toast({ title: "Initiated swap" });
+      toast("Initiated swap");
     } catch (error) {
-      toast({
-        title: "Failed to initiate swap",
+      toast.error("Failed to initiate swap", {
         description: (error as Error).message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  if (!info || !balances) {
+  if (!info || !balances || !swapInfo) {
     return <Loading />;
   }
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
-      <div className="mt-6">
+      <div>
         {hasChannelManagement &&
           parseInt(swapAmount || "0") * 1000 >=
             0.8 * balances.lightning.totalReceivable && (
-            <Alert className="mb-6">
-              <AlertTriangleIcon className="h-4 w-4" />
-              <AlertTitle>Low receiving capacity</AlertTitle>
-              <AlertDescription>
-                You likely won't be able to receive payments until you{" "}
-                <Link className="underline" to="/channels/incoming">
-                  increase your receiving capacity.
-                </Link>
-              </AlertDescription>
-            </Alert>
+            <LowReceivingCapacityAlert />
           )}
         <h2 className="font-medium text-foreground flex items-center gap-1">
           On-chain <MoveRightIcon /> Lightning
@@ -153,8 +134,11 @@ function SwapInForm() {
           autoFocus
           placeholder="Amount in satoshis"
           value={swapAmount}
-          min={MIN_AUTO_SWAP_AMOUNT}
-          max={(balances.lightning.totalReceivable / 1000) * 0.99}
+          min={swapInfo.minAmount}
+          max={Math.min(
+            swapInfo.maxAmount,
+            (balances.lightning.totalReceivable / 1000) * 0.99
+          )}
           onChange={(e) => setSwapAmount(e.target.value)}
           required
         />
@@ -165,7 +149,7 @@ function SwapInForm() {
               <p className="text-xs text-muted-foreground">
                 Receiving Capacity:{" "}
                 {new Intl.NumberFormat().format(
-                  balances.lightning.totalReceivable / 1000
+                  Math.floor(balances.lightning.totalReceivable / 1000)
                 )}{" "}
                 sats{" "}
                 <Link className="underline" to="/channels/incoming">
@@ -180,21 +164,16 @@ function SwapInForm() {
             </div>
           )}
           <p className="text-xs text-muted-foreground">
-            Minimum: {new Intl.NumberFormat().format(MIN_AUTO_SWAP_AMOUNT)} sats
+            Minimum: {new Intl.NumberFormat().format(swapInfo.minAmount)} sats
           </p>
         </div>
       </div>
 
       <div className="flex items-center justify-between border-t pt-4">
         <Label>Fee</Label>
-        {swapFees ? (
-          <p className="text-muted-foreground text-sm">
-            {swapFees.albyServiceFee + swapFees.boltzServiceFee}% + on-chain
-            fees
-          </p>
-        ) : (
-          <Loading />
-        )}
+        <p className="text-muted-foreground text-sm">
+          {swapInfo.albyServiceFee + swapInfo.boltzServiceFee}% + on-chain fees
+        </p>
       </div>
       <div className="grid gap-2">
         <LoadingButton className="w-full" loading={loading}>
@@ -210,8 +189,7 @@ function SwapInForm() {
 }
 
 function SwapOutForm() {
-  const { toast } = useToast();
-  const { data: swapFees } = useSwapFees("out");
+  const { data: swapInfo } = useSwapInfo("out");
   const navigate = useNavigate();
   const { data: balances } = useBalances();
 
@@ -239,12 +217,10 @@ function SwapOutForm() {
         throw new Error("Error swapping out");
       }
       navigate(`/wallet/swap/out/status/${swapOutResponse.swapId}`);
-      toast({ title: "Initiated swap" });
+      toast("Initiated swap");
     } catch (error) {
-      toast({
-        title: "Failed to initiate swap",
+      toast.error("Failed to initiate swap", {
         description: (error as Error).message,
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -256,9 +232,13 @@ function SwapOutForm() {
     setDestination(text.trim());
   };
 
+  if (!balances || !swapInfo) {
+    return <Loading />;
+  }
+
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
-      <div className="mt-6">
+      <div>
         <h2 className="font-medium text-foreground flex items-center gap-1">
           Lightning <MoveRightIcon /> On-chain
         </h2>
@@ -273,7 +253,11 @@ function SwapOutForm() {
           autoFocus
           placeholder="Amount in satoshis"
           value={swapAmount}
-          min={MIN_AUTO_SWAP_AMOUNT}
+          min={swapInfo.minAmount}
+          max={Math.min(
+            swapInfo.maxAmount,
+            Math.floor(balances.lightning.totalSpendable / 1000)
+          )}
           onChange={(e) => setSwapAmount(e.target.value)}
           required
         />
@@ -283,13 +267,13 @@ function SwapOutForm() {
             <p className="text-xs text-muted-foreground">
               Balance:{" "}
               {new Intl.NumberFormat().format(
-                balances.lightning.totalSpendable / 1000
+                Math.floor(balances.lightning.totalSpendable / 1000)
               )}{" "}
               sats
             </p>
           )}
           <p className="text-xs text-muted-foreground">
-            Minimum: {new Intl.NumberFormat().format(MIN_AUTO_SWAP_AMOUNT)} sats
+            Minimum: {new Intl.NumberFormat().format(swapInfo.minAmount)} sats
           </p>
         </div>
       </div>
@@ -356,14 +340,9 @@ function SwapOutForm() {
 
       <div className="flex items-center justify-between border-t pt-4">
         <Label>Fee</Label>
-        {swapFees ? (
-          <p className="text-muted-foreground text-sm">
-            {swapFees.albyServiceFee + swapFees.boltzServiceFee}% + on-chain
-            fees
-          </p>
-        ) : (
-          <Loading />
-        )}
+        <p className="text-muted-foreground text-sm">
+          {swapInfo.albyServiceFee + swapInfo.boltzServiceFee}% + on-chain fees
+        </p>
       </div>
       <div className="grid gap-2">
         <LoadingButton className="w-full" loading={loading}>

@@ -185,6 +185,12 @@ Make sure to update your RPC password below, and change your work directory each
 
 And then run the frontend with: `VITE_API_URL="http://localhost:8082" yarn dev:http`
 
+To test auto-swaps to xpub you can use sparrow wallet in regtest:
+
+    /opt/sparrow/bin/Sparrow -n regtest
+
+Sparrow needs to be connected to regtest boltz setup Bitcoin Core RPC (127.0.0.1:18443 with user:password as `__cookie__:cookiepassword`) with an imported mnemonic and copied the tpub from the settings page
+
 ### Migrating the database (Sqlite <-> Postgres)
 
 Migration of the database is currently experimental. Please make a backup before continuing.
@@ -217,6 +223,7 @@ _To configure via env, the following parameters must be provided:_
 - `LDK_ESPLORA_SERVER`: By default the optimized Alby esplora is used. You can configure your own esplora server (note: the public blockstream one is slow and can cause onchain syncing and issues with opening channels)
 - `LDK_VSS_URL`: Use VSS (encrypted remote storage) rather than local sqlite store for lightning and bitcoin data. Currently this feature only works for brand new Alby Hub instances that are connected to Alby Accounts with an active subscription plan.
 - `LDK_LISTENING_ADDRESSES`: configure listening addresses, required for public channels, and ideally reachable if you would like others to be able to initiate peering with your node.
+- `LDK_ANNOUNCEMENT_ADDRESSES`: configure announcement addresses (only required if you use a VPN)
 - `LDK_MAX_CHANNEL_SATURATION`: Sets the maximum portion of a channel's total capacity that may be used for sending a payment, expressed as a power of 1/2. See `max_channel_saturation_power_of_half` in [LDK docs](https://docs.rs/lightning/latest/lightning/routing/router/struct.PaymentParameters.html#structfield.max_channel_saturation_power_of_half).
 - `LDK_MAX_PATH_COUNT`: Maximum number of paths that may be used by MPP payments.
 
@@ -564,6 +571,7 @@ Internally Alby Hub uses a basic implementation of the pubsub messaging pattern 
     - `nwc_alby_account_connected` - user connects alby account for first time
     - `nwc_swap_succeeded` - successfully made a boltz swap
     - `nwc_rebalance_succeeded` - successfully rebalanced channels
+    - `nwc_payment_forwarded` - successfully forwarded a payment and earned routing fees
 
 ### NIP-47 Handlers
 

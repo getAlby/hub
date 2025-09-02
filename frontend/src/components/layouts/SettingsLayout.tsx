@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
-import { buttonVariants } from "src/components/ui/button";
+import { buttonVariants } from "../ui/buttonVariants";
 
 import { useInfo } from "src/hooks/useInfo";
 
 import { PowerIcon } from "lucide-react";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,9 +18,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "src/components/ui/alert-dialog";
-import { LoadingButton } from "src/components/ui/loading-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Separator } from "src/components/ui/separator";
-import { useToast } from "src/components/ui/use-toast";
 import { cn } from "src/lib/utils";
 import { request } from "src/utils/request";
 
@@ -31,7 +31,6 @@ export default function SettingsLayout() {
     hasNodeBackup,
   } = useInfo();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [shuttingDown, setShuttingDown] = useState(false);
 
   const shutdown = React.useCallback(async () => {
@@ -47,15 +46,14 @@ export default function SettingsLayout() {
       await refetchInfo();
       setShuttingDown(false);
       navigate("/", { replace: true });
-      toast({ title: "Your node has been turned off." });
+      toast("Your node has been turned off.");
     } catch (error) {
       console.error(error);
-      toast({
-        title: "Failed to shutdown node: " + error,
-        variant: "destructive",
+      toast.error("Failed to shutdown node", {
+        description: "" + error,
       });
     }
-  }, [navigate, refetchInfo, toast]);
+  }, [navigate, refetchInfo]);
 
   return (
     <>
@@ -74,7 +72,7 @@ export default function SettingsLayout() {
                   size="icon"
                   loading={shuttingDown}
                 >
-                  {!shuttingDown && <PowerIcon className="w-4 h-4" />}
+                  {!shuttingDown && <PowerIcon className="size-4" />}
                 </LoadingButton>
               </AlertDialogTrigger>
               <AlertDialogContent>

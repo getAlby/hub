@@ -15,10 +15,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "src/components/ui/alert-dialog";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
-import { useToast } from "src/components/ui/use-toast";
 
 import { useInfo } from "src/hooks/useInfo";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -27,7 +26,6 @@ import { request } from "src/utils/request";
 
 export function RestoreNode() {
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const [unlockPassword, setUnlockPassword] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -94,7 +92,7 @@ export function RestoreNode() {
 
       setRestored(true);
     } catch (error) {
-      handleRequestError(toast, "Failed to restore backup", error);
+      handleRequestError("Failed to restore backup", error);
     } finally {
       setShowAlert(false);
       setLoading(false);

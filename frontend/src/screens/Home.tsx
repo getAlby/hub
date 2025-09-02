@@ -23,6 +23,7 @@ import albyGo from "src/assets/suggested-apps/alby-go.png";
 import zapplanner from "src/assets/suggested-apps/zapplanner.png";
 import { AppOfTheDayWidget } from "src/components/home/widgets/AppOfTheDayWidget";
 import { BlockHeightWidget } from "src/components/home/widgets/BlockHeightWidget";
+import { ForwardsWidget } from "src/components/home/widgets/ForwardsWidget";
 import { LatestUsedAppsWidget } from "src/components/home/widgets/LatestUsedAppsWidget";
 import { LightningMessageboardWidget } from "src/components/home/widgets/LightningMessageboardWidget";
 import { NodeStatusWidget } from "src/components/home/widgets/NodeStatusWidget";
@@ -50,7 +51,6 @@ function Home() {
   const { data: balances } = useBalances();
   const { data: albyMe } = useAlbyMe();
   const [isNerd, setNerd] = React.useState(false);
-
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   const extensionInstalled = (window as any).alby !== undefined;
 
@@ -72,7 +72,7 @@ function Home() {
               <Card>
                 <CardHeader>
                   <div className="flex flex-row items-center">
-                    <div className="flex-shrink-0">
+                    <div className="shrink-0">
                       <AlbyHead className="w-12 h-12 rounded-xl p-1 border" />
                     </div>
                     <div>
@@ -91,7 +91,7 @@ function Home() {
                 <CardContent className="text-right">
                   <Button variant="outline">
                     Open Alby Account
-                    <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                    <ExternalLinkIcon className="size-4 ml-2" />
                   </Button>
                 </CardContent>
               </Card>
@@ -102,7 +102,7 @@ function Home() {
             <Card>
               <CardHeader>
                 <div className="flex flex-row items-center">
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <img src={albyGo} className="w-12 h-12 rounded-xl border" />
                   </div>
                   <div>
@@ -128,7 +128,7 @@ function Home() {
               <Card>
                 <CardHeader>
                   <div className="flex flex-row items-center">
-                    <div className="flex-shrink-0">
+                    <div className="shrink-0">
                       <AlbyHead className="w-12 h-12 rounded-xl p-1 border bg-[#FFDF6F]" />
                     </div>
                     <div>
@@ -147,7 +147,7 @@ function Home() {
                 <CardContent className="text-right">
                   <Button variant="outline">
                     Install Alby Extension
-                    <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                    <ExternalLinkIcon className="size-4 ml-2" />
                   </Button>
                 </CardContent>
               </Card>
@@ -165,7 +165,7 @@ function Home() {
             <Card>
               <CardHeader>
                 <div className="flex flex-row items-center">
-                  <div className="flex-shrink-0">
+                  <div className="shrink-0">
                     <img
                       src={zapplanner}
                       className="w-12 h-12 rounded-xl border"
@@ -204,6 +204,7 @@ function Home() {
                   <NodeStatusWidget />
                   <BlockHeightWidget />
                   <OnchainFeesWidget />
+                  <ForwardsWidget />
                 </div>
               </CardContent>
             )}

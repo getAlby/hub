@@ -19,10 +19,12 @@ import AppHeader from "src/components/AppHeader.tsx";
 import { ChannelsCards } from "src/components/channels/ChannelsCards.tsx";
 import { ChannelsTable } from "src/components/channels/ChannelsTable.tsx";
 import { HealthCheckAlert } from "src/components/channels/HealthcheckAlert";
+import { LDKChannelWithoutPeerAlert } from "src/components/channels/LDKChannelWithoutPeerAlert";
 import { OnchainTransactionsTable } from "src/components/channels/OnchainTransactionsTable.tsx";
 import EmptyState from "src/components/EmptyState.tsx";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
+import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import ResponsiveButton from "src/components/ResponsiveButton";
 import {
   Alert,
@@ -36,6 +38,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card.tsx";
+import CircleProgress from "src/components/ui/custom/circle-progress";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,14 +48,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu.tsx";
-import { CircleProgress } from "src/components/ui/progress.tsx";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip.tsx";
-import { useToast } from "src/components/ui/use-toast.ts";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { ONCHAIN_DUST_SATS } from "src/constants.ts";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
@@ -82,8 +83,6 @@ export default function Channels() {
   const navigate = useNavigate();
   const [longUnconfirmedZeroConfChannels, setLongUnconfirmedZeroConfChannels] =
     React.useState<LongUnconfirmedZeroConfChannel[]>([]);
-
-  const { toast } = useToast();
 
   const nodeHealth = channels ? getNodeHealth(channels) : 0;
 
@@ -170,7 +169,7 @@ export default function Channels() {
                           if (!nodeConnectionInfo) {
                             return;
                           }
-                          copyToClipboard(nodeConnectionInfo.pubkey, toast);
+                          copyToClipboard(nodeConnectionInfo.pubkey);
                         }}
                       >
                         <div>Node</div>
@@ -178,7 +177,7 @@ export default function Channels() {
                           {nodeConnectionInfo?.pubkey || "Loading..."}
                         </div>
                         {nodeConnectionInfo && (
-                          <CopyIcon className="shrink-0 w-4 h-4" />
+                          <CopyIcon className="shrink-0 size-4" />
                         )}
                       </div>
                     </DropdownMenuItem>
@@ -217,9 +216,9 @@ export default function Channels() {
                         className="cursor-pointer"
                       >
                         <div className="mr-2 text-muted-foreground flex flex-row items-center">
-                          <LinkIcon className="w-4 h-4" />
-                          <ArrowRightIcon className="w-4 h-4" />
-                          <ZapIcon className="w-4 h-4" />
+                          <LinkIcon className="size-4" />
+                          <ArrowRightIcon className="size-4" />
+                          <ZapIcon className="size-4" />
                         </div>
                         Swap in
                       </DropdownMenuItem>
@@ -228,9 +227,9 @@ export default function Channels() {
                         className="cursor-pointer"
                       >
                         <div className="mr-2 text-muted-foreground flex flex-row items-center">
-                          <ZapIcon className="w-4 h-4" />
-                          <ArrowRightIcon className="w-4 h-4" />
-                          <LinkIcon className="w-4 h-4" />
+                          <ZapIcon className="size-4" />
+                          <ArrowRightIcon className="size-4" />
+                          <LinkIcon className="size-4" />
                         </div>
                         Swap out
                       </DropdownMenuItem>
@@ -258,7 +257,7 @@ export default function Channels() {
                                 className="w-full flex items-center"
                                 to="/wallet/node-alias"
                               >
-                                <SparklesIcon className="w-4 h-4 mr-2" /> Set
+                                <SparklesIcon className="size-4 mr-2" /> Set
                                 Node Alias
                               </Link>
                             </DropdownMenuItem>
@@ -291,12 +290,12 @@ export default function Channels() {
                           </div>
                         )}
                         <HeartIcon
-                          className="w-4 h-4"
-                          stroke={"hsl(var(--primary))"}
+                          className="size-4"
+                          stroke={"var(--color-primary)"}
                           strokeWidth={3}
                           fill={
                             nodeHealth === 100
-                              ? "hsl(var(--primary))"
+                              ? "var(--color-primary)"
                               : "transparent"
                           }
                         />
@@ -322,27 +321,7 @@ export default function Channels() {
                 (channel) =>
                   channel.remoteBalance <
                   (channel.localBalance + channel.remoteBalance) * 0.2
-              ) && (
-                <Alert>
-                  <AlertTriangleIcon className="h-4 w-4" />
-                  <AlertTitle>Low receiving limit</AlertTitle>
-                  <AlertDescription>
-                    You likely won't be able to receive payments until you{" "}
-                    <Link className="underline" to="/wallet/send">
-                      spend
-                    </Link>
-                    ,{" "}
-                    <Link className="underline" to="/wallet/swap?type=out">
-                      swap out funds
-                    </Link>{" "}
-                    or{" "}
-                    <Link className="underline" to="/channels/incoming">
-                      increase your receiving limits
-                    </Link>
-                    .
-                  </AlertDescription>
-                </Alert>
-              )}
+              ) && <LowReceivingCapacityAlert />}
             </>
           )}
 
@@ -351,7 +330,7 @@ export default function Channels() {
               "flex flex-col sm:flex-row flex-wrap gap-3 slashed-zero"
             )}
           >
-            <Card className="flex flex-1 sm:flex-[2] flex-col">
+            <Card className="flex flex-1 sm:flex-2 flex-col">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="font-semibold text-2xl">
                   Lightning
@@ -371,7 +350,7 @@ export default function Channels() {
                               <InfoIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
                             </div>
                           </TooltipTrigger>
-                          <TooltipContent className="w-[300px]">
+                          <TooltipContent>
                             Your spending balance is the funds on your side of
                             your channels, which you can use to make lightning
                             payments. Your total lightning balance is{" "}
@@ -402,7 +381,7 @@ export default function Channels() {
                       </TooltipProvider>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="flex-grow pb-0">
+                  <CardContent className="grow pb-0">
                     {!balances && (
                       <div>
                         <div className="animate-pulse d-inline ">
@@ -436,7 +415,7 @@ export default function Channels() {
                               <InfoIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
                             </div>
                           </TooltipTrigger>
-                          <TooltipContent className="w-[300px]">
+                          <TooltipContent>
                             Your receiving limit is the funds owned by your
                             channel partner, which will be moved to your side
                             when you receive lightning payments.
@@ -445,7 +424,7 @@ export default function Channels() {
                       </TooltipProvider>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="flex-grow pb-0">
+                  <CardContent className="grow pb-0">
                     {balances && (
                       <>
                         <div className="text-xl font-medium balance sensitive mb-1">
@@ -472,7 +451,7 @@ export default function Channels() {
                 </CardTitle>
                 <LinkIcon className="h-6 w-6 text-muted-foreground" />
               </CardHeader>
-              <CardContent className="flex-grow">
+              <CardContent className="grow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pl-0">
                   <CardTitle className="text-sm font-medium">
                     <TooltipProvider>
@@ -483,7 +462,7 @@ export default function Channels() {
                             <InfoIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent className="w-[300px]">
+                        <TooltipContent>
                           Your on-chain balance can be used to open new outgoing
                           lightning channels and to ensure channels can be
                           closed when required. When channels are closed, funds
@@ -518,9 +497,9 @@ export default function Channels() {
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger>
-                                  <AlertTriangleIcon className="w-3 h-3 text-muted-foreground" />
+                                  <AlertTriangleIcon className="size-3 text-muted-foreground" />
                                 </TooltipTrigger>
-                                <TooltipContent className="w-[300px]">
+                                <TooltipContent>
                                   You have insufficient funds in reserve to
                                   close channels or bump on-chain transactions
                                   and currently rely on the counterparty. It is
@@ -557,9 +536,9 @@ export default function Channels() {
           {balances &&
             balances.onchain.pendingBalancesFromChannelClosures > 0 && (
               <Alert>
-                <HourglassIcon className="h-4 w-4" />
+                <HourglassIcon />
                 <AlertTitle>Pending Closed Channels</AlertTitle>
-                <AlertDescription>
+                <AlertDescription className="block">
                   You have{" "}
                   {new Intl.NumberFormat().format(
                     balances.onchain.pendingBalancesFromChannelClosures
@@ -601,6 +580,8 @@ export default function Channels() {
               buttonLink="/channels/incoming"
             />
           )}
+
+          <LDKChannelWithoutPeerAlert />
 
           <ChannelsTable
             channels={channels}

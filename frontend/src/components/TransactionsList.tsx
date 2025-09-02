@@ -4,7 +4,6 @@ import { CustomPagination } from "src/components/CustomPagination";
 import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
 import TransactionItem from "src/components/TransactionItem";
-
 import { LIST_TRANSACTIONS_LIMIT } from "src/constants";
 import { useTransactions } from "src/hooks/useTransactions";
 
@@ -50,6 +49,7 @@ function TransactionsList({
           buttonText="Receive Your First Payment"
           buttonLink="/wallet/receive"
           showButton={showReceiveButton}
+          showBorder={false}
         />
       ) : (
         <>

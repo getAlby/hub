@@ -52,9 +52,11 @@ export function ChannelsCards({
             );
             return (
               <ChannelCard
+                key={index}
                 addSeparator={index > 0}
                 channel={channel}
                 unconfirmedChannel={unconfirmedChannel}
+                hasMultipleChannels={channels.length > 1}
               />
             );
           })}
@@ -66,12 +68,14 @@ type ChannelCardProps = {
   channel: Channel;
   unconfirmedChannel: LongUnconfirmedZeroConfChannel | undefined;
   addSeparator: boolean;
+  hasMultipleChannels: boolean;
 };
 
 function ChannelCard({
   channel,
   unconfirmedChannel,
   addSeparator,
+  hasMultipleChannels,
 }: ChannelCardProps) {
   const { data: node } = useNodeDetails(channel.remotePubkey);
   const alias = node?.alias || "Unknown";
@@ -87,7 +91,11 @@ function ChannelCard({
               <div className="flex-1 whitespace-nowrap text-ellipsis font-semibold truncate leading-normal">
                 {alias}
               </div>
-              <ChannelDropdownMenu alias={alias} channel={channel} />
+              <ChannelDropdownMenu
+                alias={alias}
+                channel={channel}
+                hasMultipleChannels={hasMultipleChannels}
+              />
             </div>
           </CardTitle>
         </CardHeader>
@@ -117,7 +125,7 @@ function ChannelCard({
                     <InfoIcon className="h-3 w-3 shrink-0" />
                   </div>
                 </TooltipTrigger>
-                <TooltipContent className="w-[400px]">
+                <TooltipContent>
                   The type of lightning channel, By default private channel is
                   recommended. If you a podcaster or musician and expect to
                   receive keysend or Value4Value payments you will need a public
@@ -138,7 +146,7 @@ function ChannelCard({
                     <InfoIcon className="h-3 w-3 shrink-0" />
                   </div>
                 </TooltipTrigger>
-                <TooltipContent className="w-[400px]">
+                <TooltipContent>
                   Total Spending and Receiving capacity of your lightning
                   channel.
                 </TooltipContent>
@@ -156,7 +164,7 @@ function ChannelCard({
                     <InfoIcon className="h-3 w-3 shrink-0" />
                   </div>
                 </TooltipTrigger>
-                <TooltipContent className="w-[400px]">
+                <TooltipContent>
                   Funds each participant sets aside to discourage cheating by
                   ensuring each party has something at stake. This reserve
                   cannot be spent during the channel's lifetime and typically

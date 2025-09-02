@@ -6,8 +6,8 @@
 app = 'nwc'
 primary_region = 'lax'
 swap_size_mb = 2048
-# Add a kill timeout 30s longer than LDK node shutdown timeout
-kill_timeout = 330
+# Add a kill timeout longer than LDK node shutdown timeout to ensure Alby Hub gracefully shuts down
+kill_timeout = 300
 
 [build]
   image = 'ghcr.io/getalby/hub:latest'

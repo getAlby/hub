@@ -1,15 +1,9 @@
-import { ToastSignature } from "src/components/ui/use-toast";
+import { toast } from "sonner";
 
-export function handleRequestError(
-  toast: ToastSignature,
-  message: string,
-  error: unknown
-) {
+export function handleRequestError(message: string, error: unknown) {
   console.error(message, error);
-  toast({
-    title: message,
-    description: isErrorWithMessage(error) ? error.message : null,
-    variant: "destructive",
+  toast.error(message, {
+    description: isErrorWithMessage(error) ? error.message : undefined,
   });
 }
 type ErrorWithMessage = {

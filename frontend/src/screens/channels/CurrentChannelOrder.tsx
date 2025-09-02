@@ -8,8 +8,9 @@ import {
   PayInvoiceResponse,
 } from "src/types";
 
-import { CopyIcon, InfoIcon, QrCodeIcon, RefreshCwIcon } from "lucide-react";
+import { CopyIcon, QrCodeIcon, RefreshCwIcon } from "lucide-react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
@@ -23,6 +24,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Dialog,
   DialogContent,
@@ -33,7 +35,6 @@ import {
 } from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import {
@@ -42,7 +43,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
-import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 
 import { ChannelWaitingForConfirmations } from "src/components/channels/ChannelWaitingForConfirmations";
@@ -234,8 +234,6 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
   );
   const estimatedTransactionFee = useEstimatedTransactionFee();
 
-  const { toast } = useToast();
-
   if (!onchainAddress || !balances || !estimatedTransactionFee) {
     return (
       <div className="flex justify-center">
@@ -307,15 +305,15 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
               variant="secondary"
               size="icon"
               onClick={() => {
-                copyToClipboard(onchainAddress, toast);
+                copyToClipboard(onchainAddress);
               }}
             >
-              <CopyIcon className="w-4 h-4" />
+              <CopyIcon className="size-4" />
             </Button>
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="secondary" size="icon">
-                  <QrCodeIcon className="w-4 h-4" />
+                  <QrCodeIcon className="size-4" />
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -342,7 +340,7 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
                     loading={loadingAddress}
                     className="w-9 h-9"
                   >
-                    {!loadingAddress && <RefreshCwIcon className="w-4 h-4" />}
+                    {!loadingAddress && <RefreshCwIcon className="size-4" />}
                   </LoadingButton>
                 </TooltipTrigger>
                 <TooltipContent>Generate a new address</TooltipContent>
@@ -392,8 +390,6 @@ function PayBitcoinChannelOrderWithSpendableFunds({
     throw new Error("incorrect payment method");
   }
   const { data: peers } = usePeers();
-
-  const { toast } = useToast();
 
   const { pubkey, host } = order;
 
@@ -468,18 +464,15 @@ function PayBitcoinChannelOrderWithSpendableFunds({
         "Channel opening transaction published",
         openChannelResponse.fundingTxId
       );
-      toast({
-        title: "Successfully published channel opening transaction",
-      });
+      toast("Successfully published channel opening transaction");
       useChannelOrderStore.getState().updateOrder({
         fundingTxId: openChannelResponse.fundingTxId,
         status: "opening",
       });
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Something went wrong: " + error,
+      toast.error("Something went wrong", {
+        description: "" + error,
       });
     }
   }, [
@@ -489,7 +482,6 @@ function PayBitcoinChannelOrderWithSpendableFunds({
     order.paymentMethod,
     peers,
     pubkey,
-    toast,
   ]);
 
   React.useEffect(() => {
@@ -519,7 +511,6 @@ function PayBitcoinChannelOrderWithSpendableFunds({
 function useWaitForNewChannel() {
   const order = useChannelOrderStore((store) => store.order);
   const { data: channels } = useChannels(true);
-  const { toast } = useToast();
 
   const newChannel =
     channels && order?.prevChannelIds
@@ -534,7 +525,7 @@ function useWaitForNewChannel() {
   React.useEffect(() => {
     if (newChannel) {
       (async () => {
-        toast({ title: "Successfully opened channel" });
+        toast("Successfully opened channel");
         setTimeout(() => {
           useChannelOrderStore.getState().updateOrder({
             status: "opening",
@@ -543,7 +534,7 @@ function useWaitForNewChannel() {
         }, 3000);
       })();
     }
-  }, [newChannel, toast]);
+  }, [newChannel]);
 }
 
 function PaidLightningChannelOrder() {
@@ -561,7 +552,6 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
     throw new Error("incorrect payment method");
   }
 
-  const { toast } = useToast();
   const { data: channels } = useChannels(true);
   const [, setRequestedInvoice] = React.useState(false);
 
@@ -598,14 +588,20 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                 body: JSON.stringify(newLSPOrderRequest),
               }
             );
-            if (!response?.invoice) {
-              throw new Error("No invoice in response");
+            if (!response) {
+              throw new Error("no LSP order response");
+            }
+
+            if (!response.invoice) {
+              // assume payment is handled by Alby Account
+              // we will wait for a channel to be opened to us
+              useChannelOrderStore.getState().updateOrder({
+                status: "paid",
+              });
             }
             setLspOrderResponse(response);
           } catch (error) {
-            toast({
-              variant: "destructive",
-              title: "Something went wrong",
+            toast.error("Something went wrong", {
               description: "" + error,
             });
           }
@@ -613,14 +609,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
       }
       return true;
     });
-  }, [
-    channels,
-    order.amount,
-    order.isPublic,
-    order.lspType,
-    order.lspUrl,
-    toast,
-  ]);
+  }, [channels, order.amount, order.isPublic, order.lspType, order.lspUrl]);
 
   const canPayInternally =
     channels &&
@@ -642,9 +631,9 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
             : "Please wait, loading..."
         }
       />
-      {!lspOrderResponse && <Loading />}
+      {!lspOrderResponse?.invoice && <Loading />}
 
-      {lspOrderResponse && (
+      {lspOrderResponse?.invoice && (
         <>
           <div className="max-w-md flex flex-col gap-5">
             <div className="border rounded-lg slashed-zero">
@@ -673,29 +662,6 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                           lspOrderResponse.incomingLiquidity
                         )}{" "}
                         sats
-                      </TableCell>
-                    </TableRow>
-                  )}
-                  {/* <TableRow>
-                    <TableCell className="font-medium p-3 flex flex-row gap-1.5 items-center">
-                      Fee
-                    </TableCell>
-                    <TableCell className="text-right p-3">
-                      {new Intl.NumberFormat().format(lspOrderResponse.fee)}{" "}
-                      sats
-                    </TableCell>
-                  </TableRow> */}
-                  {lspOrderResponse.incomingLiquidity > 0 && (
-                    <TableRow>
-                      <TableCell className="font-medium p-3 flex items-center gap-2">
-                        Duration
-                        <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel">
-                          <InfoIcon className="w-4 h-4 text-muted-foreground" />
-                        </ExternalLink>
-                      </TableCell>
-
-                      <TableCell className="p-3 text-right">
-                        at least 3 months
                       </TableCell>
                     </TableRow>
                   )}
@@ -736,13 +702,10 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                         useChannelOrderStore.getState().updateOrder({
                           status: "paid",
                         });
-                        toast({
-                          title: "Channel successfully requested",
-                        });
+                        toast("Channel successfully requested");
                       } catch (e) {
-                        toast({
-                          variant: "destructive",
-                          title: "Failed to send: " + e,
+                        toast.error("Failed to send: ", {
+                          description: "" + e,
                         });
                         console.error(e);
                       }

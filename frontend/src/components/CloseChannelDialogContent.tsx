@@ -5,6 +5,7 @@ import {
   ExternalLinkIcon,
 } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import { SwapAlert } from "src/components/channels/SwapAlert";
 import ExternalLink from "src/components/ExternalLink";
 import { MempoolAlert } from "src/components/MempoolAlert";
@@ -12,7 +13,6 @@ import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
-import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
@@ -41,14 +41,13 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
   const { data: info } = useInfo();
   const { mutate: reloadBalances } = useBalances();
   const { data: channels, mutate: reloadChannels } = useChannels();
-  const { toast } = useToast();
 
   const onContinue = () => {
     setStep(step + 1);
   };
 
   const copy = (text: string) => {
-    copyToClipboard(text, toast);
+    copyToClipboard(text);
   };
 
   async function closeChannel() {
@@ -79,13 +78,10 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
         setFundingTxId(closedChannel.fundingTxId);
         setStep(step + 1);
       }
-      toast({ title: "Successfully closed channel" });
+      toast("Successfully closed channel");
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        description: "Something went wrong: " + error,
-      });
+      toast.error("Something went wrong: " + error);
     }
   }
 
@@ -216,7 +212,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                 className="underline flex items-center mt-4"
               >
                 Learn more about closing channels
-                <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                <ExternalLinkIcon className="size-4 ml-2" />
               </ExternalLink>
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -236,7 +232,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
               <div className="flex items-center justify-between gap-4">
                 <p className="break-all">{fundingTxId}</p>
                 <CopyIcon
-                  className="cursor-pointer text-muted-foreground w-4 h-4"
+                  className="cursor-pointer text-muted-foreground size-4"
                   onClick={() => {
                     copy(fundingTxId);
                   }}
@@ -247,7 +243,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                 className="underline flex items-center mt-2"
               >
                 View on Mempool
-                <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                <ExternalLinkIcon className="size-4 ml-2" />
               </ExternalLink>
             </AlertDialogDescription>
           </AlertDialogHeader>

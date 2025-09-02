@@ -57,7 +57,7 @@ type NodeConnectionInfo struct {
 }
 
 type LNClient interface {
-	SendPaymentSync(ctx context.Context, payReq string, amount *uint64, timeoutSeconds *int64) (*PayInvoiceResponse, error)
+	SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*PayInvoiceResponse, error)
 	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []TLVRecord, preimage string) (*PayKeysendResponse, error)
 	GetPubkey() string
 	GetInfo(ctx context.Context) (info *NodeInfo, err error)
@@ -111,6 +111,7 @@ type Channel struct {
 	Confirmations                            *uint32
 	ConfirmationsRequired                    *uint32
 	ForwardingFeeBaseMsat                    uint32
+	ForwardingFeeProportionalMillionths      uint32
 	UnspendablePunishmentReserve             uint64
 	CounterpartyUnspendablePunishmentReserve uint64
 	Error                                    *string
@@ -148,6 +149,7 @@ type UpdateChannelRequest struct {
 	ChannelId                                string `json:"channelId"`
 	NodeId                                   string `json:"nodeId"`
 	ForwardingFeeBaseMsat                    uint32 `json:"forwardingFeeBaseMsat"`
+	ForwardingFeeProportionalMillionths      uint32 `json:"forwardingFeeProportionalMillionths"`
 	MaxDustHtlcExposureFromFeeRateMultiplier uint64 `json:"maxDustHtlcExposureFromFeeRateMultiplier"`
 }
 
@@ -214,6 +216,11 @@ type PaymentFailedEventProperties struct {
 	Reason      string
 }
 
+type PaymentForwardedEventProperties struct {
+	TotalFeeEarnedMsat          uint64
+	OutboundAmountForwardedMsat uint64
+}
+
 type CustomNodeCommandArgDef struct {
 	Name        string
 	Description string
@@ -249,17 +256,6 @@ var ErrUnknownCustomNodeCommand = errors.New("unknown custom node command")
 
 // default invoice expiry in seconds (1 day)
 const DEFAULT_INVOICE_EXPIRY = 86400
-
-type timeoutError struct {
-}
-
-func NewTimeoutError() error {
-	return &timeoutError{}
-}
-
-func (err *timeoutError) Error() string {
-	return "Timeout"
-}
 
 type holdInvoiceCanceledError struct {
 }

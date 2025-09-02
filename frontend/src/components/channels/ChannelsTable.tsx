@@ -62,7 +62,7 @@ export function ChannelsTable({
                         <InfoIcon className="h-3 w-3 shrink-0" />
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent className="w-[400px]">
+                    <TooltipContent>
                       The type of lightning channel, By default private channel
                       is recommended. If you a podcaster or musician and expect
                       to receive keysend or Value4Value payments you will need a
@@ -83,7 +83,7 @@ export function ChannelsTable({
                         <InfoIcon className="h-3 w-3 shrink-0" />
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent className="w-[400px]">
+                    <TooltipContent>
                       Total Spending and Receiving capacity of your lightning
                       channel.
                     </TooltipContent>
@@ -99,7 +99,7 @@ export function ChannelsTable({
                         <InfoIcon className="h-3 w-3 shrink-0" />
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent className="w-[400px]">
+                    <TooltipContent>
                       Funds each participant sets aside to discourage cheating
                       by ensuring each party has something at stake. This
                       reserve cannot be spent during the channel's lifetime and
@@ -116,7 +116,7 @@ export function ChannelsTable({
                   <div>Receiving</div>
                 </div>
               </TableHead>
-              <TableHead className="w-[1px]"></TableHead>
+              <TableHead className="w-px"></TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -140,6 +140,7 @@ export function ChannelsTable({
                         key={channel.id}
                         channel={channel}
                         unconfirmedChannel={unconfirmedChannel}
+                        hasMultipleChannels={channels.length > 1}
                       />
                     );
                   })}
@@ -162,11 +163,13 @@ export function ChannelsTable({
 type ChannelTableRowProps = {
   channel: Channel;
   unconfirmedChannel: LongUnconfirmedZeroConfChannel | undefined;
+  hasMultipleChannels: boolean;
 };
 
 function ChannelTableRow({
   channel,
   unconfirmedChannel,
+  hasMultipleChannels,
 }: ChannelTableRowProps) {
   const { data: peerDetails } = useNodeDetails(channel.remotePubkey);
   const capacity = channel.localBalance + channel.remoteBalance;
@@ -230,7 +233,11 @@ function ChannelTableRow({
         <ChannelWarning channel={channel} />
       </TableCell>
       <TableCell>
-        <ChannelDropdownMenu alias={alias} channel={channel} />
+        <ChannelDropdownMenu
+          alias={alias}
+          channel={channel}
+          hasMultipleChannels={hasMultipleChannels}
+        />
       </TableCell>
     </TableRow>
   );

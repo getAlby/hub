@@ -43,6 +43,6 @@ func (s *updateAppConsumer) ConsumeEvent(ctx context.Context, event *events.Even
 
 	if s.svc.keys.GetNostrPublicKey() != walletPubKey {
 		// only need to re-publish the nip47 event info if it is not a legacy wallet
-		s.svc.nip47Service.EnqueueNip47InfoPublishRequest(walletPubKey, walletPrivKey)
+		s.svc.nip47Service.EnqueueNip47InfoPublishRequest(id, walletPubKey, walletPrivKey)
 	}
 }

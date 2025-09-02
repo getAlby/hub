@@ -1,5 +1,4 @@
 import React from "react";
-import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import {
   Card,
@@ -7,20 +6,28 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { useToast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
 import { createApp } from "src/requests/createApp";
 import { CreateAppRequest, UpdateAppRequest } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 
-import { fiat, LightningAddress } from "@getalby/lightning-tools";
+import {
+  getFormattedFiatValue,
+  getSatoshiValue,
+  LightningAddress,
+} from "@getalby/lightning-tools";
 import { ExternalLinkIcon, PlusCircleIcon } from "lucide-react";
+import { toast } from "sonner";
 import alby from "src/assets/suggested-apps/alby.png";
 import bitcoinbrink from "src/assets/zapplanner/bitcoinbrink.png";
 import hrf from "src/assets/zapplanner/hrf.png";
 import opensats from "src/assets/zapplanner/opensats.png";
+import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
+import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
-import { Button, ExternalLinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Dialog,
   DialogContent,
@@ -32,7 +39,6 @@ import {
 } from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import {
   Select,
   SelectContent,
@@ -87,7 +93,6 @@ export function ZapPlanner() {
     appStoreAppId: "zapplanner",
   });
   const zapplannerApps = appsData?.apps;
-  const { toast } = useToast();
 
   const [open, setOpen] = React.useState(false);
   const [isSubmitting, setSubmitting] = React.useState(false);
@@ -162,7 +167,7 @@ export function ZapPlanner() {
       try {
         // any fiat (not BTC) → sats
         if (currency !== "SATS") {
-          const sats = await fiat.getSatoshiValue({
+          const sats = await getSatoshiValue({
             amount: parseFloat(amount),
             currency: currency,
           });
@@ -172,7 +177,7 @@ export function ZapPlanner() {
           // Convert satoshis to USD
           const sats = parseInt(amount, 10);
           setSatoshiAmount(sats);
-          const fiatValue = await fiat.getFormattedFiatValue({
+          const fiatValue = await getFormattedFiatValue({
             satoshi: sats,
             currency: "USD",
             locale: "en-US",
@@ -187,6 +192,11 @@ export function ZapPlanner() {
 
     convertCurrency();
   }, [amount, currency, open]);
+
+  const appStoreApp = appStoreApps.find((app) => app.id === "zapplanner");
+  if (!appStoreApp) {
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -312,15 +322,14 @@ export function ZapPlanner() {
         body: JSON.stringify(updateAppRequest),
       });
 
-      toast({
-        title: "Created subscription",
+      toast("Created subscription", {
         description: "The first payment is scheduled immediately.",
       });
 
       reloadApps();
       setOpen(false);
     } catch (error) {
-      handleRequestError(toast, "Failed to create app", error);
+      handleRequestError("Failed to create app", error);
     } finally {
       setSubmitting(false);
     }
@@ -328,15 +337,14 @@ export function ZapPlanner() {
 
   return (
     <div className="grid gap-5">
-      <AppHeader
-        title="ZapPlanner"
-        description="Schedule automatic recurring lightning payments"
+      <AppStoreDetailHeader
+        appStoreApp={appStoreApp}
         contentRight={
           <>
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button>
-                  <PlusCircleIcon className="h-4 w-4 mr-2" />
+                  <PlusCircleIcon />
                   New Recurring Payment
                 </Button>
               </DialogTrigger>
@@ -544,7 +552,7 @@ export function ZapPlanner() {
                       to={`https://zapplanner.albylabs.com/subscriptions/${app.metadata.zapplanner_subscription_id}`}
                       size="sm"
                     >
-                      View <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                      View <ExternalLinkIcon className="size-4 ml-2" />
                     </ExternalLinkButton>
                   ) : undefined
                 }

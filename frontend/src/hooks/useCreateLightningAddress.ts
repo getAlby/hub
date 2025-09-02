@@ -1,11 +1,10 @@
 import React from "react";
-import { useToast } from "src/components/ui/use-toast";
-import { useAppByPubkey } from "src/hooks/useApp";
+import { toast } from "sonner";
+import { useApp } from "src/hooks/useApp";
 import { request } from "src/utils/request";
 
-export function useCreateLightningAddress(appPubkey?: string) {
-  const { toast } = useToast();
-  const { data: app, mutate: refetchApp } = useAppByPubkey(appPubkey);
+export function useCreateLightningAddress(appId?: number) {
+  const { data: app, mutate: refetchApp } = useApp(appId);
   const [creatingLightningAddress, setCreatingLightningAddress] =
     React.useState(false);
 
@@ -26,17 +25,13 @@ export function useCreateLightningAddress(appPubkey?: string) {
         }),
       });
       await refetchApp();
-      toast({
-        title: "Successfully created lightning address",
-      });
+      toast("Successfully created lightning address");
     } catch (error) {
-      toast({
-        title: "Failed to create lightning address",
+      toast.error("Failed to create lightning address", {
         description: (error as Error).message.replace(
           "500 ",
           ""
         ) /* remove 500 error code */,
-        variant: "destructive",
       });
     }
     setCreatingLightningAddress(false);

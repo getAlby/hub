@@ -1,7 +1,6 @@
 import { Navigate } from "react-router-dom";
+import AppStore from "src/components/connections/AppStore";
 import AppLayout from "src/components/layouts/AppLayout";
-import ReceiveLayout from "src/components/layouts/ReceiveLayout";
-import SendLayout from "src/components/layouts/SendLayout";
 import SettingsLayout from "src/components/layouts/SettingsLayout";
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
 import { DefaultRedirect } from "src/components/redirects/DefaultRedirect";
@@ -18,13 +17,13 @@ import Start from "src/screens/Start";
 import Unlock from "src/screens/Unlock";
 import { Welcome } from "src/screens/Welcome";
 import AlbyAuthRedirect from "src/screens/alby/AlbyAuthRedirect";
+import { AlbyReviews } from "src/screens/alby/AlbyReviews";
 import SupportAlby from "src/screens/alby/SupportAlby";
 import AppCreated from "src/screens/apps/AppCreated";
-import AppList from "src/screens/apps/AppList";
+import AppDetails from "src/screens/apps/AppDetails";
 import { AppsCleanup } from "src/screens/apps/AppsCleanup";
+import { Connections } from "src/screens/apps/Connections";
 import NewApp from "src/screens/apps/NewApp";
-import ShowApp from "src/screens/apps/ShowApp";
-import AppStore from "src/screens/appstore/AppStore";
 import { AppStoreDetail } from "src/screens/appstore/AppStoreDetail";
 import { Ark } from "src/screens/ark/Ark";
 import Channels from "src/screens/channels/Channels";
@@ -37,7 +36,6 @@ import { OpeningAutoChannel } from "src/screens/channels/auto/OpeningAutoChannel
 import { FirstChannel } from "src/screens/channels/first/FirstChannel";
 import { OpenedFirstChannel } from "src/screens/channels/first/OpenedFirstChannel";
 import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChannel";
-import BankAccount from "src/screens/features/BankAccount";
 import { AlbyGo } from "src/screens/internal-apps/AlbyGo";
 import { Bitrefill } from "src/screens/internal-apps/Bitrefill";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
@@ -45,6 +43,7 @@ import { Claude } from "src/screens/internal-apps/Claude";
 import { Goose } from "src/screens/internal-apps/Goose";
 import { LightningMessageboard } from "src/screens/internal-apps/LightningMessageboard";
 import { SimpleBoost } from "src/screens/internal-apps/SimpleBoost";
+import { Tictactoe } from "src/screens/internal-apps/Tictactoe";
 import { ZapPlanner } from "src/screens/internal-apps/ZapPlanner";
 import BuyBitcoin from "src/screens/onchain/BuyBitcoin";
 import DepositBitcoin from "src/screens/onchain/DepositBitcoin";
@@ -82,8 +81,11 @@ import SignMessage from "src/screens/wallet/SignMessage";
 import WithdrawOnchainFunds from "src/screens/wallet/WithdrawOnchainFunds";
 import ReceiveInvoice from "src/screens/wallet/receive/ReceiveInvoice";
 import ReceiveOffer from "src/screens/wallet/receive/ReceiveOffer";
+import ReceiveOnchain from "src/screens/wallet/receive/ReceiveOnchain";
 import ConfirmPayment from "src/screens/wallet/send/ConfirmPayment";
 import LnurlPay from "src/screens/wallet/send/LnurlPay";
+import Onchain from "src/screens/wallet/send/Onchain";
+import OnchainSuccess from "src/screens/wallet/send/OnchainSuccess";
 import PaymentSuccess from "src/screens/wallet/send/PaymentSuccess";
 import ZeroAmount from "src/screens/wallet/send/ZeroAmount";
 import Swap from "src/screens/wallet/swap";
@@ -146,11 +148,15 @@ const routes = [
           {
             path: "receive",
             handle: { crumb: () => "Receive" },
-            element: <ReceiveLayout />,
             children: [
               {
                 index: true,
                 element: <Receive />,
+              },
+              {
+                handle: { crumb: () => "Receive On-chain" },
+                path: "onchain",
+                element: <ReceiveOnchain />,
               },
               {
                 handle: { crumb: () => "Invoice" },
@@ -166,12 +172,15 @@ const routes = [
           },
           {
             path: "send",
-            element: <SendLayout />,
             handle: { crumb: () => "Send" },
             children: [
               {
                 index: true,
                 element: <Send />,
+              },
+              {
+                path: "onchain",
+                element: <Onchain />,
               },
               {
                 path: "lnurl-pay",
@@ -184,6 +193,10 @@ const routes = [
               {
                 path: "confirm-payment",
                 element: <ConfirmPayment />,
+              },
+              {
+                path: "onchain-success",
+                element: <OnchainSuccess />,
               },
               {
                 path: "success",
@@ -268,11 +281,11 @@ const routes = [
         children: [
           {
             index: true,
-            element: <AppList />,
+            element: <Connections />,
           },
           {
-            path: ":pubkey",
-            element: <ShowApp />,
+            path: ":id",
+            element: <AppDetails />,
           },
           {
             path: "new",
@@ -346,6 +359,10 @@ const routes = [
             path: "claude",
             element: <Claude />,
           },
+          {
+            path: "tictactoe",
+            element: <Tictactoe />,
+          },
         ],
       },
       {
@@ -358,7 +375,7 @@ const routes = [
             element: <AppStore />,
           },
           {
-            path: ":appId",
+            path: ":appStoreId",
             element: <AppStoreDetail />,
           },
         ],
@@ -467,8 +484,9 @@ const routes = [
         element: <SupportAlby />,
       },
       {
-        path: "bank-account",
-        element: <BankAccount />,
+        path: "review-earn",
+        element: <AlbyReviews />,
+        handle: { crumb: () => "Review & Earn" },
       },
     ],
   },
