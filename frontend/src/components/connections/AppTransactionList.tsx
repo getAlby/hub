@@ -1,4 +1,5 @@
 import TransactionsList from "src/components/TransactionsList";
+import { TransactionsListMenu } from "src/components/TransactionsListMenu";
 import {
   Card,
   CardContent,
@@ -9,8 +10,9 @@ import {
 export function AppTransactionList({ appId }: { appId: number }) {
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex items-center justify-between">
         <CardTitle>Transactions</CardTitle>
+        <TransactionsListMenu appId={appId} />
       </CardHeader>
       <CardContent>
         <TransactionsList appId={appId} showReceiveButton={false} />

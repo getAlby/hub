@@ -15,6 +15,7 @@ import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import TransactionsList from "src/components/TransactionsList";
+import { TransactionsListMenu } from "src/components/TransactionsListMenu";
 import {
   Alert,
   AlertDescription,
@@ -120,7 +121,7 @@ function Wallet() {
             Send
           </LinkButton>
         </div>
-        <div className="grid grid-cols-2 items-center gap-3">
+        <div className="flex items-center gap-3">
           <ExternalLink to="https://www.getalby.com/topup">
             <Button className="w-full" variant="secondary">
               <CreditCardIcon />
@@ -135,6 +136,9 @@ function Wallet() {
               </Button>
             </Link>
           )}
+          <div>
+            <TransactionsListMenu />
+          </div>
         </div>
       </div>
 
