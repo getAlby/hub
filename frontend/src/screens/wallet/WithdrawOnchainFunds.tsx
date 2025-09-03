@@ -335,7 +335,7 @@ export default function WithdrawOnchainFunds() {
                   <AlertDialogDescription>
                     <div>
                       <p>Please confirm your payment to</p>
-                      <p className="font-bold max-w-md break-words">
+                      <p className="font-bold max-w-md break-anywhere">
                         {onchainAddress}
                       </p>
                       <p className="mt-4">

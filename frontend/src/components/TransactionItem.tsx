@@ -394,7 +394,7 @@ function TransactionItem({ tx }: Props) {
                     <div className="mt-6">
                       <p>Failure Reason</p>
                       <div className="flex items-center gap-4">
-                        <p className="text-muted-foreground break-words">
+                        <p className="text-muted-foreground break-anywhere">
                           {tx.failureReason}
                         </p>
                         <CopyIcon

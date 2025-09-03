@@ -231,7 +231,7 @@ function NewChannelInternal({
           <div className="flex items-end">
             <Link
               to="/channels/outgoing"
-              className="underline break-words text-sm"
+              className="underline break-anywhere text-sm"
             >
               Open Channel with On-Chain
             </Link>

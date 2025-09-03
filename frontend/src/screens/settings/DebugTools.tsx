@@ -566,7 +566,7 @@ export default function DebugTools() {
       </div>
       {apiResponse && (
         <Textarea
-          className="whitespace-pre-wrap break-words font-mono"
+          className="whitespace-pre-wrap break-anywhere font-mono"
           rows={35}
           value={`API Response: ${apiResponse}`}
         />
