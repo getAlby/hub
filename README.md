@@ -234,14 +234,18 @@ _To configure via env, the following parameters must be provided:_
 - `MEMPOOL_API=https://mutinynet.com/api`
 - `NETWORK=signet`
 - `LDK_ESPLORA_SERVER=https://mutinynet.com/api`
-- `LDK_GOSSIP_SOURCE=https://rgs.mutinynet.com/snapshot`
+- `LDK_GOSSIP_SOURCE=https://rgs.mutinynet.com/snapshot` (NOTE: by default ALby Hub does not use RGS)
+
+(or electrum instead of esplora)
+
+- `LDK_ELECTRUM_SERVER=electrum.mutinynet.com:50001`
 
 ##### Testnet (Not recommended - try Mutinynet)
 
 - `MEMPOOL_API=https://mempool.space/testnet/api`
 - `NETWORK=testnet`
 - `LDK_ESPLORA_SERVER=https://mempool.space/testnet/api`
-- `LDK_GOSSIP_SOURCE=https://rapidsync.lightningdevkit.org/testnet/snapshot`
+- `LDK_GOSSIP_SOURCE=https://rapidsync.lightningdevkit.org/testnet/snapshot` (NOTE: by default ALby Hub does not use RGS)
 
 ###### Connect to your own bitcoind
 

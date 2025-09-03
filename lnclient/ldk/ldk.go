@@ -147,6 +147,12 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		}
 		builder.SetChainSourceBitcoindRpc(cfg.GetEnv().LDKBitcoindRpcHost, uint16(port), cfg.GetEnv().LDKBitcoindRpcUser, cfg.GetEnv().LDKBitcoindRpcPassword)
 		chainSource = "bitcoind_rpc"
+	} else if cfg.GetEnv().LDKElectrumServer != "" {
+		builder.SetChainSourceElectrum(cfg.GetEnv().LDKElectrumServer, &ldk_node.ElectrumSyncConfig{
+			// turn off background sync - we manage syncs ourselves
+			BackgroundSyncConfig: nil,
+		})
+		chainSource = "electrum"
 	} else {
 		logger.Logger.WithFields(logrus.Fields{
 			"esplora_url": cfg.GetEnv().LDKEsploraServer,
