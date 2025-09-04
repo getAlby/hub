@@ -4,6 +4,7 @@ import {
   CircleHelpIcon,
   CircleXIcon,
   CopyIcon,
+  ExternalLinkIcon,
   ZapIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -22,6 +23,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Tooltip,
@@ -76,6 +78,10 @@ export default function SwapInStatus() {
 
   const copyAddress = () => {
     copyToClipboard(swap.lockupAddress);
+  };
+
+  const copyAmount = () => {
+    copyToClipboard(swap.sendAmount.toString());
   };
 
   async function payWithAlbyHub() {
@@ -162,12 +168,20 @@ export default function SwapInStatus() {
                   (swap.lockupTxId ? (
                     <LottieLoading />
                   ) : (
-                    <QRCode value={swap.lockupAddress} />
+                    <QRCode
+                      value={`bitcoin:${swap.lockupAddress}?amount=${swap.sendAmount / 100_000_000}`}
+                    />
                   ))}
                 <div className="flex flex-col gap-2 items-center">
-                  <p className="text-xl font-bold slashed-zero text-center">
-                    {new Intl.NumberFormat().format(swap.sendAmount)} sats
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xl font-bold slashed-zero text-center">
+                      {new Intl.NumberFormat().format(swap.sendAmount)} sats
+                    </p>
+                    <CopyIcon
+                      className="cursor-pointer text-muted-foreground size-4 shrink-0"
+                      onClick={copyAmount}
+                    />
+                  </div>
                   <FormattedFiatAmount amount={swap.sendAmount} />
                 </div>
                 {!swap.lockupTxId && (
@@ -191,6 +205,15 @@ export default function SwapInStatus() {
                           Use Hub On-Chain Funds
                         </LoadingButton>
                       )}
+                    {swap.state === "PENDING" && (
+                      <ExternalLinkButton
+                        to={`bitcoin:${swap.lockupAddress}?amount=${swap.sendAmount / 100_000_000}`}
+                        variant="secondary"
+                      >
+                        Open in External Wallet
+                        <ExternalLinkIcon />
+                      </ExternalLinkButton>
+                    )}
                   </div>
                 )}
               </>
