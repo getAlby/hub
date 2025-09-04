@@ -13,12 +13,12 @@ import (
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 
-	bindings "github.com/getAlby/hub/bark"
+	// bindings "github.com/getAlby/hub/bark"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/notifications"
-	//bindings "github.com/getAlby/second-hub-go/bark"
+	bindings "github.com/getAlby/second-hub-go/bark"
 )
 
 const barkDB = "bark.sqlite"
