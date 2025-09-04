@@ -30,6 +30,7 @@ type AppConfig struct {
 	Network                            string `envconfig:"NETWORK"`
 	LDKNetwork                         string `envconfig:"LDK_NETWORK"`
 	LDKEsploraServer                   string `envconfig:"LDK_ESPLORA_SERVER" default:"https://electrs.getalbypro.com"` // TODO: remove LDK prefix
+	LDKElectrumServer                  string `envconfig:"LDK_ELECTRUM_SERVER"`
 	LDKGossipSource                    string `envconfig:"LDK_GOSSIP_SOURCE"`
 	LDKLogLevel                        string `envconfig:"LDK_LOG_LEVEL" default:"3"`
 	LDKMaxChannelSaturationPowerOfHalf uint8  `envconfig:"LDK_MAX_CHANNEL_SATURATION" default:"2"`
