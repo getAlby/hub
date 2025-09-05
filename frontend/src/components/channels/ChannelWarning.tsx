@@ -14,16 +14,17 @@ type ChannelWarningProps = {
 
 export function ChannelWarning({ channel }: ChannelWarningProps) {
   const capacity = channel.localBalance + channel.remoteBalance;
-  let channelWarning = <> {channel.error} </>;
-  if (!channel.error && channel.status === "opening") {
+  let channelWarning = null;
+
+  if (channel.error) {
+    channelWarning = <> {channel.error} </>;
+  } else if (channel.status === "opening") {
     channelWarning = (
       <>
         {`Channel is currently being opened (${channel.confirmations} of ${channel.confirmationsRequired} confirmations). Once the required confirmation are reached, you will be able to send and receive on this channel.`}{" "}
       </>
     );
-  }
-  // console.info(channel.error); // just a comment to show the diff
-  if (!channel.error && channel.status === "offline") {
+  } else if (channel.status === "offline") {
     channelWarning = (
       <>
         This channel is currently offline and cannot be used to send or receive
@@ -36,10 +37,7 @@ export function ChannelWarning({ channel }: ChannelWarningProps) {
         </ExternalLink>
       </>
     );
-  }
-
-  if (
-    !channel.error &&
+  } else if (
     channel.status === "online" &&
     channel.localSpendableBalance > capacity * 0.9
   ) {
