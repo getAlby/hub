@@ -22,7 +22,7 @@ export function ChannelWarning({ channel }: ChannelWarningProps) {
       </>
     );
   }
-  // console.info(channel.error);
+  // console.info(channel.error); // just a comment to show the diff
   if (!channel.error && channel.status === "offline") {
     channelWarning = (
       <>
