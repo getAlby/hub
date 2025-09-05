@@ -208,7 +208,7 @@ function TransactionItem({ tx }: Props) {
           <DialogTitle
             className={cn(tx.state === "pending" && "animate-pulse")}
           >{`${typeStateText} Bitcoin Payment`}</DialogTitle>
-          <DialogDescription className="text-start text-foreground max-h-96 overflow-y-auto pr-2">
+          <DialogDescription className="text-start text-foreground max-h-[90vh] overflow-y-auto pr-2">
             <div
               className={cn(
                 "flex items-center mt-6",
@@ -386,6 +386,20 @@ function TransactionItem({ tx }: Props) {
                         className="cursor-pointer text-muted-foreground size-4 shrink-0"
                         onClick={() => {
                           copy(tx.paymentHash);
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-6">
+                    <p>Invoice</p>
+                    <div className="flex items-center gap-4">
+                      <p className="text-muted-foreground break-all">
+                        {tx.invoice}
+                      </p>
+                      <CopyIcon
+                        className="cursor-pointer text-muted-foreground size-4 shrink-0"
+                        onClick={() => {
+                          copy(tx.invoice);
                         }}
                       />
                     </div>
