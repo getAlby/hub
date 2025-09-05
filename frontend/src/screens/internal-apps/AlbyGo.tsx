@@ -173,7 +173,7 @@ export function AlbyGo() {
               </CardContent>
             )}
           </Card>
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle className="text-2xl">How to Connect</CardTitle>
             </CardHeader>
@@ -207,7 +207,7 @@ export function AlbyGo() {
                 </div>
               </>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
         <div className="flex flex-col w-full gap-6">
           <AppLinksCard appStoreApp={appStoreApp} />

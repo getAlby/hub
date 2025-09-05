@@ -16,6 +16,9 @@ import React from "react";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
+import { InstallApp } from "src/components/connections/InstallApp";
+import { defineStepper } from "src/components/stepper";
+import { Button } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -25,6 +28,18 @@ import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
 import Permissions from "../../components/Permissions";
 import { appStoreApps } from "../../components/connections/SuggestedAppData";
+
+const { Stepper } = defineStepper(
+  {
+    id: "install",
+    title: "",
+  },
+  {
+    id: "configure",
+    title: "Configure",
+  }
+  //{ id: "finalize", title: "Finalize" }
+);
 
 const NewApp = () => {
   const { data: capabilities } = useCapabilities();
@@ -50,6 +65,12 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
 
   const appId = queryParams.get("app") ?? "";
   const appStoreApp = appStoreApps.find((app) => app.id === appId);
+  const isInstallable =
+    appStoreApp?.appleLink ||
+    appStoreApp?.playLink ||
+    appStoreApp?.zapStoreLink ||
+    appStoreApp?.chromeLink ||
+    appStoreApp?.firefoxLink;
 
   const pubkey = queryParams.get("pubkey") ?? "";
   const returnTo = queryParams.get("return_to") ?? "";
@@ -179,8 +200,8 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     isolated: isolatedParam === "true",
   });
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleSubmit = async (event?: React.FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
 
     if (!permissions.scopes.length) {
       toast("Please specify wallet permissions.");
@@ -229,66 +250,128 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     );
   }
 
+  const permissionsComponent = (
+    <div className="flex flex-col gap-2 w-full">
+      <Permissions
+        capabilities={capabilities}
+        permissions={permissions}
+        setPermissions={setPermissions}
+        isNewConnection
+        scopesReadOnly={
+          !!reqMethodsParam || !!notificationTypesParam || !!isolatedParam
+        }
+        budgetReadOnly={!!budgetMaxAmountMsatParam}
+        expiresAtReadOnly={!!expiresAtParam}
+      />
+    </div>
+  );
+
   return (
     <>
       <AppHeader
-        title={nameParam ? `Connect to ${appName}` : "Connect a new app"}
+        title={appName ? `Connect to ${appName}` : "Connect a new app"}
+        icon={
+          appStoreApp?.logo ? (
+            <img
+              src={appStoreApp.logo}
+              alt="logo"
+              className="inline rounded-lg w-12 h-12"
+            />
+          ) : undefined
+        }
         description="Configure wallet permissions for the app and follow instructions to finalize the connection"
       />
-      <form
-        onSubmit={handleSubmit}
-        acceptCharset="UTF-8"
-        className="flex flex-col items-start gap-5 max-w-lg"
-      >
-        {appStoreApp && (
-          <div className="flex flex-row items-center gap-3">
-            <img src={appStoreApp.logo} className="h-12 w-12 rounded-lg" />
-            <h2 className="font-semibold text-lg">{appStoreApp.title}</h2>
-          </div>
-        )}
-        {!nameParam && (
-          <div className="w-full grid gap-1.5">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              autoFocus
-              type="text"
-              name="name"
-              value={appName}
-              id="name"
-              onChange={(e) => setAppName(e.target.value)}
-              required
-              autoComplete="off"
-            />
+
+      {appStoreApp && (
+        <Stepper.Provider className="space-y-4 max-w-lg" variant="vertical">
+          {({ methods }) => (
+            <>
+              <Stepper.Navigation>
+                {methods.all.map((step) => (
+                  <Stepper.Step
+                    of={step.id}
+                    onClick={() => methods.goTo(step.id)}
+                  >
+                    <Stepper.Title>
+                      {step.title ||
+                        (isInstallable ? "Install" : "Open") + " " + appName}
+                    </Stepper.Title>
+                    {methods.when(step.id, () => (
+                      <>
+                        {methods.switch({
+                          install: () => (
+                            <InstallApp appStoreApp={appStoreApp} />
+                          ),
+                          configure: () => permissionsComponent,
+                        })}
+                        <Stepper.Controls className="mt-6">
+                          {!methods.isFirst && (
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              onClick={methods.prev}
+                            >
+                              Back
+                            </Button>
+                          )}
+                          <Button
+                            onClick={
+                              methods.isLast
+                                ? () => handleSubmit(undefined)
+                                : methods.next
+                            }
+                          >
+                            Next
+                          </Button>
+                        </Stepper.Controls>
+                      </>
+                    ))}
+                  </Stepper.Step>
+                ))}
+              </Stepper.Navigation>
+            </>
+          )}
+        </Stepper.Provider>
+      )}
+
+      {!appStoreApp && (
+        <form
+          onSubmit={handleSubmit}
+          acceptCharset="UTF-8"
+          className="flex flex-col items-start gap-5 max-w-lg"
+        >
+          {!nameParam && (
+            <div className="w-full grid gap-1.5">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                autoFocus
+                type="text"
+                name="name"
+                value={appName}
+                id="name"
+                onChange={(e) => setAppName(e.target.value)}
+                required
+                autoComplete="off"
+              />
+              <p className="text-xs text-muted-foreground">
+                Name of the app or purpose of the connection
+              </p>
+            </div>
+          )}
+          {permissionsComponent}
+
+          <Separator />
+          {returnTo && (
             <p className="text-xs text-muted-foreground">
-              Name of the app or purpose of the connection
+              You will automatically return to {returnTo}
             </p>
-          </div>
-        )}
-        <div className="flex flex-col gap-2 w-full">
-          <Permissions
-            capabilities={capabilities}
-            permissions={permissions}
-            setPermissions={setPermissions}
-            isNewConnection
-            scopesReadOnly={
-              !!reqMethodsParam || !!notificationTypesParam || !!isolatedParam
-            }
-            budgetReadOnly={!!budgetMaxAmountMsatParam}
-            expiresAtReadOnly={!!expiresAtParam}
-          />
-        </div>
+          )}
 
-        <Separator />
-        {returnTo && (
-          <p className="text-xs text-muted-foreground">
-            You will automatically return to {returnTo}
-          </p>
-        )}
-
-        <LoadingButton loading={isLoading} type="submit">
-          {pubkey ? "Connect" : "Next"}
-        </LoadingButton>
-      </form>
+          <LoadingButton loading={isLoading} type="submit">
+            {pubkey ? "Connect" : "Next"}
+          </LoadingButton>
+        </form>
+      )}
     </>
   );
 };
