@@ -139,7 +139,6 @@ export default function Stories() {
     );
   };
 
-  // Hide the component if there are no stories and not loading
   if (!isLoading && stories.length === 0) {
     return null;
   }
