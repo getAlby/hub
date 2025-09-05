@@ -44,7 +44,13 @@ export function ChannelWarning({ channel }: ChannelWarningProps) {
     channelWarning = (
       <>
         Receiving capacity low. You may have trouble receiving payments through
-        this channel.
+        this channel.{" "}
+        <ExternalLink
+          to="https://guides.getalby.com/user-guide/alby-hub/node#what-is-receiving-capacity-and-spending-balance-in-lightning-terminology"
+          className="underline"
+        >
+          Learn more here.
+        </ExternalLink>
       </>
     );
   }
