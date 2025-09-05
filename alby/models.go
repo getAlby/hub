@@ -12,6 +12,7 @@ type AlbyOAuthService interface {
 	GetInfo(ctx context.Context) (*AlbyInfo, error)
 	GetChannelPeerSuggestions(ctx context.Context) ([]ChannelPeerSuggestion, error)
 	GetBitcoinRate(ctx context.Context) (*BitcoinRate, error)
+	GetStories(ctx context.Context) ([]Story, error)
 	GetAuthUrl() string
 	GetUserIdentifier() (string, error)
 	GetLightningAddress() (string, error)
@@ -132,4 +133,11 @@ type BitcoinRate struct {
 }
 type ErrorResponse struct {
 	Message string `json:"message"`
+}
+
+type Story struct {
+	ID       int    `json:"id"`
+	Title    string `json:"title"`
+	Avatar   string `json:"avatar"`
+	VideoUrl string `json:"videoUrl,omitempty"`
 }

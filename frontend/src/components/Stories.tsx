@@ -1,8 +1,5 @@
 import { ChevronDown } from "lucide-react";
 import React from "react";
-import albyGo from "src/assets/suggested-apps/alby-go.png";
-import { AlbyHubIcon } from "src/components/icons/AlbyHubIcon";
-import { AlbyHead } from "src/components/images/AlbyHead";
 import { Avatar } from "src/components/ui/avatar";
 import {
   Collapsible,
@@ -20,13 +17,20 @@ import { cn } from "src/lib/utils";
 
 export interface Story {
   id: number;
-  avatar: React.ComponentType<{ className?: string }>;
+  avatar: string;
   title: string;
   seen: boolean;
   videoUrl?: string;
 }
 
-export default function StoriesSection() {
+interface ApiStory {
+  id: number;
+  avatar: string;
+  title: string;
+  videoUrl?: string;
+}
+
+export default function Stories() {
   const [isStoriesOpen, setIsStoriesOpen] = React.useState(true);
   const [selectedStory, setSelectedStory] = React.useState<Story | null>(null);
   const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -48,41 +52,47 @@ export default function StoriesSection() {
     }
   };
 
+  const loadStoriesFromAPI = React.useCallback(async (): Promise<Story[]> => {
+    try {
+      const response = await fetch("/api/alby/stories");
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const apiStories: ApiStory[] = await response.json();
+      const readIds = getReadStoryIds();
+
+      return apiStories.map((story) => ({
+        id: story.id,
+        title: story.title,
+        avatar: story.avatar,
+        seen: readIds.includes(story.id),
+        videoUrl: story.videoUrl,
+      }));
+    } catch (error) {
+      console.error("Failed to load stories from API:", error);
+      // Fallback to empty array or default stories
+      return [];
+    }
+  }, []);
+
   const initializeStories = (): Story[] => {
-    const readIds = getReadStoryIds();
-    return [
-      {
-        id: 1,
-        title: "Update",
-        avatar: AlbyHubIcon,
-        seen: readIds.includes(1),
-        videoUrl: "https://www.youtube.com/embed/Nw8vU46KoTY",
-      },
-      {
-        id: 2,
-        title: "getalby.com",
-        avatar: AlbyHead,
-        seen: readIds.includes(2),
-        videoUrl: "https://www.youtube.com/embed/Nw8vU46KoTY",
-      },
-      {
-        id: 3,
-        title: "Auto-Swaps",
-        avatar: AlbyHubIcon,
-        seen: readIds.includes(3),
-        videoUrl: "https://www.youtube.com/embed/Nw8vU46KoTY",
-      },
-      {
-        id: 4,
-        title: "Alby Go",
-        avatar: () => <img src={albyGo} alt="Alby Go" className="size-8" />,
-        seen: readIds.includes(4),
-        videoUrl: "https://www.youtube.com/embed/Nw8vU46KoTY",
-      },
-    ];
+    // Return empty array initially, will be populated by useEffect
+    return [];
   };
 
   const [stories, setStories] = React.useState<Story[]>(initializeStories());
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchStories = async () => {
+      setIsLoading(true);
+      const loadedStories = await loadStoriesFromAPI();
+      setStories(loadedStories);
+      setIsLoading(false);
+    };
+
+    fetchStories();
+  }, [loadStoriesFromAPI]);
 
   const handleStoryClick = (id: number) => {
     const story = stories.find((s) => s.id === id);
@@ -114,7 +124,11 @@ export default function StoriesSection() {
         >
           <Avatar className={cn("border-background size-14")}>
             <div className="w-full h-full flex items-center justify-center">
-              <story.avatar className="size-8" />
+              <img
+                src={story.avatar}
+                alt={story.title}
+                className="size-8 rounded-full object-cover"
+              />
             </div>
           </Avatar>
         </div>
@@ -136,9 +150,15 @@ export default function StoriesSection() {
         </CollapsibleTrigger>
         <CollapsibleContent>
           <div className="flex gap-3 overflow-x-auto mb-2">
-            {[...stories]
-              .sort((a, b) => (a.seen === b.seen ? 0 : a.seen ? 1 : -1))
-              .map(renderStoryItem)}
+            {isLoading ? (
+              <div className="text-sm text-muted-foreground">
+                Loading stories...
+              </div>
+            ) : (
+              [...stories]
+                .sort((a, b) => (a.seen === b.seen ? 0 : a.seen ? 1 : -1))
+                .map(renderStoryItem)
+            )}
           </div>
         </CollapsibleContent>
       </Collapsible>

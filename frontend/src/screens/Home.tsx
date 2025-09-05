@@ -4,7 +4,7 @@ import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { AlbyHead } from "src/components/images/AlbyHead";
 import Loading from "src/components/Loading";
-import StoriesSection from "src/components/StoriesSection";
+import Stories from "src/components/Stories";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
 import {
@@ -62,7 +62,7 @@ function Home() {
   return (
     <>
       <AppHeader title={getGreeting(albyMe?.name)} />
-      <StoriesSection />
+      <Stories />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start justify-start">
         {/* LEFT */}
