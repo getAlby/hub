@@ -26,18 +26,10 @@ export function AppStoreDetail() {
     return null;
   }
 
-  return (
-    <AppStoreDetailInternal appStoreId={appStoreId} appStoreApp={appStoreApp} />
-  );
+  return <AppStoreDetailInternal appStoreApp={appStoreApp} />;
 }
 
-function AppStoreDetailInternal({
-  appStoreApp,
-  appStoreId,
-}: {
-  appStoreApp: AppStoreApp;
-  appStoreId: string;
-}) {
+function AppStoreDetailInternal({ appStoreApp }: { appStoreApp: AppStoreApp }) {
   const connectedApps = useAppsForAppStoreApp(appStoreApp);
   const navigate = useNavigate();
 
