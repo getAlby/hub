@@ -18,7 +18,6 @@ import { Welcome } from "src/screens/Welcome";
 import AlbyAuthRedirect from "src/screens/alby/AlbyAuthRedirect";
 import { AlbyReviews } from "src/screens/alby/AlbyReviews";
 import SupportAlby from "src/screens/alby/SupportAlby";
-import AppCreated from "src/screens/apps/AppCreated";
 import AppDetails from "src/screens/apps/AppDetails";
 import { AppsCleanup } from "src/screens/apps/AppsCleanup";
 import { Connections } from "src/screens/apps/Connections";
@@ -289,10 +288,6 @@ const routes = [
             path: "new",
             element: <NewApp />,
             handle: { crumb: () => "New App" },
-          },
-          {
-            path: "created",
-            element: <AppCreated />,
           },
           {
             path: "cleanup",

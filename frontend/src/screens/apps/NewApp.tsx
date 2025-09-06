@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 
 import {
   AppPermissions,
   BudgetRenewalType,
   CreateAppRequest,
+  CreateAppResponse,
   Nip47NotificationType,
   Nip47RequestMethod,
   Scope,
@@ -15,6 +16,7 @@ import {
 import React from "react";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
+import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
 import Loading from "src/components/Loading";
 import { InstallApp } from "src/components/connections/InstallApp";
 import { defineStepper } from "src/components/stepper";
@@ -22,24 +24,16 @@ import { Button } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { Separator } from "src/components/ui/separator";
+import { useApp } from "src/hooks/useApp";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { createApp } from "src/requests/createApp";
+import { ConnectAppCard } from "src/screens/apps/ConnectAppCard";
 import { handleRequestError } from "src/utils/handleRequestError";
 import Permissions from "../../components/Permissions";
-import { appStoreApps } from "../../components/connections/SuggestedAppData";
-
-const { Stepper } = defineStepper(
-  {
-    id: "install",
-    title: "",
-  },
-  {
-    id: "configure",
-    title: "Configure",
-  }
-  //{ id: "finalize", title: "Finalize" }
-);
+import {
+  AppStoreApp,
+  appStoreApps,
+} from "../../components/connections/SuggestedAppData";
 
 const NewApp = () => {
   const { data: capabilities } = useCapabilities();
@@ -57,9 +51,11 @@ type NewAppInternalProps = {
 const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   const location = useLocation();
 
-  const navigate = useNavigate();
   const [unsupportedError, setUnsupportedError] = useState<string>();
   const [isLoading, setLoading] = React.useState(false);
+
+  const [createAppResponse, setCreateAppResponse] =
+    React.useState<CreateAppResponse>();
 
   const queryParams = new URLSearchParams(location.search);
 
@@ -200,9 +196,27 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     isolated: isolatedParam === "true",
   });
 
-  const handleSubmit = async (event?: React.FormEvent<HTMLFormElement>) => {
-    event?.preventDefault();
+  const { Stepper } = React.useMemo(
+    () =>
+      defineStepper(
+        ...(appStoreApp
+          ? [
+              {
+                id: "install",
+                title: "",
+              },
+            ]
+          : []),
+        {
+          id: "configure",
+          title: "Configure",
+        },
+        ...(returnTo ? [] : [{ id: "finalize", title: "Finalize" }])
+      ),
+    [appStoreApp, returnTo]
+  );
 
+  const handleCreateApp = async (nextFunc: () => void) => {
     if (!permissions.scopes.length) {
       toast("Please specify wallet permissions.");
       return;
@@ -231,10 +245,10 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         window.location.href = createAppResponse.returnTo;
         return;
       }
-      navigate(`/apps/created${appStoreApp ? `?app=${appStoreApp.id}` : ""}`, {
-        state: createAppResponse,
-      });
       toast("App created");
+      setCreateAppResponse(createAppResponse);
+
+      nextFunc();
     } catch (error) {
       handleRequestError("Failed to create app", error);
     }
@@ -282,28 +296,66 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         description="Configure wallet permissions for the app and follow instructions to finalize the connection"
       />
 
-      {appStoreApp && (
-        <Stepper.Provider className="space-y-4 max-w-lg" variant="vertical">
-          {({ methods }) => (
-            <>
-              <Stepper.Navigation>
-                {methods.all.map((step) => (
-                  <Stepper.Step
-                    of={step.id}
-                    onClick={() => methods.goTo(step.id)}
-                  >
-                    <Stepper.Title>
-                      {step.title ||
-                        (isInstallable ? "Install" : "Open") + " " + appName}
-                    </Stepper.Title>
-                    {methods.when(step.id, () => (
-                      <>
-                        {methods.switch({
-                          install: () => (
+      <Stepper.Provider className="space-y-4 max-w-lg" variant="vertical">
+        {({ methods }) => (
+          <>
+            <Stepper.Navigation>
+              {methods.all.map((step) => (
+                <Stepper.Step
+                  of={step.id}
+                  // onClick={() => methods.goTo(step.id)}
+                >
+                  <Stepper.Title>
+                    {step.title ||
+                      (isInstallable ? "Install" : "Open") + " " + appName}
+                  </Stepper.Title>
+                  {methods.when(step.id, () => (
+                    <>
+                      {methods.switch({
+                        install: () =>
+                          appStoreApp && (
                             <InstallApp appStoreApp={appStoreApp} />
                           ),
-                          configure: () => permissionsComponent,
-                        })}
+                        configure: () => (
+                          <div className="flex flex-col gap-2">
+                            {!appStoreApp && (
+                              <div className="w-full grid gap-1.5">
+                                <Label htmlFor="name">Name</Label>
+                                <Input
+                                  autoFocus
+                                  type="text"
+                                  name="name"
+                                  value={appName}
+                                  id="name"
+                                  onChange={(e) => setAppName(e.target.value)}
+                                  required
+                                  autoComplete="off"
+                                />
+                                <p className="text-xs text-muted-foreground">
+                                  Name of the app or purpose of the connection
+                                </p>
+                              </div>
+                            )}
+                            {permissionsComponent}
+
+                            {returnTo && (
+                              <p className="text-xs text-muted-foreground">
+                                You will automatically return to {returnTo}
+                              </p>
+                            )}
+                          </div>
+                        ),
+                        finalize: () =>
+                          createAppResponse && (
+                            <div className="pl-8 max-w-md">
+                              <FinalizeConnection
+                                createAppResponse={createAppResponse}
+                                appStoreApp={appStoreApp}
+                              />
+                            </div>
+                          ),
+                      })}
+                      {!methods.isLast && (
                         <Stepper.Controls className="mt-6">
                           {!methods.isFirst && (
                             <Button
@@ -314,66 +366,126 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                               Back
                             </Button>
                           )}
-                          <Button
+                          <LoadingButton
+                            loading={isLoading}
                             onClick={
-                              methods.isLast
-                                ? () => handleSubmit(undefined)
+                              step.id === "configure"
+                                ? () => handleCreateApp(methods.next)
                                 : methods.next
                             }
                           >
-                            Next
-                          </Button>
+                            {step.id === "configure" && pubkey
+                              ? "Connect"
+                              : "Next"}
+                          </LoadingButton>
                         </Stepper.Controls>
-                      </>
-                    ))}
-                  </Stepper.Step>
-                ))}
-              </Stepper.Navigation>
-            </>
-          )}
-        </Stepper.Provider>
-      )}
-
-      {!appStoreApp && (
-        <form
-          onSubmit={handleSubmit}
-          acceptCharset="UTF-8"
-          className="flex flex-col items-start gap-5 max-w-lg"
-        >
-          {!nameParam && (
-            <div className="w-full grid gap-1.5">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                autoFocus
-                type="text"
-                name="name"
-                value={appName}
-                id="name"
-                onChange={(e) => setAppName(e.target.value)}
-                required
-                autoComplete="off"
-              />
-              <p className="text-xs text-muted-foreground">
-                Name of the app or purpose of the connection
-              </p>
-            </div>
-          )}
-          {permissionsComponent}
-
-          <Separator />
-          {returnTo && (
-            <p className="text-xs text-muted-foreground">
-              You will automatically return to {returnTo}
-            </p>
-          )}
-
-          <LoadingButton loading={isLoading} type="submit">
-            {pubkey ? "Connect" : "Next"}
-          </LoadingButton>
-        </form>
-      )}
+                      )}
+                    </>
+                  ))}
+                </Stepper.Step>
+              ))}
+            </Stepper.Navigation>
+          </>
+        )}
+      </Stepper.Provider>
     </>
   );
 };
 
 export default NewApp;
+
+function FinalizeConnection({
+  createAppResponse,
+  appStoreApp,
+}: {
+  createAppResponse: CreateAppResponse;
+  appStoreApp: AppStoreApp | undefined;
+}) {
+  const navigate = useNavigate();
+
+  const pairingUri = createAppResponse.pairingUri;
+  const { data: app } = useApp(createAppResponse.id, true);
+
+  React.useEffect(() => {
+    if (app?.lastUsedAt) {
+      toast("Connection established!", {
+        description: "You can now use the app with your Alby Hub.",
+      });
+      navigate("/apps?tab=connected-apps");
+    }
+  }, [app?.lastUsedAt, navigate]);
+
+  React.useEffect(() => {
+    // dispatch a success event which can be listened to by the opener or by the app that embedded the webview
+    // this gives those apps the chance to know the user has enabled the connection
+    const nwcEvent = new CustomEvent("nwc:success", {
+      detail: {
+        relayUrl: createAppResponse.relayUrl,
+        walletPubkey: createAppResponse.walletPubkey,
+        lud16: createAppResponse.lud16,
+      },
+    });
+    window.dispatchEvent(nwcEvent);
+
+    // notify the opener of the successful connection
+    if (window.opener) {
+      window.opener.postMessage(
+        {
+          type: "nwc:success",
+          relayUrl: createAppResponse.relayUrl,
+          walletPubkey: createAppResponse.walletPubkey,
+          lud16: createAppResponse.lud16,
+        },
+        "*"
+      );
+    }
+  }, [
+    createAppResponse.relayUrl,
+    createAppResponse.walletPubkey,
+    createAppResponse.lud16,
+  ]);
+
+  if (!createAppResponse) {
+    return <Navigate to="/apps/new" />;
+  }
+
+  return (
+    <>
+      <div className="flex flex-col gap-3 sensitive">
+        {appStoreApp ? (
+          <>{appStoreApp.finalizeGuide}</>
+        ) : (
+          <ol className="list-decimal list-inside">
+            <li>Open the app you wish to connect to</li>
+            <li>
+              Find settings to connect your wallet (may be under{" "}
+              <span className="font-semibold">Nostr Wallet Connect</span> or{" "}
+              <span className="font-semibold">NWC</span>).
+            </li>
+            <li>Scan or paste the connection secret</li>
+          </ol>
+        )}
+
+        {app?.isolated && (
+          <li>
+            Optional: Top up sub-wallet balance (
+            {new Intl.NumberFormat().format(Math.floor(app.balance / 1000))}{" "}
+            sats){" "}
+            <IsolatedAppTopupDialog appId={app.id}>
+              <Button size="sm" variant="secondary">
+                Top Up
+              </Button>
+            </IsolatedAppTopupDialog>
+          </li>
+        )}
+        {app && (
+          <ConnectAppCard
+            app={app}
+            pairingUri={pairingUri}
+            appStoreApp={appStoreApp}
+          />
+        )}
+      </div>
+    </>
+  );
+}
