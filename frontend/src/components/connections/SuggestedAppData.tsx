@@ -66,6 +66,7 @@ export type AppStoreApp = {
   finalizeGuide?: React.ReactNode;
   hideConnectionQr?: boolean;
   internal?: boolean;
+  superuser?: boolean;
 };
 
 export const appStoreCategories = {
@@ -133,8 +134,8 @@ export const appStoreApps: AppStoreApp[] = (
       logo: albyGo,
       extendedDescription:
         "Sends and receives payments seamlessly from your Hub",
-      internal: true,
       categories: ["wallet-interfaces"],
+      superuser: true,
     },
     {
       id: "buzzpay",

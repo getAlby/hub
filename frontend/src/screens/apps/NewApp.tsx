@@ -1,6 +1,25 @@
 import { useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 
+import React from "react";
+import { toast } from "sonner";
+import Loading from "src/components/Loading";
+import { appStoreApps } from "src/components/connections/SuggestedAppData";
+import PasswordInput from "src/components/password/PasswordInput";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "src/components/ui/alert-dialog";
+import { Button } from "src/components/ui/button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
+import { Label } from "src/components/ui/label";
+import { useCapabilities } from "src/hooks/useCapabilities";
+import { createApp } from "src/requests/createApp";
 import {
   AppPermissions,
   BudgetRenewalType,
@@ -13,27 +32,17 @@ import {
   validBudgetRenewals,
 } from "src/types";
 
-import React from "react";
-import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
-import Loading from "src/components/Loading";
 import { InstallApp } from "src/components/connections/InstallApp";
 import { defineStepper } from "src/components/stepper";
-import { Button } from "src/components/ui/button";
-import { LoadingButton } from "src/components/ui/custom/loading-button";
+import { Checkbox } from "src/components/ui/checkbox";
 import { Input } from "src/components/ui/input";
-import { Label } from "src/components/ui/label";
 import { useApp } from "src/hooks/useApp";
-import { useCapabilities } from "src/hooks/useCapabilities";
-import { createApp } from "src/requests/createApp";
 import { ConnectAppCard } from "src/screens/apps/ConnectAppCard";
 import { handleRequestError } from "src/utils/handleRequestError";
 import Permissions from "../../components/Permissions";
-import {
-  AppStoreApp,
-  appStoreApps,
-} from "../../components/connections/SuggestedAppData";
+import { AppStoreApp } from "../../components/connections/SuggestedAppData";
 
 const NewApp = () => {
   const { data: capabilities } = useCapabilities();
@@ -182,6 +191,13 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     return undefined;
   };
 
+  const [superuser, setSuperuser] = useState(appStoreApp?.superuser || false);
+  const [
+    showSuperuserConfirmPasswordDialog,
+    setShowSuperuserConfirmPasswordDialog,
+  ] = useState(false);
+  const [unlockPassword, setUnlockPassword] = useState("");
+
   const [permissions, setPermissions] = useState<AppPermissions>({
     scopes: initialScopes,
     maxAmount: budgetMaxAmountMsatParam
@@ -229,13 +245,17 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         pubkey,
         budgetRenewal: permissions.budgetRenewal,
         maxAmount: permissions.maxAmount || 0,
-        scopes: permissions.scopes,
+        scopes: [
+          ...permissions.scopes,
+          ...(superuser ? ["superuser" satisfies Scope] : []),
+        ] as Scope[],
         expiresAt: permissions.expiresAt?.toISOString(),
         returnTo: returnTo,
         isolated: permissions.isolated,
         metadata: {
           app_store_app_id: appStoreApp?.id,
         },
+        unlockPassword,
       };
 
       const createAppResponse = await createApp(createAppRequest);
@@ -264,22 +284,6 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     );
   }
 
-  const permissionsComponent = (
-    <div className="flex flex-col gap-2 w-full">
-      <Permissions
-        capabilities={capabilities}
-        permissions={permissions}
-        setPermissions={setPermissions}
-        isNewConnection
-        scopesReadOnly={
-          !!reqMethodsParam || !!notificationTypesParam || !!isolatedParam
-        }
-        budgetReadOnly={!!budgetMaxAmountMsatParam}
-        expiresAtReadOnly={!!expiresAtParam}
-      />
-    </div>
-  );
-
   return (
     <>
       <AppHeader
@@ -303,7 +307,11 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
               {methods.all.map((step) => (
                 <Stepper.Step
                   of={step.id}
-                  // onClick={() => methods.goTo(step.id)}
+                  onClick={() =>
+                    methods.current.id === "configure" && step.id === "install"
+                      ? methods.goTo(step.id)
+                      : undefined
+                  }
                 >
                   <Stepper.Title>
                     {step.title ||
@@ -318,6 +326,15 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                           ),
                         configure: () => (
                           <div className="flex flex-col gap-2">
+                            <SuperuserConfirmPasswordDialog
+                              open={showSuperuserConfirmPasswordDialog}
+                              setOpen={setShowSuperuserConfirmPasswordDialog}
+                              onSubmit={() => {
+                                handleCreateApp(methods.next);
+                              }}
+                              unlockPassword={unlockPassword}
+                              setUnlockPassword={setUnlockPassword}
+                            />
                             {!appStoreApp && (
                               <div className="w-full grid gap-1.5">
                                 <Label htmlFor="name">Name</Label>
@@ -336,7 +353,46 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                                 </p>
                               </div>
                             )}
-                            {permissionsComponent}
+                            <div className="flex flex-col gap-2 w-full">
+                              <Permissions
+                                capabilities={capabilities}
+                                permissions={permissions}
+                                setPermissions={setPermissions}
+                                isNewConnection
+                                scopesReadOnly={
+                                  !!reqMethodsParam ||
+                                  !!notificationTypesParam ||
+                                  !!isolatedParam
+                                }
+                                budgetReadOnly={!!budgetMaxAmountMsatParam}
+                                expiresAtReadOnly={!!expiresAtParam}
+                              />
+                            </div>
+                            {appStoreApp?.superuser && (
+                              <div className="flex mt-2">
+                                <Checkbox
+                                  id="superuser"
+                                  required
+                                  checked={superuser}
+                                  onCheckedChange={() =>
+                                    setSuperuser(!superuser)
+                                  }
+                                  className="mt-0.5"
+                                />
+                                <Label
+                                  htmlFor="superuser"
+                                  className="ml-2 text-sm text-foreground flex flex-col items-start justify-center"
+                                >
+                                  <div>
+                                    Enable accepting connections to other apps
+                                  </div>
+                                  <div className="text-muted-foreground font-normal">
+                                    Allow this app to let you authorize new
+                                    connections to your Alby Hub.
+                                  </div>
+                                </Label>
+                              </div>
+                            )}
 
                             {returnTo && (
                               <p className="text-xs text-muted-foreground">
@@ -370,7 +426,12 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                             loading={isLoading}
                             onClick={
                               step.id === "configure"
-                                ? () => handleCreateApp(methods.next)
+                                ? () =>
+                                    superuser
+                                      ? setShowSuperuserConfirmPasswordDialog(
+                                          true
+                                        )
+                                      : handleCreateApp(methods.next)
                                 : methods.next
                             }
                           >
@@ -487,5 +548,71 @@ function FinalizeConnection({
         )}
       </div>
     </>
+  );
+}
+
+type SuperuserConfirmPasswordDialogProps = {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  onSubmit: () => void;
+  unlockPassword: string;
+  setUnlockPassword: (password: string) => void;
+};
+
+function SuperuserConfirmPasswordDialog({
+  open,
+  setOpen,
+  onSubmit,
+  unlockPassword,
+  setUnlockPassword,
+}: SuperuserConfirmPasswordDialogProps) {
+  return (
+    <AlertDialog open={open}>
+      <AlertDialogContent>
+        <form
+          onSubmit={(e: React.FormEvent) => {
+            e.preventDefault();
+            onSubmit();
+          }}
+        >
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm New Connection</AlertDialogTitle>
+            <AlertDialogDescription>
+              <div className="flex flex-col">
+                <p>
+                  Alby Go will be given permission to create other app
+                  connections which can spend your balance.
+                </p>
+
+                <p className="mt-4">
+                  Warning: Alby Go can create connections with a larger budget
+                  than the one set for Alby Go. Make sure to always set a
+                  budget.
+                </p>
+
+                <p className="mt-4">
+                  Please enter your unlock password to continue.
+                </p>
+                <div className="grid gap-1.5 mt-4">
+                  <Label htmlFor="password">Unlock Password</Label>
+                  <PasswordInput
+                    id="password"
+                    onChange={setUnlockPassword}
+                    autoFocus
+                    value={unlockPassword}
+                  />
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="mt-3">
+            <AlertDialogCancel onClick={() => setOpen(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <Button type="submit">Confirm</Button>
+          </AlertDialogFooter>
+        </form>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
