@@ -136,6 +136,25 @@ export const appStoreApps: AppStoreApp[] = (
         "Sends and receives payments seamlessly from your Hub",
       categories: ["wallet-interfaces"],
       superuser: true,
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Download and open{" "}
+            <span className="font-medium text-foreground">Alby Go</span> on your
+            iOS or Android device
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Alby Go</h3>
+            <p className="text-muted-foreground">
+              Scan the connection secret from Alby Hub
+            </p>
+          </div>
+        </>
+      ),
     },
     {
       id: "buzzpay",
@@ -287,49 +306,33 @@ export const appStoreApps: AppStoreApp[] = (
       logo: amethyst,
       extendedDescription:
         "Tip nostr posts and profiles and receive zaps seamlessly with your Hub",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Download and open{" "}
+            <span className="font-medium text-foreground">Amethyst</span> on
+            your Android device
+          </p>
+        </>
+      ),
       finalizeGuide: (
         <>
           <div>
             <h3 className="font-medium">In Amethyst</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Download and open{" "}
-                <span className="font-medium text-foreground">Amethyst</span> on
-                your Android device
-              </li>
-              <li>
-                2. Long-press
+                Long-press
                 <ZapIcon className="inline text-foreground mx-2" />
                 below a post in your feed
               </li>
               <li>
-                3. Click on the{" "}
+                Click on the{" "}
                 <span className="font-medium text-foreground">
                   QR code icon
                 </span>{" "}
                 to activate the QR code scanner
               </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Alby Hub</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
-              <li>
-                4. Click{" "}
-                <Link
-                  to="/apps/new?app=amthyst"
-                  className="font-medium text-foreground underline"
-                >
-                  Connect to Amethyst
-                </Link>
-              </li>
-              <li>5. Set app's wallet permissions (full access recommended)</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Amethyst</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
-              <li>6. Scan or paste the connection secret from Alby Hub</li>
+              <li>Scan the connection secret from Alby Hub</li>
             </ul>
           </div>
         </>
@@ -347,18 +350,22 @@ export const appStoreApps: AppStoreApp[] = (
       logo: primal,
       extendedDescription:
         "Tip nostr posts and profiles and receive zaps seamlessly with your Hub",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Download and open{" "}
+            <span className="font-medium text-foreground">Primal</span> on your
+            Android or iOS device
+          </p>
+        </>
+      ),
       finalizeGuide: (
         <>
           <div>
             <h3 className="font-medium">In Primal</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Download and open{" "}
-                <span className="font-medium text-foreground">Primal</span> on
-                your Android or iOS device
-              </li>
-              <li>
-                2. Click on your{" "}
+                Click on your{" "}
                 <span className="font-medium text-foreground">
                   profile image
                 </span>{" "}
@@ -369,31 +376,8 @@ export const appStoreApps: AppStoreApp[] = (
                   Untoggle Primal wallet
                 </span>
               </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Alby Hub</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                3. Click{" "}
-                <Link
-                  to="/apps/new?app=primal"
-                  className="font-medium text-foreground underline"
-                >
-                  Connect to Primal
-                </Link>
-              </li>
-              <li>
-                4. Set app's wallet permissions (full access recommended) and
-                click on "Next"
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Primal</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
-              <li>
-                5. Click on "Paste NWC String" or "Scan NWC QR Code" to connect
+                Click on "Paste NWC String" or "Scan NWC QR Code" to connect
                 Alby Hub
               </li>
             </ul>
@@ -410,23 +394,27 @@ export const appStoreApps: AppStoreApp[] = (
       logo: zapstream,
       extendedDescription:
         "Tip streamers, zap comments and pay or receive sats for streaming time with your Hub",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://zap.stream"
+              className="font-medium text-foreground underline"
+            >
+              Zap Stream
+            </ExternalLink>{" "}
+            in your browser and log in
+          </p>
+        </>
+      ),
       finalizeGuide: (
         <>
           <div>
             <h3 className="font-medium">In Zap Stream</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Open{" "}
-                <ExternalLink
-                  to="https://zap.stream"
-                  className="font-medium text-foreground underline"
-                >
-                  Zap Stream
-                </ExternalLink>{" "}
-                in your browser and log in
-              </li>
-              <li>
-                2. Click on your{" "}
+                Click on your{" "}
                 <span className="font-medium text-foreground">
                   Profile Image
                 </span>{" "}
@@ -434,28 +422,8 @@ export const appStoreApps: AppStoreApp[] = (
                 → scroll to{" "}
                 <span className="font-medium text-foreground">Wallet</span>
               </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Alby Hub</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                3. Click{" "}
-                <Link
-                  to="/apps/new?app=zap-stream"
-                  className="font-medium text-foreground underline"
-                >
-                  Connect to Zap Stream
-                </Link>
-              </li>
-              <li>4. Set app's wallet permissions (full access recommended)</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Zap Stream</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
-              <li>
-                5. Paste connection secret from Alby Hub and click on{" "}
+                Paste connection secret from Alby Hub and click on{" "}
                 <span className="font-medium text-foreground">Connect</span>
               </li>
             </ul>
@@ -472,30 +440,32 @@ export const appStoreApps: AppStoreApp[] = (
       logo: btcpay,
       extendedDescription:
         "Receive payments directly to your Hub for products you sell online",
+      installGuide: (
+        <>
+          <p>
+            You can use your Alby Hub as a lightning wallet funding source for
+            your{" "}
+            <ExternalLink
+              to="https://btcpayserver.org/"
+              className="font-medium text-foreground underline"
+            >
+              BTCPay Server
+            </ExternalLink>{" "}
+            store, to accept and create payments. In order for this feature to
+            work, your BTCPay Server instance needs to have the{" "}
+            <span className="font-medium text-foreground">Nostr</span> plugin
+            installed.
+          </p>
+        </>
+      ),
       finalizeGuide: (
         <>
           <div>
-            <p>
-              You can use your Alby Hub as a lightning wallet funding source for
-              your{" "}
-              <ExternalLink
-                to="https://btcpayserver.org/"
-                className="font-medium text-foreground underline"
-              >
-                BTCPay Server
-              </ExternalLink>{" "}
-              store, to accept and create payments. In order for this feature to
-              work, your BTCPay Server instance needs to have the{" "}
-              <span className="font-medium text-foreground">Nostr</span> plugin
-              installed.
-            </p>
-          </div>
-          <div>
             <h3 className="font-medium">In BTCPay Server</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
-              <li>1. Log in to your BTCPay Server dashboard</li>
+              <li>Log in to your BTCPay Server dashboard</li>
               <li>
-                2. Find connection configuration for your Lightning node (
+                Find connection configuration for your Lightning node (
                 <span className="font-medium text-foreground">Lightning</span> →
                 <span className="font-medium text-foreground">Settings</span> →
                 <span className="font-medium text-foreground">
@@ -504,42 +474,17 @@ export const appStoreApps: AppStoreApp[] = (
                 )
               </li>
               <li>
-                3. Choose{" "}
+                Choose{" "}
                 <span className="font-medium text-foreground">
                   Use custom node
                 </span>
               </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Alby Hub</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                4. Click{" "}
-                <Link
-                  to="/apps/new?app=btcpay"
-                  className="font-medium text-foreground underline"
-                >
-                  Connect to BTCPay Server
-                </Link>
+                Paste the connection secret (nostr+walletconnect://....) in the
+                configuration field
               </li>
               <li>
-                5. Set wallet permissions as read-only unless payments are
-                specifically needed.
-              </li>
-              <li>6. Copy generated NWC connection secret</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In BTCPay Server</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
-              <li>
-                7. Paste the connection secret (nostr+walletconnect://....) in
-                the configuration field
-              </li>
-              <li>
-                8. Click{" "}
-                <span className="font-medium text-foreground">Save</span>
+                Click <span className="font-medium text-foreground">Save</span>
               </li>
             </ul>
           </div>
@@ -555,34 +500,36 @@ export const appStoreApps: AppStoreApp[] = (
       logo: lnbits,
       extendedDescription:
         "Connect your Alby Hub to LNbits to give extra functionality through plugins such as BOLT cards and lightning vouchers",
+      installGuide: (
+        <>
+          <p>
+            You can use your Alby Hub as a lightning wallet funding source for
+            your{" "}
+            <ExternalLink
+              to="https://lnbits.com/"
+              className="font-medium text-foreground underline"
+            >
+              LNbits
+            </ExternalLink>{" "}
+            instance, to accept and create payments.
+          </p>
+        </>
+      ),
       finalizeGuide: (
         <>
           <div>
-            <p>
-              You can use your Alby Hub as a lightning wallet funding source for
-              your{" "}
-              <ExternalLink
-                to="https://lnbits.com/"
-                className="font-medium text-foreground underline"
-              >
-                LNbits
-              </ExternalLink>{" "}
-              instance, to accept and create payments.
-            </p>
-          </div>
-          <div>
             <h3 className="font-medium">In LNbits</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
-              <li>1. Log in to your LNbits admin dashboard</li>
+              <li>Log in to your LNbits admin dashboard</li>
               <li>
-                2. Go to{" "}
+                Go to{" "}
                 <span className="font-medium text-foreground">Manage</span> →{" "}
                 <span className="font-medium text-foreground">Server</span> →{" "}
                 <span className="font-medium text-foreground">Funding</span>, to
                 configure funding wallet
               </li>
               <li>
-                3. Under{" "}
+                Under{" "}
                 <span className="font-medium text-foreground">
                   Active Funding
                 </span>{" "}
@@ -591,35 +538,13 @@ export const appStoreApps: AppStoreApp[] = (
                   Nostr Wallet Connect
                 </span>
               </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Alby Hub</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                4. Click{" "}
-                <Link
-                  to="/apps/new?app=lnbits"
-                  className="font-medium text-foreground underline"
-                >
-                  Connect to LNbits
-                </Link>
-              </li>
-              <li>5. Set wallet permissions, according to your preferences</li>
-              <li>6. Copy generated NWC connection secret</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In LNbits</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
-              <li>
-                7. Paste the connection secret (nostr+walletconnect://....)
-                under{" "}
+                Paste the connection secret (nostr+walletconnect://....) under{" "}
                 <span className="font-medium text-foreground">Pairing URL</span>
               </li>
               <li>
-                8. Click{" "}
-                <span className="font-medium text-foreground">Save</span> and{" "}
+                Click <span className="font-medium text-foreground">Save</span>{" "}
+                and{" "}
                 <span className="font-medium text-foreground">
                   Restart Server
                 </span>
@@ -638,17 +563,21 @@ export const appStoreApps: AppStoreApp[] = (
       logo: coracle,
       extendedDescription:
         "Tip nostr posts and profiles and receive zaps seamlessly with your Hub",
-      finalizeGuide: (
+      installGuide: (
         <>
-          <p>
+          <p className="text-muted-foreground">
             You can connect your Alby Hub to Coracle to zap Nostr notes directly
             from your node.
           </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
           <div>
             <h3 className="font-medium">In Coracle</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Log in with your Nostr keys to{" "}
+                Log in with your Nostr keys to{" "}
                 <ExternalLink
                   to="https://coracle.social/login"
                   className="font-medium text-foreground underline"
@@ -658,12 +587,12 @@ export const appStoreApps: AppStoreApp[] = (
                 (it is recommended to use the Alby Extension)
               </li>
               <li>
-                2. Click on a zap icon ⚡ and{" "}
+                Click on a zap icon ⚡ and{" "}
                 <span className="font-medium text-foreground">Zap!</span> under
                 any post, to configure wallet connection and make your first zap
               </li>
               <li>
-                3. Click{" "}
+                Click{" "}
                 <span className="font-medium text-foreground">
                   Connect Wallet to Pay
                 </span>{" "}
@@ -672,43 +601,8 @@ export const appStoreApps: AppStoreApp[] = (
                   Nostr Wallet Connect
                 </span>
               </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Alby Hub</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                4. Click{" "}
-                <Link
-                  to="/apps/new?app=coracle"
-                  className="font-medium text-foreground underline"
-                >
-                  Connect to Coracle
-                </Link>
-              </li>
-              <li>
-                5. Set wallet permissions (required:{" "}
-                <span className="font-medium text-foreground">
-                  Send payments
-                </span>{" "}
-                and{" "}
-                <span className="font-medium text-foreground">
-                  Lookup status of invoices
-                </span>
-                ) and maximum spendable budget
-              </li>
-              <li>
-                6. Click{" "}
-                <span className="font-medium text-foreground">Next</span> and
-                copy generated NWC connection secret
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Coracle</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
-              <li>
-                7. Paste the connection secret (nostr+walletconnect://....) and
+                Paste the connection secret (nostr+walletconnect://....) and
                 click{" "}
                 <span className="font-medium text-foreground">Connect</span>
               </li>
@@ -726,17 +620,21 @@ export const appStoreApps: AppStoreApp[] = (
       logo: nostter,
       extendedDescription:
         "Tip nostr posts and profiles and receive zaps seamlessly with your Hub",
-      finalizeGuide: (
+      installGuide: (
         <>
-          <p>
+          <p className="text-muted-foreground">
             You can connect your Alby Hub to Nostter to zap Nostr notes directly
             from your node.
           </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
           <div>
             <h3 className="font-medium">In Nostter</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Log in with your Nostr keys to{" "}
+                Log in with your Nostr keys to{" "}
                 <ExternalLink
                   to="https://nostter.app/"
                   className="font-medium text-foreground underline"
@@ -746,59 +644,20 @@ export const appStoreApps: AppStoreApp[] = (
                 (it is recommended to use the Alby Extension)
               </li>
               <li>
-                2. Go to{" "}
+                Go to{" "}
                 <span className="font-medium text-foreground">Preferences</span>
               </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Alby Hub</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                3. Click{" "}
-                <Link
-                  to="/apps/new?app=nostter"
-                  className="font-medium text-foreground underline"
-                >
-                  Connect to Nostter
-                </Link>
-              </li>
-              <li>
-                4. Set wallet permissions (required:{" "}
-                <span className="font-medium text-foreground">
-                  Send payments
-                </span>{" "}
-                and{" "}
-                <span className="font-medium text-foreground">
-                  Lookup status of invoices
-                </span>
-                ) and maximum spendable budget
-              </li>
-              <li>
-                5. Click{" "}
-                <span className="font-medium text-foreground">Next</span> and
-                copy generated NWC connection secret
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Nostter</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
-              <li>
-                6. Paste the connection secret (nostr+walletconnect://....)
-                under{" "}
+                Paste the connection secret (nostr+walletconnect://....) under{" "}
                 <span className="font-medium text-foreground">
                   Nostr Wallet Connect
                 </span>
               </li>
+              <li>Click elsewhere for the connection to be tested and saved</li>
               <li>
-                7. Click elsewhere for the connection to be tested and saved
-              </li>
-              <li>
-                8. Go to{" "}
-                <span className="font-medium text-foreground">Home</span> and
-                click the zap icon (⚡) under any post to add a comment and send
-                zap directly from your node
+                Go to <span className="font-medium text-foreground">Home</span>{" "}
+                and click the zap icon (⚡) under any post to add a comment and
+                send zap directly from your node
               </li>
             </ul>
           </div>
@@ -817,45 +676,21 @@ export const appStoreApps: AppStoreApp[] = (
       logo: wavlake,
       extendedDescription:
         "Support artists by paying to upvote music you enjoy with your Hub",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Download and open{" "}
+            <span className="font-medium text-foreground">Wavlake</span> on your
+            iOS or Android device
+          </p>
+        </>
+      ),
       finalizeGuide: (
         <>
           <div>
             <h3 className="font-medium">In Wavlake</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
-              <li>
-                1. Download and open{" "}
-                <span className="font-medium text-foreground">Wavlake</span> on
-                your iOS or Android device
-              </li>
-              <li>
-                2. Click on{" "}
-                <span className="font-medium text-foreground">≡</span> →{" "}
-                <span className="font-medium text-foreground">Settings</span> →{" "}
-                <span className="font-medium text-foreground">
-                  Add a NWC compatible wallet
-                </span>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Alby Hub</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
-              <li>
-                3. Click{" "}
-                <Link
-                  to="/apps/new?app=wavlake"
-                  className="font-medium text-foreground underline"
-                >
-                  Connect to Wavlake
-                </Link>
-              </li>
-              <li>4. Set app's wallet permissions (full access recommended)</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Wavlake</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
-              <li>5. Scan or paste the connection secret from Alby Hub</li>
+              <li>Scan or paste the connection secret from Alby Hub</li>
             </ul>
           </div>
         </>
@@ -878,7 +713,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In wave.space</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Open{" "}
+                Open{" "}
                 <ExternalLink
                   to="https://app.wave.space/spend/?utm_source=albyhub&affiliate=AlbyHub"
                   className="font-medium text-foreground underline"
@@ -892,38 +727,18 @@ export const appStoreApps: AppStoreApp[] = (
                 to your account
               </li>
               <li>
-                3. Click on{" "}
+                Click on{" "}
                 <span className="font-medium text-foreground">
                   Connect Wallet
                 </span>
               </li>
               <li>
-                3. Choose{" "}
+                Choose{" "}
                 <span className="font-medium text-foreground">
                   Nostr Wallet Connect
                 </span>
               </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Alby Hub</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
-              <li>
-                4. Click{" "}
-                <Link
-                  to="/apps/new?app=wave.space"
-                  className="font-medium text-foreground underline"
-                >
-                  Connect to wave.space
-                </Link>
-              </li>
-              <li>5. Set app's wallet permissions</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In wave.space</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
-              <li>6. Paste the connection secret from Alby Hub</li>
+              <li>Paste the connection secret from Alby Hub</li>
             </ul>
           </div>
         </>
@@ -938,53 +753,37 @@ export const appStoreApps: AppStoreApp[] = (
       logo: snort,
       extendedDescription:
         "Tip nostr posts and profiles and receive zaps seamlessly with your Hub",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://snort.social"
+              className="font-medium text-foreground underline"
+            >
+              Snort
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
       finalizeGuide: (
         <>
           <div>
             <h3 className="font-medium">In Snort</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Open{" "}
-                <ExternalLink
-                  to="https://snort.social"
-                  className="font-medium text-foreground underline"
-                >
-                  Snort
-                </ExternalLink>{" "}
-                in your browser
-              </li>
-              <li>
-                2. Click on{" "}
+                Click on{" "}
                 <span className="font-medium text-foreground">Settings</span> →{" "}
                 <span className="font-medium text-foreground">Wallet</span>
               </li>
               <li>
-                3. Choose{" "}
+                Choose{" "}
                 <span className="font-medium text-foreground">
                   Nostr Wallet Connect
                 </span>
               </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Alby Hub</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
-              <li>
-                4. Click{" "}
-                <Link
-                  to="/apps/new?app=snort"
-                  className="font-medium text-foreground underline"
-                >
-                  Connect to Snort
-                </Link>
-              </li>
-              <li>5. Set app's wallet permissions (full access recommended)</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Snort</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
-              <li>6. Paste the connection secret from Alby Hub</li>
+              <li>Paste the connection secret from Alby Hub</li>
             </ul>
           </div>
         </>
@@ -1005,7 +804,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Habla News</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Open{" "}
+                Open{" "}
                 <ExternalLink
                   to="https://habla.news"
                   className="font-medium text-foreground underline"
@@ -1015,7 +814,7 @@ export const appStoreApps: AppStoreApp[] = (
                 in your browser
               </li>
               <li>
-                2. Go to{" "}
+                Go to{" "}
                 <span className="font-medium text-foreground">Settings</span> →{" "}
                 <span className="font-medium text-foreground">Wallet</span> →{" "}
                 Click{" "}
@@ -1024,7 +823,7 @@ export const appStoreApps: AppStoreApp[] = (
                 </span>
               </li>
               <li>
-                3. Choose{" "}
+                Choose{" "}
                 <span className="font-medium text-foreground">NWC Generic</span>{" "}
               </li>
             </ul>
@@ -1033,7 +832,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Alby Hub</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                3. Click{" "}
+                Click{" "}
                 <Link
                   to="/apps/new?app=habla-news"
                   className="font-medium text-foreground underline"
@@ -1041,13 +840,13 @@ export const appStoreApps: AppStoreApp[] = (
                   Connect to Habla News
                 </Link>
               </li>
-              <li>4. Set app's wallet permissions (full access recommended)</li>
+              <li>Set app's wallet permissions (full access recommended)</li>
             </ul>
           </div>
           <div>
             <h3 className="font-medium">In Habla News</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
-              <li>5. Paste the connection secret from Alby Hub</li>
+              <li>Paste the connection secret from Alby Hub</li>
             </ul>
           </div>
         </>
@@ -1068,7 +867,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Iris</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Open{" "}
+                Open{" "}
                 <ExternalLink
                   to="https://iris.to"
                   className="font-medium text-foreground underline"
@@ -1078,7 +877,7 @@ export const appStoreApps: AppStoreApp[] = (
                 in your browser
               </li>
               <li>
-                2. Go to{" "}
+                Go to{" "}
                 <span className="font-medium text-foreground">Settings</span> →{" "}
                 <span className="font-medium text-foreground">Wallet</span> →{" "}
                 Click{" "}
@@ -1092,7 +891,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Alby Hub</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                3. Click{" "}
+                Click{" "}
                 <Link
                   to="/apps/new?app=habla-news"
                   className="font-medium text-foreground underline"
@@ -1100,13 +899,13 @@ export const appStoreApps: AppStoreApp[] = (
                   Connect to Iris
                 </Link>
               </li>
-              <li>4. Set app's wallet permissions (full access recommended)</li>
+              <li>Set app's wallet permissions (full access recommended)</li>
             </ul>
           </div>
           <div>
             <h3 className="font-medium">In Iris</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
-              <li>5. Paste the connection secret from Alby Hub</li>
+              <li>Paste the connection secret from Alby Hub</li>
             </ul>
           </div>
         </>
@@ -1127,7 +926,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Clams</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Download and open{" "}
+                Download and open{" "}
                 <ExternalLink
                   to="https://clams.tech/"
                   className="font-medium text-foreground underline"
@@ -1136,7 +935,7 @@ export const appStoreApps: AppStoreApp[] = (
                 </ExternalLink>{" "}
                 on your device
               </li>
-              <li>2. Add a connection: "+ Add Connection" → NWC</li>
+              <li>Add a connection: "+ Add Connection" → NWC</li>
             </ul>
           </div>
           <div>
@@ -1144,7 +943,7 @@ export const appStoreApps: AppStoreApp[] = (
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
                 {" "}
-                3. Click{" "}
+                Click{" "}
                 <Link
                   to="/apps/new?app=clams"
                   className="font-medium text-foreground underline"
@@ -1152,14 +951,14 @@ export const appStoreApps: AppStoreApp[] = (
                   Connect to Clams
                 </Link>
               </li>
-              <li>4. Set wallet permissions (Read Only)</li>
+              <li>Set wallet permissions (Read Only)</li>
             </ul>
           </div>
           <div>
             <h3 className="font-medium">In Clams</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
-              <li>5. Add label & paste connection secret</li>
-              <li>6. Click Connect and Save</li>
+              <li>Add label & paste connection secret</li>
+              <li>Click Connect and Save</li>
             </ul>
           </div>
         </>
@@ -1180,7 +979,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Alby Hub</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Click{" "}
+                Click{" "}
                 <Link
                   to="/apps/new?app=nostrcheck-server"
                   className="font-medium text-foreground underline"
@@ -1188,28 +987,28 @@ export const appStoreApps: AppStoreApp[] = (
                   Connect to Nostrcheck Server
                 </Link>
               </li>
-              <li>2. Set app's wallet permissions (full access recommended)</li>
+              <li>Set app's wallet permissions (full access recommended)</li>
             </ul>
           </div>
           <div>
             <h3 className="font-medium">In Nostrcheck server</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                3. Go to{" "}
+                Go to{" "}
                 <span className="font-medium text-foreground">Settings</span>{" "}
                 and choose{" "}
                 <span className="font-medium text-foreground">Payments</span>{" "}
                 tab
               </li>
               <li>
-                4. Scroll to Nostr wallet connect settings and paste the{" "}
+                Scroll to Nostr wallet connect settings and paste the{" "}
                 <span className="font-medium text-foreground">
                   connection secret
                 </span>{" "}
                 from Alby Hub
               </li>
               <li>
-                5. Press the{" "}
+                Press the{" "}
                 <span className="font-medium text-foreground">Save</span> button
               </li>
             </ul>
@@ -1232,7 +1031,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Nostrudel</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Open{" "}
+                Open{" "}
                 <ExternalLink
                   to="https://nostrudel.ninja"
                   className="font-medium text-foreground underline"
@@ -1242,7 +1041,7 @@ export const appStoreApps: AppStoreApp[] = (
                 in your browser
               </li>
               <li>
-                2. Click on{" "}
+                Click on{" "}
                 <span className="font-medium text-foreground">Settings</span> →{" "}
                 <span className="font-medium text-foreground">Lightning</span> →{" "}
                 <span className="font-medium text-foreground">
@@ -1250,7 +1049,7 @@ export const appStoreApps: AppStoreApp[] = (
                 </span>
               </li>
               <li>
-                3. Choose{" "}
+                Choose{" "}
                 <span className="font-medium text-foreground">
                   Custom Nostr Wallet Connect
                 </span>
@@ -1261,7 +1060,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Alby Hub</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                4. Click{" "}
+                Click{" "}
                 <Link
                   to="/apps/new?app=nostrudel"
                   className="font-medium text-foreground underline"
@@ -1269,13 +1068,13 @@ export const appStoreApps: AppStoreApp[] = (
                   Connect to noStrudel
                 </Link>
               </li>
-              <li>5. Set app's wallet permissions (full access recommended)</li>
+              <li>Set app's wallet permissions (full access recommended)</li>
             </ul>
           </div>
           <div>
             <h3 className="font-medium">In Nostrudel</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
-              <li>6. Paste the connection secret from Alby Hub</li>
+              <li>Paste the connection secret from Alby Hub</li>
             </ul>
           </div>
         </>
@@ -1299,7 +1098,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In YakiHonne</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Open{" "}
+                Open{" "}
                 <ExternalLink
                   to="https://yakihonne.com/wallet"
                   className="font-medium text-foreground underline"
@@ -1309,11 +1108,11 @@ export const appStoreApps: AppStoreApp[] = (
                 in your browser
               </li>
               <li>
-                2. Click on{" "}
+                Click on{" "}
                 <span className="font-medium text-foreground">Add wallet</span>
               </li>
               <li>
-                3. Choose{" "}
+                Choose{" "}
                 <span className="font-medium text-foreground">
                   Nostr Wallet Connect
                 </span>
@@ -1324,7 +1123,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Alby Hub</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                4. Click{" "}
+                Click{" "}
                 <Link
                   to="/apps/new?app=yakihonne"
                   className="font-medium text-foreground underline"
@@ -1332,13 +1131,13 @@ export const appStoreApps: AppStoreApp[] = (
                   Connect to YakiHonne
                 </Link>
               </li>
-              <li>5. Set app's wallet permissions (full access recommended)</li>
+              <li>Set app's wallet permissions (full access recommended)</li>
             </ul>
           </div>
           <div>
             <h3 className="font-medium">In YakiHonne</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
-              <li>6. Paste the connection secret from Alby Hub</li>
+              <li>Paste the connection secret from Alby Hub</li>
             </ul>
           </div>
         </>
@@ -1369,7 +1168,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Zapple Pay</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Open{" "}
+                Open{" "}
                 <ExternalLink
                   to="https://www.zapplepay.com"
                   className="font-medium text-foreground"
@@ -1379,7 +1178,7 @@ export const appStoreApps: AppStoreApp[] = (
                 in your browser
               </li>
               <li>
-                2. Add your details (e.g. you npub, etc.), then choose{" "}
+                Add your details (e.g. you npub, etc.), then choose{" "}
                 <span className="font-medium text-foreground">Wallet</span> →{" "}
                 <span className="font-medium text-foreground">
                   Manual Connect
@@ -1391,7 +1190,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Alby Hub</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                3. Click{" "}
+                Click{" "}
                 <Link
                   to="/apps/new?app=zapplepay"
                   className="font-medium text-foreground underline"
@@ -1399,13 +1198,13 @@ export const appStoreApps: AppStoreApp[] = (
                   Connect to Zapple Pay
                 </Link>
               </li>
-              <li>4. Set app's wallet permissions (full access recommended)</li>
+              <li>Set app's wallet permissions (full access recommended)</li>
             </ul>
           </div>
           <div>
             <h3 className="font-medium">In Zapple Pay</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
-              <li>5. Paste the connection secret from Alby Hub</li>
+              <li>Paste the connection secret from Alby Hub</li>
             </ul>
           </div>
         </>
@@ -1426,7 +1225,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Lume</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Download Lume from{" "}
+                Download Lume from{" "}
                 <ExternalLink
                   to="https://github.com/lumehq/lume/releases"
                   className="font-medium text-foreground underline"
@@ -1436,7 +1235,7 @@ export const appStoreApps: AppStoreApp[] = (
                 and install it on your computer
               </li>
               <li>
-                2. Click on your profile image →{" "}
+                Click on your profile image →{" "}
                 <span className="font-medium text-foreground">Settings</span> →{" "}
                 <span className="font-medium text-foreground">Wallet</span> →{" "}
                 <span className="font-medium text-foreground">
@@ -1444,7 +1243,7 @@ export const appStoreApps: AppStoreApp[] = (
                 </span>
               </li>
               <li>
-                3. Choose{" "}
+                Choose{" "}
                 <span className="font-medium text-foreground">
                   Nostr Wallet Connect
                 </span>
@@ -1455,7 +1254,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Alby Hub</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                4. Click{" "}
+                Click{" "}
                 <Link
                   to="/apps/new?app=lume"
                   className="font-medium text-foreground underline"
@@ -1463,13 +1262,13 @@ export const appStoreApps: AppStoreApp[] = (
                   Connect to Lume
                 </Link>
               </li>
-              <li>5. Set app's wallet permissions (full access recommended)</li>
+              <li>Set app's wallet permissions (full access recommended)</li>
             </ul>
           </div>
           <div>
             <h3 className="font-medium">In Lume</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
-              <li>6. Paste the connection secret from Alby Hub</li>
+              <li>Paste the connection secret from Alby Hub</li>
             </ul>
           </div>
         </>
@@ -1500,7 +1299,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">Connect Your Alby Hub to NakaPay</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Click{" "}
+                Click{" "}
                 <Link
                   to="/apps/new?app=nakapay"
                   className="font-medium text-foreground underline"
@@ -1510,14 +1309,14 @@ export const appStoreApps: AppStoreApp[] = (
                 to create a new app connection
               </li>
               <li>
-                2. Choose "Custom" permissions and select: "Read your balance",
+                Choose "Custom" permissions and select: "Read your balance",
                 "Create invoices", and "Send payments". This allows NakaPay to
                 check your wallet balance, create invoices for customers, and
                 process fee payments - all while your funds remain in your Hub
                 wallet
               </li>
               <li>
-                3. Copy the NWC connection string that starts with{" "}
+                Copy the NWC connection string that starts with{" "}
                 <code className="bg-muted px-1 py-0.5 rounded text-xs">
                   nostr+walletconnect://
                 </code>
@@ -1528,7 +1327,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">Set Up Your NakaPay Account</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                4. Visit{" "}
+                Visit{" "}
                 <ExternalLink
                   to="https://www.nakapay.app"
                   className="font-medium text-foreground underline"
@@ -1538,11 +1337,11 @@ export const appStoreApps: AppStoreApp[] = (
                 and log in with any Lightning wallet (LNURL-auth)
               </li>
               <li>
-                5. Your business account will be automatically created on first
+                Your business account will be automatically created on first
                 login
               </li>
               <li>
-                6. Go to{" "}
+                Go to{" "}
                 <span className="font-medium text-foreground">Dashboard</span> →{" "}
                 <span className="font-medium text-foreground">Settings</span> →{" "}
                 <span className="font-medium text-foreground">Wallet</span>
@@ -1553,12 +1352,12 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">Complete Non-Custodial Setup</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                7. Paste your Alby Hub NWC connection string in the wallet
+                Paste your Alby Hub NWC connection string in the wallet
                 connection field
               </li>
-              <li>8. Test the connection to verify everything works</li>
+              <li>Test the connection to verify everything works</li>
               <li>
-                9. Create API keys in{" "}
+                Create API keys in{" "}
                 <span className="font-medium text-foreground">Dashboard</span> →{" "}
                 <span className="font-medium text-foreground">
                   API Management
@@ -1588,7 +1387,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Zappy Bird</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Open{" "}
+                Open{" "}
                 <ExternalLink
                   to="https://rolznz.github.io/zappy-bird"
                   className="font-medium text-foreground underline"
@@ -1598,14 +1397,14 @@ export const appStoreApps: AppStoreApp[] = (
                 in your browser
               </li>
               <li>
-                2. Click on{" "}
+                Click on{" "}
                 <span className="font-medium text-foreground">
                   Connect Wallet
                 </span>{" "}
                 in the top right corner
               </li>
               <li>
-                3. Choose{" "}
+                Choose{" "}
                 <span className="font-medium text-foreground">
                   Nostr Wallet Connect
                 </span>{" "}
@@ -1616,7 +1415,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Alby Hub</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                4. Click{" "}
+                Click{" "}
                 <Link
                   to="/apps/new?app=zappy-bird"
                   className="font-medium text-foreground underline"
@@ -1624,13 +1423,13 @@ export const appStoreApps: AppStoreApp[] = (
                   Connect to Zappy Bird
                 </Link>
               </li>
-              <li>5. Set app's wallet permissions (full access recommended)</li>
+              <li>Set app's wallet permissions (full access recommended)</li>
             </ul>
           </div>
           <div>
             <h3 className="font-medium">In Zappy Bird</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
-              <li>6. Paste the connection secret from Alby Hub</li>
+              <li>Paste the connection secret from Alby Hub</li>
             </ul>
           </div>
         </>
@@ -1665,18 +1464,18 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Nostur</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Download and open{" "}
+                Download and open{" "}
                 <span className="font-medium text-foreground">Nostur</span> on
                 your iOS device
               </li>
               <li>
-                2. Click on your profile image →{" "}
+                Click on your profile image →{" "}
                 <span className="font-medium text-foreground">Settings</span> →
                 scroll to{" "}
                 <span className="font-medium text-foreground">Zapping</span>
               </li>
               <li>
-                3. Choose{" "}
+                Choose{" "}
                 <span className="font-medium text-foreground">
                   Custom Nostr Wallet Connect
                 </span>
@@ -1687,7 +1486,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Alby Hub</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                4. Click{" "}
+                Click{" "}
                 <Link
                   to="/apps/new?app=nostur"
                   className="font-medium text-foreground underline"
@@ -1695,13 +1494,13 @@ export const appStoreApps: AppStoreApp[] = (
                   Connect to Nostur
                 </Link>
               </li>
-              <li>5. Set app's wallet permissions (full access recommended)</li>
+              <li>Set app's wallet permissions (full access recommended)</li>
             </ul>
           </div>
           <div>
             <h3 className="font-medium">In Nostur</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
-              <li>6. Paste the connection secret from Alby Hub</li>
+              <li>Paste the connection secret from Alby Hub</li>
             </ul>
           </div>
         </>
@@ -1722,7 +1521,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Wherostr</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Open{" "}
+                Open{" "}
                 <ExternalLink
                   to="https://wherostr.social"
                   className="font-medium text-foreground underline"
@@ -1732,13 +1531,12 @@ export const appStoreApps: AppStoreApp[] = (
                 in your browser and log in
               </li>
               <li>
-                2. Click on{" "}
-                <span className="font-medium text-foreground">≡</span> →{" "}
-                <span className="font-medium text-foreground">Settings</span> →{" "}
-                <span className="font-medium text-foreground">Wallet</span>
+                Click on <span className="font-medium text-foreground">≡</span>{" "}
+                → <span className="font-medium text-foreground">Settings</span>{" "}
+                → <span className="font-medium text-foreground">Wallet</span>
               </li>
               <li>
-                3. Choose{" "}
+                Choose{" "}
                 <span className="font-medium text-foreground">
                   Nostr Wallet Connect
                 </span>
@@ -1749,7 +1547,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Alby Hub</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                4. Click{" "}
+                Click{" "}
                 <Link
                   to="/apps/new?app=wherostr"
                   className="font-medium text-foreground underline"
@@ -1757,13 +1555,13 @@ export const appStoreApps: AppStoreApp[] = (
                   Connect to Wherostr
                 </Link>
               </li>
-              <li>5. Set app's wallet permissions (full access recommended)</li>
+              <li>Set app's wallet permissions (full access recommended)</li>
             </ul>
           </div>
           <div>
             <h3 className="font-medium">In Wherostr</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
-              <li>6. Scan or paste the connection secret from Alby Hub</li>
+              <li>Scan or paste the connection secret from Alby Hub</li>
             </ul>
           </div>
         </>
@@ -1784,7 +1582,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In stacker news</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Open{" "}
+                Open{" "}
                 <ExternalLink
                   to="https://stacker.news"
                   className="font-medium text-foreground underline"
@@ -1794,7 +1592,7 @@ export const appStoreApps: AppStoreApp[] = (
                 in your browser
               </li>
               <li>
-                2. Click on your username →{" "}
+                Click on your username →{" "}
                 <span className="font-medium text-foreground">Wallet</span> →{" "}
                 <span className="font-medium text-foreground">
                   Attach wallets
@@ -1810,7 +1608,7 @@ export const appStoreApps: AppStoreApp[] = (
             </h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                3. Click{" "}
+                Click{" "}
                 <Link
                   to="/apps/new?app=stackernews"
                   className="font-medium text-foreground underline"
@@ -1818,14 +1616,14 @@ export const appStoreApps: AppStoreApp[] = (
                   Connect to stacker news
                 </Link>
               </li>
-              <li>4. Set app's wallet permissions (full access recommended)</li>
+              <li>Set app's wallet permissions (full access recommended)</li>
             </ul>
           </div>
           <div>
             <h3 className="font-medium">In stacker news</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                5. Paste the connection secret from Alby Hub into{" "}
+                Paste the connection secret from Alby Hub into{" "}
                 <span className="font-medium text-foreground">
                   connection for sending
                 </span>
@@ -1838,7 +1636,7 @@ export const appStoreApps: AppStoreApp[] = (
             </h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                6. Click{" "}
+                Click{" "}
                 <Link
                   to="/apps/new?app=stackernews"
                   className="font-medium text-foreground underline"
@@ -1847,7 +1645,7 @@ export const appStoreApps: AppStoreApp[] = (
                 </Link>
               </li>
               <li>
-                7. Set app's wallet permissions:{" "}
+                Set app's wallet permissions:{" "}
                 <span className="font-medium text-foreground">Custom</span> →
                 only check{" "}
                 <span className="font-medium text-foreground">
@@ -1861,7 +1659,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In stacker news</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                8. Paste the connection secret from Alby Hub into{" "}
+                Paste the connection secret from Alby Hub into{" "}
                 <span className="font-medium text-foreground">
                   connection for receiving
                 </span>
@@ -1886,7 +1684,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Paper Scissors HODL</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Open{" "}
+                Open{" "}
                 <ExternalLink
                   to="https://paper-scissors-hodl.fly.dev/"
                   className="font-medium text-foreground underline"
@@ -1895,11 +1693,9 @@ export const appStoreApps: AppStoreApp[] = (
                 </ExternalLink>{" "}
                 in your browser
               </li>
+              <li>Start playing until the Bitcoin Connect screen pops up </li>
               <li>
-                2. Start playing until the Bitcoin Connect screen pops up{" "}
-              </li>
-              <li>
-                3. Choose{" "}
+                Choose{" "}
                 <span className="font-medium text-foreground">
                   Nostr Wallet Connect
                 </span>
@@ -1910,7 +1706,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Alby Hub</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                4. Click{" "}
+                Click{" "}
                 <Link
                   to="/apps/new?app=paper-scissors-hodl"
                   className="font-medium text-foreground underline"
@@ -1918,13 +1714,13 @@ export const appStoreApps: AppStoreApp[] = (
                   Connect to Paper Scissors HODL
                 </Link>
               </li>
-              <li>5. Set app's wallet permissions (full access recommended)</li>
+              <li>Set app's wallet permissions (full access recommended)</li>
             </ul>
           </div>
           <div>
             <h3 className="font-medium">In Paper Scissors HODL</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
-              <li>6. Paste the connection secret from Alby Hub</li>
+              <li>Paste the connection secret from Alby Hub</li>
             </ul>
           </div>
         </>
@@ -1945,7 +1741,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Pull That Up Jamie!</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Open{" "}
+                Open{" "}
                 <ExternalLink
                   to="https://www.pullthatupjamie.ai/"
                   className="font-medium text-foreground underline"
@@ -1954,11 +1750,9 @@ export const appStoreApps: AppStoreApp[] = (
                 </ExternalLink>{" "}
                 in your browser
               </li>
+              <li>Click on the account dropdown and select "Connect Wallet"</li>
               <li>
-                2. Click on the account dropdown and select "Connect Wallet"
-              </li>
-              <li>
-                3. Choose{" "}
+                Choose{" "}
                 <span className="font-medium text-foreground">
                   Nostr Wallet Connect
                 </span>
@@ -1969,7 +1763,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Alby Hub</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                4. Click{" "}
+                Click{" "}
                 <Link
                   to="/apps/new?app=pullthatupjamie-ai"
                   className="font-medium text-foreground underline"
@@ -1977,13 +1771,13 @@ export const appStoreApps: AppStoreApp[] = (
                   Connect to Pull That Up Jamie!
                 </Link>
               </li>
-              <li>5. Set app's wallet permissions (full access recommended)</li>
+              <li>Set app's wallet permissions (full access recommended)</li>
             </ul>
           </div>
           <div>
             <h3 className="font-medium">In Pull That Up Jamie!</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
-              <li>6. Paste the connection secret from Alby Hub</li>
+              <li>Paste the connection secret from Alby Hub</li>
             </ul>
           </div>
         </>
@@ -2004,7 +1798,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Zapstore</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Install{" "}
+                Install{" "}
                 <ExternalLink
                   to="https://www.zapstore.dev/"
                   className="font-medium text-foreground underline"
@@ -2013,14 +1807,14 @@ export const appStoreApps: AppStoreApp[] = (
                 </ExternalLink>{" "}
                 on your Android smartphone
               </li>
-              <li>2. Open the settings</li>
+              <li>Open the settings</li>
             </ul>
           </div>
           <div>
             <h3 className="font-medium">In Alby Hub</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                3. Click{" "}
+                Click{" "}
                 <Link
                   to="/apps/new?app=zapstore"
                   className="font-medium text-foreground underline"
@@ -2028,13 +1822,13 @@ export const appStoreApps: AppStoreApp[] = (
                   Connect to Zapstore
                 </Link>
               </li>
-              <li>4. Set app's wallet permissions (full access recommended)</li>
+              <li>Set app's wallet permissions (full access recommended)</li>
             </ul>
           </div>
           <div>
             <h3 className="font-medium">In Zapstore</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
-              <li>5. Paste the connection secret from Alby Hub</li>
+              <li>Paste the connection secret from Alby Hub</li>
             </ul>
           </div>
         </>
@@ -2058,7 +1852,7 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In ZEUS</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                1. Install{" "}
+                Install{" "}
                 <ExternalLink
                   to="https://zeusln.com/download/"
                   className="font-medium text-foreground underline"
@@ -2067,14 +1861,14 @@ export const appStoreApps: AppStoreApp[] = (
                 </ExternalLink>{" "}
                 on your Android or iOS smartphone
               </li>
-              <li>2. Open the settings</li>
+              <li>Open the settings</li>
             </ul>
           </div>
           <div>
             <h3 className="font-medium">In Alby Hub</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                3. Click{" "}
+                Click{" "}
                 <Link
                   to="/apps/new?app=zeus"
                   className="font-medium text-foreground underline"
@@ -2082,15 +1876,15 @@ export const appStoreApps: AppStoreApp[] = (
                   Connect to ZEUS
                 </Link>
               </li>
-              <li>4. Set app's wallet permissions (full access recommended)</li>
+              <li>Set app's wallet permissions (full access recommended)</li>
             </ul>
           </div>
           <div>
             <h3 className="font-medium">In ZEUS</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                5. Scan the connection QR using the QR scanner in the bottom
-                right corner of the bottom of the app, OR manually paste in the
+                Scan the connection QR using the QR scanner in the bottom right
+                corner of the bottom of the app, OR manually paste in the
                 connection string under{" "}
                 <span className="font-medium text-foreground">Menu</span> {">"}{" "}
                 <span className="font-medium text-foreground">
