@@ -157,6 +157,7 @@ function NewChannelInternal({
       partner.paymentMethod === "lightning" &&
       partner.type === "LSPS1" &&
       partner.pubkey &&
+      (partner.publicChannelsAllowed || !order.isPublic) &&
       !channels.some((channel) => channel.remotePubkey === partner.pubkey)
   );
 
