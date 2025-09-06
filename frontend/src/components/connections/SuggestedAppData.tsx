@@ -798,21 +798,25 @@ export const appStoreApps: AppStoreApp[] = (
       logo: hablanews,
       extendedDescription:
         "Tip nostr posts and profiles and receive zaps seamlessly with your Hub",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://habla.news"
+              className="font-medium text-foreground underline"
+            >
+              habla.news
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
       finalizeGuide: (
         <>
           <div>
             <h3 className="font-medium">In Habla News</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
-              <li>
-                Open{" "}
-                <ExternalLink
-                  to="https://habla.news"
-                  className="font-medium text-foreground underline"
-                >
-                  habla.news
-                </ExternalLink>{" "}
-                in your browser
-              </li>
               <li>
                 Go to{" "}
                 <span className="font-medium text-foreground">Settings</span> →{" "}
@@ -826,26 +830,6 @@ export const appStoreApps: AppStoreApp[] = (
                 Choose{" "}
                 <span className="font-medium text-foreground">NWC Generic</span>{" "}
               </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Alby Hub</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
-              <li>
-                Click{" "}
-                <Link
-                  to="/apps/new?app=habla-news"
-                  className="font-medium text-foreground underline"
-                >
-                  Connect to Habla News
-                </Link>
-              </li>
-              <li>Set app's wallet permissions (full access recommended)</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Habla News</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
               <li>Paste the connection secret from Alby Hub</li>
             </ul>
           </div>
@@ -861,21 +845,25 @@ export const appStoreApps: AppStoreApp[] = (
       logo: iris,
       extendedDescription:
         "Tip nostr posts and profiles and receive zaps seamlessly with your Hub",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://iris.to"
+              className="font-medium text-foreground underline"
+            >
+              iris.to
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
       finalizeGuide: (
         <>
           <div>
             <h3 className="font-medium">In Iris</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
-              <li>
-                Open{" "}
-                <ExternalLink
-                  to="https://iris.to"
-                  className="font-medium text-foreground underline"
-                >
-                  iris.to
-                </ExternalLink>{" "}
-                in your browser
-              </li>
               <li>
                 Go to{" "}
                 <span className="font-medium text-foreground">Settings</span> →{" "}
@@ -885,26 +873,6 @@ export const appStoreApps: AppStoreApp[] = (
                   + Add NWC Wallet
                 </span>
               </li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Alby Hub</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
-              <li>
-                Click{" "}
-                <Link
-                  to="/apps/new?app=habla-news"
-                  className="font-medium text-foreground underline"
-                >
-                  Connect to Iris
-                </Link>
-              </li>
-              <li>Set app's wallet permissions (full access recommended)</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Iris</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
               <li>Paste the connection secret from Alby Hub</li>
             </ul>
           </div>
@@ -920,43 +888,26 @@ export const appStoreApps: AppStoreApp[] = (
       logo: clams,
       extendedDescription:
         "Get insights into your transaction history and accounting tools by connecting your Hub",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Download and open{" "}
+            <ExternalLink
+              to="https://clams.tech/"
+              className="font-medium text-foreground underline"
+            >
+              Clams
+            </ExternalLink>{" "}
+            on your device
+          </p>
+        </>
+      ),
       finalizeGuide: (
         <>
           <div>
             <h3 className="font-medium">In Clams</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
-              <li>
-                Download and open{" "}
-                <ExternalLink
-                  to="https://clams.tech/"
-                  className="font-medium text-foreground underline"
-                >
-                  Clams
-                </ExternalLink>{" "}
-                on your device
-              </li>
               <li>Add a connection: "+ Add Connection" → NWC</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Alby Hub</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
-              <li>
-                {" "}
-                Click{" "}
-                <Link
-                  to="/apps/new?app=clams"
-                  className="font-medium text-foreground underline"
-                >
-                  Connect to Clams
-                </Link>
-              </li>
-              <li>Set wallet permissions (Read Only)</li>
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-medium">In Clams</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
               <li>Add label & paste connection secret</li>
               <li>Click Connect and Save</li>
             </ul>
