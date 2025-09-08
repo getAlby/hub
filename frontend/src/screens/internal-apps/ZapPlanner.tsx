@@ -16,7 +16,12 @@ import {
   getSatoshiValue,
   LightningAddress,
 } from "@getalby/lightning-tools";
-import { ExternalLinkIcon, PlusCircleIcon } from "lucide-react";
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  ExternalLinkIcon,
+  PlusCircleIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import alby from "src/assets/suggested-apps/alby.png";
 import bitcoinbrink from "src/assets/zapplanner/bitcoinbrink.png";
@@ -48,6 +53,7 @@ import {
 } from "src/components/ui/select";
 import { Textarea } from "src/components/ui/textarea";
 import { SUPPORT_ALBY_LIGHTNING_ADDRESS } from "src/constants";
+import { countCronRuns, isValidCronExpression } from "src/lib/utils";
 import { request } from "src/utils/request";
 
 type Recipient = {
@@ -96,14 +102,14 @@ export function ZapPlanner() {
 
   const [open, setOpen] = React.useState(false);
   const [isSubmitting, setSubmitting] = React.useState(false);
+  const [showCronOption, setShowCronOption] = React.useState(false);
   const [recipientName, setRecipientName] = React.useState("");
   const [recipientLightningAddress, setRecipientLightningAddress] =
     React.useState("");
   const [amount, setAmount] = React.useState("");
   const [comment, setComment] = React.useState("");
   const [senderName, setSenderName] = React.useState("");
-  const [frequencyValue, setFrequencyValue] = React.useState("1");
-  const [frequencyUnit, setFrequencyUnit] = React.useState("months");
+  const [cronExpression, setCronExpression] = React.useState("");
   const [currency, setCurrency] = React.useState<string>("USD");
   const [currencies, setCurrencies] = React.useState<string[]>([]);
 
@@ -146,11 +152,11 @@ export function ZapPlanner() {
       setComment("");
       setAmount("5");
       setSenderName("");
-      setFrequencyValue("1");
-      setFrequencyUnit("months");
       setCurrency("USD");
       setConvertedAmount("");
       setSatoshiAmount(undefined);
+      setCronExpression("");
+      setShowCronOption(false);
     }
   }, [open]);
 
@@ -209,10 +215,15 @@ export function ZapPlanner() {
       if (!satoshiAmount) {
         throw new Error("Invalid amount");
       }
-      // parse and validate the raw frequency
-      const rawFreq = parseInt(frequencyValue, 10);
-      if (isNaN(rawFreq) || rawFreq < 1) {
-        throw new Error("Invalid frequency");
+      let cronExp = cronExpression;
+      if (!showCronOption) {
+        const d = new Date();
+        d.setHours(24, 0, 0, 0);
+        cronExp = `0 0 ${d.getDate()} * *`;
+      }
+      // parse and validate the cron expression
+      if (!isValidCronExpression(cronExp)) {
+        throw new Error("Invalid cron expression");
       }
       // validate lightning address
       const ln = new LightningAddress(recipientLightningAddress);
@@ -221,21 +232,7 @@ export function ZapPlanner() {
         throw new Error("invalid recipient lightning address");
       }
       // Determine how many payments in one month
-      let periodsPerMonth: number;
-      switch (frequencyUnit) {
-        case "days":
-          periodsPerMonth = 31 / rawFreq;
-          break;
-        case "weeks":
-          periodsPerMonth = 31 / 7 / rawFreq;
-          break;
-        case "months":
-          periodsPerMonth = 1 / rawFreq;
-          break;
-        default:
-          throw new Error("Unsupported frequency unit");
-      }
-      periodsPerMonth = Math.ceil(periodsPerMonth);
+      const periodsPerMonth = countCronRuns(cronExp);
       //  Compute raw monthly spend
       const rawSpend = satoshiAmount * periodsPerMonth;
 
@@ -258,13 +255,6 @@ export function ZapPlanner() {
       };
 
       const createAppResponse = await createApp(createAppRequest);
-      // months → days since months are not recognized
-      const monthsToDays = (m: string) => parseInt(m, 10) * 31;
-
-      const sleepDuration =
-        frequencyUnit === "months"
-          ? `${monthsToDays(frequencyValue)} days`
-          : `${frequencyValue} ${frequencyUnit}`;
 
       const subscriptionBody: Record<string, unknown> = {
         recipientLightningAddress,
@@ -273,7 +263,7 @@ export function ZapPlanner() {
           ...(senderName ? { name: senderName } : {}),
         }),
         nostrWalletConnectUrl: createAppResponse.pairingUri,
-        sleepDuration,
+        cronExpression: cronExp,
         currency,
         amount: parseInt(amount),
       };
@@ -377,9 +367,7 @@ export function ZapPlanner() {
                       />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="name" className="text-right">
-                        Recipient Lightning Address
-                      </Label>
+                      <Label htmlFor="name">Recipient Lightning Address</Label>
                       <Input
                         id="receiver"
                         required
@@ -429,43 +417,6 @@ export function ZapPlanner() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-4 items-start gap-4">
-                      <Label htmlFor="frequency" className="text-right pt-2">
-                        Frequency
-                      </Label>
-                      <div className="col-span-3 flex flex-col gap-1 w-full max-w-[450px]">
-                        <div className="flex items-center gap-2 w-full">
-                          <Input
-                            id="frequency"
-                            type="number"
-                            min="1"
-                            step="1"
-                            inputMode="numeric"
-                            value={frequencyValue}
-                            onChange={(e) => setFrequencyValue(e.target.value)}
-                            className="col-span-3 w-70"
-                          />
-                          <Select
-                            value={frequencyUnit}
-                            onValueChange={setFrequencyUnit}
-                          >
-                            <SelectTrigger className="w-1/2">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="days">days</SelectItem>
-                              <SelectItem value="weeks">weeks</SelectItem>
-                              <SelectItem value="months">months</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <span className="text-muted-foreground text-sm">
-                          Repeat payment every
-                        </span>
-                      </div>
-                    </div>
-
                     <div className="grid grid-cols-4 gap-4">
                       <Label htmlFor="comment" className="text-right pt-2">
                         Comment
@@ -479,7 +430,7 @@ export function ZapPlanner() {
                       />
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="comment" className="text-right">
+                      <Label htmlFor="sender-name" className="text-right">
                         Your Name
                       </Label>
                       <Input
@@ -490,6 +441,56 @@ export function ZapPlanner() {
                         className="col-span-3 w-70"
                       />
                     </div>
+
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="frequency" className="text-right">
+                        Frequency
+                      </Label>
+                      <div className="col-span-3 text-muted-foreground text-sm">
+                        {showCronOption
+                          ? "Custom"
+                          : "Repeats payment every month."}
+                      </div>
+                    </div>
+
+                    <div
+                      className="flex text-muted-foreground text-sm items-center gap-2 cursor-pointer"
+                      onClick={() => setShowCronOption(!showCronOption)}
+                    >
+                      Advanced Options
+                      {showCronOption ? (
+                        <ChevronUpIcon className="size-4" />
+                      ) : (
+                        <ChevronDownIcon className="size-4" />
+                      )}
+                    </div>
+
+                    {showCronOption && (
+                      <div className="grid grid-cols-4 items-start gap-4">
+                        <Label
+                          htmlFor="cron-expression"
+                          className="text-right pt-3"
+                        >
+                          Cron Expression
+                        </Label>
+                        <div className="col-span-3">
+                          <Input
+                            id="cron-expression"
+                            value={cronExpression}
+                            onChange={(e) => setCronExpression(e.target.value)}
+                            placeholder="0 10 * * 0 (Every Sunday at 10:00 AM)"
+                            className="w-70"
+                            required
+                          />
+                          <ExternalLink
+                            to="https://crontab.guru/"
+                            className="text-muted-foreground text-xs"
+                          >
+                            📅 Use crontab.guru for help
+                          </ExternalLink>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <DialogFooter>
                     <LoadingButton
