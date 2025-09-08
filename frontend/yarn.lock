@@ -1211,13 +1211,13 @@
   resolved "https://registry.yarnpkg.com/@getalby/lightning-tools/-/lightning-tools-6.0.0.tgz#07c19cdf29ed8e3d51f125fba780d31a29ba0864"
   integrity sha512-jpTO+7o1N1KhV5qT6qetPK+et6ZQshCzUMCRV8+Ek1NVlVU4ITIqOWRQ3kOrb0PhSxkbGN5G3d60HCi535hbDw==
 
-"@getalby/sdk@^6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@getalby/sdk/-/sdk-6.0.0.tgz#3f7b4965f7113b3a75752f96f88f4347a859518c"
-  integrity sha512-ix2ZFcYwxBy3r4o11C1jC4Hwlu2s8C9pz7Y/NWYw8sSEutioPjG2e0k5Nx1nTs6luQ2LKUBFg9/6f1akZiwYcw==
+"@getalby/sdk@^6.0.1":
+  version "6.0.1"
+  resolved "https://registry.yarnpkg.com/@getalby/sdk/-/sdk-6.0.1.tgz#bb50bded4a95e7055fcdf57be2ed71ee386d7610"
+  integrity sha512-iFEKT0VI2p7sGNmpLD65rZwIqD+rRHV8OdclKJtqZ7AMlw/ND7M8caJAZt6iU9TY/4O/AiiRenTALGxzckttQw==
   dependencies:
     "@getalby/lightning-tools" "^5.2.0"
-    nostr-tools "2.15.0"
+    nostr-tools "2.16.2"
 
 "@hookform/resolvers@^5.1.1":
   version "5.2.1"
@@ -4769,10 +4769,10 @@ node-releases@^2.0.19:
   resolved "https://registry.yarnpkg.com/node-releases/-/node-releases-2.0.19.tgz#9e445a52950951ec4d177d843af370b411caf314"
   integrity sha512-xxOWJsBKtzAq7DY0J+DTzuz58K8e7sJbdgwkbMWQe8UYB6ekmsQ45q0M/tJDsGaZmbC+l7n57UV8Hl5tHxO9uw==
 
-nostr-tools@2.15.0:
-  version "2.15.0"
-  resolved "https://registry.yarnpkg.com/nostr-tools/-/nostr-tools-2.15.0.tgz#cd119006681a861cabcdcf0200d29fd9864ddab8"
-  integrity sha512-Jj/+UFbu3JbTAWP4ipPFNuyD4W5eVRBNAP+kmnoRCYp3bLmTrlQ0Qhs5O1xSQJTFpjdZqoS0zZOUKdxUdjc+pw==
+nostr-tools@2.16.2:
+  version "2.16.2"
+  resolved "https://registry.yarnpkg.com/nostr-tools/-/nostr-tools-2.16.2.tgz#eca1e0ed24428afcdd74708c6fd7f42ed8194101"
+  integrity sha512-ZxH9EbSt5ypURZj2TGNJxZd0Omb5ag5KZSu8IyJMCdLyg2KKz+2GA0sP/cSawCQEkyviIN4eRT4G2gB/t9lMRw==
   dependencies:
     "@noble/ciphers" "^0.5.1"
     "@noble/curves" "1.2.0"
