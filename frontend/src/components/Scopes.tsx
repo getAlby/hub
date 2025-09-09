@@ -1,13 +1,23 @@
 import {
   ArrowDownUpIcon,
   BrickWallIcon,
+  ChevronsUpDownIcon,
   LucideIcon,
   MoveDownIcon,
   SquarePenIcon,
 } from "lucide-react";
 import React from "react";
+import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Label } from "src/components/ui/label";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "src/components/ui/sheet";
 import { cn } from "src/lib/utils";
 import { Scope, WalletCapabilities, scopeDescriptions } from "src/types";
 
@@ -25,16 +35,16 @@ const scopeGroupIconMap: ScopeGroupIconMap = {
 const scopeGroupTitle: Record<ScopeGroup, string> = {
   full_access: "Full Access",
   read_only: "Read Only",
-  isolated: "Isolated",
+  isolated: "Isolated App",
   custom: "Custom",
 };
 
 const scopeGroupDescriptions: Record<ScopeGroup, string> = {
-  full_access: "I trust this app to access my wallet within the budget I set",
-  read_only: "This app can receive payments and read my transaction history",
+  full_access: "Allow this app to send and receive payments from your wallet",
+  read_only: "Allow this app to receive payments and view transaction history",
   isolated:
-    "This app will have its own balance and only sees its own transactions",
-  custom: "I want to define exactly what access this app has to my wallet",
+    "Create a separate wallet for this app with its own isolated balance",
+  custom: "Define specific permissions for this app's wallet access",
 };
 
 interface ScopesProps {
@@ -51,6 +61,7 @@ const Scopes: React.FC<ScopesProps> = ({
   isolated,
   onScopesChanged,
 }) => {
+  const [isSheetOpen, setSheetOpen] = React.useState(false);
   const fullAccessScopes: Scope[] = React.useMemo(() => {
     return [...capabilities.scopes];
   }, [capabilities.scopes]);
@@ -142,29 +153,61 @@ const Scopes: React.FC<ScopesProps> = ({
 
   return (
     <>
+      <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent>
+          <SheetHeader>
+            <SheetTitle>Choose wallet permissions</SheetTitle>
+          </SheetHeader>
+          <div className="flex flex-col gap-4 px-6">
+            {scopeGroups.map((sg, index) => {
+              const ScopeGroupIcon = scopeGroupIconMap[sg];
+              return (
+                <button
+                  type="button"
+                  key={index}
+                  className={`flex gap-4 items-center border-2 rounded-md cursor-pointer ${scopeGroup == sg ? "border-primary" : "border-muted"} p-4`}
+                  onClick={() => {
+                    handleScopeGroupChange(sg);
+                    setSheetOpen(false);
+                  }}
+                >
+                  <ScopeGroupIcon className="shrink-0 w-10 h-10" />
+                  <div className="flex flex-col text-left">
+                    <p className="font-semibold">{scopeGroupTitle[sg]}</p>
+                    <span className="text-sm text-muted-foreground">
+                      {scopeGroupDescriptions[sg]}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <SheetFooter>
+            <Button type="submit">Save changes</Button>
+            <SheetClose asChild>
+              <Button variant="outline">Close</Button>
+            </SheetClose>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
       <div className="flex flex-col w-full mb-4">
-        <p className="font-medium text-sm mb-2">Choose wallet permissions</p>
-        <div className="grid grid-cols-2 gap-4">
-          {scopeGroups.map((sg, index) => {
-            const ScopeGroupIcon = scopeGroupIconMap[sg];
-            return (
-              <button
-                type="button"
-                key={index}
-                className={`flex flex-col items-center border-2 rounded cursor-pointer ${scopeGroup == sg ? "border-primary" : "border-muted"} p-4`}
-                onClick={() => {
-                  handleScopeGroupChange(sg);
-                }}
-              >
-                <ScopeGroupIcon className="mb-2" />
-                <p className="text-sm font-medium">{scopeGroupTitle[sg]}</p>
-                <span className="w-full text-center text-xs text-muted-foreground">
-                  {scopeGroupDescriptions[sg]}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+        <p className="font-medium text-sm mb-2">Wallet permissions</p>
+        <button
+          type="button"
+          className="flex gap-4 items-center border-2 rounded-md cursor-pointer border-muted p-4"
+          onClick={() => {
+            setSheetOpen(true);
+          }}
+        >
+          <ArrowDownUpIcon className="shrink-0 w-10 h-10" />
+          <div className="flex flex-col text-left">
+            <p className="font-semibold">{scopeGroupTitle[scopeGroup]}</p>
+            <span className="text-sm text-muted-foreground">
+              {scopeGroupDescriptions[scopeGroup]}
+            </span>
+          </div>
+          <ChevronsUpDownIcon />
+        </button>
       </div>
 
       {scopeGroup == "custom" && (

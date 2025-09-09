@@ -325,7 +325,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                             <InstallApp appStoreApp={appStoreApp} />
                           ),
                         configure: () => (
-                          <div className="flex flex-col gap-2">
+                          <div className="flex flex-col gap-4">
                             <SuperuserConfirmPasswordDialog
                               open={showSuperuserConfirmPasswordDialog}
                               setOpen={setShowSuperuserConfirmPasswordDialog}
