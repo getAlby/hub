@@ -40,7 +40,7 @@ function AppLayoutInner() {
           {showBanner && <Banner onDismiss={dismissBanner} />}
           <div className="flex flex-1">
             <AppSidebar />
-            <SidebarInset>
+            <SidebarInset className="min-w-0">
               <div
                 className={cn(
                   "flex flex-1 flex-col gap-4 p-4",
