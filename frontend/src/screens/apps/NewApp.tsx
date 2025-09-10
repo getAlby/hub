@@ -411,7 +411,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                             </div>
                           ),
                       })}
-                      {!methods.isLast && (
+                      {(!methods.isLast || returnTo) && (
                         <Stepper.Controls className="mt-6">
                           {!methods.isFirst && (
                             <Button
