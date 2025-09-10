@@ -397,7 +397,7 @@ function NewChannelInternal({
             </div>
           </>
           <MempoolAlert />
-          <SwapAlert />
+          <SwapAlert swapType="in" />
           {channels?.some((channel) => channel.public !== !!order.isPublic) && (
             <ChannelPublicPrivateAlert />
           )}
