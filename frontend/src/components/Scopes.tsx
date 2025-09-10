@@ -151,6 +151,8 @@ const Scopes: React.FC<ScopesProps> = ({
     onScopesChanged(newScopes, isolated);
   };
 
+  const ActiveScopeGroupIcon = scopeGroupIconMap[scopeGroup];
+
   return (
     <>
       <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
@@ -171,7 +173,7 @@ const Scopes: React.FC<ScopesProps> = ({
                     setSheetOpen(false);
                   }}
                 >
-                  <ScopeGroupIcon className="shrink-0 w-10 h-10" />
+                  <ScopeGroupIcon className="shrink-0 w-6 h-6 mx-2" />
                   <div className="flex flex-col text-left">
                     <p className="font-semibold">{scopeGroupTitle[sg]}</p>
                     <span className="text-sm text-muted-foreground">
@@ -199,14 +201,14 @@ const Scopes: React.FC<ScopesProps> = ({
             setSheetOpen(true);
           }}
         >
-          <ArrowDownUpIcon className="shrink-0 w-10 h-10" />
+          <ActiveScopeGroupIcon className="shrink-0 w-6 h-6 mx-2" />
           <div className="flex flex-col text-left">
             <p className="font-semibold">{scopeGroupTitle[scopeGroup]}</p>
             <span className="text-sm text-muted-foreground">
               {scopeGroupDescriptions[scopeGroup]}
             </span>
           </div>
-          <ChevronsUpDownIcon />
+          <ChevronsUpDownIcon className="w-4 h-4" />
         </button>
       </div>
 
