@@ -12,6 +12,7 @@ import (
 
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/version"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 )
@@ -139,4 +140,8 @@ func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *R
 	return &RebalanceChannelResponse{
 		TotalFeeSat: uint64(paymentRequest.MSatoshi)/1000 + payRebalanceInvoiceResponse.FeeMsat/1000 - rebalanceChannelRequest.AmountSat,
 	}, nil
+}
+
+func setDefaultRequestHeaders(req *http.Request) {
+	req.Header.Set("User-Agent", "AlbyHub/"+version.Tag)
 }
