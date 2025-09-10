@@ -31,7 +31,7 @@ export function AppLinksCard({ appStoreApp }: { appStoreApp: AppStoreApp }) {
       <CardHeader>
         <CardTitle className="text-2xl">Links</CardTitle>
       </CardHeader>
-      <CardFooter className="flex flex-row gap-2">
+      <CardFooter className="flex flex-row flex-wrap gap-2">
         {appStoreApp.webLink && (
           <ExternalLink to={appStoreApp.webLink}>
             <Button variant="outline">
