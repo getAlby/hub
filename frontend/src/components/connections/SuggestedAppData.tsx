@@ -4,6 +4,7 @@ import albyGo from "src/assets/suggested-apps/alby-go.png";
 import alby from "src/assets/suggested-apps/alby.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
 import bitrefill from "src/assets/suggested-apps/bitrefill.png";
+import bringin from "src/assets/suggested-apps/bringin.png";
 import btcpay from "src/assets/suggested-apps/btcpay.png";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
 import clams from "src/assets/suggested-apps/clams.png";
@@ -2156,6 +2157,31 @@ export const appStoreApps: AppStoreApp[] = (
       webLink: "https://bitrefill.com",
       logo: bitrefill,
       categories: ["shopping"],
+    },
+    {
+      id: "bringin",
+      title: "Bringin",
+      description: "Spend Bitcoin from your Alby Hub anywhere VISA is accepted (150M+ merchants).",
+      webLink: "https://bringin.xyz",
+      playLink: "https://play.google.com/store/apps/details?id=xyz.bringin.client",
+      appleLink: "https://testflight.apple.com/join/HVh6eZsF",
+      zapStoreLink: "https://zapstore.dev/download/",
+      logo: bringin,
+      extendedDescription: "Bringin turns your Alby Hub into a global spending account. Connect once and instantly swap sats into Euro with a linked IBAN and debit card. Spend Bitcoin at 150M+ VISA merchants worldwide, or pay directly with Euro IBAN transfers—all while keeping your funds in self-custody via Alby Hub. Lightning in, real-world payments out.",
+      categories: ["payment-tools"],
+      guide: (
+        <>
+          <div>
+            <h3 className="font-medium">Connect Alby Hub to Bringin</h3>
+            <ul className="list-inside text-muted-foreground">
+              <li>1. Install <span className="font-medium text-foreground">Bringin</span> on Android or iOS.</li>
+              <li>2. Log in, open the <span className="font-medium text-foreground">Bitcoin</span> tab, and tap <span className="font-medium text-foreground">Get started</span>.</li>
+              <li>3. Select <span className="font-medium text-foreground">Alby Hub</span> and choose how to connect: <span className="font-medium text-foreground">Alby Cloud</span>, <span className="font-medium text-foreground">Alby Go</span>, or paste your <span className="font-medium text-foreground">NWC secret</span>.</li>
+              <li>4. That's it—your Alby Hub is linked. Use Bringin to swap sats to Euro and spend at 150M+ VISA merchants worldwide.</li>
+            </ul>
+          </div>
+        </>
+      ),
     },
   ] satisfies AppStoreApp[]
 ).sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
