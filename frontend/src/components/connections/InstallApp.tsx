@@ -7,31 +7,12 @@ import { FirefoxIcon } from "src/components/icons/Firefox";
 import { PlayStoreIcon } from "src/components/icons/PlayStore";
 import { ZapStoreIcon } from "src/components/icons/ZapStore";
 import { Button } from "src/components/ui/button";
-import {
-  Card,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "src/components/ui/card";
 
-export function AppLinksCard({ appStoreApp }: { appStoreApp: AppStoreApp }) {
-  if (
-    !appStoreApp.appleLink &&
-    !appStoreApp.playLink &&
-    !appStoreApp.zapStoreLink &&
-    !appStoreApp.chromeLink &&
-    !appStoreApp.firefoxLink &&
-    !appStoreApp.webLink
-  ) {
-    return null;
-  }
-
+export function InstallApp({ appStoreApp }: { appStoreApp: AppStoreApp }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-2xl">Links</CardTitle>
-      </CardHeader>
-      <CardFooter className="flex flex-row flex-wrap gap-2">
+    <div className="flex flex-col gap-4">
+      {appStoreApp.installGuide}
+      <div className="flex flex-wrap items-center gap-2">
         {appStoreApp.webLink && (
           <ExternalLink to={appStoreApp.webLink}>
             <Button variant="outline">
@@ -80,7 +61,7 @@ export function AppLinksCard({ appStoreApp }: { appStoreApp: AppStoreApp }) {
             </Button>
           </ExternalLink>
         )}
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }
