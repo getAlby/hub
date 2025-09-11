@@ -121,7 +121,7 @@ type ChannelPeerSuggestion struct {
 	MaximumChannelSize    uint64  `json:"maximumChannelSize"`
 	Name                  string  `json:"name"`
 	Image                 string  `json:"image"`
-	Url                   string  `json:"url"`
+	Identifier            string  `json:"identifier"`
 	ContactUrl            string  `json:"contactUrl"`
 	Type                  string  `json:"type"`
 	Terms                 string  `json:"terms"`

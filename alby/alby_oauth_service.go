@@ -1167,15 +1167,21 @@ func (svc *albyOAuthService) GetLSPChannelOffer(ctx context.Context) (*LSPChanne
 }
 
 func (svc *albyOAuthService) GetLSPInfo(ctx context.Context, lsp, network string) (*LSPInfo, error) {
-	// TODO: Do not return if token does not exist
 	token, err := svc.fetchUserToken(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
 		return nil, err
 	}
 
-	client := svc.oauthConf.Client(ctx, token)
-	client.Timeout = 10 * time.Second
+	var client *http.Client
+	if token != nil {
+		client = svc.oauthConf.Client(ctx, token)
+		client.Timeout = 10 * time.Second
+	} else {
+		client = &http.Client{
+			Timeout: time.Second * 10,
+		}
+	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/internal/lsp/%s/%s/v1/get_info", albyOAuthAPIURL, lsp, network), nil)
 	if err != nil {
@@ -1255,15 +1261,21 @@ func (svc *albyOAuthService) GetLSPInfo(ctx context.Context, lsp, network string
 }
 
 func (svc *albyOAuthService) CreateLSPOrder(ctx context.Context, lsp, network string, lspChannelRequest *LSPChannelRequest) (*LSPChannelResponse, error) {
-	// TODO: Do not return if token does not exist
 	token, err := svc.fetchUserToken(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
 		return nil, err
 	}
 
-	client := svc.oauthConf.Client(ctx, token)
-	client.Timeout = 10 * time.Second
+	var client *http.Client
+	if token != nil {
+		client = svc.oauthConf.Client(ctx, token)
+		client.Timeout = 10 * time.Second
+	} else {
+		client = &http.Client{
+			Timeout: time.Second * 10,
+		}
+	}
 
 	payloadBytes, err := json.Marshal(lspChannelRequest)
 	if err != nil {
@@ -1271,7 +1283,6 @@ func (svc *albyOAuthService) CreateLSPOrder(ctx context.Context, lsp, network st
 	}
 	bodyReader := bytes.NewReader(payloadBytes)
 
-	// TODO: Remove hardcoded lsp and network info
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/internal/lsp/%s/%s/v1/create_order", albyOAuthAPIURL, lsp, network), bodyReader)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create lsp order request")

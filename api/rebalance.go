@@ -58,8 +58,8 @@ func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *R
 		return nil, err
 	}
 
-	setDefaultRequestHeaders(req)
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "AlbyHub/"+version.Tag)
 
 	client := http.Client{
 		Timeout: time.Second * 60,
@@ -140,8 +140,4 @@ func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *R
 	return &RebalanceChannelResponse{
 		TotalFeeSat: uint64(paymentRequest.MSatoshi)/1000 + payRebalanceInvoiceResponse.FeeMsat/1000 - rebalanceChannelRequest.AmountSat,
 	}, nil
-}
-
-func setDefaultRequestHeaders(req *http.Request) {
-	req.Header.Set("User-Agent", "AlbyHub/"+version.Tag)
 }

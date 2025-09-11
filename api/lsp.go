@@ -31,14 +31,13 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 	nodeInfo, err := api.svc.GetLNClient().GetInfo(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": request.LSPUrl,
+			"lspIdentifier": request.LSPIdentifier,
 		}).Error("Failed to request own node info", err)
 		return nil, err
 	}
 
 	logger.Logger.Info("Requesting LSP info")
-	// TODO: Remove hardcoded lsp
-	lspInfo, err := api.albyOAuthSvc.GetLSPInfo(ctx, "olympus", nodeInfo.Network)
+	lspInfo, err := api.albyOAuthSvc.GetLSPInfo(ctx, request.LSPIdentifier, nodeInfo.Network)
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to request LSP info")
@@ -58,8 +57,7 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 		return nil, err
 	}
 
-	// TODO: Remove hardcoded lsp
-	invoice, fee, err := api.requestLSPS1Invoice(ctx, request, "olympus", nodeInfo.Network, nodeInfo.Pubkey, lspInfo.MaxChannelExpiryBlocks, lspInfo.MinRequiredChannelConfirmations, lspInfo.MinFundingConfirmsWithinBlocks)
+	invoice, fee, err := api.requestLSPS1Invoice(ctx, request, nodeInfo.Network, nodeInfo.Pubkey, lspInfo.MaxChannelExpiryBlocks, lspInfo.MinRequiredChannelConfirmations, lspInfo.MinFundingConfirmsWithinBlocks)
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to request invoice")
@@ -99,7 +97,7 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 	return newChannelResponse, nil
 }
 
-func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderRequest, lsp, network, pubkey string, channelExpiryBlocks uint64, minRequiredChannelConfirmations uint64, minFundingConfirmsWithinBlocks uint64) (invoice string, fee uint64, err error) {
+func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderRequest, network, pubkey string, channelExpiryBlocks uint64, minRequiredChannelConfirmations uint64, minFundingConfirmsWithinBlocks uint64) (invoice string, fee uint64, err error) {
 	refundAddress, err := api.svc.GetLNClient().GetNewOnchainAddress(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to request onchain address")
@@ -128,13 +126,13 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderReques
 	}
 
 	token := ""
-	if request.LSPUrl == "https://lsps1.lnolymp.us/api/v1" {
+	if request.LSPIdentifier == "olympus" {
 		token = "AlbyHub/" + version.Tag
 	}
 
 	// set a non-empty token to notify LNServer that we support 0-conf
 	// (Pre-v1.17.2 does not support 0-conf)
-	if request.LSPUrl == "https://www.lnserver.com/lsp/wave" {
+	if request.LSPIdentifier == "lnserver" {
 		token = "AlbyHub/" + version.Tag
 	}
 
@@ -150,7 +148,7 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderReques
 		AnnounceChannel:              request.Public,
 	}
 
-	channelResponse, err := api.albyOAuthSvc.CreateLSPOrder(ctx, lsp, network, lsps1ChannelRequest)
+	channelResponse, err := api.albyOAuthSvc.CreateLSPOrder(ctx, request.LSPIdentifier, network, lsps1ChannelRequest)
 	if err != nil {
 		return "", 0, err
 	}
@@ -159,7 +157,7 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderReques
 	fee, err = strconv.ParseUint(channelResponse.Payment.Bolt11.FeeTotalSat, 10, 64)
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": request.LSPUrl,
+			"lspIdentifier": request.LSPIdentifier,
 		}).Error("Failed to parse fee")
 		return "", 0, fmt.Errorf("failed to parse fee %v", err)
 	}
