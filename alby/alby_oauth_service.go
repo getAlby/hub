@@ -1176,10 +1176,10 @@ func (svc *albyOAuthService) GetLSPInfo(ctx context.Context, lsp, network string
 	var client *http.Client
 	if token != nil {
 		client = svc.oauthConf.Client(ctx, token)
-		client.Timeout = 10 * time.Second
+		client.Timeout = 30 * time.Second
 	} else {
 		client = &http.Client{
-			Timeout: time.Second * 10,
+			Timeout: time.Second * 30,
 		}
 	}
 
@@ -1270,10 +1270,10 @@ func (svc *albyOAuthService) CreateLSPOrder(ctx context.Context, lsp, network st
 	var client *http.Client
 	if token != nil {
 		client = svc.oauthConf.Client(ctx, token)
-		client.Timeout = 10 * time.Second
+		client.Timeout = 30 * time.Second
 	} else {
 		client = &http.Client{
-			Timeout: time.Second * 10,
+			Timeout: time.Second * 30,
 		}
 	}
 
