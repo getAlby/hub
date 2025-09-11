@@ -601,14 +601,20 @@ type MockService_StartApp_Call struct {
 }
 
 // StartApp is a helper method to define mock.On call
-//   - encryptionKey
+//   - encryptionKey string
 func (_e *MockService_Expecter) StartApp(encryptionKey interface{}) *MockService_StartApp_Call {
 	return &MockService_StartApp_Call{Call: _e.mock.On("StartApp", encryptionKey)}
 }
 
 func (_c *MockService_StartApp_Call) Run(run func(encryptionKey string)) *MockService_StartApp_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }

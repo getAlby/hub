@@ -569,12 +569,12 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
       if (!current) {
         (async () => {
           try {
-            if (!order.lspType || !order.lspUrl) {
+            if (!order.lspType || !order.lspIdentifier) {
               throw new Error("missing lsp info in order");
             }
             const newLSPOrderRequest: LSPOrderRequest = {
               lspType: order.lspType,
-              lspUrl: order.lspUrl,
+              lspIdentifier: order.lspIdentifier,
               amount: parseInt(order.amount),
               public: order.isPublic,
             };
@@ -609,7 +609,13 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
       }
       return true;
     });
-  }, [channels, order.amount, order.isPublic, order.lspType, order.lspUrl]);
+  }, [
+    channels,
+    order.amount,
+    order.isPublic,
+    order.lspType,
+    order.lspIdentifier,
+  ]);
 
   const canPayInternally =
     channels &&

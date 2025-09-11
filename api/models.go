@@ -459,10 +459,10 @@ type BasicRestoreWailsRequest struct {
 type NetworkGraphResponse = lnclient.NetworkGraphResponse
 
 type LSPOrderRequest struct {
-	Amount  uint64 `json:"amount"`
-	LSPType string `json:"lspType"`
-	LSPUrl  string `json:"lspUrl"`
-	Public  bool   `json:"public"`
+	Amount        uint64 `json:"amount"`
+	LSPType       string `json:"lspType"`
+	LSPIdentifier string `json:"lspIdentifier"`
+	Public        bool   `json:"public"`
 }
 
 type LSPOrderResponse struct {

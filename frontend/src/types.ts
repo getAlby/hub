@@ -476,7 +476,7 @@ export type RecommendedChannelPeer = {
   | {
       paymentMethod: "lightning";
       type: LSPType;
-      url: string;
+      identifier: string;
       contactUrl: string;
       terms?: string;
       pubkey?: string;
@@ -529,7 +529,7 @@ export type AlbyBalance = {
 export type LSPOrderRequest = {
   amount: number;
   lspType: LSPType;
-  lspUrl: string;
+  lspIdentifier: string;
   public: boolean;
 };
 
@@ -663,7 +663,7 @@ export type OnchainOrder = {
 export type LightningOrder = {
   paymentMethod: "lightning";
   lspType: LSPType;
-  lspUrl: string;
+  lspIdentifier: string;
 } & NewChannelOrderCommon;
 
 export type NewChannelOrder = OnchainOrder | LightningOrder;

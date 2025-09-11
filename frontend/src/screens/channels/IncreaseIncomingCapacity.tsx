@@ -141,7 +141,7 @@ function NewChannelInternal({
         setOrder((current) => ({
           ...current,
           lspType: selectedPeer.type,
-          lspUrl: selectedPeer.url,
+          lspIdentifier: selectedPeer.identifier,
           ...(!selectedPeer.publicChannelsAllowed && { isPublic: false }),
         }));
       }
@@ -193,7 +193,7 @@ function NewChannelInternal({
           throw new Error("Unexpected order or partner payment method");
         }
         order.lspType = bestPartner.type;
-        order.lspUrl = bestPartner.url;
+        order.lspIdentifier = bestPartner.identifier;
       }
 
       useChannelOrderStore.getState().setOrder(order as NewChannelOrder);
