@@ -57,6 +57,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "compare-versions": "^6.1.1",
+    "cron-parser": "^5.3.1",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.10",
     "embla-carousel-react": "^8.6.0",

@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
+import { CronExpressionParser } from "cron-parser";
 import { BudgetRenewalType } from "src/types";
 import { twMerge } from "tailwind-merge";
 
@@ -74,4 +75,39 @@ export function getBudgetRenewalLabel(renewalType: BudgetRenewalType): string {
     case "":
       return "";
   }
+}
+
+export function isValidCronExpression(cronExpression: string): boolean {
+  try {
+    CronExpressionParser.parse(cronExpression);
+    return true;
+  } catch (error) {
+    console.error(error);
+    return false;
+  }
+}
+
+// counts the total number of cron runs in the current month
+export function countCronRuns(cronExpression: string) {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth() + 1;
+
+  const startDate = new Date(year, month - 1, 1, 0, 0, 0);
+  const endDate = new Date(year, month, 0, 23, 59, 59);
+
+  const options = { currentDate: startDate, endDate };
+  const interval = CronExpressionParser.parse(cronExpression, options);
+
+  let count = 0;
+  try {
+    while (true) {
+      interval.next();
+      count++;
+    }
+  } catch (error) {
+    console.error(error);
+  }
+
+  return count;
 }
