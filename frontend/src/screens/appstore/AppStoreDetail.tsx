@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { AboutAppCard } from "src/components/connections/AboutAppCard";
 import { AppLinksCard } from "src/components/connections/AppLinksCard";
 import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
@@ -8,13 +8,6 @@ import {
   appStoreApps,
 } from "src/components/connections/SuggestedAppData";
 import Loading from "src/components/Loading";
-import { Button } from "src/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "src/components/ui/card";
 import { useAppsForAppStoreApp } from "src/hooks/useApps";
 
 export function AppStoreDetail() {
@@ -33,18 +26,10 @@ export function AppStoreDetail() {
     return null;
   }
 
-  return (
-    <AppStoreDetailInternal appStoreId={appStoreId} appStoreApp={appStoreApp} />
-  );
+  return <AppStoreDetailInternal appStoreApp={appStoreApp} />;
 }
 
-function AppStoreDetailInternal({
-  appStoreApp,
-  appStoreId,
-}: {
-  appStoreApp: AppStoreApp;
-  appStoreId: string;
-}) {
+function AppStoreDetailInternal({ appStoreApp }: { appStoreApp: AppStoreApp }) {
   const connectedApps = useAppsForAppStoreApp(appStoreApp);
   const navigate = useNavigate();
 
@@ -66,8 +51,7 @@ function AppStoreDetailInternal({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <AboutAppCard appStoreApp={appStoreApp} />
         <AppLinksCard appStoreApp={appStoreApp} />
-        {/* TODO: replace with connection wizard */}
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle className="text-2xl">How to Connect</CardTitle>
           </CardHeader>
@@ -89,7 +73,7 @@ function AppStoreDetailInternal({
               </ul>
             )}
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </div>
   );

@@ -4,8 +4,8 @@ import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import { AppStoreApp } from "src/components/connections/SuggestedAppData";
 import { NostrWalletConnectIcon } from "src/components/icons/NostrWalletConnectIcon";
+import ResponsiveButton from "src/components/ResponsiveButton";
 import { Badge } from "src/components/ui/badge";
-import { Button } from "src/components/ui/button";
 import { useAppsForAppStoreApp } from "src/hooks/useApps";
 
 // TODO: remove once new connection wizard is added
@@ -59,10 +59,10 @@ export function AppStoreDetailHeader({
             contentRight
           ) : (
             <Link to={`/apps/new?app=${appStoreApp.id}`}>
-              <Button>
-                <NostrWalletConnectIcon className="size-4" />
-                Connect to {appStoreApp.title}
-              </Button>
+              <ResponsiveButton
+                icon={NostrWalletConnectIcon}
+                text={`Connect to ${appStoreApp.title}`}
+              />
             </Link>
           )
         }
