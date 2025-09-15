@@ -166,43 +166,6 @@ export const appStoreApps: AppStoreApp[] = (
       logo: buzzpay,
       categories: ["merchant-tools"],
       webLink: "https://pos.albylabs.com",
-      installGuide: (
-        <>
-          <p className="text-muted-foreground">
-            Open{" "}
-            <ExternalLink
-              to="https://pos.albylabs.com"
-              className="font-medium text-foreground underline"
-            >
-              BuzzPay
-            </ExternalLink>{" "}
-            in your browser
-          </p>
-        </>
-      ),
-      finalizeGuide: (
-        <>
-          <div>
-            <h3 className="font-medium">In BuzzPay</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
-              <li>
-                Click on{" "}
-                <span className="font-medium text-foreground">
-                  Connect Wallet
-                </span>{" "}
-                in the top right corner
-              </li>
-              <li>
-                Choose{" "}
-                <span className="font-medium text-foreground">
-                  Nostr Wallet Connect
-                </span>{" "}
-              </li>
-              <li>Paste the connection secret from Alby Hub</li>
-            </ul>
-          </div>
-        </>
-      ),
     },
     {
       id: "goose",
