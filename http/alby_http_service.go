@@ -28,16 +28,16 @@ func NewAlbyHttpService(svc service.Service, albySvc alby.AlbyService, albyOAuth
 	}
 }
 
-func (albyHttpSvc *AlbyHttpService) RegisterSharedRoutes(restrictedApiGroup *echo.Group, e *echo.Echo) {
+func (albyHttpSvc *AlbyHttpService) RegisterSharedRoutes(readOnlyApiGroup *echo.Group, fullAccessApiGroup *echo.Group, e *echo.Echo) {
 	e.GET("/api/alby/callback", albyHttpSvc.albyCallbackHandler)
 	e.GET("/api/alby/info", albyHttpSvc.albyInfoHandler)
 	e.GET("/api/alby/rates", albyHttpSvc.albyBitcoinRateHandler)
-	restrictedApiGroup.GET("/alby/me", albyHttpSvc.albyMeHandler)
-	restrictedApiGroup.GET("/alby/balance", albyHttpSvc.albyBalanceHandler)
-	restrictedApiGroup.POST("/alby/pay", albyHttpSvc.albyPayHandler)
-	restrictedApiGroup.POST("/alby/link-account", albyHttpSvc.albyLinkAccountHandler)
-	restrictedApiGroup.POST("/alby/auto-channel", albyHttpSvc.autoChannelHandler)
-	restrictedApiGroup.POST("/alby/unlink-account", albyHttpSvc.unlinkHandler)
+	readOnlyApiGroup.GET("/alby/me", albyHttpSvc.albyMeHandler)
+	readOnlyApiGroup.GET("/alby/balance", albyHttpSvc.albyBalanceHandler)
+	fullAccessApiGroup.POST("/alby/pay", albyHttpSvc.albyPayHandler)
+	fullAccessApiGroup.POST("/alby/link-account", albyHttpSvc.albyLinkAccountHandler)
+	fullAccessApiGroup.POST("/alby/auto-channel", albyHttpSvc.autoChannelHandler)
+	fullAccessApiGroup.POST("/alby/unlink-account", albyHttpSvc.unlinkHandler)
 }
 
 func (albyHttpSvc *AlbyHttpService) autoChannelHandler(c echo.Context) error {
