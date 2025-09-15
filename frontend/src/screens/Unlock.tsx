@@ -41,6 +41,7 @@ export default function Unlock() {
           },
           body: JSON.stringify({
             unlockPassword,
+            permission: "full",
           }),
         }
       );
