@@ -460,7 +460,7 @@ function NewChannelInternal({
             </Button>
           )}
           <MempoolAlert />
-          <SwapAlert />
+          <SwapAlert swapType="out" />
           {channels?.some((channel) => channel.public !== !!order.isPublic) && (
             <ChannelPublicPrivateAlert />
           )}
