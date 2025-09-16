@@ -47,7 +47,7 @@ import { useApp } from "src/hooks/useApp";
 import { useCreateLightningAddress } from "src/hooks/useCreateLightningAddress";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
 import { copyToClipboard } from "src/lib/clipboard";
-import { ConnectAppCard } from "src/screens/apps/AppCreated";
+import { ConnectAppCard } from "src/screens/apps/ConnectAppCard";
 import { CreateAppResponse } from "src/types";
 
 export function SubwalletCreated() {

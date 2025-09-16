@@ -157,6 +157,7 @@ function NewChannelInternal({
       partner.paymentMethod === "lightning" &&
       partner.type === "LSPS1" &&
       partner.pubkey &&
+      (partner.publicChannelsAllowed || !order.isPublic) &&
       !channels.some((channel) => channel.remotePubkey === partner.pubkey)
   );
 
@@ -460,7 +461,7 @@ function NewChannelInternal({
             </Button>
           )}
           <MempoolAlert />
-          <SwapAlert />
+          <SwapAlert swapType="out" />
           {channels?.some((channel) => channel.public !== !!order.isPublic) && (
             <ChannelPublicPrivateAlert />
           )}
