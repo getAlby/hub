@@ -45,6 +45,9 @@ func NewAppsService(db *gorm.DB, eventPublisher events.EventPublisher, keys keys
 }
 
 func (svc *appsService) CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string, isolated bool, metadata map[string]interface{}) (*db.App, string, error) {
+	if name == "" {
+		return nil, "", errors.New("no app name provided")
+	}
 	if isolated {
 		if slices.Contains(scopes, constants.SIGN_MESSAGE_SCOPE) {
 			// cannot sign messages because the isolated app is a custodial sub-wallet

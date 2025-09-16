@@ -74,7 +74,7 @@ export function Goose() {
 
   return (
     <div className="grid gap-5">
-      <AppStoreDetailHeader appStoreApp={appStoreApp} />
+      <AppStoreDetailHeader appStoreApp={appStoreApp} contentRight={null} />
       {connectionSecret && (
         <div className="max-w-lg flex flex-col gap-5">
           <p>

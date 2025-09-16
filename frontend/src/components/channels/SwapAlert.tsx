@@ -8,8 +8,13 @@ import { LinkButton } from "../ui/custom/link-button";
 type SwapAlertProps = {
   className?: string;
   minChannels?: number;
+  swapType?: "in" | "out";
 };
-export function SwapAlert({ className, minChannels = 2 }: SwapAlertProps) {
+export function SwapAlert({
+  className,
+  minChannels = 2,
+  swapType,
+}: SwapAlertProps) {
   const { data: channels } = useChannels();
   const { data: balances } = useBalances();
 
@@ -20,8 +25,9 @@ export function SwapAlert({ className, minChannels = 2 }: SwapAlertProps) {
     return null;
   }
 
-  const isSwapOut =
-    balances.lightning.totalSpendable > balances.lightning.totalReceivable;
+  const isSwapOut = swapType
+    ? swapType === "out"
+    : balances.lightning.totalSpendable > balances.lightning.totalReceivable;
   const directionText = isSwapOut ? "out from" : "into";
 
   return (

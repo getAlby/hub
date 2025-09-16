@@ -1,11 +1,10 @@
 import { VariantProps } from "class-variance-authority";
-import { LucideIcon } from "lucide-react";
 import * as React from "react";
 import { Button } from "./ui/button";
 import { buttonVariants } from "./ui/buttonVariants";
 
 type Props = {
-  icon: LucideIcon;
+  icon: React.ComponentType;
   text: string;
 } & React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
