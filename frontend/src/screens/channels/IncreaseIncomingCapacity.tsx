@@ -472,6 +472,9 @@ function NewChannelInternal({
               name={selectedPeer?.name}
             />
           )}
+          <p className="text-center text-xs text-muted-foreground">
+            By continuing, you agree that channel purchases are non-refundable.
+          </p>
           <Button size="lg">Next</Button>
         </form>
 

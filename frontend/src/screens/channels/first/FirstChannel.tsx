@@ -361,13 +361,17 @@ export function FirstChannel() {
             {lspChannelOffer.currentPaymentMethod !== "prepaid" &&
               lspChannelOffer.currentPaymentMethod !== "fee_credits" &&
               lspChannelOffer.currentPaymentMethod !== "included" && (
-                <p className="text-xs text-muted-foreground flex items-center justify-center -mb-2">
-                  The cost will be included in your next subscription payment
+                <p className="text-xs text-muted-foreground flex items-center justify-center -mb-4">
+                  The cost will be included in your next subscription payment.
                 </p>
               )}
+            <p className="text-center text-xs -mb-2">
+              By continuing, you agree that channel purchases are
+              non-refundable.
+            </p>
             {lspChannelOffer.currentPaymentMethod === "included" && (
               <p className="text-xs text-muted-foreground flex items-center justify-center -mb-2">
-                This channel comes free with your Alby Pro subscription
+                This channel comes free with your Alby Pro subscription.
               </p>
             )}
             <LoadingButton loading={isLoading} onClick={openChannel}>
