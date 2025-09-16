@@ -1059,7 +1059,9 @@ export const appStoreApps: AppStoreApp[] = (
               </li>
               <li>
                 3. Choose{" "}
-                <span className="font-medium text-foreground">NWC Generic</span>{" "}
+                <span className="font-medium text-foreground">
+                  NWC Generic
+                </span>{" "}
               </li>
             </ul>
           </div>
