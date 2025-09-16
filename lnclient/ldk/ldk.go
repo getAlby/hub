@@ -582,13 +582,9 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 				if event.PaymentHash != paymentHash {
 					continue
 				}
-
-				logger.Logger.Info("Got payment success event")
-				payment := ls.node.Payment(paymentHash)
-				if payment == nil {
-					logger.Logger.WithField("payment_hash", paymentHash).Error("Couldn't find payment by payment hash")
-					return nil, errors.New("payment not found")
-				}
+				logger.Logger.WithFields(logrus.Fields{
+					"event": event,
+				}).Info("Got payment success event")
 
 				if event.PaymentPreimage == nil {
 					logger.Logger.WithField("payment_hash", paymentHash).Error("No payment preimage in payment success event")
