@@ -214,6 +214,11 @@ export function ZapPlanner() {
       if (isNaN(rawFreq) || rawFreq < 1) {
         throw new Error("Invalid frequency");
       }
+
+      if (frequencyUnit === "months" && rawFreq !== 1) {
+        throw new Error("Only once per month is supported, use weeks instead");
+      }
+
       // validate lightning address
       const ln = new LightningAddress(recipientLightningAddress);
       await ln.fetch();
@@ -230,7 +235,8 @@ export function ZapPlanner() {
           periodsPerMonth = 31 / 7 / rawFreq;
           break;
         case "months":
-          periodsPerMonth = 1 / rawFreq;
+          // only once per month is supported
+          periodsPerMonth = 1;
           break;
         default:
           throw new Error("Unsupported frequency unit");
@@ -258,13 +264,13 @@ export function ZapPlanner() {
       };
 
       const createAppResponse = await createApp(createAppRequest);
-      // months → days since months are not recognized
-      const monthsToDays = (m: string) => parseInt(m, 10) * 31;
 
+      const cronExpression =
+        frequencyUnit === "months" ? "0 0 1 * *" : undefined; // at the start of each month
       const sleepDuration =
-        frequencyUnit === "months"
-          ? `${monthsToDays(frequencyValue)} days`
-          : `${frequencyValue} ${frequencyUnit}`;
+        frequencyUnit !== "months"
+          ? `${frequencyValue} ${frequencyUnit}`
+          : undefined;
 
       const subscriptionBody: Record<string, unknown> = {
         recipientLightningAddress,
@@ -274,6 +280,7 @@ export function ZapPlanner() {
         }),
         nostrWalletConnectUrl: createAppResponse.pairingUri,
         sleepDuration,
+        cronExpression,
         currency,
         amount: parseInt(amount),
       };
@@ -323,7 +330,9 @@ export function ZapPlanner() {
       });
 
       toast("Created subscription", {
-        description: "The first payment is scheduled immediately.",
+        description: cronExpression
+          ? "Payment will be made at the start of each month"
+          : "The first payment is scheduled immediately.",
       });
 
       reloadApps();
