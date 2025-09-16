@@ -38,8 +38,8 @@ type TransactionsService interface {
 	MakeInvoice(ctx context.Context, amount uint64, description string, descriptionHash string, expiry uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
 	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, totalCount uint64, err error)
-	SendPaymentSync(ctx context.Context, payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
-	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
+	SendPaymentSync(payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
+	SendKeysend(amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	MakeHoldInvoice(ctx context.Context, amount uint64, description string, descriptionHash string, expiry uint64, paymentHash string, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SettleHoldInvoice(ctx context.Context, preimage string, lnClient lnclient.LNClient) (*Transaction, error)
 	CancelHoldInvoice(ctx context.Context, paymentHash string, lnClient lnclient.LNClient) error
@@ -266,7 +266,7 @@ func (svc *transactionsService) MakeHoldInvoice(ctx context.Context, amount uint
 	return &dbTransaction, nil
 }
 
-func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
 	var metadataBytes []byte
 	if metadata != nil {
 		var err error
@@ -380,9 +380,9 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 
 	var response *lnclient.PayInvoiceResponse
 	if selfPayment {
-		response, err = svc.interceptSelfPayment(ctx, paymentRequest.PaymentHash, lnClient)
+		response, err = svc.interceptSelfPayment(paymentRequest.PaymentHash, lnClient)
 	} else {
-		response, err = lnClient.SendPaymentSync(ctx, payReq, amountMsat)
+		response, err = lnClient.SendPaymentSync(payReq, amountMsat)
 	}
 
 	if err != nil {
@@ -410,7 +410,7 @@ func (svc *transactionsService) SendPaymentSync(ctx context.Context, payReq stri
 	return settledTransaction, nil
 }
 
-func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+func (svc *transactionsService) SendKeysend(amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
 	if preimage == "" {
 		preImageBytes, err := makePreimageHex()
 		if err != nil {
@@ -509,14 +509,14 @@ func (svc *transactionsService) SendKeysend(ctx context.Context, amount uint64, 
 			return nil, err
 		}
 
-		_, err = svc.interceptSelfPayment(ctx, paymentHash, lnClient)
+		_, err = svc.interceptSelfPayment(paymentHash, lnClient)
 		if err == nil {
 			payKeysendResponse = &lnclient.PayKeysendResponse{
 				Fee: 0,
 			}
 		}
 	} else {
-		payKeysendResponse, err = lnClient.SendKeysend(ctx, amount, destination, customRecords, preimage)
+		payKeysendResponse, err = lnClient.SendKeysend(amount, destination, customRecords, preimage)
 	}
 
 	if err != nil {
@@ -940,7 +940,7 @@ func (svc *transactionsService) markHoldInvoiceAccepted(paymentHash string, sett
 	}
 }
 
-func (svc *transactionsService) interceptSelfPayment(ctx context.Context, paymentHash string, lnClient lnclient.LNClient) (*lnclient.PayInvoiceResponse, error) {
+func (svc *transactionsService) interceptSelfPayment(paymentHash string, lnClient lnclient.LNClient) (*lnclient.PayInvoiceResponse, error) {
 	logger.Logger.WithField("payment_hash", paymentHash).Debug("Intercepting self payment")
 	incomingTransaction := db.Transaction{}
 	result := svc.db.Limit(1).Find(&incomingTransaction, &db.Transaction{
@@ -957,7 +957,7 @@ func (svc *transactionsService) interceptSelfPayment(ctx context.Context, paymen
 	}
 
 	if incomingTransaction.Hold {
-		return svc.interceptSelfHoldPayment(ctx, paymentHash, lnClient)
+		return svc.interceptSelfHoldPayment(paymentHash, lnClient)
 	}
 
 	if incomingTransaction.Preimage == nil {
@@ -979,7 +979,7 @@ func (svc *transactionsService) interceptSelfPayment(ctx context.Context, paymen
 	}, nil
 }
 
-func (svc *transactionsService) interceptSelfHoldPayment(ctx context.Context, paymentHash string, lnClient lnclient.LNClient) (*lnclient.PayInvoiceResponse, error) {
+func (svc *transactionsService) interceptSelfHoldPayment(paymentHash string, lnClient lnclient.LNClient) (*lnclient.PayInvoiceResponse, error) {
 	settledChannel := make(chan *db.Transaction)
 	canceledChannel := make(chan *db.Transaction)
 
@@ -988,7 +988,7 @@ func (svc *transactionsService) interceptSelfHoldPayment(ctx context.Context, pa
 	svc.eventPublisher.RegisterSubscriber(holdInvoiceUpdatedConsumer)
 	defer svc.eventPublisher.RemoveSubscriber(holdInvoiceUpdatedConsumer)
 
-	clientInfo, err := lnClient.GetInfo(ctx)
+	clientInfo, err := lnClient.GetInfo(context.Background())
 	if err != nil {
 		return nil, errors.New("failed to get client info")
 	}

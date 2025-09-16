@@ -11,7 +11,7 @@ import (
 
 type LightningClientWrapper interface {
 	ListChannels(ctx context.Context, req *lnrpc.ListChannelsRequest, options ...grpc.CallOption) (*lnrpc.ListChannelsResponse, error)
-	SendPaymentSync(ctx context.Context, req *lnrpc.SendRequest, options ...grpc.CallOption) (*lnrpc.SendResponse, error)
+	SendPaymentSync(req *lnrpc.SendRequest, options ...grpc.CallOption) (*lnrpc.SendResponse, error)
 	ChannelBalance(ctx context.Context, req *lnrpc.ChannelBalanceRequest, options ...grpc.CallOption) (*lnrpc.ChannelBalanceResponse, error)
 	AddInvoice(ctx context.Context, req *lnrpc.Invoice, options ...grpc.CallOption) (*lnrpc.AddInvoiceResponse, error)
 	AddHoldInvoice(ctx context.Context, req *invoicesrpc.AddHoldInvoiceRequest, options ...grpc.CallOption) (*invoicesrpc.AddHoldInvoiceResp, error)

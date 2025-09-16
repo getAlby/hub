@@ -430,7 +430,7 @@ func (svc *LNDService) Shutdown() error {
 	return nil
 }
 
-func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (svc *LNDService) SendPaymentSync(payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
 	const MAX_PARTIAL_PAYMENTS = 16
 
 	paymentRequest, err := decodepay.Decodepay(payReq)
@@ -455,7 +455,7 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amoun
 		sendRequest.AmtMsat = int64(*amount)
 	}
 
-	payStream, err := svc.client.SendPayment(ctx, sendRequest)
+	payStream, err := svc.client.SendPayment(svc.ctx, sendRequest)
 	if err != nil {
 		logger.Logger.WithField("bolt11", payReq).WithError(err).Error("SendPayment failed")
 		return nil, err
@@ -491,7 +491,7 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amoun
 	}, nil
 }
 
-func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+func (svc *LNDService) SendKeysend(amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	destBytes, err := hex.DecodeString(destination)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -541,7 +541,7 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 		FeeLimitMsat:      int64(transactions.CalculateFeeReserveMsat(amount)),
 	}
 
-	payStream, err := svc.client.SendPayment(ctx, sendPaymentRequest)
+	payStream, err := svc.client.SendPayment(svc.ctx, sendPaymentRequest)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"payment_hash": paymentHash,
