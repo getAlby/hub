@@ -35,7 +35,7 @@ func (controller *nip47Controller) payKeysend(ctx context.Context, payKeysendPar
 		"senderPubkey":     payKeysendParams.Pubkey,
 	}).Info("Sending keysend payment")
 
-	transaction, err := controller.transactionsService.SendKeysend(ctx, payKeysendParams.Amount, payKeysendParams.Pubkey, payKeysendParams.TLVRecords, payKeysendParams.Preimage, controller.lnClient, &app.ID, &requestEventId)
+	transaction, err := controller.transactionsService.SendKeysend(payKeysendParams.Amount, payKeysendParams.Pubkey, payKeysendParams.TLVRecords, payKeysendParams.Preimage, controller.lnClient, &app.ID, &requestEventId)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,
