@@ -473,7 +473,8 @@ function NewChannelInternal({
             />
           )}
           <p className="text-center text-xs text-muted-foreground">
-            By continuing, you agree that channel purchases are non-refundable.
+            By continuing, you consent the channel opens immediately and that
+            you lose the right to revoke once it is open.
           </p>
           <Button size="lg">Next</Button>
         </form>

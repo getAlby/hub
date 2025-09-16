@@ -366,8 +366,8 @@ export function FirstChannel() {
                 </p>
               )}
             <p className="text-center text-xs -mb-2">
-              By continuing, you agree that channel purchases are
-              non-refundable.
+              By continuing, you consent the channel opens immediately and that
+              you lose the right to revoke once it is open.
             </p>
             {lspChannelOffer.currentPaymentMethod === "included" && (
               <p className="text-xs text-muted-foreground flex items-center justify-center -mb-2">
