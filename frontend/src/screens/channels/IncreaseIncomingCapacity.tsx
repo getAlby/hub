@@ -329,7 +329,8 @@ function NewChannelInternal({
               <div className="flex justify-between items-center">
                 <p className="text-sm">
                   You will receive a channel from{" "}
-                  <span className="font-medium">{selectedPartner.name}</span>.{" "}
+                  <span className="font-medium">{selectedPartner.name}</span>
+                  .{" "}
                 </p>
                 <LSPTermsDialog
                   contactUrl={selectedPartner.contactUrl}

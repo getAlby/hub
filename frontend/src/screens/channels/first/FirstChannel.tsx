@@ -343,7 +343,9 @@ export function FirstChannel() {
                 <p className="text-sm">
                   You currently have{" "}
                   <span className="font-medium text-foreground sensitive slashed-zero">
-                    {new Intl.NumberFormat().format(albyBalance?.sats || 0)}{" "}
+                    {new Intl.NumberFormat().format(
+                      albyBalance?.sats || 0
+                    )}{" "}
                   </span>{" "}
                   Alby fee credits which will be used to open your first
                   Lightning channel.{" "}

@@ -829,7 +829,9 @@ export const appStoreApps: AppStoreApp[] = (
               </li>
               <li>
                 Choose{" "}
-                <span className="font-medium text-foreground">NWC Generic</span>{" "}
+                <span className="font-medium text-foreground">
+                  NWC Generic
+                </span>{" "}
               </li>
               <li>Paste the connection secret from Alby Hub</li>
             </ul>
