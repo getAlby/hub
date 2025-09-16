@@ -818,6 +818,8 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 
 		var dbTransaction db.Transaction
 		err := svc.db.Transaction(func(tx *gorm.DB) error {
+
+			// first lookup by pending
 			result := tx.Limit(1).Find(&dbTransaction, &db.Transaction{
 				Type:        constants.TRANSACTION_TYPE_OUTGOING,
 				State:       constants.TRANSACTION_STATE_PENDING,
@@ -829,10 +831,23 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			}
 
 			if result.RowsAffected == 0 {
-				// Note: payments made from outside cannot be associated with an app
-				// for now this is disabled as it only applies to LND, and we do not import LND transactions either.
-				logger.Logger.WithField("payment_hash", lnClientTransaction.PaymentHash).Error("payment not found")
-				return NewNotFoundError()
+				// if no pending payment was found, lookup by failed, latest updated first
+				result := tx.Limit(1).Order("updated_at DESC").Find(&dbTransaction, &db.Transaction{
+					Type:        constants.TRANSACTION_TYPE_OUTGOING,
+					State:       constants.TRANSACTION_STATE_FAILED,
+					PaymentHash: lnClientTransaction.PaymentHash,
+				})
+
+				if result.Error != nil {
+					return result.Error
+				}
+
+				if result.RowsAffected == 0 {
+					// Note: payments made from outside cannot be associated with an app
+					// for now this is disabled as it only applies to LND, and we do not import LND transactions either.
+					logger.Logger.WithField("payment_hash", lnClientTransaction.PaymentHash).Error("failed to mark payment as sent: payment not found")
+					return NewNotFoundError()
+				}
 			}
 
 			_, err := svc.markTransactionSettled(tx, &dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaid), false)

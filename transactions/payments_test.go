@@ -377,7 +377,7 @@ func TestSendPaymentSync_PendingHasFeeReserve(t *testing.T) {
 	assert.Nil(t, transaction.Preimage)
 }
 
-func TestConsumeEvent_DoesNotMarkFailedAsSuccessful(t *testing.T) {
+func TestConsumeEvent_FailedMarkedAsSuccessful(t *testing.T) {
 	ctx := context.TODO()
 
 	svc, err := tests.CreateTestService(t)
@@ -406,8 +406,8 @@ func TestConsumeEvent_DoesNotMarkFailedAsSuccessful(t *testing.T) {
 	assert.Equal(t, constants.TRANSACTION_STATE_FAILED, transaction.State)
 
 	// Now that we have a failed transaction, we submit a "nwc_lnclient_payment_sent" event.
-	// This should not mark the already failed transaction as successful
-	// See https://github.com/getAlby/hub/issues/1272 for details.
+	// This should be marked as successful as long as there are no pending payments for the
+	// same payment hash
 
 	transactionsService.ConsumeEvent(ctx, &events.Event{
 		Event: "nwc_lnclient_payment_sent",
@@ -424,7 +424,7 @@ func TestConsumeEvent_DoesNotMarkFailedAsSuccessful(t *testing.T) {
 	}, nil)
 
 	// Re-read transactions and ensure that the single returned transaction
-	// is still in the failed state.
+	// is now settled.
 	result = svc.DB.Find(&transactions, &db.Transaction{
 		Type:        constants.TRANSACTION_TYPE_OUTGOING,
 		PaymentHash: tests.MockLNClientTransaction.PaymentHash,
@@ -433,5 +433,5 @@ func TestConsumeEvent_DoesNotMarkFailedAsSuccessful(t *testing.T) {
 	assert.Equal(t, 1, len(transactions))
 
 	transaction = &transactions[0]
-	assert.Equal(t, constants.TRANSACTION_STATE_FAILED, transaction.State)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
 }
