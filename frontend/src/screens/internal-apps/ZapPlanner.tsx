@@ -266,7 +266,7 @@ export function ZapPlanner() {
       const createAppResponse = await createApp(createAppRequest);
 
       const cronExpression =
-        frequencyUnit === "months" ? "0 0 1 * *" : undefined; // once per month
+        frequencyUnit === "months" ? "0 0 1 * *" : undefined; // at the start of each month
       const sleepDuration =
         frequencyUnit !== "months"
           ? `${frequencyValue} ${frequencyUnit}`
