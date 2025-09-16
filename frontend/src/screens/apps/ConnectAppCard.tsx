@@ -62,8 +62,8 @@ export function ConnectAppCard({
           </>
         ) : (
           <Badge variant="positive">
-            <CheckIcon className="size-4 mr-2" />
-            <p>App connected</p>
+            <CheckIcon />
+            App connected
           </Badge>
         )}
         {!appStoreApp?.hideConnectionQr && (
