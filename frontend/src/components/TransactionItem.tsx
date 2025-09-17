@@ -70,13 +70,16 @@ function TransactionItem({ tx }: Props) {
       : undefined;
 
   const recipientIdentifier = tx.metadata?.recipient_data?.identifier;
-  const to = npub
-    ? `zap to ${npub.substring(0, 12)}...`
-    : swap?.type === "out"
-      ? `${tx.state === "failed" ? "swap " : ""}to ${swap.destinationAddress}`
-      : recipientIdentifier
-        ? `${tx.state === "failed" ? "payment " : ""}to ${recipientIdentifier}`
-        : undefined;
+  const to =
+    type === "outgoing"
+      ? npub
+        ? `zap to ${npub.substring(0, 12)}...`
+        : swap?.type === "out"
+          ? `${tx.state === "failed" ? "swap " : ""}to ${swap.destinationAddress}`
+          : recipientIdentifier
+            ? `${tx.state === "failed" ? "payment " : ""}to ${recipientIdentifier}`
+            : undefined
+      : undefined;
 
   const eventId = tx.metadata?.nostr?.tags?.find((t) => t[0] === "e")?.[1];
 
