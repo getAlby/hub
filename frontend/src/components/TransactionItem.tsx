@@ -58,15 +58,25 @@ function TransactionItem({ tx }: Props) {
   const npub = pubkey ? safeNpubEncode(pubkey) : undefined;
 
   const payerName = tx.metadata?.payer_data?.name;
-  const from = payerName
-    ? `from ${payerName}`
-    : npub
-      ? `zap from ${npub.substring(0, 12)}...`
+  const from =
+    type === "incoming"
+      ? payerName
+        ? `from ${payerName}`
+        : npub
+          ? `zap from ${npub.substring(0, 12)}...`
+          : swap
+            ? `swap from ${swap.lockupAddress}`
+            : undefined
       : undefined;
 
   const recipientIdentifier = tx.metadata?.recipient_data?.identifier;
-  const to =
-    swap?.type === "out" ? swap.destinationAddress : recipientIdentifier;
+  const to = npub
+    ? `zap to ${npub.substring(0, 12)}...`
+    : swap?.type === "out"
+      ? `${tx.state === "failed" ? "swap " : ""}to ${swap.destinationAddress}`
+      : recipientIdentifier
+        ? `${tx.state === "failed" ? "payment " : ""}to ${recipientIdentifier}`
+        : undefined;
 
   const eventId = tx.metadata?.nostr?.tags?.find((t) => t[0] === "e")?.[1];
 
@@ -162,11 +172,7 @@ function TransactionItem({ tx }: Props) {
               <span className="md:text-xl font-semibold break-all line-clamp-1">
                 {typeStateText}
                 {from !== undefined && <>&nbsp;{from}</>}
-                {to !== undefined && (
-                  <>
-                    &nbsp;{tx.state === "failed" ? "payment " : ""}to {to}
-                  </>
-                )}
+                {to !== undefined && <>&nbsp;{to}</>}
               </span>
               <span className="text-xs md:text-base text-muted-foreground shrink-0">
                 {dayjs(tx.updatedAt).fromNow()}
