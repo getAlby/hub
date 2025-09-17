@@ -75,7 +75,7 @@ function TransactionItem({ tx }: Props) {
       ? npub
         ? `zap to ${npub.substring(0, 12)}...`
         : swap?.type === "out"
-          ? `${tx.state === "failed" ? "swap " : ""}to ${swap.destinationAddress}`
+          ? `swap to ${swap.destinationAddress}`
           : recipientIdentifier
             ? `${tx.state === "failed" ? "payment " : ""}to ${recipientIdentifier}`
             : undefined
