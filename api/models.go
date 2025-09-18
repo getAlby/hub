@@ -150,9 +150,8 @@ type CreateLightningAddressRequest struct {
 }
 
 type InitiateSwapRequest struct {
-	SwapAmount            uint64 `json:"swapAmount"`
-	Destination           string `json:"destination"`
-	UseExactReceiveAmount bool   `json:"useExactReceiveAmount"`
+	SwapAmount  uint64 `json:"swapAmount"`
+	Destination string `json:"destination"`
 }
 
 type RefundSwapRequest struct {
