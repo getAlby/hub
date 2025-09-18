@@ -329,7 +329,8 @@ function NewChannelInternal({
               <div className="flex justify-between items-center">
                 <p className="text-sm">
                   You will receive a channel from{" "}
-                  <span className="font-medium">{selectedPartner.name}</span>.{" "}
+                  <span className="font-medium">{selectedPartner.name}</span>
+                  .{" "}
                 </p>
                 <LSPTermsDialog
                   contactUrl={selectedPartner.contactUrl}
@@ -460,7 +461,7 @@ function NewChannelInternal({
             </Button>
           )}
           <MempoolAlert />
-          <SwapAlert />
+          <SwapAlert swapType="out" />
           {channels?.some((channel) => channel.public !== !!order.isPublic) && (
             <ChannelPublicPrivateAlert />
           )}
@@ -471,6 +472,10 @@ function NewChannelInternal({
               name={selectedPeer?.name}
             />
           )}
+          <p className="text-center text-xs text-muted-foreground">
+            By continuing, you consent the channel opens immediately and that
+            you lose the right to revoke once it is open.
+          </p>
           <Button size="lg">Next</Button>
         </form>
 

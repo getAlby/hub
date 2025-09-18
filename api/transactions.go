@@ -64,7 +64,7 @@ func (api *api) SendPayment(ctx context.Context, invoice string, amountMsat *uin
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	transaction, err := api.svc.GetTransactionsService().SendPaymentSync(ctx, invoice, amountMsat, metadata, api.svc.GetLNClient(), nil, nil)
+	transaction, err := api.svc.GetTransactionsService().SendPaymentSync(invoice, amountMsat, metadata, api.svc.GetLNClient(), nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -150,7 +150,7 @@ func (api *api) Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, am
 		return err
 	}
 
-	_, err = api.svc.GetTransactionsService().SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, api.svc.GetLNClient(), fromAppId, nil)
+	_, err = api.svc.GetTransactionsService().SendPaymentSync(transaction.PaymentRequest, nil, nil, api.svc.GetLNClient(), fromAppId, nil)
 	return err
 }
 

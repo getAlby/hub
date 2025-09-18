@@ -18,8 +18,6 @@ import (
 )
 
 func TestSendKeysend(t *testing.T) {
-	ctx := context.TODO()
-
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
@@ -28,7 +26,7 @@ func TestSendKeysend(t *testing.T) {
 	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", nil, "", svc.LNClient, nil, nil)
+	transaction, err := transactionsService.SendKeysend(uint64(1000), "fake destination", nil, "", svc.LNClient, nil, nil)
 	assert.NoError(t, err)
 
 	var metadata lnclient.Metadata
@@ -50,15 +48,13 @@ func TestSendKeysend(t *testing.T) {
 	assert.Equal(t, transaction, settledTransaction)
 }
 func TestSendKeysend_CustomPreimage(t *testing.T) {
-	ctx := context.TODO()
-
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
 	customPreimage := "018465013e2337234a7e5530a21c4a8cf70d84231f4a8ff0b1e2cce3cb2bd03b"
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", nil, customPreimage, svc.LNClient, nil, nil)
+	transaction, err := transactionsService.SendKeysend(uint64(1000), "fake destination", nil, customPreimage, svc.LNClient, nil, nil)
 	assert.NoError(t, err)
 
 	var metadata lnclient.Metadata
@@ -76,8 +72,6 @@ func TestSendKeysend_CustomPreimage(t *testing.T) {
 }
 
 func TestSendKeysend_App_NoPermission(t *testing.T) {
-	ctx := context.TODO()
-
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
@@ -90,7 +84,7 @@ func TestSendKeysend_App_NoPermission(t *testing.T) {
 	assert.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", nil, "", svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendKeysend(uint64(1000), "fake destination", nil, "", svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.Error(t, err)
 	assert.Equal(t, "app does not have pay_invoice scope", err.Error())
@@ -98,8 +92,6 @@ func TestSendKeysend_App_NoPermission(t *testing.T) {
 }
 
 func TestSendKeysend_App_WithPermission(t *testing.T) {
-	ctx := context.TODO()
-
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
@@ -120,7 +112,7 @@ func TestSendKeysend_App_WithPermission(t *testing.T) {
 	assert.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", nil, "", svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendKeysend(uint64(1000), "fake destination", nil, "", svc.LNClient, &app.ID, &dbRequestEvent.ID)
 	assert.NoError(t, err)
 
 	var metadata lnclient.Metadata
@@ -140,8 +132,6 @@ func TestSendKeysend_App_WithPermission(t *testing.T) {
 }
 
 func TestSendKeysend_App_BudgetExceeded(t *testing.T) {
-	ctx := context.TODO()
-
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
@@ -166,7 +156,7 @@ func TestSendKeysend_App_BudgetExceeded(t *testing.T) {
 	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", nil, "", svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendKeysend(uint64(1000), "fake destination", nil, "", svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.ErrorIs(t, err, NewQuotaExceededError())
 	assert.Nil(t, transaction)
@@ -178,8 +168,6 @@ func TestSendKeysend_App_BudgetExceeded(t *testing.T) {
 	assert.Equal(t, NewQuotaExceededError().Error(), mockEventConsumer.GetConsumedEvents()[0].Properties.(map[string]interface{})["message"])
 }
 func TestSendKeysend_App_BudgetNotExceeded(t *testing.T) {
-	ctx := context.TODO()
-
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
@@ -201,7 +189,7 @@ func TestSendKeysend_App_BudgetNotExceeded(t *testing.T) {
 	assert.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", nil, "", svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendKeysend(uint64(1000), "fake destination", nil, "", svc.LNClient, &app.ID, &dbRequestEvent.ID)
 	assert.NoError(t, err)
 
 	var metadata lnclient.Metadata
@@ -221,8 +209,6 @@ func TestSendKeysend_App_BudgetNotExceeded(t *testing.T) {
 }
 
 func TestSendKeysend_App_BalanceExceeded(t *testing.T) {
-	ctx := context.TODO()
-
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
@@ -252,15 +238,13 @@ func TestSendKeysend_App_BalanceExceeded(t *testing.T) {
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", nil, "", svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendKeysend(uint64(1000), "fake destination", nil, "", svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.ErrorIs(t, err, NewInsufficientBalanceError())
 	assert.Nil(t, transaction)
 }
 
 func TestSendKeysend_App_BalanceSufficient(t *testing.T) {
-	ctx := context.TODO()
-
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
@@ -290,7 +274,7 @@ func TestSendKeysend_App_BalanceSufficient(t *testing.T) {
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", nil, "", svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendKeysend(uint64(1000), "fake destination", nil, "", svc.LNClient, &app.ID, &dbRequestEvent.ID)
 	assert.NoError(t, err)
 
 	var metadata lnclient.Metadata
@@ -310,14 +294,12 @@ func TestSendKeysend_App_BalanceSufficient(t *testing.T) {
 }
 
 func TestSendKeysend_TLVs(t *testing.T) {
-	ctx := context.TODO()
-
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendKeysend(ctx, uint64(1000), "fake destination", []lnclient.TLVRecord{
+	transaction, err := transactionsService.SendKeysend(uint64(1000), "fake destination", []lnclient.TLVRecord{
 		{
 			Type:  7629169,
 			Value: "7b22616374696f6e223a22626f6f7374222c2276616c75655f6d736174223a313030302c2276616c75655f6d7361745f746f74616c223a313030302c226170705f6e616d65223a22e29aa1205765624c4e2044656d6f222c226170705f76657273696f6e223a22312e30222c22666565644944223a2268747470733a2f2f66656564732e706f6463617374696e6465782e6f72672f706332302e786d6c222c22706f6463617374223a22506f6463617374696e6720322e30222c22657069736f6465223a22457069736f6465203130343a2041204e65772044756d70222c227473223a32312c226e616d65223a22e29aa1205765624c4e2044656d6f222c2273656e6465725f6e616d65223a225361746f736869204e616b616d6f746f222c226d657373616765223a22476f20706f6463617374696e6721227d",
@@ -358,8 +340,6 @@ func TestSendKeysend_TLVs(t *testing.T) {
 }
 
 func TestSendKeysend_IsolatedAppToNoApp(t *testing.T) {
-	ctx := context.TODO()
-
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
@@ -396,7 +376,7 @@ func TestSendKeysend_IsolatedAppToNoApp(t *testing.T) {
 	mockPreimage := "c8aeb44ae8eb269c8dbfb7ec5c263f0bfa3d755bc0ca641b8ee118673afda657"
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendKeysend(ctx, 123000, "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c", []lnclient.TLVRecord{}, mockPreimage, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendKeysend(123000, "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c", []lnclient.TLVRecord{}, mockPreimage, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, transaction)
@@ -408,7 +388,7 @@ func TestSendKeysend_IsolatedAppToNoApp(t *testing.T) {
 	assert.True(t, transaction.SelfPayment)
 
 	transactionType := constants.TRANSACTION_TYPE_INCOMING
-	incomingTransaction, err := transactionsService.LookupTransaction(ctx, transaction.PaymentHash, &transactionType, svc.LNClient, nil)
+	incomingTransaction, err := transactionsService.LookupTransaction(context.TODO(), transaction.PaymentHash, &transactionType, svc.LNClient, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), incomingTransaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, incomingTransaction.State)
@@ -423,8 +403,6 @@ func TestSendKeysend_IsolatedAppToNoApp(t *testing.T) {
 }
 
 func TestSendKeysend_IsolatedAppToIsolatedApp(t *testing.T) {
-	ctx := context.TODO()
-
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
@@ -482,7 +460,7 @@ func TestSendKeysend_IsolatedAppToIsolatedApp(t *testing.T) {
 	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendKeysend(ctx, 123000, "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c", tlvRecords, mockPreimage, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.SendKeysend(123000, "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c", tlvRecords, mockPreimage, svc.LNClient, &app.ID, &dbRequestEvent.ID)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, transaction)
@@ -494,7 +472,7 @@ func TestSendKeysend_IsolatedAppToIsolatedApp(t *testing.T) {
 	assert.True(t, transaction.SelfPayment)
 
 	transactionType := constants.TRANSACTION_TYPE_INCOMING
-	incomingTransaction, err := transactionsService.LookupTransaction(ctx, transaction.PaymentHash, &transactionType, svc.LNClient, &app2.ID)
+	incomingTransaction, err := transactionsService.LookupTransaction(context.TODO(), transaction.PaymentHash, &transactionType, svc.LNClient, &app2.ID)
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), incomingTransaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, incomingTransaction.State)

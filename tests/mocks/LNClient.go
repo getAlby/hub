@@ -61,26 +61,15 @@ type MockLNClient_CancelHoldInvoice_Call struct {
 }
 
 // CancelHoldInvoice is a helper method to define mock.On call
-//   - ctx context.Context
-//   - paymentHash string
+//   - ctx
+//   - paymentHash
 func (_e *MockLNClient_Expecter) CancelHoldInvoice(ctx interface{}, paymentHash interface{}) *MockLNClient_CancelHoldInvoice_Call {
 	return &MockLNClient_CancelHoldInvoice_Call{Call: _e.mock.On("CancelHoldInvoice", ctx, paymentHash)}
 }
 
 func (_c *MockLNClient_CancelHoldInvoice_Call) Run(run func(ctx context.Context, paymentHash string)) *MockLNClient_CancelHoldInvoice_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		run(
-			arg0,
-			arg1,
-		)
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
@@ -129,26 +118,15 @@ type MockLNClient_CloseChannel_Call struct {
 }
 
 // CloseChannel is a helper method to define mock.On call
-//   - ctx context.Context
-//   - closeChannelRequest *lnclient.CloseChannelRequest
+//   - ctx
+//   - closeChannelRequest
 func (_e *MockLNClient_Expecter) CloseChannel(ctx interface{}, closeChannelRequest interface{}) *MockLNClient_CloseChannel_Call {
 	return &MockLNClient_CloseChannel_Call{Call: _e.mock.On("CloseChannel", ctx, closeChannelRequest)}
 }
 
 func (_c *MockLNClient_CloseChannel_Call) Run(run func(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest)) *MockLNClient_CloseChannel_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *lnclient.CloseChannelRequest
-		if args[1] != nil {
-			arg1 = args[1].(*lnclient.CloseChannelRequest)
-		}
-		run(
-			arg0,
-			arg1,
-		)
+		run(args[0].(context.Context), args[1].(*lnclient.CloseChannelRequest))
 	})
 	return _c
 }
@@ -186,26 +164,15 @@ type MockLNClient_ConnectPeer_Call struct {
 }
 
 // ConnectPeer is a helper method to define mock.On call
-//   - ctx context.Context
-//   - connectPeerRequest *lnclient.ConnectPeerRequest
+//   - ctx
+//   - connectPeerRequest
 func (_e *MockLNClient_Expecter) ConnectPeer(ctx interface{}, connectPeerRequest interface{}) *MockLNClient_ConnectPeer_Call {
 	return &MockLNClient_ConnectPeer_Call{Call: _e.mock.On("ConnectPeer", ctx, connectPeerRequest)}
 }
 
 func (_c *MockLNClient_ConnectPeer_Call) Run(run func(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest)) *MockLNClient_ConnectPeer_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *lnclient.ConnectPeerRequest
-		if args[1] != nil {
-			arg1 = args[1].(*lnclient.ConnectPeerRequest)
-		}
-		run(
-			arg0,
-			arg1,
-		)
+		run(args[0].(context.Context), args[1].(*lnclient.ConnectPeerRequest))
 	})
 	return _c
 }
@@ -243,26 +210,15 @@ type MockLNClient_DisconnectPeer_Call struct {
 }
 
 // DisconnectPeer is a helper method to define mock.On call
-//   - ctx context.Context
-//   - peerId string
+//   - ctx
+//   - peerId
 func (_e *MockLNClient_Expecter) DisconnectPeer(ctx interface{}, peerId interface{}) *MockLNClient_DisconnectPeer_Call {
 	return &MockLNClient_DisconnectPeer_Call{Call: _e.mock.On("DisconnectPeer", ctx, peerId)}
 }
 
 func (_c *MockLNClient_DisconnectPeer_Call) Run(run func(ctx context.Context, peerId string)) *MockLNClient_DisconnectPeer_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		run(
-			arg0,
-			arg1,
-		)
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
@@ -311,26 +267,15 @@ type MockLNClient_ExecuteCustomNodeCommand_Call struct {
 }
 
 // ExecuteCustomNodeCommand is a helper method to define mock.On call
-//   - ctx context.Context
-//   - command *lnclient.CustomNodeCommandRequest
+//   - ctx
+//   - command
 func (_e *MockLNClient_Expecter) ExecuteCustomNodeCommand(ctx interface{}, command interface{}) *MockLNClient_ExecuteCustomNodeCommand_Call {
 	return &MockLNClient_ExecuteCustomNodeCommand_Call{Call: _e.mock.On("ExecuteCustomNodeCommand", ctx, command)}
 }
 
 func (_c *MockLNClient_ExecuteCustomNodeCommand_Call) Run(run func(ctx context.Context, command *lnclient.CustomNodeCommandRequest)) *MockLNClient_ExecuteCustomNodeCommand_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *lnclient.CustomNodeCommandRequest
-		if args[1] != nil {
-			arg1 = args[1].(*lnclient.CustomNodeCommandRequest)
-		}
-		run(
-			arg0,
-			arg1,
-		)
+		run(args[0].(context.Context), args[1].(*lnclient.CustomNodeCommandRequest))
 	})
 	return _c
 }
@@ -379,26 +324,15 @@ type MockLNClient_GetBalances_Call struct {
 }
 
 // GetBalances is a helper method to define mock.On call
-//   - ctx context.Context
-//   - includeInactiveChannels bool
+//   - ctx
+//   - includeInactiveChannels
 func (_e *MockLNClient_Expecter) GetBalances(ctx interface{}, includeInactiveChannels interface{}) *MockLNClient_GetBalances_Call {
 	return &MockLNClient_GetBalances_Call{Call: _e.mock.On("GetBalances", ctx, includeInactiveChannels)}
 }
 
 func (_c *MockLNClient_GetBalances_Call) Run(run func(ctx context.Context, includeInactiveChannels bool)) *MockLNClient_GetBalances_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 bool
-		if args[1] != nil {
-			arg1 = args[1].(bool)
-		}
-		run(
-			arg0,
-			arg1,
-		)
+		run(args[0].(context.Context), args[1].(bool))
 	})
 	return _c
 }
@@ -493,20 +427,14 @@ type MockLNClient_GetInfo_Call struct {
 }
 
 // GetInfo is a helper method to define mock.On call
-//   - ctx context.Context
+//   - ctx
 func (_e *MockLNClient_Expecter) GetInfo(ctx interface{}) *MockLNClient_GetInfo_Call {
 	return &MockLNClient_GetInfo_Call{Call: _e.mock.On("GetInfo", ctx)}
 }
 
 func (_c *MockLNClient_GetInfo_Call) Run(run func(ctx context.Context)) *MockLNClient_GetInfo_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		run(
-			arg0,
-		)
+		run(args[0].(context.Context))
 	})
 	return _c
 }
@@ -555,26 +483,15 @@ type MockLNClient_GetLogOutput_Call struct {
 }
 
 // GetLogOutput is a helper method to define mock.On call
-//   - ctx context.Context
-//   - maxLen int
+//   - ctx
+//   - maxLen
 func (_e *MockLNClient_Expecter) GetLogOutput(ctx interface{}, maxLen interface{}) *MockLNClient_GetLogOutput_Call {
 	return &MockLNClient_GetLogOutput_Call{Call: _e.mock.On("GetLogOutput", ctx, maxLen)}
 }
 
 func (_c *MockLNClient_GetLogOutput_Call) Run(run func(ctx context.Context, maxLen int)) *MockLNClient_GetLogOutput_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 int
-		if args[1] != nil {
-			arg1 = args[1].(int)
-		}
-		run(
-			arg0,
-			arg1,
-		)
+		run(args[0].(context.Context), args[1].(int))
 	})
 	return _c
 }
@@ -623,26 +540,15 @@ type MockLNClient_GetNetworkGraph_Call struct {
 }
 
 // GetNetworkGraph is a helper method to define mock.On call
-//   - ctx context.Context
-//   - nodeIds []string
+//   - ctx
+//   - nodeIds
 func (_e *MockLNClient_Expecter) GetNetworkGraph(ctx interface{}, nodeIds interface{}) *MockLNClient_GetNetworkGraph_Call {
 	return &MockLNClient_GetNetworkGraph_Call{Call: _e.mock.On("GetNetworkGraph", ctx, nodeIds)}
 }
 
 func (_c *MockLNClient_GetNetworkGraph_Call) Run(run func(ctx context.Context, nodeIds []string)) *MockLNClient_GetNetworkGraph_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 []string
-		if args[1] != nil {
-			arg1 = args[1].([]string)
-		}
-		run(
-			arg0,
-			arg1,
-		)
+		run(args[0].(context.Context), args[1].([]string))
 	})
 	return _c
 }
@@ -689,20 +595,14 @@ type MockLNClient_GetNewOnchainAddress_Call struct {
 }
 
 // GetNewOnchainAddress is a helper method to define mock.On call
-//   - ctx context.Context
+//   - ctx
 func (_e *MockLNClient_Expecter) GetNewOnchainAddress(ctx interface{}) *MockLNClient_GetNewOnchainAddress_Call {
 	return &MockLNClient_GetNewOnchainAddress_Call{Call: _e.mock.On("GetNewOnchainAddress", ctx)}
 }
 
 func (_c *MockLNClient_GetNewOnchainAddress_Call) Run(run func(ctx context.Context)) *MockLNClient_GetNewOnchainAddress_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		run(
-			arg0,
-		)
+		run(args[0].(context.Context))
 	})
 	return _c
 }
@@ -751,20 +651,14 @@ type MockLNClient_GetNodeConnectionInfo_Call struct {
 }
 
 // GetNodeConnectionInfo is a helper method to define mock.On call
-//   - ctx context.Context
+//   - ctx
 func (_e *MockLNClient_Expecter) GetNodeConnectionInfo(ctx interface{}) *MockLNClient_GetNodeConnectionInfo_Call {
 	return &MockLNClient_GetNodeConnectionInfo_Call{Call: _e.mock.On("GetNodeConnectionInfo", ctx)}
 }
 
 func (_c *MockLNClient_GetNodeConnectionInfo_Call) Run(run func(ctx context.Context)) *MockLNClient_GetNodeConnectionInfo_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		run(
-			arg0,
-		)
+		run(args[0].(context.Context))
 	})
 	return _c
 }
@@ -813,20 +707,14 @@ type MockLNClient_GetNodeStatus_Call struct {
 }
 
 // GetNodeStatus is a helper method to define mock.On call
-//   - ctx context.Context
+//   - ctx
 func (_e *MockLNClient_Expecter) GetNodeStatus(ctx interface{}) *MockLNClient_GetNodeStatus_Call {
 	return &MockLNClient_GetNodeStatus_Call{Call: _e.mock.On("GetNodeStatus", ctx)}
 }
 
 func (_c *MockLNClient_GetNodeStatus_Call) Run(run func(ctx context.Context)) *MockLNClient_GetNodeStatus_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		run(
-			arg0,
-		)
+		run(args[0].(context.Context))
 	})
 	return _c
 }
@@ -875,20 +763,14 @@ type MockLNClient_GetOnchainBalance_Call struct {
 }
 
 // GetOnchainBalance is a helper method to define mock.On call
-//   - ctx context.Context
+//   - ctx
 func (_e *MockLNClient_Expecter) GetOnchainBalance(ctx interface{}) *MockLNClient_GetOnchainBalance_Call {
 	return &MockLNClient_GetOnchainBalance_Call{Call: _e.mock.On("GetOnchainBalance", ctx)}
 }
 
 func (_c *MockLNClient_GetOnchainBalance_Call) Run(run func(ctx context.Context)) *MockLNClient_GetOnchainBalance_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		run(
-			arg0,
-		)
+		run(args[0].(context.Context))
 	})
 	return _c
 }
@@ -1126,20 +1008,14 @@ type MockLNClient_ListChannels_Call struct {
 }
 
 // ListChannels is a helper method to define mock.On call
-//   - ctx context.Context
+//   - ctx
 func (_e *MockLNClient_Expecter) ListChannels(ctx interface{}) *MockLNClient_ListChannels_Call {
 	return &MockLNClient_ListChannels_Call{Call: _e.mock.On("ListChannels", ctx)}
 }
 
 func (_c *MockLNClient_ListChannels_Call) Run(run func(ctx context.Context)) *MockLNClient_ListChannels_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		run(
-			arg0,
-		)
+		run(args[0].(context.Context))
 	})
 	return _c
 }
@@ -1188,20 +1064,14 @@ type MockLNClient_ListOnchainTransactions_Call struct {
 }
 
 // ListOnchainTransactions is a helper method to define mock.On call
-//   - ctx context.Context
+//   - ctx
 func (_e *MockLNClient_Expecter) ListOnchainTransactions(ctx interface{}) *MockLNClient_ListOnchainTransactions_Call {
 	return &MockLNClient_ListOnchainTransactions_Call{Call: _e.mock.On("ListOnchainTransactions", ctx)}
 }
 
 func (_c *MockLNClient_ListOnchainTransactions_Call) Run(run func(ctx context.Context)) *MockLNClient_ListOnchainTransactions_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		run(
-			arg0,
-		)
+		run(args[0].(context.Context))
 	})
 	return _c
 }
@@ -1250,20 +1120,14 @@ type MockLNClient_ListPeers_Call struct {
 }
 
 // ListPeers is a helper method to define mock.On call
-//   - ctx context.Context
+//   - ctx
 func (_e *MockLNClient_Expecter) ListPeers(ctx interface{}) *MockLNClient_ListPeers_Call {
 	return &MockLNClient_ListPeers_Call{Call: _e.mock.On("ListPeers", ctx)}
 }
 
 func (_c *MockLNClient_ListPeers_Call) Run(run func(ctx context.Context)) *MockLNClient_ListPeers_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		run(
-			arg0,
-		)
+		run(args[0].(context.Context))
 	})
 	return _c
 }
@@ -1312,56 +1176,20 @@ type MockLNClient_ListTransactions_Call struct {
 }
 
 // ListTransactions is a helper method to define mock.On call
-//   - ctx context.Context
-//   - from uint64
-//   - until uint64
-//   - limit uint64
-//   - offset uint64
-//   - unpaid bool
-//   - invoiceType string
+//   - ctx
+//   - from
+//   - until
+//   - limit
+//   - offset
+//   - unpaid
+//   - invoiceType
 func (_e *MockLNClient_Expecter) ListTransactions(ctx interface{}, from interface{}, until interface{}, limit interface{}, offset interface{}, unpaid interface{}, invoiceType interface{}) *MockLNClient_ListTransactions_Call {
 	return &MockLNClient_ListTransactions_Call{Call: _e.mock.On("ListTransactions", ctx, from, until, limit, offset, unpaid, invoiceType)}
 }
 
 func (_c *MockLNClient_ListTransactions_Call) Run(run func(ctx context.Context, from uint64, until uint64, limit uint64, offset uint64, unpaid bool, invoiceType string)) *MockLNClient_ListTransactions_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 uint64
-		if args[1] != nil {
-			arg1 = args[1].(uint64)
-		}
-		var arg2 uint64
-		if args[2] != nil {
-			arg2 = args[2].(uint64)
-		}
-		var arg3 uint64
-		if args[3] != nil {
-			arg3 = args[3].(uint64)
-		}
-		var arg4 uint64
-		if args[4] != nil {
-			arg4 = args[4].(uint64)
-		}
-		var arg5 bool
-		if args[5] != nil {
-			arg5 = args[5].(bool)
-		}
-		var arg6 string
-		if args[6] != nil {
-			arg6 = args[6].(string)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-			arg3,
-			arg4,
-			arg5,
-			arg6,
-		)
+		run(args[0].(context.Context), args[1].(uint64), args[2].(uint64), args[3].(uint64), args[4].(uint64), args[5].(bool), args[6].(string))
 	})
 	return _c
 }
@@ -1410,26 +1238,15 @@ type MockLNClient_LookupInvoice_Call struct {
 }
 
 // LookupInvoice is a helper method to define mock.On call
-//   - ctx context.Context
-//   - paymentHash string
+//   - ctx
+//   - paymentHash
 func (_e *MockLNClient_Expecter) LookupInvoice(ctx interface{}, paymentHash interface{}) *MockLNClient_LookupInvoice_Call {
 	return &MockLNClient_LookupInvoice_Call{Call: _e.mock.On("LookupInvoice", ctx, paymentHash)}
 }
 
 func (_c *MockLNClient_LookupInvoice_Call) Run(run func(ctx context.Context, paymentHash string)) *MockLNClient_LookupInvoice_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		run(
-			arg0,
-			arg1,
-		)
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
@@ -1478,50 +1295,19 @@ type MockLNClient_MakeHoldInvoice_Call struct {
 }
 
 // MakeHoldInvoice is a helper method to define mock.On call
-//   - ctx context.Context
-//   - amount int64
-//   - description string
-//   - descriptionHash string
-//   - expiry int64
-//   - paymentHash string
+//   - ctx
+//   - amount
+//   - description
+//   - descriptionHash
+//   - expiry
+//   - paymentHash
 func (_e *MockLNClient_Expecter) MakeHoldInvoice(ctx interface{}, amount interface{}, description interface{}, descriptionHash interface{}, expiry interface{}, paymentHash interface{}) *MockLNClient_MakeHoldInvoice_Call {
 	return &MockLNClient_MakeHoldInvoice_Call{Call: _e.mock.On("MakeHoldInvoice", ctx, amount, description, descriptionHash, expiry, paymentHash)}
 }
 
 func (_c *MockLNClient_MakeHoldInvoice_Call) Run(run func(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string)) *MockLNClient_MakeHoldInvoice_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 int64
-		if args[1] != nil {
-			arg1 = args[1].(int64)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
-		}
-		var arg3 string
-		if args[3] != nil {
-			arg3 = args[3].(string)
-		}
-		var arg4 int64
-		if args[4] != nil {
-			arg4 = args[4].(int64)
-		}
-		var arg5 string
-		if args[5] != nil {
-			arg5 = args[5].(string)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-			arg3,
-			arg4,
-			arg5,
-		)
+		run(args[0].(context.Context), args[1].(int64), args[2].(string), args[3].(string), args[4].(int64), args[5].(string))
 	})
 	return _c
 }
@@ -1570,44 +1356,18 @@ type MockLNClient_MakeInvoice_Call struct {
 }
 
 // MakeInvoice is a helper method to define mock.On call
-//   - ctx context.Context
-//   - amount int64
-//   - description string
-//   - descriptionHash string
-//   - expiry int64
+//   - ctx
+//   - amount
+//   - description
+//   - descriptionHash
+//   - expiry
 func (_e *MockLNClient_Expecter) MakeInvoice(ctx interface{}, amount interface{}, description interface{}, descriptionHash interface{}, expiry interface{}) *MockLNClient_MakeInvoice_Call {
 	return &MockLNClient_MakeInvoice_Call{Call: _e.mock.On("MakeInvoice", ctx, amount, description, descriptionHash, expiry)}
 }
 
 func (_c *MockLNClient_MakeInvoice_Call) Run(run func(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64)) *MockLNClient_MakeInvoice_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 int64
-		if args[1] != nil {
-			arg1 = args[1].(int64)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
-		}
-		var arg3 string
-		if args[3] != nil {
-			arg3 = args[3].(string)
-		}
-		var arg4 int64
-		if args[4] != nil {
-			arg4 = args[4].(int64)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-			arg3,
-			arg4,
-		)
+		run(args[0].(context.Context), args[1].(int64), args[2].(string), args[3].(string), args[4].(int64))
 	})
 	return _c
 }
@@ -1654,26 +1414,15 @@ type MockLNClient_MakeOffer_Call struct {
 }
 
 // MakeOffer is a helper method to define mock.On call
-//   - ctx context.Context
-//   - description string
+//   - ctx
+//   - description
 func (_e *MockLNClient_Expecter) MakeOffer(ctx interface{}, description interface{}) *MockLNClient_MakeOffer_Call {
 	return &MockLNClient_MakeOffer_Call{Call: _e.mock.On("MakeOffer", ctx, description)}
 }
 
 func (_c *MockLNClient_MakeOffer_Call) Run(run func(ctx context.Context, description string)) *MockLNClient_MakeOffer_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		run(
-			arg0,
-			arg1,
-		)
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
@@ -1722,26 +1471,15 @@ type MockLNClient_OpenChannel_Call struct {
 }
 
 // OpenChannel is a helper method to define mock.On call
-//   - ctx context.Context
-//   - openChannelRequest *lnclient.OpenChannelRequest
+//   - ctx
+//   - openChannelRequest
 func (_e *MockLNClient_Expecter) OpenChannel(ctx interface{}, openChannelRequest interface{}) *MockLNClient_OpenChannel_Call {
 	return &MockLNClient_OpenChannel_Call{Call: _e.mock.On("OpenChannel", ctx, openChannelRequest)}
 }
 
 func (_c *MockLNClient_OpenChannel_Call) Run(run func(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest)) *MockLNClient_OpenChannel_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *lnclient.OpenChannelRequest
-		if args[1] != nil {
-			arg1 = args[1].(*lnclient.OpenChannelRequest)
-		}
-		run(
-			arg0,
-			arg1,
-		)
+		run(args[0].(context.Context), args[1].(*lnclient.OpenChannelRequest))
 	})
 	return _c
 }
@@ -1788,44 +1526,18 @@ type MockLNClient_RedeemOnchainFunds_Call struct {
 }
 
 // RedeemOnchainFunds is a helper method to define mock.On call
-//   - ctx context.Context
-//   - toAddress string
-//   - amount uint64
-//   - feeRate *uint64
-//   - sendAll bool
+//   - ctx
+//   - toAddress
+//   - amount
+//   - feeRate
+//   - sendAll
 func (_e *MockLNClient_Expecter) RedeemOnchainFunds(ctx interface{}, toAddress interface{}, amount interface{}, feeRate interface{}, sendAll interface{}) *MockLNClient_RedeemOnchainFunds_Call {
 	return &MockLNClient_RedeemOnchainFunds_Call{Call: _e.mock.On("RedeemOnchainFunds", ctx, toAddress, amount, feeRate, sendAll)}
 }
 
 func (_c *MockLNClient_RedeemOnchainFunds_Call) Run(run func(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool)) *MockLNClient_RedeemOnchainFunds_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		var arg2 uint64
-		if args[2] != nil {
-			arg2 = args[2].(uint64)
-		}
-		var arg3 *uint64
-		if args[3] != nil {
-			arg3 = args[3].(*uint64)
-		}
-		var arg4 bool
-		if args[4] != nil {
-			arg4 = args[4].(bool)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-			arg3,
-			arg4,
-		)
+		run(args[0].(context.Context), args[1].(string), args[2].(uint64), args[3].(*uint64), args[4].(bool))
 	})
 	return _c
 }
@@ -1863,20 +1575,14 @@ type MockLNClient_ResetRouter_Call struct {
 }
 
 // ResetRouter is a helper method to define mock.On call
-//   - key string
+//   - key
 func (_e *MockLNClient_Expecter) ResetRouter(key interface{}) *MockLNClient_ResetRouter_Call {
 	return &MockLNClient_ResetRouter_Call{Call: _e.mock.On("ResetRouter", key)}
 }
 
 func (_c *MockLNClient_ResetRouter_Call) Run(run func(key string)) *MockLNClient_ResetRouter_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 string
-		if args[0] != nil {
-			arg0 = args[0].(string)
-		}
-		run(
-			arg0,
-		)
+		run(args[0].(string))
 	})
 	return _c
 }
@@ -1892,8 +1598,8 @@ func (_c *MockLNClient_ResetRouter_Call) RunAndReturn(run func(key string) error
 }
 
 // SendKeysend provides a mock function for the type MockLNClient
-func (_mock *MockLNClient) SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
-	ret := _mock.Called(ctx, amount, destination, customRecords, preimage)
+func (_mock *MockLNClient) SendKeysend(amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+	ret := _mock.Called(amount, destination, customRecords, preimage)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SendKeysend")
@@ -1901,18 +1607,18 @@ func (_mock *MockLNClient) SendKeysend(ctx context.Context, amount uint64, desti
 
 	var r0 *lnclient.PayKeysendResponse
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, string, []lnclient.TLVRecord, string) (*lnclient.PayKeysendResponse, error)); ok {
-		return returnFunc(ctx, amount, destination, customRecords, preimage)
+	if returnFunc, ok := ret.Get(0).(func(uint64, string, []lnclient.TLVRecord, string) (*lnclient.PayKeysendResponse, error)); ok {
+		return returnFunc(amount, destination, customRecords, preimage)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, string, []lnclient.TLVRecord, string) *lnclient.PayKeysendResponse); ok {
-		r0 = returnFunc(ctx, amount, destination, customRecords, preimage)
+	if returnFunc, ok := ret.Get(0).(func(uint64, string, []lnclient.TLVRecord, string) *lnclient.PayKeysendResponse); ok {
+		r0 = returnFunc(amount, destination, customRecords, preimage)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*lnclient.PayKeysendResponse)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64, string, []lnclient.TLVRecord, string) error); ok {
-		r1 = returnFunc(ctx, amount, destination, customRecords, preimage)
+	if returnFunc, ok := ret.Get(1).(func(uint64, string, []lnclient.TLVRecord, string) error); ok {
+		r1 = returnFunc(amount, destination, customRecords, preimage)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1925,44 +1631,17 @@ type MockLNClient_SendKeysend_Call struct {
 }
 
 // SendKeysend is a helper method to define mock.On call
-//   - ctx context.Context
-//   - amount uint64
-//   - destination string
-//   - customRecords []lnclient.TLVRecord
-//   - preimage string
-func (_e *MockLNClient_Expecter) SendKeysend(ctx interface{}, amount interface{}, destination interface{}, customRecords interface{}, preimage interface{}) *MockLNClient_SendKeysend_Call {
-	return &MockLNClient_SendKeysend_Call{Call: _e.mock.On("SendKeysend", ctx, amount, destination, customRecords, preimage)}
+//   - amount
+//   - destination
+//   - customRecords
+//   - preimage
+func (_e *MockLNClient_Expecter) SendKeysend(amount interface{}, destination interface{}, customRecords interface{}, preimage interface{}) *MockLNClient_SendKeysend_Call {
+	return &MockLNClient_SendKeysend_Call{Call: _e.mock.On("SendKeysend", amount, destination, customRecords, preimage)}
 }
 
-func (_c *MockLNClient_SendKeysend_Call) Run(run func(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string)) *MockLNClient_SendKeysend_Call {
+func (_c *MockLNClient_SendKeysend_Call) Run(run func(amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string)) *MockLNClient_SendKeysend_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 uint64
-		if args[1] != nil {
-			arg1 = args[1].(uint64)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
-		}
-		var arg3 []lnclient.TLVRecord
-		if args[3] != nil {
-			arg3 = args[3].([]lnclient.TLVRecord)
-		}
-		var arg4 string
-		if args[4] != nil {
-			arg4 = args[4].(string)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-			arg3,
-			arg4,
-		)
+		run(args[0].(uint64), args[1].(string), args[2].([]lnclient.TLVRecord), args[3].(string))
 	})
 	return _c
 }
@@ -1972,7 +1651,7 @@ func (_c *MockLNClient_SendKeysend_Call) Return(payKeysendResponse *lnclient.Pay
 	return _c
 }
 
-func (_c *MockLNClient_SendKeysend_Call) RunAndReturn(run func(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error)) *MockLNClient_SendKeysend_Call {
+func (_c *MockLNClient_SendKeysend_Call) RunAndReturn(run func(amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error)) *MockLNClient_SendKeysend_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2000,26 +1679,15 @@ type MockLNClient_SendPaymentProbes_Call struct {
 }
 
 // SendPaymentProbes is a helper method to define mock.On call
-//   - ctx context.Context
-//   - invoice string
+//   - ctx
+//   - invoice
 func (_e *MockLNClient_Expecter) SendPaymentProbes(ctx interface{}, invoice interface{}) *MockLNClient_SendPaymentProbes_Call {
 	return &MockLNClient_SendPaymentProbes_Call{Call: _e.mock.On("SendPaymentProbes", ctx, invoice)}
 }
 
 func (_c *MockLNClient_SendPaymentProbes_Call) Run(run func(ctx context.Context, invoice string)) *MockLNClient_SendPaymentProbes_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		run(
-			arg0,
-			arg1,
-		)
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
@@ -2035,8 +1703,8 @@ func (_c *MockLNClient_SendPaymentProbes_Call) RunAndReturn(run func(ctx context
 }
 
 // SendPaymentSync provides a mock function for the type MockLNClient
-func (_mock *MockLNClient) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
-	ret := _mock.Called(ctx, payReq, amount)
+func (_mock *MockLNClient) SendPaymentSync(payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+	ret := _mock.Called(payReq, amount)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SendPaymentSync")
@@ -2044,18 +1712,18 @@ func (_mock *MockLNClient) SendPaymentSync(ctx context.Context, payReq string, a
 
 	var r0 *lnclient.PayInvoiceResponse
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *uint64) (*lnclient.PayInvoiceResponse, error)); ok {
-		return returnFunc(ctx, payReq, amount)
+	if returnFunc, ok := ret.Get(0).(func(string, *uint64) (*lnclient.PayInvoiceResponse, error)); ok {
+		return returnFunc(payReq, amount)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, *uint64) *lnclient.PayInvoiceResponse); ok {
-		r0 = returnFunc(ctx, payReq, amount)
+	if returnFunc, ok := ret.Get(0).(func(string, *uint64) *lnclient.PayInvoiceResponse); ok {
+		r0 = returnFunc(payReq, amount)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*lnclient.PayInvoiceResponse)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, string, *uint64) error); ok {
-		r1 = returnFunc(ctx, payReq, amount)
+	if returnFunc, ok := ret.Get(1).(func(string, *uint64) error); ok {
+		r1 = returnFunc(payReq, amount)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -2068,32 +1736,15 @@ type MockLNClient_SendPaymentSync_Call struct {
 }
 
 // SendPaymentSync is a helper method to define mock.On call
-//   - ctx context.Context
-//   - payReq string
-//   - amount *uint64
-func (_e *MockLNClient_Expecter) SendPaymentSync(ctx interface{}, payReq interface{}, amount interface{}) *MockLNClient_SendPaymentSync_Call {
-	return &MockLNClient_SendPaymentSync_Call{Call: _e.mock.On("SendPaymentSync", ctx, payReq, amount)}
+//   - payReq
+//   - amount
+func (_e *MockLNClient_Expecter) SendPaymentSync(payReq interface{}, amount interface{}) *MockLNClient_SendPaymentSync_Call {
+	return &MockLNClient_SendPaymentSync_Call{Call: _e.mock.On("SendPaymentSync", payReq, amount)}
 }
 
-func (_c *MockLNClient_SendPaymentSync_Call) Run(run func(ctx context.Context, payReq string, amount *uint64)) *MockLNClient_SendPaymentSync_Call {
+func (_c *MockLNClient_SendPaymentSync_Call) Run(run func(payReq string, amount *uint64)) *MockLNClient_SendPaymentSync_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		var arg2 *uint64
-		if args[2] != nil {
-			arg2 = args[2].(*uint64)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-		)
+		run(args[0].(string), args[1].(*uint64))
 	})
 	return _c
 }
@@ -2103,7 +1754,7 @@ func (_c *MockLNClient_SendPaymentSync_Call) Return(payInvoiceResponse *lnclient
 	return _c
 }
 
-func (_c *MockLNClient_SendPaymentSync_Call) RunAndReturn(run func(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error)) *MockLNClient_SendPaymentSync_Call {
+func (_c *MockLNClient_SendPaymentSync_Call) RunAndReturn(run func(payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error)) *MockLNClient_SendPaymentSync_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -2131,32 +1782,16 @@ type MockLNClient_SendSpontaneousPaymentProbes_Call struct {
 }
 
 // SendSpontaneousPaymentProbes is a helper method to define mock.On call
-//   - ctx context.Context
-//   - amountMsat uint64
-//   - nodeId string
+//   - ctx
+//   - amountMsat
+//   - nodeId
 func (_e *MockLNClient_Expecter) SendSpontaneousPaymentProbes(ctx interface{}, amountMsat interface{}, nodeId interface{}) *MockLNClient_SendSpontaneousPaymentProbes_Call {
 	return &MockLNClient_SendSpontaneousPaymentProbes_Call{Call: _e.mock.On("SendSpontaneousPaymentProbes", ctx, amountMsat, nodeId)}
 }
 
 func (_c *MockLNClient_SendSpontaneousPaymentProbes_Call) Run(run func(ctx context.Context, amountMsat uint64, nodeId string)) *MockLNClient_SendSpontaneousPaymentProbes_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 uint64
-		if args[1] != nil {
-			arg1 = args[1].(uint64)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-		)
+		run(args[0].(context.Context), args[1].(uint64), args[2].(string))
 	})
 	return _c
 }
@@ -2194,26 +1829,15 @@ type MockLNClient_SettleHoldInvoice_Call struct {
 }
 
 // SettleHoldInvoice is a helper method to define mock.On call
-//   - ctx context.Context
-//   - preimage string
+//   - ctx
+//   - preimage
 func (_e *MockLNClient_Expecter) SettleHoldInvoice(ctx interface{}, preimage interface{}) *MockLNClient_SettleHoldInvoice_Call {
 	return &MockLNClient_SettleHoldInvoice_Call{Call: _e.mock.On("SettleHoldInvoice", ctx, preimage)}
 }
 
 func (_c *MockLNClient_SettleHoldInvoice_Call) Run(run func(ctx context.Context, preimage string)) *MockLNClient_SettleHoldInvoice_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		run(
-			arg0,
-			arg1,
-		)
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
@@ -2304,26 +1928,15 @@ type MockLNClient_SignMessage_Call struct {
 }
 
 // SignMessage is a helper method to define mock.On call
-//   - ctx context.Context
-//   - message string
+//   - ctx
+//   - message
 func (_e *MockLNClient_Expecter) SignMessage(ctx interface{}, message interface{}) *MockLNClient_SignMessage_Call {
 	return &MockLNClient_SignMessage_Call{Call: _e.mock.On("SignMessage", ctx, message)}
 }
 
 func (_c *MockLNClient_SignMessage_Call) Run(run func(ctx context.Context, message string)) *MockLNClient_SignMessage_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		run(
-			arg0,
-			arg1,
-		)
+		run(args[0].(context.Context), args[1].(string))
 	})
 	return _c
 }
@@ -2361,26 +1974,15 @@ type MockLNClient_UpdateChannel_Call struct {
 }
 
 // UpdateChannel is a helper method to define mock.On call
-//   - ctx context.Context
-//   - updateChannelRequest *lnclient.UpdateChannelRequest
+//   - ctx
+//   - updateChannelRequest
 func (_e *MockLNClient_Expecter) UpdateChannel(ctx interface{}, updateChannelRequest interface{}) *MockLNClient_UpdateChannel_Call {
 	return &MockLNClient_UpdateChannel_Call{Call: _e.mock.On("UpdateChannel", ctx, updateChannelRequest)}
 }
 
 func (_c *MockLNClient_UpdateChannel_Call) Run(run func(ctx context.Context, updateChannelRequest *lnclient.UpdateChannelRequest)) *MockLNClient_UpdateChannel_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 *lnclient.UpdateChannelRequest
-		if args[1] != nil {
-			arg1 = args[1].(*lnclient.UpdateChannelRequest)
-		}
-		run(
-			arg0,
-			arg1,
-		)
+		run(args[0].(context.Context), args[1].(*lnclient.UpdateChannelRequest))
 	})
 	return _c
 }

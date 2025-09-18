@@ -101,7 +101,7 @@ function SupportAlby() {
               ...(senderName ? { name: senderName } : {}),
             }),
             nostrWalletConnectUrl: createAppResponse.pairingUri,
-            sleepDuration: "31 days",
+            cronExpression: "0 0 1 * *", // at the start of each month
           }),
         }
       );
