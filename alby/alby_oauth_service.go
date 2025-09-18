@@ -1152,8 +1152,8 @@ func (svc *albyOAuthService) GetLSPChannelOffer(ctx context.Context) (*LSPChanne
 		logger.Logger.WithFields(logrus.Fields{
 			"body":        string(body),
 			"status_code": res.StatusCode,
-		}).Error("users endpoint returned non-success code")
-		return nil, fmt.Errorf("users endpoint returned non-success code: %s", string(body))
+		}).Error("lsp channel offer endpoint returned non-success code")
+		return nil, fmt.Errorf("lsp channel offer endpoint returned non-success code: %s", string(body))
 	}
 
 	lspChannelOffer := &LSPChannelOffer{}
@@ -1166,7 +1166,7 @@ func (svc *albyOAuthService) GetLSPChannelOffer(ctx context.Context) (*LSPChanne
 	return lspChannelOffer, nil
 }
 
-func (svc *albyOAuthService) GetLSPInfo(ctx context.Context, lsp, network string) (*LSPInfo, error) {
+func (svc *albyOAuthService) GetLSPInfo(ctx context.Context, lspIdentifier, network string) (*LSPInfo, error) {
 	token, err := svc.fetchUserToken(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch user token")
@@ -1176,14 +1176,12 @@ func (svc *albyOAuthService) GetLSPInfo(ctx context.Context, lsp, network string
 	var client *http.Client
 	if token != nil {
 		client = svc.oauthConf.Client(ctx, token)
-		client.Timeout = 30 * time.Second
 	} else {
-		client = &http.Client{
-			Timeout: time.Second * 30,
-		}
+		client = &http.Client{}
 	}
+	client.Timeout = 30 * time.Second
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/internal/lsp/%s/%s/v1/get_info", albyOAuthAPIURL, lsp, network), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/internal/lsp/%s/%s/v1/get_info", albyOAuthAPIURL, lspIdentifier, network), nil)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create lsp info request")
 		return nil, err
@@ -1207,8 +1205,8 @@ func (svc *albyOAuthService) GetLSPInfo(ctx context.Context, lsp, network string
 		logger.Logger.WithFields(logrus.Fields{
 			"body":        string(body),
 			"status_code": res.StatusCode,
-		}).Error("users endpoint returned non-success code")
-		return nil, fmt.Errorf("users endpoint returned non-success code: %s", string(body))
+		}).Error("lsp info endpoint returned non-success code")
+		return nil, fmt.Errorf("lsp info endpoint returned non-success code: %s", string(body))
 	}
 
 	type lsps1LSPInfo struct {
@@ -1270,12 +1268,10 @@ func (svc *albyOAuthService) CreateLSPOrder(ctx context.Context, lsp, network st
 	var client *http.Client
 	if token != nil {
 		client = svc.oauthConf.Client(ctx, token)
-		client.Timeout = 30 * time.Second
 	} else {
-		client = &http.Client{
-			Timeout: time.Second * 30,
-		}
+		client = &http.Client{}
 	}
+	client.Timeout = 30 * time.Second
 
 	payloadBytes, err := json.Marshal(lspChannelRequest)
 	if err != nil {
@@ -1307,8 +1303,8 @@ func (svc *albyOAuthService) CreateLSPOrder(ctx context.Context, lsp, network st
 		logger.Logger.WithFields(logrus.Fields{
 			"body":        string(body),
 			"status_code": res.StatusCode,
-		}).Error("users endpoint returned non-success code")
-		return nil, fmt.Errorf("users endpoint returned non-success code: %s", string(body))
+		}).Error("lsp create order endpoint returned non-success code")
+		return nil, fmt.Errorf("lsp create order endpoint returned non-success code: %s", string(body))
 	}
 
 	channelResponse := &LSPChannelResponse{}
