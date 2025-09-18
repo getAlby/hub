@@ -1152,8 +1152,8 @@ func (svc *albyOAuthService) GetLSPChannelOffer(ctx context.Context) (*LSPChanne
 		logger.Logger.WithFields(logrus.Fields{
 			"body":        string(body),
 			"status_code": res.StatusCode,
-		}).Error("users endpoint returned non-success code")
-		return nil, fmt.Errorf("users endpoint returned non-success code: %s", string(body))
+		}).Error("lsp channel offer endpoint returned non-success code")
+		return nil, fmt.Errorf("lsp channel offer endpoint returned non-success code: %s", string(body))
 	}
 
 	lspChannelOffer := &LSPChannelOffer{}
@@ -1166,6 +1166,157 @@ func (svc *albyOAuthService) GetLSPChannelOffer(ctx context.Context) (*LSPChanne
 	return lspChannelOffer, nil
 }
 
+func (svc *albyOAuthService) GetLSPInfo(ctx context.Context, lspIdentifier, network string) (*LSPInfo, error) {
+	token, err := svc.fetchUserToken(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch user token")
+		return nil, err
+	}
+
+	var client *http.Client
+	if token != nil {
+		client = svc.oauthConf.Client(ctx, token)
+	} else {
+		client = &http.Client{}
+	}
+	client.Timeout = 30 * time.Second
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fmt.Sprintf("%s/internal/lsp/%s/%s/v1/get_info", albyOAuthAPIURL, lspIdentifier, network), nil)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to create lsp info request")
+		return nil, err
+	}
+
+	setDefaultRequestHeaders(req)
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to request lsp info")
+		return nil, err
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to read response body")
+		return nil, errors.New("failed to read response body")
+	}
+
+	if res.StatusCode >= 300 {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":        string(body),
+			"status_code": res.StatusCode,
+		}).Error("lsp info endpoint returned non-success code")
+		return nil, fmt.Errorf("lsp info endpoint returned non-success code: %s", string(body))
+	}
+
+	type lsps1LSPInfo struct {
+		MinRequiredChannelConfirmations uint64   `json:"min_required_channel_confirmations"`
+		MinFundingConfirmsWithinBlocks  uint64   `json:"min_funding_confirms_within_blocks"`
+		MaxChannelExpiryBlocks          uint64   `json:"max_channel_expiry_blocks"`
+		URIs                            []string `json:"uris"`
+	}
+
+	lsps1LspInfo := &lsps1LSPInfo{}
+	err = json.Unmarshal(body, lsps1LspInfo)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to decode API response")
+		return nil, err
+	}
+
+	httpUris := utils.Filter(lsps1LspInfo.URIs, func(uri string) bool {
+		return !strings.Contains(uri, ".onion")
+	})
+	if len(httpUris) == 0 {
+		logger.Logger.WithField("uris", lsps1LspInfo.URIs).WithError(err).Error("Couldn't find HTTP URI")
+		return nil, err
+	}
+	uri := httpUris[0]
+
+	// make sure it's a valid IPv4 URI
+	regex := regexp.MustCompile(`^([0-9a-f]+)@([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+):([0-9]+)$`)
+	parts := regex.FindStringSubmatch(uri)
+	logger.Logger.WithField("parts", parts).Info("Split URI")
+	if parts == nil || len(parts) != 4 {
+		logger.Logger.WithField("parts", parts).Error("Unsupported URI")
+		return nil, errors.New("could not decode LSP URI")
+	}
+
+	port, err := strconv.Atoi(parts[3])
+	if err != nil {
+		logger.Logger.WithField("port", parts[3]).WithError(err).Error("Failed to decode port number")
+
+		return nil, err
+	}
+
+	return &LSPInfo{
+		Pubkey:                          parts[1],
+		Address:                         parts[2],
+		Port:                            uint16(port),
+		MaxChannelExpiryBlocks:          lsps1LspInfo.MaxChannelExpiryBlocks,
+		MinRequiredChannelConfirmations: lsps1LspInfo.MinRequiredChannelConfirmations,
+		MinFundingConfirmsWithinBlocks:  lsps1LspInfo.MinFundingConfirmsWithinBlocks,
+	}, nil
+}
+
+func (svc *albyOAuthService) CreateLSPOrder(ctx context.Context, lsp, network string, lspChannelRequest *LSPChannelRequest) (*LSPChannelResponse, error) {
+	token, err := svc.fetchUserToken(ctx)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch user token")
+		return nil, err
+	}
+
+	var client *http.Client
+	if token != nil {
+		client = svc.oauthConf.Client(ctx, token)
+	} else {
+		client = &http.Client{}
+	}
+	client.Timeout = 30 * time.Second
+
+	payloadBytes, err := json.Marshal(lspChannelRequest)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader := bytes.NewReader(payloadBytes)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/internal/lsp/%s/%s/v1/create_order", albyOAuthAPIURL, lsp, network), bodyReader)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to create lsp order request")
+		return nil, err
+	}
+
+	setDefaultRequestHeaders(req)
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to request lsp order")
+		return nil, err
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to read response body")
+		return nil, errors.New("failed to read response body")
+	}
+
+	if res.StatusCode >= 300 {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":        string(body),
+			"status_code": res.StatusCode,
+		}).Error("lsp create order endpoint returned non-success code")
+		return nil, fmt.Errorf("lsp create order endpoint returned non-success code: %s", string(body))
+	}
+
+	channelResponse := &LSPChannelResponse{}
+	err = json.Unmarshal(body, channelResponse)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to decode API response")
+		return nil, err
+	}
+
+	return channelResponse, nil
+}
+
 func (svc *albyOAuthService) RequestAutoChannel(ctx context.Context, lnClient lnclient.LNClient, isPublic bool) (*AutoChannelResponse, error) {
 	nodeInfo, err := lnClient.GetInfo(ctx)
 	if err != nil {
@@ -1173,9 +1324,7 @@ func (svc *albyOAuthService) RequestAutoChannel(ctx context.Context, lnClient ln
 		return nil, err
 	}
 
-	requestUrl := fmt.Sprintf("https://api.getalby.com/internal/lsp/alby/%s", nodeInfo.Network)
-
-	pubkey, address, port, err := svc.getLSPInfo(ctx, requestUrl+"/v1/get_info")
+	lspInfo, err := svc.GetLSPInfo(ctx, "alby", nodeInfo.Network)
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to request LSP info")
@@ -1183,26 +1332,26 @@ func (svc *albyOAuthService) RequestAutoChannel(ctx context.Context, lnClient ln
 	}
 
 	err = lnClient.ConnectPeer(ctx, &lnclient.ConnectPeerRequest{
-		Pubkey:  pubkey,
-		Address: address,
-		Port:    port,
+		Pubkey:  lspInfo.Pubkey,
+		Address: lspInfo.Address,
+		Port:    lspInfo.Port,
 	})
 
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
-			"pubkey":  pubkey,
-			"address": address,
-			"port":    port,
+			"pubkey":  lspInfo.Pubkey,
+			"address": lspInfo.Address,
+			"port":    lspInfo.Port,
 		}).WithError(err).Error("Failed to connect to peer")
 		return nil, err
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
-		"pubkey": pubkey,
+		"pubkey": lspInfo.Pubkey,
 		"public": isPublic,
 	}).Info("Requesting auto channel")
 
-	autoChannelResponse, err := svc.requestAutoChannel(ctx, requestUrl+"/auto_channel", nodeInfo.Pubkey, isPublic)
+	autoChannelResponse, err := svc.requestAutoChannel(ctx, fmt.Sprintf("%s/internal/lsp/alby/%s/auto_channel", albyOAuthAPIURL, nodeInfo.Network), nodeInfo.Pubkey, isPublic)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to request auto channel")
 		return nil, err
@@ -1343,86 +1492,6 @@ func (svc *albyOAuthService) requestAutoChannel(ctx context.Context, url string,
 		Fee:         fee,
 		ChannelSize: channelSize,
 	}, nil
-}
-
-func (svc *albyOAuthService) getLSPInfo(ctx context.Context, url string) (pubkey string, address string, port uint16, err error) {
-
-	token, err := svc.fetchUserToken(ctx)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to fetch user token")
-	}
-
-	client := svc.oauthConf.Client(ctx, token)
-	client.Timeout = 60 * time.Second
-
-	type lsps1LSPInfo struct {
-		URIs []string `json:"uris"`
-	}
-	var lsps1LspInfo lsps1LSPInfo
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to create lsp info request")
-		return "", "", uint16(0), err
-	}
-
-	setDefaultRequestHeaders(req)
-
-	res, err := client.Do(req)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to request lsp info")
-		return "", "", uint16(0), err
-	}
-
-	defer res.Body.Close()
-
-	body, err := io.ReadAll(res.Body)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to read response body")
-		return "", "", uint16(0), errors.New("failed to read response body")
-	}
-
-	err = json.Unmarshal(body, &lsps1LspInfo)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to deserialize json")
-		return "", "", uint16(0), fmt.Errorf("failed to deserialize json %s %s", url, string(body))
-	}
-
-	httpUris := utils.Filter(lsps1LspInfo.URIs, func(uri string) bool {
-		return !strings.Contains(uri, ".onion")
-	})
-	if len(httpUris) == 0 {
-		logger.Logger.WithField("uris", lsps1LspInfo.URIs).WithError(err).Error("Couldn't find HTTP URI")
-
-		return "", "", uint16(0), err
-	}
-	uri := httpUris[0]
-
-	// make sure it's a valid IPv4 URI
-	regex := regexp.MustCompile(`^([0-9a-f]+)@([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+):([0-9]+)$`)
-	parts := regex.FindStringSubmatch(uri)
-	logger.Logger.WithField("parts", parts).Debug("Split URI")
-	if parts == nil || len(parts) != 4 {
-		logger.Logger.WithField("parts", parts).Error("Unsupported URI")
-		return "", "", uint16(0), errors.New("could not decode LSP URI")
-	}
-
-	portValue, err := strconv.Atoi(parts[3])
-	if err != nil {
-		logger.Logger.WithField("port", parts[3]).WithError(err).Error("Failed to decode port number")
-
-		return "", "", uint16(0), err
-	}
-
-	return parts[1], parts[2], uint16(portValue), nil
 }
 
 func setDefaultRequestHeaders(req *http.Request) {

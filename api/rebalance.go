@@ -12,6 +12,7 @@ import (
 
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/version"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 )
@@ -57,8 +58,8 @@ func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *R
 		return nil, err
 	}
 
-	setDefaultRequestHeaders(req)
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "AlbyHub/"+version.Tag)
 
 	client := http.Client{
 		Timeout: time.Second * 60,
