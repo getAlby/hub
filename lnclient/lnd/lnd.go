@@ -663,6 +663,13 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, descriptio
 				remotePolicy = chanInfo.Node2Policy
 			}
 
+			if remotePolicy == nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"channel_id": channel.ChanId,
+				}).WithError(err).Error("Remote channel policy does not exist")
+				continue
+			}
+
 			channelId := chanInfo.ChannelId
 			if channel.PeerScidAlias != 0 {
 				channelId = channel.PeerScidAlias
