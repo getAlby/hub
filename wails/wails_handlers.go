@@ -1327,8 +1327,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		return WailsRequestRouterResponse{Body: swaps, Error: ""}
 	}
 
-	if strings.HasPrefix(route, "/api/log/") {
-		logType := strings.TrimPrefix(route, "/api/log/")
+	if logType, ok := strings.CutPrefix(route, "/api/log/"); ok {
 		logType = strings.Split(logType, "?")[0]
 		if logType != api.LogTypeNode && logType != api.LogTypeApp {
 			return WailsRequestRouterResponse{Body: nil, Error: fmt.Sprintf("Invalid log type: '%s'", logType)}
