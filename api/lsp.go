@@ -58,28 +58,22 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 	}
 
 	invoice, fee, err := api.requestLSPS1Invoice(ctx, request, nodeInfo.Network, nodeInfo.Pubkey, lspInfo.MaxChannelExpiryBlocks, lspInfo.MinRequiredChannelConfirmations, lspInfo.MinFundingConfirmsWithinBlocks)
+	invoiceAmount := uint64(0)
+	incomingLiquidity := request.Amount
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to request invoice")
 		return nil, err
 	}
 
-	paymentRequest, err := decodepay.Decodepay(invoice)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to decode bolt11 invoice")
-		return nil, err
-	}
+	if invoice != "" {
+		paymentRequest, err := decodepay.Decodepay(invoice)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to decode bolt11 invoice")
+			return nil, err
+		}
 
-	invoiceAmount := uint64(paymentRequest.MSatoshi / 1000)
-	incomingLiquidity := uint64(0)
-	outgoingLiquidity := uint64(0)
-
-	if invoiceAmount < request.Amount {
-		// assume that the invoice is only the fee
-		// and that the user is requesting incoming liquidity (LSPS1)
-		incomingLiquidity = request.Amount
-	} else {
-		outgoingLiquidity = invoiceAmount - fee
+		invoiceAmount = uint64(paymentRequest.MSatoshi / 1000)
 	}
 
 	newChannelResponse := &LSPOrderResponse{
@@ -87,7 +81,7 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 		Fee:               fee,
 		InvoiceAmount:     invoiceAmount,
 		IncomingLiquidity: incomingLiquidity,
-		OutgoingLiquidity: outgoingLiquidity,
+		OutgoingLiquidity: uint64(0), // JIT channel no longer supported
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
