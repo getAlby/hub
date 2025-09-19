@@ -24,9 +24,9 @@ function AppHeader({
         {addSidebarTrigger && <SidebarTrigger className="-ml-1 md:hidden" />}
         <Separator orientation="vertical" className="mr-2 h-4 md:hidden" />
         {icon}
-        <div className="flex flex-col flex-1">
+        <div className="flex flex-col flex-1 min-w-0">
           <div className="flex justify-between items-center flex-wrap gap-2">
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <h1 className="text-2xl lg:text-3xl font-semibold">{title}</h1>
               {description && (
                 <p className="text-xs sm:text-base text-muted-foreground">
