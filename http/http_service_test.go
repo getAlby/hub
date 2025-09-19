@@ -28,6 +28,7 @@ func TestUnlock_IncorrectPassword(t *testing.T) {
 	mockSvc := mocks.NewMockService(t)
 	gormDb, err := db.NewDB(t)
 	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
 
 	mockEventPublisher := events.NewEventPublisher()
 
@@ -61,6 +62,7 @@ func TestUnlock_UnknownPermission(t *testing.T) {
 	mockSvc := mocks.NewMockService(t)
 	gormDb, err := db.NewDB(t)
 	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
 
 	mockEventPublisher := events.NewEventPublisher()
 
@@ -94,6 +96,7 @@ func TestGetApps_NoToken(t *testing.T) {
 	mockSvc := mocks.NewMockService(t)
 	gormDb, err := db.NewDB(t)
 	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
 
 	mockEventPublisher := mocks.NewMockEventPublisher(t)
 
@@ -122,6 +125,7 @@ func TestGetApps_ReadonlyPermission(t *testing.T) {
 	mockSvc := mocks.NewMockService(t)
 	gormDb, err := db.NewDB(t)
 	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
 
 	mockEventPublisher := events.NewEventPublisher()
 
@@ -174,6 +178,7 @@ func TestGetApps_FullPermission(t *testing.T) {
 	mockSvc := mocks.NewMockService(t)
 	gormDb, err := db.NewDB(t)
 	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
 
 	mockEventPublisher := events.NewEventPublisher()
 
@@ -226,6 +231,7 @@ func TestCreateApp_NoToken(t *testing.T) {
 	mockSvc := mocks.NewMockService(t)
 	gormDb, err := db.NewDB(t)
 	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
 
 	mockEventPublisher := mocks.NewMockEventPublisher(t)
 
@@ -257,6 +263,7 @@ func TestCreateApp_FullPermission(t *testing.T) {
 	mockSvc := mocks.NewMockService(t)
 	gormDb, err := db.NewDB(t)
 	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
 
 	mockEventPublisher := events.NewEventPublisher()
 
@@ -320,6 +327,7 @@ func TestCreateApp_ReadonlyPermission(t *testing.T) {
 	mockSvc := mocks.NewMockService(t)
 	gormDb, err := db.NewDB(t)
 	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
 
 	mockEventPublisher := events.NewEventPublisher()
 
