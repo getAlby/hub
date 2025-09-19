@@ -215,6 +215,7 @@ type StartRequest struct {
 type UnlockRequest struct {
 	UnlockPassword  string  `json:"unlockPassword"`
 	TokenExpiryDays *uint64 `json:"tokenExpiryDays"`
+	Permission      string  `json:"permission,omitempty"` // "full" or "readonly"
 }
 
 type BackupReminderRequest struct {

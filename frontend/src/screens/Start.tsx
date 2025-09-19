@@ -53,6 +53,7 @@ export default function Start() {
         },
         body: JSON.stringify({
           unlockPassword,
+          permission: "full",
         }),
       });
       if (authTokenResponse) {
