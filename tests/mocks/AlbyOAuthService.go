@@ -123,6 +123,65 @@ func (_c *MockAlbyOAuthService_ConsumeEvent_Call) RunAndReturn(run func(ctx cont
 	return _c
 }
 
+// CreateLSPOrder provides a mock function for the type MockAlbyOAuthService
+func (_mock *MockAlbyOAuthService) CreateLSPOrder(ctx context.Context, lsp string, network string, lspChannelRequest *alby.LSPChannelRequest) (*alby.LSPChannelResponse, error) {
+	ret := _mock.Called(ctx, lsp, network, lspChannelRequest)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateLSPOrder")
+	}
+
+	var r0 *alby.LSPChannelResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, *alby.LSPChannelRequest) (*alby.LSPChannelResponse, error)); ok {
+		return returnFunc(ctx, lsp, network, lspChannelRequest)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string, *alby.LSPChannelRequest) *alby.LSPChannelResponse); ok {
+		r0 = returnFunc(ctx, lsp, network, lspChannelRequest)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*alby.LSPChannelResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string, *alby.LSPChannelRequest) error); ok {
+		r1 = returnFunc(ctx, lsp, network, lspChannelRequest)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockAlbyOAuthService_CreateLSPOrder_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CreateLSPOrder'
+type MockAlbyOAuthService_CreateLSPOrder_Call struct {
+	*mock.Call
+}
+
+// CreateLSPOrder is a helper method to define mock.On call
+//   - ctx
+//   - lsp
+//   - network
+//   - lspChannelRequest
+func (_e *MockAlbyOAuthService_Expecter) CreateLSPOrder(ctx interface{}, lsp interface{}, network interface{}, lspChannelRequest interface{}) *MockAlbyOAuthService_CreateLSPOrder_Call {
+	return &MockAlbyOAuthService_CreateLSPOrder_Call{Call: _e.mock.On("CreateLSPOrder", ctx, lsp, network, lspChannelRequest)}
+}
+
+func (_c *MockAlbyOAuthService_CreateLSPOrder_Call) Run(run func(ctx context.Context, lsp string, network string, lspChannelRequest *alby.LSPChannelRequest)) *MockAlbyOAuthService_CreateLSPOrder_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(*alby.LSPChannelRequest))
+	})
+	return _c
+}
+
+func (_c *MockAlbyOAuthService_CreateLSPOrder_Call) Return(lSPChannelResponse *alby.LSPChannelResponse, err error) *MockAlbyOAuthService_CreateLSPOrder_Call {
+	_c.Call.Return(lSPChannelResponse, err)
+	return _c
+}
+
+func (_c *MockAlbyOAuthService_CreateLSPOrder_Call) RunAndReturn(run func(ctx context.Context, lsp string, network string, lspChannelRequest *alby.LSPChannelRequest) (*alby.LSPChannelResponse, error)) *MockAlbyOAuthService_CreateLSPOrder_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CreateLightningAddress provides a mock function for the type MockAlbyOAuthService
 func (_mock *MockAlbyOAuthService) CreateLightningAddress(ctx context.Context, address string, appId uint) (*alby.CreateLightningAddressResponse, error) {
 	ret := _mock.Called(ctx, address, appId)
@@ -379,6 +438,64 @@ func (_c *MockAlbyOAuthService_GetLSPChannelOffer_Call) Return(lSPChannelOffer *
 }
 
 func (_c *MockAlbyOAuthService_GetLSPChannelOffer_Call) RunAndReturn(run func(ctx context.Context) (*alby.LSPChannelOffer, error)) *MockAlbyOAuthService_GetLSPChannelOffer_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetLSPInfo provides a mock function for the type MockAlbyOAuthService
+func (_mock *MockAlbyOAuthService) GetLSPInfo(ctx context.Context, lsp string, network string) (*alby.LSPInfo, error) {
+	ret := _mock.Called(ctx, lsp, network)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetLSPInfo")
+	}
+
+	var r0 *alby.LSPInfo
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (*alby.LSPInfo, error)); ok {
+		return returnFunc(ctx, lsp, network)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) *alby.LSPInfo); ok {
+		r0 = returnFunc(ctx, lsp, network)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*alby.LSPInfo)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = returnFunc(ctx, lsp, network)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockAlbyOAuthService_GetLSPInfo_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetLSPInfo'
+type MockAlbyOAuthService_GetLSPInfo_Call struct {
+	*mock.Call
+}
+
+// GetLSPInfo is a helper method to define mock.On call
+//   - ctx
+//   - lsp
+//   - network
+func (_e *MockAlbyOAuthService_Expecter) GetLSPInfo(ctx interface{}, lsp interface{}, network interface{}) *MockAlbyOAuthService_GetLSPInfo_Call {
+	return &MockAlbyOAuthService_GetLSPInfo_Call{Call: _e.mock.On("GetLSPInfo", ctx, lsp, network)}
+}
+
+func (_c *MockAlbyOAuthService_GetLSPInfo_Call) Run(run func(ctx context.Context, lsp string, network string)) *MockAlbyOAuthService_GetLSPInfo_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *MockAlbyOAuthService_GetLSPInfo_Call) Return(lSPInfo *alby.LSPInfo, err error) *MockAlbyOAuthService_GetLSPInfo_Call {
+	_c.Call.Return(lSPInfo, err)
+	return _c
+}
+
+func (_c *MockAlbyOAuthService_GetLSPInfo_Call) RunAndReturn(run func(ctx context.Context, lsp string, network string) (*alby.LSPInfo, error)) *MockAlbyOAuthService_GetLSPInfo_Call {
 	_c.Call.Return(run)
 	return _c
 }
