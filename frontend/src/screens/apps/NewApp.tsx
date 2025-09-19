@@ -59,6 +59,7 @@ type NewAppInternalProps = {
 
 const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const [unsupportedError, setUnsupportedError] = useState<string>();
   const [isLoading, setLoading] = React.useState(false);
@@ -227,9 +228,9 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
           id: "configure",
           title: "Configure",
         },
-        ...(returnTo ? [] : [{ id: "finalize", title: "Finalize" }])
+        ...(returnTo || pubkey ? [] : [{ id: "finalize", title: "Finalize" }])
       ),
-    [appStoreApp, returnTo]
+    [appStoreApp, returnTo, pubkey]
   );
 
   const handleCreateApp = async (nextFunc: () => void) => {
@@ -267,6 +268,10 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       }
       toast("App created");
       setCreateAppResponse(createAppResponse);
+      if (pubkey) {
+        navigate(`/apps/${createAppResponse.id}`);
+        return;
+      }
 
       nextFunc();
     } catch (error) {
@@ -411,7 +416,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                             </div>
                           ),
                       })}
-                      {(!methods.isLast || returnTo) && (
+                      {(!methods.isLast || returnTo || pubkey) && (
                         <Stepper.Controls className="mt-6">
                           {!methods.isFirst && (
                             <Button
