@@ -261,6 +261,30 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
 
       const createAppResponse = await createApp(createAppRequest);
 
+      // dispatch a success event which can be listened to by the opener or by the app that embedded the webview
+      // this gives those apps the chance to know the user has enabled the connection
+      const nwcEvent = new CustomEvent("nwc:success", {
+        detail: {
+          relayUrl: createAppResponse.relayUrl,
+          walletPubkey: createAppResponse.walletPubkey,
+          lud16: createAppResponse.lud16,
+        },
+      });
+      window.dispatchEvent(nwcEvent);
+
+      // notify the opener of the successful connection
+      if (window.opener) {
+        window.opener.postMessage(
+          {
+            type: "nwc:success",
+            relayUrl: createAppResponse.relayUrl,
+            walletPubkey: createAppResponse.walletPubkey,
+            lud16: createAppResponse.lud16,
+          },
+          "*"
+        );
+      }
+
       if (createAppResponse.returnTo) {
         // open connection URI directly in an app
         window.location.href = createAppResponse.returnTo;
@@ -480,36 +504,6 @@ function FinalizeConnection({
       navigate("/apps?tab=connected-apps");
     }
   }, [app?.lastUsedAt, navigate]);
-
-  React.useEffect(() => {
-    // dispatch a success event which can be listened to by the opener or by the app that embedded the webview
-    // this gives those apps the chance to know the user has enabled the connection
-    const nwcEvent = new CustomEvent("nwc:success", {
-      detail: {
-        relayUrl: createAppResponse.relayUrl,
-        walletPubkey: createAppResponse.walletPubkey,
-        lud16: createAppResponse.lud16,
-      },
-    });
-    window.dispatchEvent(nwcEvent);
-
-    // notify the opener of the successful connection
-    if (window.opener) {
-      window.opener.postMessage(
-        {
-          type: "nwc:success",
-          relayUrl: createAppResponse.relayUrl,
-          walletPubkey: createAppResponse.walletPubkey,
-          lud16: createAppResponse.lud16,
-        },
-        "*"
-      );
-    }
-  }, [
-    createAppResponse.relayUrl,
-    createAppResponse.walletPubkey,
-    createAppResponse.lud16,
-  ]);
 
   if (!createAppResponse) {
     return <Navigate to="/apps/new" />;
