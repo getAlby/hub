@@ -54,7 +54,7 @@ type swapsService struct {
 type SwapsService interface {
 	StopAutoSwapOut()
 	EnableAutoSwapOut() error
-	SwapOut(amount uint64, destination string, useExactReceiveAmount, autoSwap, usedXpubDerivation bool) (*SwapResponse, error)
+	SwapOut(amount uint64, destination string, autoSwap, usedXpubDerivation bool) (*SwapResponse, error)
 	SwapIn(amount uint64, autoSwap bool) (*SwapResponse, error)
 	GetSwapOutInfo() (*SwapInfo, error)
 	GetSwapInInfo() (*SwapInfo, error)
@@ -229,7 +229,7 @@ func (svc *swapsService) EnableAutoSwapOut() error {
 					"amount":      amount,
 					"destination": actualDestination,
 				}).Info("Initiating swap")
-				_, err = svc.SwapOut(amount, actualDestination, false, true, usedXpubDerivation)
+				_, err = svc.SwapOut(amount, actualDestination, true, usedXpubDerivation)
 				if err != nil {
 					logger.Logger.WithError(err).Error("Failed to initiate swap")
 					continue
@@ -246,7 +246,7 @@ func (svc *swapsService) EnableAutoSwapOut() error {
 	return nil
 }
 
-func (svc *swapsService) SwapOut(amount uint64, destination string, useExactReceiveAmount, autoSwap, usedXpubDerivation bool) (*SwapResponse, error) {
+func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap, usedXpubDerivation bool) (*SwapResponse, error) {
 	if destination == "" {
 		var err error
 		destination, err = svc.lnClient.GetNewOnchainAddress(svc.ctx)
@@ -298,10 +298,7 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, useExactRece
 		Preimage:           hex.EncodeToString(preimage),
 		AutoSwap:           autoSwap,
 		UsedXpub:           usedXpubDerivation,
-	}
-
-	if useExactReceiveAmount {
-		dbSwap.ReceiveAmount = amount
+		ReceiveAmount:      amount,
 	}
 
 	var ourKeys *btcec.PrivateKey
@@ -334,12 +331,7 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, useExactRece
 			PairHash:       pairInfo.Hash,
 			ReferralId:     "alby",
 			ExtraFees:      albyFee,
-		}
-
-		if useExactReceiveAmount {
-			swapRequest.OnchainAmount = amount + fees.MinerFees.Claim
-		} else {
-			swapRequest.InvoiceAmount = amount
+			OnchainAmount:  amount + fees.MinerFees.Claim,
 		}
 
 		swap, err = svc.boltzApi.CreateReverseSwap(swapRequest)
