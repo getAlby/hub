@@ -70,12 +70,12 @@ export function ImportMnemonic() {
           <AlertTitle>
             Do not re-use the same key on multiple devices
           </AlertTitle>
-          <AlertDescription>
+          <AlertDescription className="inline">
             If you want to transfer your existing Hub to another machine please
             use the <b>migrate feature</b> from the Alby Hub settings.
           </AlertDescription>
         </Alert>
-        <Alert>
+        <Alert className="grid-cols-none">
           <div className="flex flex-col gap-4">
             <div className="flex gap-2 items-center">
               <div className="shrink-0 text-muted-foreground">
