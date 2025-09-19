@@ -59,6 +59,7 @@ type NewAppInternalProps = {
 
 const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const [unsupportedError, setUnsupportedError] = useState<string>();
   const [isLoading, setLoading] = React.useState(false);
@@ -227,9 +228,9 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
           id: "configure",
           title: "Configure",
         },
-        ...(returnTo ? [] : [{ id: "finalize", title: "Finalize" }])
+        ...(returnTo || pubkey ? [] : [{ id: "finalize", title: "Finalize" }])
       ),
-    [appStoreApp, returnTo]
+    [appStoreApp, returnTo, pubkey]
   );
 
   const handleCreateApp = async (nextFunc: () => void) => {
@@ -260,6 +261,30 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
 
       const createAppResponse = await createApp(createAppRequest);
 
+      // dispatch a success event which can be listened to by the opener or by the app that embedded the webview
+      // this gives those apps the chance to know the user has enabled the connection
+      const nwcEvent = new CustomEvent("nwc:success", {
+        detail: {
+          relayUrl: createAppResponse.relayUrl,
+          walletPubkey: createAppResponse.walletPubkey,
+          lud16: createAppResponse.lud16,
+        },
+      });
+      window.dispatchEvent(nwcEvent);
+
+      // notify the opener of the successful connection
+      if (window.opener) {
+        window.opener.postMessage(
+          {
+            type: "nwc:success",
+            relayUrl: createAppResponse.relayUrl,
+            walletPubkey: createAppResponse.walletPubkey,
+            lud16: createAppResponse.lud16,
+          },
+          "*"
+        );
+      }
+
       if (createAppResponse.returnTo) {
         // open connection URI directly in an app
         window.location.href = createAppResponse.returnTo;
@@ -267,6 +292,10 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       }
       toast("App created");
       setCreateAppResponse(createAppResponse);
+      if (pubkey) {
+        navigate(`/apps/${createAppResponse.id}`);
+        return;
+      }
 
       nextFunc();
     } catch (error) {
@@ -411,7 +440,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                             </div>
                           ),
                       })}
-                      {(!methods.isLast || returnTo) && (
+                      {(!methods.isLast || returnTo || pubkey) && (
                         <Stepper.Controls className="mt-6">
                           {!methods.isFirst && (
                             <Button
@@ -475,36 +504,6 @@ function FinalizeConnection({
       navigate("/apps?tab=connected-apps");
     }
   }, [app?.lastUsedAt, navigate]);
-
-  React.useEffect(() => {
-    // dispatch a success event which can be listened to by the opener or by the app that embedded the webview
-    // this gives those apps the chance to know the user has enabled the connection
-    const nwcEvent = new CustomEvent("nwc:success", {
-      detail: {
-        relayUrl: createAppResponse.relayUrl,
-        walletPubkey: createAppResponse.walletPubkey,
-        lud16: createAppResponse.lud16,
-      },
-    });
-    window.dispatchEvent(nwcEvent);
-
-    // notify the opener of the successful connection
-    if (window.opener) {
-      window.opener.postMessage(
-        {
-          type: "nwc:success",
-          relayUrl: createAppResponse.relayUrl,
-          walletPubkey: createAppResponse.walletPubkey,
-          lud16: createAppResponse.lud16,
-        },
-        "*"
-      );
-    }
-  }, [
-    createAppResponse.relayUrl,
-    createAppResponse.walletPubkey,
-    createAppResponse.lud16,
-  ]);
 
   if (!createAppResponse) {
     return <Navigate to="/apps/new" />;
