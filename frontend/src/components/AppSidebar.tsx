@@ -233,7 +233,7 @@ export function AppSidebar() {
                 ) : (
                   <DropdownMenuItem>
                     <ExternalLink
-                      to="https://getalby.com/user/edit"
+                      to="https://getalby.com/settings"
                       className="flex items-center flex-1"
                     >
                       <AlbyIcon className="size-4 mr-2" />
