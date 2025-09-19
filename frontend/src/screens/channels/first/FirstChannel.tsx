@@ -362,7 +362,7 @@ export function FirstChannel() {
               lspChannelOffer.currentPaymentMethod !== "fee_credits" &&
               lspChannelOffer.currentPaymentMethod !== "included" && (
                 <p className="text-xs text-muted-foreground flex items-center justify-center -mb-4">
-                  The cost will be included in your next subscription payment.
+                  The payment for the channel will be due immediately.
                 </p>
               )}
             <p className="text-center text-xs -mb-2">
