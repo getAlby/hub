@@ -3,6 +3,7 @@ import { Separator } from "src/components/ui/separator";
 import { SidebarTrigger } from "src/components/ui/sidebar";
 
 type Props = {
+  icon?: React.ReactElement;
   title: string | ReactElement;
   description?: string | ReactElement;
   contentRight?: React.ReactNode;
@@ -11,6 +12,7 @@ type Props = {
 };
 
 function AppHeader({
+  icon,
   title,
   description = "",
   contentRight,
@@ -21,12 +23,13 @@ function AppHeader({
       <header className="flex flex-row flex-wrap items-center border-b border-border pb-4 gap-2">
         {addSidebarTrigger && <SidebarTrigger className="-ml-1 md:hidden" />}
         <Separator orientation="vertical" className="mr-2 h-4 md:hidden" />
-        <div className="flex flex-col flex-1">
+        {icon}
+        <div className="flex flex-col flex-1 min-w-0">
           <div className="flex justify-between items-center flex-wrap gap-2">
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <h1 className="text-2xl lg:text-3xl font-semibold">{title}</h1>
               {description && (
-                <p className="hidden lg:inline text-muted-foreground">
+                <p className="text-xs sm:text-base text-muted-foreground">
                   {description}
                 </p>
               )}

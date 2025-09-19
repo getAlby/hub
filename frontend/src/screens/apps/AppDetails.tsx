@@ -197,7 +197,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
           <AppHeader
             title={
               <div className="flex flex-row gap-2 items-center">
-                <AppAvatar app={app} className="w-10 h-10" />
+                <AppAvatar app={app} className="w-10 h-10 shrink-0" />
                 <h2
                   title={appName}
                   className="text-xl font-semibold overflow-hidden text-ellipsis whitespace-nowrap"

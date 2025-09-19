@@ -37,8 +37,9 @@ func (svc *service) startNostr(ctx context.Context) error {
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
-		"npub": npub,
-		"hex":  svc.keys.GetNostrPublicKey(),
+		"npub":    npub,
+		"hex":     svc.keys.GetNostrPublicKey(),
+		"version": version.Tag,
 	}).Info("Starting Alby Hub")
 	svc.wg.Add(1)
 	go func() {

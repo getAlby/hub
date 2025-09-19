@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -286,4 +287,126 @@ func TestNotifications_FailedKnownPendingAndExistingFailedPayment(t *testing.T) 
 	for _, transaction := range transactions {
 		assert.Equal(t, constants.TRANSACTION_STATE_FAILED, transaction.State)
 	}
+}
+
+func TestNotifications_SentAfterMarkedPaymentFailed(t *testing.T) {
+	ctx := context.TODO()
+
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	// in this test, we marked a payment as failed (for whatever reason) but then later received a payment successful event.
+	// The second (pending) payment should be marked as failed.
+
+	svc.DB.Create(&db.Transaction{
+		State:          constants.TRANSACTION_STATE_FAILED,
+		Type:           constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		AmountMsat:     123000,
+		FeeReserveMsat: uint64(10000),
+	})
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+
+	transactionsService.ConsumeEvent(ctx, &events.Event{
+		Event:      "nwc_lnclient_payment_sent",
+		Properties: tests.MockLNClientTransaction,
+	}, map[string]interface{}{})
+
+	transactions, totalCount, err := transactionsService.ListTransactions(ctx, uint64(0), uint64(0), uint64(0), uint64(0), true, false, nil, svc.LNClient, nil, false)
+	assert.NoError(t, err)
+	assert.Equal(t, uint64(1), totalCount)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transactions[0].State)
+}
+
+func TestNotifications_SentAfterMarkedTwoPaymentsFailed(t *testing.T) {
+	ctx := context.TODO()
+
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	// in this test, we failed to pay twice but then later received a payment successful event.
+	// The second (latest) failed payment should be marked as settled.
+
+	svc.DB.Create(&db.Transaction{
+		State:          constants.TRANSACTION_STATE_FAILED,
+		Type:           constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		AmountMsat:     123000,
+		FeeReserveMsat: uint64(10000),
+		UpdatedAt:      time.Now().Add(-1 * time.Second),
+	})
+
+	latestFailedTransaction := &db.Transaction{
+		State:          constants.TRANSACTION_STATE_FAILED,
+		Type:           constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		AmountMsat:     123000,
+		FeeReserveMsat: uint64(10000),
+		UpdatedAt:      time.Now(),
+	}
+	svc.DB.Create(latestFailedTransaction)
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+
+	transactionsService.ConsumeEvent(ctx, &events.Event{
+		Event:      "nwc_lnclient_payment_sent",
+		Properties: tests.MockLNClientTransaction,
+	}, map[string]interface{}{})
+
+	transactions, totalCount, err := transactionsService.ListTransactions(ctx, uint64(0), uint64(0), uint64(0), uint64(0), true, false, nil, svc.LNClient, nil, false)
+	assert.NoError(t, err)
+	assert.Equal(t, uint64(2), totalCount)
+	assert.Equal(t, latestFailedTransaction.ID, transactions[0].ID)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transactions[0].State)
+	assert.Equal(t, constants.TRANSACTION_STATE_FAILED, transactions[1].State)
+}
+
+func TestNotifications_SentWithFailedAndPendingPayment(t *testing.T) {
+	ctx := context.TODO()
+
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	// in this test, we failed to pay once and retried (second attempt pending) then later received a payment successful event.
+	// The pending payment should be marked as settled.
+
+	svc.DB.Create(&db.Transaction{
+		State:          constants.TRANSACTION_STATE_FAILED,
+		Type:           constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		AmountMsat:     123000,
+		FeeReserveMsat: uint64(10000),
+	})
+
+	pendingTransaction := &db.Transaction{
+		State:          constants.TRANSACTION_STATE_PENDING,
+		Type:           constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		AmountMsat:     123000,
+		FeeReserveMsat: uint64(10000),
+	}
+	svc.DB.Create(pendingTransaction)
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+
+	transactionsService.ConsumeEvent(ctx, &events.Event{
+		Event:      "nwc_lnclient_payment_sent",
+		Properties: tests.MockLNClientTransaction,
+	}, map[string]interface{}{})
+
+	transactions, totalCount, err := transactionsService.ListTransactions(ctx, uint64(0), uint64(0), uint64(0), uint64(0), true, false, nil, svc.LNClient, nil, false)
+	assert.NoError(t, err)
+	assert.Equal(t, uint64(2), totalCount)
+	assert.Equal(t, pendingTransaction.ID, transactions[0].ID)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transactions[0].State)
+	assert.Equal(t, constants.TRANSACTION_STATE_FAILED, transactions[1].State)
 }

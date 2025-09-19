@@ -42,6 +42,7 @@ type LDKService struct {
 	node                               *ldk_node.Node
 	ldkEventBroadcaster                LDKEventBroadcaster
 	cancel                             context.CancelFunc
+	ctx                                context.Context
 	network                            string
 	eventPublisher                     events.EventPublisher
 	syncing                            bool
@@ -225,6 +226,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		eventPublisher:      eventPublisher,
 		cfg:                 cfg,
 		pubkey:              nodeId,
+		ctx:                 ldkCtx,
 	}
 
 	eventPublisher.RegisterSubscriber(&ls)
@@ -510,7 +512,7 @@ func (ls *LDKService) MakeOffer(ctx context.Context, description string) (string
 	return offer, nil
 }
 
-func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (ls *LDKService) SendPaymentSync(invoice string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
 	paymentRequest, err := decodepay.Decodepay(invoice)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -573,8 +575,8 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 
 	for {
 		select {
-		case <-ctx.Done():
-			return nil, ctx.Err()
+		case <-ls.ctx.Done():
+			return nil, ls.ctx.Err()
 
 		case ev := <-ldkEventSubscription:
 			switch event := (*ev).(type) {
@@ -582,13 +584,9 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 				if event.PaymentHash != paymentHash {
 					continue
 				}
-
-				logger.Logger.Info("Got payment success event")
-				payment := ls.node.Payment(paymentHash)
-				if payment == nil {
-					logger.Logger.WithField("payment_hash", paymentHash).Error("Couldn't find payment by payment hash")
-					return nil, errors.New("payment not found")
-				}
+				logger.Logger.WithFields(logrus.Fields{
+					"event": event,
+				}).Info("Got payment success event")
 
 				if event.PaymentPreimage == nil {
 					logger.Logger.WithField("payment_hash", paymentHash).Error("No payment preimage in payment success event")
@@ -624,7 +622,7 @@ func (ls *LDKService) SendPaymentSync(ctx context.Context, invoice string, amoun
 	}
 }
 
-func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+func (ls *LDKService) SendKeysend(amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	paymentStart := time.Now()
 	customTlvs := []ldk_node.TlvEntry{}
 
@@ -659,39 +657,42 @@ func (ls *LDKService) SendKeysend(ctx context.Context, amount uint64, destinatio
 	}
 	fee := uint64(0)
 	for {
-		event := <-ldkEventSubscription
+		select {
+		case <-ls.ctx.Done():
+			return nil, ls.ctx.Err()
+		case event := <-ldkEventSubscription:
 
-		eventPaymentSuccessful, isEventPaymentSuccessfulEvent := (*event).(ldk_node.EventPaymentSuccessful)
-		eventPaymentFailed, isEventPaymentFailedEvent := (*event).(ldk_node.EventPaymentFailed)
+			eventPaymentSuccessful, isEventPaymentSuccessfulEvent := (*event).(ldk_node.EventPaymentSuccessful)
+			eventPaymentFailed, isEventPaymentFailedEvent := (*event).(ldk_node.EventPaymentFailed)
 
-		if isEventPaymentSuccessfulEvent && eventPaymentSuccessful.PaymentHash == paymentHash {
-			logger.Logger.Info("Got payment success event")
+			if isEventPaymentSuccessfulEvent && eventPaymentSuccessful.PaymentHash == paymentHash {
+				logger.Logger.Info("Got payment success event")
 
-			if eventPaymentSuccessful.FeePaidMsat != nil {
-				fee = *eventPaymentSuccessful.FeePaidMsat
+				if eventPaymentSuccessful.FeePaidMsat != nil {
+					fee = *eventPaymentSuccessful.FeePaidMsat
+				}
+				logger.Logger.WithFields(logrus.Fields{
+					"duration": time.Since(paymentStart).Milliseconds(),
+					"fee":      fee,
+				}).Info("Successful keysend payment")
+				return &lnclient.PayKeysendResponse{
+					Fee: fee,
+				}, nil
 			}
-			break
-		}
-		if isEventPaymentFailedEvent && eventPaymentFailed.PaymentHash != nil && *eventPaymentFailed.PaymentHash == paymentHash {
+			if isEventPaymentFailedEvent && eventPaymentFailed.PaymentHash != nil && *eventPaymentFailed.PaymentHash == paymentHash {
 
-			failureReasonMessage := ls.getPaymentFailReason(&eventPaymentFailed)
+				failureReasonMessage := ls.getPaymentFailReason(&eventPaymentFailed)
 
-			logger.Logger.WithFields(logrus.Fields{
-				"payment_hash": paymentHash,
-				"reason":       failureReasonMessage,
-			}).Error("Received payment failed event")
+				logger.Logger.WithFields(logrus.Fields{
+					"payment_hash": paymentHash,
+					"reason":       failureReasonMessage,
+				}).Error("Received payment failed event")
 
-			return nil, fmt.Errorf("payment failed event: %s", failureReasonMessage)
+				return nil, fmt.Errorf("payment failed event: %s", failureReasonMessage)
+			}
 		}
 	}
 
-	logger.Logger.WithFields(logrus.Fields{
-		"duration": time.Since(paymentStart).Milliseconds(),
-		"fee":      fee,
-	}).Info("Successful keysend payment")
-	return &lnclient.PayKeysendResponse{
-		Fee: fee,
-	}, nil
 }
 
 func (ls *LDKService) getMaxReceivable() int64 {
@@ -716,7 +717,7 @@ func (ls *LDKService) getMaxSpendable() uint64 {
 	return spendable
 }
 
-func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
+func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
 
 	if time.Duration(expiry)*time.Second > maxInvoiceExpiry {
 		return nil, errors.New("expiry is too long")

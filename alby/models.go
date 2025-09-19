@@ -16,6 +16,8 @@ type AlbyService interface {
 type AlbyOAuthService interface {
 	events.EventSubscriber
 	GetLSPChannelOffer(ctx context.Context) (*LSPChannelOffer, error)
+	GetLSPInfo(ctx context.Context, lsp, network string) (*LSPInfo, error)
+	CreateLSPOrder(ctx context.Context, lsp, network string, lspChannelRequest *LSPChannelRequest) (*LSPChannelResponse, error)
 	GetAuthUrl() string
 	GetUserIdentifier() (string, error)
 	GetLightningAddress() (string, error)
@@ -119,7 +121,7 @@ type ChannelPeerSuggestion struct {
 	MaximumChannelSize    uint64  `json:"maximumChannelSize"`
 	Name                  string  `json:"name"`
 	Image                 string  `json:"image"`
-	Url                   string  `json:"url"`
+	Identifier            string  `json:"identifier"`
 	ContactUrl            string  `json:"contactUrl"`
 	Type                  string  `json:"type"`
 	Terms                 string  `json:"terms"`
@@ -149,6 +151,42 @@ type BitcoinRate struct {
 	RateFloat float64 `json:"rate_float"`
 	RateCents int64   `json:"rate_cents"`
 }
+
 type ErrorResponse struct {
 	Message string `json:"message"`
+}
+
+type LSPChannelPaymentBolt11 struct {
+	Invoice     string `json:"invoice"`
+	FeeTotalSat string `json:"fee_total_sat"`
+}
+
+type LSPChannelPayment struct {
+	Bolt11 LSPChannelPaymentBolt11 `json:"bolt11"`
+	// TODO: add onchain
+}
+
+type LSPChannelResponse struct {
+	Payment *LSPChannelPayment `json:"payment"`
+}
+
+type LSPChannelRequest struct {
+	PublicKey                    string `json:"public_key"`
+	LSPBalanceSat                string `json:"lsp_balance_sat"`
+	ClientBalanceSat             string `json:"client_balance_sat"`
+	RequiredChannelConfirmations uint64 `json:"required_channel_confirmations"`
+	FundingConfirmsWithinBlocks  uint64 `json:"funding_confirms_within_blocks"`
+	ChannelExpiryBlocks          uint64 `json:"channel_expiry_blocks"`
+	Token                        string `json:"token"`
+	RefundOnchainAddress         string `json:"refund_onchain_address"`
+	AnnounceChannel              bool   `json:"announce_channel"`
+}
+
+type LSPInfo struct {
+	Pubkey                          string
+	Address                         string
+	Port                            uint16
+	MaxChannelExpiryBlocks          uint64
+	MinRequiredChannelConfirmations uint64
+	MinFundingConfirmsWithinBlocks  uint64
 }

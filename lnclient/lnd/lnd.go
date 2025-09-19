@@ -430,7 +430,7 @@ func (svc *LNDService) Shutdown() error {
 	return nil
 }
 
-func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (svc *LNDService) SendPaymentSync(payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
 	const MAX_PARTIAL_PAYMENTS = 16
 
 	paymentRequest, err := decodepay.Decodepay(payReq)
@@ -455,7 +455,7 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amoun
 		sendRequest.AmtMsat = int64(*amount)
 	}
 
-	payStream, err := svc.client.SendPayment(ctx, sendRequest)
+	payStream, err := svc.client.SendPayment(svc.ctx, sendRequest)
 	if err != nil {
 		logger.Logger.WithField("bolt11", payReq).WithError(err).Error("SendPayment failed")
 		return nil, err
@@ -491,7 +491,7 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amoun
 	}, nil
 }
 
-func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+func (svc *LNDService) SendKeysend(amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	destBytes, err := hex.DecodeString(destination)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -541,7 +541,7 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 		FeeLimitMsat:      int64(transactions.CalculateFeeReserveMsat(amount)),
 	}
 
-	payStream, err := svc.client.SendPayment(ctx, sendPaymentRequest)
+	payStream, err := svc.client.SendPayment(svc.ctx, sendPaymentRequest)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"payment_hash": paymentHash,
@@ -599,7 +599,7 @@ func (svc *LNDService) getPaymentResult(stream routerrpc.Router_SendPaymentV2Cli
 	}
 }
 
-func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
+func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
 	var descriptionHashBytes []byte
 
 	if descriptionHash != "" {
@@ -628,6 +628,75 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, descriptio
 	for _, channel := range channels {
 		if channel.Active && channel.Public {
 			hasPublicChannels = true
+			break
+		}
+	}
+
+	var hints []*lnrpc.RouteHint
+	if !hasPublicChannels && throughNodePubkey != nil {
+		channelsRes, err := svc.client.ListChannels(ctx, &lnrpc.ListChannelsRequest{
+			PrivateOnly: true,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		for _, channel := range channelsRes.Channels {
+			if channel.RemotePubkey != *throughNodePubkey {
+				continue
+			}
+
+			chanInfo, err := svc.client.GetChanInfo(ctx, &lnrpc.ChanInfoRequest{
+				ChanId: channel.ChanId,
+			})
+			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"channel_id": channel.ChanId,
+				}).WithError(err).Error("Unable to get channel info")
+				continue
+			}
+
+			var remotePolicy *lnrpc.RoutingPolicy
+			if chanInfo.Node1Pub == channel.RemotePubkey {
+				remotePolicy = chanInfo.Node1Policy
+			} else {
+				remotePolicy = chanInfo.Node2Policy
+			}
+
+			if remotePolicy == nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"channel_id": channel.ChanId,
+				}).WithError(err).Error("Remote channel policy does not exist")
+				continue
+			}
+
+			channelId := chanInfo.ChannelId
+			if channel.PeerScidAlias != 0 {
+				channelId = channel.PeerScidAlias
+			}
+
+			hint := &lnrpc.RouteHint{
+				HopHints: []*lnrpc.HopHint{
+					{
+						NodeId:                    channel.RemotePubkey,
+						ChanId:                    channelId,
+						FeeBaseMsat:               uint32(remotePolicy.FeeBaseMsat),
+						FeeProportionalMillionths: uint32(remotePolicy.FeeRateMilliMsat),
+						CltvExpiryDelta:           remotePolicy.TimeLockDelta,
+					},
+				},
+			}
+
+			hints = append(hints, hint)
+			if len(hints) == 3 {
+				// limit to 3 channels
+				// NOTE: there is no check that the channels are online or have enough receiving capacity.
+				break
+			}
+		}
+
+		if len(hints) == 0 {
+			return nil, errors.New("no channel found for given throughNodePubkey")
 		}
 	}
 
@@ -636,6 +705,7 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, descriptio
 		Memo:            description,
 		DescriptionHash: descriptionHashBytes,
 		Expiry:          expiry,
+		RouteHints:      hints,
 		Private:         !hasPublicChannels, // use private channel hints in the invoice
 	}
 
