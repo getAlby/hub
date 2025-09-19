@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -50,7 +51,7 @@ type HttpService struct {
 
 func NewHttpService(svc service.Service, eventPublisher events.EventPublisher) *HttpService {
 	return &HttpService{
-		api:            api.NewAPI(svc, svc.GetDB(), svc.GetConfig(), svc.GetKeys(), svc.GetAlbySvc(), svc.GetAlbyOAuthSvc(), svc.GetEventPublisher()),
+		api:            api.NewAPI(svc, svc.GetDB(), svc.GetConfig(), svc.GetKeys(), svc.GetAlbySvc(), svc.GetAlbyOAuthSvc(), eventPublisher),
 		albyHttpSvc:    NewAlbyHttpService(svc, svc.GetAlbySvc(), svc.GetAlbyOAuthSvc(), svc.GetConfig().GetEnv()),
 		cfg:            svc.GetConfig(),
 		eventPublisher: eventPublisher,
@@ -320,6 +321,12 @@ func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 		})
 	}
 
+	if !slices.Contains([]string{"full", "readonly"}, unlockRequest.Permission) {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "Permission field is unknown",
+		})
+	}
+
 	token, err := httpSvc.createJWT(unlockRequest.TokenExpiryDays, unlockRequest.Permission)
 
 	if err != nil {
@@ -414,6 +421,10 @@ func (httpSvc *HttpService) autoUnlockHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) createJWT(tokenExpiryDays *uint64, permission string) (string, error) {
+	if !slices.Contains([]string{"full", "readonly"}, permission) {
+		return "", errors.New("invalid token permission")
+	}
+
 	expiryDays := uint64(30)
 	if tokenExpiryDays != nil {
 		expiryDays = *tokenExpiryDays
