@@ -2,6 +2,7 @@ import { ClipboardPasteIcon, MoveRightIcon, RefreshCwIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
+import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
@@ -128,6 +129,9 @@ function SwapInForm() {
         </p>
       </div>
       <div className="grid gap-1.5">
+        {hasChannelManagement && (
+          <AnchorReserveAlert amount={+swapAmount} className="mb-4" isSwap />
+        )}
         <Label>Swap amount</Label>
         <Input
           type="number"
