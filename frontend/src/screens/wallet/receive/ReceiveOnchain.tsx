@@ -10,6 +10,7 @@ import TickSVG from "public/images/illustrations/tick.svg";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
+import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
@@ -331,6 +332,9 @@ function ReceiveToSpending() {
           </Alert>
         )}
       <div className="grid gap-1.5">
+        {hasChannelManagement && (
+          <AnchorReserveAlert amount={+swapAmount} className="mb-4" isSwap />
+        )}
         <Label>Amount</Label>
         <InputWithAdornment
           type="number"

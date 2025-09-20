@@ -121,9 +121,6 @@ function SwapInForm() {
             0.8 * balances.lightning.totalReceivable && (
             <LowReceivingCapacityAlert />
           )}
-        {swapAmount && (
-          <AnchorReserveAlert amount={+swapAmount} className="mb-4" />
-        )}
         <h2 className="font-medium text-foreground flex items-center gap-1">
           On-chain <MoveRightIcon /> Lightning
         </h2>
@@ -132,6 +129,9 @@ function SwapInForm() {
         </p>
       </div>
       <div className="grid gap-1.5">
+        {hasChannelManagement && (
+          <AnchorReserveAlert amount={+swapAmount} className="mb-4" isSwap />
+        )}
         <Label>Swap amount</Label>
         <Input
           type="number"
