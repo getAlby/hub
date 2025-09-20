@@ -6,8 +6,10 @@ import { useChannels } from "src/hooks/useChannels";
 export function AnchorReserveAlert({
   amount,
   className,
+  isSwap,
 }: {
   amount: number;
+  isSwap?: boolean;
   className?: string;
 }) {
   const { data: balances } = useBalances();
@@ -18,6 +20,7 @@ export function AnchorReserveAlert({
   }
 
   const showAlert =
+    amount &&
     !!channels.length &&
     +amount > balances.onchain.spendable - channels.length * 25000;
 
@@ -26,15 +29,16 @@ export function AnchorReserveAlert({
   }
 
   return (
-    <Alert className={className}>
+    <Alert className={className} variant="warning">
       <AlertTriangleIcon className="h-4 w-4" />
-      <AlertTitle>Channel Anchor Reserves may be depleted</AlertTitle>
+      <AlertTitle>Channel Anchor Reserves will be depleted</AlertTitle>
       <AlertDescription>
-        You have channels open and this withdrawal may deplete your anchor
-        reserves which may make it harder to close channels without depositing
-        additional onchain funds to your savings balance. To avoid this, set
-        aside at least {new Intl.NumberFormat().format(channels.length * 25000)}{" "}
-        sats on-chain.
+        You have channels open and by spending your entire on-chain balance
+        including your anchor reserves may put your node at risk of unable to
+        reclaim funds in your channel after a force-closure. To prevent this,
+        set aside at least{" "}
+        {new Intl.NumberFormat().format(channels.length * 25000)} sats on-chain
+        {isSwap ? ", or pay with an external on-chain wallet." : "."}
       </AlertDescription>
     </Alert>
   );
