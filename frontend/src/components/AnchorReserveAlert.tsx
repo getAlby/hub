@@ -29,7 +29,7 @@ export function AnchorReserveAlert({
   }
 
   return (
-    <Alert className={className}>
+    <Alert className={className} variant="warning">
       <AlertTriangleIcon className="h-4 w-4" />
       <AlertTitle>Channel Anchor Reserves will be depleted</AlertTitle>
       <AlertDescription>
