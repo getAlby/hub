@@ -13,16 +13,16 @@ import (
 )
 
 type getInfoResponse struct {
-	Alias            string      `json:"alias"`
-	Color            string      `json:"color"`
-	Pubkey           string      `json:"pubkey"`
-	Network          string      `json:"network"`
-	BlockHeight      uint32      `json:"block_height"`
-	BlockHash        string      `json:"block_hash"`
+	Alias            string      `json:"alias,omitempty"`
+	Color            string      `json:"color,omitempty"`
+	Pubkey           string      `json:"pubkey,omitempty"`
+	Network          string      `json:"network,omitempty"`
+	BlockHeight      uint32      `json:"block_height,omitempty"`
+	BlockHash        string      `json:"block_hash,omitempty"`
 	Methods          []string    `json:"methods"`
 	Notifications    []string    `json:"notifications"`
 	Metadata         interface{} `json:"metadata,omitempty"`
-	LightningAddress string      `json:"lud16"`
+	LightningAddress string      `json:"lud16,omitempty"`
 }
 
 func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc) {
