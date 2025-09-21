@@ -10,6 +10,7 @@ import { SwapAlert } from "src/components/channels/SwapAlert";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
+import { Alert, AlertDescription } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
@@ -463,7 +464,12 @@ function NewChannelInternal({
               </div>
               <div>
                 <div className="font-medium text-muted-foreground">Amount</div>
-                <div>{formatAmount(parseInt(order.amount || "0"))} sats</div>
+                <div>
+                  {new Intl.NumberFormat().format(
+                    parseInt(order.amount || "0")
+                  )}{" "}
+                  sats
+                </div>
               </div>
               <div>
                 <div className="font-medium text-muted-foreground">
@@ -490,13 +496,14 @@ function NewChannelInternal({
               </div>
             )}
 
-            <div className="p-4 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
-              <div className="text-sm text-orange-800 dark:text-orange-200">
+            <Alert variant="warning">
+              <InfoIcon />
+              <AlertDescription>
                 <strong>Important:</strong> Opening a channel requires an
                 on-chain transaction and network fees. This action cannot be
                 undone. Please verify all details before proceeding.
-              </div>
-            </div>
+              </AlertDescription>
+            </Alert>
           </div>
 
           <DialogFooter className="gap-2">
@@ -506,10 +513,7 @@ function NewChannelInternal({
             >
               Cancel
             </Button>
-            <Button
-              onClick={handleConfirmSubmit}
-              className="bg-orange-500 hover:bg-orange-600"
-            >
+            <Button onClick={handleConfirmSubmit}>
               Confirm & Open Channel
             </Button>
           </DialogFooter>
