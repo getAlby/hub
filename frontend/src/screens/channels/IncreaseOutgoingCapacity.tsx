@@ -14,6 +14,14 @@ import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LinkButton } from "src/components/ui/custom/link-button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import {
@@ -88,6 +96,8 @@ function NewChannelInternal({
     RecommendedChannelPeer | undefined
   >();
 
+  const [showConfirmModal, setShowConfirmModal] = React.useState(false);
+
   const channelPeerSuggestions = React.useMemo(() => {
     const customOption: RecommendedChannelPeer = {
       name: "Custom",
@@ -156,7 +166,10 @@ function NewChannelInternal({
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
+    setShowConfirmModal(true);
+  }
 
+  function handleConfirmSubmit() {
     try {
       if (!channels) {
         throw new Error("Channels not loaded");
@@ -175,12 +188,13 @@ function NewChannelInternal({
       }
 
       useChannelOrderStore.getState().setOrder(order as NewChannelOrder);
+      setShowConfirmModal(false);
       navigate("/channels/order");
     } catch (error) {
       toast.error("Something went wrong", {
-        description: "" + error,
+        description: `${error}`,
       });
-      console.error(error);
+      setShowConfirmModal(false);
     }
   }
 
@@ -429,6 +443,78 @@ function NewChannelInternal({
           </ExternalLinkButton>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Channel Opening</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to open a Lightning channel with the
+              following details?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <div className="font-medium text-muted-foreground">Peer</div>
+                <div>{selectedPeer?.name || "Custom"}</div>
+              </div>
+              <div>
+                <div className="font-medium text-muted-foreground">Amount</div>
+                <div>{formatAmount(parseInt(order.amount || "0"))} sats</div>
+              </div>
+              <div>
+                <div className="font-medium text-muted-foreground">
+                  Channel Type
+                </div>
+                <div>{order.isPublic ? "Public" : "Private"}</div>
+              </div>
+              <div>
+                <div className="font-medium text-muted-foreground">
+                  Payment Method
+                </div>
+                <div>On-chain</div>
+              </div>
+            </div>
+
+            {selectedPeer?.name === "Custom" && order.pubkey && (
+              <div className="text-sm">
+                <div className="font-medium text-muted-foreground">
+                  Node Public Key
+                </div>
+                <div className="font-mono text-xs break-all bg-muted p-2 rounded">
+                  {order.pubkey}
+                </div>
+              </div>
+            )}
+
+            <div className="p-4 bg-orange-50 dark:bg-orange-950/20 rounded-lg border border-orange-200 dark:border-orange-800">
+              <div className="text-sm text-orange-800 dark:text-orange-200">
+                <strong>Important:</strong> Opening a channel requires an
+                on-chain transaction and network fees. This action cannot be
+                undone. Please verify all details before proceeding.
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmSubmit}
+              className="bg-orange-500 hover:bg-orange-600"
+            >
+              Confirm & Open Channel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
