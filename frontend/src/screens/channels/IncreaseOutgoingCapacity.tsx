@@ -463,7 +463,9 @@ function NewChannelInternal({
               </div>
               <div>
                 <div className="font-medium text-muted-foreground">Amount</div>
-                <div>{formatAmount(parseInt(order.amount || "0"))} sats</div>
+                <div>
+                  {formatAmount(parseInt(order.amount || "0") * 1000)} sats
+                </div>
               </div>
               <div>
                 <div className="font-medium text-muted-foreground">
