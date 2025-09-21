@@ -13,12 +13,12 @@ import (
 )
 
 type getInfoResponse struct {
-	Alias            string      `json:"alias,omitempty"`
-	Color            string      `json:"color,omitempty"`
-	Pubkey           string      `json:"pubkey,omitempty"`
-	Network          string      `json:"network,omitempty"`
-	BlockHeight      uint32      `json:"block_height,omitempty"`
-	BlockHash        string      `json:"block_hash,omitempty"`
+	Alias            *string     `json:"alias,omitempty"`
+	Color            *string     `json:"color,omitempty"`
+	Pubkey           *string     `json:"pubkey,omitempty"`
+	Network          *string     `json:"network,omitempty"`
+	BlockHeight      *uint32     `json:"block_height,omitempty"`
+	BlockHash        *string     `json:"block_hash,omitempty"`
 	Methods          []string    `json:"methods"`
 	Notifications    []string    `json:"notifications"`
 	Metadata         interface{} `json:"metadata,omitempty"`
@@ -64,12 +64,12 @@ func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47
 			network = "mainnet"
 		}
 
-		responsePayload.Alias = info.Alias
-		responsePayload.Color = info.Color
-		responsePayload.Pubkey = info.Pubkey
-		responsePayload.Network = network
-		responsePayload.BlockHeight = info.BlockHeight
-		responsePayload.BlockHash = info.BlockHash
+		responsePayload.Alias = &info.Alias
+		responsePayload.Color = &info.Color
+		responsePayload.Pubkey = &info.Pubkey
+		responsePayload.Network = &network
+		responsePayload.BlockHeight = &info.BlockHeight
+		responsePayload.BlockHash = &info.BlockHash
 
 		if app != nil {
 			metadata := map[string]interface{}{}
