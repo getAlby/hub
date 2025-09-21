@@ -13,12 +13,12 @@ import (
 )
 
 type getInfoResponse struct {
-	Alias            *string     `json:"alias,omitempty"`
-	Color            *string     `json:"color,omitempty"`
-	Pubkey           *string     `json:"pubkey,omitempty"`
-	Network          *string     `json:"network,omitempty"`
-	BlockHeight      *uint32     `json:"block_height,omitempty"`
-	BlockHash        *string     `json:"block_hash,omitempty"`
+	Alias            *string     `json:"alias"`
+	Color            *string     `json:"color"`
+	Pubkey           *string     `json:"pubkey"`
+	Network          *string     `json:"network"`
+	BlockHeight      *uint32     `json:"block_height"`
+	BlockHash        *string     `json:"block_hash"`
 	Methods          []string    `json:"methods"`
 	Notifications    []string    `json:"notifications"`
 	Metadata         interface{} `json:"metadata,omitempty"`
