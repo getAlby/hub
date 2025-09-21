@@ -21,7 +21,6 @@ import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
@@ -142,16 +141,13 @@ export function SubwalletList() {
 
       <div className="flex flex-col sm:flex-row flex-wrap gap-4 slashed-zero">
         <Card className="flex flex-1 flex-col">
-          <CardHeader className="pb-2 space-y-0">
+          <CardHeader className="pb-2">
             <CardTitle className="text-lg">
               Total Balance of Sub-wallets
             </CardTitle>
-            <CardDescription className="mt-0">
-              Total amount of assets under management
-            </CardDescription>
           </CardHeader>
           <CardContent className="grow">
-            <div className="mt-4 mb-1">
+            <div className="mb-1">
               <span className="text-2xl font-medium balance sensitive">
                 {new Intl.NumberFormat().format(
                   Math.floor(subwalletTotalAmount / 1000)
@@ -163,14 +159,11 @@ export function SubwalletList() {
           </CardContent>
         </Card>
         <Card className="flex flex-1 flex-col">
-          <CardHeader className="pb-2 space-y-0">
-            <CardTitle className="text-lg">Active Sub-wallets</CardTitle>
-            <CardDescription className="mt-0">
-              Number of Sub-wallets backed by your node funds
-            </CardDescription>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Number of Sub-wallets</CardTitle>
           </CardHeader>
           <CardContent className="grow flex flex-col gap-4">
-            <div className="flex flex-col gap-2 mt-4">
+            <div className="flex flex-col gap-2">
               <span className="text-2xl font-medium">
                 {subwalletApps.length} /{" "}
                 {albyMe?.subscription.plan_code ? "∞" : 3}
