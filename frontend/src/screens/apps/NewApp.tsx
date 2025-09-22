@@ -59,7 +59,6 @@ type NewAppInternalProps = {
 
 const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   const location = useLocation();
-  const navigate = useNavigate();
 
   const [unsupportedError, setUnsupportedError] = useState<string>();
   const [isLoading, setLoading] = React.useState(false);
@@ -293,7 +292,6 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       toast("App created");
       setCreateAppResponse(createAppResponse);
       if (pubkey) {
-        navigate(`/apps/${createAppResponse.id}`);
         return;
       }
 
@@ -335,6 +333,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
             <Stepper.Navigation>
               {methods.all.map((step) => (
                 <Stepper.Step
+                  key={step.id}
                   of={step.id}
                   onClick={() =>
                     methods.current.id === "configure" && step.id === "install"
