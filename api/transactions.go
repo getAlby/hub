@@ -101,7 +101,6 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 		if jsonErr != nil {
 			logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
 				"payment_hash": transaction.PaymentHash,
-				"boostagram":   transaction.Boostagram,
 			}).Error("Failed to deserialize transaction boostagram info")
 		}
 		boostagram = toApiBoostagram(&txBoostagram)
