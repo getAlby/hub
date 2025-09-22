@@ -442,7 +442,7 @@ func (svc *transactionsService) SendKeysend(amount uint64, destination string, c
 		logger.Logger.WithError(err).Error("Failed to serialize transaction metadata")
 		return nil, err
 	}
-	boostagramBytes := svc.getBoostagramFromCustomRecords(customRecords)
+	boostagramBytes := svc.getBoostagramBytesFromCustomRecords(customRecords)
 
 	var dbTransaction db.Transaction
 
@@ -752,7 +752,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 
 					var customRecords []lnclient.TLVRecord
 					customRecords, _ = lnClientTransaction.Metadata["tlv_records"].([]lnclient.TLVRecord)
-					boostagramBytes = svc.getBoostagramFromCustomRecords(customRecords)
+					boostagramBytes = svc.getBoostagramBytesFromCustomRecords(customRecords)
 					extractedDescription := svc.getDescriptionFromCustomRecords(customRecords)
 					if extractedDescription != "" {
 						description = extractedDescription
@@ -1106,13 +1106,22 @@ func makePreimageHex() ([]byte, error) {
 	return bytes, nil
 }
 
-func (svc *transactionsService) getBoostagramFromCustomRecords(customRecords []lnclient.TLVRecord) []byte {
+func (svc *transactionsService) getBoostagramBytesFromCustomRecords(customRecords []lnclient.TLVRecord) []byte {
 	for _, record := range customRecords {
 		if record.Type == BoostagramTlvType {
 			bytes, err := hex.DecodeString(record.Value)
 			if err != nil {
+				logger.Logger.WithError(err).Error("failed to decode boostagram tlv hex value")
 				return nil
 			}
+
+			// ensure the boostagram is valid json
+			var boostagram Boostagram
+			if err := json.Unmarshal(bytes, &boostagram); err != nil {
+				logger.Logger.WithError(err).Error("failed to unmarshal boostagram to json")
+				return nil
+			}
+
 			return bytes
 		}
 	}
