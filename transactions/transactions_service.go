@@ -1111,14 +1111,14 @@ func (svc *transactionsService) getBoostagramBytesFromCustomRecords(customRecord
 		if record.Type == BoostagramTlvType {
 			bytes, err := hex.DecodeString(record.Value)
 			if err != nil {
-				logger.Logger.WithError(err).Error("failed to decode boostagram tlv hex value")
+				logger.Logger.WithField("value", record.Value).WithError(err).Error("failed to decode boostagram tlv hex value")
 				return nil
 			}
 
 			// ensure the boostagram is valid json
 			var boostagram Boostagram
 			if err := json.Unmarshal(bytes, &boostagram); err != nil {
-				logger.Logger.WithError(err).Error("failed to unmarshal boostagram to json")
+				logger.Logger.WithField("value", string(bytes)).WithError(err).Error("failed to unmarshal boostagram to json")
 				return nil
 			}
 
