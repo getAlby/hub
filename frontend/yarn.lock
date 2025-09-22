@@ -2174,17 +2174,17 @@
   resolved "https://registry.yarnpkg.com/@standard-schema/utils/-/utils-0.3.0.tgz#3d5e608f16c2390c10528e98e59aef6bf73cae7b"
   integrity sha512-e7Mew686owMaPJVNNLs55PUvgz371nKgwsc4vxE49zsODpJEnxgxRo2y/OKrqueavXgZNMDVj3DdHFlaSAeU8g==
 
-"@stepperize/core@1.2.6":
-  version "1.2.6"
-  resolved "https://registry.yarnpkg.com/@stepperize/core/-/core-1.2.6.tgz#b039f22ae8f0b2ca8dbdffecfec37aefd6917375"
-  integrity sha512-6qUGCyI/Rq9tskBCwzJFwOpnT+uCRJTjwCwMiymnCA3utkvejOvfj6EPte21lMJNiqMuMhhKNFukX6ooI/2uSQ==
+"@stepperize/core@1.2.7":
+  version "1.2.7"
+  resolved "https://registry.yarnpkg.com/@stepperize/core/-/core-1.2.7.tgz#b26d07787c44468be823eb7d3684d2e1812efeb1"
+  integrity sha512-XiUwLZ0XRAfaDK6AzWVgqvI/BcrylyplhUXKO8vzgRw0FTmyMKHAAbQLDvU//ZJAqnmG2cSLZDSkcwLxU5zSYA==
 
-"@stepperize/react@^5.1.6":
-  version "5.1.6"
-  resolved "https://registry.yarnpkg.com/@stepperize/react/-/react-5.1.6.tgz#c1ce66b2e6adc95be44d9be9e1ec3b4e30cd6ac1"
-  integrity sha512-XYDcZih8aqXWudyseTNiZLfD8mDZGbiDjd4pN+Xt5J2Z/N6rq4Xn7KLFxoc3jguWdokcseiv6hkBBVpEzTwfVQ==
+"@stepperize/react@^5.1.8":
+  version "5.1.8"
+  resolved "https://registry.yarnpkg.com/@stepperize/react/-/react-5.1.8.tgz#e4a402e03b6de99538cd4af7c55e68479b5bdd8b"
+  integrity sha512-/s8+YoVjX2+kPRxEMrmJZLX9jnVa/tKS+7Ru6ZUvBNSmbIopf0deylMv8hE2E5Il4T/UI2aSX/d3mKu8gugomw==
   dependencies:
-    "@stepperize/core" "1.2.6"
+    "@stepperize/core" "1.2.7"
 
 "@surma/rollup-plugin-off-main-thread@^2.2.3":
   version "2.2.3"
