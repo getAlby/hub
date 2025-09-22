@@ -110,7 +110,7 @@ export default function ConfirmPayment() {
               />
             </div>
             {invoice.description && (
-              <p className="text-lg text-muted-foreground">
+              <p className="text-lg text-muted-foreground break-anywhere">
                 {invoice.description}
               </p>
             )}
