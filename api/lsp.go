@@ -136,10 +136,10 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderReques
 		ClientBalanceSat:             "0",
 		RequiredChannelConfirmations: requiredChannelConfirmations,
 		FundingConfirmsWithinBlocks:  minFundingConfirmsWithinBlocks,
-		ChannelExpiryBlocks:          channelExpiryBlocks,
-		Token:                        token,
-		RefundOnchainAddress:         refundAddress,
-		AnnounceChannel:              request.Public,
+		// ChannelExpiryBlocks:          channelExpiryBlocks, // allow getalby.com to choose expiry instead (to reduce channel cost)
+		Token:                token,
+		RefundOnchainAddress: refundAddress,
+		AnnounceChannel:      request.Public,
 	}
 
 	channelResponse, err := api.albyOAuthSvc.CreateLSPOrder(ctx, request.LSPIdentifier, network, lsps1ChannelRequest)
