@@ -171,15 +171,15 @@ type LSPChannelResponse struct {
 }
 
 type LSPChannelRequest struct {
-	PublicKey                    string  `json:"public_key"`
-	LSPBalanceSat                string  `json:"lsp_balance_sat"`
-	ClientBalanceSat             string  `json:"client_balance_sat"`
-	RequiredChannelConfirmations uint64  `json:"required_channel_confirmations"`
-	FundingConfirmsWithinBlocks  uint64  `json:"funding_confirms_within_blocks"`
-	ChannelExpiryBlocks          *uint64 `json:"channel_expiry_blocks"`
-	Token                        string  `json:"token"`
-	RefundOnchainAddress         string  `json:"refund_onchain_address"`
-	AnnounceChannel              bool    `json:"announce_channel"`
+	PublicKey                    string `json:"public_key"`
+	LSPBalanceSat                string `json:"lsp_balance_sat"`
+	ClientBalanceSat             string `json:"client_balance_sat"`
+	RequiredChannelConfirmations uint64 `json:"required_channel_confirmations"`
+	FundingConfirmsWithinBlocks  uint64 `json:"funding_confirms_within_blocks"`
+	ChannelExpiryBlocks          uint64 `json:"channel_expiry_blocks"`
+	Token                        string `json:"token"`
+	RefundOnchainAddress         string `json:"refund_onchain_address"`
+	AnnounceChannel              bool   `json:"announce_channel"`
 }
 
 type LSPInfo struct {
