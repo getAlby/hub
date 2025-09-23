@@ -260,7 +260,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/tyler-smith/go-bip32 v1.0.0
 	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6 // indirect
-	gorm.io/datatypes v1.2.6
+	gorm.io/datatypes v1.2.7
 )
 
 // See https://github.com/lightningnetwork/lnd/blob/v0.17.4-beta/go.mod#L12C58-L12C70
