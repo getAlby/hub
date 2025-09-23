@@ -25,8 +25,8 @@ function AppHeader({
         <Separator orientation="vertical" className="mr-2 h-4 md:hidden" />
         {icon}
         <div className="flex flex-col flex-1 min-w-0">
-          <div className="flex justify-between items-center flex-wrap gap-2">
-            <div className="flex-1 min-w-0">
+          <div className="flex justify-between items-center flex-wrap gap-4">
+            <div className="flex-1 min-w-[200px]">
               <h1 className="text-2xl lg:text-3xl font-semibold">{title}</h1>
               {description && (
                 <p className="text-xs sm:text-base text-muted-foreground">
@@ -34,7 +34,9 @@ function AppHeader({
                 </p>
               )}
             </div>
-            <div className="flex gap-3 h-full">{contentRight}</div>
+            <div className="flex gap-3 h-full min-w-[200px]">
+              {contentRight}
+            </div>
           </div>
         </div>
       </header>
