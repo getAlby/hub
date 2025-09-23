@@ -49,7 +49,7 @@ export function SearchInput({
       <Input
         placeholder={placeholder}
         readOnly
-        className="cursor-pointer pl-8 pr-8"
+        className="cursor-pointer pl-8 pr-8 max-sm:w-32"
         onFocus={handleFocus}
         onKeyDown={handleKeyDown}
         tabIndex={0}
@@ -57,7 +57,7 @@ export function SearchInput({
       <SearchIcon className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
       <Badge
         variant="secondary"
-        className="absolute right-2 top-1/2 transform -translate-y-1/2 "
+        className="absolute right-2 top-1/2 transform -translate-y-1/2 max-sm:hidden"
       >
         <Command />K
       </Badge>
