@@ -33,8 +33,6 @@ func (albyHttpSvc *AlbyHttpService) RegisterSharedRoutes(readOnlyApiGroup *echo.
 	e.GET("/api/alby/info", albyHttpSvc.albyInfoHandler)
 	e.GET("/api/alby/rates", albyHttpSvc.albyBitcoinRateHandler)
 	readOnlyApiGroup.GET("/alby/me", albyHttpSvc.albyMeHandler)
-	readOnlyApiGroup.GET("/alby/balance", albyHttpSvc.albyBalanceHandler)
-	fullAccessApiGroup.POST("/alby/pay", albyHttpSvc.albyPayHandler)
 	fullAccessApiGroup.POST("/alby/link-account", albyHttpSvc.albyLinkAccountHandler)
 	fullAccessApiGroup.POST("/alby/auto-channel", albyHttpSvc.autoChannelHandler)
 	fullAccessApiGroup.POST("/alby/unlink-account", albyHttpSvc.unlinkHandler)
@@ -135,39 +133,6 @@ func (albyHttpSvc *AlbyHttpService) albyMeHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, me)
-}
-
-func (albyHttpSvc *AlbyHttpService) albyBalanceHandler(c echo.Context) error {
-	balance, err := albyHttpSvc.albyOAuthSvc.GetBalance(c.Request().Context())
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to request alby balance endpoint")
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to request alby balance endpoint: %s", err.Error()),
-		})
-	}
-
-	return c.JSON(http.StatusOK, &alby.AlbyBalanceResponse{
-		Sats: balance.Balance,
-	})
-}
-
-func (albyHttpSvc *AlbyHttpService) albyPayHandler(c echo.Context) error {
-	var payRequest alby.AlbyPayRequest
-	if err := c.Bind(&payRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Message: fmt.Sprintf("Bad request: %s", err.Error()),
-		})
-	}
-
-	err := albyHttpSvc.albyOAuthSvc.SendPayment(c.Request().Context(), payRequest.Invoice)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to request alby pay endpoint")
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to request alby pay endpoint: %s", err.Error()),
-		})
-	}
-
-	return c.NoContent(http.StatusNoContent)
 }
 
 func (albyHttpSvc *AlbyHttpService) albyLinkAccountHandler(c echo.Context) error {

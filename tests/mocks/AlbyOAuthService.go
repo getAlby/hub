@@ -330,62 +330,6 @@ func (_c *MockAlbyOAuthService_GetAuthUrl_Call) RunAndReturn(run func() string) 
 	return _c
 }
 
-// GetBalance provides a mock function for the type MockAlbyOAuthService
-func (_mock *MockAlbyOAuthService) GetBalance(ctx context.Context) (*alby.AlbyBalance, error) {
-	ret := _mock.Called(ctx)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetBalance")
-	}
-
-	var r0 *alby.AlbyBalance
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context) (*alby.AlbyBalance, error)); ok {
-		return returnFunc(ctx)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context) *alby.AlbyBalance); ok {
-		r0 = returnFunc(ctx)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*alby.AlbyBalance)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = returnFunc(ctx)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockAlbyOAuthService_GetBalance_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetBalance'
-type MockAlbyOAuthService_GetBalance_Call struct {
-	*mock.Call
-}
-
-// GetBalance is a helper method to define mock.On call
-//   - ctx
-func (_e *MockAlbyOAuthService_Expecter) GetBalance(ctx interface{}) *MockAlbyOAuthService_GetBalance_Call {
-	return &MockAlbyOAuthService_GetBalance_Call{Call: _e.mock.On("GetBalance", ctx)}
-}
-
-func (_c *MockAlbyOAuthService_GetBalance_Call) Run(run func(ctx context.Context)) *MockAlbyOAuthService_GetBalance_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
-	})
-	return _c
-}
-
-func (_c *MockAlbyOAuthService_GetBalance_Call) Return(albyBalance *alby.AlbyBalance, err error) *MockAlbyOAuthService_GetBalance_Call {
-	_c.Call.Return(albyBalance, err)
-	return _c
-}
-
-func (_c *MockAlbyOAuthService_GetBalance_Call) RunAndReturn(run func(ctx context.Context) (*alby.AlbyBalance, error)) *MockAlbyOAuthService_GetBalance_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetLSPChannelOffer provides a mock function for the type MockAlbyOAuthService
 func (_mock *MockAlbyOAuthService) GetLSPChannelOffer(ctx context.Context) (*alby.LSPChannelOffer, error) {
 	ret := _mock.Called(ctx)
@@ -908,52 +852,6 @@ func (_c *MockAlbyOAuthService_RequestAutoChannel_Call) Return(autoChannelRespon
 }
 
 func (_c *MockAlbyOAuthService_RequestAutoChannel_Call) RunAndReturn(run func(ctx context.Context, lnClient lnclient.LNClient, isPublic bool) (*alby.AutoChannelResponse, error)) *MockAlbyOAuthService_RequestAutoChannel_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// SendPayment provides a mock function for the type MockAlbyOAuthService
-func (_mock *MockAlbyOAuthService) SendPayment(ctx context.Context, invoice string) error {
-	ret := _mock.Called(ctx, invoice)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SendPayment")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = returnFunc(ctx, invoice)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockAlbyOAuthService_SendPayment_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SendPayment'
-type MockAlbyOAuthService_SendPayment_Call struct {
-	*mock.Call
-}
-
-// SendPayment is a helper method to define mock.On call
-//   - ctx
-//   - invoice
-func (_e *MockAlbyOAuthService_Expecter) SendPayment(ctx interface{}, invoice interface{}) *MockAlbyOAuthService_SendPayment_Call {
-	return &MockAlbyOAuthService_SendPayment_Call{Call: _e.mock.On("SendPayment", ctx, invoice)}
-}
-
-func (_c *MockAlbyOAuthService_SendPayment_Call) Run(run func(ctx context.Context, invoice string)) *MockAlbyOAuthService_SendPayment_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *MockAlbyOAuthService_SendPayment_Call) Return(err error) *MockAlbyOAuthService_SendPayment_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *MockAlbyOAuthService_SendPayment_Call) RunAndReturn(run func(ctx context.Context, invoice string) error) *MockAlbyOAuthService_SendPayment_Call {
 	_c.Call.Return(run)
 	return _c
 }

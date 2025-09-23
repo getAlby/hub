@@ -24,9 +24,7 @@ type AlbyOAuthService interface {
 	IsConnected(ctx context.Context) bool
 	LinkAccount(ctx context.Context, lnClient lnclient.LNClient, budget uint64, renewal string) error
 	CallbackHandler(ctx context.Context, code string, lnClient lnclient.LNClient) error
-	GetBalance(ctx context.Context) (*AlbyBalance, error)
 	GetMe(ctx context.Context) (*AlbyMe, error)
-	SendPayment(ctx context.Context, invoice string) error
 	UnlinkAccount(ctx context.Context) error
 	RequestAutoChannel(ctx context.Context, lnClient lnclient.LNClient, isPublic bool) (*AutoChannelResponse, error)
 	GetVssAuthToken(ctx context.Context, nodeIdentifier string) (string, error)
@@ -38,14 +36,6 @@ type AlbyOAuthService interface {
 type CreateLightningAddressResponse struct {
 	Address     string `json:"address"`
 	FullAddress string `json:"full_address"`
-}
-
-type AlbyBalanceResponse struct {
-	Sats int64 `json:"sats"`
-}
-
-type AlbyPayRequest struct {
-	Invoice string `json:"invoice"`
 }
 
 type AlbyLinkAccountRequest struct {
@@ -104,12 +94,6 @@ type AlbyMe struct {
 	SharedNode       bool               `json:"shared_node"`
 	Hub              AlbyMeHub          `json:"hub"`
 	Subscription     AlbyMeSubscription `json:"subscription"`
-}
-
-type AlbyBalance struct {
-	Balance  int64  `json:"balance"`
-	Unit     string `json:"unit"`
-	Currency string `json:"currency"`
 }
 
 type ChannelPeerSuggestion struct {
