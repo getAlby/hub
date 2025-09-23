@@ -41,7 +41,7 @@ export default function SwapOutStatus() {
     SUCCESS: "Swap Successful",
     FAILED: "Swap Failed",
     PENDING: swap.lockupTxId
-      ? "Waiting for confirmation"
+      ? "Waiting for 1 confirmation"
       : "Making lightning payment",
   };
 
@@ -55,11 +55,12 @@ export default function SwapOutStatus() {
               {swapStatus === "PENDING" && <Loading className="w-4 h-4 mr-2" />}
               {statusText[swapStatus]}
             </CardTitle>
-            {swap.autoSwap && (
-              <CardDescription className="flex justify-center">
-                Auto swap{swap.usedXpub && <> to xpub</>}
-              </CardDescription>
-            )}
+            <CardDescription className="flex justify-center text-muted-foreground text-sm">
+              {swap.autoSwap && (
+                <span>Auto swap{swap.usedXpub && <> to xpub</>} • </span>
+              )}
+              Swap ID: {swap.id}
+            </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
             {swapStatus === "SUCCESS" ? (

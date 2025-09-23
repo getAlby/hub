@@ -20,6 +20,7 @@ import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
@@ -126,7 +127,7 @@ export default function SwapInStatus() {
     FAILED: "Swap Failed",
     REFUNDED: "Swap Refunded",
     PENDING: swap.lockupTxId
-      ? "Waiting for confirmation"
+      ? "Waiting for 1 confirmation"
       : "Waiting for deposit",
   };
 
@@ -140,6 +141,9 @@ export default function SwapInStatus() {
               {swapStatus === "PENDING" && <Loading className="w-4 h-4 mr-2" />}
               {statusText[swapStatus]}
             </CardTitle>
+            <CardDescription className="flex justify-center text-muted-foreground text-sm">
+              Swap ID: {swap.id}
+            </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
             {swapStatus === "SUCCESS" ? (
@@ -247,7 +251,7 @@ export default function SwapInStatus() {
                     <div className="flex items-center text-muted-foreground text-sm">
                       <Loading className="w-5 h-5 mr-2" />
                       <div className="flex items-center gap-2">
-                        <p>Waiting for confirmation...</p>
+                        <p>Waiting for 1 confirmation...</p>
                         <ExternalLink
                           to={`${info?.mempoolUrl}/tx/${swap.lockupTxId}`}
                           className="flex items-center underline text-foreground"
