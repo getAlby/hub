@@ -22,7 +22,7 @@ type getInfoResponse struct {
 	Methods          []string    `json:"methods"`
 	Notifications    []string    `json:"notifications"`
 	Metadata         interface{} `json:"metadata,omitempty"`
-	LightningAddress string      `json:"lud16,omitempty"`
+	LightningAddress *string     `json:"lud16"`
 }
 
 func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc) {
@@ -90,7 +90,10 @@ func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47
 			}
 			if !app.Isolated {
 				lightningAddress, _ := controller.albyOAuthService.GetLightningAddress()
-				responsePayload.LightningAddress = lightningAddress
+				responsePayload.LightningAddress = &lightningAddress
+			} else if metadata["app_store_app_id"] == "uncle_jim" && metadata["lud16"] != nil {
+				lightningAddress := metadata["lud16"].(string)
+				responsePayload.LightningAddress = &lightningAddress
 			}
 
 			responsePayload.Metadata = metadata
