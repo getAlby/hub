@@ -55,11 +55,18 @@ export default function SwapOutStatus() {
               {swapStatus === "PENDING" && <Loading className="w-4 h-4 mr-2" />}
               {statusText[swapStatus]}
             </CardTitle>
-            {swap.autoSwap && (
-              <CardDescription className="flex justify-center">
-                Auto swap{swap.usedXpub && <> to xpub</>}
-              </CardDescription>
-            )}
+            <CardDescription className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
+              {swap.autoSwap && (
+                <span>Auto swap{swap.usedXpub && <> to xpub</>} • </span>
+              )}
+              Swap ID: {swap.id}{" "}
+              <CopyIcon
+                className="cursor-pointer text-muted-foreground size-4"
+                onClick={() => {
+                  copyToClipboard(swap.id);
+                }}
+              />
+            </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
             {swapStatus === "SUCCESS" ? (
@@ -124,8 +131,8 @@ export default function SwapOutStatus() {
                           <p>
                             Waiting for{" "}
                             {swap.claimTxId
-                              ? "onchain confirmation"
-                              : "2 onchain confirmations"}
+                              ? "1 on-chain confirmation"
+                              : "2 on-chain confirmations"}
                             ...
                           </p>
                           <ExternalLink
