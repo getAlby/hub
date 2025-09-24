@@ -449,12 +449,7 @@ export type LSPChannelOffer = {
   lspBalanceSat: number;
   feeTotalSat: number;
   feeTotalUsd: number;
-  currentPaymentMethod:
-    | "card"
-    | "wallet"
-    | "prepaid"
-    | "fee_credits"
-    | "included";
+  currentPaymentMethod: "card" | "wallet" | "prepaid" | "included";
   terms: string;
 };
 
@@ -520,10 +515,6 @@ export type AlbyMe = {
   subscription: {
     plan_code: string;
   };
-};
-
-export type AlbyBalance = {
-  sats: number;
 };
 
 export type LSPOrderRequest = {
