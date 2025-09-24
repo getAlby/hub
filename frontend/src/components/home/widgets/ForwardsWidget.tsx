@@ -58,7 +58,7 @@ export function ForwardsWidget() {
           </p>
           <ExternalLinkButton
             variant="secondary"
-            to="https://guides.getalby.com/user-guide/alby-hub/faq/how-can-i-change-routing-fees#changing-the-routing-fee"
+            to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-earn-routing-fees"
           >
             Learn more
           </ExternalLinkButton>
