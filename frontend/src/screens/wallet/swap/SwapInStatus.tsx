@@ -127,7 +127,7 @@ export default function SwapInStatus() {
     FAILED: "Swap Failed",
     REFUNDED: "Swap Refunded",
     PENDING: swap.lockupTxId
-      ? "Waiting for 1 confirmation"
+      ? "Waiting for confirmation"
       : "Waiting for deposit",
   };
 
@@ -141,8 +141,14 @@ export default function SwapInStatus() {
               {swapStatus === "PENDING" && <Loading className="w-4 h-4 mr-2" />}
               {statusText[swapStatus]}
             </CardTitle>
-            <CardDescription className="flex justify-center text-muted-foreground text-sm">
-              Swap ID: {swap.id}
+            <CardDescription className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
+              Swap ID: {swap.id}{" "}
+              <CopyIcon
+                className="cursor-pointer text-muted-foreground size-4"
+                onClick={() => {
+                  copyToClipboard(swap.id);
+                }}
+              />
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
@@ -251,7 +257,7 @@ export default function SwapInStatus() {
                     <div className="flex items-center text-muted-foreground text-sm">
                       <Loading className="w-5 h-5 mr-2" />
                       <div className="flex items-center gap-2">
-                        <p>Waiting for 1 confirmation...</p>
+                        <p>Waiting for 1 on-chain confirmation...</p>
                         <ExternalLink
                           to={`${info?.mempoolUrl}/tx/${swap.lockupTxId}`}
                           className="flex items-center underline text-foreground"
