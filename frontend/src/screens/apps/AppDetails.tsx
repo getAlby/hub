@@ -124,59 +124,16 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const [savedPermissions, setSavedPermissions] =
     React.useState<AppPermissions>(permissions);
 
-  // Helper to build minimal update request with only changed fields
-  const buildMinimalUpdateRequest = (): UpdateAppRequest => {
-    const updateRequest: UpdateAppRequest = {};
-
-    // Only include name if it changed
-    if (name !== app.name) {
-      updateRequest.name = name;
-    }
-
-    // Only include scopes if they changed
-    const currentScopesSet = new Set(permissions.scopes);
-    const savedScopesSet = new Set(savedPermissions.scopes);
-    if (
-      currentScopesSet.size !== savedScopesSet.size ||
-      !Array.from(currentScopesSet).every((scope) => savedScopesSet.has(scope))
-    ) {
-      updateRequest.scopes = Array.from(permissions.scopes);
-    }
-
-    // Only include maxAmount if it changed
-    if (permissions.maxAmount !== savedPermissions.maxAmount) {
-      updateRequest.maxAmount = permissions.maxAmount;
-    }
-
-    // Only include budgetRenewal if it changed
-    if (permissions.budgetRenewal !== savedPermissions.budgetRenewal) {
-      updateRequest.budgetRenewal = permissions.budgetRenewal;
-    }
-
-    // Only include expiresAt if it changed
-    const currentExpiresAt = permissions.expiresAt?.toISOString();
-    const savedExpiresAt = savedPermissions.expiresAt?.toISOString();
-    if (currentExpiresAt !== savedExpiresAt) {
-      updateRequest.expiresAt = currentExpiresAt;
-    }
-
-    // Only include isolated if it changed
-    if (permissions.isolated !== savedPermissions.isolated) {
-      updateRequest.isolated = permissions.isolated;
-    }
-
-    return updateRequest;
-  };
-
   const handleSave = async () => {
     try {
-      const updateAppRequest = buildMinimalUpdateRequest();
-
-      // Only proceed if there are changes
-      if (Object.keys(updateAppRequest).length === 0) {
-        toast("No changes to save");
-        return;
-      }
+      const updateAppRequest: UpdateAppRequest = {
+        name,
+        scopes: Array.from(permissions.scopes),
+        budgetRenewal: permissions.budgetRenewal,
+        expiresAt: permissions.expiresAt?.toISOString(),
+        maxAmount: permissions.maxAmount,
+        isolated: permissions.isolated,
+      };
 
       await request(`/api/apps/${app.appPubkey}`, {
         method: "PATCH",
