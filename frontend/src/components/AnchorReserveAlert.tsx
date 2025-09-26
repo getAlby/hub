@@ -3,15 +3,19 @@ import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 
-export function AnchorReserveAlert({
-  amount,
-  className,
-  isSwap,
-}: {
+interface AnchorReserveAlertProps {
   amount: number;
   isSwap?: boolean;
   className?: string;
-}) {
+  context?: "spend" | "receive" | "swap";
+}
+
+export default function AnchorReserveAlert({
+  amount,
+  isSwap = false,
+  className,
+  context = "spend", // Default for backward compatibility
+}: AnchorReserveAlertProps) {
   const { data: balances } = useBalances();
   const { data: channels } = useChannels();
 
@@ -29,16 +33,28 @@ export function AnchorReserveAlert({
   }
 
   return (
-    <Alert className={className} variant="warning">
+    <Alert className={className} variant="default">
       <AlertTriangleIcon className="h-4 w-4" />
-      <AlertTitle>Channel Anchor Reserves will be depleted</AlertTitle>
+      <AlertTitle>Consider your channel anchor reserves</AlertTitle>
       <AlertDescription>
-        You have channels open and by spending your entire on-chain balance
-        including your anchor reserves may put your node at risk of unable to
-        reclaim funds in your channel after a force-closure. To prevent this,
-        set aside at least{" "}
-        {new Intl.NumberFormat().format(channels.length * 25000)} sats on-chain
-        {isSwap ? ", or pay with an external on-chain wallet." : "."}
+        You have {channels.length} channel{channels.length > 1 ? "s" : ""} open.
+        {context === "receive" ? (
+          <>
+            If you plan to spend from your hub wallet later, consider keeping at
+            least {new Intl.NumberFormat().format(channels.length * 25000)} sats
+            on-chain to maintain channel anchor reserves for potential
+            force-closures.
+          </>
+        ) : (
+          <>
+            Keep at least{" "}
+            {new Intl.NumberFormat().format(channels.length * 25000)} sats
+            on-chain to maintain channel anchor reserves for potential
+            force-closures
+          </>
+        )}
+        {isSwap &&
+          ". You can also use an external on-chain wallet to avoid this concern."}
       </AlertDescription>
     </Alert>
   );
