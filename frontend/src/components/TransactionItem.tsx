@@ -282,6 +282,9 @@ function TransactionItem({ tx }: Props) {
                     Math.floor(tx.feesPaid / 1000)
                   )}{" "}
                   {Math.floor(tx.feesPaid / 1000) == 1 ? "sat" : "sats"}
+                  {tx.feesPaid > 0 && (
+                    <>&nbsp;({((tx.feesPaid / tx.amount) * 100).toFixed(2)}%)</>
+                  )}
                 </p>
               </div>
             )}
