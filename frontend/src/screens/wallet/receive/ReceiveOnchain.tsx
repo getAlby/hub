@@ -333,7 +333,12 @@ function ReceiveToSpending() {
         )}
       <div className="grid gap-1.5">
         {hasChannelManagement && (
-          <AnchorReserveAlert amount={+swapAmount} className="mb-4" isSwap />
+          <AnchorReserveAlert
+            amount={+swapAmount}
+            className="mb-4"
+            isSwap
+            context="receive"
+          />
         )}
         <Label>Amount</Label>
         <InputWithAdornment

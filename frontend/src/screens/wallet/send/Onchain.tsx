@@ -8,7 +8,7 @@ import {
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
+import AnchorReserveAlert from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
@@ -297,7 +297,7 @@ function OnchainForm({
           </AlertDescription>
         </Alert>
       )}
-      <AnchorReserveAlert amount={+amount} />
+      <AnchorReserveAlert amount={+amount} context="spend" />
       <div className="flex gap-2">
         <LinkButton to="/wallet/send" variant="outline">
           Back

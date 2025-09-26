@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
-import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
+import AnchorReserveAlert from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
@@ -226,6 +226,7 @@ export default function WithdrawOnchainFunds() {
             <AnchorReserveAlert
               amount={sendAll ? balances.onchain.spendable : +amount}
               className="mt-4"
+              context="spend"
             />
           </div>
           <div className="grid gap-2">
