@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader.tsx";
 import { ChannelsCards } from "src/components/channels/ChannelsCards.tsx";
 import { ChannelsTable } from "src/components/channels/ChannelsTable.tsx";
@@ -191,9 +190,6 @@ export default function Channels() {
                             onClick={() => {
                               const connectionAddress = `${nodeConnectionInfo.pubkey}@${nodeConnectionInfo.address}:${nodeConnectionInfo.port}`;
                               copyToClipboard(connectionAddress);
-                              toast.success(
-                                "Connection address copied to clipboard"
-                              );
                             }}
                           >
                             <div>URI</div>
