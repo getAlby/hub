@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader.tsx";
 import { ChannelsCards } from "src/components/channels/ChannelsCards.tsx";
 import { ChannelsTable } from "src/components/channels/ChannelsTable.tsx";
@@ -162,6 +163,7 @@ export default function Channels() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56">
                   <DropdownMenuGroup>
+                    <DropdownMenuLabel>Node</DropdownMenuLabel>
                     <DropdownMenuItem>
                       <div
                         className="flex flex-row gap-4 items-center w-full cursor-pointer"
@@ -172,8 +174,8 @@ export default function Channels() {
                           copyToClipboard(nodeConnectionInfo.pubkey);
                         }}
                       >
-                        <div>Node</div>
-                        <div className="overflow-hidden text-ellipsis flex-1">
+                        <div>Public key</div>
+                        <div className="overflow-hidden text-ellipsis flex-1 font-mono text-xs">
                           {nodeConnectionInfo?.pubkey || "Loading..."}
                         </div>
                         {nodeConnectionInfo && (
@@ -181,6 +183,29 @@ export default function Channels() {
                         )}
                       </div>
                     </DropdownMenuItem>
+                    {nodeConnectionInfo?.address &&
+                      nodeConnectionInfo?.port && (
+                        <DropdownMenuItem>
+                          <div
+                            className="flex flex-row gap-4 items-center w-full cursor-pointer"
+                            onClick={() => {
+                              const connectionAddress = `${nodeConnectionInfo.pubkey}@${nodeConnectionInfo.address}:${nodeConnectionInfo.port}`;
+                              copyToClipboard(connectionAddress);
+                              toast.success(
+                                "Connection address copied to clipboard"
+                              );
+                            }}
+                          >
+                            <div>URI</div>
+                            <div className="overflow-hidden text-ellipsis flex-1 font-mono text-xs">
+                              {nodeConnectionInfo.pubkey}@
+                              {nodeConnectionInfo.address}:
+                              {nodeConnectionInfo.port}
+                            </div>
+                            <CopyIcon className="shrink-0 size-4" />
+                          </div>
+                        </DropdownMenuItem>
+                      )}
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>

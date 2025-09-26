@@ -58,6 +58,7 @@ type AppConfig struct {
 	AutoUnlockPassword                 string `envconfig:"AUTO_UNLOCK_PASSWORD"`
 	LogDBQueries                       bool   `envconfig:"LOG_DB_QUERIES" default:"false"`
 	BoltzApi                           string `envconfig:"BOLTZ_API" default:"https://api.boltz.exchange"`
+	NodeIPv6                           string `envconfig:"NODE_IPV6"`
 }
 
 func (c *AppConfig) IsDefaultClientId() bool {
