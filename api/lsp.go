@@ -147,13 +147,15 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderReques
 		return "", 0, err
 	}
 
-	invoice = channelResponse.Payment.Bolt11.Invoice
-	fee, err = strconv.ParseUint(channelResponse.Payment.Bolt11.FeeTotalSat, 10, 64)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"lspIdentifier": request.LSPIdentifier,
-		}).Error("Failed to parse fee")
-		return "", 0, fmt.Errorf("failed to parse fee %v", err)
+	if channelResponse.Payment != nil {
+		invoice = channelResponse.Payment.Bolt11.Invoice
+		fee, err = strconv.ParseUint(channelResponse.Payment.Bolt11.FeeTotalSat, 10, 64)
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"lspIdentifier": request.LSPIdentifier,
+			}).Error("Failed to parse fee")
+			return "", 0, fmt.Errorf("failed to parse fee %v", err)
+		}
 	}
 
 	return invoice, fee, nil
