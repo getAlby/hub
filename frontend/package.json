@@ -111,6 +111,6 @@
     "typescript": "^5.0.2",
     "vite": "^5.4.0",
     "vite-plugin-pwa": "^0.20.1",
-    "vite-tsconfig-paths": "^4.3.2"
+    "vite-tsconfig-paths": "^5.1.4"
   }
 }
