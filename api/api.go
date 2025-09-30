@@ -675,6 +675,9 @@ func (api *api) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnec
 }
 
 func (api *api) RefundSwap(refundSwapRequest *RefundSwapRequest) error {
+	if api.svc.GetSwapsService() == nil {
+		return errors.New("SwapsService not started")
+	}
 	return api.svc.GetSwapsService().RefundSwap(refundSwapRequest.SwapId, refundSwapRequest.Address)
 }
 
@@ -705,6 +708,9 @@ func (api *api) GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error) {
 }
 
 func (api *api) LookupSwap(swapId string) (*LookupSwapResponse, error) {
+	if api.svc.GetSwapsService() == nil {
+		return nil, errors.New("SwapsService not started")
+	}
 	dbSwap, err := api.svc.GetSwapsService().GetSwap(swapId)
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to fetch swap info")
@@ -715,6 +721,9 @@ func (api *api) LookupSwap(swapId string) (*LookupSwapResponse, error) {
 }
 
 func (api *api) ListSwaps() (*ListSwapsResponse, error) {
+	if api.svc.GetSwapsService() == nil {
+		return nil, errors.New("SwapsService not started")
+	}
 	swaps, err := api.svc.GetSwapsService().ListSwaps()
 	if err != nil {
 		return nil, err
@@ -753,6 +762,9 @@ func toApiSwap(swap *swaps.Swap) *Swap {
 }
 
 func (api *api) GetSwapInInfo() (*SwapInfoResponse, error) {
+	if api.svc.GetSwapsService() == nil {
+		return nil, errors.New("SwapsService not started")
+	}
 	swapInInfo, err := api.svc.GetSwapsService().GetSwapInInfo()
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to calculate fee info")
@@ -769,6 +781,9 @@ func (api *api) GetSwapInInfo() (*SwapInfoResponse, error) {
 }
 
 func (api *api) GetSwapOutInfo() (*SwapInfoResponse, error) {
+	if api.svc.GetSwapsService() == nil {
+		return nil, errors.New("SwapsService not started")
+	}
 	swapOutInfo, err := api.svc.GetSwapsService().GetSwapOutInfo()
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to calculate fee info")
@@ -788,6 +803,10 @@ func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *Ini
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
+	}
+
+	if api.svc.GetSwapsService() == nil {
+		return nil, errors.New("SwapsService not started")
 	}
 
 	amount := initiateSwapOutRequest.SwapAmount
@@ -813,6 +832,10 @@ func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *Initi
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
+	}
+
+	if api.svc.GetSwapsService() == nil {
+		return nil, errors.New("SwapsService not started")
 	}
 
 	amount := initiateSwapInRequest.SwapAmount
@@ -851,6 +874,9 @@ func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *E
 		return err
 	}
 
+	if api.svc.GetSwapsService() == nil {
+		return errors.New("SwapsService not started")
+	}
 	return api.svc.GetSwapsService().EnableAutoSwapOut()
 }
 
@@ -864,7 +890,9 @@ func (api *api) DisableAutoSwap() error {
 		}
 	}
 
-	api.svc.GetSwapsService().StopAutoSwapOut()
+	if api.svc.GetSwapsService() != nil {
+		api.svc.GetSwapsService().StopAutoSwapOut()
+	}
 	return nil
 }
 
