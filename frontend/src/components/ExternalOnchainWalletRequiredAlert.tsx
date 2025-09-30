@@ -3,7 +3,7 @@ import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 
-export function AnchorReserveAlert({
+export function ExternalOnchainWalletRequiredAlert({
   amount,
   className,
 }: {
@@ -27,14 +27,13 @@ export function AnchorReserveAlert({
   }
 
   return (
-    <Alert className={className} variant="warning">
+    <Alert className={className}>
       <AlertTriangleIcon className="h-4 w-4" />
-      <AlertTitle>Channel Anchor Reserves will be depleted</AlertTitle>
+      <AlertTitle>External Wallet Required</AlertTitle>
       <AlertDescription>
-        You have channels open and by spending your entire on-chain balance
-        including your anchor reserves may put your node at risk of unable to
-        reclaim funds in your channel after a force-closure. To prevent this,
-        set aside at least{" "}
+        It's recommended to make this payment with an external on-chain wallet.
+        You do not have enough funds in your hub's on-chain wallet to make this
+        payment. To protect your anchor reserves, you need to set aside at least{" "}
         {new Intl.NumberFormat().format(channels.length * 25000)} sats on-chain.
       </AlertDescription>
     </Alert>

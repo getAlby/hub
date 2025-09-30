@@ -10,8 +10,8 @@ import TickSVG from "public/images/illustrations/tick.svg";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
+import { ExternalOnchainWalletRequiredAlert } from "src/components/ExternalOnchainWalletRequiredAlert";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LottieLoading from "src/components/LottieLoading";
@@ -49,7 +49,7 @@ import { request } from "src/utils/request";
 
 export default function ReceiveOnchain() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [tab, setTab] = useState(searchParams.get("type") || "onchain");
+  const [tab, setTab] = useState(searchParams.get("type") || "spending");
 
   useEffect(() => {
     const newTabValue = searchParams.get("type");
@@ -333,7 +333,10 @@ function ReceiveToSpending() {
         )}
       <div className="grid gap-1.5">
         {hasChannelManagement && (
-          <AnchorReserveAlert amount={+swapAmount} className="mb-4" isSwap />
+          <ExternalOnchainWalletRequiredAlert
+            amount={+swapAmount}
+            className="mb-4"
+          />
         )}
         <Label>Amount</Label>
         <InputWithAdornment
