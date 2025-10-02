@@ -1012,11 +1012,39 @@ func (ls *LDKService) GetNodeConnectionInfo(ctx context.Context) (nodeConnection
 		return nil, err
 	}*/
 
-	return &lnclient.NodeConnectionInfo{
+	nodeConnectionInfo = &lnclient.NodeConnectionInfo{
 		Pubkey: ls.node.NodeId(),
-		// Address: parts[0],
-		// Port:    port,
-	}, nil
+	}
+
+	// If NODE_IPV6 is set, include the connection address and port
+	if ls.cfg.GetEnv().NodeIPv6 != "" {
+		port := 9735 // default port
+		
+		// Parse port from LDKListeningAddresses
+		listeningAddresses := ls.cfg.GetEnv().LDKListeningAddresses
+		if listeningAddresses != "" {
+			addresses := strings.Split(listeningAddresses, ",")
+			for _, address := range addresses {
+				address = strings.TrimSpace(address)
+				// Look for IPv6 address format [::]:port or 0.0.0.0:port
+				if strings.Contains(address, ":") {
+					parts := strings.Split(address, ":")
+					if len(parts) >= 2 {
+						portStr := parts[len(parts)-1]
+						if parsedPort, parseErr := strconv.Atoi(portStr); parseErr == nil {
+							port = parsedPort
+							break
+						}
+					}
+				}
+			}
+		}
+		
+		nodeConnectionInfo.Address = "[" + ls.cfg.GetEnv().NodeIPv6 + "]"
+		nodeConnectionInfo.Port = port
+	}
+
+	return nodeConnectionInfo, nil
 }
 
 func (ls *LDKService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
