@@ -4,7 +4,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import AppStore from "src/components/connections/AppStore";
 import ConnectedApps from "src/components/connections/ConnectedApps";
-import ResponsiveButton from "src/components/ResponsiveButton";
+import { Button } from "src/components/ui/button";
 import {
   Tabs,
   TabsContent,
@@ -30,9 +30,17 @@ export function Connections() {
         title="Connections"
         contentRight={
           <>
-            <Link to="/apps/new">
-              <ResponsiveButton icon={CirclePlusIcon} text="Add Connection" />
-            </Link>
+            <Button asChild className="hidden lg:inline-flex">
+              <Link to="/apps/new">
+                <CirclePlusIcon />
+                Add Connection
+              </Link>
+            </Button>
+            <Button size="icon" asChild className="lg:hidden">
+              <Link to="/apps/new">
+                <CirclePlusIcon />
+              </Link>
+            </Button>
           </>
         }
       />

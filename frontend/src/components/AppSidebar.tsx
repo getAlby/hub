@@ -136,20 +136,20 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {data.navMain.map((item) => (
-                <NavLink key={item.title} to={item.url} end>
-                  {({ isActive }) => (
-                    <SidebarMenuItem
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to={item.url}
+                      end
                       onClick={() => {
                         setOpenMobile(false);
                       }}
                     >
-                      <SidebarMenuButton isActive={isActive}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )}
-                </NavLink>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -167,8 +167,8 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
-              <DropdownMenuTrigger className="w-full">
-                <SidebarMenuButton size="lg">
+              <SidebarMenuButton size="lg" asChild>
+                <DropdownMenuTrigger className="w-full">
                   {info?.albyAccountConnected ? (
                     <>
                       <UserAvatar />
@@ -194,8 +194,8 @@ export function AppSidebar() {
                     </>
                   )}
                   <ChevronsUpDown className="ml-auto size-4" />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
+                </DropdownMenuTrigger>
+              </SidebarMenuButton>
               <DropdownMenuContent
                 className="min-w-56"
                 side={isMobile ? "bottom" : "right"}
@@ -286,29 +286,29 @@ export function NavSecondary({
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => (
-            <NavLink key={item.title} to={item.url} end>
-              {({ isActive }) => (
-                <SidebarMenuItem
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton asChild>
+                <NavLink
+                  to={item.url}
+                  end
                   onClick={() => {
                     setOpenMobile(false);
                   }}
                 >
-                  <SidebarMenuButton isActive={isActive}>
-                    <item.icon />
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-            </NavLink>
-          ))}
-          <ExternalLink to="https://support.getalby.com">
-            <SidebarMenuItem>
-              <SidebarMenuButton>
-                <CircleHelp className="h-4 w-4" />
-                Help
+                  <item.icon />
+                  <span>{item.title}</span>
+                </NavLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
-          </ExternalLink>
+          ))}
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <ExternalLink to="https://support.getalby.com">
+                <CircleHelp className="h-4 w-4" />
+                Help
+              </ExternalLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
