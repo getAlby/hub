@@ -269,7 +269,7 @@ export interface CreateAppResponse {
   pairingUri: string;
   pairingPublicKey: string;
   pairingSecretKey: string;
-  relayUrl: string;
+  relayUrls: string[];
   walletPubkey: string;
   lud16: string;
   returnTo: string;

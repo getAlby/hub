@@ -102,7 +102,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		return nil, err
 	}
 
-	relayUrl := api.cfg.GetRelayUrl()
+	relayUrls := api.cfg.GetRelayUrls()
 
 	lightningAddress, err := api.albyOAuthSvc.GetLightningAddress()
 	if err != nil {
@@ -115,14 +115,14 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	responseBody.Pubkey = app.AppPubkey
 	responseBody.PairingSecret = pairingSecretKey
 	responseBody.WalletPubkey = *app.WalletPubkey
-	responseBody.RelayUrl = relayUrl
+	responseBody.RelayUrls = relayUrls
 	responseBody.Lud16 = lightningAddress
 
 	if createAppRequest.ReturnTo != "" {
 		returnToUrl, err := url.Parse(createAppRequest.ReturnTo)
 		if err == nil {
 			query := returnToUrl.Query()
-			query.Add("relay", relayUrl)
+			query.Add("relay", strings.Join(relayUrls, ","))
 			query.Add("pubkey", *app.WalletPubkey)
 			if lightningAddress != "" && !app.Isolated {
 				query.Add("lud16", lightningAddress)
@@ -136,7 +136,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	if lightningAddress != "" && !app.Isolated {
 		lud16 = fmt.Sprintf("&lud16=%s", lightningAddress)
 	}
-	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", *app.WalletPubkey, relayUrl, pairingSecretKey, lud16)
+	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", *app.WalletPubkey, strings.Join(relayUrls, ","), pairingSecretKey, lud16)
 
 	return responseBody, nil
 }
@@ -1111,7 +1111,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.AutoUnlockPasswordSupported = api.cfg.GetEnv().IsDefaultClientId()
 	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
 	info.MempoolUrl = api.cfg.GetMempoolUrl()
-	info.Relay = api.cfg.GetRelayUrl()
+	info.Relay = strings.Join(api.cfg.GetRelayUrls(), ",")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get alby user identifier")
 		return nil, err

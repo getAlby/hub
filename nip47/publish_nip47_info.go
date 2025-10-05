@@ -62,7 +62,7 @@ func (svc *nip47Service) GetNip47Info(ctx context.Context, relay *nostr.Relay, a
 	return events[0], nil
 }
 
-func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, appId uint, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error) {
+func (svc *nip47Service) PublishNip47Info(ctx context.Context, pool nostrmodels.SimplePool, appId uint, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error) {
 	var capabilities []string
 	var permitsNotifications bool
 	tags := nostr.Tags{[]string{"encryption", cipher.SUPPORTED_ENCRYPTIONS}}
@@ -103,8 +103,20 @@ func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels
 	if err != nil {
 		return nil, err
 	}
-	err = relay.Publish(ctx, *ev)
-	if err != nil {
+	publishResultChannel := pool.PublishMany(ctx, svc.cfg.GetRelayUrls(), *ev)
+
+	publishSuccessful := false
+	for v := range publishResultChannel {
+		if v.Error == nil {
+			publishSuccessful = true
+		} else {
+			logger.Logger.WithFields(logrus.Fields{
+				"appId": appId,
+				"relay": v.RelayURL,
+			}).WithError(v.Error).Error("failed to publish nip47 info to relay")
+		}
+	}
+	if !publishSuccessful {
 		return nil, fmt.Errorf("nostr publish not successful: %s", err)
 	}
 	logger.Logger.WithField("wallet_pubkey", appWalletPubKey).Debug("published info event")

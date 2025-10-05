@@ -249,15 +249,15 @@ type SetupRequest struct {
 }
 
 type CreateAppResponse struct {
-	PairingUri    string `json:"pairingUri"`
-	PairingSecret string `json:"pairingSecretKey"`
-	Pubkey        string `json:"pairingPublicKey"`
-	RelayUrl      string `json:"relayUrl"`
-	WalletPubkey  string `json:"walletPubkey"`
-	Lud16         string `json:"lud16"`
-	Id            uint   `json:"id"`
-	Name          string `json:"name"`
-	ReturnTo      string `json:"returnTo"`
+	PairingUri    string   `json:"pairingUri"`
+	PairingSecret string   `json:"pairingSecretKey"`
+	Pubkey        string   `json:"pairingPublicKey"`
+	RelayUrls     []string `json:"relayUrls"`
+	WalletPubkey  string   `json:"walletPubkey"`
+	Lud16         string   `json:"lud16"`
+	Id            uint     `json:"id"`
+	Name          string   `json:"name"`
+	ReturnTo      string   `json:"returnTo"`
 }
 
 type User struct {

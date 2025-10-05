@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/adrg/xdg"
-	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
@@ -29,7 +28,6 @@ import (
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/nip47"
-	"github.com/getAlby/hub/nip47/models"
 )
 
 type service struct {
@@ -175,14 +173,6 @@ func NewService(ctx context.Context) (*service, error) {
 	}()
 
 	return svc, nil
-}
-
-func (svc *service) createFilters(identityPubkey string) nostr.Filters {
-	filter := nostr.Filter{
-		Tags:  nostr.TagMap{"p": []string{identityPubkey}},
-		Kinds: []int{models.REQUEST_KIND},
-	}
-	return []nostr.Filter{filter}
 }
 
 func (svc *service) noticeHandler(notice string) {
