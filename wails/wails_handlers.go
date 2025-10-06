@@ -1242,6 +1242,50 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: forwards, Error: ""}
+	case "/api/scb/latest":
+		scbInfo, err := app.api.GetLatestSCB()
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: scbInfo, Error: ""}
+	case "/api/scb/download":
+		scbInfo, err := app.api.GetLatestSCB()
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		
+		saveFilePath, err := runtime.SaveFileDialog(ctx, runtime.SaveDialogOptions{
+			Title:           "Save Channel Backup",
+			DefaultFilename: scbInfo.FileName,
+		})
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+			}).WithError(err).Error("Failed to open save file dialog")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+
+		outFile, err := os.Create(saveFilePath)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+			}).WithError(err).Error("Failed to create SCB output file")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		defer outFile.Close()
+
+		err = app.api.DownloadSCB(outFile, scbInfo.FilePath)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+			}).WithError(err).Error("Failed to download SCB")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+
+		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	}
 
 	lightningAddressRegex := regexp.MustCompile(

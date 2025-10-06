@@ -149,6 +149,8 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	readOnlyApiGroup.GET("/swaps/mnemonic", httpSvc.swapMnemonicHandler)
 	readOnlyApiGroup.GET("/autoswap", httpSvc.getAutoSwapConfigHandler)
 	readOnlyApiGroup.GET("/forwards", httpSvc.forwardsHandler)
+	readOnlyApiGroup.GET("/scb/latest", httpSvc.getLatestSCBHandler)
+	readOnlyApiGroup.GET("/scb/download", httpSvc.downloadSCBHandler)
 
 	// Full access API group - requires a token with full permissions
 	fullAccessApiGroup := e.Group("/api")
@@ -1559,4 +1561,45 @@ func (httpSvc *HttpService) forwardsHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, forwards)
+}
+
+func (httpSvc *HttpService) getLatestSCBHandler(c echo.Context) error {
+	scbInfo, err := httpSvc.api.GetLatestSCB()
+	if err != nil {
+		return c.JSON(http.StatusNotFound, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get latest SCB: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, scbInfo)
+}
+
+func (httpSvc *HttpService) downloadSCBHandler(c echo.Context) error {
+	filePath := c.QueryParam("filePath")
+	if filePath == "" {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "filePath query parameter is required",
+		})
+	}
+
+	// Get file info to set the proper filename
+	scbInfo, err := httpSvc.api.GetLatestSCB()
+	if err != nil {
+		return c.JSON(http.StatusNotFound, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get SCB info: %s", err.Error()),
+		})
+	}
+
+	c.Response().Header().Set("Content-Type", "application/json")
+	c.Response().Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", scbInfo.FileName))
+	c.Response().WriteHeader(http.StatusOK)
+
+	err = httpSvc.api.DownloadSCB(c.Response().Writer, filePath)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to download SCB: %s", err.Error()),
+		})
+	}
+
+	return nil
 }
