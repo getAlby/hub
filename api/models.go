@@ -81,6 +81,8 @@ type API interface {
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
 	SendEvent(event string, properties interface{})
 	GetForwards() (*GetForwardsResponse, error)
+	GetLatestSCB() (*LatestSCBResponse, error)
+	DownloadSCB(w io.Writer, filePath string) error
 }
 
 type App struct {
@@ -554,4 +556,10 @@ type GetForwardsResponse struct {
 	OutboundAmountForwardedMsat uint64 `json:"outboundAmountForwardedMsat"`
 	TotalFeeEarnedMsat          uint64 `json:"totalFeeEarnedMsat"`
 	NumForwards                 uint64 `json:"numForwards"`
+}
+
+type LatestSCBResponse struct {
+	FileName string    `json:"fileName"`
+	FilePath string    `json:"filePath"`
+	ModTime  time.Time `json:"modTime"`
 }
