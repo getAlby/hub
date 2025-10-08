@@ -94,7 +94,9 @@ export function AppUsage({ app }: { app: App }) {
                     )}{" "}
                     sats
                   </p>
-                  <FormattedFiatAmount amount={totalSpent} />
+                  <FormattedFiatAmount
+                    amount={Math.floor(app.balance / 1000)}
+                  />
                 </div>
                 <div className="flex gap-2 items-center">
                   {app.balance > 0 && (
