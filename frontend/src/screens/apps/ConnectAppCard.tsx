@@ -51,7 +51,6 @@ export function ConnectAppCard({
         const timeoutToastId = toast.loading(
           "Connection taking longer than usual",
           {
-            description: "The app might need more time to connect",
             action: {
               label: "Continue anyway",
               onClick: () => {
