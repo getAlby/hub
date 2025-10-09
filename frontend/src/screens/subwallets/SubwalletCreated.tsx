@@ -3,7 +3,12 @@ import {
   AlertTriangleIcon,
   CopyIcon,
   ExternalLinkIcon,
+  Monitor,
+  Radio,
+  Smartphone,
   TriangleAlert,
+  User,
+  Zap,
 } from "lucide-react";
 import React from "react";
 import QRCode from "react-qr-code";
@@ -215,41 +220,31 @@ export function SubwalletCreated() {
               </Alert>
               <Accordion type="single" collapsible defaultValue="other">
                 <AccordionItem value="other">
-                  <AccordionTrigger>Connect Your App</AccordionTrigger>
-                  <AccordionContent>
-                    <ul className="list-inside list-decimal flex flex-col gap-1 mb-6">
-                      <li>
-                        Open the app you wish to connect sub-wallet to and look
-                        for a way to attach a wallet (most apps provide this
-                        option in settings).
-                      </li>
-                      <li>Copy and paste the connection secret from below</li>
-                    </ul>
-                    <div className="grid gap-1.5">
-                      <Label htmlFor="connectionSecret">
-                        Connection Secret
-                      </Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="connectionSecret"
-                          disabled
-                          readOnly
-                          type="password"
-                          value={connectionSecret}
-                        />
-                        <Button
-                          onClick={() => copyToClipboard(connectionSecret)}
-                          variant="outline"
-                        >
-                          <CopyIcon />
-                          Copy
-                        </Button>
-                      </div>
+                  <AccordionTrigger>
+                    <div className="flex items-center gap-2">
+                      <Zap className="h-4 w-4" />
+                      Connect Your App
                     </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    {app && (
+                      <div className="flex justify-center">
+                        <ConnectAppCard
+                          app={app}
+                          pairingUri={connectionSecret}
+                          showToasts={true}
+                        />
+                      </div>
+                    )}
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="mobile">
-                  <AccordionTrigger>Alby Go</AccordionTrigger>
+                  <AccordionTrigger>
+                    <div className="flex items-center gap-2">
+                      <Smartphone className="h-4 w-4" />
+                      Alby Go
+                    </div>
+                  </AccordionTrigger>
                   <AccordionContent>
                     <ul className="flex flex-col gap-1 list-inside list-decimal mb-6">
                       <li>
@@ -319,12 +314,21 @@ export function SubwalletCreated() {
                       <li>Open Alby Go and scan this QR code</li>
                     </ul>
                     {app && (
-                      <ConnectAppCard app={app} pairingUri={connectionSecret} />
+                      <ConnectAppCard
+                        app={app}
+                        pairingUri={connectionSecret}
+                        showToasts={false}
+                      />
                     )}
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="account">
-                  <AccordionTrigger>Alby Account</AccordionTrigger>
+                  <AccordionTrigger>
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Alby Account
+                    </div>
+                  </AccordionTrigger>
                   <AccordionContent>
                     <ul className="flex flex-col gap-1 list-inside list-decimal mb-6">
                       <li>
@@ -375,7 +379,12 @@ export function SubwalletCreated() {
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="extension">
-                  <AccordionTrigger>Alby Browser Extension</AccordionTrigger>
+                  <AccordionTrigger>
+                    <div className="flex items-center gap-2">
+                      <Monitor className="h-4 w-4" />
+                      Alby Browser Extension
+                    </div>
+                  </AccordionTrigger>
                   <AccordionContent>
                     <ul className="list-inside list-decimal flex flex-col gap-1 mb-6">
                       <li>
@@ -431,7 +440,12 @@ export function SubwalletCreated() {
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="podcasting">
-                  <AccordionTrigger>Podcasting 2.0</AccordionTrigger>
+                  <AccordionTrigger>
+                    <div className="flex items-center gap-2">
+                      <Radio className="h-4 w-4" />
+                      Podcasting 2.0
+                    </div>
+                  </AccordionTrigger>
                   <AccordionContent>
                     <p className="text-muted-foreground text-sm mb-5">
                       To allow receiving podcasting 2.0 payments to the
