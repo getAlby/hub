@@ -997,51 +997,47 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 }
 
 func (ls *LDKService) GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *lnclient.NodeConnectionInfo, err error) {
-	/*addresses := gs.node.ListeningAddresses()
-	if addresses == nil || len(*addresses) < 1 {
-		return nil, errors.New("no available listening addresses")
-	}
-	firstAddress := (*addresses)[0]
-	parts := strings.Split(firstAddress, ":")
-	if len(parts) != 2 {
-		return nil, errors.New(fmt.Sprintf("invalid address %v", firstAddress))
-	}
-	port, err := strconv.Atoi(parts[1])
-	if err != nil {
-		logger.Logger.WithError(err).Error("ConnectPeer failed")
-		return nil, err
-	}*/
-
 	nodeConnectionInfo = &lnclient.NodeConnectionInfo{
 		Pubkey: ls.node.NodeId(),
 	}
 
-	// If NODE_IPV6 is set, include the connection address and port
-	if ls.cfg.GetEnv().NodeIPv6 != "" {
-		port := 9735 // default port
-		
-		// Parse port from LDKListeningAddresses
-		listeningAddresses := ls.cfg.GetEnv().LDKListeningAddresses
-		if listeningAddresses != "" {
-			addresses := strings.Split(listeningAddresses, ",")
-			for _, address := range addresses {
-				address = strings.TrimSpace(address)
-				// Look for IPv6 address format [::]:port or 0.0.0.0:port
-				if strings.Contains(address, ":") {
-					parts := strings.Split(address, ":")
-					if len(parts) >= 2 {
-						portStr := parts[len(parts)-1]
-						if parsedPort, parseErr := strconv.Atoi(portStr); parseErr == nil {
-							port = parsedPort
-							break
-						}
+	if ls.cfg.GetEnv().LDKAnnouncementAddresses != "" {
+		addresses := strings.Split(ls.cfg.GetEnv().LDKAnnouncementAddresses, ",")
+		for _, address := range addresses {
+			address = strings.TrimSpace(address)
+			if address == "" {
+				continue
+			}
+
+			var ip string
+			var portStr string
+
+			if strings.HasPrefix(address, "[") {
+				// IPv6 format: [ipv6]:port
+				closeBracket := strings.Index(address, "]")
+				if closeBracket > 0 {
+					ip = address[0 : closeBracket+1]
+					if closeBracket+2 < len(address) && address[closeBracket+1] == ':' {
+						portStr = address[closeBracket+2:]
 					}
+				}
+			} else {
+				// IPv4 or hostname format: ip:port
+				parts := strings.Split(address, ":")
+				if len(parts) >= 2 {
+					portStr = parts[len(parts)-1]
+					ip = strings.Join(parts[:len(parts)-1], ":")
+				}
+			}
+
+			if portStr != "" {
+				if port, parseErr := strconv.Atoi(portStr); parseErr == nil && ip != "" {
+					nodeConnectionInfo.Address = ip
+					nodeConnectionInfo.Port = port
+					break
 				}
 			}
 		}
-		
-		nodeConnectionInfo.Address = "[" + ls.cfg.GetEnv().NodeIPv6 + "]"
-		nodeConnectionInfo.Port = port
 	}
 
 	return nodeConnectionInfo, nil
