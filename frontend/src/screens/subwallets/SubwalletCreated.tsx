@@ -213,7 +213,41 @@ export function SubwalletCreated() {
                   future reference.
                 </AlertDescription>
               </Alert>
-              <Accordion type="single" collapsible>
+              <Accordion type="single" collapsible defaultValue="other">
+                <AccordionItem value="other">
+                  <AccordionTrigger>Connect Your App</AccordionTrigger>
+                  <AccordionContent>
+                    <ul className="list-inside list-decimal flex flex-col gap-1 mb-6">
+                      <li>
+                        Open the app you wish to connect sub-wallet to and look
+                        for a way to attach a wallet (most apps provide this
+                        option in settings).
+                      </li>
+                      <li>Copy and paste the connection secret from below</li>
+                    </ul>
+                    <div className="grid gap-1.5">
+                      <Label htmlFor="connectionSecret">
+                        Connection Secret
+                      </Label>
+                      <div className="flex gap-2">
+                        <Input
+                          id="connectionSecret"
+                          disabled
+                          readOnly
+                          type="password"
+                          value={connectionSecret}
+                        />
+                        <Button
+                          onClick={() => copyToClipboard(connectionSecret)}
+                          variant="outline"
+                        >
+                          <CopyIcon />
+                          Copy
+                        </Button>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
                 <AccordionItem value="mobile">
                   <AccordionTrigger>Alby Go</AccordionTrigger>
                   <AccordionContent>
@@ -393,40 +427,6 @@ export function SubwalletCreated() {
                         <CopyIcon />
                         Copy
                       </Button>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="other">
-                  <AccordionTrigger>Other apps</AccordionTrigger>
-                  <AccordionContent>
-                    <ul className="list-inside list-decimal flex flex-col gap-1 mb-6">
-                      <li>
-                        Open the app you wish to connect sub-wallet to and look
-                        for a way to attach a wallet (most apps provide this
-                        option in settings).
-                      </li>
-                      <li>Copy and paste the connection secret from below</li>
-                    </ul>
-                    <div className="grid gap-1.5">
-                      <Label htmlFor="connectionSecret">
-                        Connection Secret
-                      </Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="connectionSecret"
-                          disabled
-                          readOnly
-                          type="password"
-                          value={connectionSecret}
-                        />
-                        <Button
-                          onClick={() => copyToClipboard(connectionSecret)}
-                          variant="outline"
-                        >
-                          <CopyIcon />
-                          Copy
-                        </Button>
-                      </div>
                     </div>
                   </AccordionContent>
                 </AccordionItem>
