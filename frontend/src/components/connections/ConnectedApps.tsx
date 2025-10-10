@@ -1,4 +1,4 @@
-import { CableIcon, TrashIcon } from "lucide-react";
+import { CableIcon, ExternalLinkIcon, TrashIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { CustomPagination } from "src/components/CustomPagination";
@@ -7,6 +7,7 @@ import Loading from "src/components/Loading";
 import ResponsiveButton from "src/components/ResponsiveButton";
 import AlbyConnectionCard from "src/components/connections/AlbyConnectionCard";
 import AppCard from "src/components/connections/AppCard";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import {
   ALBY_ACCOUNT_APP_NAME,
   LIST_APPS_LIMIT,
@@ -100,7 +101,20 @@ function ConnectedApps() {
           className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list"
         >
           {otherApps.map((app, index) => (
-            <AppCard key={index} app={app} />
+            <AppCard
+              key={index}
+              app={app}
+              actions={
+                app.metadata?.zapplanner_subscription_id ? (
+                  <ExternalLinkButton
+                    to={`https://zapplanner.albylabs.com/subscriptions/${app.metadata.zapplanner_subscription_id}`}
+                    size="sm"
+                  >
+                    View <ExternalLinkIcon className="size-4 ml-2" />
+                  </ExternalLinkButton>
+                ) : undefined
+              }
+            />
           ))}
         </div>
       )}

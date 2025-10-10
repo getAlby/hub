@@ -16,7 +16,7 @@ import {
   getSatoshiValue,
   LightningAddress,
 } from "@getalby/lightning-tools";
-import { ExternalLinkIcon, PlusCircleIcon } from "lucide-react";
+import { PlusCircleIcon } from "lucide-react";
 import { toast } from "sonner";
 import alby from "src/assets/suggested-apps/alby.png";
 import bitcoinbrink from "src/assets/zapplanner/bitcoinbrink.png";
@@ -26,7 +26,6 @@ import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailH
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
 import { Button } from "src/components/ui/button";
-import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Dialog,
@@ -552,20 +551,7 @@ export function ZapPlanner() {
           <h2 className="font-semibold text-xl">Recurring Payments</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list">
             {zapplannerApps.map((app, index) => (
-              <AppCard
-                key={index}
-                app={app}
-                actions={
-                  app.metadata?.zapplanner_subscription_id ? (
-                    <ExternalLinkButton
-                      to={`https://zapplanner.albylabs.com/subscriptions/${app.metadata.zapplanner_subscription_id}`}
-                      size="sm"
-                    >
-                      View <ExternalLinkIcon className="size-4 ml-2" />
-                    </ExternalLinkButton>
-                  ) : undefined
-                }
-              />
+              <AppCard key={index} app={app} />
             ))}
           </div>
         </>
