@@ -141,10 +141,7 @@ function AutoSwapOutForm() {
           placeholder="Amount in satoshis"
           value={swapAmount}
           min={swapInfo.minAmount}
-          max={Math.min(
-            swapInfo.maxAmount,
-            Math.floor(balances.lightning.totalSpendable / 1000)
-          )}
+          max={swapInfo.maxAmount}
           onChange={(e) => setSwapAmount(e.target.value)}
           required
         />
