@@ -37,7 +37,7 @@ export function AppStoreDetailHeader({
                   {!!connectedApps.length && (
                     <Badge
                       variant="positive"
-                      className="flex items-center gap-1"
+                      className="hidden md:flex items-center gap-1"
                     >
                       <CheckCircleIcon className="w-3 h-3" />{" "}
                       {connectedApps.length > 1
@@ -49,6 +49,17 @@ export function AppStoreDetailHeader({
                 <div className="text-sm font-normal text-muted-foreground">
                   {appStoreApp.description}
                 </div>
+                {!!connectedApps.length && (
+                  <Badge
+                    variant="positive"
+                    className="md:hidden flex items-center gap-1 w-fit" // Only shows on small screens
+                  >
+                    <CheckCircleIcon className="w-3 h-3" />{" "}
+                    {connectedApps.length > 1
+                      ? `${connectedApps.length} Connections`
+                      : "Connected"}
+                  </Badge>
+                )}
               </div>
             </div>
           </>

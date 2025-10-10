@@ -49,6 +49,7 @@ import {
 import { Textarea } from "src/components/ui/textarea";
 import { SUPPORT_ALBY_LIGHTNING_ADDRESS } from "src/constants";
 import { request } from "src/utils/request";
+import ResponsiveButton from "src/components/ResponsiveButton";
 
 type Recipient = {
   name: string;
@@ -352,12 +353,12 @@ export function ZapPlanner() {
           <>
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
-                <Button>
-                  <PlusCircleIcon />
-                  New Recurring Payment
-                </Button>
+                <ResponsiveButton
+                  icon={PlusCircleIcon}
+                  text="New Recurring Payment"
+                />
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px]">
+              <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
                 <form onSubmit={handleSubmit}>
                   <DialogHeader>
                     <DialogTitle>New Recurring Payment</DialogTitle>
@@ -373,8 +374,8 @@ export function ZapPlanner() {
                   </DialogHeader>
 
                   <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="name" className="text-right">
+                    <div className="grid md:grid-cols-4 items-center gap-2 md:gap-4">
+                      <Label htmlFor="name" className="md:text-right">
                         Recipient Name
                       </Label>
                       <Input
@@ -382,11 +383,11 @@ export function ZapPlanner() {
                         value={recipientName}
                         required
                         onChange={(e) => setRecipientName(e.target.value)}
-                        className="col-span-3 w-70"
+                        className="md:col-span-3"
                       />
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="name" className="text-right">
+                    <div className="grid md:grid-cols-4 items-center gap-2 md:gap-4">
+                      <Label htmlFor="receiver" className="md:text-right">
                         Recipient Lightning Address
                       </Label>
                       <Input
@@ -396,14 +397,14 @@ export function ZapPlanner() {
                         onChange={(e) =>
                           setRecipientLightningAddress(e.target.value)
                         }
-                        className="col-span-3 w-70"
+                        className="md:col-span-3"
                       />
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="amount" className="text-right">
+                    <div className="grid md:grid-cols-4 items-center gap-2 md:gap-4">
+                      <Label htmlFor="amount" className="md:text-right">
                         Amount
                       </Label>
-                      <div className="col-span-3 flex items-center gap-2">
+                      <div className="md:col-span-3 flex items-center gap-2">
                         <div className="relative flex-1">
                           <Input
                             id="amount"
@@ -413,7 +414,7 @@ export function ZapPlanner() {
                             inputMode="decimal"
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
-                            className="col-span-3 w-70"
+                            className="md:col-span-3"
                           />
 
                           {convertedAmount && (
@@ -424,7 +425,7 @@ export function ZapPlanner() {
                         </div>
 
                         <Select value={currency} onValueChange={setCurrency}>
-                          <SelectTrigger className="w-1/2">
+                          <SelectTrigger className="w-auto">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -438,11 +439,11 @@ export function ZapPlanner() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-4 items-start gap-4">
-                      <Label htmlFor="frequency" className="text-right pt-2">
+                    <div className="grid md:grid-cols-4 items-start gap-2 md:gap-4">
+                      <Label htmlFor="frequency" className="md:text-right pt-2">
                         Frequency
                       </Label>
-                      <div className="col-span-3 flex flex-col gap-1 w-full max-w-[450px]">
+                      <div className="md:col-span-3 flex flex-col gap-1 w-full">
                         <div className="flex items-center gap-2 w-full">
                           <Input
                             id="frequency"
@@ -452,13 +453,12 @@ export function ZapPlanner() {
                             inputMode="numeric"
                             value={frequencyValue}
                             onChange={(e) => setFrequencyValue(e.target.value)}
-                            className="col-span-3 w-70"
                           />
                           <Select
                             value={frequencyUnit}
                             onValueChange={setFrequencyUnit}
                           >
-                            <SelectTrigger className="w-1/2">
+                            <SelectTrigger className="w-full">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -475,8 +475,8 @@ export function ZapPlanner() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-4">
-                      <Label htmlFor="comment" className="text-right pt-2">
+                    <div className="grid md:grid-cols-4 gap-2 md:gap-4">
+                      <Label htmlFor="comment" className="md:text-right pt-2">
                         Comment
                       </Label>
                       <Textarea
@@ -484,11 +484,11 @@ export function ZapPlanner() {
                         value={comment}
                         onChange={(e) => setComment(e.target.value)}
                         placeholder="Optional comment"
-                        className="col-span-3 w-70"
+                        className="md:col-span-3"
                       />
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="comment" className="text-right">
+                    <div className="grid md:grid-cols-4 items-center gap-2 md:gap-4">
+                      <Label htmlFor="comment" className="md:text-right">
                         Your Name
                       </Label>
                       <Input
@@ -496,7 +496,7 @@ export function ZapPlanner() {
                         value={senderName}
                         onChange={(e) => setSenderName(e.target.value)}
                         placeholder={`Let ${recipientName || "them"} know it was from you`}
-                        className="col-span-3 w-70"
+                        className="md:col-span-3"
                       />
                     </div>
                   </div>
