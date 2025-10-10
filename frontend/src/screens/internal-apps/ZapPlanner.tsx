@@ -49,6 +49,7 @@ import {
 import { Textarea } from "src/components/ui/textarea";
 import { SUPPORT_ALBY_LIGHTNING_ADDRESS } from "src/constants";
 import { request } from "src/utils/request";
+import ResponsiveButton from "src/components/ResponsiveButton";
 
 type Recipient = {
   name: string;
@@ -352,10 +353,10 @@ export function ZapPlanner() {
           <>
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
-                <Button>
-                  <PlusCircleIcon />
-                  New Recurring Payment
-                </Button>
+                <ResponsiveButton
+                  icon={PlusCircleIcon}
+                  text="New Recurring Payment"
+                />
               </DialogTrigger>
               <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
                 <form onSubmit={handleSubmit}>
