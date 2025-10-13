@@ -139,7 +139,7 @@ function SupportAlby() {
       });
 
       toast("Thank you for becoming a supporter", {
-        description: "The first payment is scheduled immediately.",
+        description: "Payment will be made at the start of each month",
       });
 
       navigate("/");
