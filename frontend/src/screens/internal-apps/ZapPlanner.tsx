@@ -90,7 +90,7 @@ const recipients: Recipient[] = [
   {
     name: "Bitcoin For Fairness",
     description:
-      "Bitcoin For Fairness supports fair monetary systems and financial inclusion through Bitcoin education and advocacy.",
+      "Bitcoin for Fairness is an initiative raising knowledge and understanding of Bitcoin with a focus on civil and human rights.",
     lightningAddress: "bffbtc@getalby.com",
     logo: bff,
   },
