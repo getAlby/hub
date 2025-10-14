@@ -132,6 +132,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
         scopes: Array.from(permissions.scopes),
         budgetRenewal: permissions.budgetRenewal,
         expiresAt: permissions.expiresAt?.toISOString(),
+        updateExpiresAt: true,
         maxAmount: permissions.maxAmount,
         isolated: permissions.isolated,
       };
@@ -155,13 +156,8 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
 
   const handleConvertToSubwallet = async () => {
     try {
+      // Only send the metadata since that's the only thing changing
       const updateAppRequest: UpdateAppRequest = {
-        name: app.name,
-        scopes: app.scopes,
-        budgetRenewal: app.budgetRenewal,
-        expiresAt: app.expiresAt,
-        maxAmount: app.maxAmount,
-        isolated: app.isolated,
         metadata: {
           ...app.metadata,
           app_store_app_id: SUBWALLET_APPSTORE_APP_ID,
