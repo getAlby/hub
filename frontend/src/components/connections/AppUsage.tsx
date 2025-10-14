@@ -168,9 +168,11 @@ export function AppUsage({ app }: { app: App }) {
                   </div>
                 )}
                 {app.metadata.lud16 && (
-                  <div className="flex items-center justify-between">
-                    <p className="font-semibold">{app.metadata.lud16}</p>
-                    <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <p className="font-semibold break-all min-w-0 flex-1">
+                      {app.metadata.lud16}
+                    </p>
+                    <div className="flex items-center gap-2 shrink-0">
                       <Button
                         size="sm"
                         onClick={() =>

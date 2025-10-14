@@ -33,6 +33,7 @@ import { DisconnectApp } from "src/components/connections/DisconnectApp";
 import { getAppStoreApp } from "src/components/connections/SuggestedAppData";
 import Loading from "src/components/Loading";
 import Permissions from "src/components/Permissions";
+import ResponsiveButton from "src/components/ResponsiveButton";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -196,15 +197,20 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
         <div className="flex flex-col gap-2">
           <AppHeader
             title={
-              <div className="flex flex-row gap-2 items-center">
-                <AppAvatar app={app} className="w-10 h-10 shrink-0" />
-                <h2
-                  title={appName}
-                  className="text-xl font-semibold overflow-hidden text-ellipsis whitespace-nowrap"
+              <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
+                <div className="flex flex-row gap-2 items-center min-w-0">
+                  <AppAvatar app={app} className="w-10 h-10 shrink-0" />
+                  <h2
+                    title={appName}
+                    className="text-xl font-semibold overflow-hidden text-ellipsis whitespace-nowrap"
+                  >
+                    {appName}
+                  </h2>
+                </div>
+                <Badge
+                  variant="positive"
+                  className="flex items-center gap-1 self-start sm:self-center"
                 >
-                  {appName}
-                </h2>
-                <Badge variant="positive" className="flex items-center gap-1">
                   {(connectedApps?.length || 0) > 1 ? (
                     <DropdownMenu
                       modal={false}
@@ -297,12 +303,12 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                         </DropdownMenuGroup>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                    <Button
+                    <ResponsiveButton
                       variant="secondary"
                       onClick={() => setIsEditingPermissions(true)}
-                    >
-                      <SquarePenIcon className="size-4" /> Edit Connection
-                    </Button>
+                      icon={SquarePenIcon}
+                      text="Edit Connection"
+                    ></ResponsiveButton>
                   </>
                 )}
                 {isEditingPermissions && (
