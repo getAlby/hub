@@ -600,8 +600,9 @@ func (ls *LDKService) SendPaymentSync(invoice string, amount *uint64) (*lnclient
 				}
 
 				logger.Logger.WithFields(logrus.Fields{
-					"duration": time.Since(paymentStart).Milliseconds(),
-					"fee":      fee,
+					"duration":     time.Since(paymentStart).Milliseconds(),
+					"fee":          fee,
+					"payment_hash": event.PaymentHash,
 				}).Info("Successful payment")
 
 				return &lnclient.PayInvoiceResponse{
@@ -2229,7 +2230,7 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uin
 	logger.Logger.WithFields(logrus.Fields{
 		"duration": time.Since(paymentStart).Milliseconds(),
 		"fee":      fee,
-	}).Info("Successful payment")
+	}).Info("Successful BOLT-12 payment")
 
 	return &lnclient.PayOfferResponse{
 		PaymentHash: paymentHash,
