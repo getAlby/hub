@@ -165,6 +165,22 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 		if updateAppRequest.Isolated != nil {
 			isolated := *updateAppRequest.Isolated
 			if isolated != userApp.Isolated {
+				if !isolated {
+					var existingMetadata Metadata
+					if userApp.Metadata != nil {
+						err := json.Unmarshal(userApp.Metadata, &existingMetadata)
+						if err != nil {
+							logger.Logger.WithError(err).WithFields(logrus.Fields{
+								"app_id": userApp.ID,
+							}).Error("Failed to deserialize app metadata")
+							return err
+						}
+						if existingMetadata["app_store_app_id"] == constants.SUBWALLET_APPSTORE_APP_ID {
+							return errors.New("Cannot update sub-wallet to be non-isolated")
+						}
+					}
+				}
+
 				err := tx.Model(&db.App{}).Where("id", userApp.ID).Update("isolated", isolated).Error
 				if err != nil {
 					return err
@@ -468,9 +484,9 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 	if filters.SubWallets != nil && !*filters.SubWallets {
 		// exclude subwallets :scream:
 		if api.db.Dialector.Name() == "sqlite" {
-			query = query.Where("metadata is NULL OR JSON_EXTRACT(metadata, '$.app_store_app_id') IS NULL OR JSON_EXTRACT(metadata, '$.app_store_app_id') != ?", "uncle-jim")
+			query = query.Where("metadata is NULL OR JSON_EXTRACT(metadata, '$.app_store_app_id') IS NULL OR JSON_EXTRACT(metadata, '$.app_store_app_id') != ?", constants.SUBWALLET_APPSTORE_APP_ID)
 		} else {
-			query = query.Where("metadata IS NULL OR metadata->>'app_store_app_id' IS NULL OR metadata->>'app_store_app_id' != ?", "uncle-jim")
+			query = query.Where("metadata IS NULL OR metadata->>'app_store_app_id' IS NULL OR metadata->>'app_store_app_id' != ?", constants.SUBWALLET_APPSTORE_APP_ID)
 		}
 	}
 
