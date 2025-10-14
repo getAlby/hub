@@ -131,6 +131,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
         scopes: Array.from(permissions.scopes),
         budgetRenewal: permissions.budgetRenewal,
         expiresAt: permissions.expiresAt?.toISOString(),
+        updateExpiresAt: true,
         maxAmount: permissions.maxAmount,
         isolated: permissions.isolated,
       };

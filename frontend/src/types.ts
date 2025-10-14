@@ -280,6 +280,7 @@ export type UpdateAppRequest = {
   maxAmount?: number;
   budgetRenewal?: string;
   expiresAt?: string | undefined;
+  updateExpiresAt?: boolean;
   scopes?: Scope[];
   metadata?: AppMetadata;
   isolated?: boolean;

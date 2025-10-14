@@ -205,7 +205,7 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 
 		// Handle permissions updates only if any permission-related field is provided
 		if updateAppRequest.Scopes != nil || updateAppRequest.MaxAmountSat != nil ||
-			updateAppRequest.BudgetRenewal != nil || updateAppRequest.ExpiresAt != nil {
+			updateAppRequest.BudgetRenewal != nil || updateAppRequest.ExpiresAt != nil || updateAppRequest.UpdateExpiresAt {
 
 			// Get current values or use provided ones
 			var maxAmount uint64
@@ -244,6 +244,9 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 					return fmt.Errorf("invalid expiresAt: %v", err)
 				}
 				expiresAt = parsedExpiresAt
+			}
+			if updateAppRequest.ExpiresAt == nil && updateAppRequest.UpdateExpiresAt {
+				expiresAt = nil
 			}
 
 			// Update existing permissions with new budget and expiry
