@@ -211,7 +211,6 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 			var maxAmount uint64
 			var budgetRenewal string
 			var expiresAt *time.Time
-			var newScopes []string
 
 			// Get existing permissions to use as defaults
 			var existingPermissions []db.AppPermission
@@ -230,10 +229,6 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 						break
 					}
 				}
-				// Get existing scopes
-				for _, perm := range existingPermissions {
-					newScopes = append(newScopes, perm.Scope)
-				}
 			}
 
 			// Override with provided values
@@ -250,12 +245,6 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 				}
 				expiresAt = parsedExpiresAt
 			}
-			if updateAppRequest.Scopes != nil {
-				if len(updateAppRequest.Scopes) == 0 {
-					return fmt.Errorf("won't update an app to have no request methods")
-				}
-				newScopes = updateAppRequest.Scopes
-			}
 
 			// Update existing permissions with new budget and expiry
 			err := tx.Model(&db.AppPermission{}).Where("app_id", userApp.ID).Updates(map[string]interface{}{
@@ -269,17 +258,22 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 
 			// Handle scope changes only if scopes were provided
 			if updateAppRequest.Scopes != nil {
+
+				if len(updateAppRequest.Scopes) == 0 {
+					return fmt.Errorf("won't update an app to have no request methods")
+				}
+
 				existingScopeMap := make(map[string]bool)
 				for _, perm := range existingPermissions {
 					existingScopeMap[perm.Scope] = true
 				}
 
-				if slices.Contains(newScopes, constants.SUPERUSER_SCOPE) && !existingScopeMap[constants.SUPERUSER_SCOPE] {
+				if slices.Contains(updateAppRequest.Scopes, constants.SUPERUSER_SCOPE) && !existingScopeMap[constants.SUPERUSER_SCOPE] {
 					return fmt.Errorf("cannot update app to add superuser permission")
 				}
 
 				// Add new permissions
-				for _, scope := range newScopes {
+				for _, scope := range updateAppRequest.Scopes {
 					if !existingScopeMap[scope] {
 						perm := db.AppPermission{
 							App:           *userApp,
