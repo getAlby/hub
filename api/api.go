@@ -405,7 +405,12 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 
 	if filters.Name != "" {
 		// searching for "Damus" will return "Damus" and "Damus (1)"
-		query = query.Where("name LIKE ?", filters.Name+"%")
+		// Use case-insensitive search for both SQLite and PostgreSQL
+		if api.db.Dialector.Name() == "postgres" {
+			query = query.Where("name ILIKE ?", filters.Name+"%")
+		} else {
+			query = query.Where("name LIKE ?", filters.Name+"%")
+		}
 	}
 
 	if filters.AppStoreAppId != "" {
