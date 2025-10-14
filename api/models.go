@@ -116,13 +116,14 @@ type ListAppsResponse struct {
 }
 
 type UpdateAppRequest struct {
-	Name          string   `json:"name"`
-	MaxAmountSat  uint64   `json:"maxAmount"`
-	BudgetRenewal string   `json:"budgetRenewal"`
-	ExpiresAt     string   `json:"expiresAt"`
-	Scopes        []string `json:"scopes"`
-	Metadata      Metadata `json:"metadata,omitempty"`
-	Isolated      bool     `json:"isolated"`
+	Name            *string   `json:"name"`
+	MaxAmountSat    *uint64   `json:"maxAmount"`
+	BudgetRenewal   *string   `json:"budgetRenewal"`
+	ExpiresAt       *string   `json:"expiresAt"`
+	UpdateExpiresAt bool      `json:"updateExpiresAt"`
+	Scopes          []string  `json:"scopes"`
+	Metadata        *Metadata `json:"metadata"`
+	Isolated        *bool     `json:"isolated"`
 }
 
 type TransferRequest struct {

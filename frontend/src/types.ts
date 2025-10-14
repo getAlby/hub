@@ -276,13 +276,14 @@ export interface CreateAppResponse {
 }
 
 export type UpdateAppRequest = {
-  name: string;
-  maxAmount: number;
-  budgetRenewal: string;
-  expiresAt: string | undefined;
-  scopes: Scope[];
+  name?: string;
+  maxAmount?: number;
+  budgetRenewal?: string;
+  expiresAt?: string | undefined;
+  updateExpiresAt?: boolean;
+  scopes?: Scope[];
   metadata?: AppMetadata;
-  isolated: boolean;
+  isolated?: boolean;
 };
 
 export type Channel = {

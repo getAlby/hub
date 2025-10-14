@@ -85,7 +85,7 @@ func TestHandleGetInfoEvent_SubwalletNoPermission(t *testing.T) {
 	lightningAddress := "hello@getalby.com"
 
 	metadata := map[string]interface{}{
-		"app_store_app_id": "uncle_jim",
+		"app_store_app_id": constants.SUBWALLET_APPSTORE_APP_ID,
 		"lud16":            lightningAddress,
 	}
 
@@ -248,7 +248,7 @@ func TestHandleGetInfoEvent_SubwalletWithMetadata(t *testing.T) {
 	lightningAddress := "hello@getalby.com"
 
 	metadata := map[string]interface{}{
-		"app_store_app_id": "uncle_jim",
+		"app_store_app_id": constants.SUBWALLET_APPSTORE_APP_ID,
 		"lud16":            lightningAddress,
 		"a":                123,
 	}
