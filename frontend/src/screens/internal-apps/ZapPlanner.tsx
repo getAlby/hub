@@ -19,6 +19,7 @@ import {
 import { ExternalLinkIcon, PlusCircleIcon } from "lucide-react";
 import { toast } from "sonner";
 import alby from "src/assets/suggested-apps/alby.png";
+import bff from "src/assets/zapplanner/bff.png";
 import bitcoinbrink from "src/assets/zapplanner/bitcoinbrink.png";
 import hrf from "src/assets/zapplanner/hrf.png";
 import opensats from "src/assets/zapplanner/opensats.png";
@@ -85,6 +86,13 @@ const recipients: Recipient[] = [
       "Brink exists to strengthen the Bitcoin protocol and network through fundamental research, development, funding, mentoring.",
     lightningAddress: "bitcoinbrink@zbd.gg",
     logo: bitcoinbrink,
+  },
+  {
+    name: "Bitcoin For Fairness",
+    description:
+      "Bitcoin for Fairness is an initiative raising knowledge and understanding of Bitcoin with a focus on civil and human rights.",
+    lightningAddress: "bffbtc@getalby.com",
+    logo: bff,
   },
 ];
 
