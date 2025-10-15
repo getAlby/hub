@@ -1,14 +1,15 @@
 import dayjs from "dayjs";
 import {
   AlertTriangleIcon,
+  ArrowDownUpIcon,
   ArrowRightIcon,
   CopyIcon,
+  EllipsisVerticalIcon,
   ExternalLinkIcon,
   HeartIcon,
   HourglassIcon,
   InfoIcon,
   LinkIcon,
-  Settings2Icon,
   SparklesIcon,
   UnplugIcon,
   ZapIcon,
@@ -155,7 +156,7 @@ export default function Channels() {
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger>
                   <ResponsiveButton
-                    icon={Settings2Icon}
+                    icon={EllipsisVerticalIcon}
                     text="Advanced"
                     variant="outline"
                   />
@@ -290,6 +291,13 @@ export default function Channels() {
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
+
+              <Link to="/wallet/swap" className="hidden sm:block">
+                <Button className="w-full" variant="secondary">
+                  <ArrowDownUpIcon />
+                  Swap
+                </Button>
+              </Link>
               <Link to="/channels/incoming">
                 <Button>Open Channel</Button>
               </Link>

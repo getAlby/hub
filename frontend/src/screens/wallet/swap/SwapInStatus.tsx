@@ -8,7 +8,7 @@ import {
   ZapIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
@@ -56,6 +56,9 @@ export default function SwapInStatus() {
 
   const [feeRate, setFeeRate] = useState("");
   const [isPaying, setPaying] = useState(false);
+  const [searchParams] = useSearchParams();
+
+  const showUseHubOnchainFunds = !searchParams.has("flow", "wallet-receive");
 
   useEffect(() => {
     if (recommendedFees?.fastestFee) {
@@ -187,10 +190,12 @@ export default function SwapInStatus() {
                     <p className="text-xl font-bold slashed-zero text-center">
                       {new Intl.NumberFormat().format(swap.sendAmount)} sats
                     </p>
-                    <CopyIcon
-                      className="cursor-pointer text-muted-foreground size-4 shrink-0"
-                      onClick={copyAmount}
-                    />
+                    {!swap.lockupTxId && (
+                      <CopyIcon
+                        className="cursor-pointer text-muted-foreground size-4 shrink-0"
+                        onClick={copyAmount}
+                      />
+                    )}
                   </div>
                   <FormattedFiatAmount amount={swap.sendAmount} />
                 </div>
@@ -204,7 +209,8 @@ export default function SwapInStatus() {
                     )}
                     {swap.state === "PENDING" &&
                       balances &&
-                      balances.onchain.spendable > swap.sendAmount && (
+                      balances.onchain.spendable > swap.sendAmount &&
+                      showUseHubOnchainFunds && (
                         <LoadingButton
                           loading={isPaying}
                           onClick={payWithAlbyHub}

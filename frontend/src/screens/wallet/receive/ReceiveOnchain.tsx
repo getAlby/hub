@@ -11,7 +11,6 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
-import { ExternalOnchainWalletRequiredAlert } from "src/components/ExternalOnchainWalletRequiredAlert";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LottieLoading from "src/components/LottieLoading";
@@ -67,23 +66,23 @@ export default function ReceiveOnchain() {
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className="w-full mb-2">
             <TabsTrigger
-              value="onchain"
-              className="flex gap-2 items-center w-full"
-            >
-              Receive to On-chain
-            </TabsTrigger>
-            <TabsTrigger
               value="spending"
               className="flex gap-2 items-center w-full"
             >
               Receive to Spending
             </TabsTrigger>
+            <TabsTrigger
+              value="onchain"
+              className="flex gap-2 items-center w-full"
+            >
+              Receive to On-chain
+            </TabsTrigger>
           </TabsList>
-          <TabsContent value="onchain">
-            <ReceiveToOnchain />
-          </TabsContent>
           <TabsContent value="spending">
             <ReceiveToSpending />
+          </TabsContent>
+          <TabsContent value="onchain">
+            <ReceiveToOnchain />
           </TabsContent>
         </Tabs>
       </div>
@@ -300,7 +299,9 @@ function ReceiveToSpending() {
       if (!swapInResponse) {
         throw new Error("Error swapping in");
       }
-      navigate(`/wallet/swap/in/status/${swapInResponse.swapId}`);
+      navigate(
+        `/wallet/swap/in/status/${swapInResponse.swapId}?flow=wallet-receive`
+      );
       toast("Initiated swap");
     } catch (error) {
       toast.error("Failed to initiate swap", {
@@ -332,12 +333,6 @@ function ReceiveToSpending() {
           </Alert>
         )}
       <div className="grid gap-1.5">
-        {hasChannelManagement && (
-          <ExternalOnchainWalletRequiredAlert
-            amount={+swapAmount}
-            className="mb-4"
-          />
-        )}
         <Label>Amount</Label>
         <InputWithAdornment
           type="number"
