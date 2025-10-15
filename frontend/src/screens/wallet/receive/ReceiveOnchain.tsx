@@ -1,5 +1,4 @@
 import {
-  AlertTriangleIcon,
   ArrowLeftIcon,
   CopyIcon,
   ExternalLinkIcon,
@@ -8,16 +7,16 @@ import {
 } from "lucide-react";
 import TickSVG from "public/images/illustrations/tick.svg";
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LottieLoading from "src/components/LottieLoading";
+import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import OnchainAddressDisplay from "src/components/OnchainAddressDisplay";
 import QRCode from "src/components/QRCode";
-import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -321,16 +320,7 @@ function ReceiveToSpending() {
       {hasChannelManagement &&
         parseInt(swapAmount || "0") * 1000 >=
           0.8 * balances.lightning.totalReceivable && (
-          <Alert>
-            <AlertTriangleIcon className="h-4 w-4" />
-            <AlertTitle>Low receiving capacity</AlertTitle>
-            <AlertDescription>
-              You likely won't be able to receive payments until you{" "}
-              <Link className="underline" to="/channels/incoming">
-                increase your receiving capacity.
-              </Link>
-            </AlertDescription>
-          </Alert>
+          <LowReceivingCapacityAlert />
         )}
       <div className="grid gap-1.5">
         <Label>Amount</Label>
@@ -357,23 +347,11 @@ function ReceiveToSpending() {
               {new Intl.NumberFormat().format(
                 Math.floor(balances.lightning.totalReceivable / 1000)
               )}{" "}
-              sats{" "}
-              <Link className="underline" to="/channels/incoming">
-                increase
-              </Link>
+              sats
             </div>
             <FormattedFiatAmount
               className="text-xs"
               amount={balances.lightning.totalReceivable / 1000}
-            />
-          </div>
-          <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
-            <div>
-              Minimum: {new Intl.NumberFormat().format(swapInfo.minAmount)} sats
-            </div>
-            <FormattedFiatAmount
-              className="text-xs"
-              amount={swapInfo.minAmount}
             />
           </div>
         </div>
