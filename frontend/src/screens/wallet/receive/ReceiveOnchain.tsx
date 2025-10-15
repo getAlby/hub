@@ -298,9 +298,7 @@ function ReceiveToSpending() {
       if (!swapInResponse) {
         throw new Error("Error swapping in");
       }
-      navigate(
-        `/wallet/swap/in/status/${swapInResponse.swapId}?flow=wallet-receive`
-      );
+      navigate(`/wallet/swap/in/status/${swapInResponse.swapId}`);
       toast("Initiated swap");
     } catch (error) {
       toast.error("Failed to initiate swap", {

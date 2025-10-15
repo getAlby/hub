@@ -111,7 +111,9 @@ function SwapInForm() {
       if (!swapInResponse) {
         throw new Error("Error swapping in");
       }
-      navigate(`/wallet/swap/in/status/${swapInResponse.swapId}`);
+      navigate(
+        `/wallet/swap/in/status/${swapInResponse.swapId}${isInternalSwap && `?internal=true`}`
+      );
       toast("Initiated swap");
     } catch (error) {
       toast.error("Failed to initiate swap", {
