@@ -126,6 +126,7 @@ function AutoSwapOutForm() {
           type="number"
           placeholder="Amount in satoshis"
           value={balanceThreshold}
+          min={swapAmount}
           onChange={(e) => setBalanceThreshold(e.target.value)}
           required
         />

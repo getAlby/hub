@@ -1510,6 +1510,12 @@ func (httpSvc *HttpService) enableAutoSwapOutHandler(c echo.Context) error {
 		})
 	}
 
+	if enableAutoSwapRequest.SwapAmount > enableAutoSwapRequest.BalanceThreshold {
+        return c.JSON(http.StatusBadRequest, ErrorResponse{
+            Message: "Swap amount cannot be greater than the balance threshold",
+        })
+    }
+
 	err := httpSvc.api.EnableAutoSwapOut(c.Request().Context(), &enableAutoSwapRequest)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
