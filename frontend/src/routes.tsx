@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, RouteObject } from "react-router-dom";
 import AppLayout from "src/components/layouts/AppLayout";
 import SettingsLayout from "src/components/layouts/SettingsLayout";
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
@@ -89,7 +89,7 @@ import AutoSwap from "src/screens/wallet/swap/AutoSwap";
 import SwapInStatus from "src/screens/wallet/swap/SwapInStatus";
 import SwapOutStatus from "src/screens/wallet/swap/SwapOutStatus";
 
-const routes = [
+const routes: RouteObject[] = [
   {
     path: "/",
     element: <AppLayout />,
