@@ -1,5 +1,6 @@
 import {
   ArrowLeftIcon,
+  ArrowUpDownIcon,
   CopyIcon,
   LinkIcon,
   PlusIcon,
@@ -31,6 +32,7 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useBalances } from "src/hooks/useBalances";
 
 import { useInfo } from "src/hooks/useInfo";
+import { useAutoSwapsConfig } from "src/hooks/useSwaps";
 import { useTransaction } from "src/hooks/useTransaction";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
@@ -38,6 +40,7 @@ import { CreateInvoiceRequest, Transaction } from "src/types";
 import { request } from "src/utils/request";
 
 export default function ReceiveInvoice() {
+  const { data: swapConfig } = useAutoSwapsConfig();
   const { data: info, hasChannelManagement } = useInfo();
   const { data: me } = useAlbyMe();
   const { data: balances } = useBalances();
@@ -181,6 +184,16 @@ export default function ReceiveInvoice() {
                         <PlusIcon className="w-4 h-4 mr-2" />
                         Create Another Invoice
                       </Button>
+                      {swapConfig && !swapConfig.enabled && (
+                        <LinkButton
+                          to="/wallet/swap/auto"
+                          variant="outline"
+                          className="w-full"
+                        >
+                          <ArrowUpDownIcon className="w-4 h-4 mr-2" />
+                          Enable Auto Liquidity
+                        </LinkButton>
+                      )}
                       <LinkButton
                         to="/wallet"
                         variant="link"
