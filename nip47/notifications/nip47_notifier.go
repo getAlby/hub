@@ -21,16 +21,16 @@ import (
 )
 
 type Nip47Notifier struct {
-	relay          nostrmodels.Relay
+	pool           nostrmodels.SimplePool
 	cfg            config.Config
 	keys           keys.Keys
 	db             *gorm.DB
 	permissionsSvc permissions.PermissionsService
 }
 
-func NewNip47Notifier(relay nostrmodels.Relay, db *gorm.DB, cfg config.Config, keys keys.Keys, permissionsSvc permissions.PermissionsService) *Nip47Notifier {
+func NewNip47Notifier(pool nostrmodels.SimplePool, db *gorm.DB, cfg config.Config, keys keys.Keys, permissionsSvc permissions.PermissionsService) *Nip47Notifier {
 	return &Nip47Notifier{
-		relay:          relay,
+		pool:           pool,
 		cfg:            cfg,
 		db:             db,
 		permissionsSvc: permissionsSvc,
@@ -212,8 +212,22 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 		return err
 	}
 
-	err = notifier.relay.Publish(ctx, *event)
-	if err != nil {
+	publishResultChannel := notifier.pool.PublishMany(ctx, notifier.cfg.GetRelayUrls(), *event)
+
+	publishSuccessful := false
+	for v := range publishResultChannel {
+		if v.Error == nil {
+			publishSuccessful = true
+		} else {
+			logger.Logger.WithFields(logrus.Fields{
+				"notification": notification,
+				"appId":        app.ID,
+				"relay":        v.RelayURL,
+			}).WithError(v.Error).Error("failed to publish notification to relay")
+		}
+	}
+
+	if !publishSuccessful {
 		logger.Logger.WithFields(logrus.Fields{
 			"notification": notification,
 			"appId":        app.ID,

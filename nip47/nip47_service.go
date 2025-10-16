@@ -35,11 +35,11 @@ type nip47Service struct {
 
 type Nip47Service interface {
 	events.EventSubscriber
-	StartNotifier(relay *nostr.Relay)
-	StartNip47InfoPublisher(relay *nostr.Relay, lnClient lnclient.LNClient)
-	HandleEvent(ctx context.Context, relay nostrmodels.Relay, event *nostr.Event, lnClient lnclient.LNClient)
+	StartNotifier(ctx context.Context, pool *nostr.SimplePool)
+	StartNip47InfoPublisher(ctx context.Context, pool *nostr.SimplePool, lnClient lnclient.LNClient)
+	HandleEvent(ctx context.Context, pool nostrmodels.SimplePool, event *nostr.Event, lnClient lnclient.LNClient)
 	GetNip47Info(ctx context.Context, relay *nostr.Relay, appWalletPubKey string) (*nostr.Event, error)
-	PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, appId uint, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error)
+	PublishNip47Info(ctx context.Context, pool nostrmodels.SimplePool, appId uint, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error)
 	PublishNip47InfoDeletion(ctx context.Context, relay nostrmodels.Relay, appWalletPubKey string, appWalletPrivKey string, infoEventId string) error
 	CreateResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, cipher *cipher.Nip47Cipher, walletPrivKey string) (result *nostr.Event, err error)
 	EnqueueNip47InfoPublishRequest(appId uint, appWalletPubKey, appWalletPrivKey string)
@@ -64,20 +64,21 @@ func (svc *nip47Service) ConsumeEvent(ctx context.Context, event *events.Event, 
 	svc.nip47NotificationQueue.AddToQueue(event)
 }
 
+// FIXME: this is not how it works now since we use a pool that handles reconnection logic
 // The notifier is decoupled from the notification queue
 // so that if Alby Hub disconnects from the relay, it will wait to reconnect
 // to send notifications rather than dropping them
-func (svc *nip47Service) StartNotifier(relay *nostr.Relay) {
-	nip47Notifier := notifications.NewNip47Notifier(relay, svc.db, svc.cfg, svc.keys, svc.permissionsService)
+func (svc *nip47Service) StartNotifier(ctx context.Context, pool *nostr.SimplePool) {
+	nip47Notifier := notifications.NewNip47Notifier(pool, svc.db, svc.cfg, svc.keys, svc.permissionsService)
 	go func() {
 		for {
 			select {
-			case <-relay.Context().Done():
-				// relay disconnected
+			case <-ctx.Done():
+				// app exited
 				return
 			case event := <-svc.nip47NotificationQueue.Channel():
 				logger.Logger.WithField("event", event).Debug("Consuming event from notification queue")
-				err := nip47Notifier.ConsumeEvent(relay.Context(), event)
+				err := nip47Notifier.ConsumeEvent(ctx, event)
 				if err != nil {
 					logger.Logger.WithError(err).WithField("event", event).Error("Failed to consume event from notification queue")
 					// wait and then re-add the item to the queue
@@ -97,15 +98,15 @@ func (svc *nip47Service) EnqueueNip47InfoPublishRequest(appId uint, appWalletPub
 	})
 }
 
-func (svc *nip47Service) StartNip47InfoPublisher(relay *nostr.Relay, lnClient lnclient.LNClient) {
+func (svc *nip47Service) StartNip47InfoPublisher(ctx context.Context, pool *nostr.SimplePool, lnClient lnclient.LNClient) {
 	go func() {
 		for {
 			select {
-			case <-relay.Context().Done():
+			case <-ctx.Done():
 				// relay disconnected
 				return
 			case req := <-svc.nip47InfoPublishQueue.Channel():
-				_, err := svc.PublishNip47Info(relay.Context(), relay, req.AppId, req.AppWalletPubKey, req.AppWalletPrivKey, lnClient)
+				_, err := svc.PublishNip47Info(ctx, pool, req.AppId, req.AppWalletPubKey, req.AppWalletPrivKey, lnClient)
 				if err != nil {
 					logger.Logger.WithError(err).WithField("wallet_pubkey", req.AppWalletPubKey).Error("Failed to publish NIP47 info from queue")
 					// wait and then re-add the item to the queue
