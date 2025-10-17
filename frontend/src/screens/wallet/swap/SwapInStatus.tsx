@@ -5,10 +5,9 @@ import {
   CircleXIcon,
   CopyIcon,
   ExternalLinkIcon,
-  ZapIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
@@ -25,14 +24,12 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
-import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
-import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useSwap } from "src/hooks/useSwaps";
@@ -43,7 +40,6 @@ import { request } from "src/utils/request";
 
 export default function SwapInStatus() {
   const { data: info } = useInfo();
-  const { data: balances } = useBalances();
   const { data: recommendedFees } = useMempoolApi<{
     fastestFee: number;
     halfHourFee: number;
@@ -56,6 +52,10 @@ export default function SwapInStatus() {
 
   const [feeRate, setFeeRate] = useState("");
   const [isPaying, setPaying] = useState(false);
+  const [searchParams] = useSearchParams();
+
+  const isInternalSwap = searchParams.has("internal", "true");
+  const [, setPaidWithAlbyHub] = React.useState(false);
 
   useEffect(() => {
     if (recommendedFees?.fastestFee) {
@@ -68,6 +68,58 @@ export default function SwapInStatus() {
       setPaying(false);
     }
   }, [isPaying, swap?.lockupTxId]);
+
+  const payWithAlbyHub = React.useCallback(() => {
+    (async () => {
+      setPaying(true);
+      try {
+        if (!swap) {
+          throw new Error("swap not loaded");
+        }
+        if (!feeRate) {
+          throw new Error("No fee rate set");
+        }
+        const response = await request<RedeemOnchainFundsResponse>(
+          "/api/wallet/redeem-onchain-funds",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              toAddress: swap.lockupAddress,
+              amount: swap.sendAmount,
+              feeRate: +feeRate,
+            }),
+          }
+        );
+        if (!response?.txId) {
+          throw new Error("No address in response");
+        }
+        console.info("Redeemed onchain funds", response);
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to redeem onchain funds", {
+          description: "" + error,
+        });
+        setPaying(false);
+      }
+    })();
+  }, [feeRate, swap]);
+
+  React.useEffect(() => {
+    if (isInternalSwap && feeRate && swap) {
+      setPaidWithAlbyHub((current) => {
+        if (current) {
+          return current;
+        }
+        setTimeout(() => {
+          payWithAlbyHub();
+        }, 1);
+        return true;
+      });
+    }
+  }, [feeRate, isInternalSwap, payWithAlbyHub, swap]);
 
   if (!swap) {
     return <Loading />;
@@ -85,42 +137,6 @@ export default function SwapInStatus() {
     copyToClipboard(swap.sendAmount.toString());
   };
 
-  async function payWithAlbyHub() {
-    setPaying(true);
-    try {
-      if (!swap) {
-        throw new Error("swap not loaded");
-      }
-      if (!feeRate) {
-        throw new Error("No fee rate set");
-      }
-      const response = await request<RedeemOnchainFundsResponse>(
-        "/api/wallet/redeem-onchain-funds",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            toAddress: swap.lockupAddress,
-            amount: swap.sendAmount,
-            feeRate: +feeRate,
-          }),
-        }
-      );
-      if (!response?.txId) {
-        throw new Error("No address in response");
-      }
-      console.info("Redeemed onchain funds", response);
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to redeem onchain funds", {
-        description: "" + error,
-      });
-      setPaying(false);
-    }
-  }
-
   const swapStatus = swap.state;
   const statusText = {
     SUCCESS: "Swap Successful",
@@ -128,7 +144,9 @@ export default function SwapInStatus() {
     REFUNDED: "Swap Refunded",
     PENDING: swap.lockupTxId
       ? "Waiting for confirmation"
-      : "Waiting for deposit",
+      : isInternalSwap
+        ? "Depositing on-chain funds"
+        : "Waiting for deposit",
   };
 
   return (
@@ -175,7 +193,7 @@ export default function SwapInStatus() {
                   <CircleXIcon className="w-60 h-60" />
                 )}
                 {swapStatus === "PENDING" &&
-                  (swap.lockupTxId ? (
+                  (swap.lockupTxId || isInternalSwap ? (
                     <LottieLoading />
                   ) : (
                     <QRCode
@@ -187,14 +205,16 @@ export default function SwapInStatus() {
                     <p className="text-xl font-bold slashed-zero text-center">
                       {new Intl.NumberFormat().format(swap.sendAmount)} sats
                     </p>
-                    <CopyIcon
-                      className="cursor-pointer text-muted-foreground size-4 shrink-0"
-                      onClick={copyAmount}
-                    />
+                    {!swap.lockupTxId && !isInternalSwap && (
+                      <CopyIcon
+                        className="cursor-pointer text-muted-foreground size-4 shrink-0"
+                        onClick={copyAmount}
+                      />
+                    )}
                   </div>
                   <FormattedFiatAmount amount={swap.sendAmount} />
                 </div>
-                {!swap.lockupTxId && (
+                {!swap.lockupTxId && !isInternalSwap && (
                   <div className="flex justify-center gap-4 flex-wrap">
                     {swap.state !== "FAILED" && (
                       <Button onClick={copyAddress} variant="outline">
@@ -202,18 +222,6 @@ export default function SwapInStatus() {
                         Copy Address
                       </Button>
                     )}
-                    {swap.state === "PENDING" &&
-                      balances &&
-                      balances.onchain.spendable > swap.sendAmount && (
-                        <LoadingButton
-                          loading={isPaying}
-                          onClick={payWithAlbyHub}
-                          disabled={!recommendedFees}
-                        >
-                          <ZapIcon />
-                          Use Hub On-Chain Funds
-                        </LoadingButton>
-                      )}
                     {swap.state === "PENDING" && (
                       <ExternalLinkButton
                         to={`bitcoin:${swap.lockupAddress}?amount=${swap.sendAmount / 100_000_000}`}

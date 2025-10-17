@@ -6,10 +6,8 @@ import { useChannels } from "src/hooks/useChannels";
 export function AnchorReserveAlert({
   amount,
   className,
-  isSwap,
 }: {
   amount: number;
-  isSwap?: boolean;
   className?: string;
 }) {
   const { data: balances } = useBalances();
@@ -37,8 +35,7 @@ export function AnchorReserveAlert({
         including your anchor reserves may put your node at risk of unable to
         reclaim funds in your channel after a force-closure. To prevent this,
         set aside at least{" "}
-        {new Intl.NumberFormat().format(channels.length * 25000)} sats on-chain
-        {isSwap ? ", or pay with an external on-chain wallet." : "."}
+        {new Intl.NumberFormat().format(channels.length * 25000)} sats on-chain.
       </AlertDescription>
     </Alert>
   );
