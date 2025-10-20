@@ -102,7 +102,7 @@ const routes = [
       {
         path: "home",
         element: <DefaultRedirect />,
-        handle: { crumb: () => "Dashboard" },
+        handle: { crumb: () => "Dashboard", title: "Dashboard" },
         children: [
           {
             index: true,
@@ -113,7 +113,7 @@ const routes = [
       {
         path: "wallet",
         element: <DefaultRedirect />,
-        handle: { crumb: () => "Wallet" },
+        handle: { crumb: () => "Wallet", title: "Wallet" },
         children: [
           {
             index: true,
@@ -121,7 +121,7 @@ const routes = [
           },
           {
             path: "swap",
-            handle: { crumb: () => "Swap" },
+            handle: { crumb: () => "Swap", title: "Swap" },
             children: [
               {
                 index: true,
@@ -143,24 +143,30 @@ const routes = [
           },
           {
             path: "receive",
-            handle: { crumb: () => "Receive" },
+            handle: { crumb: () => "Receive", title: "Receive" },
             children: [
               {
                 index: true,
                 element: <Receive />,
               },
               {
-                handle: { crumb: () => "Receive On-chain" },
+                handle: {
+                  crumb: () => "Receive On-chain",
+                  title: "Receive On-chain",
+                },
                 path: "onchain",
                 element: <ReceiveOnchain />,
               },
               {
-                handle: { crumb: () => "Invoice" },
+                handle: { crumb: () => "Invoice", title: "Invoice" },
                 path: "invoice",
                 element: <ReceiveInvoice />,
               },
               {
-                handle: { crumb: () => "BOLT-12 Offer" },
+                handle: {
+                  crumb: () => "BOLT-12 Offer",
+                  title: "BOLT-12 Offer",
+                },
                 path: "offer",
                 element: <ReceiveOffer />,
               },
@@ -168,7 +174,7 @@ const routes = [
           },
           {
             path: "send",
-            handle: { crumb: () => "Send" },
+            handle: { crumb: () => "Send", title: "Send" },
             children: [
               {
                 index: true,
@@ -203,24 +209,27 @@ const routes = [
           {
             path: "sign-message",
             element: <SignMessage />,
-            handle: { crumb: () => "Sign Message" },
+            handle: { crumb: () => "Sign Message", title: "Sign Message" },
           },
           {
             path: "node-alias",
             element: <NodeAlias />,
-            handle: { crumb: () => "Node Alias" },
+            handle: { crumb: () => "Node Alias", title: "Node Alias" },
           },
           {
             path: "withdraw",
             element: <WithdrawOnchainFunds />,
-            handle: { crumb: () => "Withdraw On-Chain Balance" },
+            handle: {
+              crumb: () => "Withdraw On-Chain Balance",
+              title: "Withdraw On-Chain Balance",
+            },
           },
         ],
       },
       {
         path: "settings",
         element: <DefaultRedirect />,
-        handle: { crumb: () => "Settings" },
+        handle: { crumb: () => "Settings", title: "Settings" },
         children: [
           {
             path: "",
@@ -233,22 +242,25 @@ const routes = [
               {
                 path: "about",
                 element: <About />,
-                handle: { crumb: () => "About" },
+                handle: { crumb: () => "About", title: "About" },
               },
               {
                 path: "auto-unlock",
                 element: <AutoUnlock />,
-                handle: { crumb: () => "Auto Unlock" },
+                handle: { crumb: () => "Auto Unlock", title: "Auto Unlock" },
               },
               {
                 path: "change-unlock-password",
                 element: <ChangeUnlockPassword />,
-                handle: { crumb: () => "Unlock Password" },
+                handle: {
+                  crumb: () => "Unlock Password",
+                  title: "Change Unlock Password",
+                },
               },
               {
                 path: "backup",
                 element: <Backup />,
-                handle: { crumb: () => "Backup" },
+                handle: { crumb: () => "Backup", title: "Backup" },
               },
               {
                 path: "node-migrate",
@@ -273,7 +285,7 @@ const routes = [
       {
         path: "apps",
         element: <DefaultRedirect />,
-        handle: { crumb: () => "Connections" },
+        handle: { crumb: () => "Connections", title: "Connections" },
         children: [
           {
             index: true,
@@ -286,7 +298,7 @@ const routes = [
           {
             path: "new",
             element: <NewApp />,
-            handle: { crumb: () => "New App" },
+            handle: { crumb: () => "New App", title: "New Connection" },
           },
           {
             path: "cleanup",
@@ -297,7 +309,7 @@ const routes = [
       {
         path: "sub-wallets",
         element: <DefaultRedirect />,
-        handle: { crumb: () => "Sub-wallets" },
+        handle: { crumb: () => "Sub-wallets", title: "Sub-wallets" },
 
         children: [
           {
@@ -317,7 +329,7 @@ const routes = [
       {
         path: "internal-apps",
         element: <DefaultRedirect />,
-        handle: { crumb: () => "Connections" },
+        handle: { crumb: () => "Connections", title: "Internal Apps" },
         children: [
           {
             path: "buzzpay",
@@ -356,7 +368,7 @@ const routes = [
       {
         path: "appstore",
         element: <DefaultRedirect />,
-        handle: { crumb: () => "App Store" },
+        handle: { crumb: () => "App Store", title: "App Store" },
         children: [
           {
             path: ":appStoreId",
@@ -367,7 +379,7 @@ const routes = [
       {
         path: "channels",
         element: <DefaultRedirect />,
-        handle: { crumb: () => "Node" },
+        handle: { crumb: () => "Node", title: "Channels" },
         children: [
           {
             index: true,
@@ -375,7 +387,10 @@ const routes = [
           },
           {
             path: "first",
-            handle: { crumb: () => "Your First Channel" },
+            handle: {
+              crumb: () => "Your First Channel",
+              title: "Your First Channel",
+            },
             children: [
               {
                 index: true,
@@ -393,7 +408,7 @@ const routes = [
           },
           {
             path: "auto",
-            handle: { crumb: () => "New Channel" },
+            handle: { crumb: () => "New Channel", title: "New Channel" },
             children: [
               {
                 index: true,
@@ -412,34 +427,43 @@ const routes = [
           {
             path: "outgoing",
             element: <IncreaseOutgoingCapacity />,
-            handle: { crumb: () => "Open Channel with On-Chain" },
+            handle: {
+              crumb: () => "Open Channel with On-Chain",
+              title: "Open Channel with On-Chain",
+            },
           },
           {
             path: "incoming",
             element: <IncreaseIncomingCapacity />,
-            handle: { crumb: () => "Open Channel with Lightning" },
+            handle: {
+              crumb: () => "Open Channel with Lightning",
+              title: "Open Channel with Lightning",
+            },
           },
           {
             path: "order",
             element: <CurrentChannelOrder />,
-            handle: { crumb: () => "Current Order" },
+            handle: { crumb: () => "Current Order", title: "Current Order" },
           },
           {
             path: "onchain/buy-bitcoin",
             element: <BuyBitcoin />,
-            handle: { crumb: () => "Buy Bitcoin" },
+            handle: { crumb: () => "Buy Bitcoin", title: "Buy Bitcoin" },
           },
           {
             path: "onchain/deposit-bitcoin",
             element: <DepositBitcoin />,
-            handle: { crumb: () => "Deposit Bitcoin" },
+            handle: {
+              crumb: () => "Deposit Bitcoin",
+              title: "Deposit Bitcoin",
+            },
           },
         ],
       },
       {
         path: "peers",
         element: <DefaultRedirect />,
-        handle: { crumb: () => "Peers" },
+        handle: { crumb: () => "Peers", title: "Peers" },
         children: [
           {
             index: true,
@@ -448,7 +472,7 @@ const routes = [
           {
             path: "new",
             element: <ConnectPeer />,
-            handle: { crumb: () => "Connect Peer" },
+            handle: { crumb: () => "Connect Peer", title: "Connect Peer" },
           },
         ],
       },
@@ -459,7 +483,7 @@ const routes = [
       {
         path: "review-earn",
         element: <AlbyReviews />,
-        handle: { crumb: () => "Review & Earn" },
+        handle: { crumb: () => "Review & Earn", title: "Review & Earn" },
       },
     ],
   },
