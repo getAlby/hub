@@ -1,7 +1,6 @@
 package transactions
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,8 +12,6 @@ import (
 )
 
 func TestSendPaymentSync_SelfPaymentDetection_WithIncomingTransaction(t *testing.T) {
-	ctx := context.TODO()
-
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
@@ -32,7 +29,7 @@ func TestSendPaymentSync_SelfPaymentDetection_WithIncomingTransaction(t *testing
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, nil, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockInvoice, nil, nil, svc.LNClient, nil, nil)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, transaction)
@@ -44,16 +41,24 @@ func TestSendPaymentSync_SelfPaymentDetection_WithIncomingTransaction(t *testing
 }
 
 func TestSendPaymentSync_SelfPaymentDetection_WithoutIncomingTransaction(t *testing.T) {
-	ctx := context.TODO()
-
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
 	svc.LNClient.(*tests.MockLn).Pubkey = "03cbd788f5b22bd56e2714bff756372d2293504c064e03250ed16a4dd80ad70e2c"
 
+	mockPreimage := "123preimage"
+	svc.DB.Create(&db.Transaction{
+		State:          constants.TRANSACTION_STATE_FAILED, // otherwise we won't be able to create a new payment with the same hash
+		Type:           constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentRequest: tests.MockInvoice,
+		PaymentHash:    tests.MockPaymentHash,
+		Preimage:       &mockPreimage,
+		AmountMsat:     123000,
+	})
+
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, nil, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockInvoice, nil, nil, svc.LNClient, nil, nil)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, transaction)
@@ -63,8 +68,6 @@ func TestSendPaymentSync_SelfPaymentDetection_WithoutIncomingTransaction(t *test
 }
 
 func TestSendPaymentSync_SelfPaymentDetection_DifferentPubkey(t *testing.T) {
-	ctx := context.TODO()
-
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
@@ -82,7 +85,7 @@ func TestSendPaymentSync_SelfPaymentDetection_DifferentPubkey(t *testing.T) {
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockInvoice, nil, nil, svc.LNClient, nil, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockInvoice, nil, nil, svc.LNClient, nil, nil)
 
 	assert.NoError(t, err)
 	assert.NotNil(t, transaction)
