@@ -35,7 +35,7 @@ func TestSelfHoldPaymentSettled(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		result, err := transactionsService.SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, svc.LNClient, nil, nil, nil)
+		result, err := transactionsService.SendPaymentSync(transaction.PaymentRequest, nil, nil, svc.LNClient, nil, nil)
 		assert.NoError(t, err)
 		require.NotNil(t, result)
 		assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, result.State)
@@ -73,7 +73,7 @@ func TestSelfHoldPaymentCanceled(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		result, err := transactionsService.SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, svc.LNClient, nil, nil, nil)
+		result, err := transactionsService.SendPaymentSync(transaction.PaymentRequest, nil, nil, svc.LNClient, nil, nil)
 		assert.ErrorIs(t, err, lnclient.NewHoldInvoiceCanceledError())
 		assert.Nil(t, result)
 

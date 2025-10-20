@@ -26,6 +26,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Dialog,
   DialogContent,
@@ -34,7 +35,6 @@ import {
   DialogHeader,
   DialogTrigger,
 } from "src/components/ui/dialog";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
 import {
   Tooltip,
@@ -44,12 +44,22 @@ import {
 } from "src/components/ui/tooltip";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { LinkStatus, useLinkAccount } from "src/hooks/useLinkAccount";
-import { App, BudgetRenewalType } from "src/types";
+import { BudgetRenewalType } from "src/types";
 
-function AlbyConnectionCard({ connection }: { connection?: App }) {
+import AlbyAccountDarkSVG from "public/images/illustrations/alby-account-dark.svg";
+import AlbyAccountLightSVG from "public/images/illustrations/alby-account-light.svg";
+import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
+import { useApps } from "src/hooks/useApps";
+
+function AlbyConnectionCard() {
+  const { data: linkedAlbyAccountAppsData, mutate: reloadAlbyAccountApp } =
+    useApps(undefined, undefined, {
+      name: ALBY_ACCOUNT_APP_NAME,
+    });
+  const albyAccountApp = linkedAlbyAccountAppsData?.apps[0];
   const { data: albyMe } = useAlbyMe();
   const { loading, linkStatus, loadingLinkStatus, linkAccount } =
-    useLinkAccount();
+    useLinkAccount(reloadAlbyAccountApp);
 
   const [maxAmount, setMaxAmount] = useState(150_000);
   const [budgetRenewal, setBudgetRenewal] =
@@ -66,7 +76,7 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
       <CardHeader>
         <CardTitle className="relative">
           Linked Alby Account
-          {connection && <AppCardNotice app={connection} />}
+          {albyAccountApp && <AppCardNotice app={albyAccountApp} />}
         </CardTitle>
         <CardDescription>
           Link Your Alby Account to use your lightning address with Alby Hub and
@@ -75,7 +85,7 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
       </CardHeader>
       <Separator />
       <CardContent className="group">
-        <div className="grid grid-cols-1 xl:grid-cols-2 mt-5 gap-3 items-center relative">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 items-center relative">
           <div className="flex flex-col gap-4">
             <div className="flex flex-row gap-4">
               <UserAvatar className="h-14 w-14" />
@@ -84,20 +94,20 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
                   {albyMe?.name || albyMe?.email}
                 </div>
                 <div className="flex flex-row items-center gap-1 text-sm text-muted-foreground">
-                  <ZapIcon className="w-4 h-4" />
+                  <ZapIcon className="size-4" />
                   {albyMe?.lightning_address}
                 </div>
               </div>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
               {loadingLinkStatus && <Loading />}
-              {!connection ||
+              {!albyAccountApp ||
               linkStatus === LinkStatus.SharedNode ||
               linkStatus === LinkStatus.Unlinked ? (
                 <Dialog>
                   <DialogTrigger asChild>
                     <LoadingButton loading={loading}>
-                      {!loading && <Link2Icon className="w-4 h-4 mr-2" />}
+                      {!loading && <Link2Icon />}
                       Link your Alby Account
                     </LoadingButton>
                   </DialogTrigger>
@@ -109,11 +119,11 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
                         every app you access through your Alby Account will
                         handle payments via the Hub.
                         <img
-                          src="/images/illustrations/alby-account-dark.svg"
+                          src={AlbyAccountDarkSVG}
                           className="w-full hidden dark:block"
                         />
                         <img
-                          src="/images/illustrations/alby-account-light.svg"
+                          src={AlbyAccountLightSVG}
                           className="w-full dark:hidden"
                         />
                         You can add a budget that will restrict how much can be
@@ -151,48 +161,48 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
                   disabled
                   className="disabled:opacity-100"
                 >
-                  <CheckCircle2Icon className="w-4 h-4 mr-2" />
+                  <CheckCircle2Icon />
                   Alby Account Linked
                 </Button>
               ) : (
                 linkStatus === LinkStatus.OtherNode && (
                   <Button variant="destructive" disabled>
-                    <CircleXIcon className="w-4 h-4 mr-2" />
+                    <CircleXIcon />
                     Linked to another wallet
                   </Button>
                 )
               )}
-              {!connection && (
+              {!albyAccountApp && (
                 <ExternalLink
                   to="https://www.getalby.com/node"
                   className="w-full sm:w-auto"
                 >
                   <Button variant="outline" className="w-full sm:w-auto">
-                    <ExternalLinkIcon className="w-4 h-4 mr-2" />
+                    <ExternalLinkIcon />
                     Alby Account Settings
                   </Button>
                 </ExternalLink>
               )}
-              {connection && (
+              {albyAccountApp && (
                 <Link to="/settings/alby-account" className="w-full sm:w-auto">
                   <Button variant="outline" className="w-full sm:w-auto">
-                    <User2Icon className="w-4 h-4 mr-2" />
+                    <User2Icon />
                     Alby Account Settings
                   </Button>
                 </Link>
               )}
             </div>
           </div>
-          {connection && (
+          {albyAccountApp && (
             <div className="slashed-zero">
               <Link
-                to={`/apps/${connection.appPubkey}?edit=true`}
+                to={`/apps/${albyAccountApp.id}?edit=true`}
                 className="absolute top-0 right-0"
               >
-                <EditIcon className="w-4 h-4 hidden group-hover:inline text-muted-foreground hover:text-card-foreground" />
+                <EditIcon className="size-4 hidden group-hover:inline text-muted-foreground hover:text-card-foreground" />
               </Link>
               <AppCardConnectionInfo
-                connection={connection}
+                connection={albyAccountApp}
                 budgetRemainingText={
                   <span className="flex items-center gap-2 justify-end">
                     Left in Alby Account budget
@@ -203,7 +213,7 @@ function AlbyConnectionCard({ connection }: { connection?: App }) {
                             <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent className="max-w-sm">
+                        <TooltipContent>
                           Control what access your Alby Account has to your Hub
                           by editing the budget. Every app you access through
                           your Alby Account (such as your lightning address,

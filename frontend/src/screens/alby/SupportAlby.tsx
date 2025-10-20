@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { Button } from "src/components/ui/button";
@@ -18,6 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Dialog,
   DialogContent,
@@ -29,8 +31,6 @@ import {
 } from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
-import { useToast } from "src/components/ui/use-toast";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import {
   SUPPORT_ALBY_CONNECTION_NAME,
@@ -43,7 +43,6 @@ import { request } from "src/utils/request";
 
 function SupportAlby() {
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const [amount, setAmount] = React.useState("");
   const [senderName, setSenderName] = React.useState("");
@@ -61,10 +60,8 @@ function SupportAlby() {
       }
 
       if (+amount < 1000) {
-        toast({
-          title: "Amount too low",
+        toast.error("Amount too low", {
           description: "Minimum payment is 1000 sats",
-          variant: "destructive",
         });
         return;
       }
@@ -104,7 +101,7 @@ function SupportAlby() {
               ...(senderName ? { name: senderName } : {}),
             }),
             nostrWalletConnectUrl: createAppResponse.pairingUri,
-            sleepDuration: "31 days",
+            cronExpression: "0 0 1 * *", // at the start of each month
           }),
         }
       );
@@ -120,13 +117,8 @@ function SupportAlby() {
       }
 
       // add the ZapPlanner subscription ID to the app metadata
+      // Only send metadata since that's the only thing changing
       const updateAppRequest: UpdateAppRequest = {
-        name: createAppRequest.name,
-        scopes: createAppRequest.scopes,
-        budgetRenewal: createAppRequest.budgetRenewal!,
-        expiresAt: createAppRequest.expiresAt,
-        maxAmount,
-        isolated,
         metadata: {
           ...createAppRequest.metadata,
           zapplanner_subscription_id: subscriptionId,
@@ -141,14 +133,13 @@ function SupportAlby() {
         body: JSON.stringify(updateAppRequest),
       });
 
-      toast({
-        title: "Thank you for becoming a supporter",
-        description: "The first payment is scheduled immediately.",
+      toast("Thank you for becoming a supporter", {
+        description: "Payment will be made at the start of each month",
       });
 
       navigate("/");
     } catch (error) {
-      handleRequestError(toast, "Failed to create app", error);
+      handleRequestError("Failed to create app", error);
     } finally {
       setSubmitting(false);
     }
@@ -173,7 +164,7 @@ function SupportAlby() {
           <CardFooter className="flex justify-end">
             <UpgradeDialog>
               <Button>
-                <Sparkles className="w-4 h-4 mr-2" />
+                <Sparkles />
                 Upgrade to Pro
               </Button>
             </UpgradeDialog>
@@ -193,7 +184,7 @@ function SupportAlby() {
               <div className="flex flex-col items-center justify-center gap-2">
                 <DialogTrigger asChild>
                   <Button>
-                    <HandCoins className="w-4 h-4 mr-2" />
+                    <HandCoins />
                     Setup Donation
                   </Button>
                 </DialogTrigger>
@@ -288,7 +279,7 @@ function SupportAlby() {
         <ul className="flex flex-col gap-5">
           <li className="flex flex-col">
             <div className="flex flex-row items-center">
-              <PlusCircleIcon className="w-4 h-4 mr-2" />
+              <PlusCircleIcon className="size-4 mr-2" />
               Unlock New Features
             </div>
             <div className="text-muted-foreground text-sm">
@@ -305,7 +296,7 @@ function SupportAlby() {
           </li>
           <li className="flex flex-col ">
             <div className="flex flex-row items-center">
-              <RefreshCwIcon className="w-4 h-4 mr-2" />
+              <RefreshCwIcon className="size-4 mr-2" />
               Ensure Continuous Improvement
             </div>
             <div className="text-muted-foreground text-sm">
@@ -322,7 +313,7 @@ function SupportAlby() {
           </li>
           <li className="flex flex-col ">
             <div className="flex flex-row items-center">
-              <CodeIcon className="w-4 h-4 mr-2" />
+              <CodeIcon className="size-4 mr-2" />
               Support Open-Source Freedom
             </div>
             <div className="text-muted-foreground text-sm">

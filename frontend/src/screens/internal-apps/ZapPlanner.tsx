@@ -1,5 +1,4 @@
 import React from "react";
-import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import {
   Card,
@@ -7,20 +6,29 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { useToast } from "src/components/ui/use-toast";
 import { useApps } from "src/hooks/useApps";
 import { createApp } from "src/requests/createApp";
 import { CreateAppRequest, UpdateAppRequest } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
 
-import { fiat, LightningAddress } from "@getalby/lightning-tools";
+import {
+  getFormattedFiatValue,
+  getSatoshiValue,
+  LightningAddress,
+} from "@getalby/lightning-tools";
 import { ExternalLinkIcon, PlusCircleIcon } from "lucide-react";
+import { toast } from "sonner";
 import alby from "src/assets/suggested-apps/alby.png";
+import bff from "src/assets/zapplanner/bff.png";
 import bitcoinbrink from "src/assets/zapplanner/bitcoinbrink.png";
 import hrf from "src/assets/zapplanner/hrf.png";
 import opensats from "src/assets/zapplanner/opensats.png";
+import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
+import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
-import { Button, ExternalLinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Dialog,
   DialogContent,
@@ -32,7 +40,6 @@ import {
 } from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import {
   Select,
   SelectContent,
@@ -80,11 +87,20 @@ const recipients: Recipient[] = [
     lightningAddress: "bitcoinbrink@zbd.gg",
     logo: bitcoinbrink,
   },
+  {
+    name: "Bitcoin For Fairness",
+    description:
+      "Bitcoin for Fairness is an initiative raising knowledge and understanding of Bitcoin with a focus on civil and human rights.",
+    lightningAddress: "bffbtc@getalby.com",
+    logo: bff,
+  },
 ];
 
 export function ZapPlanner() {
-  const { data: apps, mutate: reloadApps } = useApps();
-  const { toast } = useToast();
+  const { data: appsData, mutate: reloadApps } = useApps(undefined, undefined, {
+    appStoreAppId: "zapplanner",
+  });
+  const zapplannerApps = appsData?.apps;
 
   const [open, setOpen] = React.useState(false);
   const [isSubmitting, setSubmitting] = React.useState(false);
@@ -159,7 +175,7 @@ export function ZapPlanner() {
       try {
         // any fiat (not BTC) → sats
         if (currency !== "SATS") {
-          const sats = await fiat.getSatoshiValue({
+          const sats = await getSatoshiValue({
             amount: parseFloat(amount),
             currency: currency,
           });
@@ -169,7 +185,7 @@ export function ZapPlanner() {
           // Convert satoshis to USD
           const sats = parseInt(amount, 10);
           setSatoshiAmount(sats);
-          const fiatValue = await fiat.getFormattedFiatValue({
+          const fiatValue = await getFormattedFiatValue({
             satoshi: sats,
             currency: "USD",
             locale: "en-US",
@@ -184,6 +200,11 @@ export function ZapPlanner() {
 
     convertCurrency();
   }, [amount, currency, open]);
+
+  const appStoreApp = appStoreApps.find((app) => app.id === "zapplanner");
+  if (!appStoreApp) {
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -201,6 +222,11 @@ export function ZapPlanner() {
       if (isNaN(rawFreq) || rawFreq < 1) {
         throw new Error("Invalid frequency");
       }
+
+      if (frequencyUnit === "months" && rawFreq !== 1) {
+        throw new Error("Only once per month is supported, use weeks instead");
+      }
+
       // validate lightning address
       const ln = new LightningAddress(recipientLightningAddress);
       await ln.fetch();
@@ -217,7 +243,8 @@ export function ZapPlanner() {
           periodsPerMonth = 31 / 7 / rawFreq;
           break;
         case "months":
-          periodsPerMonth = 1 / rawFreq;
+          // only once per month is supported
+          periodsPerMonth = 1;
           break;
         default:
           throw new Error("Unsupported frequency unit");
@@ -230,10 +257,12 @@ export function ZapPlanner() {
       const maxAmount = Math.ceil((rawSpend * 1.01 + 10) * 1.3);
       const isolated = false;
 
+      const budgetRenewal = "monthly";
+
       const createAppRequest: CreateAppRequest = {
         name: `ZapPlanner - ${recipientName}`,
         scopes: ["pay_invoice"],
-        budgetRenewal: "monthly",
+        budgetRenewal,
         maxAmount,
         isolated,
         metadata: {
@@ -243,15 +272,14 @@ export function ZapPlanner() {
       };
 
       const createAppResponse = await createApp(createAppRequest);
-      // months → days since months are not recognized
-      const monthsToDays = (m: string) => parseInt(m, 10) * 31;
 
+      const cronExpression =
+        frequencyUnit === "months" ? "0 0 1 * *" : undefined; // at the start of each month
       const sleepDuration =
-        frequencyUnit === "months"
-          ? `${monthsToDays(frequencyValue)} days`
-          : `${frequencyValue} ${frequencyUnit}`;
+        frequencyUnit !== "months"
+          ? `${frequencyValue} ${frequencyUnit}`
+          : undefined;
 
-      // Build a “stable fiat” payload when needed
       const subscriptionBody: Record<string, unknown> = {
         recipientLightningAddress,
         message: comment || "ZapPlanner payment from Alby Hub",
@@ -260,6 +288,7 @@ export function ZapPlanner() {
         }),
         nostrWalletConnectUrl: createAppResponse.pairingUri,
         sleepDuration,
+        cronExpression,
         currency,
         amount: parseInt(amount),
       };
@@ -287,13 +316,8 @@ export function ZapPlanner() {
       }
 
       // add the ZapPlanner subscription ID to the app metadata
+      // Only send metadata since that's the only thing changing
       const updateAppRequest: UpdateAppRequest = {
-        name: createAppRequest.name,
-        scopes: createAppRequest.scopes,
-        budgetRenewal: createAppRequest.budgetRenewal!,
-        expiresAt: createAppRequest.expiresAt,
-        maxAmount,
-        isolated,
         metadata: {
           ...createAppRequest.metadata,
           zapplanner_subscription_id: subscriptionId,
@@ -308,35 +332,31 @@ export function ZapPlanner() {
         body: JSON.stringify(updateAppRequest),
       });
 
-      toast({
-        title: "Created subscription",
-        description: "The first payment is scheduled immediately.",
+      toast("Created subscription", {
+        description: cronExpression
+          ? "Payment will be made at the start of each month"
+          : "The first payment is scheduled immediately.",
       });
 
       reloadApps();
       setOpen(false);
     } catch (error) {
-      handleRequestError(toast, "Failed to create app", error);
+      handleRequestError("Failed to create app", error);
     } finally {
       setSubmitting(false);
     }
   };
 
-  const zapplannerApps = apps?.filter(
-    (app) => app.metadata?.app_store_app_id === "zapplanner"
-  );
-
   return (
     <div className="grid gap-5">
-      <AppHeader
-        title="ZapPlanner"
-        description="Schedule automatic recurring lightning payments"
+      <AppStoreDetailHeader
+        appStoreApp={appStoreApp}
         contentRight={
           <>
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button>
-                  <PlusCircleIcon className="h-4 w-4 mr-2" />
+                  <PlusCircleIcon />
                   New Recurring Payment
                 </Button>
               </DialogTrigger>
@@ -544,7 +564,7 @@ export function ZapPlanner() {
                       to={`https://zapplanner.albylabs.com/subscriptions/${app.metadata.zapplanner_subscription_id}`}
                       size="sm"
                     >
-                      View <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                      View <ExternalLinkIcon className="size-4 ml-2" />
                     </ExternalLinkButton>
                   ) : undefined
                 }

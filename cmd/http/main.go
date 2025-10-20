@@ -22,9 +22,27 @@ func main() {
 	// Create a channel to receive OS signals.
 	osSignalChannel := make(chan os.Signal, 1)
 	// Notify the channel on os.Interrupt, syscall.SIGTERM. os.Kill cannot be caught.
-	signal.Notify(osSignalChannel, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(osSignalChannel, os.Interrupt, syscall.SIGTERM, syscall.SIGPIPE)
 
 	ctx, cancel := context.WithCancel(context.Background())
+
+	var signal os.Signal
+	go func() {
+		for {
+			// wait for exit signal
+			signal = <-osSignalChannel
+			logger.Logger.WithField("signal", signal).Info("Received OS signal")
+
+			if signal == syscall.SIGPIPE {
+				logger.Logger.WithField("signal", signal).Warn("Ignoring SIGPIPE signal")
+				continue
+			}
+
+			cancel()
+			break
+		}
+	}()
+
 	svc, err := service.NewService(ctx)
 	if err != nil {
 		log.WithError(err).Fatal("Failed to create service")
@@ -42,14 +60,6 @@ func main() {
 			logger.Logger.WithError(err).Error("echo server failed to start")
 			cancel()
 		}
-	}()
-
-	var signal os.Signal
-	go func() {
-		// wait for exit signal
-		signal = <-osSignalChannel
-		logger.Logger.WithField("signal", signal).Info("Received OS signal")
-		cancel()
 	}()
 
 	//handle graceful shutdown

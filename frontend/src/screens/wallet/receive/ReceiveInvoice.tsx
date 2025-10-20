@@ -1,20 +1,19 @@
 import {
-  AlertTriangleIcon,
-  CircleCheckIcon,
+  ArrowLeftIcon,
   CopyIcon,
+  LinkIcon,
+  PlusIcon,
   ReceiptTextIcon,
 } from "lucide-react";
+import TickSVG from "public/images/illustrations/tick.svg";
 import React from "react";
-import { Link } from "react-router-dom";
+import { toast } from "sonner";
+import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import QRCode from "src/components/QRCode";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "src/components/ui/alert.tsx";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -23,16 +22,18 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
+import { LinkButton } from "src/components/ui/custom/link-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
-import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useBalances } from "src/hooks/useBalances";
 
 import { useInfo } from "src/hooks/useInfo";
 import { useTransaction } from "src/hooks/useTransaction";
 import { copyToClipboard } from "src/lib/clipboard";
+import { cn } from "src/lib/utils";
 import { CreateInvoiceRequest, Transaction } from "src/types";
 import { request } from "src/utils/request";
 
@@ -41,7 +42,6 @@ export default function ReceiveInvoice() {
   const { data: me } = useAlbyMe();
   const { data: balances } = useBalances();
 
-  const { toast } = useToast();
   const [isLoading, setLoading] = React.useState(false);
   const [amount, setAmount] = React.useState<string>("");
   const [description, setDescription] = React.useState<string>("");
@@ -58,7 +58,7 @@ export default function ReceiveInvoice() {
     if (invoiceData?.settledAt) {
       setPaymentDone(true);
     }
-  }, [invoiceData, toast]);
+  }, [invoiceData]);
 
   if (!balances || !info || (info.albyAccountConnected && !me)) {
     return <Loading />;
@@ -82,15 +82,13 @@ export default function ReceiveInvoice() {
 
       if (invoice) {
         setTransaction(invoice);
-
-        toast({
-          title: "Successfully created invoice",
-        });
+        setAmount("");
+        setDescription("");
+        toast("Successfully created invoice");
       }
     } catch (e) {
-      toast({
-        variant: "destructive",
-        title: "Failed to create invoice: " + e,
+      toast.error("Failed to create invoice", {
+        description: "" + e,
       });
       console.error(e);
     } finally {
@@ -99,91 +97,107 @@ export default function ReceiveInvoice() {
   };
 
   const copy = () => {
-    copyToClipboard(transaction?.invoice as string, toast);
+    copyToClipboard(transaction?.invoice as string);
   };
 
   return (
-    <div className="flex flex-col md:flex-row gap-6">
-      <div className="w-full md:max-w-lg">
-        <div className="grid gap-5">
+    <div className="grid gap-5">
+      <AppHeader title={transaction ? "Lightning Invoice" : "Create Invoice"} />
+      <div className="flex flex-col md:flex-row gap-12">
+        <div className="w-full md:max-w-lg grid gap-6">
           {hasChannelManagement &&
-            parseInt(amount || "0") * 1000 >=
+            (+amount * 1000 || transaction?.amount || 0) >=
               0.8 * balances.lightning.totalReceivable && (
-              <Alert>
-                <AlertTriangleIcon className="h-4 w-4" />
-                <AlertTitle>Low receiving capacity</AlertTitle>
-                <AlertDescription>
-                  You likely won't be able to receive payments until you{" "}
-                  <Link className="underline" to="/channels/incoming">
-                    increase your receiving capacity.
-                  </Link>
-                </AlertDescription>
-              </Alert>
+              <LowReceivingCapacityAlert />
             )}
           <div>
             {transaction ? (
-              <Card className="w-full md:max-w-xs">
+              <Card>
                 {!paymentDone ? (
                   <>
                     <CardHeader>
                       <CardTitle className="flex justify-center">
-                        <Loading className="w-4 h-4 mr-2" />
+                        <Loading className="size-4 mr-2" />
                         <p>Waiting for payment</p>
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="flex flex-col items-center gap-4">
+                    <CardContent className="flex flex-col items-center gap-6">
                       <QRCode value={transaction.invoice} className="w-full" />
-                      <div className="flex flex-col gap-2 items-center">
-                        <p className="text-xl font-semibold slashed-zero">
-                          {new Intl.NumberFormat().format(parseInt(amount))}{" "}
+                      <div className="flex flex-col gap-1 items-center">
+                        <p className="text-2xl font-medium slashed-zero">
+                          {new Intl.NumberFormat().format(
+                            Math.floor(transaction.amount / 1000)
+                          )}{" "}
                           sats
                         </p>
-                        <FormattedFiatAmount amount={parseInt(amount)} />
-                      </div>
-                      <div>
-                        <Button onClick={copy} variant="outline">
-                          <CopyIcon className="w-4 h-4 mr-2" />
-                          Copy Invoice
-                        </Button>
+                        <FormattedFiatAmount
+                          amount={Math.floor(transaction.amount / 1000)}
+                          className="text-xl"
+                        />
                       </div>
                     </CardContent>
+                    <CardFooter className="flex flex-col gap-2">
+                      <Button
+                        className="w-full"
+                        onClick={copy}
+                        variant="outline"
+                      >
+                        <CopyIcon className="w-4 h-4 mr-2" />
+                        Copy Invoice
+                      </Button>
+                    </CardFooter>
                   </>
                 ) : (
                   <>
                     <CardHeader>
                       <CardTitle className="text-center">
-                        Payment Received!
+                        Payment Received
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="flex flex-col items-center gap-4">
-                      <CircleCheckIcon className="w-72 h-72 p-2" />
-                      <div className="flex flex-col gap-2 items-center">
-                        <p className="text-xl font-semibold slashed-zero">
-                          {new Intl.NumberFormat().format(parseInt(amount))}{" "}
+                    <CardContent className="flex flex-col items-center gap-6">
+                      <img src={TickSVG} className="w-48" />
+                      <div className="flex flex-col gap-1 items-center">
+                        <p className="text-2xl font-medium slashed-zero">
+                          {new Intl.NumberFormat().format(
+                            Math.floor(transaction.amount / 1000)
+                          )}{" "}
                           sats
                         </p>
-                        <FormattedFiatAmount amount={parseInt(amount)} />
-                      </div>
-                      <div>
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setPaymentDone(false);
-                            setTransaction(null);
-                          }}
-                        >
-                          Receive Another Payment
-                        </Button>
+                        <FormattedFiatAmount
+                          amount={Math.floor(transaction.amount / 1000)}
+                          className="text-xl"
+                        />
                       </div>
                     </CardContent>
+                    <CardFooter className="flex flex-col gap-2 pt-2">
+                      <Button
+                        onClick={() => {
+                          setPaymentDone(false);
+                          setTransaction(null);
+                        }}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        <PlusIcon className="w-4 h-4 mr-2" />
+                        Create Another Invoice
+                      </Button>
+                      <LinkButton
+                        to="/wallet"
+                        variant="link"
+                        className="w-full"
+                      >
+                        <ArrowLeftIcon className="w-4 h-4 mr-2" />
+                        Back to Wallet
+                      </LinkButton>
+                    </CardFooter>
                   </>
                 )}
               </Card>
             ) : (
-              <form onSubmit={handleSubmit} className="grid gap-5">
-                <div>
+              <form onSubmit={handleSubmit} className="grid gap-6">
+                <div className="grid gap-2">
                   <Label htmlFor="amount">Amount</Label>
-                  <Input
+                  <InputWithAdornment
                     id="amount"
                     type="number"
                     value={amount?.toString()}
@@ -193,10 +207,12 @@ export default function ReceiveInvoice() {
                     }}
                     min={1}
                     autoFocus
+                    endAdornment={
+                      <FormattedFiatAmount amount={+amount} className="mr-2" />
+                    }
                   />
-                  <FormattedFiatAmount amount={+amount} className="mt-2" />
                 </div>
-                <div>
+                <div className="grid gap-2">
                   <Label htmlFor="description">Description</Label>
                   <Input
                     id="description"
@@ -208,34 +224,51 @@ export default function ReceiveInvoice() {
                     }}
                   />
                 </div>
-                <div className="flex flex-col md:flex-row gap-4">
-                  <LoadingButton
-                    className="w-full md:w-auto"
-                    loading={isLoading}
-                    type="submit"
-                    disabled={!amount}
-                  >
-                    Create Invoice
-                  </LoadingButton>
-                  {!info?.albyAccountConnected &&
-                    info.backendType === "LDK" && (
-                      <Link to="/wallet/receive/offer">
-                        <Button variant="outline" className="w-full">
-                          <ReceiptTextIcon className="h-4 w-4 shrink-0 mr-2" />
-                          BOLT-12 Offer
-                        </Button>
-                      </Link>
-                    )}
-                </div>
+                <LoadingButton
+                  className={cn(
+                    "w-full",
+                    info?.albyAccountConnected &&
+                      me?.lightning_address &&
+                      "md:w-fit"
+                  )}
+                  loading={isLoading}
+                  type="submit"
+                  disabled={!amount}
+                >
+                  Create Invoice
+                </LoadingButton>
+                {(!info?.albyAccountConnected || !me?.lightning_address) && (
+                  <div className="grid gap-2 border-t pt-6">
+                    {!info?.albyAccountConnected &&
+                      info.backendType === "LDK" && (
+                        <LinkButton
+                          to="/wallet/receive/offer"
+                          variant="outline"
+                          className="w-full"
+                        >
+                          <ReceiptTextIcon className="h-4 w-4" />
+                          Lightning Offer
+                        </LinkButton>
+                      )}
+                    <LinkButton
+                      to="/wallet/receive/onchain"
+                      variant="outline"
+                      className="w-full"
+                    >
+                      <LinkIcon className="h-4 w-4" />
+                      Receive from On-chain
+                    </LinkButton>
+                  </div>
+                )}
               </form>
             )}
           </div>
         </div>
+        {!transaction &&
+          (!info?.albyAccountConnected || !me?.lightning_address) && (
+            <LightningAddressCard />
+          )}
       </div>
-      {!transaction &&
-        (!info?.albyAccountConnected || !me?.lightning_address) && (
-          <LightningAddressCard />
-        )}
     </div>
   );
 }
@@ -266,7 +299,7 @@ function LightningAddressCard() {
       </CardContent>
       <CardFooter className="flex justify-end">
         <ExternalLink to="https://getalby.com/auth/users/new">
-          <Button variant="secondary">Create Alby Account</Button>
+          <Button variant="secondary">Get Alby Account</Button>
         </ExternalLink>
       </CardFooter>
     </Card>

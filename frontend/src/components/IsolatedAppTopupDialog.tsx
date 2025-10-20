@@ -1,4 +1,6 @@
 import React from "react";
+import { toast } from "sonner";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Dialog,
   DialogContent,
@@ -10,45 +12,41 @@ import {
 } from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
-import { useToast } from "src/components/ui/use-toast";
 import { useApp } from "src/hooks/useApp";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
 type IsolatedAppTopupProps = {
-  appPubkey: string;
+  appId: number;
 };
 
 export function IsolatedAppTopupDialog({
-  appPubkey,
+  appId,
   children,
 }: React.PropsWithChildren<IsolatedAppTopupProps>) {
-  const { mutate: reloadApp } = useApp(appPubkey);
+  const { mutate: reloadApp } = useApp(appId);
   const [amountSat, setAmountSat] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [open, setOpen] = React.useState(false);
-  const { toast } = useToast();
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      await request(`/api/apps/${appPubkey}/topup`, {
+      await request(`/api/transfers`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
+          toAppId: appId,
           amountSat: +amountSat,
         }),
       });
       await reloadApp();
-      toast({
-        title: `Successfully transferred ${+amountSat} sats`,
-      });
+      toast(`Successfully increased balance by ${+amountSat} sats`);
       reset();
     } catch (error) {
-      handleRequestError(toast, "Failed to top up sub-wallet balance", error);
+      handleRequestError("Failed to increase sub-wallet balance", error);
     }
     setLoading(false);
   }
@@ -64,14 +62,14 @@ export function IsolatedAppTopupDialog({
       <DialogContent>
         <form onSubmit={onSubmit}>
           <DialogHeader>
-            <DialogTitle>Top Up</DialogTitle>
+            <DialogTitle>Increase Balance</DialogTitle>
             <DialogDescription>
-              Credit funds from your main spending balance. Make sure you always
+              Increase the balance of this sub-wallet. Make sure you always
               maintain enough funds in your spending balance to prevent
               sub-wallets becoming unspendable.
             </DialogDescription>
           </DialogHeader>
-          <div className="my-5">
+          <div className="grid gap-2 mt-5">
             <Label htmlFor="amount">Amount (sats)</Label>
             <Input
               autoFocus
@@ -85,7 +83,7 @@ export function IsolatedAppTopupDialog({
             />
           </div>
           <DialogFooter className="mt-5">
-            <LoadingButton loading={loading}>Top Up</LoadingButton>
+            <LoadingButton loading={loading}>Increase</LoadingButton>
           </DialogFooter>
         </form>
       </DialogContent>

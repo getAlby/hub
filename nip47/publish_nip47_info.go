@@ -17,6 +17,7 @@ import (
 )
 
 type Nip47InfoPublishRequest struct {
+	AppId            uint
 	AppWalletPubKey  string
 	AppWalletPrivKey string
 }
@@ -61,13 +62,10 @@ func (svc *nip47Service) GetNip47Info(ctx context.Context, relay *nostr.Relay, a
 	return events[0], nil
 }
 
-func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error) {
+func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels.Relay, appId uint, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error) {
 	var capabilities []string
 	var permitsNotifications bool
 	tags := nostr.Tags{[]string{"encryption", cipher.SUPPORTED_ENCRYPTIONS}}
-
-	// TODO: Remove version tag after 01-06-2025
-	tags = append(tags, []string{"v", cipher.SUPPORTED_VERSIONS})
 
 	if svc.keys.GetNostrPublicKey() == appWalletPubKey {
 		// legacy app, so return lnClient.GetSupportedNIP47Methods()
@@ -76,7 +74,7 @@ func (svc *nip47Service) PublishNip47Info(ctx context.Context, relay nostrmodels
 	} else {
 		app := db.App{}
 		err := svc.db.First(&app, &db.App{
-			WalletPubkey: &appWalletPubKey,
+			ID: appId,
 		}).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{

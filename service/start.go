@@ -4,11 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"path"
 	"strconv"
 	"time"
 
 	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/swaps"
+	"github.com/getAlby/hub/version"
 
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/nbd-wtf/go-nostr/nip19"
@@ -34,8 +37,9 @@ func (svc *service) startNostr(ctx context.Context) error {
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
-		"npub": npub,
-		"hex":  svc.keys.GetNostrPublicKey(),
+		"npub":    npub,
+		"hex":     svc.keys.GetNostrPublicKey(),
+		"version": version.Tag,
 	}).Info("Starting Alby Hub")
 	svc.wg.Add(1)
 	go func() {
@@ -70,7 +74,13 @@ func (svc *service) startNostr(ctx context.Context) error {
 				"iteration": i,
 			}).Info("Connecting to the relay")
 
-			relay, err = nostr.RelayConnect(ctx, relayUrl, nostr.WithNoticeHandler(svc.noticeHandler))
+			relay, err = nostr.RelayConnect(
+				ctx,
+				relayUrl,
+				nostr.WithNoticeHandler(svc.noticeHandler),
+				nostr.WithRequestHeader(http.Header{
+					"User-Agent": {"AlbyHub/" + version.Tag},
+				}))
 			if err != nil {
 				// exponential backoff from 2 - 60 seconds
 				waitToReconnectSeconds = max(waitToReconnectSeconds, 1)
@@ -160,7 +170,7 @@ func (svc *service) publishAllAppInfoEvents() {
 		}
 		if legacyAppCount > 0 {
 			logger.Logger.WithField("legacy_app_count", legacyAppCount).Debug("Enqueuing publish of legacy info event")
-			svc.nip47Service.EnqueueNip47InfoPublishRequest(svc.keys.GetNostrPublicKey(), svc.keys.GetNostrSecretKey())
+			svc.nip47Service.EnqueueNip47InfoPublishRequest(0 /* unused */, svc.keys.GetNostrPublicKey(), svc.keys.GetNostrSecretKey())
 		}
 	}()
 
@@ -181,7 +191,7 @@ func (svc *service) publishAllAppInfoEvents() {
 				return
 			}
 			logger.Logger.WithField("app_id", app.ID).Debug("Enqueuing publish of app info event")
-			svc.nip47Service.EnqueueNip47InfoPublishRequest(*app.WalletPubkey, walletPrivKey)
+			svc.nip47Service.EnqueueNip47InfoPublishRequest(app.ID, *app.WalletPubkey, walletPrivKey)
 		}(app)
 	}
 }
@@ -286,10 +296,7 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return err
 	}
 
-	err = svc.StartAutoSwaps()
-	if err != nil {
-		logger.Logger.WithError(err).Error("Couldn't enable auto swaps")
-	}
+	svc.swapsService = swaps.NewSwapsService(ctx, svc.db, svc.cfg, svc.keys, svc.eventPublisher, svc.lnClient, svc.transactionsService)
 
 	svc.publishAllAppInfoEvents()
 
@@ -303,10 +310,6 @@ func (svc *service) StartApp(encryptionKey string) error {
 	svc.appCancelFn = cancelFn
 
 	return nil
-}
-
-func (svc *service) StartAutoSwaps() error {
-	return svc.GetSwapsService().EnableAutoSwaps(svc.ctx, svc.lnClient)
 }
 
 func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) error {
@@ -357,7 +360,7 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		PhoenixdAddress, _ := svc.cfg.Get("PhoenixdAddress", encryptionKey)
 		PhoenixdAuthorization, _ := svc.cfg.Get("PhoenixdAuthorization", encryptionKey)
 
-		lnClient, err = phoenixd.NewPhoenixService(PhoenixdAddress, PhoenixdAuthorization)
+		lnClient, err = phoenixd.NewPhoenixService(ctx, PhoenixdAddress, PhoenixdAuthorization)
 	case config.CashuBackendType:
 		mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		cashuMintUrl, _ := svc.cfg.Get("CashuMintUrl", encryptionKey)

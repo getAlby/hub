@@ -1,14 +1,20 @@
 import { ArrowDownUpIcon, ExternalLinkIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { ExternalLinkButton, LinkButton } from "src/components/ui/button";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
+import { ExternalLinkButton } from "../ui/custom/external-link-button";
+import { LinkButton } from "../ui/custom/link-button";
 
 type SwapAlertProps = {
   className?: string;
   minChannels?: number;
+  swapType?: "in" | "out";
 };
-export function SwapAlert({ className, minChannels = 2 }: SwapAlertProps) {
+export function SwapAlert({
+  className,
+  minChannels = 2,
+  swapType,
+}: SwapAlertProps) {
   const { data: channels } = useChannels();
   const { data: balances } = useBalances();
 
@@ -19,8 +25,9 @@ export function SwapAlert({ className, minChannels = 2 }: SwapAlertProps) {
     return null;
   }
 
-  const isSwapOut =
-    balances.lightning.totalSpendable > balances.lightning.totalReceivable;
+  const isSwapOut = swapType
+    ? swapType === "out"
+    : balances.lightning.totalSpendable > balances.lightning.totalReceivable;
   const directionText = isSwapOut ? "out from" : "into";
 
   return (
@@ -40,9 +47,12 @@ export function SwapAlert({ className, minChannels = 2 }: SwapAlertProps) {
             variant="outline"
           >
             Learn more
-            <ExternalLinkIcon className="w-4 h-4 ml-2" />
+            <ExternalLinkIcon className="size-4 ml-2" />
           </ExternalLinkButton>
-          <LinkButton to="/channels?swap=true" variant="secondary">
+          <LinkButton
+            to={`/wallet/swap?type=${isSwapOut ? "out" : "in"}`}
+            variant="secondary"
+          >
             Swap {isSwapOut ? "Out" : "In"}
           </LinkButton>
         </div>

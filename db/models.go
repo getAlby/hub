@@ -23,6 +23,7 @@ type App struct {
 	WalletPubkey *string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+	LastUsedAt   *time.Time
 	Isolated     bool
 	Metadata     datatypes.JSON
 }
@@ -87,6 +88,38 @@ type Transaction struct {
 	FailureReason   string
 	Hold            bool
 	SettleDeadline  *uint32 // block number for accepted hold invoices
+}
+
+type Swap struct {
+	ID                 uint
+	SwapId             string `validate:"required"`
+	Type               string
+	State              string
+	Invoice            string
+	SendAmount         uint64
+	ReceiveAmount      uint64
+	Preimage           string
+	PaymentHash        string
+	DestinationAddress string
+	RefundAddress      string
+	LockupAddress      string
+	LockupTxId         string
+	ClaimTxId          string
+	AutoSwap           bool
+	UsedXpub           bool
+	TimeoutBlockHeight uint32
+	BoltzPubkey        string
+	SwapTree           datatypes.JSON
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+}
+
+type Forward struct {
+	ID                          uint
+	OutboundAmountForwardedMsat uint64
+	TotalFeeEarnedMsat          uint64
+	CreatedAt                   time.Time
+	UpdatedAt                   time.Time
 }
 
 const (

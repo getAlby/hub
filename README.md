@@ -61,6 +61,14 @@ Go to `/frontend`
 1. `yarn install`
 2. `yarn dev`
 
+### HTTP Production build
+
+    $ yarn build:http
+
+If you plan to run Alby Hub on a subpath behind a reverse proxy, you can do:
+
+    $ BASE_PATH="/hub" yarn build:http
+
 ### Wails (Backend + Frontend)
 
 _Make sure to have [wails](https://wails.io/docs/gettingstarted/installation) installed and all platform-specific dependencies installed (see wails doctor)_
@@ -137,17 +145,6 @@ go tool pprof -http=localhost:8081 -seconds=30 http://localhost:6060/debug/pprof
 
 For more information on the Go pprof library, see the [official documentation](https://pkg.go.dev/net/http/pprof).
 
-#### DataDog profiler
-
-To enable the DataDog profiler, set the `DD_PROFILER_ENABLED` environment variable to `true`.
-
-Make sure to specify the required DataDog configuration environment variables as well.
-
-For more information refer to:
-
-- [DataDog Profiler documentation](https://docs.datadoghq.com/profiler/enabling/go/)
-- [DataDog Profiler Go library](https://pkg.go.dev/gopkg.in/DataDog/dd-trace-go.v1/profiler)
-
 ### Versioning
 
     $ go run -ldflags="-X 'github.com/getAlby/hub/version.Tag=v0.6.0'" cmd/http/main.go
@@ -164,7 +161,35 @@ The following configuration options can be set as environment variables or in a 
 - `LOG_LEVEL`: Log level for the application. Higher is more verbose. Default: 4 (info)
 - `AUTO_UNLOCK_PASSWORD`: Provide unlock password to auto-unlock Alby Hub on startup (e.g. after a machine restart). Unlock password still be required to access the interface.
 - `BOLTZ_API`: The api which provides auto swaps functionality. Default: "https://api.boltz.exchange"
-- `NETWORK`: On-chain network used for auto swaps. Should match the backend network. Default: "bitcoin"
+- `NETWORK`: On-chain network used for the node. Default: "bitcoin"
+- `REBALANCE_SERVICE_URL`: service url for rebalancing existing channels.
+
+### Boltz Regtest Setup
+
+There is a boltz regtest fork with mempool service and alby-specific instructions [here](https://github.com/rolznz/boltz-regtest/tree/alby-hub?tab=readme-ov-file#your-first-swap)
+
+Make sure to update your RPC password below, and change your work directory each time you restart boltz (it is ephemeral):
+
+    WORK_DIR=.data/boltz-regtest-1
+    LDK_BITCOIND_RPC_HOST="127.0.0.1"
+    LDK_BITCOIND_RPC_PORT="18443"
+    LDK_BITCOIND_RPC_USER="__cookie__"
+    LDK_BITCOIND_RPC_PASSWORD="f7460d81974b000b63e46c0e880243cf28bbaf93938b6e38494628f1f1700f23"
+    # or use esplora
+    #LDK_ESPLORA_SERVER=http://localhost:4002/api
+    NETWORK="regtest"
+    LDK_LISTENING_ADDRESSES="0.0.0.0:19735"
+    BOLTZ_API=http://localhost:9001
+    PORT=8082
+    MEMPOOL_API=http://localhost:8123/api
+
+And then run the frontend with: `VITE_API_URL="http://localhost:8082" yarn dev:http`
+
+To test auto-swaps to xpub you can use sparrow wallet in regtest:
+
+    /opt/sparrow/bin/Sparrow -n regtest
+
+Sparrow needs to be connected to regtest boltz setup Bitcoin Core RPC (127.0.0.1:18443 with user:password as `__cookie__:cookiepassword`) with an imported mnemonic and copied the tpub from the settings page
 
 ### Migrating the database (Sqlite <-> Postgres)
 
@@ -198,6 +223,9 @@ _To configure via env, the following parameters must be provided:_
 - `LDK_ESPLORA_SERVER`: By default the optimized Alby esplora is used. You can configure your own esplora server (note: the public blockstream one is slow and can cause onchain syncing and issues with opening channels)
 - `LDK_VSS_URL`: Use VSS (encrypted remote storage) rather than local sqlite store for lightning and bitcoin data. Currently this feature only works for brand new Alby Hub instances that are connected to Alby Accounts with an active subscription plan.
 - `LDK_LISTENING_ADDRESSES`: configure listening addresses, required for public channels, and ideally reachable if you would like others to be able to initiate peering with your node.
+- `LDK_ANNOUNCEMENT_ADDRESSES`: configure announcement addresses (only required if you use a VPN)
+- `LDK_MAX_CHANNEL_SATURATION`: Sets the maximum portion of a channel's total capacity that may be used for sending a payment, expressed as a power of 1/2. See `max_channel_saturation_power_of_half` in [LDK docs](https://docs.rs/lightning/latest/lightning/routing/router/struct.PaymentParameters.html#structfield.max_channel_saturation_power_of_half).
+- `LDK_MAX_PATH_COUNT`: Maximum number of paths that may be used by MPP payments.
 
 #### LDK Network Configuration
 
@@ -206,14 +234,25 @@ _To configure via env, the following parameters must be provided:_
 - `MEMPOOL_API=https://mutinynet.com/api`
 - `NETWORK=signet`
 - `LDK_ESPLORA_SERVER=https://mutinynet.com/api`
-- `LDK_GOSSIP_SOURCE=https://rgs.mutinynet.com/snapshot`
+- `LDK_GOSSIP_SOURCE=https://rgs.mutinynet.com/snapshot` (NOTE: by default ALby Hub does not use RGS)
+
+(or electrum instead of esplora)
+
+- `LDK_ELECTRUM_SERVER=electrum.mutinynet.com:50001`
 
 ##### Testnet (Not recommended - try Mutinynet)
 
 - `MEMPOOL_API=https://mempool.space/testnet/api`
 - `NETWORK=testnet`
 - `LDK_ESPLORA_SERVER=https://mempool.space/testnet/api`
-- `LDK_GOSSIP_SOURCE=https://rapidsync.lightningdevkit.org/testnet/snapshot`
+- `LDK_GOSSIP_SOURCE=https://rapidsync.lightningdevkit.org/testnet/snapshot` (NOTE: by default ALby Hub does not use RGS)
+
+###### Connect to your own bitcoind
+
+- `LDK_BITCOIND_RPC_HOST=127.0.0.1`
+- `LDK_BITCOIND_RPC_PORT=8332`
+- `LDK_BITCOIND_RPC_USER=yourusername`
+- `LDK_BITCOIND_RPC_PASSWORD=yourpassword`
 
 ### Phoenixd
 
@@ -399,15 +438,15 @@ Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/script
 
 #### Quick start (Raspberry PI 4/5)
 
-Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/scripts/pi-aarch64) which you can run as a service.
+Go to the [Quick start script](https://github.com/getAlby/hub/blob/master/scripts/pi-aarch64) which you can run as a service. (Experimental – we cannot provide support for installations on Raspberry PI 4/5.)
 
 #### Quick start (Raspberry PI Zero)
 
-Go to the [Quick start script](https://github.com/getAlby/hub/tree/master/scripts/pi-arm) which you can run as a service.
+Go to the [Quick start script](https://github.com/getAlby/hub/tree/master/scripts/pi-arm) which you can run as a service. (Experimental – we cannot provide support for installations on Raspberry PI Zero.)
 
 #### Quick start (Desktop)
 
-View the [release binaries](https://github.com/getAlby/hub/releases/latest)
+View the [release binaries](https://github.com/getAlby/hub/releases/latest). Please use a desktop computer that is always online.
 
 #### Manual (x86 Linux Server)
 
@@ -534,6 +573,9 @@ Internally Alby Hub uses a basic implementation of the pubsub messaging pattern 
     - `nwc_app_deleted` - a new app connection was deleted
     - `nwc_lnclient_*` - underlying LNClient events, consumed only by the transactions service.
     - `nwc_alby_account_connected` - user connects alby account for first time
+    - `nwc_swap_succeeded` - successfully made a boltz swap
+    - `nwc_rebalance_succeeded` - successfully rebalanced channels
+    - `nwc_payment_forwarded` - successfully forwarded a payment and earned routing fees
 
 ### NIP-47 Handlers
 

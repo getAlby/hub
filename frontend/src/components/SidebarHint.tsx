@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import React, { ReactElement } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { toast } from "sonner";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -15,7 +16,6 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { Progress } from "src/components/ui/progress";
-import { useToast } from "src/components/ui/use-toast";
 import { localStorageKeys, SUPPORT_ALBY_CONNECTION_NAME } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
@@ -24,11 +24,12 @@ import useChannelOrderStore from "src/state/ChannelOrderStore";
 
 function SidebarHint() {
   const { isLoading, checklistItems } = useOnboardingData();
-  const { data: apps } = useApps();
+  const { data: supportAlbyAppsData } = useApps(undefined, undefined, {
+    name: SUPPORT_ALBY_CONNECTION_NAME,
+  });
   const { data: albyMe } = useAlbyMe();
   const { order } = useChannelOrderStore();
   const location = useLocation();
-  const { toast } = useToast();
 
   const [hiddenUntil, setHiddenUntil] = React.useState(
     localStorage.getItem(localStorageKeys.supportAlbySidebarHintHiddenUntil)
@@ -86,8 +87,8 @@ function SidebarHint() {
   }
 
   const showSupport =
-    apps &&
-    apps.filter((x) => x.name == SUPPORT_ALBY_CONNECTION_NAME).length === 0 &&
+    supportAlbyAppsData &&
+    supportAlbyAppsData.apps.length === 0 &&
     !albyMe?.subscription.plan_code;
 
   if (
@@ -110,7 +111,7 @@ function SidebarHint() {
             next21st
           );
           setHiddenUntil(next21st);
-          toast({ title: "No worries, we'll remind you again!" });
+          toast("No worries, we'll remind you again!");
         }}
         icon={HeartIcon}
         title="Support Alby Hub"
@@ -139,9 +140,9 @@ function SidebarHintCard({
   onClose,
 }: SidebarHintCardProps) {
   return (
-    <Card>
-      <CardHeader className="p-4">
-        <Icon className="h-8 w-8 mb-4" />
+    <Card className="gap-3">
+      <CardHeader>
+        <Icon className="h-8 w-8 mb-2" />
         <CardTitle>{title}</CardTitle>
         {onClose && (
           <button
@@ -152,8 +153,8 @@ function SidebarHintCard({
           </button>
         )}
       </CardHeader>
-      <CardContent className="p-4 pt-0">
-        <div className="text-muted-foreground mb-4 text-sm">{description}</div>
+      <CardContent className="flex flex-col gap-3">
+        <div className="text-muted-foreground text-sm">{description}</div>
         <Link to={buttonLink}>
           <Button size="sm" className="w-full">
             {buttonText}

@@ -1,5 +1,6 @@
 import { CopyIcon } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { Button } from "src/components/ui/button";
 import {
@@ -9,17 +10,15 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
-import { useToast } from "src/components/ui/use-toast";
 
 import { copyToClipboard } from "src/lib/clipboard";
 import { SignMessageResponse } from "src/types";
 import { request } from "src/utils/request";
 
 export default function SignMessage() {
-  const { toast } = useToast();
   const [isLoading, setLoading] = React.useState(false);
   const [message, setMessage] = React.useState("");
   const [signature, setSignature] = React.useState("");
@@ -44,14 +43,11 @@ export default function SignMessage() {
       setMessage("");
       if (signMessageResponse) {
         setSignature(signMessageResponse.signature);
-        toast({
-          title: "Successfully signed message",
-        });
+        toast("Successfully signed message");
       }
     } catch (e) {
-      toast({
-        variant: "destructive",
-        title: "Failed to sign message: " + e,
+      toast.error("Failed to sign message", {
+        description: "" + e,
       });
       console.error(e);
     } finally {
@@ -67,7 +63,7 @@ export default function SignMessage() {
       />
       <div className="max-w-lg">
         <form onSubmit={handleSubmit} className="grid gap-5">
-          <div className="">
+          <div className="grid gap-2">
             <Label htmlFor="message">Message</Label>
             <Input
               id="message"
@@ -108,10 +104,10 @@ export default function SignMessage() {
                     variant="secondary"
                     size="icon"
                     onClick={() => {
-                      copyToClipboard(signature, toast);
+                      copyToClipboard(signature);
                     }}
                   >
-                    <CopyIcon className="w-4 h-4" />
+                    <CopyIcon className="size-4" />
                   </Button>
                 </div>
               </CardContent>

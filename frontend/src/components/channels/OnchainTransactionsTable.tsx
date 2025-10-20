@@ -8,10 +8,12 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
+import { useInfo } from "src/hooks/useInfo";
 import { useOnchainTransactions } from "src/hooks/useOnchainTransactions";
 import { cn } from "src/lib/utils";
 
 export function OnchainTransactionsTable() {
+  const { data: info } = useInfo();
   const { data: transactions } = useOnchainTransactions();
 
   if (!transactions?.length) {
@@ -33,10 +35,7 @@ export function OnchainTransactionsTable() {
                   key={tx.txId}
                   className="cursor-pointer"
                   onClick={() => {
-                    window.open(
-                      `https://mempool.space/tx/${tx.txId}`,
-                      "_blank"
-                    );
+                    window.open(`${info?.mempoolUrl}/tx/${tx.txId}`, "_blank");
                   }}
                 >
                   <TableCell className="flex items-center gap-2">
@@ -54,7 +53,7 @@ export function OnchainTransactionsTable() {
                       <Icon
                         strokeWidth={3}
                         className={cn(
-                          "w-6 h-6",
+                          "size-6",
                           tx.state === "unconfirmed"
                             ? "stroke-blue-500 dark:stroke-sky-500"
                             : tx.type === "outgoing"

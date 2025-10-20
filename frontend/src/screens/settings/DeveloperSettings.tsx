@@ -1,13 +1,15 @@
 import { CopyIcon, SquareArrowOutUpRightIcon } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import PasswordInput from "src/components/password/PasswordInput";
 import SettingsHeader from "src/components/SettingsHeader";
-import { Button, ExternalLinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
+import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { Separator } from "src/components/ui/separator";
-import { useToast } from "src/components/ui/use-toast";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { copyToClipboard } from "src/lib/clipboard";
 import { AuthTokenResponse } from "src/types";
@@ -16,18 +18,21 @@ import { request } from "src/utils/request";
 export default function DeveloperSettings() {
   const { data: albyMe } = useAlbyMe();
   const [token, setToken] = React.useState<string>();
+  const [tokenPermission, setTokenPermission] = React.useState<string>();
   const [expiryDays, setExpiryDays] = React.useState<string>("365");
   const [unlockPassword, setUnlockPassword] = React.useState<string>("");
+  const [permission, setPermission] = React.useState<"full" | "readonly">(
+    "full"
+  );
   const [showCreateTokenForm, setShowCreateTokenForm] =
     React.useState<boolean>();
   const [loading, setLoading] = React.useState<boolean>();
-  const { toast } = useToast();
 
   async function createToken(e: React.FormEvent) {
     e.preventDefault();
     try {
       setLoading(true);
-      if (!expiryDays || !unlockPassword) {
+      if (!expiryDays || !unlockPassword || !permission) {
         throw new Error("Form not filled");
       }
       const authTokenResponse = await request<AuthTokenResponse>(
@@ -40,17 +45,18 @@ export default function DeveloperSettings() {
           body: JSON.stringify({
             unlockPassword,
             tokenExpiryDays: +expiryDays,
+            permission,
           }),
         }
       );
       if (authTokenResponse) {
         setToken(authTokenResponse.token);
+        setTokenPermission(permission);
       }
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        description: "Something went wrong: " + error,
+      toast.error("Something went wrong", {
+        description: "" + error,
       });
     }
     setLoading(false);
@@ -79,8 +85,8 @@ export default function DeveloperSettings() {
             to="https://nwc.dev"
             className="flex-1 gap-2 items-center justify-center"
           >
-            Learn More on nwc.dev{" "}
-            <SquareArrowOutUpRightIcon className="w-4 h-4 mr-2" />
+            Learn More on nwc.dev
+            <SquareArrowOutUpRightIcon />
           </ExternalLinkButton>
         </div>
       </div>
@@ -114,14 +120,55 @@ export default function DeveloperSettings() {
             className="w-full md:w-96 flex flex-col gap-4"
           >
             <>
+              <div className="grid gap-3">
+                <Label>Token Type</Label>
+                <RadioGroup
+                  value={permission}
+                  onValueChange={(v) => {
+                    if (v != "readonly" && v !== "full") {
+                      throw new Error("Unknown permission type");
+                    }
+                    setPermission(v);
+                  }}
+                  className="mt-4 gap-4"
+                >
+                  <div className="flex items-start space-x-2">
+                    <RadioGroupItem value="full" id="full" />
+                    <Label
+                      htmlFor="full"
+                      className="flex-1 flex flex-col justify-center items-start cursor-pointer"
+                    >
+                      <div className="font-medium shrink-0">Full Access</div>
+                      <div className="text-sm text-muted-foreground">
+                        Complete control over your hub - can read data and
+                        perform all operations (send payments, manage apps,
+                        etc.)
+                      </div>
+                    </Label>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <RadioGroupItem value="readonly" id="readonly" />
+                    <Label
+                      htmlFor="readonly"
+                      className="flex-1  flex flex-col justify-center items-start cursor-pointer"
+                    >
+                      <div className="font-medium">Read-Only Access</div>
+                      <div className="text-sm text-muted-foreground">
+                        View-only access - can read balances, transactions, and
+                        other data but cannot perform operations
+                      </div>
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
               <div className="grid gap-2">
-                <Label htmlFor="password">Token Expiry (Days)</Label>
+                <Label htmlFor="token-expiry">Token Expiry (Days)</Label>
                 <Input
                   type="number"
                   name="token-expiry"
+                  id="token-expiry"
                   onChange={(e) => setExpiryDays(e.target.value)}
                   value={expiryDays}
-                  autoFocus
                 />
               </div>
               <div className="grid gap-2">
@@ -130,6 +177,7 @@ export default function DeveloperSettings() {
                   id="password"
                   onChange={setUnlockPassword}
                   value={unlockPassword}
+                  autoFocus
                 />
               </div>
               <div className="mt-4">
@@ -147,10 +195,10 @@ export default function DeveloperSettings() {
                 variant="secondary"
                 size="icon"
                 onClick={() => {
-                  copyToClipboard(token, toast);
+                  copyToClipboard(token);
                 }}
               >
-                <CopyIcon className="w-4 h-4" />
+                <CopyIcon className="size-4" />
               </Button>
             </div>
             <div className="my-4 border rounded-lg p-4">
@@ -185,10 +233,20 @@ export default function DeveloperSettings() {
             </div>
 
             <p className="text-xs">
-              This token grants full access to your hub. Please keep it secure.
+              {tokenPermission === "readonly" ? (
+                <>
+                  This is a read-only token that can view data but cannot
+                  perform operations like sending payments. Please keep it
+                  secure.
+                </>
+              ) : (
+                <>
+                  This token grants full access to your hub. Please keep it
+                  secure.
+                </>
+              )}{" "}
               If you suspect that the token has been compromised, immediately
-              change your JWT_SECRET environment variable or contact
-              support@getalby.com.
+              change your unlock password.
             </p>
           </>
         )}

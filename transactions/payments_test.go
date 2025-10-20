@@ -21,8 +21,6 @@ import (
 )
 
 func TestSendPaymentSync_NoApp(t *testing.T) {
-	ctx := context.TODO()
-
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
@@ -32,7 +30,7 @@ func TestSendPaymentSync_NoApp(t *testing.T) {
 	}
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, metadata, svc.LNClient, nil, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockLNClientTransaction.Invoice, nil, metadata, svc.LNClient, nil, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
@@ -49,9 +47,7 @@ func TestSendPaymentSync_NoApp(t *testing.T) {
 	assert.Equal(t, 123, decodedMetadata.A)
 }
 
-func TestSendPaymentSync_0Amount(t *testing.T) {
-	ctx := context.TODO()
-
+func TestSendPaymentSync_ZeroAmount(t *testing.T) {
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
@@ -62,7 +58,7 @@ func TestSendPaymentSync_0Amount(t *testing.T) {
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 	amount := uint64(1234)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.Mock0AmountInvoice, &amount, metadata, svc.LNClient, nil, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockZeroAmountInvoice, &amount, metadata, svc.LNClient, nil, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, amount, transaction.AmountMsat)
@@ -71,9 +67,28 @@ func TestSendPaymentSync_0Amount(t *testing.T) {
 	assert.Equal(t, "123preimage", *transaction.Preimage)
 }
 
-func TestSendPaymentSync_MetadataTooLarge(t *testing.T) {
-	ctx := context.TODO()
+func TestSendPaymentSync_AmountOnNonZeroAmountInvoice(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
 
+	metadata := map[string]interface{}{
+		"a": 123,
+	}
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	amount := uint64(1234)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockInvoice, &amount, metadata, svc.LNClient, nil, nil)
+
+	assert.NoError(t, err)
+	// amount is from the invoice, not what was specified
+	assert.Equal(t, uint64(123_000), transaction.AmountMsat)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
+	assert.Zero(t, transaction.FeeReserveMsat)
+	assert.Equal(t, "123preimage", *transaction.Preimage)
+}
+
+func TestSendPaymentSync_MetadataTooLarge(t *testing.T) {
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
@@ -82,7 +97,7 @@ func TestSendPaymentSync_MetadataTooLarge(t *testing.T) {
 	metadata["randomkey"] = strings.Repeat("a", constants.INVOICE_METADATA_MAX_LENGTH-15) // json encoding adds 16 characters
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, metadata, svc.LNClient, nil, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockLNClientTransaction.Invoice, nil, metadata, svc.LNClient, nil, nil)
 
 	assert.Error(t, err)
 	assert.Equal(t, fmt.Sprintf("encoded payment metadata provided is too large. Limit: %d Received: %d", constants.INVOICE_METADATA_MAX_LENGTH, constants.INVOICE_METADATA_MAX_LENGTH+1), err.Error())
@@ -90,8 +105,6 @@ func TestSendPaymentSync_MetadataTooLarge(t *testing.T) {
 }
 
 func TestSendPaymentSync_Duplicate_AlreadyPaid(t *testing.T) {
-	ctx := context.TODO()
-
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
@@ -104,7 +117,7 @@ func TestSendPaymentSync_Duplicate_AlreadyPaid(t *testing.T) {
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, nil, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, nil, nil)
 
 	assert.Error(t, err)
 	assert.Equal(t, "this invoice has already been paid", err.Error())
@@ -112,8 +125,6 @@ func TestSendPaymentSync_Duplicate_AlreadyPaid(t *testing.T) {
 }
 
 func TestSendPaymentSync_Duplicate_Pending(t *testing.T) {
-	ctx := context.TODO()
-
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
@@ -126,7 +137,7 @@ func TestSendPaymentSync_Duplicate_Pending(t *testing.T) {
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, nil, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, nil, nil)
 
 	assert.Error(t, err)
 	assert.Equal(t, "there is already a payment pending for this invoice", err.Error())
@@ -134,8 +145,6 @@ func TestSendPaymentSync_Duplicate_Pending(t *testing.T) {
 }
 
 func TestSendPaymentSync_Duplicate_Failed(t *testing.T) {
-	ctx := context.TODO()
-
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
@@ -148,7 +157,7 @@ func TestSendPaymentSync_Duplicate_Failed(t *testing.T) {
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	_, err = transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, nil, nil, nil)
+	_, err = transactionsService.SendPaymentSync(tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, nil, nil)
 
 	assert.NoError(t, err)
 }
@@ -295,8 +304,6 @@ func TestDoNotMarkFailedTwice(t *testing.T) {
 }
 
 func TestSendPaymentSync_FailedRemovesFeeReserve(t *testing.T) {
-	ctx := context.TODO()
-
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
@@ -308,13 +315,13 @@ func TestSendPaymentSync_FailedRemovesFeeReserve(t *testing.T) {
 	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, nil, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, nil, nil)
 
 	assert.Error(t, err)
 	assert.Nil(t, transaction)
 
 	transactionType := constants.TRANSACTION_TYPE_OUTGOING
-	transaction, err = transactionsService.LookupTransaction(ctx, tests.MockLNClientTransaction.PaymentHash, &transactionType, svc.LNClient, nil)
+	transaction, err = transactionsService.LookupTransaction(context.TODO(), tests.MockLNClientTransaction.PaymentHash, &transactionType, svc.LNClient, nil)
 	assert.NoError(t, err)
 
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
@@ -327,24 +334,23 @@ func TestSendPaymentSync_FailedRemovesFeeReserve(t *testing.T) {
 }
 
 func TestSendPaymentSync_PendingHasFeeReserve(t *testing.T) {
-	ctx := context.TODO()
-
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
 
-	// timeout will leave the payment as pending
-	svc.LNClient.(*tests.MockLn).PayInvoiceErrors = append(svc.LNClient.(*tests.MockLn).PayInvoiceErrors, lnclient.NewTimeoutError())
-	svc.LNClient.(*tests.MockLn).PayInvoiceResponses = append(svc.LNClient.(*tests.MockLn).PayInvoiceResponses, nil)
+	// fake a delay to ensure the payment is still pending
+	delay := 10 * time.Second
+	svc.LNClient.(*tests.MockLn).PaymentDelay = &delay
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, nil, nil, nil)
-
-	assert.Error(t, err)
-	assert.Nil(t, transaction)
+	go func() {
+		transactionsService.SendPaymentSync(tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, nil, nil)
+	}()
+	// ensure the goroutine above runs first
+	time.Sleep(10 * time.Millisecond)
 
 	transactionType := constants.TRANSACTION_TYPE_OUTGOING
-	transaction, err = transactionsService.LookupTransaction(ctx, tests.MockLNClientTransaction.PaymentHash, &transactionType, svc.LNClient, nil)
+	transaction, err := transactionsService.LookupTransaction(context.TODO(), tests.MockLNClientTransaction.PaymentHash, &transactionType, svc.LNClient, nil)
 	assert.NoError(t, err)
 
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
@@ -353,9 +359,7 @@ func TestSendPaymentSync_PendingHasFeeReserve(t *testing.T) {
 	assert.Nil(t, transaction.Preimage)
 }
 
-func TestConsumeEvent_DoesNotMarkFailedAsSuccessful(t *testing.T) {
-	ctx := context.TODO()
-
+func TestConsumeEvent_FailedMarkedAsSuccessful(t *testing.T) {
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
@@ -365,7 +369,7 @@ func TestConsumeEvent_DoesNotMarkFailedAsSuccessful(t *testing.T) {
 	svc.LNClient.(*tests.MockLn).PayInvoiceErrors = append(svc.LNClient.(*tests.MockLn).PayInvoiceErrors, errors.New("some error"))
 	svc.LNClient.(*tests.MockLn).PayInvoiceResponses = append(svc.LNClient.(*tests.MockLn).PayInvoiceResponses, nil)
 
-	transaction, err := transactionsService.SendPaymentSync(ctx, tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, nil, nil, nil)
+	transaction, err := transactionsService.SendPaymentSync(tests.MockLNClientTransaction.Invoice, nil, nil, svc.LNClient, nil, nil)
 
 	assert.Error(t, err)
 	assert.Nil(t, transaction)
@@ -382,10 +386,10 @@ func TestConsumeEvent_DoesNotMarkFailedAsSuccessful(t *testing.T) {
 	assert.Equal(t, constants.TRANSACTION_STATE_FAILED, transaction.State)
 
 	// Now that we have a failed transaction, we submit a "nwc_lnclient_payment_sent" event.
-	// This should not mark the already failed transaction as successful
-	// See https://github.com/getAlby/hub/issues/1272 for details.
+	// This should be marked as successful as long as there are no pending payments for the
+	// same payment hash
 
-	transactionsService.ConsumeEvent(ctx, &events.Event{
+	transactionsService.ConsumeEvent(context.TODO(), &events.Event{
 		Event: "nwc_lnclient_payment_sent",
 		Properties: &lnclient.Transaction{
 			Type:            tests.MockLNClientTransaction.Type,
@@ -400,7 +404,7 @@ func TestConsumeEvent_DoesNotMarkFailedAsSuccessful(t *testing.T) {
 	}, nil)
 
 	// Re-read transactions and ensure that the single returned transaction
-	// is still in the failed state.
+	// is now settled.
 	result = svc.DB.Find(&transactions, &db.Transaction{
 		Type:        constants.TRANSACTION_TYPE_OUTGOING,
 		PaymentHash: tests.MockLNClientTransaction.PaymentHash,
@@ -409,5 +413,5 @@ func TestConsumeEvent_DoesNotMarkFailedAsSuccessful(t *testing.T) {
 	assert.Equal(t, 1, len(transactions))
 
 	transaction = &transactions[0]
-	assert.Equal(t, constants.TRANSACTION_STATE_FAILED, transaction.State)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
 }

@@ -1,5 +1,5 @@
 import * as bip39 from "@scure/bip39";
-import { wordlist } from "@scure/bip39/wordlists/english";
+import { wordlist } from "@scure/bip39/wordlists/english.js";
 import {
   AlertTriangleIcon,
   LifeBuoyIcon,
@@ -9,17 +9,16 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import { toast } from "sonner";
 import MnemonicInputs from "src/components/mnemonic/MnemonicInputs";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 import useSetupStore from "src/state/SetupStore";
 
 export function ImportMnemonic() {
-  const { toast } = useToast();
   const navigate = useNavigate();
   const setupStore = useSetupStore();
   const [backedUp, setIsBackedUp] = useState<boolean>(false);
@@ -38,10 +37,7 @@ export function ImportMnemonic() {
       mnemonic.split(" ").length !== 12 ||
       !bip39.validateMnemonic(mnemonic, wordlist)
     ) {
-      toast({
-        title: "Invalid recovery phrase",
-        variant: "destructive",
-      });
+      toast.error("Invalid recovery phrase");
       return;
     }
 
@@ -69,21 +65,21 @@ export function ImportMnemonic() {
           description="Enter the your Master Key recovery phrase to import your Alby Hub."
         />
 
-        <Alert>
-          <AlertTriangleIcon className="h-4 w-4" />
+        <Alert variant="warning">
+          <AlertTriangleIcon />
           <AlertTitle>
             Do not re-use the same key on multiple devices
           </AlertTitle>
-          <AlertDescription>
+          <AlertDescription className="inline">
             If you want to transfer your existing Hub to another machine please
             use the <b>migrate feature</b> from the Alby Hub settings.
           </AlertDescription>
         </Alert>
-        <Alert>
+        <Alert className="grid-cols-none">
           <div className="flex flex-col gap-4">
             <div className="flex gap-2 items-center">
               <div className="shrink-0 text-muted-foreground">
-                <LifeBuoyIcon className="w-6 h-6" />
+                <LifeBuoyIcon className="size-6" />
               </div>
               <span className="text-muted-foreground">
                 Your recovery phrase is a set of 12 words used to restore your
@@ -92,7 +88,7 @@ export function ImportMnemonic() {
             </div>
             <div className="flex gap-2 items-center">
               <div className="shrink-0 text-muted-foreground">
-                <ShieldCheckIcon className="w-6 h-6" />
+                <ShieldCheckIcon className="size-6" />
               </div>
               <span className="text-muted-foreground">
                 Keep it safe and private to ensure your funds remain secure.
@@ -100,7 +96,7 @@ export function ImportMnemonic() {
             </div>
             <div className="flex gap-2 items-center">
               <div className="shrink-0 text-muted-foreground">
-                <ShieldAlertIcon className="w-6 h-6" />
+                <ShieldAlertIcon className="size-6" />
               </div>
               <span className="text-muted-foreground">
                 Your recovery phrase cannot restore funds from lightning

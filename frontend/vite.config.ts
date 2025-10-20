@@ -1,3 +1,4 @@
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { defineConfig, Plugin } from "vite";
@@ -7,6 +8,7 @@ import tsconfigPaths from "vite-tsconfig-paths";
 export default defineConfig(({ command }) => ({
   plugins: [
     react(),
+    tailwindcss(),
     tsconfigPaths(),
     VitePWA({
       registerType: "autoUpdate",
@@ -44,6 +46,9 @@ export default defineConfig(({ command }) => ({
         theme_color: "#000000",
         background_color: "#ffffff",
       },
+      workbox: {
+        maximumFileSizeToCacheInBytes: 3000000, // 3MB
+      },
     }),
     ...(command === "serve" ? [insertDevCSPPlugin] : []),
   ],
@@ -64,6 +69,10 @@ export default defineConfig(({ command }) => ({
     alias: {
       src: path.resolve(__dirname, "./src"),
       wailsjs: path.resolve(__dirname, "./wailsjs"),
+      // used to refrence public assets when importing images or other
+      // assets from the public folder
+      // this is necessary to inject the base path during build
+      public: "",
     },
   },
   build: {
@@ -75,6 +84,7 @@ export default defineConfig(({ command }) => ({
           cspNonce: "DEVELOPMENT",
         }
       : undefined,
+  base: process.env.BASE_PATH || "/",
 }));
 
 const DEVELOPMENT_NONCE = "'nonce-DEVELOPMENT'";

@@ -30,7 +30,8 @@ function BudgetAmountSelect({
           )
           .map((budget) => {
             return (
-              <div
+              <button
+                type="button"
                 key={budget}
                 onClick={() => {
                   setCustomBudget(false);
@@ -44,7 +45,7 @@ function BudgetAmountSelect({
                 )}
               >
                 {`${budget} ${budgetOptions[budget] ? " sats" : ""}`}
-              </div>
+              </button>
             );
           })}
         <div
@@ -61,10 +62,8 @@ function BudgetAmountSelect({
         </div>
       </div>
       {customBudget && (
-        <div className="w-full mb-6">
-          <Label htmlFor="budget" className="block mb-2">
-            Custom budget amount (sats)
-          </Label>
+        <div className="grid gap-2 mb-5">
+          <Label htmlFor="budget">Custom budget amount (sats)</Label>
           <Input
             id="budget"
             name="budget"

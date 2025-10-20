@@ -19,7 +19,6 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/getAlby/hub/config"
-	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/lnclient/lnd/wrapper"
@@ -60,7 +59,7 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 	}
 
 	var nodeInfo *lnclient.NodeInfo
-	maxRetries := 5
+	maxRetries := 60
 	for i := range maxRetries {
 		nodeInfo, err = fetchNodeInfo(ctx, lndClient)
 		if err == nil {
@@ -69,7 +68,13 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 		logger.Logger.WithFields(logrus.Fields{
 			"iteration": i,
 		}).WithError(err).Error("Failed to connect to LND, retrying in 10s")
-		time.Sleep(10 * time.Second)
+
+		select {
+		case <-time.After(10 * time.Second):
+		case <-ctx.Done():
+			logger.Logger.WithError(ctx.Err()).Error("Context cancelled during LND connection retries")
+			return nil, ctx.Err()
+		}
 	}
 
 	if err != nil {
@@ -91,10 +96,43 @@ func NewLNDService(ctx context.Context, eventPublisher events.EventPublisher, ln
 	go lndService.subscribeInvoices(lndCtx)
 	go lndService.subscribeChannelEvents(lndCtx)
 	go lndService.subscribeOpenHoldInvoices(lndCtx)
+	go lndService.trackForwardedPayments(lndCtx)
 
 	logger.Logger.WithField("alias", nodeInfo.Alias).Info("Connected to LND")
 
 	return lndService, nil
+}
+
+func (svc *LNDService) trackForwardedPayments(ctx context.Context) {
+	// NOTE: this only tracks payments when hub is online and attached
+	lastTime := time.Now()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			time.Sleep(1 * time.Minute)
+			nextTime := time.Now()
+			forwardedPayments, err := svc.client.ForwardingHistory(ctx, &lnrpc.ForwardingHistoryRequest{
+				StartTime: uint64(lastTime.Unix()),
+				EndTime:   uint64(nextTime.Unix()),
+			})
+			if err != nil {
+				logger.Logger.WithError(err).Error("failed to read forwarding history")
+				continue
+			}
+			for _, forwardingEvent := range forwardedPayments.ForwardingEvents {
+				svc.eventPublisher.Publish(&events.Event{
+					Event: "nwc_payment_forwarded",
+					Properties: &lnclient.PaymentForwardedEventProperties{
+						TotalFeeEarnedMsat:          forwardingEvent.FeeMsat,
+						OutboundAmountForwardedMsat: forwardingEvent.AmtOutMsat,
+					},
+				})
+			}
+			lastTime = nextTime
+		}
+	}
 }
 
 func (svc *LNDService) subscribePayments(ctx context.Context) {
@@ -392,13 +430,8 @@ func (svc *LNDService) Shutdown() error {
 	return nil
 }
 
-func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64, timeoutSeconds *int64) (*lnclient.PayInvoiceResponse, error) {
+func (svc *LNDService) SendPaymentSync(payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
 	const MAX_PARTIAL_PAYMENTS = 16
-
-	sendPaymentTimeout := int64(constants.SEND_PAYMENT_TIMEOUT)
-	if timeoutSeconds != nil {
-		sendPaymentTimeout = *timeoutSeconds
-	}
 
 	paymentRequest, err := decodepay.Decodepay(payReq)
 	if err != nil {
@@ -415,7 +448,6 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amoun
 	sendRequest := &routerrpc.SendPaymentRequest{
 		PaymentRequest: payReq,
 		MaxParts:       MAX_PARTIAL_PAYMENTS,
-		TimeoutSeconds: int32(sendPaymentTimeout),
 		FeeLimitMsat:   int64(transactions.CalculateFeeReserveMsat(paymentAmountMsat)),
 	}
 
@@ -423,7 +455,7 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amoun
 		sendRequest.AmtMsat = int64(*amount)
 	}
 
-	payStream, err := svc.client.SendPayment(ctx, sendRequest)
+	payStream, err := svc.client.SendPayment(svc.ctx, sendRequest)
 	if err != nil {
 		logger.Logger.WithField("bolt11", payReq).WithError(err).Error("SendPayment failed")
 		return nil, err
@@ -436,6 +468,10 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amoun
 	}
 
 	if resp.Status != lnrpc.Payment_SUCCEEDED {
+		// In LND, timeout error only happens when there are more routes to try
+		// but we ran out of time in contrast to LDK where the payment is initiated
+		// and might still succeed after receiving timeout error
+		// See https://github.com/lightningnetwork/lnd/issues/4269#issuecomment-626279140
 		failureReasonMessage := resp.FailureReason.String()
 		logger.Logger.WithFields(logrus.Fields{
 			"bolt11": payReq,
@@ -455,7 +491,7 @@ func (svc *LNDService) SendPaymentSync(ctx context.Context, payReq string, amoun
 	}, nil
 }
 
-func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+func (svc *LNDService) SendKeysend(amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	destBytes, err := hex.DecodeString(destination)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -505,7 +541,7 @@ func (svc *LNDService) SendKeysend(ctx context.Context, amount uint64, destinati
 		FeeLimitMsat:      int64(transactions.CalculateFeeReserveMsat(amount)),
 	}
 
-	payStream, err := svc.client.SendPayment(ctx, sendPaymentRequest)
+	payStream, err := svc.client.SendPayment(svc.ctx, sendPaymentRequest)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"payment_hash": paymentHash,
@@ -563,7 +599,7 @@ func (svc *LNDService) getPaymentResult(stream routerrpc.Router_SendPaymentV2Cli
 	}
 }
 
-func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
+func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
 	var descriptionHashBytes []byte
 
 	if descriptionHash != "" {
@@ -592,6 +628,75 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, descriptio
 	for _, channel := range channels {
 		if channel.Active && channel.Public {
 			hasPublicChannels = true
+			break
+		}
+	}
+
+	var hints []*lnrpc.RouteHint
+	if !hasPublicChannels && throughNodePubkey != nil {
+		channelsRes, err := svc.client.ListChannels(ctx, &lnrpc.ListChannelsRequest{
+			PrivateOnly: true,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		for _, channel := range channelsRes.Channels {
+			if channel.RemotePubkey != *throughNodePubkey {
+				continue
+			}
+
+			chanInfo, err := svc.client.GetChanInfo(ctx, &lnrpc.ChanInfoRequest{
+				ChanId: channel.ChanId,
+			})
+			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"channel_id": channel.ChanId,
+				}).WithError(err).Error("Unable to get channel info")
+				continue
+			}
+
+			var remotePolicy *lnrpc.RoutingPolicy
+			if chanInfo.Node1Pub == channel.RemotePubkey {
+				remotePolicy = chanInfo.Node1Policy
+			} else {
+				remotePolicy = chanInfo.Node2Policy
+			}
+
+			if remotePolicy == nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"channel_id": channel.ChanId,
+				}).WithError(err).Error("Remote channel policy does not exist")
+				continue
+			}
+
+			channelId := chanInfo.ChannelId
+			if channel.PeerScidAlias != 0 {
+				channelId = channel.PeerScidAlias
+			}
+
+			hint := &lnrpc.RouteHint{
+				HopHints: []*lnrpc.HopHint{
+					{
+						NodeId:                    channel.RemotePubkey,
+						ChanId:                    channelId,
+						FeeBaseMsat:               uint32(remotePolicy.FeeBaseMsat),
+						FeeProportionalMillionths: uint32(remotePolicy.FeeRateMilliMsat),
+						CltvExpiryDelta:           remotePolicy.TimeLockDelta,
+					},
+				},
+			}
+
+			hints = append(hints, hint)
+			if len(hints) == 3 {
+				// limit to 3 channels
+				// NOTE: there is no check that the channels are online or have enough receiving capacity.
+				break
+			}
+		}
+
+		if len(hints) == 0 {
+			return nil, errors.New("no channel found for given throughNodePubkey")
 		}
 	}
 
@@ -600,6 +705,7 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, descriptio
 		Memo:            description,
 		DescriptionHash: descriptionHashBytes,
 		Expiry:          expiry,
+		RouteHints:      hints,
 		Private:         !hasPublicChannels, // use private channel hints in the invoice
 	}
 
@@ -864,7 +970,8 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 		channelOpeningBlockHeight := lndChannel.ChanId >> 40
 		confirmations := nodeInfo.BlockHeight - uint32(channelOpeningBlockHeight) + 1
 
-		var forwardingFee uint32
+		var forwardingFeeBaseMsat uint32
+		var forwardingFeeProportionalMillionths uint32
 		if !lndChannel.Private {
 			channelEdge, err := svc.client.GetChanInfo(ctx, &lnrpc.ChanInfoRequest{
 				ChanId: lndChannel.ChanId,
@@ -880,7 +987,8 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 				policy = channelEdge.Node2Policy
 			}
 			if policy != nil {
-				forwardingFee = uint32(policy.FeeBaseMsat)
+				forwardingFeeBaseMsat = uint32(policy.FeeBaseMsat)
+				forwardingFeeProportionalMillionths = uint32(policy.FeeRateMilliMsat)
 			}
 		}
 
@@ -900,7 +1008,8 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 			UnspendablePunishmentReserve:             lndChannel.LocalConstraints.ChanReserveSat,
 			CounterpartyUnspendablePunishmentReserve: lndChannel.RemoteConstraints.ChanReserveSat,
 			IsOutbound:                               lndChannel.Initiator,
-			ForwardingFeeBaseMsat:                    forwardingFee,
+			ForwardingFeeBaseMsat:                    forwardingFeeBaseMsat,
+			ForwardingFeeProportionalMillionths:      forwardingFeeProportionalMillionths,
 		}
 	}
 
@@ -1098,7 +1207,7 @@ func (svc *LNDService) UpdateChannel(ctx context.Context, updateChannelRequest *
 			ChanPoint: channelPoint,
 		},
 		BaseFeeMsat:   int64(updateChannelRequest.ForwardingFeeBaseMsat),
-		FeeRatePpm:    uint32(nodePolicy.FeeRateMilliMsat),
+		FeeRatePpm:    updateChannelRequest.ForwardingFeeProportionalMillionths,
 		TimeLockDelta: nodePolicy.TimeLockDelta,
 		MaxHtlcMsat:   nodePolicy.MaxHtlcMsat,
 	})

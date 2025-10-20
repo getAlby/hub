@@ -8,17 +8,23 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { SUPPORT_ALBY_CONNECTION_NAME } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
+import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
 
 export function SupportAlbyWidget() {
   const { data: info } = useInfo();
   const { data: albyMe, error: albyMeError } = useAlbyMe();
+  const { data: supportAlbyAppsData } = useApps(undefined, undefined, {
+    name: SUPPORT_ALBY_CONNECTION_NAME,
+  });
 
   if (
     !info ||
     (info.albyAccountConnected && !albyMe && !albyMeError) ||
-    albyMe?.subscription.plan_code
+    albyMe?.subscription.plan_code ||
+    supportAlbyAppsData?.apps.length
   ) {
     return null;
   }
@@ -35,7 +41,7 @@ export function SupportAlbyWidget() {
       <CardFooter className="flex justify-end">
         <Link to="/support-alby">
           <Button variant="outline">
-            <HeartIcon className="w-4 h-4 mr-2" />
+            <HeartIcon />
             Become a Supporter
           </Button>
         </Link>

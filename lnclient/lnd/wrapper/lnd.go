@@ -243,3 +243,7 @@ func (wrapper *LNDWrapper) DisconnectPeer(ctx context.Context, req *lnrpc.Discon
 func (wrapper *LNDWrapper) SubscribeChannelEvents(ctx context.Context, in *lnrpc.ChannelEventSubscription, options ...grpc.CallOption) (lnrpc.Lightning_SubscribeChannelEventsClient, error) {
 	return wrapper.client.SubscribeChannelEvents(ctx, in, options...)
 }
+
+func (wrapper *LNDWrapper) ForwardingHistory(ctx context.Context, in *lnrpc.ForwardingHistoryRequest, options ...grpc.CallOption) (*lnrpc.ForwardingHistoryResponse, error) {
+	return wrapper.client.ForwardingHistory(ctx, in, options...)
+}

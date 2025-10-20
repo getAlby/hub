@@ -8,17 +8,21 @@ import (
 	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/swaps"
 )
 
 type API interface {
 	CreateApp(createAppRequest *CreateAppRequest) (*CreateAppResponse, error)
 	UpdateApp(app *db.App, updateAppRequest *UpdateAppRequest) error
-	TopupIsolatedApp(ctx context.Context, app *db.App, amountMsat uint64) error
+	Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, amountMsat uint64) error
 	DeleteApp(app *db.App) error
 	GetApp(app *db.App) *App
-	ListApps() ([]App, error)
+	ListApps(limit uint64, offset uint64, filters ListAppsFilters, orderBy string) (*ListAppsResponse, error)
+	CreateLightningAddress(ctx context.Context, createLightningAddressRequest *CreateLightningAddressRequest) error
+	DeleteLightningAddress(ctx context.Context, appId uint) error
 	ListChannels(ctx context.Context) ([]Channel, error)
 	GetChannelPeerSuggestions(ctx context.Context) ([]alby.ChannelPeerSuggestion, error)
+	GetLSPChannelOffer(ctx context.Context) (*alby.LSPChannelOffer, error)
 	ResetRouter(key string) error
 	ChangeUnlockPassword(changeUnlockPasswordRequest *ChangeUnlockPasswordRequest) error
 	SetAutoUnlockPassword(unlockPassword string) error
@@ -29,6 +33,7 @@ type API interface {
 	ConnectPeer(ctx context.Context, connectPeerRequest *ConnectPeerRequest) error
 	DisconnectPeer(ctx context.Context, peerId string) error
 	OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error)
+	RebalanceChannel(ctx context.Context, rebalanceChannelRequest *RebalanceChannelRequest) (*RebalanceChannelResponse, error)
 	CloseChannel(ctx context.Context, peerId, channelId string, force bool) (*CloseChannelResponse, error)
 	UpdateChannel(ctx context.Context, updateChannelRequest *UpdateChannelRequest) error
 	MakeOffer(ctx context.Context, description string) (string, error)
@@ -42,7 +47,7 @@ type API interface {
 	SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}) (*SendPaymentResponse, error)
 	CreateInvoice(ctx context.Context, amount uint64, description string) (*MakeInvoiceResponse, error)
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
-	RequestMempoolApi(endpoint string) (interface{}, error)
+	RequestMempoolApi(ctx context.Context, endpoint string) (interface{}, error)
 	GetInfo(ctx context.Context) (*InfoResponse, error)
 	GetMnemonic(unlockPassword string) (*MnemonicResponse, error)
 	SetNextBackupReminder(backupReminderRequest *BackupReminderRequest) error
@@ -60,13 +65,22 @@ type API interface {
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
+	LookupSwap(swapId string) (*LookupSwapResponse, error)
+	ListSwaps() (*ListSwapsResponse, error)
+	GetSwapInInfo() (*SwapInfoResponse, error)
+	GetSwapOutInfo() (*SwapInfoResponse, error)
+	InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (*swaps.SwapResponse, error)
+	InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (*swaps.SwapResponse, error)
+	RefundSwap(refundSwapRequest *RefundSwapRequest) error
+	GetSwapMnemonic() string
+	GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error)
+	EnableAutoSwapOut(ctx context.Context, autoSwapRequest *EnableAutoSwapRequest) error
+	DisableAutoSwap() error
 	SetNodeAlias(nodeAlias string) error
-	GetAutoSwapsConfig() (*GetAutoSwapsConfigResponse, error)
-	DisableAutoSwaps() error
-	EnableAutoSwaps(ctx context.Context, autoSwapsRequest *EnableAutoSwapsRequest) error
 	GetCustomNodeCommands() (*CustomNodeCommandsResponse, error)
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
-	SendEvent(event string)
+	SendEvent(event string, properties interface{})
+	GetForwards() (*GetForwardsResponse, error)
 }
 
 type App struct {
@@ -76,7 +90,7 @@ type App struct {
 	AppPubkey          string     `json:"appPubkey"`
 	CreatedAt          time.Time  `json:"createdAt"`
 	UpdatedAt          time.Time  `json:"updatedAt"`
-	LastEventAt        *time.Time `json:"lastEventAt"`
+	LastUsedAt         *time.Time `json:"lastUsedAt"`
 	ExpiresAt          *time.Time `json:"expiresAt"`
 	Scopes             []string   `json:"scopes"`
 	MaxAmountSat       uint64     `json:"maxAmount"`
@@ -89,22 +103,33 @@ type App struct {
 	Metadata           Metadata   `json:"metadata,omitempty"`
 }
 
+type ListAppsFilters struct {
+	Name          string `json:"name"`
+	AppStoreAppId string `json:"appStoreAppId"`
+	Unused        bool   `json:"unused"`
+	SubWallets    *bool  `json:"subWallets"`
+}
+
 type ListAppsResponse struct {
-	Apps []App `json:"apps"`
+	Apps       []App  `json:"apps"`
+	TotalCount uint64 `json:"totalCount"`
 }
 
 type UpdateAppRequest struct {
-	Name          string   `json:"name"`
-	MaxAmountSat  uint64   `json:"maxAmount"`
-	BudgetRenewal string   `json:"budgetRenewal"`
-	ExpiresAt     string   `json:"expiresAt"`
-	Scopes        []string `json:"scopes"`
-	Metadata      Metadata `json:"metadata,omitempty"`
-	Isolated      bool     `json:"isolated"`
+	Name            *string   `json:"name"`
+	MaxAmountSat    *uint64   `json:"maxAmount"`
+	BudgetRenewal   *string   `json:"budgetRenewal"`
+	ExpiresAt       *string   `json:"expiresAt"`
+	UpdateExpiresAt bool      `json:"updateExpiresAt"`
+	Scopes          []string  `json:"scopes"`
+	Metadata        *Metadata `json:"metadata"`
+	Isolated        *bool     `json:"isolated"`
 }
 
-type TopupIsolatedAppRequest struct {
+type TransferRequest struct {
 	AmountSat uint64 `json:"amountSat"`
+	FromAppId *uint  `json:"fromAppId"`
+	ToAppId   *uint  `json:"toAppId"`
 }
 
 type CreateAppRequest struct {
@@ -120,20 +145,67 @@ type CreateAppRequest struct {
 	UnlockPassword string   `json:"unlockPassword"`
 }
 
-type EnableAutoSwapsRequest struct {
+type CreateLightningAddressRequest struct {
+	Address string `json:"address"`
+	AppId   uint   `json:"appId"`
+}
+
+type InitiateSwapRequest struct {
+	SwapAmount  uint64 `json:"swapAmount"`
+	Destination string `json:"destination"`
+}
+
+type RefundSwapRequest struct {
+	SwapId  string `json:"swapId"`
+	Address string `json:"address"`
+}
+
+type EnableAutoSwapRequest struct {
 	BalanceThreshold uint64 `json:"balanceThreshold"`
 	SwapAmount       uint64 `json:"swapAmount"`
 	Destination      string `json:"destination"`
 }
 
-type GetAutoSwapsConfigResponse struct {
-	Enabled          bool    `json:"enabled"`
-	BalanceThreshold uint64  `json:"balanceThreshold"`
-	SwapAmount       uint64  `json:"swapAmount"`
-	Destination      string  `json:"destination"`
-	AlbyServiceFee   float64 `json:"albyServiceFee"`
-	BoltzServiceFee  float64 `json:"boltzServiceFee"`
-	BoltzNetworkFee  uint64  `json:"boltzNetworkFee"`
+type GetAutoSwapConfigResponse struct {
+	Type             string `json:"type"`
+	Enabled          bool   `json:"enabled"`
+	BalanceThreshold uint64 `json:"balanceThreshold"`
+	SwapAmount       uint64 `json:"swapAmount"`
+	Destination      string `json:"destination"`
+}
+
+type SwapInfoResponse struct {
+	AlbyServiceFee  float64 `json:"albyServiceFee"`
+	BoltzServiceFee float64 `json:"boltzServiceFee"`
+	BoltzNetworkFee uint64  `json:"boltzNetworkFee"`
+	MinAmount       uint64  `json:"minAmount"`
+	MaxAmount       uint64  `json:"maxAmount"`
+}
+
+type ListSwapsResponse struct {
+	Swaps []Swap `json:"swaps"`
+}
+
+type LookupSwapResponse = Swap
+
+type Swap struct {
+	Id                 string `json:"id"`
+	Type               string `json:"type"`
+	State              string `json:"state"`
+	Invoice            string `json:"invoice"`
+	SendAmount         uint64 `json:"sendAmount"`
+	ReceiveAmount      uint64 `json:"receiveAmount"`
+	PaymentHash        string `json:"paymentHash"`
+	DestinationAddress string `json:"destinationAddress"`
+	RefundAddress      string `json:"refundAddress"`
+	LockupAddress      string `json:"lockupAddress"`
+	LockupTxId         string `json:"lockupTxId"`
+	ClaimTxId          string `json:"claimTxId"`
+	AutoSwap           bool   `json:"autoSwap"`
+	BoltzPubkey        string `json:"boltzPubkey"`
+	CreatedAt          string `json:"createdAt"`
+	UpdatedAt          string `json:"updatedAt"`
+	UsedXpub           bool   `json:"usedXpub"`
 }
 
 type StartRequest struct {
@@ -143,6 +215,7 @@ type StartRequest struct {
 type UnlockRequest struct {
 	UnlockPassword  string  `json:"unlockPassword"`
 	TokenExpiryDays *uint64 `json:"tokenExpiryDays"`
+	Permission      string  `json:"permission,omitempty"` // "full" or "readonly"
 }
 
 type BackupReminderRequest struct {
@@ -150,7 +223,8 @@ type BackupReminderRequest struct {
 }
 
 type SendEventRequest struct {
-	Event string `json:"event"`
+	Event      string      `json:"event"`
+	Properties interface{} `json:"properties"`
 }
 
 type SetupRequest struct {
@@ -214,6 +288,7 @@ type InfoResponse struct {
 	Currency                    string    `json:"currency"`
 	Relay                       string    `json:"relay"`
 	NodeAlias                   string    `json:"nodeAlias"`
+	MempoolUrl                  string    `json:"mempoolUrl"`
 }
 
 type UpdateSettingsRequest struct {
@@ -245,6 +320,14 @@ type OpenChannelRequest = lnclient.OpenChannelRequest
 type OpenChannelResponse = lnclient.OpenChannelResponse
 type CloseChannelResponse = lnclient.CloseChannelResponse
 type UpdateChannelRequest = lnclient.UpdateChannelRequest
+
+type RebalanceChannelRequest struct {
+	ReceiveThroughNodePubkey string `json:"receiveThroughNodePubkey"`
+	AmountSat                uint64 `json:"amountSat"`
+}
+type RebalanceChannelResponse struct {
+	TotalFeeSat uint64 `json:"totalFeeSat"`
+}
 
 type RedeemOnchainFundsRequest struct {
 	ToAddress string  `json:"toAddress"`
@@ -377,10 +460,10 @@ type BasicRestoreWailsRequest struct {
 type NetworkGraphResponse = lnclient.NetworkGraphResponse
 
 type LSPOrderRequest struct {
-	Amount  uint64 `json:"amount"`
-	LSPType string `json:"lspType"`
-	LSPUrl  string `json:"lspUrl"`
-	Public  bool   `json:"public"`
+	Amount        uint64 `json:"amount"`
+	LSPType       string `json:"lspType"`
+	LSPIdentifier string `json:"lspIdentifier"`
+	Public        bool   `json:"public"`
 }
 
 type LSPOrderResponse struct {
@@ -411,6 +494,7 @@ type Channel struct {
 	Confirmations                            *uint32     `json:"confirmations"`
 	ConfirmationsRequired                    *uint32     `json:"confirmationsRequired"`
 	ForwardingFeeBaseMsat                    uint32      `json:"forwardingFeeBaseMsat"`
+	ForwardingFeeProportionalMillionths      uint32      `json:"forwardingFeeProportionalMillionths"`
 	UnspendablePunishmentReserve             uint64      `json:"unspendablePunishmentReserve"`
 	CounterpartyUnspendablePunishmentReserve uint64      `json:"counterpartyUnspendablePunishmentReserve"`
 	Error                                    *string     `json:"error"`
@@ -465,4 +549,10 @@ type CustomNodeCommandsResponse struct {
 
 type ExecuteCustomNodeCommandRequest struct {
 	Command string `json:"command"`
+}
+
+type GetForwardsResponse struct {
+	OutboundAmountForwardedMsat uint64 `json:"outboundAmountForwardedMsat"`
+	TotalFeeEarnedMsat          uint64 `json:"totalFeeEarnedMsat"`
+	NumForwards                 uint64 `json:"numForwards"`
 }

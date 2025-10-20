@@ -1,20 +1,28 @@
 import { InfoIcon } from "lucide-react";
 import React, { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
-import ExternalLink from "src/components/ExternalLink";
-import Loading from "src/components/Loading";
-import { MempoolAlert } from "src/components/MempoolAlert";
 import { ChannelPeerNote } from "src/components/channels/ChannelPeerNote";
 import { ChannelPublicPrivateAlert } from "src/components/channels/ChannelPublicPrivateAlert";
 import { DuplicateChannelAlert } from "src/components/channels/DuplicateChannelAlert";
 import { SwapAlert } from "src/components/channels/SwapAlert";
-import {
-  Button,
-  ExternalLinkButton,
-  LinkButton,
-} from "src/components/ui/button";
+import ExternalLink from "src/components/ExternalLink";
+import Loading from "src/components/Loading";
+import { MempoolAlert } from "src/components/MempoolAlert";
+import { Alert, AlertDescription } from "src/components/ui/alert";
+import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LinkButton } from "src/components/ui/custom/link-button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import {
@@ -30,7 +38,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
-import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannelPeerSuggestions } from "src/hooks/useChannelPeerSuggestions";
 import { useChannels } from "src/hooks/useChannels";
@@ -40,13 +47,15 @@ import { cn, formatAmount } from "src/lib/utils";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import {
   Channel,
-  MempoolNode,
   Network,
   NewChannelOrder,
   OnchainOrder,
   RecommendedChannelPeer,
 } from "src/types";
-import { request } from "src/utils/request";
+
+import LightningNetworkDarkSVG from "public/images/illustrations/lightning-network-dark.svg";
+import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
+import { useNodeDetails } from "src/hooks/useNodeDetails";
 
 function getPeerKey(peer: RecommendedChannelPeer) {
   return JSON.stringify(peer);
@@ -73,7 +82,6 @@ function NewChannelInternal({
   const { data: _channelPeerSuggestions } = useChannelPeerSuggestions();
   const { data: balances } = useBalances();
 
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   const presetAmounts = [250_000, 500_000, 1_000_000];
@@ -89,6 +97,8 @@ function NewChannelInternal({
     RecommendedChannelPeer | undefined
   >();
 
+  const [showConfirmModal, setShowConfirmModal] = React.useState(false);
+
   const channelPeerSuggestions = React.useMemo(() => {
     const customOption: RecommendedChannelPeer = {
       name: "Custom",
@@ -96,6 +106,7 @@ function NewChannelInternal({
       paymentMethod: "onchain",
       minimumChannelSize: 0,
       maximumChannelSize: 0,
+      description: "",
       pubkey: "",
       host: "",
       image: "",
@@ -156,7 +167,10 @@ function NewChannelInternal({
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
+    setShowConfirmModal(true);
+  }
 
+  function handleConfirmSubmit() {
     try {
       if (!channels) {
         throw new Error("Channels not loaded");
@@ -175,13 +189,13 @@ function NewChannelInternal({
       }
 
       useChannelOrderStore.getState().setOrder(order as NewChannelOrder);
+      setShowConfirmModal(false);
       navigate("/channels/order");
     } catch (error) {
-      toast({
-        variant: "destructive",
-        description: "Something went wrong: " + error,
+      toast.error("Something went wrong", {
+        description: `${error}`,
       });
-      console.error(error);
+      setShowConfirmModal(false);
     }
   }
 
@@ -209,13 +223,10 @@ function NewChannelInternal({
       />
       <div className="md:max-w-md max-w-full flex flex-col gap-5 flex-1">
         <img
-          src="/images/illustrations/lightning-network-dark.svg"
+          src={LightningNetworkDarkSVG}
           className="w-full hidden dark:block"
         />
-        <img
-          src="/images/illustrations/lightning-network-light.svg"
-          className="w-full dark:hidden"
-        />
+        <img src={LightningNetworkLightSVG} className="w-full dark:hidden" />
         <p className="text-muted-foreground">
           Open a channel with on-chain funds. Both parties are free to close the
           channel at any time. However, by keeping more funds on your side of
@@ -244,7 +255,7 @@ function NewChannelInternal({
                     <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                   </div>
                 </TooltipTrigger>
-                <TooltipContent className="w-[300px]">
+                <TooltipContent>
                   Configure the amount of spending capacity you need. You will
                   need to deposit on-chain bitcoin to cover the entire channel
                   size, plus on-chain fees.
@@ -300,7 +311,7 @@ function NewChannelInternal({
                 order.paymentMethod === "onchain" &&
                 selectedPeer.pubkey === order.pubkey && (
                   <div className="grid gap-1.5">
-                    <Label>Channel peer</Label>
+                    <Label>Choose your channel peer:</Label>
                     <Select
                       value={getPeerKey(selectedPeer)}
                       onValueChange={(value) =>
@@ -331,7 +342,7 @@ function NewChannelInternal({
                                   {peer.name !== "Custom" && (
                                     <img
                                       src={peer.image}
-                                      className="w-8 h-8 object-contain"
+                                      className="size-8 object-contain"
                                     />
                                   )}
                                   <div>
@@ -401,7 +412,7 @@ function NewChannelInternal({
             </div>
           </>
           <MempoolAlert />
-          <SwapAlert />
+          <SwapAlert swapType="in" />
           {channels?.some((channel) => channel.public !== !!order.isPublic) && (
             <ChannelPublicPrivateAlert />
           )}
@@ -433,6 +444,81 @@ function NewChannelInternal({
           </ExternalLinkButton>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Channel Opening</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to open a Lightning channel with the
+              following details?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <div className="font-medium text-muted-foreground">Peer</div>
+                <div>{selectedPeer?.name || "Custom"}</div>
+              </div>
+              <div>
+                <div className="font-medium text-muted-foreground">Amount</div>
+                <div>
+                  {new Intl.NumberFormat().format(
+                    parseInt(order.amount || "0")
+                  )}{" "}
+                  sats
+                </div>
+              </div>
+              <div>
+                <div className="font-medium text-muted-foreground">
+                  Channel Type
+                </div>
+                <div>{order.isPublic ? "Public" : "Private"}</div>
+              </div>
+              <div>
+                <div className="font-medium text-muted-foreground">
+                  Payment Method
+                </div>
+                <div>On-chain</div>
+              </div>
+            </div>
+
+            {selectedPeer?.name === "Custom" && order.pubkey && (
+              <div className="text-sm">
+                <div className="font-medium text-muted-foreground">
+                  Node Public Key
+                </div>
+                <div className="font-mono text-xs break-all bg-muted p-2 rounded">
+                  {order.pubkey}
+                </div>
+              </div>
+            )}
+
+            <Alert variant="warning">
+              <InfoIcon />
+              <AlertDescription>
+                <strong>Important:</strong> Opening a channel requires an
+                on-chain transaction and network fees. This action cannot be
+                undone. Please verify all details before proceeding.
+              </AlertDescription>
+            </Alert>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmSubmit}>
+              Confirm & Open Channel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
@@ -444,9 +530,6 @@ type NewChannelOnchainProps = {
 };
 
 function NewChannelOnchain(props: NewChannelOnchainProps) {
-  const [nodeDetails, setNodeDetails] = React.useState<
-    MempoolNode | undefined
-  >();
   const { data: peers } = usePeers();
 
   if (props.order.paymentMethod !== "onchain") {
@@ -475,30 +558,14 @@ function NewChannelOnchain(props: NewChannelOnchainProps) {
     [setOrder]
   );
 
-  const fetchNodeDetails = React.useCallback(async () => {
-    if (!pubkey) {
-      setNodeDetails(undefined);
-      return;
-    }
-    try {
-      const data = await request<MempoolNode>(
-        `/api/mempool?endpoint=/v1/lightning/nodes/${pubkey}`
-      );
-
-      setNodeDetails(data);
-      const socketAddress = data?.sockets?.split(",")?.[0];
-      if (socketAddress) {
-        setHost(socketAddress);
-      }
-    } catch (error) {
-      console.error(error);
-      setNodeDetails(undefined);
-    }
-  }, [pubkey, setHost]);
+  const { data: nodeDetails } = useNodeDetails(pubkey);
 
   React.useEffect(() => {
-    fetchNodeDetails();
-  }, [fetchNodeDetails]);
+    const socketAddress = nodeDetails?.sockets?.split(",")?.[0];
+    if (socketAddress) {
+      setHost(socketAddress);
+    }
+  }, [nodeDetails, setHost]);
 
   return (
     <>
@@ -514,7 +581,11 @@ function NewChannelOnchain(props: NewChannelOnchainProps) {
                 required
                 placeholder="Pubkey of the peer"
                 onChange={(e) => {
-                  setPubkey(e.target.value.trim());
+                  const parts = e.target.value.trim().split("@");
+                  setPubkey(parts[0]);
+                  if (parts.length > 1) {
+                    setHost(parts[1]);
+                  }
                 }}
               />
               {nodeDetails && (

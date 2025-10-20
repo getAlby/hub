@@ -71,18 +71,19 @@ type PhoenixService struct {
 	Authorization string
 	pubkey        string
 	nodeInfo      *lnclient.NodeInfo
+	ctx           context.Context
 }
 
-func NewPhoenixService(address string, authorization string) (result lnclient.LNClient, err error) {
+func NewPhoenixService(ctx context.Context, address string, authorization string) (result lnclient.LNClient, err error) {
 	authorizationBase64 := b64.StdEncoding.EncodeToString([]byte(":" + authorization))
 	// some environments (e.g. in a cloud environment like render.com) can only get the address and the port but not the protocol
 	// in those cases we default to http for local requests
 	if !strings.HasPrefix(address, "http") {
 		address = "http://" + address
 	}
-	phoenixService := &PhoenixService{Address: address, Authorization: authorizationBase64}
+	phoenixService := &PhoenixService{ctx: ctx, Address: address, Authorization: authorizationBase64}
 
-	info, err := fetchNodeInfo(phoenixService)
+	info, err := fetchNodeInfo(ctx, phoenixService)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +94,7 @@ func NewPhoenixService(address string, authorization string) (result lnclient.LN
 }
 
 func (svc *PhoenixService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
-	req, err := http.NewRequest(http.MethodGet, svc.Address+"/getbalance", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, svc.Address+"/getbalance", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +150,7 @@ func (svc *PhoenixService) ListTransactions(ctx context.Context, from, until, li
 	logger.Logger.WithFields(logrus.Fields{
 		"url": incomingUrl,
 	}).Infof("Fetching incoming transactions: %s", incomingUrl)
-	incomingReq, err := http.NewRequest(http.MethodGet, incomingUrl, nil)
+	incomingReq, err := http.NewRequestWithContext(ctx, http.MethodGet, incomingUrl, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -197,7 +198,7 @@ func (svc *PhoenixService) ListTransactions(ctx context.Context, from, until, li
 	logger.Logger.WithFields(logrus.Fields{
 		"url": outgoingUrl,
 	}).Infof("Fetching outgoing transactions: %s", outgoingUrl)
-	outgoingReq, err := http.NewRequest(http.MethodGet, outgoingUrl, nil)
+	outgoingReq, err := http.NewRequestWithContext(ctx, http.MethodGet, outgoingUrl, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -243,8 +244,8 @@ func (svc *PhoenixService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo
 	return svc.nodeInfo, nil
 }
 
-func fetchNodeInfo(svc *PhoenixService) (info *lnclient.NodeInfo, err error) {
-	req, err := http.NewRequest(http.MethodGet, svc.Address+"/getinfo", nil)
+func fetchNodeInfo(ctx context.Context, svc *PhoenixService) (info *lnclient.NodeInfo, err error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, svc.Address+"/getinfo", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -275,7 +276,7 @@ func (svc *PhoenixService) ListChannels(ctx context.Context) ([]lnclient.Channel
 	return channels, nil
 }
 
-func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
+func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
 	// TODO: support expiry
 	if expiry == 0 {
 		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
@@ -283,10 +284,10 @@ func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, descri
 	form := url.Values{}
 	amountSat := strconv.FormatInt(amount/1000, 10)
 	form.Add("amountSat", amountSat)
-	if descriptionHash != "" {
-		form.Add("descriptionHash", descriptionHash)
-	} else if description != "" {
+	if description != "" {
 		form.Add("description", description)
+	} else if descriptionHash != "" {
+		form.Add("descriptionHash", descriptionHash)
 	} else {
 		form.Add("description", "invoice")
 	}
@@ -297,7 +298,7 @@ func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, descri
 		"externalId": today,
 		"amountSat":  amountSat,
 	}).Infof("Requesting phoenix invoice")
-	req, err := http.NewRequest(http.MethodPost, svc.Address+"/createinvoice", strings.NewReader(form.Encode()))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, svc.Address+"/createinvoice", strings.NewReader(form.Encode()))
 	if err != nil {
 		return nil, err
 	}
@@ -337,7 +338,7 @@ func (svc *PhoenixService) CancelHoldInvoice(ctx context.Context, paymentHash st
 }
 
 func (svc *PhoenixService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
-	req, err := http.NewRequest(http.MethodGet, svc.Address+"/payments/incoming/"+paymentHash, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, svc.Address+"/payments/incoming/"+paymentHash, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -362,14 +363,14 @@ func (svc *PhoenixService) LookupInvoice(ctx context.Context, paymentHash string
 	return transaction, nil
 }
 
-func (svc *PhoenixService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64, timeoutSeconds *int64) (*lnclient.PayInvoiceResponse, error) {
+func (svc *PhoenixService) SendPaymentSync(payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
 	// TODO: support 0-amount invoices
 	if amount != nil {
 		return nil, errors.New("0-amount invoices not supported")
 	}
 	form := url.Values{}
 	form.Add("invoice", payReq)
-	req, err := http.NewRequest(http.MethodPost, svc.Address+"/payinvoice", strings.NewReader(form.Encode()))
+	req, err := http.NewRequestWithContext(svc.ctx, http.MethodPost, svc.Address+"/payinvoice", strings.NewReader(form.Encode()))
 	if err != nil {
 		return nil, err
 	}
@@ -393,7 +394,7 @@ func (svc *PhoenixService) SendPaymentSync(ctx context.Context, payReq string, a
 	}, nil
 }
 
-func (svc *PhoenixService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+func (svc *PhoenixService) SendKeysend(amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	return nil, errors.New("not implemented")
 }
 
@@ -411,7 +412,7 @@ func (svc *PhoenixService) Shutdown() error {
 }
 
 func (svc *PhoenixService) GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *lnclient.NodeConnectionInfo, err error) {
-	req, err := http.NewRequest(http.MethodGet, svc.Address+"/getinfo", nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, svc.Address+"/getinfo", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -472,7 +473,7 @@ func (svc *PhoenixService) GetLogOutput(ctx context.Context, maxLen int) ([]byte
 }
 
 func (svc *PhoenixService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
-	_, err = fetchNodeInfo(svc)
+	_, err = fetchNodeInfo(ctx, svc)
 	if err != nil {
 		return nil, err
 	}

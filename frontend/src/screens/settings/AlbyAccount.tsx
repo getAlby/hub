@@ -6,7 +6,8 @@ import {
 
 import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
-import { Button, ExternalLinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { Separator } from "src/components/ui/separator";
 import { UnlinkAlbyAccount } from "src/components/UnlinkAlbyAccount";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
@@ -42,8 +43,7 @@ export function AlbyAccount() {
               to="https://getalby.com/settings"
               className="flex-1 gap-2 items-center justify-center"
             >
-              Alby Account Settings{" "}
-              <SquareArrowOutUpRightIcon className="w-4 h-4 mr-2" />
+              Alby Account Settings <SquareArrowOutUpRightIcon />
             </ExternalLinkButton>
           </div>
         </div>
@@ -61,11 +61,11 @@ export function AlbyAccount() {
               successMessage="Please login with another Alby Account"
             >
               <Button
-                size={"lg"}
-                variant={"destructive_outline"}
+                size="lg"
+                variant="destructive"
                 className="flex-1 gap-2 items-center justify-center py-2 px-4"
               >
-                <RefreshCcwIcon className="w-4 h-4 mr-2" /> Change Alby Account
+                <RefreshCcwIcon /> Change Alby Account
               </Button>
             </UnlinkAlbyAccount>
           </div>
@@ -80,12 +80,9 @@ export function AlbyAccount() {
           </div>
           <div>
             <UnlinkAlbyAccount>
-              <Button
-                size={"lg"}
-                variant={"destructive_outline"}
-                className="flex-1 gap-2 items-center justify-center py-2 px-4"
-              >
-                <Link2OffIcon className="w-4 h-4 mr-2" /> Unlink Alby Account
+              <Button size="lg" variant="destructive">
+                <Link2OffIcon />
+                Unlink Alby Account
               </Button>
             </UnlinkAlbyAccount>
           </div>

@@ -11,10 +11,6 @@ SSH into your Pi and run:
 
 ### Updating a running instance
 
-SSH into your Pi and run:
+SSH into your Pi and cd into `/opt/albyhub`
 
-```shell
-/bin/bash -c "$(curl -fsSL https://getalby.com/install/hub/pi-zero-update.sh)"
-```
-
-And see install.sh and update.sh for details.
+Run `./update.sh`

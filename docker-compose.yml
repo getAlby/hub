@@ -10,4 +10,4 @@ services:
       - "8080:8080"
     environment:
       - WORK_DIR=/data/albyhub
-      - LOG_EVENTS=true
+    stop_grace_period: 300s

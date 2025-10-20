@@ -1,5 +1,6 @@
 // src/hooks/useOnboardingData.ts
 
+import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
 import { useChannels } from "src/hooks/useChannels";
@@ -22,14 +23,14 @@ interface UseOnboardingDataResponse {
 
 export const useOnboardingData = (): UseOnboardingDataResponse => {
   const { data: albyMe } = useAlbyMe();
-  const { data: apps } = useApps();
+  const { data: appsData } = useApps();
   const { data: channels } = useChannels();
   const { data: info, hasChannelManagement, hasMnemonic } = useInfo();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const { data: transactions } = useTransactions(undefined, false, 1);
 
   const isLoading =
-    !apps ||
+    !appsData ||
     !channels ||
     !info ||
     !nodeConnectionInfo ||
@@ -52,7 +53,8 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
     info.nextBackupReminder !== "" &&
     new Date(info.nextBackupReminder).getTime() > new Date().getTime();
   const hasCustomApp =
-    apps && apps.find((x) => x.name !== "getalby.com") !== undefined;
+    appsData &&
+    appsData.apps.find((x) => x.name !== ALBY_ACCOUNT_APP_NAME) !== undefined;
   const hasTransaction = transactions.totalCount > 0;
 
   const checklistItems: Omit<ChecklistItem, "disabled">[] = [
@@ -74,7 +76,7 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
             description:
               "Link your lightning address & other apps to this Hub.",
             checked: isLinked,
-            to: "/apps",
+            to: "/apps?tab=connected-apps",
           },
         ]
       : []),
@@ -90,7 +92,7 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
       description:
         "Seamlessly connect apps and integrate your wallet with other apps from your Hub.",
       checked: hasCustomApp,
-      to: "/appstore",
+      to: "/apps?tab=app-store",
     },
     ...(hasMnemonic
       ? [

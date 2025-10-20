@@ -1,15 +1,15 @@
 import { ChevronDownIcon } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
-import { useToast } from "src/components/ui/use-toast";
 import { useChannels } from "src/hooks/useChannels";
 
 import { useInfo } from "src/hooks/useInfo";
@@ -20,6 +20,9 @@ import { MempoolAlert } from "src/components/MempoolAlert";
 import { PayLightningInvoice } from "src/components/PayLightningInvoice";
 import { ChannelPublicPrivateAlert } from "src/components/channels/ChannelPublicPrivateAlert";
 
+import LightningNetworkDarkSVG from "public/images/illustrations/lightning-network-dark.svg";
+import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
+
 export function AutoChannel() {
   const { data: info } = useInfo();
   const { data: channels } = useChannels(true);
@@ -28,7 +31,6 @@ export function AutoChannel() {
   const [isPublic, setPublic] = React.useState(false);
 
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [invoice, setInvoice] = React.useState<string>();
   const [channelSize, setChannelSize] = React.useState<number>();
   const [, setPrevChannelIds] = React.useState<string[]>();
@@ -90,10 +92,7 @@ export function AutoChannel() {
     } catch (error) {
       setLoading(false);
       console.error(error);
-      toast({
-        title: "Something went wrong. Please try again",
-        variant: "destructive",
-      });
+      toast.error("Something went wrong. Please try again");
     }
   }
 
@@ -134,11 +133,11 @@ export function AutoChannel() {
         <>
           <div className="flex flex-col gap-6 max-w-md text-muted-foreground">
             <img
-              src="/images/illustrations/lightning-network-dark.svg"
+              src={LightningNetworkDarkSVG}
               className="w-full hidden dark:block"
             />
             <img
-              src="/images/illustrations/lightning-network-light.svg"
+              src={LightningNetworkLightSVG}
               className="w-full dark:hidden"
             />
 
@@ -203,7 +202,7 @@ export function AutoChannel() {
                   onClick={() => setShowAdvanced((current) => !current)}
                 >
                   Advanced Options
-                  <ChevronDownIcon className="w-4 h-4 ml-1" />
+                  <ChevronDownIcon className="size-4 ml-1" />
                 </Button>
               </div>
             )}

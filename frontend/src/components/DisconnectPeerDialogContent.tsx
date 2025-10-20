@@ -1,4 +1,5 @@
-import { useToast } from "src/components/ui/use-toast";
+import { toast } from "sonner";
+import { useNodeDetails } from "src/hooks/useNodeDetails";
 import { usePeers } from "src/hooks/usePeers";
 import { Peer } from "src/types";
 import { request } from "src/utils/request";
@@ -14,12 +15,11 @@ import {
 
 type Props = {
   peer: Peer;
-  name: string | undefined;
 };
 
-export function DisconnectPeerDialogContent({ peer, name }: Props) {
+export function DisconnectPeerDialogContent({ peer }: Props) {
   const { mutate: reloadPeers } = usePeers();
-  const { toast } = useToast();
+  const { data: peerDetails } = useNodeDetails(peer.nodeId);
 
   async function disconnectPeer() {
     try {
@@ -31,18 +31,15 @@ export function DisconnectPeerDialogContent({ peer, name }: Props) {
           "Content-Type": "application/json",
         },
       });
-      toast({
-        title: "Successfully disconnected from peer",
+      toast("Successfully disconnected from peer", {
         description: peer.nodeId,
       });
       await reloadPeers();
     } catch (e) {
-      toast({
-        variant: "destructive",
-        title: "Failed to disconnect peer",
+      console.error(e);
+      toast.error("Failed to disconnect peer", {
         description: "" + e,
       });
-      console.error(e);
     }
   }
 
@@ -53,7 +50,8 @@ export function DisconnectPeerDialogContent({ peer, name }: Props) {
         <AlertDialogDescription>
           <div>
             <p>
-              Are you sure you wish to disconnect from {name || "this peer"}?
+              Are you sure you wish to disconnect from{" "}
+              {peerDetails?.alias || "this peer"}?
             </p>
             <p className="text-primary font-medium mt-4">Peer Pubkey</p>
             <p className="break-all">{peer.nodeId}</p>

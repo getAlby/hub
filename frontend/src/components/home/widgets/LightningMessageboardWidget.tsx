@@ -6,13 +6,15 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 
-import { nwc } from "@getalby/sdk";
+import { NWCClient } from "@getalby/sdk/nwc";
 import dayjs from "dayjs";
 import { ChevronUpIcon, ZapIcon } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import Loading from "src/components/Loading";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Dialog,
   DialogContent,
@@ -23,10 +25,8 @@ import {
 } from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
 import { Textarea } from "src/components/ui/textarea";
-import { useToast } from "src/components/ui/use-toast";
 import { PayInvoiceResponse } from "src/types";
 import { request } from "src/utils/request";
 
@@ -42,14 +42,24 @@ type Message = {
   created_at: number;
 };
 
-let nwcClient: nwc.NWCClient | undefined;
-function getNWCClient(): nwc.NWCClient {
+type TabType = "latest" | "top";
+
+let nwcClient: NWCClient | undefined;
+function getNWCClient(): NWCClient {
   if (!nwcClient) {
-    nwcClient = new nwc.NWCClient({
+    nwcClient = new NWCClient({
       nostrWalletConnectUrl: LIGHTNING_MESSAGEBOARD_NWC_URL,
     });
   }
   return nwcClient;
+}
+
+function getSortedMessages(messages: Message[], tab: TabType): Message[] {
+  if (tab === "latest") {
+    return [...messages].sort((a, b) => b.created_at - a.created_at);
+  } else {
+    return [...messages].sort((a, b) => b.amount - a.amount);
+  }
 }
 
 export function LightningMessageboardWidget() {
@@ -60,8 +70,8 @@ export function LightningMessageboardWidget() {
   const [isLoading, setLoading] = React.useState(false);
   const [isSubmitting, setSubmitting] = React.useState(false);
   const [dialogOpen, setDialogOpen] = React.useState(false);
-  const { toast } = useToast();
   const [isOpen, setOpen] = React.useState(false);
+  const [currentTab, setCurrentTab] = React.useState<TabType>("latest");
 
   const loadMessages = React.useCallback(() => {
     (async () => {
@@ -79,18 +89,23 @@ export function LightningMessageboardWidget() {
             break;
           }
 
-          _messages.push(
-            ...transactions.transactions.map((transaction) => ({
-              created_at: transaction.created_at,
-              message: transaction.description,
-              name: (
-                transaction.metadata as
-                  | { payer_data?: { name?: string } }
-                  | undefined
-              )?.payer_data?.name as string | undefined,
-              amount: Math.floor(transaction.amount / 1000),
-            }))
-          );
+          const newMessages = transactions.transactions.map((transaction) => ({
+            created_at: transaction.created_at,
+            message: transaction.description,
+            name: (
+              transaction.metadata as
+                | { payer_data?: { name?: string } }
+                | undefined
+            )?.payer_data?.name as string | undefined,
+            amount: Math.floor(transaction.amount / 1000),
+          }));
+
+          _messages.push(...newMessages);
+
+          // Update messages incrementally as they load
+          setMessages((prevMessages) => {
+            return [...(prevMessages || []), ...newMessages];
+          });
 
           offset += transactions.transactions.length;
         } catch (error) {
@@ -98,8 +113,6 @@ export function LightningMessageboardWidget() {
           await new Promise((resolve) => setTimeout(resolve, 1000));
         }
       }
-      _messages.sort((a, b) => b.amount - a.amount);
-      setMessages(_messages);
       setLoading(false);
     })();
   }, []);
@@ -112,6 +125,11 @@ export function LightningMessageboardWidget() {
     }
   }, [hasLoadedMessages, isOpen, loadMessages]);
 
+  const sortedMessages = React.useMemo(
+    () => getSortedMessages(messages || [], currentTab),
+    [currentTab, messages]
+  );
+
   function handleSubmitOpenDialog(e: React.FormEvent) {
     e.preventDefault();
     setDialogOpen(true);
@@ -120,10 +138,8 @@ export function LightningMessageboardWidget() {
     e.preventDefault();
 
     if (+amount < 1000) {
-      toast({
-        title: "Amount too low",
+      toast.error("Amount too low", {
         description: "Minimum payment is 1000 sats",
-        variant: "destructive",
       });
       return;
     }
@@ -153,13 +169,12 @@ export function LightningMessageboardWidget() {
 
       setMessageText("");
       loadMessages();
-      toast({ title: "Successfully sent message" });
+      toast("Successfully sent message");
       setDialogOpen(false);
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        description: "Something went wrong: " + error,
+      toast.error("Something went wrong", {
+        description: "" + error,
       });
     }
     setSubmitting(false);
@@ -185,15 +200,31 @@ export function LightningMessageboardWidget() {
         </CardHeader>
         {isOpen && (
           <CardContent>
+            <div className="flex gap-2 mb-4 -mt-4">
+              <Button
+                variant={currentTab === "latest" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCurrentTab("latest")}
+              >
+                Latest
+              </Button>
+              <Button
+                variant={currentTab === "top" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCurrentTab("top")}
+              >
+                Top
+              </Button>
+            </div>
             <div className="h-96 overflow-y-visible flex flex-col gap-2 overflow-hidden">
-              {messages?.map((message, index) => (
+              {sortedMessages.map((message, index) => (
                 <div key={index}>
                   <CardHeader>
                     <CardTitle className="leading-6 break-anywhere">
                       {message.message}
                     </CardTitle>
                   </CardHeader>
-                  <CardFooter className="flex items-center justify-between text-sm">
+                  <CardFooter className="flex items-center justify-between text-sm pb-2">
                     <CardTitle className="break-all font-normal text-xs">
                       <span className="text-muted-foreground">by</span>{" "}
                       {message.name || "Anonymous"}{" "}
@@ -202,13 +233,13 @@ export function LightningMessageboardWidget() {
                       </span>
                     </CardTitle>
                     <div>
-                      <Badge className="py-1">
-                        <ZapIcon className="w-4 h-4 mr-1" />{" "}
+                      <Badge>
+                        <ZapIcon />
                         {new Intl.NumberFormat().format(message.amount)}
                       </Badge>
                     </div>
                   </CardFooter>
-                  {index !== messages.length - 1 && <Separator />}
+                  {index !== sortedMessages.length - 1 && <Separator />}
                 </div>
               ))}
             </div>
@@ -224,7 +255,8 @@ export function LightningMessageboardWidget() {
                 onChange={(e) => setMessageText(e.target.value)}
               />
               <Button>
-                <ZapIcon className="w-4 h-4 mr-2" /> Send
+                <ZapIcon />
+                Send
               </Button>
             </form>
           </CardContent>
@@ -274,7 +306,7 @@ export function LightningMessageboardWidget() {
                   variant="secondary"
                   onClick={() => setAmount("" + topPlace)}
                 >
-                  <ChevronUpIcon className="w-4 h-4 mr-2" />
+                  <ChevronUpIcon />
                   Top
                 </Button>
               </div>

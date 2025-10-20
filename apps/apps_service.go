@@ -24,6 +24,8 @@ type AppsService interface {
 	CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string, isolated bool, metadata map[string]interface{}) (*db.App, string, error)
 	DeleteApp(app *db.App) error
 	GetAppByPubkey(pubkey string) *db.App
+	GetAppById(id uint) *db.App
+	SetAppMetadata(appId uint, metadata map[string]interface{}) error
 }
 
 type appsService struct {
@@ -43,6 +45,9 @@ func NewAppsService(db *gorm.DB, eventPublisher events.EventPublisher, keys keys
 }
 
 func (svc *appsService) CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string, isolated bool, metadata map[string]interface{}) (*db.App, string, error) {
+	if name == "" {
+		return nil, "", errors.New("no app name provided")
+	}
 	if isolated {
 		if slices.Contains(scopes, constants.SIGN_MESSAGE_SCOPE) {
 			// cannot sign messages because the isolated app is a custodial sub-wallet
@@ -193,6 +198,15 @@ func (svc *appsService) GetAppByPubkey(pubkey string) *db.App {
 	return &dbApp
 }
 
+func (svc *appsService) GetAppById(id uint) *db.App {
+	dbApp := db.App{}
+	findResult := svc.db.Where("id = ?", id).First(&dbApp)
+	if findResult.RowsAffected == 0 {
+		return nil
+	}
+	return &dbApp
+}
+
 func (svc *appsService) GetAppByName(name string) *db.App {
 	dbApp := db.App{}
 	findResult := svc.db.Where("name = ?", name).First(&dbApp)
@@ -200,4 +214,21 @@ func (svc *appsService) GetAppByName(name string) *db.App {
 		return nil
 	}
 	return &dbApp
+}
+
+func (svc *appsService) SetAppMetadata(id uint, metadata map[string]interface{}) error {
+	var metadataBytes []byte
+	metadataBytes, err := json.Marshal(metadata)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to serialize metadata")
+		return err
+	}
+
+	err = svc.db.Model(&db.App{}).Where("id", id).Update("metadata", datatypes.JSON(metadataBytes)).Error
+	if err != nil {
+		logger.Logger.WithError(err).WithField("metadata", metadata).Error("failed to update transaction metadata")
+		return err
+	}
+
+	return nil
 }

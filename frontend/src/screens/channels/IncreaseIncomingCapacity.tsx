@@ -1,20 +1,19 @@
 import { ChevronDownIcon, InfoIcon } from "lucide-react";
 import React, { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
-import ExternalLink from "src/components/ExternalLink";
-import Loading from "src/components/Loading";
-import { MempoolAlert } from "src/components/MempoolAlert";
 import { ChannelPeerNote } from "src/components/channels/ChannelPeerNote";
 import { ChannelPublicPrivateAlert } from "src/components/channels/ChannelPublicPrivateAlert";
 import { DuplicateChannelAlert } from "src/components/channels/DuplicateChannelAlert";
 import { SwapAlert } from "src/components/channels/SwapAlert";
-import {
-  Button,
-  ExternalLinkButton,
-  LinkButton,
-} from "src/components/ui/button";
+import ExternalLink from "src/components/ExternalLink";
+import Loading from "src/components/Loading";
+import { MempoolAlert } from "src/components/MempoolAlert";
+import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import {
@@ -30,7 +29,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
-import { useToast } from "src/components/ui/use-toast";
 import { useChannelPeerSuggestions } from "src/hooks/useChannelPeerSuggestions";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
@@ -43,6 +41,10 @@ import {
   NewChannelOrder,
   RecommendedChannelPeer,
 } from "src/types";
+
+import LightningNetworkDarkSVG from "public/images/illustrations/lightning-network-dark.svg";
+import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
+import { LSPTermsDialog } from "src/components/channels/LSPTermsDialog";
 
 function getPeerKey(peer: RecommendedChannelPeer) {
   return JSON.stringify(peer);
@@ -70,8 +72,6 @@ function NewChannelInternal({
     useChannelPeerSuggestions();
   const navigate = useNavigate();
 
-  const { toast } = useToast();
-
   const presetAmounts = [1_000_000, 2_000_000, 3_000_000];
 
   const [order, setOrder] = React.useState<Partial<LightningOrder>>({
@@ -90,20 +90,17 @@ function NewChannelInternal({
 
   React.useEffect(() => {
     if (channelPeerSuggestionsError) {
-      toast({
-        variant: "destructive",
-        title: "Failed to load channel suggestions",
-      });
+      toast.error("Failed to load channel suggestions");
       navigate("/channels/outgoing");
     }
-  }, [channelPeerSuggestionsError, navigate, toast]);
+  }, [channelPeerSuggestionsError, navigate]);
 
   const channelPeerSuggestions = React.useMemo(() => {
     return _channelPeerSuggestions
       ? [
           ..._channelPeerSuggestions.filter(
             (peer) =>
-              peer.paymentMethod === "lightning" && peer.lspType === "LSPS1"
+              peer.paymentMethod === "lightning" && peer.type === "LSPS1"
           ),
         ]
       : undefined;
@@ -143,13 +140,28 @@ function NewChannelInternal({
       ) {
         setOrder((current) => ({
           ...current,
-          lspType: selectedPeer.lspType,
-          lspUrl: selectedPeer.lspUrl,
+          lspType: selectedPeer.type,
+          lspIdentifier: selectedPeer.identifier,
           ...(!selectedPeer.publicChannelsAllowed && { isPublic: false }),
         }));
       }
     }
   }, [order.paymentMethod, selectedPeer]);
+
+  // find the best channel partner
+  const okPartners = channelPeerSuggestions?.filter(
+    (partner) =>
+      parseInt(order.amount || "0") >= partner.minimumChannelSize &&
+      parseInt(order.amount || "0") <= partner.maximumChannelSize &&
+      partner.network === network &&
+      partner.paymentMethod === "lightning" &&
+      partner.type === "LSPS1" &&
+      partner.pubkey &&
+      (partner.publicChannelsAllowed || !order.isPublic) &&
+      !channels.some((channel) => channel.remotePubkey === partner.pubkey)
+  );
+
+  const bestPartner = okPartners?.[0];
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -166,21 +178,8 @@ function NewChannelInternal({
           throw new Error("No amount set");
         }
 
-        // find the best channel partner
-        const okPartners = channelPeerSuggestions.filter(
-          (partner) =>
-            amount >= partner.minimumChannelSize &&
-            amount <= partner.maximumChannelSize &&
-            partner.network === network &&
-            partner.paymentMethod === "lightning" &&
-            partner.lspType === "LSPS1" &&
-            partner.pubkey &&
-            !channels.some((channel) => channel.remotePubkey === partner.pubkey)
-        );
-
-        const partner = okPartners[0];
-        if (!partner) {
-          toast({
+        if (!bestPartner) {
+          toast.error("No channel partner found", {
             description:
               "No ideal channel partner found. Please choose from the advanced options to continue",
           });
@@ -189,20 +188,19 @@ function NewChannelInternal({
         order.paymentMethod = "lightning";
         if (
           order.paymentMethod !== "lightning" ||
-          partner.paymentMethod !== "lightning"
+          bestPartner.paymentMethod !== "lightning"
         ) {
           throw new Error("Unexpected order or partner payment method");
         }
-        order.lspType = partner.lspType;
-        order.lspUrl = partner.lspUrl;
+        order.lspType = bestPartner.type;
+        order.lspIdentifier = bestPartner.identifier;
       }
 
       useChannelOrderStore.getState().setOrder(order as NewChannelOrder);
       navigate("/channels/order");
     } catch (error) {
-      toast({
-        variant: "destructive",
-        description: "Something went wrong: " + error,
+      toast.error("Something went wrong", {
+        description: "" + error,
       });
       console.error(error);
     }
@@ -211,6 +209,19 @@ function NewChannelInternal({
   if (!channelPeerSuggestions) {
     return <Loading />;
   }
+
+  const selectedPartner = showAdvanced ? selectedPeer : bestPartner;
+
+  const estimatedChannelPrice =
+    selectedPartner?.paymentMethod === "lightning"
+      ? order.amount === "1000000"
+        ? selectedPartner["feeTotalSat1m"]
+        : order.amount === "2000000"
+          ? selectedPartner["feeTotalSat2m"]
+          : order.amount === "3000000"
+            ? selectedPartner["feeTotalSat3m"]
+            : undefined
+      : undefined;
 
   return (
     <>
@@ -221,7 +232,7 @@ function NewChannelInternal({
           <div className="flex items-end">
             <Link
               to="/channels/outgoing"
-              className="underline break-words text-sm"
+              className="underline break-anywhere text-sm"
             >
               Open Channel with On-Chain
             </Link>
@@ -230,13 +241,10 @@ function NewChannelInternal({
       />
       <div className="md:max-w-md max-w-full flex flex-col gap-5 flex-1">
         <img
-          src="/images/illustrations/lightning-network-dark.svg"
+          src={LightningNetworkDarkSVG}
           className="w-full hidden dark:block"
         />
-        <img
-          src="/images/illustrations/lightning-network-light.svg"
-          className="w-full dark:hidden"
-        />
+        <img src={LightningNetworkLightSVG} className="w-full dark:hidden" />
         <p className="text-muted-foreground">
           Alby Hub works with selected service providers (LSPs) which provide
           the best network connectivity and liquidity to receive payments.{" "}
@@ -259,7 +267,7 @@ function NewChannelInternal({
                     <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                   </div>
                 </TooltipTrigger>
-                <TooltipContent className="w-[300px]">
+                <TooltipContent>
                   Configure the amount of receiving capacity you need. You will
                   only pay for the liquidity fee which will be shown in the next
                   step.
@@ -308,13 +316,38 @@ function NewChannelInternal({
                 </div>
               ))}
             </div>
+            {estimatedChannelPrice && (
+              <span className="text-muted-foreground text-xs">
+                {" "}
+                Estimated channel price:{" "}
+                <span className="font-semibold">
+                  {new Intl.NumberFormat().format(estimatedChannelPrice)} sats
+                </span>
+              </span>
+            )}
+            {selectedPartner?.paymentMethod === "lightning" && (
+              <div className="flex justify-between items-center">
+                <p className="text-sm">
+                  You will receive a channel from{" "}
+                  <span className="font-medium">{selectedPartner.name}</span>
+                  .{" "}
+                </p>
+                <LSPTermsDialog
+                  contactUrl={selectedPartner.contactUrl}
+                  description={selectedPartner.description}
+                  name={selectedPartner.name}
+                  terms={selectedPartner.terms}
+                  trigger={<p className="text-xs underline">View Terms</p>}
+                />
+              </div>
+            )}
           </div>
           {showAdvanced && (
             <>
               <div className="flex flex-col gap-3">
                 {selectedPeer && (
                   <div className="grid gap-1.5">
-                    <Label>Channel peer</Label>
+                    <Label>Choose your channel peer:</Label>
                     <Select
                       value={getPeerKey(selectedPeer)}
                       onValueChange={(value) =>
@@ -345,7 +378,7 @@ function NewChannelInternal({
                                   {peer.name !== "Custom" && (
                                     <img
                                       src={peer.image}
-                                      className="w-8 h-8 object-contain"
+                                      className="size-8 object-contain"
                                     />
                                   )}
                                   <div>
@@ -354,9 +387,9 @@ function NewChannelInternal({
                                       Min.{" "}
                                       {new Intl.NumberFormat().format(
                                         peer.minimumChannelSize
-                                      )}
+                                      )}{" "}
                                       sats
-                                      <span className="mr-10" />
+                                      <span className="mr-5" />
                                       Max.{" "}
                                       {new Intl.NumberFormat().format(
                                         peer.maximumChannelSize
@@ -415,6 +448,7 @@ function NewChannelInternal({
               </div>
             </>
           )}
+
           {!showAdvanced && (
             <Button
               type="button"
@@ -422,12 +456,12 @@ function NewChannelInternal({
               className="text-muted-foreground text-xs"
               onClick={() => setShowAdvanced((current) => !current)}
             >
-              <ChevronDownIcon className="w-4 h-4 mr-2" />
+              <ChevronDownIcon />
               Advanced Options
             </Button>
           )}
           <MempoolAlert />
-          <SwapAlert />
+          <SwapAlert swapType="out" />
           {channels?.some((channel) => channel.public !== !!order.isPublic) && (
             <ChannelPublicPrivateAlert />
           )}
@@ -438,6 +472,13 @@ function NewChannelInternal({
               name={selectedPeer?.name}
             />
           )}
+          <p className="text-xs text-muted-foreground flex items-center justify-center -mb-4">
+            The payment for the channel will be due immediately.
+          </p>
+          <p className="text-center text-xs text-muted-foreground">
+            By continuing, you consent the channel opens immediately and that
+            you lose the right to revoke once it is open.
+          </p>
           <Button size="lg">Next</Button>
         </form>
 

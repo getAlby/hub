@@ -1,5 +1,6 @@
 import { Invoice } from "@getalby/lightning-tools";
 import React, { useEffect } from "react";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
@@ -12,12 +13,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "src/components/ui/alert-dialog";
-import { useToast } from "src/components/ui/use-toast";
 import { PayInvoiceResponse } from "src/types";
 import { request } from "src/utils/request";
 
 export function Bitrefill() {
-  const { toast } = useToast();
   const [paymentDialogOpen, setPaymentDialogOpen] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [invoice, setInvoice] = React.useState<Invoice>();
@@ -71,13 +70,9 @@ export function Bitrefill() {
       setPaymentDialogOpen(false);
       setInvoice(undefined);
 
-      toast({
-        title: "Payment successful",
-      });
+      toast("Payment successful");
     } catch (e) {
-      toast({
-        variant: "destructive",
-        title: "Failed to send payment",
+      toast.error("Failed to send payment", {
         description: "" + e,
       });
       console.error(e);
@@ -126,7 +121,7 @@ export function Bitrefill() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction disabled={loading} onClick={confirmPayment}>
-              {loading && <Loading className="w-4 h-4 mr-2" />}
+              {loading && <Loading />}
               Pay now
             </AlertDialogAction>
           </AlertDialogFooter>

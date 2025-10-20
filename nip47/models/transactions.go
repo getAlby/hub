@@ -3,6 +3,7 @@ package models
 import (
 	"encoding/json"
 	"strings"
+	"time"
 
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/transactions"
@@ -24,6 +25,11 @@ func ToNip47Transaction(transaction *transactions.Transaction) *Transaction {
 		preimage = *transaction.Preimage
 	}
 
+	state := strings.ToLower(transaction.State)
+	if transaction.SettledAt == nil && transaction.ExpiresAt != nil && time.Now().After(*transaction.ExpiresAt) {
+		state = "expired"
+	}
+
 	var metadata map[string]interface{}
 	if transaction.Metadata != nil {
 		jsonErr := json.Unmarshal(transaction.Metadata, &metadata)
@@ -37,7 +43,7 @@ func ToNip47Transaction(transaction *transactions.Transaction) *Transaction {
 
 	return &Transaction{
 		Type:            transaction.Type,
-		State:           strings.ToLower(transaction.State),
+		State:           state,
 		Invoice:         transaction.PaymentRequest,
 		Description:     transaction.Description,
 		DescriptionHash: transaction.DescriptionHash,

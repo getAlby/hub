@@ -1,4 +1,5 @@
 import {
+  AlertTriangle,
   ExternalLinkIcon,
   EyeIcon,
   Link2Icon,
@@ -6,7 +7,7 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import MnemonicDialog from "src/components/mnemonic/MnemonicDialog";
@@ -26,11 +27,12 @@ import {
 } from "src/components/ui/alert-dialog";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
+import { Checkbox } from "src/components/ui/checkbox";
 
+import { toast } from "sonner";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
-import { useToast } from "src/components/ui/use-toast";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
@@ -39,7 +41,6 @@ import { InfoResponse, MnemonicResponse } from "src/types";
 import { request } from "src/utils/request";
 
 export default function Backup() {
-  const { toast } = useToast();
   const { data: info, hasMnemonic } = useInfo();
   const { data: me } = useAlbyMe();
   const [unlockPassword, setUnlockPassword] = useState("");
@@ -63,10 +64,8 @@ export default function Backup() {
       setDecryptedMnemonic(result?.mnemonic ?? "");
       setIsDialogOpen(true);
     } catch (error) {
-      toast({
-        title: "Incorrect password",
+      toast.error("Incorrect password", {
         description: "Failed to decrypt mnemonic.",
-        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -103,14 +102,18 @@ export default function Backup() {
             <p className="text-sm text-muted-foreground">
               Your recovery phrase is a group of 12 random words that back up
               your wallet on-chain balance. Using them is the only way to
-              recover access to your wallet on another machine or when you loose
+              recover access to your wallet on another machine or when you lose
               your unlock password.
             </p>
           </div>
-          <p className="text-sm text-destructive">
-            If you loose access to your Hub and do not have your recovery
-            phrase, you will loose access to your funds.
-          </p>
+          <Alert variant="destructive">
+            <AlertTriangle />
+            <AlertTitle>Important</AlertTitle>
+            <AlertDescription>
+              If you lose access to your Hub and do not have your recovery
+              phrase, you will lose access to your funds.
+            </AlertDescription>
+          </Alert>
           {info?.backendType === "CASHU" && <CashuMnemonicWarning />}
 
           <div>
@@ -129,13 +132,25 @@ export default function Backup() {
                   Enter your unlock password to view your recovery phrase.
                 </p>
               </div>
+              {!!unlockPassword && (
+                <div className="flex">
+                  <Checkbox id="private" required className="mt-0.5" />
+                  <Label
+                    htmlFor="private"
+                    className="ml-2 text-sm text-foreground"
+                  >
+                    I'll NEVER share my recovery phrase with anyone, including
+                    Alby support
+                  </Label>
+                </div>
+              )}
               <div className="flex justify-start">
                 <LoadingButton
                   loading={loading}
                   variant="secondary"
                   className="flex gap-2 justify-center"
                 >
-                  <EyeIcon className="w-4 h-4 mr-2" />
+                  <EyeIcon />
                   View Recovery Phrase
                 </LoadingButton>
               </div>
@@ -188,7 +203,7 @@ export default function Backup() {
                         {me?.subscription.plan_code && info.ldkVssEnabled ? (
                           <Badge variant={"positive"}>Active</Badge>
                         ) : (
-                          <Badge>Alby Cloud</Badge>
+                          <Badge className="shrink-0">Alby Cloud</Badge>
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground mb-4">
@@ -226,7 +241,7 @@ export default function Backup() {
                     className="flex gap-2 justify-center"
                     onClick={() => navigate("/alby/account")}
                   >
-                    <Link2Icon className="w-4 h-4 mr-2" />
+                    <Link2Icon />
                     Link Alby Account to Enable
                   </Button>
                 </div>
@@ -247,7 +262,7 @@ export default function Backup() {
                       className="underline inline-flex items-center text-sm"
                     >
                       manual backups guide
-                      <ExternalLinkIcon className="w-4 h-4 ml-1" />
+                      <ExternalLinkIcon className="size-4 ml-1" />
                     </ExternalLink>
                   </p>
                 </div>
@@ -271,10 +286,19 @@ type Props = {
 };
 
 function DynamicChannelsBackupDialog({ info }: Props) {
+  const [open, setOpen] = useState(false);
+  const [searchParams] = useSearchParams();
+
+  React.useEffect(() => {
+    if (searchParams.get("dynamic") === "true") {
+      setOpen(true);
+    }
+  }, [searchParams]);
+
   const { isMigratingStorage, migrateLDKStorage } = useMigrateLDKStorage();
 
   return (
-    <AlertDialog>
+    <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
         <LoadingButton
           variant="secondary"
@@ -291,8 +315,16 @@ function DynamicChannelsBackupDialog({ info }: Props) {
           <AlertDialogDescription>
             <div>
               <p>
-                As part of enabling VSS your hub will be shut down, and you will
-                need to enter your unlock password to start it again.
+                By enabling dynamic channel backups, your channels state is
+                dynamically updated and stored end-to-end encrypted by Alby's
+                Versioned Storage Service. This allows you to recover your
+                spending balance with your recovery phrase alone, without having
+                to close your channels.
+              </p>
+              <p className="mt-2">
+                As part of enabling dynamic channels backup your hub will be
+                shut down, and you will need to enter your unlock password to
+                start it again.
               </p>
               <p className="mt-2">
                 Please ensure you have no pending payments or channel closures
@@ -344,8 +376,8 @@ function CashuMnemonicWarning() {
   }
 
   return (
-    <Alert>
-      <TriangleAlertIcon className="h-4 w-4" />
+    <Alert variant="warning">
+      <TriangleAlertIcon />
       <AlertTitle>
         Your Cashu wallet uses a different recovery phrase
       </AlertTitle>

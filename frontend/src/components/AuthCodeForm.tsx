@@ -5,9 +5,8 @@ import Container from "src/components/Container";
 import PasswordInput from "src/components/password/PasswordInput";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
-import { useToast } from "src/components/ui/use-toast";
 import { UnlinkAlbyAccount } from "src/components/UnlinkAlbyAccount";
 
 import { useInfo } from "src/hooks/useInfo";
@@ -22,7 +21,6 @@ type AuthCodeFormProps = {
 function AuthCodeForm({ url }: AuthCodeFormProps) {
   const [authCode, setAuthCode] = useState("");
   const navigate = useNavigate();
-  const { toast } = useToast();
 
   const { data: info, mutate: refetchInfo } = useInfo();
 
@@ -53,7 +51,7 @@ function AuthCodeForm({ url }: AuthCodeFormProps) {
       await refetchInfo();
       navigate("/");
     } catch (error) {
-      handleRequestError(toast, "Failed to connect", error);
+      handleRequestError("Failed to connect", error);
     }
     setLoading(false);
   }
@@ -97,7 +95,7 @@ function AuthCodeForm({ url }: AuthCodeFormProps) {
                   variant="outline"
                   onClick={() => url && openLink(url)}
                 >
-                  <RefreshCwIcon className="w-4 h-4" />
+                  <RefreshCwIcon className="size-4" />
                 </Button>
               </div>
             </>

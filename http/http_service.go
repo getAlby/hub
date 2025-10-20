@@ -2,9 +2,11 @@ package http
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -34,6 +36,7 @@ type jwtCustomClaims struct {
 	// we can add extra claims here
 	// Name  string `json:"name"`
 	// Admin bool   `json:"admin"`
+	Permission string `json:"permission,omitempty"` // "full" or "readonly"
 	jwt.RegisteredClaims
 }
 
@@ -48,8 +51,8 @@ type HttpService struct {
 
 func NewHttpService(svc service.Service, eventPublisher events.EventPublisher) *HttpService {
 	return &HttpService{
-		api:            api.NewAPI(svc, svc.GetDB(), svc.GetConfig(), svc.GetKeys(), svc.GetAlbyOAuthSvc(), svc.GetEventPublisher()),
-		albyHttpSvc:    NewAlbyHttpService(svc, svc.GetAlbyOAuthSvc(), svc.GetConfig().GetEnv()),
+		api:            api.NewAPI(svc, svc.GetDB(), svc.GetConfig(), svc.GetKeys(), svc.GetAlbySvc(), svc.GetAlbyOAuthSvc(), eventPublisher),
+		albyHttpSvc:    NewAlbyHttpService(svc, svc.GetAlbySvc(), svc.GetAlbyOAuthSvc(), svc.GetConfig().GetEnv()),
 		cfg:            svc.GetConfig(),
 		eventPublisher: eventPublisher,
 		db:             svc.GetDB(),
@@ -110,63 +113,87 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 		NewClaimsFunc: func(c echo.Context) jwt.Claims {
 			return new(jwtCustomClaims)
 		},
-		SigningKey: []byte(httpSvc.cfg.GetJWTSecret()),
+		// use a custom key func as the JWT secret will change if the user changes their unlock password
+		KeyFunc: func(token *jwt.Token) (interface{}, error) {
+			return []byte(httpSvc.cfg.GetJWTSecret()), nil
+		},
 	}
-	restrictedApiGroup := e.Group("/api")
-	restrictedApiGroup.Use(echojwt.WithConfig(jwtConfig))
+	// Read-only API group - accessible to both full and readonly tokens
+	readOnlyApiGroup := e.Group("/api")
+	readOnlyApiGroup.Use(echojwt.WithConfig(jwtConfig))
 
-	restrictedApiGroup.PATCH("/unlock-password", httpSvc.changeUnlockPasswordHandler)
-	restrictedApiGroup.PATCH("/auto-unlock", httpSvc.autoUnlockHandler)
-	restrictedApiGroup.PATCH("/settings", httpSvc.updateSettingsHandler)
-	restrictedApiGroup.GET("/apps", httpSvc.appsListHandler)
-	restrictedApiGroup.GET("/apps/:pubkey", httpSvc.appsShowHandler)
-	restrictedApiGroup.PATCH("/apps/:pubkey", httpSvc.appsUpdateHandler)
-	restrictedApiGroup.DELETE("/apps/:pubkey", httpSvc.appsDeleteHandler)
-	restrictedApiGroup.POST("/apps/:pubkey/topup", httpSvc.isolatedAppTopupHandler)
-	restrictedApiGroup.POST("/apps", httpSvc.appsCreateHandler)
-	restrictedApiGroup.POST("/mnemonic", httpSvc.mnemonicHandler)
-	restrictedApiGroup.PATCH("/backup-reminder", httpSvc.backupReminderHandler)
-	restrictedApiGroup.GET("/channels", httpSvc.channelsListHandler)
-	restrictedApiGroup.POST("/channels", httpSvc.openChannelHandler)
-	restrictedApiGroup.GET("/channels/suggestions", httpSvc.channelPeerSuggestionsHandler)
-	restrictedApiGroup.POST("/lsp-orders", httpSvc.newInstantChannelInvoiceHandler)
-	restrictedApiGroup.GET("/node/connection-info", httpSvc.nodeConnectionInfoHandler)
-	restrictedApiGroup.GET("/node/status", httpSvc.nodeStatusHandler)
-	restrictedApiGroup.GET("/node/network-graph", httpSvc.nodeNetworkGraphHandler)
-	restrictedApiGroup.POST("/node/migrate-storage", httpSvc.migrateNodeStorageHandler)
-	restrictedApiGroup.GET("/node/transactions", httpSvc.listOnchainTransactionsHandler)
-	restrictedApiGroup.GET("/peers", httpSvc.listPeers)
-	restrictedApiGroup.POST("/peers", httpSvc.connectPeerHandler)
-	restrictedApiGroup.DELETE("/peers/:peerId", httpSvc.disconnectPeerHandler)
-	restrictedApiGroup.DELETE("/peers/:peerId/channels/:channelId", httpSvc.closeChannelHandler)
-	restrictedApiGroup.PATCH("/peers/:peerId/channels/:channelId", httpSvc.updateChannelHandler)
-	restrictedApiGroup.GET("/wallet/address", httpSvc.onchainAddressHandler)
-	restrictedApiGroup.POST("/wallet/new-address", httpSvc.newOnchainAddressHandler)
-	restrictedApiGroup.POST("/wallet/redeem-onchain-funds", httpSvc.redeemOnchainFundsHandler)
-	restrictedApiGroup.POST("/wallet/sign-message", httpSvc.signMessageHandler)
-	restrictedApiGroup.POST("/wallet/sync", httpSvc.walletSyncHandler)
-	restrictedApiGroup.GET("/wallet/capabilities", httpSvc.capabilitiesHandler)
-	restrictedApiGroup.POST("/payments/:invoice", httpSvc.sendPaymentHandler)
-	restrictedApiGroup.POST("/invoices", httpSvc.makeInvoiceHandler)
-	restrictedApiGroup.POST("/offers", httpSvc.makeOfferHandler)
-	restrictedApiGroup.GET("/transactions", httpSvc.listTransactionsHandler)
-	restrictedApiGroup.GET("/transactions/:paymentHash", httpSvc.lookupTransactionHandler)
-	restrictedApiGroup.GET("/balances", httpSvc.balancesHandler)
-	restrictedApiGroup.POST("/reset-router", httpSvc.resetRouterHandler)
-	restrictedApiGroup.POST("/stop", httpSvc.stopHandler)
-	restrictedApiGroup.GET("/mempool", httpSvc.mempoolApiHandler)
-	restrictedApiGroup.POST("/send-payment-probes", httpSvc.sendPaymentProbesHandler)
-	restrictedApiGroup.POST("/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler)
-	restrictedApiGroup.GET("/log/:type", httpSvc.getLogOutputHandler)
-	restrictedApiGroup.GET("/health", httpSvc.healthHandler)
-	restrictedApiGroup.GET("/commands", httpSvc.getCustomNodeCommandsHandler)
-	restrictedApiGroup.POST("/command", httpSvc.execCustomNodeCommandHandler)
-	restrictedApiGroup.GET("/settings/swaps", httpSvc.getAutoSwapsConfigHandler)
-	restrictedApiGroup.POST("/settings/swaps", httpSvc.enableAutoSwapsHandler)
-	restrictedApiGroup.DELETE("/settings/swaps", httpSvc.disableAutoSwapsHandler)
-	restrictedApiGroup.POST("/node/alias", httpSvc.setNodeAliasHandler)
+	readOnlyApiGroup.GET("/apps", httpSvc.appsListHandler)
+	readOnlyApiGroup.GET("/apps/:pubkey", httpSvc.appsShowByPubkeyHandler)
+	readOnlyApiGroup.GET("/v2/apps/:id", httpSvc.appsShowHandler)
+	readOnlyApiGroup.GET("/channels", httpSvc.channelsListHandler)
+	readOnlyApiGroup.GET("/channels/suggestions", httpSvc.channelPeerSuggestionsHandler)
+	readOnlyApiGroup.GET("/channel-offer", httpSvc.channelOfferHandler)
+	readOnlyApiGroup.GET("/node/connection-info", httpSvc.nodeConnectionInfoHandler)
+	readOnlyApiGroup.GET("/node/status", httpSvc.nodeStatusHandler)
+	readOnlyApiGroup.GET("/node/network-graph", httpSvc.nodeNetworkGraphHandler)
+	readOnlyApiGroup.GET("/node/transactions", httpSvc.listOnchainTransactionsHandler)
+	readOnlyApiGroup.GET("/peers", httpSvc.listPeers)
+	readOnlyApiGroup.GET("/wallet/address", httpSvc.onchainAddressHandler)
+	readOnlyApiGroup.GET("/wallet/capabilities", httpSvc.capabilitiesHandler)
+	readOnlyApiGroup.GET("/transactions", httpSvc.listTransactionsHandler)
+	readOnlyApiGroup.GET("/transactions/:paymentHash", httpSvc.lookupTransactionHandler)
+	readOnlyApiGroup.GET("/balances", httpSvc.balancesHandler)
+	readOnlyApiGroup.GET("/mempool", httpSvc.mempoolApiHandler)
+	readOnlyApiGroup.GET("/log/:type", httpSvc.getLogOutputHandler)
+	readOnlyApiGroup.GET("/health", httpSvc.healthHandler)
+	readOnlyApiGroup.GET("/commands", httpSvc.getCustomNodeCommandsHandler)
+	readOnlyApiGroup.GET("/swaps", httpSvc.listSwapsHandler)
+	readOnlyApiGroup.GET("/swaps/:swapId", httpSvc.lookupSwapHandler)
+	readOnlyApiGroup.GET("/swaps/out/info", httpSvc.getSwapOutInfoHandler)
+	readOnlyApiGroup.GET("/swaps/in/info", httpSvc.getSwapInInfoHandler)
+	readOnlyApiGroup.GET("/swaps/mnemonic", httpSvc.swapMnemonicHandler)
+	readOnlyApiGroup.GET("/autoswap", httpSvc.getAutoSwapConfigHandler)
+	readOnlyApiGroup.GET("/forwards", httpSvc.forwardsHandler)
 
-	httpSvc.albyHttpSvc.RegisterSharedRoutes(restrictedApiGroup, e)
+	// Full access API group - requires a token with full permissions
+	fullAccessApiGroup := e.Group("/api")
+	fullAccessApiGroup.Use(echojwt.WithConfig(jwtConfig))
+	fullAccessApiGroup.Use(httpSvc.requireFullAccess)
+
+	fullAccessApiGroup.PATCH("/unlock-password", httpSvc.changeUnlockPasswordHandler)
+	fullAccessApiGroup.PATCH("/auto-unlock", httpSvc.autoUnlockHandler)
+	fullAccessApiGroup.PATCH("/settings", httpSvc.updateSettingsHandler)
+	fullAccessApiGroup.PATCH("/apps/:pubkey", httpSvc.appsUpdateHandler)
+	fullAccessApiGroup.DELETE("/apps/:pubkey", httpSvc.appsDeleteHandler)
+	fullAccessApiGroup.POST("/transfers", httpSvc.transfersHandler)
+	fullAccessApiGroup.POST("/apps", httpSvc.appsCreateHandler)
+	fullAccessApiGroup.POST("/lightning-addresses", httpSvc.lightningAddressesCreateHandler)
+	fullAccessApiGroup.DELETE("/lightning-addresses/:appId", httpSvc.lightningAddressesDeleteHandler)
+	fullAccessApiGroup.POST("/mnemonic", httpSvc.mnemonicHandler)
+	fullAccessApiGroup.PATCH("/backup-reminder", httpSvc.backupReminderHandler)
+	fullAccessApiGroup.POST("/channels", httpSvc.openChannelHandler)
+	fullAccessApiGroup.POST("/channels/rebalance", httpSvc.rebalanceChannelHandler)
+	fullAccessApiGroup.POST("/lsp-orders", httpSvc.newInstantChannelInvoiceHandler)
+	fullAccessApiGroup.POST("/node/migrate-storage", httpSvc.migrateNodeStorageHandler)
+	fullAccessApiGroup.POST("/peers", httpSvc.connectPeerHandler)
+	fullAccessApiGroup.DELETE("/peers/:peerId", httpSvc.disconnectPeerHandler)
+	fullAccessApiGroup.DELETE("/peers/:peerId/channels/:channelId", httpSvc.closeChannelHandler)
+	fullAccessApiGroup.PATCH("/peers/:peerId/channels/:channelId", httpSvc.updateChannelHandler)
+	fullAccessApiGroup.POST("/wallet/new-address", httpSvc.newOnchainAddressHandler)
+	fullAccessApiGroup.POST("/wallet/redeem-onchain-funds", httpSvc.redeemOnchainFundsHandler)
+	fullAccessApiGroup.POST("/wallet/sign-message", httpSvc.signMessageHandler)
+	fullAccessApiGroup.POST("/wallet/sync", httpSvc.walletSyncHandler)
+	fullAccessApiGroup.POST("/payments/:invoice", httpSvc.sendPaymentHandler)
+	fullAccessApiGroup.POST("/invoices", httpSvc.makeInvoiceHandler)
+	fullAccessApiGroup.POST("/offers", httpSvc.makeOfferHandler)
+	fullAccessApiGroup.POST("/reset-router", httpSvc.resetRouterHandler)
+	fullAccessApiGroup.POST("/stop", httpSvc.stopHandler)
+	fullAccessApiGroup.POST("/send-payment-probes", httpSvc.sendPaymentProbesHandler)
+	fullAccessApiGroup.POST("/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler)
+	fullAccessApiGroup.POST("/command", httpSvc.execCustomNodeCommandHandler)
+	fullAccessApiGroup.POST("/swaps/out", httpSvc.initiateSwapOutHandler)
+	fullAccessApiGroup.POST("/swaps/in", httpSvc.initiateSwapInHandler)
+	fullAccessApiGroup.POST("/swaps/refund", httpSvc.refundSwapHandler)
+	fullAccessApiGroup.POST("/autoswap", httpSvc.enableAutoSwapOutHandler)
+	fullAccessApiGroup.DELETE("/autoswap", httpSvc.disableAutoSwapOutHandler)
+	fullAccessApiGroup.POST("/node/alias", httpSvc.setNodeAliasHandler)
+
+	httpSvc.albyHttpSvc.RegisterSharedRoutes(readOnlyApiGroup, fullAccessApiGroup, e)
 }
 
 func (httpSvc *HttpService) infoHandler(c echo.Context) error {
@@ -203,7 +230,7 @@ func (httpSvc *HttpService) eventHandler(c echo.Context) error {
 		})
 	}
 
-	httpSvc.api.SendEvent(sendEventRequest.Event)
+	httpSvc.api.SendEvent(sendEventRequest.Event, sendEventRequest.Properties)
 
 	return c.NoContent(http.StatusOK)
 }
@@ -253,7 +280,13 @@ func (httpSvc *HttpService) startHandler(c echo.Context) error {
 		})
 	}
 
-	token, err := httpSvc.createJWT(nil)
+	if !httpSvc.cfg.CheckUnlockPassword(startRequest.UnlockPassword) {
+		return c.JSON(http.StatusUnauthorized, ErrorResponse{
+			Message: "Invalid password",
+		})
+	}
+
+	token, err := httpSvc.createJWT(nil, "full")
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -282,7 +315,19 @@ func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 		})
 	}
 
-	token, err := httpSvc.createJWT(unlockRequest.TokenExpiryDays)
+	if unlockRequest.Permission == "" {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "Permission field is required",
+		})
+	}
+
+	if !slices.Contains([]string{"full", "readonly"}, unlockRequest.Permission) {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "Permission field is unknown",
+		})
+	}
+
+	token, err := httpSvc.createJWT(unlockRequest.TokenExpiryDays, unlockRequest.Permission)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -297,6 +342,22 @@ func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, &authTokenResponse{
 		Token: token,
 	})
+}
+
+func (httpSvc *HttpService) requireFullAccess(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		token := c.Get("user").(*jwt.Token)
+		claims := token.Claims.(*jwtCustomClaims)
+
+		// Allow if no permission specified (backward compatibility) or if full access
+		if claims.Permission == "" || claims.Permission == "full" {
+			return next(c)
+		}
+
+		return c.JSON(http.StatusForbidden, ErrorResponse{
+			Message: "This operation requires full access permissions",
+		})
+	}
 }
 
 func (httpSvc *HttpService) changeUnlockPasswordHandler(c echo.Context) error {
@@ -359,7 +420,11 @@ func (httpSvc *HttpService) autoUnlockHandler(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (httpSvc *HttpService) createJWT(tokenExpiryDays *uint64) (string, error) {
+func (httpSvc *HttpService) createJWT(tokenExpiryDays *uint64, permission string) (string, error) {
+	if !slices.Contains([]string{"full", "readonly"}, permission) {
+		return "", errors.New("invalid token permission")
+	}
+
 	expiryDays := uint64(30)
 	if tokenExpiryDays != nil {
 		expiryDays = *tokenExpiryDays
@@ -367,7 +432,8 @@ func (httpSvc *HttpService) createJWT(tokenExpiryDays *uint64) (string, error) {
 
 	// Set custom claims
 	claims := &jwtCustomClaims{
-		jwt.RegisteredClaims{
+		Permission: permission,
+		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * time.Duration(expiryDays))),
 		},
 	}
@@ -404,6 +470,20 @@ func (httpSvc *HttpService) channelPeerSuggestionsHandler(c echo.Context) error 
 	ctx := c.Request().Context()
 
 	suggestions, err := httpSvc.api.GetChannelPeerSuggestions(ctx)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, suggestions)
+}
+
+func (httpSvc *HttpService) channelOfferHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	suggestions, err := httpSvc.api.GetLSPChannelOffer(ctx)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -664,7 +744,7 @@ func (httpSvc *HttpService) mempoolApiHandler(c echo.Context) error {
 		})
 	}
 
-	response, err := httpSvc.api.RequestMempoolApi(endpoint)
+	response, err := httpSvc.api.RequestMempoolApi(c.Request().Context(), endpoint)
 	if err != nil {
 		logger.Logger.WithField("endpoint", endpoint).WithError(err).Error("Failed to request mempool API")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -738,6 +818,27 @@ func (httpSvc *HttpService) openChannelHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, openChannelResponse)
+}
+
+func (httpSvc *HttpService) rebalanceChannelHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	var rebalanceChannelRequest api.RebalanceChannelRequest
+	if err := c.Bind(&rebalanceChannelRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	rebalanceChannelResponse, err := httpSvc.api.RebalanceChannel(ctx, &rebalanceChannelRequest)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to rebalance channel: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, rebalanceChannelResponse)
 }
 
 func (httpSvc *HttpService) disconnectPeerHandler(c echo.Context) error {
@@ -883,8 +984,36 @@ func (httpSvc *HttpService) signMessageHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) appsListHandler(c echo.Context) error {
+	limit := uint64(0)
+	offset := uint64(0)
 
-	apps, err := httpSvc.api.ListApps()
+	if limitParam := c.QueryParam("limit"); limitParam != "" {
+		if parsedLimit, err := strconv.ParseUint(limitParam, 10, 64); err == nil {
+			limit = parsedLimit
+		}
+	}
+
+	if offsetParam := c.QueryParam("offset"); offsetParam != "" {
+		if parsedOffset, err := strconv.ParseUint(offsetParam, 10, 64); err == nil {
+			offset = parsedOffset
+		}
+	}
+
+	filtersJSON := c.QueryParam("filters")
+	var filters api.ListAppsFilters
+	if filtersJSON != "" {
+		err := json.Unmarshal([]byte(filtersJSON), &filters)
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"filters": filtersJSON,
+			}).Error("Failed to deserialize app filters")
+			return err
+		}
+	}
+
+	orderBy := c.QueryParam("order_by")
+
+	apps, err := httpSvc.api.ListApps(limit, offset, filters, orderBy)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -895,10 +1024,36 @@ func (httpSvc *HttpService) appsListHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, apps)
 }
 
-func (httpSvc *HttpService) appsShowHandler(c echo.Context) error {
-
-	// TODO: move this to DB service
+func (httpSvc *HttpService) appsShowByPubkeyHandler(c echo.Context) error {
 	dbApp := httpSvc.appsSvc.GetAppByPubkey(c.Param("pubkey"))
+
+	if dbApp == nil {
+		return c.JSON(http.StatusNotFound, ErrorResponse{
+			Message: "App not found",
+		})
+	}
+
+	response := httpSvc.api.GetApp(dbApp)
+
+	return c.JSON(http.StatusOK, response)
+}
+
+func (httpSvc *HttpService) appsShowHandler(c echo.Context) error {
+	appIdStr := c.Param("id")
+	if appIdStr == "" {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "App ID is required",
+		})
+	}
+
+	appId, err := strconv.ParseUint(appIdStr, 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "Invalid App ID",
+		})
+	}
+
+	dbApp := httpSvc.appsSvc.GetAppById(uint(appId))
 
 	if dbApp == nil {
 		return c.JSON(http.StatusNotFound, ErrorResponse{
@@ -939,28 +1094,20 @@ func (httpSvc *HttpService) appsUpdateHandler(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (httpSvc *HttpService) isolatedAppTopupHandler(c echo.Context) error {
-	var requestData api.TopupIsolatedAppRequest
+func (httpSvc *HttpService) transfersHandler(c echo.Context) error {
+	var requestData api.TransferRequest
 	if err := c.Bind(&requestData); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
 
-	dbApp := httpSvc.appsSvc.GetAppByPubkey(c.Param("pubkey"))
-
-	if dbApp == nil {
-		return c.JSON(http.StatusNotFound, ErrorResponse{
-			Message: "App not found",
-		})
-	}
-
-	err := httpSvc.api.TopupIsolatedApp(c.Request().Context(), dbApp, requestData.AmountSat*1000)
+	err := httpSvc.api.Transfer(c.Request().Context(), requestData.FromAppId, requestData.ToAppId, requestData.AmountSat*1000)
 
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to topup sub-wallet")
+		logger.Logger.WithError(err).Error("Failed to transfer funds")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to topup sub-wallet: %v", err),
+			Message: fmt.Sprintf("Failed to transfer funds: %v", err),
 		})
 	}
 
@@ -1001,6 +1148,52 @@ func (httpSvc *HttpService) appsCreateHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, responseBody)
+}
+
+func (httpSvc *HttpService) lightningAddressesCreateHandler(c echo.Context) error {
+	var requestData api.CreateLightningAddressRequest
+	if err := c.Bind(&requestData); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.api.CreateLightningAddress(c.Request().Context(), &requestData)
+
+	if err != nil {
+		logger.Logger.WithField("request", requestData).WithError(err).Error("Failed to create lightning address")
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) lightningAddressesDeleteHandler(c echo.Context) error {
+	appIdStr := c.Param("appId")
+	if appIdStr == "" {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "App ID is required",
+		})
+	}
+
+	appId, err := strconv.ParseUint(appIdStr, 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "Invalid App ID",
+		})
+	}
+
+	err = httpSvc.api.DeleteLightningAddress(c.Request().Context(), uint(appId))
+	if err != nil {
+		logger.Logger.WithField("appId", appId).WithError(err).Error("Failed to delete lightning address")
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (httpSvc *HttpService) setupHandler(c echo.Context) error {
@@ -1112,10 +1305,7 @@ func (httpSvc *HttpService) execCustomNodeCommandHandler(c echo.Context) error {
 }
 
 func (httpSvc *HttpService) logoutHandler(c echo.Context) error {
-	redirectUrl := httpSvc.cfg.GetEnv().FrontendUrl
-	if redirectUrl == "" {
-		redirectUrl = httpSvc.cfg.GetEnv().BaseUrl
-	}
+	redirectUrl := httpSvc.cfg.GetEnv().GetBaseFrontendUrl()
 	if redirectUrl == "" {
 		redirectUrl = "/"
 	}
@@ -1156,7 +1346,7 @@ func (httpSvc *HttpService) restoreBackupHandler(c echo.Context) error {
 		return err
 	}
 	if info.SetupCompleted {
-		return errors.New("Setup already completed")
+		return errors.New("setup already completed")
 	}
 
 	password := c.FormValue("unlockPassword")
@@ -1197,26 +1387,130 @@ func (httpSvc *HttpService) healthHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, healthResponse)
 }
 
-func (httpSvc *HttpService) getAutoSwapsConfigHandler(c echo.Context) error {
-	getAutoSwapsConfigResponse, err := httpSvc.api.GetAutoSwapsConfig()
+func (httpSvc *HttpService) listSwapsHandler(c echo.Context) error {
+	swaps, err := httpSvc.api.ListSwaps()
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, swaps)
+}
+
+func (httpSvc *HttpService) lookupSwapHandler(c echo.Context) error {
+	swap, err := httpSvc.api.LookupSwap(c.Param("swapId"))
+	if err != nil {
+		return c.JSON(http.StatusNotFound, ErrorResponse{
+			Message: "App not found",
+		})
+	}
+
+	return c.JSON(http.StatusOK, swap)
+}
+
+func (httpSvc *HttpService) getSwapOutInfoHandler(c echo.Context) error {
+	swapOutFeesResponse, err := httpSvc.api.GetSwapOutInfo()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get swap out info: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, swapOutFeesResponse)
+}
+
+func (httpSvc *HttpService) getSwapInInfoHandler(c echo.Context) error {
+	swapOutFeesResponse, err := httpSvc.api.GetSwapInInfo()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get swap in info: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, swapOutFeesResponse)
+}
+
+func (httpSvc *HttpService) initiateSwapOutHandler(c echo.Context) error {
+	var initiateSwapOutRequest api.InitiateSwapRequest
+	if err := c.Bind(&initiateSwapOutRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	swapOutResponse, err := httpSvc.api.InitiateSwapOut(c.Request().Context(), &initiateSwapOutRequest)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to initiate swap out: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, swapOutResponse)
+}
+
+func (httpSvc *HttpService) initiateSwapInHandler(c echo.Context) error {
+	var initiateSwapInRequest api.InitiateSwapRequest
+	if err := c.Bind(&initiateSwapInRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	txId, err := httpSvc.api.InitiateSwapIn(c.Request().Context(), &initiateSwapInRequest)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to initiate swap in: %v", err),
+		})
+	}
+
+	return c.JSON(http.StatusOK, txId)
+}
+
+func (httpSvc *HttpService) refundSwapHandler(c echo.Context) error {
+	var refundSwapInRequest api.RefundSwapRequest
+	if err := c.Bind(&refundSwapInRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	err := httpSvc.api.RefundSwap(&refundSwapInRequest)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) swapMnemonicHandler(c echo.Context) error {
+	mnemonic := httpSvc.api.GetSwapMnemonic()
+	return c.JSON(http.StatusOK, mnemonic)
+}
+
+func (httpSvc *HttpService) getAutoSwapConfigHandler(c echo.Context) error {
+	getAutoSwapConfigResponse, err := httpSvc.api.GetAutoSwapConfig()
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to get swap settings: %v", err),
 		})
 	}
 
-	return c.JSON(http.StatusOK, getAutoSwapsConfigResponse)
+	return c.JSON(http.StatusOK, getAutoSwapConfigResponse)
 }
 
-func (httpSvc *HttpService) enableAutoSwapsHandler(c echo.Context) error {
-	var enableAutoSwapsRequest api.EnableAutoSwapsRequest
-	if err := c.Bind(&enableAutoSwapsRequest); err != nil {
+func (httpSvc *HttpService) enableAutoSwapOutHandler(c echo.Context) error {
+	var enableAutoSwapRequest api.EnableAutoSwapRequest
+	if err := c.Bind(&enableAutoSwapRequest); err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
 
-	err := httpSvc.api.EnableAutoSwaps(c.Request().Context(), &enableAutoSwapsRequest)
+	err := httpSvc.api.EnableAutoSwapOut(c.Request().Context(), &enableAutoSwapRequest)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to save swap settings: %v", err),
@@ -1226,8 +1520,8 @@ func (httpSvc *HttpService) enableAutoSwapsHandler(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func (httpSvc *HttpService) disableAutoSwapsHandler(c echo.Context) error {
-	err := httpSvc.api.DisableAutoSwaps()
+func (httpSvc *HttpService) disableAutoSwapOutHandler(c echo.Context) error {
+	err := httpSvc.api.DisableAutoSwap()
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -1254,4 +1548,15 @@ func (httpSvc *HttpService) setNodeAliasHandler(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (httpSvc *HttpService) forwardsHandler(c echo.Context) error {
+	forwards, err := httpSvc.api.GetForwards()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get forwards: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, forwards)
 }

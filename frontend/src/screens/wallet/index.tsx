@@ -1,24 +1,32 @@
+import dayjs from "dayjs";
 import {
   AlertTriangleIcon,
   ArrowDownIcon,
+  ArrowDownUpIcon,
   ArrowUpIcon,
   CreditCardIcon,
+  ExternalLinkIcon,
+  LightbulbIcon,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import TransactionsList from "src/components/TransactionsList";
+import { TransactionsListMenu } from "src/components/TransactionsListMenu";
 import {
   Alert,
   AlertDescription,
   AlertTitle,
 } from "src/components/ui/alert.tsx";
 import { Button } from "src/components/ui/button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
+import { useOnchainTransactions } from "src/hooks/useOnchainTransactions";
 
 function Wallet() {
   const { data: info, hasChannelManagement } = useInfo();
@@ -31,7 +39,30 @@ function Wallet() {
 
   return (
     <>
-      <AppHeader title="Wallet" description="" />
+      <AppHeader
+        title="Wallet"
+        description=""
+        contentRight={
+          <>
+            <LinkButton
+              to="/wallet/receive"
+              size="lg"
+              className="hidden xl:inline-flex !px-12"
+            >
+              <ArrowDownIcon />
+              Receive
+            </LinkButton>
+            <LinkButton
+              to="/wallet/send"
+              size="lg"
+              className="hidden xl:inline-flex !px-12"
+            >
+              <ArrowUpIcon />
+              Send
+            </LinkButton>
+          </>
+        }
+      />
       {hasChannelManagement &&
         !!channels?.length &&
         channels?.every(
@@ -52,23 +83,15 @@ function Wallet() {
         )}
       {hasChannelManagement &&
         !!channels?.length &&
-        !balances.lightning.totalReceivable && (
-          <Alert>
-            <AlertTriangleIcon className="h-4 w-4" />
-            <AlertTitle>Low receiving capacity</AlertTitle>
-            <AlertDescription>
-              You won't be able to receive payments until you{" "}
-              <Link className="underline" to="/channels/incoming">
-                increase your receiving capacity.
-              </Link>
-            </AlertDescription>
-          </Alert>
+        balances.lightning.totalReceivable <
+          balances.lightning.totalSpendable * 0.1 && (
+          <LowReceivingCapacityAlert />
         )}
       {hasChannelManagement && !channels?.length && (
         <Alert>
           <AlertTriangleIcon className="h-4 w-4" />
           <AlertTitle>Open Your First Channel</AlertTitle>
-          <AlertDescription>
+          <AlertDescription className="inline">
             You won't be able to receive or send payments until you{" "}
             <Link className="underline" to="/channels/first">
               open your first channel
@@ -77,8 +100,8 @@ function Wallet() {
           </AlertDescription>
         </Alert>
       )}
-      <div className="flex flex-col xl:flex-row justify-between xl:items-center gap-5">
-        <div className="flex flex-col gap-1 text-center xl:text-left">
+      <div className="flex flex-col xl:flex-row justify-between xl:items-start gap-3">
+        <div className="flex flex-col gap-1 p-6 xl:p-0 text-center xl:text-left">
           <div className="text-5xl font-medium balance sensitive slashed-zero">
             {new Intl.NumberFormat().format(
               Math.floor(balances.lightning.totalSpendable / 1000)
@@ -90,34 +113,68 @@ function Wallet() {
             amount={balances.lightning.totalSpendable / 1000}
           />
         </div>
-        <div className="grid grid-cols-2 items-center gap-4 sm:grid-cols-3">
-          <ExternalLink
-            to="https://www.getalby.com/topup"
-            className="col-span-2 sm:col-span-1"
-          >
-            <Button size="lg" className="w-full" variant="secondary">
-              <CreditCardIcon className="h-4 w-4 shrink-0 mr-2" />
+        <div className="grid grid-cols-2 items-center gap-3 xl:hidden">
+          <LinkButton to="/wallet/receive" size="lg">
+            Receive
+          </LinkButton>
+          <LinkButton to="/wallet/send" size="lg">
+            Send
+          </LinkButton>
+        </div>
+        <div className="flex items-center gap-3">
+          <ExternalLink to="https://www.getalby.com/topup">
+            <Button className="w-full" variant="secondary">
+              <CreditCardIcon />
               Buy Bitcoin
             </Button>
           </ExternalLink>
-          <Link to="/wallet/receive">
-            <Button size="lg" className="w-full">
-              <ArrowDownIcon className="h-4 w-4 shrink-0 mr-2" />
-              Receive
-            </Button>
-          </Link>
-          <Link to="/wallet/send">
-            <Button size="lg" className="w-full">
-              <ArrowUpIcon className="h-4 w-4 shrink-0 mr-2" />
-              Send
-            </Button>
-          </Link>
+          {hasChannelManagement && (
+            <Link to="/wallet/swap">
+              <Button className="w-full" variant="secondary">
+                <ArrowDownUpIcon />
+                Swap
+              </Button>
+            </Link>
+          )}
+          <div>
+            <TransactionsListMenu />
+          </div>
         </div>
       </div>
 
+      <OnchainTransactionsAlert />
       <TransactionsList />
     </>
   );
 }
 
 export default Wallet;
+
+function OnchainTransactionsAlert() {
+  const { data: onchainTransactions } = useOnchainTransactions();
+  if (
+    onchainTransactions?.some(
+      (tx) => dayjs().diff(tx.createdAt * 1000, "hours") < 24
+    )
+  ) {
+    return (
+      <Alert>
+        <AlertTitle className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 text-sm">
+            <LightbulbIcon className="w-4 h-4" /> On-chain transactions are
+            shown on the Node page
+          </div>
+          <LinkButton
+            to="/channels"
+            variant="secondary"
+            size="sm"
+            className="flex items-center gap-2"
+          >
+            <ExternalLinkIcon className="w-4 h-4" /> View On-chain transactions
+          </LinkButton>
+        </AlertTitle>
+      </Alert>
+    );
+  }
+  return null;
+}

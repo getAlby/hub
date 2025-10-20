@@ -1,10 +1,10 @@
 import React from "react";
+import { toast } from "sonner";
 import Container from "src/components/Container";
 import PasswordInput from "src/components/password/PasswordInput";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
-import { useToast } from "src/components/ui/use-toast";
 
 import { useInfo } from "src/hooks/useInfo";
 import { saveAuthToken } from "src/lib/auth";
@@ -19,8 +19,6 @@ export default function Start() {
 
   const { data: info } = useInfo(true); // poll the info endpoint to auto-redirect when app is running
 
-  const { toast } = useToast();
-
   const startupState = info?.startupState;
   const startupError = info?.startupError;
   const startupErrorTime = info?.startupErrorTime;
@@ -33,16 +31,14 @@ export default function Start() {
 
   React.useEffect(() => {
     if (startupError && startupErrorTime) {
-      toast({
-        title: "Failed to start",
+      toast.error("Failed to start", {
         description: startupError,
-        variant: "destructive",
       });
       setLoading(false);
       setButtonText("Start");
       setUnlockPassword("");
     }
-  }, [startupError, toast, startupErrorTime]);
+  }, [startupError, startupErrorTime]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -57,13 +53,14 @@ export default function Start() {
         },
         body: JSON.stringify({
           unlockPassword,
+          permission: "full",
         }),
       });
       if (authTokenResponse) {
         saveAuthToken(authTokenResponse.token);
       }
     } catch (error) {
-      handleRequestError(toast, "Failed to connect", error);
+      handleRequestError("Failed to connect", error);
       setLoading(false);
       setButtonText("Start");
       setUnlockPassword("");

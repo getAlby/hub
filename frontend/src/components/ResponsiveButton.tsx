@@ -1,26 +1,25 @@
-import { LucideIcon } from "lucide-react";
-import { Button, ButtonProps } from "src/components/ui/button.tsx";
+import { VariantProps } from "class-variance-authority";
+import * as React from "react";
+import { Button } from "./ui/button";
+import { buttonVariants } from "./ui/buttonVariants";
 
 type Props = {
-  icon: LucideIcon;
+  icon: React.ComponentType;
   text: string;
-  variant?: "outline";
-};
+} & React.ComponentProps<"button"> &
+  VariantProps<typeof buttonVariants> & {
+    asChild?: boolean;
+  };
 
-const ResponsiveButton = ({
-  icon: Icon,
-  text,
-  variant,
-  ...props
-}: Props & ButtonProps) => {
+const ResponsiveButton = ({ icon: Icon, text, variant, ...props }: Props) => {
   return (
     <>
       <Button {...props} className="hidden lg:inline-flex" variant={variant}>
-        <Icon className="h-4 w-4 mr-2" />
+        <Icon />
         {text}
       </Button>
       <Button {...props} size="icon" className="lg:hidden" variant={variant}>
-        <Icon className="h-4 w-4" />
+        <Icon />
       </Button>
     </>
   );
