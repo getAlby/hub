@@ -33,6 +33,11 @@ export function DisconnectApp({
     );
   });
 
+  // Check if this is a sub-wallet with a lightning address
+  const isSubwallet =
+    app.metadata?.app_store_app_id === SUBWALLET_APPSTORE_APP_ID;
+  const hasLightningAddress = !!app.metadata?.lud16;
+
   return (
     <AlertDialog open>
       <AlertDialogTrigger asChild>
@@ -53,6 +58,12 @@ export function DisconnectApp({
                 No funds will be lost during this process, the balance will
                 remain in your wallet.
               </>
+            )}
+            {isSubwallet && hasLightningAddress && (
+              <p className="font-medium">
+                This sub-wallet has a lightning address ({app.metadata?.lud16})
+                that will also be deleted.
+              </p>
             )}
           </AlertDialogDescription>
         </AlertDialogHeader>
