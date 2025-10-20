@@ -139,14 +139,15 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <NavLink to={item.url} end>
                     {({ isActive }) => (
-                      <SidebarMenuButton
-                        isActive={isActive}
-                        onClick={() => {
-                          setOpenMobile(false);
-                        }}
-                      >
-                        <item.icon />
-                        <span>{item.title}</span>
+                      <SidebarMenuButton asChild isActive={isActive}>
+                        <span
+                          onClick={() => {
+                            setOpenMobile(false);
+                          }}
+                        >
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </span>
                       </SidebarMenuButton>
                     )}
                   </NavLink>
