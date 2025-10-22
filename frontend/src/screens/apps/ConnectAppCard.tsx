@@ -1,9 +1,10 @@
-import { CopyIcon, EyeIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { CheckIcon, CopyIcon, EyeIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import QRCode from "react-qr-code";
+import { Link } from "react-router-dom";
 import { AppStoreApp } from "src/components/connections/SuggestedAppData";
-import QRCode from "src/components/QRCode";
+import Loading from "src/components/Loading";
+import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -19,71 +20,52 @@ export function ConnectAppCard({
   app,
   pairingUri,
   appStoreApp,
-  showToasts = false,
 }: {
   app: App;
   pairingUri: string;
   appStoreApp?: AppStoreApp;
-  showToasts?: boolean;
 }) {
-  const navigate = useNavigate();
+  const [timeout, setTimeout] = useState(false);
   const [isQRCodeVisible, setIsQRCodeVisible] = useState(false);
-  const effectRan = useRef(false);
-
   const copy = () => {
     copyToClipboard(pairingUri);
   };
 
   useEffect(() => {
-    if (!showToasts) {
-      return;
-    }
+    const timeoutId = window.setTimeout(() => {
+      setTimeout(true);
+    }, 30000);
 
-    if (!app.lastUsedAt && !effectRan.current) {
-      effectRan.current = true;
-
-      const toastId = toast.loading("Waiting for app to connect", {
-        description: "Scan the QR code or copy the connection secret",
-      });
-
-      const timeoutId = window.setTimeout(() => {
-        toast.dismiss(toastId);
-        const timeoutToastId = toast.loading(
-          "Connection taking longer than usual",
-          {
-            action: {
-              label: "Continue anyway",
-              onClick: () => {
-                toast.dismiss(timeoutToastId);
-                navigate(`/apps/${app?.id}`);
-              },
-            },
-          }
-        );
-      }, 30000);
-
-      return () => {
-        window.clearTimeout(timeoutId);
-        toast.dismiss(toastId);
-      };
-    } else if (app.lastUsedAt) {
-      toast.dismiss(); // Clear any existing toasts
-      toast.success("App connected", {
-        description: "Your app is now connected to the sub-wallet",
-      });
-
-      setTimeout(() => {
-        navigate(`/apps/${app.id}`);
-      }, 3000);
-    }
-  }, [app.lastUsedAt, app.id, showToasts, navigate]);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle className="text-center">Scan To Connect</CardTitle>
+        <CardTitle className="text-center">Connection Secret</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-5">
+        {!app.lastUsedAt ? (
+          <>
+            <div className="flex flex-row items-center gap-2 text-sm">
+              <Loading className="size-4" />
+              <p>Waiting for app to connect</p>
+            </div>
+            {timeout && (
+              <div className="text-sm flex flex-col gap-2 items-center text-center">
+                Connecting is taking longer than usual.
+                <Link to={`/apps/${app?.id}`}>
+                  <Button variant="secondary">Continue anyway</Button>
+                </Link>
+              </div>
+            )}
+          </>
+        ) : (
+          <Badge variant="positive">
+            <CheckIcon />
+            App connected
+          </Badge>
+        )}
         {!appStoreApp?.hideConnectionQr && (
           <div className="relative">
             <div
