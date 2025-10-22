@@ -158,7 +158,7 @@ export default function Channels() {
                   <ResponsiveButton
                     icon={Settings2Icon}
                     text="Advanced"
-                    variant="outline"
+                    variant="secondary"
                   />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56">
