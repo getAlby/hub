@@ -1,5 +1,4 @@
 import { Toaster as Sonner, ToasterProps } from "sonner";
-import { Spinner } from "src/components/ui/spinner";
 import { useTheme } from "src/components/ui/theme-provider";
 
 const Toaster = ({ ...props }: ToasterProps) => {
@@ -9,7 +8,6 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
-      icons={{ loading: <Spinner /> }}
       style={
         {
           "--normal-bg": "var(--popover)",
