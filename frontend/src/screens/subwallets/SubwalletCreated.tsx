@@ -232,7 +232,6 @@ export function SubwalletCreated() {
                         <ConnectAppCard
                           app={app}
                           pairingUri={connectionSecret}
-                          showToasts={true}
                         />
                       </div>
                     )}
@@ -314,11 +313,7 @@ export function SubwalletCreated() {
                       <li>Open Alby Go and scan this QR code</li>
                     </ul>
                     {app && (
-                      <ConnectAppCard
-                        app={app}
-                        pairingUri={connectionSecret}
-                        showToasts={false}
-                      />
+                      <ConnectAppCard app={app} pairingUri={connectionSecret} />
                     )}
                   </AccordionContent>
                 </AccordionItem>
