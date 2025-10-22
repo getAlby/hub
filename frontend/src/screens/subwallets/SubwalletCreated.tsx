@@ -11,7 +11,6 @@ import {
   Zap,
 } from "lucide-react";
 import React from "react";
-import QRCode from "react-qr-code";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
@@ -19,6 +18,7 @@ import { AppleIcon } from "src/components/icons/Apple";
 import { PlayStoreIcon } from "src/components/icons/PlayStore";
 import { ZapStoreIcon } from "src/components/icons/ZapStore";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
+import QRCode from "src/components/QRCode";
 import {
   Accordion,
   AccordionContent,

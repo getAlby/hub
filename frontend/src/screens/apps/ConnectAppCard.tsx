@@ -1,9 +1,9 @@
 import { CheckIcon, CopyIcon, EyeIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import QRCode from "react-qr-code";
 import { Link } from "react-router-dom";
 import { AppStoreApp } from "src/components/connections/SuggestedAppData";
 import Loading from "src/components/Loading";
+import QRCode from "src/components/QRCode";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
 import {
