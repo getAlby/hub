@@ -4,12 +4,12 @@ import {
   ArrowDownUpIcon,
   ArrowRightIcon,
   CopyIcon,
-  EllipsisVerticalIcon,
   ExternalLinkIcon,
   HeartIcon,
   HourglassIcon,
   InfoIcon,
   LinkIcon,
+  Settings2Icon,
   SparklesIcon,
   UnplugIcon,
   ZapIcon,
@@ -156,7 +156,7 @@ export default function Channels() {
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger>
                   <ResponsiveButton
-                    icon={EllipsisVerticalIcon}
+                    icon={Settings2Icon}
                     text="Advanced"
                     variant="outline"
                   />
