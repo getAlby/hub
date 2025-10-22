@@ -114,11 +114,14 @@ func (svc *service) startNostr(ctx context.Context) error {
 
 	svc.setRelayReady(true)
 
-	<-ctx.Done()
-	logger.Logger.Info("Main context cancelled, exiting...")
+	go func() {
+		<-ctx.Done()
+		logger.Logger.Info("Main context cancelled, exiting...")
 
-	pool.Close("exiting")
-	logger.Logger.Info("Relay subroutine ended")
+		pool.Close("exiting")
+		logger.Logger.Info("Relay subroutine ended")
+	}()
+
 	return nil
 }
 
