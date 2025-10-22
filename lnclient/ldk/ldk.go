@@ -600,8 +600,9 @@ func (ls *LDKService) SendPaymentSync(invoice string, amount *uint64) (*lnclient
 				}
 
 				logger.Logger.WithFields(logrus.Fields{
-					"duration": time.Since(paymentStart).Milliseconds(),
-					"fee":      fee,
+					"duration":     time.Since(paymentStart).Milliseconds(),
+					"fee":          fee,
+					"payment_hash": event.PaymentHash,
 				}).Info("Successful payment")
 
 				return &lnclient.PayInvoiceResponse{
@@ -997,26 +998,50 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 }
 
 func (ls *LDKService) GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *lnclient.NodeConnectionInfo, err error) {
-	/*addresses := gs.node.ListeningAddresses()
-	if addresses == nil || len(*addresses) < 1 {
-		return nil, errors.New("no available listening addresses")
-	}
-	firstAddress := (*addresses)[0]
-	parts := strings.Split(firstAddress, ":")
-	if len(parts) != 2 {
-		return nil, errors.New(fmt.Sprintf("invalid address %v", firstAddress))
-	}
-	port, err := strconv.Atoi(parts[1])
-	if err != nil {
-		logger.Logger.WithError(err).Error("ConnectPeer failed")
-		return nil, err
-	}*/
-
-	return &lnclient.NodeConnectionInfo{
+	nodeConnectionInfo = &lnclient.NodeConnectionInfo{
 		Pubkey: ls.node.NodeId(),
-		// Address: parts[0],
-		// Port:    port,
-	}, nil
+	}
+
+	if ls.cfg.GetEnv().LDKAnnouncementAddresses != "" {
+		addresses := strings.Split(ls.cfg.GetEnv().LDKAnnouncementAddresses, ",")
+		for _, address := range addresses {
+			address = strings.TrimSpace(address)
+			if address == "" {
+				continue
+			}
+
+			var ip string
+			var portStr string
+
+			if strings.HasPrefix(address, "[") {
+				// IPv6 format: [ipv6]:port
+				closeBracket := strings.Index(address, "]")
+				if closeBracket > 0 {
+					ip = address[0 : closeBracket+1]
+					if closeBracket+2 < len(address) && address[closeBracket+1] == ':' {
+						portStr = address[closeBracket+2:]
+					}
+				}
+			} else {
+				// IPv4 or hostname format: ip:port
+				parts := strings.Split(address, ":")
+				if len(parts) >= 2 {
+					portStr = parts[len(parts)-1]
+					ip = strings.Join(parts[:len(parts)-1], ":")
+				}
+			}
+
+			if portStr != "" {
+				if port, parseErr := strconv.Atoi(portStr); parseErr == nil && ip != "" {
+					nodeConnectionInfo.Address = ip
+					nodeConnectionInfo.Port = port
+					break
+				}
+			}
+		}
+	}
+
+	return nodeConnectionInfo, nil
 }
 
 func (ls *LDKService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
@@ -2229,7 +2254,7 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uin
 	logger.Logger.WithFields(logrus.Fields{
 		"duration": time.Since(paymentStart).Milliseconds(),
 		"fee":      fee,
-	}).Info("Successful payment")
+	}).Info("Successful BOLT-12 payment")
 
 	return &lnclient.PayOfferResponse{
 		PaymentHash: paymentHash,

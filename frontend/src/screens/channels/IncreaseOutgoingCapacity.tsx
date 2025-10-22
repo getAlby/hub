@@ -311,7 +311,7 @@ function NewChannelInternal({
                 order.paymentMethod === "onchain" &&
                 selectedPeer.pubkey === order.pubkey && (
                   <div className="grid gap-1.5">
-                    <Label>Channel peer</Label>
+                    <Label>Choose your channel peer:</Label>
                     <Select
                       value={getPeerKey(selectedPeer)}
                       onValueChange={(value) =>

@@ -102,7 +102,7 @@ export default function Backup() {
             <p className="text-sm text-muted-foreground">
               Your recovery phrase is a group of 12 random words that back up
               your wallet on-chain balance. Using them is the only way to
-              recover access to your wallet on another machine or when you loose
+              recover access to your wallet on another machine or when you lose
               your unlock password.
             </p>
           </div>
@@ -110,8 +110,8 @@ export default function Backup() {
             <AlertTriangle />
             <AlertTitle>Important</AlertTitle>
             <AlertDescription>
-              If you loose access to your Hub and do not have your recovery
-              phrase, you will loose access to your funds.
+              If you lose access to your Hub and do not have your recovery
+              phrase, you will lose access to your funds.
             </AlertDescription>
           </Alert>
           {info?.backendType === "CASHU" && <CashuMnemonicWarning />}

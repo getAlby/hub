@@ -299,8 +299,18 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 		return nil, errors.New("this invoice has expired")
 	}
 
-	selfPayment := paymentRequest.Payee != "" && paymentRequest.Payee == lnClient.GetPubkey()
-
+	selfPayment := false
+	if paymentRequest.Payee != "" && paymentRequest.Payee == lnClient.GetPubkey() {
+		var incomingTransaction db.Transaction
+		result := svc.db.Limit(1).Find(&incomingTransaction, &db.Transaction{
+			Type:        constants.TRANSACTION_TYPE_INCOMING,
+			PaymentHash: paymentRequest.PaymentHash,
+		})
+		if result.Error == nil && result.RowsAffected > 0 {
+			selfPayment = true
+		}
+	}
+	
 	var dbTransaction db.Transaction
 
 	paymentAmount := uint64(paymentRequest.MSatoshi)
