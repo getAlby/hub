@@ -20,6 +20,7 @@ type Nip47InfoPublishRequest struct {
 	AppId            uint
 	AppWalletPubKey  string
 	AppWalletPrivKey string
+	RelayUrl         string
 }
 
 type nip47InfoPublishQueue struct {
@@ -62,7 +63,7 @@ func (svc *nip47Service) GetNip47Info(ctx context.Context, relay *nostr.Relay, a
 	return events[0], nil
 }
 
-func (svc *nip47Service) PublishNip47Info(ctx context.Context, pool nostrmodels.SimplePool, appId uint, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error) {
+func (svc *nip47Service) PublishNip47Info(ctx context.Context, pool nostrmodels.SimplePool, appId uint, appWalletPubKey string, appWalletPrivKey string, relayUrl string, lnClient lnclient.LNClient) (*nostr.Event, error) {
 	var capabilities []string
 	var permitsNotifications bool
 	tags := nostr.Tags{[]string{"encryption", cipher.SUPPORTED_ENCRYPTIONS}}
@@ -103,7 +104,9 @@ func (svc *nip47Service) PublishNip47Info(ctx context.Context, pool nostrmodels.
 	if err != nil {
 		return nil, err
 	}
-	publishResultChannel := pool.PublishMany(ctx, svc.cfg.GetRelayUrls(), *ev)
+
+	// publish to a single relay so that we can requeue failed publishes on a relay level
+	publishResultChannel := pool.PublishMany(ctx, []string{relayUrl}, *ev)
 
 	publishSuccessful := false
 	for v := range publishResultChannel {

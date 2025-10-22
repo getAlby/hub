@@ -39,10 +39,10 @@ type Nip47Service interface {
 	StartNip47InfoPublisher(ctx context.Context, pool *nostr.SimplePool, lnClient lnclient.LNClient)
 	HandleEvent(ctx context.Context, pool nostrmodels.SimplePool, event *nostr.Event, lnClient lnclient.LNClient)
 	GetNip47Info(ctx context.Context, relay *nostr.Relay, appWalletPubKey string) (*nostr.Event, error)
-	PublishNip47Info(ctx context.Context, pool nostrmodels.SimplePool, appId uint, appWalletPubKey string, appWalletPrivKey string, lnClient lnclient.LNClient) (*nostr.Event, error)
+	PublishNip47Info(ctx context.Context, pool nostrmodels.SimplePool, appId uint, appWalletPubKey string, appWalletPrivKey string, relayUrl string, lnClient lnclient.LNClient) (*nostr.Event, error)
 	PublishNip47InfoDeletion(ctx context.Context, relay nostrmodels.Relay, appWalletPubKey string, appWalletPrivKey string, infoEventId string) error
 	CreateResponse(initialEvent *nostr.Event, content interface{}, tags nostr.Tags, cipher *cipher.Nip47Cipher, walletPrivKey string) (result *nostr.Event, err error)
-	EnqueueNip47InfoPublishRequest(appId uint, appWalletPubKey, appWalletPrivKey string)
+	EnqueueNip47InfoPublishRequest(appId uint, appWalletPubKey, appWalletPrivKey, relayUrl string)
 }
 
 func NewNip47Service(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher, albyOAuthSvc alby.AlbyOAuthService) *nip47Service {
@@ -90,11 +90,12 @@ func (svc *nip47Service) StartNotifier(ctx context.Context, pool *nostr.SimplePo
 	}()
 }
 
-func (svc *nip47Service) EnqueueNip47InfoPublishRequest(appId uint, appWalletPubKey, appWalletPrivKey string) {
+func (svc *nip47Service) EnqueueNip47InfoPublishRequest(appId uint, appWalletPubKey, appWalletPrivKey, relayUrl string) {
 	svc.nip47InfoPublishQueue.AddToQueue(&Nip47InfoPublishRequest{
 		AppId:            appId,
 		AppWalletPubKey:  appWalletPubKey,
 		AppWalletPrivKey: appWalletPrivKey,
+		RelayUrl:         relayUrl,
 	})
 }
 
@@ -106,12 +107,12 @@ func (svc *nip47Service) StartNip47InfoPublisher(ctx context.Context, pool *nost
 				// relay disconnected
 				return
 			case req := <-svc.nip47InfoPublishQueue.Channel():
-				_, err := svc.PublishNip47Info(ctx, pool, req.AppId, req.AppWalletPubKey, req.AppWalletPrivKey, lnClient)
+				_, err := svc.PublishNip47Info(ctx, pool, req.AppId, req.AppWalletPubKey, req.AppWalletPrivKey, req.RelayUrl, lnClient)
 				if err != nil {
 					logger.Logger.WithError(err).WithField("wallet_pubkey", req.AppWalletPubKey).Error("Failed to publish NIP47 info from queue")
 					// wait and then re-add the item to the queue
 					time.Sleep(5 * time.Second)
-					svc.EnqueueNip47InfoPublishRequest(req.AppId, req.AppWalletPubKey, req.AppWalletPrivKey)
+					svc.EnqueueNip47InfoPublishRequest(req.AppId, req.AppWalletPubKey, req.AppWalletPrivKey, req.RelayUrl)
 				}
 			}
 		}
