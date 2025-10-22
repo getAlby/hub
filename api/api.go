@@ -122,7 +122,9 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		returnToUrl, err := url.Parse(createAppRequest.ReturnTo)
 		if err == nil {
 			query := returnToUrl.Query()
-			query.Add("relay", strings.Join(relayUrls, ","))
+			for _, relayUrl := range relayUrls {
+				query.Add("relay", relayUrl)
+			}
 			query.Add("pubkey", *app.WalletPubkey)
 			if lightningAddress != "" && !app.Isolated {
 				query.Add("lud16", lightningAddress)
@@ -136,7 +138,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	if lightningAddress != "" && !app.Isolated {
 		lud16 = fmt.Sprintf("&lud16=%s", lightningAddress)
 	}
-	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", *app.WalletPubkey, strings.Join(relayUrls, ","), pairingSecretKey, lud16)
+	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", *app.WalletPubkey, strings.Join(relayUrls, "&relay="), pairingSecretKey, lud16)
 
 	return responseBody, nil
 }
