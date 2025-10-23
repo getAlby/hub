@@ -21,6 +21,7 @@ type Nip47InfoPublishRequest struct {
 	AppWalletPubKey  string
 	AppWalletPrivKey string
 	RelayUrl         string
+	Attempt          uint32
 }
 
 type nip47InfoPublishQueue struct {

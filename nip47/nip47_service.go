@@ -17,6 +17,7 @@ import (
 	"github.com/getAlby/hub/service/keys"
 	"github.com/getAlby/hub/transactions"
 	"github.com/nbd-wtf/go-nostr"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
@@ -91,11 +92,16 @@ func (svc *nip47Service) StartNotifier(ctx context.Context, pool *nostr.SimplePo
 }
 
 func (svc *nip47Service) EnqueueNip47InfoPublishRequest(appId uint, appWalletPubKey, appWalletPrivKey, relayUrl string) {
+	svc.enqueueNip47InfoPublishRequestWithAttempt(appId, appWalletPubKey, appWalletPrivKey, relayUrl, 0)
+}
+
+func (svc *nip47Service) enqueueNip47InfoPublishRequestWithAttempt(appId uint, appWalletPubKey, appWalletPrivKey, relayUrl string, attempt uint32) {
 	svc.nip47InfoPublishQueue.AddToQueue(&Nip47InfoPublishRequest{
 		AppId:            appId,
 		AppWalletPubKey:  appWalletPubKey,
 		AppWalletPrivKey: appWalletPrivKey,
 		RelayUrl:         relayUrl,
+		Attempt:          attempt,
 	})
 }
 
@@ -109,10 +115,18 @@ func (svc *nip47Service) StartNip47InfoPublisher(ctx context.Context, pool *nost
 			case req := <-svc.nip47InfoPublishQueue.Channel():
 				_, err := svc.PublishNip47Info(ctx, pool, req.AppId, req.AppWalletPubKey, req.AppWalletPrivKey, req.RelayUrl, lnClient)
 				if err != nil {
-					logger.Logger.WithError(err).WithField("wallet_pubkey", req.AppWalletPubKey).Error("Failed to publish NIP47 info from queue")
+					logger.Logger.WithError(err).WithFields(logrus.Fields{
+						"wallet_pubkey": req.AppWalletPubKey,
+						"relay_url":     req.RelayUrl,
+					}).Error("Failed to publish NIP47 info from queue")
+
 					// wait and then re-add the item to the queue
-					time.Sleep(5 * time.Second)
-					svc.EnqueueNip47InfoPublishRequest(req.AppId, req.AppWalletPubKey, req.AppWalletPrivKey, req.RelayUrl)
+					// done async to ensure an offline relay does not delay
+					// the publishing of newly created app connections
+					go func() {
+						time.Sleep((5 * time.Duration(req.Attempt+1)) * time.Second)
+						svc.enqueueNip47InfoPublishRequestWithAttempt(req.AppId, req.AppWalletPubKey, req.AppWalletPrivKey, req.RelayUrl, req.Attempt+1)
+					}()
 				}
 			}
 		}
