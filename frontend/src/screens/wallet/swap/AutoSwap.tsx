@@ -71,6 +71,13 @@ function AutoSwapOutForm() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (swapAmount > balanceThreshold) {
+      toast.info(
+        "Balance threshold must be greater than or equal to swap amount"
+      );
+      return;
+    }
+
     try {
       setLoading(true);
       await request("/api/autoswap", {
