@@ -2026,6 +2026,10 @@ func deleteOldLDKLogs(ldkLogDir string) {
 	logger.Logger.WithField("ldkLogDir", ldkLogDir).Debug("Deleting old LDK logs")
 	files, err := os.ReadDir(ldkLogDir)
 	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			// no log file directory - expected when VSS is enabled
+			return
+		}
 		logger.Logger.WithField("path", ldkLogDir).WithError(err).Error("Failed to list ldk log directory")
 		return
 	}
