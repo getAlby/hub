@@ -1,5 +1,4 @@
 import {
-  AlertTriangleIcon,
   ArrowLeftIcon,
   CopyIcon,
   ExternalLinkIcon,
@@ -8,17 +7,16 @@ import {
 } from "lucide-react";
 import TickSVG from "public/images/illustrations/tick.svg";
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LottieLoading from "src/components/LottieLoading";
+import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import OnchainAddressDisplay from "src/components/OnchainAddressDisplay";
 import QRCode from "src/components/QRCode";
-import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -49,7 +47,7 @@ import { request } from "src/utils/request";
 
 export default function ReceiveOnchain() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [tab, setTab] = useState(searchParams.get("type") || "onchain");
+  const [tab, setTab] = useState(searchParams.get("type") || "spending");
 
   useEffect(() => {
     const newTabValue = searchParams.get("type");
@@ -67,23 +65,23 @@ export default function ReceiveOnchain() {
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className="w-full mb-2">
             <TabsTrigger
-              value="onchain"
-              className="flex gap-2 items-center w-full"
-            >
-              Receive to On-chain
-            </TabsTrigger>
-            <TabsTrigger
               value="spending"
               className="flex gap-2 items-center w-full"
             >
               Receive to Spending
             </TabsTrigger>
+            <TabsTrigger
+              value="onchain"
+              className="flex gap-2 items-center w-full"
+            >
+              Receive to On-chain
+            </TabsTrigger>
           </TabsList>
-          <TabsContent value="onchain">
-            <ReceiveToOnchain />
-          </TabsContent>
           <TabsContent value="spending">
             <ReceiveToSpending />
+          </TabsContent>
+          <TabsContent value="onchain">
+            <ReceiveToOnchain />
           </TabsContent>
         </Tabs>
       </div>
@@ -320,21 +318,9 @@ function ReceiveToSpending() {
       {hasChannelManagement &&
         parseInt(swapAmount || "0") * 1000 >=
           0.8 * balances.lightning.totalReceivable && (
-          <Alert>
-            <AlertTriangleIcon className="h-4 w-4" />
-            <AlertTitle>Low receiving capacity</AlertTitle>
-            <AlertDescription>
-              You likely won't be able to receive payments until you{" "}
-              <Link className="underline" to="/channels/incoming">
-                increase your receiving capacity.
-              </Link>
-            </AlertDescription>
-          </Alert>
+          <LowReceivingCapacityAlert />
         )}
       <div className="grid gap-1.5">
-        {hasChannelManagement && (
-          <AnchorReserveAlert amount={+swapAmount} className="mb-4" isSwap />
-        )}
         <Label>Amount</Label>
         <InputWithAdornment
           type="number"
@@ -359,23 +345,11 @@ function ReceiveToSpending() {
               {new Intl.NumberFormat().format(
                 Math.floor(balances.lightning.totalReceivable / 1000)
               )}{" "}
-              sats{" "}
-              <Link className="underline" to="/channels/incoming">
-                increase
-              </Link>
+              sats
             </div>
             <FormattedFiatAmount
               className="text-xs"
               amount={balances.lightning.totalReceivable / 1000}
-            />
-          </div>
-          <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
-            <div>
-              Minimum: {new Intl.NumberFormat().format(swapInfo.minAmount)} sats
-            </div>
-            <FormattedFiatAmount
-              className="text-xs"
-              amount={swapInfo.minAmount}
             />
           </div>
         </div>
