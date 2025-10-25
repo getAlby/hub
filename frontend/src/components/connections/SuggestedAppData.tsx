@@ -192,6 +192,64 @@ export const appStoreApps: AppStoreApp[] = (
       webLink: "https://claude.ai/",
     },
     {
+      id: "goose-memory-mcp",
+      title: "Goose - Memory MCP",
+      description: "Add persistent memory to your Goose AI agent",
+      extendedDescription:
+        "Set up Memory MCP to give your Goose AI agent persistent memory across sessions",
+      internal: false,
+      logo: goose,
+      categories: ["ai"],
+      webLink:
+        "https://github.com/toverux/mcp-memory-service?tab=readme-ov-file#goose",
+    },
+    {
+      id: "claude-memory-mcp",
+      title: "Claude - Memory MCP",
+      description: "Add persistent memory to Claude Desktop",
+      extendedDescription:
+        "Set up Memory MCP to give Claude Desktop persistent memory across sessions",
+      internal: false,
+      logo: claude,
+      categories: ["ai"],
+      webLink:
+        "https://github.com/toverux/mcp-memory-service?tab=readme-ov-file#claude-desktop",
+    },
+    {
+      id: "bitrefill-mcp",
+      title: "Bitrefill MCP",
+      description: "Buy gift cards with Bitcoin using AI agents",
+      extendedDescription:
+        "Enable your AI agents to purchase gift cards with Bitcoin through Bitrefill's MCP server",
+      internal: false,
+      logo: bitrefill,
+      categories: ["ai"],
+      webLink: "https://www.bitrefill.com/account/developers/mcp-server",
+    },
+    {
+      id: "lnmarkets-mcp",
+      title: "LNMarkets MCP",
+      description: "Trade Bitcoin futures with AI-powered automation",
+      extendedDescription:
+        "Connect AI agents to LNMarkets for automated Bitcoin futures trading",
+      internal: false,
+      logo: lnbits,
+      categories: ["ai"],
+      webLink: "https://sup3r.cool/ln-markets/",
+    },
+    {
+      id: "awesome-ai-bitcoin",
+      title: "See more awesome usecases",
+      description: "Discover more AI + Bitcoin integrations and MCP servers",
+      extendedDescription:
+        "Explore a curated list of awesome AI and Bitcoin usecases, including more MCP servers",
+      internal: false,
+      logo: alby,
+      categories: ["ai"],
+      webLink:
+        "https://github.com/getAlby/awesome-ai-bitcoin/?tab=readme-ov-file#mcp-servers",
+    },
+    {
       id: "simpleboost",
       title: "SimpleBoost",
       description: "Donation widget for your website",
