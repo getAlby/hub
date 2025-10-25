@@ -344,6 +344,7 @@ func randomHex(n int) (string, error) {
 }
 
 const defaultCurrency = "USD"
+const defaultBitcoinDisplayFormat = "bip177"
 
 func (cfg *config) GetCurrency() string {
 	currency, err := cfg.Get("Currency", "")
@@ -364,6 +365,30 @@ func (cfg *config) SetCurrency(value string) error {
 	err := cfg.SetUpdate("Currency", value, "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to update currency")
+		return err
+	}
+	return nil
+}
+
+func (cfg *config) GetBitcoinDisplayFormat() string {
+	format, err := cfg.Get("BitcoinDisplayFormat", "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch bitcoin display format")
+		return defaultBitcoinDisplayFormat
+	}
+	if format == "" {
+		return defaultBitcoinDisplayFormat
+	}
+	return format
+}
+
+func (cfg *config) SetBitcoinDisplayFormat(value string) error {
+	if value != "sats" && value != "bip177" {
+		return errors.New("bitcoin display format must be 'sats' or 'bip177'")
+	}
+	err := cfg.SetUpdate("BitcoinDisplayFormat", value, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to update bitcoin display format")
 		return err
 	}
 	return nil

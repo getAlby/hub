@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
@@ -203,7 +204,9 @@ function OnchainForm({
         <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
           <div>
             On-chain Balance:{" "}
-            {new Intl.NumberFormat().format(balances.onchain.spendable)} sats
+            <FormattedBitcoinAmount
+              amount={balances.onchain.spendable * 1000}
+            />
           </div>
           <FormattedFiatAmount
             className="text-xs"
@@ -390,10 +393,9 @@ function SwapForm({
           <div className="flex justify-between text-xs text-muted-foreground sensitive slashed-zero">
             <div>
               Spending Balance:{" "}
-              {new Intl.NumberFormat().format(
-                Math.floor(balances.lightning.totalSpendable / 1000)
-              )}{" "}
-              sats
+              <FormattedBitcoinAmount
+                amount={balances.lightning.totalSpendable}
+              />
             </div>
             <FormattedFiatAmount
               className="text-xs"
@@ -402,7 +404,8 @@ function SwapForm({
           </div>
           <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
             <div>
-              Minimum: {new Intl.NumberFormat().format(swapInfo.minAmount)} sats
+              Minimum:{" "}
+              <FormattedBitcoinAmount amount={swapInfo.minAmount * 1000} />
             </div>
             <FormattedFiatAmount
               className="text-xs"

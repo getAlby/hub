@@ -8,6 +8,7 @@ import { ChannelPublicPrivateAlert } from "src/components/channels/ChannelPublic
 import { DuplicateChannelAlert } from "src/components/channels/DuplicateChannelAlert";
 import { SwapAlert } from "src/components/channels/SwapAlert";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import { Alert, AlertDescription } from "src/components/ui/alert";
@@ -287,7 +288,9 @@ function NewChannelInternal({
             />
             <div className="text-muted-foreground text-sm sensitive slashed-zero">
               Current on-chain balance:{" "}
-              {new Intl.NumberFormat().format(balances.onchain.spendable)} sats
+              <FormattedBitcoinAmount
+                amount={balances.onchain.spendable * 1000}
+              />
             </div>
             <div className="grid grid-cols-3 gap-1.5 text-muted-foreground text-xs">
               {presetAmounts.map((amount) => (
@@ -350,10 +353,11 @@ function NewChannelInternal({
                                     {peer.minimumChannelSize > 0 && (
                                       <span className="ml-4 text-xs text-muted-foreground slashed-zero">
                                         Min.{" "}
-                                        {new Intl.NumberFormat().format(
-                                          peer.minimumChannelSize
-                                        )}{" "}
-                                        sats
+                                        <FormattedBitcoinAmount
+                                          amount={
+                                            peer.minimumChannelSize * 1000
+                                          }
+                                        />
                                       </span>
                                     )}
                                   </div>
@@ -465,10 +469,9 @@ function NewChannelInternal({
               <div>
                 <div className="font-medium text-muted-foreground">Amount</div>
                 <div>
-                  {new Intl.NumberFormat().format(
-                    parseInt(order.amount || "0")
-                  )}{" "}
-                  sats
+                  <FormattedBitcoinAmount
+                    amount={parseInt(order.amount || "0") * 1000}
+                  />
                 </div>
               </div>
               <div>

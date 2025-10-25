@@ -71,6 +71,26 @@ function Settings() {
     }
   }
 
+  async function updateBitcoinDisplayFormat(bitcoinDisplayFormat: string) {
+    try {
+      await request("/api/settings", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          bitcoinDisplayFormat,
+          currency: info?.currency || "USD", // Include current currency to avoid validation error
+        }),
+      });
+      await reloadInfo();
+      toast(`Bitcoin display format updated`);
+    } catch (error) {
+      console.error(error);
+      handleRequestError("Failed to update bitcoin display format", error);
+    }
+  }
+
   if (!info) {
     return <Loading />;
   }
@@ -142,6 +162,21 @@ function Settings() {
               <SelectItem value="system">System</SelectItem>
               <SelectItem value="light">Light</SelectItem>
               <SelectItem value="dark">Dark</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="grid gap-1.5">
+          <Label htmlFor="bitcoinDisplayFormat">Bitcoin Display Format</Label>
+          <Select
+            value={info?.bitcoinDisplayFormat || "bip177"}
+            onValueChange={updateBitcoinDisplayFormat}
+          >
+            <SelectTrigger className="w-full md:w-60">
+              <SelectValue placeholder="Select a display format" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="bip177">₿ (BIP177)</SelectItem>
+              <SelectItem value="sats">sats</SelectItem>
             </SelectContent>
           </Select>
         </div>

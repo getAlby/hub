@@ -11,6 +11,7 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LottieLoading from "src/components/LottieLoading";
@@ -175,10 +176,9 @@ export default function SwapInStatus() {
                 <CircleCheckIcon className="w-60 h-60" />
                 <div className="flex flex-col gap-2 items-center">
                   <p className="text-xl font-bold slashed-zero text-center">
-                    {new Intl.NumberFormat().format(
-                      swap.receiveAmount as number
-                    )}{" "}
-                    sats
+                    <FormattedBitcoinAmount
+                      amount={(swap.receiveAmount as number) * 1000}
+                    />
                   </p>
                   <FormattedFiatAmount amount={swap.receiveAmount as number} />
                 </div>
@@ -203,7 +203,7 @@ export default function SwapInStatus() {
                 <div className="flex flex-col gap-2 items-center">
                   <div className="flex items-center gap-2">
                     <p className="text-xl font-bold slashed-zero text-center">
-                      {new Intl.NumberFormat().format(swap.sendAmount)} sats
+                      <FormattedBitcoinAmount amount={swap.sendAmount * 1000} />
                     </p>
                     {!swap.lockupTxId && !isInternalSwap && (
                       <CopyIcon

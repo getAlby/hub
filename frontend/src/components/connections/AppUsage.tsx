@@ -5,6 +5,7 @@ import {
   Trash2Icon,
 } from "lucide-react";
 import React from "react";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import { IsolatedAppDrawDownDialog } from "src/components/IsolatedAppDrawDownDialog";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
@@ -26,7 +27,7 @@ import { useCreateLightningAddress } from "src/hooks/useCreateLightningAddress";
 import { useDeleteLightningAddress } from "src/hooks/useDeleteLightningAddress";
 import { useTransactions } from "src/hooks/useTransactions";
 import { copyToClipboard } from "src/lib/clipboard";
-import { cn, formatAmount, getBudgetRenewalLabel } from "src/lib/utils";
+import { cn, getBudgetRenewalLabel } from "src/lib/utils";
 import { App, Transaction } from "src/types";
 
 export function AppUsage({ app }: { app: App }) {
@@ -89,10 +90,7 @@ export function AppUsage({ app }: { app: App }) {
               <div className="flex justify-between items-end">
                 <div>
                   <p className="font-medium text-2xl">
-                    {new Intl.NumberFormat().format(
-                      Math.floor(app.balance / 1000)
-                    )}{" "}
-                    sats
+                    <FormattedBitcoinAmount amount={app.balance} />
                   </p>
                   <FormattedFiatAmount
                     amount={Math.floor(app.balance / 1000)}
@@ -210,7 +208,7 @@ export function AppUsage({ app }: { app: App }) {
           </CardHeader>
           <CardContent>
             <p className="font-medium text-2xl">
-              {new Intl.NumberFormat().format(totalSpent)} sats
+              <FormattedBitcoinAmount amount={totalSpent * 1000} />
             </p>
             <FormattedFiatAmount amount={totalSpent} />
           </CardContent>
@@ -221,7 +219,7 @@ export function AppUsage({ app }: { app: App }) {
           </CardHeader>
           <CardContent>
             <p className="font-medium text-2xl">
-              {new Intl.NumberFormat().format(totalReceived)} sats
+              <FormattedBitcoinAmount amount={totalReceived * 1000} />
             </p>
             <FormattedFiatAmount amount={totalReceived} />
           </CardContent>
@@ -240,10 +238,9 @@ export function AppUsage({ app }: { app: App }) {
                   Left in budget
                 </p>
                 <p className="text-xl font-medium">
-                  {new Intl.NumberFormat().format(
-                    app.maxAmount - app.budgetUsage
-                  )}{" "}
-                  sats
+                  <FormattedBitcoinAmount
+                    amount={(app.maxAmount - app.budgetUsage) * 1000}
+                  />
                 </p>
                 <FormattedFiatAmount amount={app.maxAmount - app.budgetUsage} />
               </div>
@@ -252,7 +249,7 @@ export function AppUsage({ app }: { app: App }) {
                   Budget renewal
                 </p>
                 <p className="text-xl font-medium">
-                  {formatAmount(app.maxAmount * 1000)} sats
+                  <FormattedBitcoinAmount amount={app.maxAmount * 1000} />
                   {app.budgetRenewal !== "never" && (
                     <> / {getBudgetRenewalLabel(app.budgetRenewal)}</>
                   )}

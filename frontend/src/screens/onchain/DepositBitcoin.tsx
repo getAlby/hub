@@ -9,6 +9,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LottieLoading from "src/components/LottieLoading";
@@ -155,7 +156,7 @@ function DepositPending({
         {amount && (
           <div className="flex flex-col gap-2 items-center">
             <p className="text-xl font-semibold slashed-zero">
-              {new Intl.NumberFormat().format(amount)} sats
+              <FormattedBitcoinAmount amount={amount * 1000} />
             </p>
             <FormattedFiatAmount amount={amount} />
           </div>
@@ -189,7 +190,7 @@ function DepositSuccess({ amount, txId }: { amount: number; txId: string }) {
           <CircleCheckIcon className="w-72 h-72 p-2" />
           <div className="flex flex-col gap-2 items-center">
             <p className="text-xl font-semibold slashed-zero">
-              {new Intl.NumberFormat().format(amount)} sats
+              <FormattedBitcoinAmount amount={amount * 1000} />
             </p>
             <FormattedFiatAmount amount={amount} />
           </div>

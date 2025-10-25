@@ -88,4 +88,6 @@ type Config interface {
 	SetupCompleted() bool
 	GetCurrency() string
 	SetCurrency(value string) error
+	GetBitcoinDisplayFormat() string
+	SetBitcoinDisplayFormat(value string) error
 }

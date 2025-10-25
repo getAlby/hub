@@ -399,6 +399,16 @@ func (httpSvc *HttpService) updateSettingsHandler(c echo.Context) error {
 		})
 	}
 
+	// Handle bitcoin display format if provided
+	if updateSettingsRequest.BitcoinDisplayFormat != "" {
+		err := httpSvc.api.SetBitcoinDisplayFormat(updateSettingsRequest.BitcoinDisplayFormat)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{
+				Message: fmt.Sprintf("Failed to set bitcoin display format: %s", err.Error()),
+			})
+		}
+	}
+
 	return c.NoContent(http.StatusNoContent)
 }
 

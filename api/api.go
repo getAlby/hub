@@ -1188,6 +1188,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	autoUnlockPassword, _ := api.cfg.Get("AutoUnlockPassword", "")
 	info.SetupCompleted = api.cfg.SetupCompleted()
 	info.Currency = api.cfg.GetCurrency()
+	info.BitcoinDisplayFormat = api.cfg.GetBitcoinDisplayFormat()
 	info.StartupState = api.svc.GetStartupState()
 	if api.startupError != nil {
 		info.StartupError = api.startupError.Error()
@@ -1237,6 +1238,20 @@ func (api *api) SetCurrency(currency string) error {
 	err := api.cfg.SetCurrency(currency)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to update currency")
+		return err
+	}
+
+	return nil
+}
+
+func (api *api) SetBitcoinDisplayFormat(format string) error {
+	if format != "sats" && format != "bip177" {
+		return fmt.Errorf("bitcoin display format must be 'sats' or 'bip177'")
+	}
+
+	err := api.cfg.SetBitcoinDisplayFormat(format)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to update bitcoin display format")
 		return err
 	}
 
