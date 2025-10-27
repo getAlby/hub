@@ -1,5 +1,6 @@
 import {
   AlertTriangle,
+  DownloadIcon,
   ExternalLinkIcon,
   EyeIcon,
   Link2Icon,
@@ -47,6 +48,7 @@ export default function Backup() {
   const [decryptedMnemonic, setDecryptedMnemonic] = useState("");
   const [loading, setLoading] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [downloadingSCB, setDownloadingSCB] = useState(false);
   const navigate = useNavigate();
 
   const onSubmitPassword = async (e: React.FormEvent) => {
@@ -69,6 +71,38 @@ export default function Backup() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const downloadLatestSCB = async () => {
+    try {
+      setDownloadingSCB(true);
+      const scbInfo = await request<{
+        fileName: string;
+        filePath: string;
+        modTime: string;
+      }>("/api/scb/latest");
+
+      if (!scbInfo) {
+        toast.error("No backup found", {
+          description: "No static channel backup files available.",
+        });
+        return;
+      }
+      await request("/api/scb/download");
+      toast.success("Backup downloaded", {
+        description: `Downloaded ${scbInfo.fileName}`,
+      });
+    } catch (error) {
+      console.error("Failed to download SCB:", error);
+      toast.error("Download failed", {
+        description:
+          error instanceof Error
+            ? error.message
+            : "Failed to download static channel backup.",
+      });
+    } finally {
+      setDownloadingSCB(false);
     }
   };
 
@@ -226,6 +260,28 @@ export default function Backup() {
                         ))}
                     </div>
                   </>
+                )}
+                {info?.backendType === "LDK" && (
+                  <div className="mt-8">
+                    <div className="flex gap-2 mb-1 items-center">
+                      <h3 className="text-sm font-medium">
+                        Download Local Backup
+                      </h3>
+                    </div>
+                    <p className="text-muted-foreground text-sm mb-4">
+                      Download the most recent static channel backup (SCB) file
+                      stored locally on your device.
+                    </p>
+                    <LoadingButton
+                      onClick={downloadLatestSCB}
+                      loading={downloadingSCB}
+                      variant="secondary"
+                      className="flex gap-2 justify-center"
+                    >
+                      {!downloadingSCB && <DownloadIcon className="size-4" />}
+                      Download Latest Channel Backup
+                    </LoadingButton>
+                  </div>
                 )}
               </>
             ) : (
