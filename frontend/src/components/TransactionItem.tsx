@@ -54,6 +54,10 @@ function TransactionItem({ tx }: Props) {
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;
 
+  const amountSatsWithFees = Math.floor(
+    (tx.amount + (tx.feesPaid || 0)) / 1000
+  );
+
   const pubkey = tx.metadata?.nostr?.pubkey;
   const npub = pubkey ? safeNpubEncode(pubkey) : undefined;
 
@@ -195,18 +199,16 @@ function TransactionItem({ tx }: Props) {
                 >
                   {type == "outgoing" ? "-" : "+"}
                   <span className="font-medium">
-                    {new Intl.NumberFormat().format(
-                      Math.floor(tx.amount / 1000)
-                    )}
+                    {new Intl.NumberFormat().format(amountSatsWithFees)}
                   </span>
                 </p>
                 <p className="text-muted-foreground">
-                  {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
+                  {amountSatsWithFees == 1 ? "sat" : "sats"}
                 </p>
               </div>
               <FormattedFiatAmount
                 className="text-xs md:text-base"
-                amount={Math.floor(tx.amount / 1000)}
+                amount={amountSatsWithFees}
               />
             </div>
           </div>
@@ -227,10 +229,10 @@ function TransactionItem({ tx }: Props) {
               {typeStateIcon}
               <div className="ml-4">
                 <p className="text-xl md:text-2xl font-semibold sensitive">
-                  {new Intl.NumberFormat().format(Math.floor(tx.amount / 1000))}{" "}
-                  {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
+                  {new Intl.NumberFormat().format(amountSatsWithFees)}{" "}
+                  {amountSatsWithFees == 1 ? "sat" : "sats"}
                 </p>
-                <FormattedFiatAmount amount={Math.floor(tx.amount / 1000)} />
+                <FormattedFiatAmount amount={amountSatsWithFees} />
               </div>
             </div>
             {app && (
@@ -274,6 +276,15 @@ function TransactionItem({ tx }: Props) {
                 {dayjs(tx.updatedAt).local().format("D MMMM YYYY, HH:mm")}
               </p>
             </div>
+            {tx.state != "failed" && type == "outgoing" && (
+              <div className="mt-6">
+                <p>Amount</p>
+                <p className="text-muted-foreground">
+                  {new Intl.NumberFormat().format(Math.floor(tx.amount / 1000))}{" "}
+                  {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
+                </p>
+              </div>
+            )}
             {tx.state != "failed" && type == "outgoing" && (
               <div className="mt-6">
                 <p>Fee</p>
