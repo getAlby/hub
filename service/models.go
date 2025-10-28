@@ -12,6 +12,11 @@ import (
 	"github.com/getAlby/hub/transactions"
 )
 
+type RelayStatus struct {
+	Url    string
+	Online bool
+}
+
 type Service interface {
 	StartApp(encryptionKey string) error
 	StopApp()
@@ -27,6 +32,6 @@ type Service interface {
 	GetDB() *gorm.DB
 	GetConfig() config.Config
 	GetKeys() keys.Keys
-	IsRelayReady() bool
+	GetRelayStatuses() []RelayStatus
 	GetStartupState() string
 }

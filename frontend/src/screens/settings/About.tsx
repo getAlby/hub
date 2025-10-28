@@ -1,5 +1,6 @@
 import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
+import { Badge } from "src/components/ui/badge";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 
 import { useInfo } from "src/hooks/useInfo";
@@ -41,10 +42,15 @@ export function About() {
           </p>
         </div>
         <div className="grid gap-2">
-          <p className="font-medium text-sm">Nostr Relay</p>
-          <p className="text-muted-foreground text-sm slashed-zero">
-            {info.relay}
-          </p>
+          <p className="font-medium text-sm">Nostr Relays</p>
+          {info.relays.map((relay) => (
+            <p className="flex items-center gap-2 text-muted-foreground text-sm">
+              {relay.url}
+              <Badge variant={relay.online ? "positive" : "destructive"}>
+                {relay.online ? "online" : "offline"}
+              </Badge>
+            </p>
+          ))}
         </div>
         {info.albyAccountConnected && albyMe && (
           <div className="grid gap-2">

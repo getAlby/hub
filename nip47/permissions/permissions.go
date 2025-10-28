@@ -92,12 +92,12 @@ func (svc *permissionsService) GetPermittedMethods(app *db.App, lnClient lnclien
 
 func (svc *permissionsService) PermitsNotifications(app *db.App) bool {
 	notificationPermission := db.AppPermission{}
-	err := svc.db.First(&notificationPermission, &db.AppPermission{
+	result := svc.db.Limit(1).Find(&notificationPermission, &db.AppPermission{
 		AppId: app.ID,
 		Scope: constants.NOTIFICATIONS_SCOPE,
-	}).Error
+	})
 
-	return err == nil
+	return result.Error == nil && result.RowsAffected > 0
 }
 
 func scopesToRequestMethods(scopes []string) []string {

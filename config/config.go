@@ -151,9 +151,9 @@ func (cfg *config) GetJWTSecret() string {
 	return secret
 }
 
-func (cfg *config) GetRelayUrl() string {
-	relayUrl, _ := cfg.Get("Relay", "")
-	return relayUrl
+func (cfg *config) GetRelayUrls() []string {
+	relayUrls, _ := cfg.Get("Relay", "")
+	return strings.Split(relayUrls, ",")
 }
 
 func (cfg *config) GetNetwork() string {
