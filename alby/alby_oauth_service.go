@@ -933,7 +933,7 @@ func (svc *albyOAuthService) activateAlbyAccountNWCNode(ctx context.Context, wal
 
 	activateNodeRequest := activateNWCNodeRequest{
 		WalletPubkey: walletServicePubkey,
-		RelayUrl:     svc.cfg.GetRelayUrls()[0],
+		RelayUrl:     svc.cfg.GetRelayUrls()[0], // TODO: pass all URLs if/when Alby Account supports it
 	}
 
 	body := bytes.NewBuffer([]byte{})

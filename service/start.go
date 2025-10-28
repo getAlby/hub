@@ -51,44 +51,36 @@ func (svc *service) startNostr(ctx context.Context) error {
 			"User-Agent": {"AlbyHub/" + version.Tag},
 		}),
 	))
-	svc.setRelayReady(false)
 
 	go func() {
 		for {
 			select {
 			case <-ctx.Done():
 				return
-			case <-time.After(10 * time.Second):
-				svc.setRelayReady(false)
-				pool.Relays.Range(func(key string, value *nostr.Relay) bool {
-					if value.IsConnected() {
-						svc.setRelayReady(true)
-					}
-					return true
-				})
+			default:
+				svc.relayStatuses = nil
+				for _, relayUrl := range svc.cfg.GetRelayUrls() {
+					relay, ok := pool.Relays.Load(relayUrl)
+					svc.relayStatuses = append(svc.relayStatuses, RelayStatus{
+						Url:    relayUrl,
+						Online: ok && relay != nil && relay.IsConnected(),
+					})
+				}
+				time.Sleep(10 * time.Second)
 			}
 		}
 	}()
-	var createAppEventListener events.EventSubscriber
-	//var updateAppEventListener events.EventSubscriber
 
 	svc.nip47Service.StartNotifier(ctx, pool)
 	svc.nip47Service.StartNip47InfoPublisher(ctx, pool, svc.lnClient)
 
 	// register a subscriber for events of "nwc_app_created" which handles creation of nostr subscription for new app
-	if createAppEventListener != nil {
-		svc.eventPublisher.RemoveSubscriber(createAppEventListener)
-	}
-	createAppEventListener = &createAppConsumer{svc: svc, pool: pool}
+	createAppEventListener := &createAppConsumer{svc: svc, pool: pool}
 	svc.eventPublisher.RegisterSubscriber(createAppEventListener)
 
 	// register a subscriber for events of "nwc_app_updated" which handles re-publishing of nip47 event info
-	// FIXME: re-enable
-	/*if updateAppEventListener != nil {
-		svc.eventPublisher.RemoveSubscriber(updateAppEventListener)
-	}
-	updateAppEventListener = &updateAppConsumer{svc: svc, relay: relay}
-	svc.eventPublisher.RegisterSubscriber(updateAppEventListener)*/
+	updateAppEventListener := &updateAppConsumer{svc: svc}
+	svc.eventPublisher.RegisterSubscriber(updateAppEventListener)
 
 	// start each app wallet subscription which have a child derived wallet key
 	svc.startAllExistingAppsWalletSubscriptions(ctx, pool)
@@ -112,14 +104,15 @@ func (svc *service) startNostr(ctx context.Context) error {
 		}()
 	}
 
-	svc.setRelayReady(true)
-
 	go func() {
 		<-ctx.Done()
 		logger.Logger.Info("Main context cancelled, exiting...")
 
 		pool.Close("exiting")
 		logger.Logger.Info("Relay subroutine ended")
+
+		svc.eventPublisher.RemoveSubscriber(createAppEventListener)
+		svc.eventPublisher.RemoveSubscriber(updateAppEventListener)
 	}()
 
 	return nil
@@ -197,25 +190,29 @@ func (svc *service) startAppWalletSubscription(ctx context.Context, pool *nostr.
 		Kinds: []int{models.REQUEST_KIND},
 	}
 
+	_, cancelSubscription := context.WithCancel(ctx)
 	eventsChannel := pool.SubscribeMany(ctx, svc.cfg.GetRelayUrls(), filter)
 
-	// register a subscriber for "nwc_app_deleted" events, which handles nostr subscription cancel and nip47 info event deletion
+	// register a subscriber for "nwc_app_deleted" events, which handles
+	// cancelling the nostr subscription and nip47 info event deletion
+	deleteEventSubscriber := deleteAppConsumer{
+		cancelSubscription: cancelSubscription,
+		walletPubkey:       appWalletPubKey,
+		svc:                svc,
+		pool:               pool,
+	}
+	svc.eventPublisher.RegisterSubscriber(&deleteEventSubscriber)
 
-	// FIXME: re-enable delete subscriber
-	// deleteEventSubscriber := deleteAppConsumer{nostrSubscription: sub, walletPubkey: appWalletPubKey, svc: svc, relay: relay}
-	// svc.eventPublisher.RegisterSubscriber(&deleteEventSubscriber)
+	err := svc.watchSubscription(ctx, pool, eventsChannel)
 
-	err := svc.StartSubscription(ctx, pool, eventsChannel)
-
-	// FIXME: re-add
-	//svc.eventPublisher.RemoveSubscriber(&deleteEventSubscriber)
+	svc.eventPublisher.RemoveSubscriber(&deleteEventSubscriber)
 	if err != nil {
 		return fmt.Errorf("got an error from the relay while listening to subscription: %w", err)
 	}
 	return nil
 }
 
-func (svc *service) StartSubscription(ctx context.Context, pool *nostr.SimplePool, eventsChannel chan nostr.RelayEvent) error {
+func (svc *service) watchSubscription(ctx context.Context, pool *nostr.SimplePool, eventsChannel chan nostr.RelayEvent) error {
 	go func() {
 		// loop through incoming events
 		for event := range eventsChannel {

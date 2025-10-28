@@ -265,30 +265,35 @@ type User struct {
 	Email string `json:"email"`
 }
 
+type InfoResponseRelay struct {
+	Url    string `json:"url"`
+	Online bool   `json:"online"`
+}
+
 type InfoResponse struct {
-	BackendType                 string    `json:"backendType"`
-	SetupCompleted              bool      `json:"setupCompleted"`
-	OAuthRedirect               bool      `json:"oauthRedirect"`
-	Running                     bool      `json:"running"`
-	Unlocked                    bool      `json:"unlocked"`
-	AlbyAuthUrl                 string    `json:"albyAuthUrl"`
-	NextBackupReminder          string    `json:"nextBackupReminder"`
-	AlbyUserIdentifier          string    `json:"albyUserIdentifier"`
-	AlbyAccountConnected        bool      `json:"albyAccountConnected"`
-	Version                     string    `json:"version"`
-	Network                     string    `json:"network"`
-	EnableAdvancedSetup         bool      `json:"enableAdvancedSetup"`
-	LdkVssEnabled               bool      `json:"ldkVssEnabled"`
-	VssSupported                bool      `json:"vssSupported"`
-	StartupState                string    `json:"startupState"`
-	StartupError                string    `json:"startupError"`
-	StartupErrorTime            time.Time `json:"startupErrorTime"`
-	AutoUnlockPasswordSupported bool      `json:"autoUnlockPasswordSupported"`
-	AutoUnlockPasswordEnabled   bool      `json:"autoUnlockPasswordEnabled"`
-	Currency                    string    `json:"currency"`
-	Relay                       string    `json:"relay"`
-	NodeAlias                   string    `json:"nodeAlias"`
-	MempoolUrl                  string    `json:"mempoolUrl"`
+	BackendType                 string              `json:"backendType"`
+	SetupCompleted              bool                `json:"setupCompleted"`
+	OAuthRedirect               bool                `json:"oauthRedirect"`
+	Running                     bool                `json:"running"`
+	Unlocked                    bool                `json:"unlocked"`
+	AlbyAuthUrl                 string              `json:"albyAuthUrl"`
+	NextBackupReminder          string              `json:"nextBackupReminder"`
+	AlbyUserIdentifier          string              `json:"albyUserIdentifier"`
+	AlbyAccountConnected        bool                `json:"albyAccountConnected"`
+	Version                     string              `json:"version"`
+	Network                     string              `json:"network"`
+	EnableAdvancedSetup         bool                `json:"enableAdvancedSetup"`
+	LdkVssEnabled               bool                `json:"ldkVssEnabled"`
+	VssSupported                bool                `json:"vssSupported"`
+	StartupState                string              `json:"startupState"`
+	StartupError                string              `json:"startupError"`
+	StartupErrorTime            time.Time           `json:"startupErrorTime"`
+	AutoUnlockPasswordSupported bool                `json:"autoUnlockPasswordSupported"`
+	AutoUnlockPasswordEnabled   bool                `json:"autoUnlockPasswordEnabled"`
+	Currency                    string              `json:"currency"`
+	Relays                      []InfoResponseRelay `json:"relays"`
+	NodeAlias                   string              `json:"nodeAlias"`
+	MempoolUrl                  string              `json:"mempoolUrl"`
 }
 
 type UpdateSettingsRequest struct {

@@ -45,23 +45,19 @@ func (q *nip47InfoPublishQueue) Channel() <-chan *Nip47InfoPublishRequest {
 	return q.channel
 }
 
-func (svc *nip47Service) GetNip47Info(ctx context.Context, relay *nostr.Relay, appWalletPubKey string) (*nostr.Event, error) {
+func (svc *nip47Service) GetNip47Info(ctx context.Context, pool nostrmodels.SimplePool, appWalletPubKey string) (*nostr.Event, error) {
 	filter := nostr.Filter{
 		Kinds:   []int{models.INFO_EVENT_KIND},
 		Authors: []string{appWalletPubKey},
 		Limit:   1,
 	}
 
-	events, err := relay.QuerySync(ctx, filter)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(events) == 0 {
+	relayEvent := pool.QuerySingle(ctx, svc.cfg.GetRelayUrls(), filter)
+	if relayEvent == nil {
 		return nil, nil
 	}
 
-	return events[0], nil
+	return relayEvent.Event, nil
 }
 
 func (svc *nip47Service) PublishNip47Info(ctx context.Context, pool nostrmodels.SimplePool, appId uint, appWalletPubKey string, appWalletPrivKey string, relayUrl string, lnClient lnclient.LNClient) (*nostr.Event, error) {
@@ -110,14 +106,14 @@ func (svc *nip47Service) PublishNip47Info(ctx context.Context, pool nostrmodels.
 	publishResultChannel := pool.PublishMany(ctx, []string{relayUrl}, *ev)
 
 	publishSuccessful := false
-	for v := range publishResultChannel {
-		if v.Error == nil {
+	for result := range publishResultChannel {
+		if result.Error == nil {
 			publishSuccessful = true
 		} else {
 			logger.Logger.WithFields(logrus.Fields{
 				"appId": appId,
-				"relay": v.RelayURL,
-			}).WithError(v.Error).Error("failed to publish nip47 info to relay")
+				"relay": result.RelayURL,
+			}).WithError(result.Error).Error("failed to publish nip47 info to relay")
 		}
 	}
 	if !publishSuccessful {
@@ -127,7 +123,7 @@ func (svc *nip47Service) PublishNip47Info(ctx context.Context, pool nostrmodels.
 	return ev, nil
 }
 
-func (svc *nip47Service) PublishNip47InfoDeletion(ctx context.Context, relay nostrmodels.Relay, appWalletPubKey string, appWalletPrivKey string, infoEventId string) error {
+func (svc *nip47Service) PublishNip47InfoDeletion(ctx context.Context, pool nostrmodels.SimplePool, appWalletPubKey string, appWalletPrivKey string, infoEventId string) error {
 	ev := &nostr.Event{}
 	ev.Kind = nostr.KindDeletion
 	ev.Content = "deleting nip47 info since app connection for this key was deleted"
@@ -138,9 +134,22 @@ func (svc *nip47Service) PublishNip47InfoDeletion(ctx context.Context, relay nos
 	if err != nil {
 		return err
 	}
-	err = relay.Publish(ctx, *ev)
-	if err != nil {
-		return fmt.Errorf("nostr publish not successful: %s", err)
+	publishResultChannel := pool.PublishMany(ctx, svc.cfg.GetRelayUrls(), *ev)
+
+	publishSuccessful := false
+	for result := range publishResultChannel {
+		if result.Error == nil {
+			publishSuccessful = true
+		} else {
+			logger.Logger.WithFields(logrus.Fields{
+				"wallet_pubkey": appWalletPubKey,
+				"relay":         result.RelayURL,
+			}).WithError(result.Error).Error("failed to publish info event deletion to relay")
+		}
+	}
+
+	if !publishSuccessful {
+		return fmt.Errorf("nostr publish of info deletion was not successful: %s", err)
 	}
 	return nil
 }

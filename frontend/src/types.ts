@@ -152,7 +152,7 @@ export interface InfoResponse {
   albyUserIdentifier: string;
   network?: Network;
   version: string;
-  relay: string;
+  relays: { url: string; online: boolean }[];
   unlocked: boolean;
   enableAdvancedSetup: boolean;
   startupState: string;

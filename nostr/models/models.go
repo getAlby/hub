@@ -6,10 +6,12 @@ import (
 	"github.com/nbd-wtf/go-nostr"
 )
 
-type Relay interface {
-	Publish(ctx context.Context, event nostr.Event) error
-}
-
 type SimplePool interface {
 	PublishMany(ctx context.Context, relayUrls []string, event nostr.Event) chan nostr.PublishResult
+	QuerySingle(
+		ctx context.Context,
+		urls []string,
+		filter nostr.Filter,
+		opts ...nostr.SubscriptionOption,
+	) *nostr.RelayEvent
 }

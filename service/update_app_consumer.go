@@ -10,8 +10,7 @@ import (
 
 type updateAppConsumer struct {
 	events.EventSubscriber
-	svc   *service
-	relay *nostr.Relay
+	svc *service
 }
 
 // When a app is updated, re-publish the nip47 info event

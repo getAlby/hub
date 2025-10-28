@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/adrg/xdg"
@@ -45,7 +44,7 @@ type service struct {
 	nip47Service        nip47.Nip47Service
 	appCancelFn         context.CancelFunc
 	keys                keys.Keys
-	isRelayReady        atomic.Bool
+	relayStatuses       []RelayStatus
 	startupState        string
 }
 
@@ -272,12 +271,8 @@ func (svc *service) GetKeys() keys.Keys {
 	return svc.keys
 }
 
-func (svc *service) setRelayReady(ready bool) {
-	svc.isRelayReady.Store(ready)
-}
-
-func (svc *service) IsRelayReady() bool {
-	return svc.isRelayReady.Load()
+func (svc *service) GetRelayStatuses() []RelayStatus {
+	return svc.relayStatuses
 }
 
 func (svc *service) GetStartupState() string {

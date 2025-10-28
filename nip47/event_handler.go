@@ -496,8 +496,8 @@ func (svc *nip47Service) publishResponseEvent(ctx context.Context, pool nostrmod
 	publishResultChannel := pool.PublishMany(ctx, svc.cfg.GetRelayUrls(), *resp)
 
 	publishSuccessful := false
-	for v := range publishResultChannel {
-		if v.Error == nil {
+	for result := range publishResultChannel {
+		if result.Error == nil {
 			publishSuccessful = true
 		} else {
 			logger.Logger.WithFields(logrus.Fields{
@@ -506,8 +506,8 @@ func (svc *nip47Service) publishResponseEvent(ctx context.Context, pool nostrmod
 				"appId":                appId,
 				"responseEventId":      responseEvent.ID,
 				"responseNostrEventId": resp.ID,
-				"relay":                v.RelayURL,
-			}).WithError(v.Error).Error("failed to publish response event to relay")
+				"relay":                result.RelayURL,
+			}).WithError(result.Error).Error("failed to publish response event to relay")
 		}
 	}
 

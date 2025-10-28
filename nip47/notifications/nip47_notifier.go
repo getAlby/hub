@@ -215,15 +215,15 @@ func (notifier *Nip47Notifier) notifySubscriber(ctx context.Context, app *db.App
 	publishResultChannel := notifier.pool.PublishMany(ctx, notifier.cfg.GetRelayUrls(), *event)
 
 	publishSuccessful := false
-	for v := range publishResultChannel {
-		if v.Error == nil {
+	for result := range publishResultChannel {
+		if result.Error == nil {
 			publishSuccessful = true
 		} else {
 			logger.Logger.WithFields(logrus.Fields{
 				"notification": notification,
 				"appId":        app.ID,
-				"relay":        v.RelayURL,
-			}).WithError(v.Error).Error("failed to publish notification to relay")
+				"relay":        result.RelayURL,
+			}).WithError(result.Error).Error("failed to publish notification to relay")
 		}
 	}
 

@@ -1205,15 +1205,24 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.VssSupported = backendType == config.LDKBackendType && api.cfg.GetEnv().LDKVssUrl != ""
 	info.AutoUnlockPasswordEnabled = autoUnlockPassword != ""
 	info.AutoUnlockPasswordSupported = api.cfg.GetEnv().IsDefaultClientId()
-	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
+	info.Relays = []InfoResponseRelay{}
+	for _, relayStatus := range api.svc.GetRelayStatuses() {
+		info.Relays = append(info.Relays, InfoResponseRelay{
+			Url:    relayStatus.Url,
+			Online: relayStatus.Online,
+		})
+	}
+
 	info.MempoolUrl = api.cfg.GetMempoolUrl()
-	info.Relay = strings.Join(api.cfg.GetRelayUrls(), ",")
+	info.AlbyAccountConnected = api.albyOAuthSvc.IsConnected(ctx)
+
+	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get alby user identifier")
 		return nil, err
 	}
 	info.AlbyUserIdentifier = albyUserIdentifier
-	info.AlbyAccountConnected = api.albyOAuthSvc.IsConnected(ctx)
+
 	if api.svc.GetLNClient() != nil {
 		nodeInfo, err := api.svc.GetLNClient().GetInfo(ctx)
 		if err != nil {
@@ -1534,9 +1543,16 @@ func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 		alarms = append(alarms, NewHealthAlarm(HealthAlarmKindAlbyService, albyInfo.Incidents))
 	}
 
-	isNostrRelayReady := api.svc.IsRelayReady()
-	if !isNostrRelayReady {
-		alarms = append(alarms, NewHealthAlarm(HealthAlarmKindNostrRelayOffline, nil))
+	isAnyNostrRelayOffline := len(api.svc.GetRelayStatuses()) == 0
+	offlineRelayUrls := []string{}
+	for _, relayStatus := range api.svc.GetRelayStatuses() {
+		if !relayStatus.Online {
+			isAnyNostrRelayOffline = true
+			offlineRelayUrls = append(offlineRelayUrls, relayStatus.Url)
+		}
+	}
+	if isAnyNostrRelayOffline {
+		alarms = append(alarms, NewHealthAlarm(HealthAlarmKindNostrRelayOffline, offlineRelayUrls))
 	}
 
 	ldkVssEnabled, _ := api.cfg.Get("LdkVssEnabled", "")
