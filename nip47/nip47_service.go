@@ -65,7 +65,6 @@ func (svc *nip47Service) ConsumeEvent(ctx context.Context, event *events.Event, 
 	svc.nip47NotificationQueue.AddToQueue(event)
 }
 
-// FIXME: this is not how it works now since we use a pool that handles reconnection logic
 // The notifier is decoupled from the notification queue
 // so that if Alby Hub disconnects from the relay, it will wait to reconnect
 // to send notifications rather than dropping them
