@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import {
   Card,
@@ -96,7 +97,9 @@ export function OnchainTransactionsTable() {
                         >
                           {tx.type == "outgoing" ? "-" : "+"}
                           <span className="font-medium">
-                            {new Intl.NumberFormat().format(tx.amountSat)}
+                            <FormattedBitcoinAmount
+                              amount={tx.amountSat * 1000}
+                            />
                           </span>
                         </p>
                         <p className="text-muted-foreground">

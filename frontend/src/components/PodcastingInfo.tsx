@@ -1,3 +1,4 @@
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import { Boostagram } from "src/types";
 
 function PodcastingInfo({ boost }: { boost: Boostagram }) {
@@ -37,10 +38,7 @@ function PodcastingInfo({ boost }: { boost: Boostagram }) {
         <div className="mt-6">
           <p>Total amount</p>
           <p className="text-muted-foreground break-all sensitive">
-            {new Intl.NumberFormat().format(
-              Math.floor(boost.valueMsatTotal / 1000)
-            )}{" "}
-            {Math.floor(boost.valueMsatTotal / 1000) == 1 ? "sat" : "sats"}
+            <FormattedBitcoinAmount amount={boost.valueMsatTotal} />
           </p>
         </div>
       )}

@@ -10,6 +10,7 @@ import React from "react";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
@@ -125,10 +126,7 @@ export default function ReceiveInvoice() {
                       <QRCode value={transaction.invoice} className="w-full" />
                       <div className="flex flex-col gap-1 items-center">
                         <p className="text-2xl font-medium slashed-zero">
-                          {new Intl.NumberFormat().format(
-                            Math.floor(transaction.amount / 1000)
-                          )}{" "}
-                          sats
+                          <FormattedBitcoinAmount amount={transaction.amount} />
                         </p>
                         <FormattedFiatAmount
                           amount={Math.floor(transaction.amount / 1000)}
