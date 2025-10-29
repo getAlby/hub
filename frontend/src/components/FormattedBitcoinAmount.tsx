@@ -1,5 +1,5 @@
 import { useInfo } from "src/hooks/useInfo";
-import { BitcoinDisplayFormat } from "src/utils/bitcoinFormatting";
+import { BitcoinDisplayFormat } from "src/types";
 
 interface FormattedBitcoinAmountProps {
   amount: number; // Amount in millisatoshis

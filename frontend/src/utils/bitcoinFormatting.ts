@@ -1,4 +1,4 @@
-export type BitcoinDisplayFormat = "sats" | "bip177";
+import { BitcoinDisplayFormat } from "src/types";
 
 /**
  * Utility function to format Bitcoin amounts as a string
