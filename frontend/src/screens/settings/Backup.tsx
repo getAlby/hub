@@ -79,9 +79,9 @@ export default function Backup() {
         description={
           <>
             <span className="text-muted-foreground">
-              Backup your wallet recovery phrase and channel states. These
-              backups are for disaster recovery only. To migrate your node,
-              please use the migration tool.{" "}
+              Backup your recovery phrase and channel states. These backups are
+              for disaster recovery only. To migrate your node, please use the
+              migration tool.{" "}
             </span>
             <a
               href="https://guides.getalby.com/user-guide/alby-hub/backups-and-recover"
@@ -274,7 +274,7 @@ export default function Backup() {
 
       {!hasMnemonic && !info?.vssSupported && (
         <p className="text-sm text-muted-foreground">
-          No wallet recovery phrase or channel state backup present.
+          No recovery phrase or channel state backup present.
         </p>
       )}
     </>
