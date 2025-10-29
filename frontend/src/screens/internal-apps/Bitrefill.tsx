@@ -86,7 +86,20 @@ export function Bitrefill() {
       <div className="flex flex-col gap-5 h-full">
         <AppHeader
           title="Bitrefill"
-          description="Live on bitcoin by purchasing digital gift cards, eSIMs, and phone refills"
+          description={
+            <>
+              Live on bitcoin by purchasing digital gift cards, eSIMs, and phone
+              refills. Set up{" "}
+              <a
+                href="https://www.bitrefill.com/account/developers/mcp-server"
+                target="_blank"
+                className="underline"
+              >
+                Bitrefill MCP
+              </a>{" "}
+              to enable AI agents to purchase gift cards with Bitcoin.
+            </>
+          }
         />
         <iframe
           width="100%"

@@ -192,6 +192,29 @@ export const appStoreApps: AppStoreApp[] = (
       webLink: "https://claude.ai/",
     },
     {
+      id: "lnmarkets-mcp",
+      title: "LNMarkets MCP",
+      description: "Trade Bitcoin futures with AI-powered automation",
+      extendedDescription:
+        "Connect AI agents to LNMarkets for automated Bitcoin futures trading",
+      internal: false,
+      logo: lnbits,
+      categories: ["ai"],
+      webLink: "https://sup3r.cool/ln-markets/",
+    },
+    {
+      id: "awesome-ai-bitcoin",
+      title: "See more awesome usecases",
+      description: "Discover more AI + Bitcoin integrations and MCP servers",
+      extendedDescription:
+        "Explore a curated list of awesome AI and Bitcoin usecases, including more MCP servers",
+      internal: false,
+      logo: alby,
+      categories: ["ai"],
+      webLink:
+        "https://github.com/getAlby/awesome-ai-bitcoin/?tab=readme-ov-file#mcp-servers",
+    },
+    {
       id: "simpleboost",
       title: "SimpleBoost",
       description: "Donation widget for your website",

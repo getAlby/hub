@@ -210,6 +210,17 @@ export function Goose() {
                 </a>{" "}
                 - an MCP server that connects to NWC wallets.
               </p>
+              <p className="text-muted-foreground">
+                Set up{" "}
+                <a
+                  href="https://block.github.io/goose/docs/mcp/memory-mcp/"
+                  target="_blank"
+                  className="underline"
+                >
+                  Memory MCP
+                </a>{" "}
+                to give Goose persistent memory.
+              </p>
               <div className=" flex flex-col gap-5">
                 <p className="text-muted-foreground">
                   Connect your hub to goose to:

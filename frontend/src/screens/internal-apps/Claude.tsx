@@ -181,6 +181,17 @@ export function Claude() {
                 allows Claude to help you with payments, balance checks, and
                 more.
               </p>
+              <p className="text-muted-foreground">
+                Set up{" "}
+                <a
+                  href="https://docs.claude.com/en/docs/claude-code/memory"
+                  target="_blank"
+                  className="underline"
+                >
+                  Memory MCP
+                </a>{" "}
+                to give Claude persistent memory.
+              </p>
               <div className=" flex flex-col gap-5">
                 <p className="text-muted-foreground">
                   Connect your hub to Claude to:
