@@ -9,6 +9,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/logger"
 	"github.com/sirupsen/logrus"
@@ -344,7 +345,7 @@ func randomHex(n int) (string, error) {
 }
 
 const defaultCurrency = "USD"
-const defaultBitcoinDisplayFormat = "bip177"
+const defaultBitcoinDisplayFormat = constants.BITCOIN_DISPLAY_FORMAT_BIP177
 
 func (cfg *config) GetCurrency() string {
 	currency, err := cfg.Get("Currency", "")
@@ -383,8 +384,8 @@ func (cfg *config) GetBitcoinDisplayFormat() string {
 }
 
 func (cfg *config) SetBitcoinDisplayFormat(value string) error {
-	if value != "sats" && value != "bip177" {
-		return errors.New("bitcoin display format must be 'sats' or 'bip177'")
+	if value != constants.BITCOIN_DISPLAY_FORMAT_SATS && value != constants.BITCOIN_DISPLAY_FORMAT_BIP177 {
+		return fmt.Errorf("bitcoin display format must be '%s' or '%s'", constants.BITCOIN_DISPLAY_FORMAT_SATS, constants.BITCOIN_DISPLAY_FORMAT_BIP177)
 	}
 	err := cfg.SetUpdate("BitcoinDisplayFormat", value, "")
 	if err != nil {
