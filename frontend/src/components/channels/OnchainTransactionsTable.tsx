@@ -102,9 +102,6 @@ export function OnchainTransactionsTable() {
                             />
                           </span>
                         </p>
-                        <p className="text-muted-foreground">
-                          {tx.amountSat == 1 ? "sat" : "sats"}
-                        </p>
                       </div>
                       <FormattedFiatAmount
                         className="text-xs"
