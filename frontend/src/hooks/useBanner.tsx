@@ -9,10 +9,10 @@ export function useBanner() {
   const { data: albyInfo } = useAlbyInfo();
   const { data: albyMe } = useAlbyMe();
   const [showBanner, setShowBanner] = React.useState(false);
+  const isDismissedRef = React.useRef(false);
 
   React.useEffect(() => {
-    if (!info || !albyInfo) {
-      setShowBanner(false);
+    if (!info || !albyInfo || isDismissedRef.current) {
       return;
     }
 
@@ -33,6 +33,7 @@ export function useBanner() {
   }, [info, albyInfo, albyMe?.subscription.plan_code]);
 
   const dismissBanner = () => {
+    isDismissedRef.current = true;
     setShowBanner(false);
   };
 
