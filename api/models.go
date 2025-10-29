@@ -66,6 +66,7 @@ type API interface {
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
 	SetBitcoinDisplayFormat(format string) error
+	UpdateSettings(updateSettingsRequest *UpdateSettingsRequest) error
 	LookupSwap(swapId string) (*LookupSwapResponse, error)
 	ListSwaps() (*ListSwapsResponse, error)
 	GetSwapInInfo() (*SwapInfoResponse, error)

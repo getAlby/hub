@@ -385,22 +385,12 @@ func (httpSvc *HttpService) updateSettingsHandler(c echo.Context) error {
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
-	if updateSettingsRequest.Currency != "" {
-		err := httpSvc.api.SetCurrency(updateSettingsRequest.Currency)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, ErrorResponse{
-				Message: fmt.Sprintf("Failed to set currency: %s", err.Error()),
-			})
-		}
-	}
 
-	if updateSettingsRequest.BitcoinDisplayFormat != "" {
-		err := httpSvc.api.SetBitcoinDisplayFormat(updateSettingsRequest.BitcoinDisplayFormat)
-		if err != nil {
-			return c.JSON(http.StatusInternalServerError, ErrorResponse{
-				Message: fmt.Sprintf("Failed to set bitcoin display format: %s", err.Error()),
-			})
-		}
+	err := httpSvc.api.UpdateSettings(&updateSettingsRequest)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to update settings: %s", err.Error()),
+		})
 	}
 
 	return c.NoContent(http.StatusNoContent)

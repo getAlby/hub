@@ -1258,6 +1258,24 @@ func (api *api) SetBitcoinDisplayFormat(format string) error {
 	return nil
 }
 
+func (api *api) UpdateSettings(updateSettingsRequest *UpdateSettingsRequest) error {
+	if updateSettingsRequest.Currency != "" {
+		err := api.SetCurrency(updateSettingsRequest.Currency)
+		if err != nil {
+			return fmt.Errorf("failed to set currency: %w", err)
+		}
+	}
+
+	if updateSettingsRequest.BitcoinDisplayFormat != "" {
+		err := api.SetBitcoinDisplayFormat(updateSettingsRequest.BitcoinDisplayFormat)
+		if err != nil {
+			return fmt.Errorf("failed to set bitcoin display format: %w", err)
+		}
+	}
+
+	return nil
+}
+
 func (api *api) SetNodeAlias(nodeAlias string) error {
 	err := api.cfg.SetUpdate("NodeAlias", nodeAlias, "")
 	if err != nil {
