@@ -54,41 +54,41 @@ function Settings() {
     fetchCurrencies();
   }, []);
 
-  async function updateCurrency(currency: string) {
+  async function updateSettings(
+    payload: Record<string, string>,
+    successMessage: string,
+    errorMessage: string
+  ) {
     try {
       await request("/api/settings", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ currency }),
+        body: JSON.stringify(payload),
       });
       await reloadInfo();
-      toast(`Currency set to ${currency}`);
+      toast(successMessage);
     } catch (error) {
       console.error(error);
-      handleRequestError("Failed to update currencies", error);
+      handleRequestError(errorMessage, error);
     }
   }
 
+  async function updateCurrency(currency: string) {
+    await updateSettings(
+      { currency },
+      `Currency set to ${currency}`,
+      "Failed to update currencies"
+    );
+  }
+
   async function updateBitcoinDisplayFormat(bitcoinDisplayFormat: string) {
-    try {
-      await request("/api/settings", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          bitcoinDisplayFormat,
-          currency: info?.currency || "USD", // Include current currency to avoid validation error
-        }),
-      });
-      await reloadInfo();
-      toast(`Bitcoin display format updated`);
-    } catch (error) {
-      console.error(error);
-      handleRequestError("Failed to update bitcoin display format", error);
-    }
+    await updateSettings(
+      { bitcoinDisplayFormat },
+      "Bitcoin display format updated",
+      "Failed to update bitcoin display format"
+    );
   }
 
   if (!info) {
