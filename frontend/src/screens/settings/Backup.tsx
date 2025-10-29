@@ -65,7 +65,7 @@ export default function Backup() {
       setIsDialogOpen(true);
     } catch (error) {
       toast.error("Incorrect password", {
-        description: "Failed to decrypt mnemonic.",
+        description: "Failed to decrypt recovery phrase.",
       });
     } finally {
       setLoading(false);
