@@ -156,10 +156,7 @@ export default function ReceiveInvoice() {
                       <img src={TickSVG} className="w-48" />
                       <div className="flex flex-col gap-1 items-center">
                         <p className="text-2xl font-medium slashed-zero">
-                          {new Intl.NumberFormat().format(
-                            Math.floor(transaction.amount / 1000)
-                          )}{" "}
-                          sats
+                          <FormattedBitcoinAmount amount={transaction.amount} />
                         </p>
                         <FormattedFiatAmount
                           amount={Math.floor(transaction.amount / 1000)}
