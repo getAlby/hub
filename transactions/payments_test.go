@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -183,6 +184,49 @@ func TestMarkSettled_Sent(t *testing.T) {
 		return err
 	})
 
+	assert.NoError(t, err)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, dbTransaction.State)
+	assert.Equal(t, 1, len(mockEventConsumer.GetConsumedEvents()))
+	assert.Equal(t, "nwc_payment_sent", mockEventConsumer.GetConsumedEvents()[0].Event)
+	settledTransaction := mockEventConsumer.GetConsumedEvents()[0].Properties.(*db.Transaction)
+	assert.Equal(t, &dbTransaction, settledTransaction)
+}
+
+func TestMarkSettled_Twice(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	dbTransaction := db.Transaction{
+		State:       constants.TRANSACTION_STATE_PENDING,
+		Type:        constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentHash: tests.MockLNClientTransaction.PaymentHash,
+		AmountMsat:  123000,
+	}
+	svc.DB.Create(&dbTransaction)
+
+	mockEventConsumer := tests.NewMockEventConsumer()
+	svc.EventPublisher.RegisterSubscriber(mockEventConsumer)
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	var wg sync.WaitGroup
+	n := 10
+	wg.Add(n)
+	for range n {
+		go func() {
+			defer wg.Done()
+			err = svc.DB.Transaction(func(tx *gorm.DB) error {
+				time.Sleep(time.Duration(n) * 10 * time.Millisecond)
+				_, err = transactionsService.markTransactionSettled(tx, &dbTransaction, "test", 0, false)
+				time.Sleep(time.Duration(n) * 10 * time.Millisecond)
+				return err
+			})
+			require.NoError(t, err)
+		}()
+	}
+	wg.Wait()
+
+	// ensure we only mark transaction settled once and only fire
+	// settled notifications once
 	assert.NoError(t, err)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, dbTransaction.State)
 	assert.Equal(t, 1, len(mockEventConsumer.GetConsumedEvents()))
