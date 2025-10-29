@@ -11,7 +11,7 @@ export function SetupAdvanced() {
         <div className="grid gap-5">
           <TwoColumnLayoutHeader
             title="Advanced Setup"
-            description="Import your Alby Hub, import existing recovery phrase or Master Key or create custom wallet."
+            description="Import your Alby Hub, import existing recovery phrase or create custom wallet."
           />
           <div className="flex flex-col gap-3">
             <Link to="/setup/node-restore">
