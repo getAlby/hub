@@ -230,8 +230,8 @@ export function FirstChannel() {
                             </div>
                           </TooltipTrigger>
                           <TooltipContent className="max-w-sm">
-                            You will be able to receive up to this amount of
-                            sats in this channel.
+                            You will be able to receive up to this amount in
+                            this channel.
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>

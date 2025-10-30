@@ -1,4 +1,6 @@
 import React from "react";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { cn } from "src/lib/utils";
@@ -20,7 +22,7 @@ function BudgetAmountSelect({
   );
   return (
     <>
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-2 text-xs mb-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs mb-4">
         {Object.keys(budgetOptions)
           .filter(
             (budget) =>
@@ -44,7 +46,20 @@ function BudgetAmountSelect({
                     : "border-muted"
                 )}
               >
-                {`${budget} ${budgetOptions[budget] ? " sats" : ""}`}
+                {budgetOptions[budget] ? (
+                  <>
+                    <FormattedBitcoinAmount
+                      amount={budgetOptions[budget] * 1000}
+                    />
+                    <FormattedFiatAmount
+                      className="text-xs"
+                      showApprox
+                      amount={budgetOptions[budget]}
+                    />
+                  </>
+                ) : (
+                  budget
+                )}
               </button>
             );
           })}

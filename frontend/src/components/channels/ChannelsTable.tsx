@@ -25,7 +25,6 @@ import {
   TooltipTrigger,
 } from "src/components/ui/tooltip.tsx";
 import { useNodeDetails } from "src/hooks/useNodeDetails";
-import { formatAmount } from "src/lib/utils.ts";
 import { Channel, LongUnconfirmedZeroConfChannel } from "src/types";
 import { ChannelDropdownMenu } from "./ChannelDropdownMenu";
 
@@ -203,12 +202,12 @@ function ChannelTableRow({
       <TableCell title={channel.unspendablePunishmentReserve + " sats"}>
         {channel.localBalance < channel.unspendablePunishmentReserve * 1000 && (
           <>
-            {formatAmount(
-              Math.min(
+            <FormattedBitcoinAmount
+              amount={Math.min(
                 channel.localBalance,
                 channel.unspendablePunishmentReserve * 1000
-              )
-            )}{" "}
+              )}
+            />{" "}
             /{" "}
           </>
         )}

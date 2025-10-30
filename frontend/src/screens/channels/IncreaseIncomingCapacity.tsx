@@ -278,8 +278,9 @@ function NewChannelInternal({
 
             {order.amount && +order.amount < 200_000 && (
               <p className="text-muted-foreground text-xs">
-                For a smooth experience consider a opening a channel of 200k
-                sats in size or more.{" "}
+                For a smooth experience consider a opening a channel of{" "}
+                <FormattedBitcoinAmount amount={200_000 * 1000} /> in size or
+                more.{" "}
                 <ExternalLink
                   to="https://guides.getalby.com/user-guide/alby-hub/node"
                   className="underline"
