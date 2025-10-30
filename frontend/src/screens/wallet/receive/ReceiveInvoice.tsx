@@ -123,7 +123,7 @@ export default function ReceiveInvoice() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="flex flex-col items-center gap-6">
-                      <QRCode value={transaction.invoice} className="w-full" />
+                      <QRCode value={transaction.invoice} />
                       <div className="flex flex-col gap-1 items-center">
                         <p className="text-2xl font-medium slashed-zero">
                           <FormattedBitcoinAmount amount={transaction.amount} />

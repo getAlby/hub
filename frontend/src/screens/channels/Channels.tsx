@@ -524,8 +524,11 @@ export default function Channels() {
                                   You have insufficient funds in reserve to
                                   close channels or bump on-chain transactions
                                   and currently rely on the counterparty. It is
-                                  recommended to deposit at least 25,000 sats to
-                                  your on-chain balance.
+                                  recommended to deposit at least{" "}
+                                  <FormattedBitcoinAmount
+                                    amount={25_000 * 1000}
+                                  />{" "}
+                                  to your on-chain balance.
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
