@@ -20,29 +20,10 @@ func NewLDKLogger(logLevel ldk_node.LogLevel) ldk_node.LogWriter {
 
 func (ldkLogger *ldkLogger) Log(record ldk_node.LogRecord) {
 	if record.Level >= ldkLogger.logLevel {
-		logger.Logger.WithFields(logrus.Fields{
+		logger.LDKLogger.WithFields(logrus.Fields{
 			"log_type":    "LDK-node",
 			"line":        record.Line,
 			"module_path": record.ModulePath,
-		}).Log(mapLogLevel(record.Level), record.Args)
+		}).Log(logger.MapLdkLogLevel(record.Level), record.Args)
 	}
-}
-
-func mapLogLevel(logLevel ldk_node.LogLevel) logrus.Level {
-	switch logLevel {
-	case ldk_node.LogLevelGossip:
-		return logrus.TraceLevel
-	case ldk_node.LogLevelTrace:
-		return logrus.TraceLevel
-	case ldk_node.LogLevelDebug:
-		return logrus.DebugLevel
-	case ldk_node.LogLevelInfo:
-		return logrus.InfoLevel
-	case ldk_node.LogLevelWarn:
-		return logrus.WarnLevel
-	case ldk_node.LogLevelError:
-		return logrus.ErrorLevel
-	}
-	logger.Logger.WithField("log_level", logLevel).Error("Unknown LDK log level")
-	return logrus.ErrorLevel
 }
