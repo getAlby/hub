@@ -7,6 +7,7 @@ import {
 import { useParams } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LottieLoading from "src/components/LottieLoading";
@@ -74,10 +75,9 @@ export default function SwapOutStatus() {
                 <CircleCheckIcon className="w-60 h-60" />
                 <div className="flex flex-col gap-2 items-center">
                   <p className="text-xl font-bold slashed-zero text-center">
-                    {new Intl.NumberFormat().format(
-                      swap.receiveAmount as number
-                    )}{" "}
-                    sats
+                    <FormattedBitcoinAmount
+                      amount={(swap.receiveAmount as number) * 1000}
+                    />
                   </p>
                   <FormattedFiatAmount amount={swap.receiveAmount as number} />
                 </div>
@@ -97,7 +97,7 @@ export default function SwapOutStatus() {
                 )}
                 <div className="flex flex-col gap-2 items-center">
                   <p className="text-xl font-bold slashed-zero text-center">
-                    {new Intl.NumberFormat().format(swap.sendAmount)} sats
+                    <FormattedBitcoinAmount amount={swap.sendAmount * 1000} />
                   </p>
                   <div className="flex items-center">
                     <span className="text-sm text-muted-foreground">~</span>

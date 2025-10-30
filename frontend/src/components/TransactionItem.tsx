@@ -15,6 +15,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import AppAvatar from "src/components/AppAvatar";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import { PaymentFailedAlert } from "src/components/PaymentFailedAlert";
 import PodcastingInfo from "src/components/PodcastingInfo";
@@ -194,14 +195,10 @@ function TransactionItem({ tx }: Props) {
                   )}
                 >
                   {type == "outgoing" ? "-" : "+"}
-                  <span className="font-medium">
-                    {new Intl.NumberFormat().format(
-                      Math.floor(tx.amount / 1000)
-                    )}
-                  </span>
-                </p>
-                <p className="text-muted-foreground">
-                  {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
+                  <FormattedBitcoinAmount
+                    amount={tx.amount}
+                    className="font-medium"
+                  />
                 </p>
               </div>
               <FormattedFiatAmount
@@ -227,8 +224,7 @@ function TransactionItem({ tx }: Props) {
               {typeStateIcon}
               <div className="ml-4">
                 <p className="text-xl md:text-2xl font-semibold sensitive">
-                  {new Intl.NumberFormat().format(Math.floor(tx.amount / 1000))}{" "}
-                  {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
+                  <FormattedBitcoinAmount amount={tx.amount} />
                 </p>
                 <FormattedFiatAmount amount={Math.floor(tx.amount / 1000)} />
               </div>
@@ -278,10 +274,7 @@ function TransactionItem({ tx }: Props) {
               <div className="mt-6">
                 <p>Fee</p>
                 <p className="text-muted-foreground">
-                  {new Intl.NumberFormat().format(
-                    Math.floor(tx.feesPaid / 1000)
-                  )}{" "}
-                  {Math.floor(tx.feesPaid / 1000) == 1 ? "sat" : "sats"}
+                  <FormattedBitcoinAmount amount={tx.feesPaid} />
                   {tx.feesPaid > 0 && (
                     <>&nbsp;({((tx.feesPaid / tx.amount) * 100).toFixed(2)}%)</>
                   )}

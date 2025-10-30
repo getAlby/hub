@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
@@ -108,7 +109,7 @@ export function AutoChannel() {
           <p className="text-muted-foreground slashed-zero">
             Please pay the lightning invoice below which will cover the costs of
             opening your channel. You will receive a channel with{" "}
-            {new Intl.NumberFormat().format(channelSize)} sats of receiving
+            <FormattedBitcoinAmount amount={channelSize * 1000} /> of receiving
             capacity.
           </p>
           <PayLightningInvoice invoice={invoice} />

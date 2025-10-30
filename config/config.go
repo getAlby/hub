@@ -9,6 +9,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/logger"
 	"github.com/sirupsen/logrus"
@@ -344,6 +345,7 @@ func randomHex(n int) (string, error) {
 }
 
 const defaultCurrency = "USD"
+const defaultBitcoinDisplayFormat = constants.BITCOIN_DISPLAY_FORMAT_BIP177
 
 func (cfg *config) GetCurrency() string {
 	currency, err := cfg.Get("Currency", "")
@@ -364,6 +366,30 @@ func (cfg *config) SetCurrency(value string) error {
 	err := cfg.SetUpdate("Currency", value, "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to update currency")
+		return err
+	}
+	return nil
+}
+
+func (cfg *config) GetBitcoinDisplayFormat() string {
+	format, err := cfg.Get("BitcoinDisplayFormat", "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch bitcoin display format")
+		return defaultBitcoinDisplayFormat
+	}
+	if format == "" {
+		return defaultBitcoinDisplayFormat
+	}
+	return format
+}
+
+func (cfg *config) SetBitcoinDisplayFormat(value string) error {
+	if value != constants.BITCOIN_DISPLAY_FORMAT_SATS && value != constants.BITCOIN_DISPLAY_FORMAT_BIP177 {
+		return fmt.Errorf("bitcoin display format must be '%s' or '%s'", constants.BITCOIN_DISPLAY_FORMAT_SATS, constants.BITCOIN_DISPLAY_FORMAT_BIP177)
+	}
+	err := cfg.SetUpdate("BitcoinDisplayFormat", value, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to update bitcoin display format")
 		return err
 	}
 	return nil

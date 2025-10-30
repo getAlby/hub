@@ -9,6 +9,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
@@ -122,7 +123,7 @@ export function FirstChannel() {
                     Incoming Liquidity
                   </TableCell>
                   <TableCell className="text-right p-3">
-                    {new Intl.NumberFormat().format(channelSize)} sats
+                    <FormattedBitcoinAmount amount={channelSize * 1000} />
                   </TableCell>
                 </TableRow>
                 {invoice && (
@@ -131,10 +132,9 @@ export function FirstChannel() {
                       Amount to pay
                     </TableCell>
                     <TableCell className="font-semibold text-right p-3">
-                      {new Intl.NumberFormat().format(
-                        new Invoice({ pr: invoice }).satoshi
-                      )}{" "}
-                      sats
+                      <FormattedBitcoinAmount
+                        amount={new Invoice({ pr: invoice }).satoshi * 1000}
+                      />
                     </TableCell>
                   </TableRow>
                 )}
@@ -230,8 +230,8 @@ export function FirstChannel() {
                             </div>
                           </TooltipTrigger>
                           <TooltipContent className="max-w-sm">
-                            You will be able to receive up to this amount of
-                            sats in this channel.
+                            You will be able to receive up to this amount in
+                            this channel.
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -239,10 +239,9 @@ export function FirstChannel() {
                   </TableCell>
                   <TableCell className="p-3 flex flex-col gap-2 items-end justify-center align-top">
                     <span>
-                      {new Intl.NumberFormat().format(
-                        lspChannelOffer.lspBalanceSat
-                      )}{" "}
-                      sats
+                      <FormattedBitcoinAmount
+                        amount={lspChannelOffer.lspBalanceSat * 1000}
+                      />
                     </span>
                     <FormattedFiatAmount
                       amount={lspChannelOffer.lspBalanceSat}

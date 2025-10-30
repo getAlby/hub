@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
@@ -186,8 +187,9 @@ export default function WithdrawOnchainFunds() {
               <div className="flex justify-between items-center">
                 <p className="text-sm text-muted-foreground sensitive slashed-zero">
                   Current onchain balance:{" "}
-                  {new Intl.NumberFormat().format(balances.onchain.spendable)}{" "}
-                  sats
+                  <FormattedBitcoinAmount
+                    amount={balances.onchain.spendable * 1000}
+                  />
                 </p>
                 <div className="flex items-center gap-1">
                   <Checkbox
@@ -344,7 +346,9 @@ export default function WithdrawOnchainFunds() {
                           {sendAll ? (
                             "entire on-chain balance"
                           ) : (
-                            <>{new Intl.NumberFormat().format(+amount)} sats</>
+                            <>
+                              <FormattedBitcoinAmount amount={+amount * 1000} />
+                            </>
                           )}
                         </span>
                       </p>

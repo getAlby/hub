@@ -1,10 +1,11 @@
 import dayjs from "dayjs";
 import { BrickWallIcon, CircleCheckIcon, PlusCircleIcon } from "lucide-react";
 import { Link } from "react-router-dom";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import { Button } from "src/components/ui/button";
 import { Progress } from "src/components/ui/progress";
 import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
-import { formatAmount, getBudgetRenewalLabel } from "src/lib/utils";
+import { getBudgetRenewalLabel } from "src/lib/utils";
 import { App } from "src/types";
 
 type AppCardConnectionInfoProps = {
@@ -42,10 +43,7 @@ export function AppCardConnectionInfo({
             <div className="flex flex-col items-end justify-end">
               <p>Balance</p>
               <p className="text-xl font-medium">
-                {new Intl.NumberFormat().format(
-                  Math.floor(connection.balance / 1000)
-                )}{" "}
-                sats
+                <FormattedBitcoinAmount amount={connection.balance} />
               </p>
             </div>
           </div>
@@ -58,10 +56,11 @@ export function AppCardConnectionInfo({
                 {budgetRemainingText}
               </p>
               <p className="text-xl font-medium">
-                {new Intl.NumberFormat().format(
-                  connection.maxAmount - connection.budgetUsage
-                )}{" "}
-                sats
+                <FormattedBitcoinAmount
+                  amount={
+                    (connection.maxAmount - connection.budgetUsage) * 1000
+                  }
+                />
               </p>
             </div>
           </div>
@@ -79,7 +78,9 @@ export function AppCardConnectionInfo({
             <div>
               {connection.maxAmount && (
                 <>
-                  {formatAmount(connection.maxAmount * 1000)} sats
+                  <FormattedBitcoinAmount
+                    amount={connection.maxAmount * 1000}
+                  />
                   {connection.budgetRenewal !== "never" && (
                     <> / {getBudgetRenewalLabel(connection.budgetRenewal)}</>
                   )}
@@ -96,7 +97,9 @@ export function AppCardConnectionInfo({
                 You've spent
               </p>
               <p className="text-xl font-medium">
-                {new Intl.NumberFormat().format(connection.budgetUsage)} sats
+                <FormattedBitcoinAmount
+                  amount={connection.budgetUsage * 1000}
+                />
               </p>
             </div>
           </div>

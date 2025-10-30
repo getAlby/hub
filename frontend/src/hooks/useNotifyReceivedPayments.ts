@@ -2,6 +2,7 @@ import React from "react";
 import { toast } from "sonner";
 import { useTransactions } from "src/hooks/useTransactions";
 import { Transaction } from "src/types";
+import { formatBitcoinAmount } from "src/utils/bitcoinFormatting";
 
 export function useNotifyReceivedPayments() {
   const { data: transactionsData } = useTransactions(undefined, true, 1);
@@ -15,7 +16,7 @@ export function useNotifyReceivedPayments() {
     if (latestTx !== prevTransaction) {
       if (prevTransaction && latestTx.type === "incoming") {
         toast("Payment received", {
-          description: `${new Intl.NumberFormat().format(Math.floor(latestTx.amount / 1000))} sats`,
+          description: formatBitcoinAmount(latestTx.amount),
         });
       }
       setPrevTransaction(latestTx);

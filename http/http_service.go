@@ -386,16 +386,10 @@ func (httpSvc *HttpService) updateSettingsHandler(c echo.Context) error {
 		})
 	}
 
-	if updateSettingsRequest.Currency == "" {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Message: "Currency value cannot be empty",
-		})
-	}
-
-	err := httpSvc.api.SetCurrency(updateSettingsRequest.Currency)
+	err := httpSvc.api.UpdateSettings(&updateSettingsRequest)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to set currency: %s", err.Error()),
+			Message: fmt.Sprintf("Failed to update settings: %s", err.Error()),
 		})
 	}
 

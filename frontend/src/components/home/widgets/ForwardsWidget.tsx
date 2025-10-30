@@ -1,3 +1,4 @@
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import {
   Card,
@@ -25,10 +26,7 @@ export function ForwardsWidget() {
           <div>
             <p className="text-muted-foreground text-xs">Fees Earned</p>
             <p className="text-xl font-semibold">
-              {new Intl.NumberFormat().format(
-                Math.floor(forwards.totalFeeEarnedMsat / 1000)
-              )}{" "}
-              sats
+              <FormattedBitcoinAmount amount={forwards.totalFeeEarnedMsat} />
               <FormattedFiatAmount
                 amount={Math.floor(forwards.totalFeeEarnedMsat / 1000)}
               />
@@ -37,10 +35,9 @@ export function ForwardsWidget() {
           <div>
             <p className="text-muted-foreground text-xs">Total Routed</p>
             <p className="text-xl font-semibold">
-              {new Intl.NumberFormat().format(
-                Math.floor(forwards.outboundAmountForwardedMsat / 1000)
-              )}{" "}
-              sats
+              <FormattedBitcoinAmount
+                amount={forwards.outboundAmountForwardedMsat}
+              />
               <FormattedFiatAmount
                 amount={Math.floor(forwards.outboundAmountForwardedMsat / 1000)}
               />

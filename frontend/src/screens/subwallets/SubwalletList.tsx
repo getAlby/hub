@@ -13,6 +13,7 @@ import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import { CustomPagination } from "src/components/CustomPagination";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import ResponsiveButton from "src/components/ResponsiveButton";
@@ -149,10 +150,7 @@ export function SubwalletList() {
           <CardContent className="grow">
             <div className="mb-1">
               <span className="text-2xl font-medium balance sensitive">
-                {new Intl.NumberFormat().format(
-                  Math.floor(subwalletTotalAmount / 1000)
-                )}{" "}
-                sats
+                <FormattedBitcoinAmount amount={subwalletTotalAmount} />
               </span>
             </div>
             <FormattedFiatAmount amount={subwalletTotalAmount / 1000} />

@@ -1,4 +1,5 @@
 import { AlertTriangleIcon } from "lucide-react";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
@@ -35,7 +36,8 @@ export function AnchorReserveAlert({
         including your anchor reserves may put your node at risk of unable to
         reclaim funds in your channel after a force-closure. To prevent this,
         set aside at least{" "}
-        {new Intl.NumberFormat().format(channels.length * 25000)} sats on-chain.
+        <FormattedBitcoinAmount amount={channels.length * 25000 * 1000} />{" "}
+        on-chain.
       </AlertDescription>
     </Alert>
   );

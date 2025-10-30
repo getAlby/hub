@@ -38,6 +38,7 @@ import {
 } from "src/constants";
 import { createApp } from "src/requests/createApp";
 import { CreateAppRequest, UpdateAppRequest } from "src/types";
+import { formatBitcoinAmount } from "src/utils/bitcoinFormatting";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
@@ -61,7 +62,7 @@ function SupportAlby() {
 
       if (+amount < 1000) {
         toast.error("Amount too low", {
-          description: "Minimum payment is 1000 sats",
+          description: `Minimum payment is ${formatBitcoinAmount(1_000 * 1000)}`,
         });
         return;
       }
