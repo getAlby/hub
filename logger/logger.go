@@ -5,13 +5,14 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/getAlby/ldk-node-go/ldk_node"
 	"github.com/orandin/lumberjackrus"
 	"github.com/sirupsen/logrus"
 )
 
 const (
-	logDir      = "log"
-	logFilename = "nwc.log"
+	logDir         = "log"
+	logFilename    = "nwc.log"
 	ldkLogFilename = "ldk.log"
 )
 
@@ -44,7 +45,8 @@ func InitLDK(ldkLogLevel string) {
 		ldkLogrusLogLevel = int(logrus.InfoLevel)
 	}
 	LDKLogger.SetLevel(logrus.Level(ldkLogrusLogLevel))
-	if ldkLogrusLogLevel >= int(logrus.DebugLevel) {
+
+	if int(MapLdkLogLevel(ldk_node.LogLevel(ldkLogrusLogLevel))) >= int(logrus.DebugLevel) {
 		LDKLogger.ReportCaller = true
 		LDKLogger.Debug("LDK Logrus report caller enabled in debug mode")
 	}
@@ -94,4 +96,23 @@ func GetLogFilePath() string {
 
 func GetLDKLogFilePath() string {
 	return ldkLogFilePath
+}
+
+func MapLdkLogLevel(logLevel ldk_node.LogLevel) logrus.Level {
+	switch logLevel {
+	case ldk_node.LogLevelGossip:
+		return logrus.TraceLevel
+	case ldk_node.LogLevelTrace:
+		return logrus.TraceLevel
+	case ldk_node.LogLevelDebug:
+		return logrus.DebugLevel
+	case ldk_node.LogLevelInfo:
+		return logrus.InfoLevel
+	case ldk_node.LogLevelWarn:
+		return logrus.WarnLevel
+	case ldk_node.LogLevelError:
+		return logrus.ErrorLevel
+	}
+	LDKLogger.WithField("log_level", logLevel).Error("Unknown LDK log level")
+	return logrus.ErrorLevel
 }
