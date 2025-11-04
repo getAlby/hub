@@ -1,4 +1,5 @@
 import React from "react";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { cn } from "src/lib/utils";
@@ -45,10 +46,17 @@ function BudgetAmountSelect({
                 )}
               >
                 {`${budget} ${budgetOptions[budget] ? " sats" : ""}`}
+
+                {budgetOptions[budget] > 0 && (
+                  <FormattedFiatAmount
+                    amount={budgetOptions[budget]}
+                    className="text-xs"
+                  />
+                )}
               </button>
             );
           })}
-        <div
+        <button
           onClick={() => {
             setCustomBudget(true);
             onChange(0);
@@ -58,8 +66,8 @@ function BudgetAmountSelect({
             customBudget ? "border-primary" : "border-muted"
           )}
         >
-          Custom...
-        </div>
+          Custom
+        </button>
       </div>
       {customBudget && (
         <div className="grid gap-2 mb-5">
