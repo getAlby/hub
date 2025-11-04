@@ -51,6 +51,7 @@ function BudgetAmountSelect({
                   <FormattedFiatAmount
                     amount={budgetOptions[budget]}
                     className="text-xs"
+                    showApprox
                   />
                 )}
               </button>
