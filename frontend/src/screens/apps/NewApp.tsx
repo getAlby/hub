@@ -202,7 +202,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     scopes: initialScopes,
     maxAmount: budgetMaxAmountMsatParam
       ? Math.floor(parseInt(budgetMaxAmountMsatParam) / 1000)
-      : 0,
+      : 10_000,
     budgetRenewal: validBudgetRenewals.includes(budgetRenewalParam)
       ? budgetRenewalParam
       : budgetMaxAmountMsatParam
