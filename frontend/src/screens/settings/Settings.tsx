@@ -107,7 +107,7 @@ function Settings() {
       <form className="w-full flex flex-col gap-8">
         {/* Theme & Appearance Section */}
         <div className="space-y-4">
-          <h3 className="text-xl font-medium">Theme & Appearance</h3>
+          <h3 className="text-xl font-medium">Appearance</h3>
           <div className="space-y-4">
             <div className="grid gap-2">
               <Label htmlFor="theme">Theme</Label>
