@@ -9,8 +9,9 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 
+import albyExtension from "src/assets/suggested-apps/alby-extension.png";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
-import albyExtension from "src/assets/suggested-apps/alby.png";
+import alby from "src/assets/suggested-apps/alby.png";
 
 interface Platform {
   name: string;
@@ -57,7 +58,7 @@ const productOpportunities: ProductOpportunity[] = [
   },
   {
     title: "Alby",
-    logo: albyExtension,
+    logo: alby,
     reward: "2,000 sats",
     platforms: [
       {
