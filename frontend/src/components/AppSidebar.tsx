@@ -184,8 +184,8 @@ export function AppSidebar() {
                     </>
                   ) : (
                     <>
-                      <div className="size-8 flex items-center justify-center bg-sidebar-primary text-sidebar-primary-foreground rounded">
-                        <AlbyHubIcon className="size-5 " />
+                      <div className="size-8 flex items-center justify-center bg-sidebar-primary/80 text-sidebar-primary-foreground rounded-md">
+                        <AlbyHubIcon className="size-4" />
                       </div>
                       <div className="font-semibold text-left text-sm leading-tight">
                         My Alby Hub
