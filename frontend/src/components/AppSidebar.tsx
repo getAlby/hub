@@ -124,7 +124,7 @@ export function AppSidebar() {
       <SidebarHeader>
         <div className="p-2 flex flex-row items-center justify-between">
           <Link to="/home" onClick={() => setOpenMobile(false)}>
-            <AlbyHubLogo className="text-sidebar-foreground h-12" />
+            <AlbyHubLogo className="w-32" />
           </Link>
           <div className="flex gap-3 items-center">
             <HealthIndicator />
