@@ -113,6 +113,15 @@ export function AppSidebar() {
         url: "/review-earn",
         icon: StarIcon,
       },
+      ...(albyMe?.subscription?.plan_code
+        ? [
+            {
+              title: "Pro",
+              url: "/pro-subscriber",
+              icon: Sparkles,
+            },
+          ]
+        : []),
     ],
   };
 
@@ -173,9 +182,16 @@ export function AppSidebar() {
                     <>
                       <UserAvatar />
                       <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-semibold">
+                        <span className="truncate font-semibold flex items-center">
                           {albyMe?.name || albyMe?.email}
+                          {albyMe?.subscription?.plan_code && (
+                            <span className="ml-1 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-amber-300 to-amber-500 px-1.5 py-0.5 text-[0.625rem] text-black font-bold shadow-sm">
+                              <Sparkles className="h-2.5 w-2.5 mr-0.5" />
+                              PRO
+                            </span>
+                          )}
                         </span>
+
                         <div className="truncate text-xs">
                           {albyMe?.lightning_address}
                         </div>
@@ -208,8 +224,14 @@ export function AppSidebar() {
                       <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                         <UserAvatar />
                         <div className="grid flex-1 text-left text-sm leading-tight">
-                          <span className="truncate font-semibold">
+                          <span className="truncate font-semibold flex items-center">
                             {albyMe?.name || albyMe?.email}
+                            {albyMe?.subscription?.plan_code && (
+                              <span className="ml-1 inline-flex items-center justify-center rounded-full bg-gradient-to-r from-amber-300 to-amber-500 px-1.5 py-0.5 text-[0.625rem] text-black font-bold shadow-sm">
+                                <Sparkles className="h-2.5 w-2.5 mr-0.5" />
+                                PRO
+                              </span>
+                            )}
                           </span>
                           <span className="truncate text-xs">
                             {albyMe?.lightning_address}
