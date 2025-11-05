@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import {
   AlertTriangleIcon,
+  ArrowDownUpIcon,
   ArrowRightIcon,
   CopyIcon,
   ExternalLinkIcon,
@@ -157,7 +158,7 @@ export default function Channels() {
                   <ResponsiveButton
                     icon={Settings2Icon}
                     text="Advanced"
-                    variant="outline"
+                    variant="secondary"
                   />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56">
@@ -290,6 +291,13 @@ export default function Channels() {
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
+
+              <Link to="/wallet/swap" className="hidden sm:block">
+                <Button className="w-full" variant="secondary">
+                  <ArrowDownUpIcon />
+                  Swap
+                </Button>
+              </Link>
               <Link to="/channels/incoming">
                 <Button>Open Channel</Button>
               </Link>

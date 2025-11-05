@@ -1,8 +1,12 @@
-import { ClipboardPasteIcon, MoveRightIcon, RefreshCwIcon } from "lucide-react";
+import {
+  ClipboardPasteIcon,
+  InfoIcon,
+  MoveRightIcon,
+  RefreshCwIcon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
@@ -18,7 +22,14 @@ import {
   TabsList,
   TabsTrigger,
 } from "src/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "src/components/ui/tooltip";
 import { useBalances } from "src/hooks/useBalances";
+import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { useSwapInfo } from "src/hooks/useSwaps";
 import { SwapResponse } from "src/types";
@@ -73,9 +84,11 @@ export default function Swap() {
 }
 
 function SwapInForm() {
+  const [isInternalSwap, setInternalSwap] = useState(false);
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
   const { data: swapInfo } = useSwapInfo("in");
+  const { data: channels } = useChannels();
   const navigate = useNavigate();
 
   const [swapAmount, setSwapAmount] = useState("");
@@ -98,7 +111,9 @@ function SwapInForm() {
       if (!swapInResponse) {
         throw new Error("Error swapping in");
       }
-      navigate(`/wallet/swap/in/status/${swapInResponse.swapId}`);
+      navigate(
+        `/wallet/swap/in/status/${swapInResponse.swapId}${isInternalSwap && `?internal=true`}`
+      );
       toast("Initiated swap");
     } catch (error) {
       toast.error("Failed to initiate swap", {
@@ -113,14 +128,14 @@ function SwapInForm() {
     return <Loading />;
   }
 
+  const spendableOnchainBalanceWithAnchorReserves = Math.max(
+    balances.onchain.spendable - (channels?.length || 0) * 25000,
+    0
+  );
+
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
       <div>
-        {hasChannelManagement &&
-          parseInt(swapAmount || "0") * 1000 >=
-            0.8 * balances.lightning.totalReceivable && (
-            <LowReceivingCapacityAlert />
-          )}
         <h2 className="font-medium text-foreground flex items-center gap-1">
           On-chain <MoveRightIcon /> Lightning
         </h2>
@@ -129,9 +144,14 @@ function SwapInForm() {
         </p>
       </div>
       <div className="grid gap-1.5">
-        {hasChannelManagement && (
-          <AnchorReserveAlert amount={+swapAmount} className="mb-4" isSwap />
-        )}
+        {hasChannelManagement &&
+          parseInt(swapAmount || "0") * 1000 >=
+            0.8 * balances.lightning.totalReceivable && (
+            <div className="mb-4">
+              <LowReceivingCapacityAlert />
+            </div>
+          )}
+
         <Label>Swap amount</Label>
         <Input
           type="number"
@@ -141,6 +161,7 @@ function SwapInForm() {
           min={swapInfo.minAmount}
           max={Math.min(
             swapInfo.maxAmount,
+            spendableOnchainBalanceWithAnchorReserves,
             (balances.lightning.totalReceivable / 1000) * 0.99
           )}
           onChange={(e) => setSwapAmount(e.target.value)}
@@ -155,22 +176,75 @@ function SwapInForm() {
                 {new Intl.NumberFormat().format(
                   Math.floor(balances.lightning.totalReceivable / 1000)
                 )}{" "}
-                sats{" "}
-                <Link className="underline" to="/channels/incoming">
-                  increase
-                </Link>
-              </p>
-              <p className="text-xs text-muted-foreground">
-                On-Chain Balance:{" "}
-                {new Intl.NumberFormat().format(balances.onchain.spendable)}{" "}
                 sats
               </p>
+              {isInternalSwap && (
+                <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                  Spendable On-Chain Balance:{" "}
+                  {new Intl.NumberFormat().format(
+                    spendableOnchainBalanceWithAnchorReserves
+                  )}{" "}
+                  sats
+                  {!!channels?.length && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <div className="flex flex-row gap-1 items-center text-muted-foreground">
+                            <InfoIcon className="h-3 w-3 shrink-0" />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          To ensure you can close channels, you need to set
+                          aside at least{" "}
+                          {new Intl.NumberFormat().format(
+                            channels.length * 25000
+                          )}{" "}
+                          sats on-chain. Your total on-chain balance is{" "}
+                          {new Intl.NumberFormat().format(
+                            balances.onchain.spendable
+                          )}{" "}
+                          sats
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
+                </p>
+              )}
             </div>
           )}
-          <p className="text-xs text-muted-foreground">
-            Minimum: {new Intl.NumberFormat().format(swapInfo.minAmount)} sats
-          </p>
         </div>
+      </div>
+      <div className="flex flex-col gap-4">
+        <Label>Swap from</Label>
+        <RadioGroup
+          defaultValue="normal"
+          value={isInternalSwap ? "internal" : "external"}
+          onValueChange={() => {
+            setInternalSwap(!isInternalSwap);
+          }}
+          className="flex gap-4 flex-row"
+        >
+          <div className="flex items-start space-x-2 mb-2">
+            <RadioGroupItem
+              value="internal"
+              id="internal"
+              className="shrink-0"
+            />
+            <Label htmlFor="internal" className="font-medium cursor-pointer">
+              On-chain balance
+            </Label>
+          </div>
+          <div className="flex items-start space-x-2">
+            <RadioGroupItem
+              value="external"
+              id="external"
+              className="shrink-0"
+            />
+            <Label htmlFor="external" className="font-medium cursor-pointer">
+              External on-chain wallet
+            </Label>
+          </div>
+        </RadioGroup>
       </div>
 
       <div className="flex items-center justify-between border-t pt-4">
