@@ -11,7 +11,7 @@ require (
 	github.com/go-gormigrate/gormigrate/v2 v2.1.5
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/mattn/go-sqlite3 v1.14.32
-	github.com/nbd-wtf/go-nostr v0.52.0
+	github.com/nbd-wtf/go-nostr v0.52.1
 	github.com/nbd-wtf/ln-decodepay v1.13.0
 	github.com/orandin/lumberjackrus v1.0.1
 	github.com/peterldowns/pgtestdb v0.1.1
@@ -19,7 +19,7 @@ require (
 	github.com/tyler-smith/go-bip39 v1.1.0
 	github.com/wailsapp/wails/v2 v2.10.2
 	golang.org/x/crypto v0.43.0
-	golang.org/x/oauth2 v0.31.0
+	golang.org/x/oauth2 v0.32.0
 	google.golang.org/grpc v1.76.0
 	gopkg.in/macaroon.v2 v2.1.0
 	gorm.io/driver/postgres v1.6.0
