@@ -24,7 +24,6 @@ export function AppsCleanup() {
   const [skippedCount, setSkippedCount] = React.useState<number>(0);
   const [deletedCount, setDeletedCount] = React.useState<number>(0);
   const [appsToReview, setAppsToReview] = React.useState<App[]>();
-  const { deleteApp } = useDeleteApp();
   React.useEffect(() => {
     if (!unusedApps) {
       return;
@@ -86,17 +85,13 @@ export function AppsCleanup() {
                         <SkipForwardIcon />
                         Skip
                       </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={() => {
-                          deleteApp(currentApp.appPubkey);
+                      <DeleteAppButton
+                        app={currentApp}
+                        onDelete={() => {
                           setAppIndex(appIndex + 1);
                           setDeletedCount((current) => current + 1);
                         }}
-                      >
-                        <Trash2Icon />
-                        Delete
-                      </Button>
+                      />
                     </>
                   }
                   readonly
@@ -131,5 +126,27 @@ export function AppsCleanup() {
         </div>
       </div>
     </>
+  );
+}
+
+function DeleteAppButton({
+  app,
+  onDelete,
+}: {
+  app: App;
+  onDelete: () => void;
+}) {
+  const { deleteApp } = useDeleteApp(app);
+  return (
+    <Button
+      variant="destructive"
+      onClick={() => {
+        deleteApp();
+        onDelete();
+      }}
+    >
+      <Trash2Icon />
+      Delete
+    </Button>
   );
 }
