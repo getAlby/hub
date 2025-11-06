@@ -318,28 +318,13 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 }
 
 func (api *api) DeleteApp(userApp *db.App) error {
-	// Check if the app is a sub-wallet with a lightning address
-	var metadata map[string]interface{}
-	if userApp.Metadata != nil {
-		err := json.Unmarshal(userApp.Metadata, &metadata)
+	// Delete lightning address if one exists
+	if api.appsSvc.HasLightningAddress(userApp) {
+		err := api.DeleteLightningAddress(context.Background(), userApp.ID)
 		if err != nil {
 			logger.Logger.WithError(err).WithFields(logrus.Fields{
 				"app_id": userApp.ID,
-			}).Error("Failed to deserialize app metadata")
-		} else {
-			appStoreAppId, hasAppStoreId := metadata["app_store_app_id"]
-			lud16, hasLightningAddress := metadata["lud16"]
-
-			isSubwallet := hasAppStoreId && appStoreAppId == constants.SUBWALLET_APPSTORE_APP_ID
-
-			if isSubwallet && hasLightningAddress && lud16 != nil {
-				err := api.DeleteLightningAddress(context.Background(), userApp.ID)
-				if err != nil {
-					logger.Logger.WithError(err).WithFields(logrus.Fields{
-						"app_id": userApp.ID,
-					}).Error("Failed to delete lightning address during app deletion")
-				}
-			}
+			}).Error("Failed to delete lightning address during app deletion")
 		}
 	}
 
