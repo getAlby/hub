@@ -190,22 +190,22 @@ func (svc *service) startAppWalletSubscription(ctx context.Context, pool *nostr.
 		Kinds: []int{models.REQUEST_KIND},
 	}
 
-	_, cancelSubscription := context.WithCancel(ctx)
-	eventsChannel := pool.SubscribeMany(ctx, svc.cfg.GetRelayUrls(), filter)
+	subCtx, cancelSubscription := context.WithCancel(ctx)
+	eventsChannel := pool.SubscribeMany(subCtx, svc.cfg.GetRelayUrls(), filter)
 
 	// register a subscriber for "nwc_app_deleted" events, which handles
 	// cancelling the nostr subscription and nip47 info event deletion
-	deleteEventSubscriber := deleteAppConsumer{
+	deleteAppSubscriber := deleteAppConsumer{
 		cancelSubscription: cancelSubscription,
 		walletPubkey:       appWalletPubKey,
 		svc:                svc,
 		pool:               pool,
 	}
-	svc.eventPublisher.RegisterSubscriber(&deleteEventSubscriber)
+	svc.eventPublisher.RegisterSubscriber(&deleteAppSubscriber)
 
-	err := svc.watchSubscription(ctx, pool, eventsChannel)
+	err := svc.watchSubscription(subCtx, pool, eventsChannel)
 
-	svc.eventPublisher.RemoveSubscriber(&deleteEventSubscriber)
+	svc.eventPublisher.RemoveSubscriber(&deleteAppSubscriber)
 	if err != nil {
 		return fmt.Errorf("got an error from the relay while listening to subscription: %w", err)
 	}
