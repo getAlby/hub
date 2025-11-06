@@ -130,6 +130,12 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderReques
 		token = "AlbyHub/" + version.Tag
 	}
 
+	// set a non-empty token to notify Flashsats that we support 0-conf
+	// (Pre-v1.21.0 does not support 0-conf)
+	if request.LSPIdentifier == "flashsats" {
+		token = "AlbyHub/" + version.Tag
+	}
+
 	lsps1ChannelRequest := &alby.LSPChannelRequest{
 		PublicKey:                    pubkey,
 		LSPBalanceSat:                strconv.FormatUint(request.Amount, 10),
