@@ -54,7 +54,6 @@ import DebugTools from "src/screens/settings/DebugTools";
 import DeveloperSettings from "src/screens/settings/DeveloperSettings";
 import Settings from "src/screens/settings/Settings";
 
-import ProSubscriber from "src/screens/ProSubscriber";
 import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
 import { RestoreNode } from "src/screens/setup/RestoreNode";
 import { SetupAdvanced } from "src/screens/setup/SetupAdvanced";
@@ -461,11 +460,6 @@ const routes: RouteObject[] = [
         path: "review-earn",
         element: <AlbyReviews />,
         handle: { crumb: () => "Review & Earn" },
-      },
-      {
-        path: "pro-subscriber",
-        element: <ProSubscriber />,
-        handle: { crumb: () => "Metal Subscriber" },
       },
     ],
   },
