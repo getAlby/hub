@@ -76,18 +76,18 @@ func doTestSendNotificationPaymentReceived(t *testing.T, svc *tests.TestService,
 	receivedEvent := <-nip47NotificationQueue.Channel()
 	assert.Equal(t, testEvent, receivedEvent)
 
-	relay := tests.NewMockRelay()
+	pool := tests.NewMockSimplePool()
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 
-	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc)
+	notifier := NewNip47Notifier(pool, svc.DB, svc.Cfg, svc.Keys, permissionsSvc)
 	notifier.ConsumeEvent(ctx, receivedEvent)
 
 	var publishedEvent *nostr.Event
 	if nip47Encryption == constants.ENCRYPTION_TYPE_NIP04 {
-		publishedEvent = relay.PublishedEvents[0]
+		publishedEvent = pool.PublishedEvents[0]
 	} else {
-		publishedEvent = relay.PublishedEvents[1]
+		publishedEvent = pool.PublishedEvents[1]
 	}
 
 	assert.NotNil(t, publishedEvent)
@@ -190,18 +190,18 @@ func doTestSendNotificationPaymentSent(t *testing.T, svc *tests.TestService, cre
 	receivedEvent := <-nip47NotificationQueue.Channel()
 	assert.Equal(t, testEvent, receivedEvent)
 
-	relay := tests.NewMockRelay()
+	pool := tests.NewMockSimplePool()
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 
-	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc)
+	notifier := NewNip47Notifier(pool, svc.DB, svc.Cfg, svc.Keys, permissionsSvc)
 	notifier.ConsumeEvent(ctx, receivedEvent)
 
 	var publishedEvent *nostr.Event
 	if nip47Encryption == constants.ENCRYPTION_TYPE_NIP04 {
-		publishedEvent = relay.PublishedEvents[0]
+		publishedEvent = pool.PublishedEvents[0]
 	} else {
-		publishedEvent = relay.PublishedEvents[1]
+		publishedEvent = pool.PublishedEvents[1]
 	}
 
 	assert.NotNil(t, publishedEvent)
@@ -283,14 +283,14 @@ func doTestSendNotificationNoPermission(t *testing.T, svc *tests.TestService) {
 	receivedEvent := <-nip47NotificationQueue.Channel()
 	assert.Equal(t, testEvent, receivedEvent)
 
-	relay := tests.NewMockRelay()
+	pool := tests.NewMockSimplePool()
 
 	permissionsSvc := permissions.NewPermissionsService(svc.DB, svc.EventPublisher)
 
-	notifier := NewNip47Notifier(relay, svc.DB, svc.Cfg, svc.Keys, permissionsSvc)
+	notifier := NewNip47Notifier(pool, svc.DB, svc.Cfg, svc.Keys, permissionsSvc)
 	notifier.ConsumeEvent(ctx, receivedEvent)
 
-	assert.Nil(t, relay.PublishedEvents)
+	assert.Nil(t, pool.PublishedEvents)
 }
 
 func TestSendNotification_NoPermission(t *testing.T) {

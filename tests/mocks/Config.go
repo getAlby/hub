@@ -404,46 +404,48 @@ func (_c *MockConfig_GetNetwork_Call) RunAndReturn(run func() string) *MockConfi
 	return _c
 }
 
-// GetRelayUrl provides a mock function for the type MockConfig
-func (_mock *MockConfig) GetRelayUrl() string {
+// GetRelayUrls provides a mock function for the type MockConfig
+func (_mock *MockConfig) GetRelayUrls() []string {
 	ret := _mock.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetRelayUrl")
+		panic("no return value specified for GetRelayUrls")
 	}
 
-	var r0 string
-	if returnFunc, ok := ret.Get(0).(func() string); ok {
+	var r0 []string
+	if returnFunc, ok := ret.Get(0).(func() []string); ok {
 		r0 = returnFunc()
 	} else {
-		r0 = ret.Get(0).(string)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
 	}
 	return r0
 }
 
-// MockConfig_GetRelayUrl_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRelayUrl'
-type MockConfig_GetRelayUrl_Call struct {
+// MockConfig_GetRelayUrls_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRelayUrls'
+type MockConfig_GetRelayUrls_Call struct {
 	*mock.Call
 }
 
-// GetRelayUrl is a helper method to define mock.On call
-func (_e *MockConfig_Expecter) GetRelayUrl() *MockConfig_GetRelayUrl_Call {
-	return &MockConfig_GetRelayUrl_Call{Call: _e.mock.On("GetRelayUrl")}
+// GetRelayUrls is a helper method to define mock.On call
+func (_e *MockConfig_Expecter) GetRelayUrls() *MockConfig_GetRelayUrls_Call {
+	return &MockConfig_GetRelayUrls_Call{Call: _e.mock.On("GetRelayUrls")}
 }
 
-func (_c *MockConfig_GetRelayUrl_Call) Run(run func()) *MockConfig_GetRelayUrl_Call {
+func (_c *MockConfig_GetRelayUrls_Call) Run(run func()) *MockConfig_GetRelayUrls_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run()
 	})
 	return _c
 }
 
-func (_c *MockConfig_GetRelayUrl_Call) Return(s string) *MockConfig_GetRelayUrl_Call {
-	_c.Call.Return(s)
+func (_c *MockConfig_GetRelayUrls_Call) Return(strings []string) *MockConfig_GetRelayUrls_Call {
+	_c.Call.Return(strings)
 	return _c
 }
 
-func (_c *MockConfig_GetRelayUrl_Call) RunAndReturn(run func() string) *MockConfig_GetRelayUrl_Call {
+func (_c *MockConfig_GetRelayUrls_Call) RunAndReturn(run func() []string) *MockConfig_GetRelayUrls_Call {
 	_c.Call.Return(run)
 	return _c
 }
