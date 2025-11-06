@@ -23,6 +23,7 @@ import { AppsCleanup } from "src/screens/apps/AppsCleanup";
 import { Connections } from "src/screens/apps/Connections";
 import NewApp from "src/screens/apps/NewApp";
 import { AppStoreDetail } from "src/screens/appstore/AppStoreDetail";
+import { CardPage } from "src/screens/card/Card";
 import Channels from "src/screens/channels/Channels";
 import { CurrentChannelOrder } from "src/screens/channels/CurrentChannelOrder";
 import IncreaseIncomingCapacity from "src/screens/channels/IncreaseIncomingCapacity";
@@ -214,6 +215,17 @@ const routes: RouteObject[] = [
             path: "withdraw",
             element: <WithdrawOnchainFunds />,
             handle: { crumb: () => "Withdraw On-Chain Balance" },
+          },
+        ],
+      },
+      {
+        path: "card",
+        element: <DefaultRedirect />,
+        handle: { crumb: () => "Card" },
+        children: [
+          {
+            index: true,
+            element: <CardPage />,
           },
         ],
       },

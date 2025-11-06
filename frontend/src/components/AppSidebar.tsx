@@ -2,6 +2,7 @@ import {
   BoxIcon,
   ChevronsUpDown,
   CircleHelp,
+  CreditCard,
   HomeIcon,
   LogOut,
   LucideIcon,
@@ -81,6 +82,11 @@ export function AppSidebar() {
         title: "Wallet",
         url: "/wallet",
         icon: WalletIcon,
+      },
+      {
+        title: "Card",
+        url: "/card",
+        icon: CreditCard,
       },
       {
         title: "Sub-wallets",
