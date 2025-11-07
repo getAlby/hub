@@ -71,6 +71,13 @@ function AutoSwapOutForm() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (swapAmount > balanceThreshold) {
+      toast.info(
+        "Balance threshold must be greater than or equal to swap amount"
+      );
+      return;
+    }
+
     try {
       setLoading(true);
       await request("/api/autoswap", {
@@ -126,6 +133,7 @@ function AutoSwapOutForm() {
           type="number"
           placeholder="Amount in satoshis"
           value={balanceThreshold}
+          min={swapAmount}
           onChange={(e) => setBalanceThreshold(e.target.value)}
           required
         />
@@ -141,10 +149,7 @@ function AutoSwapOutForm() {
           placeholder="Amount in satoshis"
           value={swapAmount}
           min={swapInfo.minAmount}
-          max={Math.min(
-            swapInfo.maxAmount,
-            Math.floor(balances.lightning.totalSpendable / 1000)
-          )}
+          max={swapInfo.maxAmount}
           onChange={(e) => setSwapAmount(e.target.value)}
           required
         />

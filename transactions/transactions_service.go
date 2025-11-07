@@ -19,6 +19,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
@@ -299,7 +300,17 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 		return nil, errors.New("this invoice has expired")
 	}
 
-	selfPayment := paymentRequest.Payee != "" && paymentRequest.Payee == lnClient.GetPubkey()
+	selfPayment := false
+	if paymentRequest.Payee != "" && paymentRequest.Payee == lnClient.GetPubkey() {
+		var incomingTransaction db.Transaction
+		result := svc.db.Limit(1).Find(&incomingTransaction, &db.Transaction{
+			Type:        constants.TRANSACTION_TYPE_INCOMING,
+			PaymentHash: paymentRequest.PaymentHash,
+		})
+		if result.Error == nil && result.RowsAffected > 0 {
+			selfPayment = true
+		}
+	}
 
 	var dbTransaction db.Transaction
 
@@ -1327,7 +1338,19 @@ func (svc *transactionsService) SetTransactionMetadata(ctx context.Context, id u
 }
 
 func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransaction *db.Transaction, preimage string, fee uint64, selfPayment bool) (*db.Transaction, error) {
-	// TODO: it would be better to have a database constraint so we cannot have two pending payments
+	if preimage == "" {
+		return nil, errors.New("no preimage in payment")
+	}
+
+	if tx.Dialector.Name() == "postgres" {
+		// lock based on payment hash to ensure we only mark one transaction as settled
+		// (in sqlite transactions are serializable by default)
+		transactionsWithPaymentHash := []db.Transaction{}
+		tx.Where(&db.Transaction{
+			PaymentHash: dbTransaction.PaymentHash,
+		}).Clauses(clause.Locking{Strength: "UPDATE"}).Find(&transactionsWithPaymentHash)
+	}
+
 	var existingSettledTransaction db.Transaction
 	if tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
 		Type:        dbTransaction.Type,
@@ -1336,10 +1359,6 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 	}).RowsAffected > 0 {
 		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Debug("payment already marked as sent")
 		return &existingSettledTransaction, nil
-	}
-
-	if preimage == "" {
-		return nil, errors.New("no preimage in payment")
 	}
 
 	now := time.Now()

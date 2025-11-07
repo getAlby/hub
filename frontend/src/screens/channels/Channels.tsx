@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import {
   AlertTriangleIcon,
+  ArrowDownUpIcon,
   ArrowRightIcon,
   CopyIcon,
   ExternalLinkIcon,
@@ -157,14 +158,15 @@ export default function Channels() {
                   <ResponsiveButton
                     icon={Settings2Icon}
                     text="Advanced"
-                    variant="outline"
+                    variant="secondary"
                   />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56">
                   <DropdownMenuGroup>
+                    <DropdownMenuLabel>Node</DropdownMenuLabel>
                     <DropdownMenuItem>
                       <div
-                        className="flex flex-row gap-4 items-center w-full cursor-pointer"
+                        className="flex flex-row gap-2 items-center w-full cursor-pointer"
                         onClick={() => {
                           if (!nodeConnectionInfo) {
                             return;
@@ -172,8 +174,8 @@ export default function Channels() {
                           copyToClipboard(nodeConnectionInfo.pubkey);
                         }}
                       >
-                        <div>Node</div>
-                        <div className="overflow-hidden text-ellipsis flex-1">
+                        <div>Public key</div>
+                        <div className="overflow-hidden text-ellipsis flex-1 text-muted-foreground text-xs">
                           {nodeConnectionInfo?.pubkey || "Loading..."}
                         </div>
                         {nodeConnectionInfo && (
@@ -181,6 +183,26 @@ export default function Channels() {
                         )}
                       </div>
                     </DropdownMenuItem>
+                    {nodeConnectionInfo?.address &&
+                      nodeConnectionInfo?.port && (
+                        <DropdownMenuItem>
+                          <div
+                            className="flex flex-row gap-2 items-center w-full cursor-pointer"
+                            onClick={() => {
+                              const connectionAddress = `${nodeConnectionInfo.pubkey}@${nodeConnectionInfo.address}:${nodeConnectionInfo.port}`;
+                              copyToClipboard(connectionAddress);
+                            }}
+                          >
+                            <div>URI</div>
+                            <div className="overflow-hidden text-ellipsis flex-1 text-muted-foreground text-xs">
+                              {nodeConnectionInfo.pubkey.substring(0, 6)}...@
+                              {nodeConnectionInfo.address}:
+                              {nodeConnectionInfo.port}
+                            </div>
+                            <CopyIcon className="shrink-0 size-4" />
+                          </div>
+                        </DropdownMenuItem>
+                      )}
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
@@ -269,6 +291,13 @@ export default function Channels() {
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
+
+              <Link to="/wallet/swap" className="hidden sm:block">
+                <Button className="w-full" variant="secondary">
+                  <ArrowDownUpIcon />
+                  Swap
+                </Button>
+              </Link>
               <Link to="/channels/incoming">
                 <Button>Open Channel</Button>
               </Link>

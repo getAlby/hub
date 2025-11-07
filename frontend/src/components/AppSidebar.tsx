@@ -16,9 +16,10 @@ import {
 import React from "react";
 
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import albyHub from "src/assets/suggested-apps/alby-hub.png";
+
 import ExternalLink from "src/components/ExternalLink";
 import { AlbyIcon } from "src/components/icons/Alby";
+import { AlbyHubIcon } from "src/components/icons/AlbyHubIcon";
 import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
 import SidebarHint from "src/components/SidebarHint";
 import {
@@ -124,7 +125,7 @@ export function AppSidebar() {
       <SidebarHeader>
         <div className="p-2 flex flex-row items-center justify-between">
           <Link to="/home" onClick={() => setOpenMobile(false)}>
-            <AlbyHubLogo className="text-sidebar-foreground h-12" />
+            <AlbyHubLogo className="w-32" />
           </Link>
           <div className="flex gap-3 items-center">
             <HealthIndicator />
@@ -185,11 +186,9 @@ export function AppSidebar() {
                     </>
                   ) : (
                     <>
-                      <img
-                        src={albyHub}
-                        alt="logo"
-                        className="size-8 rounded-lg "
-                      />
+                      <div className="size-8 flex items-center justify-center bg-sidebar-primary/80 text-sidebar-primary-foreground rounded-md">
+                        <AlbyHubIcon className="size-4" />
+                      </div>
                       <div className="font-semibold text-left text-sm leading-tight">
                         My Alby Hub
                       </div>

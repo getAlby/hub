@@ -1,4 +1,4 @@
-import { wordlist } from "@scure/bip39/wordlists/english";
+import { wordlist } from "@scure/bip39/wordlists/english.js";
 import { useState } from "react";
 import RevealPasswordToggle from "src/components/password/RevealPasswordToggle";
 import {
@@ -102,9 +102,7 @@ export default function MnemonicInputs({
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl text-center">
-            Wallet Recovery Phrase
-          </CardTitle>
+          <CardTitle className="text-xl text-center">Recovery Phrase</CardTitle>
         </CardHeader>
 
         <CardContent>{content}</CardContent>

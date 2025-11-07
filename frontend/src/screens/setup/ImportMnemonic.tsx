@@ -1,5 +1,5 @@
 import * as bip39 from "@scure/bip39";
-import { wordlist } from "@scure/bip39/wordlists/english";
+import { wordlist } from "@scure/bip39/wordlists/english.js";
 import {
   AlertTriangleIcon,
   LifeBuoyIcon,
@@ -61,8 +61,8 @@ export function ImportMnemonic() {
         className="flex flex-col gap-5 mx-auto max-w-md text-sm"
       >
         <TwoColumnLayoutHeader
-          title="Import Master Key"
-          description="Enter the your Master Key recovery phrase to import your Alby Hub."
+          title="Import Recovery Phrase"
+          description="Enter your recovery phrase to import your Alby Hub."
         />
 
         <Alert variant="warning">

@@ -25,13 +25,18 @@ export function DisconnectApp({
 }) {
   const navigate = useNavigate();
 
-  const { deleteApp, isDeleting } = useDeleteApp(() => {
+  const { deleteApp, isDeleting } = useDeleteApp(app, () => {
     navigate(
       app.metadata?.app_store_app_id !== SUBWALLET_APPSTORE_APP_ID
         ? "/apps?tab=connected-apps"
         : "/sub-wallets"
     );
   });
+
+  // Check if this is a sub-wallet with a lightning address
+  const isSubwallet =
+    app.metadata?.app_store_app_id === SUBWALLET_APPSTORE_APP_ID;
+  const hasLightningAddress = !!app.metadata?.lud16;
 
   return (
     <AlertDialog open>
@@ -54,14 +59,17 @@ export function DisconnectApp({
                 remain in your wallet.
               </>
             )}
+            {isSubwallet && hasLightningAddress && (
+              <p className="font-medium mt-4">
+                This sub-wallet has a lightning address ({app.metadata?.lud16})
+                that will also be deleted.
+              </p>
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel onClick={onClose}>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={() => deleteApp(app.appPubkey)}
-            disabled={isDeleting}
-          >
+          <AlertDialogAction onClick={deleteApp} disabled={isDeleting}>
             Confirm
           </AlertDialogAction>
         </AlertDialogFooter>

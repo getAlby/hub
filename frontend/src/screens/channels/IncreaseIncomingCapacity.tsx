@@ -347,7 +347,7 @@ function NewChannelInternal({
               <div className="flex flex-col gap-3">
                 {selectedPeer && (
                   <div className="grid gap-1.5">
-                    <Label>Channel peer</Label>
+                    <Label>Choose your channel peer:</Label>
                     <Select
                       value={getPeerKey(selectedPeer)}
                       onValueChange={(value) =>

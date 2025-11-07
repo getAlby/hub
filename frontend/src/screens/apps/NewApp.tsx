@@ -264,7 +264,8 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       // this gives those apps the chance to know the user has enabled the connection
       const nwcEvent = new CustomEvent("nwc:success", {
         detail: {
-          relayUrl: createAppResponse.relayUrl,
+          relayUrl: createAppResponse.relayUrls[0], // TODO: deprecate
+          relayUrls: createAppResponse.relayUrls, // TODO: add to spec
           walletPubkey: createAppResponse.walletPubkey,
           lud16: createAppResponse.lud16,
         },
@@ -276,7 +277,8 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         window.opener.postMessage(
           {
             type: "nwc:success",
-            relayUrl: createAppResponse.relayUrl,
+            relayUrl: createAppResponse.relayUrls[0], // TODO: deprecate
+            relayUrls: createAppResponse.relayUrls, // TODO: add to spec
             walletPubkey: createAppResponse.walletPubkey,
             lud16: createAppResponse.lud16,
           },
