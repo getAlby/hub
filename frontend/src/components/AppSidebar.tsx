@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import React from "react";
 
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 
 import ExternalLink from "src/components/ExternalLink";
 import { AlbyIcon } from "src/components/icons/Alby";
@@ -57,6 +57,7 @@ export function AppSidebar() {
   const { isMobile, setOpenMobile } = useSidebar();
   const { hasChannelManagement } = useInfo();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const _isHttpMode = isHttpMode();
 
@@ -138,20 +139,20 @@ export function AppSidebar() {
             <SidebarMenu>
               {data.navMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <NavLink to={item.url} end>
-                    {({ isActive }) => (
-                      <SidebarMenuButton asChild isActive={isActive}>
-                        <span
-                          onClick={() => {
-                            setOpenMobile(false);
-                          }}
-                        >
-                          <item.icon />
-                          <span>{item.title}</span>
-                        </span>
-                      </SidebarMenuButton>
-                    )}
-                  </NavLink>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname === item.url}
+                  >
+                    <Link
+                      to={item.url}
+                      onClick={() => {
+                        setOpenMobile(false);
+                      }}
+                    >
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
@@ -281,6 +282,7 @@ export function NavSecondary({
   }[];
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   const { setOpenMobile } = useSidebar();
+  const location = useLocation();
 
   return (
     <SidebarGroup {...props}>
@@ -288,7 +290,10 @@ export function NavSecondary({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild>
+              <SidebarMenuButton
+                asChild
+                isActive={location.pathname === item.url}
+              >
                 <NavLink
                   to={item.url}
                   end
