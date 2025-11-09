@@ -15,6 +15,7 @@ import {
   CheckCircleIcon,
   ChevronDownIcon,
   EllipsisIcon,
+  ExternalLinkIcon,
   InfoIcon,
   PlusIcon,
   SquarePenIcon,
@@ -187,6 +188,8 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const appStoreApp = getAppStoreApp(app);
   const connectedApps = useAppsForAppStoreApp(appStoreApp);
 
+  const subscriptionId = app?.metadata?.zapplanner_subscription_id;
+
   return (
     <>
       <div className="w-full">
@@ -267,6 +270,20 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                             </DropdownMenuGroup>
                           )}
                         <DropdownMenuGroup>
+                          {typeof subscriptionId === "string" &&
+                            subscriptionId && (
+                              <DropdownMenuItem asChild>
+                                <Link
+                                  target="_blank"
+                                  to={`https://zapplanner.albylabs.com/subscriptions/${subscriptionId}`}
+                                  className="flex flex-1 items-center gap-2"
+                                >
+                                  <ExternalLinkIcon className="size-4" />
+                                  View
+                                </Link>
+                              </DropdownMenuItem>
+                            )}
+
                           {appStoreApp && (
                             <DropdownMenuItem asChild>
                               <Link
@@ -278,6 +295,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                               </Link>
                             </DropdownMenuItem>
                           )}
+
                           <DropdownMenuItem asChild>
                             <div
                               className="flex items-center gap-2"
@@ -286,6 +304,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                               <InfoIcon className="size-4" /> Connection Details
                             </div>
                           </DropdownMenuItem>
+
                           <DropdownMenuSeparator />
                           <DropdownMenuItem variant="destructive" asChild>
                             <div
