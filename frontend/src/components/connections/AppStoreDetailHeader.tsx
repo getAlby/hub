@@ -1,10 +1,9 @@
 import { CheckCircleIcon } from "lucide-react";
 import React from "react";
-import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import { AppStoreApp } from "src/components/connections/SuggestedAppData";
 import { NostrWalletConnectIcon } from "src/components/icons/NostrWalletConnectIcon";
-import ResponsiveButton from "src/components/ResponsiveButton";
+import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
 import { Badge } from "src/components/ui/badge";
 import { useAppsForAppStoreApp } from "src/hooks/useApps";
 
@@ -58,12 +57,11 @@ export function AppStoreDetailHeader({
           contentRight !== undefined ? (
             contentRight
           ) : (
-            <Link to={`/apps/new?app=${appStoreApp.id}`}>
-              <ResponsiveButton
-                icon={NostrWalletConnectIcon}
-                text={`Connect to ${appStoreApp.title}`}
-              />
-            </Link>
+            <ResponsiveLinkButton
+              to={`/apps/new?app=${appStoreApp.id}`}
+              icon={NostrWalletConnectIcon}
+              text={`Connect to ${appStoreApp.title}`}
+            />
           )
         }
       />

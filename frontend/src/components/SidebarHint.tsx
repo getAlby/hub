@@ -6,15 +6,15 @@ import {
   ZapIcon,
 } from "lucide-react";
 import React, { ReactElement } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
-import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { Progress } from "src/components/ui/progress";
 import { localStorageKeys, SUPPORT_ALBY_CONNECTION_NAME } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
@@ -155,11 +155,9 @@ function SidebarHintCard({
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
         <div className="text-muted-foreground text-sm">{description}</div>
-        <Link to={buttonLink}>
-          <Button size="sm" className="w-full">
-            {buttonText}
-          </Button>
-        </Link>
+        <LinkButton to={buttonLink} size="sm" className="w-full">
+          {buttonText}
+        </LinkButton>
       </CardContent>
     </Card>
   );

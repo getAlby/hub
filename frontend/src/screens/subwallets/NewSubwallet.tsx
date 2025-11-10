@@ -3,9 +3,8 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
-import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
-import ResponsiveButton from "src/components/ResponsiveButton";
+import ResponsiveExternalLinkButton from "src/components/ResponsiveExternalLinkButton";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -89,13 +88,12 @@ export function NewSubwallet() {
         title="Create Sub-wallet"
         contentRight={
           <>
-            <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/sub-wallets">
-              <ResponsiveButton
-                icon={HelpCircleIcon}
-                text="Help"
-                variant="outline"
-              />
-            </ExternalLink>
+            <ResponsiveExternalLinkButton
+              to="https://guides.getalby.com/user-guide/alby-hub/sub-wallets"
+              icon={HelpCircleIcon}
+              text="Help"
+              variant="outline"
+            />
           </>
         }
       />
