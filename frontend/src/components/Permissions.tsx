@@ -6,6 +6,10 @@ import ExpirySelect from "src/components/ExpirySelect";
 import Scopes from "src/components/Scopes";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
+import {
+  DEFAULT_APP_BUDGET_RENEWAL,
+  DEFAULT_APP_BUDGET_SATS,
+} from "src/constants";
 import { cn } from "src/lib/utils";
 import {
   AppPermissions,
@@ -128,8 +132,8 @@ const Permissions: React.FC<PermissionsProps> = ({
                   type="button"
                   variant="secondary"
                   onClick={() => {
-                    handleBudgetRenewalChange("monthly");
-                    handleBudgetMaxAmountChange(100_000);
+                    handleBudgetRenewalChange(DEFAULT_APP_BUDGET_RENEWAL);
+                    handleBudgetMaxAmountChange(DEFAULT_APP_BUDGET_SATS);
                     setShowBudgetOptions(true);
                   }}
                   className={cn("mr-4", showExpiryOptions && "mb-4")}

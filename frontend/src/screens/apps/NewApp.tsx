@@ -38,6 +38,10 @@ import { InstallApp } from "src/components/connections/InstallApp";
 import { defineStepper } from "src/components/stepper";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Input } from "src/components/ui/input";
+import {
+  DEFAULT_APP_BUDGET_RENEWAL,
+  DEFAULT_APP_BUDGET_SATS,
+} from "src/constants";
 import { useApp } from "src/hooks/useApp";
 import { ConnectAppCard } from "src/screens/apps/ConnectAppCard";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -202,12 +206,12 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     scopes: initialScopes,
     maxAmount: budgetMaxAmountMsatParam
       ? Math.floor(parseInt(budgetMaxAmountMsatParam) / 1000)
-      : 10_000,
+      : DEFAULT_APP_BUDGET_SATS,
     budgetRenewal: validBudgetRenewals.includes(budgetRenewalParam)
       ? budgetRenewalParam
       : budgetMaxAmountMsatParam
         ? "never"
-        : "monthly",
+        : DEFAULT_APP_BUDGET_RENEWAL,
     expiresAt: parseExpiresParam(expiresAtParam),
     isolated: isolatedParam === "true",
   });
