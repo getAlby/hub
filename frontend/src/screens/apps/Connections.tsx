@@ -48,10 +48,10 @@ export function Connections() {
             <Plug2Icon className="w-5 h-5" /> Connected Apps
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="app-store">
+        <TabsContent value="app-store" tabIndex={-1}>
           <AppStore />
         </TabsContent>
-        <TabsContent value="connected-apps">
+        <TabsContent value="connected-apps" tabIndex={-1}>
           <ConnectedApps />
         </TabsContent>
       </Tabs>

@@ -8,11 +8,11 @@ import {
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
-import ResponsiveButton from "src/components/ResponsiveButton";
 import { Button } from "src/components/ui/button";
 
 import SubWalletDarkSVG from "public/images/illustrations/sub-wallet-dark.svg";
 import SubWalletLightSVG from "public/images/illustrations/sub-wallet-light.svg";
+import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
 
 export function SubwalletIntro() {
   return (
@@ -27,9 +27,11 @@ export function SubwalletIntro() {
                 <HelpCircle className="size-4" />
               </Button>
             </ExternalLink>
-            <Link to="/sub-wallets/new">
-              <ResponsiveButton icon={CirclePlusIcon} text="New Sub-wallet" />
-            </Link>
+            <ResponsiveLinkButton
+              to="/sub-wallets/new"
+              icon={CirclePlusIcon}
+              text="New Sub-wallet"
+            />
           </>
         }
       />
