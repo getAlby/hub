@@ -21,6 +21,7 @@ import ExternalLink from "src/components/ExternalLink";
 import { AlbyIcon } from "src/components/icons/Alby";
 import { AlbyHubIcon } from "src/components/icons/AlbyHubIcon";
 import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
+import { ProBadge } from "src/components/ProBadge";
 import SidebarHint from "src/components/SidebarHint";
 import {
   DropdownMenu,
@@ -177,9 +178,13 @@ export function AppSidebar() {
                     <>
                       <UserAvatar />
                       <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-semibold">
-                          {albyMe?.name || albyMe?.email}
-                        </span>
+                        <div className="flex items-center gap-1 min-w-0">
+                          <span className="truncate font-semibold">
+                            {albyMe?.name || albyMe?.email}
+                          </span>
+                          {albyMe?.subscription?.plan_code && <ProBadge />}
+                        </div>
+
                         <div className="truncate text-xs">
                           {albyMe?.lightning_address}
                         </div>
@@ -199,7 +204,7 @@ export function AppSidebar() {
                 </DropdownMenuTrigger>
               </SidebarMenuButton>
               <DropdownMenuContent
-                className="min-w-56"
+                className="w-64"
                 side={isMobile ? "bottom" : "right"}
                 align="end"
                 sideOffset={4}
@@ -210,9 +215,12 @@ export function AppSidebar() {
                       <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                         <UserAvatar />
                         <div className="grid flex-1 text-left text-sm leading-tight">
-                          <span className="truncate font-semibold">
-                            {albyMe?.name || albyMe?.email}
-                          </span>
+                          <div className="flex items-center gap-1 min-w-0">
+                            <span className="truncate font-semibold">
+                              {albyMe?.name || albyMe?.email}
+                            </span>
+                            {albyMe?.subscription?.plan_code && <ProBadge />}
+                          </div>
                           <span className="truncate text-xs">
                             {albyMe?.lightning_address}
                           </span>
