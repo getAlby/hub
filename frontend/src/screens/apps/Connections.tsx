@@ -4,7 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import AppStore from "src/components/connections/AppStore";
 import ConnectedApps from "src/components/connections/ConnectedApps";
-import ResponsiveButton from "src/components/ResponsiveButton";
+import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
 import {
   Tabs,
   TabsContent,
@@ -29,7 +29,11 @@ export function Connections() {
       <AppHeader
         title="Connections"
         contentRight={
-          <ResponsiveButton icon={CirclePlusIcon} text="Add Connection" />
+          <ResponsiveLinkButton
+            to="/apps/new"
+            icon={CirclePlusIcon}
+            text="Add Connection"
+          />
         }
       />
       <Tabs value={tab} onValueChange={setTab} className="px-2 lg:px-0">
