@@ -233,15 +233,15 @@ export function AppSidebar() {
                     </Link>
                   </DropdownMenuItem>
                 ) : (
-                  <DropdownMenuItem>
-                    <ExternalLink
-                      to="https://getalby.com/user/edit"
-                      className="flex items-center flex-1"
-                    >
+                  <ExternalLink
+                    to="https://getalby.com/user/edit"
+                    className="w-full"
+                  >
+                    <DropdownMenuItem className="flex items-center flex-1">
                       <AlbyIcon className="size-4 mr-2" />
                       Alby Account Settings
-                    </ExternalLink>
-                  </DropdownMenuItem>
+                    </DropdownMenuItem>
+                  </ExternalLink>
                 )}
                 {!albyMe?.subscription.plan_code && (
                   <>
