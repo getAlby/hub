@@ -1266,8 +1266,8 @@ func (api *api) SetCurrency(currency string) error {
 }
 
 func (api *api) SetBitcoinDisplayFormat(format string) error {
-	if format != "sats" && format != "bip177" {
-		return fmt.Errorf("bitcoin display format must be 'sats' or 'bip177'")
+	if format != constants.BITCOIN_DISPLAY_FORMAT_SATS && format != constants.BITCOIN_DISPLAY_FORMAT_BIP177 {
+		return fmt.Errorf("bitcoin display format must be '%s' or '%s'", constants.BITCOIN_DISPLAY_FORMAT_SATS, constants.BITCOIN_DISPLAY_FORMAT_BIP177)
 	}
 
 	err := api.cfg.SetBitcoinDisplayFormat(format)
