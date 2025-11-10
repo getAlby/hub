@@ -163,7 +163,10 @@ export interface InfoResponse {
   currency: string;
   nodeAlias: string;
   mempoolUrl: string;
+  bitcoinDisplayFormat?: BitcoinDisplayFormat;
 }
+
+export type BitcoinDisplayFormat = "sats" | "bip177";
 
 export type HealthAlarmKind =
   | "alby_service"

@@ -1200,6 +1200,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	autoUnlockPassword, _ := api.cfg.Get("AutoUnlockPassword", "")
 	info.SetupCompleted = api.cfg.SetupCompleted()
 	info.Currency = api.cfg.GetCurrency()
+	info.BitcoinDisplayFormat = api.cfg.GetBitcoinDisplayFormat()
 	info.StartupState = api.svc.GetStartupState()
 	if api.startupError != nil {
 		info.StartupError = api.startupError.Error()
@@ -1259,6 +1260,38 @@ func (api *api) SetCurrency(currency string) error {
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to update currency")
 		return err
+	}
+
+	return nil
+}
+
+func (api *api) SetBitcoinDisplayFormat(format string) error {
+	if format != constants.BITCOIN_DISPLAY_FORMAT_SATS && format != constants.BITCOIN_DISPLAY_FORMAT_BIP177 {
+		return fmt.Errorf("bitcoin display format must be '%s' or '%s'", constants.BITCOIN_DISPLAY_FORMAT_SATS, constants.BITCOIN_DISPLAY_FORMAT_BIP177)
+	}
+
+	err := api.cfg.SetBitcoinDisplayFormat(format)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to update bitcoin display format")
+		return err
+	}
+
+	return nil
+}
+
+func (api *api) UpdateSettings(updateSettingsRequest *UpdateSettingsRequest) error {
+	if updateSettingsRequest.Currency != "" {
+		err := api.SetCurrency(updateSettingsRequest.Currency)
+		if err != nil {
+			return fmt.Errorf("failed to set currency: %w", err)
+		}
+	}
+
+	if updateSettingsRequest.BitcoinDisplayFormat != "" {
+		err := api.SetBitcoinDisplayFormat(updateSettingsRequest.BitcoinDisplayFormat)
+		if err != nil {
+			return fmt.Errorf("failed to set bitcoin display format: %w", err)
+		}
 	}
 
 	return nil

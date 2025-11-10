@@ -3,6 +3,7 @@ import { Navigate, useLocation, useNavigate } from "react-router-dom";
 
 import React from "react";
 import { toast } from "sonner";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import PasswordInput from "src/components/password/PasswordInput";
@@ -530,8 +531,7 @@ function FinalizeConnection({
         {app?.isolated && (
           <li>
             Optional: Top up sub-wallet balance (
-            {new Intl.NumberFormat().format(Math.floor(app.balance / 1000))}{" "}
-            sats){" "}
+            <FormattedBitcoinAmount amount={app.balance} />){" "}
             <IsolatedAppTopupDialog appId={app.id}>
               <Button size="sm" variant="secondary">
                 Top Up

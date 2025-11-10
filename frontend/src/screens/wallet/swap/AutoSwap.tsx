@@ -9,6 +9,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
 import { Button } from "src/components/ui/button";
@@ -152,7 +153,7 @@ function AutoSwapOutForm() {
           required
         />
         <p className="text-xs text-muted-foreground">
-          Minimum {new Intl.NumberFormat().format(swapInfo.minAmount)} sats
+          Minimum <FormattedBitcoinAmount amount={swapInfo.minAmount * 1000} />
         </p>
       </div>
       <div className="flex flex-col gap-4">
@@ -360,13 +361,15 @@ function ActiveSwapOutConfig({ swapConfig }: { swapConfig: AutoSwapConfig }) {
             Spending Balance Threshold
           </span>
           <span className="shrink-0 text-muted-foreground text-right">
-            {new Intl.NumberFormat().format(swapConfig.balanceThreshold)} sats
+            <FormattedBitcoinAmount
+              amount={swapConfig.balanceThreshold * 1000}
+            />
           </span>
         </div>
         <div className="flex justify-between items-center gap-2">
           <span className="font-medium truncate">Swap amount</span>
           <span className="shrink-0 text-muted-foreground text-right">
-            {new Intl.NumberFormat().format(swapConfig.swapAmount)} sats
+            <FormattedBitcoinAmount amount={swapConfig.swapAmount * 1000} />
           </span>
         </div>
         <div className="flex justify-between items-center gap-2">

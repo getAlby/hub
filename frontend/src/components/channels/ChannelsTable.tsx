@@ -1,5 +1,6 @@
 import { InfoIcon } from "lucide-react";
 import { ChannelWarning } from "src/components/channels/ChannelWarning";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading.tsx";
 import { Badge } from "src/components/ui/badge.tsx";
 import {
@@ -24,7 +25,6 @@ import {
   TooltipTrigger,
 } from "src/components/ui/tooltip.tsx";
 import { useNodeDetails } from "src/hooks/useNodeDetails";
-import { formatAmount } from "src/lib/utils.ts";
 import { Channel, LongUnconfirmedZeroConfChannel } from "src/types";
 import { ChannelDropdownMenu } from "./ChannelDropdownMenu";
 
@@ -196,22 +196,25 @@ function ChannelTableRow({
           <Badge variant="warning">Offline</Badge>
         )}
       </TableCell>
-      <TableCell title={capacity / 1000 + " sats"}>
-        {formatAmount(capacity)} sats
+      <TableCell>
+        <FormattedBitcoinAmount amount={capacity} />
       </TableCell>
       <TableCell title={channel.unspendablePunishmentReserve + " sats"}>
         {channel.localBalance < channel.unspendablePunishmentReserve * 1000 && (
           <>
-            {formatAmount(
-              Math.min(
+            <FormattedBitcoinAmount
+              amount={Math.min(
                 channel.localBalance,
                 channel.unspendablePunishmentReserve * 1000
-              )
-            )}{" "}
+              )}
+              showSymbol={false}
+            />{" "}
             /{" "}
           </>
         )}
-        {formatAmount(channel.unspendablePunishmentReserve * 1000)} sats
+        <FormattedBitcoinAmount
+          amount={channel.unspendablePunishmentReserve * 1000}
+        />
       </TableCell>
       <TableCell>
         <div className="relative">
@@ -220,11 +223,11 @@ function ChannelTableRow({
             className="h-6 absolute"
           />
           <div className="flex flex-row w-full justify-between px-2 text-xs items-center h-6 mix-blend-exclusion text-white">
-            <span title={channel.localSpendableBalance / 1000 + " sats"}>
-              {formatAmount(channel.localSpendableBalance)} sats
+            <span>
+              <FormattedBitcoinAmount amount={channel.localSpendableBalance} />
             </span>
-            <span title={channel.remoteBalance / 1000 + " sats"}>
-              {formatAmount(channel.remoteBalance)} sats
+            <span>
+              <FormattedBitcoinAmount amount={channel.remoteBalance} />
             </span>
           </div>
         </div>

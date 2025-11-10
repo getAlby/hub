@@ -773,13 +773,13 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 
-		err = app.api.SetCurrency(updateSettingsRequest.Currency)
+		err = app.api.UpdateSettings(updateSettingsRequest)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,
 				"method": method,
 				"body":   body,
-			}).WithError(err).Error("Failed to set Currency")
+			}).WithError(err).Error("Failed to update settings")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}

@@ -1,4 +1,5 @@
 import { AlertTriangleIcon } from "lucide-react";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { useBalances } from "src/hooks/useBalances";
@@ -41,8 +42,7 @@ export function SpendingAlert({
         <p>
           Your payment will likely fail because your maximum spendable balance
           for the next payment is currently{" "}
-          {new Intl.NumberFormat().format(Math.floor(maxSpendable / 1000))}{" "}
-          sats.
+          <FormattedBitcoinAmount amount={maxSpendable} />.
         </p>
         <div className="flex gap-2 mt-2">
           <LinkButton

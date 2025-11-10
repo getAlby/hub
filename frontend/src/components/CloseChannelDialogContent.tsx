@@ -8,6 +8,7 @@ import React from "react";
 import { toast } from "sonner";
 import { SwapAlert } from "src/components/channels/SwapAlert";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
@@ -17,7 +18,6 @@ import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { copyToClipboard } from "src/lib/clipboard";
-import { formatAmount } from "src/lib/utils";
 import { Channel, CloseChannelResponse } from "src/types";
 import { request } from "src/utils/request";
 import {
@@ -116,10 +116,13 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
               <Alert className="mb-4">
                 <AlertCircleIcon className="h-4 w-4" />
                 <AlertDescription>
-                  Closing this channel will move{" "}
-                  {formatAmount(channel.localBalance)} sats in this channel to
-                  your on-chain balance and reduce your receive limit by{" "}
-                  {formatAmount(channel.remoteBalance)} sats.
+                  <div>
+                    Closing this channel will move{" "}
+                    <FormattedBitcoinAmount amount={channel.localBalance} /> in
+                    this channel to your on-chain balance and reduce your
+                    receive limit by{" "}
+                    <FormattedBitcoinAmount amount={channel.remoteBalance} />.
+                  </div>
                 </AlertDescription>
               </Alert>
               <div>

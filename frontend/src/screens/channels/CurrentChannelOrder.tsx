@@ -13,6 +13,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { Button } from "src/components/ui/button";
@@ -282,13 +283,13 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
           <p className="text-xs slashed-zero">
             You currently have{" "}
             <span className="font-semibold sensitive">
-              {new Intl.NumberFormat().format(balances.onchain.total)}
-            </span>{" "}
-            sats. We recommend depositing{" "}
+              <FormattedBitcoinAmount amount={balances.onchain.total * 1000} />
+            </span>
+            . We recommend depositing an additional amount of{" "}
             <span className="font-semibold">
-              {new Intl.NumberFormat().format(recommendedAmount)}
+              <FormattedBitcoinAmount amount={recommendedAmount * 1000} />
             </span>{" "}
-            sats to open this channel.
+            to open this channel.
           </p>
           <p className="text-xs text-muted-foreground">
             This amount includes cost for the channel opening and potential
@@ -361,7 +362,7 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
           </CardHeader>
           {unspentAmount > 0 && (
             <CardContent className="slashed-zero">
-              {new Intl.NumberFormat().format(unspentAmount)} sats deposited
+              <FormattedBitcoinAmount amount={unspentAmount * 1000} /> deposited
             </CardContent>
           )}
         </Card>
@@ -651,10 +652,9 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                         Spending Balance
                       </TableCell>
                       <TableCell className="text-right p-3">
-                        {new Intl.NumberFormat().format(
-                          lspOrderResponse.outgoingLiquidity
-                        )}{" "}
-                        sats
+                        <FormattedBitcoinAmount
+                          amount={lspOrderResponse.outgoingLiquidity * 1000}
+                        />
                       </TableCell>
                     </TableRow>
                   )}
@@ -664,10 +664,9 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                         Incoming Liquidity
                       </TableCell>
                       <TableCell className="text-right p-3">
-                        {new Intl.NumberFormat().format(
-                          lspOrderResponse.incomingLiquidity
-                        )}{" "}
-                        sats
+                        <FormattedBitcoinAmount
+                          amount={lspOrderResponse.incomingLiquidity * 1000}
+                        />
                       </TableCell>
                     </TableRow>
                   )}
@@ -676,10 +675,9 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                       Amount to pay
                     </TableCell>
                     <TableCell className="font-semibold text-right p-3">
-                      {new Intl.NumberFormat().format(
-                        lspOrderResponse.invoiceAmount
-                      )}{" "}
-                      sats
+                      <FormattedBitcoinAmount
+                        amount={lspOrderResponse.invoiceAmount * 1000}
+                      />
                     </TableCell>
                   </TableRow>
                 </TableBody>

@@ -65,6 +65,8 @@ type API interface {
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
+	SetBitcoinDisplayFormat(format string) error
+	UpdateSettings(updateSettingsRequest *UpdateSettingsRequest) error
 	LookupSwap(swapId string) (*LookupSwapResponse, error)
 	ListSwaps() (*ListSwapsResponse, error)
 	GetSwapInInfo() (*SwapInfoResponse, error)
@@ -291,13 +293,15 @@ type InfoResponse struct {
 	AutoUnlockPasswordSupported bool                `json:"autoUnlockPasswordSupported"`
 	AutoUnlockPasswordEnabled   bool                `json:"autoUnlockPasswordEnabled"`
 	Currency                    string              `json:"currency"`
+	BitcoinDisplayFormat        string              `json:"bitcoinDisplayFormat"`
 	Relays                      []InfoResponseRelay `json:"relays"`
 	NodeAlias                   string              `json:"nodeAlias"`
 	MempoolUrl                  string              `json:"mempoolUrl"`
 }
 
 type UpdateSettingsRequest struct {
-	Currency string `json:"currency"`
+	Currency             string `json:"currency"`
+	BitcoinDisplayFormat string `json:"bitcoinDisplayFormat"`
 }
 
 type SetNodeAliasRequest struct {

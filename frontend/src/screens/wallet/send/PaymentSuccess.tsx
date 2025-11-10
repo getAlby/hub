@@ -8,6 +8,7 @@ import {
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import { Button } from "src/components/ui/button";
 import {
@@ -58,7 +59,9 @@ export default function PaymentSuccess() {
             <img src={TickSVG} className="w-48" />
             <div className="flex flex-col gap-1 items-center">
               <p className="text-2xl font-medium slashed-zero">
-                {new Intl.NumberFormat().format(invoice.satoshi || amount)} sats
+                <FormattedBitcoinAmount
+                  amount={(invoice.satoshi || amount) * 1000}
+                />
               </p>
               <FormattedFiatAmount
                 amount={invoice.satoshi || amount}
