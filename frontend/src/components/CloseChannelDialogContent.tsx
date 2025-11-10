@@ -116,11 +116,13 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
               <Alert className="mb-4">
                 <AlertCircleIcon className="h-4 w-4" />
                 <AlertDescription>
-                  Closing this channel will move{" "}
-                  <FormattedBitcoinAmount amount={channel.localBalance} /> in
-                  this channel to your on-chain balance and reduce your receive
-                  limit by{" "}
-                  <FormattedBitcoinAmount amount={channel.remoteBalance} />.
+                  <div>
+                    Closing this channel will move{" "}
+                    <FormattedBitcoinAmount amount={channel.localBalance} /> in
+                    this channel to your on-chain balance and reduce your
+                    receive limit by{" "}
+                    <FormattedBitcoinAmount amount={channel.remoteBalance} />.
+                  </div>
                 </AlertDescription>
               </Alert>
               <div>

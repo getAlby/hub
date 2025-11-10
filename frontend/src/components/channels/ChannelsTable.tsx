@@ -207,6 +207,7 @@ function ChannelTableRow({
                 channel.localBalance,
                 channel.unspendablePunishmentReserve * 1000
               )}
+              showSymbol={false}
             />{" "}
             /{" "}
           </>

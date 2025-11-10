@@ -285,7 +285,7 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
             <span className="font-semibold sensitive">
               <FormattedBitcoinAmount amount={balances.onchain.total * 1000} />
             </span>
-            . We recommend depositing{" "}
+            . We recommend depositing an additional amount of{" "}
             <span className="font-semibold">
               <FormattedBitcoinAmount amount={recommendedAmount * 1000} />
             </span>{" "}

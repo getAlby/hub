@@ -136,9 +136,13 @@ export function RebalanceChannelDialogContent({
             <p className="mt-2 text-xs text-muted-foreground">
               Fee: 0.3%
               {!!amount && (
-                <FormattedBitcoinAmount
-                  amount={Math.floor(parseInt(amount || "0") * 0.003 * 1000)}
-                />
+                <>
+                  &nbsp;(
+                  <FormattedBitcoinAmount
+                    amount={Math.floor(parseInt(amount || "0") * 0.003 * 1000)}
+                  />
+                  )
+                </>
               )}{" "}
               + routing fees
             </p>
