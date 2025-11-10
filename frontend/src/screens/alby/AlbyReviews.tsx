@@ -9,8 +9,10 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 
+import albyExtension from "src/assets/suggested-apps/alby-extension.png";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
-import albyExtension from "src/assets/suggested-apps/alby.png";
+import alby from "src/assets/suggested-apps/alby.png";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 
 interface Platform {
   name: string;
@@ -20,7 +22,7 @@ interface Platform {
 interface ProductOpportunity {
   title: string;
   logo: string;
-  reward: string;
+  reward: number;
   platforms: Platform[];
 }
 
@@ -28,7 +30,7 @@ const productOpportunities: ProductOpportunity[] = [
   {
     title: "Alby Go",
     logo: albyGo,
-    reward: "1,000 sats",
+    reward: 1000,
     platforms: [
       {
         name: "Google Play",
@@ -43,7 +45,7 @@ const productOpportunities: ProductOpportunity[] = [
   {
     title: "Alby Extension",
     logo: albyExtension,
-    reward: "1,000 sats",
+    reward: 1000,
     platforms: [
       {
         name: "Chrome",
@@ -57,8 +59,8 @@ const productOpportunities: ProductOpportunity[] = [
   },
   {
     title: "Alby",
-    logo: albyExtension,
-    reward: "2,000 sats",
+    logo: alby,
+    reward: 2000,
     platforms: [
       {
         name: "Trustpilot",
@@ -73,6 +75,16 @@ export function AlbyReviews() {
     <>
       <AppHeader title="Earn Bitcoin" />
 
+      <p className="text-muted-foreground text-xs">
+        For a smooth experience consider a opening a channel of{" "}
+        <FormattedBitcoinAmount amount={200_000 * 1000} /> in size or more.{" "}
+        <ExternalLink
+          to="https://guides.getalby.com/user-guide/alby-hub/node"
+          className="underline"
+        >
+          Learn more
+        </ExternalLink>
+      </p>
       <div className="space-y-8">
         <Card>
           <CardHeader>
@@ -86,7 +98,7 @@ export function AlbyReviews() {
               >
                 support@getalby.com
               </ExternalLink>{" "}
-              to receive sats.
+              to receive your bitcoin.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -115,7 +127,9 @@ export function AlbyReviews() {
                       ))}
                     </div>
                   </div>
-                  <div className="text-right font-medium">{product.reward}</div>
+                  <div className="text-right font-medium">
+                    <FormattedBitcoinAmount amount={product.reward * 1000} />
+                  </div>
                 </div>
               ))}
             </div>

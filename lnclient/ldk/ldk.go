@@ -79,6 +79,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		lsp.OlympusLSP().Pubkey,
 		lsp.MegalithLSP().Pubkey,
 		"02b4552a7a85274e4da01a7c71ca57407181752e8568b31d51f13c111a2941dce3", // LNServer_Wave
+		"038ba8f67ba8ff5c48764cdd3251c33598d55b203546d08a8f0ec9dcd9f27e3637", // Flashsats
 
 		// Mutinynet
 		lsp.OlympusMutinynetLSP().Pubkey,

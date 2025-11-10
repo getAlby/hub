@@ -152,7 +152,7 @@ export interface InfoResponse {
   albyUserIdentifier: string;
   network?: Network;
   version: string;
-  relay: string;
+  relays: { url: string; online: boolean }[];
   unlocked: boolean;
   enableAdvancedSetup: boolean;
   startupState: string;
@@ -163,7 +163,10 @@ export interface InfoResponse {
   currency: string;
   nodeAlias: string;
   mempoolUrl: string;
+  bitcoinDisplayFormat?: BitcoinDisplayFormat;
 }
+
+export type BitcoinDisplayFormat = "sats" | "bip177";
 
 export type HealthAlarmKind =
   | "alby_service"
@@ -269,7 +272,7 @@ export interface CreateAppResponse {
   pairingUri: string;
   pairingPublicKey: string;
   pairingSecretKey: string;
-  relayUrl: string;
+  relayUrls: string[];
   walletPubkey: string;
   lud16: string;
   returnTo: string;

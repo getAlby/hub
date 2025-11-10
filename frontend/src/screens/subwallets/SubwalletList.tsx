@@ -13,9 +13,11 @@ import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import { CustomPagination } from "src/components/CustomPagination";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import ResponsiveButton from "src/components/ResponsiveButton";
+import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import {
@@ -92,9 +94,11 @@ export function SubwalletList() {
                 <ResponsiveButton icon={CirclePlusIcon} text="New Sub-wallet" />
               </UpgradeDialog>
             ) : (
-              <Link to="/sub-wallets/new">
-                <ResponsiveButton icon={CirclePlusIcon} text="New Sub-wallet" />
-              </Link>
+              <ResponsiveLinkButton
+                to="/sub-wallets/new"
+                icon={CirclePlusIcon}
+                text="New Sub-wallet"
+              />
             )}
           </>
         }
@@ -149,10 +153,7 @@ export function SubwalletList() {
           <CardContent className="grow">
             <div className="mb-1">
               <span className="text-2xl font-medium balance sensitive">
-                {new Intl.NumberFormat().format(
-                  Math.floor(subwalletTotalAmount / 1000)
-                )}{" "}
-                sats
+                <FormattedBitcoinAmount amount={subwalletTotalAmount} />
               </span>
             </div>
             <FormattedFiatAmount amount={subwalletTotalAmount / 1000} />

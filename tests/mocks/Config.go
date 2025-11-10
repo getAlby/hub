@@ -404,46 +404,48 @@ func (_c *MockConfig_GetNetwork_Call) RunAndReturn(run func() string) *MockConfi
 	return _c
 }
 
-// GetRelayUrl provides a mock function for the type MockConfig
-func (_mock *MockConfig) GetRelayUrl() string {
+// GetRelayUrls provides a mock function for the type MockConfig
+func (_mock *MockConfig) GetRelayUrls() []string {
 	ret := _mock.Called()
 
 	if len(ret) == 0 {
-		panic("no return value specified for GetRelayUrl")
+		panic("no return value specified for GetRelayUrls")
 	}
 
-	var r0 string
-	if returnFunc, ok := ret.Get(0).(func() string); ok {
+	var r0 []string
+	if returnFunc, ok := ret.Get(0).(func() []string); ok {
 		r0 = returnFunc()
 	} else {
-		r0 = ret.Get(0).(string)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
 	}
 	return r0
 }
 
-// MockConfig_GetRelayUrl_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRelayUrl'
-type MockConfig_GetRelayUrl_Call struct {
+// MockConfig_GetRelayUrls_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRelayUrls'
+type MockConfig_GetRelayUrls_Call struct {
 	*mock.Call
 }
 
-// GetRelayUrl is a helper method to define mock.On call
-func (_e *MockConfig_Expecter) GetRelayUrl() *MockConfig_GetRelayUrl_Call {
-	return &MockConfig_GetRelayUrl_Call{Call: _e.mock.On("GetRelayUrl")}
+// GetRelayUrls is a helper method to define mock.On call
+func (_e *MockConfig_Expecter) GetRelayUrls() *MockConfig_GetRelayUrls_Call {
+	return &MockConfig_GetRelayUrls_Call{Call: _e.mock.On("GetRelayUrls")}
 }
 
-func (_c *MockConfig_GetRelayUrl_Call) Run(run func()) *MockConfig_GetRelayUrl_Call {
+func (_c *MockConfig_GetRelayUrls_Call) Run(run func()) *MockConfig_GetRelayUrls_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run()
 	})
 	return _c
 }
 
-func (_c *MockConfig_GetRelayUrl_Call) Return(s string) *MockConfig_GetRelayUrl_Call {
-	_c.Call.Return(s)
+func (_c *MockConfig_GetRelayUrls_Call) Return(strings []string) *MockConfig_GetRelayUrls_Call {
+	_c.Call.Return(strings)
 	return _c
 }
 
-func (_c *MockConfig_GetRelayUrl_Call) RunAndReturn(run func() string) *MockConfig_GetRelayUrl_Call {
+func (_c *MockConfig_GetRelayUrls_Call) RunAndReturn(run func() []string) *MockConfig_GetRelayUrls_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -717,6 +719,95 @@ func (_c *MockConfig_SetupCompleted_Call) Return(b bool) *MockConfig_SetupComple
 }
 
 func (_c *MockConfig_SetupCompleted_Call) RunAndReturn(run func() bool) *MockConfig_SetupCompleted_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetBitcoinDisplayFormat provides a mock function for the type MockConfig
+func (_mock *MockConfig) GetBitcoinDisplayFormat() string {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBitcoinDisplayFormat")
+	}
+
+	var r0 string
+	if returnFunc, ok := ret.Get(0).(func() string); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	return r0
+}
+
+// MockConfig_GetBitcoinDisplayFormat_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetBitcoinDisplayFormat'
+type MockConfig_GetBitcoinDisplayFormat_Call struct {
+	*mock.Call
+}
+
+// GetBitcoinDisplayFormat is a helper method to define mock.On call
+func (_e *MockConfig_Expecter) GetBitcoinDisplayFormat() *MockConfig_GetBitcoinDisplayFormat_Call {
+	return &MockConfig_GetBitcoinDisplayFormat_Call{Call: _e.mock.On("GetBitcoinDisplayFormat")}
+}
+
+func (_c *MockConfig_GetBitcoinDisplayFormat_Call) Run(run func()) *MockConfig_GetBitcoinDisplayFormat_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockConfig_GetBitcoinDisplayFormat_Call) Return(s string) *MockConfig_GetBitcoinDisplayFormat_Call {
+	_c.Call.Return(s)
+	return _c
+}
+
+func (_c *MockConfig_GetBitcoinDisplayFormat_Call) RunAndReturn(run func() string) *MockConfig_GetBitcoinDisplayFormat_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SetBitcoinDisplayFormat provides a mock function for the type MockConfig
+func (_mock *MockConfig) SetBitcoinDisplayFormat(value string) error {
+	ret := _mock.Called(value)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetBitcoinDisplayFormat")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(string) error); ok {
+		r0 = returnFunc(value)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockConfig_SetBitcoinDisplayFormat_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetBitcoinDisplayFormat'
+type MockConfig_SetBitcoinDisplayFormat_Call struct {
+	*mock.Call
+}
+
+// SetBitcoinDisplayFormat is a helper method to define mock.On call
+//   - value
+func (_e *MockConfig_Expecter) SetBitcoinDisplayFormat(value interface{}) *MockConfig_SetBitcoinDisplayFormat_Call {
+	return &MockConfig_SetBitcoinDisplayFormat_Call{Call: _e.mock.On("SetBitcoinDisplayFormat", value)}
+}
+
+func (_c *MockConfig_SetBitcoinDisplayFormat_Call) Run(run func(value string)) *MockConfig_SetBitcoinDisplayFormat_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *MockConfig_SetBitcoinDisplayFormat_Call) Return(err error) *MockConfig_SetBitcoinDisplayFormat_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockConfig_SetBitcoinDisplayFormat_Call) RunAndReturn(run func(value string) error) *MockConfig_SetBitcoinDisplayFormat_Call {
 	_c.Call.Return(run)
 	return _c
 }

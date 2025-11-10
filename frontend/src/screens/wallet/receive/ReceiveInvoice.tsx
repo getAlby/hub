@@ -10,6 +10,7 @@ import React from "react";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
@@ -122,13 +123,10 @@ export default function ReceiveInvoice() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="flex flex-col items-center gap-6">
-                      <QRCode value={transaction.invoice} className="w-full" />
+                      <QRCode value={transaction.invoice} />
                       <div className="flex flex-col gap-1 items-center">
                         <p className="text-2xl font-medium slashed-zero">
-                          {new Intl.NumberFormat().format(
-                            Math.floor(transaction.amount / 1000)
-                          )}{" "}
-                          sats
+                          <FormattedBitcoinAmount amount={transaction.amount} />
                         </p>
                         <FormattedFiatAmount
                           amount={Math.floor(transaction.amount / 1000)}
@@ -158,10 +156,7 @@ export default function ReceiveInvoice() {
                       <img src={TickSVG} className="w-48" />
                       <div className="flex flex-col gap-1 items-center">
                         <p className="text-2xl font-medium slashed-zero">
-                          {new Intl.NumberFormat().format(
-                            Math.floor(transaction.amount / 1000)
-                          )}{" "}
-                          sats
+                          <FormattedBitcoinAmount amount={transaction.amount} />
                         </p>
                         <FormattedFiatAmount
                           amount={Math.floor(transaction.amount / 1000)}

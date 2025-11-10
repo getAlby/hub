@@ -14,6 +14,7 @@ import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import { AppleIcon } from "src/components/icons/Apple";
 import { PlayStoreIcon } from "src/components/icons/PlayStore";
 import { ZapStoreIcon } from "src/components/icons/ZapStore";
@@ -179,11 +180,7 @@ export function SubwalletCreated() {
                   <CardHeader>
                     <CardTitle>{name}</CardTitle>
                     <CardDescription>
-                      Balance:{" "}
-                      {new Intl.NumberFormat().format(
-                        Math.floor(app.balance / 1000)
-                      )}{" "}
-                      sats
+                      Balance: <FormattedBitcoinAmount amount={app.balance} />
                     </CardDescription>
                   </CardHeader>
                   <CardFooter className="flex flex-row justify-end">

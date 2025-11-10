@@ -304,7 +304,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                       onClick={() => setIsEditingPermissions(true)}
                       icon={SquarePenIcon}
                       text="Edit Connection"
-                    ></ResponsiveButton>
+                    />
                   </>
                 )}
                 {isEditingPermissions && (

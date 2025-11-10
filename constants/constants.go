@@ -77,3 +77,8 @@ const (
 )
 
 const SUBWALLET_APPSTORE_APP_ID = "uncle-jim"
+
+const (
+	BITCOIN_DISPLAY_FORMAT_SATS   = "sats"
+	BITCOIN_DISPLAY_FORMAT_BIP177 = "bip177"
+)

@@ -8,6 +8,7 @@ import { ChannelPublicPrivateAlert } from "src/components/channels/ChannelPublic
 import { DuplicateChannelAlert } from "src/components/channels/DuplicateChannelAlert";
 import { SwapAlert } from "src/components/channels/SwapAlert";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import { Button } from "src/components/ui/button";
@@ -277,8 +278,9 @@ function NewChannelInternal({
 
             {order.amount && +order.amount < 200_000 && (
               <p className="text-muted-foreground text-xs">
-                For a smooth experience consider a opening a channel of 200k
-                sats in size or more.{" "}
+                For a smooth experience consider a opening a channel of{" "}
+                <FormattedBitcoinAmount amount={200_000 * 1000} /> in size or
+                more.{" "}
                 <ExternalLink
                   to="https://guides.getalby.com/user-guide/alby-hub/node"
                   className="underline"
@@ -321,7 +323,9 @@ function NewChannelInternal({
                 {" "}
                 Estimated channel price:{" "}
                 <span className="font-semibold">
-                  {new Intl.NumberFormat().format(estimatedChannelPrice)} sats
+                  <FormattedBitcoinAmount
+                    amount={estimatedChannelPrice * 1000}
+                  />
                 </span>
               </span>
             )}
@@ -385,16 +389,14 @@ function NewChannelInternal({
                                     {peer.name}
                                     <span className="ml-4 text-xs text-muted-foreground slashed-zero">
                                       Min.{" "}
-                                      {new Intl.NumberFormat().format(
-                                        peer.minimumChannelSize
-                                      )}{" "}
-                                      sats
+                                      <FormattedBitcoinAmount
+                                        amount={peer.minimumChannelSize * 1000}
+                                      />
                                       <span className="mr-5" />
                                       Max.{" "}
-                                      {new Intl.NumberFormat().format(
-                                        peer.maximumChannelSize
-                                      )}{" "}
-                                      sats
+                                      <FormattedBitcoinAmount
+                                        amount={peer.maximumChannelSize * 1000}
+                                      />
                                     </span>
                                   </div>
                                 </div>

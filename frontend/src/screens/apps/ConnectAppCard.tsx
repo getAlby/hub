@@ -47,7 +47,7 @@ export function ConnectAppCard({
       <CardContent className="flex flex-col items-center gap-5">
         {!app.lastUsedAt ? (
           <>
-            <div className="flex flex-row items-center gap-2 text-sm">
+            <div className="flex flex-row items-center gap-2 text-sm z-10">
               <Loading className="size-4" />
               <p>Waiting for app to connect</p>
             </div>

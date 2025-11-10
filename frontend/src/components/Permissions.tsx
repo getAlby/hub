@@ -3,6 +3,7 @@ import React from "react";
 import BudgetAmountSelect from "src/components/BudgetAmountSelect";
 import BudgetRenewalSelect from "src/components/BudgetRenewalSelect";
 import ExpirySelect from "src/components/ExpirySelect";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Scopes from "src/components/Scopes";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
@@ -173,12 +174,22 @@ const Permissions: React.FC<PermissionsProps> = ({
                   <span className="text-primary font-medium">
                     Budget Amount:
                   </span>{" "}
-                  {permissions.maxAmount
-                    ? new Intl.NumberFormat().format(permissions.maxAmount)
-                    : "∞"}
-                  {" sats "}
-                  {!isNewConnection &&
-                    `(${new Intl.NumberFormat().format(budgetUsage || 0)} sats used)`}
+                  {permissions.maxAmount ? (
+                    <FormattedBitcoinAmount
+                      amount={permissions.maxAmount * 1000}
+                    />
+                  ) : (
+                    "∞"
+                  )}{" "}
+                  {!isNewConnection && (
+                    <>
+                      (
+                      <FormattedBitcoinAmount
+                        amount={(budgetUsage || 0) * 1000}
+                      />{" "}
+                      used)
+                    </>
+                  )}
                 </p>
               </div>
             </div>
