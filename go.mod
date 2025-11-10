@@ -1,6 +1,6 @@
 module github.com/getAlby/hub
 
-go 1.24.8
+go 1.24.9
 
 require (
 	github.com/adrg/xdg v0.5.3
@@ -257,7 +257,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/labstack/echo-jwt/v4 v4.3.1
-	github.com/lightningnetwork/lnd v0.20.0-beta.rc2
+	github.com/lightningnetwork/lnd v0.20.0-beta.rc4
 	github.com/sirupsen/logrus v1.9.3
 	github.com/tyler-smith/go-bip32 v1.0.0
 	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6 // indirect
