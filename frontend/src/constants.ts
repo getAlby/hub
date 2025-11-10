@@ -18,3 +18,6 @@ export const SUPPORT_ALBY_LIGHTNING_ADDRESS = "hub@getalby.com";
 
 export const SUBWALLET_APPSTORE_APP_ID = "uncle-jim";
 export const ALBY_ACCOUNT_APP_NAME = "getalby.com";
+
+export const DEFAULT_APP_BUDGET_SATS = 10_000;
+export const DEFAULT_APP_BUDGET_RENEWAL = "monthly";

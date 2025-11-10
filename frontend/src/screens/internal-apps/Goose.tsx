@@ -20,6 +20,10 @@ import {
 } from "src/components/ui/card";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
+import {
+  DEFAULT_APP_BUDGET_RENEWAL,
+  DEFAULT_APP_BUDGET_SATS,
+} from "src/constants";
 import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -50,8 +54,8 @@ export function Goose() {
             "pay_invoice",
             "sign_message",
           ],
-          maxAmount: 10_000,
-          budgetRenewal: "monthly",
+          maxAmount: DEFAULT_APP_BUDGET_SATS,
+          budgetRenewal: DEFAULT_APP_BUDGET_RENEWAL,
           metadata: {
             app_store_app_id: "goose",
           },

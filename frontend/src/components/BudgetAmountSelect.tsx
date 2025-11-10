@@ -40,7 +40,7 @@ function BudgetAmountSelect({
                   onChange(budgetOptions[budget]);
                 }}
                 className={cn(
-                  "cursor-pointer rounded text-nowrap border-2 text-center p-4 slashed-zero",
+                  "cursor-pointer rounded text-nowrap border-2 text-center p-2 py-4 slashed-zero",
                   !customBudget && value == budgetOptions[budget]
                     ? "border-primary"
                     : "border-muted"
@@ -63,7 +63,7 @@ function BudgetAmountSelect({
               </button>
             );
           })}
-        <div
+        <button
           onClick={() => {
             setCustomBudget(true);
             onChange(0);
@@ -73,8 +73,8 @@ function BudgetAmountSelect({
             customBudget ? "border-primary" : "border-muted"
           )}
         >
-          Custom...
-        </div>
+          Custom
+        </button>
       </div>
       {customBudget && (
         <div className="grid gap-2 mb-5">
