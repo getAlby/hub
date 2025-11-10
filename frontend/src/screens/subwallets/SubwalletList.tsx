@@ -17,6 +17,7 @@ import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import ResponsiveButton from "src/components/ResponsiveButton";
+import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import {
@@ -93,9 +94,11 @@ export function SubwalletList() {
                 <ResponsiveButton icon={CirclePlusIcon} text="New Sub-wallet" />
               </UpgradeDialog>
             ) : (
-              <Link to="/sub-wallets/new">
-                <ResponsiveButton icon={CirclePlusIcon} text="New Sub-wallet" />
-              </Link>
+              <ResponsiveLinkButton
+                to="/sub-wallets/new"
+                icon={CirclePlusIcon}
+                text="New Sub-wallet"
+              />
             )}
           </>
         }

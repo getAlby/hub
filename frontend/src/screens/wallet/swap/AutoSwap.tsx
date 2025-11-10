@@ -6,13 +6,12 @@ import {
   XCircleIcon,
 } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
-import ResponsiveButton from "src/components/ResponsiveButton";
+import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
 import { Button } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
@@ -35,13 +34,12 @@ export default function AutoSwap() {
       <AppHeader
         title="Auto Swap Out"
         contentRight={
-          <Link to="/wallet/swap">
-            <ResponsiveButton
-              variant="outline"
-              icon={ArrowDownUpIcon}
-              text="Swap"
-            />
-          </Link>
+          <ResponsiveLinkButton
+            to="/wallet/swap"
+            variant="outline"
+            icon={ArrowDownUpIcon}
+            text="Swap"
+          />
         }
       />
       <div className="w-full lg:max-w-lg min-w-0">

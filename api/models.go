@@ -252,46 +252,51 @@ type SetupRequest struct {
 }
 
 type CreateAppResponse struct {
-	PairingUri    string `json:"pairingUri"`
-	PairingSecret string `json:"pairingSecretKey"`
-	Pubkey        string `json:"pairingPublicKey"`
-	RelayUrl      string `json:"relayUrl"`
-	WalletPubkey  string `json:"walletPubkey"`
-	Lud16         string `json:"lud16"`
-	Id            uint   `json:"id"`
-	Name          string `json:"name"`
-	ReturnTo      string `json:"returnTo"`
+	PairingUri    string   `json:"pairingUri"`
+	PairingSecret string   `json:"pairingSecretKey"`
+	Pubkey        string   `json:"pairingPublicKey"`
+	RelayUrls     []string `json:"relayUrls"`
+	WalletPubkey  string   `json:"walletPubkey"`
+	Lud16         string   `json:"lud16"`
+	Id            uint     `json:"id"`
+	Name          string   `json:"name"`
+	ReturnTo      string   `json:"returnTo"`
 }
 
 type User struct {
 	Email string `json:"email"`
 }
 
+type InfoResponseRelay struct {
+	Url    string `json:"url"`
+	Online bool   `json:"online"`
+}
+
 type InfoResponse struct {
-	BackendType                 string    `json:"backendType"`
-	SetupCompleted              bool      `json:"setupCompleted"`
-	OAuthRedirect               bool      `json:"oauthRedirect"`
-	Running                     bool      `json:"running"`
-	Unlocked                    bool      `json:"unlocked"`
-	AlbyAuthUrl                 string    `json:"albyAuthUrl"`
-	NextBackupReminder          string    `json:"nextBackupReminder"`
-	AlbyUserIdentifier          string    `json:"albyUserIdentifier"`
-	AlbyAccountConnected        bool      `json:"albyAccountConnected"`
-	Version                     string    `json:"version"`
-	Network                     string    `json:"network"`
-	EnableAdvancedSetup         bool      `json:"enableAdvancedSetup"`
-	LdkVssEnabled               bool      `json:"ldkVssEnabled"`
-	VssSupported                bool      `json:"vssSupported"`
-	StartupState                string    `json:"startupState"`
-	StartupError                string    `json:"startupError"`
-	StartupErrorTime            time.Time `json:"startupErrorTime"`
-	AutoUnlockPasswordSupported bool      `json:"autoUnlockPasswordSupported"`
-	AutoUnlockPasswordEnabled   bool      `json:"autoUnlockPasswordEnabled"`
-	Currency                    string    `json:"currency"`
-	BitcoinDisplayFormat        string    `json:"bitcoinDisplayFormat"`
-	Relay                       string    `json:"relay"`
-	NodeAlias                   string    `json:"nodeAlias"`
-	MempoolUrl                  string    `json:"mempoolUrl"`
+	BackendType                 string              `json:"backendType"`
+	SetupCompleted              bool                `json:"setupCompleted"`
+	OAuthRedirect               bool                `json:"oauthRedirect"`
+	Running                     bool                `json:"running"`
+	Unlocked                    bool                `json:"unlocked"`
+	AlbyAuthUrl                 string              `json:"albyAuthUrl"`
+	NextBackupReminder          string              `json:"nextBackupReminder"`
+	AlbyUserIdentifier          string              `json:"albyUserIdentifier"`
+	AlbyAccountConnected        bool                `json:"albyAccountConnected"`
+	Version                     string              `json:"version"`
+	Network                     string              `json:"network"`
+	EnableAdvancedSetup         bool                `json:"enableAdvancedSetup"`
+	LdkVssEnabled               bool                `json:"ldkVssEnabled"`
+	VssSupported                bool                `json:"vssSupported"`
+	StartupState                string              `json:"startupState"`
+	StartupError                string              `json:"startupError"`
+	StartupErrorTime            time.Time           `json:"startupErrorTime"`
+	AutoUnlockPasswordSupported bool                `json:"autoUnlockPasswordSupported"`
+	AutoUnlockPasswordEnabled   bool                `json:"autoUnlockPasswordEnabled"`
+	Currency                    string              `json:"currency"`
+	BitcoinDisplayFormat        string              `json:"bitcoinDisplayFormat"`
+	Relays                      []InfoResponseRelay `json:"relays"`
+	NodeAlias                   string              `json:"nodeAlias"`
+	MempoolUrl                  string              `json:"mempoolUrl"`
 }
 
 type UpdateSettingsRequest struct {

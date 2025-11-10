@@ -77,7 +77,7 @@ type Config interface {
 	SetIgnore(key string, value string, encryptionKey string) error
 	SetUpdate(key string, value string, encryptionKey string) error
 	GetJWTSecret() string
-	GetRelayUrl() string
+	GetRelayUrls() []string
 	GetNetwork() string
 	GetMempoolUrl() string
 	GetEnv() *AppConfig

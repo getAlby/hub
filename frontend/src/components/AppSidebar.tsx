@@ -15,10 +15,11 @@ import {
 } from "lucide-react";
 import React from "react";
 
-import { Link, NavLink, useNavigate } from "react-router-dom";
-import albyHub from "src/assets/suggested-apps/alby-hub.png";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+
 import ExternalLink from "src/components/ExternalLink";
 import { AlbyIcon } from "src/components/icons/Alby";
+import { AlbyHubIcon } from "src/components/icons/AlbyHubIcon";
 import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
 import SidebarHint from "src/components/SidebarHint";
 import {
@@ -56,6 +57,7 @@ export function AppSidebar() {
   const { isMobile, setOpenMobile } = useSidebar();
   const { hasChannelManagement } = useInfo();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const _isHttpMode = isHttpMode();
 
@@ -124,7 +126,7 @@ export function AppSidebar() {
       <SidebarHeader>
         <div className="p-2 flex flex-row items-center justify-between">
           <Link to="/home" onClick={() => setOpenMobile(false)}>
-            <AlbyHubLogo className="text-sidebar-foreground h-12" />
+            <AlbyHubLogo className="w-32" />
           </Link>
           <div className="flex gap-3 items-center">
             <HealthIndicator />
@@ -136,20 +138,22 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {data.navMain.map((item) => (
-                <NavLink key={item.title} to={item.url} end>
-                  {({ isActive }) => (
-                    <SidebarMenuItem
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={location.pathname === item.url}
+                  >
+                    <Link
+                      to={item.url}
                       onClick={() => {
                         setOpenMobile(false);
                       }}
                     >
-                      <SidebarMenuButton isActive={isActive}>
-                        <item.icon />
-                        <span>{item.title}</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )}
-                </NavLink>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
               ))}
             </SidebarMenu>
           </SidebarGroupContent>
@@ -167,8 +171,8 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
-              <DropdownMenuTrigger className="w-full">
-                <SidebarMenuButton size="lg">
+              <SidebarMenuButton size="lg" asChild>
+                <DropdownMenuTrigger className="w-full">
                   {info?.albyAccountConnected ? (
                     <>
                       <UserAvatar />
@@ -183,19 +187,17 @@ export function AppSidebar() {
                     </>
                   ) : (
                     <>
-                      <img
-                        src={albyHub}
-                        alt="logo"
-                        className="size-8 rounded-lg "
-                      />
+                      <div className="size-8 flex items-center justify-center bg-sidebar-primary/80 text-sidebar-primary-foreground rounded-md">
+                        <AlbyHubIcon className="size-4" />
+                      </div>
                       <div className="font-semibold text-left text-sm leading-tight">
                         My Alby Hub
                       </div>
                     </>
                   )}
                   <ChevronsUpDown className="ml-auto size-4" />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
+                </DropdownMenuTrigger>
+              </SidebarMenuButton>
               <DropdownMenuContent
                 className="min-w-56"
                 side={isMobile ? "bottom" : "right"}
@@ -231,15 +233,15 @@ export function AppSidebar() {
                     </Link>
                   </DropdownMenuItem>
                 ) : (
-                  <DropdownMenuItem>
-                    <ExternalLink
-                      to="https://getalby.com/user/edit"
-                      className="flex items-center flex-1"
-                    >
+                  <ExternalLink
+                    to="https://getalby.com/user/edit"
+                    className="w-full"
+                  >
+                    <DropdownMenuItem className="flex items-center flex-1">
                       <AlbyIcon className="size-4 mr-2" />
                       Alby Account Settings
-                    </ExternalLink>
-                  </DropdownMenuItem>
+                    </DropdownMenuItem>
+                  </ExternalLink>
                 )}
                 {!albyMe?.subscription.plan_code && (
                   <>
@@ -280,35 +282,39 @@ export function NavSecondary({
   }[];
 } & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   const { setOpenMobile } = useSidebar();
+  const location = useLocation();
 
   return (
     <SidebarGroup {...props}>
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => (
-            <NavLink key={item.title} to={item.url} end>
-              {({ isActive }) => (
-                <SidebarMenuItem
+            <SidebarMenuItem key={item.title}>
+              <SidebarMenuButton
+                asChild
+                isActive={location.pathname === item.url}
+              >
+                <NavLink
+                  to={item.url}
+                  end
                   onClick={() => {
                     setOpenMobile(false);
                   }}
                 >
-                  <SidebarMenuButton isActive={isActive}>
-                    <item.icon />
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-            </NavLink>
-          ))}
-          <ExternalLink to="https://support.getalby.com">
-            <SidebarMenuItem>
-              <SidebarMenuButton>
-                <CircleHelp className="h-4 w-4" />
-                Help
+                  <item.icon />
+                  <span>{item.title}</span>
+                </NavLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
-          </ExternalLink>
+          ))}
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <ExternalLink to="https://support.getalby.com">
+                <CircleHelp className="h-4 w-4" />
+                Help
+              </ExternalLink>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

@@ -5,13 +5,13 @@ import {
   RefreshCwIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
-import ResponsiveButton from "src/components/ResponsiveButton";
+import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
 import { Button } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
@@ -54,13 +54,12 @@ export default function Swap() {
         title="Swap"
         contentRight={
           tab === "out" && (
-            <Link to="/wallet/swap/auto">
-              <ResponsiveButton
-                variant="outline"
-                icon={RefreshCwIcon}
-                text="Auto Swap"
-              />
-            </Link>
+            <ResponsiveLinkButton
+              to="/wallet/swap/auto"
+              variant="outline"
+              icon={RefreshCwIcon}
+              text="Auto Swap"
+            />
           )
         }
       />
