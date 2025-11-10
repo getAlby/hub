@@ -170,7 +170,7 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <DropdownMenu modal={false}>
+            <DropdownMenu>
               <SidebarMenuButton size="lg" asChild>
                 <DropdownMenuTrigger className="w-full">
                   {info?.albyAccountConnected ? (
