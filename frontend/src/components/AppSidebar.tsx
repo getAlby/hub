@@ -246,7 +246,7 @@ export function AppSidebar() {
                     className="w-full"
                   >
                     <DropdownMenuItem className="flex items-center flex-1">
-                      <AlbyIcon className="size-4 mr-2" />
+                      <AlbyIcon className="size-4" />
                       Alby Account Settings
                     </DropdownMenuItem>
                   </ExternalLink>
@@ -265,7 +265,7 @@ export function AppSidebar() {
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={logout}>
-                      <LogOut className="size-4 mr-2" />
+                      <LogOut className="size-4" />
                       Log out
                     </DropdownMenuItem>
                   </>
