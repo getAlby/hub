@@ -250,7 +250,7 @@ export function Goose() {
                     )
                   </li>
                   <li>
-                    <ChartLineIcon className="size-4 inline" /> Let Claude trade
+                    <ChartLineIcon className="size-4 inline" /> Let Goose trade
                     for you:{" "}
                     <span className="italic">
                       "Analyze market sentiment and trading data from the past 3

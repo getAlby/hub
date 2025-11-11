@@ -224,8 +224,9 @@ export function Claude() {
                     <ChartLineIcon className="size-4 inline" /> Let Claude trade
                     for you:{" "}
                     <span className="italic">
-                      "Open a $10 2x long position and take profit at 50% higher
-                      than the current price"
+                      "Analyze market sentiment and trading data from the past 3
+                      months and based on this, open a $10 2x long or short
+                      position"
                     </span>{" "}
                     (with{" "}
                     <ExternalLink
