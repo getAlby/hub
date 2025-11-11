@@ -1,6 +1,4 @@
 import { SearchXIcon } from "lucide-react";
-import { Link } from "react-router-dom";
-import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
@@ -8,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LinkButton } from "src/components/ui/custom/link-button";
 
 function NotFound() {
   return (
@@ -24,9 +23,9 @@ function NotFound() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Link to="/">
-          <Button variant="outline">Return Home</Button>
-        </Link>
+        <LinkButton to="/" variant="outline">
+          Return Home
+        </LinkButton>
       </CardContent>
     </Card>
   );
