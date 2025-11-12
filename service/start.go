@@ -44,6 +44,12 @@ func (svc *service) startNostr(ctx context.Context) error {
 		"relay_urls": relayUrls,
 	}).Info("Starting Alby Hub")
 
+	// To debug go-nostr, run with -tags "debug dev" (dev tag so LND build doesn't break with debug tag set)
+	// go run -tags "debug dev" -ldflags="-X 'github.com/getAlby/hub/version.Tag=v1.20.0'" cmd/http/main.go
+	if logger.Logger.GetLevel() >= logrus.DebugLevel {
+		nostr.DebugLogger.SetOutput(logger.Logger.Out)
+	}
+
 	// Start infinite loop which will be only broken by canceling ctx (SIGINT)
 	pool := nostr.NewSimplePool(ctx, nostr.WithRelayOptions(
 		nostr.WithNoticeHandler(svc.noticeHandler),
