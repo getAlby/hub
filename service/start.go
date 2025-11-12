@@ -47,6 +47,7 @@ func (svc *service) startNostr(ctx context.Context) error {
 	// To debug go-nostr, run with -tags "debug dev" (dev tag so LND build doesn't break with debug tag set)
 	// go run -tags "debug dev" -ldflags="-X 'github.com/getAlby/hub/version.Tag=v1.20.0'" cmd/http/main.go
 	if logger.Logger.GetLevel() >= logrus.DebugLevel {
+		nostr.InfoLogger.SetOutput(logger.Logger.Out)
 		nostr.DebugLogger.SetOutput(logger.Logger.Out)
 	}
 
@@ -231,6 +232,8 @@ func (svc *service) watchSubscription(ctx context.Context, pool *nostr.SimplePoo
 		logger.Logger.Info("Exiting subscription due to context exit...")
 		return nil
 	case <-eventsChannelClosed:
+		// in go-nostr pool, currently if the relay sends a close that is not "auth-required:"
+		// this will trigger closing the subscription channel. We return an error to trigger a resubscribe.
 		logger.Logger.Info("Subscription was exited abnormally")
 		return errors.New("subscription exited abnormally")
 	}
