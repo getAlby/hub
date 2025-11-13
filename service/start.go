@@ -60,6 +60,8 @@ func (svc *service) startNostr(ctx context.Context) error {
 	))
 
 	go func() {
+		// wait a few seconds for relays to connect
+		time.Sleep(5 * time.Second)
 		for {
 			select {
 			case <-ctx.Done():
