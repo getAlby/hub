@@ -11,7 +11,6 @@ import {
 
 import albyExtension from "src/assets/suggested-apps/alby-extension.png";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
-import alby from "src/assets/suggested-apps/alby.png";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 
 interface Platform {
@@ -57,34 +56,12 @@ const productOpportunities: ProductOpportunity[] = [
       },
     ],
   },
-  {
-    title: "Alby",
-    logo: alby,
-    reward: 2000,
-    platforms: [
-      {
-        name: "Trustpilot",
-        url: "https://www.trustpilot.com/review/getalby.com",
-      },
-    ],
-  },
 ];
 
 export function AlbyReviews() {
   return (
     <>
       <AppHeader title="Earn Bitcoin" />
-
-      <p className="text-muted-foreground text-xs">
-        For a smooth experience consider a opening a channel of{" "}
-        <FormattedBitcoinAmount amount={200_000 * 1000} /> in size or more.{" "}
-        <ExternalLink
-          to="https://guides.getalby.com/user-guide/alby-hub/node"
-          className="underline"
-        >
-          Learn more
-        </ExternalLink>
-      </p>
       <div className="space-y-8">
         <Card>
           <CardHeader>
