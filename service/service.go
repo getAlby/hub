@@ -61,7 +61,6 @@ func NewService(ctx context.Context) (*service, error) {
 	}
 
 	logger.Init(appConfig.LogLevel)
-	logger.InitLDK(appConfig.LDKLogLevel)
 	logger.Logger.Info("AlbyHub " + version.Tag)
 
 	if appConfig.Workdir == "" {
@@ -73,10 +72,6 @@ func NewService(ctx context.Context) (*service, error) {
 
 	if appConfig.LogToFile {
 		err = logger.AddFileLogger(appConfig.Workdir)
-		if err != nil {
-			return nil, err
-		}
-		err = logger.AddLDKFileLogger(appConfig.Workdir)
 		if err != nil {
 			return nil, err
 		}
