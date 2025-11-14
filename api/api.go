@@ -756,7 +756,7 @@ func (api *api) RefundSwap(refundSwapRequest *RefundSwapRequest) error {
 	if api.svc.GetSwapsService() == nil {
 		return errors.New("SwapsService not started")
 	}
-	return api.svc.GetSwapsService().RefundSwap(refundSwapRequest.SwapId, refundSwapRequest.Address)
+	return api.svc.GetSwapsService().RefundSwap(refundSwapRequest.SwapId, refundSwapRequest.Address, false)
 }
 
 func (api *api) GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error) {

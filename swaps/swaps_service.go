@@ -58,7 +58,7 @@ type SwapsService interface {
 	SwapIn(amount uint64, autoSwap bool) (*SwapResponse, error)
 	GetSwapOutInfo() (*SwapInfo, error)
 	GetSwapInInfo() (*SwapInfo, error)
-	RefundSwap(swapId, address string) error
+	RefundSwap(swapId, address string, enableRetries bool) error
 	GetSwap(swapId string) (*Swap, error)
 	ListSwaps() ([]Swap, error)
 }
@@ -583,7 +583,7 @@ func (svc *swapsService) markSwapState(dbSwap *db.Swap, state string) {
 	}
 }
 
-func (svc *swapsService) RefundSwap(swapId, address string) error {
+func (svc *swapsService) RefundSwap(swapId, address string, enableRetries bool) error {
 	var swap db.Swap
 	err := svc.db.Limit(1).Find(&swap, &db.Swap{
 		SwapId: swapId,
@@ -674,11 +674,6 @@ func (svc *swapsService) RefundSwap(swapId, address string) error {
 		logger.Logger.WithField("swapId", swapId).WithError(err).Error("Failed to find lockup address output")
 		return err
 	}
-	feeRates, err := svc.getFeeRates()
-	if err != nil {
-		logger.Logger.WithField("swapId", swapId).WithError(err).Error("Failed to fetch fee rate to create claim transaction")
-		return err
-	}
 
 	if address == "" {
 		address, err = svc.lnClient.GetNewOnchainAddress(svc.ctx)
@@ -699,31 +694,78 @@ func (svc *swapsService) RefundSwap(swapId, address string) error {
 		return err
 	}
 
-	fastestFee := float64(feeRates.FastestFee)
-	refundTransaction, _, err := boltz.ConstructTransaction(
-		network,
-		boltz.CurrencyBtc,
-		[]boltz.OutputDetails{
-			{
-				SwapId:             swapId,
-				SwapType:           boltz.NormalSwap,
-				Address:            address,
-				LockupTransaction:  lockupTransaction,
-				TimeoutBlockHeight: swapTransactionResp.TimeoutBlockHeight,
-				Vout:               vout,
-				PrivateKey:         ourKeys,
-				SwapTree:           tree,
-				Cooperative:        true,
+	waitToRetrySeconds := 0
+	var refundTransaction boltz.Transaction
+
+	for i := 0; ; i++ {
+		contextCancelled := false
+		select {
+		case <-svc.ctx.Done():
+			logger.Logger.WithField("swapId", swapId).Info("Swap refund context cancelled")
+			contextCancelled = true
+		case <-time.After(time.Duration(waitToRetrySeconds) * time.Second): // timeout
+		}
+		if contextCancelled {
+			return nil
+		}
+
+		nodeInfo, err := svc.lnClient.GetInfo(svc.ctx)
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"swapId": swapId,
+			}).WithError(err).Error("Failed to request node info")
+			return err
+		}
+
+		feeRates, err := svc.getFeeRates()
+		if err != nil {
+			logger.Logger.WithField("swapId", swapId).WithError(err).Error("Failed to fetch fee rate to create claim transaction")
+			return err
+		}
+
+		cooperative := swapTransactionResp.TimeoutBlockHeight > nodeInfo.BlockHeight
+
+		fastestFee := float64(feeRates.FastestFee)
+		refundTransaction, _, err = boltz.ConstructTransaction(
+			network,
+			boltz.CurrencyBtc,
+			[]boltz.OutputDetails{
+				{
+					SwapId:             swapId,
+					SwapType:           boltz.NormalSwap,
+					Address:            address,
+					LockupTransaction:  lockupTransaction,
+					TimeoutBlockHeight: swapTransactionResp.TimeoutBlockHeight,
+					Vout:               vout,
+					PrivateKey:         ourKeys,
+					SwapTree:           tree,
+					Cooperative:        cooperative,
+				},
 			},
-		},
-		boltz.Fee{
-			SatsPerVbyte: &fastestFee,
-		},
-		svc.boltzApi,
-	)
-	if err != nil {
-		logger.Logger.WithField("swapId", swapId).WithError(err).Error("Could not create claim transaction")
-		return err
+			boltz.Fee{
+				SatsPerVbyte: &fastestFee,
+			},
+			svc.boltzApi,
+		)
+		if err != nil {
+			if enableRetries && cooperative {
+				waitToRetrySeconds = max(waitToRetrySeconds, 0)
+				waitToRetrySeconds += 5
+				waitToRetrySeconds = min(waitToRetrySeconds, 30)
+				logger.Logger.WithFields(logrus.Fields{
+					"swapId":        swapId,
+					"iteration":     i,
+					"retry_seconds": waitToRetrySeconds,
+				}).WithError(err).Error("Could not create claim transaction for cooperative refund")
+				continue
+			}
+			logger.Logger.WithFields(logrus.Fields{
+				"swapId":      swapId,
+				"cooperative": cooperative,
+			}).WithError(err).Error("Could not create claim transaction for refund")
+			return err
+		}
+		break
 	}
 
 	vout, _, _ = refundTransaction.FindVout(network, address)
@@ -972,7 +1014,7 @@ func (svc *swapsService) startSwapInListener(swap *db.Swap) {
 					"reason": update.Status,
 				}).Error("Swap in failed, initiating refund")
 
-				err = svc.RefundSwap(swap.SwapId, "")
+				err = svc.RefundSwap(swap.SwapId, "", true)
 				if err != nil {
 					logger.Logger.WithError(err).WithFields(logrus.Fields{
 						"swapId": swap.SwapId,
