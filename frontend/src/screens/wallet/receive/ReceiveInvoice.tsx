@@ -9,7 +9,6 @@ import TickSVG from "public/images/illustrations/tick.svg";
 import React from "react";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
-import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
@@ -23,6 +22,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
@@ -293,9 +293,12 @@ function LightningAddressCard() {
         </div>
       </CardContent>
       <CardFooter className="flex justify-end">
-        <ExternalLink to="https://getalby.com/auth/users/new">
-          <Button variant="secondary">Get Alby Account</Button>
-        </ExternalLink>
+        <ExternalLinkButton
+          to="https://getalby.com/auth/users/new"
+          variant="secondary"
+        >
+          Get Alby Account
+        </ExternalLinkButton>
       </CardFooter>
     </Card>
   );

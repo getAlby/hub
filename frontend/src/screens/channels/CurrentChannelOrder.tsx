@@ -49,6 +49,8 @@ import { useBalances } from "src/hooks/useBalances";
 import { ChannelWaitingForConfirmations } from "src/components/channels/ChannelWaitingForConfirmations";
 import { PayLightningInvoice } from "src/components/PayLightningInvoice";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { useChannels } from "src/hooks/useChannels";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useNodeDetails } from "src/hooks/useNodeDetails";
@@ -135,9 +137,9 @@ function Success() {
         .
       </p>
 
-      <Link to="/home" className="flex justify-center mt-8">
-        <Button>Go to your dashboard</Button>
-      </Link>
+      <LinkButton to="/home" className="flex justify-center mt-8">
+        Go to your dashboard
+      </LinkButton>
     </div>
   );
 }
@@ -367,16 +369,16 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
           )}
         </Card>
 
-        <ExternalLink to={topupLink} className="w-full">
-          <Button className="w-full">
-            Topup with your credit card or bank account
-          </Button>
-        </ExternalLink>
-        <Link to="/channels/incoming" className="w-full">
-          <Button className="w-full" variant="secondary">
-            Need receiving capacity?
-          </Button>
-        </Link>
+        <ExternalLinkButton to={topupLink} className="w-full">
+          Topup with your credit card or bank account
+        </ExternalLinkButton>
+        <LinkButton
+          to="/channels/incoming"
+          variant="secondary"
+          className="w-full"
+        >
+          Need receiving capacity?
+        </LinkButton>
       </div>
     </div>
   );
@@ -740,19 +742,20 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                 <p className="text-sm text-muted-foreground text-center">
                   Other options
                 </p>
-                <Link to="/channels/outgoing" className="w-full">
-                  <Button className="w-full" variant="secondary">
-                    Increase Spending Balance
-                  </Button>
-                </Link>
-                <ExternalLink
-                  to="https://www.getalby.com/topup"
+                <LinkButton
+                  to="/channels/outgoing"
+                  variant="secondary"
                   className="w-full"
                 >
-                  <Button className="w-full" variant="secondary">
-                    Buy Bitcoin
-                  </Button>
-                </ExternalLink>
+                  Increase Spending Balance
+                </LinkButton>
+                <ExternalLinkButton
+                  to="https://www.getalby.com/topup"
+                  variant="secondary"
+                  className="w-full"
+                >
+                  Buy Bitcoin
+                </ExternalLinkButton>
               </div>
             </>
           </div>

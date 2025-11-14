@@ -1,12 +1,13 @@
 import { MoreHorizontalIcon, PlugZapIcon, Trash2Icon } from "lucide-react";
 import React from "react";
-import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader.tsx";
 import { DisconnectPeerDialogContent } from "src/components/DisconnectPeerDialogContent";
 import { AlertDialog } from "src/components/ui/alert-dialog.tsx";
 import { Badge } from "src/components/ui/badge.tsx";
 import { Button } from "src/components/ui/button.tsx";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,13 +40,8 @@ export default function Peers() {
       <AppHeader
         title="Peers"
         description="Manage your connections with other lightning nodes"
-        contentRight={
-          <Link to="/peers/new">
-            <Button>Connect Peer</Button>
-          </Link>
-        }
-      ></AppHeader>
-
+        contentRight={<LinkButton to="/peers/new">Connect Peer</LinkButton>}
+      />
       <Table>
         <TableHeader>
           <TableRow>
@@ -136,27 +132,24 @@ function PeerTableRow(props: PeerTableRowProps) {
         )}{" "}
       </TableCell>
       <TableCell className="flex flex-row items-center">
-        <a
-          title={peer.nodeId}
-          href={`https://amboss.space/node/${peer.nodeId}`}
-          target="_blank"
-          rel="noopener noreferer"
+        <ExternalLinkButton
+          to={`https://amboss.space/node/${peer.nodeId}`}
+          variant="link"
+          className="p-2"
         >
-          <Button variant="link" className="p-0 mr-2">
-            {peerDetails?.alias}
-          </Button>
-        </a>
+          {peerDetails?.alias}
+        </ExternalLinkButton>
       </TableCell>
       <TableCell>{peer.nodeId}</TableCell>
       <TableCell>{peer.address}</TableCell>
       <TableCell>
         {(!hasOpenedChannels(peer) || !peer.isConnected) && (
           <DropdownMenu modal={false}>
-            <DropdownMenuTrigger>
-              <Button size="icon" variant="ghost">
+            <Button size="icon" variant="ghost" asChild>
+              <DropdownMenuTrigger>
                 <MoreHorizontalIcon className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
+              </DropdownMenuTrigger>
+            </Button>
             {channels && (
               <DropdownMenuContent align="end">
                 {!hasOpenedChannels(peer) && (

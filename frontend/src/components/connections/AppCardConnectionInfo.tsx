@@ -1,8 +1,7 @@
 import dayjs from "dayjs";
 import { BrickWallIcon, CircleCheckIcon, PlusCircleIcon } from "lucide-react";
-import { Link } from "react-router-dom";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
-import { Button } from "src/components/ui/button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { Progress } from "src/components/ui/progress";
 import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
 import { getBudgetRenewalLabel } from "src/lib/utils";
@@ -111,12 +110,13 @@ export function AppCardConnectionInfo({
                 : "Never"}
             </div>
             {!readonly && (
-              <Link to={`/apps/${connection.id}?edit=true`}>
-                <Button variant="outline">
-                  <PlusCircleIcon />
-                  Set Budget
-                </Button>
-              </Link>
+              <LinkButton
+                to={`/apps/${connection.id}?edit=true`}
+                variant="outline"
+              >
+                <PlusCircleIcon />
+                Set Budget
+              </LinkButton>
             )}
           </div>
         </>
@@ -148,15 +148,13 @@ export function AppCardConnectionInfo({
                 : "Never"}
             </div>
             {!readonly && (
-              <Link
+              <LinkButton
                 to={`/apps/${connection.id}?edit=true`}
-                onClick={(e) => e.stopPropagation()}
+                variant="outline"
               >
-                <Button variant="outline">
-                  <PlusCircleIcon />
-                  Enable Payments
-                </Button>
-              </Link>
+                <PlusCircleIcon />
+                Enable Payments
+              </LinkButton>
             )}
           </div>
         </>

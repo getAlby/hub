@@ -5,7 +5,7 @@ import {
   WalletIcon,
 } from "lucide-react";
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
@@ -31,6 +31,8 @@ import LightningNetworkDarkSVG from "public/images/illustrations/lightning-netwo
 import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
 import { LSPTermsDialog } from "src/components/channels/LSPTermsDialog";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import {
   Tooltip,
   TooltipContent,
@@ -147,16 +149,20 @@ export function FirstChannel() {
           <p className="mt-8 text-sm mb-2 text-muted-foreground">
             Other options
           </p>
-          <Link to="/channels/outgoing" className="w-full">
-            <Button className="w-full" variant="secondary">
-              Open Channel with On-Chain Bitcoin
-            </Button>
-          </Link>
-          <ExternalLink to="https://www.getalby.com/topup" className="w-full">
-            <Button className="w-full" variant="secondary">
-              Buy Bitcoin
-            </Button>
-          </ExternalLink>
+          <LinkButton
+            to="/channels/outgoing"
+            variant="secondary"
+            className="w-full"
+          >
+            Open Channel with On-Chain Bitcoin
+          </LinkButton>
+          <ExternalLinkButton
+            to="https://www.getalby.com/topup"
+            variant="secondary"
+            className="w-full"
+          >
+            Buy Bitcoin
+          </ExternalLinkButton>
         </div>
       )}
       {!invoice && (

@@ -5,14 +5,13 @@ import {
   TriangleAlert,
   Wallet2,
 } from "lucide-react";
-import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
-import ExternalLink from "src/components/ExternalLink";
-import { Button } from "src/components/ui/button";
 
 import SubWalletDarkSVG from "public/images/illustrations/sub-wallet-dark.svg";
 import SubWalletLightSVG from "public/images/illustrations/sub-wallet-light.svg";
 import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 
 export function SubwalletIntro() {
   return (
@@ -22,11 +21,13 @@ export function SubwalletIntro() {
         description="Create sub-wallets for yourself, friends, family or coworkers"
         contentRight={
           <>
-            <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/sub-wallets">
-              <Button variant="outline" size="icon">
-                <HelpCircle className="size-4" />
-              </Button>
-            </ExternalLink>
+            <ExternalLinkButton
+              to="https://guides.getalby.com/user-guide/alby-hub/sub-wallets"
+              variant="outline"
+              size="icon"
+            >
+              <HelpCircle className="size-4" />
+            </ExternalLinkButton>
             <ResponsiveLinkButton
               to="/sub-wallets/new"
               icon={CirclePlusIcon}
@@ -81,9 +82,9 @@ export function SubwalletIntro() {
             </div>
           </div>
           <div>
-            <Link to="/sub-wallets/new">
-              <Button className="mt-4">Create Sub-wallet</Button>
-            </Link>
+            <LinkButton to="/sub-wallets/new" className="mt-4">
+              Create Sub-wallet
+            </LinkButton>
           </div>
         </div>
       </div>

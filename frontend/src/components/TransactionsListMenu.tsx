@@ -93,11 +93,11 @@ export const TransactionsListMenu = ({ appId }: { appId?: number }) => {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger>
-        <Button size="icon" variant="ghost">
+      <Button asChild size="icon" variant="secondary">
+        <DropdownMenuTrigger>
           <MoreHorizontalIcon className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
+        </DropdownMenuTrigger>
+      </Button>
       <DropdownMenuContent align="end">
         {!albyMe?.subscription.plan_code ? (
           <UpgradeDialog>

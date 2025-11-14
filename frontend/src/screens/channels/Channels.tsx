@@ -33,7 +33,6 @@ import {
   AlertDescription,
   AlertTitle,
 } from "src/components/ui/alert.tsx";
-import { Button } from "src/components/ui/button.tsx";
 import {
   Card,
   CardContent,
@@ -41,6 +40,7 @@ import {
   CardTitle,
 } from "src/components/ui/card.tsx";
 import CircleProgress from "src/components/ui/custom/circle-progress";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -293,15 +293,15 @@ export default function Channels() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <Link to="/wallet/swap" className="hidden sm:block">
-                <Button className="w-full" variant="secondary">
-                  <ArrowDownUpIcon />
-                  Swap
-                </Button>
-              </Link>
-              <Link to="/channels/incoming">
-                <Button>Open Channel</Button>
-              </Link>
+              <LinkButton
+                to="/wallet/swap"
+                variant="secondary"
+                className="hidden sm:flex"
+              >
+                <ArrowDownUpIcon />
+                Swap
+              </LinkButton>
+              <LinkButton to="/channels/incoming">Open Channel</LinkButton>
               <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/node/node-health">
                 <TooltipProvider>
                   <Tooltip>

@@ -1,7 +1,6 @@
 import TickSVG from "public/images/illustrations/tick.svg";
-import { Link } from "react-router-dom";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
-import { Button } from "src/components/ui/button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 
 export function OpenedFirstChannel() {
   return (
@@ -13,9 +12,9 @@ export function OpenedFirstChannel() {
 
       <img src={TickSVG} className="w-48" />
 
-      <Link to="/wallet/receive" className="flex w-full justify-center">
-        <Button className="flex-1">Receive Your First Payment</Button>
-      </Link>
+      <LinkButton to="/wallet/receive" className="flex w-full justify-center">
+        Receive Your First Payment
+      </LinkButton>
     </div>
   );
 }

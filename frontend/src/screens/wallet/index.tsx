@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
-import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
@@ -22,7 +21,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "src/components/ui/alert.tsx";
-import { Button } from "src/components/ui/button";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
@@ -122,19 +121,18 @@ function Wallet() {
           </LinkButton>
         </div>
         <div className="flex items-center gap-3">
-          <ExternalLink to="https://www.getalby.com/topup">
-            <Button className="w-full" variant="secondary">
-              <CreditCardIcon />
-              Buy Bitcoin
-            </Button>
-          </ExternalLink>
+          <ExternalLinkButton
+            to="https://www.getalby.com/topup"
+            variant="secondary"
+          >
+            <CreditCardIcon />
+            Buy Bitcoin
+          </ExternalLinkButton>
           {hasChannelManagement && (
-            <Link to="/wallet/swap">
-              <Button className="w-full" variant="secondary">
-                <ArrowDownUpIcon />
-                Swap
-              </Button>
-            </Link>
+            <LinkButton to="/wallet/swap" variant="secondary">
+              <ArrowDownUpIcon />
+              Swap
+            </LinkButton>
           )}
           <div>
             <TransactionsListMenu />

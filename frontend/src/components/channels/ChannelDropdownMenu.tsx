@@ -59,11 +59,11 @@ export function ChannelDropdownMenu({
       }}
     >
       <DropdownMenu modal={false}>
-        <DropdownMenuTrigger>
-          <Button size="icon" variant="ghost">
+        <Button asChild size="icon" variant="ghost">
+          <DropdownMenuTrigger>
             <MoreHorizontalIcon />
-          </Button>
-        </DropdownMenuTrigger>
+          </DropdownMenuTrigger>
+        </Button>
         <DropdownMenuContent align="end" className="w-64">
           {channel.status == "online" &&
             channel.remoteBalance > channel.localSpendableBalance &&
