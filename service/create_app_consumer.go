@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
@@ -60,13 +59,5 @@ func (s *createAppConsumer) ConsumeEvent(ctx context.Context, event *events.Even
 		s.svc.nip47Service.EnqueueNip47InfoPublishRequest(id, walletPubKey, walletPrivKey, relayUrl)
 	}
 
-	go func() {
-		err = s.svc.startAppWalletSubscription(ctx, s.pool, walletPubKey)
-		if err != nil && !errors.Is(err, context.Canceled) {
-			logger.Logger.WithError(err).WithFields(logrus.Fields{
-				"app_id": id}).Error("Failed to subscribe to wallet")
-		}
-		logger.Logger.WithFields(logrus.Fields{
-			"app_id": id}).Info("App Nostr Subscription ended")
-	}()
+	go s.svc.startAppWalletSubscription(ctx, s.pool, walletPubKey)
 }
