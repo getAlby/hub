@@ -1,7 +1,5 @@
 import { ExternalLinkIcon } from "lucide-react";
-import { Link } from "react-router-dom";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
-import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LinkButton } from "src/components/ui/custom/link-button";
 
 export function AppOfTheDayWidget() {
   function seededRandom(seed: number) {
@@ -45,14 +44,13 @@ export function AppOfTheDayWidget() {
         </div>
       </CardContent>
       <CardFooter className="flex flex-row justify-end">
-        <Link
+        <LinkButton
           to={app.internal ? `/internal-apps/${app.id}` : `/appstore/${app.id}`}
+          variant="outline"
         >
-          <Button variant="outline">
-            <ExternalLinkIcon />
-            Open
-          </Button>
-        </Link>
+          <ExternalLinkIcon />
+          Open
+        </LinkButton>
       </CardFooter>
     </Card>
   );

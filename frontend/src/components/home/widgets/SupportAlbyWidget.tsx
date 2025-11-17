@@ -1,6 +1,4 @@
 import { HeartIcon } from "lucide-react";
-import { Link } from "react-router-dom";
-import { Button } from "src/components/ui/button";
 import {
   Card,
   CardDescription,
@@ -8,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { SUPPORT_ALBY_CONNECTION_NAME } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
@@ -39,12 +38,10 @@ export function SupportAlbyWidget() {
         </CardDescription>
       </CardHeader>
       <CardFooter className="flex justify-end">
-        <Link to="/support-alby">
-          <Button variant="outline">
-            <HeartIcon />
-            Become a Supporter
-          </Button>
-        </Link>
+        <LinkButton to="/support-alby" variant="outline">
+          <HeartIcon />
+          Become a Supporter
+        </LinkButton>
       </CardFooter>
     </Card>
   );

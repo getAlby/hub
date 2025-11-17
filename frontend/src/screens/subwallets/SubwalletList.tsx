@@ -8,11 +8,9 @@ import {
   TriangleAlertIcon,
 } from "lucide-react";
 import { useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import { CustomPagination } from "src/components/CustomPagination";
-import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
@@ -26,6 +24,8 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { LIST_APPS_LIMIT, SUBWALLET_APPSTORE_APP_ID } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
@@ -84,11 +84,13 @@ export function SubwalletList() {
         description="Create sub-wallets for yourself, friends, family or coworkers"
         contentRight={
           <>
-            <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/sub-wallets">
-              <Button variant="outline" size="icon">
-                <HelpCircle className="size-4" />
-              </Button>
-            </ExternalLink>
+            <ExternalLinkButton
+              to="https://guides.getalby.com/user-guide/alby-hub/sub-wallets"
+              variant="outline"
+              size="icon"
+            >
+              <HelpCircle className="size-4" />
+            </ExternalLinkButton>
             {!albyMe?.subscription.plan_code && subwalletApps?.length >= 3 ? (
               <UpgradeDialog>
                 <ResponsiveButton icon={CirclePlusIcon} text="New Sub-wallet" />
@@ -136,9 +138,9 @@ export function SubwalletList() {
             balances of sub-wallets under your management. Increase spending
             capacity by opening a channel or review your channel statuses to
             back them up again.
-            <Link to="/wallet/receive">
-              <Button variant="secondary">Deposit Bitcoin</Button>
-            </Link>
+            <LinkButton to="/wallet/receive" variant="secondary">
+              Deposit Bitcoin
+            </LinkButton>
           </AlertDescription>
         </Alert>
       )}

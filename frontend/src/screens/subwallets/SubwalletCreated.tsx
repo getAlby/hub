@@ -11,7 +11,7 @@ import {
   Zap,
 } from "lucide-react";
 import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
@@ -38,6 +38,7 @@ import {
 } from "src/components/ui/card";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -247,12 +248,12 @@ export function SubwalletCreated() {
                         Download Alby Go from the app store
                         <div className="flex flex-row gap-3 my-2">
                           <Popover>
-                            <PopoverTrigger>
-                              <Button variant="outline">
+                            <Button variant="outline" asChild>
+                              <PopoverTrigger>
                                 <PlayStoreIcon />
                                 Play Store
-                              </Button>
-                            </PopoverTrigger>
+                              </PopoverTrigger>
+                            </Button>
                             <PopoverContent className="flex flex-col items-center gap-3">
                               <QRCode value="https://play.google.com/store/apps/details?id=com.getalby.mobile" />
                               <ExternalLinkButton
@@ -265,12 +266,12 @@ export function SubwalletCreated() {
                             </PopoverContent>
                           </Popover>
                           <Popover>
-                            <PopoverTrigger>
-                              <Button variant="outline">
+                            <Button variant="outline" asChild>
+                              <PopoverTrigger>
                                 <AppleIcon />
                                 Apple App Store
-                              </Button>
-                            </PopoverTrigger>
+                              </PopoverTrigger>
+                            </Button>
                             <PopoverContent className="flex flex-col items-center gap-3">
                               <QRCode value="https://apps.apple.com/us/app/alby-go/id6471335774" />
                               <ExternalLinkButton
@@ -283,12 +284,12 @@ export function SubwalletCreated() {
                             </PopoverContent>
                           </Popover>
                           <Popover>
-                            <PopoverTrigger>
-                              <Button variant="outline">
+                            <Button variant="outline" asChild>
+                              <PopoverTrigger>
                                 <ZapStoreIcon />
                                 Zapstore
-                              </Button>
-                            </PopoverTrigger>
+                              </PopoverTrigger>
+                            </Button>
                             <PopoverContent className="flex flex-col items-center gap-3">
                               <div className="text-center text-xs text-muted-foreground">
                                 Install Zapstore on your Android device and
@@ -483,9 +484,7 @@ export function SubwalletCreated() {
                 <Button onClick={() => setStep(1)} variant="secondary">
                   Back
                 </Button>
-                <Link to="/sub-wallets">
-                  <Button>Finish</Button>
-                </Link>
+                <LinkButton to="/sub-wallets">Finish</LinkButton>
               </div>
             </div>
           )}
