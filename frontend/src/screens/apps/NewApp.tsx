@@ -293,6 +293,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
 
       if (createAppResponse.returnTo) {
         // open connection URI directly in an app
+        // eslint-disable-next-line react-hooks/immutability
         window.location.href = createAppResponse.returnTo;
         return;
       }

@@ -10,13 +10,7 @@ import {
   TooltipTriggerProps,
 } from "@radix-ui/react-tooltip";
 import * as React from "react";
-import {
-  PropsWithChildren,
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { PropsWithChildren, createContext, useContext } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 
 import { cn } from "src/lib/utils";
@@ -80,11 +74,10 @@ const TouchContext = createContext<boolean | undefined>(undefined);
 const useTouch = () => useContext(TouchContext);
 
 const TouchProvider = (props: PropsWithChildren) => {
-  const [isTouch, setTouch] = useState<boolean>();
-
-  useEffect(() => {
-    setTouch(window.matchMedia("(pointer: coarse)").matches);
-  }, []);
+  const isTouch = React.useMemo(
+    () => window.matchMedia("(pointer: coarse)").matches,
+    []
+  );
 
   return <TouchContext.Provider value={isTouch} {...props} />;
 };
