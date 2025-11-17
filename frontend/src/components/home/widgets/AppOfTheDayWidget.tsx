@@ -20,6 +20,7 @@ export function AppOfTheDayWidget() {
   const excludedAppIds = ["alby-go", "zapplanner"];
   const apps = appStoreApps.filter((a) => !excludedAppIds.includes(a.id));
 
+  // eslint-disable-next-line react-hooks/purity
   const daysSinceEpoch = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
   const todayIndex = Math.floor(seededRandom(daysSinceEpoch) * apps.length);
   const app = apps[todayIndex];

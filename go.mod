@@ -1,6 +1,6 @@
 module github.com/getAlby/hub
 
-go 1.24.8
+go 1.24.9
 
 require (
 	github.com/adrg/xdg v0.5.3
@@ -17,14 +17,14 @@ require (
 	github.com/peterldowns/pgtestdb v0.1.1
 	github.com/stretchr/testify v1.11.1
 	github.com/tyler-smith/go-bip39 v1.1.0
-	github.com/wailsapp/wails/v2 v2.10.2
+	github.com/wailsapp/wails/v2 v2.11.0
 	golang.org/x/crypto v0.43.0
 	golang.org/x/oauth2 v0.32.0
 	google.golang.org/grpc v1.76.0
 	gopkg.in/macaroon.v2 v2.1.0
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/driver/sqlite v1.6.0
-	gorm.io/gorm v1.31.0
+	gorm.io/gorm v1.31.1
 )
 
 require (
@@ -187,7 +187,7 @@ require (
 	github.com/vulpemventures/fastsha256 v0.0.0-20160815193821-637e65642941 // indirect
 	github.com/vulpemventures/go-elements v0.5.5 // indirect
 	github.com/vulpemventures/go-secp256k1-zkp v1.1.6 // indirect
-	github.com/wailsapp/go-webview2 v1.0.19 // indirect
+	github.com/wailsapp/go-webview2 v1.0.22 // indirect
 	github.com/wailsapp/mimetype v1.4.1 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
@@ -248,7 +248,7 @@ require (
 
 require (
 	github.com/BoltzExchange/boltz-client/v2 v2.9.0
-	github.com/btcsuite/btcd/btcec/v2 v2.3.5
+	github.com/btcsuite/btcd/btcec/v2 v2.3.6
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0
 	github.com/decred/dcrd/crypto/blake256 v1.1.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
@@ -257,7 +257,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/labstack/echo-jwt/v4 v4.3.1
-	github.com/lightningnetwork/lnd v0.20.0-beta.rc2
+	github.com/lightningnetwork/lnd v0.20.0-beta.rc4
 	github.com/sirupsen/logrus v1.9.3
 	github.com/tyler-smith/go-bip32 v1.0.0
 	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6 // indirect
