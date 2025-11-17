@@ -41,7 +41,6 @@ COPY . .
 COPY --from=frontend /build/frontend/dist ./frontend/dist
 
 RUN GOARCH=$(echo "$TARGETPLATFORM" | cut -d'/' -f2) go build \
-   -tags "debug dev" \
    -ldflags="-X 'github.com/getAlby/hub/version.Tag=$TAG'" \
    -o main cmd/http/main.go
 
