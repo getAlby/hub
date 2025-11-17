@@ -40,6 +40,7 @@ function ConnectedApps() {
     return <Loading />;
   }
   if (appsData) {
+    // eslint-disable-next-line react-hooks/globals
     prevAppsData = appsData;
   }
   const { apps, totalCount } = appsData || prevAppsData!;

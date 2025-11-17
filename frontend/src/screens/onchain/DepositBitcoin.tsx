@@ -6,9 +6,7 @@ import {
   RefreshCwIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
-import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
@@ -23,6 +21,8 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
@@ -55,6 +55,7 @@ export default function DepositBitcoin() {
     if (txId) {
       const utxo = mempoolAddressUtxos.find((utxo) => utxo.txid === txId);
       if (utxo?.status.confirmed) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setConfirmedAmount(utxo.value);
         setPendingAmount(null);
       }
@@ -79,12 +80,10 @@ export default function DepositBitcoin() {
         title="Deposit Bitcoin to On-Chain Balance"
         description="Deposit bitcoin to your on-chain address which then can be used to open new lightning channels."
         contentRight={
-          <Link to="/channels/onchain/buy-bitcoin">
-            <Button>
-              <CreditCardIcon />
-              Buy Bitcoin
-            </Button>
-          </Link>
+          <LinkButton to="/channels/onchain/buy-bitcoin">
+            <CreditCardIcon />
+            Buy Bitcoin
+          </LinkButton>
         }
       />
       <MempoolAlert />
@@ -162,15 +161,14 @@ function DepositPending({
           </div>
         )}
         <div>
-          <Button asChild variant="outline">
-            <ExternalLink
-              to={`${info?.mempoolUrl}/tx/${txId}`}
-              className="flex items-center mt-2"
-            >
-              View on Mempool
-              <ExternalLinkIcon className="size-4 ml-2" />
-            </ExternalLink>
-          </Button>
+          <ExternalLinkButton
+            to={`${info?.mempoolUrl}/tx/${txId}`}
+            variant="outline"
+            className="flex items-center mt-2"
+          >
+            View on Mempool
+            <ExternalLinkIcon className="size-4 ml-2" />
+          </ExternalLinkButton>
         </div>
       </CardContent>
     </Card>
@@ -195,21 +193,20 @@ function DepositSuccess({ amount, txId }: { amount: number; txId: string }) {
             <FormattedFiatAmount amount={amount} />
           </div>
           <div>
-            <Button asChild variant="outline">
-              <ExternalLink
-                to={`${info?.mempoolUrl}/tx/${txId}`}
-                className="flex items-center mt-2"
-              >
-                View on Mempool
-                <ExternalLinkIcon className="size-4 ml-2" />
-              </ExternalLink>
-            </Button>
+            <ExternalLinkButton
+              to={`${info?.mempoolUrl}/tx/${txId}`}
+              variant="outline"
+              className="flex items-center mt-2"
+            >
+              View on Mempool
+              <ExternalLinkIcon className="size-4 ml-2" />
+            </ExternalLinkButton>
           </div>
         </CardContent>
       </Card>
-      <Link to="/channels">
-        <Button className="mt-4 w-full">Back To Node</Button>
-      </Link>
+      <LinkButton to="/channels" className="mt-4 w-full">
+        Back To Node
+      </LinkButton>
     </>
   );
 }

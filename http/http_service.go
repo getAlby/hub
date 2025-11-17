@@ -92,8 +92,6 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(middleware.Recover())
 	e.Use(middleware.RequestID())
 
-	e.POST("/api/event", httpSvc.eventHandler)
-
 	e.GET("/api/info", httpSvc.infoHandler)
 	e.POST("/api/setup", httpSvc.setupHandler)
 	e.POST("/api/restore", httpSvc.restoreBackupHandler)
@@ -155,6 +153,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	fullAccessApiGroup.Use(echojwt.WithConfig(jwtConfig))
 	fullAccessApiGroup.Use(httpSvc.requireFullAccess)
 
+	fullAccessApiGroup.POST("/api/event", httpSvc.eventHandler)
 	fullAccessApiGroup.PATCH("/unlock-password", httpSvc.changeUnlockPasswordHandler)
 	fullAccessApiGroup.PATCH("/auto-unlock", httpSvc.autoUnlockHandler)
 	fullAccessApiGroup.PATCH("/settings", httpSvc.updateSettingsHandler)
