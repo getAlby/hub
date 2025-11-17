@@ -1,15 +1,22 @@
-import { DownloadIcon, MoreHorizontalIcon } from "lucide-react";
+import {
+  DownloadIcon,
+  EyeIcon,
+  EyeOffIcon,
+  MoreHorizontalIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "src/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { LIST_TRANSACTIONS_LIMIT } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
+import usePrivacyStore from "src/state/PrivacyStore";
 import { ListTransactionsResponse, Transaction } from "src/types";
 import { request } from "src/utils/request";
 
@@ -90,6 +97,7 @@ const handleExportTransactions = async (appId?: number) => {
 
 export const TransactionsListMenu = ({ appId }: { appId?: number }) => {
   const { data: albyMe } = useAlbyMe();
+  const { privacyMode, setPrivacyMode } = usePrivacyStore();
 
   return (
     <DropdownMenu>
@@ -119,6 +127,28 @@ export const TransactionsListMenu = ({ appId }: { appId?: number }) => {
             Export Transactions
           </DropdownMenuItem>
         )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          className="flex flex-row items-center gap-2 cursor-pointer"
+          onClick={() => {
+            setPrivacyMode(!privacyMode);
+            toast(
+              privacyMode ? "Privacy mode disabled" : "Privacy mode enabled"
+            );
+          }}
+        >
+          {privacyMode ? (
+            <>
+              <EyeIcon className="h-4 w-4" />
+              Show Sensitive Data
+            </>
+          ) : (
+            <>
+              <EyeOffIcon className="h-4 w-4" />
+              Hide Sensitive Data
+            </>
+          )}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

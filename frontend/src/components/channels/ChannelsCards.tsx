@@ -85,7 +85,7 @@ function ChannelCard({
   return (
     <>
       {addSeparator && <Separator className="mt-6 -mb-2" />}
-      <div className="flex flex-col items-start w-full">
+      <div className="flex flex-col items-start w-full sensitive">
         <CardHeader className="pb-4 px-0 w-full">
           <CardTitle className="w-full">
             <div className="flex items-center justify-between">

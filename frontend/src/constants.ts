@@ -4,6 +4,7 @@ export const localStorageKeys = {
   channelOrder: "channelOrder",
   authToken: "authToken",
   supportAlbySidebarHintHiddenUntil: "supportAlbySidebarHintHiddenUntil",
+  privacyMode: "privacyMode",
 };
 
 export const ONCHAIN_DUST_SATS = 1000;

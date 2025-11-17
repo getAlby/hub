@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import {
   RouterProvider,
   createBrowserRouter,
@@ -8,6 +9,7 @@ import { ThemeProvider } from "src/components/ui/theme-provider";
 import { TouchProvider } from "src/components/ui/tooltip";
 import { useInfo } from "src/hooks/useInfo";
 import routes from "src/routes.tsx";
+import usePrivacyStore from "src/state/PrivacyStore";
 import { isHttpMode } from "src/utils/isHttpMode";
 
 const createRouterFunc = isHttpMode() ? createBrowserRouter : createHashRouter;
@@ -20,6 +22,16 @@ const router = createRouterFunc(routes, {
 
 function App() {
   const { data: info } = useInfo();
+  const { privacyMode } = usePrivacyStore();
+
+  // Apply privacy mode class on mount and when it changes
+  useEffect(() => {
+    if (privacyMode) {
+      document.body.classList.add("privacy-mode");
+    } else {
+      document.body.classList.remove("privacy-mode");
+    }
+  }, [privacyMode]);
 
   return (
     <>

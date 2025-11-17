@@ -108,7 +108,7 @@ function Wallet() {
             />
           </div>
           <FormattedFiatAmount
-            className="text-xl"
+            className="text-xl sensitive"
             amount={balances.lightning.totalSpendable / 1000}
           />
         </div>

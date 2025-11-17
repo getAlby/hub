@@ -176,7 +176,7 @@ function ChannelTableRow({
   const alias = peerDetails?.alias || "Unknown";
 
   return (
-    <TableRow key={channel.id} className="channel">
+    <TableRow key={channel.id} className="channel sensitive">
       <TableCell>
         <span className="font-semibold text-sm mr-2">{alias}</span>
       </TableCell>
@@ -222,7 +222,7 @@ function ChannelTableRow({
             value={(channel.localSpendableBalance / capacity) * 100}
             className="h-6 absolute"
           />
-          <div className="flex flex-row w-full justify-between px-2 text-xs items-center h-6 mix-blend-exclusion text-white">
+          <div className="flex flex-row w-full justify-between px-2 text-xs items-center h-6 mix-blend-exclusion text-white ">
             <span>
               <FormattedBitcoinAmount amount={channel.localSpendableBalance} />
             </span>

@@ -41,7 +41,7 @@ export function AppCardConnectionInfo({
             </div>
             <div className="flex flex-col items-end justify-end">
               <p>Balance</p>
-              <p className="text-xl font-medium">
+              <p className="text-xl font-medium sensitive">
                 <FormattedBitcoinAmount amount={connection.balance} />
               </p>
             </div>
@@ -54,7 +54,7 @@ export function AppCardConnectionInfo({
               <p className="text-xs text-secondary-foreground font-medium">
                 {budgetRemainingText}
               </p>
-              <p className="text-xl font-medium">
+              <p className="text-xl font-medium sensitive">
                 <FormattedBitcoinAmount
                   amount={
                     (connection.maxAmount - connection.budgetUsage) * 1000
@@ -95,7 +95,7 @@ export function AppCardConnectionInfo({
               <p className="text-xs text-secondary-foreground font-medium">
                 You've spent
               </p>
-              <p className="text-xl font-medium">
+              <p className="text-xl font-medium sensitive">
                 <FormattedBitcoinAmount
                   amount={connection.budgetUsage * 1000}
                 />

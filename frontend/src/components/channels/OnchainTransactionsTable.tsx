@@ -26,7 +26,7 @@ export function OnchainTransactionsTable() {
       <CardHeader>
         <CardTitle className="text-2xl">On-Chain Transactions</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="sensitive">
         <Table>
           <TableBody>
             {transactions.map((tx) => {

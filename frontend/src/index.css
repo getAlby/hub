@@ -87,3 +87,11 @@ input[type="text"]::-webkit-calendar-picker-indicator {
 .avatar-gradient-9 {
   background: linear-gradient(135deg, var(--chart-5), var(--chart-3));
 }
+
+/* Privacy mode - blur sensitive content */
+body.privacy-mode .sensitive {
+  filter: blur(8px);
+  user-select: none;
+  pointer-events: none;
+  transition: filter 0.1s ease-in-out;
+}

@@ -424,6 +424,7 @@ export default function Channels() {
                           />
                         </div>
                         <FormattedFiatAmount
+                          className="sensitive"
                           amount={balances.lightning.totalSpendable / 1000}
                         />
                       </>
@@ -459,6 +460,7 @@ export default function Channels() {
                           />
                         </div>
                         <FormattedFiatAmount
+                          className="sensitive"
                           amount={balances.lightning.totalReceivable / 1000}
                         />
                       </>
@@ -537,7 +539,7 @@ export default function Channels() {
                       </div>
                       <FormattedFiatAmount
                         amount={balances.onchain.spendable}
-                        className="mb-1"
+                        className="mb-1 sensitive"
                       />
                       {balances &&
                         balances.onchain.spendable !==

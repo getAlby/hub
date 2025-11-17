@@ -89,10 +89,11 @@ export function AppUsage({ app }: { app: App }) {
             <CardContent>
               <div className="flex justify-between items-end">
                 <div>
-                  <p className="font-medium text-2xl">
+                  <p className="font-medium text-2xl sensitive">
                     <FormattedBitcoinAmount amount={app.balance} />
                   </p>
                   <FormattedFiatAmount
+                    className="sensitive"
                     amount={Math.floor(app.balance / 1000)}
                   />
                 </div>
@@ -207,10 +208,10 @@ export function AppUsage({ app }: { app: App }) {
             <CardTitle>Total Spent</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="font-medium text-2xl">
+            <p className="font-medium text-2xl sensitive">
               <FormattedBitcoinAmount amount={totalSpent * 1000} />
             </p>
-            <FormattedFiatAmount amount={totalSpent} />
+            <FormattedFiatAmount className="sensitive" amount={totalSpent} />
           </CardContent>
         </Card>
         <Card>
@@ -218,10 +219,10 @@ export function AppUsage({ app }: { app: App }) {
             <CardTitle>Total Received</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="font-medium text-2xl">
+            <p className="font-medium text-2xl sensitive">
               <FormattedBitcoinAmount amount={totalReceived * 1000} />
             </p>
-            <FormattedFiatAmount amount={totalReceived} />
+            <FormattedFiatAmount className="sensitive" amount={totalReceived} />
           </CardContent>
         </Card>
       </div>

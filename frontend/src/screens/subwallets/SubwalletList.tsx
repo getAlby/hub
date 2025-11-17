@@ -158,7 +158,10 @@ export function SubwalletList() {
                 <FormattedBitcoinAmount amount={subwalletTotalAmount} />
               </span>
             </div>
-            <FormattedFiatAmount amount={subwalletTotalAmount / 1000} />
+            <FormattedFiatAmount
+              className="sensitive"
+              amount={subwalletTotalAmount / 1000}
+            />
           </CardContent>
         </Card>
         <Card className="flex flex-1 flex-col">
