@@ -55,7 +55,7 @@ export function useAppsForAppStoreApp(appStoreApp: AppStoreApp | undefined) {
             ...connectedAppsByAppName.apps,
           ].filter((v, i, a) => a.findIndex((value) => value.id === v.id) === i)
         : undefined,
-    [connectedAppsByAppName?.apps, connectedAppsByAppStoreId?.apps]
+    [connectedAppsByAppName, connectedAppsByAppStoreId]
   );
   return connectedApps;
 }

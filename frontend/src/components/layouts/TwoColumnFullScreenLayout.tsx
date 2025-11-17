@@ -66,6 +66,7 @@ export default function TwoColumnFullScreenLayout() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [quote, setQuote] = useState(
+    // eslint-disable-next-line react-hooks/purity
     quotes[Math.floor(Math.random() * quotes.length)]
   );
 
