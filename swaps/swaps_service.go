@@ -694,33 +694,32 @@ func (svc *swapsService) RefundSwap(swapId, address string, enableRetries bool) 
 		return err
 	}
 
-	waitToRetrySeconds := 0
 	var refundTransaction boltz.Transaction
 
 	for i := 0; ; i++ {
-		contextCancelled := false
 		select {
 		case <-svc.ctx.Done():
 			logger.Logger.WithField("swapId", swapId).Info("Swap refund context cancelled")
-			contextCancelled = true
-		case <-time.After(time.Duration(waitToRetrySeconds) * time.Second): // timeout
-		}
-		if contextCancelled {
 			return nil
+		case <-time.After(time.Duration(min(i*5, 30)) * time.Second): // timeout
 		}
 
 		nodeInfo, err := svc.lnClient.GetInfo(svc.ctx)
 		if err != nil {
 			logger.Logger.WithError(err).WithFields(logrus.Fields{
-				"swapId": swapId,
+				"swapId":    swapId,
+				"iteration": i,
 			}).WithError(err).Error("Failed to request node info")
-			return err
+			continue
 		}
 
 		feeRates, err := svc.getFeeRates()
 		if err != nil {
-			logger.Logger.WithField("swapId", swapId).WithError(err).Error("Failed to fetch fee rate to create claim transaction")
-			return err
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"swapId":    swapId,
+				"iteration": i,
+			}).Error("Failed to fetch fee rate to create claim transaction")
+			continue
 		}
 
 		cooperative := swapTransactionResp.TimeoutBlockHeight > nodeInfo.BlockHeight
@@ -748,21 +747,14 @@ func (svc *swapsService) RefundSwap(swapId, address string, enableRetries bool) 
 			svc.boltzApi,
 		)
 		if err != nil {
-			if enableRetries && cooperative {
-				waitToRetrySeconds = max(waitToRetrySeconds, 0)
-				waitToRetrySeconds += 5
-				waitToRetrySeconds = min(waitToRetrySeconds, 30)
-				logger.Logger.WithFields(logrus.Fields{
-					"swapId":        swapId,
-					"iteration":     i,
-					"retry_seconds": waitToRetrySeconds,
-				}).WithError(err).Error("Could not create claim transaction for cooperative refund")
-				continue
-			}
 			logger.Logger.WithFields(logrus.Fields{
 				"swapId":      swapId,
+				"iteration":   i,
 				"cooperative": cooperative,
-			}).WithError(err).Error("Could not create claim transaction for refund")
+			}).WithError(err).Error("Could not create claim transaction refund")
+			if enableRetries && cooperative {
+				continue
+			}
 			return err
 		}
 		break
