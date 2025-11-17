@@ -155,13 +155,14 @@ export default function Channels() {
           hasChannelManagement && (
             <div className="flex gap-3 items-center justify-center">
               <DropdownMenu modal={false}>
-                <DropdownMenuTrigger>
-                  <ResponsiveButton
-                    icon={Settings2Icon}
-                    text="Advanced"
-                    variant="secondary"
-                  />
-                </DropdownMenuTrigger>
+                <ResponsiveButton
+                  asChild
+                  icon={Settings2Icon}
+                  text="Advanced"
+                  variant="secondary"
+                >
+                  <DropdownMenuTrigger />
+                </ResponsiveButton>
                 <DropdownMenuContent className="w-56">
                   <DropdownMenuGroup>
                     <DropdownMenuLabel>Node</DropdownMenuLabel>
@@ -302,10 +303,10 @@ export default function Channels() {
                 Swap
               </LinkButton>
               <LinkButton to="/channels/incoming">Open Channel</LinkButton>
-              <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/node/node-health">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/node/node-health">
                       <CircleProgress
                         value={nodeHealth}
                         className="w-9 h-9 relative"
@@ -326,11 +327,11 @@ export default function Channels() {
                           }
                         />
                       </CircleProgress>
-                    </TooltipTrigger>
-                    <TooltipContent>Node health: {nodeHealth}%</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </ExternalLink>
+                    </ExternalLink>
+                  </TooltipTrigger>
+                  <TooltipContent>Node health: {nodeHealth}%</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           )
         }
