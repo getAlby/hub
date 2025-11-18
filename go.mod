@@ -19,7 +19,7 @@ require (
 	github.com/tyler-smith/go-bip39 v1.1.0
 	github.com/wailsapp/wails/v2 v2.11.0
 	golang.org/x/crypto v0.44.0
-	golang.org/x/oauth2 v0.32.0
+	golang.org/x/oauth2 v0.33.0
 	google.golang.org/grpc v1.76.0
 	gopkg.in/macaroon.v2 v2.1.0
 	gorm.io/driver/postgres v1.6.0
