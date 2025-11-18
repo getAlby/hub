@@ -44,6 +44,13 @@ func (svc *service) startNostr(ctx context.Context) error {
 		"relay_urls": relayUrls,
 	}).Info("Starting Alby Hub")
 
+	// To debug go-nostr, run with -tags "debug dev" (dev tag so LND build doesn't break with debug tag set)
+	// go run -tags "debug dev" -ldflags="-X 'github.com/getAlby/hub/version.Tag=v1.20.0'" cmd/http/main.go
+	if logger.Logger.GetLevel() >= logrus.DebugLevel {
+		nostr.InfoLogger.SetOutput(logger.Logger.Out)
+		nostr.DebugLogger.SetOutput(logger.Logger.Out)
+	}
+
 	// Start infinite loop which will be only broken by canceling ctx (SIGINT)
 	pool := nostr.NewSimplePool(ctx, nostr.WithRelayOptions(
 		nostr.WithNoticeHandler(svc.noticeHandler),
@@ -53,6 +60,8 @@ func (svc *service) startNostr(ctx context.Context) error {
 	))
 
 	go func() {
+		// wait a few seconds for relays to connect
+		time.Sleep(5 * time.Second)
 		for {
 			select {
 			case <-ctx.Done():
@@ -96,11 +105,7 @@ func (svc *service) startNostr(ctx context.Context) error {
 			logger.Logger.WithField("legacy_app_count", legacyAppCount).Info("Starting legacy app subscription")
 			// legacy single wallet subscription - only subscribe once for all legacy apps
 			// to ensure we do not get duplicate events
-			err = svc.startAppWalletSubscription(ctx, pool, svc.keys.GetNostrPublicKey())
-			if err != nil && !errors.Is(err, context.Canceled) {
-				// err being non-nil means that we have an error on the websocket error channel. In this case we just try to reconnect.
-				logger.Logger.WithError(err).Error("Got an error from the relay while listening to legacy subscription.")
-			}
+			svc.startAppWalletSubscription(ctx, pool, svc.keys.GetNostrPublicKey())
 		}()
 	}
 
@@ -171,12 +176,7 @@ func (svc *service) startAllExistingAppsWalletSubscriptions(ctx context.Context,
 
 	for _, app := range apps {
 		go func(app db.App) {
-			err := svc.startAppWalletSubscription(ctx, pool, *app.WalletPubkey)
-			if err != nil && !errors.Is(err, context.Canceled) {
-				logger.Logger.WithError(err).WithFields(logrus.Fields{
-					"app_id": app.ID}).Error("Subscription error")
-				return
-			}
+			svc.startAppWalletSubscription(ctx, pool, *app.WalletPubkey)
 		}(app)
 	}
 }
@@ -190,41 +190,55 @@ func (svc *service) startAppWalletSubscription(ctx context.Context, pool *nostr.
 		Kinds: []int{models.REQUEST_KIND},
 	}
 
-	subCtx, cancelSubscription := context.WithCancel(ctx)
-	eventsChannel := pool.SubscribeMany(subCtx, svc.cfg.GetRelayUrls(), filter)
+	for {
+		subCtx, cancelSubscription := context.WithCancel(ctx)
+		eventsChannel := pool.SubscribeMany(subCtx, svc.cfg.GetRelayUrls(), filter)
 
-	// register a subscriber for "nwc_app_deleted" events, which handles
-	// cancelling the nostr subscription and nip47 info event deletion
-	deleteAppSubscriber := deleteAppConsumer{
-		cancelSubscription: cancelSubscription,
-		walletPubkey:       appWalletPubKey,
-		svc:                svc,
-		pool:               pool,
-	}
-	svc.eventPublisher.RegisterSubscriber(&deleteAppSubscriber)
+		// register a subscriber for "nwc_app_deleted" events, which handles
+		// cancelling the nostr subscription and nip47 info event deletion
+		deleteAppSubscriber := deleteAppConsumer{
+			cancelSubscription: cancelSubscription,
+			walletPubkey:       appWalletPubKey,
+			svc:                svc,
+			pool:               pool,
+		}
 
-	err := svc.watchSubscription(subCtx, pool, eventsChannel)
+		svc.eventPublisher.RegisterSubscriber(&deleteAppSubscriber)
 
-	svc.eventPublisher.RemoveSubscriber(&deleteAppSubscriber)
-	if err != nil {
-		return fmt.Errorf("got an error from the relay while listening to subscription: %w", err)
+		err := svc.watchSubscription(subCtx, pool, eventsChannel)
+
+		svc.eventPublisher.RemoveSubscriber(&deleteAppSubscriber)
+		if err != nil {
+			logger.Logger.WithError(err).Error("got an error from the relay while listening to subscription, resubscribing")
+			time.Sleep(3 * time.Second)
+			continue
+		}
+		break
 	}
 	return nil
 }
 
 func (svc *service) watchSubscription(ctx context.Context, pool *nostr.SimplePool, eventsChannel chan nostr.RelayEvent) error {
+	eventsChannelClosed := make(chan struct{})
 	go func() {
 		// loop through incoming events
 		for event := range eventsChannel {
 			go svc.nip47Service.HandleEvent(ctx, pool, event.Event, svc.lnClient)
 		}
 		logger.Logger.Debug("Relay subscription events channel ended")
+		eventsChannelClosed <- struct{}{}
 	}()
 
-	<-ctx.Done()
-
-	logger.Logger.Info("Exiting subscription...")
-	return nil
+	select {
+	case <-ctx.Done():
+		logger.Logger.Info("Exiting subscription due to context exit...")
+		return nil
+	case <-eventsChannelClosed:
+		// in go-nostr pool, currently if the relay sends a close that is not "auth-required:"
+		// this will trigger closing the subscription channel. We return an error to trigger a resubscribe.
+		logger.Logger.Info("Subscription was exited abnormally")
+		return errors.New("subscription exited abnormally")
+	}
 }
 
 func (svc *service) StartApp(encryptionKey string) error {

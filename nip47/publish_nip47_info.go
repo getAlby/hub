@@ -2,7 +2,7 @@ package nip47
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"strconv"
 	"strings"
 
@@ -117,7 +117,7 @@ func (svc *nip47Service) PublishNip47Info(ctx context.Context, pool nostrmodels.
 		}
 	}
 	if !publishSuccessful {
-		return nil, fmt.Errorf("nostr publish failed: %s", err)
+		return nil, errors.New("failed to publish nostr info event to all relays")
 	}
 	logger.Logger.WithField("wallet_pubkey", appWalletPubKey).Debug("published info event")
 	return ev, nil
@@ -149,7 +149,7 @@ func (svc *nip47Service) PublishNip47InfoDeletion(ctx context.Context, pool nost
 	}
 
 	if !publishSuccessful {
-		return fmt.Errorf("failed to publish info event deletion to all relays")
+		return errors.New("failed to publish info event deletion to all relays")
 	}
 	return nil
 }

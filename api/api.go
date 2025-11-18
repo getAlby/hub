@@ -1586,16 +1586,19 @@ func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 		alarms = append(alarms, NewHealthAlarm(HealthAlarmKindAlbyService, albyInfo.Incidents))
 	}
 
-	isAnyNostrRelayOffline := len(api.svc.GetRelayStatuses()) == 0
-	offlineRelayUrls := []string{}
-	for _, relayStatus := range api.svc.GetRelayStatuses() {
-		if !relayStatus.Online {
-			isAnyNostrRelayOffline = true
-			offlineRelayUrls = append(offlineRelayUrls, relayStatus.Url)
+	relayStatuses := api.svc.GetRelayStatuses()
+	if len(relayStatuses) > 0 {
+		isAnyNostrRelayOffline := false
+		offlineRelayUrls := []string{}
+		for _, relayStatus := range relayStatuses {
+			if !relayStatus.Online {
+				isAnyNostrRelayOffline = true
+				offlineRelayUrls = append(offlineRelayUrls, relayStatus.Url)
+			}
 		}
-	}
-	if isAnyNostrRelayOffline {
-		alarms = append(alarms, NewHealthAlarm(HealthAlarmKindNostrRelayOffline, offlineRelayUrls))
+		if isAnyNostrRelayOffline {
+			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindNostrRelayOffline, offlineRelayUrls))
+		}
 	}
 
 	ldkVssEnabled, _ := api.cfg.Get("LdkVssEnabled", "")
