@@ -1586,10 +1586,11 @@ func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 		alarms = append(alarms, NewHealthAlarm(HealthAlarmKindAlbyService, albyInfo.Incidents))
 	}
 
-	if len(api.svc.GetRelayStatuses()) > 0 {
+	relayStatuses := api.svc.GetRelayStatuses()
+	if len(relayStatuses) > 0 {
 		isAnyNostrRelayOffline := false
 		offlineRelayUrls := []string{}
-		for _, relayStatus := range api.svc.GetRelayStatuses() {
+		for _, relayStatus := range relayStatuses {
 			if !relayStatus.Online {
 				isAnyNostrRelayOffline = true
 				offlineRelayUrls = append(offlineRelayUrls, relayStatus.Url)
