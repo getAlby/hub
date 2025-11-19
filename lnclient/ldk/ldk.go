@@ -119,23 +119,14 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 
 	logLevel, err := strconv.Atoi(cfg.GetEnv().LDKLogLevel)
 	if err != nil {
-		// If parsing log level fails we default to 3, which is then bumped below
-		logLevel = int(ldk_node.LogLevelDebug)
+		// If parsing log level fails we default to info log level
+		logLevel = int(logrus.InfoLevel)
 	}
 
-	InitLogger(cfg.GetEnv().LDKLogLevel)
-
-	if cfg.GetEnv().LogToFile {
-		parentDir := filepath.Dir(workDir)
-		err := AddFileLogger(parentDir)
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to add LDK file logger")
-			return nil, err
-		}
+	ldkLogger, err := NewLDKLogger(logrus.Level(logLevel), cfg.GetEnv().LogToFile, workDir)
+	if err != nil {
+		return nil, err
 	}
-
-	// LogLevelGossip is added due to bug in go bindings which uses an enum that starts at 1 instead of 0
-	ldkLogger := NewLDKLogger(ldk_node.LogLevel(logLevel) + ldk_node.LogLevelGossip)
 	ldkConfig.TransientNetworkGraph = cfg.GetEnv().LDKTransientNetworkGraph
 
 	alias, _ := cfg.Get("NodeAlias", "")
