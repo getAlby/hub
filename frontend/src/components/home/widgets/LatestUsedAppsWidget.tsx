@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
 import { useApps } from "src/hooks/useApps";
 
@@ -23,7 +24,12 @@ export function LatestUsedAppsWidget() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recently Used Apps</CardTitle>
+        <CardTitle className="flex items-center justify-between">
+          <div>Recently Used Apps</div>
+          <LinkButton to="/apps?tab=connected-apps" variant="secondary">
+            See All
+          </LinkButton>
+        </CardTitle>
       </CardHeader>
       <CardContent className="grid grid-cols-1 gap-4">
         {usedApps
