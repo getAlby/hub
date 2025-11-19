@@ -97,24 +97,25 @@ type AlbyMe struct {
 }
 
 type ChannelPeerSuggestion struct {
-	Network               string  `json:"network"`
-	PaymentMethod         string  `json:"paymentMethod"`
-	Pubkey                string  `json:"pubkey"`
-	Host                  string  `json:"host"`
-	MinimumChannelSize    uint64  `json:"minimumChannelSize"`
-	MaximumChannelSize    uint64  `json:"maximumChannelSize"`
-	Name                  string  `json:"name"`
-	Image                 string  `json:"image"`
-	Identifier            string  `json:"identifier"`
-	ContactUrl            string  `json:"contactUrl"`
-	Type                  string  `json:"type"`
-	Terms                 string  `json:"terms"`
-	Description           string  `json:"description"`
-	Note                  string  `json:"note"`
-	PublicChannelsAllowed bool    `json:"publicChannelsAllowed"`
-	FeeTotalSat1m         *uint32 `json:"feeTotalSat1m"`
-	FeeTotalSat2m         *uint32 `json:"feeTotalSat2m"`
-	FeeTotalSat3m         *uint32 `json:"feeTotalSat3m"`
+	Network                    string  `json:"network"`
+	PaymentMethod              string  `json:"paymentMethod"`
+	Pubkey                     string  `json:"pubkey"`
+	Host                       string  `json:"host"`
+	MinimumChannelSize         uint64  `json:"minimumChannelSize"`
+	MaximumChannelSize         uint64  `json:"maximumChannelSize"`
+	MaximumChannelExpiryBlocks *uint32 `json:"maximumChannelExpiryBlocks"`
+	Name                       string  `json:"name"`
+	Image                      string  `json:"image"`
+	Identifier                 string  `json:"identifier"`
+	ContactUrl                 string  `json:"contactUrl"`
+	Type                       string  `json:"type"`
+	Terms                      string  `json:"terms"`
+	Description                string  `json:"description"`
+	Note                       string  `json:"note"`
+	PublicChannelsAllowed      bool    `json:"publicChannelsAllowed"`
+	FeeTotalSat1m              *uint32 `json:"feeTotalSat1m"`
+	FeeTotalSat2m              *uint32 `json:"feeTotalSat2m"`
+	FeeTotalSat3m              *uint32 `json:"feeTotalSat3m"`
 }
 
 type LSPChannelOffer struct {

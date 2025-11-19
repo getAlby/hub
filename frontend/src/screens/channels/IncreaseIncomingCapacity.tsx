@@ -341,6 +341,9 @@ function NewChannelInternal({
                   description={selectedPartner.description}
                   name={selectedPartner.name}
                   terms={selectedPartner.terms}
+                  maximumChannelExpiryBlocks={
+                    selectedPartner.maximumChannelExpiryBlocks
+                  }
                   trigger={<p className="text-xs underline">View Terms</p>}
                 />
               </div>
