@@ -84,8 +84,9 @@ export function FirstChannel() {
       currentPaymentMethod !== lspChannelOffer.currentPaymentMethod
     ) {
       toast.error("Payment method incorrectly configured", {
-        description:
-          "Please switch the payment method and confirm the change in your Alby Account settings",
+        description: currentPaymentMethod
+          ? "Please switch the payment method and confirm the change in your Alby Account settings"
+          : "Please choose a payment method",
       });
       return;
     }
