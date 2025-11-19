@@ -527,15 +527,10 @@ function useWaitForNewChannel() {
 
   React.useEffect(() => {
     if (newChannel) {
-      (async () => {
-        toast("Successfully opened channel");
-        setTimeout(() => {
-          useChannelOrderStore.getState().updateOrder({
-            status: "opening",
-            fundingTxId: newChannel.fundingTxId,
-          });
-        }, 3000);
-      })();
+      useChannelOrderStore.getState().updateOrder({
+        status: "opening",
+        fundingTxId: newChannel.fundingTxId,
+      });
     }
   }, [newChannel]);
 }
@@ -554,7 +549,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
   if (order.paymentMethod !== "lightning") {
     throw new Error("incorrect payment method");
   }
-
+  const { data: balances } = useBalances();
   const { data: channels } = useChannels(true);
   const [, setRequestedInvoice] = React.useState(false);
 
@@ -621,19 +616,17 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
   ]);
 
   const canPayInternally =
-    channels &&
+    balances &&
     lspOrderResponse &&
-    channels.some(
-      (channel) =>
-        channel.localSpendableBalance / 1000 > lspOrderResponse.invoiceAmount
-    );
+    balances.lightning.nextMaxSpendableMPP / 1000 >
+      lspOrderResponse.invoiceAmount;
   const [isPaying, setPaying] = React.useState(false);
   const [payExternally, setPayExternally] = React.useState(false);
 
   return (
     <div className="flex flex-col gap-5">
       <AppHeader
-        title={"Buy Channel"}
+        title="Buy Channel"
         description={
           lspOrderResponse
             ? "Complete Payment to open a channel to your node"
@@ -695,6 +688,8 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                       try {
                         setPaying(true);
 
+                        // NOTE: for amboss this will not return until the HOLD invoice is settled
+                        // which is after the channel has N block confirmations
                         await request<PayInvoiceResponse>(
                           `/api/payments/${lspOrderResponse.invoice}`,
                           {
