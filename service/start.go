@@ -59,9 +59,14 @@ func (svc *service) startNostr(ctx context.Context) error {
 		}),
 	))
 
+	// initially try connect to relays (if hub has no apps, pool won't connect to apps by default)
+	for _, relayUrl := range svc.cfg.GetRelayUrls() {
+		_, err := pool.EnsureRelay(relayUrl)
+		if err != nil {
+			logger.Logger.WithError(err).WithField("relay_url", relayUrl).Error("failed to initially connect to relay")
+		}
+	}
 	go func() {
-		// wait a few seconds for relays to connect
-		time.Sleep(5 * time.Second)
 		for {
 			select {
 			case <-ctx.Done():
