@@ -304,7 +304,7 @@ function NewChannelInternal({
                 setAmount(e.target.value.trim());
               }}
             />
-            <div className="grid grid-cols-3 gap-1.5 text-sm">
+            <div className="grid grid-cols-3 gap-1.5 text-xs">
               {presetAmounts.map((amount) => (
                 <div
                   key={amount}
