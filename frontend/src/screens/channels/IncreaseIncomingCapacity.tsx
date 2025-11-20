@@ -477,14 +477,7 @@ function NewChannelInternal({
               name={selectedPeer?.name}
             />
           )}
-          <p className="text-xs text-muted-foreground flex items-center justify-center -mb-4">
-            The payment for the channel will be due immediately.
-          </p>
-          <p className="text-center text-xs text-muted-foreground">
-            By continuing, you consent the channel opens immediately and that
-            you lose the right to revoke once it is open.
-          </p>
-          <Button size="lg">Next</Button>
+          <Button size="lg">Review Order</Button>
         </form>
 
         <div className="flex-1 flex flex-col justify-end items-center gap-4">

@@ -334,7 +334,11 @@ export function FirstChannel() {
                   </TableCell>
                 </TableRow>
                 <TableRow className="border-0">
-                  <TableCell className="p-3 text-sm">Channel Cost</TableCell>
+                  <TableCell className="p-3 text-sm">
+                    Channel Cost
+                    {lspChannelOffer.currentPaymentMethod === "included" &&
+                      " (Included in your plan)"}
+                  </TableCell>
                   <TableCell className="p-3 flex flex-col gap-2 items-end justify-center">
                     <p>
                       <span
@@ -371,14 +375,10 @@ export function FirstChannel() {
                 right to revoke once it is open.
               </p>
             </div>
-            {lspChannelOffer.currentPaymentMethod === "included" && (
-              <p className="text-xs text-muted-foreground flex items-center justify-center -mb-2">
-                This channel comes free with your Alby Pro subscription.
-              </p>
-            )}
+
             <LoadingButton loading={isLoading} onClick={openChannel}>
               {lspChannelOffer.currentPaymentMethod === "prepaid" ? (
-                <>Continue</>
+                <>Review Order</>
               ) : lspChannelOffer.currentPaymentMethod === "included" ? (
                 <>Open Channel</>
               ) : (
