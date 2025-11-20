@@ -33,7 +33,7 @@ import {
 import { useChannelPeerSuggestions } from "src/hooks/useChannelPeerSuggestions";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
-import { cn, formatAmount } from "src/lib/utils";
+import { cn } from "src/lib/utils";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import {
   Channel,
@@ -46,6 +46,7 @@ import {
 import LightningNetworkDarkSVG from "public/images/illustrations/lightning-network-dark.svg";
 import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
 import { LSPTermsDialog } from "src/components/channels/LSPTermsDialog";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 
 function getPeerKey(peer: RecommendedChannelPeer) {
   return JSON.stringify(peer);
@@ -303,7 +304,7 @@ function NewChannelInternal({
                 setAmount(e.target.value.trim());
               }}
             />
-            <div className="grid grid-cols-3 gap-1.5 text-muted-foreground text-xs">
+            <div className="grid grid-cols-3 gap-1.5 text-sm">
               {presetAmounts.map((amount) => (
                 <div
                   key={amount}
@@ -314,7 +315,12 @@ function NewChannelInternal({
                   )}
                   onClick={() => setAmount(amount.toString())}
                 >
-                  {formatAmount(amount * 1000, 0)}
+                  <FormattedBitcoinAmount amount={amount * 1000} />
+                  <FormattedFiatAmount
+                    amount={amount}
+                    showApprox
+                    className="text-xs"
+                  />
                 </div>
               ))}
             </div>
