@@ -678,7 +678,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                 </TableBody>
               </Table>
             </div>
-            <div className="flex justify-center w-full">
+            <div className="flex justify-center w-full -mb-5">
               <p className="text-center text-xs text-muted-foreground max-w-sm">
                 By proceeding, you consent the channel opens immediately and
                 that you lose the right to revoke once it is open.
@@ -735,7 +735,9 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
               )}
 
               {(payExternally || !canPayInternally) && (
-                <PayLightningInvoice invoice={lspOrderResponse.invoice} />
+                <div className="flex flex-row justify-center">
+                  <PayLightningInvoice invoice={lspOrderResponse.invoice} />
+                </div>
               )}
 
               <div className="flex-1 flex flex-col justify-end items-center gap-4">
