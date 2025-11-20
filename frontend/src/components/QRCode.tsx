@@ -30,7 +30,7 @@ function QRCode({ value, size, level, className }: Props) {
         size={size}
         fgColor={fgColor}
         bgColor={bgColor}
-        className={cn("rounded-md", className)}
+        className={cn("rounded", className)}
         level={level}
       />
     </div>

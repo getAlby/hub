@@ -17,6 +17,7 @@ type LSPTermsDialogProps = {
   contactUrl: string;
   terms: string | undefined;
   trigger: React.ReactNode;
+  maximumChannelExpiryBlocks?: number;
 };
 export function LSPTermsDialog({
   name,
@@ -24,11 +25,14 @@ export function LSPTermsDialog({
   contactUrl,
   terms,
   trigger,
+  maximumChannelExpiryBlocks = 12960 /* 3 months */,
 }: LSPTermsDialogProps) {
+  const months = Math.round((10 * maximumChannelExpiryBlocks) / (60 * 24 * 30));
+
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <div className="cursor-pointer">{trigger}</div>
+        <div className="cursor-pointer inline">{trigger}</div>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
@@ -44,7 +48,7 @@ export function LSPTermsDialog({
               </p>
 
               <div className="flex items-center gap-2">
-                Duration: at least 3 months
+                Duration: at least {months} months
                 <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel">
                   <InfoIcon className="size-4 text-muted-foreground" />
                 </ExternalLink>
