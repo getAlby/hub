@@ -31,7 +31,8 @@ body {
 
 @layer base {
   [role="menuitem"]:not([disabled]),
-  [data-slot="command-item"] {
+  [data-slot="command-item"],
+  [data-slot="field"] {
     cursor: pointer !important;
   }
 }
