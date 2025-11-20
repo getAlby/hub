@@ -678,6 +678,12 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                 </TableBody>
               </Table>
             </div>
+            <div className="flex justify-center w-full">
+              <p className="text-center text-xs text-muted-foreground max-w-sm">
+                By proceeding, you consent the channel opens immediately and
+                that you lose the right to revoke once it is open.
+              </p>
+            </div>
             <>
               {canPayInternally && (
                 <>
