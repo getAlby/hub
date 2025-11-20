@@ -35,7 +35,7 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
       </div>
       <div className="w-full relative flex items-center justify-center">
         <QRCode value={invoice} className="w-full" />
-        <div className="bg-primary-foreground absolute">
+        <div className="bg-white absolute rounded-full p-1">
           <LightningIcon className="w-12 h-12" />
         </div>
       </div>
