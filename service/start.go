@@ -59,7 +59,7 @@ func (svc *service) startNostr(ctx context.Context) error {
 		}),
 	))
 
-	// initially try connect to relays (if hub has no apps, pool won't connect to apps by default)
+	// initially try connect to relays (if hub has no apps, pool won't connect to relays by default)
 	for _, relayUrl := range svc.cfg.GetRelayUrls() {
 		_, err := pool.EnsureRelay(relayUrl)
 		if err != nil {
