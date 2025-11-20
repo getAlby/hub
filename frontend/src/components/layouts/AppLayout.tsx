@@ -9,6 +9,7 @@ import {
   useCommandPaletteContext,
 } from "src/contexts/CommandPaletteContext";
 import { useBanner } from "src/hooks/useBanner";
+import { useDocumentTitle } from "src/hooks/useDocumentTitle";
 import { useInfo } from "src/hooks/useInfo";
 import { useNotifyReceivedPayments } from "src/hooks/useNotifyReceivedPayments";
 import { useRemoveSuccessfulChannelOrder } from "src/hooks/useRemoveSuccessfulChannelOrder";
@@ -21,6 +22,7 @@ function AppLayoutInner() {
 
   useRemoveSuccessfulChannelOrder();
   useNotifyReceivedPayments();
+  useDocumentTitle();
 
   if (!info) {
     return null;
