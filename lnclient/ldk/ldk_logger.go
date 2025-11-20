@@ -3,7 +3,6 @@ package ldk
 import (
 	"os"
 	"path/filepath"
-	"strconv"
 
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/ldk-node-go/ldk_node"
@@ -14,21 +13,26 @@ import (
 const ldkLogFilename = "ldk.log"
 const logDir = "log"
 
-var LDKLogger *logrus.Logger
 var ldkLogFilePath string
 
 type ldkLogger struct {
-	logLevel ldk_node.LogLevel
+	logLevel logrus.Level
+	logger   *logrus.Logger
 }
 
-func NewLDKLogger(logLevel ldk_node.LogLevel) ldk_node.LogWriter {
+func NewLDKLogger(logLevel logrus.Level, logToFile bool, workDir string) (ldk_node.LogWriter, error) {
+	logger, err := createLogger(logLevel, logToFile, workDir)
+	if err != nil {
+		return nil, err
+	}
 	return &ldkLogger{
 		logLevel: logLevel,
-	}
+		logger:   logger,
+	}, nil
 }
 
 func (ldkLogger *ldkLogger) Log(record ldk_node.LogRecord) {
-	LDKLogger.WithFields(logrus.Fields{
+	ldkLogger.logger.WithFields(logrus.Fields{
 		"log_type":    "LDK-node",
 		"line":        record.Line,
 		"module_path": record.ModulePath,
@@ -54,37 +58,33 @@ func mapLogLevel(logLevel ldk_node.LogLevel) logrus.Level {
 	return logrus.ErrorLevel
 }
 
-func InitLogger(ldkLogLevel string) {
-	LDKLogger = logrus.New()
-	LDKLogger.SetFormatter(&logrus.JSONFormatter{})
-	LDKLogger.SetOutput(os.Stdout)
-	ldkLogrusLogLevel, err := strconv.Atoi(ldkLogLevel)
-	if err != nil {
-		ldkLogrusLogLevel = int(logrus.InfoLevel)
-	}
-	LDKLogger.SetLevel(logrus.Level(ldkLogrusLogLevel))
+func createLogger(logLevel logrus.Level, logToFile bool, workDir string) (*logrus.Logger, error) {
+	ldkLogger := logrus.New()
+	ldkLogger.SetFormatter(&logrus.JSONFormatter{})
+	ldkLogger.SetOutput(os.Stdout)
 
-	if int(mapLogLevel(ldk_node.LogLevel(ldkLogrusLogLevel))) >= int(logrus.DebugLevel) {
-		LDKLogger.ReportCaller = true
-		LDKLogger.Debug("LDK Logrus report caller enabled in debug mode")
-	}
-}
+	ldkLogger.SetLevel(logLevel)
 
-func AddFileLogger(workdir string) error {
-	ldkLogFilePath = filepath.Join(workdir, logDir, ldkLogFilename)
-	ldkFileLoggerHook, err := lumberjackrus.NewHook(
-		&lumberjackrus.LogFile{
-			Filename:   ldkLogFilePath,
-			MaxAge:     3,
-			MaxBackups: 3,
-		},
-		LDKLogger.Level,
-		&logrus.JSONFormatter{},
-		nil,
-	)
-	if err != nil {
-		return err
+	if logToFile {
+
+		parentDir := filepath.Dir(workDir)
+		ldkLogFilePath = filepath.Join(parentDir, logDir, ldkLogFilename)
+		ldkFileLoggerHook, err := lumberjackrus.NewHook(
+			&lumberjackrus.LogFile{
+				Filename:   ldkLogFilePath,
+				MaxAge:     3,
+				MaxBackups: 3,
+			},
+			logLevel,
+			&logrus.JSONFormatter{},
+			nil,
+		)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to add LDK file logger")
+			return nil, err
+		}
+
+		ldkLogger.AddHook(ldkFileLoggerHook)
 	}
-	LDKLogger.AddHook(ldkFileLoggerHook)
-	return nil
+	return ldkLogger, nil
 }
