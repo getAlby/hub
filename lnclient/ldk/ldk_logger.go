@@ -13,8 +13,6 @@ import (
 const ldkLogFilename = "ldk.log"
 const logDir = "log"
 
-var ldkLogFilePath string
-
 type ldkLogger struct {
 	logLevel logrus.Level
 	logger   *logrus.Logger
@@ -66,9 +64,8 @@ func createLogger(logLevel logrus.Level, logToFile bool, workDir string) (*logru
 	ldkLogger.SetLevel(logLevel)
 
 	if logToFile {
-
 		parentDir := filepath.Dir(workDir)
-		ldkLogFilePath = filepath.Join(parentDir, logDir, ldkLogFilename)
+		ldkLogFilePath := filepath.Join(parentDir, logDir, ldkLogFilename)
 		ldkFileLoggerHook, err := lumberjackrus.NewHook(
 			&lumberjackrus.LogFile{
 				Filename:   ldkLogFilePath,
