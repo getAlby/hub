@@ -30,10 +30,15 @@ import LightningNetworkDarkSVG from "public/images/illustrations/lightning-netwo
 import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
 import { LSPTermsDialog } from "src/components/channels/LSPTermsDialog";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
-import { RadioGroupItem } from "src/components/RadioGroup";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LinkButton } from "src/components/ui/custom/link-button";
-import { RadioGroup } from "src/components/ui/radio-group";
+import {
+  Field,
+  FieldContent,
+  FieldLabel,
+  FieldTitle,
+} from "src/components/ui/field";
+import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import {
   Tooltip,
   TooltipContent,
@@ -238,21 +243,30 @@ export function FirstChannel() {
                       setCurrentPaymentMethod(newPaymentMethod);
                     }}
                   >
-                    <RadioGroupItem
-                      value={"wallet" satisfies LSPChannelOfferPaymentMethod}
-                      id="wallet"
-                      selected={currentPaymentMethod === "wallet"}
-                    >
-                      Bitcoin
-                    </RadioGroupItem>
-
-                    <RadioGroupItem
-                      value={"card" satisfies LSPChannelOfferPaymentMethod}
-                      id="card"
-                      selected={currentPaymentMethod === "card"}
-                    >
-                      Credit / Debit Card
-                    </RadioGroupItem>
+                    <FieldLabel htmlFor="wallet">
+                      <Field orientation="horizontal">
+                        <RadioGroupItem
+                          value={
+                            "wallet" satisfies LSPChannelOfferPaymentMethod
+                          }
+                          id="wallet"
+                        />
+                        <FieldContent>
+                          <FieldTitle>Bitcoin</FieldTitle>
+                        </FieldContent>
+                      </Field>
+                    </FieldLabel>
+                    <FieldLabel htmlFor="card">
+                      <Field orientation="horizontal">
+                        <RadioGroupItem
+                          value={"card" satisfies LSPChannelOfferPaymentMethod}
+                          id="card"
+                        />
+                        <FieldContent>
+                          <FieldTitle>Credit / Debit Card</FieldTitle>
+                        </FieldContent>
+                      </Field>
+                    </FieldLabel>
                   </RadioGroup>
                 </div>
               )}
