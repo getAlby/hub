@@ -5,6 +5,7 @@ import {
   ExternalLinkIcon,
   InfoIcon,
   Link2Icon,
+  Link2OffIcon,
   User2Icon,
   ZapIcon,
 } from "lucide-react";
@@ -14,6 +15,7 @@ import { Link } from "react-router-dom";
 import BudgetAmountSelect from "src/components/BudgetAmountSelect";
 import BudgetRenewalSelect from "src/components/BudgetRenewalSelect";
 import Loading from "src/components/Loading";
+import { UnlinkAlbyAccount } from "src/components/UnlinkAlbyAccount";
 import UserAvatar from "src/components/UserAvatar";
 import { AppCardConnectionInfo } from "src/components/connections/AppCardConnectionInfo";
 import { AppCardNotice } from "src/components/connections/AppCardNotice";
@@ -184,14 +186,22 @@ function AlbyConnectionCard() {
                 </ExternalLinkButton>
               )}
               {albyAccountApp && (
-                <LinkButton
-                  to="/settings/alby-account"
-                  className="w-full sm:w-auto"
-                  variant="outline"
-                >
-                  <User2Icon />
-                  Alby Account Settings
-                </LinkButton>
+                <>
+                  <LinkButton
+                    to="/settings/alby-account"
+                    className="w-full sm:w-auto"
+                    variant="outline"
+                  >
+                    <User2Icon />
+                    Alby Account Settings
+                  </LinkButton>
+                  <UnlinkAlbyAccount>
+                    <Button className="w-full sm:w-auto" variant="outline">
+                      <Link2OffIcon />
+                      Unlink Alby Account
+                    </Button>
+                  </UnlinkAlbyAccount>
+                </>
               )}
             </div>
           </div>
