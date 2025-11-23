@@ -7,11 +7,20 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
-	arksdk "github.com/ark-network/ark/pkg/client-sdk"
-	"github.com/ark-network/ark/pkg/client-sdk/store"
-	"github.com/ark-network/ark/pkg/client-sdk/types"
+	boltz "github.com/ArkLabsHQ/fulmine/pkg/boltz"
+	swap "github.com/ArkLabsHQ/fulmine/pkg/swap"
+	arksdk "github.com/arkade-os/go-sdk"
+	"github.com/arkade-os/go-sdk/client"
+	grpcclient "github.com/arkade-os/go-sdk/client/grpc"
+	indexer "github.com/arkade-os/go-sdk/indexer"
+	indexerTransport "github.com/arkade-os/go-sdk/indexer/grpc"
+	"github.com/arkade-os/go-sdk/store"
+	"github.com/arkade-os/go-sdk/types"
+	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/getAlby/hub/config"
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/tyler-smith/go-bip32"
@@ -24,14 +33,19 @@ const nodeCommandListVtxos = "list_vtxos"
 const nodeCommandRefreshVtxos = "refresh_vtxos"
 
 const (
-	serverUrl  = "https://mutinynet.arkade.sh"
+	//serverUrl  = "https://mutinynet.arkade.sh"
+	serverUrl  = "https://arkade.computer"
 	clientType = arksdk.GrpcClient
 	walletType = arksdk.SingleKeyWallet
 )
 
 type ArkService struct {
-	workDir   string
-	arkClient arksdk.ArkClient
+	workDir       string
+	arkClient     arksdk.ArkClient
+	boltzSvc      *boltz.Api
+	grpcClient    client.TransportClient
+	indexerClient indexer.Indexer
+	pubkey        *btcec.PublicKey
 }
 
 // Experimental Mutinynet Ark client
@@ -40,37 +54,40 @@ type ArkService struct {
 // - lightning payments via boltz swaps
 // - on-chain receive and send
 func NewArkService(ctx context.Context, cfg config.Config, workDir, mnemonic, unlockPassword string) (result lnclient.LNClient, err error) {
-	if workDir == "" {
-		return nil, errors.New("one or more required cashu configuration are missing")
+	if workDir == "" || mnemonic == "" || unlockPassword == "" {
+		return nil, errors.New("one or more required ark configuration are missing")
 	}
 
+	seed, err := seedFromMnemonic(mnemonic)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to create seed from mnemonic")
+		return nil, fmt.Errorf("failed to generate seed from mnemonic: %s", err)
+	}
+
+	privKeyBytes, err := hex.DecodeString(seed)
+	if err != nil {
 		return nil, err
 	}
+	_, pubkey := btcec.PrivKeyFromBytes(privKeyBytes)
+
+	var arkClient arksdk.ArkClient
+	_, err = os.Stat(workDir)
+
+	isNewWallet := err != nil && errors.Is(err, os.ErrNotExist)
 
 	appDataStore, err := store.NewStore(store.Config{
-		ConfigStoreType:  types.FileStore,
-		AppDataStoreType: types.KVStore,
-		BaseDir:          workDir,
+		ConfigStoreType: types.FileStore,
+		// AppDataStoreType: types.KVStore,
+		BaseDir: workDir,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to setup app data store: %s", err)
 	}
 
-	_, err = os.Stat(workDir)
-	var arkClient arksdk.ArkClient
+	if isNewWallet {
 
-	if err != nil && errors.Is(err, os.ErrNotExist) {
-
-		arkClient, err := arksdk.NewCovenantlessClient(appDataStore)
+		arkClient, err = arksdk.NewArkClient(appDataStore)
 		if err != nil {
 			return nil, fmt.Errorf("failed to create new ark client: %s", err)
-		}
-
-		seed, err := seedFromMnemonic(mnemonic)
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate seed from mnemonic: %s", err)
 		}
 
 		err = arkClient.Init(ctx, arksdk.InitArgs{
@@ -79,28 +96,42 @@ func NewArkService(ctx context.Context, cfg config.Config, workDir, mnemonic, un
 			ServerUrl:           serverUrl,
 			Password:            unlockPassword,
 			Seed:                seed,
-			WithTransactionFeed: true,
+			WithTransactionFeed: false, // true crashes
 		})
 
 		if err != nil {
 			return nil, fmt.Errorf("failed to initialize wallet: %s", err)
 		}
 	} else {
-		arkClient, err = arksdk.LoadCovenantlessClient(appDataStore)
+		arkClient, err = arksdk.LoadArkClient(appDataStore)
 		if err != nil {
 			return nil, fmt.Errorf("failed to load ark client: %s", err)
 		}
 	}
 
-	// TODO: do we need to explicitly lock on shutdown?
 	err = arkClient.Unlock(ctx, unlockPassword)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unlock ark client: %s", err)
 	}
 
+	boltzSvc := &boltz.Api{URL: "https://api.ark.boltz.exchange"}
+	grpcClient, err := grpcclient.NewClient(serverUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	indexerClient, err := indexerTransport.NewClient(serverUrl)
+	if err != nil {
+		return nil, err
+	}
+
 	svc := ArkService{
-		workDir:   workDir,
-		arkClient: arkClient,
+		workDir:       workDir,
+		arkClient:     arkClient,
+		boltzSvc:      boltzSvc,
+		grpcClient:    grpcClient,
+		indexerClient: indexerClient,
+		pubkey:        pubkey,
 	}
 
 	return &svc, nil
@@ -135,23 +166,71 @@ func seedFromMnemonic(mnemonic string) (string, error) {
 }
 
 func (svc *ArkService) Shutdown() error {
-	if err := svc.arkClient.Stop(); err != nil {
-		logger.Logger.WithError(err).Error("failed to stop ark client")
-		return err
-	}
+	svc.arkClient.Stop()
 	return nil
 }
 
-func (svc *ArkService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64) (response *lnclient.PayInvoiceResponse, err error) {
+func (svc *ArkService) SendPaymentSync(invoice string, amount *uint64) (response *lnclient.PayInvoiceResponse, err error) {
+	/*balance, err := client.GetBalance(t.Context(), &pb.GetBalanceRequest{})
+	require.NoError(t, err)
+	require.NotNil(t, balance)
+	require.Greater(t, int(balance.GetAmount()), invoiceAmount)
+
+	_, err = client.PayInvoice(t.Context(), &pb.PayInvoiceRequest{
+		Invoice: invoice,
+	})
+	require.NoError(t, err)
+
+	balanceAfter, err := client.GetBalance(t.Context(), &pb.GetBalanceRequest{})
+	require.NoError(t, err)
+	require.NotNil(t, balanceAfter)
+	before := int64(balance.GetAmount())
+	after := int64(balanceAfter.GetAmount())
+	require.GreaterOrEqual(t, before-after, int64(invoiceAmount))
+	*/
 	return nil, errors.New("TODO")
 }
 
-func (svc *ArkService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+func (svc *ArkService) SendKeysend(amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	return nil, errors.New("keysend not supported")
 }
 
-func (svc *ArkService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
-	return nil, errors.New("TODO")
+func (svc *ArkService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
+
+	swapTimeout := uint32(15) // seconds
+	swapHandler := swap.NewSwapHandler(
+		svc.arkClient, svc.grpcClient, svc.indexerClient, svc.boltzSvc, svc.pubkey, swapTimeout,
+	)
+
+	postProcess := func(swapData swap.Swap) error {
+		if swapData.Status != swap.SwapSuccess {
+			logger.Logger.WithField("swap_data", swapData).Error("Swap has unexpected status")
+			return nil
+		}
+
+		// TODO: update the transaction to be paid
+
+		logger.Logger.WithField("swap_data", swapData).Info("Swap success")
+		return nil
+	}
+
+	swapDetails, err := swapHandler.GetInvoice(ctx, uint64(amount/1000), postProcess)
+	if err != nil {
+		return nil, err
+	}
+
+	return &lnclient.Transaction{
+		Invoice:     swapDetails.Invoice,
+		Type:        constants.TRANSACTION_TYPE_INCOMING,
+		PaymentHash: hex.EncodeToString(swapDetails.PreimageHash),
+		Amount:      amount,
+		CreatedAt:   time.Now().Unix(),
+		// TODO: add other fields
+	}, nil
+}
+
+func (svc *ArkService) MakeOffer(ctx context.Context, description string) (string, error) {
+	return "", errors.New("not supported")
 }
 
 func (svc *ArkService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
@@ -191,37 +270,37 @@ func (svc *ArkService) GetNewOnchainAddress(ctx context.Context) (string, error)
 }
 
 func (svc *ArkService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
-	return nil, errors.New("not supported")
+	return nil, errors.ErrUnsupported
 }
 
-func (svc *ArkService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (string, error) {
-	return "", errors.New("not supported")
+func (svc *ArkService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (string, error) {
+	return "", errors.ErrUnsupported
 }
 
 func (svc *ArkService) ResetRouter(key string) error {
-	return errors.New("not supported")
+	return errors.ErrUnsupported
 }
 
 func (svc *ArkService) SignMessage(ctx context.Context, message string) (string, error) {
-	return "", errors.New("not supported")
+	return "", errors.ErrUnsupported
 }
 
 func (svc *ArkService) DisconnectPeer(ctx context.Context, peerId string) error {
-	return errors.New("not supported")
+	return errors.ErrUnsupported
 }
 
 func (svc *ArkService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
-	return nil, errors.New("not supported")
+	return nil, errors.ErrUnsupported
 }
 func (svc *ArkService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, error) {
-	return nil, errors.New("not supported")
+	return nil, errors.ErrUnsupported
 }
 
 func (svc *ArkService) GetStorageDir() (string, error) {
-	return "", errors.New("not supported")
+	return "", errors.ErrUnsupported
 }
 func (svc *ArkService) GetNetworkGraph(ctx context.Context, nodeIds []string) (lnclient.NetworkGraphResponse, error) {
-	return nil, errors.New("not supported")
+	return nil, errors.ErrUnsupported
 }
 func (svc *ArkService) UpdateLastWalletSyncRequest() {}
 
@@ -232,18 +311,34 @@ func (svc *ArkService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.
 }
 
 func (svc *ArkService) SendPaymentProbes(ctx context.Context, invoice string) error {
-	return errors.New("not supported")
+	return errors.ErrUnsupported
 }
 
 func (svc *ArkService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
-	return errors.New("not supported")
+	return errors.ErrUnsupported
 }
 
 func (svc *ArkService) UpdateChannel(ctx context.Context, updateChannelRequest *lnclient.UpdateChannelRequest) error {
-	return errors.New("not supported")
+	return errors.ErrUnsupported
 }
 
-func (svc *ArkService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
+func (svc *ArkService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
+	return nil, errors.ErrUnsupported
+}
+
+func (svc *ArkService) SettleHoldInvoice(ctx context.Context, preimage string) (err error) {
+	return errors.ErrUnsupported
+}
+
+func (svc *ArkService) CancelHoldInvoice(ctx context.Context, paymentHash string) (err error) {
+	return errors.ErrUnsupported
+}
+
+func (svc *ArkService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
+	return nil, errors.ErrUnsupported
+}
+
+func (svc *ArkService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
 	balance, err := svc.arkClient.Balance(ctx, false)
 	if err != nil {
 		return nil, err
@@ -317,7 +412,7 @@ func (svc *ArkService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCo
 func (svc *ArkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
 	switch command.Name {
 	case nodeCommandReceive:
-		offchainAddress, boardingAddress, err := svc.arkClient.Receive(ctx)
+		onchainAddress, offchainAddress, boardingAddress, err := svc.arkClient.Receive(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -325,6 +420,7 @@ func (svc *ArkService) ExecuteCustomNodeCommand(ctx context.Context, command *ln
 			Response: map[string]interface{}{
 				"boardingAddress": boardingAddress,
 				"offchainAddress": offchainAddress,
+				"onchainAddress":  onchainAddress,
 			},
 		}, nil
 	case nodeCommandListVtxos:
@@ -364,11 +460,11 @@ func (svc *ArkService) ExecuteCustomNodeCommand(ctx context.Context, command *ln
 			return nil, err
 		}
 
-		receivers := []arksdk.Receiver{
-			arksdk.NewBitcoinReceiver(address, amount),
+		receivers := []types.Receiver{
+			{To: address, Amount: amount},
 		}
 
-		redeemTxid, err := svc.arkClient.SendOffChain(ctx, false, receivers, true)
+		redeemTxid, err := svc.arkClient.SendOffChain(ctx, false, receivers)
 
 		if err != nil {
 			return nil, err

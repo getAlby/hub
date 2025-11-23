@@ -1,4 +1,4 @@
-import { wordlist } from "@scure/bip39/wordlists/english";
+import { wordlist } from "@scure/bip39/wordlists/english.js";
 import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useSetupStore from "src/state/SetupStore";
