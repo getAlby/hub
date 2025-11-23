@@ -1,7 +1,12 @@
-import { Power } from "lucide-react";
 import React, { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
+import { buttonVariants } from "../ui/buttonVariants";
+
+import { useInfo } from "src/hooks/useInfo";
+
+import { PowerIcon } from "lucide-react";
+import { toast } from "sonner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,12 +18,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "src/components/ui/alert-dialog";
-import { buttonVariants } from "src/components/ui/button";
-import { LoadingButton } from "src/components/ui/loading-button";
-import { useToast } from "src/components/ui/use-toast";
-
-import { useInfo } from "src/hooks/useInfo";
-
+import { LoadingButton } from "src/components/ui/custom/loading-button";
+import { Separator } from "src/components/ui/separator";
 import { cn } from "src/lib/utils";
 import { request } from "src/utils/request";
 
@@ -30,7 +31,6 @@ export default function SettingsLayout() {
     hasNodeBackup,
   } = useInfo();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [shuttingDown, setShuttingDown] = useState(false);
 
   const shutdown = React.useCallback(async () => {
@@ -46,57 +46,61 @@ export default function SettingsLayout() {
       await refetchInfo();
       setShuttingDown(false);
       navigate("/", { replace: true });
-      toast({ title: "Your node has been turned off." });
+      toast("Your node has been turned off.");
     } catch (error) {
       console.error(error);
-      toast({
-        title: "Failed to shutdown node: " + error,
-        variant: "destructive",
+      toast.error("Failed to shutdown node", {
+        description: "" + error,
       });
     }
-  }, [navigate, refetchInfo, toast]);
+  }, [navigate, refetchInfo]);
 
   return (
     <>
       <AppHeader
         title="Settings"
-        description="Manage your Alby Hub settings."
         breadcrumb={false}
         contentRight={
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <LoadingButton
-                variant="destructive"
-                size="icon"
-                loading={shuttingDown}
-              >
-                {!shuttingDown && <Power className="w-4 h-4" />}
-              </LoadingButton>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>
-                  Do you want to turn off Alby Hub?
-                </AlertDialogTitle>
-                <AlertDialogDescription>
-                  This will turn off your Alby Hub and make your node offline.
-                  You won't be able to send or receive bitcoin until you unlock
-                  it.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={shutdown}>
-                  Continue
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <div className="flex items-center gap-4">
+            <div className="font-medium slashed-zero text-muted-foreground text-sm">
+              {info?.version}
+            </div>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <LoadingButton
+                  variant="destructive"
+                  size="icon"
+                  loading={shuttingDown}
+                >
+                  {!shuttingDown && <PowerIcon className="size-4" />}
+                </LoadingButton>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    Do you want to turn off your Alby Hub?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will turn off your Alby Hub and make your node offline.
+                    You won't be able to send or receive bitcoin until you
+                    unlock it.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={shutdown}>
+                    Continue
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         }
       />
-      <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
-        <aside className="lg:-mx-4 lg:w-1/5">
-          <nav className="flex flex-wrap lg:flex-col -space-x-1 lg:space-x-0 lg:space-y-1">
+
+      <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-4 lg:space-y-0 h-full">
+        <aside className="flex flex-col justify-between lg:w-1/5">
+          <nav className="flex flex-wrap lg:flex-col lg:space-y-1">
             <MenuItem to="/settings">General</MenuItem>
             {info?.autoUnlockPasswordSupported && (
               <MenuItem to="/settings/auto-unlock">Auto Unlock</MenuItem>
@@ -106,7 +110,7 @@ export default function SettingsLayout() {
             </MenuItem>
             {hasMnemonic && <MenuItem to="/settings/backup">Backup</MenuItem>}
             {hasNodeBackup && (
-              <MenuItem to="/settings/node-backup">Migrate Node</MenuItem>
+              <MenuItem to="/settings/node-migrate">Migrate Alby Hub</MenuItem>
             )}
             {info?.albyAccountConnected && (
               <MenuItem to="/settings/alby-account">Your Alby Account</MenuItem>
@@ -116,8 +120,10 @@ export default function SettingsLayout() {
             )}
             <MenuItem to="/settings/developer">Developer</MenuItem>
             <MenuItem to="/settings/debug-tools">Debug Tools</MenuItem>
+            <MenuItem to="/settings/about">About</MenuItem>
           </nav>
         </aside>
+        <Separator orientation="vertical" className="hidden lg:block" />
         <div className="flex-1 lg:max-w-2xl">
           <div className="grid gap-6">
             <Outlet />

@@ -92,12 +92,12 @@ func (svc *permissionsService) GetPermittedMethods(app *db.App, lnClient lnclien
 
 func (svc *permissionsService) PermitsNotifications(app *db.App) bool {
 	notificationPermission := db.AppPermission{}
-	err := svc.db.First(&notificationPermission, &db.AppPermission{
+	result := svc.db.Limit(1).Find(&notificationPermission, &db.AppPermission{
 		AppId: app.ID,
 		Scope: constants.NOTIFICATIONS_SCOPE,
-	}).Error
+	})
 
-	return err == nil
+	return result.Error == nil && result.RowsAffected > 0
 }
 
 func scopesToRequestMethods(scopes []string) []string {
@@ -119,7 +119,7 @@ func scopeToRequestMethods(scope string) []string {
 	case constants.GET_INFO_SCOPE:
 		return []string{models.GET_INFO_METHOD}
 	case constants.MAKE_INVOICE_SCOPE:
-		return []string{models.MAKE_INVOICE_METHOD}
+		return []string{models.MAKE_INVOICE_METHOD, models.MAKE_HOLD_INVOICE_METHOD, models.SETTLE_HOLD_INVOICE_METHOD, models.CANCEL_HOLD_INVOICE_METHOD}
 	case constants.LOOKUP_INVOICE_SCOPE:
 		return []string{models.LOOKUP_INVOICE_METHOD}
 	case constants.LIST_TRANSACTIONS_SCOPE:
@@ -165,6 +165,8 @@ func RequestMethodToScope(requestMethod string) (string, error) {
 		return constants.LIST_TRANSACTIONS_SCOPE, nil
 	case models.SIGN_MESSAGE_METHOD:
 		return constants.SIGN_MESSAGE_SCOPE, nil
+	case models.MAKE_HOLD_INVOICE_METHOD, models.SETTLE_HOLD_INVOICE_METHOD, models.CANCEL_HOLD_INVOICE_METHOD:
+		return constants.MAKE_INVOICE_SCOPE, nil
 	case models.CREATE_CONNECTION_METHOD:
 		return constants.SUPERUSER_SCOPE, nil
 	}

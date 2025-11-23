@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/logger"
 	"github.com/sirupsen/logrus"
@@ -16,9 +18,8 @@ import (
 )
 
 type config struct {
-	Env       *AppConfig
-	JWTSecret string
-	db        *gorm.DB
+	Env *AppConfig
+	db  *gorm.DB
 }
 
 const (
@@ -105,20 +106,25 @@ func (cfg *config) init(env *AppConfig) error {
 		}
 	}
 
-	// set the JWT secret to the one from the env
-	// if no JWT secret is configured we create a random one and store it in the DB
-	cfg.JWTSecret = cfg.Env.JWTSecret
-	if cfg.JWTSecret == "" {
-		hex, err := randomHex(32)
+	// set the JWT secret from the env, or generate a new one
+	existingSecret, _ := cfg.Get("JWTSecret", "")
+	if existingSecret == "" {
+		jwtSecret := cfg.Env.JWTSecret
+		if jwtSecret == "" {
+			hexSecret, err := randomHex(32)
+			if err != nil {
+				logger.Logger.WithError(err).Error("failed to generate JWT secret")
+				return err
+			}
+			jwtSecret = hexSecret
+			logger.Logger.Info("Generated new JWT secret")
+		}
+
+		err := cfg.SetIgnore("JWTSecret", jwtSecret, "")
 		if err != nil {
-			logger.Logger.WithError(err).Error("failed to generate JWT secret")
+			logger.Logger.WithError(err).Error("failed to save JWT secret")
 			return err
 		}
-		err = cfg.SetIgnore("JWTSecret", hex, "")
-		if err != nil {
-			return err
-		}
-		cfg.JWTSecret, _ = cfg.Get("JWTSecret", "")
 	}
 	return nil
 }
@@ -138,12 +144,36 @@ func (cfg *config) SetupCompleted() bool {
 }
 
 func (cfg *config) GetJWTSecret() string {
-	return cfg.JWTSecret
+	secret, err := cfg.Get("JWTSecret", "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to retrieve JWTSecret from database")
+		return ""
+	}
+	return secret
 }
 
-func (cfg *config) GetRelayUrl() string {
-	relayUrl, _ := cfg.Get("Relay", "")
-	return relayUrl
+func (cfg *config) GetRelayUrls() []string {
+	relayUrls, _ := cfg.Get("Relay", "")
+	return strings.Split(relayUrls, ",")
+}
+
+func (cfg *config) GetNetwork() string {
+	env := cfg.GetEnv()
+
+	if env.Network != "" {
+		return env.Network
+	}
+
+	if env.LDKNetwork != "" {
+		return env.LDKNetwork
+	}
+
+	return "bitcoin"
+}
+
+func (cfg *config) GetMempoolUrl() string {
+	mempoolApiUrl := cfg.GetEnv().MempoolApi
+	return strings.TrimSuffix(mempoolApiUrl, "/api")
 }
 
 func (cfg *config) Get(key string, encryptionKey string) (string, error) {
@@ -213,7 +243,7 @@ func (cfg *config) SetUpdate(key string, value string, encryptionKey string) err
 
 func (cfg *config) ChangeUnlockPassword(currentUnlockPassword string, newUnlockPassword string) error {
 	if newUnlockPassword == "" {
-		return errors.New("New unlock password must not be empty")
+		return errors.New("new unlock password must not be empty")
 	}
 	if !cfg.CheckUnlockPassword(currentUnlockPassword) {
 		return errors.New("incorrect password")
@@ -246,15 +276,30 @@ func (cfg *config) ChangeUnlockPassword(currentUnlockPassword string, newUnlockP
 			logger.Logger.WithField("key", userConfig.Key).Info("re-encrypted key")
 		}
 
-		// commit transaction
+		newSecret, err := randomHex(32)
+		if err != nil {
+			logger.Logger.WithError(err).Error("failed to generate new JWT secret during password change transaction")
+			return fmt.Errorf("failed to generate new JWT secret: %w", err)
+		}
+
+		updateClauses := clause.OnConflict{
+			Columns:   []clause.Column{{Name: "key"}},
+			DoUpdates: clause.AssignmentColumns([]string{"value"}),
+		}
+		err = cfg.set("JWTSecret", newSecret, updateClauses, "", tx)
+		if err != nil {
+			logger.Logger.WithError(err).Error("failed to save new JWT secret during password change transaction")
+			return fmt.Errorf("failed to save new JWT secret: %w", err)
+		}
+		logger.Logger.Info("Successfully regenerated JWT secret as part of password change transaction")
+
 		return nil
 	})
 
 	if err != nil {
-		logger.Logger.WithError(err).Error("failed to execute db transaction")
+		logger.Logger.WithError(err).Error("failed to execute password change transaction")
 		return err
 	}
-
 	return nil
 }
 
@@ -300,11 +345,15 @@ func randomHex(n int) (string, error) {
 }
 
 const defaultCurrency = "USD"
+const defaultBitcoinDisplayFormat = constants.BITCOIN_DISPLAY_FORMAT_BIP177
 
 func (cfg *config) GetCurrency() string {
 	currency, err := cfg.Get("Currency", "")
-	if err != nil || currency == "" {
-		logger.Logger.WithError(err).Debug("Currency not found, using default")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch currency")
+		return defaultCurrency
+	}
+	if currency == "" {
 		return defaultCurrency
 	}
 	return currency
@@ -317,6 +366,30 @@ func (cfg *config) SetCurrency(value string) error {
 	err := cfg.SetUpdate("Currency", value, "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to update currency")
+		return err
+	}
+	return nil
+}
+
+func (cfg *config) GetBitcoinDisplayFormat() string {
+	format, err := cfg.Get("BitcoinDisplayFormat", "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch bitcoin display format")
+		return defaultBitcoinDisplayFormat
+	}
+	if format == "" {
+		return defaultBitcoinDisplayFormat
+	}
+	return format
+}
+
+func (cfg *config) SetBitcoinDisplayFormat(value string) error {
+	if value != constants.BITCOIN_DISPLAY_FORMAT_SATS && value != constants.BITCOIN_DISPLAY_FORMAT_BIP177 {
+		return fmt.Errorf("bitcoin display format must be '%s' or '%s'", constants.BITCOIN_DISPLAY_FORMAT_SATS, constants.BITCOIN_DISPLAY_FORMAT_BIP177)
+	}
+	err := cfg.SetUpdate("BitcoinDisplayFormat", value, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to update bitcoin display format")
 		return err
 	}
 	return nil

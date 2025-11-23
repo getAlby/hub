@@ -72,7 +72,7 @@ func (cs *CashuService) Shutdown() error {
 	return cs.wallet.Shutdown()
 }
 
-func (cs *CashuService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64) (response *lnclient.PayInvoiceResponse, err error) {
+func (cs *CashuService) SendPaymentSync(invoice string, amount *uint64) (response *lnclient.PayInvoiceResponse, err error) {
 	// TODO: support 0-amount invoices
 	if amount != nil {
 		return nil, errors.New("0-amount invoices not supported")
@@ -101,11 +101,11 @@ func (cs *CashuService) SendPaymentSync(ctx context.Context, invoice string, amo
 	}, nil
 }
 
-func (cs *CashuService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+func (cs *CashuService) SendKeysend(amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	return nil, errors.New("keysend not supported")
 }
 
-func (cs *CashuService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
+func (cs *CashuService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
 	// TODO: support expiry
 	if expiry == 0 {
 		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
@@ -118,6 +118,18 @@ func (cs *CashuService) MakeInvoice(ctx context.Context, amount int64, descripti
 
 	mintQuote := cs.wallet.GetMintQuoteById(mintResponse.Quote)
 	return cs.cashuMintQuoteToTransaction(mintQuote), nil
+}
+
+func (cs *CashuService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
+	return nil, errors.New("not implemented")
+}
+
+func (cs *CashuService) SettleHoldInvoice(ctx context.Context, preimage string) (err error) {
+	return errors.New("not implemented")
+}
+
+func (cs *CashuService) CancelHoldInvoice(ctx context.Context, paymentHash string) (err error) {
+	return errors.New("not implemented")
 }
 
 func (cs *CashuService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
@@ -215,7 +227,7 @@ func (cs *CashuService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchai
 	}, nil
 }
 
-func (cs *CashuService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (string, error) {
+func (cs *CashuService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (string, error) {
 	return "", nil
 }
 
@@ -283,7 +295,7 @@ func (cs *CashuService) UpdateChannel(ctx context.Context, updateChannelRequest 
 	return nil
 }
 
-func (cs *CashuService) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
+func (cs *CashuService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
 	cashuBalance := cs.wallet.GetBalance()
 	balance := int64(cashuBalance * 1000)
 
@@ -409,6 +421,7 @@ func (cs *CashuService) checkIncomingPayment(mintQuote *storage.MintQuote) {
 			logger.Logger.WithFields(logrus.Fields{
 				"paymentHash": bolt11.PaymentHash,
 			}).WithError(err).Warn("failed to check invoice state")
+			return
 		}
 
 		if mintQuoteState.State == nut04.Paid {
@@ -550,4 +563,12 @@ func (cs *CashuService) executeCommandResetWallet() (*lnclient.CustomNodeCommand
 			"message": "Reset successful. Your hub will shutdown in 10 seconds...",
 		},
 	}, nil
+}
+
+func (svc *CashuService) MakeOffer(ctx context.Context, description string) (string, error) {
+	return "", errors.New("not supported")
+}
+
+func (cs *CashuService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
+	return nil, errors.ErrUnsupported
 }

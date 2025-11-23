@@ -6,21 +6,24 @@ import { cn } from "src/lib/utils";
 type FormattedFiatAmountProps = {
   amount: number;
   className?: string;
+  showApprox?: boolean;
 };
 
 export default function FormattedFiatAmount({
   amount,
   className,
+  showApprox,
 }: FormattedFiatAmountProps) {
   const { data: info } = useInfo();
-  const { data: bitcoinRate } = useBitcoinRate();
+  const { data: bitcoinRate, error: bitcoinRateError } = useBitcoinRate();
 
-  if (info?.currency === "SATS") {
+  if (info?.currency === "SATS" || bitcoinRateError) {
     return null;
   }
 
   return (
     <div className={cn("text-sm text-muted-foreground", className)}>
+      {showApprox && bitcoinRate && "~"}
       {!bitcoinRate ? (
         <Skeleton className="w-20">&nbsp;</Skeleton>
       ) : (

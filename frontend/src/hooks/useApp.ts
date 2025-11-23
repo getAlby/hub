@@ -7,9 +7,9 @@ const pollConfiguration: SWRConfiguration = {
   refreshInterval: 3000,
 };
 
-export function useApp(pubkey: string | undefined, poll = false) {
+export function useApp(id: number | undefined, poll = false) {
   return useSWR<App>(
-    pubkey && `/api/apps/${pubkey}`,
+    !!id && `/api/v2/apps/${id}`,
     swrFetcher,
     poll ? pollConfiguration : undefined
   );

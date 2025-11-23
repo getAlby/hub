@@ -21,9 +21,9 @@ import (
 func TestHandleCreateConnectionEvent(t *testing.T) {
 	ctx := context.TODO()
 	svc, err := tests.CreateTestService(t)
-	svc.Cfg.SetUpdate("LNBackendType", config.LDKBackendType, "")
 	require.NoError(t, err)
 	defer svc.Remove()
+	svc.Cfg.SetUpdate("LNBackendType", config.LDKBackendType, "")
 
 	pairingSecretKey := nostr.GeneratePrivateKey()
 	pairingPublicKey, err := nostr.GetPublicKey(pairingSecretKey)
@@ -220,7 +220,7 @@ func TestHandleCreateConnectionEvent_NoMethods(t *testing.T) {
 		HandleCreateConnectionEvent(ctx, nip47Request, dbRequestEvent.ID, publishResponse)
 
 	assert.NotNil(t, publishedResponse.Error)
-	assert.Equal(t, constants.ERROR_INTERNAL, publishedResponse.Error.Code)
+	assert.Equal(t, constants.ERROR_BAD_REQUEST, publishedResponse.Error.Code)
 	assert.Equal(t, "No request methods provided", publishedResponse.Error.Message)
 	assert.Equal(t, models.CREATE_CONNECTION_METHOD, publishedResponse.ResultType)
 	assert.Nil(t, publishedResponse.Result)
@@ -265,7 +265,7 @@ func TestHandleCreateConnectionEvent_UnsupportedMethod(t *testing.T) {
 		HandleCreateConnectionEvent(ctx, nip47Request, dbRequestEvent.ID, publishResponse)
 
 	assert.NotNil(t, publishedResponse.Error)
-	assert.Equal(t, constants.ERROR_INTERNAL, publishedResponse.Error.Code)
+	assert.Equal(t, constants.ERROR_BAD_REQUEST, publishedResponse.Error.Code)
 	assert.Equal(t, "One or more methods are not supported by the current LNClient", publishedResponse.Error.Message)
 	assert.Equal(t, models.CREATE_CONNECTION_METHOD, publishedResponse.ResultType)
 	assert.Nil(t, publishedResponse.Result)
@@ -311,7 +311,7 @@ func TestHandleCreateConnectionEvent_UnsupportedNotificationType(t *testing.T) {
 		HandleCreateConnectionEvent(ctx, nip47Request, dbRequestEvent.ID, publishResponse)
 
 	assert.NotNil(t, publishedResponse.Error)
-	assert.Equal(t, constants.ERROR_INTERNAL, publishedResponse.Error.Code)
+	assert.Equal(t, constants.ERROR_BAD_REQUEST, publishedResponse.Error.Code)
 	assert.Equal(t, "One or more notification types are not supported by the current LNClient", publishedResponse.Error.Message)
 	assert.Equal(t, models.CREATE_CONNECTION_METHOD, publishedResponse.ResultType)
 	assert.Nil(t, publishedResponse.Result)
@@ -356,7 +356,7 @@ func TestHandleCreateConnectionEvent_DoNotAllowCreateConnectionMethod(t *testing
 		HandleCreateConnectionEvent(ctx, nip47Request, dbRequestEvent.ID, publishResponse)
 
 	assert.NotNil(t, publishedResponse.Error)
-	assert.Equal(t, constants.ERROR_INTERNAL, publishedResponse.Error.Code)
+	assert.Equal(t, constants.ERROR_BAD_REQUEST, publishedResponse.Error.Code)
 	assert.Equal(t, "cannot create a new app that has create_connection permission via NWC", publishedResponse.Error.Message)
 	assert.Equal(t, models.CREATE_CONNECTION_METHOD, publishedResponse.ResultType)
 	assert.Nil(t, publishedResponse.Result)

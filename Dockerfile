@@ -1,9 +1,15 @@
-FROM node:20-alpine as frontend
+FROM node:20-alpine AS frontend
+
+# Set the base path for the frontend build
+# This can be overridden at build time with --build-arg BASE_PATH=<url> e.g. --build-arg BASE_PATH=/hub
+# Allows to build a frontend that can be served from a subpath, e.g. /hub
+ARG BASE_PATH
 WORKDIR /build
 COPY frontend ./frontend
+RUN echo "Building frontend with base path $BASE_PATH"
 RUN cd frontend && yarn install --network-timeout 3000000 && yarn build:http
 
-FROM golang:1.23.1 as builder
+FROM golang:1.24 AS builder
 
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM
@@ -38,12 +44,15 @@ RUN GOARCH=$(echo "$TARGETPLATFORM" | cut -d'/' -f2) go build \
    -ldflags="-X 'github.com/getAlby/hub/version.Tag=$TAG'" \
    -o main cmd/http/main.go
 
+RUN GOARCH=$(echo "$TARGETPLATFORM" | cut -d'/' -f2) go build \
+   -o db_migrate cmd/db_migrate/main.go
+
 COPY ./build/docker/copy_dylibs.sh .
 RUN chmod +x copy_dylibs.sh
 RUN ./copy_dylibs.sh $(echo "$TARGETPLATFORM" | cut -d'/' -f2)
 
 # Start a new, final image to reduce size.
-FROM debian as final
+FROM debian:12-slim AS final
 
 ENV LD_LIBRARY_PATH=/usr/lib/nwc
 #
@@ -51,5 +60,6 @@ ENV LD_LIBRARY_PATH=/usr/lib/nwc
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /build/libldk_node.so /usr/lib/nwc/
 COPY --from=builder /build/main /bin/
+COPY --from=builder /build/db_migrate /bin/
 
 ENTRYPOINT [ "/bin/main" ]

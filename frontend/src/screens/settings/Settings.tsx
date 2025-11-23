@@ -1,6 +1,9 @@
+import { StarsIcon } from "lucide-react";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
+import { Badge } from "src/components/ui/badge";
 import { Label } from "src/components/ui/label";
 import {
   Select,
@@ -15,14 +18,15 @@ import {
   Themes,
   useTheme,
 } from "src/components/ui/theme-provider";
-import { useToast } from "src/components/ui/use-toast";
+import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
+import { cn } from "src/lib/utils";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
 function Settings() {
+  const { data: albyMe } = useAlbyMe();
   const { theme, darkMode, setTheme, setDarkMode } = useTheme();
-  const { toast } = useToast();
 
   const [fiatCurrencies, setFiatCurrencies] = useState<[string, string][]>([]);
 
@@ -43,92 +47,170 @@ function Settings() {
         setFiatCurrencies(mappedCurrencies);
       } catch (error) {
         console.error(error);
-        handleRequestError(toast, "Failed to fetch currencies", error);
+        handleRequestError("Failed to fetch currencies", error);
       }
     }
 
     fetchCurrencies();
-  }, [toast]);
+  }, []);
 
-  async function updateCurrency(currency: string) {
+  async function updateSettings(
+    payload: Record<string, string>,
+    successMessage: string,
+    errorMessage: string
+  ) {
     try {
       await request("/api/settings", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ currency }),
+        body: JSON.stringify(payload),
       });
       await reloadInfo();
-      toast({ title: `Currency set to ${currency}` });
+      toast(successMessage);
     } catch (error) {
       console.error(error);
-      handleRequestError(toast, "Failed to update currencies", error);
+      handleRequestError(errorMessage, error);
     }
+  }
+
+  async function updateCurrency(currency: string) {
+    await updateSettings(
+      { currency },
+      `Currency set to ${currency}`,
+      "Failed to update currencies"
+    );
+  }
+
+  async function updateBitcoinDisplayFormat(bitcoinDisplayFormat: string) {
+    await updateSettings(
+      { bitcoinDisplayFormat },
+      "Bitcoin display format updated",
+      "Failed to update bitcoin display format"
+    );
   }
 
   if (!info) {
     return <Loading />;
   }
 
+  const paidThemes = ["matrix", "ghibli", "claymorphism"];
+  const hasPlan = !!albyMe?.subscription.plan_code;
+
   return (
     <>
-      <SettingsHeader title="General" description="General Alby Hub Settings" />
-      <form className="w-full flex flex-col gap-3">
-        <div className="grid gap-1.5">
-          <Label htmlFor="theme">Theme</Label>
-          <Select
-            value={theme}
-            onValueChange={(value) => {
-              setTheme(value as Theme);
-              toast({ title: "Theme updated." });
-            }}
-          >
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Theme" />
-            </SelectTrigger>
-            <SelectContent>
-              {Themes.map((theme) => (
-                <SelectItem key={theme} value={theme}>
-                  {theme.charAt(0).toUpperCase() + theme.substring(1)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <SettingsHeader
+        title="General"
+        description="General Alby Hub settings."
+      />
+      <form className="w-full flex flex-col gap-8">
+        {/* Theme & Appearance Section */}
+        <div className="space-y-4">
+          <h3 className="text-xl font-medium">Appearance</h3>
+          <div className="space-y-4">
+            <div className="grid gap-2">
+              <Label htmlFor="theme">Theme</Label>
+              <Select
+                value={theme}
+                onValueChange={(value) => {
+                  setTheme(value as Theme);
+                  toast("Theme updated.");
+                }}
+              >
+                <SelectTrigger className="w-full md:w-60">
+                  <SelectValue placeholder="Theme" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Themes.map((theme) => {
+                    const isPaidTheme = paidThemes.includes(theme);
+                    const isDisabled = isPaidTheme && !hasPlan;
+
+                    return (
+                      <SelectItem
+                        key={theme}
+                        value={theme}
+                        disabled={isDisabled}
+                      >
+                        <div className="flex items-center justify-between gap-2 w-full">
+                          <span
+                            className={cn(
+                              "capitalize",
+                              isDisabled && "text-muted-foreground"
+                            )}
+                          >
+                            {theme}
+                          </span>
+                          {isPaidTheme && (
+                            <Badge variant="outline">
+                              <StarsIcon />
+                              Pro
+                            </Badge>
+                          )}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="appearance">Appearance</Label>
+              <Select
+                value={darkMode}
+                onValueChange={(value) => {
+                  setDarkMode(value as DarkMode);
+                  toast("Appearance updated.");
+                }}
+              >
+                <SelectTrigger className="w-full md:w-60">
+                  <SelectValue placeholder="Appearance" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="system">System</SelectItem>
+                  <SelectItem value="light">Light</SelectItem>
+                  <SelectItem value="dark">Dark</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
-        <div className="grid gap-1.5">
-          <Label htmlFor="theme">Dark mode</Label>
-          <Select
-            value={darkMode}
-            onValueChange={(value) => {
-              setDarkMode(value as DarkMode);
-              toast({ title: "Dark Mode updated." });
-            }}
-          >
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Dark mode" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="system">System</SelectItem>
-              <SelectItem value="light">Light</SelectItem>
-              <SelectItem value="dark">Dark</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="grid gap-1.5">
-          <Label htmlFor="currency">Fiat Currency</Label>
-          <Select value={info?.currency} onValueChange={updateCurrency}>
-            <SelectTrigger className="w-[250px] border border-gray-300 p-2 rounded-md">
-              <SelectValue placeholder="Select a currency" />
-            </SelectTrigger>
-            <SelectContent>
-              {fiatCurrencies.map(([code, name]) => (
-                <SelectItem key={code} value={code}>
-                  {name} ({code})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+
+        {/* Units & Currency Section */}
+        <div className="space-y-4">
+          <h3 className="text-xl font-medium">Units & Currency</h3>
+          <div className="space-y-4">
+            <div className="grid gap-1.5">
+              <Label htmlFor="bitcoinDisplayFormat">Display Unit</Label>
+              <Select
+                value={info?.bitcoinDisplayFormat || "bip177"}
+                onValueChange={updateBitcoinDisplayFormat}
+              >
+                <SelectTrigger className="w-full md:w-60">
+                  <SelectValue placeholder="Select a display format" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="bip177">₿</SelectItem>
+                  <SelectItem value="sats">sats</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="currency">Fiat Currency</Label>
+              <Select value={info?.currency} onValueChange={updateCurrency}>
+                <SelectTrigger className="w-full md:w-60">
+                  <SelectValue placeholder="Select a currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  {fiatCurrencies.map(([code, name]) => (
+                    <SelectItem key={code} value={code}>
+                      {name} ({code})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
       </form>
     </>

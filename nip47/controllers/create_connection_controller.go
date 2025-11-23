@@ -5,6 +5,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
@@ -52,12 +53,23 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 
 	maxAmountSat := params.MaxAmount / 1000
 
+	if params.Name == alby.ALBY_ACCOUNT_APP_NAME {
+		publishResponse(&models.Response{
+			ResultType: nip47Request.Method,
+			Error: &models.Error{
+				Code:    constants.ERROR_BAD_REQUEST,
+				Message: "cannot create a new app that has reserved name: " + alby.ALBY_ACCOUNT_APP_NAME,
+			},
+		}, nostr.Tags{})
+		return
+	}
+
 	// explicitly do not allow creating an app with create_connection permission
 	if slices.Contains(params.RequestMethods, models.CREATE_CONNECTION_METHOD) {
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
 			Error: &models.Error{
-				Code:    constants.ERROR_INTERNAL,
+				Code:    constants.ERROR_BAD_REQUEST,
 				Message: "cannot create a new app that has create_connection permission via NWC",
 			},
 		}, nostr.Tags{})
@@ -69,7 +81,7 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
 			Error: &models.Error{
-				Code:    constants.ERROR_INTERNAL,
+				Code:    constants.ERROR_BAD_REQUEST,
 				Message: "No request methods provided",
 			},
 		}, nostr.Tags{})
@@ -83,7 +95,7 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
 			Error: &models.Error{
-				Code:    constants.ERROR_INTERNAL,
+				Code:    constants.ERROR_BAD_REQUEST,
 				Message: "One or more methods are not supported by the current LNClient",
 			},
 		}, nostr.Tags{})
@@ -100,7 +112,7 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 			publishResponse(&models.Response{
 				ResultType: nip47Request.Method,
 				Error: &models.Error{
-					Code:    constants.ERROR_INTERNAL,
+					Code:    constants.ERROR_BAD_REQUEST,
 					Message: "One or more notification types are not supported by the current LNClient",
 				},
 			}, nostr.Tags{})
@@ -116,10 +128,7 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 		}).WithError(err).Error("Failed to create app")
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code:    constants.ERROR_INTERNAL,
-				Message: err.Error(),
-			},
+			Error:      mapNip47Error(err),
 		}, nostr.Tags{})
 		return
 	}

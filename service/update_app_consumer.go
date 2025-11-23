@@ -10,8 +10,7 @@ import (
 
 type updateAppConsumer struct {
 	events.EventSubscriber
-	svc   *service
-	relay *nostr.Relay
+	svc *service
 }
 
 // When a app is updated, re-publish the nip47 info event
@@ -42,12 +41,10 @@ func (s *updateAppConsumer) ConsumeEvent(ctx context.Context, event *events.Even
 	}
 
 	if s.svc.keys.GetNostrPublicKey() != walletPubKey {
-		// only need to re-publish the nip47 event info if it is not a legacy wallet
-
-		_, err = s.svc.GetNip47Service().PublishNip47Info(ctx, s.relay, walletPubKey, walletPrivKey, s.svc.lnClient)
-		if err != nil {
-			logger.Logger.WithError(err).Error("Could not re-publish NIP47 info")
+		// only need to re-publish the nip47 event info if it is not a legacy app connection (shared wallet pubkey)
+		// (legacy app connection can be used for multiple apps - so it cannot be app-specific)
+		for _, relayUrl := range s.svc.cfg.GetRelayUrls() {
+			s.svc.nip47Service.EnqueueNip47InfoPublishRequest(id, walletPubKey, walletPrivKey, relayUrl)
 		}
-
 	}
 }

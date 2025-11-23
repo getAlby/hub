@@ -1,15 +1,16 @@
-import { ChevronDown } from "lucide-react";
+import { ChevronDownIcon } from "lucide-react";
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
-import { useToast } from "src/components/ui/use-toast";
 import { useChannels } from "src/hooks/useChannels";
 
 import { useInfo } from "src/hooks/useInfo";
@@ -20,6 +21,11 @@ import { MempoolAlert } from "src/components/MempoolAlert";
 import { PayLightningInvoice } from "src/components/PayLightningInvoice";
 import { ChannelPublicPrivateAlert } from "src/components/channels/ChannelPublicPrivateAlert";
 
+import LightningNetworkDarkSVG from "public/images/illustrations/lightning-network-dark.svg";
+import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LinkButton } from "src/components/ui/custom/link-button";
+
 export function AutoChannel() {
   const { data: info } = useInfo();
   const { data: channels } = useChannels(true);
@@ -28,7 +34,6 @@ export function AutoChannel() {
   const [isPublic, setPublic] = React.useState(false);
 
   const navigate = useNavigate();
-  const { toast } = useToast();
   const [invoice, setInvoice] = React.useState<string>();
   const [channelSize, setChannelSize] = React.useState<number>();
   const [, setPrevChannelIds] = React.useState<string[]>();
@@ -90,10 +95,7 @@ export function AutoChannel() {
     } catch (error) {
       setLoading(false);
       console.error(error);
-      toast({
-        title: "Something went wrong. Please try again",
-        variant: "destructive",
-      });
+      toast.error("Something went wrong. Please try again");
     }
   }
 
@@ -109,8 +111,8 @@ export function AutoChannel() {
           <p className="text-muted-foreground slashed-zero">
             Please pay the lightning invoice below which will cover the costs of
             opening your channel. You will receive a channel with{" "}
-            {new Intl.NumberFormat().format(channelSize)} sats of incoming
-            liquidity.
+            <FormattedBitcoinAmount amount={channelSize * 1000} /> of receiving
+            capacity.
           </p>
           <PayLightningInvoice invoice={invoice} />
 
@@ -118,27 +120,31 @@ export function AutoChannel() {
           <p className="mt-8 text-sm mb-2 text-muted-foreground">
             Other options
           </p>
-          <Link to="/channels/outgoing" className="w-full">
-            <Button className="w-full" variant="secondary">
-              Open Channel with On-Chain Bitcoin
-            </Button>
-          </Link>
-          <ExternalLink to="https://www.getalby.com/topup" className="w-full">
-            <Button className="w-full" variant="secondary">
-              Buy Bitcoin
-            </Button>
-          </ExternalLink>
+          <LinkButton
+            to="/channels/outgoing"
+            variant="secondary"
+            className="w-full"
+          >
+            Open Channel with On-Chain Bitcoin
+          </LinkButton>
+          <ExternalLinkButton
+            to="https://www.getalby.com/topup"
+            variant="secondary"
+            className="w-full"
+          >
+            Buy Bitcoin
+          </ExternalLinkButton>
         </div>
       )}
       {!invoice && (
         <>
           <div className="flex flex-col gap-6 max-w-md text-muted-foreground">
             <img
-              src="/images/illustrations/lightning-network-dark.svg"
+              src={LightningNetworkDarkSVG}
               className="w-full hidden dark:block"
             />
             <img
-              src="/images/illustrations/lightning-network-light.svg"
+              src={LightningNetworkLightSVG}
               className="w-full dark:hidden"
             />
 
@@ -153,6 +159,17 @@ export function AutoChannel() {
                 After paying a lightning invoice to cover on-chain fees, you'll
                 immediately be able to receive and send bitcoin through this
                 channel with your Hub.
+              </p>
+              <p className="text-muted-foreground">
+                Alby Hub works with selected service providers (LSPs) which
+                provide the best network connectivity and liquidity to receive
+                payments.{" "}
+                <ExternalLink
+                  className="underline"
+                  to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel"
+                >
+                  Learn more
+                </ExternalLink>
               </p>
             </>
             {showAdvanced && (
@@ -171,8 +188,13 @@ export function AutoChannel() {
                       Public Channel
                     </Label>
                     <p className="text-xs text-muted-foreground">
-                      Only enable if you want to receive keysend payments. (e.g.
-                      podcasting)
+                      Not recommended for most users.{" "}
+                      <ExternalLink
+                        className="underline"
+                        to="https://guides.getalby.com/user-guide/alby-hub/faq/should-i-open-a-private-or-public-channel"
+                      >
+                        Learn more
+                      </ExternalLink>
                     </p>
                   </div>
                 </div>
@@ -187,7 +209,7 @@ export function AutoChannel() {
                   onClick={() => setShowAdvanced((current) => !current)}
                 >
                   Advanced Options
-                  <ChevronDown className="w-4 h-4 ml-1" />
+                  <ChevronDownIcon className="size-4 ml-1" />
                 </Button>
               </div>
             )}

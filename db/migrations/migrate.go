@@ -28,6 +28,16 @@ func Migrate(gormDB *gorm.DB) error {
 		_202408291715_app_metadata,
 		_202410141503_add_wallet_pubkey,
 		_202412212345_fix_types,
+		_202504231037_add_indexes,
+		_202505091314_hold_invoices,
+		_202506170342_swaps,
+		_202508041712_delete_non_cascade_deleted_records,
+		_202508041737_postgres_amount_bigint,
+		_202508041738_app_last_used,
+		_202508041739_response_events_index,
+		_202508151405_swap_xpub,
+		_202508192137_forwards,
+		_202509031250_transactions_updated_at_index,
 	})
 
 	return m.Migrate()

@@ -1,4 +1,9 @@
-import { HandCoins, LandmarkIcon, ShieldAlert, Unlock } from "lucide-react";
+import {
+  HandCoinsIcon,
+  LandmarkIcon,
+  ShieldAlertIcon,
+  UnlockIcon,
+} from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
@@ -34,7 +39,7 @@ export function SetupSecurity() {
             {store.nodeInfo.backendType !== "CASHU" && (
               <div className="flex gap-3 items-center">
                 <div className="shrink-0">
-                  <HandCoins className="w-6 h-6" />
+                  <HandCoinsIcon className="size-6" />
                 </div>
                 <span className="text-sm text-muted-foreground">
                   Alby Hub is a spending wallet - do not keep all your savings
@@ -45,7 +50,7 @@ export function SetupSecurity() {
             {store.nodeInfo.backendType === "CASHU" && (
               <div className="flex gap-3 items-center">
                 <div className="shrink-0">
-                  <LandmarkIcon className="w-6 h-6" />
+                  <LandmarkIcon className="size-6" />
                 </div>
                 <span className="text-sm text-muted-foreground">
                   Your funds are owned by the cashu mint - use at your own risk
@@ -55,18 +60,18 @@ export function SetupSecurity() {
             )}
             <div className="flex gap-3 items-center">
               <div className="shrink-0">
-                <Unlock className="w-6 h-6" />
+                <UnlockIcon className="size-6" />
               </div>
               <span className="text-sm text-muted-foreground">
                 Access to your Alby Hub is protected by an unlock password you
-                set.
+                set. It cannot be recovered or reset.
               </span>
             </div>
             {store.nodeInfo.backendType === "LND" ||
             store.nodeInfo.backendType === "PHOENIX" ? (
               <div className="flex gap-3 items-center">
                 <div className="shrink-0">
-                  <ShieldAlert className="w-6 h-6" />
+                  <ShieldAlertIcon className="size-6" />
                 </div>
                 <span className="text-sm text-muted-foreground">
                   Channel backups{" "}
@@ -78,7 +83,7 @@ export function SetupSecurity() {
             ) : (
               <div className="flex gap-3 items-center">
                 <div className="shrink-0">
-                  <ShieldAlert className="w-6 h-6" />
+                  <ShieldAlertIcon className="size-6" />
                 </div>
                 <span className="text-sm text-muted-foreground">
                   Your{store.nodeInfo.backendType === "LDK" && " on-chain"}{" "}
@@ -93,7 +98,7 @@ export function SetupSecurity() {
             )}
             <ExternalLink
               className="text-muted-foreground flex items-center text-sm"
-              to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/backups"
+              to="https://guides.getalby.com/user-guide/alby-hub/backups-and-recover"
             >
               <p>
                 Learn more about backups and recovery process on{" "}

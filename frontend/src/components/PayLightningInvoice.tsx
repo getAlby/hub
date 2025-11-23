@@ -1,12 +1,13 @@
-import { Invoice, fiat } from "@getalby/lightning-tools";
+import { Invoice, getFiatValue } from "@getalby/lightning-tools";
 import { CopyIcon, LightbulbIcon } from "lucide-react";
 import React from "react";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import { LightningIcon } from "src/components/icons/Lightning";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
-import { Button, ExternalLinkButton } from "src/components/ui/button";
-import { useToast } from "src/components/ui/use-toast";
+import { Button } from "src/components/ui/button";
 import { copyToClipboard } from "src/lib/clipboard";
+import { ExternalLinkButton } from "./ui/custom/external-link-button";
 
 type PayLightningInvoiceProps = {
   invoice: string;
@@ -18,13 +19,12 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
   }).satoshi;
   const [fiatAmount, setFiatAmount] = React.useState(0);
   React.useEffect(() => {
-    fiat
-      .getFiatValue({ satoshi: amount, currency: "USD" })
-      .then((fiatAmount) => setFiatAmount(fiatAmount));
+    getFiatValue({ satoshi: amount, currency: "USD" }).then((fiatAmount) =>
+      setFiatAmount(fiatAmount)
+    );
   }, [amount]);
-  const { toast } = useToast();
   const copy = () => {
-    copyToClipboard(invoice, toast);
+    copyToClipboard(invoice);
   };
 
   return (
@@ -35,13 +35,13 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
       </div>
       <div className="w-full relative flex items-center justify-center">
         <QRCode value={invoice} className="w-full" />
-        <div className="bg-primary-foreground absolute">
+        <div className="bg-white absolute rounded-full p-1">
           <LightningIcon className="w-12 h-12" />
         </div>
       </div>
       <div>
         <p className="text-lg font-semibold">
-          {new Intl.NumberFormat().format(amount)} sats
+          <FormattedBitcoinAmount amount={amount * 1000} />
         </p>
         <p className="flex flex-col items-center justify-center">
           {new Intl.NumberFormat("en-US", {
@@ -56,15 +56,15 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
           variant="outline"
           className="flex-1 flex gap-2 items-center justify-center"
         >
-          <CopyIcon className="w-4 h-4 mr-2" />
+          <CopyIcon />
           Copy Invoice
         </Button>
         <ExternalLinkButton
-          to="https://guides.getalby.com/user-guide/alby-account-and-browser-extension/alby-hub/wallet/open-your-first-channel"
+          to="https://guides.getalby.com/user-guide/alby-hub/wallet/open-your-first-channel"
           variant="secondary"
           className="flex-1 flex gap-2 items-center justify-center"
         >
-          <LightbulbIcon className="w-4 h-4" /> How to pay
+          <LightbulbIcon className="size-4" /> How to pay
         </ExternalLinkButton>
       </div>
     </div>

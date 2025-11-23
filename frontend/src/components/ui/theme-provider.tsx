@@ -1,7 +1,15 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 export type DarkMode = "system" | "light" | "dark";
-export const Themes = ["default", "alby", "bitcoin", "nostr"] as const;
+export const Themes = [
+  "default",
+  "alby",
+  "bitcoin",
+  "nostr",
+  "matrix",
+  "ghibli",
+  "claymorphism",
+] as const;
 export type Theme = (typeof Themes)[number];
 
 type ThemeProviderProps = {
@@ -70,6 +78,7 @@ export function ThemeProvider({
       prefersDark = darkMode === "dark";
     }
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsDarkMode(prefersDark);
 
     if (prefersDark) {

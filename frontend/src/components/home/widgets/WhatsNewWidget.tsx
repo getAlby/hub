@@ -2,9 +2,11 @@ import { compare } from "compare-versions";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { useAlbyInfo } from "src/hooks/useAlbyInfo";
 import { useInfo } from "src/hooks/useInfo";
 
@@ -25,18 +27,18 @@ export function WhatsNewWidget() {
     <Card>
       <CardHeader>
         <CardTitle>What's New in {upToDate && "your "}Alby Hub?</CardTitle>
+        <CardDescription>{albyInfo.hub.latestReleaseNotes}</CardDescription>
       </CardHeader>
-      <CardContent>
-        <p className="text-xl font-semibold">v{albyInfo.hub.latestVersion}</p>
-        <p className="text-muted-foreground mt-1">
-          {albyInfo.hub.latestReleaseNotes}
-        </p>
-        {!upToDate && (
-          <p className="font-semibold mt-2 text-sm">
-            Make sure to update! you're currently running {info.version}
-          </p>
-        )}
-      </CardContent>
+      {!upToDate && (
+        <CardContent className="text-right">
+          <ExternalLinkButton
+            to={`https://getalby.com/update/hub?version=${info.version}`}
+            size="sm"
+          >
+            Update Now
+          </ExternalLinkButton>
+        </CardContent>
+      )}
     </Card>
   );
 }

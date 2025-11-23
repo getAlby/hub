@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/getAlby/hub/lnclient"
@@ -14,8 +15,8 @@ const MockPaymentHash500 = "be8ad5d0b82071d538dcd160e3a3af444bd890de68388a4d771b
 const MockInvoice = "lntbs1230n1pnkqautdqyw3jsnp4q09a0z84kg4a2m38zjllw43h953fx5zvqe8qxfgw694ymkq26u8zcpp5yvnh6hsnlnj4xnuh2trzlnunx732dv8ta2wjr75pdfxf6p2vlyassp5hyeg97a3ft5u769kjwsn7p0e85h79pzz8kladmnqhpcypz2uawjs9qyysgqcqpcxq8zals8sq9yeg2pa9eywkgj50cyzxd5elatujuc0c0wh6j9nat5mn34pgk8u9ufpgs99tw9ldlfk42cqlkr48au3lmuh09269prg4qkggh4a8cyqpfl0y6j"
 const MockPaymentHash = "23277d5e13fce5534f9752c62fcf9337a2a6b0ebea9d21fa816a4c9d054cf93b" // for the above invoice
 
-const Mock0AmountInvoice = "lntbs1pnkjfgudqjd3hkueeqv4u8q6tj0ynp4qws83mqzuqptu5kfvxeles7qmyhsj6u2s6zyuft26mcr4tdmcupuupp533y9nwnsaktr9zlvyxmv97ta23faerygh3t9xvsfwytsr28lgggssp5mku3023z3kdxlpx6vrwtfxvvrxpffrquy6veex4ndk7rxhdtslhq9qyysgqcqpcxqxfvltyqva6y7k89jwtcljx399jl6wsq4lkq29vnm3rj4jxmapc6vcs358sx8mtpgh93rdc6ccqpxwwfga59zrla5m55zwzck2y2rsrxumu852sqkvpcm7"
-const Mock0AmountPaymentHash = "8c4859ba70ed96328bec21b6c2f97d5453dc8c88bc56533209711701a8ff4211"
+const MockZeroAmountInvoice = "lntbs1pnkjfgudqjd3hkueeqv4u8q6tj0ynp4qws83mqzuqptu5kfvxeles7qmyhsj6u2s6zyuft26mcr4tdmcupuupp533y9nwnsaktr9zlvyxmv97ta23faerygh3t9xvsfwytsr28lgggssp5mku3023z3kdxlpx6vrwtfxvvrxpffrquy6veex4ndk7rxhdtslhq9qyysgqcqpcxqxfvltyqva6y7k89jwtcljx399jl6wsq4lkq29vnm3rj4jxmapc6vcs358sx8mtpgh93rdc6ccqpxwwfga59zrla5m55zwzck2y2rsrxumu852sqkvpcm7"
+const MockZeroAmountPaymentHash = "8c4859ba70ed96328bec21b6c2f97d5453dc8c88bc56533209711701a8ff4211"
 
 var MockNodeInfo = lnclient.NodeInfo{
 	Alias:       "bob",
@@ -65,9 +66,20 @@ var MockLNClientTransactions = []lnclient.Transaction{
 }
 var MockLNClientTransaction = &MockLNClientTransactions[0]
 
+var MockLNClientHoldTransaction = &lnclient.Transaction{
+	Type:            "incoming",
+	Invoice:         "lntb10n1p5zg5p7dqud4hkx6eqdphkcepqd9h8vmmfvdjsnp4qw988hn4lhpu0my4rf0qkraft3wdx5aa0jnjmusgd23z3s0e9qv62pp5yaulxt6x83u4u0x2pck5pyg7fdxhjsd65c9lmu2a9r05qh0cgl6ssp5x57tsnnuc9hr99a9xzg5ylqma5fwvckxa50jqqay5zykqp83h9kq9qyysgqcqpcxqxf92hqqxh0avuskdnuzkk7mxslsdwem3qq3sf79a4ypmx0hax3rupp043yhv97h25vaarj0xrlcg2fdfdhpztsthettskyaylrz6vweztn0twqqv7kxmr",
+	Description:     "mock hold invoice",
+	DescriptionHash: "",
+	Preimage:        "4aa083cad11038359b4f614f3a3d6a8298ae17d5275412bc3eca4f5f4d27f2d4",
+	PaymentHash:     "2779f32f463c795e3cca0e2d40911e4b4d7941baa60bfdf15d28df405df847f5",
+	Amount:          2000,
+}
+
 type MockLn struct {
 	PayInvoiceResponses        []*lnclient.PayInvoiceResponse
 	PayInvoiceErrors           []error
+	PaymentDelay               *time.Duration
 	Pubkey                     string
 	MockTransaction            *lnclient.Transaction
 	SupportedNotificationTypes *[]string
@@ -77,7 +89,7 @@ func NewMockLn() (*MockLn, error) {
 	return &MockLn{}, nil
 }
 
-func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (mln *MockLn) SendPaymentSync(payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
 	if len(mln.PayInvoiceResponses) > 0 {
 		response := mln.PayInvoiceResponses[0]
 		err := mln.PayInvoiceErrors[0]
@@ -85,13 +97,16 @@ func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string, amount *u
 		mln.PayInvoiceErrors = mln.PayInvoiceErrors[1:]
 		return response, err
 	}
+	if mln.PaymentDelay != nil {
+		time.Sleep(*mln.PaymentDelay)
+	}
 
 	return &lnclient.PayInvoiceResponse{
 		Preimage: "123preimage",
 	}, nil
 }
 
-func (mln *MockLn) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+func (mln *MockLn) SendKeysend(amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	return &lnclient.PayKeysendResponse{
 		Fee: 1,
 	}, nil
@@ -101,8 +116,20 @@ func (mln *MockLn) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err er
 	return &MockNodeInfo, nil
 }
 
-func (mln *MockLn) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
+func (mln *MockLn) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
 	return MockLNClientTransaction, nil
+}
+
+func (mln *MockLn) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
+	return MockLNClientHoldTransaction, nil
+}
+
+func (mln *MockLn) SettleHoldInvoice(ctx context.Context, preimage string) (err error) {
+	return nil
+}
+
+func (mln *MockLn) CancelHoldInvoice(ctx context.Context, paymentHash string) (err error) {
+	return nil
 }
 
 func (mln *MockLn) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
@@ -137,13 +164,13 @@ func (mln *MockLn) CloseChannel(ctx context.Context, closeChannelRequest *lnclie
 func (mln *MockLn) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	return "", nil
 }
-func (mln *MockLn) GetBalances(ctx context.Context) (*lnclient.BalancesResponse, error) {
+func (mln *MockLn) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
 	return &MockLNClientBalances, nil
 }
 func (mln *MockLn) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
 	return nil, nil
 }
-func (mln *MockLn) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (txId string, err error) {
+func (mln *MockLn) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (txId string, err error) {
 	return "", nil
 }
 func (mln *MockLn) ResetRouter(key string) error {
@@ -210,4 +237,12 @@ func (mln *MockLn) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeComman
 
 func (mln *MockLn) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
 	return nil, nil
+}
+
+func (mln *MockLn) MakeOffer(ctx context.Context, description string) (string, error) {
+	return "", errors.New("not supported")
+}
+
+func (mln *MockLn) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
+	return nil, errors.ErrUnsupported
 }

@@ -115,7 +115,7 @@ func getTestSqliteURI(dbIndex int) string {
 		return uri
 	}
 
-	return fmt.Sprintf("file:testmemdb%d?mode=memory&cache=shared&_txlock=immediate", dbIndex)
+	return fmt.Sprintf("file:testmemdb%d?mode=memory&cache=shared&_txlock=immediate&_foreign_keys=1", dbIndex)
 }
 
 func getTestPostgresURI() string {

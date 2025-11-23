@@ -1,67 +1,59 @@
 .theme-bitcoin {
-  --background: 0 0% 100%;
-  --foreground: 0 0% 5%;
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(0 0% 5%);
 
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 5%;
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(0 0% 5%);
 
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 5%;
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(0 0% 5%);
 
-  --primary: 42 100% 47%;
-  --primary-foreground: 0 0% 2%;
+  --primary: hsl(42 100% 47%);
+  --primary-foreground: hsl(0 0% 2%);
 
-  --secondary: 0 0% 96%;
-  --secondary-foreground: 0 0% 5%;
+  --secondary: hsl(0 0% 96%);
+  --secondary-foreground: hsl(0 0% 5%);
 
-  --muted: 0 0% 96%;
-  --muted-foreground: 0 0% 45%;
+  --muted: hsl(0 0% 96%);
+  --muted-foreground: hsl(0 0% 45%);
 
-  --accent: 0 0% 96%;
-  --accent-foreground: 0 0% 5%;
+  --accent: hsl(0 0% 96%);
+  --accent-foreground: hsl(0 0% 5%);
 
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 98%;
+  --destructive: hsl(0 84% 60%);
 
-  --positive: 138, 68%, 96%;
-  --positive-foreground: 142 76% 36%;
-
-  --warning: 33, 90%, 96%;
-  --warning-foreground: 21, 90%, 48%;
-
-  --border: 0 0% 92%;
-  --input: 0 0% 85%;
-  --ring: 0 0% 76%;
+  --border: hsl(0 0% 92%);
+  --input: hsl(0 0% 85%);
+  --ring: hsl(0 0% 76%);
 
   --radius: 0.5rem;
 }
 
 .theme-bitcoin.dark {
-  --background: 60 3% 6%;
-  --foreground: 0 0% 98%;
+  --background: hsl(60 3% 6%);
+  --foreground: hsl(0 0% 98%);
 
-  --card: 60 3% 6%;
-  --card-foreground: 0 0% 98%;
+  --card: hsl(60 3% 6%);
+  --card-foreground: hsl(0 0% 98%);
 
-  --popover: 60 3% 6%;
-  --popover-foreground: 0 0% 98%;
+  --popover: hsl(60 3% 6%);
+  --popover-foreground: hsl(0 0% 98%);
 
-  --primary: 42 100% 47%;
-  --primary-foreground: 0 0% 2%;
+  --primary: hsl(42 100% 47%);
+  --primary-foreground: hsl(0 0% 2%);
 
-  --secondary: 40 5% 12%;
-  --secondary-foreground: 0 0% 98%;
+  --secondary: hsl(40 5% 12%);
+  --secondary-foreground: hsl(0 0% 98%);
 
-  --muted: 45 4% 18%;
-  --muted-foreground: 40 5% 49%;
+  --muted: hsl(45 4% 18%);
+  --muted-foreground: hsl(40 5% 49%);
 
-  --accent: 42 44% 12%;
-  --accent-foreground: 0 0% 98%;
+  --accent: hsl(42 44% 12%);
+  --accent-foreground: hsl(0 0% 98%);
 
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 98%;
+  --destructive: hsl(0 84% 60%);
 
-  --border: 40 5% 12%;
-  --input: 45 4% 18%;
-  --ring: 42 100% 40%;
+  --border: hsl(40 5% 12%);
+  --input: hsl(45 4% 18%);
+  --ring: hsl(42 100% 40%);
 }

@@ -1,10 +1,11 @@
 import dayjs from "dayjs";
-import { BrickWall, CircleCheck, PlusCircle } from "lucide-react";
-import { Link } from "react-router-dom";
-import { Button } from "src/components/ui/button";
+import { BrickWallIcon, CircleCheckIcon, PlusCircleIcon } from "lucide-react";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { Progress } from "src/components/ui/progress";
-import { formatAmount } from "src/lib/utils";
-import { App, BudgetRenewalType } from "src/types";
+import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
+import { getBudgetRenewalLabel } from "src/lib/utils";
+import { App } from "src/types";
 
 type AppCardConnectionInfoProps = {
   connection: App;
@@ -17,47 +18,31 @@ export function AppCardConnectionInfo({
   budgetRemainingText = "Left in budget",
   readonly = false,
 }: AppCardConnectionInfoProps) {
-  function getBudgetRenewalLabel(renewalType: BudgetRenewalType): string {
-    switch (renewalType) {
-      case "daily":
-        return "day";
-      case "weekly":
-        return "week";
-      case "monthly":
-        return "month";
-      case "yearly":
-        return "year";
-      case "never":
-        return "never";
-      case "":
-        return "";
-    }
-  }
-
   return (
     <>
       {connection.isolated ? (
         <>
           <div className="text-sm text-secondary-foreground font-medium w-full h-full flex flex-col gap-2">
             <div className="flex flex-row items-center gap-2">
-              <BrickWall className="w-4 h-4" />
-              Sub-wallet
+              <BrickWallIcon className="size-4" />
+
+              {connection.metadata?.app_store_app_id ===
+              SUBWALLET_APPSTORE_APP_ID
+                ? "Sub-wallet"
+                : "Isolated App"}
             </div>
           </div>
           <div className="flex flex-row justify-between text-xs items-end mt-2">
             <div className="text-muted-foreground">
               Last used:{" "}
-              {connection.lastEventAt
-                ? dayjs(connection.lastEventAt).fromNow()
+              {connection.lastUsedAt
+                ? dayjs(connection.lastUsedAt).fromNow()
                 : "Never"}
             </div>
             <div className="flex flex-col items-end justify-end">
               <p>Balance</p>
               <p className="text-xl font-medium">
-                {new Intl.NumberFormat().format(
-                  Math.floor(connection.balance / 1000)
-                )}{" "}
-                sats
+                <FormattedBitcoinAmount amount={connection.balance} />
               </p>
             </div>
           </div>
@@ -70,28 +55,31 @@ export function AppCardConnectionInfo({
                 {budgetRemainingText}
               </p>
               <p className="text-xl font-medium">
-                {new Intl.NumberFormat().format(
-                  connection.maxAmount - connection.budgetUsage
-                )}{" "}
-                sats
+                <FormattedBitcoinAmount
+                  amount={
+                    (connection.maxAmount - connection.budgetUsage) * 1000
+                  }
+                />
               </p>
             </div>
           </div>
           <Progress
             className="h-4"
-            value={(connection.budgetUsage * 100) / connection.maxAmount}
+            value={100 - (connection.budgetUsage * 100) / connection.maxAmount}
           />
           <div className="flex flex-row justify-between text-xs items-center text-muted-foreground mt-2">
             <div>
               Last used:{" "}
-              {connection.lastEventAt
-                ? dayjs(connection.lastEventAt).fromNow()
+              {connection.lastUsedAt
+                ? dayjs(connection.lastUsedAt).fromNow()
                 : "Never"}
             </div>
             <div>
               {connection.maxAmount && (
                 <>
-                  {formatAmount(connection.maxAmount * 1000)} sats
+                  <FormattedBitcoinAmount
+                    amount={connection.maxAmount * 1000}
+                  />
                   {connection.budgetRenewal !== "never" && (
                     <> / {getBudgetRenewalLabel(connection.budgetRenewal)}</>
                   )}
@@ -108,24 +96,27 @@ export function AppCardConnectionInfo({
                 You've spent
               </p>
               <p className="text-xl font-medium">
-                {new Intl.NumberFormat().format(connection.budgetUsage)} sats
+                <FormattedBitcoinAmount
+                  amount={connection.budgetUsage * 1000}
+                />
               </p>
             </div>
           </div>
           <div className="flex flex-row justify-between items-center">
             <div className="text-muted-foreground text-xs">
               Last used:{" "}
-              {connection.lastEventAt
-                ? dayjs(connection.lastEventAt).fromNow()
+              {connection.lastUsedAt
+                ? dayjs(connection.lastUsedAt).fromNow()
                 : "Never"}
             </div>
             {!readonly && (
-              <Link to={`/apps/${connection.appPubkey}?edit=true`}>
-                <Button variant="outline">
-                  <PlusCircle className="w-4 h-4 mr-2" />
-                  Set Budget
-                </Button>
-              </Link>
+              <LinkButton
+                to={`/apps/${connection.id}?edit=true`}
+                variant="outline"
+              >
+                <PlusCircleIcon />
+                Set Budget
+              </LinkButton>
             )}
           </div>
         </>
@@ -133,18 +124,18 @@ export function AppCardConnectionInfo({
         <>
           <div className="text-sm text-secondary-foreground font-medium w-full h-full flex flex-col gap-2">
             <div className="flex flex-row items-center gap-2">
-              <CircleCheck className="w-4 h-4" />
+              <CircleCheckIcon className="size-4" />
               Share wallet information
             </div>
             {connection.scopes.indexOf("make_invoice") > -1 && (
               <div className="flex flex-row items-center gap-2">
-                <CircleCheck className="w-4 h-4" />
+                <CircleCheckIcon className="size-4" />
                 Receive payments
               </div>
             )}
             {connection.scopes.indexOf("list_transactions") > -1 && (
               <div className="flex flex-row items-center gap-2">
-                <CircleCheck className="w-4 h-4" />
+                <CircleCheckIcon className="size-4" />
                 Read transaction history
               </div>
             )}
@@ -152,20 +143,18 @@ export function AppCardConnectionInfo({
           <div className="flex flex-row justify-between items-center">
             <div className="flex flex-row justify-between text-xs items-center text-muted-foreground">
               Last used:{" "}
-              {connection.lastEventAt
-                ? dayjs(connection.lastEventAt).fromNow()
+              {connection.lastUsedAt
+                ? dayjs(connection.lastUsedAt).fromNow()
                 : "Never"}
             </div>
             {!readonly && (
-              <Link
-                to={`/apps/${connection.appPubkey}?edit=true`}
-                onClick={(e) => e.stopPropagation()}
+              <LinkButton
+                to={`/apps/${connection.id}?edit=true`}
+                variant="outline"
               >
-                <Button variant="outline">
-                  <PlusCircle className="w-4 h-4 mr-2" />
-                  Enable Payments
-                </Button>
-              </Link>
+                <PlusCircleIcon />
+                Enable Payments
+              </LinkButton>
             )}
           </div>
         </>

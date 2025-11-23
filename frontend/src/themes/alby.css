@@ -1,67 +1,41 @@
 .theme-alby {
-  --background: 0 0% 100%;
-  --foreground: 0 0% 5%;
+  --primary: hsl(47 100% 72%);
+  --primary-foreground: hsl(0 0% 2%);
 
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 5%;
+  --secondary: hsl(0 0% 96%);
+  --secondary-foreground: hsl(0 0% 5%);
 
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 5%;
+  --muted: hsl(0 0% 96%);
+  --muted-foreground: hsl(0 0% 45%);
 
-  --primary: 47 100% 72%;
-  --primary-foreground: 0 0% 2%;
+  --accent: hsl(0 0% 96%);
+  --accent-foreground: hsl(0 0% 5%);
 
-  --secondary: 0 0% 96%;
-  --secondary-foreground: 0 0% 5%;
+  --destructive: hsl(0 84% 60%);
 
-  --muted: 0 0% 96%;
-  --muted-foreground: 0 0% 45%;
-
-  --accent: 0 0% 96%;
-  --accent-foreground: 0 0% 5%;
-
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 98%;
-
-  --positive: 138, 68%, 96%;
-  --positive-foreground: 142 76% 36%;
-
-  --border: 0 0% 92%;
-  --input: 0 0% 85%;
-  --ring: 0 0% 76%;
+  --border: hsl(0 0% 92%);
+  --input: hsl(0 0% 85%);
+  --ring: hsl(0 0% 76%);
 
   --radius: 0.5rem;
 }
 
 .theme-alby.dark {
-  --background: 0 0% 3%;
-  --foreground: 0 0% 98%;
+  --primary: hsl(47 100% 72%);
+  --primary-foreground: hsl(0 0% 2%);
 
-  --card: 0 0% 3%;
-  --card-foreground: 0 0% 98%;
+  --secondary: hsl(0 0% 0%);
+  --secondary-foreground: hsl(0 0% 98%);
 
-  --popover: 0 0% 0%;
-  --popover-foreground: 0 0% 98%;
+  --muted: hsl(0 0% 10%);
+  --muted-foreground: hsl(0 0% 49%);
 
-  --primary: 47 100% 72%;
-  --primary-foreground: 0 0% 2%;
+  --accent: hsl(0 0% 0%);
+  --accent-foreground: hsl(0 0% 98%);
 
-  --secondary: 0 0% 0%;
-  --secondary-foreground: 0 0% 98%;
+  --destructive: hsl(0 84% 60%);
 
-  --muted: 0 0% 10%;
-  --muted-foreground: 0 0% 49%;
-
-  --accent: 0 0% 0%;
-  --accent-foreground: 0 0% 98%;
-
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 98%;
-
-  --warning: 33 90% 96%;
-  --warning-foreground: 21 90% 48%;
-
-  --border: 0 0% 15%;
-  --input: 0 0% 15%;
-  --ring: 47 100% 40%;
+  --border: hsl(0 0% 15%);
+  --input: hsl(0 0% 15%);
+  --ring: hsl(47 100% 40%);
 }

@@ -1,11 +1,12 @@
 import dayjs from "dayjs";
-import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
 import {
   ArrowDownIcon,
+  ArrowDownUpIcon,
+  ArrowUpDownIcon,
   ArrowUpIcon,
-  ChevronDown,
-  ChevronUp,
+  ChevronDownIcon,
+  ChevronUpIcon,
   CopyIcon,
   XIcon,
 } from "lucide-react";
@@ -14,7 +15,9 @@ import React from "react";
 import { Link } from "react-router-dom";
 import AppAvatar from "src/components/AppAvatar";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
+import { PaymentFailedAlert } from "src/components/PaymentFailedAlert";
 import PodcastingInfo from "src/components/PodcastingInfo";
 import {
   Dialog,
@@ -24,24 +27,68 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "src/components/ui/dialog";
-import { useToast } from "src/components/ui/use-toast";
-import { useApps } from "src/hooks/useApps";
+import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
+import { useApp } from "src/hooks/useApp";
+import { useSwap } from "src/hooks/useSwaps";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
 import { Transaction } from "src/types";
 
 dayjs.extend(utc);
-dayjs.extend(timezone);
 
 type Props = {
   tx: Transaction;
 };
 
+function safeNpubEncode(hex: string): string | undefined {
+  try {
+    return nip19.npubEncode(hex);
+  } catch {
+    return undefined;
+  }
+}
+
 function TransactionItem({ tx }: Props) {
-  const { data: apps } = useApps();
-  const { toast } = useToast();
+  const { data: app } = useApp(tx.appId);
+  const swapId = tx.metadata?.swap_id;
+  const { data: swap } = useSwap(swapId);
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;
+
+  const pubkey = tx.metadata?.nostr?.pubkey;
+  const npub = pubkey ? safeNpubEncode(pubkey) : undefined;
+
+  const payerName = tx.metadata?.payer_data?.name;
+  const from =
+    type === "incoming"
+      ? payerName
+        ? `from ${payerName}`
+        : npub
+          ? `zap from ${npub.substring(0, 12)}...`
+          : swap
+            ? `swap from ${swap.lockupAddress}`
+            : undefined
+      : undefined;
+
+  const recipientIdentifier = tx.metadata?.recipient_data?.identifier;
+  const to =
+    type === "outgoing"
+      ? npub
+        ? `zap to ${npub.substring(0, 12)}...`
+        : swap?.type === "out"
+          ? `swap to ${swap.destinationAddress}`
+          : recipientIdentifier
+            ? `${tx.state === "failed" ? "payment " : ""}to ${recipientIdentifier}`
+            : undefined
+      : undefined;
+
+  const eventId = tx.metadata?.nostr?.tags?.find((t) => t[0] === "e")?.[1];
+
+  const bolt12Offer = tx.metadata?.offer;
+
+  const description =
+    tx.description || tx.metadata?.comment || bolt12Offer?.payer_note;
+
   const typeStateText =
     type == "incoming"
       ? "Received"
@@ -50,19 +97,20 @@ function TransactionItem({ tx }: Props) {
         : tx.state === "pending"
           ? "Sending"
           : "Failed";
+
   const Icon =
     tx.state === "failed"
       ? XIcon
-      : tx.type == "outgoing"
-        ? ArrowUpIcon
-        : ArrowDownIcon;
-  const app =
-    tx.appId !== undefined
-      ? apps?.find((app) => app.id === tx.appId)
-      : undefined;
+      : tx.type === "outgoing"
+        ? swapId
+          ? ArrowUpDownIcon
+          : ArrowUpIcon
+        : swapId
+          ? ArrowDownUpIcon
+          : ArrowDownIcon;
 
   const copy = (text: string) => {
-    copyToClipboard(text, toast);
+    copyToClipboard(text);
   };
 
   const typeStateIcon = (
@@ -82,7 +130,7 @@ function TransactionItem({ tx }: Props) {
         <Icon
           strokeWidth={3}
           className={cn(
-            "w-6 h-6 md:w-8 md:h-8",
+            "size-6 md:w-8 md:h-8",
             tx.state === "failed"
               ? "stroke-red-500 dark:stroke-rose-500"
               : tx.state === "pending"
@@ -95,28 +143,17 @@ function TransactionItem({ tx }: Props) {
         {app && (
           <div
             className="absolute -bottom-1 -right-1"
-            title={`${typeStateText} via ${app.name === "getalby.com" ? "Alby Account" : app.name}`}
+            title={`${typeStateText} via ${app.name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : app.name}`}
           >
             <AppAvatar
               app={app}
-              className="border-none p-0 rounded-full w-[18px] h-[18px] md:w-6 md:h-6 shadow-sm"
+              className="border-none p-0 rounded-full w-[18px] h-[18px] md:w-6 md:h-6 shadow-xs"
             />
           </div>
         )}
       </div>
     </div>
   );
-
-  let from;
-
-  if (tx.metadata?.payer_data?.name) {
-    from = "from " + tx.metadata.payer_data.name;
-  } else if (tx.metadata?.nostr) {
-    const npub = nip19.npubEncode(tx.metadata.nostr.pubkey);
-    from = "zap from " + npub.substring(0, 12) + "...";
-  }
-
-  const eventId = tx.metadata?.nostr?.tags.find((t) => t[0] === "e")?.[1];
 
   return (
     <Dialog
@@ -135,19 +172,18 @@ function TransactionItem({ tx }: Props) {
         >
           {typeStateIcon}
           <div className="overflow-hidden mr-3 max-w-full text-left flex flex-col items-start justify-center">
-            <div>
-              <p className="flex items-end truncate">
-                <span className="md:text-xl font-semibold">
-                  {typeStateText}
-                </span>
+            <div className="flex items-center gap-2">
+              <span className="md:text-xl font-semibold break-all line-clamp-1">
+                {typeStateText}
                 {from !== undefined && <>&nbsp;{from}</>}
-                <span className="text-xs md:text-base ml-2 truncate text-muted-foreground">
-                  {dayjs(tx.updatedAt).fromNow()}
-                </span>
-              </p>
+                {to !== undefined && <>&nbsp;{to}</>}
+              </span>
+              <span className="text-xs md:text-base text-muted-foreground shrink-0">
+                {dayjs(tx.updatedAt).fromNow()}
+              </span>
             </div>
-            <p className="text-sm md:text-base text-muted-foreground break-all w-full truncate">
-              {tx.description}
+            <p className="text-sm md:text-base text-muted-foreground break-all line-clamp-1">
+              {description}
             </p>
           </div>
           <div className="flex ml-auto space-x-3 shrink-0">
@@ -159,14 +195,10 @@ function TransactionItem({ tx }: Props) {
                   )}
                 >
                   {type == "outgoing" ? "-" : "+"}
-                  <span className="font-medium">
-                    {new Intl.NumberFormat().format(
-                      Math.floor(tx.amount / 1000)
-                    )}
-                  </span>
-                </p>
-                <p className="text-muted-foreground">
-                  {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
+                  <FormattedBitcoinAmount
+                    amount={tx.amount}
+                    className="font-medium"
+                  />
                 </p>
               </div>
               <FormattedFiatAmount
@@ -182,7 +214,7 @@ function TransactionItem({ tx }: Props) {
           <DialogTitle
             className={cn(tx.state === "pending" && "animate-pulse")}
           >{`${typeStateText} Bitcoin Payment`}</DialogTitle>
-          <DialogDescription className="text-start text-foreground">
+          <DialogDescription className="text-start text-foreground max-h-[90vh] overflow-y-auto pr-2">
             <div
               className={cn(
                 "flex items-center mt-6",
@@ -192,8 +224,7 @@ function TransactionItem({ tx }: Props) {
               {typeStateIcon}
               <div className="ml-4">
                 <p className="text-xl md:text-2xl font-semibold sensitive">
-                  {new Intl.NumberFormat().format(Math.floor(tx.amount / 1000))}{" "}
-                  {Math.floor(tx.amount / 1000) == 1 ? "sat" : "sats"}
+                  <FormattedBitcoinAmount amount={tx.amount} />
                 </p>
                 <FormattedFiatAmount amount={Math.floor(tx.amount / 1000)} />
               </div>
@@ -201,29 +232,52 @@ function TransactionItem({ tx }: Props) {
             {app && (
               <div className="mt-8">
                 <p>App</p>
-                <Link to={`/apps/${app.appPubkey}`}>
+                <Link to={`/apps/${app.id}`}>
                   <p className="font-semibold">
-                    {app.name === "getalby.com" ? "Alby Account" : app.name}
+                    {app.name === ALBY_ACCOUNT_APP_NAME
+                      ? "Alby Account"
+                      : app.name}
                   </p>
                 </Link>
+              </div>
+            )}
+            {swapId && (
+              <div className="mt-8">
+                <p>Swap Id</p>
+                <Link
+                  to={`/wallet/swap/${type === "incoming" ? "in" : "out"}/status/${swapId}`}
+                  className="flex items-center gap-1"
+                >
+                  <p className="underline">{swapId}</p>
+                </Link>
+              </div>
+            )}
+            {to && (
+              <div className="mt-6">
+                <p>To</p>
+                <p className="text-muted-foreground">{to}</p>
+              </div>
+            )}
+            {payerName && (
+              <div className="mt-6">
+                <p>From</p>
+                <p className="text-muted-foreground">{payerName}</p>
               </div>
             )}
             <div className="mt-6">
               <p>Date & Time</p>
               <p className="text-muted-foreground">
-                {dayjs(tx.updatedAt)
-                  .tz(dayjs.tz.guess())
-                  .format("D MMMM YYYY, HH:mm")}
+                {dayjs(tx.updatedAt).local().format("D MMMM YYYY, HH:mm")}
               </p>
             </div>
             {tx.state != "failed" && type == "outgoing" && (
               <div className="mt-6">
                 <p>Fee</p>
                 <p className="text-muted-foreground">
-                  {new Intl.NumberFormat().format(
-                    Math.floor(tx.feesPaid / 1000)
-                  )}{" "}
-                  {Math.floor(tx.feesPaid / 1000) == 1 ? "sat" : "sats"}
+                  <FormattedBitcoinAmount amount={tx.feesPaid} />
+                  {tx.feesPaid > 0 && (
+                    <>&nbsp;({((tx.feesPaid / tx.amount) * 100).toFixed(2)}%)</>
+                  )}
                 </p>
               </div>
             )}
@@ -235,7 +289,25 @@ function TransactionItem({ tx }: Props) {
                 </p>
               </div>
             )}
-            {tx.metadata?.nostr && eventId && (
+            {tx.metadata?.comment && (
+              <div className="mt-6">
+                <p>Comment</p>
+                <p className="text-muted-foreground break-all">
+                  {tx.metadata.comment}
+                </p>
+              </div>
+            )}
+            {bolt12Offer?.payer_note && (
+              <div className="mt-6">
+                <p>Payer Note</p>
+                <p className="text-muted-foreground break-all">
+                  {bolt12Offer.payer_note}
+                </p>
+              </div>
+            )}
+            {/* for Alby lightning addresses the content of the zap request is
+            automatically extracted and already displayed above as description */}
+            {tx.metadata?.nostr && eventId && npub && (
               <div className="mt-6">
                 <p>
                   <ExternalLink
@@ -247,9 +319,17 @@ function TransactionItem({ tx }: Props) {
                     Nostr Zap
                   </ExternalLink>{" "}
                   <span className="text-muted-foreground break-all">
-                    from {nip19.npubEncode(tx.metadata.nostr.pubkey)}
+                    from {npub}
                   </span>
                 </p>
+              </div>
+            )}
+            {tx.state === "failed" && (
+              <div className="mt-6">
+                <PaymentFailedAlert
+                  errorMessage={tx.failureReason}
+                  invoice={tx.invoice}
+                />
               </div>
             )}
             <div className="mt-4 w-full">
@@ -259,14 +339,30 @@ function TransactionItem({ tx }: Props) {
               >
                 Details
                 {showDetails ? (
-                  <ChevronUp className="w-4 h-4" />
+                  <ChevronUpIcon className="size-4" />
                 ) : (
-                  <ChevronDown className="w-4 h-4" />
+                  <ChevronDownIcon className="size-4" />
                 )}
               </div>
               {showDetails && (
                 <>
                   {tx.boostagram && <PodcastingInfo boost={tx.boostagram} />}
+                  {bolt12Offer && (
+                    <div className="mt-6">
+                      <p>BOLT-12 Offer Id</p>
+                      <div className="flex items-center gap-4">
+                        <p className="text-muted-foreground break-all">
+                          {bolt12Offer.id}
+                        </p>
+                        <CopyIcon
+                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
+                          onClick={() => {
+                            copy(bolt12Offer.id as string);
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
                   {tx.preimage && (
                     <div className="mt-6">
                       <p>Preimage</p>
@@ -275,7 +371,7 @@ function TransactionItem({ tx }: Props) {
                           {tx.preimage}
                         </p>
                         <CopyIcon
-                          className="cursor-pointer text-muted-foreground w-4 h-4 flex-shrink-0"
+                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
                           onClick={() => {
                             if (tx.preimage) {
                               copy(tx.preimage);
@@ -292,9 +388,23 @@ function TransactionItem({ tx }: Props) {
                         {tx.paymentHash}
                       </p>
                       <CopyIcon
-                        className="cursor-pointer text-muted-foreground w-4 h-4 flex-shrink-0"
+                        className="cursor-pointer text-muted-foreground size-4 shrink-0"
                         onClick={() => {
                           copy(tx.paymentHash);
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className="mt-6">
+                    <p>Invoice</p>
+                    <div className="flex items-center gap-4">
+                      <p className="text-muted-foreground break-all">
+                        {tx.invoice}
+                      </p>
+                      <CopyIcon
+                        className="cursor-pointer text-muted-foreground size-4 shrink-0"
+                        onClick={() => {
+                          copy(tx.invoice);
                         }}
                       />
                     </div>
@@ -303,11 +413,11 @@ function TransactionItem({ tx }: Props) {
                     <div className="mt-6">
                       <p>Failure Reason</p>
                       <div className="flex items-center gap-4">
-                        <p className="text-muted-foreground break-words">
+                        <p className="text-muted-foreground break-anywhere">
                           {tx.failureReason}
                         </p>
                         <CopyIcon
-                          className="cursor-pointer text-muted-foreground w-4 h-4 flex-shrink-0"
+                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
                           onClick={() => {
                             copy(tx.failureReason);
                           }}
@@ -323,7 +433,7 @@ function TransactionItem({ tx }: Props) {
                           {JSON.stringify(tx.metadata)}
                         </p>
                         <CopyIcon
-                          className="cursor-pointer text-muted-foreground w-4 h-4 flex-shrink-0"
+                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
                           onClick={() => {
                             copy(JSON.stringify(tx.metadata));
                           }}

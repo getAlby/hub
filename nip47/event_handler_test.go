@@ -20,8 +20,6 @@ import (
 	"github.com/getAlby/hub/tests"
 )
 
-// TODO: test HandleEvent
-// TODO: test a request cannot be processed twice
 // TODO: test if an app doesn't exist it returns the right error code
 
 func TestCreateResponse_Nip04(t *testing.T) {
@@ -72,8 +70,8 @@ func doTestCreateResponse(t *testing.T, svc *tests.TestService, nip47Encryption 
 
 	res, err := nip47svc.CreateResponse(reqEvent, nip47Response, nostr.Tags{}, nip47Cipher, svc.Keys.GetNostrSecretKey())
 	assert.NoError(t, err)
-	assert.Equal(t, reqPubkey, res.Tags.GetFirst([]string{"p"}).Value())
-	assert.Equal(t, reqEvent.ID, res.Tags.GetFirst([]string{"e"}).Value())
+	assert.Equal(t, reqPubkey, res.Tags.Find("p")[1])
+	assert.Equal(t, reqEvent.ID, res.Tags.Find("e")[1])
 	assert.Equal(t, svc.Keys.GetNostrPublicKey(), res.PubKey)
 
 	decrypted, err := nip47Cipher.Decrypt(res.Content)
@@ -149,14 +147,14 @@ func doTestHandleResponse_WithPermission(t *testing.T, svc *tests.TestService, c
 	err = reqEvent.Sign(reqPrivateKey)
 	assert.NoError(t, err)
 
-	relay := tests.NewMockRelay()
+	pool := tests.NewMockSimplePool()
 
-	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
+	nip47svc.HandleEvent(context.TODO(), pool, reqEvent, svc.LNClient)
 
-	assert.NotNil(t, relay.PublishedEvents[0])
-	assert.NotEmpty(t, relay.PublishedEvents[0].Content)
+	assert.NotNil(t, pool.PublishedEvents[0])
+	assert.NotEmpty(t, pool.PublishedEvents[0].Content)
 
-	decrypted, err := cipher.Decrypt(relay.PublishedEvents[0].Content)
+	decrypted, err := cipher.Decrypt(pool.PublishedEvents[0].Content)
 	assert.NoError(t, err)
 
 	type getInfoResult struct {
@@ -238,19 +236,19 @@ func doTestHandleResponse_DuplicateRequest(t *testing.T, svc *tests.TestService,
 	err = reqEvent.Sign(reqPrivateKey)
 	assert.NoError(t, err)
 
-	relay := tests.NewMockRelay()
+	pool := tests.NewMockSimplePool()
 
-	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
+	nip47svc.HandleEvent(context.TODO(), pool, reqEvent, svc.LNClient)
 
-	assert.NotNil(t, relay.PublishedEvents[0])
-	assert.NotEmpty(t, relay.PublishedEvents[0].Content)
+	assert.NotNil(t, pool.PublishedEvents[0])
+	assert.NotEmpty(t, pool.PublishedEvents[0].Content)
 
-	relay.PublishedEvents = nil
+	pool.PublishedEvents = nil
 
-	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
+	nip47svc.HandleEvent(context.TODO(), pool, reqEvent, svc.LNClient)
 
 	// second time it should not publish
-	assert.Nil(t, relay.PublishedEvents)
+	assert.Nil(t, pool.PublishedEvents)
 }
 
 func TestHandleResponse_Nip04_NoPermission(t *testing.T) {
@@ -305,14 +303,14 @@ func doTestHandleResponse_NoPermission(t *testing.T, svc *tests.TestService, cre
 	err = reqEvent.Sign(reqPrivateKey)
 	assert.NoError(t, err)
 
-	relay := tests.NewMockRelay()
+	pool := tests.NewMockSimplePool()
 
-	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
+	nip47svc.HandleEvent(context.TODO(), pool, reqEvent, svc.LNClient)
 
-	assert.NotNil(t, relay.PublishedEvents[0])
-	assert.NotEmpty(t, relay.PublishedEvents[0].Content)
+	assert.NotNil(t, pool.PublishedEvents[0])
+	assert.NotEmpty(t, pool.PublishedEvents[0].Content)
 
-	decrypted, err := cipher.Decrypt(relay.PublishedEvents[0].Content)
+	decrypted, err := cipher.Decrypt(pool.PublishedEvents[0].Content)
 	assert.NoError(t, err)
 
 	unmarshalledResponse := models.Response{}
@@ -385,20 +383,20 @@ func doTestHandleResponse_OldRequestForPayment(t *testing.T, svc *tests.TestServ
 	err = reqEvent.Sign(reqPrivateKey)
 	assert.NoError(t, err)
 
-	relay := tests.NewMockRelay()
+	pool := tests.NewMockSimplePool()
 
-	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
+	nip47svc.HandleEvent(context.TODO(), pool, reqEvent, svc.LNClient)
 
 	// it shouldn't return anything for an old request
-	assert.Nil(t, relay.PublishedEvents)
+	assert.Nil(t, pool.PublishedEvents)
 
 	// change the request to now
 	reqEvent.CreatedAt = nostr.Now()
 	err = reqEvent.Sign(reqPrivateKey)
 	assert.NoError(t, err)
 
-	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
-	assert.NotNil(t, relay.PublishedEvents)
+	nip47svc.HandleEvent(context.TODO(), pool, reqEvent, svc.LNClient)
+	assert.NotNil(t, pool.PublishedEvents)
 }
 
 func TestHandleResponse_Nip04_IncorrectPubkey(t *testing.T) {
@@ -465,11 +463,11 @@ func doTestHandleResponse_IncorrectPubkey(t *testing.T, svc *tests.TestService, 
 	// set a different pubkey (this will not pass validation)
 	reqEvent.PubKey = reqPubkey
 
-	relay := tests.NewMockRelay()
+	pool := tests.NewMockSimplePool()
 
-	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
+	nip47svc.HandleEvent(context.TODO(), pool, reqEvent, svc.LNClient)
 
-	assert.Nil(t, relay.PublishedEvents)
+	assert.Nil(t, pool.PublishedEvents)
 }
 
 func TestHandleResponse_NoApp(t *testing.T) {
@@ -510,12 +508,12 @@ func TestHandleResponse_NoApp(t *testing.T) {
 	err = reqEvent.Sign(reqPrivateKey)
 	assert.NoError(t, err)
 
-	relay := tests.NewMockRelay()
+	pool := tests.NewMockSimplePool()
 
-	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
+	nip47svc.HandleEvent(context.TODO(), pool, reqEvent, svc.LNClient)
 
 	// it shouldn't return anything for an invalid app key
-	assert.Nil(t, relay.PublishedEvents)
+	assert.Nil(t, pool.PublishedEvents)
 }
 
 func TestHandleResponse_UnknownEncryptionTag(t *testing.T) {
@@ -569,12 +567,12 @@ func doTestHandleResponse_UnknownEncryptionTag(t *testing.T, svc *tests.TestServ
 	err = reqEvent.Sign(reqPrivateKey)
 	assert.NoError(t, err)
 
-	relay := tests.NewMockRelay()
+	pool := tests.NewMockSimplePool()
 
-	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
+	nip47svc.HandleEvent(context.TODO(), pool, reqEvent, svc.LNClient)
 
-	assert.NotNil(t, relay.PublishedEvents)
-	responseContent := relay.PublishedEvents[0].Content
+	assert.NotNil(t, pool.PublishedEvents)
+	responseContent := pool.PublishedEvents[0].Content
 	msg, err = cipher.Decrypt(responseContent)
 	assert.NoError(t, err)
 	assert.NotEqual(t, "", msg)
@@ -650,12 +648,12 @@ func doTestHandleResponse_EncryptionTagDoesNotMatchPayload(t *testing.T, svc *te
 	err = reqEvent.Sign(reqPrivateKey)
 	assert.NoError(t, err)
 
-	relay := tests.NewMockRelay()
+	pool := tests.NewMockSimplePool()
 
-	nip47svc.HandleEvent(context.TODO(), relay, reqEvent, svc.LNClient)
+	nip47svc.HandleEvent(context.TODO(), pool, reqEvent, svc.LNClient)
 
-	assert.NotNil(t, relay.PublishedEvents)
-	responseContent := relay.PublishedEvents[0].Content
+	assert.NotNil(t, pool.PublishedEvents)
+	responseContent := pool.PublishedEvents[0].Content
 	msg, err = nip44Cipher.Decrypt(responseContent)
 	assert.NoError(t, err)
 	assert.NotEqual(t, "", msg)
@@ -665,6 +663,6 @@ func doTestHandleResponse_EncryptionTagDoesNotMatchPayload(t *testing.T, svc *te
 	assert.NoError(t, err)
 	assert.Nil(t, unmarshalledResponse.Result)
 	// assert.Equal(t, models.GET_INFO_METHOD, unmarshalledResponse.ResultType)
-	assert.Equal(t, constants.ERROR_INTERNAL, unmarshalledResponse.Error.Code)
+	assert.Equal(t, constants.ERROR_BAD_REQUEST, unmarshalledResponse.Error.Code)
 	assert.Contains(t, unmarshalledResponse.Error.Message, "failed to decrypt:")
 }

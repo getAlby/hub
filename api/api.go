@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -30,6 +31,7 @@ import (
 	permissions "github.com/getAlby/hub/nip47/permissions"
 	"github.com/getAlby/hub/service"
 	"github.com/getAlby/hub/service/keys"
+	"github.com/getAlby/hub/swaps"
 	"github.com/getAlby/hub/utils"
 	"github.com/getAlby/hub/version"
 )
@@ -42,11 +44,13 @@ type api struct {
 	permissionsSvc   permissions.PermissionsService
 	keys             keys.Keys
 	albyOAuthSvc     alby.AlbyOAuthService
+	albySvc          alby.AlbyService
 	startupError     error
 	startupErrorTime time.Time
+	eventPublisher   events.EventPublisher
 }
 
-func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys keys.Keys, albyOAuthSvc alby.AlbyOAuthService, eventPublisher events.EventPublisher) *api {
+func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys keys.Keys, albySvc alby.AlbyService, albyOAuthSvc alby.AlbyOAuthService, eventPublisher events.EventPublisher) *api {
 	return &api{
 		db:             gormDB,
 		appsSvc:        apps.NewAppsService(gormDB, eventPublisher, keys, config),
@@ -54,7 +58,9 @@ func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys key
 		svc:            svc,
 		permissionsSvc: permissions.NewPermissionsService(gormDB, eventPublisher),
 		keys:           keys,
+		albySvc:        albySvc,
 		albyOAuthSvc:   albyOAuthSvc,
+		eventPublisher: eventPublisher,
 	}
 }
 
@@ -64,6 +70,10 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 			return nil, fmt.Errorf(
 				"incorrect unlock password to create app with superuser permission")
 		}
+	}
+
+	if createAppRequest.Name == alby.ALBY_ACCOUNT_APP_NAME {
+		return nil, fmt.Errorf("Reserved app name: %s", alby.ALBY_ACCOUNT_APP_NAME)
 	}
 
 	expiresAt, err := api.parseExpiresAt(createAppRequest.ExpiresAt)
@@ -92,7 +102,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		return nil, err
 	}
 
-	relayUrl := api.cfg.GetRelayUrl()
+	relayUrls := api.cfg.GetRelayUrls()
 
 	lightningAddress, err := api.albyOAuthSvc.GetLightningAddress()
 	if err != nil {
@@ -105,14 +115,16 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	responseBody.Pubkey = app.AppPubkey
 	responseBody.PairingSecret = pairingSecretKey
 	responseBody.WalletPubkey = *app.WalletPubkey
-	responseBody.RelayUrl = relayUrl
+	responseBody.RelayUrls = relayUrls
 	responseBody.Lud16 = lightningAddress
 
 	if createAppRequest.ReturnTo != "" {
 		returnToUrl, err := url.Parse(createAppRequest.ReturnTo)
 		if err == nil {
 			query := returnToUrl.Query()
-			query.Add("relay", relayUrl)
+			for _, relayUrl := range relayUrls {
+				query.Add("relay", relayUrl)
+			}
 			query.Add("pubkey", *app.WalletPubkey)
 			if lightningAddress != "" && !app.Isolated {
 				query.Add("lud16", lightningAddress)
@@ -126,53 +138,63 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	if lightningAddress != "" && !app.Isolated {
 		lud16 = fmt.Sprintf("&lud16=%s", lightningAddress)
 	}
-	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", *app.WalletPubkey, relayUrl, pairingSecretKey, lud16)
+	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", *app.WalletPubkey, strings.Join(relayUrls, "&relay="), pairingSecretKey, lud16)
 
 	return responseBody, nil
 }
 
 func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) error {
-	name := updateAppRequest.Name
+	err := api.db.Transaction(func(tx *gorm.DB) error {
+		// Initialize name with current app name, update if provided
+		name := userApp.Name
 
-	if name == "" {
-		return fmt.Errorf("won't update an app to have no name")
-	}
+		// Update app name if provided and different
+		if updateAppRequest.Name != nil {
+			name = *updateAppRequest.Name
 
-	maxAmount := updateAppRequest.MaxAmountSat
-	budgetRenewal := updateAppRequest.BudgetRenewal
-
-	if len(updateAppRequest.Scopes) == 0 {
-		return fmt.Errorf("won't update an app to have no request methods")
-	}
-	newScopes := updateAppRequest.Scopes
-
-	expiresAt, err := api.parseExpiresAt(updateAppRequest.ExpiresAt)
-	if err != nil {
-		return fmt.Errorf("invalid expiresAt: %v", err)
-	}
-
-	err = api.db.Transaction(func(tx *gorm.DB) error {
-		// Update app name if it is not the same
-		if name != userApp.Name {
-			err := tx.Model(&db.App{}).Where("id", userApp.ID).Update("name", name).Error
-			if err != nil {
-				return err
+			if name == "" {
+				return fmt.Errorf("won't update an app to have no name")
+			}
+			if name != userApp.Name {
+				err := tx.Model(&db.App{}).Where("id", userApp.ID).Update("name", name).Error
+				if err != nil {
+					return err
+				}
 			}
 		}
 
-		// Update app isolation if it is not the same
-		if updateAppRequest.Isolated != userApp.Isolated {
-			err := tx.Model(&db.App{}).Where("id", userApp.ID).Update("isolated", updateAppRequest.Isolated).Error
-			if err != nil {
-				return err
+		// Update app isolation if provided and different
+		if updateAppRequest.Isolated != nil {
+			isolated := *updateAppRequest.Isolated
+			if isolated != userApp.Isolated {
+				if !isolated {
+					var existingMetadata Metadata
+					if userApp.Metadata != nil {
+						err := json.Unmarshal(userApp.Metadata, &existingMetadata)
+						if err != nil {
+							logger.Logger.WithError(err).WithFields(logrus.Fields{
+								"app_id": userApp.ID,
+							}).Error("Failed to deserialize app metadata")
+							return err
+						}
+						if existingMetadata["app_store_app_id"] == constants.SUBWALLET_APPSTORE_APP_ID {
+							return errors.New("Cannot update sub-wallet to be non-isolated")
+						}
+					}
+				}
+
+				err := tx.Model(&db.App{}).Where("id", userApp.ID).Update("isolated", isolated).Error
+				if err != nil {
+					return err
+				}
 			}
 		}
 
-		// Update the app metadata
+		// Update the app metadata if provided
 		if updateAppRequest.Metadata != nil {
 			var metadataBytes []byte
 			var err error
-			metadataBytes, err = json.Marshal(updateAppRequest.Metadata)
+			metadataBytes, err = json.Marshal(*updateAppRequest.Metadata)
 			if err != nil {
 				logger.Logger.WithError(err).Error("Failed to serialize metadata")
 				return err
@@ -183,54 +205,105 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 			}
 		}
 
-		// Update existing permissions with new budget and expiry
-		err = tx.Model(&db.AppPermission{}).Where("app_id", userApp.ID).Updates(map[string]interface{}{
-			"ExpiresAt":     expiresAt,
-			"MaxAmountSat":  maxAmount,
-			"BudgetRenewal": budgetRenewal,
-		}).Error
-		if err != nil {
-			return err
-		}
+		// Handle permissions updates only if any permission-related field is provided
+		if updateAppRequest.Scopes != nil || updateAppRequest.MaxAmountSat != nil ||
+			updateAppRequest.BudgetRenewal != nil || updateAppRequest.ExpiresAt != nil || updateAppRequest.UpdateExpiresAt {
 
-		var existingPermissions []db.AppPermission
-		if err := tx.Where("app_id = ?", userApp.ID).Find(&existingPermissions).Error; err != nil {
-			return err
-		}
+			// Get current values or use provided ones
+			var maxAmount uint64
+			var budgetRenewal string
+			var expiresAt *time.Time
 
-		existingScopeMap := make(map[string]bool)
-		for _, perm := range existingPermissions {
-			existingScopeMap[perm.Scope] = true
-		}
-
-		if slices.Contains(newScopes, constants.SUPERUSER_SCOPE) && !existingScopeMap[constants.SUPERUSER_SCOPE] {
-			return fmt.Errorf(
-				"cannot update app to add superuser permission")
-		}
-
-		// Add new permissions
-		for _, scope := range newScopes {
-			if !existingScopeMap[scope] {
-				perm := db.AppPermission{
-					App:           *userApp,
-					Scope:         scope,
-					ExpiresAt:     expiresAt,
-					MaxAmountSat:  int(maxAmount),
-					BudgetRenewal: budgetRenewal,
-				}
-				if err := tx.Create(&perm).Error; err != nil {
-					return err
-				}
-			}
-			delete(existingScopeMap, scope)
-		}
-
-		// Remove old permissions
-		for scope := range existingScopeMap {
-			if err := tx.Where("app_id = ? AND scope = ?", userApp.ID, scope).Delete(&db.AppPermission{}).Error; err != nil {
+			// Get existing permissions to use as defaults
+			var existingPermissions []db.AppPermission
+			if err := tx.Where("app_id = ?", userApp.ID).Find(&existingPermissions).Error; err != nil {
 				return err
 			}
+
+			// Use existing values as defaults
+			if len(existingPermissions) > 0 {
+				// Find pay_invoice permission for budget-related fields
+				for _, perm := range existingPermissions {
+					if perm.Scope == constants.PAY_INVOICE_SCOPE {
+						maxAmount = uint64(perm.MaxAmountSat)
+						budgetRenewal = perm.BudgetRenewal
+						expiresAt = perm.ExpiresAt
+						break
+					}
+				}
+			}
+
+			// Override with provided values
+			if updateAppRequest.MaxAmountSat != nil {
+				maxAmount = *updateAppRequest.MaxAmountSat
+			}
+			if updateAppRequest.BudgetRenewal != nil {
+				budgetRenewal = *updateAppRequest.BudgetRenewal
+			}
+			if updateAppRequest.ExpiresAt != nil {
+				parsedExpiresAt, err := api.parseExpiresAt(*updateAppRequest.ExpiresAt)
+				if err != nil {
+					return fmt.Errorf("invalid expiresAt: %v", err)
+				}
+				expiresAt = parsedExpiresAt
+			}
+			if updateAppRequest.ExpiresAt == nil && updateAppRequest.UpdateExpiresAt {
+				expiresAt = nil
+			}
+
+			// Update existing permissions with new budget and expiry
+			err := tx.Model(&db.AppPermission{}).Where("app_id", userApp.ID).Updates(map[string]interface{}{
+				"ExpiresAt":     expiresAt,
+				"MaxAmountSat":  maxAmount,
+				"BudgetRenewal": budgetRenewal,
+			}).Error
+			if err != nil {
+				return err
+			}
+
+			// Handle scope changes only if scopes were provided
+			if updateAppRequest.Scopes != nil {
+
+				if len(updateAppRequest.Scopes) == 0 {
+					return fmt.Errorf("won't update an app to have no request methods")
+				}
+
+				existingScopeMap := make(map[string]bool)
+				for _, perm := range existingPermissions {
+					existingScopeMap[perm.Scope] = true
+				}
+
+				if slices.Contains(updateAppRequest.Scopes, constants.SUPERUSER_SCOPE) && !existingScopeMap[constants.SUPERUSER_SCOPE] {
+					return fmt.Errorf("cannot update app to add superuser permission")
+				}
+
+				// Add new permissions
+				for _, scope := range updateAppRequest.Scopes {
+					if !existingScopeMap[scope] {
+						perm := db.AppPermission{
+							App:           *userApp,
+							Scope:         scope,
+							ExpiresAt:     expiresAt,
+							MaxAmountSat:  int(maxAmount),
+							BudgetRenewal: budgetRenewal,
+						}
+						if err := tx.Create(&perm).Error; err != nil {
+							return err
+						}
+					}
+					delete(existingScopeMap, scope)
+				}
+
+				// Remove old permissions
+				for scope := range existingScopeMap {
+					if err := tx.Where("app_id = ? AND scope = ?", userApp.ID, scope).Delete(&db.AppPermission{}).Error; err != nil {
+						return err
+					}
+				}
+			}
 		}
+
+		// Publish update event
 		api.svc.GetEventPublisher().Publish(&events.Event{
 			Event: "nwc_app_updated",
 			Properties: map[string]interface{}{
@@ -247,13 +320,93 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 }
 
 func (api *api) DeleteApp(userApp *db.App) error {
+	// Delete lightning address if one exists
+	if api.appsSvc.HasLightningAddress(userApp) {
+		err := api.DeleteLightningAddress(context.Background(), userApp.ID)
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"app_id": userApp.ID,
+			}).Error("Failed to delete lightning address during app deletion")
+		}
+	}
+
 	return api.appsSvc.DeleteApp(userApp)
 }
 
-func (api *api) GetApp(dbApp *db.App) *App {
+func (api *api) CreateLightningAddress(ctx context.Context, createLightningAddressRequest *CreateLightningAddressRequest) error {
+	app := api.appsSvc.GetAppById(createLightningAddressRequest.AppId)
+	if app == nil {
+		return errors.New("app not found")
+	}
 
-	var lastEvent db.RequestEvent
-	lastEventResult := api.db.Where("app_id = ?", dbApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
+	var metadata map[string]interface{}
+	err := json.Unmarshal(app.Metadata, &metadata)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"app_id": app.ID,
+		}).Error("Failed to deserialize app metadata")
+		return err
+	}
+
+	createLightningAddressResponse, err := api.albyOAuthSvc.CreateLightningAddress(ctx, createLightningAddressRequest.Address, createLightningAddressRequest.AppId)
+
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to create lightning address for app")
+		return err
+	}
+
+	metadata["lud16"] = createLightningAddressResponse.FullAddress
+	err = api.appsSvc.SetAppMetadata(app.ID, metadata)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to add lightning address to app metadata")
+		return err
+	}
+	return nil
+}
+
+func (api *api) DeleteLightningAddress(ctx context.Context, appId uint) error {
+	app := api.appsSvc.GetAppById(appId)
+	if app == nil {
+		return errors.New("app not found")
+	}
+
+	var metadata map[string]interface{}
+	err := json.Unmarshal(app.Metadata, &metadata)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"app_id": app.ID,
+		}).Error("Failed to deserialize app metadata")
+		return err
+	}
+
+	if metadata["lud16"] == nil {
+		return errors.New("no lightning address set")
+	}
+
+	lud16 := metadata["lud16"].(string)
+	if !strings.Contains(lud16, "@") {
+		return errors.New("invalid lightning address")
+	}
+	address := strings.Split(lud16, "@")[0]
+
+	// Call the Alby OAuth service to delete the lightning address
+	err = api.albyOAuthSvc.DeleteLightningAddress(ctx, address)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to delete lightning address for app")
+		return err
+	}
+
+	delete(metadata, "lud16")
+	err = api.appsSvc.SetAppMetadata(app.ID, metadata)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to remove lightning address from app metadata")
+		return err
+	}
+
+	return nil
+}
+
+func (api *api) GetApp(dbApp *db.App) *App {
 
 	paySpecificPermission := db.AppPermission{}
 	appPermissions := []db.AppPermission{}
@@ -308,31 +461,84 @@ func (api *api) GetApp(dbApp *db.App) *App {
 		Metadata:           metadata,
 		WalletPubkey:       walletPubkey,
 		UniqueWalletPubkey: uniqueWalletPubkey,
+		LastUsedAt:         dbApp.LastUsedAt,
 	}
 
 	if dbApp.Isolated {
 		response.Balance = queries.GetIsolatedBalance(api.db, dbApp.ID)
 	}
 
-	if lastEventResult.RowsAffected > 0 {
-		response.LastEventAt = &lastEvent.CreatedAt
-	}
-
 	return &response
-
 }
 
-func (api *api) ListApps() ([]App, error) {
+func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, orderBy string) (*ListAppsResponse, error) {
 	// TODO: join dbApps and permissions
 	dbApps := []db.App{}
-	err := api.db.Find(&dbApps).Error
+	query := api.db
+
+	if filters.Name != "" {
+		// searching for "Damus" will return "Damus" and "Damus (1)"
+		// Use case-insensitive search for both SQLite and PostgreSQL
+		if api.db.Dialector.Name() == "postgres" {
+			query = query.Where("name ILIKE ?", filters.Name+"%")
+		} else {
+			query = query.Where("name LIKE ?", filters.Name+"%")
+		}
+	}
+
+	if filters.AppStoreAppId != "" {
+		query = query.Where(datatypes.JSONQuery("metadata").Equals(filters.AppStoreAppId, "app_store_app_id"))
+	}
+
+	if filters.Unused {
+		// find unused non-subwallet apps not used in the past 60 days
+		query = query.Where("last_used_at IS NULL OR last_used_at < ?", time.Now().Add(-60*24*time.Hour))
+	}
+
+	if filters.SubWallets != nil && !*filters.SubWallets {
+		// exclude subwallets :scream:
+		if api.db.Dialector.Name() == "sqlite" {
+			query = query.Where("metadata is NULL OR JSON_EXTRACT(metadata, '$.app_store_app_id') IS NULL OR JSON_EXTRACT(metadata, '$.app_store_app_id') != ?", constants.SUBWALLET_APPSTORE_APP_ID)
+		} else {
+			query = query.Where("metadata IS NULL OR metadata->>'app_store_app_id' IS NULL OR metadata->>'app_store_app_id' != ?", constants.SUBWALLET_APPSTORE_APP_ID)
+		}
+	}
+
+	if orderBy == "" {
+		orderBy = "last_used_at"
+	}
+	if orderBy == "last_used_at" {
+		// when ordering by last used at, apps with last_used_at is NULL should be ordered last
+		orderBy = "last_used_at IS NULL, " + orderBy
+	}
+
+	query = query.Order(orderBy + " DESC")
+
+	if limit == 0 {
+		limit = 100
+	}
+	var totalCount int64
+	result := query.Model(&db.App{}).Count(&totalCount)
+	if result.Error != nil {
+		logger.Logger.WithError(result.Error).Error("Failed to count DB apps")
+		return nil, result.Error
+	}
+	query = query.Offset(int(offset)).Limit(int(limit))
+
+	err := query.Find(&dbApps).Error
+
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to list apps")
 		return nil, err
 	}
 
+	appIds := []uint64{}
+	for _, app := range dbApps {
+		appIds = append(appIds, uint64(app.ID))
+	}
+
 	appPermissions := []db.AppPermission{}
-	err = api.db.Find(&appPermissions).Error
+	err = api.db.Where("app_id IN ?", appIds).Find(&appPermissions).Error
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to list app permissions")
 		return nil, err
@@ -361,6 +567,7 @@ func (api *api) ListApps() ([]App, error) {
 			Isolated:           dbApp.Isolated,
 			WalletPubkey:       walletPubkey,
 			UniqueWalletPubkey: uniqueWalletPubkey,
+			LastUsedAt:         dbApp.LastUsedAt,
 		}
 
 		if dbApp.Isolated {
@@ -377,12 +584,6 @@ func (api *api) ListApps() ([]App, error) {
 			}
 		}
 
-		var lastEvent db.RequestEvent
-		lastEventResult := api.db.Where("app_id = ?", dbApp.ID).Order("id desc").Limit(1).Find(&lastEvent)
-		if lastEventResult.RowsAffected > 0 {
-			apiApp.LastEventAt = &lastEvent.CreatedAt
-		}
-
 		var metadata Metadata
 		if dbApp.Metadata != nil {
 			jsonErr := json.Unmarshal(dbApp.Metadata, &metadata)
@@ -396,7 +597,10 @@ func (api *api) ListApps() ([]App, error) {
 
 		apiApps = append(apiApps, apiApp)
 	}
-	return apiApps, nil
+	return &ListAppsResponse{
+		Apps:       apiApps,
+		TotalCount: uint64(totalCount),
+	}, nil
 }
 
 func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
@@ -431,6 +635,7 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 			Confirmations:                            channel.Confirmations,
 			ConfirmationsRequired:                    channel.ConfirmationsRequired,
 			ForwardingFeeBaseMsat:                    channel.ForwardingFeeBaseMsat,
+			ForwardingFeeProportionalMillionths:      channel.ForwardingFeeProportionalMillionths,
 			UnspendablePunishmentReserve:             channel.UnspendablePunishmentReserve,
 			CounterpartyUnspendablePunishmentReserve: channel.CounterpartyUnspendablePunishmentReserve,
 			Error:                                    channel.Error,
@@ -460,7 +665,11 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 }
 
 func (api *api) GetChannelPeerSuggestions(ctx context.Context) ([]alby.ChannelPeerSuggestion, error) {
-	return api.albyOAuthSvc.GetChannelPeerSuggestions(ctx)
+	return api.albySvc.GetChannelPeerSuggestions(ctx)
+}
+
+func (api *api) GetLSPChannelOffer(ctx context.Context) (*alby.LSPChannelOffer, error) {
+	return api.albyOAuthSvc.GetLSPChannelOffer(ctx)
 }
 
 func (api *api) ResetRouter(key string) error {
@@ -487,7 +696,7 @@ func (api *api) ChangeUnlockPassword(changeUnlockPasswordRequest *ChangeUnlockPa
 		return err
 	}
 	if autoUnlockPassword != "" {
-		return errors.New("Please disable auto-unlock before using this feature")
+		return errors.New("please disable auto-unlock before using this feature")
 	}
 
 	err = api.cfg.ChangeUnlockPassword(changeUnlockPasswordRequest.CurrentUnlockPassword, changeUnlockPasswordRequest.NewUnlockPassword)
@@ -541,6 +750,232 @@ func (api *api) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnec
 		return nil, errors.New("LNClient not started")
 	}
 	return api.svc.GetLNClient().GetNodeConnectionInfo(ctx)
+}
+
+func (api *api) RefundSwap(refundSwapRequest *RefundSwapRequest) error {
+	if api.svc.GetSwapsService() == nil {
+		return errors.New("SwapsService not started")
+	}
+	return api.svc.GetSwapsService().RefundSwap(refundSwapRequest.SwapId, refundSwapRequest.Address, false)
+}
+
+func (api *api) GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error) {
+	swapOutBalanceThresholdStr, _ := api.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
+	swapOutAmountStr, _ := api.cfg.Get(config.AutoSwapAmountKey, "")
+	swapOutDestination, _ := api.cfg.Get(config.AutoSwapDestinationKey, "")
+
+	swapOutEnabled := swapOutBalanceThresholdStr != "" && swapOutAmountStr != ""
+	var swapOutBalanceThreshold, swapOutAmount uint64
+	if swapOutEnabled {
+		var err error
+		if swapOutBalanceThreshold, err = strconv.ParseUint(swapOutBalanceThresholdStr, 10, 64); err != nil {
+			return nil, fmt.Errorf("invalid autoswap out balance threshold: %w", err)
+		}
+		if swapOutAmount, err = strconv.ParseUint(swapOutAmountStr, 10, 64); err != nil {
+			return nil, fmt.Errorf("invalid autoswap out amount: %w", err)
+		}
+	}
+
+	return &GetAutoSwapConfigResponse{
+		Type:             constants.SWAP_TYPE_OUT,
+		Enabled:          swapOutEnabled,
+		BalanceThreshold: swapOutBalanceThreshold,
+		SwapAmount:       swapOutAmount,
+		Destination:      swapOutDestination,
+	}, nil
+}
+
+func (api *api) LookupSwap(swapId string) (*LookupSwapResponse, error) {
+	if api.svc.GetSwapsService() == nil {
+		return nil, errors.New("SwapsService not started")
+	}
+	dbSwap, err := api.svc.GetSwapsService().GetSwap(swapId)
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to fetch swap info")
+		return nil, err
+	}
+
+	return toApiSwap(dbSwap), nil
+}
+
+func (api *api) ListSwaps() (*ListSwapsResponse, error) {
+	if api.svc.GetSwapsService() == nil {
+		return nil, errors.New("SwapsService not started")
+	}
+	swaps, err := api.svc.GetSwapsService().ListSwaps()
+	if err != nil {
+		return nil, err
+	}
+
+	apiSwaps := []Swap{}
+	for _, swap := range swaps {
+		apiSwaps = append(apiSwaps, *toApiSwap(&swap))
+	}
+
+	return &ListSwapsResponse{
+		Swaps: apiSwaps,
+	}, nil
+}
+
+func toApiSwap(swap *swaps.Swap) *Swap {
+	return &Swap{
+		Id:                 swap.SwapId,
+		Type:               swap.Type,
+		State:              swap.State,
+		Invoice:            swap.Invoice,
+		SendAmount:         swap.SendAmount,
+		ReceiveAmount:      swap.ReceiveAmount,
+		PaymentHash:        swap.PaymentHash,
+		DestinationAddress: swap.DestinationAddress,
+		RefundAddress:      swap.RefundAddress,
+		LockupAddress:      swap.LockupAddress,
+		LockupTxId:         swap.LockupTxId,
+		ClaimTxId:          swap.ClaimTxId,
+		AutoSwap:           swap.AutoSwap,
+		BoltzPubkey:        swap.BoltzPubkey,
+		CreatedAt:          swap.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:          swap.UpdatedAt.Format(time.RFC3339),
+		UsedXpub:           swap.UsedXpub,
+	}
+}
+
+func (api *api) GetSwapInInfo() (*SwapInfoResponse, error) {
+	if api.svc.GetSwapsService() == nil {
+		return nil, errors.New("SwapsService not started")
+	}
+	swapInInfo, err := api.svc.GetSwapsService().GetSwapInInfo()
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to calculate fee info")
+		return nil, err
+	}
+
+	return &SwapInfoResponse{
+		AlbyServiceFee:  swapInInfo.AlbyServiceFee,
+		BoltzServiceFee: swapInInfo.BoltzServiceFee,
+		BoltzNetworkFee: swapInInfo.BoltzNetworkFee,
+		MinAmount:       swapInInfo.MinAmount,
+		MaxAmount:       swapInInfo.MaxAmount,
+	}, nil
+}
+
+func (api *api) GetSwapOutInfo() (*SwapInfoResponse, error) {
+	if api.svc.GetSwapsService() == nil {
+		return nil, errors.New("SwapsService not started")
+	}
+	swapOutInfo, err := api.svc.GetSwapsService().GetSwapOutInfo()
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to calculate fee info")
+		return nil, err
+	}
+
+	return &SwapInfoResponse{
+		AlbyServiceFee:  swapOutInfo.AlbyServiceFee,
+		BoltzServiceFee: swapOutInfo.BoltzServiceFee,
+		BoltzNetworkFee: swapOutInfo.BoltzNetworkFee,
+		MinAmount:       swapOutInfo.MinAmount,
+		MaxAmount:       swapOutInfo.MaxAmount,
+	}, nil
+}
+
+func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (*swaps.SwapResponse, error) {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+
+	if api.svc.GetSwapsService() == nil {
+		return nil, errors.New("SwapsService not started")
+	}
+
+	amount := initiateSwapOutRequest.SwapAmount
+	destination := initiateSwapOutRequest.Destination
+
+	if amount == 0 {
+		return nil, errors.New("invalid swap amount")
+	}
+
+	swapOutResponse, err := api.svc.GetSwapsService().SwapOut(amount, destination, false, false)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"amount":      amount,
+			"destination": destination,
+		}).WithError(err).Error("Failed to initiate swap out")
+		return nil, err
+	}
+
+	return swapOutResponse, nil
+}
+
+func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (*swaps.SwapResponse, error) {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
+		return nil, errors.New("LNClient not started")
+	}
+
+	if api.svc.GetSwapsService() == nil {
+		return nil, errors.New("SwapsService not started")
+	}
+
+	amount := initiateSwapInRequest.SwapAmount
+
+	if amount == 0 {
+		return nil, errors.New("invalid swap amount")
+	}
+
+	swapInResponse, err := api.svc.GetSwapsService().SwapIn(amount, false)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"amount": amount,
+		}).WithError(err).Error("Failed to initiate swap in")
+		return nil, err
+	}
+
+	return swapInResponse, nil
+}
+
+func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *EnableAutoSwapRequest) error {
+	err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, strconv.FormatUint(enableAutoSwapsRequest.BalanceThreshold, 10), "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save autoswap balance threshold to config")
+		return err
+	}
+
+	err = api.cfg.SetUpdate(config.AutoSwapAmountKey, strconv.FormatUint(enableAutoSwapsRequest.SwapAmount, 10), "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save autoswap amount to config")
+		return err
+	}
+
+	err = api.cfg.SetUpdate(config.AutoSwapDestinationKey, enableAutoSwapsRequest.Destination, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save autoswap destination to config")
+		return err
+	}
+
+	if api.svc.GetSwapsService() == nil {
+		return errors.New("SwapsService not started")
+	}
+	return api.svc.GetSwapsService().EnableAutoSwapOut()
+}
+
+func (api *api) DisableAutoSwap() error {
+	keys := []string{config.AutoSwapBalanceThresholdKey, config.AutoSwapAmountKey, config.AutoSwapDestinationKey}
+
+	for _, key := range keys {
+		if err := api.cfg.SetUpdate(key, "", ""); err != nil {
+			logger.Logger.WithError(err).Errorf("Failed to remove autoswap config for key: %s", key)
+			return err
+		}
+	}
+
+	if api.svc.GetSwapsService() != nil {
+		api.svc.GetSwapsService().StopAutoSwapOut()
+	}
+	return nil
+}
+
+func (api *api) GetSwapMnemonic() string {
+	return api.keys.GetSwapMnemonic()
 }
 
 func (api *api) GetNodeStatus(ctx context.Context) (*lnclient.NodeStatus, error) {
@@ -607,6 +1042,18 @@ func (api *api) UpdateChannel(ctx context.Context, updateChannelRequest *UpdateC
 	return api.svc.GetLNClient().UpdateChannel(ctx, updateChannelRequest)
 }
 
+func (api *api) MakeOffer(ctx context.Context, description string) (string, error) {
+	if api.svc.GetLNClient() == nil {
+		return "", errors.New("LNClient not started")
+	}
+	offer, err := api.svc.GetLNClient().MakeOffer(ctx, description)
+	if err != nil {
+		return "", err
+	}
+
+	return offer, nil
+}
+
 func (api *api) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	if api.svc.GetLNClient() == nil {
 		return "", errors.New("LNClient not started")
@@ -637,7 +1084,7 @@ func (api *api) GetUnusedOnchainAddress(ctx context.Context) (string, error) {
 
 	if currentAddress != "" {
 		// check if address has any transactions
-		response, err := api.RequestEsploraApi("/address/" + currentAddress + "/txs")
+		response, err := api.RequestEsploraApi(ctx, "/address/"+currentAddress+"/txs")
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to get current address transactions")
 			return currentAddress, nil
@@ -677,11 +1124,11 @@ func (api *api) SignMessage(ctx context.Context, message string) (*SignMessageRe
 	}, nil
 }
 
-func (api *api) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (*RedeemOnchainFundsResponse, error) {
+func (api *api) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (*RedeemOnchainFundsResponse, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	txId, err := api.svc.GetLNClient().RedeemOnchainFunds(ctx, toAddress, amount, sendAll)
+	txId, err := api.svc.GetLNClient().RedeemOnchainFunds(ctx, toAddress, amount, feeRate, sendAll)
 	if err != nil {
 		return nil, err
 	}
@@ -694,7 +1141,7 @@ func (api *api) GetBalances(ctx context.Context) (*BalancesResponse, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	balances, err := api.svc.GetLNClient().GetBalances(ctx)
+	balances, err := api.svc.GetLNClient().GetBalances(ctx, false)
 	if err != nil {
 		return nil, err
 	}
@@ -702,14 +1149,14 @@ func (api *api) GetBalances(ctx context.Context) (*BalancesResponse, error) {
 }
 
 // TODO: remove dependency on this endpoint
-func (api *api) RequestMempoolApi(endpoint string) (interface{}, error) {
+func (api *api) RequestMempoolApi(ctx context.Context, endpoint string) (interface{}, error) {
 	url := api.cfg.GetEnv().MempoolApi + endpoint
 
 	client := http.Client{
 		Timeout: time.Second * 10,
 	}
 
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
 			"url": url,
@@ -753,6 +1200,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	autoUnlockPassword, _ := api.cfg.Get("AutoUnlockPassword", "")
 	info.SetupCompleted = api.cfg.SetupCompleted()
 	info.Currency = api.cfg.GetCurrency()
+	info.BitcoinDisplayFormat = api.cfg.GetBitcoinDisplayFormat()
 	info.StartupState = api.svc.GetStartupState()
 	if api.startupError != nil {
 		info.StartupError = api.startupError.Error()
@@ -768,13 +1216,24 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.VssSupported = backendType == config.LDKBackendType && api.cfg.GetEnv().LDKVssUrl != ""
 	info.AutoUnlockPasswordEnabled = autoUnlockPassword != ""
 	info.AutoUnlockPasswordSupported = api.cfg.GetEnv().IsDefaultClientId()
+	info.Relays = []InfoResponseRelay{}
+	for _, relayStatus := range api.svc.GetRelayStatuses() {
+		info.Relays = append(info.Relays, InfoResponseRelay{
+			Url:    relayStatus.Url,
+			Online: relayStatus.Online,
+		})
+	}
+
+	info.MempoolUrl = api.cfg.GetMempoolUrl()
+	info.AlbyAccountConnected = api.albyOAuthSvc.IsConnected(ctx)
+
 	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get alby user identifier")
 		return nil, err
 	}
 	info.AlbyUserIdentifier = albyUserIdentifier
-	info.AlbyAccountConnected = api.albyOAuthSvc.IsConnected(ctx)
+
 	if api.svc.GetLNClient() != nil {
 		nodeInfo, err := api.svc.GetLNClient().GetInfo(ctx)
 		if err != nil {
@@ -787,6 +1246,8 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 
 	info.NextBackupReminder, _ = api.cfg.Get("NextBackupReminder", "")
 
+	info.NodeAlias, _ = api.cfg.Get("NodeAlias", "")
+
 	return &info, nil
 }
 
@@ -798,6 +1259,48 @@ func (api *api) SetCurrency(currency string) error {
 	err := api.cfg.SetCurrency(currency)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to update currency")
+		return err
+	}
+
+	return nil
+}
+
+func (api *api) SetBitcoinDisplayFormat(format string) error {
+	if format != constants.BITCOIN_DISPLAY_FORMAT_SATS && format != constants.BITCOIN_DISPLAY_FORMAT_BIP177 {
+		return fmt.Errorf("bitcoin display format must be '%s' or '%s'", constants.BITCOIN_DISPLAY_FORMAT_SATS, constants.BITCOIN_DISPLAY_FORMAT_BIP177)
+	}
+
+	err := api.cfg.SetBitcoinDisplayFormat(format)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to update bitcoin display format")
+		return err
+	}
+
+	return nil
+}
+
+func (api *api) UpdateSettings(updateSettingsRequest *UpdateSettingsRequest) error {
+	if updateSettingsRequest.Currency != "" {
+		err := api.SetCurrency(updateSettingsRequest.Currency)
+		if err != nil {
+			return fmt.Errorf("failed to set currency: %w", err)
+		}
+	}
+
+	if updateSettingsRequest.BitcoinDisplayFormat != "" {
+		err := api.SetBitcoinDisplayFormat(updateSettingsRequest.BitcoinDisplayFormat)
+		if err != nil {
+			return fmt.Errorf("failed to set bitcoin display format: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (api *api) SetNodeAlias(nodeAlias string) error {
+	err := api.cfg.SetUpdate("NodeAlias", nodeAlias, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to save node alias to config")
 		return err
 	}
 
@@ -986,7 +1489,7 @@ func (api *api) MigrateNodeStorage(ctx context.Context, to string) error {
 		return errors.New("LNClient not started")
 	}
 	if to != "VSS" {
-		return fmt.Errorf("Migration type not supported: %s", to)
+		return fmt.Errorf("migration type not supported: %s", to)
 	}
 
 	ldkVssEnabled, err := api.cfg.Get("LdkVssEnabled", "")
@@ -999,7 +1502,7 @@ func (api *api) MigrateNodeStorage(ctx context.Context, to string) error {
 	}
 
 	if api.cfg.GetEnv().LDKVssUrl == "" {
-		return errors.New("No VSS URL set")
+		return errors.New("no VSS URL set")
 	}
 
 	api.cfg.SetUpdate("LdkVssEnabled", "true", "")
@@ -1035,6 +1538,12 @@ func (api *api) SyncWallet() error {
 	api.svc.GetLNClient().UpdateLastWalletSyncRequest()
 	return nil
 }
+func (api *api) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
+	if api.svc.GetLNClient() == nil {
+		return nil, errors.New("LNClient not started")
+	}
+	return api.svc.GetLNClient().ListOnchainTransactions(ctx)
+}
 
 func (api *api) GetLogOutput(ctx context.Context, logType string, getLogRequest *GetLogOutputRequest) (*GetLogOutputResponse, error) {
 	var err error
@@ -1069,7 +1578,7 @@ func (api *api) GetLogOutput(ctx context.Context, logType string, getLogRequest 
 func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 	var alarms []HealthAlarm
 
-	albyInfo, err := api.albyOAuthSvc.GetInfo(ctx)
+	albyInfo, err := api.albySvc.GetInfo(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1077,18 +1586,36 @@ func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 		alarms = append(alarms, NewHealthAlarm(HealthAlarmKindAlbyService, albyInfo.Incidents))
 	}
 
-	isNostrRelayReady := api.svc.IsRelayReady()
-	if !isNostrRelayReady {
-		alarms = append(alarms, NewHealthAlarm(HealthAlarmKindNostrRelayOffline, nil))
+	relayStatuses := api.svc.GetRelayStatuses()
+	if len(relayStatuses) > 0 {
+		isAnyNostrRelayOffline := false
+		offlineRelayUrls := []string{}
+		for _, relayStatus := range relayStatuses {
+			if !relayStatus.Online {
+				isAnyNostrRelayOffline = true
+				offlineRelayUrls = append(offlineRelayUrls, relayStatus.Url)
+			}
+		}
+		if isAnyNostrRelayOffline {
+			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindNostrRelayOffline, offlineRelayUrls))
+		}
+	}
+
+	ldkVssEnabled, _ := api.cfg.Get("LdkVssEnabled", "")
+	if ldkVssEnabled == "true" {
+		albyMe, err := api.albyOAuthSvc.GetMe(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if albyMe.Subscription.PlanCode == "" {
+			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindVssNoSubscription, nil))
+		}
 	}
 
 	lnClient := api.svc.GetLNClient()
 
 	if lnClient != nil {
-		nodeStatus, err := lnClient.GetNodeStatus(ctx)
-		if err != nil {
-			return nil, err
-		}
+		nodeStatus, _ := lnClient.GetNodeStatus(ctx)
 		if nodeStatus == nil || !nodeStatus.IsReady {
 			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindNodeNotReady, nodeStatus))
 		}
@@ -1203,6 +1730,13 @@ func (api *api) ExecuteCustomNodeCommand(ctx context.Context, command string) (i
 	return nodeResp.Response, nil
 }
 
+func (api *api) SendEvent(event string, properties interface{}) {
+	api.svc.GetEventPublisher().Publish(&events.Event{
+		Event:      event,
+		Properties: properties,
+	})
+}
+
 func (api *api) parseExpiresAt(expiresAtString string) (*time.Time, error) {
 	var expiresAt *time.Time
 	if expiresAtString != "" {
@@ -1215,4 +1749,28 @@ func (api *api) parseExpiresAt(expiresAtString string) (*time.Time, error) {
 		expiresAt = &expiresAtValue
 	}
 	return expiresAt, nil
+}
+
+func (api *api) GetForwards() (*GetForwardsResponse, error) {
+	var forwards []db.Forward
+	err := api.db.Find(&forwards).Error
+	if err != nil {
+		return nil, err
+	}
+
+	var totalOutboundAmount uint64
+	var totalFeeEarned uint64
+
+	for _, forward := range forwards {
+		totalOutboundAmount += forward.OutboundAmountForwardedMsat
+		totalFeeEarned += forward.TotalFeeEarnedMsat
+	}
+
+	numForwards := len(forwards)
+
+	return &GetForwardsResponse{
+		OutboundAmountForwardedMsat: totalOutboundAmount,
+		TotalFeeEarnedMsat:          totalFeeEarned,
+		NumForwards:                 uint64(numForwards),
+	}, nil
 }

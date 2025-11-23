@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,14 +13,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (api *api) RequestEsploraApi(endpoint string) (interface{}, error) {
+func (api *api) RequestEsploraApi(ctx context.Context, endpoint string) (interface{}, error) {
 	url := api.cfg.GetEnv().LDKEsploraServer + endpoint
 
 	client := http.Client{
 		Timeout: time.Second * 10,
 	}
 
-	req, err := http.NewRequest(http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
 			"url": url,

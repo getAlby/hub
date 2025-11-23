@@ -1,6 +1,4 @@
-// src/components/OnboardingChecklist.tsx
-
-import { ChevronRight, Circle, CircleCheck } from "lucide-react";
+import { ChevronRightIcon, CircleCheckIcon, CircleIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   Card,
@@ -72,14 +70,14 @@ function ChecklistItem({
     >
       {!checked && !disabled && (
         <div className="absolute top-0 left-0 w-full h-full items-center justify-end pr-1.5 hidden group-hover:flex opacity-25">
-          <ChevronRight className="w-8 h-8" />
+          <ChevronRightIcon className="size-8" />
         </div>
       )}
       <div className="flex items-center gap-2">
         {checked ? (
-          <CircleCheck className="w-5 h-5" />
+          <CircleCheckIcon className="size-5" />
         ) : (
-          <Circle className="w-5 h-5" />
+          <CircleIcon className="size-5" />
         )}
         <div
           className={cn(

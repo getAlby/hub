@@ -1,10 +1,10 @@
 import { EmblaCarouselType } from "embla-carousel";
 import {
-  ArrowRight,
-  CloudLightning,
+  ArrowRightIcon,
+  CloudLightningIcon,
   LucideIcon,
-  ShieldCheck,
-  Wallet,
+  ShieldCheckIcon,
+  WalletIcon,
 } from "lucide-react";
 import React, { ReactElement } from "react";
 import { useNavigate } from "react-router-dom";
@@ -15,9 +15,13 @@ import {
   Carousel,
   CarouselApi,
   CarouselContent,
-  CarouselDots,
   CarouselItem,
 } from "src/components/ui/carousel";
+import {
+  CarouselDotButton,
+  CarouselDots,
+} from "src/components/ui/custom/carousel-dots";
+import { useDotButton } from "src/components/ui/custom/useDotButton";
 import { useTheme } from "src/components/ui/theme-provider";
 import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";
@@ -27,7 +31,9 @@ export function Intro() {
   const navigate = useNavigate();
   const [api, setApi] = React.useState<CarouselApi>();
   const [progress, setProgress] = React.useState<number>(0);
+  const { selectedIndex, scrollSnaps, onDotButtonClick } = useDotButton(api);
   const { setDarkMode } = useTheme();
+  const windowWidth = useWindowWidth();
 
   React.useEffect(() => {
     // Force dark mode on intro screen
@@ -51,20 +57,24 @@ export function Intro() {
     });
   }, [api]);
 
+  const cloudDesktopSizePositionModifier = Math.floor(
+    Math.max(1920 - windowWidth, 0) * 0.1
+  );
+
   return (
     <Carousel className={cn("w-full bg-background")} setApi={setApi}>
       <div
         className="w-full h-full absolute top-0 left-0 bg-no-repeat"
         style={{
           backgroundImage: `url(${Cloud})`,
-          backgroundPositionX: `${-Math.max(progress, 0) * 40}%`,
+          backgroundPositionX: `calc(${-Math.max(progress, 0) * 120}px - ${windowWidth * 0.06}px - ${cloudDesktopSizePositionModifier * 4}px)`,
         }}
       />
       <div
         className="w-full h-full absolute top-0 left-0 bg-no-repeat"
         style={{
           backgroundImage: `url(${Cloud2})`,
-          backgroundPositionX: `${150 - Math.max(progress, 0) * 60}%`,
+          backgroundPositionX: `calc(${-Math.max(progress, 0) * 120}px + ${windowWidth * 0.5}px + ${Math.floor(cloudDesktopSizePositionModifier * 0.1)}px)`,
           backgroundPositionY: "100%",
         }}
       />
@@ -90,7 +100,7 @@ export function Intro() {
         <CarouselItem>
           <Slide
             api={api}
-            icon={CloudLightning}
+            icon={CloudLightningIcon}
             title="Anywhere & Anytime"
             description="Your wallet is always online and ready to use on any device."
           />
@@ -98,7 +108,7 @@ export function Intro() {
         <CarouselItem>
           <Slide
             api={api}
-            icon={ShieldCheck}
+            icon={ShieldCheckIcon}
             title="Your Keys Are Safe"
             description="Your wallet is encrypted by a password of your choice. No one can access your funds but you."
           />
@@ -106,14 +116,23 @@ export function Intro() {
         <CarouselItem>
           <Slide
             api={api}
-            icon={Wallet}
+            icon={WalletIcon}
             title="Take Your Wallet With You"
             description="Connect your wallet to dozens of apps and participate in the bitcoin digital economy."
           />
         </CarouselItem>
       </CarouselContent>
       <div className="absolute bottom-5 left-1/2 -translate-x-1/2">
-        <CarouselDots />
+        <CarouselDots>
+          {scrollSnaps.map((_, index) => (
+            <CarouselDotButton
+              key={index}
+              data-selected={index === selectedIndex}
+              onClick={() => onDotButtonClick(index)}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </CarouselDots>
       </div>
     </Carousel>
   );
@@ -153,8 +172,21 @@ function Slide({
         </div>
       </div>
       <Button size="icon" onClick={slideNext} className="">
-        <ArrowRight className="w-4 h-4" />
+        <ArrowRightIcon className="size-4" />
       </Button>
     </div>
   );
+}
+
+function useWindowWidth() {
+  const [width, setWidth] = React.useState(window.innerWidth);
+  React.useLayoutEffect(() => {
+    function updateSize() {
+      setWidth(window.innerWidth);
+    }
+    window.addEventListener("resize", updateSize);
+    updateSize();
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
+  return width;
 }

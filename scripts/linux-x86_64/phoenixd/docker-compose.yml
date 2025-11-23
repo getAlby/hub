@@ -14,7 +14,7 @@ services:
       - PHOENIXD_ADDRESS=http://albyhub-phoenixd:9740
       - WORK_DIR=/data/albyhub
       - LN_BACKEND_TYPE=PHOENIX
-      - LOG_EVENTS=true
+    stop_grace_period: 300s
 
   albyhub-phoenixd:
     platform: linux/amd64

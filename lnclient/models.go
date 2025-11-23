@@ -38,6 +38,16 @@ type Transaction struct {
 	ExpiresAt       *int64
 	SettledAt       *int64
 	Metadata        Metadata
+	SettleDeadline  *uint32 // block number for accepted hold invoices
+}
+
+type OnchainTransaction struct {
+	AmountSat        uint64 `json:"amountSat"`
+	CreatedAt        uint64 `json:"createdAt"`
+	State            string `json:"state"`
+	Type             string `json:"type"`
+	NumConfirmations uint32 `json:"numConfirmations"`
+	TxId             string `json:"txId"`
 }
 
 type NodeConnectionInfo struct {
@@ -47,13 +57,17 @@ type NodeConnectionInfo struct {
 }
 
 type LNClient interface {
-	SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*PayInvoiceResponse, error)
-	SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []TLVRecord, preimage string) (*PayKeysendResponse, error)
+	SendPaymentSync(payReq string, amount *uint64) (*PayInvoiceResponse, error)
+	SendKeysend(amount uint64, destination string, customRecords []TLVRecord, preimage string) (*PayKeysendResponse, error)
 	GetPubkey() string
 	GetInfo(ctx context.Context) (info *NodeInfo, err error)
-	MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *Transaction, err error)
+	MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *Transaction, err error)
+	MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *Transaction, err error)
+	SettleHoldInvoice(ctx context.Context, preimage string) (err error)
+	CancelHoldInvoice(ctx context.Context, paymentHash string) (err error)
 	LookupInvoice(ctx context.Context, paymentHash string) (transaction *Transaction, err error)
 	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Transaction, err error)
+	ListOnchainTransactions(ctx context.Context) ([]OnchainTransaction, error)
 	Shutdown() error
 	ListChannels(ctx context.Context) (channels []Channel, err error)
 	GetNodeConnectionInfo(ctx context.Context) (nodeConnectionInfo *NodeConnectionInfo, err error)
@@ -63,11 +77,12 @@ type LNClient interface {
 	CloseChannel(ctx context.Context, closeChannelRequest *CloseChannelRequest) (*CloseChannelResponse, error)
 	UpdateChannel(ctx context.Context, updateChannelRequest *UpdateChannelRequest) error
 	DisconnectPeer(ctx context.Context, peerId string) error
+	MakeOffer(ctx context.Context, description string) (string, error)
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	ResetRouter(key string) error
 	GetOnchainBalance(ctx context.Context) (*OnchainBalanceResponse, error)
-	GetBalances(ctx context.Context) (*BalancesResponse, error)
-	RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, sendAll bool) (txId string, err error)
+	GetBalances(ctx context.Context, includeInactiveChannels bool) (*BalancesResponse, error)
+	RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (txId string, err error)
 	SendPaymentProbes(ctx context.Context, invoice string) error
 	SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error
 	ListPeers(ctx context.Context) ([]PeerDetails, error)
@@ -96,6 +111,7 @@ type Channel struct {
 	Confirmations                            *uint32
 	ConfirmationsRequired                    *uint32
 	ForwardingFeeBaseMsat                    uint32
+	ForwardingFeeProportionalMillionths      uint32
 	UnspendablePunishmentReserve             uint64
 	CounterpartyUnspendablePunishmentReserve uint64
 	Error                                    *string
@@ -133,6 +149,7 @@ type UpdateChannelRequest struct {
 	ChannelId                                string `json:"channelId"`
 	NodeId                                   string `json:"nodeId"`
 	ForwardingFeeBaseMsat                    uint32 `json:"forwardingFeeBaseMsat"`
+	ForwardingFeeProportionalMillionths      uint32 `json:"forwardingFeeProportionalMillionths"`
 	MaxDustHtlcExposureFromFeeRateMultiplier uint64 `json:"maxDustHtlcExposureFromFeeRateMultiplier"`
 }
 
@@ -177,6 +194,12 @@ type PayInvoiceResponse struct {
 	Fee      uint64 `json:"fee"`
 }
 
+type PayOfferResponse = struct {
+	Preimage    string `json:"preimage"`
+	Fee         uint64 `json:"fee"`
+	PaymentHash string `json:"payment_hash"`
+}
+
 type PayKeysendResponse struct {
 	Fee uint64 `json:"fee"`
 }
@@ -191,6 +214,11 @@ type NetworkGraphResponse = interface{}
 type PaymentFailedEventProperties struct {
 	Transaction *Transaction
 	Reason      string
+}
+
+type PaymentForwardedEventProperties struct {
+	TotalFeeEarnedMsat          uint64
+	OutboundAmountForwardedMsat uint64
 }
 
 type CustomNodeCommandArgDef struct {
@@ -229,13 +257,13 @@ var ErrUnknownCustomNodeCommand = errors.New("unknown custom node command")
 // default invoice expiry in seconds (1 day)
 const DEFAULT_INVOICE_EXPIRY = 86400
 
-type timeoutError struct {
+type holdInvoiceCanceledError struct {
 }
 
-func NewTimeoutError() error {
-	return &timeoutError{}
+func NewHoldInvoiceCanceledError() error {
+	return &holdInvoiceCanceledError{}
 }
 
-func (err *timeoutError) Error() string {
-	return "Timeout"
+func (err *holdInvoiceCanceledError) Error() string {
+	return "Hold invoice canceled"
 }

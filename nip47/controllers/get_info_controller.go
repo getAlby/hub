@@ -13,16 +13,16 @@ import (
 )
 
 type getInfoResponse struct {
-	Alias            string      `json:"alias"`
-	Color            string      `json:"color"`
-	Pubkey           string      `json:"pubkey"`
-	Network          string      `json:"network"`
-	BlockHeight      uint32      `json:"block_height"`
-	BlockHash        string      `json:"block_hash"`
+	Alias            *string     `json:"alias"`
+	Color            *string     `json:"color"`
+	Pubkey           *string     `json:"pubkey"`
+	Network          *string     `json:"network"`
+	BlockHeight      *uint32     `json:"block_height"`
+	BlockHash        *string     `json:"block_hash"`
 	Methods          []string    `json:"methods"`
 	Notifications    []string    `json:"notifications"`
 	Metadata         interface{} `json:"metadata,omitempty"`
-	LightningAddress string      `json:"lud16"`
+	LightningAddress *string     `json:"lud16"`
 }
 
 func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc) {
@@ -53,10 +53,7 @@ func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47
 
 			publishResponse(&models.Response{
 				ResultType: nip47Request.Method,
-				Error: &models.Error{
-					Code:    constants.ERROR_INTERNAL,
-					Message: err.Error(),
-				},
+				Error:      mapNip47Error(err),
 			}, nostr.Tags{})
 			return
 		}
@@ -67,12 +64,12 @@ func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47
 			network = "mainnet"
 		}
 
-		responsePayload.Alias = info.Alias
-		responsePayload.Color = info.Color
-		responsePayload.Pubkey = info.Pubkey
-		responsePayload.Network = network
-		responsePayload.BlockHeight = info.BlockHeight
-		responsePayload.BlockHash = info.BlockHash
+		responsePayload.Alias = &info.Alias
+		responsePayload.Color = &info.Color
+		responsePayload.Pubkey = &info.Pubkey
+		responsePayload.Network = &network
+		responsePayload.BlockHeight = &info.BlockHeight
+		responsePayload.BlockHash = &info.BlockHash
 
 		if app != nil {
 			metadata := map[string]interface{}{}
@@ -93,7 +90,10 @@ func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47
 			}
 			if !app.Isolated {
 				lightningAddress, _ := controller.albyOAuthService.GetLightningAddress()
-				responsePayload.LightningAddress = lightningAddress
+				responsePayload.LightningAddress = &lightningAddress
+			} else if metadata["app_store_app_id"] == constants.SUBWALLET_APPSTORE_APP_ID && metadata["lud16"] != nil {
+				lightningAddress := metadata["lud16"].(string)
+				responsePayload.LightningAddress = &lightningAddress
 			}
 
 			responsePayload.Metadata = metadata

@@ -20,8 +20,10 @@ var expectedTables = []string{
 	"request_events",
 	"response_events",
 	"transactions",
+	"swaps",
 	"user_configs",
 	"migrations",
+	"forwards",
 }
 
 func main() {
@@ -67,6 +69,44 @@ func main() {
 	err = checkSchema(fromDB)
 	if err != nil {
 		logger.Logger.WithError(err).Error("database schema check failed; the migration tool may be outdated")
+		os.Exit(1)
+	}
+
+	// Check if VSS is enabled in the source database
+	var vssConfig db.UserConfig
+	result := fromDB.Where("key = ?", "LdkVssEnabled").First(&vssConfig)
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			logger.Logger.Error("LdkVssEnabled config not found in source DB. Migration will not proceed.")
+		} else {
+			logger.Logger.WithError(result.Error).Error("failed to query LdkVssEnabled config from source DB")
+		}
+		os.Exit(1)
+	}
+
+	if vssConfig.Value != "true" {
+		logger.Logger.Error("VSS is not enabled in the source DB (LdkVssEnabled is not 'true'). Migration will not proceed.")
+		os.Exit(1)
+	}
+	logger.Logger.Info("LdkVssEnabled check passed.")
+
+	// NOTE: we assume that excess request events have already been cleaned up due to the background task
+	// and only a maximum of ~1000 remain.
+	logger.Logger.Info("Deleting orphaned request events.")
+	err = fromDB.Exec("DELETE FROM request_events WHERE app_id NOT IN (SELECT id FROM apps);").Error
+
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to delete orphaned request events")
+		os.Exit(1)
+	}
+
+	// NOTE: we assume that excess response events have already been cleaned up due to the background task
+	// and only a maximum of ~1000 remain.
+	logger.Logger.Info("Deleting orphaned response events.")
+	err = fromDB.Exec("DELETE FROM response_events WHERE request_id NOT IN (SELECT id FROM request_events);").Error
+
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to delete orphaned response events")
 		os.Exit(1)
 	}
 
@@ -123,7 +163,7 @@ func migrateDB(from, to *gorm.DB) error {
 
 	if to.Dialector.Name() == "postgres" {
 		logger.Logger.Info("resetting sequences...")
-		if err := resetSequences(to); err != nil {
+		if err := resetSequences(tx); err != nil {
 			return fmt.Errorf("failed to reset sequences: %w", err)
 		}
 	}
@@ -146,8 +186,19 @@ func migrateTable[T any](from, to *gorm.DB) error {
 		return nil
 	}
 
-	if err := to.Create(data).Error; err != nil {
-		return fmt.Errorf("failed to insert data: %w", err)
+	// to avoid "failed to migrate transactions: failed to insert data: extended protocol limited to 65535 parameters"
+	// see https://stackoverflow.com/questions/77372430/extended-protocol-limited-to-65535-parameters-golang-gorm
+	// max statements is 65535
+	// but it's the number of records * columns
+	// to be safe, using a lower value of 1000.
+	// this will fail if any table has more than 65 columns, which I doubt we will have
+	max := 1000
+	for i := 0; i < len(data); i += max {
+		j := min(i+max, len(data))
+
+		if err := to.Create(data[i:j]).Error; err != nil {
+			return fmt.Errorf("failed to insert data: %w", err)
+		}
 	}
 
 	return nil

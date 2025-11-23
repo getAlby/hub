@@ -26,7 +26,7 @@ func TestMakeInvoice_NoApp(t *testing.T) {
 	txMetadata["randomkey"] = strings.Repeat("a", constants.INVOICE_METADATA_MAX_LENGTH-16) // json encoding adds 16 characters - {"randomkey":""}
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.MakeInvoice(ctx, 1234, "Hello world", "", 0, txMetadata, svc.LNClient, nil, nil)
+	transaction, err := transactionsService.MakeInvoice(ctx, 1234, "Hello world", "", 0, txMetadata, svc.LNClient, nil, nil, nil)
 	assert.NoError(t, err)
 
 	var metadata map[string]interface{}
@@ -50,7 +50,7 @@ func TestMakeInvoice_MetadataTooLarge(t *testing.T) {
 	metadata["randomkey"] = strings.Repeat("a", constants.INVOICE_METADATA_MAX_LENGTH-15) // json encoding adds 16 characters
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.MakeInvoice(ctx, 1234, "Hello world", "", 0, metadata, svc.LNClient, nil, nil)
+	transaction, err := transactionsService.MakeInvoice(ctx, 1234, "Hello world", "", 0, metadata, svc.LNClient, nil, nil, nil)
 
 	assert.Error(t, err)
 	assert.Equal(t, fmt.Sprintf("encoded invoice metadata provided is too large. Limit: %d Received: %d", constants.INVOICE_METADATA_MAX_LENGTH, constants.INVOICE_METADATA_MAX_LENGTH+1), err.Error())
@@ -72,7 +72,7 @@ func TestMakeInvoice_App(t *testing.T) {
 	assert.NoError(t, err)
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.MakeInvoice(ctx, 1234, "Hello world", "", 0, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID)
+	transaction, err := transactionsService.MakeInvoice(ctx, 1234, "Hello world", "", 0, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID, nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(tests.MockLNClientTransaction.Amount), transaction.AmountMsat)

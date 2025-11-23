@@ -2,18 +2,17 @@ import React, { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import useSetupStore from "src/state/SetupStore";
 
+import { toast } from "sonner";
+import PasswordInput from "src/components/password/PasswordInput";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
-import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 import { useInfo } from "src/hooks/useInfo";
 
 export function SetupPassword() {
   const navigate = useNavigate();
   const store = useSetupStore();
-  const { toast } = useToast();
   const { data: info } = useInfo();
   const [confirmPassword, setConfirmPassword] = React.useState("");
   const [isPasswordSecured, setIsPasswordSecured] = useState<boolean>(false);
@@ -29,17 +28,11 @@ export function SetupPassword() {
       return;
     }
     if (!isPasswordSecured || !isPasswordSecured2) {
-      toast({
-        title: "Please confirm you have saved your password",
-        variant: "destructive",
-      });
+      toast.error("Please confirm you have saved your password");
       return;
     }
     if (store.unlockPassword !== confirmPassword) {
-      toast({
-        title: "Passwords don't match",
-        variant: "destructive",
-      });
+      toast.error("Passwords don't match");
       return;
     }
 
@@ -67,29 +60,23 @@ export function SetupPassword() {
             <div className="grid gap-4 w-full">
               <div className="grid gap-1.5">
                 <Label htmlFor="unlock-password">Password</Label>
-                <Input
-                  autoFocus
-                  type="password"
-                  name="unlock-password"
+                <PasswordInput
                   id="unlock-password"
+                  onChange={store.setUnlockPassword}
                   autoComplete="new-password"
                   placeholder="Enter a password"
+                  autoFocus
                   value={store.unlockPassword}
-                  onChange={(e) => store.setUnlockPassword(e.target.value)}
-                  required
                 />
               </div>
               <div className="grid gap-1.5">
                 <Label htmlFor="confirm-password">Repeat Password</Label>
-                <Input
-                  type="password"
-                  name="confirm-password"
+                <PasswordInput
                   id="confirm-password"
                   autoComplete="new-password"
                   placeholder="Re-enter the password"
+                  onChange={setConfirmPassword}
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
                 />
               </div>
             </div>

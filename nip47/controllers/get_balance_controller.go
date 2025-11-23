@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 
-	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/db/queries"
 	"github.com/getAlby/hub/logger"
@@ -33,7 +32,7 @@ func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, ni
 	if app.Isolated {
 		balance = queries.GetIsolatedBalance(controller.db, app.ID)
 	} else {
-		balances, err := controller.lnClient.GetBalances(ctx)
+		balances, err := controller.lnClient.GetBalances(ctx, true)
 		balance = balances.Lightning.TotalSpendable
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -41,10 +40,7 @@ func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, ni
 			}).WithError(err).Error("Failed to fetch balance")
 			publishResponse(&models.Response{
 				ResultType: nip47Request.Method,
-				Error: &models.Error{
-					Code:    constants.ERROR_INTERNAL,
-					Message: err.Error(),
-				},
+				Error:      mapNip47Error(err),
 			}, nostr.Tags{})
 			return
 		}

@@ -1,10 +1,10 @@
-import { SkipForward, Trash2, TriangleAlert } from "lucide-react";
+import { SkipForwardIcon, Trash2Icon, TriangleAlertIcon } from "lucide-react";
 import React from "react";
 import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import Loading from "src/components/Loading";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { Button, LinkButton } from "src/components/ui/button";
+import { Button } from "src/components/ui/button";
 import {
   Card,
   CardDescription,
@@ -12,18 +12,18 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { Progress } from "src/components/ui/progress";
 import { useDeleteApp } from "src/hooks/useDeleteApp";
 import { useUnusedApps } from "src/hooks/useUnusedApps";
 import { App } from "src/types";
 
 export function AppsCleanup() {
-  const unusedApps = useUnusedApps();
+  const unusedApps = useUnusedApps(100_000); // assume never more than 100k apps
   const [appIndex, setAppIndex] = React.useState<number>();
   const [skippedCount, setSkippedCount] = React.useState<number>(0);
   const [deletedCount, setDeletedCount] = React.useState<number>(0);
   const [appsToReview, setAppsToReview] = React.useState<App[]>();
-  const { deleteApp } = useDeleteApp();
   React.useEffect(() => {
     if (!unusedApps) {
       return;
@@ -35,8 +35,8 @@ export function AppsCleanup() {
       const _appsToReview = [...unusedApps];
       _appsToReview.sort((a, b) => {
         return (
-          (a.lastEventAt ? new Date(a.lastEventAt).getTime() : 0) -
-          (b.lastEventAt ? new Date(b.lastEventAt).getTime() : 0)
+          (a.lastUsedAt ? new Date(a.lastUsedAt).getTime() : 0) -
+          (b.lastUsedAt ? new Date(b.lastUsedAt).getTime() : 0)
         );
       });
       setAppsToReview(_appsToReview);
@@ -58,7 +58,7 @@ export function AppsCleanup() {
       {currentApp && (
         <Alert variant="destructive">
           <AlertTitle className="flex gap-2">
-            <TriangleAlert className="h-4 w-4" />
+            <TriangleAlertIcon className="h-4 w-4" />
             Warning
           </AlertTitle>
           <AlertDescription>
@@ -82,20 +82,16 @@ export function AppsCleanup() {
                           setSkippedCount((current) => current + 1);
                         }}
                       >
-                        <SkipForward className="h-4 w-4 mr-2" />
+                        <SkipForwardIcon />
                         Skip
                       </Button>
-                      <Button
-                        variant="destructive"
-                        onClick={() => {
-                          deleteApp(currentApp.appPubkey);
+                      <DeleteAppButton
+                        app={currentApp}
+                        onDelete={() => {
                           setAppIndex(appIndex + 1);
                           setDeletedCount((current) => current + 1);
                         }}
-                      >
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </Button>
+                      />
                     </>
                   }
                   readonly
@@ -107,7 +103,9 @@ export function AppsCleanup() {
             <>
               <div>No more unused apps to review.</div>
               <div>
-                <LinkButton to="/apps">Back to overview</LinkButton>
+                <LinkButton to="/apps?tab=connected-apps">
+                  Back to overview
+                </LinkButton>
               </div>
             </>
           )}
@@ -128,5 +126,27 @@ export function AppsCleanup() {
         </div>
       </div>
     </>
+  );
+}
+
+function DeleteAppButton({
+  app,
+  onDelete,
+}: {
+  app: App;
+  onDelete: () => void;
+}) {
+  const { deleteApp } = useDeleteApp(app);
+  return (
+    <Button
+      variant="destructive"
+      onClick={() => {
+        deleteApp();
+        onDelete();
+      }}
+    >
+      <Trash2Icon />
+      Delete
+    </Button>
   );
 }

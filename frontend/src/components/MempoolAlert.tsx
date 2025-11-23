@@ -1,9 +1,11 @@
 import { TriangleAlertIcon } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { ExternalLinkButton } from "src/components/ui/button";
+import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
+import { ExternalLinkButton } from "./ui/custom/external-link-button";
 
-export function MempoolAlert() {
+export function MempoolAlert({ className }: { className?: string }) {
+  const { data: info } = useInfo();
   const { data: recommendedFees } = useMempoolApi<{ fastestFee: number }>(
     "/v1/fees/recommended",
     true
@@ -17,16 +19,15 @@ export function MempoolAlert() {
   };
 
   const fee = recommendedFees?.fastestFee;
-  if (!fee) {
-    return null;
-  }
-  const matchedFee = Object.entries(fees).find((entry) => fee >= entry[1]);
+  const matchedFee =
+    fee != null && Object.entries(fees).find((entry) => fee >= entry[1]);
 
-  if (!matchedFee) {
+  if (!info || !fee || !matchedFee) {
     return null;
   }
+
   return (
-    <Alert>
+    <Alert className={className}>
       <TriangleAlertIcon className="h-4 w-4" />
       <AlertTitle>
         Mempool Fees are currently{" "}
@@ -36,13 +37,13 @@ export function MempoolAlert() {
         <p>Bitcoin transactions may be uneconomical at this time.</p>
         <div className="flex gap-2 mt-2">
           <ExternalLinkButton
-            to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/faq-alby-hub/what-to-do-during-times-of-high-onchain-fees"
+            to="https://guides.getalby.com/user-guide/alby-hub/faq/what-to-do-during-times-of-high-onchain-fees"
             size={"sm"}
           >
             Learn more
           </ExternalLinkButton>
           <ExternalLinkButton
-            to="https://mempool.space"
+            to={info.mempoolUrl}
             size={"sm"}
             variant="secondary"
           >

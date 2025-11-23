@@ -23,7 +23,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Relay, event *nostr.Event, lnClient lnclient.LNClient) {
+func (svc *nip47Service) HandleEvent(ctx context.Context, pool nostrmodels.SimplePool, event *nostr.Event, lnClient lnclient.LNClient) {
 	var nip47Response *models.Response
 	logger.Logger.WithFields(logrus.Fields{
 		"requestEventNostrId": event.ID,
@@ -74,6 +74,14 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		return
 	}
 
+	now := time.Now()
+	err = svc.db.Model(&app).Update("last_used_at", &now).Error
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"it": app.ID,
+		}).WithError(err).Error("Failed to update app last used time")
+	}
+
 	logger.Logger.WithFields(logrus.Fields{
 		"requestEventNostrId": event.ID,
 		"eventKind":           event.Kind,
@@ -94,20 +102,9 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	}
 
 	encryption := constants.ENCRYPTION_TYPE_NIP04
-	encryptionTag := event.Tags.GetFirst([]string{"encryption"})
+	encryptionTag := event.Tags.Find("encryption")
 	if encryptionTag != nil {
-		encryption = encryptionTag.Value()
-	}
-
-	// TODO: Remove version tag after 01-06-2025
-	if encryptionTag == nil {
-		vTag := event.Tags.GetFirst([]string{"v"})
-		if vTag != nil && vTag.Value() != "" {
-			version := vTag.Value()
-			if version == "1.0" {
-				encryption = constants.ENCRYPTION_TYPE_NIP44_V2
-			}
-		}
+		encryption = encryptionTag[1]
 	}
 
 	nip47Cipher, err := cipher.NewNip47Cipher(encryption, app.AppPubkey, appWalletPrivKey)
@@ -120,8 +117,10 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 			"encryption":          encryption,
 		}).WithError(err).Error("Failed to initialize cipher")
 
-		requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
-		err = svc.db.Save(&requestEvent).Error
+		err = svc.db.
+			Model(&requestEvent).
+			Update("state", db.REQUEST_EVENT_STATE_HANDLER_ERROR).
+			Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"appPubkey": event.PubKey,
@@ -156,13 +155,15 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 				"eventKind":           event.Kind,
 			}).WithError(err).Error("Failed to process event")
 		}
-		svc.publishResponseEvent(ctx, relay, &requestEvent, resp, &app)
+		svc.publishResponseEvent(ctx, pool, &requestEvent, resp, &app)
 
 		return
 	}
 
-	requestEvent.AppId = &app.ID
-	err = svc.db.Save(&requestEvent).Error
+	err = svc.db.
+		Model(&requestEvent).
+		Update("app_id", app.ID).
+		Error
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"appPubkey": event.PubKey,
@@ -181,10 +182,12 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 				"eventKind":           event.Kind,
 			}).WithError(err).Error("Failed to process event")
 		}
-		svc.publishResponseEvent(ctx, relay, &requestEvent, resp, &app)
+		svc.publishResponseEvent(ctx, pool, &requestEvent, resp, &app)
 
-		requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
-		err = svc.db.Save(&requestEvent).Error
+		err = svc.db.
+			Model(&requestEvent).
+			Update("state", db.REQUEST_EVENT_STATE_HANDLER_ERROR).
+			Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"appPubkey": event.PubKey,
@@ -203,8 +206,10 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 			"appId":               app.ID,
 		}).WithError(err).Error("Failed to decrypt content")
 
-		requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
-		err = svc.db.Save(&requestEvent).Error
+		err = svc.db.
+			Model(&requestEvent).
+			Update("state", db.REQUEST_EVENT_STATE_HANDLER_ERROR).
+			Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"appPubkey": event.PubKey,
@@ -227,7 +232,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 
 		nip47Response = &models.Response{
 			Error: &models.Error{
-				Code:    constants.ERROR_INTERNAL,
+				Code:    constants.ERROR_BAD_REQUEST,
 				Message: fmt.Sprintf("failed to decrypt: %s", decryptionErr.Error()),
 			},
 		}
@@ -239,7 +244,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 				"eventKind":           event.Kind,
 			}).WithError(err).Error("Failed to process event")
 		}
-		svc.publishResponseEvent(ctx, relay, &requestEvent, resp, &app)
+		svc.publishResponseEvent(ctx, pool, &requestEvent, resp, &app)
 
 		return
 	}
@@ -251,8 +256,10 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 			"eventKind":           event.Kind,
 		}).WithError(err).Error("Failed to process event")
 
-		requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
-		err = svc.db.Save(&requestEvent).Error
+		err = svc.db.
+			Model(&requestEvent).
+			Update("state", db.REQUEST_EVENT_STATE_HANDLER_ERROR).
+			Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"appPubkey": event.PubKey,
@@ -262,13 +269,15 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 		return
 	}
 
-	requestEvent.Method = nip47Request.Method
-	requestEvent.ContentData = payload
-	svc.db.Save(&requestEvent) // we ignore potential DB errors here as this only saves the method and content data
-
+	// we ignore potential DB errors here as this only saves the method and content data
+	svc.db.Model(&requestEvent).Updates(map[string]interface{}{
+		"method":       nip47Request.Method,
+		"content_data": payload,
+	})
 	// TODO: replace with a channel
 	// TODO: update all previous occurrences of svc.publishResponseEvent to also use the channel
 	publishResponse := func(nip47Response *models.Response, tags nostr.Tags) {
+		var state string
 		resp, err := svc.CreateResponse(event, nip47Response, tags, nip47Cipher, appWalletPrivKey)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
@@ -276,9 +285,9 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 				"eventKind":           event.Kind,
 				"appId":               app.ID,
 			}).WithError(err).Error("Failed to create response")
-			requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
+			state = db.REQUEST_EVENT_STATE_HANDLER_ERROR
 		} else {
-			err = svc.publishResponseEvent(ctx, relay, &requestEvent, resp, &app)
+			err = svc.publishResponseEvent(ctx, pool, &requestEvent, resp, &app)
 			if err != nil {
 				logger.Logger.WithFields(logrus.Fields{
 					"requestEventNostrId":  event.ID,
@@ -286,18 +295,21 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 					"eventKind":            event.Kind,
 					"appId":                app.ID,
 				}).WithError(err).Error("Failed to publish event")
-				requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_ERROR
+				state = db.REQUEST_EVENT_STATE_HANDLER_ERROR
 			} else {
-				requestEvent.State = db.REQUEST_EVENT_STATE_HANDLER_EXECUTED
 				logger.Logger.WithFields(logrus.Fields{
 					"requestEventNostrId":  event.ID,
 					"responseEventNostrId": resp.ID,
 					"eventKind":            event.Kind,
 					"appId":                app.ID,
 				}).Debug("Published response")
+				state = db.REQUEST_EVENT_STATE_HANDLER_EXECUTED
 			}
 		}
-		err = svc.db.Save(&requestEvent).Error
+		err = svc.db.
+			Model(&requestEvent).
+			Update("state", state).
+			Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"appPubkey": event.PubKey,
@@ -410,6 +422,15 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 	case models.CREATE_CONNECTION_METHOD:
 		controller.
 			HandleCreateConnectionEvent(ctx, nip47Request, requestEvent.ID, publishResponse)
+	case models.MAKE_HOLD_INVOICE_METHOD:
+		controller.
+			HandleMakeHoldInvoiceEvent(ctx, nip47Request, requestEvent.ID, app.ID, publishResponse)
+	case models.CANCEL_HOLD_INVOICE_METHOD:
+		controller.
+			HandleCancelHoldInvoiceEvent(ctx, nip47Request, requestEvent.ID, app.ID, publishResponse)
+	case models.SETTLE_HOLD_INVOICE_METHOD:
+		controller.
+			HandleSettleHoldInvoiceEvent(ctx, nip47Request, requestEvent.ID, app.ID, publishResponse)
 	default:
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
@@ -455,7 +476,7 @@ func (svc *nip47Service) CreateResponse(initialEvent *nostr.Event, content inter
 	return resp, nil
 }
 
-func (svc *nip47Service) publishResponseEvent(ctx context.Context, relay nostrmodels.Relay, requestEvent *db.RequestEvent, resp *nostr.Event, app *db.App) error {
+func (svc *nip47Service) publishResponseEvent(ctx context.Context, pool nostrmodels.SimplePool, requestEvent *db.RequestEvent, resp *nostr.Event, app *db.App) error {
 	var appId *uint
 	if app != nil {
 		appId = &app.ID
@@ -471,9 +492,27 @@ func (svc *nip47Service) publishResponseEvent(ctx context.Context, relay nostrmo
 		return err
 	}
 
-	err = relay.Publish(ctx, *resp)
-	if err != nil {
-		responseEvent.State = db.RESPONSE_EVENT_STATE_PUBLISH_FAILED
+	updateColumns := make(map[string]interface{})
+	publishResultChannel := pool.PublishMany(ctx, svc.cfg.GetRelayUrls(), *resp)
+
+	publishSuccessful := false
+	for result := range publishResultChannel {
+		if result.Error == nil {
+			publishSuccessful = true
+		} else {
+			logger.Logger.WithFields(logrus.Fields{
+				"requestEventId":       requestEvent.ID,
+				"requestNostrEventId":  requestEvent.NostrId,
+				"appId":                appId,
+				"responseEventId":      responseEvent.ID,
+				"responseNostrEventId": resp.ID,
+				"relay":                result.RelayURL,
+			}).WithError(result.Error).Error("failed to publish response event to relay")
+		}
+	}
+
+	if !publishSuccessful {
+		updateColumns["state"] = db.RESPONSE_EVENT_STATE_PUBLISH_FAILED
 		logger.Logger.WithFields(logrus.Fields{
 			"requestEventId":       requestEvent.ID,
 			"requestNostrEventId":  requestEvent.NostrId,
@@ -482,8 +521,8 @@ func (svc *nip47Service) publishResponseEvent(ctx context.Context, relay nostrmo
 			"responseNostrEventId": resp.ID,
 		}).WithError(err).Error("Failed to publish reply")
 	} else {
-		responseEvent.State = db.RESPONSE_EVENT_STATE_PUBLISH_CONFIRMED
-		responseEvent.RepliedAt = time.Now()
+		updateColumns["state"] = db.RESPONSE_EVENT_STATE_PUBLISH_CONFIRMED
+		updateColumns["replied_at"] = time.Now()
 		logger.Logger.WithFields(logrus.Fields{
 			"requestEventId":       requestEvent.ID,
 			"requestNostrEventId":  requestEvent.NostrId,
@@ -493,7 +532,10 @@ func (svc *nip47Service) publishResponseEvent(ctx context.Context, relay nostrmo
 		}).Info("Published reply")
 	}
 
-	err = svc.db.Save(&responseEvent).Error
+	err = svc.db.
+		Model(&responseEvent).
+		Updates(updateColumns).
+		Error
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"requestEventId":       requestEvent.ID,

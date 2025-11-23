@@ -1,5 +1,6 @@
 import { InfoIcon } from "lucide-react";
 import { ChannelWarning } from "src/components/channels/ChannelWarning";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading.tsx";
 import { Badge } from "src/components/ui/badge.tsx";
 import {
@@ -23,22 +24,25 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip.tsx";
-import { formatAmount } from "src/lib/utils.ts";
-import { Channel, Node } from "src/types";
+import { useNodeDetails } from "src/hooks/useNodeDetails";
+import { Channel, LongUnconfirmedZeroConfChannel } from "src/types";
 import { ChannelDropdownMenu } from "./ChannelDropdownMenu";
 
 type ChannelsTableProps = {
   channels?: Channel[];
-  nodes?: Node[];
+  longUnconfirmedZeroConfChannels: LongUnconfirmedZeroConfChannel[];
 };
 
-export function ChannelsTable({ channels, nodes }: ChannelsTableProps) {
+export function ChannelsTable({
+  channels,
+  longUnconfirmedZeroConfChannels,
+}: ChannelsTableProps) {
   if (channels && !channels.length) {
     return null;
   }
 
   return (
-    <Card>
+    <Card className="hidden lg:block">
       <CardHeader>
         <CardTitle className="text-2xl">Channels</CardTitle>
       </CardHeader>
@@ -58,7 +62,7 @@ export function ChannelsTable({ channels, nodes }: ChannelsTableProps) {
                         <InfoIcon className="h-3 w-3 shrink-0" />
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent className="w-[400px]">
+                    <TooltipContent>
                       The type of lightning channel, By default private channel
                       is recommended. If you a podcaster or musician and expect
                       to receive keysend or Value4Value payments you will need a
@@ -79,7 +83,7 @@ export function ChannelsTable({ channels, nodes }: ChannelsTableProps) {
                         <InfoIcon className="h-3 w-3 shrink-0" />
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent className="w-[400px]">
+                    <TooltipContent>
                       Total Spending and Receiving capacity of your lightning
                       channel.
                     </TooltipContent>
@@ -95,7 +99,7 @@ export function ChannelsTable({ channels, nodes }: ChannelsTableProps) {
                         <InfoIcon className="h-3 w-3 shrink-0" />
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent className="w-[400px]">
+                    <TooltipContent>
                       Funds each participant sets aside to discourage cheating
                       by ensuring each party has something at stake. This
                       reserve cannot be spent during the channel's lifetime and
@@ -112,7 +116,7 @@ export function ChannelsTable({ channels, nodes }: ChannelsTableProps) {
                   <div>Receiving</div>
                 </div>
               </TableHead>
-              <TableHead className="w-[1px]"></TableHead>
+              <TableHead className="w-px"></TableHead>
               <TableHead className="w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
@@ -127,90 +131,17 @@ export function ChannelsTable({ channels, nodes }: ChannelsTableProps) {
                       : 1
                   )
                   .map((channel) => {
-                    const node = nodes?.find(
-                      (n) => n.public_key === channel.remotePubkey
-                    );
-                    const alias = node?.alias || "Unknown";
-                    const capacity =
-                      channel.localBalance + channel.remoteBalance;
-
+                    const unconfirmedChannel =
+                      longUnconfirmedZeroConfChannels.find(
+                        (uc) => uc.id === channel.id
+                      );
                     return (
-                      <TableRow key={channel.id} className="channel">
-                        <TableCell>
-                          <span className="font-semibold text-sm mr-2">
-                            {alias}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          {channel.public ? "Public" : "Private"}
-                        </TableCell>
-                        <TableCell>
-                          {channel.status == "online" ? (
-                            <Badge variant="positive">Online</Badge>
-                          ) : channel.status == "opening" ? (
-                            <Badge variant="outline">Opening</Badge>
-                          ) : (
-                            <Badge variant="warning">Offline</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell title={capacity / 1000 + " sats"}>
-                          {formatAmount(capacity)} sats
-                        </TableCell>
-                        <TableCell
-                          title={channel.unspendablePunishmentReserve + " sats"}
-                        >
-                          {channel.localBalance <
-                            channel.unspendablePunishmentReserve * 1000 && (
-                            <>
-                              {formatAmount(
-                                Math.min(
-                                  channel.localBalance,
-                                  channel.unspendablePunishmentReserve * 1000
-                                )
-                              )}{" "}
-                              /{" "}
-                            </>
-                          )}
-                          {formatAmount(
-                            channel.unspendablePunishmentReserve * 1000
-                          )}{" "}
-                          sats
-                        </TableCell>
-                        <TableCell>
-                          <div className="relative">
-                            <Progress
-                              value={
-                                (channel.localSpendableBalance / capacity) * 100
-                              }
-                              className="h-6 absolute"
-                            />
-                            <div className="flex flex-row w-full justify-between px-2 text-xs items-center h-6 mix-blend-exclusion text-white">
-                              <span
-                                title={
-                                  channel.localSpendableBalance / 1000 + " sats"
-                                }
-                              >
-                                {formatAmount(channel.localSpendableBalance)}{" "}
-                                sats
-                              </span>
-                              <span
-                                title={channel.remoteBalance / 1000 + " sats"}
-                              >
-                                {formatAmount(channel.remoteBalance)} sats
-                              </span>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <ChannelWarning channel={channel} />
-                        </TableCell>
-                        <TableCell>
-                          <ChannelDropdownMenu
-                            alias={alias}
-                            channel={channel}
-                          />
-                        </TableCell>
-                      </TableRow>
+                      <ChannelTableRow
+                        key={channel.id}
+                        channel={channel}
+                        unconfirmedChannel={unconfirmedChannel}
+                        hasMultipleChannels={channels.length > 1}
+                      />
                     );
                   })}
               </>
@@ -226,5 +157,91 @@ export function ChannelsTable({ channels, nodes }: ChannelsTableProps) {
         </Table>
       </CardContent>
     </Card>
+  );
+}
+
+type ChannelTableRowProps = {
+  channel: Channel;
+  unconfirmedChannel: LongUnconfirmedZeroConfChannel | undefined;
+  hasMultipleChannels: boolean;
+};
+
+function ChannelTableRow({
+  channel,
+  unconfirmedChannel,
+  hasMultipleChannels,
+}: ChannelTableRowProps) {
+  const { data: peerDetails } = useNodeDetails(channel.remotePubkey);
+  const capacity = channel.localBalance + channel.remoteBalance;
+  const alias = peerDetails?.alias || "Unknown";
+
+  return (
+    <TableRow key={channel.id} className="channel">
+      <TableCell>
+        <span className="font-semibold text-sm mr-2">{alias}</span>
+      </TableCell>
+      <TableCell>{channel.public ? "Public" : "Private"}</TableCell>
+      <TableCell>
+        {channel.status == "online" ? (
+          unconfirmedChannel ? (
+            <Badge variant="outline" title={unconfirmedChannel.message}>
+              Unconfirmed
+            </Badge>
+          ) : (
+            <Badge variant="positive">Online</Badge>
+          )
+        ) : channel.status == "opening" ? (
+          <Badge variant="outline">Opening</Badge>
+        ) : (
+          <Badge variant="warning">Offline</Badge>
+        )}
+      </TableCell>
+      <TableCell>
+        <FormattedBitcoinAmount amount={capacity} />
+      </TableCell>
+      <TableCell title={channel.unspendablePunishmentReserve + " sats"}>
+        {channel.localBalance < channel.unspendablePunishmentReserve * 1000 && (
+          <>
+            <FormattedBitcoinAmount
+              amount={Math.min(
+                channel.localBalance,
+                channel.unspendablePunishmentReserve * 1000
+              )}
+              showSymbol={false}
+            />{" "}
+            /{" "}
+          </>
+        )}
+        <FormattedBitcoinAmount
+          amount={channel.unspendablePunishmentReserve * 1000}
+        />
+      </TableCell>
+      <TableCell>
+        <div className="relative">
+          <Progress
+            value={(channel.localSpendableBalance / capacity) * 100}
+            className="h-6 absolute"
+          />
+          <div className="flex flex-row w-full justify-between px-2 text-xs items-center h-6 mix-blend-exclusion text-white">
+            <span>
+              <FormattedBitcoinAmount amount={channel.localSpendableBalance} />
+            </span>
+            <span>
+              <FormattedBitcoinAmount amount={channel.remoteBalance} />
+            </span>
+          </div>
+        </div>
+      </TableCell>
+      <TableCell>
+        <ChannelWarning channel={channel} />
+      </TableCell>
+      <TableCell>
+        <ChannelDropdownMenu
+          alias={alias}
+          channel={channel}
+          hasMultipleChannels={hasMultipleChannels}
+        />
+      </TableCell>
+    </TableRow>
   );
 }

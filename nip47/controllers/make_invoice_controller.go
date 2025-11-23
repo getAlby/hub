@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 
-	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/nbd-wtf/go-nostr"
@@ -31,17 +30,18 @@ func (controller *nip47Controller) HandleMakeInvoiceEvent(ctx context.Context, n
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
+		"app_id":           appId,
 		"request_event_id": requestEventId,
 		"amount":           makeInvoiceParams.Amount,
 		"description":      makeInvoiceParams.Description,
 		"description_hash": makeInvoiceParams.DescriptionHash,
 		"expiry":           makeInvoiceParams.Expiry,
 		"metadata":         makeInvoiceParams.Metadata,
-	}).Info("Making invoice")
+	}).Debug("Handling make_invoice request")
 
 	expiry := makeInvoiceParams.Expiry
 
-	transaction, err := controller.transactionsService.MakeInvoice(ctx, makeInvoiceParams.Amount, makeInvoiceParams.Description, makeInvoiceParams.DescriptionHash, expiry, makeInvoiceParams.Metadata, controller.lnClient, &appId, &requestEventId)
+	transaction, err := controller.transactionsService.MakeInvoice(ctx, makeInvoiceParams.Amount, makeInvoiceParams.Description, makeInvoiceParams.DescriptionHash, expiry, makeInvoiceParams.Metadata, controller.lnClient, &appId, &requestEventId, nil)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,
@@ -53,10 +53,7 @@ func (controller *nip47Controller) HandleMakeInvoiceEvent(ctx context.Context, n
 
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
-			Error: &models.Error{
-				Code:    constants.ERROR_INTERNAL,
-				Message: err.Error(),
-			},
+			Error:      mapNip47Error(err),
 		}, nostr.Tags{})
 		return
 	}

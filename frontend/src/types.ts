@@ -1,14 +1,14 @@
 import {
-  Bell,
-  CirclePlus,
-  Crown,
-  HandCoins,
-  Info,
+  BellIcon,
+  CirclePlusIcon,
+  CrownIcon,
+  HandCoinsIcon,
+  InfoIcon,
   LucideIcon,
-  NotebookTabs,
-  PenLine,
-  Search,
-  WalletMinimal,
+  NotebookTabsIcon,
+  PenLineIcon,
+  SearchIcon,
+  WalletMinimalIcon,
 } from "lucide-react";
 
 export type BackendType = "LND" | "LDK" | "PHOENIX" | "CASHU" | "ARK";
@@ -24,7 +24,10 @@ export type Nip47RequestMethod =
   | "list_transactions"
   | "sign_message"
   | "multi_pay_invoice"
-  | "multi_pay_keysend";
+  | "multi_pay_keysend"
+  | "make_hold_invoice"
+  | "settle_hold_invoice"
+  | "cancel_hold_invoice";
 
 export type BudgetRenewalType =
   | "daily"
@@ -52,15 +55,15 @@ export type ScopeIconMap = {
 };
 
 export const scopeIconMap: ScopeIconMap = {
-  get_balance: WalletMinimal,
-  get_info: Info,
-  list_transactions: NotebookTabs,
-  lookup_invoice: Search,
-  make_invoice: CirclePlus,
-  pay_invoice: HandCoins,
-  sign_message: PenLine,
-  notifications: Bell,
-  superuser: Crown,
+  get_balance: WalletMinimalIcon,
+  get_info: InfoIcon,
+  list_transactions: NotebookTabsIcon,
+  lookup_invoice: SearchIcon,
+  make_invoice: CirclePlusIcon,
+  pay_invoice: HandCoinsIcon,
+  sign_message: PenLineIcon,
+  notifications: BellIcon,
+  superuser: CrownIcon,
 };
 
 export type WalletCapabilities = {
@@ -116,7 +119,7 @@ export interface App {
   walletPubkey: string;
   createdAt: string;
   updatedAt: string;
-  lastEventAt?: string;
+  lastUsedAt?: string;
   expiresAt?: string;
   isolated: boolean;
   balance: number;
@@ -149,6 +152,7 @@ export interface InfoResponse {
   albyUserIdentifier: string;
   network?: Network;
   version: string;
+  relays: { url: string; online: boolean }[];
   unlocked: boolean;
   enableAdvancedSetup: boolean;
   startupState: string;
@@ -157,17 +161,30 @@ export interface InfoResponse {
   autoUnlockPasswordSupported: boolean;
   autoUnlockPasswordEnabled: boolean;
   currency: string;
+  nodeAlias: string;
+  mempoolUrl: string;
+  bitcoinDisplayFormat?: BitcoinDisplayFormat;
 }
+
+export type BitcoinDisplayFormat = "sats" | "bip177";
 
 export type HealthAlarmKind =
   | "alby_service"
   | "node_not_ready"
   | "channels_offline"
-  | "nostr_relay_offline";
+  | "nostr_relay_offline"
+  | "vss_no_subscription";
 
 export type HealthAlarm = {
   kind: HealthAlarmKind;
-  rawDetails: unknown;
+  rawDetails?: unknown;
+};
+export type AlbyInfoIncident = {
+  name: string;
+  started: string;
+  status: string;
+  impact: string;
+  url: string;
 };
 
 export type HealthResponse = {
@@ -176,10 +193,61 @@ export type HealthResponse = {
 
 export type Network = "bitcoin" | "testnet" | "signet";
 
-export type AppMetadata = { app_store_app_id?: string } & Record<
-  string,
-  unknown
->;
+export type AppMetadata = {
+  app_store_app_id?: string;
+  lud16?: string;
+} & Record<string, unknown>;
+
+export type AutoSwapConfig = {
+  type: "out";
+  enabled: boolean;
+  balanceThreshold: number;
+  swapAmount: number;
+  destination: string;
+};
+
+export type SwapInfo = {
+  albyServiceFee: number;
+  boltzServiceFee: number;
+  boltzNetworkFee: number;
+  minAmount: number;
+  maxAmount: number;
+};
+
+export type BaseSwap = {
+  id: string;
+  sendAmount: number;
+  lockupAddress: string;
+  paymentHash: string;
+  invoice: string;
+  autoSwap: boolean;
+  usedXpub: boolean;
+  boltzPubkey: string;
+  createdAt: string;
+  updatedAt: string;
+  lockupTxId?: string;
+  claimTxId?: string;
+  receiveAmount?: number;
+};
+
+export type SwapIn = BaseSwap & {
+  type: "in";
+  state: "PENDING" | "SUCCESS" | "FAILED" | "REFUNDED";
+  refundAddress?: string;
+};
+
+export type SwapOut = BaseSwap & {
+  type: "out";
+  state: "PENDING" | "SUCCESS" | "FAILED";
+  destinationAddress: string;
+};
+
+export type Swap = SwapIn | SwapOut;
+
+export type SwapResponse = {
+  swapId: string;
+  paymentHash: string;
+};
 
 export interface MnemonicResponse {
   mnemonic: string;
@@ -204,20 +272,21 @@ export interface CreateAppResponse {
   pairingUri: string;
   pairingPublicKey: string;
   pairingSecretKey: string;
-  relayUrl: string;
+  relayUrls: string[];
   walletPubkey: string;
   lud16: string;
   returnTo: string;
 }
 
 export type UpdateAppRequest = {
-  name: string;
-  maxAmount: number;
-  budgetRenewal: string;
-  expiresAt: string | undefined;
-  scopes: Scope[];
+  name?: string;
+  maxAmount?: number;
+  budgetRenewal?: string;
+  expiresAt?: string | undefined;
+  updateExpiresAt?: boolean;
+  scopes?: Scope[];
   metadata?: AppMetadata;
-  isolated: boolean;
+  isolated?: boolean;
 };
 
 export type Channel = {
@@ -233,6 +302,7 @@ export type Channel = {
   confirmations?: number;
   confirmationsRequired?: number;
   forwardingFeeBaseMsat: number;
+  forwardingFeeProportionalMillionths: number;
   unspendablePunishmentReserve: number;
   counterpartyUnspendablePunishmentReserve: number;
   error?: string;
@@ -277,6 +347,10 @@ export type PayInvoiceResponse = {
   fee: number;
 };
 
+export type CreateOfferRequest = {
+  description: string;
+};
+
 export type CreateInvoiceRequest = {
   amount: number;
   description: string;
@@ -312,14 +386,50 @@ export type OnchainBalanceResponse = {
   pendingSweepBalancesDetails: PendingBalancesDetails[];
 };
 
+// from https://mempool.space/docs/api/rest#get-address-utxo
+export type MempoolUtxo = {
+  txid: string;
+  vout: number;
+  status: {
+    confirmed: boolean;
+    block_height?: number;
+    block_hash?: string;
+    block_time?: number;
+  };
+  value: number;
+};
+
 // from https://mempool.space/docs/api/rest#get-node-stats
-export type Node = {
+export type MempoolNode = {
   alias: string;
   public_key: string;
   color: string;
   active_channel_count: number;
   sockets: string;
 };
+
+// from https://mempool.space/docs/api/rest#get-transaction
+export type MempoolTransaction = {
+  txid: string;
+  //version: 1,
+  //locktime: 0,
+  // vin: [],
+  //vout: [],
+  size: number;
+  weight: number;
+  fee: number;
+  status:
+    | {
+        confirmed: true;
+        block_height: number;
+        block_hash: string;
+        block_time: number;
+      }
+    | { confirmed: false };
+};
+
+export type LongUnconfirmedZeroConfChannel = { id: string; message: string };
+
 export type SetupNodeInfo = Partial<{
   backendType: BackendType;
 
@@ -336,6 +446,23 @@ export type SetupNodeInfo = Partial<{
 
 export type LSPType = "LSPS1";
 
+export type LSPChannelOfferPaymentMethod =
+  | "card"
+  | "wallet"
+  | "prepaid"
+  | "included";
+
+export type LSPChannelOffer = {
+  lspName: string;
+  lspDescription: string;
+  lspContactUrl: string;
+  lspBalanceSat: number;
+  feeTotalSat: number;
+  feeTotalUsd: number;
+  currentPaymentMethod: LSPChannelOfferPaymentMethod;
+  terms: string;
+};
+
 export type RecommendedChannelPeer = {
   network: Network;
   image: string;
@@ -344,6 +471,7 @@ export type RecommendedChannelPeer = {
   maximumChannelSize: number;
   note: string;
   publicChannelsAllowed: boolean;
+  description: string;
 } & (
   | {
       paymentMethod: "onchain";
@@ -352,9 +480,15 @@ export type RecommendedChannelPeer = {
     }
   | {
       paymentMethod: "lightning";
-      lspType: LSPType;
-      lspUrl: string;
+      type: LSPType;
+      identifier: string;
+      contactUrl: string;
+      terms?: string;
       pubkey?: string;
+      maximumChannelExpiryBlocks?: number;
+      feeTotalSat1m?: number;
+      feeTotalSat2m?: number;
+      feeTotalSat3m?: number;
     }
 );
 
@@ -385,25 +519,24 @@ export type AlbyMe = {
   shared_node: boolean;
   hub: {
     name?: string;
+    config?: {
+      region?: string;
+    };
   };
   subscription: {
-    buzz: boolean;
+    plan_code: string;
   };
-};
-
-export type AlbyBalance = {
-  sats: number;
 };
 
 export type LSPOrderRequest = {
   amount: number;
   lspType: LSPType;
-  lspUrl: string;
+  lspIdentifier: string;
   public: boolean;
 };
 
 export type LSPOrderResponse = {
-  invoice: string;
+  invoice?: string;
   fee: number;
   invoiceAmount: number;
   incomingLiquidity: number;
@@ -451,21 +584,31 @@ export type Transaction = {
   updatedAt: string;
   createdAt: string;
   settledAt: string | undefined;
-  metadata?: {
-    comment?: string; // LUD-12
-    payer_data?: {
-      email?: string;
-      name?: string;
-      pubkey?: string;
-    }; // LUD-18
-    nostr?: {
-      pubkey: string;
-      tags: string[][];
-    }; // NIP-57
-  } & Record<string, unknown>;
+  metadata?: TransactionMetadata;
   boostagram?: Boostagram;
   failureReason: string;
 };
+
+export type TransactionMetadata = {
+  comment?: string; // LUD-12
+  payer_data?: {
+    email?: string;
+    name?: string;
+    pubkey?: string;
+  }; // LUD-18
+  recipient_data?: {
+    identifier?: string;
+  }; // LUD-18
+  nostr?: {
+    pubkey: string;
+    tags: string[][];
+  }; // NIP-57
+  offer?: {
+    id: string;
+    payer_note: string;
+  }; // BOLT-12
+  swap_id?: string;
+} & Record<string, unknown>;
 
 export type Boostagram = {
   appName: string;
@@ -482,6 +625,20 @@ export type Boostagram = {
   time: string;
   action: "boost";
   valueMsatTotal: number;
+};
+
+export type OnchainTransaction = {
+  amountSat: number;
+  createdAt: number;
+  type: "incoming" | "outgoing";
+  state: "confirmed" | "unconfirmed";
+  numConfirmations: number;
+  txId: string;
+};
+
+export type ListAppsResponse = {
+  apps: App[];
+  totalCount: number;
 };
 
 export type ListTransactionsResponse = {
@@ -508,11 +665,17 @@ export type OnchainOrder = {
 export type LightningOrder = {
   paymentMethod: "lightning";
   lspType: LSPType;
-  lspUrl: string;
+  lspIdentifier: string;
 } & NewChannelOrderCommon;
 
 export type NewChannelOrder = OnchainOrder | LightningOrder;
 
 export type AuthTokenResponse = {
   token: string;
+};
+
+export type GetForwardsResponse = {
+  outboundAmountForwardedMsat: number;
+  totalFeeEarnedMsat: number;
+  numForwards: number;
 };

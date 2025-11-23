@@ -1,6 +1,7 @@
 services:
   albyhub:
-    platform: linux/amd64
+    # you can manually specify the platform if you use something other than linux/amd64,linux/arm64 e.g.
+    #platform: linux/arm64/v8
     container_name: albyhub
     image: ghcr.io/getalby/hub:latest
     volumes:
@@ -9,4 +10,4 @@ services:
       - "8080:8080"
     environment:
       - WORK_DIR=/data/albyhub
-      - LOG_EVENTS=true
+    stop_grace_period: 300s

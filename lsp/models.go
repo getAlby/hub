@@ -22,19 +22,6 @@ func OlympusLSP() LSP {
 	return lsp
 }
 
-func AlbyPlebsLSP() LSP {
-	lsp := LSP{
-		Pubkey: "029ca15ad2ea3077f5f0524c4c9bc266854c14b9fc81b9cc3d6b48e2460af13f65",
-	}
-	return lsp
-}
-func AlbyMutinynetPlebsLSP() LSP {
-	lsp := LSP{
-		Pubkey: "02f7029c14f3d805843e065d42e9bdc57f5f414249f335906bbe282ff99b2be17a",
-	}
-	return lsp
-}
-
 func MegalithMutinynetLSP() LSP {
 	lsp := LSP{
 		Pubkey: "03e30fda71887a916ef5548a4d02b06fe04aaa1a8de9e24134ce7f139cf79d7579",

@@ -1,4 +1,4 @@
-import { Footprints } from "lucide-react";
+import { FootprintsIcon } from "lucide-react";
 import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
 import {
@@ -39,11 +39,11 @@ export function ChannelWaitingForConfirmations({
       </Card>
       <div className="w-full mt-40 flex flex-col items-center justify-center">
         <EmptyState
-          icon={Footprints}
+          icon={FootprintsIcon}
           title="Browse While You Wait"
           description="Feel free to leave this page or browse around Alby Hub! We'll send you an email as soon as your channel is active."
           buttonText="Explore Apps"
-          buttonLink="/appstore"
+          buttonLink="/apps?tab=app-store"
         />
       </div>
     </div>

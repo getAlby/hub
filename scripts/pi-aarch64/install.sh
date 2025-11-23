@@ -1,3 +1,5 @@
+VERIFIER_URL="https://getalby.com/install/hub/verify.sh"
+
 echo ""
 echo ""
 echo "⚡️ Welcome to Alby Hub"
@@ -9,6 +11,26 @@ sudo mkdir -p /opt/albyhub
 sudo chown -R $USER:$USER /opt/albyhub
 cd /opt/albyhub
 wget https://getalby.com/install/hub/server-linux-aarch64.tar.bz2
+
+# add an update script to keep the Hub up to date
+# run this to update the hub
+wget https://raw.githubusercontent.com/getAlby/hub/master/scripts/pi-aarch64/update.sh
+chmod +x update.sh
+
+if [[ ! -f "verify.sh" ]]; then
+  echo "Downloading the verification script..."
+  if ! wget -q "$VERIFIER_URL"; then
+    echo "❌ Failed to download the verification script." >&2
+    exit 1
+  fi
+  chmod +x verify.sh
+fi
+
+./verify.sh server-linux-aarch64.tar.bz2 albyhub-Server-Linux-aarch64.tar.bz2
+if [[ $? -ne 0 ]]; then
+  echo "❌ Verification failed, aborting installation"
+  exit 1
+fi
 
 # Extract archives
 tar -xvf server-linux-aarch64.tar.bz2
@@ -49,7 +71,6 @@ CPUQuota=90%
 Environment="PORT=$PORT"
 Environment="WORK_DIR=/opt/albyhub/data"
 Environment="LDK_ESPLORA_SERVER=https://electrs.getalbypro.com"
-Environment="LOG_EVENTS=true"
 Environment="LDK_GOSSIP_SOURCE="
 
 [Install]

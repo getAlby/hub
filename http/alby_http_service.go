@@ -13,29 +13,29 @@ import (
 )
 
 type AlbyHttpService struct {
+	albySvc      alby.AlbyService
 	albyOAuthSvc alby.AlbyOAuthService
 	appConfig    *config.AppConfig
 	svc          service.Service
 }
 
-func NewAlbyHttpService(svc service.Service, albyOAuthSvc alby.AlbyOAuthService, appConfig *config.AppConfig) *AlbyHttpService {
+func NewAlbyHttpService(svc service.Service, albySvc alby.AlbyService, albyOAuthSvc alby.AlbyOAuthService, appConfig *config.AppConfig) *AlbyHttpService {
 	return &AlbyHttpService{
+		albySvc:      albySvc,
 		albyOAuthSvc: albyOAuthSvc,
 		appConfig:    appConfig,
 		svc:          svc,
 	}
 }
 
-func (albyHttpSvc *AlbyHttpService) RegisterSharedRoutes(restrictedApiGroup *echo.Group, e *echo.Echo) {
+func (albyHttpSvc *AlbyHttpService) RegisterSharedRoutes(readOnlyApiGroup *echo.Group, fullAccessApiGroup *echo.Group, e *echo.Echo) {
 	e.GET("/api/alby/callback", albyHttpSvc.albyCallbackHandler)
 	e.GET("/api/alby/info", albyHttpSvc.albyInfoHandler)
 	e.GET("/api/alby/rates", albyHttpSvc.albyBitcoinRateHandler)
-	restrictedApiGroup.GET("/alby/me", albyHttpSvc.albyMeHandler)
-	restrictedApiGroup.GET("/alby/balance", albyHttpSvc.albyBalanceHandler)
-	restrictedApiGroup.POST("/alby/pay", albyHttpSvc.albyPayHandler)
-	restrictedApiGroup.POST("/alby/link-account", albyHttpSvc.albyLinkAccountHandler)
-	restrictedApiGroup.POST("/alby/auto-channel", albyHttpSvc.autoChannelHandler)
-	restrictedApiGroup.POST("/alby/unlink-account", albyHttpSvc.unlinkHandler)
+	readOnlyApiGroup.GET("/alby/me", albyHttpSvc.albyMeHandler)
+	fullAccessApiGroup.POST("/alby/link-account", albyHttpSvc.albyLinkAccountHandler)
+	fullAccessApiGroup.POST("/alby/auto-channel", albyHttpSvc.autoChannelHandler)
+	fullAccessApiGroup.POST("/alby/unlink-account", albyHttpSvc.unlinkHandler)
 }
 
 func (albyHttpSvc *AlbyHttpService) autoChannelHandler(c echo.Context) error {
@@ -74,7 +74,7 @@ func (albyHttpSvc *AlbyHttpService) unlinkHandler(c echo.Context) error {
 }
 
 func (albyHttpSvc *AlbyHttpService) albyInfoHandler(c echo.Context) error {
-	info, err := albyHttpSvc.albyOAuthSvc.GetInfo(c.Request().Context())
+	info, err := albyHttpSvc.albySvc.GetInfo(c.Request().Context())
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to request alby info endpoint")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -86,7 +86,7 @@ func (albyHttpSvc *AlbyHttpService) albyInfoHandler(c echo.Context) error {
 }
 
 func (albyHttpSvc *AlbyHttpService) albyBitcoinRateHandler(c echo.Context) error {
-	rate, err := albyHttpSvc.albyOAuthSvc.GetBitcoinRate(c.Request().Context())
+	rate, err := albyHttpSvc.albySvc.GetBitcoinRate(c.Request().Context())
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get Bitcoin rate")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -113,10 +113,7 @@ func (albyHttpSvc *AlbyHttpService) albyCallbackHandler(c echo.Context) error {
 		return c.NoContent(http.StatusNoContent)
 	}
 
-	redirectUrl := albyHttpSvc.appConfig.FrontendUrl
-	if redirectUrl == "" {
-		redirectUrl = albyHttpSvc.appConfig.BaseUrl
-	}
+	redirectUrl := albyHttpSvc.appConfig.GetBaseFrontendUrl()
 
 	if redirectUrl == "" {
 		// OAuth using a custom client requires a base URL set for the callback
@@ -136,39 +133,6 @@ func (albyHttpSvc *AlbyHttpService) albyMeHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, me)
-}
-
-func (albyHttpSvc *AlbyHttpService) albyBalanceHandler(c echo.Context) error {
-	balance, err := albyHttpSvc.albyOAuthSvc.GetBalance(c.Request().Context())
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to request alby balance endpoint")
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to request alby balance endpoint: %s", err.Error()),
-		})
-	}
-
-	return c.JSON(http.StatusOK, &alby.AlbyBalanceResponse{
-		Sats: balance.Balance,
-	})
-}
-
-func (albyHttpSvc *AlbyHttpService) albyPayHandler(c echo.Context) error {
-	var payRequest alby.AlbyPayRequest
-	if err := c.Bind(&payRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Message: fmt.Sprintf("Bad request: %s", err.Error()),
-		})
-	}
-
-	err := albyHttpSvc.albyOAuthSvc.SendPayment(c.Request().Context(), payRequest.Invoice)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to request alby pay endpoint")
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to request alby pay endpoint: %s", err.Error()),
-		})
-	}
-
-	return c.NoContent(http.StatusNoContent)
 }
 
 func (albyHttpSvc *AlbyHttpService) albyLinkAccountHandler(c echo.Context) error {

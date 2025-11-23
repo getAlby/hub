@@ -6,10 +6,10 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"sync/atomic"
+	"time"
 
 	"github.com/adrg/xdg"
-	"github.com/nbd-wtf/go-nostr"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
 	"github.com/joho/godotenv"
@@ -19,6 +19,7 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/service/keys"
+	"github.com/getAlby/hub/swaps"
 	"github.com/getAlby/hub/transactions"
 	"github.com/getAlby/hub/version"
 
@@ -26,7 +27,6 @@ import (
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/nip47"
-	"github.com/getAlby/hub/nip47/models"
 )
 
 type service struct {
@@ -35,6 +35,8 @@ type service struct {
 	db                  *gorm.DB
 	lnClient            lnclient.LNClient
 	transactionsService transactions.TransactionsService
+	swapsService        swaps.SwapsService
+	albySvc             alby.AlbyService
 	albyOAuthSvc        alby.AlbyOAuthService
 	eventPublisher      events.EventPublisher
 	ctx                 context.Context
@@ -42,7 +44,7 @@ type service struct {
 	nip47Service        nip47.Nip47Service
 	appCancelFn         context.CancelFunc
 	keys                keys.Keys
-	isRelayReady        atomic.Bool
+	relayStatuses       []RelayStatus
 	startupState        string
 }
 
@@ -113,7 +115,10 @@ func NewService(ctx context.Context) (*service, error) {
 
 	keys := keys.NewKeys()
 
+	albySvc := alby.NewAlbyService(cfg)
 	albyOAuthSvc := alby.NewAlbyOAuthService(gormDB, cfg, keys, eventPublisher)
+
+	transactionsSvc := transactions.NewTransactionsService(gormDB, eventPublisher)
 
 	var wg sync.WaitGroup
 	svc := &service{
@@ -121,9 +126,10 @@ func NewService(ctx context.Context) (*service, error) {
 		ctx:                 ctx,
 		wg:                  &wg,
 		eventPublisher:      eventPublisher,
+		albySvc:             albySvc,
 		albyOAuthSvc:        albyOAuthSvc,
 		nip47Service:        nip47.NewNip47Service(gormDB, cfg, keys, eventPublisher, albyOAuthSvc),
-		transactionsService: transactions.NewTransactionsService(gormDB, eventPublisher),
+		transactionsService: transactionsSvc,
 		db:                  gormDB,
 		keys:                keys,
 	}
@@ -131,6 +137,9 @@ func NewService(ctx context.Context) (*service, error) {
 	eventPublisher.RegisterSubscriber(svc.transactionsService)
 	eventPublisher.RegisterSubscriber(svc.nip47Service)
 	eventPublisher.RegisterSubscriber(svc.albyOAuthSvc)
+	eventPublisher.RegisterSubscriber(&paymentForwardedConsumer{
+		db: gormDB,
+	})
 
 	eventPublisher.Publish(&events.Event{
 		Event: "nwc_started",
@@ -143,10 +152,6 @@ func NewService(ctx context.Context) (*service, error) {
 		startProfiler(ctx, appConfig.GoProfilerAddr)
 	}
 
-	if appConfig.DdProfilerEnabled {
-		startDataDogProfiler(ctx)
-	}
-
 	if autoUnlockPassword != "" {
 		nodeLastStartTime, _ := cfg.Get("NodeLastStartTime", "")
 		if nodeLastStartTime != "" {
@@ -154,15 +159,19 @@ func NewService(ctx context.Context) (*service, error) {
 		}
 	}
 
-	return svc, nil
-}
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				time.Sleep(10 * time.Minute)
+				svc.removeExcessEvents()
+			}
+		}
+	}()
 
-func (svc *service) createFilters(identityPubkey string) nostr.Filters {
-	filter := nostr.Filter{
-		Tags:  nostr.TagMap{"p": []string{identityPubkey}},
-		Kinds: []int{models.REQUEST_KIND},
-	}
-	return []nostr.Filter{filter}
+	return svc, nil
 }
 
 func (svc *service) noticeHandler(notice string) {
@@ -230,6 +239,10 @@ func (svc *service) GetConfig() config.Config {
 	return svc.cfg
 }
 
+func (svc *service) GetAlbySvc() alby.AlbyService {
+	return svc.albySvc
+}
+
 func (svc *service) GetAlbyOAuthSvc() alby.AlbyOAuthService {
 	return svc.albyOAuthSvc
 }
@@ -250,18 +263,72 @@ func (svc *service) GetTransactionsService() transactions.TransactionsService {
 	return svc.transactionsService
 }
 
+func (svc *service) GetSwapsService() swaps.SwapsService {
+	return svc.swapsService
+}
+
 func (svc *service) GetKeys() keys.Keys {
 	return svc.keys
 }
 
-func (svc *service) setRelayReady(ready bool) {
-	svc.isRelayReady.Store(ready)
-}
-
-func (svc *service) IsRelayReady() bool {
-	return svc.isRelayReady.Load()
+func (svc *service) GetRelayStatuses() []RelayStatus {
+	return svc.relayStatuses
 }
 
 func (svc *service) GetStartupState() string {
 	return svc.startupState
+}
+
+func (svc *service) removeExcessEvents() {
+	logger.Logger.Debug("Cleaning up excess events")
+
+	maxEvents := 1000
+	// estimated less than 1 second to delete, it should not lock the DB
+	maxEventsToDelete := 5000
+	// if we only have a few excess events, don't run the task
+	minEventsToDelete := 100
+
+	var events []db.RequestEvent
+	err := svc.db.Select("id").Order("id asc").Limit(maxEvents + maxEventsToDelete).Find(&events).Error
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch request events")
+	}
+
+	numEventsToDelete := len(events) - maxEvents
+
+	if numEventsToDelete < minEventsToDelete {
+		return
+	}
+	deleteEventsBelowId := events[numEventsToDelete].ID
+
+	logger.Logger.WithFields(logrus.Fields{
+		"amount":   numEventsToDelete,
+		"below_id": deleteEventsBelowId,
+	}).Debug("Removing excess events")
+
+	startTime := time.Now()
+	err = svc.db.Exec("delete from request_events where id < ?", deleteEventsBelowId).Error
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"amount":   numEventsToDelete,
+			"below_id": deleteEventsBelowId,
+		}).Error("Failed to delete excess request events")
+		return
+	}
+	logger.Logger.WithFields(logrus.Fields{
+		"amount":           numEventsToDelete,
+		"below_id":         deleteEventsBelowId,
+		"duration_seconds": time.Since(startTime).Seconds(),
+	}).Info("Removed excess events")
+
+	// TODO: REMOVE AFTER 2026-01-01
+	// this is needed due to cascading delete previously not working
+	err = svc.db.Exec("delete from response_events where request_id < ?", deleteEventsBelowId).Error
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"amount":   numEventsToDelete,
+			"below_id": deleteEventsBelowId,
+		}).Error("Failed to delete excess response events")
+		return
+	}
 }

@@ -1,7 +1,6 @@
-import { ToastSignature } from "src/components/ui/use-toast";
+import { toast } from "sonner";
 
-// TODO: change this function to a hook and then toast does not need to be passed in
-export async function copyToClipboard(content: string, toast: ToastSignature) {
+export async function copyToClipboard(content: string) {
   const copyPromise = new Promise((resolve, reject) => {
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(content).then(resolve).catch(reject);
@@ -27,11 +26,8 @@ export async function copyToClipboard(content: string, toast: ToastSignature) {
 
   try {
     await copyPromise;
-    toast({ title: "Copied to clipboard." });
+    toast.success("Copied to clipboard");
   } catch (e) {
-    toast({
-      title: "Failed to copy to clipboard.",
-      variant: "destructive",
-    });
+    toast.error("Failed to copy to clipboard");
   }
 }

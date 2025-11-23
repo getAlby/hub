@@ -25,11 +25,11 @@ const nip47PayInvoiceJson = `
 	}
 }
 `
-const nip47PayInvoice0AmountJson = `
+const nip47PayInvoiceZeroAmountJson = `
 {
 	"method": "pay_invoice",
 	"params": {
-		"invoice": "` + tests.Mock0AmountInvoice + `",
+		"invoice": "` + tests.MockZeroAmountInvoice + `",
 		"amount": 1234
 	}
 }
@@ -103,7 +103,7 @@ func TestHandlePayInvoiceEvent(t *testing.T) {
 	assert.Equal(t, 123, decodedMetadata.A)
 }
 
-func TestHandlePayInvoiceEvent_0Amount(t *testing.T) {
+func TestHandlePayInvoiceEvent_ZeroAmount(t *testing.T) {
 	ctx := context.TODO()
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
@@ -121,7 +121,7 @@ func TestHandlePayInvoiceEvent_0Amount(t *testing.T) {
 	assert.NoError(t, err)
 
 	nip47Request := &models.Request{}
-	err = json.Unmarshal([]byte(nip47PayInvoice0AmountJson), nip47Request)
+	err = json.Unmarshal([]byte(nip47PayInvoiceZeroAmountJson), nip47Request)
 	assert.NoError(t, err)
 
 	dbRequestEvent := &db.RequestEvent{}
@@ -141,7 +141,7 @@ func TestHandlePayInvoiceEvent_0Amount(t *testing.T) {
 
 	transactionType := constants.TRANSACTION_TYPE_OUTGOING
 	transactionsSvc := transactions.NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsSvc.LookupTransaction(ctx, tests.Mock0AmountPaymentHash, &transactionType, svc.LNClient, &app.ID)
+	transaction, err := transactionsSvc.LookupTransaction(ctx, tests.MockZeroAmountPaymentHash, &transactionType, svc.LNClient, &app.ID)
 	assert.NoError(t, err)
 	// from the request amount
 	assert.Equal(t, uint64(1234), transaction.AmountMsat)
@@ -182,7 +182,7 @@ func TestHandlePayInvoiceEvent_MalformedInvoice(t *testing.T) {
 		HandlePayInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse, nostr.Tags{})
 
 	assert.Nil(t, publishedResponse.Result)
-	assert.Equal(t, constants.ERROR_INTERNAL, publishedResponse.Error.Code)
+	assert.Equal(t, constants.ERROR_BAD_REQUEST, publishedResponse.Error.Code)
 	assert.Equal(t, "Failed to decode bolt11 invoice: bolt11 too short", publishedResponse.Error.Message)
 }
 

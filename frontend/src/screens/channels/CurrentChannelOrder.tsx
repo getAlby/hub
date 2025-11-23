@@ -1,17 +1,19 @@
 import React from "react";
 import {
   ConnectPeerRequest,
+  MempoolUtxo,
   NewChannelOrder,
-  Node,
   OpenChannelRequest,
   OpenChannelResponse,
   PayInvoiceResponse,
 } from "src/types";
 
-import { Copy, QrCode, RefreshCw } from "lucide-react";
+import { CopyIcon, QrCodeIcon, RefreshCwIcon } from "lucide-react";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { Button } from "src/components/ui/button";
@@ -23,6 +25,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   Dialog,
   DialogContent,
@@ -33,7 +36,6 @@ import {
 } from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Separator } from "src/components/ui/separator";
 import { Table, TableBody, TableCell, TableRow } from "src/components/ui/table";
 import {
@@ -42,14 +44,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
-import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 
 import { ChannelWaitingForConfirmations } from "src/components/channels/ChannelWaitingForConfirmations";
 import { PayLightningInvoice } from "src/components/PayLightningInvoice";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { useChannels } from "src/hooks/useChannels";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
+import { useNodeDetails } from "src/hooks/useNodeDetails";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
 import { usePeers } from "src/hooks/usePeers";
 import { useSyncWallet } from "src/hooks/useSyncWallet";
@@ -58,12 +62,13 @@ import { splitSocketAddress } from "src/lib/utils";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import { LSPOrderRequest, LSPOrderResponse } from "src/types";
 import { request } from "src/utils/request";
+
+// ensures React does not open a duplicate channel
+// this is a hack and will break if the user tries to open
+// 2 outbound channels without refreshing the page (I think an edge case)
 let hasStartedOpenedChannel = false;
 
 export function CurrentChannelOrder() {
-  React.useEffect(() => {
-    hasStartedOpenedChannel = false;
-  }, []);
   const order = useChannelOrderStore((store) => store.order);
   if (!order) {
     return (
@@ -124,7 +129,7 @@ function Success() {
       <p>
         To ensure you can both send and receive, make sure to balance your{" "}
         <ExternalLink
-          to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/liquidity"
+          to="https://guides.getalby.com/user-guide/alby-hub/node"
           className="underline"
         >
           channel's liquidity
@@ -132,9 +137,9 @@ function Success() {
         .
       </p>
 
-      <Link to="/home" className="flex justify-center mt-8">
-        <Button>Go to your dashboard</Button>
-      </Link>
+      <LinkButton to="/home" className="flex justify-center mt-8">
+        Go to your dashboard
+      </LinkButton>
     </div>
   );
 }
@@ -177,9 +182,8 @@ function PayBitcoinChannelOrder({ order }: { order: NewChannelOrder }) {
     throw new Error("incorrect payment method");
   }
   const { data: balances } = useBalances(true);
-  const estimatedTransactionFee = useEstimatedTransactionFee();
 
-  if (!balances || !estimatedTransactionFee) {
+  if (!balances) {
     return <Loading />;
   }
 
@@ -227,13 +231,11 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
     loadingAddress,
   } = useOnchainAddress();
 
-  const { data: mempoolAddressUtxos } = useMempoolApi<{ value: number }[]>(
+  const { data: mempoolAddressUtxos } = useMempoolApi<MempoolUtxo[]>(
     onchainAddress ? `/address/${onchainAddress}/utxo` : undefined,
-    true
+    3000
   );
   const estimatedTransactionFee = useEstimatedTransactionFee();
-
-  const { toast } = useToast();
 
   if (!onchainAddress || !balances || !estimatedTransactionFee) {
     return (
@@ -283,13 +285,13 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
           <p className="text-xs slashed-zero">
             You currently have{" "}
             <span className="font-semibold sensitive">
-              {new Intl.NumberFormat().format(balances.onchain.total)}
-            </span>{" "}
-            sats. We recommend depositing{" "}
+              <FormattedBitcoinAmount amount={balances.onchain.total * 1000} />
+            </span>
+            . We recommend depositing an additional amount of{" "}
             <span className="font-semibold">
-              {new Intl.NumberFormat().format(recommendedAmount)}
+              <FormattedBitcoinAmount amount={recommendedAmount * 1000} />
             </span>{" "}
-            sats to open this channel.
+            to open this channel.
           </p>
           <p className="text-xs text-muted-foreground">
             This amount includes cost for the channel opening and potential
@@ -306,15 +308,15 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
               variant="secondary"
               size="icon"
               onClick={() => {
-                copyToClipboard(onchainAddress, toast);
+                copyToClipboard(onchainAddress);
               }}
             >
-              <Copy className="w-4 h-4" />
+              <CopyIcon className="size-4" />
             </Button>
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="secondary" size="icon">
-                  <QrCode className="w-4 h-4" />
+                  <QrCodeIcon className="size-4" />
                 </Button>
               </DialogTrigger>
               <DialogContent>
@@ -341,7 +343,7 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
                     loading={loadingAddress}
                     className="w-9 h-9"
                   >
-                    {!loadingAddress && <RefreshCw className="w-4 h-4" />}
+                    {!loadingAddress && <RefreshCwIcon className="size-4" />}
                   </LoadingButton>
                 </TooltipTrigger>
                 <TooltipContent>Generate a new address</TooltipContent>
@@ -362,21 +364,21 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
           </CardHeader>
           {unspentAmount > 0 && (
             <CardContent className="slashed-zero">
-              {new Intl.NumberFormat().format(unspentAmount)} sats deposited
+              <FormattedBitcoinAmount amount={unspentAmount * 1000} /> deposited
             </CardContent>
           )}
         </Card>
 
-        <ExternalLink to={topupLink} className="w-full">
-          <Button className="w-full">
-            Topup with your credit card or bank account
-          </Button>
-        </ExternalLink>
-        <Link to="/channels/incoming" className="w-full">
-          <Button className="w-full" variant="secondary">
-            Need receiving capacity?
-          </Button>
-        </Link>
+        <ExternalLinkButton to={topupLink} className="w-full">
+          Topup with your credit card or bank account
+        </ExternalLinkButton>
+        <LinkButton
+          to="/channels/incoming"
+          variant="secondary"
+          className="w-full"
+        >
+          Need receiving capacity?
+        </LinkButton>
       </div>
     </div>
   );
@@ -391,32 +393,10 @@ function PayBitcoinChannelOrderWithSpendableFunds({
     throw new Error("incorrect payment method");
   }
   const { data: peers } = usePeers();
-  const [nodeDetails, setNodeDetails] = React.useState<Node | undefined>();
-  const [hasLoadedNodeDetails, setLoadedNodeDetails] = React.useState(false);
-
-  const { toast } = useToast();
 
   const { pubkey, host } = order;
 
-  const fetchNodeDetails = React.useCallback(async () => {
-    if (!pubkey) {
-      return;
-    }
-    try {
-      const data = await request<Node>(
-        `/api/mempool?endpoint=/v1/lightning/nodes/${pubkey}`
-      );
-      setNodeDetails(data);
-    } catch (error) {
-      console.error(error);
-      setNodeDetails(undefined);
-    }
-    setLoadedNodeDetails(true);
-  }, [pubkey]);
-
-  React.useEffect(() => {
-    fetchNodeDetails();
-  }, [fetchNodeDetails]);
+  const { data: nodeDetails } = useNodeDetails(pubkey);
 
   const connectPeer = React.useCallback(async () => {
     if (!nodeDetails && !host) {
@@ -487,18 +467,15 @@ function PayBitcoinChannelOrderWithSpendableFunds({
         "Channel opening transaction published",
         openChannelResponse.fundingTxId
       );
-      toast({
-        title: "Successfully published channel opening transaction",
-      });
+      toast("Successfully published channel opening transaction");
       useChannelOrderStore.getState().updateOrder({
         fundingTxId: openChannelResponse.fundingTxId,
         status: "opening",
       });
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        title: "Something went wrong: " + error,
+      toast.error("Something went wrong", {
+        description: "" + error,
       });
     }
   }, [
@@ -508,17 +485,16 @@ function PayBitcoinChannelOrderWithSpendableFunds({
     order.paymentMethod,
     peers,
     pubkey,
-    toast,
   ]);
 
   React.useEffect(() => {
-    if (!peers || !hasLoadedNodeDetails || hasStartedOpenedChannel) {
+    if (!peers || hasStartedOpenedChannel) {
       return;
     }
 
     hasStartedOpenedChannel = true;
     openChannel();
-  }, [hasLoadedNodeDetails, openChannel, order.amount, peers, pubkey]);
+  }, [openChannel, order.amount, peers, pubkey]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -538,7 +514,6 @@ function PayBitcoinChannelOrderWithSpendableFunds({
 function useWaitForNewChannel() {
   const order = useChannelOrderStore((store) => store.order);
   const { data: channels } = useChannels(true);
-  const { toast } = useToast();
 
   const newChannel =
     channels && order?.prevChannelIds
@@ -552,17 +527,12 @@ function useWaitForNewChannel() {
 
   React.useEffect(() => {
     if (newChannel) {
-      (async () => {
-        toast({ title: "Successfully opened channel" });
-        setTimeout(() => {
-          useChannelOrderStore.getState().updateOrder({
-            status: "opening",
-            fundingTxId: newChannel.fundingTxId,
-          });
-        }, 3000);
-      })();
+      useChannelOrderStore.getState().updateOrder({
+        status: "opening",
+        fundingTxId: newChannel.fundingTxId,
+      });
     }
-  }, [newChannel, toast]);
+  }, [newChannel]);
 }
 
 function PaidLightningChannelOrder() {
@@ -579,8 +549,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
   if (order.paymentMethod !== "lightning") {
     throw new Error("incorrect payment method");
   }
-
-  const { toast } = useToast();
+  const { data: balances } = useBalances();
   const { data: channels } = useChannels(true);
   const [, setRequestedInvoice] = React.useState(false);
 
@@ -598,12 +567,12 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
       if (!current) {
         (async () => {
           try {
-            if (!order.lspType || !order.lspUrl) {
+            if (!order.lspType || !order.lspIdentifier) {
               throw new Error("missing lsp info in order");
             }
             const newLSPOrderRequest: LSPOrderRequest = {
               lspType: order.lspType,
-              lspUrl: order.lspUrl,
+              lspIdentifier: order.lspIdentifier,
               amount: parseInt(order.amount),
               public: order.isPublic,
             };
@@ -617,14 +586,20 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                 body: JSON.stringify(newLSPOrderRequest),
               }
             );
-            if (!response?.invoice) {
-              throw new Error("No invoice in response");
+            if (!response) {
+              throw new Error("no LSP order response");
+            }
+
+            if (!response.invoice) {
+              // assume payment is handled by Alby Account
+              // we will wait for a channel to be opened to us
+              useChannelOrderStore.getState().updateOrder({
+                status: "paid",
+              });
             }
             setLspOrderResponse(response);
           } catch (error) {
-            toast({
-              variant: "destructive",
-              title: "Something went wrong",
+            toast.error("Something went wrong", {
               description: "" + error,
             });
           }
@@ -637,33 +612,30 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
     order.amount,
     order.isPublic,
     order.lspType,
-    order.lspUrl,
-    toast,
+    order.lspIdentifier,
   ]);
 
   const canPayInternally =
-    channels &&
+    balances &&
     lspOrderResponse &&
-    channels.some(
-      (channel) =>
-        channel.localSpendableBalance / 1000 > lspOrderResponse.invoiceAmount
-    );
+    balances.lightning.nextMaxSpendableMPP / 1000 >
+      lspOrderResponse.invoiceAmount;
   const [isPaying, setPaying] = React.useState(false);
   const [payExternally, setPayExternally] = React.useState(false);
 
   return (
     <div className="flex flex-col gap-5">
       <AppHeader
-        title={"Buy Channel"}
+        title="Buy Channel"
         description={
           lspOrderResponse
             ? "Complete Payment to open a channel to your node"
             : "Please wait, loading..."
         }
       />
-      {!lspOrderResponse && <Loading />}
+      {!lspOrderResponse?.invoice && <Loading />}
 
-      {lspOrderResponse && (
+      {lspOrderResponse?.invoice && (
         <>
           <div className="max-w-md flex flex-col gap-5">
             <div className="border rounded-lg slashed-zero">
@@ -675,10 +647,9 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                         Spending Balance
                       </TableCell>
                       <TableCell className="text-right p-3">
-                        {new Intl.NumberFormat().format(
-                          lspOrderResponse.outgoingLiquidity
-                        )}{" "}
-                        sats
+                        <FormattedBitcoinAmount
+                          amount={lspOrderResponse.outgoingLiquidity * 1000}
+                        />
                       </TableCell>
                     </TableRow>
                   )}
@@ -688,35 +659,30 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                         Incoming Liquidity
                       </TableCell>
                       <TableCell className="text-right p-3">
-                        {new Intl.NumberFormat().format(
-                          lspOrderResponse.incomingLiquidity
-                        )}{" "}
-                        sats
+                        <FormattedBitcoinAmount
+                          amount={lspOrderResponse.incomingLiquidity * 1000}
+                        />
                       </TableCell>
                     </TableRow>
                   )}
-                  <TableRow>
-                    <TableCell className="font-medium p-3 flex flex-row gap-1.5 items-center">
-                      Fee
-                    </TableCell>
-                    <TableCell className="text-right p-3">
-                      {new Intl.NumberFormat().format(lspOrderResponse.fee)}{" "}
-                      sats
-                    </TableCell>
-                  </TableRow>
                   <TableRow>
                     <TableCell className="font-medium p-3">
                       Amount to pay
                     </TableCell>
                     <TableCell className="font-semibold text-right p-3">
-                      {new Intl.NumberFormat().format(
-                        lspOrderResponse.invoiceAmount
-                      )}{" "}
-                      sats
+                      <FormattedBitcoinAmount
+                        amount={lspOrderResponse.invoiceAmount * 1000}
+                      />
                     </TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
+            </div>
+            <div className="flex justify-center w-full -mb-5">
+              <p className="text-center text-xs text-muted-foreground max-w-sm">
+                By proceeding, you consent the channel opens immediately and
+                that you lose the right to revoke once it is open.
+              </p>
             </div>
             <>
               {canPayInternally && (
@@ -728,6 +694,8 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                       try {
                         setPaying(true);
 
+                        // NOTE: for amboss this will not return until the HOLD invoice is settled
+                        // which is after the channel has N block confirmations
                         await request<PayInvoiceResponse>(
                           `/api/payments/${lspOrderResponse.invoice}`,
                           {
@@ -741,13 +709,10 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                         useChannelOrderStore.getState().updateOrder({
                           status: "paid",
                         });
-                        toast({
-                          title: "Channel successfully requested",
-                        });
+                        toast("Channel successfully requested");
                       } catch (e) {
-                        toast({
-                          variant: "destructive",
-                          title: "Failed to send: " + e,
+                        toast.error("Failed to send: ", {
+                          description: "" + e,
                         });
                         console.error(e);
                       }
@@ -770,7 +735,9 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
               )}
 
               {(payExternally || !canPayInternally) && (
-                <PayLightningInvoice invoice={lspOrderResponse.invoice} />
+                <div className="flex flex-row justify-center">
+                  <PayLightningInvoice invoice={lspOrderResponse.invoice} />
+                </div>
               )}
 
               <div className="flex-1 flex flex-col justify-end items-center gap-4">
@@ -778,19 +745,20 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                 <p className="text-sm text-muted-foreground text-center">
                   Other options
                 </p>
-                <Link to="/channels/outgoing" className="w-full">
-                  <Button className="w-full" variant="secondary">
-                    Increase Spending Balance
-                  </Button>
-                </Link>
-                <ExternalLink
-                  to="https://www.getalby.com/topup"
+                <LinkButton
+                  to="/channels/outgoing"
+                  variant="secondary"
                   className="w-full"
                 >
-                  <Button className="w-full" variant="secondary">
-                    Buy Bitcoin
-                  </Button>
-                </ExternalLink>
+                  Increase Spending Balance
+                </LinkButton>
+                <ExternalLinkButton
+                  to="https://www.getalby.com/topup"
+                  variant="secondary"
+                  className="w-full"
+                >
+                  Buy Bitcoin
+                </ExternalLinkButton>
               </div>
             </>
           </div>

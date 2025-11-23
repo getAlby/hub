@@ -1,8 +1,10 @@
 import { CopyIcon } from "lucide-react";
 import React from "react";
-import AppHeader from "src/components/AppHeader";
+import { toast } from "sonner";
+import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
+import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
+import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
-import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -10,12 +12,10 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
 import { Textarea } from "src/components/ui/textarea";
-import { useToast } from "src/components/ui/use-toast";
-import { useApps } from "src/hooks/useApps";
 import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -23,10 +23,8 @@ import { handleRequestError } from "src/utils/handleRequestError";
 export function SimpleBoost() {
   const [name, setName] = React.useState("");
   const [isLoading, setLoading] = React.useState(false);
-  const { data: apps } = useApps();
   const [nwcUri, setNwcUri] = React.useState("");
   const [scriptContent, setScriptContent] = React.useState("");
-  const { toast } = useToast();
 
   React.useEffect(() => {
     if (nwcUri) {
@@ -35,8 +33,9 @@ export function SimpleBoost() {
     }
   }, [nwcUri]);
 
-  if (!apps) {
-    return <Loading />;
+  const appStoreApp = appStoreApps.find((app) => app.id === "simpleboost");
+  if (!appStoreApp) {
+    return null;
   }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -55,9 +54,9 @@ export function SimpleBoost() {
 
         setNwcUri(createAppResponse.pairingUri);
 
-        toast({ title: "Simple Boost connection created" });
+        toast("Simple Boost connection created");
       } catch (error) {
-        handleRequestError(toast, "Failed to create connection", error);
+        handleRequestError("Failed to create connection", error);
       }
       setLoading(false);
     })();
@@ -65,10 +64,7 @@ export function SimpleBoost() {
 
   return (
     <div className="grid gap-5">
-      <AppHeader
-        title="SimpleBoost"
-        description="The donation button for your website."
-      />
+      <AppStoreDetailHeader appStoreApp={appStoreApp} contentRight={null} />
       {nwcUri && (
         <Card>
           <CardHeader>
@@ -85,10 +81,10 @@ export function SimpleBoost() {
                 onChange={(e) => setScriptContent(e.target.value)}
               />
               <Button
-                onClick={() => copyToClipboard(scriptContent, toast)}
+                onClick={() => copyToClipboard(scriptContent)}
                 variant="outline"
               >
-                <CopyIcon className="w-4 h-4 mr-2" />
+                <CopyIcon />
                 Copy
               </Button>
             </div>
@@ -143,6 +139,7 @@ export function SimpleBoost() {
               </LoadingButton>
             </form>
           </div>
+          <AppDetailConnectedApps appStoreApp={appStoreApp} showTitle />
         </>
       )}
     </div>

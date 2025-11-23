@@ -1,15 +1,15 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import Container from "src/components/Container";
+import PasswordInput from "src/components/password/PasswordInput";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { useToast } from "src/components/ui/use-toast";
 import useSetupStore from "src/state/SetupStore";
 
 export function PhoenixdForm() {
-  const { toast } = useToast();
   const navigate = useNavigate();
   const setupStore = useSetupStore();
   const [phoenixdAddress, setPhoenixdAddress] = React.useState<string>(
@@ -21,10 +21,7 @@ export function PhoenixdForm() {
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!phoenixdAddress || !phoenixdAuthorization) {
-      toast({
-        title: "Please fill out all fields",
-        variant: "destructive",
-      });
+      toast.error("Please fill out all fields");
       return;
     }
     handleSubmit({
@@ -60,12 +57,11 @@ export function PhoenixdForm() {
         </div>
         <div className="grid gap-1.5">
           <Label htmlFor="lnd-cert-hex">Authorization</Label>
-          <Input
-            name="phoenix-authorization"
-            onChange={(e) => setPhoenixdAuthorization(e.target.value)}
-            value={phoenixdAuthorization}
-            type="password"
+
+          <PasswordInput
             id="phoenix-authorization"
+            onChange={setPhoenixdAuthorization}
+            value={phoenixdAuthorization}
           />
         </div>
         <Button>Next</Button>

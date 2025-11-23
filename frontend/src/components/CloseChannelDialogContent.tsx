@@ -5,18 +5,19 @@ import {
   ExternalLinkIcon,
 } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 import { SwapAlert } from "src/components/channels/SwapAlert";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
-import { useToast } from "src/components/ui/use-toast";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
+import { useInfo } from "src/hooks/useInfo";
 import { copyToClipboard } from "src/lib/clipboard";
-import { formatAmount } from "src/lib/utils";
 import { Channel, CloseChannelResponse } from "src/types";
 import { request } from "src/utils/request";
 import {
@@ -37,16 +38,16 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
   const [closeType, setCloseType] = React.useState("normal");
   const [step, setStep] = React.useState(channel.active ? 2 : 1);
   const [fundingTxId, setFundingTxId] = React.useState("");
+  const { data: info } = useInfo();
   const { mutate: reloadBalances } = useBalances();
   const { data: channels, mutate: reloadChannels } = useChannels();
-  const { toast } = useToast();
 
   const onContinue = () => {
     setStep(step + 1);
   };
 
   const copy = (text: string) => {
-    copyToClipboard(text, toast);
+    copyToClipboard(text);
   };
 
   async function closeChannel() {
@@ -77,13 +78,10 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
         setFundingTxId(closedChannel.fundingTxId);
         setStep(step + 1);
       }
-      toast({ title: "Successfully closed channel" });
+      toast("Successfully closed channel");
     } catch (error) {
       console.error(error);
-      toast({
-        variant: "destructive",
-        description: "Something went wrong: " + error,
-      });
+      toast.error("Something went wrong: " + error);
     }
   }
 
@@ -114,14 +112,17 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
               Are you sure you want to close the channel with {alias}?
             </AlertDialogTitle>
             <AlertDialogDescription className="text-left">
-              <SwapAlert className="mb-4" />
+              <SwapAlert minChannels={0} className="mb-4" />
               <Alert className="mb-4">
                 <AlertCircleIcon className="h-4 w-4" />
                 <AlertDescription>
-                  Closing this channel will move{" "}
-                  {formatAmount(channel.localBalance)} sats in this channel to
-                  your on-chain balance and reduce your receive limit by{" "}
-                  {formatAmount(channel.remoteBalance)} sats.
+                  <div>
+                    Closing this channel will move{" "}
+                    <FormattedBitcoinAmount amount={channel.localBalance} /> in
+                    this channel to your on-chain balance and reduce your
+                    receive limit by{" "}
+                    <FormattedBitcoinAmount amount={channel.remoteBalance} />.
+                  </div>
                 </AlertDescription>
               </Alert>
               <div>
@@ -210,11 +211,11 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                 </div>
               </RadioGroup>
               <ExternalLink
-                to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/faq-alby-hub/how-can-i-close-this-channel-what-happens-to-the-sats-in-this-channel"
+                to="https://guides.getalby.com/user-guide/alby-hub/faq/how-can-i-close-a-channel-what-happens-to-the-sats-in-this-channel"
                 className="underline flex items-center mt-4"
               >
                 Learn more about closing channels
-                <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                <ExternalLinkIcon className="size-4 ml-2" />
               </ExternalLink>
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -234,18 +235,18 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
               <div className="flex items-center justify-between gap-4">
                 <p className="break-all">{fundingTxId}</p>
                 <CopyIcon
-                  className="cursor-pointer text-muted-foreground w-4 h-4"
+                  className="cursor-pointer text-muted-foreground size-4"
                   onClick={() => {
                     copy(fundingTxId);
                   }}
                 />
               </div>
               <ExternalLink
-                to={`https://mempool.space/tx/${fundingTxId}`}
+                to={`${info?.mempoolUrl}/tx/${fundingTxId}`}
                 className="underline flex items-center mt-2"
               >
                 View on Mempool
-                <ExternalLinkIcon className="w-4 h-4 ml-2" />
+                <ExternalLinkIcon className="size-4 ml-2" />
               </ExternalLink>
             </AlertDialogDescription>
           </AlertDialogHeader>

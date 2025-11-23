@@ -1,27 +1,41 @@
 import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Button } from "src/components/ui/button";
-import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
-import { useToast } from "src/components/ui/use-toast";
+import { useLocation, useNavigate } from "react-router-dom";
+import { LinkButton } from "src/components/ui/custom/link-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 
-import { Invoice } from "@getalby/lightning-tools";
+import type { Invoice } from "@getalby/lightning-tools/bolt11";
+import { ArrowLeftIcon } from "lucide-react";
+import { toast } from "sonner";
+import AppHeader from "src/components/AppHeader";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
-import { PayInvoiceResponse } from "src/types";
+import { PaymentFailedAlert } from "src/components/PaymentFailedAlert";
+import { PendingPaymentAlert } from "src/components/PendingPaymentAlert";
+import { SpendingAlert } from "src/components/SpendingAlert";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "src/components/ui/card";
+import { useBalances } from "src/hooks/useBalances";
+import { PayInvoiceResponse, TransactionMetadata } from "src/types";
 import { request } from "src/utils/request";
 
 export default function ConfirmPayment() {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const { data: balances } = useBalances();
 
   const invoice = state?.args?.paymentRequest as Invoice;
-  const amount = state?.args?.amount as number | undefined;
+  const metadata = state?.args?.metadata as TransactionMetadata;
   const [isLoading, setLoading] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState("");
 
-  const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const confirmPayment = async () => {
+    setErrorMessage("");
     try {
       setLoading(true);
       const payInvoiceResponse = await request<PayInvoiceResponse>(
@@ -29,7 +43,7 @@ export default function ConfirmPayment() {
         {
           method: "POST",
           body: JSON.stringify({
-            amount: amount ? amount * 1000 : undefined,
+            metadata,
           }),
           headers: {
             "Content-Type": "application/json",
@@ -43,19 +57,17 @@ export default function ConfirmPayment() {
       navigate(`/wallet/send/success`, {
         state: {
           preimage: payInvoiceResponse.preimage,
-          amount: amount || invoice.satoshi,
+          pageTitle: "Pay Invoice",
+          invoice,
         },
       });
-      toast({
-        title: "Successfully paid invoice",
-      });
+      toast("Successfully paid invoice");
     } catch (e) {
-      toast({
-        variant: "destructive",
-        title: "Failed to send payment",
+      console.error(e);
+      setErrorMessage("" + e);
+      toast.error("Failed to send payment", {
         description: "" + e,
       });
-      console.error(e);
     } finally {
       setLoading(false);
     }
@@ -67,36 +79,67 @@ export default function ConfirmPayment() {
     }
   }, [navigate, invoice]);
 
-  if (!invoice) {
+  if (!balances || !invoice) {
     return <Loading />;
   }
 
   return (
-    <form onSubmit={onSubmit} className="grid gap-4">
-      <div>
-        <p className="font-medium text-lg mb-2">Payment Details</p>
-        <div>
-          <Label>Amount</Label>
-          <p className="text-xl font-bold slashed-zero">
-            {new Intl.NumberFormat().format(amount || invoice.satoshi)} sats
-          </p>
-          <FormattedFiatAmount amount={amount || invoice.satoshi} />
-        </div>
-        {invoice.description && (
-          <div className="mt-2">
-            <Label>Description</Label>
-            <p className="text-muted-foreground">{invoice.description}</p>
-          </div>
+    <div className="grid gap-4">
+      <AppHeader title="Pay Invoice" />
+      <div className="max-w-lg grid gap-4">
+        <PendingPaymentAlert />
+        {errorMessage && (
+          <PaymentFailedAlert
+            errorMessage={errorMessage}
+            invoice={invoice.paymentRequest}
+          />
         )}
       </div>
-      <div className="flex gap-4">
-        <LoadingButton loading={isLoading} type="submit" autoFocus>
-          Confirm Payment
-        </LoadingButton>
-        <Link to="/wallet/send">
-          <Button variant="secondary">Back</Button>
-        </Link>
+      <div className="w-full md:max-w-lg">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-center">Confirm Payment</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center gap-6 pt-2">
+            <div className="flex flex-col gap-1 items-center">
+              <p className="text-2xl font-medium slashed-zero">
+                <FormattedBitcoinAmount amount={invoice.satoshi * 1000} />
+              </p>
+              <FormattedFiatAmount
+                amount={invoice.satoshi}
+                className="text-xl"
+              />
+            </div>
+            {invoice.description && (
+              <p className="text-lg text-muted-foreground break-anywhere">
+                {invoice.description}
+              </p>
+            )}
+          </CardContent>
+          <CardFooter className="flex flex-col gap-2 pt-2">
+            <SpendingAlert className="mb-2" amount={invoice.satoshi} />
+            <LoadingButton
+              onClick={confirmPayment}
+              loading={isLoading}
+              type="submit"
+              className="w-full"
+              autoFocus
+            >
+              Confirm Payment
+            </LoadingButton>
+            <div className="flex items-center justify-between gap-2 text-muted-foreground text-xs sensitive slashed-zero">
+              Spending Balance:{" "}
+              <FormattedBitcoinAmount
+                amount={balances.lightning.totalSpendable}
+              />
+            </div>
+            <LinkButton to="/wallet/send" variant="link" className="w-full">
+              <ArrowLeftIcon className="w-4 h-4 mr-2" />
+              Back
+            </LinkButton>
+          </CardFooter>
+        </Card>
       </div>
-    </form>
+    </div>
   );
 }

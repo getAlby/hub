@@ -1,6 +1,4 @@
-import { SearchX } from "lucide-react";
-import { Link } from "react-router-dom";
-import { Button } from "src/components/ui/button";
+import { SearchXIcon } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -8,6 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LinkButton } from "src/components/ui/custom/link-button";
 
 function NotFound() {
   return (
@@ -15,7 +14,7 @@ function NotFound() {
       <CardHeader>
         <CardTitle>
           <div className="flex flex-row items-center gap-2">
-            <SearchX className="w-10 h-10" />
+            <SearchXIcon className="w-10 h-10" />
             Page Not Found
           </div>
         </CardTitle>
@@ -24,9 +23,9 @@ function NotFound() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Link to="/">
-          <Button variant="outline">Return Home</Button>
-        </Link>
+        <LinkButton to="/" variant="outline">
+          Return Home
+        </LinkButton>
       </CardContent>
     </Card>
   );

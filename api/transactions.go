@@ -7,7 +7,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/transactions"
 	"github.com/sirupsen/logrus"
@@ -17,7 +16,7 @@ func (api *api) CreateInvoice(ctx context.Context, amount uint64, description st
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amount, description, "", 0, nil, api.svc.GetLNClient(), nil, nil)
+	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amount, description, "", 0, nil, api.svc.GetLNClient(), nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +38,13 @@ func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64,
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	transactions, totalCount, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, true, false, nil, api.svc.GetLNClient(), appId, true)
+
+	forceFilterByAppId := false
+	if appId != nil {
+		forceFilterByAppId = true
+	}
+
+	transactions, totalCount, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, true, false, nil, api.svc.GetLNClient(), appId, forceFilterByAppId)
 	if err != nil {
 		return nil, err
 	}
@@ -55,11 +60,11 @@ func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64,
 	}, nil
 }
 
-func (api *api) SendPayment(ctx context.Context, invoice string, amountMsat *uint64) (*SendPaymentResponse, error) {
+func (api *api) SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}) (*SendPaymentResponse, error) {
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	transaction, err := api.svc.GetTransactionsService().SendPaymentSync(ctx, invoice, amountMsat, nil, api.svc.GetLNClient(), nil, nil)
+	transaction, err := api.svc.GetTransactionsService().SendPaymentSync(invoice, amountMsat, metadata, api.svc.GetLNClient(), nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -122,21 +127,30 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 	}
 }
 
-func (api *api) TopupIsolatedApp(ctx context.Context, userApp *db.App, amountMsat uint64) error {
+func (api *api) Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, amountMsat uint64) error {
 	if api.svc.GetLNClient() == nil {
 		return errors.New("LNClient not started")
 	}
-	if !userApp.Isolated {
-		return errors.New("this app is not a sub-wallet")
+
+	for _, appId := range []*uint{fromAppId, toAppId} {
+		if appId != nil {
+			dbApp := api.appsSvc.GetAppById(*appId)
+			if dbApp == nil {
+				return errors.New("app does not exist")
+			}
+			if !dbApp.Isolated {
+				return errors.New("app is not isolated")
+			}
+		}
 	}
 
-	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, "top up", "", 0, nil, api.svc.GetLNClient(), &userApp.ID, nil)
+	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, "transfer", "", 0, nil, api.svc.GetLNClient(), toAppId, nil, nil)
 
 	if err != nil {
 		return err
 	}
 
-	_, err = api.svc.GetTransactionsService().SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, api.svc.GetLNClient(), nil, nil)
+	_, err = api.svc.GetTransactionsService().SendPaymentSync(transaction.PaymentRequest, nil, nil, api.svc.GetLNClient(), fromAppId, nil)
 	return err
 }
 

@@ -31,9 +31,9 @@ jobs:
       matrix:
         build:
           [
-            { platform: linux/amd64, os: ubuntu-20.04 },
+            { platform: linux/amd64, os: ubuntu-22.04 },
             { platform: linux/amd64, os: ubuntu-24.04 },
-            { platform: windows/amd64, os: windows-2019 },
+            { platform: windows/amd64, os: windows-2022 },
             { platform: darwin/universal, os: macos-13 },
           ]
     runs-on: ${{ matrix.build.os }}
@@ -76,7 +76,7 @@ jobs:
           node-version: "20.x"
 
       - name: Install Wails
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.9.2
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.10.2
         shell: bash
 
       - name: Install Linux Wails deps

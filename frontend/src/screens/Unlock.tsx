@@ -1,10 +1,9 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import PasswordInput from "src/components/password/PasswordInput";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
-import { Input } from "src/components/ui/input";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
-import { LoadingButton } from "src/components/ui/loading-button";
-import { useToast } from "src/components/ui/use-toast";
 
 import { useInfo } from "src/hooks/useInfo";
 import { saveAuthToken } from "src/lib/auth";
@@ -18,7 +17,6 @@ export default function Unlock() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { toast } = useToast();
   const { data: info } = useInfo();
   const { mutate: refetchInfo } = useInfo();
 
@@ -43,6 +41,7 @@ export default function Unlock() {
           },
           body: JSON.stringify({
             unlockPassword,
+            permission: "full",
           }),
         }
       );
@@ -52,7 +51,7 @@ export default function Unlock() {
       await refetchInfo();
       navigate("/");
     } catch (error) {
-      handleRequestError(toast, "Failed to connect", error);
+      handleRequestError("Failed to connect", error);
     } finally {
       setLoading(false);
     }
@@ -69,13 +68,11 @@ export default function Unlock() {
           <div className="grid gap-4">
             <div className="grid gap-1.5">
               <Label htmlFor="password">Password</Label>
-              <Input
-                autoFocus
+              <PasswordInput
                 id="password"
-                type="password"
-                required
+                onChange={setUnlockPassword}
+                autoFocus
                 value={unlockPassword}
-                onChange={(e) => setUnlockPassword(e.target.value)}
               />
             </div>
             <LoadingButton type="submit" loading={loading}>

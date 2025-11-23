@@ -26,10 +26,10 @@ export default function AppCard({ app, actions, readonly = false }: Props) {
   return (
     <Card
       className="flex flex-col group cursor-pointer"
-      onClick={() => navigate(`/apps/${app.appPubkey}`)}
+      onClick={() => navigate(`/apps/${app.id}`)}
     >
       <CardHeader>
-        <CardTitle className="relative">
+        <CardTitle className="relative min-w-0">
           <div className="flex flex-row items-center">
             {!actions && <AppCardNotice app={app} />}
             <AppAvatar className="w-10 h-10" app={app} />

@@ -55,7 +55,7 @@ func (controller *nip47Controller) HandleMultiPayInvoiceEvent(ctx context.Contex
 				publishResponse(&models.Response{
 					ResultType: nip47Request.Method,
 					Error: &models.Error{
-						Code:    constants.ERROR_INTERNAL,
+						Code:    constants.ERROR_BAD_REQUEST,
 						Message: fmt.Sprintf("Failed to decode bolt11 invoice: %s", err.Error()),
 					},
 				}, nostr.Tags{dTag})
@@ -69,7 +69,7 @@ func (controller *nip47Controller) HandleMultiPayInvoiceEvent(ctx context.Contex
 			dTag := []string{"d", invoiceDTagValue}
 
 			controller.
-				pay(ctx, bolt11, invoiceInfo.Amount, metadata, &paymentRequest, nip47Request, requestEventId, app, publishResponse, nostr.Tags{dTag})
+				pay(bolt11, invoiceInfo.Amount, metadata, &paymentRequest, nip47Request, requestEventId, app, publishResponse, nostr.Tags{dTag})
 		}(invoiceInfo)
 	}
 

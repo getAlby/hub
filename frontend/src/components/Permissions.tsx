@@ -1,10 +1,16 @@
-import { AlertTriangleIcon, BrickWall, PlusCircle } from "lucide-react";
+import { AlertTriangleIcon, PlusCircleIcon } from "lucide-react";
 import React from "react";
 import BudgetAmountSelect from "src/components/BudgetAmountSelect";
 import BudgetRenewalSelect from "src/components/BudgetRenewalSelect";
 import ExpirySelect from "src/components/ExpirySelect";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Scopes from "src/components/Scopes";
+import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
+import {
+  DEFAULT_APP_BUDGET_RENEWAL,
+  DEFAULT_APP_BUDGET_SATS,
+} from "src/constants";
 import { cn } from "src/lib/utils";
 import {
   AppPermissions,
@@ -18,13 +24,14 @@ import {
 interface PermissionsProps {
   capabilities: WalletCapabilities;
   permissions: AppPermissions;
-  setPermissions: React.Dispatch<React.SetStateAction<AppPermissions>>;
+  setPermissions?: React.Dispatch<React.SetStateAction<AppPermissions>>;
   readOnly?: boolean;
   scopesReadOnly?: boolean;
   budgetReadOnly?: boolean;
   expiresAtReadOnly?: boolean;
   budgetUsage?: number;
   isNewConnection: boolean;
+  showBudgetUsage?: boolean;
 }
 
 const Permissions: React.FC<PermissionsProps> = ({
@@ -37,6 +44,7 @@ const Permissions: React.FC<PermissionsProps> = ({
   scopesReadOnly,
   budgetReadOnly,
   expiresAtReadOnly,
+  showBudgetUsage = true,
 }) => {
   const [showBudgetOptions, setShowBudgetOptions] = React.useState(
     permissions.scopes.includes("pay_invoice") && permissions.maxAmount > 0
@@ -47,7 +55,7 @@ const Permissions: React.FC<PermissionsProps> = ({
 
   const handlePermissionsChange = React.useCallback(
     (changedPermissions: Partial<AppPermissions>) => {
-      setPermissions((currentPermissions) => ({
+      setPermissions?.((currentPermissions) => ({
         ...currentPermissions,
         ...changedPermissions,
       }));
@@ -84,7 +92,7 @@ const Permissions: React.FC<PermissionsProps> = ({
   );
 
   return (
-    <div className="max-w-lg">
+    <div className={cn(!readOnly && "max-w-lg")}>
       {!readOnly && !scopesReadOnly ? (
         <Scopes
           capabilities={capabilities}
@@ -95,44 +103,28 @@ const Permissions: React.FC<PermissionsProps> = ({
         />
       ) : (
         <>
-          <p className="text-sm font-medium mb-2">This app can:</p>
-          <div className="flex flex-col mb-2">
+          <p className="text-sm font-medium mb-2">This app is authorized to:</p>
+          <div className="flex flex-wrap gap-2 mb-4">
             {[...permissions.scopes].map((scope) => {
               const PermissionIcon = scopeIconMap[scope];
               return (
-                <div
+                <Badge
+                  variant="secondary"
                   key={scope}
                   className={cn(
-                    "flex items-center mb-2",
-                    scope == "pay_invoice" && "order-last"
+                    "flex items-center font-normal py-1 rounded-full px-3"
                   )}
                 >
-                  <PermissionIcon className="mr-2 w-4 h-4" />
+                  <PermissionIcon className="mr-1 size-4" />
                   <p className="text-sm">{scopeDescriptions[scope]}</p>
-                </div>
+                </Badge>
               );
             })}
           </div>
         </>
       )}
 
-      {permissions.isolated && (
-        <>
-          <div className="flex items-center gap-2 mb-2">
-            <BrickWall className="w-4 h-4" />
-            <p className="text-sm font-medium">Isolated App</p>
-          </div>
-
-          <p className="mb-4">
-            This app is isolated from the rest of your wallet. This means it
-            will have an isolated balance and only has access to its own
-            transaction history. It will not be able to sign messages on your
-            node's behalf.
-          </p>
-        </>
-      )}
-
-      {!permissions.isolated && permissions.scopes.includes("pay_invoice") && (
+      {permissions.scopes.includes("pay_invoice") && showBudgetUsage && (
         <>
           {!readOnly && !budgetReadOnly ? (
             <>
@@ -141,13 +133,13 @@ const Permissions: React.FC<PermissionsProps> = ({
                   type="button"
                   variant="secondary"
                   onClick={() => {
-                    handleBudgetRenewalChange("monthly");
-                    handleBudgetMaxAmountChange(100_000);
+                    handleBudgetRenewalChange(DEFAULT_APP_BUDGET_RENEWAL);
+                    handleBudgetMaxAmountChange(DEFAULT_APP_BUDGET_SATS);
                     setShowBudgetOptions(true);
                   }}
                   className={cn("mr-4", showExpiryOptions && "mb-4")}
                 >
-                  <PlusCircle className="w-4 h-4 mr-2" />
+                  <PlusCircleIcon />
                   Set budget
                 </Button>
               )}
@@ -182,12 +174,22 @@ const Permissions: React.FC<PermissionsProps> = ({
                   <span className="text-primary font-medium">
                     Budget Amount:
                   </span>{" "}
-                  {permissions.maxAmount
-                    ? new Intl.NumberFormat().format(permissions.maxAmount)
-                    : "∞"}
-                  {" sats "}
-                  {!isNewConnection &&
-                    `(${new Intl.NumberFormat().format(budgetUsage || 0)} sats used)`}
+                  {permissions.maxAmount ? (
+                    <FormattedBitcoinAmount
+                      amount={permissions.maxAmount * 1000}
+                    />
+                  ) : (
+                    "∞"
+                  )}{" "}
+                  {!isNewConnection && (
+                    <>
+                      (
+                      <FormattedBitcoinAmount
+                        amount={(budgetUsage || 0) * 1000}
+                      />{" "}
+                      used)
+                    </>
+                  )}
                 </p>
               </div>
             </div>
@@ -204,7 +206,7 @@ const Permissions: React.FC<PermissionsProps> = ({
                 variant="secondary"
                 onClick={() => setShowExpiryOptions(true)}
               >
-                <PlusCircle className="w-4 h-4 mr-2" />
+                <PlusCircleIcon />
                 Set expiration time
               </Button>
             )}
@@ -231,7 +233,7 @@ const Permissions: React.FC<PermissionsProps> = ({
       {permissions.scopes.includes("superuser") && (
         <>
           <div className="flex items-center gap-2 mt-4">
-            <AlertTriangleIcon className="w-4 h-4" />
+            <AlertTriangleIcon className="size-4" />
             <p className="text-sm font-medium">
               This app can create other app connections
             </p>

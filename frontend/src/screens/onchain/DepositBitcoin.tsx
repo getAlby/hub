@@ -1,30 +1,77 @@
-import { Copy, CreditCard, RefreshCw } from "lucide-react";
-import { Link } from "react-router-dom";
+import {
+  CircleCheckIcon,
+  CopyIcon,
+  CreditCardIcon,
+  ExternalLinkIcon,
+  RefreshCwIcon,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import AppHeader from "src/components/AppHeader";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import LottieLoading from "src/components/LottieLoading";
 import { MempoolAlert } from "src/components/MempoolAlert";
+import OnchainAddressDisplay from "src/components/OnchainAddressDisplay";
 import QRCode from "src/components/QRCode";
 import { Button } from "src/components/ui/button";
-import { Card, CardContent } from "src/components/ui/card";
-import { LoadingButton } from "src/components/ui/loading-button";
-import { useToast } from "src/components/ui/use-toast";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "src/components/ui/card";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LinkButton } from "src/components/ui/custom/link-button";
+import { LoadingButton } from "src/components/ui/custom/loading-button";
+import { useInfo } from "src/hooks/useInfo";
+import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
+import { useSyncWallet } from "src/hooks/useSyncWallet";
 import { copyToClipboard } from "src/lib/clipboard";
+import { MempoolUtxo } from "src/types";
 
 export default function DepositBitcoin() {
+  useSyncWallet();
   const {
     data: onchainAddress,
     getNewAddress,
     loadingAddress,
   } = useOnchainAddress();
-  const { toast } = useToast();
+  const { data: mempoolAddressUtxos } = useMempoolApi<MempoolUtxo[]>(
+    onchainAddress ? `/address/${onchainAddress}/utxo` : undefined,
+    3000
+  );
+
+  const [txId, setTxId] = useState("");
+  const [confirmedAmount, setConfirmedAmount] = useState<number | null>(null);
+  const [pendingAmount, setPendingAmount] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!mempoolAddressUtxos || mempoolAddressUtxos.length === 0) {
+      return;
+    }
+
+    if (txId) {
+      const utxo = mempoolAddressUtxos.find((utxo) => utxo.txid === txId);
+      if (utxo?.status.confirmed) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setConfirmedAmount(utxo.value);
+        setPendingAmount(null);
+      }
+    } else {
+      const unconfirmed = mempoolAddressUtxos.find(
+        (utxo) => !utxo.status.confirmed
+      );
+      if (unconfirmed) {
+        setTxId(unconfirmed.txid);
+        setPendingAmount(unconfirmed.value);
+      }
+    }
+  }, [mempoolAddressUtxos, txId]);
 
   if (!onchainAddress) {
-    return (
-      <div className="flex justify-center">
-        <Loading />
-      </div>
-    );
+    return <Loading />;
   }
 
   return (
@@ -33,60 +80,133 @@ export default function DepositBitcoin() {
         title="Deposit Bitcoin to On-Chain Balance"
         description="Deposit bitcoin to your on-chain address which then can be used to open new lightning channels."
         contentRight={
-          <Link to="/channels/onchain/buy-bitcoin">
-            <Button>
-              <CreditCard className="h-4 w-4 mr-2" />
-              Buy Bitcoin
-            </Button>
-          </Link>
+          <LinkButton to="/channels/onchain/buy-bitcoin">
+            <CreditCardIcon />
+            Buy Bitcoin
+          </LinkButton>
         }
       />
       <MempoolAlert />
       <div className="w-80">
-        <Card>
-          <CardContent className="grid gap-6 p-8 justify-center border border-muted">
-            <a
-              href={`bitcoin:${onchainAddress}`}
-              target="_blank"
-              className="flex justify-center"
-            >
-              <QRCode value={onchainAddress} />
-            </a>
-
-            <div className="text-center">
-              {onchainAddress.match(/.{1,4}/g)?.map((word, index) => {
-                if (index % 2 === 0) {
-                  return <span className="text-foreground">{word} </span>;
-                } else {
-                  return <span className="text-muted-foreground">{word} </span>;
-                }
-              })}
-            </div>
-
-            <div className="flex flex-row gap-4 justify-center">
-              <LoadingButton
-                variant="outline"
-                onClick={getNewAddress}
-                className="w-28"
-                loading={loadingAddress}
+        {confirmedAmount ? (
+          <DepositSuccess amount={confirmedAmount} txId={txId} />
+        ) : txId ? (
+          <DepositPending amount={pendingAmount} txId={txId} />
+        ) : (
+          <Card>
+            <CardContent className="grid gap-6 justify-center">
+              <a
+                href={`bitcoin:${onchainAddress}`}
+                target="_blank"
+                className="flex justify-center"
               >
-                {!loadingAddress && <RefreshCw className="w-4 h-4 mr-2" />}
-                Change
-              </LoadingButton>
-              <Button
-                variant="secondary"
-                className="w-28"
-                onClick={() => {
-                  copyToClipboard(onchainAddress, toast);
-                }}
-              >
-                <Copy className="w-4 h-4 mr-2" />
-                Copy
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                <QRCode value={onchainAddress} />
+              </a>
+
+              <div className="flex flex-wrap gap-2 items-center justify-center">
+                <OnchainAddressDisplay address={onchainAddress} />
+              </div>
+
+              <div className="flex flex-row gap-4 justify-center">
+                <LoadingButton
+                  variant="outline"
+                  onClick={getNewAddress}
+                  className="w-28"
+                  loading={loadingAddress}
+                >
+                  {!loadingAddress && <RefreshCwIcon />}
+                  Change
+                </LoadingButton>
+                <Button
+                  variant="secondary"
+                  className="w-28"
+                  onClick={() => {
+                    copyToClipboard(onchainAddress);
+                  }}
+                >
+                  <CopyIcon />
+                  Copy
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
+  );
+}
+
+function DepositPending({
+  amount,
+  txId,
+}: {
+  amount: number | null;
+  txId: string;
+}) {
+  const { data: info } = useInfo();
+
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="text-center">Awaiting Confirmation</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col items-center gap-4">
+        <LottieLoading size={288} />
+        {amount && (
+          <div className="flex flex-col gap-2 items-center">
+            <p className="text-xl font-semibold slashed-zero">
+              <FormattedBitcoinAmount amount={amount * 1000} />
+            </p>
+            <FormattedFiatAmount amount={amount} />
+          </div>
+        )}
+        <div>
+          <ExternalLinkButton
+            to={`${info?.mempoolUrl}/tx/${txId}`}
+            variant="outline"
+            className="flex items-center mt-2"
+          >
+            View on Mempool
+            <ExternalLinkIcon className="size-4 ml-2" />
+          </ExternalLinkButton>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function DepositSuccess({ amount, txId }: { amount: number; txId: string }) {
+  const { data: info } = useInfo();
+
+  return (
+    <>
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle className="text-center">Payment Received!</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center gap-4">
+          <CircleCheckIcon className="w-72 h-72 p-2" />
+          <div className="flex flex-col gap-2 items-center">
+            <p className="text-xl font-semibold slashed-zero">
+              <FormattedBitcoinAmount amount={amount * 1000} />
+            </p>
+            <FormattedFiatAmount amount={amount} />
+          </div>
+          <div>
+            <ExternalLinkButton
+              to={`${info?.mempoolUrl}/tx/${txId}`}
+              variant="outline"
+              className="flex items-center mt-2"
+            >
+              View on Mempool
+              <ExternalLinkIcon className="size-4 ml-2" />
+            </ExternalLinkButton>
+          </div>
+        </CardContent>
+      </Card>
+      <LinkButton to="/channels" className="mt-4 w-full">
+        Back To Node
+      </LinkButton>
+    </>
   );
 }

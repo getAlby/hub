@@ -8,6 +8,7 @@ import (
 	"errors"
 
 	"github.com/lightningnetwork/lnd/lnrpc"
+	"github.com/lightningnetwork/lnd/lnrpc/invoicesrpc"
 	"github.com/lightningnetwork/lnd/lnrpc/routerrpc"
 	"github.com/lightningnetwork/lnd/macaroons"
 	"google.golang.org/grpc"
@@ -33,6 +34,7 @@ type LNDWrapper struct {
 	client         lnrpc.LightningClient
 	routerClient   routerrpc.RouterClient
 	stateClient    lnrpc.StateClient
+	invoicesClient invoicesrpc.InvoicesClient
 	IdentityPubkey string
 }
 
@@ -85,9 +87,10 @@ func NewLNDclient(lndOptions LNDoptions) (result *LNDWrapper, err error) {
 	}
 	lnClient := lnrpc.NewLightningClient(conn)
 	return &LNDWrapper{
-		client:       lnClient,
-		routerClient: routerrpc.NewRouterClient(conn),
-		stateClient:  lnrpc.NewStateClient(conn),
+		client:         lnClient,
+		routerClient:   routerrpc.NewRouterClient(conn),
+		stateClient:    lnrpc.NewStateClient(conn),
+		invoicesClient: invoicesrpc.NewInvoicesClient(conn),
 	}, nil
 }
 
@@ -115,8 +118,24 @@ func (wrapper *LNDWrapper) AddInvoice(ctx context.Context, req *lnrpc.Invoice, o
 	return wrapper.client.AddInvoice(ctx, req, options...)
 }
 
+func (wrapper *LNDWrapper) AddHoldInvoice(ctx context.Context, req *invoicesrpc.AddHoldInvoiceRequest, options ...grpc.CallOption) (*invoicesrpc.AddHoldInvoiceResp, error) {
+	return wrapper.invoicesClient.AddHoldInvoice(ctx, req, options...)
+}
+
+func (wrapper *LNDWrapper) SettleInvoice(ctx context.Context, req *invoicesrpc.SettleInvoiceMsg, options ...grpc.CallOption) (*invoicesrpc.SettleInvoiceResp, error) {
+	return wrapper.invoicesClient.SettleInvoice(ctx, req, options...)
+}
+
+func (wrapper *LNDWrapper) CancelInvoice(ctx context.Context, req *invoicesrpc.CancelInvoiceMsg, options ...grpc.CallOption) (*invoicesrpc.CancelInvoiceResp, error) {
+	return wrapper.invoicesClient.CancelInvoice(ctx, req, options...)
+}
+
 func (wrapper *LNDWrapper) SubscribeInvoices(ctx context.Context, req *lnrpc.InvoiceSubscription, options ...grpc.CallOption) (SubscribeInvoicesWrapper, error) {
 	return wrapper.client.SubscribeInvoices(ctx, req, options...)
+}
+
+func (wrapper *LNDWrapper) SubscribeSingleInvoice(ctx context.Context, req *invoicesrpc.SubscribeSingleInvoiceRequest, options ...grpc.CallOption) (SubscribeSingleInvoiceWrapper, error) {
+	return wrapper.invoicesClient.SubscribeSingleInvoice(ctx, req, options...)
 }
 
 func (wrapper *LNDWrapper) SubscribePayments(ctx context.Context, req *routerrpc.TrackPaymentsRequest, options ...grpc.CallOption) (routerrpc.Router_TrackPaymentsClient, error) {
@@ -223,4 +242,8 @@ func (wrapper *LNDWrapper) DisconnectPeer(ctx context.Context, req *lnrpc.Discon
 
 func (wrapper *LNDWrapper) SubscribeChannelEvents(ctx context.Context, in *lnrpc.ChannelEventSubscription, options ...grpc.CallOption) (lnrpc.Lightning_SubscribeChannelEventsClient, error) {
 	return wrapper.client.SubscribeChannelEvents(ctx, in, options...)
+}
+
+func (wrapper *LNDWrapper) ForwardingHistory(ctx context.Context, in *lnrpc.ForwardingHistoryRequest, options ...grpc.CallOption) (*lnrpc.ForwardingHistoryResponse, error) {
+	return wrapper.client.ForwardingHistory(ctx, in, options...)
 }

@@ -1,7 +1,6 @@
-import { Link } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
-import { Button } from "src/components/ui/button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 
 export function OpenedAutoChannel() {
   return (
@@ -18,7 +17,7 @@ export function OpenedAutoChannel() {
       <p>
         To ensure you can both send and receive, make sure to balance your{" "}
         <ExternalLink
-          to="https://guides.getalby.com/user-guide/v/alby-account-and-browser-extension/alby-hub/liquidity"
+          to="https://guides.getalby.com/user-guide/alby-hub/node"
           className="underline"
         >
           channel's liquidity
@@ -26,9 +25,9 @@ export function OpenedAutoChannel() {
         .
       </p>
 
-      <Link to="/wallet" className="flex justify-center mt-8">
-        <Button>Go To Your Wallet</Button>
-      </Link>
+      <LinkButton to="/wallet" className="flex justify-center mt-8">
+        Go To Your Wallet
+      </LinkButton>
     </div>
   );
 }

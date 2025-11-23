@@ -1,7 +1,5 @@
 import { ExternalLinkIcon } from "lucide-react";
-import { Link } from "react-router-dom";
-import { suggestedApps } from "src/components/SuggestedAppData";
-import { Button } from "src/components/ui/button";
+import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import {
   Card,
   CardContent,
@@ -10,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LinkButton } from "src/components/ui/custom/link-button";
 
 export function AppOfTheDayWidget() {
   function seededRandom(seed: number) {
@@ -17,11 +16,14 @@ export function AppOfTheDayWidget() {
     return x - Math.floor(x);
   }
 
+  // filter out apps which already have a widget
+  const excludedAppIds = ["alby-go", "zapplanner"];
+  const apps = appStoreApps.filter((a) => !excludedAppIds.includes(a.id));
+
+  // eslint-disable-next-line react-hooks/purity
   const daysSinceEpoch = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
-  const todayIndex = Math.floor(
-    seededRandom(daysSinceEpoch) * suggestedApps.length
-  );
-  const app = suggestedApps[todayIndex];
+  const todayIndex = Math.floor(seededRandom(daysSinceEpoch) * apps.length);
+  const app = apps[todayIndex];
 
   return (
     <Card>
@@ -35,21 +37,20 @@ export function AppOfTheDayWidget() {
             alt="logo"
             className="inline rounded-lg w-12 h-12"
           />
-          <div className="flex-grow">
+          <div className="grow">
             <CardTitle>{app.title}</CardTitle>
             <CardDescription>{app.description}</CardDescription>
           </div>
         </div>
       </CardContent>
       <CardFooter className="flex flex-row justify-end">
-        <Link
+        <LinkButton
           to={app.internal ? `/internal-apps/${app.id}` : `/appstore/${app.id}`}
+          variant="outline"
         >
-          <Button variant="outline">
-            <ExternalLinkIcon className="w-4 h-4 mr-2" />
-            Open
-          </Button>
-        </Link>
+          <ExternalLinkIcon />
+          Open
+        </LinkButton>
       </CardFooter>
     </Card>
   );
