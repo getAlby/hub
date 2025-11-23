@@ -2,6 +2,7 @@ import {
   CheckCircle2Icon,
   CircleXIcon,
   EditIcon,
+  EllipsisIcon,
   ExternalLinkIcon,
   InfoIcon,
   Link2Icon,
@@ -36,6 +37,14 @@ import {
   DialogHeader,
   DialogTrigger,
 } from "src/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "src/components/ui/dropdown-menu";
 import { Separator } from "src/components/ui/separator";
 import {
   Tooltip,
@@ -75,9 +84,9 @@ function AlbyConnectionCard() {
   }
 
   return (
-    <Card>
+    <Card className="relative">
       <CardHeader>
-        <CardTitle className="relative">
+        <CardTitle>
           Linked Alby Account
           {albyAccountApp && <AppCardNotice app={albyAccountApp} />}
         </CardTitle>
@@ -86,6 +95,42 @@ function AlbyConnectionCard() {
           use apps that you connected to your Alby Account.
         </CardDescription>
       </CardHeader>
+      {albyAccountApp && (
+        <div className="absolute top-0.5 right-2">
+          <DropdownMenu modal={false}>
+            <Button variant="ghost" size="icon" asChild>
+              <DropdownMenuTrigger>
+                <EllipsisIcon className="size-4" />
+              </DropdownMenuTrigger>
+            </Button>
+            <DropdownMenuContent align="end">
+              <DropdownMenuGroup>
+                <DropdownMenuItem asChild>
+                  <Link
+                    to={`/apps/${albyAccountApp.id}?edit=true`}
+                    className="flex items-center gap-2"
+                  >
+                    <EditIcon className="size-4" /> Edit Connection
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <UnlinkAlbyAccount>
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onSelect={(e) => {
+                      e.preventDefault();
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Link2OffIcon className="size-4" /> Unlink Alby Account
+                    </div>
+                  </DropdownMenuItem>
+                </UnlinkAlbyAccount>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
       <Separator />
       <CardContent className="group">
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 items-center relative">
@@ -186,33 +231,19 @@ function AlbyConnectionCard() {
                 </ExternalLinkButton>
               )}
               {albyAccountApp && (
-                <>
-                  <LinkButton
-                    to="/settings/alby-account"
-                    className="w-full sm:w-auto"
-                    variant="outline"
-                  >
-                    <User2Icon />
-                    Alby Account Settings
-                  </LinkButton>
-                  <UnlinkAlbyAccount>
-                    <Button className="w-full sm:w-auto" variant="outline">
-                      <Link2OffIcon />
-                      Unlink Alby Account
-                    </Button>
-                  </UnlinkAlbyAccount>
-                </>
+                <LinkButton
+                  to="/settings/alby-account"
+                  className="w-full sm:w-auto"
+                  variant="outline"
+                >
+                  <User2Icon />
+                  Alby Account Settings
+                </LinkButton>
               )}
             </div>
           </div>
           {albyAccountApp && (
             <div className="slashed-zero">
-              <Link
-                to={`/apps/${albyAccountApp.id}?edit=true`}
-                className="absolute top-0 right-0"
-              >
-                <EditIcon className="size-4 hidden group-hover:inline text-muted-foreground hover:text-card-foreground" />
-              </Link>
               <AppCardConnectionInfo
                 connection={albyAccountApp}
                 budgetRemainingText={
