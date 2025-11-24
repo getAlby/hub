@@ -62,6 +62,7 @@ import { ExternalLinkButton } from "src/components/ui/custom/external-link-butto
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
 import { useApps } from "src/hooks/useApps";
+import { useInfo } from "src/hooks/useInfo";
 
 function AlbyConnectionCard() {
   const { data: linkedAlbyAccountAppsData, mutate: reloadAlbyAccountApp } =
@@ -70,6 +71,7 @@ function AlbyConnectionCard() {
     });
   const albyAccountApp = linkedAlbyAccountAppsData?.apps[0];
   const { data: albyMe } = useAlbyMe();
+  const { data: info } = useInfo();
   const { loading, linkStatus, loadingLinkStatus, linkAccount } =
     useLinkAccount(reloadAlbyAccountApp);
 
@@ -95,7 +97,7 @@ function AlbyConnectionCard() {
           use apps that you connected to your Alby Account.
         </CardDescription>
       </CardHeader>
-      {albyAccountApp && (
+      {info?.albyAccountConnected && (
         <div className="absolute top-0.5 right-2">
           <DropdownMenu modal={false}>
             <Button variant="ghost" size="icon" asChild>
@@ -105,15 +107,19 @@ function AlbyConnectionCard() {
             </Button>
             <DropdownMenuContent align="end">
               <DropdownMenuGroup>
-                <DropdownMenuItem asChild>
-                  <Link
-                    to={`/apps/${albyAccountApp.id}?edit=true`}
-                    className="flex items-center gap-2"
-                  >
-                    <EditIcon className="size-4" /> Edit Connection
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                {albyAccountApp && (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to={`/apps/${albyAccountApp.id}?edit=true`}
+                        className="flex items-center gap-2"
+                      >
+                        <EditIcon className="size-4" /> Edit Connection
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
                 <UnlinkAlbyAccount>
                   <DropdownMenuItem
                     variant="destructive"
