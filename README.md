@@ -228,7 +228,6 @@ _To configure via env, the following parameters must be provided:_
 - `LDK_MAX_PATH_COUNT`: Maximum number of paths that may be used by MPP payments.
 - `LDK_LOG_LEVEL`: Log level for the LDK node. Higher is more verbose. Default: 3. This is separate from the main application log level, allowing you to enable more verbose LDK logging (e.g., level 4, 5 or 6) without enabling verbose logging for the entire application.
 
-
 #### LDK Network Configuration
 
 ##### Mutinynet
@@ -309,7 +308,7 @@ For the second hub, you will need to update your .env with the following changes
     FRONTEND_URL=http://localhost:5174
     BASE_URL=http://localhost:8081
     PORT=8081
-    LDK_LISTENING_ADDRESSES=0.0.0.0:9736,[::]:9736
+    LDK_LISTENING_ADDRESSES=[::]:9736
 
 Then launch the frontend with `VITE_PORT=5174 VITE_API_URL=http://localhost:8081 yarn dev:http`
 
