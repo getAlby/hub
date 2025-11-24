@@ -527,15 +527,10 @@ function useWaitForNewChannel() {
 
   React.useEffect(() => {
     if (newChannel) {
-      (async () => {
-        toast("Successfully opened channel");
-        setTimeout(() => {
-          useChannelOrderStore.getState().updateOrder({
-            status: "opening",
-            fundingTxId: newChannel.fundingTxId,
-          });
-        }, 3000);
-      })();
+      useChannelOrderStore.getState().updateOrder({
+        status: "opening",
+        fundingTxId: newChannel.fundingTxId,
+      });
     }
   }, [newChannel]);
 }
@@ -554,7 +549,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
   if (order.paymentMethod !== "lightning") {
     throw new Error("incorrect payment method");
   }
-
+  const { data: balances } = useBalances();
   const { data: channels } = useChannels(true);
   const [, setRequestedInvoice] = React.useState(false);
 
@@ -621,19 +616,17 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
   ]);
 
   const canPayInternally =
-    channels &&
+    balances &&
     lspOrderResponse &&
-    channels.some(
-      (channel) =>
-        channel.localSpendableBalance / 1000 > lspOrderResponse.invoiceAmount
-    );
+    balances.lightning.nextMaxSpendableMPP / 1000 >
+      lspOrderResponse.invoiceAmount;
   const [isPaying, setPaying] = React.useState(false);
   const [payExternally, setPayExternally] = React.useState(false);
 
   return (
     <div className="flex flex-col gap-5">
       <AppHeader
-        title={"Buy Channel"}
+        title="Buy Channel"
         description={
           lspOrderResponse
             ? "Complete Payment to open a channel to your node"
@@ -685,6 +678,12 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                 </TableBody>
               </Table>
             </div>
+            <div className="flex justify-center w-full -mb-5">
+              <p className="text-center text-xs text-muted-foreground max-w-sm">
+                By proceeding, you consent the channel opens immediately and
+                that you lose the right to revoke once it is open.
+              </p>
+            </div>
             <>
               {canPayInternally && (
                 <>
@@ -695,6 +694,8 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                       try {
                         setPaying(true);
 
+                        // NOTE: for amboss this will not return until the HOLD invoice is settled
+                        // which is after the channel has N block confirmations
                         await request<PayInvoiceResponse>(
                           `/api/payments/${lspOrderResponse.invoice}`,
                           {
@@ -734,7 +735,9 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
               )}
 
               {(payExternally || !canPayInternally) && (
-                <PayLightningInvoice invoice={lspOrderResponse.invoice} />
+                <div className="flex flex-row justify-center">
+                  <PayLightningInvoice invoice={lspOrderResponse.invoice} />
+                </div>
               )}
 
               <div className="flex-1 flex flex-col justify-end items-center gap-4">

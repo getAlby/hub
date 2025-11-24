@@ -446,6 +446,12 @@ export type SetupNodeInfo = Partial<{
 
 export type LSPType = "LSPS1";
 
+export type LSPChannelOfferPaymentMethod =
+  | "card"
+  | "wallet"
+  | "prepaid"
+  | "included";
+
 export type LSPChannelOffer = {
   lspName: string;
   lspDescription: string;
@@ -453,7 +459,7 @@ export type LSPChannelOffer = {
   lspBalanceSat: number;
   feeTotalSat: number;
   feeTotalUsd: number;
-  currentPaymentMethod: "card" | "wallet" | "prepaid" | "included";
+  currentPaymentMethod: LSPChannelOfferPaymentMethod;
   terms: string;
 };
 
@@ -479,6 +485,7 @@ export type RecommendedChannelPeer = {
       contactUrl: string;
       terms?: string;
       pubkey?: string;
+      maximumChannelExpiryBlocks?: number;
       feeTotalSat1m?: number;
       feeTotalSat2m?: number;
       feeTotalSat3m?: number;
