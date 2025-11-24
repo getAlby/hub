@@ -58,7 +58,7 @@ type LDKService struct {
 const resetRouterKey = "ResetRouter"
 const maxInvoiceExpiry = 24 * time.Hour
 
-func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, network string, vssToken string, setStartupState func(startupState string)) (result lnclient.LNClient, err error) {
+func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, vssToken string, setStartupState func(startupState string)) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
 		return nil, errors.New("one or more required LDK configuration are missing")
 	}
@@ -139,7 +139,19 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	builder.SetCustomLogger(ldkLogger)
 	builder.SetNodeAlias(alias)
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
-	builder.SetNetwork(network)
+
+	network := cfg.GetNetwork()
+	switch network {
+	case "signet":
+		builder.SetNetwork(ldk_node.NetworkSignet)
+	case "regtest":
+		builder.SetNetwork(ldk_node.NetworkRegtest)
+	case "testnet":
+		builder.SetNetwork(ldk_node.NetworkSignet)
+	default:
+		builder.SetNetwork(ldk_node.NetworkBitcoin)
+	}
+
 	var chainSource string
 	if cfg.GetEnv().LDKBitcoindRpcHost != "" {
 		logger.Logger.WithFields(logrus.Fields{
@@ -499,10 +511,8 @@ func (ls *LDKService) Shutdown() error {
 	return nil
 }
 
-func getMaxTotalRoutingFeeLimit(amountMsat uint64) ldk_node.MaxTotalRoutingFeeLimit {
-	return ldk_node.MaxTotalRoutingFeeLimitSome{
-		AmountMsat: transactions.CalculateFeeReserveMsat(amountMsat),
-	}
+func getMaxTotalRoutingFeeLimit(amountMsat uint64) uint64 {
+	return transactions.CalculateFeeReserveMsat(amountMsat)
 }
 
 func (ls *LDKService) MakeOffer(ctx context.Context, description string) (string, error) {
@@ -513,7 +523,7 @@ func (ls *LDKService) MakeOffer(ctx context.Context, description string) (string
 	}
 
 	logger.Logger.WithField("offer", offer).Info("Generated BOLT12 offer")
-	return offer, nil
+	return offer.String(), nil
 }
 
 func (ls *LDKService) SendPaymentSync(invoice string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
@@ -552,10 +562,11 @@ func (ls *LDKService) SendPaymentSync(invoice string, amount *uint64) (*lnclient
 	maxPathCount := ls.cfg.GetEnv().LDKMaxPathCount
 	maxTotalRoutingFeeMsat := getMaxTotalRoutingFeeLimit(paymentAmountMsat)
 
-	sendingParams := &ldk_node.SendingParameters{
+	routeParameters := &ldk_node.RouteParametersConfig{
 		MaxTotalRoutingFeeMsat:          &maxTotalRoutingFeeMsat,
-		MaxChannelSaturationPowerOfHalf: &saturationPower,
-		MaxPathCount:                    &maxPathCount,
+		MaxChannelSaturationPowerOfHalf: saturationPower,
+		MaxPathCount:                    maxPathCount,
+		MaxTotalCltvExpiryDelta:         1008, // TODO: remove and use default
 	}
 
 	invoiceObj, err := ldk_node.Bolt11InvoiceFromStr(invoice)
@@ -566,9 +577,9 @@ func (ls *LDKService) SendPaymentSync(invoice string, amount *uint64) (*lnclient
 
 	var paymentHash string
 	if amount == nil {
-		paymentHash, err = ls.node.Bolt11Payment().Send(invoiceObj, sendingParams)
+		paymentHash, err = ls.node.Bolt11Payment().Send(invoiceObj, routeParameters)
 	} else {
-		paymentHash, err = ls.node.Bolt11Payment().SendUsingAmount(invoiceObj, *amount, sendingParams)
+		paymentHash, err = ls.node.Bolt11Payment().SendUsingAmount(invoiceObj, *amount, routeParameters)
 	}
 	if err != nil {
 		logger.Logger.WithError(err).Error("SendPayment failed")
@@ -629,16 +640,16 @@ func (ls *LDKService) SendPaymentSync(invoice string, amount *uint64) (*lnclient
 
 func (ls *LDKService) SendKeysend(amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	paymentStart := time.Now()
-	customTlvs := []ldk_node.TlvEntry{}
+	customTlvs := []ldk_node.CustomTlvRecord{}
 
 	for _, customRecord := range custom_records {
 		decodedValue, err := hex.DecodeString(customRecord.Value)
 		if err != nil {
 			return nil, err
 		}
-		customTlvs = append(customTlvs, ldk_node.TlvEntry{
-			Type:  customRecord.Type,
-			Value: decodedValue,
+		customTlvs = append(customTlvs, ldk_node.CustomTlvRecord{
+			TypeNum: customRecord.Type,
+			Value:   decodedValue,
 		})
 	}
 
@@ -649,13 +660,14 @@ func (ls *LDKService) SendKeysend(amount uint64, destination string, custom_reco
 	maxPathCount := ls.cfg.GetEnv().LDKMaxPathCount
 	maxTotalRoutingFeeMsat := getMaxTotalRoutingFeeLimit(amount)
 
-	sendingParams := &ldk_node.SendingParameters{
+	routeParameters := &ldk_node.RouteParametersConfig{
 		MaxTotalRoutingFeeMsat:          &maxTotalRoutingFeeMsat,
-		MaxChannelSaturationPowerOfHalf: &saturationPower,
-		MaxPathCount:                    &maxPathCount,
+		MaxChannelSaturationPowerOfHalf: saturationPower,
+		MaxPathCount:                    maxPathCount,
+		MaxTotalCltvExpiryDelta:         1008, // TODO: remove and use default
 	}
 
-	paymentHash, err := ls.node.SpontaneousPayment().SendWithTlvsAndPreimage(amount, destination, sendingParams, customTlvs, &preimage)
+	paymentHash, err := ls.node.SpontaneousPayment().SendWithPreimageAndCustomTlvs(amount, destination, customTlvs, preimage, routeParameters)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Keysend failed")
 		return nil, err
@@ -1534,27 +1546,11 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 }
 
 func (ls *LDKService) SendPaymentProbes(ctx context.Context, invoice string) error {
-	bolt11Invoice, err := ldk_node.Bolt11InvoiceFromStr(invoice)
-	if err != nil {
-		return err
-	}
-	err = ls.node.Bolt11Payment().SendProbes(bolt11Invoice)
-	if err != nil {
-		logger.Logger.WithError(err).Error("Bolt11Payment.SendProbes failed")
-		return err
-	}
-
-	return nil
+	return errors.ErrUnsupported
 }
 
 func (ls *LDKService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
-	err := ls.node.SpontaneousPayment().SendProbes(amountMsat, nodeId)
-	if err != nil {
-		logger.Logger.WithError(err).Error("SpontaneousPayment.SendProbes failed")
-		return err
-	}
-
-	return nil
+	return errors.ErrUnsupported
 }
 
 func (ls *LDKService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
@@ -2063,7 +2059,7 @@ func deleteOldLDKLogs(ldkLogDir string) {
 func (ls *LDKService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
 	status := ls.node.Status()
 	return &lnclient.NodeStatus{
-		IsReady:            status.IsRunning && status.IsListening,
+		IsReady:            status.IsRunning,
 		InternalNodeStatus: status,
 	}, nil
 }
@@ -2181,13 +2177,18 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uin
 	// TODO: this is only for testing MakeOffer and needs improvements
 	// (+ BOLT-12 payments need to go through transactions service)
 	// TODO: send liquidity event if amount too large
+	offerObj, err := ldk_node.OfferFromStr(offer)
+	if err != nil {
+		return nil, err
+	}
 
 	paymentStart := time.Now()
 	ldkEventSubscription := ls.ldkEventBroadcaster.Subscribe()
 	defer ls.ldkEventBroadcaster.CancelSubscription(ldkEventSubscription)
 
 	// TODO: use normal send if no amount is provided
-	paymentId, err := ls.node.Bolt12Payment().SendUsingAmount(offer, amount, nil, &payerNote)
+	// TODO: configure sending params to ensure fee reserve is used, etc.
+	paymentId, err := ls.node.Bolt12Payment().SendUsingAmount(offerObj, amount, nil, &payerNote, nil)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to initiate BOLT-12 variable amount payment")
 		return nil, errors.New("failed to initiate BOLT-12 variable amount payment")
