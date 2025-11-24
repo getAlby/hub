@@ -22,7 +22,7 @@
   "dependencies": {
     "@getalby/lightning-tools": "^6.0.0",
     "@getalby/sdk": "^6.0.1",
-    "@hookform/resolvers": "^5.1.1",
+    "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-aspect-ratio": "^1.1.7",
