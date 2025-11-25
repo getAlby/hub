@@ -56,7 +56,7 @@ function AlbyConnectionCard() {
       name: ALBY_ACCOUNT_APP_NAME,
     });
   const albyAccountApp = linkedAlbyAccountAppsData?.apps[0];
-  const { data: albyMe } = useAlbyMe();
+  const { data: albyMe, error: meError } = useAlbyMe();
   const { loading, linkStatus, loadingLinkStatus, linkAccount } =
     useLinkAccount(reloadAlbyAccountApp);
 
@@ -171,7 +171,7 @@ function AlbyConnectionCard() {
                   </Button>
                 )
               )}
-              {!albyAccountApp && (
+              {!albyAccountApp && !meError && (
                 <ExternalLinkButton
                   to="https://www.getalby.com/node"
                   variant="outline"
@@ -181,7 +181,7 @@ function AlbyConnectionCard() {
                   Alby Account Settings
                 </ExternalLinkButton>
               )}
-              {albyAccountApp && (
+              {(albyAccountApp || meError) && (
                 <LinkButton
                   to="/settings/alby-account"
                   className="w-full sm:w-auto"
