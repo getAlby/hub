@@ -18,7 +18,10 @@ import {
   Themes,
   useTheme,
 } from "src/components/ui/theme-provider";
-import { BITCOIN_DISPLAY_FORMAT_BIP177 } from "src/constants";
+import {
+  BITCOIN_DISPLAY_FORMAT_BIP177,
+  BITCOIN_DISPLAY_FORMAT_SATS,
+} from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";
@@ -196,7 +199,9 @@ function Settings() {
                   <SelectItem value={BITCOIN_DISPLAY_FORMAT_BIP177}>
                     ₿
                   </SelectItem>
-                  <SelectItem value="sats">sats</SelectItem>
+                  <SelectItem value={BITCOIN_DISPLAY_FORMAT_SATS}>
+                    sats
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
