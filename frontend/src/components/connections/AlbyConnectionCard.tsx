@@ -1,22 +1,17 @@
 import {
   CheckCircle2Icon,
   CircleXIcon,
-  EditIcon,
-  EllipsisIcon,
   ExternalLinkIcon,
   InfoIcon,
   Link2Icon,
-  Link2OffIcon,
   User2Icon,
   ZapIcon,
 } from "lucide-react";
 import { FormEvent, useState } from "react";
-import { Link } from "react-router-dom";
 
 import BudgetAmountSelect from "src/components/BudgetAmountSelect";
 import BudgetRenewalSelect from "src/components/BudgetRenewalSelect";
 import Loading from "src/components/Loading";
-import { UnlinkAlbyAccount } from "src/components/UnlinkAlbyAccount";
 import UserAvatar from "src/components/UserAvatar";
 import { AppCardConnectionInfo } from "src/components/connections/AppCardConnectionInfo";
 import { AppCardNotice } from "src/components/connections/AppCardNotice";
@@ -37,14 +32,6 @@ import {
   DialogHeader,
   DialogTrigger,
 } from "src/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "src/components/ui/dropdown-menu";
 import { Separator } from "src/components/ui/separator";
 import {
   Tooltip,
@@ -62,7 +49,6 @@ import { ExternalLinkButton } from "src/components/ui/custom/external-link-butto
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
 import { useApps } from "src/hooks/useApps";
-import { useInfo } from "src/hooks/useInfo";
 
 function AlbyConnectionCard() {
   const { data: linkedAlbyAccountAppsData, mutate: reloadAlbyAccountApp } =
@@ -71,7 +57,6 @@ function AlbyConnectionCard() {
     });
   const albyAccountApp = linkedAlbyAccountAppsData?.apps[0];
   const { data: albyMe } = useAlbyMe();
-  const { data: info } = useInfo();
   const { loading, linkStatus, loadingLinkStatus, linkAccount } =
     useLinkAccount(reloadAlbyAccountApp);
 
@@ -86,7 +71,7 @@ function AlbyConnectionCard() {
   }
 
   return (
-    <Card className="relative">
+    <Card>
       <CardHeader>
         <CardTitle>
           Linked Alby Account
@@ -97,46 +82,6 @@ function AlbyConnectionCard() {
           use apps that you connected to your Alby Account.
         </CardDescription>
       </CardHeader>
-      {info?.albyAccountConnected && (
-        <div className="absolute top-0.5 right-2">
-          <DropdownMenu modal={false}>
-            <Button variant="ghost" size="icon" asChild>
-              <DropdownMenuTrigger>
-                <EllipsisIcon className="size-4" />
-              </DropdownMenuTrigger>
-            </Button>
-            <DropdownMenuContent align="end">
-              <DropdownMenuGroup>
-                {albyAccountApp && (
-                  <>
-                    <DropdownMenuItem asChild>
-                      <Link
-                        to={`/apps/${albyAccountApp.id}?edit=true`}
-                        className="flex items-center gap-2"
-                      >
-                        <EditIcon className="size-4" /> Edit Connection
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
-                <UnlinkAlbyAccount>
-                  <DropdownMenuItem
-                    variant="destructive"
-                    onSelect={(e) => {
-                      e.preventDefault();
-                    }}
-                  >
-                    <div className="flex items-center gap-2">
-                      <Link2OffIcon className="size-4" /> Unlink Alby Account
-                    </div>
-                  </DropdownMenuItem>
-                </UnlinkAlbyAccount>
-              </DropdownMenuGroup>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )}
       <Separator />
       <CardContent className="group">
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-3 items-center relative">
