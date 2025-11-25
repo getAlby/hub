@@ -173,7 +173,7 @@ function AlbyConnectionCard() {
                   </Button>
                 )
               )}
-              {!info?.albyAccountConnected && (
+              {(!info?.albyAccountConnected || albyMe) && (
                 <ExternalLinkButton
                   to="https://www.getalby.com/node"
                   variant="outline"
@@ -183,7 +183,7 @@ function AlbyConnectionCard() {
                   Alby Account Settings
                 </ExternalLinkButton>
               )}
-              {info?.albyAccountConnected && (
+              {info?.albyAccountConnected && !albyMe && (
                 <LinkButton
                   to="/settings/alby-account"
                   className="w-full sm:w-auto"
