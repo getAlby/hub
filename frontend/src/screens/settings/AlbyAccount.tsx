@@ -10,14 +10,12 @@ import { Button } from "src/components/ui/button";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { Separator } from "src/components/ui/separator";
 import { UnlinkAlbyAccount } from "src/components/UnlinkAlbyAccount";
-import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 
 export function AlbyAccount() {
   const { data: info } = useInfo();
-  const { data: me } = useAlbyMe();
 
-  if (!info || !me) {
+  if (!info) {
     return <Loading />;
   }
 
