@@ -1,3 +1,4 @@
+import { BITCOIN_DISPLAY_FORMAT_BIP177 } from "src/constants";
 import { useInfo } from "src/hooks/useInfo";
 import { BitcoinDisplayFormat } from "src/types";
 
@@ -25,7 +26,7 @@ export function FormattedBitcoinAmount({
 
   // Get display format from settings, default to BIP177
   const displayFormat: BitcoinDisplayFormat =
-    info?.bitcoinDisplayFormat || "bip177";
+    info?.bitcoinDisplayFormat || BITCOIN_DISPLAY_FORMAT_BIP177;
 
   const formattedNumber = new Intl.NumberFormat().format(sats);
 
@@ -33,7 +34,7 @@ export function FormattedBitcoinAmount({
     return <span className={className}>{formattedNumber}</span>;
   }
 
-  if (displayFormat === "bip177") {
+  if (displayFormat === BITCOIN_DISPLAY_FORMAT_BIP177) {
     return <span className={className}>₿{formattedNumber}</span>;
   } else {
     return <span className={className}>{formattedNumber} sats</span>;
