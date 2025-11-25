@@ -1,14 +1,10 @@
-import {
-  ChevronDownIcon,
-  CreditCardIcon,
-  InfoIcon,
-  WalletIcon,
-} from "lucide-react";
+import { ChevronDownIcon, InfoIcon } from "lucide-react";
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
@@ -18,7 +14,11 @@ import { Separator } from "src/components/ui/separator";
 import { useChannels } from "src/hooks/useChannels";
 
 import { useInfo } from "src/hooks/useInfo";
-import { AutoChannelRequest, AutoChannelResponse } from "src/types";
+import {
+  AutoChannelRequest,
+  AutoChannelResponse,
+  LSPChannelOfferPaymentMethod,
+} from "src/types";
 import { request } from "src/utils/request";
 
 import { Invoice } from "@getalby/lightning-tools";
@@ -30,6 +30,15 @@ import LightningNetworkDarkSVG from "public/images/illustrations/lightning-netwo
 import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
 import { LSPTermsDialog } from "src/components/channels/LSPTermsDialog";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LinkButton } from "src/components/ui/custom/link-button";
+import {
+  Field,
+  FieldContent,
+  FieldLabel,
+  FieldTitle,
+} from "src/components/ui/field";
+import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import {
   Tooltip,
   TooltipContent,
@@ -38,6 +47,7 @@ import {
 } from "src/components/ui/tooltip";
 import { useLSPChannelOffer } from "src/hooks/useLSPChannelOffer";
 import { cn } from "src/lib/utils";
+import { openLink } from "src/utils/openLink";
 
 export function FirstChannel() {
   const { data: info } = useInfo();
@@ -50,6 +60,8 @@ export function FirstChannel() {
   const navigate = useNavigate();
   const [invoice, setInvoice] = React.useState<string>();
   const [channelSize, setChannelSize] = React.useState<number>();
+  const [currentPaymentMethod, setCurrentPaymentMethod] =
+    React.useState<LSPChannelOfferPaymentMethod>();
 
   React.useEffect(() => {
     if (channels?.length) {
@@ -68,7 +80,19 @@ export function FirstChannel() {
   }
 
   async function openChannel() {
-    if (!info || !channels) {
+    if (!info || !channels || !lspChannelOffer) {
+      return;
+    }
+    if (
+      (lspChannelOffer.currentPaymentMethod === "card" ||
+        lspChannelOffer.currentPaymentMethod === "wallet") &&
+      currentPaymentMethod !== lspChannelOffer.currentPaymentMethod
+    ) {
+      toast.error("Payment method incorrectly configured", {
+        description: currentPaymentMethod
+          ? "Please switch the payment method and confirm the change in your Alby Account settings"
+          : "Please choose a payment method",
+      });
       return;
     }
     setLoading(true);
@@ -122,7 +146,7 @@ export function FirstChannel() {
                     Incoming Liquidity
                   </TableCell>
                   <TableCell className="text-right p-3">
-                    {new Intl.NumberFormat().format(channelSize)} sats
+                    <FormattedBitcoinAmount amount={channelSize * 1000} />
                   </TableCell>
                 </TableRow>
                 {invoice && (
@@ -131,10 +155,9 @@ export function FirstChannel() {
                       Amount to pay
                     </TableCell>
                     <TableCell className="font-semibold text-right p-3">
-                      {new Intl.NumberFormat().format(
-                        new Invoice({ pr: invoice }).satoshi
-                      )}{" "}
-                      sats
+                      <FormattedBitcoinAmount
+                        amount={new Invoice({ pr: invoice }).satoshi * 1000}
+                      />
                     </TableCell>
                   </TableRow>
                 )}
@@ -147,16 +170,20 @@ export function FirstChannel() {
           <p className="mt-8 text-sm mb-2 text-muted-foreground">
             Other options
           </p>
-          <Link to="/channels/outgoing" className="w-full">
-            <Button className="w-full" variant="secondary">
-              Open Channel with On-Chain Bitcoin
-            </Button>
-          </Link>
-          <ExternalLink to="https://www.getalby.com/topup" className="w-full">
-            <Button className="w-full" variant="secondary">
-              Buy Bitcoin
-            </Button>
-          </ExternalLink>
+          <LinkButton
+            to="/channels/outgoing"
+            variant="secondary"
+            className="w-full"
+          >
+            Open Channel with On-Chain Bitcoin
+          </LinkButton>
+          <ExternalLinkButton
+            to="https://www.getalby.com/topup"
+            variant="secondary"
+            className="w-full"
+          >
+            Buy Bitcoin
+          </ExternalLinkButton>
         </div>
       )}
       {!invoice && (
@@ -170,16 +197,19 @@ export function FirstChannel() {
               src={LightningNetworkLightSVG}
               className="w-full dark:hidden"
             />
-            <>
-              <p>
-                You're now going to open your first lightning channel and can
-                begin using your Hub in the booming bitcoin economy!
-              </p>
-              <p className="text-muted-foreground">
-                Alby Hub works with selected service providers (LSPs) which
-                provide the best network connectivity and liquidity to receive
-                payments.
-              </p>
+            <p>
+              You're now going to open your first lightning channel and can
+              begin using your Hub in the booming bitcoin economy!
+            </p>
+            <p className="text-muted-foreground">
+              Alby Hub works with selected service providers (LSPs) which
+              provide the best network connectivity and liquidity to receive
+              payments.
+            </p>
+            <div>
+              <h2 className="font-medium text-foreground mb-3">
+                Purchase Your First Channel
+              </h2>
               <p>
                 A payment is required to purchase a channel from{" "}
                 <ExternalLink
@@ -191,110 +221,55 @@ export function FirstChannel() {
                 . Once your channel is opened, you'll immediately be able to
                 receive and send bitcoin with your Hub.
               </p>
-            </>
+            </div>
 
-            <Table>
-              <TableBody>
-                <TableRow>
-                  <TableCell className="font-medium p-3">
-                    Channel Cost
-                  </TableCell>
-                  <TableCell className="p-3 flex flex-col gap-2 items-end justify-center">
-                    <p>
-                      <span
-                        className={cn(
-                          lspChannelOffer.currentPaymentMethod === "included" &&
-                            "line-through"
-                        )}
-                      >
-                        {new Intl.NumberFormat(undefined, {
-                          style: "currency",
-                          currency: "USD",
-                        }).format(lspChannelOffer.feeTotalUsd / 100)}
-                      </span>
-                      {lspChannelOffer.currentPaymentMethod === "included" && (
-                        <span> $0.00</span>
-                      )}
-                    </p>
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell className="font-medium p-3 align-top">
-                    <div className="flex flex-1 items-center gap-1">
-                      Receiving Capacity{" "}
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger>
-                            <div className="flex flex-row items-center">
-                              <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-sm">
-                            You will be able to receive up to this amount of
-                            sats in this channel.
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  </TableCell>
-                  <TableCell className="p-3 flex flex-col gap-2 items-end justify-center align-top">
-                    <span>
-                      {new Intl.NumberFormat().format(
-                        lspChannelOffer.lspBalanceSat
-                      )}{" "}
-                      sats
-                    </span>
-                    <FormattedFiatAmount
-                      amount={lspChannelOffer.lspBalanceSat}
-                      className="text-xs"
-                      showApprox
-                    />
-                  </TableCell>
-                </TableRow>
-                {lspChannelOffer.currentPaymentMethod !== "prepaid" &&
-                  lspChannelOffer.currentPaymentMethod !== "included" && (
-                    <TableRow>
-                      <TableCell className="font-medium p-3 flex items-center gap-2">
-                        Payment method
-                      </TableCell>
-
-                      <TableCell className="p-3 text-right">
-                        <ExternalLink to="https://getalby.com/payment_details">
-                          <div className="capitalize flex items-center justify-end gap-1 font-medium">
-                            {lspChannelOffer.currentPaymentMethod === "card" ? (
-                              <CreditCardIcon className="size-4" />
-                            ) : (
-                              <WalletIcon className="size-4" />
-                            )}
-                            {lspChannelOffer.currentPaymentMethod.replace(
-                              "_",
-                              " "
-                            )}
-                          </div>
-                        </ExternalLink>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                <TableRow>
-                  <TableCell className="font-medium p-3 flex items-center gap-2">
-                    Terms
-                    {/* <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/faq/how-to-open-a-payment-channel">
-                      <InfoIcon className="size-4 text-muted-foreground" />
-                    </ExternalLink> */}
-                  </TableCell>
-
-                  <TableCell className="p-3 text-right">
-                    <LSPTermsDialog
-                      contactUrl={lspChannelOffer.lspContactUrl}
-                      description={lspChannelOffer.lspDescription}
-                      name={lspChannelOffer.lspName}
-                      terms={lspChannelOffer.terms}
-                      trigger=<span className="font-medium">View</span>
-                    />
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+            {lspChannelOffer.currentPaymentMethod !== "prepaid" &&
+              lspChannelOffer.currentPaymentMethod !== "included" && (
+                <div>
+                  <h3 className="font-medium text-sm text-foreground mb-3">
+                    Payment method
+                  </h3>
+                  <RadioGroup
+                    value={currentPaymentMethod}
+                    onValueChange={(
+                      newPaymentMethod: LSPChannelOfferPaymentMethod
+                    ) => {
+                      if (
+                        newPaymentMethod !==
+                        lspChannelOffer.currentPaymentMethod
+                      ) {
+                        openLink("https://getalby.com/payment_details");
+                      }
+                      setCurrentPaymentMethod(newPaymentMethod);
+                    }}
+                  >
+                    <FieldLabel htmlFor="wallet">
+                      <Field orientation="horizontal">
+                        <RadioGroupItem
+                          value={
+                            "wallet" satisfies LSPChannelOfferPaymentMethod
+                          }
+                          id="wallet"
+                        />
+                        <FieldContent>
+                          <FieldTitle>Bitcoin</FieldTitle>
+                        </FieldContent>
+                      </Field>
+                    </FieldLabel>
+                    <FieldLabel htmlFor="card">
+                      <Field orientation="horizontal">
+                        <RadioGroupItem
+                          value={"card" satisfies LSPChannelOfferPaymentMethod}
+                          id="card"
+                        />
+                        <FieldContent>
+                          <FieldTitle>Credit / Debit Card</FieldTitle>
+                        </FieldContent>
+                      </Field>
+                    </FieldLabel>
+                  </RadioGroup>
+                </div>
+              )}
             {showAdvanced && (
               <>
                 <div className="mt-2 flex items-top space-x-2">
@@ -324,7 +299,7 @@ export function FirstChannel() {
               </>
             )}
             {!showAdvanced && (
-              <div className="flex items-center justify-center -mt-5">
+              <div>
                 <Button
                   type="button"
                   variant="link"
@@ -336,28 +311,99 @@ export function FirstChannel() {
                 </Button>
               </div>
             )}
-            {lspChannelOffer.currentPaymentMethod !== "prepaid" &&
-              lspChannelOffer.currentPaymentMethod !== "included" && (
-                <p className="text-xs text-muted-foreground flex items-center justify-center -mb-4">
-                  The payment for the channel will be due immediately.
-                </p>
-              )}
-            <p className="text-center text-xs -mb-2">
-              By continuing, you consent the channel opens immediately and that
-              you lose the right to revoke once it is open.
-            </p>
-            {lspChannelOffer.currentPaymentMethod === "included" && (
-              <p className="text-xs text-muted-foreground flex items-center justify-center -mb-2">
-                This channel comes free with your Alby Pro subscription.
+
+            <Separator />
+
+            <Table>
+              <TableBody>
+                <TableRow className="border-0">
+                  <TableCell className="px-3 align-top">
+                    <div className="flex flex-1 items-center gap-1 text-sm">
+                      You'll be able to receive up to{" "}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <div className="flex flex-row items-center">
+                              <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-sm">
+                            The amount you will be able to receive when funds
+                            are on your counterparty's side of the channel.
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </TableCell>
+                  <TableCell className="px-3 flex flex-col gap-2 items-end justify-center align-top">
+                    {/* <span>
+                      <FormattedBitcoinAmount
+                        amount={lspChannelOffer.lspBalanceSat * 1000}
+                      />
+                    </span> */}
+                    <FormattedFiatAmount
+                      amount={lspChannelOffer.lspBalanceSat}
+                      showApprox
+                    />
+                  </TableCell>
+                </TableRow>
+                <TableRow className="border-0">
+                  <TableCell className="p-3 text-sm">
+                    Channel Cost
+                    {lspChannelOffer.currentPaymentMethod === "included" &&
+                      " (Included in your plan)"}
+                  </TableCell>
+                  <TableCell className="p-3 flex flex-col gap-2 items-end justify-center">
+                    <p>
+                      <span
+                        className={cn(
+                          lspChannelOffer.currentPaymentMethod === "included" &&
+                            "line-through"
+                        )}
+                      >
+                        {new Intl.NumberFormat(undefined, {
+                          style: "currency",
+                          currency: "USD",
+                        }).format(lspChannelOffer.feeTotalUsd / 100)}
+                      </span>
+                      {lspChannelOffer.currentPaymentMethod === "included" && (
+                        <span> $0.00</span>
+                      )}
+                    </p>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+
+            <div className="w-full flex items-center justify-center -mb-2">
+              <p className="text-center text-xs max-w-md">
+                By continuing, you consent to the{" "}
+                <LSPTermsDialog
+                  contactUrl={lspChannelOffer.lspContactUrl}
+                  description={lspChannelOffer.lspDescription}
+                  name={lspChannelOffer.lspName}
+                  terms={lspChannelOffer.terms}
+                  trigger={<span className="underline">LSP terms</span>}
+                />{" "}
+                and that the channel opens immediately and that you lose the
+                right to revoke once it is open.
               </p>
-            )}
+            </div>
+
             <LoadingButton loading={isLoading} onClick={openChannel}>
               {lspChannelOffer.currentPaymentMethod === "prepaid" ? (
-                <>Continue</>
+                <>Review Order</>
               ) : lspChannelOffer.currentPaymentMethod === "included" ? (
-                <>Confirm</>
+                <>Open Channel</>
               ) : (
-                <>Confirm Payment</>
+                <>
+                  Pay{" "}
+                  {new Intl.NumberFormat(undefined, {
+                    style: "currency",
+                    currency: "USD",
+                  }).format(lspChannelOffer.feeTotalUsd / 100)}{" "}
+                  and Open Channel
+                </>
               )}
             </LoadingButton>
           </div>

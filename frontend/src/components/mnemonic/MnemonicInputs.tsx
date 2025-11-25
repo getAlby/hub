@@ -102,9 +102,7 @@ export default function MnemonicInputs({
     <>
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl text-center">
-            Wallet Recovery Phrase
-          </CardTitle>
+          <CardTitle className="text-xl text-center">Recovery Phrase</CardTitle>
         </CardHeader>
 
         <CardContent>{content}</CardContent>

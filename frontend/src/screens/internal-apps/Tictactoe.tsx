@@ -15,6 +15,10 @@ import {
 } from "src/components/ui/card";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
+import {
+  DEFAULT_APP_BUDGET_RENEWAL,
+  DEFAULT_APP_BUDGET_SATS,
+} from "src/constants";
 import { useApps } from "src/hooks/useApps";
 import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
@@ -45,8 +49,8 @@ export function Tictactoe() {
         const createAppResponse = await createApp({
           name: appStoreApp.title,
           scopes: ["get_info", "lookup_invoice", "make_invoice", "pay_invoice"],
-          maxAmount: 30_000,
-          budgetRenewal: "monthly",
+          maxAmount: DEFAULT_APP_BUDGET_SATS,
+          budgetRenewal: DEFAULT_APP_BUDGET_RENEWAL,
           metadata: {
             app_store_app_id: appId,
           },

@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
-import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
@@ -21,7 +21,7 @@ import {
   AlertDescription,
   AlertTitle,
 } from "src/components/ui/alert.tsx";
-import { Button } from "src/components/ui/button";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
@@ -103,10 +103,9 @@ function Wallet() {
       <div className="flex flex-col xl:flex-row justify-between xl:items-start gap-3">
         <div className="flex flex-col gap-1 p-6 xl:p-0 text-center xl:text-left">
           <div className="text-5xl font-medium balance sensitive slashed-zero">
-            {new Intl.NumberFormat().format(
-              Math.floor(balances.lightning.totalSpendable / 1000)
-            )}{" "}
-            sats
+            <FormattedBitcoinAmount
+              amount={balances.lightning.totalSpendable}
+            />
           </div>
           <FormattedFiatAmount
             className="text-xl"
@@ -122,19 +121,18 @@ function Wallet() {
           </LinkButton>
         </div>
         <div className="flex items-center gap-3">
-          <ExternalLink to="https://www.getalby.com/topup">
-            <Button className="w-full" variant="secondary">
-              <CreditCardIcon />
-              Buy Bitcoin
-            </Button>
-          </ExternalLink>
+          <ExternalLinkButton
+            to="https://www.getalby.com/topup"
+            variant="secondary"
+          >
+            <CreditCardIcon />
+            Buy Bitcoin
+          </ExternalLinkButton>
           {hasChannelManagement && (
-            <Link to="/wallet/swap">
-              <Button className="w-full" variant="secondary">
-                <ArrowDownUpIcon />
-                Swap
-              </Button>
-            </Link>
+            <LinkButton to="/wallet/swap" variant="secondary">
+              <ArrowDownUpIcon />
+              Swap
+            </LinkButton>
           )}
           <div>
             <TransactionsListMenu />

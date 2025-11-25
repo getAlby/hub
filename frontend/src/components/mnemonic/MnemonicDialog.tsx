@@ -63,7 +63,7 @@ export default function MnemonicDialog({
     <Dialog open={open} onOpenChange={onOpenChange} defaultOpen={defaultOpen}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Wallet Recovery Phrase</DialogTitle>
+          <DialogTitle>Recovery Phrase</DialogTitle>
           <DialogDescription>
             Write these words down, store them somewhere safe, and keep them
             secret.

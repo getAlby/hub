@@ -17,8 +17,8 @@ export default defineConfig(({ command }) => ({
       includeAssets: [
         "favicon.ico",
         "robots.txt",
-        "icon-512.png",
         "icon-192.png",
+        "icon-512.png",
       ],
       useCredentials: true, // because the manifest might sit behind authentication
       manifest: {

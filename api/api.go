@@ -102,7 +102,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		return nil, err
 	}
 
-	relayUrl := api.cfg.GetRelayUrl()
+	relayUrls := api.cfg.GetRelayUrls()
 
 	lightningAddress, err := api.albyOAuthSvc.GetLightningAddress()
 	if err != nil {
@@ -115,14 +115,16 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	responseBody.Pubkey = app.AppPubkey
 	responseBody.PairingSecret = pairingSecretKey
 	responseBody.WalletPubkey = *app.WalletPubkey
-	responseBody.RelayUrl = relayUrl
+	responseBody.RelayUrls = relayUrls
 	responseBody.Lud16 = lightningAddress
 
 	if createAppRequest.ReturnTo != "" {
 		returnToUrl, err := url.Parse(createAppRequest.ReturnTo)
 		if err == nil {
 			query := returnToUrl.Query()
-			query.Add("relay", relayUrl)
+			for _, relayUrl := range relayUrls {
+				query.Add("relay", relayUrl)
+			}
 			query.Add("pubkey", *app.WalletPubkey)
 			if lightningAddress != "" && !app.Isolated {
 				query.Add("lud16", lightningAddress)
@@ -136,7 +138,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	if lightningAddress != "" && !app.Isolated {
 		lud16 = fmt.Sprintf("&lud16=%s", lightningAddress)
 	}
-	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", *app.WalletPubkey, relayUrl, pairingSecretKey, lud16)
+	responseBody.PairingUri = fmt.Sprintf("nostr+walletconnect://%s?relay=%s&secret=%s%s", *app.WalletPubkey, strings.Join(relayUrls, "&relay="), pairingSecretKey, lud16)
 
 	return responseBody, nil
 }
@@ -318,6 +320,16 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 }
 
 func (api *api) DeleteApp(userApp *db.App) error {
+	// Delete lightning address if one exists
+	if api.appsSvc.HasLightningAddress(userApp) {
+		err := api.DeleteLightningAddress(context.Background(), userApp.ID)
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"app_id": userApp.ID,
+			}).Error("Failed to delete lightning address during app deletion")
+		}
+	}
+
 	return api.appsSvc.DeleteApp(userApp)
 }
 
@@ -744,7 +756,7 @@ func (api *api) RefundSwap(refundSwapRequest *RefundSwapRequest) error {
 	if api.svc.GetSwapsService() == nil {
 		return errors.New("SwapsService not started")
 	}
-	return api.svc.GetSwapsService().RefundSwap(refundSwapRequest.SwapId, refundSwapRequest.Address)
+	return api.svc.GetSwapsService().RefundSwap(refundSwapRequest.SwapId, refundSwapRequest.Address, false)
 }
 
 func (api *api) GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error) {
@@ -1188,6 +1200,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	autoUnlockPassword, _ := api.cfg.Get("AutoUnlockPassword", "")
 	info.SetupCompleted = api.cfg.SetupCompleted()
 	info.Currency = api.cfg.GetCurrency()
+	info.BitcoinDisplayFormat = api.cfg.GetBitcoinDisplayFormat()
 	info.StartupState = api.svc.GetStartupState()
 	if api.startupError != nil {
 		info.StartupError = api.startupError.Error()
@@ -1203,15 +1216,24 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.VssSupported = backendType == config.LDKBackendType && api.cfg.GetEnv().LDKVssUrl != ""
 	info.AutoUnlockPasswordEnabled = autoUnlockPassword != ""
 	info.AutoUnlockPasswordSupported = api.cfg.GetEnv().IsDefaultClientId()
-	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
+	info.Relays = []InfoResponseRelay{}
+	for _, relayStatus := range api.svc.GetRelayStatuses() {
+		info.Relays = append(info.Relays, InfoResponseRelay{
+			Url:    relayStatus.Url,
+			Online: relayStatus.Online,
+		})
+	}
+
 	info.MempoolUrl = api.cfg.GetMempoolUrl()
-	info.Relay = api.cfg.GetRelayUrl()
+	info.AlbyAccountConnected = api.albyOAuthSvc.IsConnected(ctx)
+
+	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get alby user identifier")
 		return nil, err
 	}
 	info.AlbyUserIdentifier = albyUserIdentifier
-	info.AlbyAccountConnected = api.albyOAuthSvc.IsConnected(ctx)
+
 	if api.svc.GetLNClient() != nil {
 		nodeInfo, err := api.svc.GetLNClient().GetInfo(ctx)
 		if err != nil {
@@ -1238,6 +1260,38 @@ func (api *api) SetCurrency(currency string) error {
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to update currency")
 		return err
+	}
+
+	return nil
+}
+
+func (api *api) SetBitcoinDisplayFormat(format string) error {
+	if format != constants.BITCOIN_DISPLAY_FORMAT_SATS && format != constants.BITCOIN_DISPLAY_FORMAT_BIP177 {
+		return fmt.Errorf("bitcoin display format must be '%s' or '%s'", constants.BITCOIN_DISPLAY_FORMAT_SATS, constants.BITCOIN_DISPLAY_FORMAT_BIP177)
+	}
+
+	err := api.cfg.SetBitcoinDisplayFormat(format)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to update bitcoin display format")
+		return err
+	}
+
+	return nil
+}
+
+func (api *api) UpdateSettings(updateSettingsRequest *UpdateSettingsRequest) error {
+	if updateSettingsRequest.Currency != "" {
+		err := api.SetCurrency(updateSettingsRequest.Currency)
+		if err != nil {
+			return fmt.Errorf("failed to set currency: %w", err)
+		}
+	}
+
+	if updateSettingsRequest.BitcoinDisplayFormat != "" {
+		err := api.SetBitcoinDisplayFormat(updateSettingsRequest.BitcoinDisplayFormat)
+		if err != nil {
+			return fmt.Errorf("failed to set bitcoin display format: %w", err)
+		}
 	}
 
 	return nil
@@ -1532,9 +1586,19 @@ func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 		alarms = append(alarms, NewHealthAlarm(HealthAlarmKindAlbyService, albyInfo.Incidents))
 	}
 
-	isNostrRelayReady := api.svc.IsRelayReady()
-	if !isNostrRelayReady {
-		alarms = append(alarms, NewHealthAlarm(HealthAlarmKindNostrRelayOffline, nil))
+	relayStatuses := api.svc.GetRelayStatuses()
+	if len(relayStatuses) > 0 {
+		isAnyNostrRelayOffline := false
+		offlineRelayUrls := []string{}
+		for _, relayStatus := range relayStatuses {
+			if !relayStatus.Online {
+				isAnyNostrRelayOffline = true
+				offlineRelayUrls = append(offlineRelayUrls, relayStatus.Url)
+			}
+		}
+		if isAnyNostrRelayOffline {
+			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindNostrRelayOffline, offlineRelayUrls))
+		}
 	}
 
 	ldkVssEnabled, _ := api.cfg.Get("LdkVssEnabled", "")

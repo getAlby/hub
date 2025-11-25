@@ -24,6 +24,7 @@ import { LDKChannelWithoutPeerAlert } from "src/components/channels/LDKChannelWi
 import { OnchainTransactionsTable } from "src/components/channels/OnchainTransactionsTable.tsx";
 import EmptyState from "src/components/EmptyState.tsx";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import ResponsiveButton from "src/components/ResponsiveButton";
@@ -32,7 +33,6 @@ import {
   AlertDescription,
   AlertTitle,
 } from "src/components/ui/alert.tsx";
-import { Button } from "src/components/ui/button.tsx";
 import {
   Card,
   CardContent,
@@ -40,6 +40,7 @@ import {
   CardTitle,
 } from "src/components/ui/card.tsx";
 import CircleProgress from "src/components/ui/custom/circle-progress";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -154,13 +155,14 @@ export default function Channels() {
           hasChannelManagement && (
             <div className="flex gap-3 items-center justify-center">
               <DropdownMenu modal={false}>
-                <DropdownMenuTrigger>
-                  <ResponsiveButton
-                    icon={Settings2Icon}
-                    text="Advanced"
-                    variant="secondary"
-                  />
-                </DropdownMenuTrigger>
+                <ResponsiveButton
+                  asChild
+                  icon={Settings2Icon}
+                  text="Advanced"
+                  variant="secondary"
+                >
+                  <DropdownMenuTrigger />
+                </ResponsiveButton>
                 <DropdownMenuContent className="w-56">
                   <DropdownMenuGroup>
                     <DropdownMenuLabel>Node</DropdownMenuLabel>
@@ -292,19 +294,19 @@ export default function Channels() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              <Link to="/wallet/swap" className="hidden sm:block">
-                <Button className="w-full" variant="secondary">
-                  <ArrowDownUpIcon />
-                  Swap
-                </Button>
-              </Link>
-              <Link to="/channels/incoming">
-                <Button>Open Channel</Button>
-              </Link>
-              <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/node/node-health">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
+              <LinkButton
+                to="/wallet/swap"
+                variant="secondary"
+                className="hidden sm:flex"
+              >
+                <ArrowDownUpIcon />
+                Swap
+              </LinkButton>
+              <LinkButton to="/channels/incoming">Open Channel</LinkButton>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/node/node-health">
                       <CircleProgress
                         value={nodeHealth}
                         className="w-9 h-9 relative"
@@ -325,11 +327,11 @@ export default function Channels() {
                           }
                         />
                       </CircleProgress>
-                    </TooltipTrigger>
-                    <TooltipContent>Node health: {nodeHealth}%</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </ExternalLink>
+                    </ExternalLink>
+                  </TooltipTrigger>
+                  <TooltipContent>Node health: {nodeHealth}%</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           )
         }
@@ -379,28 +381,28 @@ export default function Channels() {
                             Your spending balance is the funds on your side of
                             your channels, which you can use to make lightning
                             payments. Your total lightning balance is{" "}
-                            {new Intl.NumberFormat().format(
-                              channels
-                                ?.map((channel) =>
-                                  Math.floor(channel.localBalance / 1000)
-                                )
-                                .reduce((a, b) => a + b, 0) || 0
-                            )}{" "}
-                            sats which includes{" "}
-                            {new Intl.NumberFormat().format(
-                              Math.floor(
+                            <FormattedBitcoinAmount
+                              amount={
+                                channels
+                                  ?.map((channel) => channel.localBalance)
+                                  .reduce((a, b) => a + b, 0) || 0
+                              }
+                            />{" "}
+                            which includes{" "}
+                            <FormattedBitcoinAmount
+                              amount={
                                 channels
                                   ?.map((channel) =>
                                     Math.min(
-                                      Math.floor(channel.localBalance / 1000),
-                                      channel.unspendablePunishmentReserve
+                                      channel.localBalance,
+                                      channel.unspendablePunishmentReserve *
+                                        1000
                                     )
                                   )
                                   .reduce((a, b) => a + b, 0) || 0
-                              )
-                            )}{" "}
-                            sats reserved in your channels which cannot be
-                            spent.
+                              }
+                            />{" "}
+                            reserved in your channels which cannot be spent.
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -417,10 +419,9 @@ export default function Channels() {
                     {balances && (
                       <>
                         <div className="text-xl font-medium balance sensitive mb-1">
-                          {new Intl.NumberFormat().format(
-                            Math.floor(balances.lightning.totalSpendable / 1000)
-                          )}{" "}
-                          sats
+                          <FormattedBitcoinAmount
+                            amount={balances.lightning.totalSpendable}
+                          />
                         </div>
                         <FormattedFiatAmount
                           amount={balances.lightning.totalSpendable / 1000}
@@ -453,12 +454,9 @@ export default function Channels() {
                     {balances && (
                       <>
                         <div className="text-xl font-medium balance sensitive mb-1">
-                          {new Intl.NumberFormat().format(
-                            Math.floor(
-                              balances.lightning.totalReceivable / 1000
-                            )
-                          )}{" "}
-                          sats
+                          <FormattedBitcoinAmount
+                            amount={balances.lightning.totalReceivable}
+                          />
                         </div>
                         <FormattedFiatAmount
                           amount={balances.lightning.totalReceivable / 1000}
@@ -510,10 +508,9 @@ export default function Channels() {
                     <>
                       <div className="mb-1">
                         <span className="text-xl font-medium balance sensitive mb-1 mr-1">
-                          {new Intl.NumberFormat().format(
-                            Math.floor(balances.onchain.spendable)
-                          )}{" "}
-                          sats
+                          <FormattedBitcoinAmount
+                            amount={balances.onchain.spendable * 1000}
+                          />
                         </span>
                         {!!channels?.length &&
                           balances.onchain.reserved +
@@ -528,8 +525,11 @@ export default function Channels() {
                                   You have insufficient funds in reserve to
                                   close channels or bump on-chain transactions
                                   and currently rely on the counterparty. It is
-                                  recommended to deposit at least 25,000 sats to
-                                  your on-chain balance.
+                                  recommended to deposit at least{" "}
+                                  <FormattedBitcoinAmount
+                                    amount={25_000 * 1000}
+                                  />{" "}
+                                  to your on-chain balance.
                                 </TooltipContent>
                               </Tooltip>
                             </TooltipProvider>
@@ -544,11 +544,14 @@ export default function Channels() {
                           balances.onchain.total && (
                           <p className="text-xs text-muted-foreground animate-pulse">
                             +
-                            {new Intl.NumberFormat().format(
-                              balances.onchain.total -
-                                balances.onchain.spendable
-                            )}{" "}
-                            sats incoming
+                            <FormattedBitcoinAmount
+                              amount={
+                                (balances.onchain.total -
+                                  balances.onchain.spendable) *
+                                1000
+                              }
+                            />{" "}
+                            incoming
                           </p>
                         )}
                     </>
@@ -565,10 +568,12 @@ export default function Channels() {
                 <AlertTitle>Pending Closed Channels</AlertTitle>
                 <AlertDescription className="block">
                   You have{" "}
-                  {new Intl.NumberFormat().format(
-                    balances.onchain.pendingBalancesFromChannelClosures
-                  )}{" "}
-                  sats pending from closed channels with
+                  <FormattedBitcoinAmount
+                    amount={
+                      balances.onchain.pendingBalancesFromChannelClosures * 1000
+                    }
+                  />{" "}
+                  pending from closed channels with
                   {[
                     ...balances.onchain.pendingBalancesDetails,
                     ...balances.onchain.pendingSweepBalancesDetails,
@@ -680,7 +685,8 @@ function PendingBalancesDetailsItem({
         {nodeDetails?.alias || "Unknown"}
         <ExternalLinkIcon className="ml-1 w-4 h-4 inline" />
       </ExternalLink>{" "}
-      ({new Intl.NumberFormat().format(details.amount)} sats)&nbsp;
+      (<FormattedBitcoinAmount amount={details.amount * 1000} />
+      )&nbsp;
       <ExternalLink
         to={`${info?.mempoolUrl}/tx/${details.fundingTxId}#flow=&vout=${details.fundingTxVout}`}
         className="underline"

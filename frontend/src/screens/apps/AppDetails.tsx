@@ -249,11 +249,11 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                 {!isEditingPermissions && (
                   <>
                     <DropdownMenu modal={false}>
-                      <DropdownMenuTrigger>
-                        <Button variant="outline" size="icon">
+                      <Button variant="outline" size="icon" asChild>
+                        <DropdownMenuTrigger>
                           <EllipsisIcon />
-                        </Button>
-                      </DropdownMenuTrigger>
+                        </DropdownMenuTrigger>
+                      </Button>
                       <DropdownMenuContent align="end">
                         {app.isolated &&
                           !app.metadata?.app_store_app_id &&
@@ -304,7 +304,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                       onClick={() => setIsEditingPermissions(true)}
                       icon={SquarePenIcon}
                       text="Edit Connection"
-                    ></ResponsiveButton>
+                    />
                   </>
                 )}
                 {isEditingPermissions && (
@@ -325,7 +325,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                         (!app.scopes.includes("pay_invoice") &&
                           permissions.scopes.includes("pay_invoice")) ? (
                           <AlertDialog>
-                            <AlertDialogTrigger>
+                            <AlertDialogTrigger asChild>
                               <Button type="button">Save</Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>

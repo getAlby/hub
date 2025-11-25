@@ -1,7 +1,5 @@
 import { ExternalLinkIcon } from "lucide-react";
-import { Link } from "react-router-dom";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
-import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LinkButton } from "src/components/ui/custom/link-button";
 
 export function AppOfTheDayWidget() {
   function seededRandom(seed: number) {
@@ -21,6 +20,7 @@ export function AppOfTheDayWidget() {
   const excludedAppIds = ["alby-go", "zapplanner"];
   const apps = appStoreApps.filter((a) => !excludedAppIds.includes(a.id));
 
+  // eslint-disable-next-line react-hooks/purity
   const daysSinceEpoch = Math.floor(Date.now() / (1000 * 60 * 60 * 24));
   const todayIndex = Math.floor(seededRandom(daysSinceEpoch) * apps.length);
   const app = apps[todayIndex];
@@ -44,14 +44,13 @@ export function AppOfTheDayWidget() {
         </div>
       </CardContent>
       <CardFooter className="flex flex-row justify-end">
-        <Link
+        <LinkButton
           to={app.internal ? `/internal-apps/${app.id}` : `/appstore/${app.id}`}
+          variant="outline"
         >
-          <Button variant="outline">
-            <ExternalLinkIcon />
-            Open
-          </Button>
-        </Link>
+          <ExternalLinkIcon />
+          Open
+        </LinkButton>
       </CardFooter>
     </Card>
   );

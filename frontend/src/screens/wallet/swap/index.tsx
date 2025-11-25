@@ -5,12 +5,13 @@ import {
   RefreshCwIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
-import ResponsiveButton from "src/components/ResponsiveButton";
+import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
 import { Button } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
@@ -42,6 +43,7 @@ export default function Swap() {
   useEffect(() => {
     const newTabValue = searchParams.get("type");
     if (newTabValue) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTab(newTabValue);
       setSearchParams({});
     }
@@ -53,13 +55,12 @@ export default function Swap() {
         title="Swap"
         contentRight={
           tab === "out" && (
-            <Link to="/wallet/swap/auto">
-              <ResponsiveButton
-                variant="outline"
-                icon={RefreshCwIcon}
-                text="Auto Swap"
-              />
-            </Link>
+            <ResponsiveLinkButton
+              to="/wallet/swap/auto"
+              variant="outline"
+              icon={RefreshCwIcon}
+              text="Auto Swap"
+            />
           )
         }
       />
@@ -173,18 +174,16 @@ function SwapInForm() {
             <div>
               <p className="text-xs text-muted-foreground">
                 Receiving Capacity:{" "}
-                {new Intl.NumberFormat().format(
-                  Math.floor(balances.lightning.totalReceivable / 1000)
-                )}{" "}
-                sats
+                <FormattedBitcoinAmount
+                  amount={balances.lightning.totalReceivable}
+                />
               </p>
               {isInternalSwap && (
                 <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
                   Spendable On-Chain Balance:{" "}
-                  {new Intl.NumberFormat().format(
-                    spendableOnchainBalanceWithAnchorReserves
-                  )}{" "}
-                  sats
+                  <FormattedBitcoinAmount
+                    amount={spendableOnchainBalanceWithAnchorReserves * 1000}
+                  />
                   {!!channels?.length && (
                     <TooltipProvider>
                       <Tooltip>
@@ -196,14 +195,13 @@ function SwapInForm() {
                         <TooltipContent>
                           To ensure you can close channels, you need to set
                           aside at least{" "}
-                          {new Intl.NumberFormat().format(
-                            channels.length * 25000
-                          )}{" "}
-                          sats on-chain. Your total on-chain balance is{" "}
-                          {new Intl.NumberFormat().format(
-                            balances.onchain.spendable
-                          )}{" "}
-                          sats
+                          <FormattedBitcoinAmount
+                            amount={channels.length * 25000 * 1000}
+                          />{" "}
+                          on-chain. Your total on-chain balance is{" "}
+                          <FormattedBitcoinAmount
+                            amount={balances.onchain.spendable * 1000}
+                          />
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -344,14 +342,14 @@ function SwapOutForm() {
           {balances && (
             <p className="text-xs text-muted-foreground">
               Balance:{" "}
-              {new Intl.NumberFormat().format(
-                Math.floor(balances.lightning.totalSpendable / 1000)
-              )}{" "}
-              sats
+              <FormattedBitcoinAmount
+                amount={balances.lightning.totalSpendable}
+              />
             </p>
           )}
           <p className="text-xs text-muted-foreground">
-            Minimum: {new Intl.NumberFormat().format(swapInfo.minAmount)} sats
+            Minimum:{" "}
+            <FormattedBitcoinAmount amount={swapInfo.minAmount * 1000} />
           </p>
         </div>
       </div>

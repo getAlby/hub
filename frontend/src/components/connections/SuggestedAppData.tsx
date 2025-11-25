@@ -1,7 +1,7 @@
 import { ZapIcon } from "lucide-react";
 import { Link } from "react-router-dom";
+import albyExtension from "src/assets/suggested-apps/alby-extension.png";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
-import alby from "src/assets/suggested-apps/alby.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
 import bitrefill from "src/assets/suggested-apps/bitrefill.png";
 import bringin from "src/assets/suggested-apps/bringin.png";
@@ -219,7 +219,7 @@ export const appStoreApps: AppStoreApp[] = (
       chromeLink:
         "https://chromewebstore.google.com/detail/iokeahhehimjnekafflcihljlcjccdbe",
       firefoxLink: "https://addons.mozilla.org/en-US/firefox/addon/alby/",
-      logo: alby,
+      logo: albyExtension,
       extendedDescription:
         "Connect your Hub to lightning-enabled websites and lets you pay seamlessly on the web",
       hideConnectionQr: true,

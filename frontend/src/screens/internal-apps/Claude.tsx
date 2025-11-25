@@ -1,8 +1,15 @@
+import {
+  ChartLineIcon,
+  GiftIcon,
+  LightbulbIcon,
+  MessageCircleIcon,
+} from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
 import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
+import ExternalLink from "src/components/ExternalLink";
 import {
   Accordion,
   AccordionContent,
@@ -17,6 +24,10 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
+import {
+  DEFAULT_APP_BUDGET_RENEWAL,
+  DEFAULT_APP_BUDGET_SATS,
+} from "src/constants";
 import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -49,8 +60,8 @@ export function Claude() {
             "pay_invoice",
             "sign_message",
           ],
-          maxAmount: 10_000,
-          budgetRenewal: "monthly",
+          maxAmount: DEFAULT_APP_BUDGET_SATS,
+          budgetRenewal: DEFAULT_APP_BUDGET_RENEWAL,
           metadata: {
             app_store_app_id: "claude",
           },
@@ -185,16 +196,61 @@ export function Claude() {
                 <p className="text-muted-foreground">
                   Connect your hub to Claude to:
                 </p>
-                <ul className="text-muted-foreground pl-4 gap-2 flex flex-col">
+                <ul className="text-muted-foreground pl-4 gap-4 flex flex-col">
                   <li>
-                    💬 Interact with your wallet with natural language:{" "}
-                    <span className="italic">"Pay $1 to my friend Rene"</span>
+                    <MessageCircleIcon className="size-4 inline" /> Interact
+                    with your wallet with natural language:{" "}
+                    <span className="italic">"Pay $1 to my friend Rene"</span>{" "}
+                    (with{" "}
+                    <ExternalLink
+                      to="https://support.claude.com/en/articles/11817273-using-claude-s-chat-search-and-memory-to-build-on-previous-context"
+                      className="underline"
+                    >
+                      Claude's Memory
+                    </ExternalLink>
+                    )
                   </li>
                   <li>
-                    ⚡ Give Claude access to paid tools:{" "}
+                    <GiftIcon className="size-4 inline" /> Buy giftcards:{" "}
                     <span className="italic">
                       "Buy a $15 doordash giftcard"
-                    </span>
+                    </span>{" "}
+                    (with{" "}
+                    <ExternalLink
+                      to="https://www.bitrefill.com/account/developers/mcp-server"
+                      className="underline"
+                    >
+                      Bitrefill MCP
+                    </ExternalLink>
+                    )
+                  </li>
+                  <li>
+                    <ChartLineIcon className="size-4 inline" /> Let Claude trade
+                    for you:{" "}
+                    <span className="italic">
+                      "Analyze market sentiment and trading data from the past 3
+                      months and based on this, open a $10 2x long or short
+                      position"
+                    </span>{" "}
+                    (with{" "}
+                    <ExternalLink
+                      to="https://sup3r.cool/ln-markets/"
+                      className="underline"
+                    >
+                      LNMarkets MCP
+                    </ExternalLink>
+                    )
+                  </li>
+                  <li>
+                    <LightbulbIcon className="size-4 inline" /> Use other
+                    awesome paid MCP tools: (see more{" "}
+                    <ExternalLink
+                      to="https://github.com/getAlby/awesome-ai-bitcoin/?tab=readme-ov-file#mcp-servers"
+                      className="underline"
+                    >
+                      Awesome MCP Servers
+                    </ExternalLink>
+                    )
                   </li>
                 </ul>
 

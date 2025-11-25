@@ -3,6 +3,7 @@ import { Navigate, useLocation, useNavigate } from "react-router-dom";
 
 import React from "react";
 import { toast } from "sonner";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import PasswordInput from "src/components/password/PasswordInput";
@@ -38,6 +39,10 @@ import { InstallApp } from "src/components/connections/InstallApp";
 import { defineStepper } from "src/components/stepper";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Input } from "src/components/ui/input";
+import {
+  DEFAULT_APP_BUDGET_RENEWAL,
+  DEFAULT_APP_BUDGET_SATS,
+} from "src/constants";
 import { useApp } from "src/hooks/useApp";
 import { ConnectAppCard } from "src/screens/apps/ConnectAppCard";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -202,12 +207,12 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     scopes: initialScopes,
     maxAmount: budgetMaxAmountMsatParam
       ? Math.floor(parseInt(budgetMaxAmountMsatParam) / 1000)
-      : 0,
+      : DEFAULT_APP_BUDGET_SATS,
     budgetRenewal: validBudgetRenewals.includes(budgetRenewalParam)
       ? budgetRenewalParam
       : budgetMaxAmountMsatParam
         ? "never"
-        : "monthly",
+        : DEFAULT_APP_BUDGET_RENEWAL,
     expiresAt: parseExpiresParam(expiresAtParam),
     isolated: isolatedParam === "true",
   });
@@ -264,7 +269,8 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       // this gives those apps the chance to know the user has enabled the connection
       const nwcEvent = new CustomEvent("nwc:success", {
         detail: {
-          relayUrl: createAppResponse.relayUrl,
+          relayUrl: createAppResponse.relayUrls[0], // TODO: deprecate
+          relayUrls: createAppResponse.relayUrls, // TODO: add to spec
           walletPubkey: createAppResponse.walletPubkey,
           lud16: createAppResponse.lud16,
         },
@@ -276,7 +282,8 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         window.opener.postMessage(
           {
             type: "nwc:success",
-            relayUrl: createAppResponse.relayUrl,
+            relayUrl: createAppResponse.relayUrls[0], // TODO: deprecate
+            relayUrls: createAppResponse.relayUrls, // TODO: add to spec
             walletPubkey: createAppResponse.walletPubkey,
             lud16: createAppResponse.lud16,
           },
@@ -286,6 +293,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
 
       if (createAppResponse.returnTo) {
         // open connection URI directly in an app
+        // eslint-disable-next-line react-hooks/immutability
         window.location.href = createAppResponse.returnTo;
         return;
       }
@@ -528,8 +536,7 @@ function FinalizeConnection({
         {app?.isolated && (
           <li>
             Optional: Top up sub-wallet balance (
-            {new Intl.NumberFormat().format(Math.floor(app.balance / 1000))}{" "}
-            sats){" "}
+            <FormattedBitcoinAmount amount={app.balance} />){" "}
             <IsolatedAppTopupDialog appId={app.id}>
               <Button size="sm" variant="secondary">
                 Top Up

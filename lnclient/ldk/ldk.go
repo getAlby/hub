@@ -79,6 +79,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		lsp.OlympusLSP().Pubkey,
 		lsp.MegalithLSP().Pubkey,
 		"02b4552a7a85274e4da01a7c71ca57407181752e8568b31d51f13c111a2941dce3", // LNServer_Wave
+		"038ba8f67ba8ff5c48764cdd3251c33598d55b203546d08a8f0ec9dcd9f27e3637", // Flashsats
 
 		// Mutinynet
 		lsp.OlympusMutinynetLSP().Pubkey,
@@ -119,11 +120,14 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 
 	logLevel, err := strconv.Atoi(cfg.GetEnv().LDKLogLevel)
 	if err != nil {
-		// If parsing log level fails we default to 3, which is then bumped below
-		logLevel = int(ldk_node.LogLevelDebug)
+		// If parsing log level fails we default to info log level
+		logLevel = int(logrus.InfoLevel)
 	}
-	// LogLevelGossip is added due to bug in go bindings which uses an enum that starts at 1 instead of 0
-	ldkLogger := NewLDKLogger(ldk_node.LogLevel(logLevel) + ldk_node.LogLevelGossip)
+
+	ldkLogger, err := NewLDKLogger(logrus.Level(logLevel), cfg.GetEnv().LogToFile, workDir)
+	if err != nil {
+		return nil, err
+	}
 	ldkConfig.TransientNetworkGraph = cfg.GetEnv().LDKTransientNetworkGraph
 
 	alias, _ := cfg.Get("NodeAlias", "")

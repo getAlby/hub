@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LottieLoading from "src/components/LottieLoading";
@@ -52,6 +53,7 @@ export default function ReceiveOnchain() {
   useEffect(() => {
     const newTabValue = searchParams.get("type");
     if (newTabValue) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTab(newTabValue);
       setSearchParams({});
     }
@@ -108,6 +110,7 @@ function ReceiveToOnchain() {
     if (txId) {
       const utxo = mempoolAddressUtxos.find((utxo) => utxo.txid === txId);
       if (utxo?.status.confirmed) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setConfirmedAmount(utxo.value);
         setPendingAmount(null);
       }
@@ -200,7 +203,7 @@ function DepositPending({
         {amount && (
           <div className="flex flex-col gap-1 items-center">
             <p className="text-2xl font-medium slashed-zero">
-              {new Intl.NumberFormat().format(amount)} sats
+              <FormattedBitcoinAmount amount={amount * 1000} />
             </p>
             <FormattedFiatAmount amount={amount} className="text-xl" />
           </div>
@@ -232,7 +235,7 @@ function DepositSuccess({ amount, txId }: { amount: number; txId: string }) {
         <img src={TickSVG} className="w-48" />
         <div className="flex flex-col gap-1 items-center">
           <p className="text-2xl font-medium slashed-zero">
-            {new Intl.NumberFormat().format(amount)} sats
+            <FormattedBitcoinAmount amount={amount * 1000} />
           </p>
           <FormattedFiatAmount amount={amount} className="text-xl" />
         </div>
@@ -342,10 +345,9 @@ function ReceiveToSpending() {
           <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
             <div>
               Receiving Capacity:{" "}
-              {new Intl.NumberFormat().format(
-                Math.floor(balances.lightning.totalReceivable / 1000)
-              )}{" "}
-              sats
+              <FormattedBitcoinAmount
+                amount={balances.lightning.totalReceivable}
+              />
             </div>
             <FormattedFiatAmount
               className="text-xs"

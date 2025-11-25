@@ -1,18 +1,17 @@
 import { GlobeIcon } from "lucide-react";
 import { AppStoreApp } from "src/components/connections/SuggestedAppData";
-import ExternalLink from "src/components/ExternalLink";
 import { AppleIcon } from "src/components/icons/Apple";
 import { ChromeIcon } from "src/components/icons/Chrome";
 import { FirefoxIcon } from "src/components/icons/Firefox";
 import { PlayStoreIcon } from "src/components/icons/PlayStore";
 import { ZapStoreIcon } from "src/components/icons/ZapStore";
-import { Button } from "src/components/ui/button";
 import {
   Card,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 
 export function AppLinksCard({ appStoreApp }: { appStoreApp: AppStoreApp }) {
   if (
@@ -33,52 +32,40 @@ export function AppLinksCard({ appStoreApp }: { appStoreApp: AppStoreApp }) {
       </CardHeader>
       <CardFooter className="flex flex-row flex-wrap gap-2">
         {appStoreApp.webLink && (
-          <ExternalLink to={appStoreApp.webLink}>
-            <Button variant="outline">
-              <GlobeIcon />
-              Website
-            </Button>
-          </ExternalLink>
+          <ExternalLinkButton to={appStoreApp.webLink} variant="outline">
+            <GlobeIcon />
+            Website
+          </ExternalLinkButton>
         )}
         {appStoreApp.playLink && (
-          <ExternalLink to={appStoreApp.playLink}>
-            <Button variant="outline">
-              <PlayStoreIcon />
-              Play Store
-            </Button>
-          </ExternalLink>
+          <ExternalLinkButton to={appStoreApp.playLink} variant="outline">
+            <PlayStoreIcon />
+            Play Store
+          </ExternalLinkButton>
         )}
         {appStoreApp.appleLink && (
-          <ExternalLink to={appStoreApp.appleLink}>
-            <Button variant="outline">
-              <AppleIcon />
-              App Store
-            </Button>
-          </ExternalLink>
+          <ExternalLinkButton to={appStoreApp.appleLink} variant="outline">
+            <AppleIcon />
+            App Store
+          </ExternalLinkButton>
         )}
         {appStoreApp.zapStoreLink && (
-          <ExternalLink to={appStoreApp.zapStoreLink}>
-            <Button variant="outline">
-              <ZapStoreIcon />
-              Zapstore
-            </Button>
-          </ExternalLink>
+          <ExternalLinkButton to={appStoreApp.zapStoreLink} variant="outline">
+            <ZapStoreIcon />
+            Zapstore
+          </ExternalLinkButton>
         )}
         {appStoreApp.chromeLink && (
-          <ExternalLink to={appStoreApp.chromeLink}>
-            <Button variant="outline">
-              <ChromeIcon />
-              Chrome Web Store
-            </Button>
-          </ExternalLink>
+          <ExternalLinkButton to={appStoreApp.chromeLink} variant="outline">
+            <ChromeIcon />
+            Chrome Web Store
+          </ExternalLinkButton>
         )}
         {appStoreApp.firefoxLink && (
-          <ExternalLink to={appStoreApp.firefoxLink}>
-            <Button variant="outline">
-              <FirefoxIcon />
-              Firefox Add-Ons
-            </Button>
-          </ExternalLink>
+          <ExternalLinkButton to={appStoreApp.firefoxLink} variant="outline">
+            <FirefoxIcon />
+            Firefox Add-Ons
+          </ExternalLinkButton>
         )}
       </CardFooter>
     </Card>

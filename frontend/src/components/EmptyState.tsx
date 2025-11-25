@@ -1,7 +1,6 @@
 import { LucideIcon } from "lucide-react";
 import React from "react";
-import { Link } from "react-router-dom";
-import { Button } from "src/components/ui/button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { cn } from "src/lib/utils";
 
 interface Props {
@@ -35,9 +34,9 @@ const EmptyState: React.FC<Props> = ({
         <h3 className="mt-4 text-lg font-semibold">{message}</h3>
         <p className="text-sm text-muted-foreground">{subMessage}</p>
         {showButton && (
-          <Link to={buttonLink}>
-            <Button className="mt-4">{buttonText}</Button>
-          </Link>
+          <LinkButton to={buttonLink} className="mt-4">
+            {buttonText}
+          </LinkButton>
         )}
       </div>
     </div>
