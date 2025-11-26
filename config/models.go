@@ -74,6 +74,7 @@ func (c *AppConfig) GetBaseFrontendUrl() string {
 
 type Config interface {
 	Get(key string, encryptionKey string) (string, error)
+	GetCached(key string, encryptionKey string) (string, error)
 	SetIgnore(key string, value string, encryptionKey string) error
 	SetUpdate(key string, value string, encryptionKey string) error
 	GetJWTSecret() string

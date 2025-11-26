@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sync"
 
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
@@ -18,8 +19,10 @@ import (
 )
 
 type config struct {
-	Env *AppConfig
-	db  *gorm.DB
+	Env        *AppConfig
+	db         *gorm.DB
+	cache      map[string]string
+	cacheMutex sync.Mutex
 }
 
 const (
@@ -28,7 +31,8 @@ const (
 
 func NewConfig(env *AppConfig, db *gorm.DB) (*config, error) {
 	cfg := &config{
-		db: db,
+		db:    db,
+		cache: map[string]string{},
 	}
 	err := cfg.init(env)
 	if err != nil {
@@ -153,7 +157,7 @@ func (cfg *config) GetJWTSecret() string {
 }
 
 func (cfg *config) GetRelayUrls() []string {
-	relayUrls, _ := cfg.Get("Relay", "")
+	relayUrls, _ := cfg.GetCached("Relay", "")
 	return strings.Split(relayUrls, ",")
 }
 
@@ -178,6 +182,23 @@ func (cfg *config) GetMempoolUrl() string {
 
 func (cfg *config) Get(key string, encryptionKey string) (string, error) {
 	return cfg.get(key, encryptionKey, cfg.db)
+}
+
+func (cfg *config) GetCached(key string, encryptionKey string) (string, error) {
+	cfg.cacheMutex.Lock()
+	defer cfg.cacheMutex.Unlock()
+	cachedValue, ok := cfg.cache[key]
+	if ok {
+		logger.Logger.WithField("key", key).Debug("returning cached config value")
+		return cachedValue, nil
+	}
+
+	value, err := cfg.Get(key, encryptionKey)
+	if err != nil {
+		return "", err
+	}
+	cfg.cache[key] = value
+	return value, nil
 }
 
 func (cfg *config) get(key string, encryptionKey string, gormDB *gorm.DB) (string, error) {
