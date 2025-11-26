@@ -30,6 +30,9 @@ import (
 
 func (svc *service) startNostr(ctx context.Context) error {
 	relayUrls := svc.cfg.GetRelayUrls()
+	if len(relayUrls) == 0 {
+		return errors.New("No relay URLs found")
+	}
 
 	npub, err := nip19.EncodePublicKey(svc.keys.GetNostrPublicKey())
 	if err != nil {
