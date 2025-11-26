@@ -182,6 +182,105 @@ func (_c *MockConfig_Get_Call) RunAndReturn(run func(key string, encryptionKey s
 	return _c
 }
 
+// GetBitcoinDisplayFormat provides a mock function for the type MockConfig
+func (_mock *MockConfig) GetBitcoinDisplayFormat() string {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBitcoinDisplayFormat")
+	}
+
+	var r0 string
+	if returnFunc, ok := ret.Get(0).(func() string); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	return r0
+}
+
+// MockConfig_GetBitcoinDisplayFormat_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetBitcoinDisplayFormat'
+type MockConfig_GetBitcoinDisplayFormat_Call struct {
+	*mock.Call
+}
+
+// GetBitcoinDisplayFormat is a helper method to define mock.On call
+func (_e *MockConfig_Expecter) GetBitcoinDisplayFormat() *MockConfig_GetBitcoinDisplayFormat_Call {
+	return &MockConfig_GetBitcoinDisplayFormat_Call{Call: _e.mock.On("GetBitcoinDisplayFormat")}
+}
+
+func (_c *MockConfig_GetBitcoinDisplayFormat_Call) Run(run func()) *MockConfig_GetBitcoinDisplayFormat_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockConfig_GetBitcoinDisplayFormat_Call) Return(s string) *MockConfig_GetBitcoinDisplayFormat_Call {
+	_c.Call.Return(s)
+	return _c
+}
+
+func (_c *MockConfig_GetBitcoinDisplayFormat_Call) RunAndReturn(run func() string) *MockConfig_GetBitcoinDisplayFormat_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetCached provides a mock function for the type MockConfig
+func (_mock *MockConfig) GetCached(key string, encryptionKey string) (string, error) {
+	ret := _mock.Called(key, encryptionKey)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetCached")
+	}
+
+	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(string, string) (string, error)); ok {
+		return returnFunc(key, encryptionKey)
+	}
+	if returnFunc, ok := ret.Get(0).(func(string, string) string); ok {
+		r0 = returnFunc(key, encryptionKey)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	if returnFunc, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = returnFunc(key, encryptionKey)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockConfig_GetCached_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCached'
+type MockConfig_GetCached_Call struct {
+	*mock.Call
+}
+
+// GetCached is a helper method to define mock.On call
+//   - key
+//   - encryptionKey
+func (_e *MockConfig_Expecter) GetCached(key interface{}, encryptionKey interface{}) *MockConfig_GetCached_Call {
+	return &MockConfig_GetCached_Call{Call: _e.mock.On("GetCached", key, encryptionKey)}
+}
+
+func (_c *MockConfig_GetCached_Call) Run(run func(key string, encryptionKey string)) *MockConfig_GetCached_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *MockConfig_GetCached_Call) Return(s string, err error) *MockConfig_GetCached_Call {
+	_c.Call.Return(s, err)
+	return _c
+}
+
+func (_c *MockConfig_GetCached_Call) RunAndReturn(run func(key string, encryptionKey string) (string, error)) *MockConfig_GetCached_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetCurrency provides a mock function for the type MockConfig
 func (_mock *MockConfig) GetCurrency() string {
 	ret := _mock.Called()
@@ -540,6 +639,51 @@ func (_c *MockConfig_SetAutoUnlockPassword_Call) RunAndReturn(run func(unlockPas
 	return _c
 }
 
+// SetBitcoinDisplayFormat provides a mock function for the type MockConfig
+func (_mock *MockConfig) SetBitcoinDisplayFormat(value string) error {
+	ret := _mock.Called(value)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetBitcoinDisplayFormat")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(string) error); ok {
+		r0 = returnFunc(value)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockConfig_SetBitcoinDisplayFormat_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetBitcoinDisplayFormat'
+type MockConfig_SetBitcoinDisplayFormat_Call struct {
+	*mock.Call
+}
+
+// SetBitcoinDisplayFormat is a helper method to define mock.On call
+//   - value
+func (_e *MockConfig_Expecter) SetBitcoinDisplayFormat(value interface{}) *MockConfig_SetBitcoinDisplayFormat_Call {
+	return &MockConfig_SetBitcoinDisplayFormat_Call{Call: _e.mock.On("SetBitcoinDisplayFormat", value)}
+}
+
+func (_c *MockConfig_SetBitcoinDisplayFormat_Call) Run(run func(value string)) *MockConfig_SetBitcoinDisplayFormat_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *MockConfig_SetBitcoinDisplayFormat_Call) Return(err error) *MockConfig_SetBitcoinDisplayFormat_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockConfig_SetBitcoinDisplayFormat_Call) RunAndReturn(run func(value string) error) *MockConfig_SetBitcoinDisplayFormat_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SetCurrency provides a mock function for the type MockConfig
 func (_mock *MockConfig) SetCurrency(value string) error {
 	ret := _mock.Called(value)
@@ -719,95 +863,6 @@ func (_c *MockConfig_SetupCompleted_Call) Return(b bool) *MockConfig_SetupComple
 }
 
 func (_c *MockConfig_SetupCompleted_Call) RunAndReturn(run func() bool) *MockConfig_SetupCompleted_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// GetBitcoinDisplayFormat provides a mock function for the type MockConfig
-func (_mock *MockConfig) GetBitcoinDisplayFormat() string {
-	ret := _mock.Called()
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetBitcoinDisplayFormat")
-	}
-
-	var r0 string
-	if returnFunc, ok := ret.Get(0).(func() string); ok {
-		r0 = returnFunc()
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-	return r0
-}
-
-// MockConfig_GetBitcoinDisplayFormat_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetBitcoinDisplayFormat'
-type MockConfig_GetBitcoinDisplayFormat_Call struct {
-	*mock.Call
-}
-
-// GetBitcoinDisplayFormat is a helper method to define mock.On call
-func (_e *MockConfig_Expecter) GetBitcoinDisplayFormat() *MockConfig_GetBitcoinDisplayFormat_Call {
-	return &MockConfig_GetBitcoinDisplayFormat_Call{Call: _e.mock.On("GetBitcoinDisplayFormat")}
-}
-
-func (_c *MockConfig_GetBitcoinDisplayFormat_Call) Run(run func()) *MockConfig_GetBitcoinDisplayFormat_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run()
-	})
-	return _c
-}
-
-func (_c *MockConfig_GetBitcoinDisplayFormat_Call) Return(s string) *MockConfig_GetBitcoinDisplayFormat_Call {
-	_c.Call.Return(s)
-	return _c
-}
-
-func (_c *MockConfig_GetBitcoinDisplayFormat_Call) RunAndReturn(run func() string) *MockConfig_GetBitcoinDisplayFormat_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// SetBitcoinDisplayFormat provides a mock function for the type MockConfig
-func (_mock *MockConfig) SetBitcoinDisplayFormat(value string) error {
-	ret := _mock.Called(value)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SetBitcoinDisplayFormat")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(string) error); ok {
-		r0 = returnFunc(value)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockConfig_SetBitcoinDisplayFormat_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetBitcoinDisplayFormat'
-type MockConfig_SetBitcoinDisplayFormat_Call struct {
-	*mock.Call
-}
-
-// SetBitcoinDisplayFormat is a helper method to define mock.On call
-//   - value
-func (_e *MockConfig_Expecter) SetBitcoinDisplayFormat(value interface{}) *MockConfig_SetBitcoinDisplayFormat_Call {
-	return &MockConfig_SetBitcoinDisplayFormat_Call{Call: _e.mock.On("SetBitcoinDisplayFormat", value)}
-}
-
-func (_c *MockConfig_SetBitcoinDisplayFormat_Call) Run(run func(value string)) *MockConfig_SetBitcoinDisplayFormat_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
-	})
-	return _c
-}
-
-func (_c *MockConfig_SetBitcoinDisplayFormat_Call) Return(err error) *MockConfig_SetBitcoinDisplayFormat_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *MockConfig_SetBitcoinDisplayFormat_Call) RunAndReturn(run func(value string) error) *MockConfig_SetBitcoinDisplayFormat_Call {
 	_c.Call.Return(run)
 	return _c
 }
