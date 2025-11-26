@@ -10,11 +10,13 @@ import { useTransactions } from "src/hooks/useTransactions";
 type TransactionsListProps = {
   appId?: number;
   showReceiveButton?: boolean;
+  minAmountSats?: number;
 };
 
 function TransactionsList({
   appId,
   showReceiveButton = true,
+  minAmountSats,
 }: TransactionsListProps) {
   const [page, setPage] = useState(1);
   const transactionListRef = useRef<HTMLDivElement>(null);
@@ -26,6 +28,10 @@ function TransactionsList({
   );
   const transactions = transactionData?.transactions || [];
   const totalCount = transactionData?.totalCount || 0;
+
+  const filteredTransactions = minAmountSats
+    ? transactions.filter((tx) => Math.floor(tx.amount / 1000) >= minAmountSats)
+    : transactions;
 
   const handlePageChange = (page: number) => {
     setPage(page);
@@ -41,7 +47,7 @@ function TransactionsList({
 
   return (
     <div ref={transactionListRef} className="flex flex-col flex-1">
-      {!transactions.length ? (
+      {!filteredTransactions.length ? (
         <EmptyState
           icon={DrumIcon}
           title="No transactions yet"
@@ -53,7 +59,7 @@ function TransactionsList({
         />
       ) : (
         <>
-          {transactions?.map((tx, i) => {
+          {filteredTransactions?.map((tx, i) => {
             return (
               <TransactionItem key={tx.paymentHash + tx.type + i} tx={tx} />
             );

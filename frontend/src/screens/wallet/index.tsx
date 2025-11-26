@@ -8,6 +8,7 @@ import {
   ExternalLinkIcon,
   LightbulbIcon,
 } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
@@ -15,6 +16,7 @@ import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import TransactionsList from "src/components/TransactionsList";
+import { TransactionsFilterMenu } from "src/components/TransactionsFilterMenu";
 import { TransactionsListMenu } from "src/components/TransactionsListMenu";
 import {
   Alert,
@@ -29,6 +31,9 @@ import { useInfo } from "src/hooks/useInfo";
 import { useOnchainTransactions } from "src/hooks/useOnchainTransactions";
 
 function Wallet() {
+  const [minAmountFilter, setMinAmountFilter] = useState<number | undefined>(
+    undefined
+  );
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
   const { data: channels } = useChannels();
@@ -135,13 +140,19 @@ function Wallet() {
             </LinkButton>
           )}
           <div>
+            <TransactionsFilterMenu
+              selectedFilter={minAmountFilter}
+              onFilterChange={setMinAmountFilter}
+            />
+          </div>
+          <div>
             <TransactionsListMenu />
           </div>
         </div>
       </div>
 
       <OnchainTransactionsAlert />
-      <TransactionsList />
+      <TransactionsList minAmountSats={minAmountFilter} />
     </>
   );
 }
