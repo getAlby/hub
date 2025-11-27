@@ -3,6 +3,7 @@ package bark
 import (
 	"context"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -56,17 +57,17 @@ func NewBarkService(ctx context.Context, mnemonic, workdir string, eventPublishe
 
 	var wallet *bindings.Wallet
 
+	barkConfig := bindings.Config{
+		Network:        "signet",
+		AspAddress:     "https://ark.signet.2nd.dev",
+		EsploraAddress: "https://esplora.signet.2nd.dev",
+	}
+
 	dbFilePath := filepath.Join(workdir, barkDB)
 	if _, err := os.Stat(dbFilePath); err != nil {
 		if !errors.Is(err, os.ErrNotExist) {
 			logger.Logger.WithError(err).Error("Failed to check Bark database file")
 			return nil, err
-		}
-
-		barkConfig := bindings.Config{
-			Network:        "signet",
-			AspAddress:     "https://ark.signet.2nd.dev",
-			EsploraAddress: "https://esplora.signet.2nd.dev",
 		}
 
 		wallet, err = bindings.CreateWallet(dbFilePath, mnemonic, barkConfig)
@@ -75,7 +76,7 @@ func NewBarkService(ctx context.Context, mnemonic, workdir string, eventPublishe
 			return nil, err
 		}
 	} else {
-		wallet, err = bindings.OpenWallet(dbFilePath, mnemonic)
+		wallet, err = bindings.OpenWallet(dbFilePath, mnemonic, barkConfig)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to open Bark wallet")
 			return nil, err
@@ -256,9 +257,12 @@ func (s *BarkService) MakeInvoice(ctx context.Context, amount int64, description
 
 	// FIXME: if Alby Hub is restarted we won't be able to claim previously-created invoices
 	go func() {
-		err := s.wallet.ClaimBolt11Payment(invoice)
+		complete, err := s.wallet.ClaimBolt11Payment(invoice, true)
 		if err != nil {
 			logger.Logger.WithError(err).Error("failed to claim bolt11 payment")
+			return
+		} else if !complete {
+			logger.Logger.Error("payment was unavailable for claiming")
 			return
 		}
 
@@ -619,7 +623,7 @@ func (s *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 
 		respVtxos := make([]map[string]interface{}, 0, len(vtxos))
 		for _, vtxo := range vtxos {
-			respVtxos = append(respVtxos, convertVtxoToCommandResp(vtxo))
+			respVtxos = append(respVtxos, convertWalletVtxoToCommandResp(vtxo))
 		}
 
 		return &lnclient.CustomNodeCommandResponse{
@@ -816,8 +820,12 @@ func (s *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 			return nil, err
 		}
 
-		err := s.wallet.ClaimBolt11Payment(invoice)
+		complete, err := s.wallet.ClaimBolt11Payment(invoice, false)
 		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to claim Bolt11 payment")
+			return nil, err
+		} else if !complete {
+			err := errors.New("payment was unavailable for claiming")
 			logger.Logger.WithError(err).Error("Failed to claim Bolt11 payment")
 			return nil, err
 		}
@@ -826,6 +834,22 @@ func (s *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 	}
 
 	return nil, lnclient.ErrUnknownCustomNodeCommand
+}
+
+func convertWalletVtxoToCommandResp(vtxo bindings.WalletVtxo) map[string]interface{} {
+	respVtxo := convertVtxoToCommandResp(vtxo.Vtxo)
+
+	switch state := vtxo.State.(type) {
+	case bindings.VtxoStateSpendable:
+		respVtxo["state"] = "spendable"
+	case bindings.VtxoStateSpent:
+		respVtxo["state"] = "spent"
+	case bindings.VtxoStateLocked:
+		respVtxo["state"] = "locked"
+		respVtxo["locked_by"] = state.MovementId
+	}
+
+	return respVtxo
 }
 
 func convertVtxoToCommandResp(vtxo bindings.Vtxo) map[string]interface{} {
@@ -869,37 +893,31 @@ func convertUtxoToCommandResp(utxo bindings.Utxo) map[string]interface{} {
 }
 
 func convertMovementToCommandResp(movement bindings.Movement) map[string]interface{} {
-	var kind string
-	switch movement.Kind {
-	case bindings.MovementKindBoard:
-		kind = "Board"
-	case bindings.MovementKindRound:
-		kind = "Round"
-	case bindings.MovementKindOffboard:
-		kind = "Offboard"
-	case bindings.MovementKindExit:
-		kind = "Exit"
-	case bindings.MovementKindArkoorSend:
-		kind = "ArkoorSend"
-	case bindings.MovementKindArkoorReceive:
-		kind = "ArkoorReceive"
-	case bindings.MovementKindLightningSend:
-		kind = "LightningSend"
-	case bindings.MovementKindLightningSendRevocation:
-		kind = "LightningSendRevocation"
-	case bindings.MovementKindLightningReceive:
-		kind = "LightningReceive"
+	var status string
+	switch movement.Status {
+	case bindings.MovementStatusPending:
+		status = "pending"
+	case bindings.MovementStatusFinished:
+		status = "finished"
+	case bindings.MovementStatusFailed:
+		status = "failed"
+	case bindings.MovementStatusCancelled:
+		status = "cancelled"
 	default:
-		kind = "Unknown"
+		status = fmt.Sprintf("unknown(%d)", movement.Status)
 	}
 
 	respMovement := map[string]interface{}{
-		"id":                  movement.Id,
-		"kind":                kind,
-		"amount_sent_sat":     movement.AmountSentSat,
-		"amount_received_sat": movement.AmountReceivedSat,
-		"fees_sat":            movement.FeesSat,
-		"created_at":          movement.CreatedAt,
+		"id":     movement.Id,
+		"status": status,
+		"subsystem": map[string]string{
+			"name": movement.Subsystem.Name,
+			"kind": movement.Subsystem.Kind,
+		},
+		"offchain_fees_sat":            movement.OffchainFeesSat,
+		"intended_balance_change_sat":  movement.IntendedBalanceChangeSat,
+		"effective_balance_change_sat": movement.EffectiveBalanceChangeSat,
+		"created_at":                   movement.CreatedAt,
 	}
 
 	return respMovement
