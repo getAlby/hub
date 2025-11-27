@@ -7,7 +7,7 @@ require (
 	github.com/btcsuite/btcd v0.24.3-0.20250318170759-4f4ea81776d6
 	github.com/btcsuite/btcd/btcutil v1.1.6
 	github.com/elnosh/gonuts v0.4.2
-	github.com/getAlby/ldk-node-go v0.0.0-20251124125707-fcecd21bb580
+	github.com/getAlby/ldk-node-go v0.0.0-20251127131245-5fee58f1eff4
 	github.com/go-gormigrate/gormigrate/v2 v2.1.5
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/mattn/go-sqlite3 v1.14.32
