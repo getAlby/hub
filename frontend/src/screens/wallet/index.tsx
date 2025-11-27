@@ -152,7 +152,10 @@ function Wallet() {
       </div>
 
       <OnchainTransactionsAlert />
-      <TransactionsList minAmountSats={minAmountFilter} />
+      <TransactionsList
+        minAmountSats={minAmountFilter}
+        onFilterChange={setMinAmountFilter}
+      />
     </>
   );
 }
