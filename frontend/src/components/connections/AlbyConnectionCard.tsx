@@ -1,12 +1,14 @@
 import {
   CheckCircle2Icon,
   CircleXIcon,
+  EditIcon,
   InfoIcon,
   Link2Icon,
   User2Icon,
   ZapIcon,
 } from "lucide-react";
 import { FormEvent, useState } from "react";
+import { Link } from "react-router-dom";
 
 import BudgetAmountSelect from "src/components/BudgetAmountSelect";
 import BudgetRenewalSelect from "src/components/BudgetRenewalSelect";
@@ -71,7 +73,7 @@ function AlbyConnectionCard() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>
+        <CardTitle className="relative">
           Linked Alby Account
           {albyAccountApp && <AppCardNotice app={albyAccountApp} />}
         </CardTitle>
@@ -181,6 +183,12 @@ function AlbyConnectionCard() {
           </div>
           {albyAccountApp && (
             <div className="slashed-zero">
+              <Link
+                to={`/apps/${albyAccountApp.id}?edit=true`}
+                className="absolute top-0 right-0"
+              >
+                <EditIcon className="size-4 hidden group-hover:inline text-muted-foreground hover:text-card-foreground" />
+              </Link>
               <AppCardConnectionInfo
                 connection={albyAccountApp}
                 budgetRemainingText={
