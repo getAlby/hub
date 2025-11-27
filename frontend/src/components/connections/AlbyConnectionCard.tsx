@@ -1,7 +1,6 @@
 import {
   CheckCircle2Icon,
   CircleXIcon,
-  ExternalLinkIcon,
   InfoIcon,
   Link2Icon,
   User2Icon,
@@ -45,11 +44,9 @@ import { BudgetRenewalType } from "src/types";
 
 import AlbyAccountDarkSVG from "public/images/illustrations/alby-account-dark.svg";
 import AlbyAccountLightSVG from "public/images/illustrations/alby-account-light.svg";
-import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
 import { useApps } from "src/hooks/useApps";
-import { useInfo } from "src/hooks/useInfo";
 
 function AlbyConnectionCard() {
   const { data: linkedAlbyAccountAppsData, mutate: reloadAlbyAccountApp } =
@@ -58,7 +55,6 @@ function AlbyConnectionCard() {
     });
   const albyAccountApp = linkedAlbyAccountAppsData?.apps[0];
   const { data: albyMe } = useAlbyMe();
-  const { data: info } = useInfo();
   const { loading, linkStatus, loadingLinkStatus, linkAccount } =
     useLinkAccount(reloadAlbyAccountApp);
 
@@ -173,26 +169,14 @@ function AlbyConnectionCard() {
                   </Button>
                 )
               )}
-              {(!info?.albyAccountConnected || albyMe) && (
-                <ExternalLinkButton
-                  to="https://www.getalby.com/node"
-                  variant="outline"
-                  className="w-full sm:w-auto"
-                >
-                  <ExternalLinkIcon />
-                  Alby Account Settings
-                </ExternalLinkButton>
-              )}
-              {info?.albyAccountConnected && !albyMe && (
-                <LinkButton
-                  to="/settings/alby-account"
-                  className="w-full sm:w-auto"
-                  variant="outline"
-                >
-                  <User2Icon />
-                  Alby Account Settings
-                </LinkButton>
-              )}
+              <LinkButton
+                to="/settings/alby-account"
+                className="w-full sm:w-auto"
+                variant="outline"
+              >
+                <User2Icon />
+                Alby Account Settings
+              </LinkButton>
             </div>
           </div>
           {albyAccountApp && (

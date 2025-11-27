@@ -240,16 +240,6 @@ export function AppSidebar() {
                       Connect Alby Account
                     </Link>
                   </DropdownMenuItem>
-                ) : albyMe ? (
-                  <ExternalLink
-                    to="https://getalby.com/user/edit"
-                    className="w-full"
-                  >
-                    <DropdownMenuItem className="flex items-center flex-1">
-                      <AlbyIcon className="size-4" />
-                      Alby Account Settings
-                    </DropdownMenuItem>
-                  </ExternalLink>
                 ) : (
                   <DropdownMenuItem asChild>
                     <Link
