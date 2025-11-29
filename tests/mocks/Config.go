@@ -226,61 +226,6 @@ func (_c *MockConfig_GetBitcoinDisplayFormat_Call) RunAndReturn(run func() strin
 	return _c
 }
 
-// GetCached provides a mock function for the type MockConfig
-func (_mock *MockConfig) GetCached(key string, encryptionKey string) (string, error) {
-	ret := _mock.Called(key, encryptionKey)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetCached")
-	}
-
-	var r0 string
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(string, string) (string, error)); ok {
-		return returnFunc(key, encryptionKey)
-	}
-	if returnFunc, ok := ret.Get(0).(func(string, string) string); ok {
-		r0 = returnFunc(key, encryptionKey)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-	if returnFunc, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = returnFunc(key, encryptionKey)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockConfig_GetCached_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCached'
-type MockConfig_GetCached_Call struct {
-	*mock.Call
-}
-
-// GetCached is a helper method to define mock.On call
-//   - key
-//   - encryptionKey
-func (_e *MockConfig_Expecter) GetCached(key interface{}, encryptionKey interface{}) *MockConfig_GetCached_Call {
-	return &MockConfig_GetCached_Call{Call: _e.mock.On("GetCached", key, encryptionKey)}
-}
-
-func (_c *MockConfig_GetCached_Call) Run(run func(key string, encryptionKey string)) *MockConfig_GetCached_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(string))
-	})
-	return _c
-}
-
-func (_c *MockConfig_GetCached_Call) Return(s string, err error) *MockConfig_GetCached_Call {
-	_c.Call.Return(s, err)
-	return _c
-}
-
-func (_c *MockConfig_GetCached_Call) RunAndReturn(run func(key string, encryptionKey string) (string, error)) *MockConfig_GetCached_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // GetCurrency provides a mock function for the type MockConfig
 func (_mock *MockConfig) GetCurrency() string {
 	ret := _mock.Called()

@@ -157,7 +157,7 @@ func (cfg *config) GetJWTSecret() string {
 }
 
 func (cfg *config) GetRelayUrls() []string {
-	relayUrls, _ := cfg.GetCached("Relay", "")
+	relayUrls, _ := cfg.Get("Relay", "")
 	return strings.Split(relayUrls, ",")
 }
 
@@ -181,23 +181,21 @@ func (cfg *config) GetMempoolUrl() string {
 }
 
 func (cfg *config) Get(key string, encryptionKey string) (string, error) {
-	return cfg.get(key, encryptionKey, cfg.db)
-}
-
-func (cfg *config) GetCached(key string, encryptionKey string) (string, error) {
 	cfg.cacheMutex.Lock()
 	defer cfg.cacheMutex.Unlock()
 	cachedValue, ok := cfg.cache[key]
 	if ok {
-		logger.Logger.WithField("key", key).Debug("returning cached config value")
+		logger.Logger.WithField("key", key).Debug("hit config cache")
 		return cachedValue, nil
 	}
+	logger.Logger.WithField("key", key).Debug("missed config cache")
 
-	value, err := cfg.Get(key, encryptionKey)
+	value, err := cfg.get(key, encryptionKey, cfg.db)
 	if err != nil {
 		return "", err
 	}
 	cfg.cache[key] = value
+	logger.Logger.WithField("key", key).Debug("set config cache")
 	return value, nil
 }
 
@@ -233,6 +231,12 @@ func (cfg *config) set(key string, value string, clauses clause.OnConflict, encr
 	if result.Error != nil {
 		return fmt.Errorf("failed to save key to config: %v", result.Error)
 	}
+
+	logger.Logger.WithField("key", key).Debug("clearing config cache")
+	cfg.cacheMutex.Lock()
+	defer cfg.cacheMutex.Unlock()
+	delete(cfg.cache, key)
+
 	return nil
 }
 
