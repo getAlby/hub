@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sync"
 
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
@@ -18,8 +19,10 @@ import (
 )
 
 type config struct {
-	Env *AppConfig
-	db  *gorm.DB
+	Env        *AppConfig
+	db         *gorm.DB
+	cache      map[string]string
+	cacheMutex sync.Mutex
 }
 
 const (
@@ -28,7 +31,8 @@ const (
 
 func NewConfig(env *AppConfig, db *gorm.DB) (*config, error) {
 	cfg := &config{
-		db: db,
+		db:    db,
+		cache: map[string]string{},
 	}
 	err := cfg.init(env)
 	if err != nil {
@@ -177,7 +181,22 @@ func (cfg *config) GetMempoolUrl() string {
 }
 
 func (cfg *config) Get(key string, encryptionKey string) (string, error) {
-	return cfg.get(key, encryptionKey, cfg.db)
+	cfg.cacheMutex.Lock()
+	defer cfg.cacheMutex.Unlock()
+	cachedValue, ok := cfg.cache[key]
+	if ok {
+		logger.Logger.WithField("key", key).Debug("hit config cache")
+		return cachedValue, nil
+	}
+	logger.Logger.WithField("key", key).Debug("missed config cache")
+
+	value, err := cfg.get(key, encryptionKey, cfg.db)
+	if err != nil {
+		return "", err
+	}
+	cfg.cache[key] = value
+	logger.Logger.WithField("key", key).Debug("set config cache")
+	return value, nil
 }
 
 func (cfg *config) get(key string, encryptionKey string, gormDB *gorm.DB) (string, error) {
@@ -212,6 +231,12 @@ func (cfg *config) set(key string, value string, clauses clause.OnConflict, encr
 	if result.Error != nil {
 		return fmt.Errorf("failed to save key to config: %v", result.Error)
 	}
+
+	logger.Logger.WithField("key", key).Debug("clearing config cache")
+	cfg.cacheMutex.Lock()
+	defer cfg.cacheMutex.Unlock()
+	delete(cfg.cache, key)
+
 	return nil
 }
 
