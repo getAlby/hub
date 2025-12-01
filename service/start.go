@@ -364,7 +364,7 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 
 		arkWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "ark")
-		lnClient, err = ark.NewArkService(ctx, svc.cfg, arkWorkdir, mnemonic, encryptionKey)
+		lnClient, err = ark.NewArkService(ctx, svc.cfg, svc.eventPublisher, arkWorkdir, mnemonic, encryptionKey)
 	default:
 		logger.Logger.WithField("backend_type", lnBackend).Error("Unsupported LNBackendType")
 		return fmt.Errorf("unsupported backend type: %s", lnBackend)

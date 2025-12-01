@@ -3,8 +3,10 @@ package ark
 import (
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"time"
@@ -21,8 +23,11 @@ import (
 	"github.com/btcsuite/btcd/btcec/v2"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
+	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/nip47/notifications"
+	"github.com/sirupsen/logrus"
 	"github.com/tyler-smith/go-bip32"
 	"github.com/tyler-smith/go-bip39"
 )
@@ -40,12 +45,13 @@ const (
 )
 
 type ArkService struct {
-	workDir       string
-	arkClient     arksdk.ArkClient
-	boltzSvc      *boltz.Api
-	grpcClient    client.TransportClient
-	indexerClient indexer.Indexer
-	pubkey        *btcec.PublicKey
+	workDir        string
+	arkClient      arksdk.ArkClient
+	boltzSvc       *boltz.Api
+	grpcClient     client.TransportClient
+	indexerClient  indexer.Indexer
+	pubkey         *btcec.PublicKey
+	eventPublisher events.EventPublisher
 }
 
 // Experimental Mutinynet Ark client
@@ -53,7 +59,7 @@ type ArkService struct {
 // TODO:
 // - lightning payments via boltz swaps
 // - on-chain receive and send
-func NewArkService(ctx context.Context, cfg config.Config, workDir, mnemonic, unlockPassword string) (result lnclient.LNClient, err error) {
+func NewArkService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, workDir, mnemonic, unlockPassword string) (result lnclient.LNClient, err error) {
 	if workDir == "" || mnemonic == "" || unlockPassword == "" {
 		return nil, errors.New("one or more required ark configuration are missing")
 	}
@@ -126,12 +132,13 @@ func NewArkService(ctx context.Context, cfg config.Config, workDir, mnemonic, un
 	}
 
 	svc := ArkService{
-		workDir:       workDir,
-		arkClient:     arkClient,
-		boltzSvc:      boltzSvc,
-		grpcClient:    grpcClient,
-		indexerClient: indexerClient,
-		pubkey:        pubkey,
+		workDir:        workDir,
+		arkClient:      arkClient,
+		boltzSvc:       boltzSvc,
+		grpcClient:     grpcClient,
+		indexerClient:  indexerClient,
+		pubkey:         pubkey,
+		eventPublisher: eventPublisher,
 	}
 
 	return &svc, nil
@@ -171,25 +178,117 @@ func (svc *ArkService) Shutdown() error {
 }
 
 func (svc *ArkService) SendPaymentSync(invoice string, amount *uint64) (response *lnclient.PayInvoiceResponse, err error) {
-	/*balance, err := client.GetBalance(t.Context(), &pb.GetBalanceRequest{})
-	require.NoError(t, err)
-	require.NotNil(t, balance)
-	require.Greater(t, int(balance.GetAmount()), invoiceAmount)
+	swapTimeout := uint32(15) // seconds
+	swapHandler := swap.NewSwapHandler(
+		svc.arkClient, svc.grpcClient, svc.indexerClient, svc.boltzSvc, svc.pubkey, swapTimeout,
+	)
 
-	_, err = client.PayInvoice(t.Context(), &pb.PayInvoiceRequest{
-		Invoice: invoice,
-	})
-	require.NoError(t, err)
+	unilateralRefund := func(swapData swap.Swap) error {
+		//err := s.scheduleSwapRefund(swapData.Id, *swapData.Opts)
+		//return err
+		return errors.New("TODO implement refund")
+	}
 
-	balanceAfter, err := client.GetBalance(t.Context(), &pb.GetBalanceRequest{})
-	require.NoError(t, err)
-	require.NotNil(t, balanceAfter)
-	before := int64(balance.GetAmount())
-	after := int64(balanceAfter.GetAmount())
-	require.GreaterOrEqual(t, before-after, int64(invoiceAmount))
-	*/
-	return nil, errors.New("TODO")
+	// TODO: use svc context
+	swapDetails, err := swapHandler.PayInvoice(context.Background(), invoice, unilateralRefund)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: this should be returned by swapHandler / fulmine
+	preimage := ""
+	func() {
+		res, err :=
+			svc.boltzSvc.Client.Get(fmt.Sprintf("%s/v2/swap/submarine/%s/preimage", svc.boltzSvc.URL, swapDetails.Id))
+		if err != nil {
+			logger.Logger.WithError(err).Error("failed to get submarine swap preimage")
+			return
+		}
+
+		body, err := io.ReadAll(res.Body)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to read submarine preimage response body")
+			return
+		}
+
+		if res.StatusCode >= 300 {
+			logger.Logger.WithFields(logrus.Fields{
+				"body":        string(body),
+				"status_code": res.StatusCode,
+			}).Error("submarine preimage endpoint returned non-success code")
+			return
+		}
+
+		type SubmarinePreimage struct {
+			Preimage string `json:"preimage"`
+		}
+
+		submarinePreimage := &SubmarinePreimage{}
+		err = json.Unmarshal(body, submarinePreimage)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to decode submarine preimage API response")
+			return
+		}
+		preimage = submarinePreimage.Preimage
+	}()
+
+	return &lnclient.PayInvoiceResponse{
+		Preimage: preimage,
+		Fee:      0, // TODO: add fee
+	}, nil
 }
+
+/*
+		func (s *Service) scheduleSwapRefund(swapId string, opts vhtlc.Opts) (err error) {
+	vHTLC := domain.NewVhtlc(opts)
+
+	unilateral := func() {
+		txid, err := s.refundVHTLC(context.Background(), swapId, false, vHTLC)
+		if err != nil {
+			log.WithError(err).Error("failed to refund vhtlc")
+			return
+		}
+
+		swapData := domain.Swap{
+			Id:         swapId,
+			Status:     domain.SwapFailed,
+			RedeemTxId: txid,
+		}
+
+		if err := s.dbSvc.Swap().Update(context.Background(), swapData); err != nil {
+			log.WithError(err).Error("failed to add payment data to db")
+		}
+
+		log.Infof("vhtlc refunded %s", txid)
+	}
+
+	vtxos, err := s.getVHTLCFunds(context.Background(), []domain.Vhtlc{vHTLC})
+	if err != nil {
+		log.WithError(err).Error("failed to check vhtlc status")
+		return err
+	}
+	if len(vtxos) == 0 {
+		return fmt.Errorf("vhtlc %s not found or already spent", opts.PreimageHash)
+	}
+
+	refundLT := opts.RefundLocktime
+
+	if refundLT.IsSeconds() {
+		at := time.Unix(int64(refundLT), 0)
+		if err := s.schedulerSvc.ScheduleRefundAtTime(at, unilateral); err != nil {
+			return err
+		}
+		log.Debugf("scheduled unilateral refund of swap %s at %s", swapId, at.Format(time.RFC3339))
+	} else {
+		if err := s.schedulerSvc.ScheduleRefundAtHeight(uint32(refundLT), unilateral); err != nil {
+			return err
+		}
+		log.Debugf("scheduled unilateral refund of swap %s at block height %d", swapId, refundLT)
+	}
+
+	return nil
+}
+*/
 
 func (svc *ArkService) SendKeysend(amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	return nil, errors.New("keysend not supported")
@@ -205,28 +304,41 @@ func (svc *ArkService) MakeInvoice(ctx context.Context, amount int64, descriptio
 	postProcess := func(swapData swap.Swap) error {
 		if swapData.Status != swap.SwapSuccess {
 			logger.Logger.WithField("swap_data", swapData).Error("Swap has unexpected status")
+			svc.eventPublisher.Publish(&events.Event{
+				Event: "nwc_lnclient_payment_failed",
+				Properties: &lnclient.PaymentFailedEventProperties{
+					Transaction: transaction,
+					Reason:      fmt.Sprintf("Unexpected swap status: %d", swapData.Status),
+				},
+			})
 			return nil
 		}
 
-		// TODO: update the transaction to be paid
+		svc.eventPublisher.Publish(&events.Event{
+			Event:      "nwc_lnclient_payment_received",
+			Properties: transaction,
+		})
 
 		logger.Logger.WithField("swap_data", swapData).Info("Swap success")
 		return nil
 	}
 
+	// TODO: allow passing custom preimage
 	swapDetails, err := swapHandler.GetInvoice(ctx, uint64(amount/1000), postProcess)
 	if err != nil {
 		return nil, err
 	}
 
-	return &lnclient.Transaction{
+	transaction = &lnclient.Transaction{
 		Invoice:     swapDetails.Invoice,
 		Type:        constants.TRANSACTION_TYPE_INCOMING,
 		PaymentHash: hex.EncodeToString(swapDetails.PreimageHash),
 		Amount:      amount,
 		CreatedAt:   time.Now().Unix(),
 		// TODO: add other fields
-	}, nil
+		// TODO: extract to function to create transaction
+	}
+	return transaction, nil
 }
 
 func (svc *ArkService) MakeOffer(ctx context.Context, description string) (string, error) {
@@ -368,7 +480,9 @@ func (svc *ArkService) GetSupportedNIP47Methods() []string {
 }
 
 func (svc *ArkService) GetSupportedNIP47NotificationTypes() []string {
-	return []string{}
+	return []string{
+		notifications.PAYMENT_RECEIVED_NOTIFICATION,
+	}
 }
 
 func (svc *ArkService) GetPubkey() string {
