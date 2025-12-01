@@ -3,6 +3,8 @@ module github.com/getAlby/hub
 go 1.25.3
 
 require (
+	github.com/ArkLabsHQ/fulmine/pkg/boltz v0.0.0-20251119195708-a00599cd74be
+	github.com/ArkLabsHQ/fulmine/pkg/swap v0.0.0-20251119195708-a00599cd74be
 	github.com/adrg/xdg v0.5.3
 	github.com/arkade-os/go-sdk v0.8.2-0.20251110150555-3fea8eb154d1
 	github.com/btcsuite/btcd v0.24.3-0.20250318170759-4f4ea81776d6
@@ -31,8 +33,6 @@ require (
 require (
 	dario.cat/mergo v1.0.1 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/ArkLabsHQ/fulmine/pkg/boltz v0.0.0-20251119195708-a00599cd74be // indirect
-	github.com/ArkLabsHQ/fulmine/pkg/swap v0.0.0-20251119195708-a00599cd74be // indirect
 	github.com/ArkLabsHQ/fulmine/pkg/vhtlc v0.0.0-20251119195708-a00599cd74be // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/FactomProject/basen v0.0.0-20150613233007-fe3947df716e // indirect
