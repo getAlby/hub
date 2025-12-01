@@ -1,6 +1,5 @@
 import { BITCOIN_DISPLAY_FORMAT_BIP177 } from "src/constants";
 import { useInfo } from "src/hooks/useInfo";
-import { BitcoinDisplayFormat } from "src/types";
 
 interface FormattedBitcoinAmountProps {
   amount: number; // Amount in millisatoshis
@@ -24,8 +23,8 @@ export function FormattedBitcoinAmount({
   // Convert from millisatoshis to satoshis
   const sats = Math.floor(amount / 1000);
 
-  // Get display format from settings, default to BIP177
-  const displayFormat: BitcoinDisplayFormat =
+  // Get display format from settings
+  const displayFormat =
     info?.bitcoinDisplayFormat || BITCOIN_DISPLAY_FORMAT_BIP177;
 
   const formattedNumber = new Intl.NumberFormat().format(sats);

@@ -187,9 +187,7 @@ function Settings() {
             <div className="grid gap-1.5">
               <Label htmlFor="bitcoinDisplayFormat">Display Unit</Label>
               <Select
-                value={
-                  info?.bitcoinDisplayFormat || BITCOIN_DISPLAY_FORMAT_BIP177
-                }
+                value={info.bitcoinDisplayFormat}
                 onValueChange={updateBitcoinDisplayFormat}
               >
                 <SelectTrigger className="w-full md:w-60">
