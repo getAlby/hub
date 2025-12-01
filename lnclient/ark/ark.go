@@ -114,7 +114,7 @@ func NewArkService(ctx context.Context, cfg config.Config, workDir, mnemonic, un
 		return nil, fmt.Errorf("failed to unlock ark client: %s", err)
 	}
 
-	boltzSvc := &boltz.Api{URL: "https://api.ark.boltz.exchange"}
+	boltzSvc := &boltz.Api{URL: "https://api.ark.boltz.exchange", WSURL: "wss://api.ark.boltz.exchange"}
 	grpcClient, err := grpcclient.NewClient(serverUrl)
 	if err != nil {
 		return nil, err
@@ -197,7 +197,7 @@ func (svc *ArkService) SendKeysend(amount uint64, destination string, custom_rec
 
 func (svc *ArkService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
 
-	swapTimeout := uint32(15) // seconds
+	swapTimeout := uint32(15) // seconds, seems this is for paying only?
 	swapHandler := swap.NewSwapHandler(
 		svc.arkClient, svc.grpcClient, svc.indexerClient, svc.boltzSvc, svc.pubkey, swapTimeout,
 	)
