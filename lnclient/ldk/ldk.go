@@ -805,75 +805,13 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 }
 
 func (ls *LDKService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
-
-	payment := ls.node.Payment(paymentHash)
-	if payment == nil {
-		logger.Logger.WithField("payment_hash", paymentHash).Errorf("couldn't find payment by payment hash")
-		return nil, errors.New("payment not found")
-	}
-
-	transaction, err = ls.ldkPaymentToTransaction(payment)
-
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to map transaction")
-		return nil, err
-	}
-
-	return transaction, nil
+	// this method shouldn't be any more because this LNClient supports notifications
+	return nil, errors.New("this method should not be called")
 }
 
 func (ls *LDKService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []lnclient.Transaction, err error) {
 	// this method shouldn't be any more because this LNClient supports notifications
 	return nil, errors.New("this method should not be called")
-	/*transactions = []lnclient.Transaction{}
-
-	// TODO: support pagination
-	payments := ls.node.ListPayments()
-
-	for _, payment := range payments {
-		if payment.Status == ldk_node.PaymentStatusSucceeded || unpaid {
-			transaction, err := ls.ldkPaymentToTransaction(&payment)
-
-			if err != nil {
-				logger.Logger.WithError(err).Error("Failed to map transaction")
-				continue
-			}
-
-			// locally filter
-			if from != 0 && uint64(transaction.CreatedAt) < from {
-				continue
-			}
-			if until != 0 && uint64(transaction.CreatedAt) > until {
-				continue
-			}
-			if invoiceType != "" && transaction.Type != invoiceType {
-				continue
-			}
-
-			transactions = append(transactions, *transaction)
-		}
-	}
-
-	// sort by created date descending
-	sort.SliceStable(transactions, func(i, j int) bool {
-		return transactions[i].CreatedAt > transactions[j].CreatedAt
-	})
-
-	if offset > 0 {
-		if offset < uint64(len(transactions)) {
-			transactions = transactions[offset:]
-		} else {
-			transactions = []lnclient.Transaction{}
-		}
-	}
-
-	if len(transactions) > int(limit) {
-		transactions = transactions[:limit]
-	}
-
-	// logger.Logger.WithField("transactions", transactions).Debug("Listed transactions")
-
-	return transactions, nil*/
 }
 
 func (ls *LDKService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
