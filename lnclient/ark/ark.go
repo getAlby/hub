@@ -178,6 +178,13 @@ func seedFromMnemonic(mnemonic string) (string, error) {
 }
 
 func (svc *ArkService) Shutdown() error {
+	defer func() {
+		// ensure the app does not crash if ark shutdown fails
+		if r := recover(); r != nil {
+			logger.Logger.WithField("r", r).Error("Failed to cleanly shut down ark backend")
+		}
+	}()
+
 	svc.arkClient.Stop()
 	return nil
 }

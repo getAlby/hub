@@ -4,15 +4,19 @@ go 1.25.3
 
 require (
 	github.com/ArkLabsHQ/fulmine/pkg/boltz v0.0.0-20251119195708-a00599cd74be
-	github.com/ArkLabsHQ/fulmine/pkg/swap v0.0.0-20251119195708-a00599cd74be
+	github.com/ArkLabsHQ/fulmine/pkg/vhtlc v0.0.0-20251119195708-a00599cd74be
 	github.com/adrg/xdg v0.5.3
+	github.com/arkade-os/arkd/pkg/ark-lib v0.8.1-0.20251119163300-38b7bf6a4010
 	github.com/arkade-os/go-sdk v0.8.2-0.20251110150555-3fea8eb154d1
 	github.com/btcsuite/btcd v0.24.3-0.20250318170759-4f4ea81776d6
 	github.com/btcsuite/btcd/btcutil v1.1.6
+	github.com/btcsuite/btcd/btcutil/psbt v1.1.9
+	github.com/ccoveille/go-safecast v1.6.1
 	github.com/elnosh/gonuts v0.4.2
 	github.com/getAlby/ldk-node-go v0.0.0-20250903063103-91db97badfc2
 	github.com/go-gormigrate/gormigrate/v2 v2.1.5
 	github.com/labstack/echo/v4 v4.13.4
+	github.com/lightningnetwork/lnd/tlv v1.3.2
 	github.com/mattn/go-sqlite3 v1.14.32
 	github.com/nbd-wtf/go-nostr v0.52.3
 	github.com/nbd-wtf/ln-decodepay v1.13.0
@@ -33,7 +37,6 @@ require (
 require (
 	dario.cat/mergo v1.0.1 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
-	github.com/ArkLabsHQ/fulmine/pkg/vhtlc v0.0.0-20251119195708-a00599cd74be // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20230124172434-306776ec8161 // indirect
 	github.com/FactomProject/basen v0.0.0-20150613233007-fe3947df716e // indirect
 	github.com/FactomProject/btcutilecc v0.0.0-20130527213604-d3a63a5752ec // indirect
@@ -43,10 +46,8 @@ require (
 	github.com/Nvveen/Gotty v0.0.0-20120604004816-cd527374f1e5 // indirect
 	github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da // indirect
 	github.com/aead/siphash v1.0.1 // indirect
-	github.com/arkade-os/arkd/pkg/ark-lib v0.8.1-0.20251119163300-38b7bf6a4010 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bep/debounce v1.2.1 // indirect
-	github.com/btcsuite/btcd/btcutil/psbt v1.1.9 // indirect
 	github.com/btcsuite/btclog v0.0.0-20241017175713-3428138b75c7 // indirect
 	github.com/btcsuite/btclog/v2 v2.0.1-0.20250728225537-6090e87c6c5b // indirect
 	github.com/btcsuite/btcwallet v0.16.17 // indirect
@@ -60,7 +61,6 @@ require (
 	github.com/btcsuite/winsvc v1.0.0 // indirect
 	github.com/bytedance/sonic v1.13.1 // indirect
 	github.com/bytedance/sonic/loader v0.2.4 // indirect
-	github.com/ccoveille/go-safecast v1.6.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudwego/base64x v0.1.5 // indirect
@@ -147,7 +147,6 @@ require (
 	github.com/lightningnetwork/lnd/queue v1.1.1 // indirect
 	github.com/lightningnetwork/lnd/sqldb v1.0.11 // indirect
 	github.com/lightningnetwork/lnd/ticker v1.1.1 // indirect
-	github.com/lightningnetwork/lnd/tlv v1.3.2 // indirect
 	github.com/lightningnetwork/lnd/tor v1.1.6 // indirect
 	github.com/ltcsuite/ltcd v0.23.5 // indirect
 	github.com/ltcsuite/ltcd/chaincfg/chainhash v1.0.2 // indirect
@@ -267,7 +266,7 @@ require (
 	github.com/btcsuite/btcd/btcec/v2 v2.3.6
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0
 	github.com/decred/dcrd/crypto/blake256 v1.1.0 // indirect
-	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
+	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/joho/godotenv v1.5.1
