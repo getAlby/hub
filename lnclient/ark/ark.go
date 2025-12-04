@@ -2,6 +2,7 @@ package ark
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -9,10 +10,13 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	boltz "github.com/ArkLabsHQ/fulmine/pkg/boltz"
-	swap "github.com/ArkLabsHQ/fulmine/pkg/swap"
+	decodepay "github.com/nbd-wtf/ln-decodepay"
+
+	//swap "github.com/ArkLabsHQ/fulmine/pkg/swap"
 	arksdk "github.com/arkade-os/go-sdk"
 	"github.com/arkade-os/go-sdk/client"
 	grpcclient "github.com/arkade-os/go-sdk/client/grpc"
@@ -25,6 +29,7 @@ import (
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/lnclient/ark/swap"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/notifications"
 	"github.com/sirupsen/logrus"
@@ -323,20 +328,51 @@ func (svc *ArkService) MakeInvoice(ctx context.Context, amount int64, descriptio
 		return nil
 	}
 
-	// TODO: allow passing custom preimage
-	swapDetails, err := swapHandler.GetInvoice(ctx, uint64(amount/1000), postProcess)
+	makePreimageHex := func() ([]byte, error) {
+		bytes := make([]byte, 32) // 32 bytes * 8 bits/byte = 256 bits
+		_, err := rand.Read(bytes)
+		if err != nil {
+			return nil, err
+		}
+		return bytes, nil
+	}
+
+	preImageBytes, err := makePreimageHex()
+	if err != nil {
+		return nil, err
+	}
+	preimage := hex.EncodeToString(preImageBytes)
+
+	// TODO: use official swap package once custom preimage can be passed
+	swapDetails, err := swapHandler.ReverseSwap(ctx, uint64(amount/1000), preImageBytes, postProcess)
 	if err != nil {
 		return nil, err
 	}
 
+	paymentRequest, err := decodepay.Decodepay(strings.ToLower(swapDetails.Invoice))
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"bolt11": swapDetails.Invoice,
+		}).WithError(err).Error("Failed to decode bolt11 invoice")
+
+		return nil, err
+	}
+	createdAt := int64(paymentRequest.CreatedAt)
+	expiresAtUnix := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
+	expiresAt := &expiresAtUnix
+	description = paymentRequest.Description
+	descriptionHash = paymentRequest.DescriptionHash
+
 	transaction = &lnclient.Transaction{
-		Invoice:     swapDetails.Invoice,
-		Type:        constants.TRANSACTION_TYPE_INCOMING,
-		PaymentHash: hex.EncodeToString(swapDetails.PreimageHash),
-		Amount:      amount,
-		CreatedAt:   time.Now().Unix(),
-		// TODO: add other fields
-		// TODO: extract to function to create transaction
+		Invoice:         swapDetails.Invoice,
+		Type:            constants.TRANSACTION_TYPE_INCOMING,
+		PaymentHash:     hex.EncodeToString(swapDetails.PreimageHash),
+		Amount:          amount,
+		CreatedAt:       createdAt,
+		Preimage:        preimage,
+		ExpiresAt:       expiresAt,
+		Description:     description,
+		DescriptionHash: descriptionHash,
 	}
 	return transaction, nil
 }
