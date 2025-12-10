@@ -659,9 +659,14 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                         Incoming Liquidity
                       </TableCell>
                       <TableCell className="text-right p-3">
-                        <FormattedBitcoinAmount
-                          amount={lspOrderResponse.incomingLiquidity * 1000}
-                        />
+                        <div className="flex flex-col items-end">
+                          <FormattedBitcoinAmount
+                            amount={lspOrderResponse.incomingLiquidity * 1000}
+                          />
+                          <span className="text-sm text-muted-foreground">
+                            ~€21.00
+                          </span>
+                        </div>
                       </TableCell>
                     </TableRow>
                   )}
@@ -670,9 +675,14 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                       Amount to pay
                     </TableCell>
                     <TableCell className="font-semibold text-right p-3">
-                      <FormattedBitcoinAmount
-                        amount={lspOrderResponse.invoiceAmount * 1000}
-                      />
+                      <div className="flex flex-col items-end">
+                        <FormattedBitcoinAmount
+                          amount={lspOrderResponse.invoiceAmount * 1000}
+                        />
+                        <span className="text-sm text-muted-foreground">
+                          ~€21.00
+                        </span>
+                      </div>
                     </TableCell>
                   </TableRow>
                 </TableBody>
