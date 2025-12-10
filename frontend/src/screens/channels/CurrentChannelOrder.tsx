@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { Button } from "src/components/ui/button";
@@ -663,9 +664,10 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                           <FormattedBitcoinAmount
                             amount={lspOrderResponse.incomingLiquidity * 1000}
                           />
-                          <span className="text-sm text-muted-foreground">
-                            ~€21.00
-                          </span>
+                          <FormattedFiatAmount
+                            amount={lspOrderResponse.incomingLiquidity}
+                            showApprox
+                          />
                         </div>
                       </TableCell>
                     </TableRow>
@@ -679,9 +681,10 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                         <FormattedBitcoinAmount
                           amount={lspOrderResponse.invoiceAmount * 1000}
                         />
-                        <span className="text-sm text-muted-foreground">
-                          ~€21.00
-                        </span>
+                        <FormattedFiatAmount
+                          amount={lspOrderResponse.invoiceAmount}
+                          showApprox
+                        />
                       </div>
                     </TableCell>
                   </TableRow>
