@@ -762,7 +762,21 @@ func (api *api) RefundSwap(refundSwapRequest *RefundSwapRequest) error {
 func (api *api) GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error) {
 	swapOutBalanceThresholdStr, _ := api.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
 	swapOutAmountStr, _ := api.cfg.Get(config.AutoSwapAmountKey, "")
-	swapOutDestination, _ := api.cfg.Get(config.AutoSwapDestinationKey, "")
+
+	// Get the destination - try from memory first (decrypted XPUB), then from config
+	swapOutDestination := ""
+	if api.svc.GetSwapsService() != nil {
+		// If we have a decrypted XPUB in memory, use it
+		decryptedXpub := api.svc.GetSwapsService().GetDecryptedAutoSwapXpub()
+		if decryptedXpub != "" {
+			swapOutDestination = decryptedXpub
+		}
+	}
+
+	// If no decrypted XPUB, try to get the destination from config (could be a regular address)
+	if swapOutDestination == "" {
+		swapOutDestination, _ = api.cfg.Get(config.AutoSwapDestinationKey, "")
+	}
 
 	swapOutEnabled := swapOutBalanceThresholdStr != "" && swapOutAmountStr != ""
 	var swapOutBalanceThreshold, swapOutAmount uint64
@@ -946,7 +960,20 @@ func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *E
 		return err
 	}
 
-	err = api.cfg.SetUpdate(config.AutoSwapDestinationKey, enableAutoSwapsRequest.Destination, "")
+	// Check if destination is an xpub - if so, it needs to be encrypted
+	encryptionKey := ""
+	if enableAutoSwapsRequest.Destination != "" && api.isXpub(enableAutoSwapsRequest.Destination) {
+		// Validate the unlock password
+		if enableAutoSwapsRequest.UnlockPassword == "" {
+			return errors.New("unlock password is required when using an xpub as destination")
+		}
+		if !api.cfg.CheckUnlockPassword(enableAutoSwapsRequest.UnlockPassword) {
+			return errors.New("invalid unlock password")
+		}
+		encryptionKey = enableAutoSwapsRequest.UnlockPassword
+	}
+
+	err = api.cfg.SetUpdate(config.AutoSwapDestinationKey, enableAutoSwapsRequest.Destination, encryptionKey)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save autoswap destination to config")
 		return err
@@ -955,7 +982,7 @@ func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *E
 	if api.svc.GetSwapsService() == nil {
 		return errors.New("SwapsService not started")
 	}
-	return api.svc.GetSwapsService().EnableAutoSwapOut()
+	return api.svc.GetSwapsService().EnableAutoSwapOut(enableAutoSwapsRequest.UnlockPassword)
 }
 
 func (api *api) DisableAutoSwap() error {
@@ -1773,4 +1800,14 @@ func (api *api) GetForwards() (*GetForwardsResponse, error) {
 		TotalFeeEarnedMsat:          totalFeeEarned,
 		NumForwards:                 uint64(numForwards),
 	}, nil
+}
+
+func (api *api) isXpub(destination string) bool {
+	// Check if the destination starts with xpub, ypub, zpub, tpub, upub, or vpub
+	return strings.HasPrefix(destination, "xpub") ||
+		strings.HasPrefix(destination, "ypub") ||
+		strings.HasPrefix(destination, "zpub") ||
+		strings.HasPrefix(destination, "tpub") ||
+		strings.HasPrefix(destination, "upub") ||
+		strings.HasPrefix(destination, "vpub")
 }
