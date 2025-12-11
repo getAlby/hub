@@ -22,7 +22,7 @@ import (
 type config struct {
 	Env        *AppConfig
 	db         *gorm.DB
-	cache      map[string]string
+	cache      map[string]map[string]string // key -> encryptionKeyHash -> value
 	cacheMutex sync.Mutex
 }
 
@@ -33,7 +33,7 @@ const (
 func NewConfig(env *AppConfig, db *gorm.DB) (*config, error) {
 	cfg := &config{
 		db:    db,
-		cache: map[string]string{},
+		cache: map[string]map[string]string{},
 	}
 	err := cfg.init(env)
 	if err != nil {
@@ -181,23 +181,25 @@ func (cfg *config) GetMempoolUrl() string {
 	return strings.TrimSuffix(mempoolApiUrl, "/api")
 }
 
-func (cfg *config) getCacheKey(key string, encryptionKey string) string {
+func (cfg *config) getEncryptionKeyHash(encryptionKey string) string {
 	if encryptionKey == "" {
-		return key
+		return ""
 	}
 	hash := sha256.Sum256([]byte(encryptionKey))
-	return key + ":" + hex.EncodeToString(hash[:8])
+	return hex.EncodeToString(hash[:8])
 }
 
 func (cfg *config) Get(key string, encryptionKey string) (string, error) {
 	cfg.cacheMutex.Lock()
 	defer cfg.cacheMutex.Unlock()
 
-	cacheKey := cfg.getCacheKey(key, encryptionKey)
-	cachedValue, ok := cfg.cache[cacheKey]
-	if ok {
-		logger.Logger.WithField("key", key).Debug("hit config cache")
-		return cachedValue, nil
+	encKeyHash := cfg.getEncryptionKeyHash(encryptionKey)
+
+	if keyCache, ok := cfg.cache[key]; ok {
+		if cachedValue, ok := keyCache[encKeyHash]; ok {
+			logger.Logger.WithField("key", key).Debug("hit config cache")
+			return cachedValue, nil
+		}
 	}
 	logger.Logger.WithField("key", key).Debug("missed config cache")
 
@@ -205,7 +207,11 @@ func (cfg *config) Get(key string, encryptionKey string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	cfg.cache[cacheKey] = value
+
+	if cfg.cache[key] == nil {
+		cfg.cache[key] = make(map[string]string)
+	}
+	cfg.cache[key][encKeyHash] = value
 	logger.Logger.WithField("key", key).Debug("set config cache")
 	return value, nil
 }
@@ -246,16 +252,7 @@ func (cfg *config) set(key string, value string, clauses clause.OnConflict, encr
 	logger.Logger.WithField("key", key).Debug("clearing config cache")
 	cfg.cacheMutex.Lock()
 	defer cfg.cacheMutex.Unlock()
-
-	if encryptionKey != "" {
-		for cacheKey := range cfg.cache {
-			if cacheKey == key || strings.HasPrefix(cacheKey, key+":") {
-				delete(cfg.cache, cacheKey)
-			}
-		}
-	} else {
-		delete(cfg.cache, key)
-	}
+	delete(cfg.cache, key)
 
 	return nil
 }
