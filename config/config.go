@@ -2,6 +2,7 @@ package config
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -180,10 +181,20 @@ func (cfg *config) GetMempoolUrl() string {
 	return strings.TrimSuffix(mempoolApiUrl, "/api")
 }
 
+func (cfg *config) getCacheKey(key string, encryptionKey string) string {
+	if encryptionKey == "" {
+		return key
+	}
+	hash := sha256.Sum256([]byte(encryptionKey))
+	return key + ":" + hex.EncodeToString(hash[:8])
+}
+
 func (cfg *config) Get(key string, encryptionKey string) (string, error) {
 	cfg.cacheMutex.Lock()
 	defer cfg.cacheMutex.Unlock()
-	cachedValue, ok := cfg.cache[key]
+
+	cacheKey := cfg.getCacheKey(key, encryptionKey)
+	cachedValue, ok := cfg.cache[cacheKey]
 	if ok {
 		logger.Logger.WithField("key", key).Debug("hit config cache")
 		return cachedValue, nil
@@ -194,7 +205,7 @@ func (cfg *config) Get(key string, encryptionKey string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	cfg.cache[key] = value
+	cfg.cache[cacheKey] = value
 	logger.Logger.WithField("key", key).Debug("set config cache")
 	return value, nil
 }
@@ -235,7 +246,16 @@ func (cfg *config) set(key string, value string, clauses clause.OnConflict, encr
 	logger.Logger.WithField("key", key).Debug("clearing config cache")
 	cfg.cacheMutex.Lock()
 	defer cfg.cacheMutex.Unlock()
-	delete(cfg.cache, key)
+
+	if encryptionKey != "" {
+		for cacheKey := range cfg.cache {
+			if cacheKey == key || strings.HasPrefix(cacheKey, key+":") {
+				delete(cfg.cache, cacheKey)
+			}
+		}
+	} else {
+		delete(cfg.cache, key)
+	}
 
 	return nil
 }
