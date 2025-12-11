@@ -186,6 +186,9 @@ func (cfg *config) getEncryptionKeyHash(encryptionKey string) string {
 		return ""
 	}
 	hash := sha256.Sum256([]byte(encryptionKey))
+	// For cache key purposes, 8 bytes (16 hex chars) provides:
+    //   2^64 possible values = ~18 quintillion combinations
+    //   More than sufficient to avoid collisions for cache keys
 	return hex.EncodeToString(hash[:8])
 }
 
