@@ -2,7 +2,6 @@ package config
 
 import (
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -181,21 +180,18 @@ func (cfg *config) GetMempoolUrl() string {
 	return strings.TrimSuffix(mempoolApiUrl, "/api")
 }
 
-// getCacheKey generates a cache key that includes the encryption key context
-// to prevent returning wrong values when the same key is accessed with different encryption keys
 func (cfg *config) getCacheKey(key string, encryptionKey string) string {
 	if encryptionKey == "" {
 		return key
 	}
-	// Hash the encryption key to avoid storing it in plaintext in the cache key
 	hash := sha256.Sum256([]byte(encryptionKey))
-	return key + ":" + hex.EncodeToString(hash[:8]) // Use first 8 bytes for cache key
+	return key + ":" + hex.EncodeToString(hash[:8])
 }
 
 func (cfg *config) Get(key string, encryptionKey string) (string, error) {
 	cfg.cacheMutex.Lock()
 	defer cfg.cacheMutex.Unlock()
-	
+
 	cacheKey := cfg.getCacheKey(key, encryptionKey)
 	cachedValue, ok := cfg.cache[cacheKey]
 	if ok {
@@ -249,12 +245,15 @@ func (cfg *config) set(key string, value string, clauses clause.OnConflict, encr
 	logger.Logger.WithField("key", key).Debug("clearing config cache")
 	cfg.cacheMutex.Lock()
 	defer cfg.cacheMutex.Unlock()
-	// Clear all cache entries for this key (with any encryption key variant)
-	for cacheKey := range cfg.cache {
-		// Remove entries that match the key (before the ":" separator)
-		if cacheKey == key || strings.HasPrefix(cacheKey, key+":") {
-			delete(cfg.cache, cacheKey)
+
+	if encryptionKey != "" {
+		for cacheKey := range cfg.cache {
+			if cacheKey == key || strings.HasPrefix(cacheKey, key+":") {
+				delete(cfg.cache, cacheKey)
+			}
 		}
+	} else {
+		delete(cfg.cache, key)
 	}
 
 	return nil
