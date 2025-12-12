@@ -175,12 +175,8 @@ func (svc *swapsService) EnableAutoSwapOut(encryptionKey string) error {
 
 	ctx, cancelFn := context.WithCancel(svc.ctx)
 
-	// Try to decrypt the destination with the encryption key
-	// If it's an XPUB, it will be encrypted and we decrypt it once here
 	swapDestination, _ := svc.cfg.Get(config.AutoSwapDestinationKey, encryptionKey)
 
-	// Store the decrypted XPUB in memory (encryption key is discarded after this function)
-	// This follows the same pattern as the mnemonic in the keys service
 	if swapDestination != "" && svc.ValidateXpub(swapDestination) == nil {
 		svc.autoSwapOutDecryptedXpub = swapDestination
 	} else {
