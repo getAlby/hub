@@ -26,6 +26,7 @@ func TestCheckUnlockPasswordCache_InvalidSecond(t *testing.T) {
 
 	assert.True(t, svc.Cfg.CheckUnlockPassword(unlockPassword))
 	assert.False(t, svc.Cfg.CheckUnlockPassword(unlockPassword+"1"))
+	assert.False(t, svc.Cfg.CheckUnlockPassword(""))
 }
 func TestCheckUnlockPasswordCache_InvalidFirst(t *testing.T) {
 	unlockPassword := "123"
@@ -45,6 +46,7 @@ func TestCheckUnlockPasswordCache_InvalidFirst(t *testing.T) {
 	value, err = svc.Cfg.Get("UnlockPasswordCheck", unlockPassword+"1")
 	require.Error(t, err)
 
+	assert.False(t, svc.Cfg.CheckUnlockPassword(""))
 	assert.False(t, svc.Cfg.CheckUnlockPassword(unlockPassword+"1"))
 	assert.True(t, svc.Cfg.CheckUnlockPassword(unlockPassword))
 }
@@ -76,4 +78,134 @@ func TestCheckUnlockPassword_ChangePassword(t *testing.T) {
 	// test caching
 	assert.False(t, svc.Cfg.CheckUnlockPassword(unlockPassword))
 	assert.True(t, svc.Cfg.CheckUnlockPassword(newUnlockPassword))
+}
+
+func TestSetIgnore_NoEncryptionKey(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	err = svc.Cfg.SetIgnore("key", "value", "")
+	require.NoError(t, err)
+
+	value, err := svc.Cfg.Get("key", "")
+	assert.Equal(t, "value", value)
+
+	err = svc.Cfg.SetIgnore("key", "value2", "")
+	require.NoError(t, err)
+
+	// value should not be updated
+	updatedValue, err := svc.Cfg.Get("key", "")
+	assert.Equal(t, "value", updatedValue)
+}
+
+func TestSetIgnore_EncryptionKey(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	unlockPassword := "123"
+
+	err = svc.Cfg.SetIgnore("key", "value", unlockPassword)
+	require.NoError(t, err)
+
+	value, err := svc.Cfg.Get("key", unlockPassword)
+	assert.Equal(t, "value", value)
+
+	invalidValue, err := svc.Cfg.Get("key", unlockPassword+"1")
+	assert.Error(t, err)
+	assert.Equal(t, "", invalidValue)
+
+	err = svc.Cfg.SetIgnore("key", "value2", unlockPassword)
+	require.NoError(t, err)
+
+	// value should not be updated
+	updatedValue, err := svc.Cfg.Get("key", unlockPassword)
+	assert.Equal(t, "value", updatedValue)
+}
+
+func TestSetUpdate_NoEncryptionKey(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	err = svc.Cfg.SetUpdate("key", "value", "")
+	require.NoError(t, err)
+
+	value, err := svc.Cfg.Get("key", "")
+	assert.Equal(t, "value", value)
+
+	err = svc.Cfg.SetUpdate("key", "value2", "")
+	require.NoError(t, err)
+
+	// value should be updated
+	updatedValue, err := svc.Cfg.Get("key", "")
+	assert.Equal(t, "value2", updatedValue)
+}
+
+func TestSetUpdate_EncryptionKey(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	unlockPassword := "123"
+
+	err = svc.Cfg.SetUpdate("key", "value", unlockPassword)
+	require.NoError(t, err)
+
+	value, err := svc.Cfg.Get("key", unlockPassword)
+	assert.Equal(t, "value", value)
+
+	invalidValue, err := svc.Cfg.Get("key", unlockPassword+"1")
+	assert.Error(t, err)
+	assert.Equal(t, "", invalidValue)
+
+	err = svc.Cfg.SetUpdate("key", "value2", unlockPassword)
+	require.NoError(t, err)
+
+	// value should be updated
+	updatedValue, err := svc.Cfg.Get("key", unlockPassword)
+	assert.Equal(t, "value2", updatedValue)
+}
+
+func TestSetUpdate_NoEncryptionKeyToEncryptionKey(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	err = svc.Cfg.SetUpdate("key", "value", "")
+	require.NoError(t, err)
+
+	value, err := svc.Cfg.Get("key", "")
+	assert.Equal(t, "value", value)
+
+	unlockPassword := "123"
+
+	err = svc.Cfg.SetUpdate("key", "value2", unlockPassword)
+	require.NoError(t, err)
+
+	// value should be updated
+	updatedValue, err := svc.Cfg.Get("key", unlockPassword)
+	assert.Equal(t, "value2", updatedValue)
+}
+
+func TestSetUpdate_EncryptionKeyToNoEncryptionKey(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	unlockPassword := "123"
+
+	err = svc.Cfg.SetUpdate("key", "value", unlockPassword)
+	require.NoError(t, err)
+
+	value, err := svc.Cfg.Get("key", unlockPassword)
+	assert.Equal(t, "value", value)
+
+	err = svc.Cfg.SetUpdate("key", "value2", "")
+	require.NoError(t, err)
+
+	// value should be updated
+	updatedValue, err := svc.Cfg.Get("key", "")
+	assert.Equal(t, "value2", updatedValue)
 }
