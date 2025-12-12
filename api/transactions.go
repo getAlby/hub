@@ -16,7 +16,7 @@ func (api *api) CreateInvoice(ctx context.Context, amount uint64, description st
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amount, description, "", 0, nil, api.svc.GetLNClient(), nil, nil)
+	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amount, description, "", 0, nil, api.svc.GetLNClient(), nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (api *api) SendPayment(ctx context.Context, invoice string, amountMsat *uin
 	if api.svc.GetLNClient() == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	transaction, err := api.svc.GetTransactionsService().SendPaymentSync(ctx, invoice, amountMsat, metadata, api.svc.GetLNClient(), nil, nil)
+	transaction, err := api.svc.GetTransactionsService().SendPaymentSync(invoice, amountMsat, metadata, api.svc.GetLNClient(), nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -144,13 +144,13 @@ func (api *api) Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, am
 		}
 	}
 
-	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, "transfer", "", 0, nil, api.svc.GetLNClient(), toAppId, nil)
+	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, "transfer", "", 0, nil, api.svc.GetLNClient(), toAppId, nil, nil)
 
 	if err != nil {
 		return err
 	}
 
-	_, err = api.svc.GetTransactionsService().SendPaymentSync(ctx, transaction.PaymentRequest, nil, nil, api.svc.GetLNClient(), fromAppId, nil)
+	_, err = api.svc.GetTransactionsService().SendPaymentSync(transaction.PaymentRequest, nil, nil, api.svc.GetLNClient(), fromAppId, nil)
 	return err
 }
 

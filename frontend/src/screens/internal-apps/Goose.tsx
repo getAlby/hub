@@ -1,9 +1,16 @@
-import { HammerIcon, LightbulbIcon } from "lucide-react";
+import {
+  ChartLineIcon,
+  GiftIcon,
+  HammerIcon,
+  LightbulbIcon,
+  MessageCircleIcon,
+} from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { AppDetailConnectedApps } from "src/components/connections/AppDetailConnectedApps";
 import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
+import ExternalLink from "src/components/ExternalLink";
 import {
   Accordion,
   AccordionContent,
@@ -20,6 +27,10 @@ import {
 } from "src/components/ui/card";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
+import {
+  DEFAULT_APP_BUDGET_RENEWAL,
+  DEFAULT_APP_BUDGET_SATS,
+} from "src/constants";
 import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -50,8 +61,8 @@ export function Goose() {
             "pay_invoice",
             "sign_message",
           ],
-          maxAmount: 10_000,
-          budgetRenewal: "monthly",
+          maxAmount: DEFAULT_APP_BUDGET_SATS,
+          budgetRenewal: DEFAULT_APP_BUDGET_RENEWAL,
           metadata: {
             app_store_app_id: "goose",
           },
@@ -74,7 +85,7 @@ export function Goose() {
 
   return (
     <div className="grid gap-5">
-      <AppStoreDetailHeader appStoreApp={appStoreApp} />
+      <AppStoreDetailHeader appStoreApp={appStoreApp} contentRight={null} />
       {connectionSecret && (
         <div className="max-w-lg flex flex-col gap-5">
           <p>
@@ -212,18 +223,63 @@ export function Goose() {
               </p>
               <div className=" flex flex-col gap-5">
                 <p className="text-muted-foreground">
-                  Connect your hub to goose to:
+                  Connect your hub to Goose to:
                 </p>
-                <ul className="text-muted-foreground pl-4 gap-2 flex flex-col">
+                <ul className="text-muted-foreground pl-4 gap-4 flex flex-col">
                   <li>
-                    💬 Interact with your wallet with natural language:{" "}
-                    <span className="italic">"Pay $1 to my friend Rene"</span>
+                    <MessageCircleIcon className="size-4 inline" /> Interact
+                    with your wallet with natural language:{" "}
+                    <span className="italic">"Pay $1 to my friend Rene"</span>{" "}
+                    (with{" "}
+                    <ExternalLink
+                      to="https://block.github.io/goose/docs/mcp/memory-mcp/"
+                      className="underline"
+                    >
+                      Goose Memory Extension
+                    </ExternalLink>
+                    )
                   </li>
                   <li>
-                    ⚡ Give Goose access to paid tools:{" "}
+                    <GiftIcon className="size-4 inline" /> Buy giftcards:{" "}
                     <span className="italic">
                       "Buy a $15 doordash giftcard"
-                    </span>
+                    </span>{" "}
+                    (with{" "}
+                    <ExternalLink
+                      to="https://www.bitrefill.com/account/developers/mcp-server"
+                      className="underline"
+                    >
+                      Bitrefill MCP
+                    </ExternalLink>
+                    )
+                  </li>
+                  <li>
+                    <ChartLineIcon className="size-4 inline" /> Let Goose trade
+                    for you:{" "}
+                    <span className="italic">
+                      "Analyze market sentiment and trading data from the past 3
+                      months and based on this, open a $10 2x long or short
+                      position"
+                    </span>{" "}
+                    (with{" "}
+                    <ExternalLink
+                      to="https://sup3r.cool/ln-markets/"
+                      className="underline"
+                    >
+                      LNMarkets MCP
+                    </ExternalLink>
+                    )
+                  </li>
+                  <li>
+                    <LightbulbIcon className="size-4 inline" /> Use other
+                    awesome paid MCP tools: (see more{" "}
+                    <ExternalLink
+                      to="https://github.com/getAlby/awesome-ai-bitcoin/?tab=readme-ov-file#mcp-servers"
+                      className="underline"
+                    >
+                      Awesome MCP Servers
+                    </ExternalLink>
+                    )
                   </li>
                 </ul>
 

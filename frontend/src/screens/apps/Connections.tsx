@@ -1,10 +1,10 @@
 import { CirclePlusIcon, LayoutGridIcon, Plug2Icon } from "lucide-react";
 import React from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import AppStore from "src/components/connections/AppStore";
 import ConnectedApps from "src/components/connections/ConnectedApps";
-import ResponsiveButton from "src/components/ResponsiveButton";
+import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
 import {
   Tabs,
   TabsContent,
@@ -29,11 +29,11 @@ export function Connections() {
       <AppHeader
         title="Connections"
         contentRight={
-          <>
-            <Link to="/apps/new">
-              <ResponsiveButton icon={CirclePlusIcon} text="Add Connection" />
-            </Link>
-          </>
+          <ResponsiveLinkButton
+            to="/apps/new"
+            icon={CirclePlusIcon}
+            text="Add Connection"
+          />
         }
       />
       <Tabs value={tab} onValueChange={setTab} className="px-2 lg:px-0">
@@ -48,10 +48,10 @@ export function Connections() {
             <Plug2Icon className="w-5 h-5" /> Connected Apps
           </TabsTrigger>
         </TabsList>
-        <TabsContent value="app-store">
+        <TabsContent value="app-store" tabIndex={-1}>
           <AppStore />
         </TabsContent>
-        <TabsContent value="connected-apps">
+        <TabsContent value="connected-apps" tabIndex={-1}>
           <ConnectedApps />
         </TabsContent>
       </Tabs>

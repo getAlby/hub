@@ -1,5 +1,4 @@
 import {
-  AlertTriangleIcon,
   ArrowLeftIcon,
   CopyIcon,
   ExternalLinkIcon,
@@ -8,16 +7,17 @@ import {
 } from "lucide-react";
 import TickSVG from "public/images/illustrations/tick.svg";
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LottieLoading from "src/components/LottieLoading";
+import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import OnchainAddressDisplay from "src/components/OnchainAddressDisplay";
 import QRCode from "src/components/QRCode";
-import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -48,11 +48,12 @@ import { request } from "src/utils/request";
 
 export default function ReceiveOnchain() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [tab, setTab] = useState(searchParams.get("type") || "onchain");
+  const [tab, setTab] = useState(searchParams.get("type") || "spending");
 
   useEffect(() => {
     const newTabValue = searchParams.get("type");
     if (newTabValue) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTab(newTabValue);
       setSearchParams({});
     }
@@ -66,23 +67,23 @@ export default function ReceiveOnchain() {
         <Tabs value={tab} onValueChange={setTab} className="w-full">
           <TabsList className="w-full mb-2">
             <TabsTrigger
-              value="onchain"
-              className="flex gap-2 items-center w-full"
-            >
-              Receive to On-chain
-            </TabsTrigger>
-            <TabsTrigger
               value="spending"
               className="flex gap-2 items-center w-full"
             >
               Receive to Spending
             </TabsTrigger>
+            <TabsTrigger
+              value="onchain"
+              className="flex gap-2 items-center w-full"
+            >
+              Receive to On-chain
+            </TabsTrigger>
           </TabsList>
-          <TabsContent value="onchain">
-            <ReceiveToOnchain />
-          </TabsContent>
           <TabsContent value="spending">
             <ReceiveToSpending />
+          </TabsContent>
+          <TabsContent value="onchain">
+            <ReceiveToOnchain />
           </TabsContent>
         </Tabs>
       </div>
@@ -109,6 +110,7 @@ function ReceiveToOnchain() {
     if (txId) {
       const utxo = mempoolAddressUtxos.find((utxo) => utxo.txid === txId);
       if (utxo?.status.confirmed) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setConfirmedAmount(utxo.value);
         setPendingAmount(null);
       }
@@ -201,7 +203,7 @@ function DepositPending({
         {amount && (
           <div className="flex flex-col gap-1 items-center">
             <p className="text-2xl font-medium slashed-zero">
-              {new Intl.NumberFormat().format(amount)} sats
+              <FormattedBitcoinAmount amount={amount * 1000} />
             </p>
             <FormattedFiatAmount amount={amount} className="text-xl" />
           </div>
@@ -233,7 +235,7 @@ function DepositSuccess({ amount, txId }: { amount: number; txId: string }) {
         <img src={TickSVG} className="w-48" />
         <div className="flex flex-col gap-1 items-center">
           <p className="text-2xl font-medium slashed-zero">
-            {new Intl.NumberFormat().format(amount)} sats
+            <FormattedBitcoinAmount amount={amount * 1000} />
           </p>
           <FormattedFiatAmount amount={amount} className="text-xl" />
         </div>
@@ -319,16 +321,7 @@ function ReceiveToSpending() {
       {hasChannelManagement &&
         parseInt(swapAmount || "0") * 1000 >=
           0.8 * balances.lightning.totalReceivable && (
-          <Alert>
-            <AlertTriangleIcon className="h-4 w-4" />
-            <AlertTitle>Low receiving capacity</AlertTitle>
-            <AlertDescription>
-              You likely won't be able to receive payments until you{" "}
-              <Link className="underline" to="/channels/incoming">
-                increase your receiving capacity.
-              </Link>
-            </AlertDescription>
-          </Alert>
+          <LowReceivingCapacityAlert />
         )}
       <div className="grid gap-1.5">
         <Label>Amount</Label>
@@ -352,26 +345,13 @@ function ReceiveToSpending() {
           <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
             <div>
               Receiving Capacity:{" "}
-              {new Intl.NumberFormat().format(
-                Math.floor(balances.lightning.totalReceivable / 1000)
-              )}{" "}
-              sats{" "}
-              <Link className="underline" to="/channels/incoming">
-                increase
-              </Link>
+              <FormattedBitcoinAmount
+                amount={balances.lightning.totalReceivable}
+              />
             </div>
             <FormattedFiatAmount
               className="text-xs"
               amount={balances.lightning.totalReceivable / 1000}
-            />
-          </div>
-          <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
-            <div>
-              Minimum: {new Intl.NumberFormat().format(swapInfo.minAmount)} sats
-            </div>
-            <FormattedFiatAmount
-              className="text-xs"
-              amount={swapInfo.minAmount}
             />
           </div>
         </div>

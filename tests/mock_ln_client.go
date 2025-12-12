@@ -89,7 +89,7 @@ func NewMockLn() (*MockLn, error) {
 	return &MockLn{}, nil
 }
 
-func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (mln *MockLn) SendPaymentSync(payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
 	if len(mln.PayInvoiceResponses) > 0 {
 		response := mln.PayInvoiceResponses[0]
 		err := mln.PayInvoiceErrors[0]
@@ -106,7 +106,7 @@ func (mln *MockLn) SendPaymentSync(ctx context.Context, payReq string, amount *u
 	}, nil
 }
 
-func (mln *MockLn) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+func (mln *MockLn) SendKeysend(amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	return &lnclient.PayKeysendResponse{
 		Fee: 1,
 	}, nil
@@ -116,7 +116,7 @@ func (mln *MockLn) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err er
 	return &MockNodeInfo, nil
 }
 
-func (mln *MockLn) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
+func (mln *MockLn) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
 	return MockLNClientTransaction, nil
 }
 

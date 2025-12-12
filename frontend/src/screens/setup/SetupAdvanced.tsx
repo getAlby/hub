@@ -1,8 +1,6 @@
-import { Link } from "react-router-dom";
-
 import Container from "src/components/Container";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
-import { Button } from "src/components/ui/button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 
 export function SetupAdvanced() {
   return (
@@ -11,24 +9,26 @@ export function SetupAdvanced() {
         <div className="grid gap-5">
           <TwoColumnLayoutHeader
             title="Advanced Setup"
-            description="Import your Alby Hub, import existing mnemonic or Master Key or create custom wallet."
+            description="Import your Alby Hub, import existing recovery phrase or create custom wallet."
           />
           <div className="flex flex-col gap-3">
-            <Link to="/setup/node-restore">
-              <Button className="w-full">
-                Import Wallet from Migration File
-              </Button>
-            </Link>
-            <Link to="/setup/password?wallet=import" className="w-full">
-              <Button className="w-full" variant="secondary">
-                Import Existing Mnemonic
-              </Button>
-            </Link>
-            <Link to="/setup/password" className="w-full">
-              <Button className="w-full" variant="secondary">
-                Create Wallet with Custom Node
-              </Button>
-            </Link>
+            <LinkButton to="/setup/node-restore" className="w-full">
+              Import Wallet from Migration File
+            </LinkButton>
+            <LinkButton
+              to="/setup/password?wallet=import"
+              variant="secondary"
+              className="w-full"
+            >
+              Import Existing Recovery Phrase
+            </LinkButton>
+            <LinkButton
+              to="/setup/password"
+              variant="secondary"
+              className="w-full"
+            >
+              Create Wallet with Custom Node
+            </LinkButton>
           </div>
         </div>
       </Container>

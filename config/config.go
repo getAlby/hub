@@ -2,13 +2,16 @@ package config
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"os"
 	"path"
 	"strings"
+	"sync"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/logger"
 	"github.com/sirupsen/logrus"
@@ -17,8 +20,10 @@ import (
 )
 
 type config struct {
-	Env *AppConfig
-	db  *gorm.DB
+	Env        *AppConfig
+	db         *gorm.DB
+	cache      map[string]map[string]string // key -> encryptionKeyHash -> value
+	cacheMutex sync.Mutex
 }
 
 const (
@@ -27,7 +32,8 @@ const (
 
 func NewConfig(env *AppConfig, db *gorm.DB) (*config, error) {
 	cfg := &config{
-		db: db,
+		db:    db,
+		cache: map[string]map[string]string{},
 	}
 	err := cfg.init(env)
 	if err != nil {
@@ -151,9 +157,9 @@ func (cfg *config) GetJWTSecret() string {
 	return secret
 }
 
-func (cfg *config) GetRelayUrl() string {
-	relayUrl, _ := cfg.Get("Relay", "")
-	return relayUrl
+func (cfg *config) GetRelayUrls() []string {
+	relayUrls, _ := cfg.Get("Relay", "")
+	return strings.Split(relayUrls, ",")
 }
 
 func (cfg *config) GetNetwork() string {
@@ -175,8 +181,42 @@ func (cfg *config) GetMempoolUrl() string {
 	return strings.TrimSuffix(mempoolApiUrl, "/api")
 }
 
+func (cfg *config) getEncryptionKeyHash(encryptionKey string) string {
+	if encryptionKey == "" {
+		return ""
+	}
+	hash := sha256.Sum256([]byte(encryptionKey))
+	// For cache key purposes, 8 bytes (16 hex chars) provides:
+	//   2^64 possible values = ~18 quintillion combinations
+	//   More than sufficient to avoid collisions for cache keys
+	return hex.EncodeToString(hash[:8])
+}
+
 func (cfg *config) Get(key string, encryptionKey string) (string, error) {
-	return cfg.get(key, encryptionKey, cfg.db)
+	cfg.cacheMutex.Lock()
+	defer cfg.cacheMutex.Unlock()
+
+	encKeyHash := cfg.getEncryptionKeyHash(encryptionKey)
+
+	if keyCache, ok := cfg.cache[key]; ok {
+		if cachedValue, ok := keyCache[encKeyHash]; ok {
+			logger.Logger.WithField("key", key).Debug("hit config cache")
+			return cachedValue, nil
+		}
+	}
+	logger.Logger.WithField("key", key).Debug("missed config cache")
+
+	value, err := cfg.get(key, encryptionKey, cfg.db)
+	if err != nil {
+		return "", err
+	}
+
+	if cfg.cache[key] == nil {
+		cfg.cache[key] = make(map[string]string)
+	}
+	cfg.cache[key][encKeyHash] = value
+	logger.Logger.WithField("key", key).Debug("set config cache")
+	return value, nil
 }
 
 func (cfg *config) get(key string, encryptionKey string, gormDB *gorm.DB) (string, error) {
@@ -211,6 +251,12 @@ func (cfg *config) set(key string, value string, clauses clause.OnConflict, encr
 	if result.Error != nil {
 		return fmt.Errorf("failed to save key to config: %v", result.Error)
 	}
+
+	logger.Logger.WithField("key", key).Debug("clearing config cache")
+	cfg.cacheMutex.Lock()
+	defer cfg.cacheMutex.Unlock()
+	delete(cfg.cache, key)
+
 	return nil
 }
 
@@ -230,7 +276,7 @@ func (cfg *config) SetIgnore(key string, value string, encryptionKey string) err
 func (cfg *config) SetUpdate(key string, value string, encryptionKey string) error {
 	clauses := clause.OnConflict{
 		Columns:   []clause.Column{{Name: "key"}},
-		DoUpdates: clause.AssignmentColumns([]string{"value"}),
+		DoUpdates: clause.AssignmentColumns([]string{"value", "encrypted"}),
 	}
 	err := cfg.set(key, value, clauses, encryptionKey, cfg.db)
 	if err != nil {
@@ -344,6 +390,7 @@ func randomHex(n int) (string, error) {
 }
 
 const defaultCurrency = "USD"
+const defaultBitcoinDisplayFormat = constants.BITCOIN_DISPLAY_FORMAT_BIP177
 
 func (cfg *config) GetCurrency() string {
 	currency, err := cfg.Get("Currency", "")
@@ -364,6 +411,30 @@ func (cfg *config) SetCurrency(value string) error {
 	err := cfg.SetUpdate("Currency", value, "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to update currency")
+		return err
+	}
+	return nil
+}
+
+func (cfg *config) GetBitcoinDisplayFormat() string {
+	format, err := cfg.Get("BitcoinDisplayFormat", "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch bitcoin display format")
+		return defaultBitcoinDisplayFormat
+	}
+	if format == "" {
+		return defaultBitcoinDisplayFormat
+	}
+	return format
+}
+
+func (cfg *config) SetBitcoinDisplayFormat(value string) error {
+	if value != constants.BITCOIN_DISPLAY_FORMAT_SATS && value != constants.BITCOIN_DISPLAY_FORMAT_BIP177 {
+		return fmt.Errorf("bitcoin display format must be '%s' or '%s'", constants.BITCOIN_DISPLAY_FORMAT_SATS, constants.BITCOIN_DISPLAY_FORMAT_BIP177)
+	}
+	err := cfg.SetUpdate("BitcoinDisplayFormat", value, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to update bitcoin display format")
 		return err
 	}
 	return nil

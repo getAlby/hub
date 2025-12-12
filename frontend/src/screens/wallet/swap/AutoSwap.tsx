@@ -6,12 +6,12 @@ import {
   XCircleIcon,
 } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
-import ResponsiveButton from "src/components/ResponsiveButton";
+import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
 import { Button } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
@@ -34,13 +34,12 @@ export default function AutoSwap() {
       <AppHeader
         title="Auto Swap Out"
         contentRight={
-          <Link to="/wallet/swap">
-            <ResponsiveButton
-              variant="outline"
-              icon={ArrowDownUpIcon}
-              text="Swap"
-            />
-          </Link>
+          <ResponsiveLinkButton
+            to="/wallet/swap"
+            variant="outline"
+            icon={ArrowDownUpIcon}
+            text="Swap"
+          />
         }
       />
       <div className="w-full lg:max-w-lg min-w-0">
@@ -70,6 +69,13 @@ function AutoSwapOutForm() {
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (swapAmount > balanceThreshold) {
+      toast.info(
+        "Balance threshold must be greater than or equal to swap amount"
+      );
+      return;
+    }
 
     try {
       setLoading(true);
@@ -126,6 +132,7 @@ function AutoSwapOutForm() {
           type="number"
           placeholder="Amount in satoshis"
           value={balanceThreshold}
+          min={swapAmount}
           onChange={(e) => setBalanceThreshold(e.target.value)}
           required
         />
@@ -141,15 +148,12 @@ function AutoSwapOutForm() {
           placeholder="Amount in satoshis"
           value={swapAmount}
           min={swapInfo.minAmount}
-          max={Math.min(
-            swapInfo.maxAmount,
-            Math.floor(balances.lightning.totalSpendable / 1000)
-          )}
+          max={swapInfo.maxAmount}
           onChange={(e) => setSwapAmount(e.target.value)}
           required
         />
         <p className="text-xs text-muted-foreground">
-          Minimum {new Intl.NumberFormat().format(swapInfo.minAmount)} sats
+          Minimum <FormattedBitcoinAmount amount={swapInfo.minAmount * 1000} />
         </p>
       </div>
       <div className="flex flex-col gap-4">
@@ -357,13 +361,15 @@ function ActiveSwapOutConfig({ swapConfig }: { swapConfig: AutoSwapConfig }) {
             Spending Balance Threshold
           </span>
           <span className="shrink-0 text-muted-foreground text-right">
-            {new Intl.NumberFormat().format(swapConfig.balanceThreshold)} sats
+            <FormattedBitcoinAmount
+              amount={swapConfig.balanceThreshold * 1000}
+            />
           </span>
         </div>
         <div className="flex justify-between items-center gap-2">
           <span className="font-medium truncate">Swap amount</span>
           <span className="shrink-0 text-muted-foreground text-right">
-            {new Intl.NumberFormat().format(swapConfig.swapAmount)} sats
+            <FormattedBitcoinAmount amount={swapConfig.swapAmount * 1000} />
           </span>
         </div>
         <div className="flex justify-between items-center gap-2">

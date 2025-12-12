@@ -50,7 +50,7 @@ export function PaymentFailedAlert({
           Try the payment again, read our payments guide, and optionally send
           details about the failed payment to help improve Alby Hub.
         </p>
-        <div className="flex gap-2 mt-2">
+        <div className="flex flex-wrap gap-2 mt-2">
           <ExternalLinkButton
             to="https://guides.getalby.com/user-guide/alby-hub/faq/what-to-do-if-i-cannot-send-a-payment"
             size={"sm"}

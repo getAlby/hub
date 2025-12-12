@@ -30,6 +30,7 @@ import { NodeStatusWidget } from "src/components/home/widgets/NodeStatusWidget";
 import { OnchainFeesWidget } from "src/components/home/widgets/OnchainFeesWidget";
 import { SupportAlbyWidget } from "src/components/home/widgets/SupportAlbyWidget";
 import { WhatsNewWidget } from "src/components/home/widgets/WhatsNewWidget";
+import { SearchInput } from "src/components/ui/search-input";
 
 function getGreeting(name: string | undefined) {
   const hours = new Date().getHours();
@@ -60,7 +61,10 @@ function Home() {
 
   return (
     <>
-      <AppHeader title={getGreeting(albyMe?.name)} />
+      <AppHeader
+        title={getGreeting(albyMe?.name)}
+        contentRight={<SearchInput placeholder="Search" />}
+      />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start justify-start">
         {/* LEFT */}
         <div className="grid gap-5">
@@ -98,7 +102,7 @@ function Home() {
             </ExternalLink>
           )}
 
-          <Link to="/internal-apps/alby-go">
+          <Link to="/appstore/alby-go">
             <Card>
               <CardHeader>
                 <div className="flex flex-row items-center">

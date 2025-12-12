@@ -4,13 +4,14 @@ import {
   CircleHelpIcon,
   CircleXIcon,
   CopyIcon,
-  ZapIcon,
+  ExternalLinkIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useParams, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LottieLoading from "src/components/LottieLoading";
@@ -19,17 +20,17 @@ import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { LoadingButton } from "src/components/ui/custom/loading-button";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
-import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useSwap } from "src/hooks/useSwaps";
@@ -40,7 +41,6 @@ import { request } from "src/utils/request";
 
 export default function SwapInStatus() {
   const { data: info } = useInfo();
-  const { data: balances } = useBalances();
   const { data: recommendedFees } = useMempoolApi<{
     fastestFee: number;
     halfHourFee: number;
@@ -53,6 +53,10 @@ export default function SwapInStatus() {
 
   const [feeRate, setFeeRate] = useState("");
   const [isPaying, setPaying] = useState(false);
+  const [searchParams] = useSearchParams();
+
+  const isInternalSwap = searchParams.has("internal", "true");
+  const [, setPaidWithAlbyHub] = React.useState(false);
 
   useEffect(() => {
     if (recommendedFees?.fastestFee) {
@@ -66,6 +70,58 @@ export default function SwapInStatus() {
     }
   }, [isPaying, swap?.lockupTxId]);
 
+  const payWithAlbyHub = React.useCallback(() => {
+    (async () => {
+      setPaying(true);
+      try {
+        if (!swap) {
+          throw new Error("swap not loaded");
+        }
+        if (!feeRate) {
+          throw new Error("No fee rate set");
+        }
+        const response = await request<RedeemOnchainFundsResponse>(
+          "/api/wallet/redeem-onchain-funds",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              toAddress: swap.lockupAddress,
+              amount: swap.sendAmount,
+              feeRate: +feeRate,
+            }),
+          }
+        );
+        if (!response?.txId) {
+          throw new Error("No address in response");
+        }
+        console.info("Redeemed onchain funds", response);
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to redeem onchain funds", {
+          description: "" + error,
+        });
+        setPaying(false);
+      }
+    })();
+  }, [feeRate, swap]);
+
+  React.useEffect(() => {
+    if (isInternalSwap && feeRate && swap) {
+      setPaidWithAlbyHub((current) => {
+        if (current) {
+          return current;
+        }
+        setTimeout(() => {
+          payWithAlbyHub();
+        }, 1);
+        return true;
+      });
+    }
+  }, [feeRate, isInternalSwap, payWithAlbyHub, swap]);
+
   if (!swap) {
     return <Loading />;
   }
@@ -78,41 +134,9 @@ export default function SwapInStatus() {
     copyToClipboard(swap.lockupAddress);
   };
 
-  async function payWithAlbyHub() {
-    setPaying(true);
-    try {
-      if (!swap) {
-        throw new Error("swap not loaded");
-      }
-      if (!feeRate) {
-        throw new Error("No fee rate set");
-      }
-      const response = await request<RedeemOnchainFundsResponse>(
-        "/api/wallet/redeem-onchain-funds",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            toAddress: swap.lockupAddress,
-            amount: swap.sendAmount,
-            feeRate: +feeRate,
-          }),
-        }
-      );
-      if (!response?.txId) {
-        throw new Error("No address in response");
-      }
-      console.info("Redeemed onchain funds", response);
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to redeem onchain funds", {
-        description: "" + error,
-      });
-      setPaying(false);
-    }
-  }
+  const copyAmount = () => {
+    copyToClipboard(swap.sendAmount.toString());
+  };
 
   const swapStatus = swap.state;
   const statusText = {
@@ -121,7 +145,9 @@ export default function SwapInStatus() {
     REFUNDED: "Swap Refunded",
     PENDING: swap.lockupTxId
       ? "Waiting for confirmation"
-      : "Waiting for deposit",
+      : isInternalSwap
+        ? "Depositing on-chain funds"
+        : "Waiting for deposit",
   };
 
   return (
@@ -134,6 +160,15 @@ export default function SwapInStatus() {
               {swapStatus === "PENDING" && <Loading className="w-4 h-4 mr-2" />}
               {statusText[swapStatus]}
             </CardTitle>
+            <CardDescription className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
+              Swap ID: {swap.id}{" "}
+              <CopyIcon
+                className="cursor-pointer text-muted-foreground size-4"
+                onClick={() => {
+                  copyToClipboard(swap.id);
+                }}
+              />
+            </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
             {swapStatus === "SUCCESS" ? (
@@ -141,10 +176,9 @@ export default function SwapInStatus() {
                 <CircleCheckIcon className="w-60 h-60" />
                 <div className="flex flex-col gap-2 items-center">
                   <p className="text-xl font-bold slashed-zero text-center">
-                    {new Intl.NumberFormat().format(
-                      swap.receiveAmount as number
-                    )}{" "}
-                    sats
+                    <FormattedBitcoinAmount
+                      amount={(swap.receiveAmount as number) * 1000}
+                    />
                   </p>
                   <FormattedFiatAmount amount={swap.receiveAmount as number} />
                 </div>
@@ -159,18 +193,28 @@ export default function SwapInStatus() {
                   <CircleXIcon className="w-60 h-60" />
                 )}
                 {swapStatus === "PENDING" &&
-                  (swap.lockupTxId ? (
+                  (swap.lockupTxId || isInternalSwap ? (
                     <LottieLoading />
                   ) : (
-                    <QRCode value={swap.lockupAddress} />
+                    <QRCode
+                      value={`bitcoin:${swap.lockupAddress}?amount=${swap.sendAmount / 100_000_000}`}
+                    />
                   ))}
                 <div className="flex flex-col gap-2 items-center">
-                  <p className="text-xl font-bold slashed-zero text-center">
-                    {new Intl.NumberFormat().format(swap.sendAmount)} sats
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-xl font-bold slashed-zero text-center">
+                      <FormattedBitcoinAmount amount={swap.sendAmount * 1000} />
+                    </p>
+                    {!swap.lockupTxId && !isInternalSwap && (
+                      <CopyIcon
+                        className="cursor-pointer text-muted-foreground size-4 shrink-0"
+                        onClick={copyAmount}
+                      />
+                    )}
+                  </div>
                   <FormattedFiatAmount amount={swap.sendAmount} />
                 </div>
-                {!swap.lockupTxId && (
+                {!swap.lockupTxId && !isInternalSwap && (
                   <div className="flex justify-center gap-4 flex-wrap">
                     {swap.state !== "FAILED" && (
                       <Button onClick={copyAddress} variant="outline">
@@ -178,19 +222,15 @@ export default function SwapInStatus() {
                         Copy Address
                       </Button>
                     )}
-                    {swap.state === "PENDING" &&
-                      balances &&
-                      balances.onchain.spendable - 25000 /* anchor reserve */ >
-                        swap.sendAmount && (
-                        <LoadingButton
-                          loading={isPaying}
-                          onClick={payWithAlbyHub}
-                          disabled={!recommendedFees}
-                        >
-                          <ZapIcon />
-                          Use Hub On-Chain Funds
-                        </LoadingButton>
-                      )}
+                    {swap.state === "PENDING" && (
+                      <ExternalLinkButton
+                        to={`bitcoin:${swap.lockupAddress}?amount=${swap.sendAmount / 100_000_000}`}
+                        variant="secondary"
+                      >
+                        Open in External Wallet
+                        <ExternalLinkIcon />
+                      </ExternalLinkButton>
+                    )}
                   </div>
                 )}
               </>
@@ -225,7 +265,7 @@ export default function SwapInStatus() {
                     <div className="flex items-center text-muted-foreground text-sm">
                       <Loading className="w-5 h-5 mr-2" />
                       <div className="flex items-center gap-2">
-                        <p>Waiting for confirmation...</p>
+                        <p>Waiting for 1 on-chain confirmation...</p>
                         <ExternalLink
                           to={`${info?.mempoolUrl}/tx/${swap.lockupTxId}`}
                           className="flex items-center underline text-foreground"

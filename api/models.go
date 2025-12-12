@@ -65,6 +65,8 @@ type API interface {
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
+	SetBitcoinDisplayFormat(format string) error
+	UpdateSettings(updateSettingsRequest *UpdateSettingsRequest) error
 	LookupSwap(swapId string) (*LookupSwapResponse, error)
 	ListSwaps() (*ListSwapsResponse, error)
 	GetSwapInInfo() (*SwapInfoResponse, error)
@@ -116,13 +118,14 @@ type ListAppsResponse struct {
 }
 
 type UpdateAppRequest struct {
-	Name          string   `json:"name"`
-	MaxAmountSat  uint64   `json:"maxAmount"`
-	BudgetRenewal string   `json:"budgetRenewal"`
-	ExpiresAt     string   `json:"expiresAt"`
-	Scopes        []string `json:"scopes"`
-	Metadata      Metadata `json:"metadata,omitempty"`
-	Isolated      bool     `json:"isolated"`
+	Name            *string   `json:"name"`
+	MaxAmountSat    *uint64   `json:"maxAmount"`
+	BudgetRenewal   *string   `json:"budgetRenewal"`
+	ExpiresAt       *string   `json:"expiresAt"`
+	UpdateExpiresAt bool      `json:"updateExpiresAt"`
+	Scopes          []string  `json:"scopes"`
+	Metadata        *Metadata `json:"metadata"`
+	Isolated        *bool     `json:"isolated"`
 }
 
 type TransferRequest struct {
@@ -150,9 +153,8 @@ type CreateLightningAddressRequest struct {
 }
 
 type InitiateSwapRequest struct {
-	SwapAmount            uint64 `json:"swapAmount"`
-	Destination           string `json:"destination"`
-	UseExactReceiveAmount bool   `json:"useExactReceiveAmount"`
+	SwapAmount  uint64 `json:"swapAmount"`
+	Destination string `json:"destination"`
 }
 
 type RefundSwapRequest struct {
@@ -215,6 +217,7 @@ type StartRequest struct {
 type UnlockRequest struct {
 	UnlockPassword  string  `json:"unlockPassword"`
 	TokenExpiryDays *uint64 `json:"tokenExpiryDays"`
+	Permission      string  `json:"permission,omitempty"` // "full" or "readonly"
 }
 
 type BackupReminderRequest struct {
@@ -249,49 +252,56 @@ type SetupRequest struct {
 }
 
 type CreateAppResponse struct {
-	PairingUri    string `json:"pairingUri"`
-	PairingSecret string `json:"pairingSecretKey"`
-	Pubkey        string `json:"pairingPublicKey"`
-	RelayUrl      string `json:"relayUrl"`
-	WalletPubkey  string `json:"walletPubkey"`
-	Lud16         string `json:"lud16"`
-	Id            uint   `json:"id"`
-	Name          string `json:"name"`
-	ReturnTo      string `json:"returnTo"`
+	PairingUri    string   `json:"pairingUri"`
+	PairingSecret string   `json:"pairingSecretKey"`
+	Pubkey        string   `json:"pairingPublicKey"`
+	RelayUrls     []string `json:"relayUrls"`
+	WalletPubkey  string   `json:"walletPubkey"`
+	Lud16         string   `json:"lud16"`
+	Id            uint     `json:"id"`
+	Name          string   `json:"name"`
+	ReturnTo      string   `json:"returnTo"`
 }
 
 type User struct {
 	Email string `json:"email"`
 }
 
+type InfoResponseRelay struct {
+	Url    string `json:"url"`
+	Online bool   `json:"online"`
+}
+
 type InfoResponse struct {
-	BackendType                 string    `json:"backendType"`
-	SetupCompleted              bool      `json:"setupCompleted"`
-	OAuthRedirect               bool      `json:"oauthRedirect"`
-	Running                     bool      `json:"running"`
-	Unlocked                    bool      `json:"unlocked"`
-	AlbyAuthUrl                 string    `json:"albyAuthUrl"`
-	NextBackupReminder          string    `json:"nextBackupReminder"`
-	AlbyUserIdentifier          string    `json:"albyUserIdentifier"`
-	AlbyAccountConnected        bool      `json:"albyAccountConnected"`
-	Version                     string    `json:"version"`
-	Network                     string    `json:"network"`
-	EnableAdvancedSetup         bool      `json:"enableAdvancedSetup"`
-	LdkVssEnabled               bool      `json:"ldkVssEnabled"`
-	VssSupported                bool      `json:"vssSupported"`
-	StartupState                string    `json:"startupState"`
-	StartupError                string    `json:"startupError"`
-	StartupErrorTime            time.Time `json:"startupErrorTime"`
-	AutoUnlockPasswordSupported bool      `json:"autoUnlockPasswordSupported"`
-	AutoUnlockPasswordEnabled   bool      `json:"autoUnlockPasswordEnabled"`
-	Currency                    string    `json:"currency"`
-	Relay                       string    `json:"relay"`
-	NodeAlias                   string    `json:"nodeAlias"`
-	MempoolUrl                  string    `json:"mempoolUrl"`
+	BackendType                 string              `json:"backendType"`
+	SetupCompleted              bool                `json:"setupCompleted"`
+	OAuthRedirect               bool                `json:"oauthRedirect"`
+	Running                     bool                `json:"running"`
+	Unlocked                    bool                `json:"unlocked"`
+	AlbyAuthUrl                 string              `json:"albyAuthUrl"`
+	NextBackupReminder          string              `json:"nextBackupReminder"`
+	AlbyUserIdentifier          string              `json:"albyUserIdentifier"`
+	AlbyAccountConnected        bool                `json:"albyAccountConnected"`
+	Version                     string              `json:"version"`
+	Network                     string              `json:"network"`
+	EnableAdvancedSetup         bool                `json:"enableAdvancedSetup"`
+	LdkVssEnabled               bool                `json:"ldkVssEnabled"`
+	VssSupported                bool                `json:"vssSupported"`
+	StartupState                string              `json:"startupState"`
+	StartupError                string              `json:"startupError"`
+	StartupErrorTime            time.Time           `json:"startupErrorTime"`
+	AutoUnlockPasswordSupported bool                `json:"autoUnlockPasswordSupported"`
+	AutoUnlockPasswordEnabled   bool                `json:"autoUnlockPasswordEnabled"`
+	Currency                    string              `json:"currency"`
+	BitcoinDisplayFormat        string              `json:"bitcoinDisplayFormat"`
+	Relays                      []InfoResponseRelay `json:"relays"`
+	NodeAlias                   string              `json:"nodeAlias"`
+	MempoolUrl                  string              `json:"mempoolUrl"`
 }
 
 type UpdateSettingsRequest struct {
-	Currency string `json:"currency"`
+	Currency             string `json:"currency"`
+	BitcoinDisplayFormat string `json:"bitcoinDisplayFormat"`
 }
 
 type SetNodeAliasRequest struct {
@@ -459,10 +469,10 @@ type BasicRestoreWailsRequest struct {
 type NetworkGraphResponse = lnclient.NetworkGraphResponse
 
 type LSPOrderRequest struct {
-	Amount  uint64 `json:"amount"`
-	LSPType string `json:"lspType"`
-	LSPUrl  string `json:"lspUrl"`
-	Public  bool   `json:"public"`
+	Amount        uint64 `json:"amount"`
+	LSPType       string `json:"lspType"`
+	LSPIdentifier string `json:"lspIdentifier"`
+	Public        bool   `json:"public"`
 }
 
 type LSPOrderResponse struct {

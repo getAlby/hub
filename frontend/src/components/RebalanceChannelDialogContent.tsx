@@ -2,6 +2,7 @@ import { AlertTriangleIcon, ExternalLinkIcon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
@@ -135,7 +136,13 @@ export function RebalanceChannelDialogContent({
             <p className="mt-2 text-xs text-muted-foreground">
               Fee: 0.3%
               {!!amount && (
-                <> ({Math.floor(parseInt(amount || "0") * 0.003)} sats)</>
+                <>
+                  &nbsp;(
+                  <FormattedBitcoinAmount
+                    amount={Math.floor(parseInt(amount || "0") * 0.003 * 1000)}
+                  />
+                  )
+                </>
               )}{" "}
               + routing fees
             </p>

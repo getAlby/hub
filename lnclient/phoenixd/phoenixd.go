@@ -71,6 +71,7 @@ type PhoenixService struct {
 	Authorization string
 	pubkey        string
 	nodeInfo      *lnclient.NodeInfo
+	ctx           context.Context
 }
 
 func NewPhoenixService(ctx context.Context, address string, authorization string) (result lnclient.LNClient, err error) {
@@ -80,7 +81,7 @@ func NewPhoenixService(ctx context.Context, address string, authorization string
 	if !strings.HasPrefix(address, "http") {
 		address = "http://" + address
 	}
-	phoenixService := &PhoenixService{Address: address, Authorization: authorizationBase64}
+	phoenixService := &PhoenixService{ctx: ctx, Address: address, Authorization: authorizationBase64}
 
 	info, err := fetchNodeInfo(ctx, phoenixService)
 	if err != nil {
@@ -275,7 +276,7 @@ func (svc *PhoenixService) ListChannels(ctx context.Context) ([]lnclient.Channel
 	return channels, nil
 }
 
-func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
+func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
 	// TODO: support expiry
 	if expiry == 0 {
 		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
@@ -362,14 +363,14 @@ func (svc *PhoenixService) LookupInvoice(ctx context.Context, paymentHash string
 	return transaction, nil
 }
 
-func (svc *PhoenixService) SendPaymentSync(ctx context.Context, payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (svc *PhoenixService) SendPaymentSync(payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
 	// TODO: support 0-amount invoices
 	if amount != nil {
 		return nil, errors.New("0-amount invoices not supported")
 	}
 	form := url.Values{}
 	form.Add("invoice", payReq)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, svc.Address+"/payinvoice", strings.NewReader(form.Encode()))
+	req, err := http.NewRequestWithContext(svc.ctx, http.MethodPost, svc.Address+"/payinvoice", strings.NewReader(form.Encode()))
 	if err != nil {
 		return nil, err
 	}
@@ -393,7 +394,7 @@ func (svc *PhoenixService) SendPaymentSync(ctx context.Context, payReq string, a
 	}, nil
 }
 
-func (svc *PhoenixService) SendKeysend(ctx context.Context, amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+func (svc *PhoenixService) SendKeysend(amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	return nil, errors.New("not implemented")
 }
 

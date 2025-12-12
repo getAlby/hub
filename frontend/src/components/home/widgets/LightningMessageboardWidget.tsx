@@ -11,6 +11,7 @@ import dayjs from "dayjs";
 import { ChevronUpIcon, ZapIcon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
@@ -235,7 +236,9 @@ export function LightningMessageboardWidget() {
                     <div>
                       <Badge>
                         <ZapIcon />
-                        {new Intl.NumberFormat().format(message.amount)}
+                        <FormattedBitcoinAmount
+                          amount={message.amount * 1000}
+                        />
                       </Badge>
                     </div>
                   </CardFooter>

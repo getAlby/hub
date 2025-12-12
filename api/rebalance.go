@@ -12,6 +12,7 @@ import (
 
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/version"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 )
@@ -25,7 +26,7 @@ func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *R
 		"receive_through": rebalanceChannelRequest.ReceiveThroughNodePubkey,
 	}
 
-	receiveInvoice, err := api.svc.GetTransactionsService().MakeInvoice(ctx, rebalanceChannelRequest.AmountSat*1000, "Alby Hub Rebalance through "+rebalanceChannelRequest.ReceiveThroughNodePubkey, "", 0, receiveMetadata, api.svc.GetLNClient(), nil, nil)
+	receiveInvoice, err := api.svc.GetTransactionsService().MakeInvoice(ctx, rebalanceChannelRequest.AmountSat*1000, "Alby Hub Rebalance through "+rebalanceChannelRequest.ReceiveThroughNodePubkey, "", 0, receiveMetadata, api.svc.GetLNClient(), nil, nil, &rebalanceChannelRequest.ReceiveThroughNodePubkey)
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to generate rebalance receive invoice")
 		return nil, err
@@ -57,8 +58,8 @@ func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *R
 		return nil, err
 	}
 
-	setDefaultRequestHeaders(req)
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "AlbyHub/"+version.Tag)
 
 	client := http.Client{
 		Timeout: time.Second * 60,
@@ -124,7 +125,7 @@ func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *R
 		"order_id":        rebalanceCreateOrderResponse.OrderId,
 	}
 
-	payRebalanceInvoiceResponse, err := api.svc.GetTransactionsService().SendPaymentSync(ctx, rebalanceCreateOrderResponse.PayRequest, nil, payMetadata, api.svc.GetLNClient(), nil, nil)
+	payRebalanceInvoiceResponse, err := api.svc.GetTransactionsService().SendPaymentSync(rebalanceCreateOrderResponse.PayRequest, nil, payMetadata, api.svc.GetLNClient(), nil, nil)
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to pay rebalance invoice")

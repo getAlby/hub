@@ -66,6 +66,7 @@ export default function TwoColumnFullScreenLayout() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [quote, setQuote] = useState(
+    // eslint-disable-next-line react-hooks/purity
     quotes[Math.floor(Math.random() * quotes.length)]
   );
 
@@ -84,7 +85,7 @@ export default function TwoColumnFullScreenLayout() {
         />
         <div className="flex-1 w-full h-full flex flex-col">
           <div className="flex flex-row justify-between items-center">
-            <AlbyHubLogo className="text-background" />
+            <AlbyHubLogo className="w-36" invert={true} />
             {info?.version && (
               <p className="text-sm text-muted-foreground">{info.version}</p>
             )}

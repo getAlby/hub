@@ -153,12 +153,12 @@ For more information on the Go pprof library, see the [official documentation](h
 
 The following configuration options can be set as environment variables or in a .env file
 
-- `RELAY`: default: "wss://relay.getalby.com/v1"
+- `RELAY`: default: "wss://relay.getalby.com/v1" (can support multiple separated by commas)
 - `JWT_SECRET`: A randomly generated secret string, applied if no JWT secret is already set. (only needed in http mode). If not provided, one will be automatically generated. On password change, a new JWT secret will be generated.
 - `DATABASE_URI`: A sqlite filename or postgres URL. Default is SQLite DB `nwc.db` without a path, which will be put in the user home directory: $XDG_DATA_HOME/albyhub/nwc.db
 - `PORT`: The port on which the app should listen on (default: 8080)
 - `WORK_DIR`: Directory to store NWC data files. Default: $XDG_DATA_HOME/albyhub
-- `LOG_LEVEL`: Log level for the application. Higher is more verbose. Default: 4 (info)
+- `LOG_LEVEL`: Log level for the main application. Higher is more verbose. Default: 4 (info)
 - `AUTO_UNLOCK_PASSWORD`: Provide unlock password to auto-unlock Alby Hub on startup (e.g. after a machine restart). Unlock password still be required to access the interface.
 - `BOLTZ_API`: The api which provides auto swaps functionality. Default: "https://api.boltz.exchange"
 - `NETWORK`: On-chain network used for the node. Default: "bitcoin"
@@ -226,6 +226,7 @@ _To configure via env, the following parameters must be provided:_
 - `LDK_ANNOUNCEMENT_ADDRESSES`: configure announcement addresses (only required if you use a VPN)
 - `LDK_MAX_CHANNEL_SATURATION`: Sets the maximum portion of a channel's total capacity that may be used for sending a payment, expressed as a power of 1/2. See `max_channel_saturation_power_of_half` in [LDK docs](https://docs.rs/lightning/latest/lightning/routing/router/struct.PaymentParameters.html#structfield.max_channel_saturation_power_of_half).
 - `LDK_MAX_PATH_COUNT`: Maximum number of paths that may be used by MPP payments.
+- `LDK_LOG_LEVEL`: Log level for the LDK node. Higher is more verbose. Default: 3. This is separate from the main application log level, allowing you to enable more verbose LDK logging (e.g., level 4, 5 or 6) without enabling verbose logging for the entire application.
 
 #### LDK Network Configuration
 
@@ -234,14 +235,18 @@ _To configure via env, the following parameters must be provided:_
 - `MEMPOOL_API=https://mutinynet.com/api`
 - `NETWORK=signet`
 - `LDK_ESPLORA_SERVER=https://mutinynet.com/api`
-- `LDK_GOSSIP_SOURCE=https://rgs.mutinynet.com/snapshot`
+- `LDK_GOSSIP_SOURCE=https://rgs.mutinynet.com/snapshot` (NOTE: by default ALby Hub does not use RGS)
+
+(or electrum instead of esplora)
+
+- `LDK_ELECTRUM_SERVER=electrum.mutinynet.com:50001`
 
 ##### Testnet (Not recommended - try Mutinynet)
 
 - `MEMPOOL_API=https://mempool.space/testnet/api`
 - `NETWORK=testnet`
 - `LDK_ESPLORA_SERVER=https://mempool.space/testnet/api`
-- `LDK_GOSSIP_SOURCE=https://rapidsync.lightningdevkit.org/testnet/snapshot`
+- `LDK_GOSSIP_SOURCE=https://rapidsync.lightningdevkit.org/testnet/snapshot` (NOTE: by default ALby Hub does not use RGS)
 
 ###### Connect to your own bitcoind
 
@@ -303,7 +308,7 @@ For the second hub, you will need to update your .env with the following changes
     FRONTEND_URL=http://localhost:5174
     BASE_URL=http://localhost:8081
     PORT=8081
-    LDK_LISTENING_ADDRESSES=0.0.0.0:9736,[::]:9736
+    LDK_LISTENING_ADDRESSES=[::]:9736
 
 Then launch the frontend with `VITE_PORT=5174 VITE_API_URL=http://localhost:8081 yarn dev:http`
 

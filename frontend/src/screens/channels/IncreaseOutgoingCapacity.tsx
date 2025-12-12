@@ -8,12 +8,22 @@ import { ChannelPublicPrivateAlert } from "src/components/channels/ChannelPublic
 import { DuplicateChannelAlert } from "src/components/channels/DuplicateChannelAlert";
 import { SwapAlert } from "src/components/channels/SwapAlert";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
+import { Alert, AlertDescription } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LinkButton } from "src/components/ui/custom/link-button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import {
@@ -88,6 +98,8 @@ function NewChannelInternal({
     RecommendedChannelPeer | undefined
   >();
 
+  const [showConfirmModal, setShowConfirmModal] = React.useState(false);
+
   const channelPeerSuggestions = React.useMemo(() => {
     const customOption: RecommendedChannelPeer = {
       name: "Custom",
@@ -156,7 +168,10 @@ function NewChannelInternal({
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
+    setShowConfirmModal(true);
+  }
 
+  function handleConfirmSubmit() {
     try {
       if (!channels) {
         throw new Error("Channels not loaded");
@@ -175,12 +190,13 @@ function NewChannelInternal({
       }
 
       useChannelOrderStore.getState().setOrder(order as NewChannelOrder);
+      setShowConfirmModal(false);
       navigate("/channels/order");
     } catch (error) {
       toast.error("Something went wrong", {
-        description: "" + error,
+        description: `${error}`,
       });
-      console.error(error);
+      setShowConfirmModal(false);
     }
   }
 
@@ -250,8 +266,9 @@ function NewChannelInternal({
 
             {order.amount && +order.amount < 200_000 && (
               <p className="text-muted-foreground text-xs">
-                For a smooth experience consider a opening a channel of 200k
-                sats in size or more.{" "}
+                For a smooth experience consider a opening a channel of{" "}
+                <FormattedBitcoinAmount amount={200_000 * 1000} /> in size or
+                more.{" "}
                 <ExternalLink
                   to="https://guides.getalby.com/user-guide/alby-hub/node"
                   className="underline"
@@ -272,7 +289,9 @@ function NewChannelInternal({
             />
             <div className="text-muted-foreground text-sm sensitive slashed-zero">
               Current on-chain balance:{" "}
-              {new Intl.NumberFormat().format(balances.onchain.spendable)} sats
+              <FormattedBitcoinAmount
+                amount={balances.onchain.spendable * 1000}
+              />
             </div>
             <div className="grid grid-cols-3 gap-1.5 text-muted-foreground text-xs">
               {presetAmounts.map((amount) => (
@@ -296,7 +315,7 @@ function NewChannelInternal({
                 order.paymentMethod === "onchain" &&
                 selectedPeer.pubkey === order.pubkey && (
                   <div className="grid gap-1.5">
-                    <Label>Channel peer</Label>
+                    <Label>Choose your channel peer:</Label>
                     <Select
                       value={getPeerKey(selectedPeer)}
                       onValueChange={(value) =>
@@ -335,10 +354,11 @@ function NewChannelInternal({
                                     {peer.minimumChannelSize > 0 && (
                                       <span className="ml-4 text-xs text-muted-foreground slashed-zero">
                                         Min.{" "}
-                                        {new Intl.NumberFormat().format(
-                                          peer.minimumChannelSize
-                                        )}{" "}
-                                        sats
+                                        <FormattedBitcoinAmount
+                                          amount={
+                                            peer.minimumChannelSize * 1000
+                                          }
+                                        />
                                       </span>
                                     )}
                                   </div>
@@ -397,7 +417,7 @@ function NewChannelInternal({
             </div>
           </>
           <MempoolAlert />
-          <SwapAlert />
+          <SwapAlert swapType="in" />
           {channels?.some((channel) => channel.public !== !!order.isPublic) && (
             <ChannelPublicPrivateAlert />
           )}
@@ -429,6 +449,80 @@ function NewChannelInternal({
           </ExternalLinkButton>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Channel Opening</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to open a Lightning channel with the
+              following details?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <div className="font-medium text-muted-foreground">Peer</div>
+                <div>{selectedPeer?.name || "Custom"}</div>
+              </div>
+              <div>
+                <div className="font-medium text-muted-foreground">Amount</div>
+                <div>
+                  <FormattedBitcoinAmount
+                    amount={parseInt(order.amount || "0") * 1000}
+                  />
+                </div>
+              </div>
+              <div>
+                <div className="font-medium text-muted-foreground">
+                  Channel Type
+                </div>
+                <div>{order.isPublic ? "Public" : "Private"}</div>
+              </div>
+              <div>
+                <div className="font-medium text-muted-foreground">
+                  Payment Method
+                </div>
+                <div>On-chain</div>
+              </div>
+            </div>
+
+            {selectedPeer?.name === "Custom" && order.pubkey && (
+              <div className="text-sm">
+                <div className="font-medium text-muted-foreground">
+                  Node Public Key
+                </div>
+                <div className="font-mono text-xs break-all bg-muted p-2 rounded">
+                  {order.pubkey}
+                </div>
+              </div>
+            )}
+
+            <Alert variant="warning">
+              <InfoIcon />
+              <AlertDescription>
+                <strong>Important:</strong> Opening a channel requires an
+                on-chain transaction and network fees. This action cannot be
+                undone. Please verify all details before proceeding.
+              </AlertDescription>
+            </Alert>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmSubmit}>
+              Confirm & Open Channel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

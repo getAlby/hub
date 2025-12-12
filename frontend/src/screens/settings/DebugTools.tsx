@@ -21,6 +21,12 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { Textarea } from "src/components/ui/textarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "src/components/ui/tooltip";
 import { useInfo } from "src/hooks/useInfo";
 
 import { request } from "src/utils/request";
@@ -183,7 +189,31 @@ function RefundSwapDialogContent() {
             </ExternalLink>
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="swapId">Swap Id</Label>
+            <Label htmlFor="swapId">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <div className="flex flex-row gap-1 items-center text-muted-foreground">
+                      Swap Id
+                      <InfoIcon className="h-4 w-4 shrink-0" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>
+                      To find the Swap ID, close this dialog and click on the
+                      "List Swaps" button. Then you can look through and find a
+                      swap that is in state "FAILED" and matches the amount you
+                      tried to swap. The latest swaps are at the bottom of the
+                      list.
+                    </p>
+                    <p className="mt-2">
+                      When you have found the swap, copy the value of the id
+                      field. The swap Id will look something like uNHoD8QrAr9b.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </Label>
             <Input
               id="swapId"
               name="swapId"
@@ -574,7 +604,7 @@ export default function DebugTools() {
       </div>
       {apiResponse && (
         <Textarea
-          className="whitespace-pre-wrap break-words font-mono"
+          className="whitespace-pre-wrap break-anywhere font-mono"
           rows={35}
           value={`API Response: ${apiResponse}`}
         />

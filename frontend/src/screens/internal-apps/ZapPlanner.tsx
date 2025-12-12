@@ -19,6 +19,7 @@ import {
 import { ExternalLinkIcon, PlusCircleIcon } from "lucide-react";
 import { toast } from "sonner";
 import alby from "src/assets/suggested-apps/alby.png";
+import bff from "src/assets/zapplanner/bff.png";
 import bitcoinbrink from "src/assets/zapplanner/bitcoinbrink.png";
 import hrf from "src/assets/zapplanner/hrf.png";
 import opensats from "src/assets/zapplanner/opensats.png";
@@ -85,6 +86,13 @@ const recipients: Recipient[] = [
       "Brink exists to strengthen the Bitcoin protocol and network through fundamental research, development, funding, mentoring.",
     lightningAddress: "bitcoinbrink@zbd.gg",
     logo: bitcoinbrink,
+  },
+  {
+    name: "Bitcoin For Fairness",
+    description:
+      "Bitcoin for Fairness is an initiative raising knowledge and understanding of Bitcoin with a focus on civil and human rights.",
+    lightningAddress: "bffbtc@getalby.com",
+    logo: bff,
   },
 ];
 
@@ -214,6 +222,11 @@ export function ZapPlanner() {
       if (isNaN(rawFreq) || rawFreq < 1) {
         throw new Error("Invalid frequency");
       }
+
+      if (frequencyUnit === "months" && rawFreq !== 1) {
+        throw new Error("Only once per month is supported, use weeks instead");
+      }
+
       // validate lightning address
       const ln = new LightningAddress(recipientLightningAddress);
       await ln.fetch();
@@ -230,7 +243,8 @@ export function ZapPlanner() {
           periodsPerMonth = 31 / 7 / rawFreq;
           break;
         case "months":
-          periodsPerMonth = 1 / rawFreq;
+          // only once per month is supported
+          periodsPerMonth = 1;
           break;
         default:
           throw new Error("Unsupported frequency unit");
@@ -258,13 +272,13 @@ export function ZapPlanner() {
       };
 
       const createAppResponse = await createApp(createAppRequest);
-      // months → days since months are not recognized
-      const monthsToDays = (m: string) => parseInt(m, 10) * 31;
 
+      const cronExpression =
+        frequencyUnit === "months" ? "0 0 1 * *" : undefined; // at the start of each month
       const sleepDuration =
-        frequencyUnit === "months"
-          ? `${monthsToDays(frequencyValue)} days`
-          : `${frequencyValue} ${frequencyUnit}`;
+        frequencyUnit !== "months"
+          ? `${frequencyValue} ${frequencyUnit}`
+          : undefined;
 
       const subscriptionBody: Record<string, unknown> = {
         recipientLightningAddress,
@@ -274,6 +288,7 @@ export function ZapPlanner() {
         }),
         nostrWalletConnectUrl: createAppResponse.pairingUri,
         sleepDuration,
+        cronExpression,
         currency,
         amount: parseInt(amount),
       };
@@ -301,13 +316,8 @@ export function ZapPlanner() {
       }
 
       // add the ZapPlanner subscription ID to the app metadata
+      // Only send metadata since that's the only thing changing
       const updateAppRequest: UpdateAppRequest = {
-        name: createAppRequest.name,
-        scopes: createAppRequest.scopes,
-        budgetRenewal,
-        expiresAt: createAppRequest.expiresAt,
-        maxAmount,
-        isolated,
         metadata: {
           ...createAppRequest.metadata,
           zapplanner_subscription_id: subscriptionId,
@@ -323,7 +333,9 @@ export function ZapPlanner() {
       });
 
       toast("Created subscription", {
-        description: "The first payment is scheduled immediately.",
+        description: cronExpression
+          ? "Payment will be made at the start of each month"
+          : "The first payment is scheduled immediately.",
       });
 
       reloadApps();

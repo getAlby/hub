@@ -1,10 +1,9 @@
 import { CableIcon, TrashIcon } from "lucide-react";
 import { useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import { CustomPagination } from "src/components/CustomPagination";
 import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
-import ResponsiveButton from "src/components/ResponsiveButton";
+import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
 import AlbyConnectionCard from "src/components/connections/AlbyConnectionCard";
 import AppCard from "src/components/connections/AppCard";
 import {
@@ -41,6 +40,7 @@ function ConnectedApps() {
     return <Loading />;
   }
   if (appsData) {
+    // eslint-disable-next-line react-hooks/globals
     prevAppsData = appsData;
   }
   const { apps, totalCount } = appsData || prevAppsData!;
@@ -63,13 +63,12 @@ function ConnectedApps() {
           <div className="flex gap-3 h-full">
             <>
               {!!unusedApps.length && (
-                <Link to="/apps/cleanup">
-                  <ResponsiveButton
-                    icon={TrashIcon}
-                    text="Cleanup Unused"
-                    variant="outline"
-                  />
-                </Link>
+                <ResponsiveLinkButton
+                  to="/apps/cleanup"
+                  icon={TrashIcon}
+                  text="Cleanup Unused"
+                  variant="outline"
+                />
               )}
             </>
           </div>

@@ -75,3 +75,10 @@ const (
 	ENCRYPTION_TYPE_NIP04    = "nip04"
 	ENCRYPTION_TYPE_NIP44_V2 = "nip44_v2"
 )
+
+const SUBWALLET_APPSTORE_APP_ID = "uncle-jim"
+
+const (
+	BITCOIN_DISPLAY_FORMAT_SATS   = "sats"
+	BITCOIN_DISPLAY_FORMAT_BIP177 = "bip177"
+)

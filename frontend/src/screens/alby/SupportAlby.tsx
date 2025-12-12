@@ -38,6 +38,7 @@ import {
 } from "src/constants";
 import { createApp } from "src/requests/createApp";
 import { CreateAppRequest, UpdateAppRequest } from "src/types";
+import { formatBitcoinAmount } from "src/utils/bitcoinFormatting";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
@@ -61,7 +62,7 @@ function SupportAlby() {
 
       if (+amount < 1000) {
         toast.error("Amount too low", {
-          description: "Minimum payment is 1000 sats",
+          description: `Minimum payment is ${formatBitcoinAmount(1_000 * 1000)}`,
         });
         return;
       }
@@ -101,7 +102,7 @@ function SupportAlby() {
               ...(senderName ? { name: senderName } : {}),
             }),
             nostrWalletConnectUrl: createAppResponse.pairingUri,
-            sleepDuration: "31 days",
+            cronExpression: "0 0 1 * *", // at the start of each month
           }),
         }
       );
@@ -117,13 +118,8 @@ function SupportAlby() {
       }
 
       // add the ZapPlanner subscription ID to the app metadata
+      // Only send metadata since that's the only thing changing
       const updateAppRequest: UpdateAppRequest = {
-        name: createAppRequest.name,
-        scopes: createAppRequest.scopes,
-        budgetRenewal: createAppRequest.budgetRenewal!,
-        expiresAt: createAppRequest.expiresAt,
-        maxAmount,
-        isolated,
         metadata: {
           ...createAppRequest.metadata,
           zapplanner_subscription_id: subscriptionId,
@@ -139,7 +135,7 @@ function SupportAlby() {
       });
 
       toast("Thank you for becoming a supporter", {
-        description: "The first payment is scheduled immediately.",
+        description: "Payment will be made at the start of each month",
       });
 
       navigate("/");

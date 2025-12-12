@@ -1,6 +1,7 @@
 import { Invoice, getFiatValue } from "@getalby/lightning-tools";
 import { CopyIcon, LightbulbIcon } from "lucide-react";
 import React from "react";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import { LightningIcon } from "src/components/icons/Lightning";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
@@ -34,13 +35,13 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
       </div>
       <div className="w-full relative flex items-center justify-center">
         <QRCode value={invoice} className="w-full" />
-        <div className="bg-primary-foreground absolute">
+        <div className="bg-white absolute rounded-full p-1">
           <LightningIcon className="w-12 h-12" />
         </div>
       </div>
       <div>
         <p className="text-lg font-semibold">
-          {new Intl.NumberFormat().format(amount)} sats
+          <FormattedBitcoinAmount amount={amount * 1000} />
         </p>
         <p className="flex flex-col items-center justify-center">
           {new Intl.NumberFormat("en-US", {

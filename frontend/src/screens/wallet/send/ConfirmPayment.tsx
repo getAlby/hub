@@ -7,6 +7,7 @@ import type { Invoice } from "@getalby/lightning-tools/bolt11";
 import { ArrowLeftIcon } from "lucide-react";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import { PaymentFailedAlert } from "src/components/PaymentFailedAlert";
@@ -102,7 +103,7 @@ export default function ConfirmPayment() {
           <CardContent className="flex flex-col items-center gap-6 pt-2">
             <div className="flex flex-col gap-1 items-center">
               <p className="text-2xl font-medium slashed-zero">
-                {new Intl.NumberFormat().format(invoice.satoshi)} sats
+                <FormattedBitcoinAmount amount={invoice.satoshi * 1000} />
               </p>
               <FormattedFiatAmount
                 amount={invoice.satoshi}
@@ -110,7 +111,7 @@ export default function ConfirmPayment() {
               />
             </div>
             {invoice.description && (
-              <p className="text-lg text-muted-foreground">
+              <p className="text-lg text-muted-foreground break-anywhere">
                 {invoice.description}
               </p>
             )}
@@ -128,10 +129,9 @@ export default function ConfirmPayment() {
             </LoadingButton>
             <div className="flex items-center justify-between gap-2 text-muted-foreground text-xs sensitive slashed-zero">
               Spending Balance:{" "}
-              {new Intl.NumberFormat().format(
-                Math.floor(balances.lightning.totalSpendable / 1000)
-              )}{" "}
-              sats
+              <FormattedBitcoinAmount
+                amount={balances.lightning.totalSpendable}
+              />
             </div>
             <LinkButton to="/wallet/send" variant="link" className="w-full">
               <ArrowLeftIcon className="w-4 h-4 mr-2" />

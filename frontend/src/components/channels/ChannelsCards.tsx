@@ -1,6 +1,7 @@
 import { InfoIcon } from "lucide-react";
 import { ChannelDropdownMenu } from "src/components/channels/ChannelDropdownMenu";
 import { ChannelWarning } from "src/components/channels/ChannelWarning";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import { Badge } from "src/components/ui/badge.tsx";
 import {
   Card,
@@ -153,7 +154,9 @@ function ChannelCard({
               </Tooltip>
             </TooltipProvider>
 
-            <p className="text-foreground">{formatAmount(capacity)} sats</p>
+            <p className="text-foreground">
+              <FormattedBitcoinAmount amount={capacity} />
+            </p>
           </div>
           <div className="flex justify-between items-center">
             <TooltipProvider>
@@ -188,7 +191,9 @@ function ChannelCard({
                   /{" "}
                 </>
               )}
-              {formatAmount(channel.unspendablePunishmentReserve * 1000)} sats
+              <FormattedBitcoinAmount
+                amount={channel.unspendablePunishmentReserve * 1000}
+              />
             </p>
           </div>
           <div className="flex justify-between items-center">
@@ -206,11 +211,13 @@ function ChannelCard({
                 className="h-6 absolute"
               />
               <div className="flex flex-row w-full justify-between px-2 text-xs items-center h-6 mix-blend-exclusion text-white">
-                <span title={channel.localSpendableBalance / 1000 + " sats"}>
-                  {formatAmount(channel.localSpendableBalance)} sats
+                <span>
+                  <FormattedBitcoinAmount
+                    amount={channel.localSpendableBalance}
+                  />
                 </span>
-                <span title={channel.remoteBalance / 1000 + " sats"}>
-                  {formatAmount(channel.remoteBalance)} sats
+                <span>
+                  <FormattedBitcoinAmount amount={channel.remoteBalance} />
                 </span>
               </div>
             </div>

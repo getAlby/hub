@@ -152,7 +152,7 @@ export interface InfoResponse {
   albyUserIdentifier: string;
   network?: Network;
   version: string;
-  relay: string;
+  relays: { url: string; online: boolean }[];
   unlocked: boolean;
   enableAdvancedSetup: boolean;
   startupState: string;
@@ -163,7 +163,10 @@ export interface InfoResponse {
   currency: string;
   nodeAlias: string;
   mempoolUrl: string;
+  bitcoinDisplayFormat?: BitcoinDisplayFormat;
 }
+
+export type BitcoinDisplayFormat = "sats" | "bip177";
 
 export type HealthAlarmKind =
   | "alby_service"
@@ -269,20 +272,21 @@ export interface CreateAppResponse {
   pairingUri: string;
   pairingPublicKey: string;
   pairingSecretKey: string;
-  relayUrl: string;
+  relayUrls: string[];
   walletPubkey: string;
   lud16: string;
   returnTo: string;
 }
 
 export type UpdateAppRequest = {
-  name: string;
-  maxAmount: number;
-  budgetRenewal: string;
-  expiresAt: string | undefined;
-  scopes: Scope[];
+  name?: string;
+  maxAmount?: number;
+  budgetRenewal?: string;
+  expiresAt?: string | undefined;
+  updateExpiresAt?: boolean;
+  scopes?: Scope[];
   metadata?: AppMetadata;
-  isolated: boolean;
+  isolated?: boolean;
 };
 
 export type Channel = {
@@ -442,6 +446,12 @@ export type SetupNodeInfo = Partial<{
 
 export type LSPType = "LSPS1";
 
+export type LSPChannelOfferPaymentMethod =
+  | "card"
+  | "wallet"
+  | "prepaid"
+  | "included";
+
 export type LSPChannelOffer = {
   lspName: string;
   lspDescription: string;
@@ -449,12 +459,7 @@ export type LSPChannelOffer = {
   lspBalanceSat: number;
   feeTotalSat: number;
   feeTotalUsd: number;
-  currentPaymentMethod:
-    | "card"
-    | "wallet"
-    | "prepaid"
-    | "fee_credits"
-    | "included";
+  currentPaymentMethod: LSPChannelOfferPaymentMethod;
   terms: string;
 };
 
@@ -476,10 +481,11 @@ export type RecommendedChannelPeer = {
   | {
       paymentMethod: "lightning";
       type: LSPType;
-      url: string;
+      identifier: string;
       contactUrl: string;
       terms?: string;
       pubkey?: string;
+      maximumChannelExpiryBlocks?: number;
       feeTotalSat1m?: number;
       feeTotalSat2m?: number;
       feeTotalSat3m?: number;
@@ -522,14 +528,10 @@ export type AlbyMe = {
   };
 };
 
-export type AlbyBalance = {
-  sats: number;
-};
-
 export type LSPOrderRequest = {
   amount: number;
   lspType: LSPType;
-  lspUrl: string;
+  lspIdentifier: string;
   public: boolean;
 };
 
@@ -663,7 +665,7 @@ export type OnchainOrder = {
 export type LightningOrder = {
   paymentMethod: "lightning";
   lspType: LSPType;
-  lspUrl: string;
+  lspIdentifier: string;
 } & NewChannelOrderCommon;
 
 export type NewChannelOrder = OnchainOrder | LightningOrder;

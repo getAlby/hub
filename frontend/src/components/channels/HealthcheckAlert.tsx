@@ -34,7 +34,10 @@ export function HealthCheckAlert() {
         case "node_not_ready":
           return "Node is not ready";
         case "nostr_relay_offline":
-          return "Could not connect to relay";
+          return (
+            "Could not connect to relay: " +
+            (alarm.rawDetails as string[]).join(", ")
+          );
         case "vss_no_subscription":
           return "Your lightning channel data is stored encrypted by Alby's Versioned Storage Service which is a paid feature. Restart your subscription or send your funds to another wallet as soon as possible.";
       }

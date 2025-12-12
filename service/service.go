@@ -6,11 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/adrg/xdg"
-	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
@@ -29,7 +27,6 @@ import (
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/nip47"
-	"github.com/getAlby/hub/nip47/models"
 )
 
 type service struct {
@@ -47,7 +44,7 @@ type service struct {
 	nip47Service        nip47.Nip47Service
 	appCancelFn         context.CancelFunc
 	keys                keys.Keys
-	isRelayReady        atomic.Bool
+	relayStatuses       []RelayStatus
 	startupState        string
 }
 
@@ -177,14 +174,6 @@ func NewService(ctx context.Context) (*service, error) {
 	return svc, nil
 }
 
-func (svc *service) createFilters(identityPubkey string) nostr.Filters {
-	filter := nostr.Filter{
-		Tags:  nostr.TagMap{"p": []string{identityPubkey}},
-		Kinds: []int{models.REQUEST_KIND},
-	}
-	return []nostr.Filter{filter}
-}
-
 func (svc *service) noticeHandler(notice string) {
 	logger.Logger.Infof("Received a notice %s", notice)
 }
@@ -282,12 +271,8 @@ func (svc *service) GetKeys() keys.Keys {
 	return svc.keys
 }
 
-func (svc *service) setRelayReady(ready bool) {
-	svc.isRelayReady.Store(ready)
-}
-
-func (svc *service) IsRelayReady() bool {
-	return svc.isRelayReady.Load()
+func (svc *service) GetRelayStatuses() []RelayStatus {
+	return svc.relayStatuses
 }
 
 func (svc *service) GetStartupState() string {

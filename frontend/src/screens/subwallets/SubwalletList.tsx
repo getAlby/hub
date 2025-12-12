@@ -8,23 +8,24 @@ import {
   TriangleAlertIcon,
 } from "lucide-react";
 import { useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import AppCard from "src/components/connections/AppCard";
 import { CustomPagination } from "src/components/CustomPagination";
-import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import ResponsiveButton from "src/components/ResponsiveButton";
+import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { LIST_APPS_LIMIT, SUBWALLET_APPSTORE_APP_ID } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
@@ -83,19 +84,23 @@ export function SubwalletList() {
         description="Create sub-wallets for yourself, friends, family or coworkers"
         contentRight={
           <>
-            <ExternalLink to="https://guides.getalby.com/user-guide/alby-hub/sub-wallets">
-              <Button variant="outline" size="icon">
-                <HelpCircle className="size-4" />
-              </Button>
-            </ExternalLink>
+            <ExternalLinkButton
+              to="https://guides.getalby.com/user-guide/alby-hub/sub-wallets"
+              variant="outline"
+              size="icon"
+            >
+              <HelpCircle className="size-4" />
+            </ExternalLinkButton>
             {!albyMe?.subscription.plan_code && subwalletApps?.length >= 3 ? (
               <UpgradeDialog>
                 <ResponsiveButton icon={CirclePlusIcon} text="New Sub-wallet" />
               </UpgradeDialog>
             ) : (
-              <Link to="/sub-wallets/new">
-                <ResponsiveButton icon={CirclePlusIcon} text="New Sub-wallet" />
-              </Link>
+              <ResponsiveLinkButton
+                to="/sub-wallets/new"
+                icon={CirclePlusIcon}
+                text="New Sub-wallet"
+              />
             )}
           </>
         }
@@ -133,44 +138,35 @@ export function SubwalletList() {
             balances of sub-wallets under your management. Increase spending
             capacity by opening a channel or review your channel statuses to
             back them up again.
-            <Link to="/wallet/receive">
-              <Button variant="secondary">Deposit Bitcoin</Button>
-            </Link>
+            <LinkButton to="/wallet/receive" variant="secondary">
+              Deposit Bitcoin
+            </LinkButton>
           </AlertDescription>
         </Alert>
       )}
 
       <div className="flex flex-col sm:flex-row flex-wrap gap-4 slashed-zero">
         <Card className="flex flex-1 flex-col">
-          <CardHeader className="pb-2 space-y-0">
+          <CardHeader className="pb-2">
             <CardTitle className="text-lg">
               Total Balance of Sub-wallets
             </CardTitle>
-            <CardDescription className="mt-0">
-              Total amount of assets under management
-            </CardDescription>
           </CardHeader>
           <CardContent className="grow">
-            <div className="mt-4 mb-1">
+            <div className="mb-1">
               <span className="text-2xl font-medium balance sensitive">
-                {new Intl.NumberFormat().format(
-                  Math.floor(subwalletTotalAmount / 1000)
-                )}{" "}
-                sats
+                <FormattedBitcoinAmount amount={subwalletTotalAmount} />
               </span>
             </div>
             <FormattedFiatAmount amount={subwalletTotalAmount / 1000} />
           </CardContent>
         </Card>
         <Card className="flex flex-1 flex-col">
-          <CardHeader className="pb-2 space-y-0">
-            <CardTitle className="text-lg">Active Sub-wallets</CardTitle>
-            <CardDescription className="mt-0">
-              Number of Sub-wallets backed by your node funds
-            </CardDescription>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg">Number of Sub-wallets</CardTitle>
           </CardHeader>
           <CardContent className="grow flex flex-col gap-4">
-            <div className="flex flex-col gap-2 mt-4">
+            <div className="flex flex-col gap-2">
               <span className="text-2xl font-medium">
                 {subwalletApps.length} /{" "}
                 {albyMe?.subscription.plan_code ? "∞" : 3}

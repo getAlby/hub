@@ -17,8 +17,8 @@ export default defineConfig(({ command }) => ({
       includeAssets: [
         "favicon.ico",
         "robots.txt",
-        "icon-512.png",
         "icon-192.png",
+        "icon-512.png",
       ],
       useCredentials: true, // because the manifest might sit behind authentication
       manifest: {
@@ -45,6 +45,9 @@ export default defineConfig(({ command }) => ({
         display: "standalone",
         theme_color: "#000000",
         background_color: "#ffffff",
+      },
+      workbox: {
+        maximumFileSizeToCacheInBytes: 3000000, // 3MB
       },
     }),
     ...(command === "serve" ? [insertDevCSPPlugin] : []),

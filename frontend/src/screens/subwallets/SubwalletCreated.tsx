@@ -3,17 +3,23 @@ import {
   AlertTriangleIcon,
   CopyIcon,
   ExternalLinkIcon,
+  Monitor,
+  Radio,
+  Smartphone,
   TriangleAlert,
+  User,
+  Zap,
 } from "lucide-react";
 import React from "react";
-import QRCode from "react-qr-code";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import { AppleIcon } from "src/components/icons/Apple";
 import { PlayStoreIcon } from "src/components/icons/PlayStore";
 import { ZapStoreIcon } from "src/components/icons/ZapStore";
 import { IsolatedAppTopupDialog } from "src/components/IsolatedAppTopupDialog";
+import QRCode from "src/components/QRCode";
 import {
   Accordion,
   AccordionContent,
@@ -32,6 +38,7 @@ import {
 } from "src/components/ui/card";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -47,7 +54,7 @@ import { useApp } from "src/hooks/useApp";
 import { useCreateLightningAddress } from "src/hooks/useCreateLightningAddress";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
 import { copyToClipboard } from "src/lib/clipboard";
-import { ConnectAppCard } from "src/screens/apps/AppCreated";
+import { ConnectAppCard } from "src/screens/apps/ConnectAppCard";
 import { CreateAppResponse } from "src/types";
 
 export function SubwalletCreated() {
@@ -174,11 +181,7 @@ export function SubwalletCreated() {
                   <CardHeader>
                     <CardTitle>{name}</CardTitle>
                     <CardDescription>
-                      Balance:{" "}
-                      {new Intl.NumberFormat().format(
-                        Math.floor(app.balance / 1000)
-                      )}{" "}
-                      sats
+                      Balance: <FormattedBitcoinAmount amount={app.balance} />
                     </CardDescription>
                   </CardHeader>
                   <CardFooter className="flex flex-row justify-end">
@@ -213,21 +216,44 @@ export function SubwalletCreated() {
                   future reference.
                 </AlertDescription>
               </Alert>
-              <Accordion type="single" collapsible>
+              <Accordion type="single" collapsible defaultValue="other">
+                <AccordionItem value="other">
+                  <AccordionTrigger>
+                    <div className="flex items-center gap-2">
+                      <Zap className="h-4 w-4" />
+                      Connect Your App
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    {app && (
+                      <div className="flex justify-center">
+                        <ConnectAppCard
+                          app={app}
+                          pairingUri={connectionSecret}
+                        />
+                      </div>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
                 <AccordionItem value="mobile">
-                  <AccordionTrigger>Alby Go</AccordionTrigger>
+                  <AccordionTrigger>
+                    <div className="flex items-center gap-2">
+                      <Smartphone className="h-4 w-4" />
+                      Alby Go
+                    </div>
+                  </AccordionTrigger>
                   <AccordionContent>
                     <ul className="flex flex-col gap-1 list-inside list-decimal mb-6">
                       <li>
                         Download Alby Go from the app store
                         <div className="flex flex-row gap-3 my-2">
                           <Popover>
-                            <PopoverTrigger>
-                              <Button variant="outline">
+                            <Button variant="outline" asChild>
+                              <PopoverTrigger>
                                 <PlayStoreIcon />
                                 Play Store
-                              </Button>
-                            </PopoverTrigger>
+                              </PopoverTrigger>
+                            </Button>
                             <PopoverContent className="flex flex-col items-center gap-3">
                               <QRCode value="https://play.google.com/store/apps/details?id=com.getalby.mobile" />
                               <ExternalLinkButton
@@ -240,12 +266,12 @@ export function SubwalletCreated() {
                             </PopoverContent>
                           </Popover>
                           <Popover>
-                            <PopoverTrigger>
-                              <Button variant="outline">
+                            <Button variant="outline" asChild>
+                              <PopoverTrigger>
                                 <AppleIcon />
                                 Apple App Store
-                              </Button>
-                            </PopoverTrigger>
+                              </PopoverTrigger>
+                            </Button>
                             <PopoverContent className="flex flex-col items-center gap-3">
                               <QRCode value="https://apps.apple.com/us/app/alby-go/id6471335774" />
                               <ExternalLinkButton
@@ -258,12 +284,12 @@ export function SubwalletCreated() {
                             </PopoverContent>
                           </Popover>
                           <Popover>
-                            <PopoverTrigger>
-                              <Button variant="outline">
+                            <Button variant="outline" asChild>
+                              <PopoverTrigger>
                                 <ZapStoreIcon />
                                 Zapstore
-                              </Button>
-                            </PopoverTrigger>
+                              </PopoverTrigger>
+                            </Button>
                             <PopoverContent className="flex flex-col items-center gap-3">
                               <div className="text-center text-xs text-muted-foreground">
                                 Install Zapstore on your Android device and
@@ -290,7 +316,12 @@ export function SubwalletCreated() {
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="account">
-                  <AccordionTrigger>Alby Account</AccordionTrigger>
+                  <AccordionTrigger>
+                    <div className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Alby Account
+                    </div>
+                  </AccordionTrigger>
                   <AccordionContent>
                     <ul className="flex flex-col gap-1 list-inside list-decimal mb-6">
                       <li>
@@ -341,7 +372,12 @@ export function SubwalletCreated() {
                   </AccordionContent>
                 </AccordionItem>
                 <AccordionItem value="extension">
-                  <AccordionTrigger>Alby Browser Extension</AccordionTrigger>
+                  <AccordionTrigger>
+                    <div className="flex items-center gap-2">
+                      <Monitor className="h-4 w-4" />
+                      Alby Browser Extension
+                    </div>
+                  </AccordionTrigger>
                   <AccordionContent>
                     <ul className="list-inside list-decimal flex flex-col gap-1 mb-6">
                       <li>
@@ -396,42 +432,13 @@ export function SubwalletCreated() {
                     </div>
                   </AccordionContent>
                 </AccordionItem>
-                <AccordionItem value="other">
-                  <AccordionTrigger>Other apps</AccordionTrigger>
-                  <AccordionContent>
-                    <ul className="list-inside list-decimal flex flex-col gap-1 mb-6">
-                      <li>
-                        Open the app you wish to connect sub-wallet to and look
-                        for a way to attach a wallet (most apps provide this
-                        option in settings).
-                      </li>
-                      <li>Copy and paste the connection secret from below</li>
-                    </ul>
-                    <div className="grid gap-1.5">
-                      <Label htmlFor="connectionSecret">
-                        Connection Secret
-                      </Label>
-                      <div className="flex gap-2">
-                        <Input
-                          id="connectionSecret"
-                          disabled
-                          readOnly
-                          type="password"
-                          value={connectionSecret}
-                        />
-                        <Button
-                          onClick={() => copyToClipboard(connectionSecret)}
-                          variant="outline"
-                        >
-                          <CopyIcon />
-                          Copy
-                        </Button>
-                      </div>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
                 <AccordionItem value="podcasting">
-                  <AccordionTrigger>Podcasting 2.0</AccordionTrigger>
+                  <AccordionTrigger>
+                    <div className="flex items-center gap-2">
+                      <Radio className="h-4 w-4" />
+                      Podcasting 2.0
+                    </div>
+                  </AccordionTrigger>
                   <AccordionContent>
                     <p className="text-muted-foreground text-sm mb-5">
                       To allow receiving podcasting 2.0 payments to the
@@ -477,9 +484,7 @@ export function SubwalletCreated() {
                 <Button onClick={() => setStep(1)} variant="secondary">
                   Back
                 </Button>
-                <Link to="/sub-wallets">
-                  <Button>Finish</Button>
-                </Link>
+                <LinkButton to="/sub-wallets">Finish</LinkButton>
               </div>
             </div>
           )}

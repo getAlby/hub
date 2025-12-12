@@ -26,6 +26,7 @@ type AppsService interface {
 	GetAppByPubkey(pubkey string) *db.App
 	GetAppById(id uint) *db.App
 	SetAppMetadata(appId uint, metadata map[string]interface{}) error
+	HasLightningAddress(app *db.App) bool
 }
 
 type appsService struct {
@@ -45,6 +46,9 @@ func NewAppsService(db *gorm.DB, eventPublisher events.EventPublisher, keys keys
 }
 
 func (svc *appsService) CreateApp(name string, pubkey string, maxAmountSat uint64, budgetRenewal string, expiresAt *time.Time, scopes []string, isolated bool, metadata map[string]interface{}) (*db.App, string, error) {
+	if name == "" {
+		return nil, "", errors.New("no app name provided")
+	}
 	if isolated {
 		if slices.Contains(scopes, constants.SIGN_MESSAGE_SCOPE) {
 			// cannot sign messages because the isolated app is a custodial sub-wallet
@@ -228,4 +232,19 @@ func (svc *appsService) SetAppMetadata(id uint, metadata map[string]interface{})
 	}
 
 	return nil
+}
+
+func (svc *appsService) HasLightningAddress(app *db.App) bool {
+	if app.Metadata == nil {
+		return false
+	}
+
+	var metadata map[string]interface{}
+	err := json.Unmarshal(app.Metadata, &metadata)
+	if err != nil {
+		return false
+	}
+
+	lud16, exists := metadata["lud16"]
+	return exists && lud16 != nil
 }

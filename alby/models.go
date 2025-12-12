@@ -16,15 +16,15 @@ type AlbyService interface {
 type AlbyOAuthService interface {
 	events.EventSubscriber
 	GetLSPChannelOffer(ctx context.Context) (*LSPChannelOffer, error)
+	GetLSPInfo(ctx context.Context, lsp, network string) (*LSPInfo, error)
+	CreateLSPOrder(ctx context.Context, lsp, network string, lspChannelRequest *LSPChannelRequest) (*LSPChannelResponse, error)
 	GetAuthUrl() string
 	GetUserIdentifier() (string, error)
 	GetLightningAddress() (string, error)
 	IsConnected(ctx context.Context) bool
 	LinkAccount(ctx context.Context, lnClient lnclient.LNClient, budget uint64, renewal string) error
 	CallbackHandler(ctx context.Context, code string, lnClient lnclient.LNClient) error
-	GetBalance(ctx context.Context) (*AlbyBalance, error)
 	GetMe(ctx context.Context) (*AlbyMe, error)
-	SendPayment(ctx context.Context, invoice string) error
 	UnlinkAccount(ctx context.Context) error
 	RequestAutoChannel(ctx context.Context, lnClient lnclient.LNClient, isPublic bool) (*AutoChannelResponse, error)
 	GetVssAuthToken(ctx context.Context, nodeIdentifier string) (string, error)
@@ -36,14 +36,6 @@ type AlbyOAuthService interface {
 type CreateLightningAddressResponse struct {
 	Address     string `json:"address"`
 	FullAddress string `json:"full_address"`
-}
-
-type AlbyBalanceResponse struct {
-	Sats int64 `json:"sats"`
-}
-
-type AlbyPayRequest struct {
-	Invoice string `json:"invoice"`
 }
 
 type AlbyLinkAccountRequest struct {
@@ -104,31 +96,26 @@ type AlbyMe struct {
 	Subscription     AlbyMeSubscription `json:"subscription"`
 }
 
-type AlbyBalance struct {
-	Balance  int64  `json:"balance"`
-	Unit     string `json:"unit"`
-	Currency string `json:"currency"`
-}
-
 type ChannelPeerSuggestion struct {
-	Network               string  `json:"network"`
-	PaymentMethod         string  `json:"paymentMethod"`
-	Pubkey                string  `json:"pubkey"`
-	Host                  string  `json:"host"`
-	MinimumChannelSize    uint64  `json:"minimumChannelSize"`
-	MaximumChannelSize    uint64  `json:"maximumChannelSize"`
-	Name                  string  `json:"name"`
-	Image                 string  `json:"image"`
-	Url                   string  `json:"url"`
-	ContactUrl            string  `json:"contactUrl"`
-	Type                  string  `json:"type"`
-	Terms                 string  `json:"terms"`
-	Description           string  `json:"description"`
-	Note                  string  `json:"note"`
-	PublicChannelsAllowed bool    `json:"publicChannelsAllowed"`
-	FeeTotalSat1m         *uint32 `json:"feeTotalSat1m"`
-	FeeTotalSat2m         *uint32 `json:"feeTotalSat2m"`
-	FeeTotalSat3m         *uint32 `json:"feeTotalSat3m"`
+	Network                    string  `json:"network"`
+	PaymentMethod              string  `json:"paymentMethod"`
+	Pubkey                     string  `json:"pubkey"`
+	Host                       string  `json:"host"`
+	MinimumChannelSize         uint64  `json:"minimumChannelSize"`
+	MaximumChannelSize         uint64  `json:"maximumChannelSize"`
+	MaximumChannelExpiryBlocks *uint32 `json:"maximumChannelExpiryBlocks"`
+	Name                       string  `json:"name"`
+	Image                      string  `json:"image"`
+	Identifier                 string  `json:"identifier"`
+	ContactUrl                 string  `json:"contactUrl"`
+	Type                       string  `json:"type"`
+	Terms                      string  `json:"terms"`
+	Description                string  `json:"description"`
+	Note                       string  `json:"note"`
+	PublicChannelsAllowed      bool    `json:"publicChannelsAllowed"`
+	FeeTotalSat1m              *uint32 `json:"feeTotalSat1m"`
+	FeeTotalSat2m              *uint32 `json:"feeTotalSat2m"`
+	FeeTotalSat3m              *uint32 `json:"feeTotalSat3m"`
 }
 
 type LSPChannelOffer struct {
@@ -149,6 +136,42 @@ type BitcoinRate struct {
 	RateFloat float64 `json:"rate_float"`
 	RateCents int64   `json:"rate_cents"`
 }
+
 type ErrorResponse struct {
 	Message string `json:"message"`
+}
+
+type LSPChannelPaymentBolt11 struct {
+	Invoice     string `json:"invoice"`
+	FeeTotalSat string `json:"fee_total_sat"`
+}
+
+type LSPChannelPayment struct {
+	Bolt11 LSPChannelPaymentBolt11 `json:"bolt11"`
+	// TODO: add onchain
+}
+
+type LSPChannelResponse struct {
+	Payment *LSPChannelPayment `json:"payment"`
+}
+
+type LSPChannelRequest struct {
+	PublicKey                    string `json:"public_key"`
+	LSPBalanceSat                string `json:"lsp_balance_sat"`
+	ClientBalanceSat             string `json:"client_balance_sat"`
+	RequiredChannelConfirmations uint64 `json:"required_channel_confirmations"`
+	FundingConfirmsWithinBlocks  uint64 `json:"funding_confirms_within_blocks"`
+	ChannelExpiryBlocks          uint64 `json:"channel_expiry_blocks"`
+	Token                        string `json:"token"`
+	RefundOnchainAddress         string `json:"refund_onchain_address"`
+	AnnounceChannel              bool   `json:"announce_channel"`
+}
+
+type LSPInfo struct {
+	Pubkey                          string
+	Address                         string
+	Port                            uint16
+	MaxChannelExpiryBlocks          uint64
+	MinRequiredChannelConfirmations uint64
+	MinFundingConfirmsWithinBlocks  uint64
 }

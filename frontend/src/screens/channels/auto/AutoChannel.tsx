@@ -1,9 +1,10 @@
 import { ChevronDownIcon } from "lucide-react";
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
@@ -22,6 +23,8 @@ import { ChannelPublicPrivateAlert } from "src/components/channels/ChannelPublic
 
 import LightningNetworkDarkSVG from "public/images/illustrations/lightning-network-dark.svg";
 import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 
 export function AutoChannel() {
   const { data: info } = useInfo();
@@ -108,7 +111,7 @@ export function AutoChannel() {
           <p className="text-muted-foreground slashed-zero">
             Please pay the lightning invoice below which will cover the costs of
             opening your channel. You will receive a channel with{" "}
-            {new Intl.NumberFormat().format(channelSize)} sats of receiving
+            <FormattedBitcoinAmount amount={channelSize * 1000} /> of receiving
             capacity.
           </p>
           <PayLightningInvoice invoice={invoice} />
@@ -117,16 +120,20 @@ export function AutoChannel() {
           <p className="mt-8 text-sm mb-2 text-muted-foreground">
             Other options
           </p>
-          <Link to="/channels/outgoing" className="w-full">
-            <Button className="w-full" variant="secondary">
-              Open Channel with On-Chain Bitcoin
-            </Button>
-          </Link>
-          <ExternalLink to="https://www.getalby.com/topup" className="w-full">
-            <Button className="w-full" variant="secondary">
-              Buy Bitcoin
-            </Button>
-          </ExternalLink>
+          <LinkButton
+            to="/channels/outgoing"
+            variant="secondary"
+            className="w-full"
+          >
+            Open Channel with On-Chain Bitcoin
+          </LinkButton>
+          <ExternalLinkButton
+            to="https://www.getalby.com/topup"
+            variant="secondary"
+            className="w-full"
+          >
+            Buy Bitcoin
+          </ExternalLinkButton>
         </div>
       )}
       {!invoice && (

@@ -12,3 +12,13 @@ packages:
   github.com/getAlby/hub/service:
     interfaces:
       Service: {}
+  github.com/getAlby/hub/service/keys:
+    interfaces:
+      Keys: {}
+  github.com/getAlby/hub/alby:
+    interfaces:
+      AlbyService: {}
+      AlbyOAuthService: {}
+  github.com/getAlby/hub/events:
+    interfaces:
+      EventPublisher: {}

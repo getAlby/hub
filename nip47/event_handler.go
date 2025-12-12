@@ -23,7 +23,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Relay, event *nostr.Event, lnClient lnclient.LNClient) {
+func (svc *nip47Service) HandleEvent(ctx context.Context, pool nostrmodels.SimplePool, event *nostr.Event, lnClient lnclient.LNClient) {
 	var nip47Response *models.Response
 	logger.Logger.WithFields(logrus.Fields{
 		"requestEventNostrId": event.ID,
@@ -155,7 +155,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 				"eventKind":           event.Kind,
 			}).WithError(err).Error("Failed to process event")
 		}
-		svc.publishResponseEvent(ctx, relay, &requestEvent, resp, &app)
+		svc.publishResponseEvent(ctx, pool, &requestEvent, resp, &app)
 
 		return
 	}
@@ -182,7 +182,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 				"eventKind":           event.Kind,
 			}).WithError(err).Error("Failed to process event")
 		}
-		svc.publishResponseEvent(ctx, relay, &requestEvent, resp, &app)
+		svc.publishResponseEvent(ctx, pool, &requestEvent, resp, &app)
 
 		err = svc.db.
 			Model(&requestEvent).
@@ -244,7 +244,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 				"eventKind":           event.Kind,
 			}).WithError(err).Error("Failed to process event")
 		}
-		svc.publishResponseEvent(ctx, relay, &requestEvent, resp, &app)
+		svc.publishResponseEvent(ctx, pool, &requestEvent, resp, &app)
 
 		return
 	}
@@ -287,7 +287,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, relay nostrmodels.Rela
 			}).WithError(err).Error("Failed to create response")
 			state = db.REQUEST_EVENT_STATE_HANDLER_ERROR
 		} else {
-			err = svc.publishResponseEvent(ctx, relay, &requestEvent, resp, &app)
+			err = svc.publishResponseEvent(ctx, pool, &requestEvent, resp, &app)
 			if err != nil {
 				logger.Logger.WithFields(logrus.Fields{
 					"requestEventNostrId":  event.ID,
@@ -476,7 +476,7 @@ func (svc *nip47Service) CreateResponse(initialEvent *nostr.Event, content inter
 	return resp, nil
 }
 
-func (svc *nip47Service) publishResponseEvent(ctx context.Context, relay nostrmodels.Relay, requestEvent *db.RequestEvent, resp *nostr.Event, app *db.App) error {
+func (svc *nip47Service) publishResponseEvent(ctx context.Context, pool nostrmodels.SimplePool, requestEvent *db.RequestEvent, resp *nostr.Event, app *db.App) error {
 	var appId *uint
 	if app != nil {
 		appId = &app.ID
@@ -493,8 +493,25 @@ func (svc *nip47Service) publishResponseEvent(ctx context.Context, relay nostrmo
 	}
 
 	updateColumns := make(map[string]interface{})
-	err = relay.Publish(ctx, *resp)
-	if err != nil {
+	publishResultChannel := pool.PublishMany(ctx, svc.cfg.GetRelayUrls(), *resp)
+
+	publishSuccessful := false
+	for result := range publishResultChannel {
+		if result.Error == nil {
+			publishSuccessful = true
+		} else {
+			logger.Logger.WithFields(logrus.Fields{
+				"requestEventId":       requestEvent.ID,
+				"requestNostrEventId":  requestEvent.NostrId,
+				"appId":                appId,
+				"responseEventId":      responseEvent.ID,
+				"responseNostrEventId": resp.ID,
+				"relay":                result.RelayURL,
+			}).WithError(result.Error).Error("failed to publish response event to relay")
+		}
+	}
+
+	if !publishSuccessful {
 		updateColumns["state"] = db.RESPONSE_EVENT_STATE_PUBLISH_FAILED
 		logger.Logger.WithFields(logrus.Fields{
 			"requestEventId":       requestEvent.ID,

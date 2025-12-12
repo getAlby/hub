@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"errors"
 
 	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
@@ -14,8 +13,8 @@ import (
 
 type createAppConsumer struct {
 	events.EventSubscriber
-	svc   *service
-	relay *nostr.Relay
+	svc  *service
+	pool *nostr.SimplePool
 }
 
 // When a new app is created, subscribe to it on the relay
@@ -56,15 +55,9 @@ func (s *createAppConsumer) ConsumeEvent(ctx context.Context, event *events.Even
 		logger.Logger.WithError(err).Error("Failed to calculate app wallet pub key")
 		return
 	}
-	s.svc.nip47Service.EnqueueNip47InfoPublishRequest(id, walletPubKey, walletPrivKey)
+	for _, relayUrl := range s.svc.cfg.GetRelayUrls() {
+		s.svc.nip47Service.EnqueueNip47InfoPublishRequest(id, walletPubKey, walletPrivKey, relayUrl)
+	}
 
-	go func() {
-		err = s.svc.startAppWalletSubscription(ctx, s.relay, walletPubKey)
-		if err != nil && !errors.Is(err, context.Canceled) {
-			logger.Logger.WithError(err).WithFields(logrus.Fields{
-				"app_id": id}).Error("Failed to subscribe to wallet")
-		}
-		logger.Logger.WithFields(logrus.Fields{
-			"app_id": id}).Info("App Nostr Subscription ended")
-	}()
+	go s.svc.startAppWalletSubscription(ctx, s.pool, walletPubKey)
 }

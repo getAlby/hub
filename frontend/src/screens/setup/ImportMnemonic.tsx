@@ -1,5 +1,5 @@
 import * as bip39 from "@scure/bip39";
-import { wordlist } from "@scure/bip39/wordlists/english";
+import { wordlist } from "@scure/bip39/wordlists/english.js";
 import {
   AlertTriangleIcon,
   LifeBuoyIcon,
@@ -61,8 +61,8 @@ export function ImportMnemonic() {
         className="flex flex-col gap-5 mx-auto max-w-md text-sm"
       >
         <TwoColumnLayoutHeader
-          title="Import Master Key"
-          description="Enter the your Master Key recovery phrase to import your Alby Hub."
+          title="Import Recovery Phrase"
+          description="Enter your recovery phrase to import your Alby Hub."
         />
 
         <Alert variant="warning">
@@ -70,12 +70,12 @@ export function ImportMnemonic() {
           <AlertTitle>
             Do not re-use the same key on multiple devices
           </AlertTitle>
-          <AlertDescription>
+          <AlertDescription className="inline">
             If you want to transfer your existing Hub to another machine please
             use the <b>migrate feature</b> from the Alby Hub settings.
           </AlertDescription>
         </Alert>
-        <Alert>
+        <Alert className="grid-cols-none">
           <div className="flex flex-col gap-4">
             <div className="flex gap-2 items-center">
               <div className="shrink-0 text-muted-foreground">

@@ -8,6 +8,7 @@ import { ChannelPublicPrivateAlert } from "src/components/channels/ChannelPublic
 import { DuplicateChannelAlert } from "src/components/channels/DuplicateChannelAlert";
 import { SwapAlert } from "src/components/channels/SwapAlert";
 import ExternalLink from "src/components/ExternalLink";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import { Button } from "src/components/ui/button";
@@ -32,7 +33,7 @@ import {
 import { useChannelPeerSuggestions } from "src/hooks/useChannelPeerSuggestions";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
-import { cn, formatAmount } from "src/lib/utils";
+import { cn } from "src/lib/utils";
 import useChannelOrderStore from "src/state/ChannelOrderStore";
 import {
   Channel,
@@ -45,6 +46,7 @@ import {
 import LightningNetworkDarkSVG from "public/images/illustrations/lightning-network-dark.svg";
 import LightningNetworkLightSVG from "public/images/illustrations/lightning-network-light.svg";
 import { LSPTermsDialog } from "src/components/channels/LSPTermsDialog";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 
 function getPeerKey(peer: RecommendedChannelPeer) {
   return JSON.stringify(peer);
@@ -141,7 +143,7 @@ function NewChannelInternal({
         setOrder((current) => ({
           ...current,
           lspType: selectedPeer.type,
-          lspUrl: selectedPeer.url,
+          lspIdentifier: selectedPeer.identifier,
           ...(!selectedPeer.publicChannelsAllowed && { isPublic: false }),
         }));
       }
@@ -157,6 +159,7 @@ function NewChannelInternal({
       partner.paymentMethod === "lightning" &&
       partner.type === "LSPS1" &&
       partner.pubkey &&
+      (partner.publicChannelsAllowed || !order.isPublic) &&
       !channels.some((channel) => channel.remotePubkey === partner.pubkey)
   );
 
@@ -192,7 +195,7 @@ function NewChannelInternal({
           throw new Error("Unexpected order or partner payment method");
         }
         order.lspType = bestPartner.type;
-        order.lspUrl = bestPartner.url;
+        order.lspIdentifier = bestPartner.identifier;
       }
 
       useChannelOrderStore.getState().setOrder(order as NewChannelOrder);
@@ -231,7 +234,7 @@ function NewChannelInternal({
           <div className="flex items-end">
             <Link
               to="/channels/outgoing"
-              className="underline break-words text-sm"
+              className="underline break-anywhere text-sm"
             >
               Open Channel with On-Chain
             </Link>
@@ -276,8 +279,9 @@ function NewChannelInternal({
 
             {order.amount && +order.amount < 200_000 && (
               <p className="text-muted-foreground text-xs">
-                For a smooth experience consider a opening a channel of 200k
-                sats in size or more.{" "}
+                For a smooth experience consider a opening a channel of{" "}
+                <FormattedBitcoinAmount amount={200_000 * 1000} /> in size or
+                more.{" "}
                 <ExternalLink
                   to="https://guides.getalby.com/user-guide/alby-hub/node"
                   className="underline"
@@ -300,7 +304,7 @@ function NewChannelInternal({
                 setAmount(e.target.value.trim());
               }}
             />
-            <div className="grid grid-cols-3 gap-1.5 text-muted-foreground text-xs">
+            <div className="grid grid-cols-3 gap-1.5 text-xs">
               {presetAmounts.map((amount) => (
                 <div
                   key={amount}
@@ -311,7 +315,12 @@ function NewChannelInternal({
                   )}
                   onClick={() => setAmount(amount.toString())}
                 >
-                  {formatAmount(amount * 1000, 0)}
+                  <FormattedBitcoinAmount amount={amount * 1000} />
+                  <FormattedFiatAmount
+                    amount={amount}
+                    showApprox
+                    className="text-xs"
+                  />
                 </div>
               ))}
             </div>
@@ -320,7 +329,9 @@ function NewChannelInternal({
                 {" "}
                 Estimated channel price:{" "}
                 <span className="font-semibold">
-                  {new Intl.NumberFormat().format(estimatedChannelPrice)} sats
+                  <FormattedBitcoinAmount
+                    amount={estimatedChannelPrice * 1000}
+                  />
                 </span>
               </span>
             )}
@@ -328,13 +339,17 @@ function NewChannelInternal({
               <div className="flex justify-between items-center">
                 <p className="text-sm">
                   You will receive a channel from{" "}
-                  <span className="font-medium">{selectedPartner.name}</span>.{" "}
+                  <span className="font-medium">{selectedPartner.name}</span>
+                  .{" "}
                 </p>
                 <LSPTermsDialog
                   contactUrl={selectedPartner.contactUrl}
                   description={selectedPartner.description}
                   name={selectedPartner.name}
                   terms={selectedPartner.terms}
+                  maximumChannelExpiryBlocks={
+                    selectedPartner.maximumChannelExpiryBlocks
+                  }
                   trigger={<p className="text-xs underline">View Terms</p>}
                 />
               </div>
@@ -345,7 +360,7 @@ function NewChannelInternal({
               <div className="flex flex-col gap-3">
                 {selectedPeer && (
                   <div className="grid gap-1.5">
-                    <Label>Channel peer</Label>
+                    <Label>Choose your channel peer:</Label>
                     <Select
                       value={getPeerKey(selectedPeer)}
                       onValueChange={(value) =>
@@ -383,16 +398,14 @@ function NewChannelInternal({
                                     {peer.name}
                                     <span className="ml-4 text-xs text-muted-foreground slashed-zero">
                                       Min.{" "}
-                                      {new Intl.NumberFormat().format(
-                                        peer.minimumChannelSize
-                                      )}{" "}
-                                      sats
+                                      <FormattedBitcoinAmount
+                                        amount={peer.minimumChannelSize * 1000}
+                                      />
                                       <span className="mr-5" />
                                       Max.{" "}
-                                      {new Intl.NumberFormat().format(
-                                        peer.maximumChannelSize
-                                      )}{" "}
-                                      sats
+                                      <FormattedBitcoinAmount
+                                        amount={peer.maximumChannelSize * 1000}
+                                      />
                                     </span>
                                   </div>
                                 </div>
@@ -459,7 +472,7 @@ function NewChannelInternal({
             </Button>
           )}
           <MempoolAlert />
-          <SwapAlert />
+          <SwapAlert swapType="out" />
           {channels?.some((channel) => channel.public !== !!order.isPublic) && (
             <ChannelPublicPrivateAlert />
           )}
@@ -470,7 +483,7 @@ function NewChannelInternal({
               name={selectedPeer?.name}
             />
           )}
-          <Button size="lg">Next</Button>
+          <Button size="lg">Review Order</Button>
         </form>
 
         <div className="flex-1 flex flex-col justify-end items-center gap-4">
