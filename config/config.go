@@ -276,7 +276,7 @@ func (cfg *config) SetIgnore(key string, value string, encryptionKey string) err
 func (cfg *config) SetUpdate(key string, value string, encryptionKey string) error {
 	clauses := clause.OnConflict{
 		Columns:   []clause.Column{{Name: "key"}},
-		DoUpdates: clause.AssignmentColumns([]string{"value"}),
+		DoUpdates: clause.AssignmentColumns([]string{"value", "encrypted"}),
 	}
 	err := cfg.set(key, value, clauses, encryptionKey, cfg.db)
 	if err != nil {

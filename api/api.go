@@ -960,17 +960,22 @@ func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *E
 		return err
 	}
 
-	// Check if destination is an xpub - if so, it needs to be encrypted
+	if api.svc.GetSwapsService() == nil {
+		return errors.New("SwapsService not started")
+	}
+
 	encryptionKey := ""
-	if enableAutoSwapsRequest.Destination != "" && api.isXpub(enableAutoSwapsRequest.Destination) {
-		// Validate the unlock password
-		if enableAutoSwapsRequest.UnlockPassword == "" {
-			return errors.New("unlock password is required when using an xpub as destination")
+	if enableAutoSwapsRequest.Destination != "" {
+
+		if err := api.svc.GetSwapsService().ValidateXpub(enableAutoSwapsRequest.Destination); err == nil {
+			if enableAutoSwapsRequest.UnlockPassword == "" {
+				return errors.New("unlock password is required when using an xpub as destination")
+			}
+			if !api.cfg.CheckUnlockPassword(enableAutoSwapsRequest.UnlockPassword) {
+				return errors.New("invalid unlock password")
+			}
+			encryptionKey = enableAutoSwapsRequest.UnlockPassword
 		}
-		if !api.cfg.CheckUnlockPassword(enableAutoSwapsRequest.UnlockPassword) {
-			return errors.New("invalid unlock password")
-		}
-		encryptionKey = enableAutoSwapsRequest.UnlockPassword
 	}
 
 	err = api.cfg.SetUpdate(config.AutoSwapDestinationKey, enableAutoSwapsRequest.Destination, encryptionKey)
@@ -979,9 +984,6 @@ func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *E
 		return err
 	}
 
-	if api.svc.GetSwapsService() == nil {
-		return errors.New("SwapsService not started")
-	}
 	return api.svc.GetSwapsService().EnableAutoSwapOut(enableAutoSwapsRequest.UnlockPassword)
 }
 
@@ -1800,14 +1802,4 @@ func (api *api) GetForwards() (*GetForwardsResponse, error) {
 		TotalFeeEarnedMsat:          totalFeeEarned,
 		NumForwards:                 uint64(numForwards),
 	}, nil
-}
-
-func (api *api) isXpub(destination string) bool {
-	// Check if the destination starts with xpub, ypub, zpub, tpub, upub, or vpub
-	return strings.HasPrefix(destination, "xpub") ||
-		strings.HasPrefix(destination, "ypub") ||
-		strings.HasPrefix(destination, "zpub") ||
-		strings.HasPrefix(destination, "tpub") ||
-		strings.HasPrefix(destination, "upub") ||
-		strings.HasPrefix(destination, "vpub")
 }

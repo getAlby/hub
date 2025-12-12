@@ -63,6 +63,7 @@ type SwapsService interface {
 	GetSwap(swapId string) (*Swap, error)
 	ListSwaps() ([]Swap, error)
 	GetDecryptedAutoSwapXpub() string
+	ValidateXpub(xpub string) error
 }
 
 const (
@@ -182,7 +183,7 @@ func (svc *swapsService) EnableAutoSwapOut(encryptionKey string) error {
 
 	// Store the decrypted XPUB in memory (encryption key is discarded after this function)
 	// This follows the same pattern as the mnemonic in the keys service
-	if swapDestination != "" && svc.validateXpub(swapDestination) == nil {
+	if swapDestination != "" && svc.ValidateXpub(swapDestination) == nil {
 		svc.decryptedXpub = swapDestination
 	} else {
 		svc.decryptedXpub = "" // Not an XPUB or empty
@@ -1509,7 +1510,7 @@ func (svc *swapsService) getNextUnusedAddressFromXpub() (string, error) {
 		return "", errors.New("no XPUB configured")
 	}
 
-	if err := svc.validateXpub(destination); err != nil {
+	if err := svc.ValidateXpub(destination); err != nil {
 		return "", errors.New("destination is not a valid XPUB")
 	}
 
@@ -1576,7 +1577,7 @@ func (svc *swapsService) getNextUnusedAddressFromXpub() (string, error) {
 	return "", fmt.Errorf("could not find unused address within %d addresses starting from index %d", addressLookAheadLimit, index)
 }
 
-func (svc *swapsService) validateXpub(xpub string) error {
+func (svc *swapsService) ValidateXpub(xpub string) error {
 	_, err := hdkeychain.NewKeyFromString(xpub)
 	if err != nil {
 		return fmt.Errorf("invalid xpub: %w", err)
