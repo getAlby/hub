@@ -79,7 +79,6 @@ function AutoSwapOutForm() {
       return;
     }
 
-    // Check if using xpub and password is required
     const isXpub = externalType === "xpub" && !isInternalSwap;
     if (isXpub && !unlockPassword) {
       toast.error("Password required", {
