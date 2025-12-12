@@ -152,8 +152,6 @@ func NewSwapsService(ctx context.Context, db *gorm.DB, cfg config.Config, keys k
 		}
 	}()
 
-	// Decrypt the XPUB once during initialization if it exists
-	// The encryption key is only used here and then discarded
 	err := svc.EnableAutoSwapOut(encryptionKey)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Couldn't enable auto swaps")
