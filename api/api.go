@@ -763,17 +763,14 @@ func (api *api) GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error) {
 	swapOutBalanceThresholdStr, _ := api.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
 	swapOutAmountStr, _ := api.cfg.Get(config.AutoSwapAmountKey, "")
 
-	// Get the destination - try from memory first (decrypted XPUB), then from config
 	swapOutDestination := ""
 	if api.svc.GetSwapsService() != nil {
-		// If we have a decrypted XPUB in memory, use it
 		decryptedXpub := api.svc.GetSwapsService().GetDecryptedAutoSwapXpub()
 		if decryptedXpub != "" {
 			swapOutDestination = decryptedXpub
 		}
 	}
 
-	// If no decrypted XPUB, try to get the destination from config (could be a regular address)
 	if swapOutDestination == "" {
 		swapOutDestination, _ = api.cfg.Get(config.AutoSwapDestinationKey, "")
 	}
