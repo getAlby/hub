@@ -49,7 +49,7 @@ type swapsService struct {
 	boltzWs             *boltz.Websocket
 	swapListeners       map[string]chan boltz.SwapUpdate
 	swapListenersLock   sync.Mutex
-	decryptedXpub       string // Decrypted XPUB kept in memory (like mnemonic in keys service)
+	autoSwapOutDecryptedXpub       string
 }
 
 type SwapsService interface {
@@ -184,9 +184,9 @@ func (svc *swapsService) EnableAutoSwapOut(encryptionKey string) error {
 	// Store the decrypted XPUB in memory (encryption key is discarded after this function)
 	// This follows the same pattern as the mnemonic in the keys service
 	if swapDestination != "" && svc.ValidateXpub(swapDestination) == nil {
-		svc.decryptedXpub = swapDestination
+		svc.autoSwapOutDecryptedXpub = swapDestination
 	} else {
-		svc.decryptedXpub = "" // Not an XPUB or empty
+		svc.autoSwapOutDecryptedXpub = "" // Not an XPUB or empty
 	}
 
 	balanceThresholdStr, _ := svc.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
@@ -232,7 +232,7 @@ func (svc *swapsService) EnableAutoSwapOut(encryptionKey string) error {
 				actualDestination := swapDestination
 				var usedXpubDerivation bool
 				// Check if we have a decrypted XPUB in memory
-				if svc.decryptedXpub != "" {
+				if svc.autoSwapOutDecryptedXpub != "" {
 					actualDestination, err = svc.getNextUnusedAddressFromXpub()
 					if err != nil {
 						logger.Logger.WithError(err).Error("Failed to get next address from xpub")
@@ -1505,7 +1505,7 @@ func (svc *swapsService) checkAddressHasTransactions(address string, esploraApiR
 
 func (svc *swapsService) getNextUnusedAddressFromXpub() (string, error) {
 	// Use the decrypted XPUB from memory (already decrypted during EnableAutoSwapOut)
-	destination := svc.decryptedXpub
+	destination := svc.autoSwapOutDecryptedXpub
 	if destination == "" {
 		return "", errors.New("no XPUB configured")
 	}
@@ -1586,5 +1586,5 @@ func (svc *swapsService) ValidateXpub(xpub string) error {
 }
 
 func (svc *swapsService) GetDecryptedAutoSwapXpub() string {
-	return svc.decryptedXpub
+	return svc.autoSwapOutDecryptedXpub
 }
