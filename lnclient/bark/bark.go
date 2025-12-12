@@ -14,12 +14,12 @@ import (
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 
-	// bindings "github.com/getAlby/hub/bark"
+	bindings "github.com/getAlby/hub/bark"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/notifications"
-	bindings "github.com/getAlby/second-hub-go/bark"
+	//bindings "github.com/getAlby/second-hub-go/bark"
 )
 
 const barkDB = "bark.sqlite"
@@ -149,7 +149,7 @@ func (s *BarkService) Shutdown() error {
 	return nil
 }
 
-func (s *BarkService) SendPaymentSync(ctx context.Context, invoice string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (s *BarkService) SendPaymentSync(invoice string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
 	paymentRequest, err := decodepay.Decodepay(invoice)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -199,7 +199,7 @@ func (s *BarkService) SendPaymentSync(ctx context.Context, invoice string, amoun
 	}, nil
 }
 
-func (s *BarkService) SendKeysend(ctx context.Context, amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+func (s *BarkService) SendKeysend(amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	return nil, errors.New("not implemented")
 }
 
@@ -232,7 +232,7 @@ func (s *BarkService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err
 	}, nil
 }
 
-func (s *BarkService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64) (transaction *lnclient.Transaction, err error) {
+func (s *BarkService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
 
 	invoice, err := s.wallet.Bolt11Invoice(uint64(amount / 1000))
 	if err != nil {
@@ -774,8 +774,8 @@ func (s *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 		}
 
 		respMovements := make([]map[string]interface{}, 0, len(movements))
-		for _, utxo := range movements {
-			respMovements = append(respMovements, convertMovementToCommandResp(utxo))
+		for _, movement := range movements {
+			respMovements = append(respMovements, convertMovementToCommandResp(movement))
 		}
 
 		return &lnclient.CustomNodeCommandResponse{

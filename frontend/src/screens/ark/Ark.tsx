@@ -81,10 +81,12 @@ type UTXO =
 
 type Movement = {
   id: string;
+  status: string;
+  subsystem: { name: string; kind: string };
   kind: string;
-  amount_sent_sat: number;
-  amount_received_sat: number;
-  fees_sat: number;
+  offchain_fees_sat: number;
+  intended_balance_change_sat: number;
+  effective_balance_change_sat: number;
   created_at: string;
 };
 
@@ -416,16 +418,13 @@ export function Ark() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[160px] text-muted-foreground">
-                    Amount Sent
+                    Subsystem
                   </TableHead>
                   <TableHead className="w-[160px] text-muted-foreground">
-                    Amount Received
+                    Amount
                   </TableHead>
                   <TableHead className="w-[160px] text-muted-foreground">
                     Fees
-                  </TableHead>
-                  <TableHead className="w-[160px] text-muted-foreground">
-                    Kind
                   </TableHead>
                   <TableHead className="text-muted-foreground">
                     Created
@@ -436,24 +435,19 @@ export function Ark() {
                 {movements.map((movement) => {
                   return (
                     <TableRow key={movement.id}>
+                      <TableCell>{movement.subsystem.kind}</TableCell>
                       <TableCell>
                         {new Intl.NumberFormat().format(
-                          movement.amount_sent_sat
+                          movement.effective_balance_change_sat
                         )}
                       </TableCell>
                       <TableCell>
                         {new Intl.NumberFormat().format(
-                          movement.amount_received_sat
+                          movement.offchain_fees_sat
                         )}
                       </TableCell>
                       <TableCell>
-                        {new Intl.NumberFormat().format(movement.fees_sat)}
-                      </TableCell>
-                      <TableCell>{movement.kind}</TableCell>
-                      <TableCell>
-                        {dayjs(movement.created_at + "Z")
-                          .local()
-                          .fromNow()}
+                        {dayjs(movement.created_at).local().fromNow()}
                       </TableCell>
                     </TableRow>
                   );
