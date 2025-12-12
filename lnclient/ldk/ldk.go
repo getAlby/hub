@@ -84,6 +84,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		// Mutinynet
 		lsp.OlympusMutinynetLSP().Pubkey,
 		lsp.MegalithMutinynetLSP().Pubkey,
+		"03f726f240f0391448fb31c33e130ecc9708c9137e1f4e77b5d17d5dec74b0dd1e", // flashsats
 	}
 
 	// rather than fully trusting our LSPs, we set the channel reserve to 0.
