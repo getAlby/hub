@@ -627,7 +627,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
   return (
     <div className="flex flex-col gap-5">
       <AppHeader
-        title="Buy Channel"
+        title="Review Channel Purchase"
         description={
           lspOrderResponse
             ? "Complete Payment to open a channel to your node"
