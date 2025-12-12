@@ -36,6 +36,12 @@ func TestCheckCache_NoEncryptionKey(t *testing.T) {
 	require.Equal(t, "value", value)
 
 	require.Equal(t, cfg.cache["key"][""], "value")
+
+	// test we can access the cached value without the db
+	cfg.db = nil
+	value, err = cfg.Get("key", "")
+	require.NoError(t, err)
+	require.Equal(t, "value", value)
 }
 
 func TestCheckUnlockPasswordCache(t *testing.T) {
@@ -79,4 +85,23 @@ func TestCheckUnlockPasswordCache(t *testing.T) {
 	err = cfg.ChangeUnlockPassword(unlockPassword, newUnlockPassword)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(cfg.cache["UnlockPasswordCheck"]))
+
+	// test we can access the cached value without the db
+	assert.True(t, cfg.CheckUnlockPassword(newUnlockPassword))
+	assert.NotNil(t, cfg.cache["UnlockPasswordCheck"])
+	cfg.db = nil
+	assert.True(t, cfg.CheckUnlockPassword(newUnlockPassword))
+
+	// should panic when trying to access the db for an uncached value
+	hitPanic := false
+	func() {
+		defer func() {
+			// ensure the app cannot panic if firing events to Alby API fails
+			if r := recover(); r != nil {
+				hitPanic = true
+			}
+		}()
+		assert.False(t, cfg.CheckUnlockPassword(unlockPassword))
+	}()
+	assert.True(t, hitPanic)
 }
