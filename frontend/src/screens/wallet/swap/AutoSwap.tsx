@@ -11,6 +11,7 @@ import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
+import PasswordInput from "src/components/password/PasswordInput";
 import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
 import { Button } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
@@ -65,6 +66,7 @@ function AutoSwapOutForm() {
   const [externalType, setExternalType] = useState<"address" | "xpub">(
     "address"
   );
+  const [unlockPassword, setUnlockPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const onSubmit = async (e: React.FormEvent) => {
@@ -74,6 +76,14 @@ function AutoSwapOutForm() {
       toast.info(
         "Balance threshold must be greater than or equal to swap amount"
       );
+      return;
+    }
+
+    const isXpub = externalType === "xpub" && !isInternalSwap;
+    if (isXpub && !unlockPassword) {
+      toast.error("Password required", {
+        description: "Please enter your unlock password to encrypt the XPUB",
+      });
       return;
     }
 
@@ -88,6 +98,7 @@ function AutoSwapOutForm() {
           swapAmount: parseInt(swapAmount),
           balanceThreshold: parseInt(balanceThreshold),
           destination,
+          unlockPassword: isXpub ? unlockPassword : undefined,
         }),
       });
       toast("Auto swap enabled successfully");
@@ -269,6 +280,21 @@ function AutoSwapOutForm() {
                 : "Enter an XPUB to automatically generate new addresses for each swap"}
             </p>
           </div>
+          {externalType === "xpub" && (
+            <div className="grid gap-1.5">
+              <Label>Unlock Password</Label>
+              <PasswordInput
+                id="unlockPassword"
+                value={unlockPassword}
+                onChange={setUnlockPassword}
+                placeholder="Enter your unlock password"
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                Your password is required to encrypt the XPUB for secure storage
+              </p>
+            </div>
+          )}
         </div>
       )}
 
