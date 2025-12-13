@@ -14,6 +14,7 @@ import damus from "src/assets/suggested-apps/damus.png";
 import goose from "src/assets/suggested-apps/goose.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import iris from "src/assets/suggested-apps/iris.png";
+import jumble from "src/assets/suggested-apps/jumble.png";
 import lightningMessageboard from "src/assets/suggested-apps/lightning-messageboard.png";
 import lnbits from "src/assets/suggested-apps/lnbits.png";
 import lume from "src/assets/suggested-apps/lume.png";
@@ -25,9 +26,11 @@ import nostur from "src/assets/suggested-apps/nostur.png";
 import paperScissorsHodl from "src/assets/suggested-apps/paper-scissors-hodl.png";
 import primal from "src/assets/suggested-apps/primal.png";
 import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
+import satoshisauctionhouse from "src/assets/suggested-apps/satoshis-auction-house.png";
 import simpleboost from "src/assets/suggested-apps/simple-boost.png";
 import snort from "src/assets/suggested-apps/snort.png";
 import stackernews from "src/assets/suggested-apps/stacker-news.png";
+import takemysats from "src/assets/suggested-apps/takemysats.png";
 import tictactoe from "src/assets/suggested-apps/tictactoe.png";
 import wavespace from "src/assets/suggested-apps/wave-space.png";
 import wavlake from "src/assets/suggested-apps/wavlake.png";
@@ -1667,6 +1670,143 @@ export const appStoreApps: AppStoreApp[] = (
           </div>
         </>
       ),
+    },
+    {
+      id: "jumble",
+      title: "Jumble",
+      description: "Social media client with Bitcoin Connect",
+      webLink: "https://jumble.social",
+      logo: jumble,
+      extendedDescription:
+        "A social media client that uses Bitcoin Connect for seamless wallet integration with your Hub",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://jumble.social"
+              className="font-medium text-foreground underline"
+            >
+              Jumble
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Jumble</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Click on{" "}
+                <span className="font-medium text-foreground">
+                  Connect Wallet
+                </span>
+              </li>
+              <li>
+                Choose{" "}
+                <span className="font-medium text-foreground">
+                  Nostr Wallet Connect
+                </span>
+              </li>
+              <li>Paste the connection secret from Alby Hub</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["social-media"],
+    },
+    {
+      id: "satoshis-auction-house",
+      title: "Satoshi's Auction House",
+      description: "Bitcoin-powered auction platform",
+      webLink: "https://satoshisauction.house",
+      logo: satoshisauctionhouse,
+      extendedDescription:
+        "Buy and sell items through Bitcoin-powered auctions directly from your Hub",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://satoshisauction.house"
+              className="font-medium text-foreground underline"
+            >
+              Satoshi's Auction House
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Satoshi's Auction House</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Click on{" "}
+                <span className="font-medium text-foreground">
+                  Connect Wallet
+                </span>
+              </li>
+              <li>
+                Choose{" "}
+                <span className="font-medium text-foreground">
+                  Nostr Wallet Connect
+                </span>
+              </li>
+              <li>Paste the connection secret from Alby Hub</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["shopping"],
+    },
+    {
+      id: "takemysats",
+      title: "Take My Sats",
+      description: "Create your online store and accept Bitcoin payments",
+      webLink: "https://www.takemysats.com",
+      logo: takemysats,
+      extendedDescription:
+        "A Bitcoin e-commerce platform that enables merchants to create online stores and accept Lightning payments directly to your Hub",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://www.takemysats.com"
+              className="font-medium text-foreground underline"
+            >
+              Take My Sats
+            </ExternalLink>{" "}
+            in your browser and create your store
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Take My Sats</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Go to your store{" "}
+                <span className="font-medium text-foreground">Settings</span>
+              </li>
+              <li>
+                Choose{" "}
+                <span className="font-medium text-foreground">
+                  Nostr Wallet Connect
+                </span>{" "}
+                as your payment method
+              </li>
+              <li>Paste the connection secret from Alby Hub</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["merchant-tools"],
     },
   ] satisfies AppStoreApp[]
 ).sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
