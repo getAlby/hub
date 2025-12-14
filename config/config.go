@@ -2,6 +2,7 @@ package config
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -21,7 +22,7 @@ import (
 type config struct {
 	Env        *AppConfig
 	db         *gorm.DB
-	cache      map[string]string
+	cache      map[string]map[string]string // key -> encryptionKeyHash -> value
 	cacheMutex sync.Mutex
 }
 
@@ -32,7 +33,7 @@ const (
 func NewConfig(env *AppConfig, db *gorm.DB) (*config, error) {
 	cfg := &config{
 		db:    db,
-		cache: map[string]string{},
+		cache: map[string]map[string]string{},
 	}
 	err := cfg.init(env)
 	if err != nil {
@@ -180,13 +181,28 @@ func (cfg *config) GetMempoolUrl() string {
 	return strings.TrimSuffix(mempoolApiUrl, "/api")
 }
 
+func (cfg *config) getEncryptionKeyHash(encryptionKey string) string {
+	if encryptionKey == "" {
+		return ""
+	}
+	hash := sha256.Sum256([]byte(encryptionKey))
+	// For cache key purposes, 8 bytes (16 hex chars) provides:
+	//   2^64 possible values = ~18 quintillion combinations
+	//   More than sufficient to avoid collisions for cache keys
+	return hex.EncodeToString(hash[:8])
+}
+
 func (cfg *config) Get(key string, encryptionKey string) (string, error) {
 	cfg.cacheMutex.Lock()
 	defer cfg.cacheMutex.Unlock()
-	cachedValue, ok := cfg.cache[key]
-	if ok {
-		logger.Logger.WithField("key", key).Debug("hit config cache")
-		return cachedValue, nil
+
+	encKeyHash := cfg.getEncryptionKeyHash(encryptionKey)
+
+	if keyCache, ok := cfg.cache[key]; ok {
+		if cachedValue, ok := keyCache[encKeyHash]; ok {
+			logger.Logger.WithField("key", key).Debug("hit config cache")
+			return cachedValue, nil
+		}
 	}
 	logger.Logger.WithField("key", key).Debug("missed config cache")
 
@@ -194,7 +210,11 @@ func (cfg *config) Get(key string, encryptionKey string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	cfg.cache[key] = value
+
+	if cfg.cache[key] == nil {
+		cfg.cache[key] = make(map[string]string)
+	}
+	cfg.cache[key][encKeyHash] = value
 	logger.Logger.WithField("key", key).Debug("set config cache")
 	return value, nil
 }
@@ -256,7 +276,7 @@ func (cfg *config) SetIgnore(key string, value string, encryptionKey string) err
 func (cfg *config) SetUpdate(key string, value string, encryptionKey string) error {
 	clauses := clause.OnConflict{
 		Columns:   []clause.Column{{Name: "key"}},
-		DoUpdates: clause.AssignmentColumns([]string{"value"}),
+		DoUpdates: clause.AssignmentColumns([]string{"value", "encrypted"}),
 	}
 	err := cfg.set(key, value, clauses, encryptionKey, cfg.db)
 	if err != nil {
