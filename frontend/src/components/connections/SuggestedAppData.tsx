@@ -393,6 +393,7 @@ export const appStoreApps: AppStoreApp[] = (
       title: "RUNSTR",
       description: "Bitcoin-powered fitness competitions",
       webLink: "https://www.runstr.club",
+      zapStoreLink: "https://zapstore.dev/apps/naddr1qvzqqqr7pvpzqcgsy8425f5jwsd3yd4me6j5c64f7g96xr9vuvtv82fag5yf5lg0qqwxxmmd9eskummw09kk7atn9ee82mnnw3ezuurjda4x2cm50etju8",
       logo: runstr,
       extendedDescription:
         "Track workouts, join team competitions, and earn Bitcoin rewards through Lightning payments",
@@ -401,7 +402,7 @@ export const appStoreApps: AppStoreApp[] = (
           <p className="text-muted-foreground">
             Download and open{" "}
             <span className="font-medium text-foreground">RUNSTR</span> on your
-            iOS device
+            iOS or Android device
           </p>
         </>
       ),
