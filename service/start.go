@@ -276,14 +276,19 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return errors.New("invalid password")
 	}
 
-	ctx, cancelFn := context.WithCancel(svc.ctx)
+	err = svc.cfg.Unlock(encryptionKey)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to unlock config")
+		return err
+	}
 
 	err = svc.keys.Init(svc.cfg, encryptionKey)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to init nostr keys")
-		cancelFn()
 		return err
 	}
+
+	ctx, cancelFn := context.WithCancel(svc.ctx)
 
 	svc.startupState = "Launching Node"
 	err = svc.launchLNBackend(ctx, encryptionKey)
