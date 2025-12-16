@@ -1336,7 +1336,7 @@ var startMutex sync.Mutex
 
 func (api *api) Start(startRequest *StartRequest) {
 	api.startupError = nil
-	err := api.StartInternal(startRequest)
+	err := api.startInternal(startRequest)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to start node")
 		api.startupError = err
@@ -1344,7 +1344,7 @@ func (api *api) Start(startRequest *StartRequest) {
 	}
 }
 
-func (api *api) StartInternal(startRequest *StartRequest) (err error) {
+func (api *api) startInternal(startRequest *StartRequest) (err error) {
 	if !startMutex.TryLock() {
 		// do not allow to start twice in case this is somehow called twice
 		return errors.New("app is busy")

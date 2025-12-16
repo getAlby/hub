@@ -113,7 +113,11 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 		},
 		// use a custom key func as the JWT secret will change if the user changes their unlock password
 		KeyFunc: func(token *jwt.Token) (interface{}, error) {
-			return []byte(httpSvc.cfg.GetJWTSecret()), nil
+			secret, err := httpSvc.cfg.GetJWTSecret()
+			if err != nil {
+				return nil, err
+			}
+			return []byte(secret), nil
 		},
 	}
 	// Read-only API group - accessible to both full and readonly tokens
@@ -209,7 +213,12 @@ func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 		if parts[0] == "Bearer" {
 			tokenString := parts[1]
 			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-				return []byte(httpSvc.cfg.GetJWTSecret()), nil
+				secret, err := httpSvc.cfg.GetJWTSecret()
+				if err != nil {
+					return nil, err
+				}
+
+				return []byte(secret), nil
 			})
 			if err != nil {
 				logger.Logger.WithError(err).Error("failed to parse token")
@@ -282,6 +291,17 @@ func (httpSvc *HttpService) startHandler(c echo.Context) error {
 	if !httpSvc.cfg.CheckUnlockPassword(startRequest.UnlockPassword) {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{
 			Message: "Invalid password",
+		})
+	}
+
+	// NOTE: the config is also unlocked as part of the start
+	// goroutine below. But since we execute start asynchronously it's hard to
+	// know when the config has been unlocked before being able to create the JWT token
+	err := httpSvc.cfg.Unlock(startRequest.UnlockPassword)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to unlock config: %s", err.Error()),
 		})
 	}
 
@@ -438,7 +458,12 @@ func (httpSvc *HttpService) createJWT(tokenExpiryDays *uint64, permission string
 		return "", errors.New("failed to create token")
 	}
 
-	signed, err := token.SignedString([]byte(httpSvc.cfg.GetJWTSecret()))
+	secret, err := httpSvc.cfg.GetJWTSecret()
+	if err != nil {
+		return "", err
+	}
+
+	signed, err := token.SignedString([]byte(secret))
 	if err != nil {
 		return "", err
 	}

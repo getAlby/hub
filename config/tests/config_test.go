@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/tests"
 )
 
@@ -209,3 +210,54 @@ func TestSetUpdate_EncryptionKeyToNoEncryptionKey(t *testing.T) {
 	updatedValue, err := svc.Cfg.Get("key", "")
 	assert.Equal(t, "value2", updatedValue)
 }
+
+func TestJWTSecret_GeneratedOnUnlock(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	cfg, err := config.NewConfig(&config.AppConfig{}, svc.DB)
+	require.NoError(t, err)
+
+	cfg.Unlock("")
+
+	jwtSecret, err := cfg.GetJWTSecret()
+	require.NoError(t, err)
+	assert.NotEmpty(t, jwtSecret)
+}
+
+func TestJWTSecret_ChangePassword(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	cfg, err := config.NewConfig(&config.AppConfig{}, svc.DB)
+	require.NoError(t, err)
+
+	err = cfg.ChangeUnlockPassword("", "123")
+	require.NoError(t, err)
+
+	err = cfg.Unlock("123")
+	require.NoError(t, err)
+
+	jwtSecret, err := cfg.GetJWTSecret()
+	require.NoError(t, err)
+	assert.NotEmpty(t, jwtSecret)
+
+	err = cfg.ChangeUnlockPassword("", "1234")
+	require.NoError(t, err)
+
+	newJwtSecret, err := cfg.GetJWTSecret()
+	require.ErrorContains(t, err, "unlock")
+
+	err = cfg.Unlock("1234")
+	require.NoError(t, err)
+
+	// a new JWT secret must be generated after password change
+	newJwtSecret, err = cfg.GetJWTSecret()
+	require.NoError(t, err)
+	assert.NotEmpty(t, newJwtSecret)
+	assert.NotEqual(t, newJwtSecret, jwtSecret)
+}
+
+// TODO: migrate from unencrypted to encrypted

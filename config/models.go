@@ -24,7 +24,6 @@ type AppConfig struct {
 	Workdir                            string `envconfig:"WORK_DIR"`
 	Port                               string `envconfig:"PORT" default:"8080"`
 	DatabaseUri                        string `envconfig:"DATABASE_URI" default:"nwc.db"`
-	JWTSecret                          string `envconfig:"JWT_SECRET"`
 	LogLevel                           string `envconfig:"LOG_LEVEL" default:"4"`
 	LogToFile                          bool   `envconfig:"LOG_TO_FILE" default:"true"`
 	Network                            string `envconfig:"NETWORK"`
@@ -73,10 +72,11 @@ func (c *AppConfig) GetBaseFrontendUrl() string {
 }
 
 type Config interface {
+	Unlock(encryptionKey string) error
 	Get(key string, encryptionKey string) (string, error)
 	SetIgnore(key string, value string, encryptionKey string) error
 	SetUpdate(key string, value string, encryptionKey string) error
-	GetJWTSecret() string
+	GetJWTSecret() (string, error)
 	GetRelayUrls() []string
 	GetNetwork() string
 	GetMempoolUrl() string
