@@ -142,6 +142,8 @@ func (cfg *config) Unlock(encryptionKey string) error {
 		return errors.New("incorrect password")
 	}
 
+	// TODO: remove encryptedJwtSecret check after 2027-01-01
+	// - all hubs should have updated to use an encrypted JWT secret by then
 	encryptedJwtSecret, err := cfg.Get("JWTSecret", "")
 	if err != nil {
 		return err
