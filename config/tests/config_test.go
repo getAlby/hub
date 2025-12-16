@@ -219,11 +219,21 @@ func TestJWTSecret_GeneratedOnUnlock(t *testing.T) {
 	cfg, err := config.NewConfig(&config.AppConfig{}, svc.DB)
 	require.NoError(t, err)
 
-	cfg.Unlock("")
+	err = cfg.ChangeUnlockPassword("", "123")
+	require.NoError(t, err)
+
+	err = cfg.Unlock("123")
+	require.NoError(t, err)
 
 	jwtSecret, err := cfg.GetJWTSecret()
 	require.NoError(t, err)
 	assert.NotEmpty(t, jwtSecret)
+
+	encryptedSecret, err := cfg.Get("JWTSecret", "")
+	require.NoError(t, err)
+	decryptedSecret, err := cfg.Get("JWTSecret", "123")
+	require.NoError(t, err)
+	assert.NotEqual(t, encryptedSecret, decryptedSecret)
 }
 
 func TestJWTSecret_ChangePassword(t *testing.T) {
