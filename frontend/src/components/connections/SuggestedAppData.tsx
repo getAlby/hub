@@ -1699,9 +1699,9 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Jumble</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                Click on{" "}
+                Click on Settings {"->"} Wallet {"->"}
                 <span className="font-medium text-foreground">
-                  Connect Wallet
+                  other wallets
                 </span>
               </li>
               <li>
@@ -1745,18 +1745,13 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Satoshi's Auction House</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                Click on{" "}
-                <span className="font-medium text-foreground">
-                  Connect Wallet
-                </span>
+                Click on the Hamburger menu on the top right and click{" "}
+                <span className="font-medium text-foreground">Settings</span>
               </li>
               <li>
-                Choose{" "}
-                <span className="font-medium text-foreground">
-                  Nostr Wallet Connect
-                </span>
+                Paste the connection secret from Alby Hub into the receive-only
+                connection secret field
               </li>
-              <li>Paste the connection secret from Alby Hub</li>
             </ul>
           </div>
         </>
