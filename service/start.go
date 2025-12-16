@@ -231,7 +231,12 @@ func (svc *service) watchSubscription(ctx context.Context, pool *nostr.SimplePoo
 	go func() {
 		// loop through incoming events
 		for event := range eventsChannel {
-			go svc.nip47Service.HandleEvent(ctx, pool, event.Event, svc.lnClient)
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				go svc.nip47Service.HandleEvent(ctx, pool, event.Event, svc.lnClient)
+			}
 		}
 		logger.Logger.Debug("Relay subscription events channel ended")
 		eventsChannelClosed <- struct{}{}
