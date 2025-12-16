@@ -26,6 +26,7 @@ import nostur from "src/assets/suggested-apps/nostur.png";
 import paperScissorsHodl from "src/assets/suggested-apps/paper-scissors-hodl.png";
 import primal from "src/assets/suggested-apps/primal.png";
 import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
+import runstr from "src/assets/suggested-apps/runstr.png";
 import simpleboost from "src/assets/suggested-apps/simple-boost.png";
 import snort from "src/assets/suggested-apps/snort.png";
 import stackernews from "src/assets/suggested-apps/stacker-news.png";
@@ -452,6 +453,58 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["social-media"],
+    },
+    {
+      id: "runstr",
+      title: "RUNSTR",
+      description: "Bitcoin-powered fitness competitions",
+      webLink: "https://www.runstr.club",
+      zapStoreLink:
+        "https://zapstore.dev/apps/naddr1qvzqqqr7pvpzqcgsy8425f5jwsd3yd4me6j5c64f7g96xr9vuvtv82fag5yf5lg0qqwxxmmd9eskummw09kk7atn9ee82mnnw3ezuurjda4x2cm50etju8",
+      logo: runstr,
+      extendedDescription:
+        "Track workouts, join team competitions, and earn Bitcoin rewards through Lightning payments",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Download and open{" "}
+            <span className="font-medium text-foreground">RUNSTR</span> on your
+            iOS or Android device
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In RUNSTR</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Go to{" "}
+                <span className="font-medium text-foreground">Settings</span>{" "}
+                and expand the{" "}
+                <span className="font-medium text-foreground">Advanced</span>{" "}
+                section
+              </li>
+              <li>
+                Tap{" "}
+                <span className="font-medium text-foreground">
+                  Scan QR Code
+                </span>{" "}
+                to scan your Alby Hub connection QR
+              </li>
+              <li>
+                Or tap{" "}
+                <span className="font-medium text-foreground">
+                  Enter Manually
+                </span>{" "}
+                to paste your NWC connection string
+              </li>
+              <li>Confirm the connection when prompted</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["misc"],
     },
     {
       id: "zap-stream",
