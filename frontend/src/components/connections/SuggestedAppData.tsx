@@ -1,5 +1,6 @@
 import { ZapIcon } from "lucide-react";
 import { Link } from "react-router-dom";
+import topup2fiat from "src/assets/suggested-apps/2fiat-topup.png";
 import albyExtension from "src/assets/suggested-apps/alby-extension.png";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
@@ -26,6 +27,7 @@ import nostur from "src/assets/suggested-apps/nostur.png";
 import paperScissorsHodl from "src/assets/suggested-apps/paper-scissors-hodl.png";
 import primal from "src/assets/suggested-apps/primal.png";
 import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
+import runstr from "src/assets/suggested-apps/runstr.png";
 import satoshisauctionhouse from "src/assets/suggested-apps/satoshis-auction-house.png";
 import simpleboost from "src/assets/suggested-apps/simple-boost.png";
 import snort from "src/assets/suggested-apps/snort.png";
@@ -182,6 +184,71 @@ export const appStoreApps: AppStoreApp[] = (
       extendedDescription:
         "Your local AI agent, automating engineering tasks seamlessly",
       webLink: "https://block.github.io/goose",
+    },
+    {
+      id: "2fiat",
+      title: "2fiat Topup",
+      description:
+        "No-KYC virtual prepaid Mastercard with instant lightning topups",
+      logo: topup2fiat,
+      categories: ["payment-tools"],
+      extendedDescription:
+        "No-KYC virtual prepaid Mastercard. Anonymous payments, Instant lightning top-ups, Apple & Google Pay ready, Load amounts from $10 to $10,000,  All cards support 3D Secure (3DS), Global usage - pay anywhere Mastercard is accepted.",
+      webLink: "http://2fiat.com/getalby",
+      installGuide: (
+        <>
+          <div>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                <ExternalLink
+                  to="http://2fiat.com/getalby"
+                  className="underline"
+                >
+                  Sign up
+                </ExternalLink>{" "}
+                for a 2fiat card and set it up
+              </li>
+              <li>
+                On the 2fiat website, open the card page (where you can see the
+                full card number and transaction list) and{" "}
+                <span className="font-medium text-foreground">
+                  copy the entire URL
+                </span>
+                .
+              </li>
+              <li>
+                Open{" "}
+                <ExternalLink
+                  to="https://rolznz.github.io/2fiat-topup/"
+                  className="underline"
+                >
+                  2fiat topup
+                </ExternalLink>{" "}
+                (on mobile save the app to your homescreen and open it there
+                before continuing) and
+              </li>
+              <li>
+                Click the "Connect Card" button and paste the card link you
+                copied earlier.
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>Copy the connection secret below</li>
+              <li>
+                Click the "Connect Wallet" button inside the 2fiat topup app,
+                choose "Alby Hub {"->"} Connection Secret" and paste the
+                connection secret.
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
     },
     {
       id: "claude",
@@ -389,6 +456,58 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["social-media"],
+    },
+    {
+      id: "runstr",
+      title: "RUNSTR",
+      description: "Bitcoin-powered fitness competitions",
+      webLink: "https://www.runstr.club",
+      zapStoreLink:
+        "https://zapstore.dev/apps/naddr1qvzqqqr7pvpzqcgsy8425f5jwsd3yd4me6j5c64f7g96xr9vuvtv82fag5yf5lg0qqwxxmmd9eskummw09kk7atn9ee82mnnw3ezuurjda4x2cm50etju8",
+      logo: runstr,
+      extendedDescription:
+        "Track workouts, join team competitions, and earn Bitcoin rewards through Lightning payments",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Download and open{" "}
+            <span className="font-medium text-foreground">RUNSTR</span> on your
+            iOS or Android device
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In RUNSTR</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Go to{" "}
+                <span className="font-medium text-foreground">Settings</span>{" "}
+                and expand the{" "}
+                <span className="font-medium text-foreground">Advanced</span>{" "}
+                section
+              </li>
+              <li>
+                Tap{" "}
+                <span className="font-medium text-foreground">
+                  Scan QR Code
+                </span>{" "}
+                to scan your Alby Hub connection QR
+              </li>
+              <li>
+                Or tap{" "}
+                <span className="font-medium text-foreground">
+                  Enter Manually
+                </span>{" "}
+                to paste your NWC connection string
+              </li>
+              <li>Confirm the connection when prompted</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["misc"],
     },
     {
       id: "zap-stream",
@@ -1627,7 +1746,7 @@ export const appStoreApps: AppStoreApp[] = (
       id: "bringin",
       title: "Bringin",
       description:
-        "Spend Bitcoin from your Alby Hub anywhere VISA is accepted (150M+ merchants).",
+        "Spend Bitcoin from your Alby Hub with VISA at 150M+ merchants worldwide",
       webLink: "https://bringin.xyz",
       playLink:
         "https://play.google.com/store/apps/details?id=xyz.bringin.client",

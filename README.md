@@ -95,6 +95,10 @@ _If you get a blank screen, try running in your normal terminal (outside of vsco
     $ docker build . -t nwc-local --progress=plain
     $ docker run -v $(pwd)/.data/docker:/data -e WORK_DIR='/data' -p 8080:8080 nwc-local
 
+### Debugging
+
+In vscode open [cmd/http/main.go](cmd/http/main.go) and then press F5. You can set breakpoints in the Alby Hub code and third party modules
+
 ### Testing
 
     $ go test ./...
