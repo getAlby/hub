@@ -234,6 +234,13 @@ func TestJWTSecret_GeneratedOnUnlock(t *testing.T) {
 	decryptedSecret, err := cfg.Get("JWTSecret", "123")
 	require.NoError(t, err)
 	assert.NotEqual(t, encryptedSecret, decryptedSecret)
+
+	// unlock again without doing anything, ensure the same JWT secret is returned
+	err = cfg.Unlock("123")
+	require.NoError(t, err)
+	jwtSecret2, err := cfg.GetJWTSecret()
+	require.NoError(t, err)
+	assert.Equal(t, jwtSecret, jwtSecret2)
 }
 
 func TestJWTSecret_ChangePassword(t *testing.T) {
@@ -270,4 +277,32 @@ func TestJWTSecret_ChangePassword(t *testing.T) {
 	assert.NotEqual(t, newJwtSecret, jwtSecret)
 }
 
-// TODO: migrate from unencrypted to encrypted
+func TestJWTSecret_ReplaceUnencryptedSecretOnUnlock(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	cfg, err := config.NewConfig(&config.AppConfig{}, svc.DB)
+	require.NoError(t, err)
+
+	err = cfg.ChangeUnlockPassword("", "123")
+	require.NoError(t, err)
+
+	// simulate a hub that had an unencrypted JWT secret
+	oldJwtSecret := "dummy secret"
+	err = svc.Cfg.SetUpdate("JWTSecret", oldJwtSecret, "")
+	require.NoError(t, err)
+
+	err = cfg.Unlock("123")
+	require.NoError(t, err)
+
+	jwtSecret, err := cfg.GetJWTSecret()
+	require.NoError(t, err)
+	assert.NotEmpty(t, jwtSecret)
+	assert.NotEqual(t, jwtSecret, oldJwtSecret)
+
+	// ensure it is saved to DB
+	jwtSecretFromCfg, err := cfg.Get("JWTSecret", "123")
+	require.NoError(t, err)
+	assert.Equal(t, jwtSecret, jwtSecretFromCfg)
+}

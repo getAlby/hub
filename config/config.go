@@ -142,9 +142,16 @@ func (cfg *config) Unlock(encryptionKey string) error {
 		return errors.New("incorrect password")
 	}
 
-	// fetch the JWT secret or generate a new one if none exists yet
-	jwtSecret, _ := cfg.Get("JWTSecret", encryptionKey)
-	if jwtSecret == "" {
+	encryptedJwtSecret, err := cfg.Get("JWTSecret", "")
+	if err != nil {
+		return err
+	}
+	jwtSecret, err := cfg.Get("JWTSecret", encryptionKey)
+	if err != nil {
+		return err
+	}
+	// generate a new one if none exists yet OR if the user has an unencrypted secret
+	if jwtSecret == "" || jwtSecret == encryptedJwtSecret {
 		hexSecret, err := randomHex(32)
 		if err != nil {
 			logger.Logger.WithError(err).Error("failed to generate JWT secret")
@@ -153,7 +160,7 @@ func (cfg *config) Unlock(encryptionKey string) error {
 		jwtSecret = hexSecret
 		logger.Logger.Info("Generated new JWT secret")
 
-		err = cfg.SetIgnore("JWTSecret", jwtSecret, encryptionKey)
+		err = cfg.SetUpdate("JWTSecret", jwtSecret, encryptionKey)
 		if err != nil {
 			logger.Logger.WithError(err).Error("failed to save JWT secret")
 			return err
