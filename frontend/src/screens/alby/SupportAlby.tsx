@@ -33,7 +33,6 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import {
-  BITCOIN_DISPLAY_FORMAT_BIP177,
   SUPPORT_ALBY_CONNECTION_NAME,
   SUPPORT_ALBY_LIGHTNING_ADDRESS,
 } from "src/constants";
@@ -56,6 +55,10 @@ function SupportAlby() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!info) {
+      return;
+    }
+
     setSubmitting(true);
     try {
       const parsedAmount = parseInt(amount);
@@ -67,7 +70,7 @@ function SupportAlby() {
         toast.error("Amount too low", {
           description: `Minimum payment is ${formatBitcoinAmount(
             1_000 * 1000,
-            info?.bitcoinDisplayFormat || BITCOIN_DISPLAY_FORMAT_BIP177
+            info.bitcoinDisplayFormat
           )}`,
         });
         return;

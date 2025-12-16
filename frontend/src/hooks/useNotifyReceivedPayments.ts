@@ -1,6 +1,5 @@
 import React from "react";
 import { toast } from "sonner";
-import { BITCOIN_DISPLAY_FORMAT_BIP177 } from "src/constants";
 import { useInfo } from "src/hooks/useInfo";
 import { useTransactions } from "src/hooks/useTransactions";
 import { Transaction } from "src/types";
@@ -21,7 +20,7 @@ export function useNotifyReceivedPayments() {
         toast("Payment received", {
           description: formatBitcoinAmount(
             latestTx.amount,
-            info.bitcoinDisplayFormat || BITCOIN_DISPLAY_FORMAT_BIP177
+            info.bitcoinDisplayFormat
           ),
         });
       }

@@ -20,12 +20,15 @@ export function FormattedBitcoinAmount({
 }: FormattedBitcoinAmountProps) {
   const { data: info } = useInfo();
 
+  if (!info) {
+    return null;
+  }
+
   // Convert from millisatoshis to satoshis
   const sats = Math.floor(amount / 1000);
 
   // Get display format from settings
-  const displayFormat =
-    info?.bitcoinDisplayFormat || BITCOIN_DISPLAY_FORMAT_BIP177;
+  const displayFormat = info.bitcoinDisplayFormat;
 
   const formattedNumber = new Intl.NumberFormat().format(sats);
 
