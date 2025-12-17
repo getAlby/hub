@@ -5,7 +5,7 @@ import { Button } from "./ui/button";
 import { buttonVariants } from "./ui/buttonVariants";
 
 type Props = {
-  icon: React.ComponentType;
+  icon: React.ComponentType<{ className?: string }>;
   text: string;
 } & React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
@@ -19,11 +19,12 @@ const ResponsiveButton = ({
   asChild,
   children,
   className,
+  disabled,
   ...props
 }: Props) => {
   const content = (
     <>
-      <Icon />
+      <Icon aria-hidden="true" />
       <span className="hidden lg:inline">{text}</span>
     </>
   );
@@ -33,9 +34,12 @@ const ResponsiveButton = ({
       {...props}
       variant={variant}
       asChild={asChild}
+      disabled={disabled}
+      aria-disabled={disabled}
+      aria-label={text}
       className={cn(
         className,
-        "max-lg:size-9" /* apply size="icon" only for mobile */
+        "max-lg:size-9" /* apply size=\"icon\" only for mobile */
       )}
     >
       {asChild
