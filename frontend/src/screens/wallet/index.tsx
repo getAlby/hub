@@ -41,6 +41,7 @@ function Wallet() {
     <>
       <AppHeader
         title="Wallet"
+        pageTitle="Wallet"
         description=""
         contentRight={
           <>

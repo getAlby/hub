@@ -151,6 +151,7 @@ export default function Channels() {
     <>
       <AppHeader
         title="Node"
+        pageTitle="Node"
         contentRight={
           hasChannelManagement && (
             <div className="flex gap-3 items-center justify-center">
