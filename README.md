@@ -262,6 +262,14 @@ _To configure via env, the following parameters must be provided:_
 
 See [Phoenixd](scripts/linux-x86_64/phoenixd/README.md)
 
+### Ark
+
+Currently Ark can only be configured via env.
+
+_To configure via env, the following parameters must be provided:_
+
+- `LN_BACKEND_TYPE`: ARK
+
 ### Alby OAuth
 
 Create an OAuth client at the [Alby Developer Portal](https://getalby.com/developer) and set your `ALBY_OAUTH_CLIENT_ID` and `ALBY_OAUTH_CLIENT_SECRET` in your .env. If not running locally, you'll also need to change your `BASE_URL`.
