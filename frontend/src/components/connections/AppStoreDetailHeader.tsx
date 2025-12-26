@@ -28,26 +28,23 @@ export function AppStoreDetailHeader({
             <div className="flex flex-row items-center">
               <img
                 src={appStoreApp.logo}
-                className="w-14 h-14 rounded-lg mr-4"
+                className="w-14 h-14 rounded-lg mr-4 shrink-0"
               />
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
+              <div className="flex gap-2 min-w-0">
+                <h2
+                  title={appStoreApp.title}
+                  className="text-xl font-semibold overflow-hidden text-ellipsis whitespace-nowrap"
+                >
                   {appStoreApp.title}
-                  {!!connectedApps.length && (
-                    <Badge
-                      variant="positive"
-                      className="flex items-center gap-1"
-                    >
-                      <CheckCircleIcon className="w-3 h-3" />{" "}
-                      {connectedApps.length > 1
-                        ? `${connectedApps.length} Connections`
-                        : "Connected"}
-                    </Badge>
-                  )}
-                </div>
-                <div className="text-sm font-normal text-muted-foreground">
-                  {appStoreApp.description}
-                </div>
+                </h2>
+                {!!connectedApps.length && (
+                  <Badge variant="positive" className="flex items-center gap-1">
+                    <CheckCircleIcon className="w-3 h-3" />{" "}
+                    {connectedApps.length > 1
+                      ? `${connectedApps.length} Connections`
+                      : "Connected"}
+                  </Badge>
+                )}
               </div>
             </div>
           </>
