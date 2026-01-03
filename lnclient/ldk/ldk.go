@@ -189,11 +189,9 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	builder.SetStorageDirPath(filepath.Join(newpath, "./storage"))
 
 	migrateStorage, _ := cfg.Get("LdkMigrateStorage", "")
+	clearMigrateStorageConfigValue := false
 	if migrateStorage == "VSS" {
-		err = cfg.SetUpdate("LdkMigrateStorage", "", "")
-		if err != nil {
-			return nil, err
-		}
+		clearMigrateStorageConfigValue = true
 		if vssToken == "" {
 			return nil, errors.New("migration enabled but no vss token found")
 		}
@@ -222,11 +220,19 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		node, err = builder.Build()
 	}
 
-	logger.Logger.WithFields(logrus.Fields{}).Info("LDK node created")
-
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create LDK node")
 		return nil, err
+	}
+
+	logger.Logger.WithFields(logrus.Fields{}).Info("LDK node created")
+
+	if clearMigrateStorageConfigValue {
+		err = cfg.SetUpdate("LdkMigrateStorage", "", "")
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to clear LDK migrate storage config value")
+			return nil, err
+		}
 	}
 
 	ldkEventConsumer := make(chan *ldk_node.Event)
