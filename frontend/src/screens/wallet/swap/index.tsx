@@ -162,7 +162,9 @@ function SwapInForm() {
           min={swapInfo.minAmount}
           max={Math.min(
             swapInfo.maxAmount,
-            spendableOnchainBalanceWithAnchorReserves,
+            ...(isInternalSwap
+              ? [spendableOnchainBalanceWithAnchorReserves]
+              : []),
             (balances.lightning.totalReceivable / 1000) * 0.99
           )}
           onChange={(e) => setSwapAmount(e.target.value)}
