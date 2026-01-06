@@ -50,31 +50,42 @@ function ProbeInvoiceDialogContent({ apiRequest }: Props) {
     setInvoice("");
   }
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onConfirm();
+  };
+
   return (
     <AlertDialogContent>
       <AlertDialogHeader>
         <AlertDialogTitle>Probe Invoice</AlertDialogTitle>
         <AlertDialogDescription className="text-start">
-          <Label htmlFor="invoice" className="block mb-2">
-            Enter Invoice
-          </Label>
-          <Input
-            id="invoice"
-            name="invoice"
-            type="text"
-            placeholder="lnbc...."
-            required
-            autoFocus
-            value={invoice}
-            onChange={(e) => {
-              setInvoice(e.target.value.trim());
-            }}
-          />
+          <form id="probe-invoice-form" onSubmit={handleSubmit}>
+            <Label htmlFor="invoice" className="block mb-2">
+              Enter Invoice
+            </Label>
+            <Input
+              id="invoice"
+              name="invoice"
+              type="text"
+              placeholder="lnbc...."
+              required
+              autoFocus
+              value={invoice}
+              onChange={(e) => {
+                setInvoice(e.target.value.trim());
+              }}
+            />
+          </form>
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>Cancel</AlertDialogCancel>
-        <AlertDialogAction disabled={!invoice} onClick={onConfirm}>
+        <AlertDialogAction
+          disabled={!invoice}
+          type="submit"
+          form="probe-invoice-form"
+        >
           Confirm
         </AlertDialogAction>
       </AlertDialogFooter>
@@ -95,47 +106,55 @@ function ProbeKeysendDialogContent({ apiRequest }: Props) {
     setNodeId("");
   }
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onConfirm();
+  };
+
   return (
     <AlertDialogContent>
       <AlertDialogHeader>
         <AlertDialogTitle>Probe Keysend</AlertDialogTitle>
         <AlertDialogDescription className="text-start">
-          <div>
-            <Label htmlFor="amount" className="block mb-2">
-              Enter Amount (sats)
-            </Label>
-            <Input
-              id="amount"
-              name="amount"
-              type="number"
-              min={0}
-              autoFocus
-              value={amount}
-              onChange={(e) => {
-                setAmount(e.target.value.trim());
-              }}
-            />
-          </div>
-          <div className="mt-4">
-            <Label htmlFor="pubkey" className="block mb-2">
-              Enter Node Pubkey
-            </Label>
-            <Input
-              id="pubkey"
-              type="text"
-              value={nodeId}
-              onChange={(e) => {
-                setNodeId(e.target.value.trim());
-              }}
-            />
-          </div>
+          <form id="probe-keysend-form" onSubmit={handleSubmit}>
+            <div>
+              <Label htmlFor="amount" className="block mb-2">
+                Enter Amount (sats)
+              </Label>
+              <Input
+                id="amount"
+                name="amount"
+                type="number"
+                min={0}
+                autoFocus
+                value={amount}
+                onChange={(e) => {
+                  setAmount(e.target.value.trim());
+                }}
+              />
+            </div>
+            <div className="mt-4">
+              <Label htmlFor="pubkey" className="block mb-2">
+                Enter Node Pubkey
+              </Label>
+              <Input
+                id="pubkey"
+                type="text"
+                value={nodeId}
+                onChange={(e) => {
+                  setNodeId(e.target.value.trim());
+                }}
+              />
+            </div>
+          </form>
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>Cancel</AlertDialogCancel>
         <AlertDialogAction
           disabled={!parseInt(amount) || !nodeId}
-          onClick={onConfirm}
+          type="submit"
+          form="probe-keysend-form"
         >
           Confirm
         </AlertDialogAction>
@@ -172,6 +191,11 @@ function RefundSwapDialogContent() {
     setSwapId("");
   }
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onConfirm();
+  };
+
   const paste = async () => {
     const text = await navigator.clipboard.readText();
     setAddress(text.trim());
@@ -188,111 +212,115 @@ function RefundSwapDialogContent() {
               <InfoIcon className="h-4 w-4 shrink-0" />
             </ExternalLink>
           </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="swapId">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <div className="flex flex-row gap-1 items-center text-muted-foreground">
-                      Swap Id
-                      <InfoIcon className="h-4 w-4 shrink-0" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>
-                      To find the Swap ID, close this dialog and click on the
-                      "List Swaps" button. Then you can look through and find a
-                      swap that is in state "FAILED" and matches the amount you
-                      tried to swap. The latest swaps are at the bottom of the
-                      list.
-                    </p>
-                    <p className="mt-2">
-                      When you have found the swap, copy the value of the id
-                      field. The swap Id will look something like uNHoD8QrAr9b.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </Label>
-            <Input
-              id="swapId"
-              name="swapId"
-              type="text"
-              required
-              autoFocus
-              value={swapId}
-              onChange={(e) => {
-                setSwapId(e.target.value.trim());
-              }}
-            />
-          </div>
-          <div className="flex flex-col gap-4">
-            <Label>Refund to</Label>
-            <RadioGroup
-              defaultValue="normal"
-              value={isInternal ? "internal" : "external"}
-              onValueChange={() => {
-                setAddress("");
-                setInternal(!isInternal);
-              }}
-              className="flex gap-4 flex-row"
-            >
-              <div className="flex items-start space-x-2 mb-2">
-                <RadioGroupItem
-                  value="internal"
-                  id="internal"
-                  className="shrink-0"
-                />
-                <Label
-                  htmlFor="internal"
-                  className="font-medium cursor-pointer"
-                >
-                  On-chain balance
-                </Label>
-              </div>
-              <div className="flex items-start space-x-2">
-                <RadioGroupItem
-                  value="external"
-                  id="external"
-                  className="shrink-0"
-                />
-                <Label
-                  htmlFor="external"
-                  className="font-medium cursor-pointer"
-                >
-                  External on-chain wallet
-                </Label>
-              </div>
-            </RadioGroup>
-          </div>
-          {!isInternal && (
-            <div className="grid gap-1.5">
-              <Label>On-chain address</Label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="bc1..."
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  required
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="px-2"
-                  onClick={paste}
-                >
-                  <ClipboardPasteIcon className="w-4 h-4" />
-                </Button>
-              </div>
+          <form id="refund-swap-form" onSubmit={handleSubmit}>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="swapId">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <div className="flex flex-row gap-1 items-center text-muted-foreground">
+                        Swap Id
+                        <InfoIcon className="h-4 w-4 shrink-0" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>
+                        To find the Swap ID, close this dialog and click on the
+                        "List Swaps" button. Then you can look through and find
+                        a swap that is in state "FAILED" and matches the amount
+                        you tried to swap. The latest swaps are at the bottom of
+                        the list.
+                      </p>
+                      <p className="mt-2">
+                        When you have found the swap, copy the value of the id
+                        field. The swap Id will look something like
+                        uNHoD8QrAr9b.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </Label>
+              <Input
+                id="swapId"
+                name="swapId"
+                type="text"
+                required
+                autoFocus
+                value={swapId}
+                onChange={(e) => {
+                  setSwapId(e.target.value.trim());
+                }}
+              />
             </div>
-          )}
+            <div className="flex flex-col gap-4 mt-4">
+              <Label>Refund to</Label>
+              <RadioGroup
+                defaultValue="normal"
+                value={isInternal ? "internal" : "external"}
+                onValueChange={() => {
+                  setAddress("");
+                  setInternal(!isInternal);
+                }}
+                className="flex gap-4 flex-row"
+              >
+                <div className="flex items-start space-x-2 mb-2">
+                  <RadioGroupItem
+                    value="internal"
+                    id="internal"
+                    className="shrink-0"
+                  />
+                  <Label
+                    htmlFor="internal"
+                    className="font-medium cursor-pointer"
+                  >
+                    On-chain balance
+                  </Label>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <RadioGroupItem
+                    value="external"
+                    id="external"
+                    className="shrink-0"
+                  />
+                  <Label
+                    htmlFor="external"
+                    className="font-medium cursor-pointer"
+                  >
+                    External on-chain wallet
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+            {!isInternal && (
+              <div className="grid gap-1.5 mt-4">
+                <Label>On-chain address</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="bc1..."
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                    required
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="px-2"
+                    onClick={paste}
+                  >
+                    <ClipboardPasteIcon className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </form>
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>Cancel</AlertDialogCancel>
         <AlertDialogAction
           disabled={!swapId || (!isInternal && !address)}
-          onClick={onConfirm}
+          type="submit"
+          form="refund-swap-form"
         >
           Confirm
         </AlertDialogAction>
@@ -309,6 +337,11 @@ function GetLogsDialogContent({ apiRequest, target }: Props) {
     setMaxLen("");
   }
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onConfirm();
+  };
+
   return (
     <AlertDialogContent>
       <AlertDialogHeader>
@@ -316,26 +349,32 @@ function GetLogsDialogContent({ apiRequest, target }: Props) {
           Get {target} Logs
         </AlertDialogTitle>
         <AlertDialogDescription className="text-start">
-          <Label htmlFor="maxLength" className="block mb-2">
-            Enter Max Length (in characters)
-          </Label>
-          <Input
-            id="maxLength"
-            name="maxLength"
-            type="number"
-            required
-            autoFocus
-            min={1}
-            value={maxLen}
-            onChange={(e) => {
-              setMaxLen(e.target.value.trim());
-            }}
-          />
+          <form id="get-logs-form" onSubmit={handleSubmit}>
+            <Label htmlFor="maxLength" className="block mb-2">
+              Enter Max Length (in characters)
+            </Label>
+            <Input
+              id="maxLength"
+              name="maxLength"
+              type="number"
+              required
+              autoFocus
+              min={1}
+              value={maxLen}
+              onChange={(e) => {
+                setMaxLen(e.target.value.trim());
+              }}
+            />
+          </form>
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>Cancel</AlertDialogCancel>
-        <AlertDialogAction disabled={!parseInt(maxLen)} onClick={onConfirm}>
+        <AlertDialogAction
+          disabled={!parseInt(maxLen)}
+          type="submit"
+          form="get-logs-form"
+        >
           Confirm
         </AlertDialogAction>
       </AlertDialogFooter>
@@ -351,28 +390,39 @@ function GetNetworkGraphDialogContent({ apiRequest }: Props) {
     setNodeIds("");
   }
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onConfirm();
+  };
+
   return (
     <AlertDialogContent>
       <AlertDialogHeader>
         <AlertDialogTitle>Get Network Graph</AlertDialogTitle>
         <AlertDialogDescription className="text-start">
-          <Label htmlFor="nodes" className="block mb-2">
-            Enter Node Pubkeys (separated by commas)
-          </Label>
-          <Input
-            id="nodes"
-            type="text"
-            placeholder="e.g. nodepubkey1,nodepubkey2,nodepubkey3"
-            value={nodeIds}
-            onChange={(e) => {
-              setNodeIds(e.target.value.trim());
-            }}
-          />
+          <form id="get-network-graph-form" onSubmit={handleSubmit}>
+            <Label htmlFor="nodes" className="block mb-2">
+              Enter Node Pubkeys (separated by commas)
+            </Label>
+            <Input
+              id="nodes"
+              type="text"
+              placeholder="e.g. nodepubkey1,nodepubkey2,nodepubkey3"
+              value={nodeIds}
+              onChange={(e) => {
+                setNodeIds(e.target.value.trim());
+              }}
+            />
+          </form>
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>Cancel</AlertDialogCancel>
-        <AlertDialogAction disabled={!nodeIds} onClick={onConfirm}>
+        <AlertDialogAction
+          disabled={!nodeIds}
+          type="submit"
+          form="get-network-graph-form"
+        >
           Confirm
         </AlertDialogAction>
       </AlertDialogFooter>
