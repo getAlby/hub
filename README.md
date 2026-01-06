@@ -230,6 +230,7 @@ _To configure via env, the following parameters must be provided:_
 - `LDK_MAX_CHANNEL_SATURATION`: Sets the maximum portion of a channel's total capacity that may be used for sending a payment, expressed as a power of 1/2. See `max_channel_saturation_power_of_half` in [LDK docs](https://docs.rs/lightning/latest/lightning/routing/router/struct.PaymentParameters.html#structfield.max_channel_saturation_power_of_half).
 - `LDK_MAX_PATH_COUNT`: Maximum number of paths that may be used by MPP payments.
 - `LDK_LOG_LEVEL`: Log level for the LDK node. Higher is more verbose. Default: 3. This is separate from the main application log level, allowing you to enable more verbose LDK logging (e.g., level 4, 5 or 6) without enabling verbose logging for the entire application.
+- `LDK_CHANNEL_MONITOR_WARNING_SIZE_BYTES`: If a channel monitor is larger than this value, a performance warning will be shown on the node page.
 
 #### LDK Network Configuration
 
