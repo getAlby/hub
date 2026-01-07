@@ -2219,6 +2219,7 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uin
 
 const nodeCommandPayBOLT12Offer = "pay_bolt12_offer"
 const nodeCommandExportPathfindingScores = "export_pathfinding_scores"
+const nodeCommandListChannelMonitorSizes = "list_channel_monitor_sizes"
 
 func (ls *LDKService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
 	return []lnclient.CustomNodeCommandDef{
@@ -2244,6 +2245,11 @@ func (ls *LDKService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCom
 			Name:        nodeCommandExportPathfindingScores,
 			Description: "Exports pathfinding scores from the LDK node. The scores are written to a file in the LDK data directory.",
 			Args:        []lnclient.CustomNodeCommandArgDef{}, // Assuming no arguments for now
+		},
+		{
+			Name:        nodeCommandListChannelMonitorSizes,
+			Description: "List Channel Monitor sizes from the LDK node.",
+			Args:        []lnclient.CustomNodeCommandArgDef{},
 		},
 	}
 }
@@ -2292,6 +2298,30 @@ func (ls *LDKService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 			Response: map[string]interface{}{
 				"scores": hex.EncodeToString(scores),
 			},
+		}, nil
+	case nodeCommandListChannelMonitorSizes:
+		channelMonitorSizes := ls.node.ListChannelMonitorSizes()
+		channels := ls.node.ListChannels()
+		type channelMonitorSizeResponse struct {
+			SizeBytes    uint64 `json:"sizeBytes"`
+			RemotePubkey string `json:"remotePubkey"`
+			HasWarning   bool   `json:"hasWarning"`
+		}
+		channelMonitorSizesResponse := []channelMonitorSizeResponse{}
+		for _, channelMonitorSizeInfo := range channelMonitorSizes {
+			for _, channel := range channels {
+				if channel.ChannelId == channelMonitorSizeInfo.ChannelId {
+					channelMonitorSizesResponse = append(channelMonitorSizesResponse, channelMonitorSizeResponse{
+						SizeBytes:    channelMonitorSizeInfo.SizeBytes,
+						RemotePubkey: channel.CounterpartyNodeId,
+						HasWarning:   channelMonitorSizeInfo.SizeBytes >= ls.cfg.GetEnv().LDKChannelMonitorWarningSizeBytes,
+					})
+				}
+			}
+		}
+
+		return &lnclient.CustomNodeCommandResponse{
+			Response: channelMonitorSizesResponse,
 		}, nil
 	}
 

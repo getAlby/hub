@@ -34,6 +34,7 @@ type AppConfig struct {
 	LDKLogLevel                        string `envconfig:"LDK_LOG_LEVEL" default:"3"`
 	LDKMaxChannelSaturationPowerOfHalf uint8  `envconfig:"LDK_MAX_CHANNEL_SATURATION" default:"2"`
 	LDKMaxPathCount                    uint8  `envconfig:"LDK_MAX_PATH_COUNT" default:"5"`
+	LDKChannelMonitorWarningSizeBytes  uint64 `envconfig:"LDK_CHANNEL_MONITOR_WARNING_SIZE_BYTES" default:"5000000"`
 	LDKVssUrl                          string `envconfig:"LDK_VSS_URL" default:"https://vss.getalbypro.com/vss"`
 	LDKListeningAddresses              string `envconfig:"LDK_LISTENING_ADDRESSES" default:"[::]:9735"`
 	LDKAnnouncementAddresses           string `envconfig:"LDK_ANNOUNCEMENT_ADDRESSES"`
