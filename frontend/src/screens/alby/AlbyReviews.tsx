@@ -61,7 +61,7 @@ const productOpportunities: ProductOpportunity[] = [
 export function AlbyReviews() {
   return (
     <>
-      <AppHeader title="Earn Bitcoin" />
+      <AppHeader title="Earn Bitcoin" pageTitle="Earn Bitcoin" />
       <div className="space-y-8">
         <Card>
           <CardHeader>

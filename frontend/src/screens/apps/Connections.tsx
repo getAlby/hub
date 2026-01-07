@@ -28,6 +28,7 @@ export function Connections() {
     <>
       <AppHeader
         title="Connections"
+        pageTitle="Connections"
         contentRight={
           <ResponsiveLinkButton
             to="/apps/new"
