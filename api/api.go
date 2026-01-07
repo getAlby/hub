@@ -762,7 +762,18 @@ func (api *api) RefundSwap(refundSwapRequest *RefundSwapRequest) error {
 func (api *api) GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error) {
 	swapOutBalanceThresholdStr, _ := api.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
 	swapOutAmountStr, _ := api.cfg.Get(config.AutoSwapAmountKey, "")
-	swapOutDestination, _ := api.cfg.Get(config.AutoSwapDestinationKey, "")
+
+	swapOutDestination := ""
+	if api.svc.GetSwapsService() != nil {
+		decryptedXpub := api.svc.GetSwapsService().GetDecryptedAutoSwapXpub()
+		if decryptedXpub != "" {
+			swapOutDestination = decryptedXpub
+		}
+	}
+
+	if swapOutDestination == "" {
+		swapOutDestination, _ = api.cfg.Get(config.AutoSwapDestinationKey, "")
+	}
 
 	swapOutEnabled := swapOutBalanceThresholdStr != "" && swapOutAmountStr != ""
 	var swapOutBalanceThreshold, swapOutAmount uint64
@@ -946,16 +957,31 @@ func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *E
 		return err
 	}
 
-	err = api.cfg.SetUpdate(config.AutoSwapDestinationKey, enableAutoSwapsRequest.Destination, "")
+	if api.svc.GetSwapsService() == nil {
+		return errors.New("SwapsService not started")
+	}
+
+	encryptionKey := ""
+	if enableAutoSwapsRequest.Destination != "" {
+
+		if err := api.svc.GetSwapsService().ValidateXpub(enableAutoSwapsRequest.Destination); err == nil {
+			if enableAutoSwapsRequest.UnlockPassword == "" {
+				return errors.New("unlock password is required when using an xpub as destination")
+			}
+			if !api.cfg.CheckUnlockPassword(enableAutoSwapsRequest.UnlockPassword) {
+				return errors.New("invalid unlock password")
+			}
+			encryptionKey = enableAutoSwapsRequest.UnlockPassword
+		}
+	}
+
+	err = api.cfg.SetUpdate(config.AutoSwapDestinationKey, enableAutoSwapsRequest.Destination, encryptionKey)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save autoswap destination to config")
 		return err
 	}
 
-	if api.svc.GetSwapsService() == nil {
-		return errors.New("SwapsService not started")
-	}
-	return api.svc.GetSwapsService().EnableAutoSwapOut()
+	return api.svc.GetSwapsService().EnableAutoSwapOut(enableAutoSwapsRequest.UnlockPassword)
 }
 
 func (api *api) DisableAutoSwap() error {
