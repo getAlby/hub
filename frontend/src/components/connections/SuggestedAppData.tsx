@@ -34,6 +34,7 @@ import snort from "src/assets/suggested-apps/snort.png";
 import stackernews from "src/assets/suggested-apps/stacker-news.png";
 import takemysats from "src/assets/suggested-apps/takemysats.png";
 import tictactoe from "src/assets/suggested-apps/tictactoe.png";
+import tunnelsats from "src/assets/suggested-apps/tunnelsats.png";
 import wavespace from "src/assets/suggested-apps/wave-space.png";
 import wavlake from "src/assets/suggested-apps/wavlake.png";
 import wherostr from "src/assets/suggested-apps/wherostr.png";
@@ -1921,6 +1922,67 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["merchant-tools"],
+    },
+    {
+      id: "tunnelsats",
+      title: "TunnelSats",
+      description: "Privacy Lightning VPN",
+      webLink: "https://tunnelsats.com",
+      logo: tunnelsats,
+      extendedDescription:
+        "Secure your lightning node with a dedicated static IP. Automated, non-custodial VPN renewals via Nostr Wallet Connect.",
+      finalizeGuide: (
+        <>
+          <div>
+            <p>
+              Link your Alby Hub to TunnelSats for non-custodial automated
+              renewals:
+            </p>
+            <ol className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Go to the{" "}
+                <ExternalLink
+                  to="https://tunnelsats.com/dashboard?section=automation"
+                  className="font-medium text-foreground underline"
+                >
+                  TunnelSats Dashboard
+                </ExternalLink>
+                .
+              </li>
+              <li>Sign in with your node or Nostr extension.</li>
+              <li>
+                Navigate to the <span className="font-medium">Automation</span>{" "}
+                tab.
+              </li>
+              <li>
+                Click{" "}
+                <span className="font-medium text-foreground">
+                  Connect Wallet
+                </span>
+                .
+              </li>
+              <li>
+                Paste the{" "}
+                <span className="font-medium text-foreground">
+                  Connection Secret
+                </span>{" "}
+                from this Alby Hub.
+              </li>
+              <li>
+                Alternatively, use this{" "}
+                <ExternalLink
+                  to="https://tunnelsats.com/dashboard?section=automation"
+                  className="font-medium text-foreground underline"
+                >
+                  One-Click Connect
+                </ExternalLink>{" "}
+                link to pre-fill the connection.
+              </li>
+            </ol>
+          </div>
+        </>
+      ),
+      categories: ["misc"],
     },
   ] satisfies AppStoreApp[]
 ).sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
