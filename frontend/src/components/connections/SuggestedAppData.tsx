@@ -12,6 +12,7 @@ import clams from "src/assets/suggested-apps/clams.png";
 import claude from "src/assets/suggested-apps/claude.png";
 import coracle from "src/assets/suggested-apps/coracle.png";
 import damus from "src/assets/suggested-apps/damus.png";
+import fountain from "src/assets/suggested-apps/fountain.png";
 import goose from "src/assets/suggested-apps/goose.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import iris from "src/assets/suggested-apps/iris.png";
@@ -93,8 +94,8 @@ export const appStoreCategories = {
     title: "Merchant Tools",
     priority: 10,
   },
-  music: {
-    title: "Music",
+  audio: {
+    title: "Audio",
     priority: 20,
   },
   blogging: {
@@ -792,11 +793,12 @@ export const appStoreApps: AppStoreApp[] = (
     {
       id: "wavlake",
       title: "Wavlake",
-      description: "Creators platform",
+      description: "Turn up the value for your biggest fans",
       webLink: "https://www.wavlake.com/",
       playLink:
         "https://play.google.com/store/apps/details?id=com.wavlake.mobile",
-      appleLink: "https://testflight.apple.com/join/eWnqECG4",
+      appleLink:
+        "https://apps.apple.com/us/app/wavlake-social-music-player/id6463653431",
       logo: wavlake,
       extendedDescription:
         "Support artists by paying to upvote music you enjoy with your Hub",
@@ -819,7 +821,44 @@ export const appStoreApps: AppStoreApp[] = (
           </div>
         </>
       ),
-      categories: ["music"],
+      categories: ["audio"],
+    },
+    {
+      id: "fountain",
+      title: "Fountain",
+      description:
+        "Discover millions of podcasts and emerging artists worth supporting",
+      webLink: "https://www.fountain.fm",
+      playLink:
+        "https://play.google.com/store/apps/details?id=fm.fountain.apps",
+      appleLink:
+        "https://apps.apple.com/us/app/fountain-podcast-player/id1576394424",
+      logo: fountain,
+      extendedDescription:
+        "Discover millions of podcasts and emerging artists worth supporting. Powered by RSS, Lightning and Nostr",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Download and open{" "}
+            <span className="font-medium text-foreground">Fountain</span> on
+            your iOS or Android device
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Fountain</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>Go to Wallet tab</li>
+              <li>Click the settings cog</li>
+              <li>Go to connected accounts {"->"} Nostr Wallet Connect</li>
+              <li>Scan or paste the connection secret from Alby Hub</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["audio"],
     },
     {
       id: "wavespace",
@@ -1751,7 +1790,7 @@ export const appStoreApps: AppStoreApp[] = (
       webLink: "https://bringin.xyz",
       playLink:
         "https://play.google.com/store/apps/details?id=xyz.bringin.client",
-      appleLink: "https://testflight.apple.com/join/HVh6eZsF",
+      appleLink: "https://apps.apple.com/in/app/bringin/id1579153016",
       zapStoreLink: "https://zapstore.dev/download/",
       logo: bringin,
       extendedDescription:
