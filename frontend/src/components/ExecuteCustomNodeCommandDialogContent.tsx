@@ -60,17 +60,24 @@ export function ExecuteCustomNodeCommandDialogContent({
     }
   }
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    executeCommand();
+  };
+
   return (
     <AlertDialogContent>
       <AlertDialogHeader>
         <AlertDialogTitle>Execute Custom Node Command</AlertDialogTitle>
         <AlertDialogDescription className="text-left">
-          <Textarea
-            className="h-36 font-mono"
-            value={command}
-            onChange={(e) => setCommand(e.target.value)}
-            placeholder="commandname --arg1=value1"
-          />
+          <form id="execute-command-form" onSubmit={handleSubmit}>
+            <Textarea
+              className="h-36 font-mono"
+              value={command}
+              onChange={(e) => setCommand(e.target.value)}
+              placeholder="commandname --arg1=value1"
+            />
+          </form>
           <p className="mt-2">Available commands</p>
           <Textarea
             readOnly
@@ -80,11 +87,13 @@ export function ExecuteCustomNodeCommandDialogContent({
           />
         </AlertDialogDescription>
       </AlertDialogHeader>
-      <AlertDialogFooter className="mt-4">
+      <AlertDialogFooter>
         <AlertDialogCancel onClick={() => setCommand("")}>
           Cancel
         </AlertDialogCancel>
-        <AlertDialogAction onClick={executeCommand}>Execute</AlertDialogAction>
+        <AlertDialogAction type="submit" form="execute-command-form">
+          Execute
+        </AlertDialogAction>
       </AlertDialogFooter>
     </AlertDialogContent>
   );
