@@ -58,6 +58,16 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
   const hasTransaction = transactions.totalCount > 0;
 
   const checklistItems: Omit<ChecklistItem, "disabled">[] = [
+    ...(info.backendType === "BARK"
+      ? [
+          {
+            title: "Board the ark",
+            description: "Deposit funds into your Ark wallet",
+            checked: hasTransaction,
+            to: "/ark",
+          },
+        ]
+      : []),
     ...(hasChannelManagement
       ? [
           {

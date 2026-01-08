@@ -7,6 +7,7 @@ import {
   LucideIcon,
   Plug2Icon,
   PlugZapIcon,
+  PyramidIcon,
   Settings,
   Sparkles,
   SquareStack,
@@ -97,6 +98,15 @@ export function AppSidebar() {
       },
     ],
     navSecondary: [
+      ...(info?.backendType === "BARK"
+        ? [
+            {
+              title: "Ark",
+              url: "/ark",
+              icon: PyramidIcon,
+            },
+          ]
+        : []),
       ...(hasChannelManagement
         ? [
             {

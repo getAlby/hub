@@ -37,6 +37,10 @@ const backendTypeDisplayConfigs: Partial<
     title: "Cashu Mint",
     icon: <img src={cashu} />,
   },
+  BARK: {
+    title: "Bark",
+    icon: <LDKIcon />, // FIXME: proper icon
+  },
 };
 
 const backendTypeDisplayConfigList = Object.entries(
