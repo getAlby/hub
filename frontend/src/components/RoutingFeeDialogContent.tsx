@@ -71,8 +71,9 @@ export function RoutingFeeDialogContent({ channel }: Props) {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = (_e: React.FormEvent) => {
+    // NOTE: some weird behavior due to this dialog being triggered from a dropdown
+    //e.preventDefault();
     updateFee();
   };
 
@@ -137,6 +138,7 @@ export function RoutingFeeDialogContent({ channel }: Props) {
           }
           type="submit"
           form="routing-fee-form"
+          onClick={handleSubmit}
         >
           Confirm
         </AlertDialogAction>
