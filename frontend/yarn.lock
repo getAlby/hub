@@ -2323,10 +2323,10 @@
   resolved "https://registry.yarnpkg.com/@stepperize/core/-/core-1.2.7.tgz#b26d07787c44468be823eb7d3684d2e1812efeb1"
   integrity sha512-XiUwLZ0XRAfaDK6AzWVgqvI/BcrylyplhUXKO8vzgRw0FTmyMKHAAbQLDvU//ZJAqnmG2cSLZDSkcwLxU5zSYA==
 
-"@stepperize/react@^5.1.8":
-  version "5.1.8"
-  resolved "https://registry.yarnpkg.com/@stepperize/react/-/react-5.1.8.tgz#e4a402e03b6de99538cd4af7c55e68479b5bdd8b"
-  integrity sha512-/s8+YoVjX2+kPRxEMrmJZLX9jnVa/tKS+7Ru6ZUvBNSmbIopf0deylMv8hE2E5Il4T/UI2aSX/d3mKu8gugomw==
+"@stepperize/react@^5.1.9":
+  version "5.1.9"
+  resolved "https://registry.yarnpkg.com/@stepperize/react/-/react-5.1.9.tgz#373833084fb3af97d3e42d1d1b51cfe19172d71f"
+  integrity sha512-yBgw1I5Tx6/qZB4xTdVBaPGfTqH5aYS1WFB5vtR8+fwPeqd3YNuOnQ1pJM6w/xV/gvryuy31hbFw080lZc+/hw==
   dependencies:
     "@stepperize/core" "1.2.7"
 
