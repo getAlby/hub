@@ -2242,7 +2242,7 @@ func (ls *LDKService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCom
 		},
 		{
 			Name:        nodeCommandExportPathfindingScores,
-			Description: "Exports pathfinding scores from the LDK node. The scores are written to a file in the LDK data directory.",
+			Description: "Exports pathfinding scores from the LDK node.",
 			Args:        []lnclient.CustomNodeCommandArgDef{}, // Assuming no arguments for now
 		},
 	}
