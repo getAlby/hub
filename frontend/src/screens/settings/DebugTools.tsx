@@ -40,129 +40,6 @@ type Props = {
   target?: string;
 };
 
-function ProbeInvoiceDialogContent({ apiRequest }: Props) {
-  const [invoice, setInvoice] = React.useState<string>();
-
-  async function onConfirm() {
-    await apiRequest("/api/send-payment-probes", "POST", {
-      invoice: invoice,
-    });
-    setInvoice("");
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onConfirm();
-  };
-
-  return (
-    <AlertDialogContent>
-      <AlertDialogHeader>
-        <AlertDialogTitle>Probe Invoice</AlertDialogTitle>
-        <AlertDialogDescription className="text-start">
-          <form id="probe-invoice-form" onSubmit={handleSubmit}>
-            <Label htmlFor="invoice" className="block mb-2">
-              Enter Invoice
-            </Label>
-            <Input
-              id="invoice"
-              name="invoice"
-              type="text"
-              placeholder="lnbc...."
-              required
-              autoFocus
-              value={invoice}
-              onChange={(e) => {
-                setInvoice(e.target.value.trim());
-              }}
-            />
-          </form>
-        </AlertDialogDescription>
-      </AlertDialogHeader>
-      <AlertDialogFooter>
-        <AlertDialogCancel>Cancel</AlertDialogCancel>
-        <AlertDialogAction
-          disabled={!invoice}
-          type="submit"
-          form="probe-invoice-form"
-        >
-          Confirm
-        </AlertDialogAction>
-      </AlertDialogFooter>
-    </AlertDialogContent>
-  );
-}
-
-function ProbeKeysendDialogContent({ apiRequest }: Props) {
-  const [amount, setAmount] = React.useState<string>("");
-  const [nodeId, setNodeId] = React.useState<string>("");
-
-  async function onConfirm() {
-    await apiRequest("/api/send-spontaneous-payment-probes", "POST", {
-      amount: (parseInt(amount) || 0) * 1000,
-      nodeId,
-    });
-    setAmount("");
-    setNodeId("");
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onConfirm();
-  };
-
-  return (
-    <AlertDialogContent>
-      <AlertDialogHeader>
-        <AlertDialogTitle>Probe Keysend</AlertDialogTitle>
-        <AlertDialogDescription className="text-start">
-          <form id="probe-keysend-form" onSubmit={handleSubmit}>
-            <div>
-              <Label htmlFor="amount" className="block mb-2">
-                Enter Amount (sats)
-              </Label>
-              <Input
-                id="amount"
-                name="amount"
-                type="number"
-                min={0}
-                autoFocus
-                value={amount}
-                onChange={(e) => {
-                  setAmount(e.target.value.trim());
-                }}
-              />
-            </div>
-            <div className="mt-4">
-              <Label htmlFor="pubkey" className="block mb-2">
-                Enter Node Pubkey
-              </Label>
-              <Input
-                id="pubkey"
-                type="text"
-                value={nodeId}
-                onChange={(e) => {
-                  setNodeId(e.target.value.trim());
-                }}
-              />
-            </div>
-          </form>
-        </AlertDialogDescription>
-      </AlertDialogHeader>
-      <AlertDialogFooter>
-        <AlertDialogCancel>Cancel</AlertDialogCancel>
-        <AlertDialogAction
-          disabled={!parseInt(amount) || !nodeId}
-          type="submit"
-          form="probe-keysend-form"
-        >
-          Confirm
-        </AlertDialogAction>
-      </AlertDialogFooter>
-    </AlertDialogContent>
-  );
-}
-
 function RefundSwapDialogContent() {
   const [swapId, setSwapId] = React.useState<string>("");
   const [address, setAddress] = React.useState<string>("");
@@ -433,8 +310,6 @@ function GetNetworkGraphDialogContent({ apiRequest }: Props) {
 export default function DebugTools() {
   const [apiResponse, setApiResponse] = React.useState<string>("");
   const [dialog, setDialog] = React.useState<
-    | "probeInvoice"
-    | "probeKeysend"
     | "refundSwap"
     | "getAppLogs"
     | "getNodeLogs"
@@ -602,28 +477,6 @@ export default function DebugTools() {
             >
               Export Pathfinding Scores
             </Button>
-          )}
-          {/* probing functions are not useful */}
-          {/*info?.backendType === "LDK" && (
-            <AlertDialogTrigger asChild>
-              <Button onClick={() => setDialog("probeInvoice")}>
-                Probe Invoice
-              </Button>
-            </AlertDialogTrigger>
-          )*/}
-          {/*info?.backendType === "LDK" && (
-            <AlertDialogTrigger asChild>
-              <Button onClick={() => setDialog("probeKeysend")}>
-                Probe Keysend
-              </Button>
-            </AlertDialogTrigger>
-          )*/}
-
-          {dialog === "probeInvoice" && (
-            <ProbeInvoiceDialogContent apiRequest={apiRequest} />
-          )}
-          {dialog === "probeKeysend" && (
-            <ProbeKeysendDialogContent apiRequest={apiRequest} />
           )}
           {dialog === "refundSwap" && <RefundSwapDialogContent />}
           {(dialog === "getAppLogs" || dialog === "getNodeLogs") && (
