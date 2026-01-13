@@ -85,10 +85,9 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, pool nostrmodels.Simpl
 	err = svc.db.Model(&app).Update("last_used_at", &now).Error
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
-			"it": app.ID,
+			"appId": app.ID,
 		}).WithError(err).Error("Failed to update app last used time")
 	}
-
 	logger.Logger.WithFields(logrus.Fields{
 		"requestEventNostrId": event.ID,
 		"eventKind":           event.Kind,
