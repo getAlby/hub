@@ -50,9 +50,13 @@ rm -rf albyhub-backup
 mkdir albyhub-backup
 
 echo "Creating current backup"
-mv bin albyhub-backup
-mv lib albyhub-backup
-cp -r data albyhub-backup
+if command -v rsync > /dev/null 2>&1; then
+  rsync -av data bin lib albyhub-backup/
+else
+  mv bin albyhub-backup
+  mv lib albyhub-backup
+  cp -r data albyhub-backup
+fi
 
 
 echo "Downloading latest version"

@@ -7,9 +7,14 @@ sudo systemctl stop albyhub
 cd /opt/albyhub
 rm -rf albyhub-backup
 mkdir albyhub-backup
-mv bin albyhub-backup
-mv lib albyhub-backup
-cp -r data albyhub-backup
+
+if command -v rsync > /dev/null 2>&1; then
+  rsync -av data bin lib albyhub-backup/
+else
+  mv bin albyhub-backup
+  mv lib albyhub-backup
+  cp -r data albyhub-backup
+fi
 
 wget https://getalby.com/install/hub/server-linux-armv6.tar.bz2
 
