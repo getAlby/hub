@@ -154,34 +154,74 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	}
 
 	var chainSource string
-	if cfg.GetEnv().LDKBitcoindRpcHost != "" {
-		logger.Logger.WithFields(logrus.Fields{
-			"rpc_host": cfg.GetEnv().LDKBitcoindRpcHost,
-			"rpc_port": cfg.GetEnv().LDKBitcoindRpcPort,
-		}).Info("Using LDK node bitcoin RPC chain source")
-		port, err := strconv.ParseUint(cfg.GetEnv().LDKBitcoindRpcPort, 10, 16)
-		if err != nil {
-			return nil, err
+	var sourceConfigured = false
+
+	// PRIORITY 1: CHECK DATABASE (User Overrides)
+	userChainSource, _ := cfg.Get("UserChainSource", "")
+
+	switch userChainSource {
+	case "bitcoind_rpc":
+		// Fetch details from DB
+		host, _ := cfg.Get("UserBitcoindHost", "")
+		portStr, _ := cfg.Get("UserBitcoindPort", "")
+		user, _ := cfg.Get("UserBitcoindUser", "")
+		pass, _ := cfg.Get("UserBitcoindPass", "")
+
+		if host != "" {
+			port, _ := strconv.ParseUint(portStr, 10, 16)
+			logger.Logger.Info("Using LDK node bitcoin RPC chain source (User Config)")
+			builder.SetChainSourceBitcoindRpc(host, uint16(port), user, pass)
+			chainSource = "bitcoind_rpc"
+			sourceConfigured = true
 		}
-		builder.SetChainSourceBitcoindRpc(cfg.GetEnv().LDKBitcoindRpcHost, uint16(port), cfg.GetEnv().LDKBitcoindRpcUser, cfg.GetEnv().LDKBitcoindRpcPassword)
-		chainSource = "bitcoind_rpc"
-	} else if cfg.GetEnv().LDKElectrumServer != "" {
-		builder.SetChainSourceElectrum(cfg.GetEnv().LDKElectrumServer, &ldk_node.ElectrumSyncConfig{
-			// turn off background sync - we manage syncs ourselves
-			BackgroundSyncConfig: nil,
-		})
-		chainSource = "electrum"
-	} else {
-		logger.Logger.WithFields(logrus.Fields{
-			"esplora_url": cfg.GetEnv().LDKEsploraServer,
-		}).Info("Using LDK node esplora chain source")
-		builder.SetChainSourceEsplora(cfg.GetEnv().LDKEsploraServer, &ldk_node.EsploraSyncConfig{
-			// turn off background sync - we manage syncs ourselves
-			BackgroundSyncConfig: nil,
-		})
-		chainSource = "esplora"
+	case "electrum":
+		url, _ := cfg.Get("UserElectrumUrl", "")
+		if url != "" {
+			logger.Logger.Info("Using LDK node electrum chain source (User Config)")
+			builder.SetChainSourceElectrum(url, &ldk_node.ElectrumSyncConfig{BackgroundSyncConfig: nil})
+			chainSource = "electrum"
+			sourceConfigured = true
+		}
+	case "esplora":
+		url, _ := cfg.Get("UserEsploraUrl", "")
+		if url != "" {
+			logger.Logger.Info("Using LDK node esplora chain source (User Config)")
+			builder.SetChainSourceEsplora(url, &ldk_node.EsploraSyncConfig{BackgroundSyncConfig: nil})
+			chainSource = "esplora"
+			sourceConfigured = true
+		}
 	}
 
+	// PRIORITY 2: CHECK ENVIRONMENT VARIABLES (Fallback)
+	if !sourceConfigured {
+		if cfg.GetEnv().LDKBitcoindRpcHost != "" {
+			logger.Logger.WithFields(logrus.Fields{
+				"rpc_host": cfg.GetEnv().LDKBitcoindRpcHost,
+				"rpc_port": cfg.GetEnv().LDKBitcoindRpcPort,
+			}).Info("Using LDK node bitcoin RPC chain source")
+			port, err := strconv.ParseUint(cfg.GetEnv().LDKBitcoindRpcPort, 10, 16)
+			if err != nil {
+				return nil, err
+			}
+			builder.SetChainSourceBitcoindRpc(cfg.GetEnv().LDKBitcoindRpcHost, uint16(port), cfg.GetEnv().LDKBitcoindRpcUser, cfg.GetEnv().LDKBitcoindRpcPassword)
+			chainSource = "bitcoind_rpc"
+		} else if cfg.GetEnv().LDKElectrumServer != "" {
+			builder.SetChainSourceElectrum(cfg.GetEnv().LDKElectrumServer, &ldk_node.ElectrumSyncConfig{
+				// turn off background sync - we manage syncs ourselves
+				BackgroundSyncConfig: nil,
+			})
+			chainSource = "electrum"
+		} else {
+			logger.Logger.WithFields(logrus.Fields{
+				"esplora_url": cfg.GetEnv().LDKEsploraServer,
+			}).Info("Using LDK node esplora chain source")
+			builder.SetChainSourceEsplora(cfg.GetEnv().LDKEsploraServer, &ldk_node.EsploraSyncConfig{
+				// turn off background sync - we manage syncs ourselves
+				BackgroundSyncConfig: nil,
+			})
+			chainSource = "esplora"
+		}
+	}
 	if cfg.GetEnv().LDKGossipSource != "" {
 		logger.Logger.WithField("gossipSource", cfg.GetEnv().LDKGossipSource).Warn("LDK RGS instance set")
 		builder.SetGossipSourceRgs(cfg.GetEnv().LDKGossipSource)

@@ -91,4 +91,16 @@ type Config interface {
 	SetCurrency(value string) error
 	GetBitcoinDisplayFormat() string
 	SetBitcoinDisplayFormat(value string) error
+	ValidateChainSource(backendType string, url string) error
+}
+
+
+
+type UpdateChainConfigRequest struct {
+	ChainSource string `json:"chainSource"` // "esplora", "electrum", "bitcoind", or "default"
+	URL         string `json:"url"`         // For Esplora/Electrum
+	Host        string `json:"host"`        // For Bitcoind
+	Port        string `json:"port"`
+	User        string `json:"user"`
+	Pass        string `json:"pass"`
 }

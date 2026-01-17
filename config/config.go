@@ -6,10 +6,13 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"net"
+	"net/http"
 	"os"
 	"path"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
@@ -446,5 +449,66 @@ func (cfg *config) SetBitcoinDisplayFormat(value string) error {
 		logger.Logger.WithError(err).Error("Failed to update bitcoin display format")
 		return err
 	}
+	return nil
+}
+
+func (cfg *config) ValidateChainSource(backendType string, url string) error {
+
+	timeout := 5 * time.Second
+	switch backendType {
+	case "esplora":
+		return validateEsplora(url, timeout)
+	case "electrum":
+		return validateElectrum(url, timeout)
+	default:
+		return fmt.Errorf("unsupported backend type validation: %s", backendType)
+	}
+}
+
+
+func validateEsplora(url string, timeout time.Duration) error {
+	if !strings.HasPrefix(url, "http://") && !strings.HasPrefix(url, "https://") {
+		return fmt.Errorf("URL must start with http:// or https://")
+	}
+
+
+	// We append "/blocks/tip/height" because almost all Esplora/Mempool APIs support this.
+	// a lightweight way to verify this is actually a Bitcoin API and not just a random website.
+	checkURL := strings.TrimRight(url, "/") + "/blocks/tip/height"
+
+	client := http.Client{
+		Timeout: timeout,
+	}
+
+	resp, err := client.Get(checkURL)
+	if err != nil {
+		return fmt.Errorf("failed to connect to server: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("server returned error code %d (check if URL ends in /api)", resp.StatusCode)
+	}
+	return nil
+}
+
+func validateElectrum(url string, timeout time.Duration) error {
+	if !strings.HasPrefix(url, "ssl://") && !strings.HasPrefix(url, "tcp://") {
+		return fmt.Errorf("URL must start with ssl:// or tcp://")
+	}
+
+	address := strings.TrimPrefix(url, "ssl://")
+	address = strings.TrimPrefix(address, "tcp://")
+
+	if !strings.Contains(address, ":") {
+		return fmt.Errorf("URL is missing a port number (e.g. :50001)")
+	}
+
+	conn, err := net.DialTimeout("tcp", address, timeout)
+	if err != nil {
+		return fmt.Errorf("could not connect to electrum server: %w", err)
+	}
+	defer conn.Close()
+
 	return nil
 }
