@@ -15,6 +15,7 @@ import (
 
 	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/api"
+	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/logger"
 )
 
@@ -1198,6 +1199,89 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
+	case "/api/ldk-onchain-source":
+		cfg := app.svc.GetConfig()
+		LNBackendType, _ := cfg.Get("LNBackendType", "")
+
+		if LNBackendType != "LDK" {
+			return WailsRequestRouterResponse{Body: nil, Error: "Changing chain source is only supported for LDK backend"}
+		}
+
+		payload := &config.UpdateChainConfigRequest{}
+		err := json.Unmarshal([]byte(body), payload)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to decode request to wails router")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+
+		switch payload.ChainSource {
+
+		case "default":
+			// Reset: Clear all overrides
+			cfg.SetUpdate("UserChainSource", "", "")
+			cfg.SetUpdate("UserEsploraUrl", "", "")
+			cfg.SetUpdate("UserElectrumUrl", "", "")
+			cfg.SetUpdate("UserBitcoindHost", "", "")
+			cfg.SetUpdate("UserBitcoindPort", "", "")
+			cfg.SetUpdate("UserBitcoindUser", "", "")
+			cfg.SetUpdate("UserBitcoindPass", "", "")
+
+		case "esplora":
+			if payload.URL == "" {
+				return WailsRequestRouterResponse{Body: nil, Error: "Field 'url' is required for Esplora"}
+			}
+			if err := cfg.ValidateChainSource("esplora", payload.URL); err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			cfg.SetUpdate("UserChainSource", "esplora", "")
+			cfg.SetUpdate("UserEsploraUrl", payload.URL, "")
+
+		case "electrum":
+			if payload.URL == "" {
+				return WailsRequestRouterResponse{Body: nil, Error: "Field 'url' is required for Electrum"}
+			}
+			if err := cfg.ValidateChainSource("electrum", payload.URL); err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			cfg.SetUpdate("UserChainSource", "electrum", "")
+			cfg.SetUpdate("UserElectrumUrl", payload.URL, "")
+
+		case "bitcoind_rpc":
+			if payload.Host == "" {
+				return WailsRequestRouterResponse{Body: nil, Error: "Field 'host' is required for Bitcoind"}
+			}
+			if payload.Port == "" {
+				return WailsRequestRouterResponse{Body: nil, Error: "Field 'port' is required for Bitcoind"}
+			}
+			if payload.User == "" {
+				return WailsRequestRouterResponse{Body: nil, Error: "Field 'user' is required for Bitcoind"}
+			}
+			if payload.Pass == "" {
+				return WailsRequestRouterResponse{Body: nil, Error: "Field 'pass' is required for Bitcoind"}
+			}
+			if _, err := strconv.ParseUint(payload.Port, 10, 16); err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: "Field 'port' must be a valid number (e.g. 8332)"}
+			}
+
+			cfg.SetUpdate("UserChainSource", "bitcoind_rpc", "")
+			cfg.SetUpdate("UserBitcoindHost", payload.Host, "")
+			cfg.SetUpdate("UserBitcoindPort", payload.Port, "")
+			cfg.SetUpdate("UserBitcoindUser", payload.User, "")
+			cfg.SetUpdate("UserBitcoindPass", payload.Pass, "")
+
+		default:
+			return WailsRequestRouterResponse{
+				Body:  nil,
+				Error: "Invalid chainSource. Must be 'esplora', 'electrum', 'bitcoind_rpc', or 'default'",
+			}
+
+		}
+		return WailsRequestRouterResponse{Body: "Settings saved. Please restart your Alby Hub to apply changes.", Error: ""}
+
 	case "/api/event":
 		switch method {
 		case "POST":
