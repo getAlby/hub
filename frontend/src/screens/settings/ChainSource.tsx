@@ -13,7 +13,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "src/components/ui/alert-dialog";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
@@ -44,6 +43,7 @@ function ChainSource() {
   const { data: info } = useInfo();
   const [isLoading, setIsLoading] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const [formData, setFormData] = useState<FormData>({
     chainSource: "default",
@@ -60,21 +60,23 @@ function ChainSource() {
 
   const validateForm = (): boolean => {
     setValidationError(null);
+    const url = formData.url.trim();
 
     // Common check
     if (formData.chainSource === "esplora") {
-      if (!formData.url.startsWith("http")) {
+      if (!url.startsWith("http://") && !url.startsWith("https://")) {
         setValidationError("Esplora URL must start with http:// or https://");
         return false;
       }
     }
 
     if (formData.chainSource === "electrum") {
-      if (
-        !formData.url.startsWith("ssl://") &&
-        !formData.url.startsWith("tcp://")
-      ) {
+      if (!url.startsWith("ssl://") && !url.startsWith("tcp://")) {
         setValidationError("Electrum URL must start with ssl:// or tcp://");
+        return false;
+      }
+      if (!url.includes(":")) {
+        setValidationError("Electrum URL must include a port (e.g. :50002).");
         return false;
       }
     }
@@ -91,19 +93,23 @@ function ChainSource() {
         );
         return false;
       }
-      if (isNaN(Number(formData.port))) {
-        setValidationError("Port must be a valid number.");
+      const port = Number(formData.port);
+      if (!Number.isInteger(port) || port < 1 || port > 65535) {
+        setValidationError("Port must be a valid number between 1 and 65535.");
         return false;
       }
     }
-
     return true;
   };
 
-  const handleSubmit = async () => {
-    if (!validateForm()) {
-      return;
+  const handleSaveClick = () => {
+    if (validateForm()) {
+      setIsDialogOpen(true);
     }
+  };
+
+  const handleSubmit = async () => {
+    setIsDialogOpen(false);
     setIsLoading(true);
 
     try {
@@ -112,14 +118,14 @@ function ChainSource() {
         // Only include relevant fields based on selection
         ...(formData.chainSource === "esplora" ||
         formData.chainSource === "electrum"
-          ? { url: formData.url }
+          ? { url: formData.url.trim() }
           : {}),
         ...(formData.chainSource === "bitcoind_rpc"
           ? {
-              host: formData.host,
+              host: formData.host.trim(),
               port: formData.port,
-              user: formData.user,
-              pass: formData.pass,
+              user: formData.user.trim(),
+              pass: formData.pass.trim(),
             }
           : {}),
       };
@@ -157,7 +163,7 @@ function ChainSource() {
         <AlertTitle>Warning: Advanced Setting</AlertTitle>
         <AlertDescription>
           Changing this incorrectly will prevent your node from syncing or
-          starting. Ensure the source matches your network (Mainnet/Testnet).
+          starting. Ensure the source matches your network (Bitcoin/Testnet).
         </AlertDescription>
       </Alert>
 
@@ -266,21 +272,21 @@ function ChainSource() {
           </div>
         )}
 
-        {/* Validation Error Message */}
         {validationError && (
           <p className="text-destructive text-sm font-medium">
             {validationError}
           </p>
         )}
 
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <LoadingButton className="w-fit" loading={isLoading}>
-              <Save className="w-4 h-4 mr-2" />
-              Save Configuration
-            </LoadingButton>
-          </AlertDialogTrigger>
-
+        <LoadingButton
+          className="w-fit"
+          loading={isLoading}
+          onClick={handleSaveClick}
+        >
+          <Save className="w-4 h-4 mr-2" />
+          Save Configuration
+        </LoadingButton>
+        <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Change Chain Source?</AlertDialogTitle>

@@ -1218,17 +1218,28 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 
+		setUpdate := func(key, value string) error {
+			return cfg.SetUpdate(key, value, "")
+		}
+
 		switch payload.ChainSource {
 
 		case "default":
 			// Reset: Clear all overrides
-			cfg.SetUpdate("UserChainSource", "", "")
-			cfg.SetUpdate("UserEsploraUrl", "", "")
-			cfg.SetUpdate("UserElectrumUrl", "", "")
-			cfg.SetUpdate("UserBitcoindHost", "", "")
-			cfg.SetUpdate("UserBitcoindPort", "", "")
-			cfg.SetUpdate("UserBitcoindUser", "", "")
-			cfg.SetUpdate("UserBitcoindPass", "", "")
+			updates := map[string]string{
+				"UserChainSource":  "",
+				"UserEsploraUrl":   "",
+				"UserElectrumUrl":  "",
+				"UserBitcoindHost": "",
+				"UserBitcoindPort": "",
+				"UserBitcoindUser": "",
+				"UserBitcoindPass": "",
+			}
+			for key, value := range updates {
+				if err := setUpdate(key, value); err != nil {
+					return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+				}
+			}
 
 		case "esplora":
 			if payload.URL == "" {
@@ -1237,8 +1248,13 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			if err := cfg.ValidateChainSource("esplora", payload.URL); err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
-			cfg.SetUpdate("UserChainSource", "esplora", "")
-			cfg.SetUpdate("UserEsploraUrl", payload.URL, "")
+
+			if err := setUpdate("UserChainSource", "esplora"); err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			if err := setUpdate("UserEsploraUrl", payload.URL); err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
 
 		case "electrum":
 			if payload.URL == "" {
@@ -1247,8 +1263,13 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			if err := cfg.ValidateChainSource("electrum", payload.URL); err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
-			cfg.SetUpdate("UserChainSource", "electrum", "")
-			cfg.SetUpdate("UserElectrumUrl", payload.URL, "")
+
+			if err := setUpdate("UserChainSource", "electrum"); err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			if err := setUpdate("UserElectrumUrl", payload.URL); err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
 
 		case "bitcoind_rpc":
 			if payload.Host == "" {
@@ -1267,11 +1288,21 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				return WailsRequestRouterResponse{Body: nil, Error: "Field 'port' must be a valid number (e.g. 8332)"}
 			}
 
-			cfg.SetUpdate("UserChainSource", "bitcoind_rpc", "")
-			cfg.SetUpdate("UserBitcoindHost", payload.Host, "")
-			cfg.SetUpdate("UserBitcoindPort", payload.Port, "")
-			cfg.SetUpdate("UserBitcoindUser", payload.User, "")
-			cfg.SetUpdate("UserBitcoindPass", payload.Pass, "")
+			if err := setUpdate("UserChainSource", "bitcoind_rpc"); err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			if err := setUpdate("UserBitcoindHost", payload.Host); err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			if err := setUpdate("UserBitcoindPort", payload.Port); err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			if err := setUpdate("UserBitcoindUser", payload.User); err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			if err := setUpdate("UserBitcoindPass", payload.Pass); err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
 
 		default:
 			return WailsRequestRouterResponse{
@@ -1309,7 +1340,6 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				logger.Logger.WithFields(logrus.Fields{
 					"route":  route,
 					"method": method,
-					"body":   body,
 				}).WithError(err).Error("Failed to decode request to wails router")
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}

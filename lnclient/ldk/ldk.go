@@ -168,7 +168,16 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		pass, _ := cfg.Get("UserBitcoindPass", "")
 
 		if host != "" {
-			port, _ := strconv.ParseUint(portStr, 10, 16)
+
+			if portStr == "" {
+				logger.Logger.Warn("User bitcoind RPC port missing; falling back to env config")
+				break
+			}
+			port, err := strconv.ParseUint(portStr, 10, 16)
+			if err != nil {
+				logger.Logger.WithError(err).Warn("Invalid user bitcoind RPC port; falling back to env config")
+				break
+			}
 			logger.Logger.Info("Using LDK node bitcoin RPC chain source (User Config)")
 			builder.SetChainSourceBitcoindRpc(host, uint16(port), user, pass)
 			chainSource = "bitcoind_rpc"

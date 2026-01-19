@@ -323,12 +323,17 @@ func TestValidateChainSource(t *testing.T) {
 	}))
 	defer badServer.Close()
 
-	// Setup a Mock Electrum Server (TCP Listener)
 	// Listen on a random available port
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
 	defer listener.Close()
 	validElectrumAddr := listener.Addr().String()
+
+	// We open it just to get a valid number, then close it immediately.
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	closedAddr := l.Addr().String()
+	l.Close()
 
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
@@ -364,7 +369,7 @@ func TestValidateChainSource(t *testing.T) {
 		{
 			name:          "Esplora - Connection Refused",
 			backendType:   "esplora",
-			url:           "http://127.0.0.1:54321", // assuming this port is closed
+			url:           "http://" + closedAddr,
 			shouldError:   true,
 			errorContains: "failed to connect",
 		},
@@ -408,7 +413,7 @@ func TestValidateChainSource(t *testing.T) {
 		{
 			name:          "Electrum - Connection Refused",
 			backendType:   "electrum",
-			url:           "tcp://127.0.0.1:54321", // assuming this port is closed
+			url:           "tcp://" + closedAddr,
 			shouldError:   true,
 			errorContains: "could not connect",
 		},

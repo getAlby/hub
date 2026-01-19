@@ -1595,17 +1595,39 @@ func (httpSvc *HttpService) updateLDKOnchainSource(c echo.Context) error {
 		})
 	}
 
+	setUpdate := func(key, value string) error {
+		if err := httpSvc.cfg.SetUpdate(key, value, ""); err != nil {
+			return fmt.Errorf("failed to update %s: %w", key, err)
+		}
+		return nil
+	}
+
 	switch payload.ChainSource {
 
 	case "default":
 		// Reset: Clear all overrides to fallback to env/default
-		httpSvc.cfg.SetUpdate("UserChainSource", "", "")
-		httpSvc.cfg.SetUpdate("UserEsploraUrl", "", "")
-		httpSvc.cfg.SetUpdate("UserElectrumUrl", "", "")
-		httpSvc.cfg.SetUpdate("UserBitcoindHost", "", "")
-		httpSvc.cfg.SetUpdate("UserBitcoindPort", "", "")
-		httpSvc.cfg.SetUpdate("UserBitcoindUser", "", "")
-		httpSvc.cfg.SetUpdate("UserBitcoindPass", "", "")
+
+		if err := setUpdate("UserChainSource", ""); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserEsploraUrl", ""); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserElectrumUrl", ""); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserBitcoindHost", ""); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserBitcoindPort", ""); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserBitcoindUser", ""); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserBitcoindPass", ""); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
 
 	case "esplora":
 		if payload.URL == "" {
@@ -1614,8 +1636,13 @@ func (httpSvc *HttpService) updateLDKOnchainSource(c echo.Context) error {
 		if err := httpSvc.cfg.ValidateChainSource("esplora", payload.URL); err != nil {
 			return c.JSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
 		}
-		httpSvc.cfg.SetUpdate("UserChainSource", "esplora", "")
-		httpSvc.cfg.SetUpdate("UserEsploraUrl", payload.URL, "")
+
+		if err := setUpdate("UserChainSource", "esplora"); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserEsploraUrl", payload.URL); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
 
 	case "electrum":
 		if payload.URL == "" {
@@ -1624,8 +1651,13 @@ func (httpSvc *HttpService) updateLDKOnchainSource(c echo.Context) error {
 		if err := httpSvc.cfg.ValidateChainSource("electrum", payload.URL); err != nil {
 			return c.JSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
 		}
-		httpSvc.cfg.SetUpdate("UserChainSource", "electrum", "")
-		httpSvc.cfg.SetUpdate("UserElectrumUrl", payload.URL, "")
+
+		if err := setUpdate("UserChainSource", "esplora"); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserElectrumUrl", payload.URL); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
 
 	case "bitcoind_rpc":
 		if payload.Host == "" {
@@ -1644,11 +1676,21 @@ func (httpSvc *HttpService) updateLDKOnchainSource(c echo.Context) error {
 			return c.JSON(http.StatusBadRequest, ErrorResponse{Message: "Field 'port' must be a valid number (e.g. 8332)"})
 		}
 
-		httpSvc.cfg.SetUpdate("UserChainSource", "bitcoind_rpc", "")
-		httpSvc.cfg.SetUpdate("UserBitcoindHost", payload.Host, "")
-		httpSvc.cfg.SetUpdate("UserBitcoindPort", payload.Port, "")
-		httpSvc.cfg.SetUpdate("UserBitcoindUser", payload.User, "")
-		httpSvc.cfg.SetUpdate("UserBitcoindPass", payload.Pass, "")
+		if err := setUpdate("UserChainSource", "bitcoind_rpc"); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserBitcoindHost", payload.Host); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserBitcoindPort", payload.Port); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserBitcoindUser", payload.User); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserBitcoindPass", payload.Pass); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
 
 	default:
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
