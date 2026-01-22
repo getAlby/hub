@@ -512,14 +512,14 @@ export const appStoreApps: AppStoreApp[] = (
       ),
       categories: ["misc"],
     },
-    {
+        {
       id: "sat-sorter",
       title: "Sat Sorter",
       description: "A Bitcoin Budgeting App",
-      extendedDescription:
-        "A privacy-first, zero-based budgeting app for Bitcoiners. Connects via NWC for automatic Lightning transaction sync.",
       webLink: "https://satsorter.com",
       logo: satsorter,
+      extendedDescription:
+        "A privacy-first, zero-based budgeting app for Bitcoiners. Connects via NWC for automatic Lightning transaction sync.",
       installGuide: (
         <>
           <p className="text-muted-foreground">
