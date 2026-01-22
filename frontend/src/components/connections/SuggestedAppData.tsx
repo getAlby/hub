@@ -512,39 +512,60 @@ export const appStoreApps: AppStoreApp[] = (
       ),
       categories: ["misc"],
     },
-      {
-    id: "sat-sorter",
-    title: "Sat Sorter",
-    description: "Zero-based budgeting in sats",
-    webLink: "https://satsorter.com",
-    logo: satsorter,
-    guide: (
-      <>
-        <p className="text-muted-foreground">
-          Open{" "}
-          <span className="font-medium text-foreground">Sat Sorter</span> and
-          tap the <span className="font-medium text-foreground">Wallet</span>{" "}
-          icon in the header
-        </p>
-        <p className="text-muted-foreground">
-          Tap{" "}
-          <span className="font-medium text-foreground">Connect Wallet</span>{" "}
-          and select{" "}
-          <span className="font-medium text-foreground">
-            Nostr Wallet Connect
-          </span>
-        </p>
-        <p className="text-muted-foreground">
-          Paste your NWC connection secret from Alby Hub
-        </p>
-        <p className="text-muted-foreground">
-          Tap <span className="font-medium text-foreground">Connect</span> —
-          your Lightning transactions will now sync automatically
-        </p>
-      </>
-    ),
-    categories: ["misc"],
-  },
+    {
+      id: "sat-sorter",
+      title: "Sat Sorter",
+      description: "Zero-based budgeting in sats",
+      extendedDescription:
+        "A privacy-first, zero-based budgeting app for Bitcoiners. Connects via NWC for automatic Lightning transaction sync.",
+      webLink: "https://satsorter.com",
+      logo: satsorter,
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://satsorter.com"
+              className="font-medium text-foreground underline"
+            >
+              Sat Sorter
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Sat Sorter</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Tap the{" "}
+                <span className="font-medium text-foreground">Wallet</span> icon
+                in the header
+              </li>
+              <li>
+                Tap{" "}
+                <span className="font-medium text-foreground">
+                  Connect Wallet
+                </span>{" "}
+                and select{" "}
+                <span className="font-medium text-foreground">
+                  Nostr Wallet Connect
+                </span>
+              </li>
+              <li>Paste the connection secret from Alby Hub</li>
+              <li>
+                Tap{" "}
+                <span className="font-medium text-foreground">Connect</span> —
+                your Lightning transactions will now sync automatically
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["misc"],
+    },
     {
       id: "zap-stream",
       title: "Zap Stream",
