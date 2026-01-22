@@ -29,6 +29,7 @@ import paperScissorsHodl from "src/assets/suggested-apps/paper-scissors-hodl.png
 import primal from "src/assets/suggested-apps/primal.png";
 import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
 import runstr from "src/assets/suggested-apps/runstr.png";
+import satsorter from "src/assets/suggested-apps/sat-sorter.png";
 import satoshisauctionhouse from "src/assets/suggested-apps/satoshis-auction-house.png";
 import simpleboost from "src/assets/suggested-apps/simple-boost.png";
 import snort from "src/assets/suggested-apps/snort.png";
@@ -511,6 +512,39 @@ export const appStoreApps: AppStoreApp[] = (
       ),
       categories: ["misc"],
     },
+      {
+    id: "sat-sorter",
+    title: "Sat Sorter",
+    description: "Zero-based budgeting in sats",
+    webLink: "https://satsorter.com",
+    logo: satsorter,
+    guide: (
+      <>
+        <p className="text-muted-foreground">
+          Open{" "}
+          <span className="font-medium text-foreground">Sat Sorter</span> and
+          tap the <span className="font-medium text-foreground">Wallet</span>{" "}
+          icon in the header
+        </p>
+        <p className="text-muted-foreground">
+          Tap{" "}
+          <span className="font-medium text-foreground">Connect Wallet</span>{" "}
+          and select{" "}
+          <span className="font-medium text-foreground">
+            Nostr Wallet Connect
+          </span>
+        </p>
+        <p className="text-muted-foreground">
+          Paste your NWC connection secret from Alby Hub
+        </p>
+        <p className="text-muted-foreground">
+          Tap <span className="font-medium text-foreground">Connect</span> —
+          your Lightning transactions will now sync automatically
+        </p>
+      </>
+    ),
+    categories: ["misc"],
+  },
     {
       id: "zap-stream",
       title: "Zap Stream",
