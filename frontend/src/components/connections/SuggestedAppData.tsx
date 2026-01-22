@@ -515,7 +515,7 @@ export const appStoreApps: AppStoreApp[] = (
     {
       id: "sat-sorter",
       title: "Sat Sorter",
-      description: "Zero-based budgeting in sats",
+      description: "A Bitcoin Budgeting App",
       extendedDescription:
         "A privacy-first, zero-based budgeting app for Bitcoiners. Connects via NWC for automatic Lightning transaction sync.",
       webLink: "https://satsorter.com",
