@@ -29,6 +29,7 @@ import paperScissorsHodl from "src/assets/suggested-apps/paper-scissors-hodl.png
 import primal from "src/assets/suggested-apps/primal.png";
 import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
 import runstr from "src/assets/suggested-apps/runstr.png";
+import satsorter from "src/assets/suggested-apps/sat-sorter.png";
 import satoshisauctionhouse from "src/assets/suggested-apps/satoshis-auction-house.png";
 import simpleboost from "src/assets/suggested-apps/simple-boost.png";
 import snort from "src/assets/suggested-apps/snort.png";
@@ -505,6 +506,59 @@ export const appStoreApps: AppStoreApp[] = (
                 to paste your NWC connection string
               </li>
               <li>Confirm the connection when prompted</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["misc"],
+    },
+    {
+      id: "sat-sorter",
+      title: "Sat Sorter",
+      description: "A Bitcoin Budgeting App",
+      webLink: "https://satsorter.com",
+      logo: satsorter,
+      extendedDescription:
+        "A privacy-first, zero-based budgeting app for Bitcoiners. Connects via NWC for automatic Lightning transaction sync.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://satsorter.com"
+              className="font-medium text-foreground underline"
+            >
+              Sat Sorter
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Sat Sorter</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Tap the{" "}
+                <span className="font-medium text-foreground">Wallet</span> icon
+                in the header
+              </li>
+              <li>
+                Tap{" "}
+                <span className="font-medium text-foreground">
+                  Connect Wallet
+                </span>{" "}
+                and select{" "}
+                <span className="font-medium text-foreground">
+                  Nostr Wallet Connect
+                </span>
+              </li>
+              <li>Paste the connection secret from Alby Hub</li>
+              <li>
+                Tap <span className="font-medium text-foreground">Connect</span>{" "}
+                — your Lightning transactions will now sync automatically
+              </li>
             </ul>
           </div>
         </>
