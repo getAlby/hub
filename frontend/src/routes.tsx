@@ -49,6 +49,7 @@ import { About } from "src/screens/settings/About";
 import { AlbyAccount } from "src/screens/settings/AlbyAccount";
 import { AutoUnlock } from "src/screens/settings/AutoUnlock";
 import Backup from "src/screens/settings/Backup";
+import ChainSource from "src/screens/settings/ChainSource";
 import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
 import DebugTools from "src/screens/settings/DebugTools";
 import DeveloperSettings from "src/screens/settings/DeveloperSettings";
@@ -249,6 +250,11 @@ const routes: RouteObject[] = [
                 path: "backup",
                 element: <Backup />,
                 handle: { crumb: () => "Backup" },
+              },
+              {
+                path: "chain-source",
+                element: <ChainSource />,
+                handle: { crumb: () => "Chain Source" },
               },
               {
                 path: "node-migrate",

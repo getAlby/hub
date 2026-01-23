@@ -109,6 +109,9 @@ export default function SettingsLayout() {
               Unlock Password
             </MenuItem>
             {hasMnemonic && <MenuItem to="/settings/backup">Backup</MenuItem>}
+            {info?.backendType === "LDK" && (
+              <MenuItem to="/settings/chain-source">Chain Source</MenuItem>
+            )}
             {hasNodeBackup && (
               <MenuItem to="/settings/node-migrate">Migrate Alby Hub</MenuItem>
             )}
