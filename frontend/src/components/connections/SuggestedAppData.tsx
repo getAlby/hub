@@ -512,7 +512,7 @@ export const appStoreApps: AppStoreApp[] = (
       ),
       categories: ["misc"],
     },
-        {
+    {
       id: "sat-sorter",
       title: "Sat Sorter",
       description: "A Bitcoin Budgeting App",
@@ -556,9 +556,8 @@ export const appStoreApps: AppStoreApp[] = (
               </li>
               <li>Paste the connection secret from Alby Hub</li>
               <li>
-                Tap{" "}
-                <span className="font-medium text-foreground">Connect</span> —
-                your Lightning transactions will now sync automatically
+                Tap <span className="font-medium text-foreground">Connect</span>{" "}
+                — your Lightning transactions will now sync automatically
               </li>
             </ul>
           </div>
