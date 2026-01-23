@@ -245,6 +245,12 @@ _To configure via env, the following parameters must be provided:_
 
 - `LDK_ELECTRUM_SERVER=electrum.mutinynet.com:50001`
 
+##### Signet
+
+- `MEMPOOL_API=https://mempool.space/signet/api`
+- `LDK_NETWORK=signet`
+- `LDK_ESPLORA_SERVER=https://mempool.space/signet/api`
+
 ##### Testnet (Not recommended - try Mutinynet)
 
 - `MEMPOOL_API=https://mempool.space/testnet/api`
