@@ -504,24 +504,30 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 		}
 	}
 
-	var totalCount int64
-	if err := query.Model(&db.App{}).Count(&totalCount).Error; err != nil {
-		logger.Logger.WithError(err).Error("Failed to count DB apps")
-		return nil, err
+	if orderBy == "" {
+		orderBy = "last_used_at"
+	}
+	if orderBy == "last_used_at" {
+		orderBy = "last_used_at IS NULL, " + orderBy
 	}
 
-	query = query.Select("apps.*, MAX(transactions.created_at) as last_transaction_at").
-		Joins("LEFT JOIN transactions ON transactions.app_id = apps.id AND transactions.state = ?", constants.TRANSACTION_STATE_SETTLED).
-		Group("apps.id")
-
-	if orderBy == "" || orderBy == "last_used_at" {
+	if orderBy == "last_settled_transaction" {
+		query = query.Select("apps.*, MAX(transactions.created_at) as last_transaction_at").
+			Joins("LEFT JOIN transactions ON transactions.app_id = apps.id AND transactions.state = ?", constants.TRANSACTION_STATE_SETTLED).
+			Group("apps.id")
 		orderBy = "last_transaction_at DESC, apps.last_used_at DESC"
 	}
 
-	query = query.Order(orderBy)
+	query = query.Order(orderBy + " DESC")
 
 	if limit == 0 {
 		limit = 100
+	}
+	var totalCount int64
+	result := query.Model(&db.App{}).Count(&totalCount)
+	if result.Error != nil {
+		logger.Logger.WithError(result.Error).Error("Failed to count DB apps")
+		return nil, result.Error
 	}
 	query = query.Offset(int(offset)).Limit(int(limit))
 
