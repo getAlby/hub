@@ -515,7 +515,7 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 		query = query.Select("apps.*, MAX(transactions.created_at) as last_transaction_at").
 			Joins("LEFT JOIN transactions ON transactions.app_id = apps.id AND transactions.state = ?", constants.TRANSACTION_STATE_SETTLED).
 			Group("apps.id")
-		orderBy = "last_transaction_at DESC, apps.last_used_at DESC"
+		orderBy = "last_transaction_at IS NULL, last_transaction_at DESC, apps.last_used_at"
 	}
 
 	query = query.Order(orderBy + " DESC")
