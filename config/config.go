@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path"
 	"strings"
 	"sync"
 
@@ -116,17 +115,12 @@ func (cfg *config) init(env *AppConfig) error {
 }
 
 func (cfg *config) SetupCompleted() bool {
-	// TODO: remove hasLdkDir check after 2025/01/01
-	// to give time for users to update to 1.6.0+
 	nodeLastStartTime, _ := cfg.Get("NodeLastStartTime", "")
-	ldkDir, err := os.Stat(path.Join(cfg.GetEnv().Workdir, "ldk"))
-	hasLdkDir := err == nil && ldkDir != nil && ldkDir.IsDir()
 
 	logger.Logger.WithFields(logrus.Fields{
-		"has_ldk_dir":              hasLdkDir,
 		"has_node_last_start_time": nodeLastStartTime != "",
 	}).Debug("Checking if setup is completed")
-	return nodeLastStartTime != "" || hasLdkDir
+	return nodeLastStartTime != ""
 }
 
 func (cfg *config) GetJWTSecret() (string, error) {
