@@ -122,6 +122,15 @@ type Forward struct {
 	UpdatedAt                   time.Time
 }
 
+type Offer struct {
+	ID          uint   `gorm:"primaryKey"`
+	OfferID     string `gorm:"uniqueIndex;not null" validate:"required"`
+	OfferString string `gorm:"not null" validate:"required"`
+	Description string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
 const (
 	REQUEST_EVENT_STATE_HANDLER_EXECUTING = "executing"
 	REQUEST_EVENT_STATE_HANDLER_EXECUTED  = "executed"
