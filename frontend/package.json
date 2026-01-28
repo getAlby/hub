@@ -68,6 +68,7 @@
     "react-day-picker": "^9.11.0",
     "react-dom": "18.3.1",
     "react-hook-form": "^7.60.0",
+    "react-linkify-it": "^2.0.0",
     "react-lottie": "^1.2.4",
     "react-qr-code": "^2.0.12",
     "react-resizable-panels": "^3.0.6",

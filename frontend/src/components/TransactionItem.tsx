@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { nip19 } from "nostr-tools";
 import React from "react";
+import { LinkIt } from "react-linkify-it";
 import { Link } from "react-router-dom";
 import AppAvatar from "src/components/AppAvatar";
 import ExternalLink from "src/components/ExternalLink";
@@ -46,6 +47,34 @@ function safeNpubEncode(hex: string): string | undefined {
   } catch {
     return undefined;
   }
+}
+
+const URL_REGEX =
+  /(https?:\/\/[^\s]+|(?:www\.)?[a-zA-Z0-9][-a-zA-Z0-9]*\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/gi;
+
+function LinkifyUrls({ children }: { children: string }) {
+  return (
+    <LinkIt
+      regex={URL_REGEX}
+      component={(match, key) => {
+        const href = match.startsWith("http") ? match : `https://${match}`;
+        return (
+          <a
+            key={key}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary underline hover:no-underline"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {match}
+          </a>
+        );
+      }}
+    >
+      {children}
+    </LinkIt>
+  );
 }
 
 function TransactionItem({ tx }: Props) {
@@ -183,7 +212,7 @@ function TransactionItem({ tx }: Props) {
               </span>
             </div>
             <p className="text-sm md:text-base text-muted-foreground break-all line-clamp-1">
-              {description}
+              <LinkifyUrls>{description || ""}</LinkifyUrls>
             </p>
           </div>
           <div className="flex ml-auto space-x-3 shrink-0">
@@ -285,7 +314,7 @@ function TransactionItem({ tx }: Props) {
               <div className="mt-6">
                 <p>Description</p>
                 <p className="text-muted-foreground break-all">
-                  {tx.description}
+                  <LinkifyUrls>{tx.description}</LinkifyUrls>
                 </p>
               </div>
             )}
@@ -293,7 +322,7 @@ function TransactionItem({ tx }: Props) {
               <div className="mt-6">
                 <p>Comment</p>
                 <p className="text-muted-foreground break-all">
-                  {tx.metadata.comment}
+                  <LinkifyUrls>{tx.metadata.comment}</LinkifyUrls>
                 </p>
               </div>
             )}
@@ -301,7 +330,7 @@ function TransactionItem({ tx }: Props) {
               <div className="mt-6">
                 <p>Payer Note</p>
                 <p className="text-muted-foreground break-all">
-                  {bolt12Offer.payer_note}
+                  <LinkifyUrls>{bolt12Offer.payer_note}</LinkifyUrls>
                 </p>
               </div>
             )}
