@@ -31,6 +31,7 @@ import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
 import { useApp } from "src/hooks/useApp";
 import { useSwap } from "src/hooks/useSwaps";
 import { copyToClipboard } from "src/lib/clipboard";
+import { linkifyText } from "src/lib/linkify";
 import { cn } from "src/lib/utils";
 import { Transaction } from "src/types";
 
@@ -183,7 +184,7 @@ function TransactionItem({ tx }: Props) {
               </span>
             </div>
             <p className="text-sm md:text-base text-muted-foreground break-all line-clamp-1">
-              {description}
+              {linkifyText(description || "")}
             </p>
           </div>
           <div className="flex ml-auto space-x-3 shrink-0">
@@ -285,7 +286,7 @@ function TransactionItem({ tx }: Props) {
               <div className="mt-6">
                 <p>Description</p>
                 <p className="text-muted-foreground break-all">
-                  {tx.description}
+                  {linkifyText(tx.description)}
                 </p>
               </div>
             )}
@@ -293,7 +294,7 @@ function TransactionItem({ tx }: Props) {
               <div className="mt-6">
                 <p>Comment</p>
                 <p className="text-muted-foreground break-all">
-                  {tx.metadata.comment}
+                  {linkifyText(tx.metadata.comment)}
                 </p>
               </div>
             )}
@@ -301,7 +302,7 @@ function TransactionItem({ tx }: Props) {
               <div className="mt-6">
                 <p>Payer Note</p>
                 <p className="text-muted-foreground break-all">
-                  {bolt12Offer.payer_note}
+                  {linkifyText(bolt12Offer.payer_note)}
                 </p>
               </div>
             )}
