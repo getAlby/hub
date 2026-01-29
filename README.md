@@ -29,6 +29,7 @@ By default Alby Hub uses the embedded LDK based lightning node. Optionally it ca
 - LND
 - Phoenixd
 - Cashu
+- CLN
 - want more? please open an issue.
 
 ## Development
@@ -209,6 +210,16 @@ Migration of the database is currently experimental. Please make a backup before
 ## Node-specific backend parameters
 
 - `ENABLE_ADVANCED_SETUP`: set to `false` to force a specific backend type (combined with backend parameters below)
+
+### CLN Backend parameters
+
+Can be configured via env or the UI
+
+- `LN_BACKEND_TYPE`: CLN
+- `CLN_ADDRESS`: the CLN grpc address (grpc-host and grpc-port), e.g. `127.0.0.1:9737`
+- `CLN_CA_CERT`: the location where cln-grpc's `ca.pem` file can be found.
+- `CLN_CLIENT_CERT`: the location where cln-grpc's `client.pem` file can be found.
+- `CLN_CLIENT_KEY`: the location where cln-grpc's `client-key.pem` file can be found.
 
 ### LND Backend parameters
 
