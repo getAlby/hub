@@ -447,6 +447,10 @@ export type SetupNodeInfo = Partial<{
   clnCaCert?: string;
   clnClientCert?: string;
   clnClientKey?: string;
+  clnAddressHold?: string;
+  clnCaCertHold?: string;
+  clnClientCertHold?: string;
+  clnClientKeyHold?: string;
 }>;
 
 export type LSPType = "LSPS1";
