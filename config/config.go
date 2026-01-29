@@ -111,6 +111,32 @@ func (cfg *config) init(env *AppConfig) error {
 		}
 	}
 
+	// CLN specific to support env variables
+	if cfg.Env.CLNAddress != "" {
+		err := cfg.SetUpdate("CLNAddress", cfg.Env.CLNAddress, "")
+		if err != nil {
+			return err
+		}
+	}
+	if cfg.Env.CLNCaCert != "" {
+		err := cfg.SetUpdate("CLNCaCert", cfg.Env.CLNCaCert, "")
+		if err != nil {
+			return err
+		}
+	}
+	if cfg.Env.CLNClientCert != "" {
+		err := cfg.SetUpdate("CLNClientCert", cfg.Env.CLNClientCert, "")
+		if err != nil {
+			return err
+		}
+	}
+	if cfg.Env.CLNClientKey != "" {
+		err := cfg.SetUpdate("CLNClientKey", cfg.Env.CLNClientKey, "")
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
