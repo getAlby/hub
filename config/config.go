@@ -136,6 +136,30 @@ func (cfg *config) init(env *AppConfig) error {
 			return err
 		}
 	}
+	if cfg.Env.CLNAddressHold != "" {
+		err := cfg.SetUpdate("CLNAddressHold", cfg.Env.CLNAddressHold, "")
+		if err != nil {
+			return err
+		}
+	}
+	if cfg.Env.CLNCaCertHold != "" {
+		err := cfg.SetUpdate("CLNCaCertHold", cfg.Env.CLNCaCertHold, "")
+		if err != nil {
+			return err
+		}
+	}
+	if cfg.Env.CLNClientCertHold != "" {
+		err := cfg.SetUpdate("CLNClientCertHold", cfg.Env.CLNClientCertHold, "")
+		if err != nil {
+			return err
+		}
+	}
+	if cfg.Env.CLNClientKeyHold != "" {
+		err := cfg.SetUpdate("CLNClientKeyHold", cfg.Env.CLNClientKeyHold, "")
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
