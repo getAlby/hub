@@ -5,6 +5,7 @@ const (
 	LDKBackendType     = "LDK"
 	PhoenixBackendType = "PHOENIX"
 	CashuBackendType   = "CASHU"
+	CLNBackendType     = "CLN"
 )
 
 const (
@@ -59,6 +60,10 @@ type AppConfig struct {
 	LogDBQueries                       bool   `envconfig:"LOG_DB_QUERIES" default:"false"`
 	BoltzApi                           string `envconfig:"BOLTZ_API" default:"https://api.boltz.exchange"`
 	HideUpdateBanner                   bool   `envconfig:"HIDE_UPDATE_BANNER" default:"false"`
+	CLNAddress                         string `envconfig:"CLN_ADDRESS"`
+	CLNCaCert                          string `envconfig:"CLN_CA_CERT"`
+	CLNClientCert                      string `envconfig:"CLN_CLIENT_CERT"`
+	CLNClientKey                       string `envconfig:"CLN_CLIENT_KEY"`
 }
 
 func (c *AppConfig) IsDefaultClientId() bool {

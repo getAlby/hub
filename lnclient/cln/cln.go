@@ -1,0 +1,1783 @@
+package cln
+
+import (
+	"context"
+	"crypto/sha256"
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/hex"
+	"fmt"
+	"os"
+	"regexp"
+	"slices"
+	"sort"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+
+	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/lnclient"
+	clngrpc "github.com/getAlby/hub/lnclient/cln/clngrpc"
+	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/nip47/models"
+	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
+)
+
+type CLNService struct {
+	ctx            context.Context
+	client         clngrpc.NodeClient
+	conn           *grpc.ClientConn
+	eventPublisher events.EventPublisher
+	pubkey         string
+	cancel         context.CancelFunc
+	wg             sync.WaitGroup
+}
+
+func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, address, certPath, clientCertPath, clientKeyPath string) (lnclient.LNClient, error) {
+	logger.Logger.WithFields(logrus.Fields{
+		"address":        address,
+		"certPath":       certPath,
+		"clientCertPath": clientCertPath,
+		"clientKeyPath":  clientKeyPath,
+	}).Info("Creating new CLN gRPC service")
+
+	tlsConfig, err := loadTLSCredentials(certPath, clientCertPath, clientKeyPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load TLS credentials: %w", err)
+	}
+
+	creds := credentials.NewTLS(tlsConfig)
+
+	conn, err := grpc.NewClient(
+		address,
+		grpc.WithTransportCredentials(creds),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to CLN gRPC: %w", err)
+	}
+
+	client := clngrpc.NewNodeClient(conn)
+
+	ctx, cancel := context.WithCancel(ctx)
+
+	svc := &CLNService{
+		ctx:            ctx,
+		client:         client,
+		conn:           conn,
+		eventPublisher: eventPublisher,
+		cancel:         cancel,
+	}
+
+	logger.Logger.Info("Testing CLN gRPC connection")
+	resp, err := svc.GetInfo(ctx)
+	if err != nil {
+		conn.Close()
+		logger.Logger.WithError(err).Error("Failed to connect to CLN")
+		return nil, fmt.Errorf("failed to connect to CLN: %w", err)
+	}
+
+	svc.pubkey = resp.Pubkey
+
+	logger.Logger.Info("Successfully connected to CLN via gRPC")
+	return svc, nil
+}
+func loadTLSCredentials(certPath, clientCertPath, clientKeyPath string) (*tls.Config, error) {
+	serverCA, err := os.ReadFile(certPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read server CA cert: %w", err)
+	}
+
+	certPool := x509.NewCertPool()
+	if !certPool.AppendCertsFromPEM(serverCA) {
+		return nil, fmt.Errorf("failed to add server CA cert to pool")
+	}
+
+	clientCert, err := tls.LoadX509KeyPair(clientCertPath, clientKeyPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load client cert/key: %w", err)
+	}
+
+	return &tls.Config{
+		Certificates: []tls.Certificate{clientCert},
+		RootCAs:      certPool,
+		ServerName:   "cln", // CLN uses "cln" as default ServerName
+	}, nil
+}
+
+func (c *CLNService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
+	logger.Logger.WithFields(logrus.Fields{
+		"closeChannelRequest": closeChannelRequest,
+	}).Debug("Closing Channel")
+
+	req := &clngrpc.CloseRequest{
+		Id: closeChannelRequest.ChannelId,
+	}
+
+	if closeChannelRequest.Force {
+		// There is no force option in CLN, only a Unilateraltimeout after which the channel will be force closed
+		// 0 means waiting forever so we choose 1 second
+		timeout := uint32(1)
+		req.Unilateraltimeout = &timeout
+	}
+
+	_, err := c.client.Close(ctx, req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to close channel")
+		return nil, fmt.Errorf("close failed: %w", err)
+	}
+
+	return &lnclient.CloseChannelResponse{}, err
+}
+
+func (c *CLNService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
+	logger.Logger.WithFields(logrus.Fields{
+		"connectPeerRequest": connectPeerRequest,
+	}).Debug("Connecting to Peer")
+
+	port := uint32(connectPeerRequest.Port)
+	req := &clngrpc.ConnectRequest{
+		Id:   connectPeerRequest.Pubkey,
+		Host: &connectPeerRequest.Address,
+		Port: &port,
+	}
+
+	_, err := c.client.ConnectPeer(ctx, req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to connect peer")
+		return err
+	}
+
+	return nil
+}
+
+func (c *CLNService) DisconnectPeer(ctx context.Context, peerId string) error {
+	logger.Logger.WithFields(logrus.Fields{
+		"peerId": peerId,
+	}).Debug("Disconnecting Peer")
+
+	pubkey, err := hex.DecodeString(peerId)
+	if err != nil {
+		return err
+	}
+	req := &clngrpc.DisconnectRequest{
+		Id: pubkey,
+	}
+
+	_, err = c.client.Disconnect(ctx, req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to disconnect peer")
+		return err
+	}
+
+	return nil
+}
+
+func (c *CLNService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
+	return nil
+}
+
+func (c *CLNService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
+	return nil, nil
+}
+
+func (c *CLNService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
+	logger.Logger.WithFields(logrus.Fields{
+		"includeInactiveChannels": includeInactiveChannels,
+	}).Debug("Get all Balances")
+
+	onchainBalance, err := c.GetOnchainBalance(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.client.ListPeerChannels(ctx, &clngrpc.ListpeerchannelsRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("listpeerchannels failed: %w", err)
+	}
+
+	lightning := lnclient.LightningBalanceResponse{}
+
+	for _, ch := range resp.Channels {
+		if ch == nil {
+			continue
+		}
+
+		// Never include closing or closed channels
+		if ch.State != clngrpc.ChannelState_ChanneldNormal {
+			continue
+		}
+
+		// This isn't perfect to determine if a channel is active
+		active := ch.PeerConnected
+		include := active || includeInactiveChannels
+		if !include {
+			continue
+		}
+
+		if ch.SpendableMsat != nil {
+			spendable := int64(ch.SpendableMsat.Msat)
+			lightning.TotalSpendable += spendable
+
+			if spendable > lightning.NextMaxSpendable {
+				lightning.NextMaxSpendable = spendable
+			}
+		}
+
+		if ch.ReceivableMsat != nil {
+			receivable := int64(ch.ReceivableMsat.Msat)
+			lightning.TotalReceivable += receivable
+
+			if receivable > lightning.NextMaxReceivable {
+				lightning.NextMaxReceivable = receivable
+			}
+		}
+	}
+
+	lightning.NextMaxSpendableMPP = lightning.TotalSpendable
+	lightning.NextMaxReceivableMPP = lightning.TotalReceivable
+
+	return &lnclient.BalancesResponse{
+		Onchain:   *onchainBalance,
+		Lightning: lightning,
+	}, nil
+}
+
+func (c *CLNService) GetInfo(ctx context.Context) (*lnclient.NodeInfo, error) {
+	resp, err := c.client.Getinfo(ctx, &clngrpc.GetinfoRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("getinfo failed: %w", err)
+	}
+
+	return &lnclient.NodeInfo{
+		Alias:       resp.GetAlias(),
+		Color:       hex.EncodeToString(resp.Color),
+		Pubkey:      hex.EncodeToString(resp.Id),
+		Network:     resp.Network,
+		BlockHeight: resp.Blockheight,
+		BlockHash:   "", // Not directly available
+	}, nil
+}
+
+func (c *CLNService) GetLogOutput(ctx context.Context, maxLen int) ([]byte, error) {
+	return []byte{}, nil
+}
+
+func (c *CLNService) GetNetworkGraph(ctx context.Context, nodeIds []string) (lnclient.NetworkGraphResponse, error) {
+	logger.Logger.WithFields(logrus.Fields{
+		"nodeIds": nodeIds,
+	}).Debug("Get Network Graph")
+
+	listnodes, err := c.client.ListNodes(ctx, &clngrpc.ListnodesRequest{})
+	if err != nil {
+		logger.Logger.WithError(err).Error("listnodes failed")
+		return "", err
+	}
+
+	type NetworkNode struct {
+		NodeId    string   `json:"nodeId"`
+		Alias     string   `json:"alias"`
+		Color     string   `json:"color"`
+		Addresses []string `json:"addresses"`
+		Features  string   `json:"features"`
+	}
+
+	type NodeInfoWithId struct {
+		Node   *NetworkNode `json:"node"`
+		NodeId string       `json:"nodeId"`
+	}
+
+	type NetworkChannel struct {
+		Scid     string `json:"scid"`
+		Node1    string `json:"node1"`
+		Node2    string `json:"node2"`
+		Capacity uint64 `json:"capacity"`
+		Active   bool   `json:"active"`
+		Public   bool   `json:"public"`
+	}
+
+	nodes := []NodeInfoWithId{}
+	channels := []*NetworkChannel{}
+
+	for _, node := range listnodes.Nodes {
+		nodeIdStr := hex.EncodeToString(node.Nodeid)
+		if slices.Contains(nodeIds, nodeIdStr) {
+			addrs := []string{}
+			for _, a := range node.Addresses {
+				addrs = append(addrs, fmt.Sprintf("%s:%d", a.GetAddress(), a.GetPort()))
+			}
+			networkNode := NetworkNode{
+				NodeId:    hex.EncodeToString(node.Nodeid),
+				Alias:     node.GetAlias(),
+				Color:     hex.EncodeToString(node.Color),
+				Addresses: addrs,
+				Features:  hex.EncodeToString(node.Features),
+			}
+			nodes = append(nodes, NodeInfoWithId{
+				Node:   &networkNode,
+				NodeId: nodeIdStr,
+			})
+		}
+	}
+
+	listchannels, err := c.client.ListChannels(ctx, &clngrpc.ListchannelsRequest{})
+	if err != nil {
+		logger.Logger.WithError(err).Error("listchannels failed")
+		return "", err
+	}
+
+	for _, edge := range listchannels.Channels {
+		if slices.Contains(nodeIds, hex.EncodeToString(edge.Source)) || slices.Contains(nodeIds, hex.EncodeToString(edge.Destination)) {
+			channel := NetworkChannel{
+				Scid:     edge.ShortChannelId,
+				Node1:    hex.EncodeToString(edge.Source),
+				Node2:    hex.EncodeToString(edge.Destination),
+				Capacity: sat(edge.AmountMsat),
+				Active:   edge.Active,
+				Public:   edge.Public,
+			}
+			channels = append(channels, &channel)
+		}
+	}
+
+	networkGraph := map[string]interface{}{
+		"nodes":    nodes,
+		"channels": channels,
+	}
+	return networkGraph, nil
+}
+
+func (c *CLNService) GetNewOnchainAddress(ctx context.Context) (string, error) {
+	resp, err := c.client.NewAddr(ctx, &clngrpc.NewaddrRequest{})
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to generate onchain address")
+		return "", err
+	}
+
+	if resp.Bech32 != nil {
+		return *resp.Bech32, nil
+	}
+
+	if resp.P2Tr != nil {
+		return *resp.P2Tr, nil
+	}
+
+	logger.Logger.WithField("resp", resp).Error("No known onchain address type returned")
+	return "", fmt.Errorf("unknown default onchain address type")
+}
+
+func (c *CLNService) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnectionInfo, error) {
+	resp, err := c.client.Getinfo(ctx, &clngrpc.GetinfoRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("getinfo failed: %w", err)
+	}
+
+	var (
+		ipv4  *clngrpc.GetinfoAddress
+		ipv6  *clngrpc.GetinfoAddress
+		torv3 *clngrpc.GetinfoAddress
+	)
+
+	for _, addr := range resp.Address {
+		if addr == nil {
+			continue
+		}
+
+		switch addr.ItemType {
+		case clngrpc.GetinfoAddress_IPV4:
+			if ipv4 == nil {
+				ipv4 = addr
+			}
+		case clngrpc.GetinfoAddress_IPV6:
+			if ipv6 == nil {
+				ipv6 = addr
+			}
+		case clngrpc.GetinfoAddress_TORV3:
+			if torv3 == nil {
+				torv3 = addr
+			}
+		}
+	}
+
+	var selected *clngrpc.GetinfoAddress
+	switch {
+	case ipv4 != nil:
+		selected = ipv4
+	case ipv6 != nil:
+		selected = ipv6
+	case torv3 != nil:
+		selected = torv3
+	default:
+		addr := "not announced"
+		selected = &clngrpc.GetinfoAddress{
+			Address: &addr,
+			Port:    0,
+		}
+	}
+
+	return &lnclient.NodeConnectionInfo{
+		Pubkey:  hex.EncodeToString(resp.Id),
+		Address: selected.GetAddress(),
+		Port:    int(selected.Port),
+	}, nil
+}
+
+func (c *CLNService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient.NodeStatus, err error) {
+	resp, err := c.client.Getinfo(ctx, &clngrpc.GetinfoRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("getinfo failed: %w", err)
+	}
+
+	ready := false
+	if resp != nil {
+		if resp.WarningBitcoindSync == nil && resp.WarningLightningdSync == nil {
+			ready = true
+		}
+	}
+
+	return &lnclient.NodeStatus{
+		IsReady:            ready,
+		InternalNodeStatus: 0,
+	}, nil
+}
+
+func (c *CLNService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
+	lf, err := c.client.ListFunds(ctx, &clngrpc.ListfundsRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("listfunds failed: %w", err)
+	}
+
+	lpc, err := c.client.ListPeerChannels(ctx, &clngrpc.ListpeerchannelsRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("listpeerchannels failed: %w", err)
+	}
+
+	chByID := make(map[string]*clngrpc.ListpeerchannelsChannels)
+	for _, ch := range lpc.Channels {
+		if ch == nil || len(ch.ChannelId) == 0 {
+			continue
+		}
+		chByID[hex.EncodeToString(ch.ChannelId)] = ch
+	}
+
+	balances := &lnclient.OnchainBalanceResponse{
+		PendingBalancesDetails:      []lnclient.PendingBalanceDetails{},
+		PendingSweepBalancesDetails: []lnclient.PendingBalanceDetails{},
+	}
+
+	var reservedSats int64
+
+	for _, utxo := range lf.Outputs {
+		if utxo == nil || utxo.AmountMsat == nil {
+			continue
+		}
+
+		amt := satInt64(utxo.AmountMsat)
+		balances.Total += amt
+
+		if utxo.Reserved {
+			balances.Reserved += amt
+			reservedSats += amt
+		}
+
+		switch utxo.Status {
+		case clngrpc.ListfundsOutputs_CONFIRMED:
+			if !utxo.Reserved {
+				balances.Spendable += amt
+			}
+
+		case clngrpc.ListfundsOutputs_UNCONFIRMED:
+			balances.PendingSweepBalancesDetails = append(
+				balances.PendingSweepBalancesDetails,
+				lnclient.PendingBalanceDetails{
+					Amount:        uint64(amt),
+					FundingTxId:   hex.EncodeToString(utxo.Txid),
+					FundingTxVout: utxo.Output,
+				},
+			)
+		}
+	}
+
+	for _, ch := range lf.Channels {
+		if ch == nil || ch.OurAmountMsat == nil || !isClosingState(ch.State) {
+			continue
+		}
+
+		amt := sat(ch.OurAmountMsat)
+		balances.PendingBalancesFromChannelClosures += amt
+		chanIdStr := hex.EncodeToString(ch.ChannelId)
+
+		detail := lnclient.PendingBalanceDetails{
+			ChannelId: chanIdStr,
+			NodeId:    hex.EncodeToString(ch.PeerId),
+			Amount:    amt,
+		}
+
+		if pc, ok := chByID[chanIdStr]; ok {
+			if len(pc.FundingTxid) > 0 {
+				detail.FundingTxId = hex.EncodeToString(pc.FundingTxid)
+			}
+			if pc.FundingOutnum != nil {
+				detail.FundingTxVout = *pc.FundingOutnum
+			}
+		}
+
+		balances.PendingBalancesDetails = append(
+			balances.PendingBalancesDetails,
+			detail,
+		)
+	}
+
+	balances.InternalBalances = map[string]int64{
+		"reserved": reservedSats,
+	}
+
+	return balances, nil
+}
+
+func isClosingState(state clngrpc.ChannelState) bool {
+	switch state {
+	case clngrpc.ChannelState_ChanneldShuttingDown,
+		clngrpc.ChannelState_ClosingdSigexchange,
+		clngrpc.ChannelState_ClosingdComplete,
+		clngrpc.ChannelState_AwaitingUnilateral,
+		clngrpc.ChannelState_FundingSpendSeen:
+		return true
+	default:
+		return false
+	}
+}
+
+func isOpeningState(state clngrpc.ChannelState) bool {
+	switch state {
+	case clngrpc.ChannelState_ChanneldAwaitingLockin,
+		clngrpc.ChannelState_DualopendAwaitingLockin,
+		clngrpc.ChannelState_DualopendOpenCommittReady,
+		clngrpc.ChannelState_DualopendOpenCommitted,
+		clngrpc.ChannelState_DualopendOpenInit,
+		clngrpc.ChannelState_Openingd:
+		return true
+	default:
+		return false
+	}
+}
+
+func isConfirmedState(state clngrpc.ChannelState) bool {
+	switch state {
+	case clngrpc.ChannelState_AwaitingUnilateral,
+		clngrpc.ChannelState_ChanneldAwaitingSplice,
+		clngrpc.ChannelState_ChanneldNormal,
+		clngrpc.ChannelState_ChanneldShuttingDown,
+		clngrpc.ChannelState_ClosingdComplete,
+		clngrpc.ChannelState_ClosingdSigexchange,
+		clngrpc.ChannelState_FundingSpendSeen,
+		clngrpc.ChannelState_Onchain:
+		return true
+	default:
+		return false
+	}
+}
+
+func msatInt64(a *clngrpc.Amount) int64 {
+	if a == nil {
+		return 0
+	}
+	return int64(a.Msat)
+}
+
+func satInt64(a *clngrpc.Amount) int64 {
+	if a == nil {
+		return 0
+	}
+	return int64(a.Msat / 1000)
+}
+
+func sat(a *clngrpc.Amount) uint64 {
+	if a == nil {
+		return 0
+	}
+	return a.Msat / 1000
+}
+
+func localFeeBaseMsat(ch *clngrpc.ListpeerchannelsChannels) uint32 {
+	if ch == nil {
+		return 0
+	}
+	u := ch.Updates
+	if u == nil {
+		return 0
+	}
+	l := u.Local
+	if l == nil {
+		return 0
+	}
+	f := l.FeeBaseMsat
+	if f == nil {
+		return 0
+	}
+	return uint32(f.Msat)
+}
+
+func localFeePPM(ch *clngrpc.ListpeerchannelsChannels) uint32 {
+	if ch == nil {
+		return 0
+	}
+	u := ch.Updates
+	if u == nil {
+		return 0
+	}
+	l := u.Local
+	if l == nil {
+		return 0
+	}
+	f := l.FeeProportionalMillionths
+	return f
+}
+
+func (c *CLNService) GetPubkey() string {
+	return c.pubkey
+}
+
+func (c *CLNService) GetStorageDir() (string, error) {
+	return "", nil
+}
+
+func (c *CLNService) GetSupportedNIP47Methods() []string {
+	logger.Logger.Info("GetSupportedNIP47Methods")
+	return []string{
+		models.PAY_INVOICE_METHOD,
+		models.PAY_KEYSEND_METHOD,
+		models.GET_BALANCE_METHOD,
+		models.GET_BUDGET_METHOD,
+		models.GET_INFO_METHOD,
+		models.MAKE_INVOICE_METHOD,
+		models.LOOKUP_INVOICE_METHOD,
+		models.LIST_TRANSACTIONS_METHOD,
+		models.MULTI_PAY_INVOICE_METHOD,
+		models.MULTI_PAY_KEYSEND_METHOD,
+		models.SIGN_MESSAGE_METHOD,
+	}
+}
+
+func (c *CLNService) GetSupportedNIP47NotificationTypes() []string {
+	// return []string{notifications.PAYMENT_RECEIVED_NOTIFICATION, notifications.PAYMENT_SENT_NOTIFICATION}
+	return []string{}
+}
+
+func (c *CLNService) ListChannels(ctx context.Context) (channels []lnclient.Channel, err error) {
+	resp, err := c.client.ListPeerChannels(ctx, &clngrpc.ListpeerchannelsRequest{})
+	if err != nil {
+		logger.Logger.WithError(err).Error("listpeerchannels failed")
+		return nil, err
+	}
+
+	infoResp, infoErr := c.client.Getinfo(ctx, &clngrpc.GetinfoRequest{})
+	if infoErr != nil {
+		logger.Logger.WithError(infoErr).Error("getinfo failed")
+		return nil, infoErr
+	}
+
+	blockheight := infoResp.Blockheight
+
+	reChanHeight := regexp.MustCompile(`(\d+)x.*`)
+
+	for _, channel := range resp.Channels {
+		if channel == nil {
+			continue
+		}
+
+		var errorStrings []string
+
+		// We could check the funding-confirms config but it's only for remote openers
+		// In reality channels often confirm with 3 or 6 confirmations
+		ConfirmationsRequired := uint32(6)
+		if isConfirmedState(channel.State) {
+			ConfirmationsRequired = 0
+		} else if isOpeningState(channel.State) {
+			confRequired, err := confirmationsRequiredFromStatus(channel.Status)
+			if err != nil {
+				logger.Logger.Error(err)
+				errorStrings = append(errorStrings, *err)
+			} else {
+				ConfirmationsRequired = confRequired
+			}
+
+		} else {
+			errStr := fmt.Sprintf("unexpected clngrpc.ChannelState: %#v", channel.State)
+			logger.Logger.Error(errStr)
+			errorStrings = append(errorStrings, errStr)
+		}
+
+		var chanBlock *uint32
+		if channel.ShortChannelId != nil {
+			match := reChanHeight.FindStringSubmatch(*channel.ShortChannelId)
+			if len(match) > 1 {
+				num, err := strconv.Atoi(match[1])
+				if err != nil {
+					errStr := fmt.Sprintf("Error converting number: %v", err)
+					logger.Logger.Error(errStr)
+					errorStrings = append(errorStrings, errStr)
+				}
+				num32 := uint32(num)
+				chanBlock = &num32
+			}
+		}
+
+		var Confirmations uint32
+		if chanBlock != nil {
+			if blockheight >= *chanBlock {
+				Confirmations = (blockheight - *chanBlock) + 1
+			} else {
+				Confirmations = 0
+			}
+		} else {
+			Confirmations = 0
+		}
+
+		isActive := channel.State == clngrpc.ChannelState_ChanneldNormal && channel.PeerConnected
+
+		var Error *string
+		if len(errorStrings) > 0 {
+			combined := strings.Join(errorStrings, "; ")
+			Error = &combined
+		}
+
+		LocalBalance := msatInt64(channel.ToUsMsat)
+		TotalBalance := msatInt64(channel.TotalMsat)
+		RemoteBalance := int64(0)
+		if TotalBalance >= LocalBalance {
+			RemoteBalance = TotalBalance - LocalBalance
+		}
+
+		channels = append(channels, lnclient.Channel{
+			LocalBalance:                             LocalBalance,
+			LocalSpendableBalance:                    msatInt64(channel.SpendableMsat),
+			RemoteBalance:                            RemoteBalance,
+			Id:                                       hex.EncodeToString(channel.ChannelId),
+			RemotePubkey:                             hex.EncodeToString(channel.PeerId),
+			FundingTxId:                              hex.EncodeToString(channel.FundingTxid),
+			FundingTxVout:                            channel.GetFundingOutnum(),
+			Active:                                   isActive,
+			Public:                                   !channel.GetPrivate(),
+			InternalChannel:                          channel,
+			Confirmations:                            &Confirmations,
+			ConfirmationsRequired:                    &ConfirmationsRequired,
+			ForwardingFeeBaseMsat:                    localFeeBaseMsat(channel),
+			ForwardingFeeProportionalMillionths:      localFeePPM(channel),
+			UnspendablePunishmentReserve:             sat(channel.OurReserveMsat),
+			CounterpartyUnspendablePunishmentReserve: sat(channel.TheirReserveMsat),
+			Error:                                    Error,
+			IsOutbound:                               channel.GetOpener() == clngrpc.ChannelSide_LOCAL,
+		})
+	}
+	return channels, nil
+}
+
+func confirmationsRequiredFromStatus(status []string) (uint32, *string) {
+	reStatus := regexp.MustCompile(`.*Funding needs (\d+) more confirmations to be ready.*`)
+
+	for _, status := range status {
+		match := reStatus.FindStringSubmatch(status)
+		if len(match) > 1 {
+			num, err := strconv.Atoi(match[1])
+			if err != nil {
+				errStr := fmt.Sprintf("Error converting number of confirmations required: %v", err)
+				return 0, &errStr
+			}
+			return uint32(num), nil
+		}
+	}
+
+	errNotFound := "Could not find status indicating number of confirmations required"
+	return 0, &errNotFound
+}
+
+func (c *CLNService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
+	account := "wallet"
+	req := &clngrpc.BkprlistaccounteventsRequest{
+		Account: &account,
+	}
+	bkpr, err := c.client.BkprListAccountEvents(ctx, req)
+	if err != nil {
+		return nil, fmt.Errorf("bkprlistaccountevents failed: %w", err)
+	}
+
+	infoResp, infoErr := c.client.Getinfo(ctx, &clngrpc.GetinfoRequest{})
+	if infoErr != nil {
+		logger.Logger.WithError(infoErr).Error("getinfo failed")
+		return nil, infoErr
+	}
+
+	blockheight := infoResp.Blockheight
+
+	transactions := make([]lnclient.OnchainTransaction, 0)
+
+	for _, event := range bkpr.Events {
+		if event.ItemType != clngrpc.BkprlistaccounteventsEvents_CHAIN {
+			continue
+		}
+		transactionType := "incoming"
+		AmountSat := sat(event.CreditMsat)
+		debitSat := sat(event.DebitMsat)
+		if debitSat > 0 {
+			transactionType = "outgoing"
+			AmountSat = debitSat
+		}
+
+		numConfirmations := uint32(0)
+		if event.Blockheight != nil && blockheight >= *event.Blockheight {
+			numConfirmations = blockheight - *event.Blockheight
+		}
+
+		TxIdHex := hex.EncodeToString(event.Txid)
+
+		transactions = append(transactions, lnclient.OnchainTransaction{
+			AmountSat:        AmountSat,
+			CreatedAt:        uint64(event.Timestamp),
+			State:            "confirmed",
+			Type:             transactionType,
+			NumConfirmations: numConfirmations,
+			TxId:             TxIdHex,
+		})
+	}
+
+	slices.Reverse(transactions)
+
+	sort.SliceStable(transactions, func(i, j int) bool {
+		return transactions[i].CreatedAt > transactions[j].CreatedAt
+	})
+
+	return transactions, nil
+}
+
+func (c *CLNService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
+	resp, err := c.client.ListPeerChannels(ctx, &clngrpc.ListpeerchannelsRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("listpeerchannels failed: %w", err)
+	}
+
+	peers := make([]lnclient.PeerDetails, 0, len(resp.Channels))
+	for _, peer := range resp.Channels {
+		if peer == nil {
+			continue
+		}
+
+		req_node := &clngrpc.ListnodesRequest{Id: peer.PeerId}
+
+		resp_node, err := c.client.ListNodes(ctx, req_node)
+		if err != nil {
+			return nil, fmt.Errorf("listnodes failed: %w", err)
+		}
+
+		if len(resp_node.Nodes) == 0 {
+			addr := "not gossip yet"
+			peers = append(peers, lnclient.PeerDetails{
+				NodeId:      hex.EncodeToString(peer.PeerId),
+				Address:     addr,
+				IsPersisted: true,
+				IsConnected: peer.PeerConnected,
+			})
+			continue
+		} else {
+			var (
+				ipv4  *clngrpc.ListnodesNodesAddresses
+				ipv6  *clngrpc.ListnodesNodesAddresses
+				torv3 *clngrpc.ListnodesNodesAddresses
+			)
+
+			for _, addr := range resp_node.Nodes[0].Addresses {
+				if addr == nil {
+					continue
+				}
+
+				switch addr.ItemType {
+				case clngrpc.ListnodesNodesAddresses_IPV4:
+					if ipv4 == nil {
+						ipv4 = addr
+					}
+				case clngrpc.ListnodesNodesAddresses_IPV6:
+					if ipv6 == nil {
+						ipv6 = addr
+					}
+				case clngrpc.ListnodesNodesAddresses_TORV3:
+					if torv3 == nil {
+						torv3 = addr
+					}
+				}
+			}
+
+			var selected *clngrpc.ListnodesNodesAddresses
+			switch {
+			case ipv4 != nil:
+				selected = ipv4
+			case ipv6 != nil:
+				selected = ipv6
+			case torv3 != nil:
+				selected = torv3
+			default:
+				addr := "not announced"
+				selected = &clngrpc.ListnodesNodesAddresses{
+					Address: &addr,
+					Port:    0,
+				}
+			}
+
+			peers = append(peers, lnclient.PeerDetails{
+				NodeId:      hex.EncodeToString(peer.PeerId),
+				Address:     *selected.Address,
+				IsPersisted: true,
+				IsConnected: peer.PeerConnected,
+			})
+		}
+	}
+
+	return peers, nil
+
+}
+
+func (c *CLNService) ListTransactions(ctx context.Context, from uint64, until uint64, limit uint64, offset uint64, unpaid bool, invoiceType string) (transactions []lnclient.Transaction, err error) {
+	logger.Logger.WithFields(logrus.Fields{
+		"from":        from,
+		"until":       until,
+		"limit":       limit,
+		"offset":      offset,
+		"unpaid":      unpaid,
+		"invoiceType": invoiceType,
+	}).Debug("List Transactions")
+
+	pageSize := uint32(200)
+
+	fetchInvoices := func() ([]lnclient.Transaction, error) {
+		var out []lnclient.Transaction
+		seen := make(map[uint64]struct{})
+
+		waitReq := &clngrpc.WaitRequest{
+			Subsystem: clngrpc.WaitRequest_INVOICES,
+			Indexname: clngrpc.WaitRequest_CREATED,
+			Nextvalue: 0,
+		}
+		waitResp, err := c.client.Wait(ctx, waitReq)
+		if err != nil {
+			logger.Logger.WithError(err).Error("wait failed")
+			return nil, fmt.Errorf("wait failed: %w", err)
+		}
+
+		if waitResp == nil || waitResp.Created == nil {
+			return nil, fmt.Errorf("wait result missing created: %w", err)
+		}
+		currentIndex := uint64(0)
+		if *waitResp.Created > uint64(pageSize)-1 {
+			currentIndex -= uint64(pageSize) - 1
+		}
+
+		firstStart := uint64(0)
+		firstLimit := uint32(1)
+		firstReq := &clngrpc.ListinvoicesRequest{
+			Index: clngrpc.ListinvoicesRequest_CREATED.Enum(),
+			Start: &firstStart,
+			Limit: &firstLimit,
+		}
+		firstResp, err := c.client.ListInvoices(ctx, firstReq)
+		if err != nil {
+			logger.Logger.WithError(err).Error("listinvoices failed")
+			return nil, fmt.Errorf("listinvoices failed: %w", err)
+		}
+		firstIndex := uint64(0)
+		if firstResp != nil && len(firstResp.Invoices) == 1 && firstResp.Invoices[0].UpdatedIndex != nil {
+			firstIndex = *firstResp.Invoices[0].UpdatedIndex
+
+		}
+
+		myLimit := pageSize
+
+		for {
+			req := &clngrpc.ListinvoicesRequest{
+				Index: clngrpc.ListinvoicesRequest_CREATED.Enum(),
+				Start: &currentIndex,
+				Limit: &myLimit,
+			}
+
+			resp, err := c.client.ListInvoices(ctx, req)
+			if err != nil {
+				logger.Logger.WithError(err).Error("listinvoices failed")
+				return nil, fmt.Errorf("listinvoices failed: %w", err)
+			}
+
+			for _, invoice := range resp.Invoices {
+				idx := uint64(0)
+				if invoice.CreatedIndex != nil {
+					idx = *invoice.CreatedIndex
+				}
+
+				if idx != 0 {
+					if _, ok := seen[idx]; ok {
+						continue
+					}
+					seen[idx] = struct{}{}
+				}
+
+				if !unpaid && invoice.Status != clngrpc.ListinvoicesInvoices_PAID {
+					continue
+				}
+
+				tx, err := c.clnInvoiceToTransaction(ctx, invoice)
+				if err != nil {
+					logger.Logger.WithError(err).Error("failed to convert invoice to transaction")
+					return nil, fmt.Errorf("failed to convert invoice to transaction: %w", err)
+				}
+				out = append(out, *tx)
+			}
+
+			if currentIndex <= 1 || currentIndex <= firstIndex {
+				break
+			}
+
+			if uint64(len(out)) >= offset+limit {
+				break
+			}
+
+			myLimit = min(pageSize, uint32(currentIndex))
+
+			if currentIndex > uint64(pageSize) {
+				currentIndex -= uint64(pageSize)
+			} else {
+				currentIndex = 0
+			}
+		}
+
+		return out, nil
+	}
+
+	fetchPays := func() ([]lnclient.Transaction, error) {
+		var out []lnclient.Transaction
+		seen := make(map[uint64]struct{})
+
+		waitReq := &clngrpc.WaitRequest{
+			Subsystem: clngrpc.WaitRequest_SENDPAYS,
+			Indexname: clngrpc.WaitRequest_CREATED,
+			Nextvalue: 0,
+		}
+		waitResp, err := c.client.Wait(ctx, waitReq)
+		if err != nil {
+			logger.Logger.WithError(err).Error("wait failed")
+			return nil, fmt.Errorf("wait failed: %w", err)
+		}
+
+		if waitResp == nil || waitResp.Created == nil {
+			return nil, fmt.Errorf("wait result missing created: %w", err)
+		}
+		currentIndex := uint64(0)
+		if *waitResp.Created > uint64(pageSize)-1 {
+			currentIndex -= uint64(pageSize) - 1
+		}
+
+		firstStart := uint64(0)
+		firstLimit := uint32(1)
+		firstReq := &clngrpc.ListpaysRequest{
+			Index: clngrpc.ListpaysRequest_CREATED.Enum(),
+			Start: &firstStart,
+			Limit: &firstLimit,
+		}
+		firstResp, err := c.client.ListPays(ctx, firstReq)
+		if err != nil {
+			logger.Logger.WithError(err).Error("listpays failed")
+			return nil, fmt.Errorf("listpays failed: %w", err)
+		}
+		firstIndex := uint64(0)
+		if firstResp != nil && len(firstResp.Pays) == 1 && firstResp.Pays[0].UpdatedIndex != nil {
+			firstIndex = *firstResp.Pays[0].UpdatedIndex
+
+		}
+
+		myLimit := pageSize
+
+		for {
+			req := &clngrpc.ListpaysRequest{
+				Start: &currentIndex,
+				Limit: &myLimit,
+			}
+
+			if !unpaid {
+				req.Status = clngrpc.ListpaysRequest_COMPLETE.Enum()
+			}
+
+			resp, err := c.client.ListPays(ctx, req)
+			if err != nil {
+				logger.Logger.WithError(err).Error("listpays failed")
+				return nil, fmt.Errorf("listpays failed: %w", err)
+			}
+
+			for _, pay := range resp.Pays {
+				idx := uint64(0)
+				if pay.CreatedIndex != nil {
+					idx = *pay.CreatedIndex
+				}
+
+				if idx != 0 {
+					if _, ok := seen[idx]; ok {
+						continue
+					}
+					seen[idx] = struct{}{}
+				}
+
+				if !unpaid && pay.Status != clngrpc.ListpaysPays_COMPLETE {
+					continue
+				}
+
+				tx, err := c.clnPayToTransaction(ctx, pay)
+				if err != nil {
+					logger.Logger.WithError(err).Error("failed to convert pay to transaction")
+					return nil, fmt.Errorf("failed to convert pay to transaction: %w", err)
+				}
+				out = append(out, *tx)
+			}
+
+			if currentIndex <= 1 || currentIndex <= firstIndex {
+				break
+			}
+
+			if uint64(len(out)) >= offset+limit {
+				break
+			}
+
+			myLimit = min(pageSize, uint32(currentIndex))
+
+			if currentIndex > uint64(pageSize) {
+				currentIndex -= uint64(pageSize)
+			} else {
+				currentIndex = 0
+			}
+		}
+
+		return out, nil
+	}
+
+	if invoiceType == "" || invoiceType == "incoming" {
+		invoices, err := fetchInvoices()
+		if err != nil {
+			return nil, err
+		}
+
+		transactions = append(transactions, invoices...)
+
+	}
+
+	if invoiceType == "" || invoiceType == "outgoing" {
+		pays, err := fetchPays()
+		if err != nil {
+			return nil, err
+		}
+
+		transactions = append(transactions, pays...)
+
+	}
+
+	sort.Slice(transactions, func(i, j int) bool {
+		return transactions[i].CreatedAt > transactions[j].CreatedAt
+	})
+
+	l := len(transactions)
+
+	var lim int
+	if limit > uint64(l) {
+		lim = l
+	} else {
+		lim = int(limit)
+	}
+
+	transactions = transactions[:lim]
+
+	return transactions, nil
+}
+
+func (c *CLNService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
+	logger.Logger.WithFields(logrus.Fields{
+		"paymentHash": paymentHash,
+	}).Debug("Lookup Invoice")
+
+	paymentHashBytes, err := hex.DecodeString(paymentHash)
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to decode payment hash")
+		return nil, fmt.Errorf("failed to decode payment hash: %w", err)
+	}
+	req := &clngrpc.ListinvoicesRequest{PaymentHash: paymentHashBytes}
+
+	resp, err := c.client.ListInvoices(ctx, req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("listinvoices failed")
+		return nil, fmt.Errorf("listinvoices failed: %w", err)
+	}
+	if len(resp.Invoices) == 0 {
+		return nil, fmt.Errorf("invoice not found")
+	}
+
+	transaction, err = c.clnInvoiceToTransaction(ctx, resp.Invoices[0])
+	if err != nil {
+		logger.Logger.WithError(err).Error("failed to convert invoice to transaction")
+		return nil, fmt.Errorf("failed to convert invoice to transaction: %w", err)
+	}
+
+	return transaction, nil
+}
+
+func (c *CLNService) clnInvoiceToTransaction(ctx context.Context, invoice *clngrpc.ListinvoicesInvoices) (*lnclient.Transaction, error) {
+	var invoiceStr string
+	if invoice.Bolt11 != nil {
+		invoiceStr = *invoice.Bolt11
+	} else if invoice.Bolt12 != nil {
+		invoiceStr = *invoice.Bolt12
+	} else {
+		invoiceStr = ""
+	}
+
+	var amount int64
+	if invoice.Status == clngrpc.ListinvoicesInvoices_PAID {
+		amount = int64(invoice.AmountReceivedMsat.Msat)
+	} else if invoice.AmountMsat != nil {
+		amount = int64(invoice.AmountMsat.Msat)
+	} else {
+		amount = 0
+	}
+
+	expires_at := int64(invoice.ExpiresAt)
+
+	var paid_at *int64
+	if invoice.Status == clngrpc.ListinvoicesInvoices_PAID {
+		paid_at_int64 := int64(*invoice.PaidAt)
+		paid_at = &paid_at_int64
+	}
+
+	decoded_invoice, err := c.client.Decode(ctx, &clngrpc.DecodeRequest{String_: invoiceStr})
+	if err != nil {
+		logger.Logger.WithError(err).Error("decode failed")
+		return nil, fmt.Errorf("decode failed: %w", err)
+	}
+
+	var created_at int64
+	switch decoded_invoice.ItemType {
+	case clngrpc.DecodeResponse_BOLT12_INVOICE:
+		created_at = int64(*decoded_invoice.InvoiceCreatedAt)
+	case clngrpc.DecodeResponse_BOLT11_INVOICE:
+		created_at = int64(*decoded_invoice.CreatedAt)
+
+	default:
+		return nil, fmt.Errorf("created_at missing from invoice")
+	}
+
+	transaction := &lnclient.Transaction{
+		Type:            "incoming",
+		Invoice:         invoiceStr,
+		Description:     *invoice.Description,
+		DescriptionHash: "",
+		Preimage:        hex.EncodeToString(invoice.PaymentPreimage),
+		PaymentHash:     hex.EncodeToString(invoice.PaymentHash),
+		Amount:          amount,
+		FeesPaid:        0,
+		CreatedAt:       created_at,
+		ExpiresAt:       &expires_at,
+		SettledAt:       paid_at,
+		Metadata:        lnclient.Metadata{},
+		SettleDeadline:  nil,
+	}
+	return transaction, nil
+}
+
+func (c *CLNService) clnPayToTransaction(ctx context.Context, pay *clngrpc.ListpaysPays) (*lnclient.Transaction, error) {
+
+	var invString string
+	if pay.Bolt11 != nil {
+		invString = *pay.Bolt11
+	} else if pay.Bolt12 != nil {
+		invString = *pay.Bolt12
+	} else {
+		invString = ""
+	}
+
+	descriptionHash := ""
+	var amount int64
+	var decodedInvoice *clngrpc.DecodeResponse
+	var err error
+
+	if invString != "" {
+		decodedInvoice, err = c.client.Decode(ctx, &clngrpc.DecodeRequest{String_: invString})
+		if err != nil {
+			logger.Logger.WithError(err).Error("decode failed")
+			return nil, fmt.Errorf("decode failed: %w", err)
+		}
+		if decodedInvoice == nil {
+			return nil, fmt.Errorf("decoded invoice is nil")
+		}
+
+		if !decodedInvoice.Valid {
+			return nil, fmt.Errorf("decoded invoice is not valid")
+		}
+
+		switch decodedInvoice.ItemType {
+		case clngrpc.DecodeResponse_BOLT11_INVOICE:
+			descriptionHash = hex.EncodeToString(decodedInvoice.DescriptionHash)
+		case clngrpc.DecodeResponse_BOLT12_INVOICE:
+			descriptionHash = ""
+		default:
+			return nil, fmt.Errorf("not an invoice")
+		}
+
+	}
+
+	if pay.AmountMsat != nil {
+		amount = int64(pay.AmountMsat.Msat)
+	} else if decodedInvoice != nil {
+		switch decodedInvoice.ItemType {
+		case clngrpc.DecodeResponse_BOLT11_INVOICE:
+			amount = int64(decodedInvoice.GetAmountMsat().Msat)
+		case clngrpc.DecodeResponse_BOLT12_INVOICE:
+			amount = int64(decodedInvoice.GetInvoiceAmountMsat().Msat)
+		default:
+			return nil, fmt.Errorf("not an invoice")
+		}
+	} else {
+		return nil, fmt.Errorf("amount and invoice missing from payment")
+	}
+
+	var description string
+	if pay.Description != nil {
+		description = *pay.Description
+	} else {
+		switch decodedInvoice.ItemType {
+		case clngrpc.DecodeResponse_BOLT11_INVOICE:
+			description = decodedInvoice.GetDescription()
+		case clngrpc.DecodeResponse_BOLT12_INVOICE:
+			description = decodedInvoice.GetOfferDescription()
+		default:
+			return nil, fmt.Errorf("not an invoice")
+		}
+	}
+
+	var feesPaid int64
+	if pay.AmountSentMsat != nil {
+		feesPaid = int64(pay.AmountSentMsat.Msat) - amount
+	} else {
+		feesPaid = 0
+	}
+
+	var settledAt *int64
+	if pay.CompletedAt != nil {
+		completedAt := int64(*pay.CompletedAt)
+		settledAt = &completedAt
+	}
+
+	transaction := &lnclient.Transaction{
+		Type:            "outgoing",
+		Invoice:         invString,
+		Description:     description,
+		DescriptionHash: descriptionHash,
+		Preimage:        hex.EncodeToString(pay.Preimage),
+		PaymentHash:     hex.EncodeToString(pay.PaymentHash),
+		Amount:          amount,
+		FeesPaid:        feesPaid,
+		CreatedAt:       int64(pay.CreatedAt),
+		ExpiresAt:       nil,
+		SettledAt:       settledAt,
+		Metadata:        lnclient.Metadata{},
+		SettleDeadline:  nil,
+	}
+	return transaction, nil
+}
+
+func (c *CLNService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
+	panic("unimplemented")
+}
+
+func (c *CLNService) SettleHoldInvoice(ctx context.Context, preimage string) (err error) {
+	panic("unimplemented")
+}
+
+func (c *CLNService) CancelHoldInvoice(ctx context.Context, paymentHash string) (err error) {
+	panic("unimplemented")
+}
+
+func (c *CLNService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
+	logger.Logger.WithFields(logrus.Fields{
+		"amount":              amount,
+		"description":         description,
+		"description_hash":    descriptionHash,
+		"expiry":              expiry,
+		"through_node_pubkey": throughNodePubkey,
+	}).Debug("Make Invoice")
+
+	label := "AlbyHub-" + uuid.NewString()
+
+	var deschashonly bool
+	if descriptionHash != "" {
+		if description == "" {
+			return nil, fmt.Errorf("Must have description when using description_hash")
+		}
+		myDescriptionHash := sha256.Sum256([]byte(description))
+		if descriptionHash != hex.EncodeToString(myDescriptionHash[:]) {
+			return nil, fmt.Errorf("description_hash does not match description")
+		}
+		deschashonly = true
+	}
+
+	if expiry == 0 {
+		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
+	}
+	myExpiry := uint64(expiry)
+
+	Amount := clngrpc.AmountOrAny{
+		Value: &clngrpc.AmountOrAny_Amount{Amount: &clngrpc.Amount{Msat: uint64(amount)}}}
+	// amount 0 is often used for "any" amount but CLN doesn't support 0 directly
+	if amount == 0 {
+		Amount = clngrpc.AmountOrAny{
+			Value: &clngrpc.AmountOrAny_Any{Any: true}}
+	}
+
+	req := &clngrpc.InvoiceRequest{
+		Description:  description,
+		Label:        label,
+		Expiry:       &myExpiry,
+		Deschashonly: &deschashonly,
+		AmountMsat:   &Amount,
+	}
+
+	Exposeprivatechannels := []string{}
+
+	if throughNodePubkey != nil {
+		throughNodePubkeyBytes, err := hex.DecodeString(*throughNodePubkey)
+		if err != nil {
+			return nil, fmt.Errorf("Could not convert throughNodePubkey to bytes")
+		}
+		lpc, err := c.client.ListPeerChannels(ctx, &clngrpc.ListpeerchannelsRequest{
+			Id: throughNodePubkeyBytes,
+		})
+		if err != nil {
+			logger.Logger.WithError(err).Error("listpeerchannels failed")
+			return nil, fmt.Errorf("listpeerchannels failed")
+		}
+
+		for _, channel := range lpc.Channels {
+			if channel.ShortChannelId != nil {
+				Exposeprivatechannels = append(Exposeprivatechannels, *channel.ShortChannelId)
+				continue
+			}
+			if channel.Alias != nil {
+				if channel.Alias.Remote != nil {
+					Exposeprivatechannels = append(Exposeprivatechannels, *channel.Alias.Remote)
+				}
+			}
+		}
+	}
+
+	if len(Exposeprivatechannels) > 0 {
+		req.Exposeprivatechannels = Exposeprivatechannels
+	}
+
+	resp, err := c.client.Invoice(ctx, req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("invoice failed")
+		return nil, fmt.Errorf("invoice failed: %w", err)
+	}
+
+	expiresAt := int64(resp.ExpiresAt)
+
+	transaction = &lnclient.Transaction{
+		Type:            "incoming",
+		Invoice:         resp.Bolt11,
+		Description:     description,
+		DescriptionHash: descriptionHash,
+		Preimage:        "",
+		PaymentHash:     hex.EncodeToString(resp.PaymentHash),
+		Amount:          amount,
+		FeesPaid:        0,
+		CreatedAt:       time.Now().Unix(),
+		ExpiresAt:       &expiresAt,
+		SettledAt:       nil,
+		Metadata:        lnclient.Metadata{},
+		SettleDeadline:  nil,
+	}
+
+	return transaction, nil
+}
+
+func (c *CLNService) MakeOffer(ctx context.Context, description string) (string, error) {
+	logger.Logger.WithFields(logrus.Fields{
+		"description": description,
+	}).Debug("Make Offer")
+
+	req := &clngrpc.OfferRequest{
+		Description: &description,
+	}
+	resp, err := c.client.Offer(ctx, req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("offer failed")
+		return "", fmt.Errorf("offer failed: %w", err)
+	}
+	if resp == nil {
+		return "", fmt.Errorf("empty offer response")
+	}
+
+	return resp.Bolt12, nil
+}
+
+func (c *CLNService) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
+	logger.Logger.WithFields(logrus.Fields{
+		"openChannelRequest": openChannelRequest,
+	}).Debug("Open Channel")
+
+	Amount := clngrpc.AmountOrAll{Value: &clngrpc.AmountOrAll_Amount{
+		Amount: &clngrpc.Amount{Msat: uint64(openChannelRequest.AmountSats) * 1000},
+	}}
+
+	Id, err := hex.DecodeString(openChannelRequest.Pubkey)
+	if err != nil {
+		return nil, fmt.Errorf("Could not convert Pubkey to bytes")
+	}
+
+	req := &clngrpc.FundchannelRequest{
+		Amount:   &Amount,
+		Announce: &openChannelRequest.Public,
+		Id:       Id,
+	}
+	resp, err := c.client.FundChannel(ctx, req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("fundchannel failed")
+		return nil, fmt.Errorf("fundchannel failed: %w", err)
+	}
+
+	if resp == nil {
+		return nil, fmt.Errorf("empty fundchannel response")
+	}
+
+	FundingTxId := hex.EncodeToString(resp.Txid)
+
+	return &lnclient.OpenChannelResponse{
+		FundingTxId: FundingTxId,
+	}, nil
+
+}
+
+func (c *CLNService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (txId string, err error) {
+	logger.Logger.WithFields(logrus.Fields{
+		"toAddress": toAddress,
+		"amount":    amount,
+		"feeRate":   feeRate,
+		"sendAll":   sendAll,
+	}).Debug("Redeem Onchain Funds")
+
+	Satoshi := clngrpc.AmountOrAll{Value: &clngrpc.AmountOrAll_Amount{
+		Amount: &clngrpc.Amount{Msat: uint64(amount) * 1000},
+	}}
+	if sendAll {
+		Satoshi = clngrpc.AmountOrAll{Value: &clngrpc.AmountOrAll_All{
+			All: true,
+		}}
+	}
+
+	req := &clngrpc.WithdrawRequest{
+		Destination: toAddress,
+		Satoshi:     &Satoshi,
+	}
+
+	if feeRate != nil {
+		req.Feerate = &clngrpc.Feerate{
+			Style: &clngrpc.Feerate_Perkb{
+				Perkb: uint32(*feeRate) * 1000,
+			},
+		}
+	}
+
+	resp, err := c.client.Withdraw(ctx, req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("withdraw failed")
+		return "", fmt.Errorf("withdraw failed: %w", err)
+	}
+
+	if resp == nil {
+		return "", fmt.Errorf("empty withdraw response")
+	}
+
+	return hex.EncodeToString(resp.Txid), nil
+
+}
+
+func (c *CLNService) ResetRouter(key string) error {
+	return nil
+}
+
+func (c *CLNService) SendKeysend(amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+	logger.Logger.WithFields(logrus.Fields{
+		"amount":        amount,
+		"destination":   destination,
+		"customRecords": customRecords,
+		"preimage":      preimage,
+	}).Debug("Send Keysend")
+
+	Destination, err := hex.DecodeString(destination)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to decode payee pubkey")
+		return nil, err
+	}
+
+	req := &clngrpc.KeysendRequest{
+		Destination: Destination,
+		AmountMsat:  &clngrpc.Amount{Msat: amount},
+	}
+
+	if len(customRecords) > 0 {
+		Extratlvs := clngrpc.TlvStream{}
+		for _, record := range customRecords {
+			valueBytes, err := hex.DecodeString(record.Value)
+			if err != nil {
+				return nil, fmt.Errorf("could not decode TLV value to bytes: %v", record.Value)
+			}
+
+			entry := clngrpc.TlvEntry{
+				Type:  record.Type,
+				Value: valueBytes,
+			}
+
+			Extratlvs.Entries = append(Extratlvs.Entries, &entry)
+		}
+		req.Extratlvs = &Extratlvs
+	}
+
+	resp, err := c.client.KeySend(c.ctx, req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("keysend failed")
+		return nil, fmt.Errorf("keysend failed: %w", err)
+	}
+
+	if resp == nil {
+		return nil, fmt.Errorf("empty keysend response")
+	}
+
+	Fee := uint64(0)
+
+	if resp.AmountSentMsat != nil && resp.AmountMsat != nil {
+		Fee = resp.AmountSentMsat.Msat - resp.AmountMsat.Msat
+	}
+	return &lnclient.PayKeysendResponse{Fee: Fee}, nil
+}
+
+func (c *CLNService) SendPaymentProbes(ctx context.Context, invoice string) error {
+	return nil
+}
+
+func (c *CLNService) SendPaymentSync(payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+	logger.Logger.WithFields(logrus.Fields{
+		"payReq": payReq,
+		"amount": amount,
+	}).Debug("Send Payment Sync")
+
+	dec_req := &clngrpc.DecodeRequest{
+		String_: payReq,
+	}
+
+	dec_resp, err := c.client.Decode(c.ctx, dec_req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("decode failed")
+		return nil, fmt.Errorf("decode failed: %w", err)
+	}
+	if dec_resp == nil {
+		return nil, fmt.Errorf("decode result empty: %w", err)
+	}
+	if !dec_resp.Valid {
+		return nil, fmt.Errorf("payReq not valid")
+	}
+
+	var amountMsat *clngrpc.Amount
+	if amount != nil {
+		amountMsat = &clngrpc.Amount{
+			Msat: *amount,
+		}
+	}
+
+	req := &clngrpc.XpayRequest{
+		Invstring:  payReq,
+		AmountMsat: amountMsat,
+	}
+
+	resp, err := c.client.Xpay(c.ctx, req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("xpay failed")
+		return nil, fmt.Errorf("xpay failed: %w", err)
+	}
+
+	feePaid := uint64(0)
+	if resp.AmountSentMsat != nil {
+		if resp.AmountMsat != nil {
+			feePaid = resp.AmountSentMsat.Msat - resp.AmountMsat.Msat
+		}
+	}
+
+	return &lnclient.PayInvoiceResponse{
+		Preimage: hex.EncodeToString(resp.PaymentPreimage),
+		Fee:      feePaid,
+	}, err
+}
+
+func (c *CLNService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
+	return nil
+}
+
+func (c *CLNService) Shutdown() error {
+	logger.Logger.Info("Stopping CLN node...")
+	_, err := c.client.Stop(c.ctx, &clngrpc.StopRequest{})
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to stop CLN")
+		return err
+	}
+
+	logger.Logger.Info("Cancelling CLN context")
+	c.cancel()
+
+	return nil
+}
+
+func (c *CLNService) SignMessage(ctx context.Context, message string) (string, error) {
+	logger.Logger.WithFields(logrus.Fields{
+		"message": message,
+	}).Debug("Signing Message")
+
+	req := &clngrpc.SignmessageRequest{
+		Message: message,
+	}
+	resp, err := c.client.SignMessage(ctx, req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("signmessage failed")
+		return "", fmt.Errorf("signmessage failed: %w", err)
+	}
+	if resp == nil {
+		return "", fmt.Errorf("signmessage result empty: %w", err)
+	}
+
+	return resp.Zbase, nil
+}
+
+func (c *CLNService) UpdateChannel(ctx context.Context, updateChannelRequest *lnclient.UpdateChannelRequest) error {
+	logger.Logger.WithFields(logrus.Fields{
+		"updateChannelRequest": updateChannelRequest,
+	}).Debug("Updating Channel")
+
+	req := &clngrpc.SetchannelRequest{
+		Id:      updateChannelRequest.ChannelId,
+		Feebase: &clngrpc.Amount{Msat: uint64(updateChannelRequest.ForwardingFeeBaseMsat)},
+		Feeppm:  &updateChannelRequest.ForwardingFeeProportionalMillionths,
+	}
+
+	resp, err := c.client.SetChannel(ctx, req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("setchannel failed")
+		return fmt.Errorf("setchannel failed: %w", err)
+	}
+	if resp == nil {
+		return fmt.Errorf("setchannel result empty: %w", err)
+	}
+
+	return nil
+}
+
+func (c *CLNService) UpdateLastWalletSyncRequest() {
+}
