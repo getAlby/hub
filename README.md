@@ -221,6 +221,12 @@ Can be configured via env or the UI
 - `CLN_CLIENT_CERT`: the location where cln-grpc's `client.pem` file can be found.
 - `CLN_CLIENT_KEY`: the location where cln-grpc's `client-key.pem` file can be found.
 
+Optional for hold invoice methods support:
+- `CLN_ADDRESS_HOLD`: the CLN hold plugin grpc address (grpc-host and grpc-port), e.g. `127.0.0.1:9738`
+- `CLN_CA_CERT_HOLD`: the location where the CLN hold plugin's `ca.pem` file can be found.
+- `CLN_CLIENT_CERT_HOLD`: the location where the CLN hold plugin's `client.pem` file can be found.
+- `CLN_CLIENT_KEY_HOLD`: the location where the CLN hold plugin's `client-key.pem` file can be found.
+
 ### LND Backend parameters
 
 Currently only LND can be configured via env. Other node types must be configured via the UI.
