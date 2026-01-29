@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -19,8 +20,10 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	clngrpc "github.com/getAlby/hub/lnclient/cln/clngrpc"
+	clngrpcHold "github.com/getAlby/hub/lnclient/cln/clngrpc_hold"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
+	"github.com/getAlby/hub/nip47/notifications"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -30,6 +33,7 @@ import (
 type CLNService struct {
 	ctx            context.Context
 	client         clngrpc.NodeClient
+	clientHold     *clngrpcHold.HoldClient
 	conn           *grpc.ClientConn
 	eventPublisher events.EventPublisher
 	pubkey         string
@@ -37,17 +41,22 @@ type CLNService struct {
 	wg             sync.WaitGroup
 }
 
-func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, address, certPath, clientCertPath, clientKeyPath string) (lnclient.LNClient, error) {
+func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, address, certPath, clientCertPath, clientKeyPath, addressHold, certPathHold, clientCertPathHold, clientKeyPathHold string) (lnclient.LNClient, error) {
 	logger.Logger.WithFields(logrus.Fields{
-		"address":        address,
-		"certPath":       certPath,
-		"clientCertPath": clientCertPath,
-		"clientKeyPath":  clientKeyPath,
+		"address":            address,
+		"certPath":           certPath,
+		"clientCertPath":     clientCertPath,
+		"clientKeyPath":      clientKeyPath,
+		"addressHold":        addressHold,
+		"certPathHold":       certPathHold,
+		"clientCertPathHold": clientCertPathHold,
+		"clientKeyPathHold":  clientKeyPathHold,
 	}).Info("Creating new CLN gRPC service")
 
-	tlsConfig, err := loadTLSCredentials(certPath, clientCertPath, clientKeyPath)
+	// CLN grpc client
+	tlsConfig, err := loadTLSCredentials(certPath, clientCertPath, clientKeyPath, "cln")
 	if err != nil {
-		return nil, fmt.Errorf("failed to load TLS credentials: %w", err)
+		return nil, fmt.Errorf("failed to load CLN TLS credentials: %w", err)
 	}
 
 	creds := credentials.NewTLS(tlsConfig)
@@ -72,6 +81,47 @@ func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, ad
 		cancel:         cancel,
 	}
 
+	// Cln hold plugin grpc client
+	if addressHold != "" && certPathHold != "" && clientCertPathHold != "" && clientKeyPathHold != "" {
+		tlsConfigHold, err := loadTLSCredentials(certPathHold, clientCertPathHold, clientKeyPathHold, "hold")
+		if err != nil {
+			return nil, fmt.Errorf("failed to load hold pluginTLS credentials: %w", err)
+		}
+
+		credsHold := credentials.NewTLS(tlsConfigHold)
+
+		connHold, err := grpc.NewClient(
+			addressHold,
+			grpc.WithTransportCredentials(credsHold),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to connect to hold plugin gRPC: %w", err)
+		}
+
+		clientHold := clngrpcHold.NewHoldClient(connHold)
+
+		svc.clientHold = &clientHold
+
+		logger.Logger.Info("Testing CLN hold plugin gRPC connection")
+		_, err = (*svc.clientHold).List(ctx, &clngrpcHold.ListRequest{Constraint: &clngrpcHold.ListRequest_Pagination_{
+			Pagination: &clngrpcHold.ListRequest_Pagination{
+				IndexStart: 0,
+				Limit:      1,
+			},
+		}})
+
+		if err != nil {
+			connHold.Close()
+			logger.Logger.WithError(err).Error("Failed to connect to CLN hold plugin")
+			return nil, fmt.Errorf("failed to connect to CLN hold plugin: %w", err)
+		}
+		logger.Logger.Info("Successfully connected to CLN hold plugin via gRPC")
+
+		go svc.subscribeOpenHoldInvoices(ctx)
+	} else {
+		logger.Logger.Info("No hold plugin configured")
+	}
+
 	logger.Logger.Info("Testing CLN gRPC connection")
 	resp, err := svc.GetInfo(ctx)
 	if err != nil {
@@ -85,7 +135,7 @@ func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, ad
 	logger.Logger.Info("Successfully connected to CLN via gRPC")
 	return svc, nil
 }
-func loadTLSCredentials(certPath, clientCertPath, clientKeyPath string) (*tls.Config, error) {
+func loadTLSCredentials(certPath, clientCertPath, clientKeyPath string, serverName string) (*tls.Config, error) {
 	serverCA, err := os.ReadFile(certPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read server CA cert: %w", err)
@@ -104,8 +154,201 @@ func loadTLSCredentials(certPath, clientCertPath, clientKeyPath string) (*tls.Co
 	return &tls.Config{
 		Certificates: []tls.Certificate{clientCert},
 		RootCAs:      certPool,
-		ServerName:   "cln", // CLN uses "cln" as default ServerName
+		ServerName:   serverName, // CLN uses "cln" as default ServerName, hold plugin uses "hold"
 	}, nil
+}
+
+func (c *CLNService) subscribeOpenHoldInvoices(ctx context.Context) {
+	holdinvoices := make([]*clngrpcHold.Invoice, 0)
+
+	for true {
+		lsr, err := (*c.clientHold).List(ctx, &clngrpcHold.ListRequest{
+			Constraint: &clngrpcHold.ListRequest_Pagination_{
+				Pagination: &clngrpcHold.ListRequest_Pagination{
+					IndexStart: 1,
+					Limit:      200,
+				},
+			},
+		})
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to list invoices for open hold invoices subscription")
+			return
+		}
+		if lsr != nil {
+			holdinvoices = append(holdinvoices, lsr.Invoices...)
+		}
+	}
+
+	for _, invoice := range holdinvoices {
+		if invoice.State == clngrpcHold.InvoiceState_UNPAID {
+			paymentHashHex := hex.EncodeToString(invoice.PaymentHash)
+			logger.Logger.WithFields(logrus.Fields{
+				"paymentHash": paymentHashHex,
+				"addIndex":    invoice.Id,
+			}).Info("Resubscribing to pending hold invoice")
+			go c.subscribeSingleInvoice(invoice.PaymentHash)
+		}
+	}
+}
+
+func (c *CLNService) subscribeSingleInvoice(paymentHashBytes []byte) {
+	// Use the global context for the lifetime of this subscription, but create a cancellable one for this specific task
+	// This allows the goroutine to be potentially cancelled externally if needed, though it primarily exits on invoice state change.
+	// We use a background context derived from the global one to avoid cancelling if the original request context finishes.
+	ctx, cancel := context.WithCancel(c.ctx)
+	defer cancel() // Ensure cancellation happens on exit
+
+	paymentHashHex := hex.EncodeToString(paymentHashBytes)
+	log := logger.Logger.WithField("paymentHash", paymentHashHex)
+
+	log.Info("Starting subscribeSingleInvoice goroutine")
+
+	subReq := &clngrpcHold.TrackRequest{
+		PaymentHash: paymentHashBytes,
+	}
+
+	invoiceStream, err := (*c.clientHold).Track(ctx, subReq)
+	if err != nil {
+		log.WithError(err).Error("SubscribeSingleInvoice call failed")
+		// Goroutine will exit
+		return
+	}
+
+	log.Info("Successfully subscribed to single invoice stream")
+
+	defer func() {
+		log.Info("Exiting subscribeSingleInvoice goroutine")
+		if r := recover(); r != nil {
+			log.WithField("panic", r).Errorf("PANIC recovered in single invoice stream processing")
+		}
+	}()
+
+	for {
+		trackResponse, err := invoiceStream.Recv()
+
+		if err != nil {
+			log.WithError(err).Error("Failed to receive single invoice update from stream")
+			return
+		}
+		if ctx.Err() != nil {
+			log.Info("Context cancelled, exiting single invoice subscription loop")
+			return
+		}
+
+		log.WithFields(logrus.Fields{
+			"rawState": trackResponse.State.String(),
+		}).Info("Raw update received from single invoice stream")
+
+		switch trackResponse.State {
+		case clngrpcHold.InvoiceState_ACCEPTED:
+			log.Info("Hold invoice accepted, publishing internal event")
+
+			tx, err := c.buildHoldInvoiceTransaction(ctx, paymentHashBytes)
+			if err != nil {
+				logger.Logger.WithError(err).Error("failed to build hold invoice transaction")
+				return
+			}
+
+			c.eventPublisher.Publish(&events.Event{
+				Event:      "nwc_lnclient_hold_invoice_accepted",
+				Properties: tx,
+			})
+		case clngrpcHold.InvoiceState_CANCELLED:
+			log.Info("Hold invoice canceled, ending subscription")
+			return // Invoice reached final state, exit goroutine
+		case clngrpcHold.InvoiceState_PAID:
+			return // Invoice reached final state, exit goroutine
+		case clngrpcHold.InvoiceState_UNPAID:
+			// Continue loop
+		}
+	}
+}
+
+func (c *CLNService) buildHoldInvoiceTransaction(ctx context.Context, paymentHash []byte) (*lnclient.Transaction, error) {
+	invoice, err := c.fetchHoldInvoice(ctx, paymentHash)
+	if err != nil {
+		return nil, err
+	}
+
+	decodedInvoice, err := c.client.Decode(ctx, &clngrpc.DecodeRequest{
+		String_: invoice.Invoice,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("decode failed: %w", err)
+	}
+
+	return clnHoldInvoiceToTransaction(invoice, decodedInvoice)
+}
+
+func (c *CLNService) fetchHoldInvoice(ctx context.Context, paymentHash []byte) (*clngrpcHold.Invoice, error) {
+	if c.clientHold == nil {
+		return nil, errors.New("hold client not configured")
+	}
+
+	resp, err := (*c.clientHold).List(ctx, &clngrpcHold.ListRequest{
+		Constraint: &clngrpcHold.ListRequest_PaymentHash{
+			PaymentHash: paymentHash,
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("hold list failed: %w", err)
+	}
+
+	if len(resp.Invoices) != 1 {
+		return nil, fmt.Errorf("expected 1 invoice, got %d", len(resp.Invoices))
+	}
+
+	return resp.Invoices[0], nil
+}
+
+func clnHoldInvoiceToTransaction(invoice *clngrpcHold.Invoice, decodedInvoice *clngrpc.DecodeResponse) (*lnclient.Transaction, error) {
+	description := ""
+	if decodedInvoice.Description != nil {
+		description = *decodedInvoice.Description
+	}
+
+	descriptionHash := ""
+	if len(decodedInvoice.DescriptionHash) > 0 {
+		descriptionHash = hex.EncodeToString(decodedInvoice.DescriptionHash)
+	}
+
+	amountMsat := int64(0)
+	if decodedInvoice.AmountMsat != nil {
+		amountMsat = int64(decodedInvoice.AmountMsat.Msat)
+	}
+
+	var minExpiry *uint32
+	for _, htlc := range invoice.Htlcs {
+		if htlc.CltvExpiry != nil {
+			htlcExpiryUint32 := uint32(*htlc.CltvExpiry)
+			if htlcExpiryUint32 < *minExpiry || minExpiry == nil {
+				minExpiry = &htlcExpiryUint32
+			}
+		}
+
+	}
+
+	tx := &lnclient.Transaction{
+		Type:            "incoming",
+		Invoice:         invoice.Invoice,
+		Description:     description,
+		DescriptionHash: descriptionHash,
+		Preimage:        hex.EncodeToString(invoice.Preimage),
+		PaymentHash:     hex.EncodeToString(invoice.PaymentHash),
+		Amount:          amountMsat,
+		CreatedAt:       int64(invoice.CreatedAt),
+		SettledAt:       nil,
+		FeesPaid:        0,
+		Metadata:        lnclient.Metadata{},
+		SettleDeadline:  minExpiry,
+	}
+
+	if decodedInvoice.Expiry != nil {
+		expiresAt := int64(invoice.CreatedAt + *decodedInvoice.Expiry)
+		tx.ExpiresAt = &expiresAt
+	}
+
+	return tx, nil
 }
 
 func (c *CLNService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
@@ -659,12 +902,15 @@ func (c *CLNService) GetSupportedNIP47Methods() []string {
 		models.MULTI_PAY_INVOICE_METHOD,
 		models.MULTI_PAY_KEYSEND_METHOD,
 		models.SIGN_MESSAGE_METHOD,
+		models.MAKE_HOLD_INVOICE_METHOD,
+		models.SETTLE_HOLD_INVOICE_METHOD,
+		models.CANCEL_HOLD_INVOICE_METHOD,
 	}
 }
 
 func (c *CLNService) GetSupportedNIP47NotificationTypes() []string {
 	// return []string{notifications.PAYMENT_RECEIVED_NOTIFICATION, notifications.PAYMENT_SENT_NOTIFICATION}
-	return []string{}
+	return []string{notifications.HOLD_INVOICE_ACCEPTED_NOTIFICATION}
 }
 
 func (c *CLNService) ListChannels(ctx context.Context) (channels []lnclient.Channel, err error) {
@@ -1387,15 +1633,140 @@ func (c *CLNService) clnPayToTransaction(ctx context.Context, pay *clngrpc.Listp
 }
 
 func (c *CLNService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
-	panic("unimplemented")
+	if c.clientHold == nil {
+		return nil, errors.New("hold plugin not configured")
+	}
+
+	logger.Logger.WithFields(logrus.Fields{
+		"amount":           amount,
+		"description":      description,
+		"description_hash": descriptionHash,
+		"expiry":           expiry,
+		"payment_hash":     paymentHash,
+	}).Debug("Make Hold Invoice")
+
+	paymentHashBytes, err := hex.DecodeString(paymentHash)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"paymentHash": paymentHash,
+		}).WithError(err).Error("Invalid payment hash")
+		return nil, fmt.Errorf("Invalid payment hash: %v", err)
+	}
+
+	if expiry == 0 {
+		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
+	}
+	expiryUint64 := uint64(expiry)
+
+	req := &clngrpcHold.InvoiceRequest{
+		PaymentHash: paymentHashBytes,
+		AmountMsat:  uint64(amount),
+		Expiry:      &expiryUint64,
+	}
+
+	if descriptionHash != "" {
+		descriptionHashBytes, err := hex.DecodeString(descriptionHash)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"descriptionHash": descriptionHash,
+			}).WithError(err).Error("Invalid description hash")
+			return nil, fmt.Errorf("Invalid description hash: %v", err)
+		}
+		req.Description = &clngrpcHold.InvoiceRequest_Hash{
+			Hash: descriptionHashBytes,
+		}
+	} else {
+		req.Description = &clngrpcHold.InvoiceRequest_Memo{
+			Memo: description,
+		}
+	}
+
+	resp, err := (*c.clientHold).Invoice(ctx, req)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"paymentHash": paymentHash,
+		}).WithError(err).Error("Failed to make hold invoice")
+		return nil, fmt.Errorf("Failed to make hold invoice: %v", err)
+	}
+
+	expiresAt := time.Now().Unix() + expiry
+
+	transaction = &lnclient.Transaction{
+		Type:            "incoming",
+		Invoice:         resp.Bolt11,
+		Description:     description,
+		DescriptionHash: descriptionHash,
+		Preimage:        "",
+		PaymentHash:     paymentHash,
+		Amount:          amount,
+		FeesPaid:        0,
+		CreatedAt:       time.Now().Unix(),
+		ExpiresAt:       &expiresAt,
+		SettledAt:       nil,
+		Metadata:        lnclient.Metadata{},
+		SettleDeadline:  nil,
+	}
+	return transaction, nil
 }
 
 func (c *CLNService) SettleHoldInvoice(ctx context.Context, preimage string) (err error) {
-	panic("unimplemented")
+	if c.clientHold == nil {
+		return errors.New("hold plugin not configured")
+	}
+
+	logger.Logger.WithFields(logrus.Fields{
+		"preimage": preimage,
+	}).Debug("Settle Hold Invoice")
+
+	preimageBytes, err := hex.DecodeString(preimage)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"preimage": preimage,
+		}).WithError(err).Error("Invalid preimage")
+		return fmt.Errorf("Invalid preimage: %v", err)
+	}
+
+	_, err = (*c.clientHold).Settle(ctx, &clngrpcHold.SettleRequest{
+		PaymentPreimage: preimageBytes,
+	})
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"preimage": preimage,
+		}).WithError(err).Error("Failed to settle hold invoice")
+		return fmt.Errorf("Failed to settle hold invoice: %v", err)
+	}
+
+	return nil
 }
 
 func (c *CLNService) CancelHoldInvoice(ctx context.Context, paymentHash string) (err error) {
-	panic("unimplemented")
+	if c.clientHold == nil {
+		return errors.New("hold plugin not configured")
+	}
+
+	logger.Logger.WithFields(logrus.Fields{
+		"paymentHash": paymentHash,
+	}).Debug("Cancel Hold Invoice")
+
+	paymentHashBytes, err := hex.DecodeString(paymentHash)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"paymentHash": paymentHash,
+		}).WithError(err).Error("Invalid paymentHash")
+		return fmt.Errorf("Invalid paymentHash: %v", err)
+	}
+
+	_, err = (*c.clientHold).Cancel(ctx, &clngrpcHold.CancelRequest{
+		PaymentHash: paymentHashBytes,
+	})
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"paymentHash": paymentHash,
+		}).WithError(err).Error("Failed to cancel hold invoice")
+		return fmt.Errorf("Failed to cancel hold invoice: %v", err)
+	}
+
+	return nil
 }
 
 func (c *CLNService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {

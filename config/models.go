@@ -64,6 +64,10 @@ type AppConfig struct {
 	CLNCaCert                          string `envconfig:"CLN_CA_CERT"`
 	CLNClientCert                      string `envconfig:"CLN_CLIENT_CERT"`
 	CLNClientKey                       string `envconfig:"CLN_CLIENT_KEY"`
+	CLNAddressHold                     string `envconfig:"CLN_ADDRESS_HOLD"`
+	CLNCaCertHold                      string `envconfig:"CLN_CA_CERT_HOLD"`
+	CLNClientCertHold                  string `envconfig:"CLN_CLIENT_CERT_HOLD"`
+	CLNClientKeyHold                   string `envconfig:"CLN_CLIENT_KEY_HOLD"`
 }
 
 func (c *AppConfig) IsDefaultClientId() bool {
