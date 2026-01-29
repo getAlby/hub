@@ -23,6 +23,10 @@ import (
 	"gorm.io/gorm"
 )
 
+const (
+	MaxRequestEventsPerApp = 1000
+)
+
 func (svc *nip47Service) HandleEvent(ctx context.Context, pool nostrmodels.SimplePool, event *nostr.Event, lnClient lnclient.LNClient) {
 	var nip47Response *models.Response
 	logger.Logger.WithFields(logrus.Fields{
@@ -87,6 +91,8 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, pool nostrmodels.Simpl
 		logger.Logger.WithFields(logrus.Fields{
 			"it": app.ID,
 		}).WithError(err).Error("Failed to update app last used time")
+	} else {
+		go svc.pruneRequestEvents(app.ID)
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
@@ -555,4 +561,22 @@ func (svc *nip47Service) publishResponseEvent(ctx context.Context, pool nostrmod
 	}
 
 	return nil
+}
+
+func (svc *nip47Service) pruneRequestEvents(appId uint) {
+	err := svc.db.Exec(`
+		DELETE FROM request_events
+		WHERE app_id = ? AND id NOT IN (
+			SELECT id FROM request_events
+			WHERE app_id = ?
+			ORDER BY id DESC
+			LIMIT ?
+		)
+	`, appId, appId, MaxRequestEventsPerApp).Error
+
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"appId": appId,
+		}).WithError(err).Error("Failed to prune request events")
+	}
 }
