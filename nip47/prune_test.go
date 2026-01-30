@@ -45,4 +45,11 @@ func TestPruneRequestEvents(t *testing.T) {
 
 	svc.DB.Model(&db.RequestEvent{}).Where("app_id = ?", app.ID).Count(&count)
 	assert.Equal(t, int64(MaxRequestEventsPerApp), count)
+
+	
+	var remaining []db.RequestEvent
+	svc.DB.Where("app_id = ?", app.ID).Order("id asc").Find(&remaining)
+	assert.Equal(t, MaxRequestEventsPerApp, len(remaining))
+	assert.Equal(t, "event_5", remaining[0].NostrId)
+	assert.Equal(t, "event_1004", remaining[len(remaining)-1].NostrId)
 }

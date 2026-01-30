@@ -91,8 +91,6 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, pool nostrmodels.Simpl
 		logger.Logger.WithFields(logrus.Fields{
 			"it": app.ID,
 		}).WithError(err).Error("Failed to update app last used time")
-	} else {
-		go svc.pruneRequestEvents(app.ID)
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
@@ -177,6 +175,9 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, pool nostrmodels.Simpl
 		Model(&requestEvent).
 		Update("app_id", app.ID).
 		Error
+	if err == nil {
+		go svc.pruneRequestEvents(app.ID)
+	}
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"appPubkey": event.PubKey,
