@@ -249,6 +249,16 @@ type SetupRequest struct {
 
 	// Cashu fields
 	CashuMintUrl string `json:"cashuMintUrl"`
+
+	// CLN fields
+	CLNAddress        string `json:"clnAddress"`
+	CLNCaCert         string `json:"clnCaCert"`
+	CLNClientCert     string `json:"clnClientCert"`
+	CLNClientKey      string `json:"clnClientKey"`
+	CLNAddressHold    string `json:"clnAddressHold"`
+	CLNCaCertHold     string `json:"clnCaCertHold"`
+	CLNClientCertHold string `json:"clnClientCertHold"`
+	CLNClientKeyHold  string `json:"clnClientKeyHold"`
 }
 
 type CreateAppResponse struct {
