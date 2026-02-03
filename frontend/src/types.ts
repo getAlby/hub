@@ -472,13 +472,8 @@ export type SetupNodeInfo = Partial<{
   phoenixdAuthorization?: string;
 
   clnAddress?: string;
-  clnCaCert?: string;
-  clnClientCert?: string;
-  clnClientKey?: string;
+  clnLightningDir?: string;
   clnAddressHold?: string;
-  clnCaCertHold?: string;
-  clnClientCertHold?: string;
-  clnClientKeyHold?: string;
 }>;
 
 export type LSPType = "LSPS1";

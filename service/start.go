@@ -375,14 +375,9 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		lnClient, err = cashu.NewCashuService(svc.cfg, cashuWorkdir, mnemonic, cashuMintUrl)
 	case config.CLNBackendType:
 		CLNAddress, _ := svc.cfg.Get("CLNAddress", encryptionKey)
-		CLNCaCert, _ := svc.cfg.Get("CLNCaCert", encryptionKey)
-		CLNClientCert, _ := svc.cfg.Get("CLNClientCert", encryptionKey)
-		CLNClientKey, _ := svc.cfg.Get("CLNClientKey", encryptionKey)
+		CLNLightningDir, _ := svc.cfg.Get("CLNLightningDir", encryptionKey)
 		CLNAddressHold, _ := svc.cfg.Get("CLNAddressHold", encryptionKey)
-		CLNCaCertHold, _ := svc.cfg.Get("CLNCaCertHold", encryptionKey)
-		CLNClientCertHold, _ := svc.cfg.Get("CLNClientCertHold", encryptionKey)
-		CLNClientKeyHold, _ := svc.cfg.Get("CLNClientKeyHold", encryptionKey)
-		lnClient, err = cln.NewCLNService(ctx, svc.eventPublisher, CLNAddress, CLNCaCert, CLNClientCert, CLNClientKey, CLNAddressHold, CLNCaCertHold, CLNClientCertHold, CLNClientKeyHold)
+		lnClient, err = cln.NewCLNService(ctx, svc.eventPublisher, CLNAddress, CLNLightningDir, CLNAddressHold)
 	default:
 		logger.Logger.WithField("backend_type", lnBackend).Error("Unsupported LNBackendType")
 		return fmt.Errorf("unsupported backend type: %s", lnBackend)
