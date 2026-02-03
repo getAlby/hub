@@ -14,6 +14,7 @@ export function useApps(
     appStoreAppId?: string;
     unused?: boolean;
     subWallets?: boolean;
+    risky?: boolean;
   },
   orderBy?: "last_used_at" | "created_at",
   isEnabled = true

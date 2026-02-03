@@ -504,6 +504,21 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 		}
 	}
 
+	if filters.Risky {
+		// Find apps with spending permissions (pay_invoice scope)
+		query = query.Joins("JOIN app_permissions ON app_permissions.app_id = apps.id").
+			Where("app_permissions.scope = ?", constants.PAY_INVOICE_SCOPE)
+
+		// Inactive for more than 30 days
+		query = query.Where("last_used_at IS NULL OR last_used_at < ?", time.Now().Add(-30*24*time.Hour))
+
+		// Filter apps with NO outgoing transactions
+		query = query.Where("apps.id NOT IN (?)",
+			api.db.Table("transactions").
+				Select("DISTINCT app_id").
+				Where("type = ? AND app_id IS NOT NULL", "outgoing"))
+	}
+
 	if orderBy == "" {
 		orderBy = "last_used_at"
 	}
