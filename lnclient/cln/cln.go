@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"slices"
 	"sort"
@@ -41,20 +42,15 @@ type CLNService struct {
 	wg             sync.WaitGroup
 }
 
-func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, address, certPath, clientCertPath, clientKeyPath, addressHold, certPathHold, clientCertPathHold, clientKeyPathHold string) (lnclient.LNClient, error) {
+func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, address, lightningDir, addressHold string) (lnclient.LNClient, error) {
 	logger.Logger.WithFields(logrus.Fields{
-		"address":            address,
-		"certPath":           certPath,
-		"clientCertPath":     clientCertPath,
-		"clientKeyPath":      clientKeyPath,
-		"addressHold":        addressHold,
-		"certPathHold":       certPathHold,
-		"clientCertPathHold": clientCertPathHold,
-		"clientKeyPathHold":  clientKeyPathHold,
+		"address":      address,
+		"lightningDir": lightningDir,
+		"addressHold":  addressHold,
 	}).Info("Creating new CLN gRPC service")
 
 	// CLN grpc client
-	tlsConfig, err := loadTLSCredentials(certPath, clientCertPath, clientKeyPath, "cln")
+	tlsConfig, err := loadTLSCredentials(lightningDir, "cln")
 	if err != nil {
 		return nil, fmt.Errorf("failed to load CLN TLS credentials: %w", err)
 	}
@@ -82,8 +78,8 @@ func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, ad
 	}
 
 	// Cln hold plugin grpc client
-	if addressHold != "" && certPathHold != "" && clientCertPathHold != "" && clientKeyPathHold != "" {
-		tlsConfigHold, err := loadTLSCredentials(certPathHold, clientCertPathHold, clientKeyPathHold, "hold")
+	if addressHold != "" {
+		tlsConfigHold, err := loadTLSCredentials(lightningDir, "hold")
 		if err != nil {
 			return nil, fmt.Errorf("failed to load hold pluginTLS credentials: %w", err)
 		}
@@ -135,7 +131,14 @@ func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, ad
 	logger.Logger.Info("Successfully connected to CLN via gRPC")
 	return svc, nil
 }
-func loadTLSCredentials(certPath, clientCertPath, clientKeyPath string, serverName string) (*tls.Config, error) {
+func loadTLSCredentials(lightningDir string, serverName string) (*tls.Config, error) {
+	if serverName != "cln" {
+		lightningDir = filepath.Join(lightningDir, serverName)
+	}
+	certPath := filepath.Join(lightningDir, "ca.pem")
+	clientCertPath := filepath.Join(lightningDir, "client.pem")
+	clientKeyPath := filepath.Join(lightningDir, "client-key.pem")
+
 	serverCA, err := os.ReadFile(certPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read server CA cert: %w", err)
