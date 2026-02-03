@@ -35,9 +35,18 @@ export function RiskyAppsBanner() {
       </Link>
       <XIcon
         className="absolute right-4 cursor-pointer w-4 text-white"
+        role="button"
+        aria-label="Dismiss banner"
+        tabIndex={0}
         onClick={(e) => {
           e.preventDefault();
           setDismissed(true);
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setDismissed(true);
+          }
         }}
       />
     </div>

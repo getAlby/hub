@@ -59,8 +59,8 @@ export function RiskyAppNotifications() {
               </button>
             </div>
             <p className="text-sm">
-              {count} app{count > 1 ? "s" : ""} have unused spending
-              permissions.
+              {count} app{count > 1 ? "s" : ""} {count === 1 ? "has" : "have"}{" "}
+              unused spending permissions.
             </p>
             <div className="flex justify-end gap-2 mt-2">
               <Button
@@ -70,9 +70,9 @@ export function RiskyAppNotifications() {
               >
                 Dismiss
               </Button>
-              <Link to="/apps">
-                <Button size="sm">Review</Button>
-              </Link>
+              <Button size="sm" asChild>
+                <Link to="/apps">Review</Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -85,6 +85,7 @@ export function RiskyAppNotifications() {
             variant="ghost"
             size="icon"
             className="relative"
+            aria-label="Notifications"
             onClick={() => {
               console.info("🔔 Bell icon clicked!");
               console.info("Current popover state:", popoverOpen);
@@ -114,23 +115,26 @@ export function RiskyAppNotifications() {
             </div>
             <div className="grid gap-2">
               {hasRiskyApps ? (
-                <div
+                <button
+                  type="button"
                   onClick={handleNotificationClick}
-                  className="flex items-start gap-4 rounded-md border p-3 hover:bg-muted/50 cursor-pointer transition-colors"
+                  className="flex items-start gap-4 rounded-md border p-3 hover:bg-muted/50 cursor-pointer transition-colors w-full text-left"
+                  aria-label="Review apps with unused permissions"
                 >
                   <div className="flex-1 space-y-1">
                     <p className="text-sm font-medium leading-none text-orange-600">
                       Unused Permissions
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {count} app{count > 1 ? "s" : ""} can spend but haven't
+                      {count} app{count > 1 ? "s" : ""} can spend but{" "}
+                      {count === 1 ? "hasn't" : "haven't"}
                       been used recently.
                     </p>
                     <span className="text-xs font-medium underline text-primary">
                       Review Apps
                     </span>
                   </div>
-                </div>
+                </button>
               ) : (
                 <div className="py-6 text-center text-sm text-muted-foreground">
                   No new notifications
