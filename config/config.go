@@ -118,44 +118,14 @@ func (cfg *config) init(env *AppConfig) error {
 			return err
 		}
 	}
-	if cfg.Env.CLNCaCert != "" {
-		err := cfg.SetUpdate("CLNCaCert", cfg.Env.CLNCaCert, "")
-		if err != nil {
-			return err
-		}
-	}
-	if cfg.Env.CLNClientCert != "" {
-		err := cfg.SetUpdate("CLNClientCert", cfg.Env.CLNClientCert, "")
-		if err != nil {
-			return err
-		}
-	}
-	if cfg.Env.CLNClientKey != "" {
-		err := cfg.SetUpdate("CLNClientKey", cfg.Env.CLNClientKey, "")
+	if cfg.Env.CLNLightningDir != "" {
+		err := cfg.SetUpdate("CLNLightningDir", cfg.Env.CLNLightningDir, "")
 		if err != nil {
 			return err
 		}
 	}
 	if cfg.Env.CLNAddressHold != "" {
 		err := cfg.SetUpdate("CLNAddressHold", cfg.Env.CLNAddressHold, "")
-		if err != nil {
-			return err
-		}
-	}
-	if cfg.Env.CLNCaCertHold != "" {
-		err := cfg.SetUpdate("CLNCaCertHold", cfg.Env.CLNCaCertHold, "")
-		if err != nil {
-			return err
-		}
-	}
-	if cfg.Env.CLNClientCertHold != "" {
-		err := cfg.SetUpdate("CLNClientCertHold", cfg.Env.CLNClientCertHold, "")
-		if err != nil {
-			return err
-		}
-	}
-	if cfg.Env.CLNClientKeyHold != "" {
-		err := cfg.SetUpdate("CLNClientKeyHold", cfg.Env.CLNClientKeyHold, "")
 		if err != nil {
 			return err
 		}
