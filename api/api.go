@@ -1453,31 +1453,15 @@ func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
 	if setupRequest.CLNAddress != "" {
 		err = api.cfg.SetUpdate("CLNAddress", setupRequest.CLNAddress, setupRequest.UnlockPassword)
 		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to save cln address")
+			logger.Logger.WithError(err).Error("Failed to save CLN address")
 			return err
 		}
 	}
 
-	if setupRequest.CLNCaCert != "" {
-		err = api.cfg.SetUpdate("CLNCaCert", setupRequest.CLNCaCert, setupRequest.UnlockPassword)
+	if setupRequest.CLNLightningDir != "" {
+		err = api.cfg.SetUpdate("CLNLightningDir", setupRequest.CLNLightningDir, setupRequest.UnlockPassword)
 		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to save cln ca cert path")
-			return err
-		}
-	}
-
-	if setupRequest.CLNClientCert != "" {
-		err = api.cfg.SetUpdate("CLNClientCert", setupRequest.CLNClientCert, setupRequest.UnlockPassword)
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to save cln client cert path")
-			return err
-		}
-	}
-
-	if setupRequest.CLNClientKey != "" {
-		err = api.cfg.SetUpdate("CLNClientKey", setupRequest.CLNClientKey, setupRequest.UnlockPassword)
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to save cln client key path")
+			logger.Logger.WithError(err).Error("Failed to save CLN Lightning directory path")
 			return err
 		}
 	}
@@ -1486,30 +1470,6 @@ func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
 		err = api.cfg.SetUpdate("CLNAddressHold", setupRequest.CLNAddressHold, setupRequest.UnlockPassword)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to save cln hold plugin address")
-			return err
-		}
-	}
-
-	if setupRequest.CLNCaCertHold != "" {
-		err = api.cfg.SetUpdate("CLNCaCertHold", setupRequest.CLNCaCertHold, setupRequest.UnlockPassword)
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to save cln hold plugin ca cert path")
-			return err
-		}
-	}
-
-	if setupRequest.CLNClientCertHold != "" {
-		err = api.cfg.SetUpdate("CLNClientCertHold", setupRequest.CLNClientCertHold, setupRequest.UnlockPassword)
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to save cln hold plugin client cert path")
-			return err
-		}
-	}
-
-	if setupRequest.CLNClientKeyHold != "" {
-		err = api.cfg.SetUpdate("CLNClientKeyHold", setupRequest.CLNClientKeyHold, setupRequest.UnlockPassword)
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to save cln hold plugin client key path")
 			return err
 		}
 	}

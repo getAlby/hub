@@ -217,15 +217,12 @@ Can be configured via env or the UI
 
 - `LN_BACKEND_TYPE`: CLN
 - `CLN_ADDRESS`: the CLN grpc address (grpc-host and grpc-port), e.g. `127.0.0.1:9737`
-- `CLN_CA_CERT`: the location where cln-grpc's `ca.pem` file can be found.
-- `CLN_CLIENT_CERT`: the location where cln-grpc's `client.pem` file can be found.
-- `CLN_CLIENT_KEY`: the location where cln-grpc's `client-key.pem` file can be found.
+- `CLN_LIGHTNING_DIR`: CLN's lightning directory containing the grpc certificates, usually `~/.lightning/<network>`
 
 Optional for hold invoice methods support:
 - `CLN_ADDRESS_HOLD`: the CLN hold plugin grpc address (grpc-host and grpc-port), e.g. `127.0.0.1:9738`
-- `CLN_CA_CERT_HOLD`: the location where the CLN hold plugin's `ca.pem` file can be found.
-- `CLN_CLIENT_CERT_HOLD`: the location where the CLN hold plugin's `client.pem` file can be found.
-- `CLN_CLIENT_KEY_HOLD`: the location where the CLN hold plugin's `client-key.pem` file can be found.
+
+If you are copying the certificates to another machine make sure you get the `ca.pem`, `client.pem` and `client-key.pem` from the lightning directory and optionally from the `hold` directory inside the lightning directory and keep the sub-directory structure of the hold directory.
 
 ### LND Backend parameters
 
