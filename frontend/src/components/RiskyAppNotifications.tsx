@@ -52,6 +52,8 @@ export function RiskyAppNotifications() {
             <div className="font-semibold flex justify-between items-center">
               <span>Security Alert</span>
               <button
+                type="button"
+                aria-label="Dismiss notification"
                 onClick={() => setMinimized(true)}
                 className="text-muted-foreground hover:text-foreground"
               >

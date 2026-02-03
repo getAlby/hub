@@ -23,7 +23,8 @@ export function RiskyAppsBanner() {
       <Link to="/apps" className="w-full px-12 md:px-24">
         <p className="line-clamp-2 md:block whitespace-normal md:whitespace-nowrap overflow-hidden text-ellipsis text-center">
           <span className="font-semibold mr-2">
-            {count} app{count > 1 ? "s" : ""} with spending permissions haven't
+            {count} app{count > 1 ? "s" : ""} with spending permissions{" "}
+            {count === 1 ? "hasn't" : "haven't"}
             been used in 30+ days
           </span>
           <span>•</span>
