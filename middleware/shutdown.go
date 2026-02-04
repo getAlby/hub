@@ -12,6 +12,8 @@ type ShutdownNotifier interface {
 }
 
 func ShutdownMiddleware(notifier ShutdownNotifier) echo.MiddlewareFunc {
+
+	// whitelist routes that can still be called when the node is shutting down
 	safeRoutes := map[string]bool{
 		"/api/health":      true,
 		"/api/node/status": true,
@@ -20,7 +22,7 @@ func ShutdownMiddleware(notifier ShutdownNotifier) echo.MiddlewareFunc {
 
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			path := c.Path()
+			path := c.Request().URL.Path
 
 			if safeRoutes[path] || strings.HasPrefix(path, "/api/alby/") {
 				return next(c)
