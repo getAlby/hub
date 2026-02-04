@@ -3,6 +3,7 @@ package wails
 import (
 	"context"
 	"embed"
+	"fmt"
 
 	"github.com/getAlby/hub/api"
 	"github.com/getAlby/hub/apps"
@@ -88,6 +89,13 @@ func LaunchWailsApp(app *WailsApp, assets embed.FS, appIcon []byte) {
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to run Wails app")
 	}
+}
+
+func (app *WailsApp) CheckShutdown() error {
+    if app.svc.IsShuttingDown() {
+        return fmt.Errorf("node is shutting down, please wait")
+    }
+    return nil
 }
 
 func NewWailsLogger() WailsLogger {
