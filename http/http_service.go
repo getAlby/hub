@@ -14,7 +14,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	echoMiddleware "github.com/labstack/echo/v4/middleware"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
@@ -23,6 +23,7 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/service"
+	"github.com/getAlby/hub/middleware"
 
 	"github.com/getAlby/hub/api"
 	"github.com/getAlby/hub/frontend"
@@ -63,20 +64,20 @@ func NewHttpService(svc service.Service, eventPublisher events.EventPublisher) *
 func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.HideBanner = true
 
-	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
+	e.Use(echoMiddleware.SecureWithConfig(echoMiddleware.SecureConfig{
 		ContentTypeNosniff:    "nosniff",
 		XFrameOptions:         "DENY",
 		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https://uploads.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com https://zapplanner.albylabs.com wss://relay.getalby.com/v1; frame-src https://embed.bitrefill.com",
 		ReferrerPolicy:        "no-referrer",
 	}))
-	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
+	e.Use(echoMiddleware.RequestLoggerWithConfig(echoMiddleware.RequestLoggerConfig{
 		LogURI:       true,
 		LogStatus:    true,
 		LogRemoteIP:  true,
 		LogUserAgent: true,
 		LogHost:      true,
 		LogRequestID: true,
-		LogValuesFunc: func(c echo.Context, values middleware.RequestLoggerValues) error {
+		LogValuesFunc: func(c echo.Context, values echoMiddleware.RequestLoggerValues) error {
 			logger.Logger.WithFields(logrus.Fields{
 				"uri":        values.URI,
 				"status":     values.Status,
@@ -89,15 +90,17 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 		},
 	}))
 
-	e.Use(middleware.Recover())
-	e.Use(middleware.RequestID())
+	e.Use(middleware.ShutdownMiddleware(httpSvc.api))
+
+	e.Use(echoMiddleware.Recover())
+	e.Use(echoMiddleware.RequestID())
 
 	e.GET("/api/info", httpSvc.infoHandler)
 	e.POST("/api/setup", httpSvc.setupHandler)
 	e.POST("/api/restore", httpSvc.restoreBackupHandler)
 
 	// allow one unlock request per second
-	unlockRateLimiter := middleware.RateLimiter(middleware.NewRateLimiterMemoryStore(1))
+	unlockRateLimiter := echoMiddleware.RateLimiter(echoMiddleware.NewRateLimiterMemoryStore(1))
 	e.POST("/api/start", httpSvc.startHandler, unlockRateLimiter)
 	e.POST("/api/unlock", httpSvc.unlockHandler, unlockRateLimiter)
 	e.POST("/api/backup", httpSvc.createBackupHandler, unlockRateLimiter)

@@ -548,6 +548,50 @@ func (_c *MockService_GetTransactionsService_Call) RunAndReturn(run func() trans
 	return _c
 }
 
+// IsShuttingDown provides a mock function for the type MockService
+func (_mock *MockService) IsShuttingDown() bool {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for IsShuttingDown")
+	}
+
+	var r0 bool
+	if returnFunc, ok := ret.Get(0).(func() bool); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	return r0
+}
+
+// MockService_IsShuttingDown_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'IsShuttingDown'
+type MockService_IsShuttingDown_Call struct {
+	*mock.Call
+}
+
+// IsShuttingDown is a helper method to define mock.On call
+func (_e *MockService_Expecter) IsShuttingDown() *MockService_IsShuttingDown_Call {
+	return &MockService_IsShuttingDown_Call{Call: _e.mock.On("IsShuttingDown")}
+}
+
+func (_c *MockService_IsShuttingDown_Call) Run(run func()) *MockService_IsShuttingDown_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockService_IsShuttingDown_Call) Return(b bool) *MockService_IsShuttingDown_Call {
+	_c.Call.Return(b)
+	return _c
+}
+
+func (_c *MockService_IsShuttingDown_Call) RunAndReturn(run func() bool) *MockService_IsShuttingDown_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Shutdown provides a mock function for the type MockService
 func (_mock *MockService) Shutdown() {
 	_mock.Called()
@@ -604,14 +648,20 @@ type MockService_StartApp_Call struct {
 }
 
 // StartApp is a helper method to define mock.On call
-//   - encryptionKey
+//   - encryptionKey string
 func (_e *MockService_Expecter) StartApp(encryptionKey interface{}) *MockService_StartApp_Call {
 	return &MockService_StartApp_Call{Call: _e.mock.On("StartApp", encryptionKey)}
 }
 
 func (_c *MockService_StartApp_Call) Run(run func(encryptionKey string)) *MockService_StartApp_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string))
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }

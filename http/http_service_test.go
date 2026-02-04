@@ -13,12 +13,15 @@ import (
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/middleware"
 	"github.com/getAlby/hub/tests/db"
 	"github.com/getAlby/hub/tests/mocks"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -41,6 +44,7 @@ func TestUnlock_IncorrectPassword(t *testing.T) {
 	mockSvc.On("GetKeys").Return(mocks.NewMockKeys(t))
 	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
 	mockSvc.On("GetAlbyOAuthSvc").Return(mocks.NewMockAlbyOAuthService(t))
+	mockSvc.On("IsShuttingDown").Return(false)
 
 	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
 	httpSvc.RegisterSharedRoutes(e)
@@ -75,6 +79,7 @@ func TestUnlock_UnknownPermission(t *testing.T) {
 	mockSvc.On("GetKeys").Return(mocks.NewMockKeys(t))
 	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
 	mockSvc.On("GetAlbyOAuthSvc").Return(mocks.NewMockAlbyOAuthService(t))
+	mockSvc.On("IsShuttingDown").Return(false)
 
 	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
 	httpSvc.RegisterSharedRoutes(e)
@@ -108,6 +113,7 @@ func TestGetApps_NoToken(t *testing.T) {
 	mockSvc.On("GetKeys").Return(mocks.NewMockKeys(t))
 	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
 	mockSvc.On("GetAlbyOAuthSvc").Return(mocks.NewMockAlbyOAuthService(t))
+	mockSvc.On("IsShuttingDown").Return(false)
 
 	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
 	httpSvc.RegisterSharedRoutes(e)
@@ -139,6 +145,7 @@ func TestGetApps_ReadonlyPermission(t *testing.T) {
 	mockSvc.On("GetKeys").Return(mocks.NewMockKeys(t))
 	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
 	mockSvc.On("GetAlbyOAuthSvc").Return(mocks.NewMockAlbyOAuthService(t))
+	mockSvc.On("IsShuttingDown").Return(false)
 
 	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
 	httpSvc.RegisterSharedRoutes(e)
@@ -192,6 +199,7 @@ func TestGetApps_FullPermission(t *testing.T) {
 	mockSvc.On("GetKeys").Return(mocks.NewMockKeys(t))
 	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
 	mockSvc.On("GetAlbyOAuthSvc").Return(mocks.NewMockAlbyOAuthService(t))
+	mockSvc.On("IsShuttingDown").Return(false)
 
 	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
 	httpSvc.RegisterSharedRoutes(e)
@@ -243,6 +251,7 @@ func TestCreateApp_NoToken(t *testing.T) {
 	mockSvc.On("GetKeys").Return(mocks.NewMockKeys(t))
 	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
 	mockSvc.On("GetAlbyOAuthSvc").Return(mocks.NewMockAlbyOAuthService(t))
+	mockSvc.On("IsShuttingDown").Return(false)
 
 	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
 	httpSvc.RegisterSharedRoutes(e)
@@ -284,6 +293,7 @@ func TestCreateApp_FullPermission(t *testing.T) {
 	mockSvc.On("GetKeys").Return(mockKeys)
 	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
 	mockSvc.On("GetAlbyOAuthSvc").Return(mockAlbyOAuthService)
+	mockSvc.On("IsShuttingDown").Return(false)
 
 	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
 	httpSvc.RegisterSharedRoutes(e)
@@ -345,6 +355,7 @@ func TestCreateApp_ReadonlyPermission(t *testing.T) {
 	mockSvc.On("GetKeys").Return(mockKeys)
 	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
 	mockSvc.On("GetAlbyOAuthSvc").Return(mockAlbyOAuthService)
+	mockSvc.On("IsShuttingDown").Return(false)
 
 	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
 	httpSvc.RegisterSharedRoutes(e)
@@ -380,4 +391,145 @@ func TestCreateApp_ReadonlyPermission(t *testing.T) {
 	e.ServeHTTP(rec2, req2)
 
 	assert.Equal(t, http.StatusForbidden, rec2.Code)
+}
+
+func TestShutdown_BlockedEndpoint(t *testing.T) {
+	e := echo.New()
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+	mockSvc := mocks.NewMockService(t)
+	gormDb, err := db.NewDB(t)
+	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
+
+	mockEventPublisher := events.NewEventPublisher()
+
+	mockConfig := mocks.NewMockConfig(t)
+	mockConfig.On("GetEnv").Return(&config.AppConfig{})
+	mockConfig.On("CheckUnlockPassword", "123").Return(true)
+	mockConfig.On("GetJWTSecret").Return("dummy secret", nil)
+
+	mockKeys := mocks.NewMockKeys(t)
+
+	mockAlbyOAuthService := mocks.NewMockAlbyOAuthService(t)
+
+	mockSvc.On("GetDB").Return(gormDb)
+	mockSvc.On("GetConfig").Return(mockConfig)
+	mockSvc.On("GetKeys").Return(mockKeys)
+	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
+	mockSvc.On("GetAlbyOAuthSvc").Return(mockAlbyOAuthService)
+	mockSvc.On("IsShuttingDown").Return(false)
+
+	e.Use(middleware.ShutdownMiddleware(mockSvc))
+
+	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
+	httpSvc.RegisterSharedRoutes(e)
+
+	requestBody := api.UnlockRequest{UnlockPassword: "123", Permission: "readonly"}
+	jsonBody, _ := json.Marshal(requestBody)
+	req := httptest.NewRequest(http.MethodPost, "/api/unlock", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json") // Set Content-Type header
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	// mock node sutting down after unlock
+	mockSvc.On("IsShuttingDown").Unset()
+	mockSvc.On("IsShuttingDown").Return(true)
+
+	body, err := io.ReadAll(rec.Body)
+	require.NoError(t, err)
+
+	type authTokenResponse struct {
+		Token string `json:"token"`
+	}
+
+	var unlockAuthTokenResponse authTokenResponse
+	err = json.Unmarshal(body, &unlockAuthTokenResponse)
+	require.NoError(t, err)
+	assert.NotEmpty(t, unlockAuthTokenResponse.Token)
+
+	req2 := httptest.NewRequest(http.MethodGet, "/api/peers", nil)
+	req2.Header.Set("Authorization", "Bearer "+unlockAuthTokenResponse.Token)
+	req2.Header.Set("Content-Type", "application/json")
+
+	rec2 := httptest.NewRecorder()
+	e.ServeHTTP(rec2, req2)
+
+	assert.Equal(t, http.StatusServiceUnavailable, rec2.Code)
+	assert.Contains(t, rec2.Body.String(), "Node is shutting down")
+
+}
+
+func TestShutdown_AllowedEndpoint(t *testing.T) {
+	e := echo.New()
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+	mockSvc := mocks.NewMockService(t)
+	gormDb, err := db.NewDB(t)
+	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
+
+	mockEventPublisher := events.NewEventPublisher()
+
+	mockConfig := mocks.NewMockConfig(t)
+	mockConfig.On("GetEnv").Return(&config.AppConfig{})
+	mockConfig.On("CheckUnlockPassword", "123").Return(true)
+	mockConfig.On("GetJWTSecret").Return("dummy secret", nil)
+
+	mockKeys := mocks.NewMockKeys(t)
+
+	mockAlbyOAuthService := mocks.NewMockAlbyOAuthService(t)
+
+	mockSvc.On("GetDB").Return(gormDb)
+	mockSvc.On("GetConfig").Return(mockConfig)
+	mockSvc.On("GetKeys").Return(mockKeys)
+	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
+	mockSvc.On("GetAlbyOAuthSvc").Return(mockAlbyOAuthService)
+	mockSvc.On("IsShuttingDown").Return(false)
+
+	e.Use(middleware.ShutdownMiddleware(mockSvc))
+
+	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
+	httpSvc.RegisterSharedRoutes(e)
+
+	requestBody := api.UnlockRequest{UnlockPassword: "123", Permission: "readonly"}
+	jsonBody, _ := json.Marshal(requestBody)
+	req := httptest.NewRequest(http.MethodPost, "/api/unlock", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json") // Set Content-Type header
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusOK, rec.Code)
+
+	mockLNClient := mocks.NewMockLNClient(t)
+	mockLNClient.On("GetNodeStatus", mock.Anything).Return(&lnclient.NodeStatus{
+		IsReady:            true, // or false, doesn't matter
+		InternalNodeStatus: map[string]interface{}{"running": true},
+	}, nil)
+
+	// mock node sutting down after unlock
+	mockSvc.On("IsShuttingDown").Unset()
+	mockSvc.On("IsShuttingDown").Return(true)
+	mockSvc.On("GetLNClient").Return(mockLNClient)
+
+	body, err := io.ReadAll(rec.Body)
+	require.NoError(t, err)
+
+	type authTokenResponse struct {
+		Token string `json:"token"`
+	}
+
+	var unlockAuthTokenResponse authTokenResponse
+	err = json.Unmarshal(body, &unlockAuthTokenResponse)
+	require.NoError(t, err)
+	assert.NotEmpty(t, unlockAuthTokenResponse.Token)
+
+	req2 := httptest.NewRequest(http.MethodGet, "/api/node/status", nil)
+	req2.Header.Set("Authorization", "Bearer "+unlockAuthTokenResponse.Token)
+	req2.Header.Set("Content-Type", "application/json")
+
+	rec2 := httptest.NewRecorder()
+	e.ServeHTTP(rec2, req2)
+
+	assert.NotEqual(t, http.StatusServiceUnavailable, rec2.Code)
 }

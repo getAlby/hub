@@ -83,6 +83,7 @@ type API interface {
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
 	SendEvent(event string, properties interface{})
 	GetForwards() (*GetForwardsResponse, error)
+	IsShuttingDown() bool
 }
 
 type App struct {

@@ -27,6 +27,20 @@ type WailsRequestRouterResponse struct {
 func (app *WailsApp) WailsRequestRouter(route string, method string, body string) WailsRequestRouterResponse {
 	ctx := app.ctx
 
+	safeRoutes := map[string]bool{
+		"/api/health":      true,
+		"/api/node/status": true,
+		"/api/info":        true,
+	}
+
+	isSafe := safeRoutes[route] || strings.HasPrefix(route, "/api/alby/")
+
+	if !isSafe {
+		if err := app.CheckShutdown(); err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: "Node is shutting down. Please wait."}
+		}
+	}
+
 	// the grouping is done to avoid other parameters like &unused=true
 	albyCallbackRegex := regexp.MustCompile(
 		`/api/alby/callback\?code=([^&]+)(&.*)?`,

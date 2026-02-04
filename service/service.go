@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/adrg/xdg"
@@ -46,6 +47,7 @@ type service struct {
 	keys                keys.Keys
 	relayStatuses       []RelayStatus
 	startupState        string
+	shuttingDown        atomic.Bool
 }
 
 func NewService(ctx context.Context) (*service, error) {
@@ -277,6 +279,10 @@ func (svc *service) GetRelayStatuses() []RelayStatus {
 
 func (svc *service) GetStartupState() string {
 	return svc.startupState
+}
+
+func (svc *service) IsShuttingDown() bool {
+	return svc.shuttingDown.Load()
 }
 
 func (svc *service) removeExcessEvents() {

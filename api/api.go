@@ -1774,3 +1774,7 @@ func (api *api) GetForwards() (*GetForwardsResponse, error) {
 		NumForwards:                 uint64(numForwards),
 	}, nil
 }
+
+func (a *api) IsShuttingDown() bool {
+	return a.svc.IsShuttingDown()
+}
