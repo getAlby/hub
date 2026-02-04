@@ -15,7 +15,6 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
-	"github.com/getAlby/hub/middleware"
 	"github.com/getAlby/hub/tests/db"
 	"github.com/getAlby/hub/tests/mocks"
 	"github.com/labstack/echo/v4"
@@ -419,8 +418,6 @@ func TestShutdown_BlockedEndpoint(t *testing.T) {
 	mockSvc.On("GetAlbyOAuthSvc").Return(mockAlbyOAuthService)
 	mockSvc.On("IsShuttingDown").Return(false)
 
-	e.Use(middleware.ShutdownMiddleware(mockSvc))
-
 	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
 	httpSvc.RegisterSharedRoutes(e)
 
@@ -487,8 +484,6 @@ func TestShutdown_AllowedEndpoint(t *testing.T) {
 	mockSvc.On("GetAlbyOAuthSvc").Return(mockAlbyOAuthService)
 	mockSvc.On("IsShuttingDown").Return(false)
 
-	e.Use(middleware.ShutdownMiddleware(mockSvc))
-
 	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
 	httpSvc.RegisterSharedRoutes(e)
 
@@ -531,5 +526,5 @@ func TestShutdown_AllowedEndpoint(t *testing.T) {
 	rec2 := httptest.NewRecorder()
 	e.ServeHTTP(rec2, req2)
 
-	assert.NotEqual(t, http.StatusServiceUnavailable, rec2.Code)
+	assert.Equal(t, http.StatusOK, rec2.Code)
 }
