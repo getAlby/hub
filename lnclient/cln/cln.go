@@ -164,22 +164,28 @@ func loadTLSCredentials(lightningDir string, serverName string) (*tls.Config, er
 func (c *CLNService) subscribeOpenHoldInvoices(ctx context.Context) {
 	holdinvoices := make([]*clngrpcHold.Invoice, 0)
 
-	for true {
+	start := int64(1)
+
+	for {
 		lsr, err := (*c.clientHold).List(ctx, &clngrpcHold.ListRequest{
 			Constraint: &clngrpcHold.ListRequest_Pagination_{
 				Pagination: &clngrpcHold.ListRequest_Pagination{
-					IndexStart: 1,
+					IndexStart: start,
 					Limit:      200,
 				},
 			},
 		})
 		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to list invoices for open hold invoices subscription")
+			logger.Logger.WithError(err).Error("Failed to list invoices")
 			return
 		}
-		if lsr != nil {
-			holdinvoices = append(holdinvoices, lsr.Invoices...)
+
+		if lsr == nil || len(lsr.Invoices) == 0 {
+			break
 		}
+
+		holdinvoices = append(holdinvoices, lsr.Invoices...)
+		start = lsr.Invoices[len(lsr.Invoices)-1].Id + 1
 	}
 
 	for _, invoice := range holdinvoices {
@@ -322,13 +328,15 @@ func clnHoldInvoiceToTransaction(invoice *clngrpcHold.Invoice, decodedInvoice *c
 
 	var minExpiry *uint32
 	for _, htlc := range invoice.Htlcs {
-		if htlc.CltvExpiry != nil {
-			htlcExpiryUint32 := uint32(*htlc.CltvExpiry)
-			if htlcExpiryUint32 < *minExpiry || minExpiry == nil {
-				minExpiry = &htlcExpiryUint32
-			}
+		if htlc.CltvExpiry == nil {
+			continue
 		}
 
+		exp := uint32(*htlc.CltvExpiry)
+
+		if minExpiry == nil || exp < *minExpiry {
+			minExpiry = &exp
+		}
 	}
 
 	tx := &lnclient.Transaction{
@@ -1693,6 +1701,9 @@ func (c *CLNService) MakeHoldInvoice(ctx context.Context, amount int64, descript
 	}
 
 	expiresAt := time.Now().Unix() + expiry
+
+	go c.subscribeSingleInvoice(paymentHashBytes)
+	logger.Logger.WithField("paymentHash", paymentHash).Info("Launched single invoice subscription goroutine")
 
 	transaction = &lnclient.Transaction{
 		Type:            "incoming",
