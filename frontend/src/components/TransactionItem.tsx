@@ -48,6 +48,17 @@ function safeNpubEncode(hex: string): string | undefined {
   }
 }
 
+
+function safeNeventEncode(id: string): string | undefined {
+  try {
+    return nip19.neventEncode({
+      id,
+    });
+  } catch {
+    return undefined;
+  }
+}
+
 function TransactionItem({ tx }: Props) {
   const { data: app } = useApp(tx.appId);
   const swapId = tx.metadata?.swap_id;
@@ -83,6 +94,7 @@ function TransactionItem({ tx }: Props) {
       : undefined;
 
   const eventId = tx.metadata?.nostr?.tags?.find((t) => t[0] === "e")?.[1];
+  const nevent = eventId ? safeNeventEncode(eventId) : undefined;
 
   const bolt12Offer = tx.metadata?.offer;
 
@@ -307,13 +319,11 @@ function TransactionItem({ tx }: Props) {
             )}
             {/* for Alby lightning addresses the content of the zap request is
             automatically extracted and already displayed above as description */}
-            {tx.metadata?.nostr && eventId && npub && (
+            {tx.metadata?.nostr && nevent && npub && (
               <div className="mt-6">
                 <p>
                   <ExternalLink
-                    to={`https://njump.me/${nip19.neventEncode({
-                      id: eventId,
-                    })}`}
+                    to={`https://njump.me/${nevent}`}
                     className="underline"
                   >
                     Nostr Zap
