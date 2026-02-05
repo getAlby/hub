@@ -27,4 +27,9 @@ export const backendTypeConfigs: Record<BackendType, BackendTypeConfig> = {
     hasChannelManagement: false,
     hasNodeBackup: false,
   },
+  CLN: {
+    hasMnemonic: false,
+    hasChannelManagement: true,
+    hasNodeBackup: false,
+  },
 };
