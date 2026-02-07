@@ -7,14 +7,17 @@ import (
 
 // TODO: remove JSON tags from these models (LNClient models should not be exposed directly)
 
+// TLVRecord represents a Type-Length-Value record used in Lightning keysend payments.
 type TLVRecord struct {
 	Type uint64 `json:"type"`
 	// hex-encoded value
 	Value string `json:"value"`
 }
 
+// Metadata is a map of arbitrary key-value pairs associated with transactions.
 type Metadata = map[string]interface{}
 
+// NodeInfo contains basic information about the Lightning node.
 type NodeInfo struct {
 	Alias       string
 	Color       string
@@ -24,6 +27,7 @@ type NodeInfo struct {
 	BlockHash   string
 }
 
+// Transaction represents a Lightning transaction (payment or invoice).
 // TODO: use uint for fields that cannot be negative
 type Transaction struct {
 	Type            string
@@ -41,6 +45,7 @@ type Transaction struct {
 	SettleDeadline  *uint32 // block number for accepted hold invoices
 }
 
+// OnchainTransaction represents a Bitcoin onchain transaction.
 type OnchainTransaction struct {
 	AmountSat        uint64 `json:"amountSat"`
 	CreatedAt        uint64 `json:"createdAt"`
@@ -50,12 +55,14 @@ type OnchainTransaction struct {
 	TxId             string `json:"txId"`
 }
 
+// NodeConnectionInfo contains the connection details for a Lightning node, including optional Tor address.
 type NodeConnectionInfo struct {
 	Pubkey  string `json:"pubkey"`
 	Address string `json:"address"`
 	Port    int    `json:"port"`
 }
 
+// LNClient defines the interface that all Lightning node backend implementations must satisfy.
 type LNClient interface {
 	SendPaymentSync(payReq string, amount *uint64) (*PayInvoiceResponse, error)
 	SendKeysend(amount uint64, destination string, customRecords []TLVRecord, preimage string) (*PayKeysendResponse, error)
@@ -97,6 +104,7 @@ type LNClient interface {
 	ExecuteCustomNodeCommand(ctx context.Context, command *CustomNodeCommandRequest) (*CustomNodeCommandResponse, error)
 }
 
+// Channel represents a Lightning payment channel with its balances and configuration.
 type Channel struct {
 	LocalBalance                             int64
 	LocalSpendableBalance                    int64
@@ -118,33 +126,39 @@ type Channel struct {
 	IsOutbound                               bool
 }
 
+// NodeStatus indicates whether the Lightning node is ready and provides internal status details.
 type NodeStatus struct {
 	IsReady            bool        `json:"isReady"`
 	InternalNodeStatus interface{} `json:"internalNodeStatus"`
 }
 
+// ConnectPeerRequest contains the pubkey and network address of a peer to connect to.
 type ConnectPeerRequest struct {
 	Pubkey  string `json:"pubkey"`
 	Address string `json:"address"`
 	Port    uint16 `json:"port"`
 }
 
+// OpenChannelRequest contains the parameters for opening a new Lightning channel.
 type OpenChannelRequest struct {
 	Pubkey     string `json:"pubkey"`
 	AmountSats int64  `json:"amountSats"`
 	Public     bool   `json:"public"`
 }
 
+// OpenChannelResponse contains the funding transaction ID of the newly opened channel.
 type OpenChannelResponse struct {
 	FundingTxId string `json:"fundingTxId"`
 }
 
+// CloseChannelRequest contains the parameters for closing a Lightning channel.
 type CloseChannelRequest struct {
 	ChannelId string `json:"channelId"`
 	NodeId    string `json:"nodeId"`
 	Force     bool   `json:"force"`
 }
 
+// UpdateChannelRequest contains the parameters for updating a channel's forwarding fees.
 type UpdateChannelRequest struct {
 	ChannelId                                string `json:"channelId"`
 	NodeId                                   string `json:"nodeId"`
@@ -153,9 +167,11 @@ type UpdateChannelRequest struct {
 	MaxDustHtlcExposureFromFeeRateMultiplier uint64 `json:"maxDustHtlcExposureFromFeeRateMultiplier"`
 }
 
+// CloseChannelResponse is returned after successfully closing a channel.
 type CloseChannelResponse struct {
 }
 
+// PendingBalanceDetails contains details about funds pending from a channel closure.
 type PendingBalanceDetails struct {
 	ChannelId     string `json:"channelId"`
 	NodeId        string `json:"nodeId"`
@@ -164,6 +180,7 @@ type PendingBalanceDetails struct {
 	FundingTxVout uint32 `json:"fundingTxVout"`
 }
 
+// OnchainBalanceResponse contains the onchain wallet balance breakdown.
 type OnchainBalanceResponse struct {
 	Spendable                          int64                   `json:"spendable"`
 	Total                              int64                   `json:"total"`
@@ -174,12 +191,14 @@ type OnchainBalanceResponse struct {
 	InternalBalances                   interface{}             `json:"internalBalances"`
 }
 
+// PeerDetails contains information about a connected Lightning peer.
 type PeerDetails struct {
 	NodeId      string `json:"nodeId"`
 	Address     string `json:"address"`
 	IsPersisted bool   `json:"isPersisted"`
 	IsConnected bool   `json:"isConnected"`
 }
+// LightningBalanceResponse contains the Lightning channel balance breakdown.
 type LightningBalanceResponse struct {
 	TotalSpendable       int64 `json:"totalSpendable"`
 	TotalReceivable      int64 `json:"totalReceivable"`
@@ -189,77 +208,92 @@ type LightningBalanceResponse struct {
 	NextMaxReceivableMPP int64 `json:"nextMaxReceivableMPP"`
 }
 
+// PayInvoiceResponse contains the preimage and fee for a paid invoice.
 type PayInvoiceResponse struct {
 	Preimage string `json:"preimage"`
 	Fee      uint64 `json:"fee"`
 }
 
+// PayOfferResponse contains the preimage, fee, and payment hash for a paid BOLT12 offer.
 type PayOfferResponse = struct {
 	Preimage    string `json:"preimage"`
 	Fee         uint64 `json:"fee"`
 	PaymentHash string `json:"payment_hash"`
 }
 
+// PayKeysendResponse contains the fee for a keysend payment.
 type PayKeysendResponse struct {
 	Fee uint64 `json:"fee"`
 }
 
+// BalancesResponse contains both the onchain and Lightning channel balances.
 type BalancesResponse struct {
 	Onchain   OnchainBalanceResponse   `json:"onchain"`
 	Lightning LightningBalanceResponse `json:"lightning"`
 }
 
+// NetworkGraphResponse is an alias for the network graph data returned by the node.
 type NetworkGraphResponse = interface{}
 
+// PaymentFailedEventProperties contains the transaction and reason for a failed payment event.
 type PaymentFailedEventProperties struct {
 	Transaction *Transaction
 	Reason      string
 }
 
+// PaymentForwardedEventProperties contains the forwarding statistics for a forwarded payment event.
 type PaymentForwardedEventProperties struct {
 	TotalFeeEarnedMsat          uint64
 	OutboundAmountForwardedMsat uint64
 }
 
+// CustomNodeCommandArgDef defines a single argument for a custom node command.
 type CustomNodeCommandArgDef struct {
 	Name        string
 	Description string
 }
 
+// CustomNodeCommandDef defines a custom node command with its name, description, and arguments.
 type CustomNodeCommandDef struct {
 	Name        string
 	Description string
 	Args        []CustomNodeCommandArgDef
 }
 
+// CustomNodeCommandArg represents a name-value pair argument for a custom node command.
 type CustomNodeCommandArg struct {
 	Name  string
 	Value string
 }
 
+// CustomNodeCommandRequest contains the command name and arguments to execute.
 type CustomNodeCommandRequest struct {
 	Name string
 	Args []CustomNodeCommandArg
 }
 
+// CustomNodeCommandResponse contains the response from executing a custom node command.
 type CustomNodeCommandResponse struct {
 	Response interface{}
 }
 
+// NewCustomNodeCommandResponseEmpty creates a CustomNodeCommandResponse with an empty struct response.
 func NewCustomNodeCommandResponseEmpty() *CustomNodeCommandResponse {
 	return &CustomNodeCommandResponse{
 		Response: struct{}{},
 	}
 }
 
+// ErrUnknownCustomNodeCommand is returned when an unrecognized custom node command is requested.
 var ErrUnknownCustomNodeCommand = errors.New("unknown custom node command")
 
-// default invoice expiry in seconds (1 day)
+// DEFAULT_INVOICE_EXPIRY is the default invoice expiry in seconds (1 day).
 const DEFAULT_INVOICE_EXPIRY = 86400
 
 type holdInvoiceCanceledError struct {
 }
 
+// NewHoldInvoiceCanceledError returns an error indicating that a hold invoice was canceled.
 func NewHoldInvoiceCanceledError() error {
 	return &holdInvoiceCanceledError{}
 }

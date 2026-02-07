@@ -1,20 +1,30 @@
 package config
 
 const (
-	LNDBackendType     = "LND"
-	LDKBackendType     = "LDK"
+	// LNDBackendType is the backend type identifier for LND nodes.
+	LNDBackendType = "LND"
+	// LDKBackendType is the backend type identifier for LDK nodes.
+	LDKBackendType = "LDK"
+	// PhoenixBackendType is the backend type identifier for Phoenixd nodes.
 	PhoenixBackendType = "PHOENIX"
-	CashuBackendType   = "CASHU"
+	// CashuBackendType is the backend type identifier for Cashu wallets.
+	CashuBackendType = "CASHU"
 )
 
 const (
-	OnchainAddressKey           = "OnchainAddress"
+	// OnchainAddressKey is the config key for the onchain address.
+	OnchainAddressKey = "OnchainAddress"
+	// AutoSwapBalanceThresholdKey is the config key for the auto-swap balance threshold.
 	AutoSwapBalanceThresholdKey = "AutoSwapBalanceThreshold"
-	AutoSwapAmountKey           = "AutoSwapAmount"
-	AutoSwapDestinationKey      = "AutoSwapDestination"
-	AutoSwapXpubIndexStart      = "AutoSwapXpubIndexStart"
+	// AutoSwapAmountKey is the config key for the auto-swap amount.
+	AutoSwapAmountKey = "AutoSwapAmount"
+	// AutoSwapDestinationKey is the config key for the auto-swap destination address.
+	AutoSwapDestinationKey = "AutoSwapDestination"
+	// AutoSwapXpubIndexStart is the config key for the auto-swap xpub derivation index start.
+	AutoSwapXpubIndexStart = "AutoSwapXpubIndexStart"
 )
 
+// AppConfig holds the application-level configuration loaded from environment variables.
 type AppConfig struct {
 	Relay                              string `envconfig:"RELAY" default:"wss://relay.getalby.com/v1"`
 	LNBackendType                      string `envconfig:"LN_BACKEND_TYPE"`
@@ -60,10 +70,12 @@ type AppConfig struct {
 	BoltzApi                           string `envconfig:"BOLTZ_API" default:"https://api.boltz.exchange"`
 }
 
+// IsDefaultClientId returns true if the Alby OAuth client ID is set to the default value.
 func (c *AppConfig) IsDefaultClientId() bool {
 	return c.AlbyClientId == "J2PbXS1yOf"
 }
 
+// GetBaseFrontendUrl returns the base frontend URL, falling back to the BaseUrl if FrontendUrl is not set.
 func (c *AppConfig) GetBaseFrontendUrl() string {
 	url := c.FrontendUrl
 	if url == "" {
@@ -72,6 +84,7 @@ func (c *AppConfig) GetBaseFrontendUrl() string {
 	return url
 }
 
+// Config defines the interface for accessing and managing application configuration.
 type Config interface {
 	Unlock(encryptionKey string) error
 	Get(key string, encryptionKey string) (string, error)
