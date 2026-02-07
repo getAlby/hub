@@ -11,6 +11,8 @@ import (
 	"github.com/getAlby/hub/swaps"
 )
 
+// API defines the interface for all Alby Hub API operations including app management,
+// channel operations, payments, and node administration.
 type API interface {
 	CreateApp(createAppRequest *CreateAppRequest) (*CreateAppResponse, error)
 	UpdateApp(app *db.App, updateAppRequest *UpdateAppRequest) error
@@ -85,6 +87,7 @@ type API interface {
 	GetForwards() (*GetForwardsResponse, error)
 }
 
+// App represents a connected NWC application with its permissions and usage details.
 type App struct {
 	ID                 uint       `json:"id"`
 	Name               string     `json:"name"`
@@ -105,6 +108,7 @@ type App struct {
 	Metadata           Metadata   `json:"metadata,omitempty"`
 }
 
+// ListAppsFilters specifies filter criteria for listing applications.
 type ListAppsFilters struct {
 	Name          string `json:"name"`
 	AppStoreAppId string `json:"appStoreAppId"`
@@ -112,11 +116,13 @@ type ListAppsFilters struct {
 	SubWallets    *bool  `json:"subWallets"`
 }
 
+// ListAppsResponse contains the paginated list of applications.
 type ListAppsResponse struct {
 	Apps       []App  `json:"apps"`
 	TotalCount uint64 `json:"totalCount"`
 }
 
+// UpdateAppRequest contains the fields that can be updated for an application.
 type UpdateAppRequest struct {
 	Name            *string   `json:"name"`
 	MaxAmountSat    *uint64   `json:"maxAmount"`
@@ -128,12 +134,14 @@ type UpdateAppRequest struct {
 	Isolated        *bool     `json:"isolated"`
 }
 
+// TransferRequest specifies a balance transfer between two applications.
 type TransferRequest struct {
 	AmountSat uint64 `json:"amountSat"`
 	FromAppId *uint  `json:"fromAppId"`
 	ToAppId   *uint  `json:"toAppId"`
 }
 
+// CreateAppRequest contains the parameters for creating a new NWC application connection.
 type CreateAppRequest struct {
 	Name           string   `json:"name"`
 	Pubkey         string   `json:"pubkey"`
@@ -147,27 +155,32 @@ type CreateAppRequest struct {
 	UnlockPassword string   `json:"unlockPassword"`
 }
 
+// CreateLightningAddressRequest contains the parameters for creating a lightning address for an app.
 type CreateLightningAddressRequest struct {
 	Address string `json:"address"`
 	AppId   uint   `json:"appId"`
 }
 
+// InitiateSwapRequest contains the parameters for initiating a swap-in or swap-out.
 type InitiateSwapRequest struct {
 	SwapAmount  uint64 `json:"swapAmount"`
 	Destination string `json:"destination"`
 }
 
+// RefundSwapRequest contains the parameters for refunding a swap.
 type RefundSwapRequest struct {
 	SwapId  string `json:"swapId"`
 	Address string `json:"address"`
 }
 
+// EnableAutoSwapRequest contains the parameters for enabling automatic swaps.
 type EnableAutoSwapRequest struct {
 	BalanceThreshold uint64 `json:"balanceThreshold"`
 	SwapAmount       uint64 `json:"swapAmount"`
 	Destination      string `json:"destination"`
 }
 
+// GetAutoSwapConfigResponse contains the current auto-swap configuration.
 type GetAutoSwapConfigResponse struct {
 	Type             string `json:"type"`
 	Enabled          bool   `json:"enabled"`
@@ -176,6 +189,7 @@ type GetAutoSwapConfigResponse struct {
 	Destination      string `json:"destination"`
 }
 
+// SwapInfoResponse contains fee and amount limits for swap operations.
 type SwapInfoResponse struct {
 	AlbyServiceFee  float64 `json:"albyServiceFee"`
 	BoltzServiceFee float64 `json:"boltzServiceFee"`
@@ -184,12 +198,15 @@ type SwapInfoResponse struct {
 	MaxAmount       uint64  `json:"maxAmount"`
 }
 
+// ListSwapsResponse contains the list of all swaps.
 type ListSwapsResponse struct {
 	Swaps []Swap `json:"swaps"`
 }
 
+// LookupSwapResponse is an alias for Swap, returned when looking up a single swap.
 type LookupSwapResponse = Swap
 
+// Swap represents a submarine swap (swap-in or swap-out) with its current state.
 type Swap struct {
 	Id                 string `json:"id"`
 	Type               string `json:"type"`
@@ -210,25 +227,30 @@ type Swap struct {
 	UsedXpub           bool   `json:"usedXpub"`
 }
 
+// StartRequest contains the unlock password needed to start the node.
 type StartRequest struct {
 	UnlockPassword string `json:"unlockPassword"`
 }
 
+// UnlockRequest contains the credentials for unlocking the node.
 type UnlockRequest struct {
 	UnlockPassword  string  `json:"unlockPassword"`
 	TokenExpiryDays *uint64 `json:"tokenExpiryDays"`
 	Permission      string  `json:"permission,omitempty"` // "full" or "readonly"
 }
 
+// BackupReminderRequest contains the next backup reminder date.
 type BackupReminderRequest struct {
 	NextBackupReminder string `json:"nextBackupReminder"`
 }
 
+// SendEventRequest contains the event name and properties to send for analytics.
 type SendEventRequest struct {
 	Event      string      `json:"event"`
 	Properties interface{} `json:"properties"`
 }
 
+// SetupRequest contains all the parameters needed for initial node setup.
 type SetupRequest struct {
 	LNBackendType  string `json:"backendType"`
 	UnlockPassword string `json:"unlockPassword"`
@@ -251,6 +273,7 @@ type SetupRequest struct {
 	CashuMintUrl string `json:"cashuMintUrl"`
 }
 
+// CreateAppResponse contains the pairing details returned after creating a new app connection.
 type CreateAppResponse struct {
 	PairingUri    string   `json:"pairingUri"`
 	PairingSecret string   `json:"pairingSecretKey"`
@@ -263,15 +286,18 @@ type CreateAppResponse struct {
 	ReturnTo      string   `json:"returnTo"`
 }
 
+// User represents a user with their email address.
 type User struct {
 	Email string `json:"email"`
 }
 
+// InfoResponseRelay represents a Nostr relay with its URL and online status.
 type InfoResponseRelay struct {
 	Url    string `json:"url"`
 	Online bool   `json:"online"`
 }
 
+// InfoResponse contains the overall status and configuration of the Alby Hub instance.
 type InfoResponse struct {
 	BackendType                 string              `json:"backendType"`
 	SetupCompleted              bool                `json:"setupCompleted"`
@@ -299,45 +325,63 @@ type InfoResponse struct {
 	MempoolUrl                  string              `json:"mempoolUrl"`
 }
 
+// UpdateSettingsRequest contains the settings fields that can be updated.
 type UpdateSettingsRequest struct {
 	Currency             string `json:"currency"`
 	BitcoinDisplayFormat string `json:"bitcoinDisplayFormat"`
 }
 
+// SetNodeAliasRequest contains the new node alias to set.
 type SetNodeAliasRequest struct {
 	NodeAlias string `json:"nodeAlias"`
 }
 
+// MnemonicRequest contains the unlock password required to retrieve the mnemonic.
 type MnemonicRequest struct {
 	UnlockPassword string `json:"unlockPassword"`
 }
 
+// MnemonicResponse contains the wallet mnemonic seed phrase.
 type MnemonicResponse struct {
 	Mnemonic string `json:"mnemonic"`
 }
 
+// ChangeUnlockPasswordRequest contains the current and new unlock passwords.
 type ChangeUnlockPasswordRequest struct {
 	CurrentUnlockPassword string `json:"currentUnlockPassword"`
 	NewUnlockPassword     string `json:"newUnlockPassword"`
 }
+// AutoUnlockRequest contains the password used for automatic unlock on startup.
 type AutoUnlockRequest struct {
 	UnlockPassword string `json:"unlockPassword"`
 }
 
+// ConnectPeerRequest is an alias for lnclient.ConnectPeerRequest.
 type ConnectPeerRequest = lnclient.ConnectPeerRequest
+
+// OpenChannelRequest is an alias for lnclient.OpenChannelRequest.
 type OpenChannelRequest = lnclient.OpenChannelRequest
+
+// OpenChannelResponse is an alias for lnclient.OpenChannelResponse.
 type OpenChannelResponse = lnclient.OpenChannelResponse
+
+// CloseChannelResponse is an alias for lnclient.CloseChannelResponse.
 type CloseChannelResponse = lnclient.CloseChannelResponse
+
+// UpdateChannelRequest is an alias for lnclient.UpdateChannelRequest.
 type UpdateChannelRequest = lnclient.UpdateChannelRequest
 
+// RebalanceChannelRequest contains the parameters for rebalancing a channel.
 type RebalanceChannelRequest struct {
 	ReceiveThroughNodePubkey string `json:"receiveThroughNodePubkey"`
 	AmountSat                uint64 `json:"amountSat"`
 }
+// RebalanceChannelResponse contains the fee paid for the channel rebalance.
 type RebalanceChannelResponse struct {
 	TotalFeeSat uint64 `json:"totalFeeSat"`
 }
 
+// RedeemOnchainFundsRequest contains the parameters for sweeping onchain funds.
 type RedeemOnchainFundsRequest struct {
 	ToAddress string  `json:"toAddress"`
 	Amount    uint64  `json:"amount"`
@@ -345,22 +389,33 @@ type RedeemOnchainFundsRequest struct {
 	SendAll   bool    `json:"sendAll"`
 }
 
+// RedeemOnchainFundsResponse contains the transaction ID of the sweep transaction.
 type RedeemOnchainFundsResponse struct {
 	TxId string `json:"txId"`
 }
 
+// OnchainBalanceResponse is an alias for lnclient.OnchainBalanceResponse.
 type OnchainBalanceResponse = lnclient.OnchainBalanceResponse
+
+// BalancesResponse is an alias for lnclient.BalancesResponse.
 type BalancesResponse = lnclient.BalancesResponse
 
+// SendPaymentResponse is a Transaction returned after sending a payment.
 type SendPaymentResponse = Transaction
+
+// MakeInvoiceResponse is a Transaction returned after creating an invoice.
 type MakeInvoiceResponse = Transaction
+
+// LookupInvoiceResponse is a Transaction returned when looking up an invoice.
 type LookupInvoiceResponse = Transaction
 
+// ListTransactionsResponse contains the paginated list of transactions.
 type ListTransactionsResponse struct {
 	TotalCount   uint64        `json:"totalCount"`
 	Transactions []Transaction `json:"transactions"`
 }
 
+// Transaction represents a Lightning payment or invoice with its current state.
 // TODO: camelCase
 type Transaction struct {
 	Type            string      `json:"type"`
@@ -381,8 +436,10 @@ type Transaction struct {
 	FailureReason   string      `json:"failureReason"`
 }
 
+// Metadata is a map of arbitrary key-value pairs attached to transactions and apps.
 type Metadata = map[string]interface{}
 
+// Boostagram represents a podcast boost payment with its associated metadata.
 type Boostagram struct {
 	AppName        string `json:"appName"`
 	Name           string `json:"name"`
@@ -400,74 +457,91 @@ type Boostagram struct {
 	ValueMsatTotal int64  `json:"valueMsatTotal"`
 }
 
-// debug api
+// SendPaymentProbesRequest contains the invoice for probing a payment route.
 type SendPaymentProbesRequest struct {
 	Invoice string `json:"invoice"`
 }
 
+// SendPaymentProbesResponse contains the result of probing a payment route.
 type SendPaymentProbesResponse struct {
 	Error string `json:"error"`
 }
 
+// SendSpontaneousPaymentProbesRequest contains the parameters for probing a spontaneous payment route.
 type SendSpontaneousPaymentProbesRequest struct {
 	Amount uint64 `json:"amount"`
 	NodeId string `json:"nodeId"`
 }
 
+// SendSpontaneousPaymentProbesResponse contains the result of probing a spontaneous payment route.
 type SendSpontaneousPaymentProbesResponse struct {
 	Error string `json:"error"`
 }
 
 const (
+	// LogTypeNode is the log type identifier for node logs.
 	LogTypeNode = "node"
-	LogTypeApp  = "app"
+	// LogTypeApp is the log type identifier for application logs.
+	LogTypeApp = "app"
 )
 
+// GetLogOutputRequest specifies the maximum length of log output to retrieve.
 type GetLogOutputRequest struct {
 	MaxLen int `query:"maxLen"`
 }
 
+// GetLogOutputResponse contains the log output string.
 type GetLogOutputResponse struct {
 	Log string `json:"logs"`
 }
 
+// SignMessageRequest contains the message to be signed by the node.
 type SignMessageRequest struct {
 	Message string `json:"message"`
 }
 
+// SignMessageResponse contains the signed message and its signature.
 type SignMessageResponse struct {
 	Message   string `json:"message"`
 	Signature string `json:"signature"`
 }
 
+// PayInvoiceRequest contains the optional amount and metadata for paying an invoice.
 type PayInvoiceRequest struct {
 	Amount   *uint64  `json:"amount"`
 	Metadata Metadata `json:"metadata"`
 }
 
+// MakeOfferRequest contains the description for creating a BOLT12 offer.
 type MakeOfferRequest struct {
 	Description string `json:"description"`
 }
 
+// MakeInvoiceRequest contains the amount and description for creating an invoice.
 type MakeInvoiceRequest struct {
 	Amount      uint64 `json:"amount"`
 	Description string `json:"description"`
 }
 
+// ResetRouterRequest contains the key used to authorize a router reset.
 type ResetRouterRequest struct {
 	Key string `json:"key"`
 }
 
+// BasicBackupRequest contains the unlock password needed to create a backup.
 type BasicBackupRequest struct {
 	UnlockPassword string `json:"unlockPassword"`
 }
 
+// BasicRestoreWailsRequest contains the unlock password needed to restore from a backup via Wails.
 type BasicRestoreWailsRequest struct {
 	UnlockPassword string `json:"unlockPassword"`
 }
 
+// NetworkGraphResponse is an alias for lnclient.NetworkGraphResponse.
 type NetworkGraphResponse = lnclient.NetworkGraphResponse
 
+// LSPOrderRequest contains the parameters for requesting a channel from an LSP.
 type LSPOrderRequest struct {
 	Amount        uint64 `json:"amount"`
 	LSPType       string `json:"lspType"`
@@ -475,6 +549,7 @@ type LSPOrderRequest struct {
 	Public        bool   `json:"public"`
 }
 
+// LSPOrderResponse contains the invoice and liquidity details for an LSP channel order.
 type LSPOrderResponse struct {
 	Invoice           string `json:"invoice"`
 	Fee               uint64 `json:"fee"`
@@ -483,12 +558,14 @@ type LSPOrderResponse struct {
 	OutgoingLiquidity uint64 `json:"outgoingLiquidity"`
 }
 
+// WalletCapabilitiesResponse contains the NIP-47 scopes, methods, and notification types supported by the wallet.
 type WalletCapabilitiesResponse struct {
 	Scopes            []string `json:"scopes"`
 	Methods           []string `json:"methods"`
 	NotificationTypes []string `json:"notificationTypes"`
 }
 
+// Channel represents a Lightning channel with its balances, fees, and status.
 type Channel struct {
 	LocalBalance                             int64       `json:"localBalance"`
 	LocalSpendableBalance                    int64       `json:"localSpendableBalance"`
@@ -511,25 +588,34 @@ type Channel struct {
 	IsOutbound                               bool        `json:"isOutbound"`
 }
 
+// MigrateNodeStorageRequest contains the target storage backend for migration.
 type MigrateNodeStorageRequest struct {
 	To string `json:"to"`
 }
 
+// HealthAlarmKind represents the type of a health alarm.
 type HealthAlarmKind string
 
 const (
-	HealthAlarmKindAlbyService       HealthAlarmKind = "alby_service"
-	HealthAlarmKindNodeNotReady      HealthAlarmKind = "node_not_ready"
-	HealthAlarmKindChannelsOffline   HealthAlarmKind = "channels_offline"
+	// HealthAlarmKindAlbyService indicates an issue with the Alby service connection.
+	HealthAlarmKindAlbyService HealthAlarmKind = "alby_service"
+	// HealthAlarmKindNodeNotReady indicates the Lightning node is not ready.
+	HealthAlarmKindNodeNotReady HealthAlarmKind = "node_not_ready"
+	// HealthAlarmKindChannelsOffline indicates one or more channels are offline.
+	HealthAlarmKindChannelsOffline HealthAlarmKind = "channels_offline"
+	// HealthAlarmKindNostrRelayOffline indicates a Nostr relay is offline.
 	HealthAlarmKindNostrRelayOffline HealthAlarmKind = "nostr_relay_offline"
+	// HealthAlarmKindVssNoSubscription indicates VSS has no active subscription.
 	HealthAlarmKindVssNoSubscription HealthAlarmKind = "vss_no_subscription"
 )
 
+// HealthAlarm represents a single health check alarm with its kind and details.
 type HealthAlarm struct {
 	Kind       HealthAlarmKind `json:"kind"`
 	RawDetails any             `json:"rawDetails,omitempty"`
 }
 
+// NewHealthAlarm creates a new HealthAlarm with the given kind and raw details.
 func NewHealthAlarm(kind HealthAlarmKind, rawDetails any) HealthAlarm {
 	return HealthAlarm{
 		Kind:       kind,
@@ -537,29 +623,35 @@ func NewHealthAlarm(kind HealthAlarmKind, rawDetails any) HealthAlarm {
 	}
 }
 
+// HealthResponse contains the list of active health alarms.
 type HealthResponse struct {
 	Alarms []HealthAlarm `json:"alarms,omitempty"`
 }
 
+// CustomNodeCommandArgDef defines a single argument for a custom node command.
 type CustomNodeCommandArgDef struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
 
+// CustomNodeCommandDef defines a custom node command with its name, description, and arguments.
 type CustomNodeCommandDef struct {
 	Name        string                    `json:"name"`
 	Description string                    `json:"description"`
 	Args        []CustomNodeCommandArgDef `json:"args"`
 }
 
+// CustomNodeCommandsResponse contains the list of available custom node commands.
 type CustomNodeCommandsResponse struct {
 	Commands []CustomNodeCommandDef `json:"commands"`
 }
 
+// ExecuteCustomNodeCommandRequest contains the command name to execute.
 type ExecuteCustomNodeCommandRequest struct {
 	Command string `json:"command"`
 }
 
+// GetForwardsResponse contains the total forwarding statistics for the node.
 type GetForwardsResponse struct {
 	OutboundAmountForwardedMsat uint64 `json:"outboundAmountForwardedMsat"`
 	TotalFeeEarnedMsat          uint64 `json:"totalFeeEarnedMsat"`

@@ -1,9 +1,11 @@
 import { StarsIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Badge } from "src/components/ui/badge";
+import { Button } from "src/components/ui/button";
+import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import {
   Select,
@@ -33,8 +35,16 @@ function Settings() {
   const { theme, darkMode, setTheme, setDarkMode } = useTheme();
 
   const [fiatCurrencies, setFiatCurrencies] = useState<[string, string][]>([]);
+  const [nodeAlias, setNodeAlias] = useState("");
+  const [isSavingAlias, setIsSavingAlias] = useState(false);
 
   const { data: info, mutate: reloadInfo } = useInfo();
+
+  React.useEffect(() => {
+    if (info?.nodeAlias !== undefined) {
+      setNodeAlias(info.nodeAlias);
+    }
+  }, [info?.nodeAlias]);
 
   useEffect(() => {
     async function fetchCurrencies() {
@@ -93,6 +103,26 @@ function Settings() {
       "Bitcoin display format updated",
       "Failed to update bitcoin display format"
     );
+  }
+
+  async function saveNodeAlias(e: React.FormEvent) {
+    e.preventDefault();
+    setIsSavingAlias(true);
+    try {
+      await request("/api/node/alias", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ nodeAlias }),
+      });
+      await reloadInfo();
+      toast("Node alias updated. Restart your node to apply the change.");
+    } catch (error) {
+      handleRequestError("Failed to update node alias", error);
+    } finally {
+      setIsSavingAlias(false);
+    }
   }
 
   if (!info) {
@@ -221,6 +251,32 @@ function Settings() {
           </div>
         </div>
       </form>
+
+      {/* Node Section */}
+      {info.backendType === "LDK" && (
+        <form onSubmit={saveNodeAlias} className="space-y-4">
+          <h3 className="text-xl font-medium">Node</h3>
+          <div className="grid gap-2">
+            <Label htmlFor="nodeAlias">Node Alias</Label>
+            <Input
+              id="nodeAlias"
+              type="text"
+              value={nodeAlias}
+              onChange={(e) => setNodeAlias(e.target.value)}
+              placeholder="Alby Hub"
+              className="w-full md:w-60"
+            />
+            <p className="text-sm text-muted-foreground">
+              Your node alias is visible to channel partners, connected peers,
+              and on lightning network explorers. Changes take effect after
+              restarting your node.
+            </p>
+          </div>
+          <Button type="submit" disabled={isSavingAlias} size="sm">
+            {isSavingAlias ? "Saving..." : "Save"}
+          </Button>
+        </form>
+      )}
     </>
   );
 }
