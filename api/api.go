@@ -1248,6 +1248,8 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 
 	info.NodeAlias, _ = api.cfg.Get("NodeAlias", "")
 
+	info.TorEnabled = api.cfg.GetEnv().LDKTorEnabled
+
 	return &info, nil
 }
 

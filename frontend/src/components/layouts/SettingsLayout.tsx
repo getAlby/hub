@@ -118,6 +118,9 @@ export default function SettingsLayout() {
             {info && !info.albyAccountConnected && (
               <MenuItem to="/alby/account">Alby Account</MenuItem>
             )}
+            {info?.backendType === "LDK" && (
+              <MenuItem to="/settings/tor">Tor</MenuItem>
+            )}
             <MenuItem to="/settings/developer">Developer</MenuItem>
             <MenuItem to="/settings/debug-tools">Debug Tools</MenuItem>
             <MenuItem to="/settings/about">About</MenuItem>

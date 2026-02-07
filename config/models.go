@@ -58,6 +58,13 @@ type AppConfig struct {
 	AutoUnlockPassword                 string `envconfig:"AUTO_UNLOCK_PASSWORD"`
 	LogDBQueries                       bool   `envconfig:"LOG_DB_QUERIES" default:"false"`
 	BoltzApi                           string `envconfig:"BOLTZ_API" default:"https://api.boltz.exchange"`
+	LDKTorEnabled                      bool   `envconfig:"LDK_TOR_ENABLED" default:"false"`
+	LDKTorControlHost                  string `envconfig:"LDK_TOR_CONTROL_HOST" default:"127.0.0.1"`
+	LDKTorControlPort                  int    `envconfig:"LDK_TOR_CONTROL_PORT" default:"9051"`
+	LDKTorControlPassword              string `envconfig:"LDK_TOR_CONTROL_PASSWORD"`
+	LDKTorTargetHost                   string `envconfig:"LDK_TOR_TARGET_HOST" default:"127.0.0.1"`
+	LDKTorSocksHost                    string `envconfig:"LDK_TOR_SOCKS_HOST"`
+	LDKTorSocksPort                    int    `envconfig:"LDK_TOR_SOCKS_PORT" default:"9050"`
 }
 
 func (c *AppConfig) IsDefaultClientId() bool {
