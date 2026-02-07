@@ -155,7 +155,8 @@ func (s *Service) Start(cfg *Config) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.running {
-		// Another goroutine started concurrently — clean up
+		// Another goroutine started concurrently — clean up orphaned onion service
+		_ = ctrl.DelOnion(resp.ServiceID)
 		ctrl.Close()
 		return errors.New("tor service was started concurrently")
 	}
