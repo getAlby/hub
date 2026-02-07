@@ -164,6 +164,7 @@ export interface InfoResponse {
   nodeAlias: string;
   mempoolUrl: string;
   bitcoinDisplayFormat: BitcoinDisplayFormat;
+  torEnabled: boolean;
 }
 
 export type BitcoinDisplayFormat = "sats" | "bip177";
@@ -325,6 +326,8 @@ export type NodeConnectionInfo = {
   pubkey: string;
   address: string;
   port: number;
+  torAddress?: string;
+  torPort?: number;
 };
 
 export type ConnectPeerRequest = {

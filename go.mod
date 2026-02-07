@@ -6,6 +6,7 @@ require (
 	github.com/adrg/xdg v0.5.3
 	github.com/btcsuite/btcd v0.24.3-0.20250318170759-4f4ea81776d6
 	github.com/btcsuite/btcd/btcutil v1.1.6
+	github.com/cretz/bine v0.2.0
 	github.com/elnosh/gonuts v0.4.2
 	github.com/getAlby/ldk-node-go v0.0.0-20260106083454-34a77eb123bb
 	github.com/go-gormigrate/gormigrate/v2 v2.1.5
@@ -268,3 +269,6 @@ require (
 // We want to format raw bytes as hex instead of base64. The forked version
 // allows us to specify that as an option.
 replace google.golang.org/protobuf => github.com/lightninglabs/protobuf-go-hex-display v1.30.0-hex-display
+
+// Tor SOCKS5 outbound support for .onion peer connections
+replace github.com/getAlby/ldk-node-go => github.com/sat-engineer/ldk-node-go v0.0.0-20260207204735-907daba13824

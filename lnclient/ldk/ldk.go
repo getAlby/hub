@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -34,6 +35,7 @@ import (
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/nip47/notifications"
 	"github.com/getAlby/hub/service/keys"
+	albytor "github.com/getAlby/hub/tor"
 	"github.com/getAlby/hub/transactions"
 )
 
@@ -53,6 +55,7 @@ type LDKService struct {
 	redeemedOnchainFundsWithinThisSync bool
 	pubkey                             string
 	shuttingDown                       bool
+	torService                         *albytor.Service
 }
 
 const resetRouterKey = "ResetRouter"
@@ -187,6 +190,23 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		builder.SetGossipSourceRgs(cfg.GetEnv().LDKGossipSource)
 	}
 	builder.SetStorageDirPath(filepath.Join(newpath, "./storage"))
+
+	// Configure Tor SOCKS proxy for outbound .onion connections
+	if cfg.GetEnv().LDKTorEnabled && cfg.GetEnv().LDKTorSocksHost != "" {
+		// Resolve hostname to IP — SetTorProxyAddress requires a numeric IP:port
+		socksHost := cfg.GetEnv().LDKTorSocksHost
+		if addrs, err := net.LookupHost(socksHost); err == nil && len(addrs) > 0 {
+			socksHost = addrs[0]
+		} else if err != nil {
+			logger.Logger.WithError(err).WithField("host", socksHost).Warn("Failed to resolve Tor SOCKS host, using raw hostname")
+		}
+		torSocksAddr := fmt.Sprintf("%s:%d", socksHost, cfg.GetEnv().LDKTorSocksPort)
+		if err := builder.SetTorProxyAddress(torSocksAddr); err != nil {
+			logger.Logger.WithError(err).WithField("socks_addr", torSocksAddr).Error("Failed to set Tor SOCKS proxy address")
+		} else {
+			logger.Logger.WithField("socks_addr", torSocksAddr).Info("Configured Tor SOCKS proxy for outbound .onion connections")
+		}
+	}
 
 	migrateStorage, _ := cfg.Get("LdkMigrateStorage", "")
 	clearMigrateStorageConfigValue := false
@@ -329,6 +349,38 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		"status":   node.Status(),
 		"duration": math.Ceil(time.Since(syncStartTime).Seconds()),
 	}).Info("LDK node synced successfully")
+
+	// Start Tor hidden service if enabled
+	if cfg.GetEnv().LDKTorEnabled {
+		setStartupState("Starting Tor hidden service...")
+		localPort := albytor.DefaultOnionServicePort
+		// Parse the listening port from config
+		if addrs := strings.Split(cfg.GetEnv().LDKListeningAddresses, ","); len(addrs) > 0 {
+			addr := strings.TrimSpace(addrs[0])
+			if idx := strings.LastIndex(addr, ":"); idx >= 0 {
+				if p, err := strconv.Atoi(addr[idx+1:]); err == nil {
+					localPort = p
+				}
+			}
+		}
+
+		torSvc := albytor.NewService()
+		torCfg := &albytor.Config{
+			TorControlHost:     cfg.GetEnv().LDKTorControlHost,
+			TorControlPort:     cfg.GetEnv().LDKTorControlPort,
+			TorControlPassword: cfg.GetEnv().LDKTorControlPassword,
+			TargetHost:         cfg.GetEnv().LDKTorTargetHost,
+			LocalPort:          localPort,
+			OnionServicePort:   albytor.DefaultOnionServicePort,
+			DataDir:            filepath.Join(newpath, "tor"),
+		}
+		if err := torSvc.Start(torCfg); err != nil {
+			logger.Logger.WithError(err).Error("Failed to start Tor hidden service (continuing without Tor)")
+		} else {
+			ls.torService = torSvc
+			logger.Logger.WithField("onion_address", torSvc.GetOnionAddress()).Info("Tor hidden service started")
+		}
+	}
 
 	if ls.network == "bitcoin" {
 		go func() {
@@ -490,6 +542,14 @@ func (ls *LDKService) Shutdown() error {
 			logger.Logger.Error("Timed out waiting for background sync to finish before stopping LDK node")
 			break
 		}
+	}
+
+	// Stop Tor hidden service if running
+	if ls.torService != nil {
+		if err := ls.torService.Stop(); err != nil {
+			logger.Logger.WithError(err).Error("Failed to stop Tor hidden service")
+		}
+		ls.torService = nil
 	}
 
 	logger.Logger.Info("stopping LDK node")
@@ -873,11 +933,13 @@ func (ls *LDKService) ListOnchainTransactions(ctx context.Context) ([]lnclient.O
 }
 
 func (ls *LDKService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
-	// TODO: should alias, color be configured in LDK-node? or can we manage them in NWC?
-	// an alias is only needed if the user has public channels and wants their node to be publicly visible?
+	alias, _ := ls.cfg.Get("NodeAlias", "")
+	if alias == "" {
+		alias = "Alby Hub"
+	}
 	status := ls.node.Status()
 	return &lnclient.NodeInfo{
-		Alias:       "NWC",
+		Alias:       alias,
 		Color:       "#897FFF",
 		Pubkey:      ls.node.NodeId(),
 		Network:     ls.network,
@@ -999,6 +1061,18 @@ func (ls *LDKService) GetNodeConnectionInfo(ctx context.Context) (nodeConnection
 					break
 				}
 			}
+		}
+	}
+
+	// Include Tor onion address if Tor service is running
+	shutdownMutex.Lock()
+	torSvc := ls.torService
+	shutdownMutex.Unlock()
+	if torSvc != nil && torSvc.IsRunning() {
+		onionAddr := torSvc.GetOnionAddress()
+		if onionAddr != "" {
+			nodeConnectionInfo.TorAddress = onionAddr
+			nodeConnectionInfo.TorPort = albytor.DefaultOnionServicePort
 		}
 	}
 
