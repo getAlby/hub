@@ -48,7 +48,6 @@ function safeNpubEncode(hex: string): string | undefined {
   }
 }
 
-
 function safeNeventEncode(id: string): string | undefined {
   try {
     return nip19.neventEncode({
