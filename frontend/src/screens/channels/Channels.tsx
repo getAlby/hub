@@ -206,6 +206,25 @@ export default function Channels() {
                           </div>
                         </DropdownMenuItem>
                       )}
+                    {nodeConnectionInfo?.torAddress &&
+                      nodeConnectionInfo?.torPort && (
+                        <DropdownMenuItem>
+                          <div
+                            className="flex flex-row gap-2 items-center w-full cursor-pointer"
+                            onClick={() => {
+                              const torUri = `${nodeConnectionInfo.pubkey}@${nodeConnectionInfo.torAddress}:${nodeConnectionInfo.torPort}`;
+                              copyToClipboard(torUri);
+                            }}
+                          >
+                            <div>Tor URI</div>
+                            <div className="overflow-hidden text-ellipsis flex-1 text-muted-foreground text-xs">
+                              {nodeConnectionInfo.pubkey.substring(0, 6)}...@
+                              {nodeConnectionInfo.torAddress?.substring(0, 8)}...
+                            </div>
+                            <CopyIcon className="shrink-0 size-4" />
+                          </div>
+                        </DropdownMenuItem>
+                      )}
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>

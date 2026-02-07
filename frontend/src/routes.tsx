@@ -53,6 +53,7 @@ import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword"
 import DebugTools from "src/screens/settings/DebugTools";
 import DeveloperSettings from "src/screens/settings/DeveloperSettings";
 import Settings from "src/screens/settings/Settings";
+import TorSettings from "src/screens/settings/TorSettings";
 
 import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
 import { RestoreNode } from "src/screens/setup/RestoreNode";
@@ -265,6 +266,11 @@ const routes: RouteObject[] = [
               {
                 path: "debug-tools",
                 element: <DebugTools />,
+              },
+              {
+                path: "tor",
+                element: <TorSettings />,
+                handle: { crumb: () => "Tor" },
               },
             ],
           },

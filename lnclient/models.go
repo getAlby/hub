@@ -51,9 +51,11 @@ type OnchainTransaction struct {
 }
 
 type NodeConnectionInfo struct {
-	Pubkey  string `json:"pubkey"`
-	Address string `json:"address"`
-	Port    int    `json:"port"`
+	Pubkey     string `json:"pubkey"`
+	Address    string `json:"address"`
+	Port       int    `json:"port"`
+	TorAddress string `json:"torAddress,omitempty"`
+	TorPort    int    `json:"torPort,omitempty"`
 }
 
 type LNClient interface {
