@@ -23,8 +23,10 @@ export default function NodeDetailPanel({
 }: Props) {
   const { data: channels } = useChannels();
 
-  // Our direct channels with this peer (detailed local/remote balance info)
-  const peerChannels = channels?.filter((c) => c.remotePubkey === node.id);
+  // Our direct channels: all channels when viewing our node, or filtered by peer
+  const peerChannels = node.isOurNode
+    ? channels
+    : channels?.filter((c) => c.remotePubkey === node.id);
 
   // Build a node alias lookup for graph channel display
   const nodeAliasMap = useMemo(() => {
@@ -120,8 +122,34 @@ export default function NodeDetailPanel({
                 return (
                   <div
                     key={channel.id}
-                    className="border border-border rounded-md p-3 text-xs space-y-2"
+                    className={`border border-border rounded-md p-3 text-xs space-y-2${node.isOurNode ? " cursor-pointer hover:bg-muted/50 transition-colors" : ""}`}
+                    onClick={
+                      node.isOurNode
+                        ? () => onNodeSelect(channel.remotePubkey)
+                        : undefined
+                    }
+                    role={node.isOurNode ? "button" : undefined}
+                    tabIndex={node.isOurNode ? 0 : undefined}
+                    onKeyDown={
+                      node.isOurNode
+                        ? (e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              onNodeSelect(channel.remotePubkey);
+                            }
+                          }
+                        : undefined
+                    }
                   >
+                    {node.isOurNode && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Peer</span>
+                        <span className="truncate ml-2">
+                          {nodeAliasMap.get(channel.remotePubkey) ||
+                            channel.remotePubkey.slice(0, 8)}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Status</span>
                       <span

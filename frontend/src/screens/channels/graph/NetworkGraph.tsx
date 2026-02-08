@@ -142,6 +142,16 @@ export default function NetworkGraph({
     [nodes, links]
   );
 
+  // Zoom to fit selected node and its connections when selection changes
+  useEffect(() => {
+    if (!selectedNodeId || !graphRef.current) {
+      return;
+    }
+    graphRef.current.zoomToFit(500, 60, (node: NodeType) =>
+      highlightedNodeIds.has(node.id as string)
+    );
+  }, [selectedNodeId, highlightedNodeIds]);
+
   const centerOnOurNode = useCallback(() => {
     if (graphRef.current) {
       graphRef.current.zoomToFit(500, 60);
