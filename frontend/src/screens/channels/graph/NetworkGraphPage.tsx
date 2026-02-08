@@ -9,7 +9,13 @@ import {
   SparklesIcon,
   ZapIcon,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
@@ -61,9 +67,23 @@ export default function NetworkGraphPage() {
 
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
+  const [dimensions, setDimensions] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
 
-  // Use ResizeObserver to track container size accurately
+  // Measure synchronously before first paint so the graph never renders with wrong size
+  useLayoutEffect(() => {
+    const el = containerRef.current;
+    if (el && !dimensions) {
+      const rect = el.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        setDimensions({ width: rect.width, height: rect.height });
+      }
+    }
+  }, [dimensions]);
+
+  // Track subsequent resizes (window resize, sidebar toggle, etc.)
   useEffect(() => {
     const el = containerRef.current;
     if (!el) {
@@ -301,18 +321,20 @@ export default function NetworkGraphPage() {
         ref={containerRef}
         className="relative flex-1 min-h-0 w-full bg-muted/30 rounded-lg border border-border mt-4"
       >
-        <NetworkGraph
-          nodes={nodes}
-          links={links}
-          loading={loading}
-          currentHop={currentHop}
-          maxHop={maxHop}
-          onNodeClick={handleNodeClick}
-          onDeselect={() => setSelectedNode(null)}
-          selectedNodeId={selectedNode?.id ?? null}
-          width={dimensions.width}
-          height={dimensions.height}
-        />
+        {dimensions && (
+          <NetworkGraph
+            nodes={nodes}
+            links={links}
+            loading={loading}
+            currentHop={currentHop}
+            maxHop={maxHop}
+            onNodeClick={handleNodeClick}
+            onDeselect={() => setSelectedNode(null)}
+            selectedNodeId={selectedNode?.id ?? null}
+            width={dimensions.width}
+            height={dimensions.height}
+          />
+        )}
         {selectedNode && (
           <NodeDetailPanel
             node={selectedNode}
