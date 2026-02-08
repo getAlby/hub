@@ -3,15 +3,22 @@ package api
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/service"
 	"github.com/getAlby/hub/tests/mocks"
 )
+
+func TestMain(m *testing.M) {
+	logger.Init("")
+	os.Exit(m.Run())
+}
 
 func TestGetCustomNodeCommandDefinitions(t *testing.T) {
 	lnClient := mocks.NewMockLNClient(t)
@@ -219,6 +226,42 @@ func TestExecuteCustomNodeCommand(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSetNodeAlias(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		cfg := mocks.NewMockConfig(t)
+		cfg.On("SetUpdate", "NodeAlias", "SatoshiSquirrel", "").Return(nil)
+
+		theAPI := &api{cfg: cfg}
+
+		err := theAPI.SetNodeAlias("SatoshiSquirrel")
+		require.NoError(t, err)
+		cfg.AssertExpectations(t)
+	})
+
+	t.Run("empty alias", func(t *testing.T) {
+		cfg := mocks.NewMockConfig(t)
+		cfg.On("SetUpdate", "NodeAlias", "", "").Return(nil)
+
+		theAPI := &api{cfg: cfg}
+
+		err := theAPI.SetNodeAlias("")
+		require.NoError(t, err)
+		cfg.AssertExpectations(t)
+	})
+
+	t.Run("config error", func(t *testing.T) {
+		cfg := mocks.NewMockConfig(t)
+		cfg.On("SetUpdate", "NodeAlias", "test", "").Return(fmt.Errorf("database error"))
+
+		theAPI := &api{cfg: cfg}
+
+		err := theAPI.SetNodeAlias("test")
+		require.Error(t, err)
+		require.ErrorContains(t, err, "database error")
+		cfg.AssertExpectations(t)
+	})
 }
 
 // instantiateAPIWithService is a helper function that returns a partially

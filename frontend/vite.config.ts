@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -85,6 +86,12 @@ export default defineConfig(({ command }) => ({
         }
       : undefined,
   base: process.env.BASE_PATH || "/",
+  test: {
+    globals: true,
+    environment: "jsdom",
+    setupFiles: ["./src/test/setup.ts"],
+    include: ["src/**/*.test.{ts,tsx}"],
+  },
 }));
 
 const DEVELOPMENT_NONCE = "'nonce-DEVELOPMENT'";
