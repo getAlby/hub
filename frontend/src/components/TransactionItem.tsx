@@ -48,6 +48,14 @@ function safeNpubEncode(hex: string): string | undefined {
   }
 }
 
+function safeNeventEncode(eventId: string): string | undefined {
+  try {
+    return nip19.neventEncode({ id: eventId });
+  } catch {
+    return undefined;
+  }
+}
+
 function TransactionItem({ tx }: Props) {
   const { data: app } = useApp(tx.appId);
   const swapId = tx.metadata?.swap_id;
@@ -307,23 +315,25 @@ function TransactionItem({ tx }: Props) {
             )}
             {/* for Alby lightning addresses the content of the zap request is
             automatically extracted and already displayed above as description */}
-            {tx.metadata?.nostr && eventId && npub && (
-              <div className="mt-6">
-                <p>
-                  <ExternalLink
-                    to={`https://njump.me/${nip19.neventEncode({
-                      id: eventId,
-                    })}`}
-                    className="underline"
-                  >
-                    Nostr Zap
-                  </ExternalLink>{" "}
-                  <span className="text-muted-foreground break-all">
-                    from {npub}
-                  </span>
-                </p>
-              </div>
-            )}
+            {tx.metadata?.nostr && eventId && npub && (() => {
+              const nevent = safeNeventEncode(eventId);
+              if (!nevent) return null;
+              return (
+                <div className="mt-6">
+                  <p>
+                    <ExternalLink
+                      to={`https://njump.me/${nevent}`}
+                      className="underline"
+                    >
+                      Nostr Zap
+                    </ExternalLink>{" "}
+                    <span className="text-muted-foreground break-all">
+                      from {npub}
+                    </span>
+                  </p>
+                </div>
+              );
+            })()}
             {tx.state === "failed" && (
               <div className="mt-6">
                 <PaymentFailedAlert
