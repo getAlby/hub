@@ -298,6 +298,68 @@ func TestHandleGetInfoEvent_SubwalletWithMetadata(t *testing.T) {
 	assert.Equal(t, float64(123), nodeInfo.Metadata.(map[string]interface{})["a"])
 }
 
+// TestHandleGetInfoEvent_IsolatedAppWithLud16 tests that lud16 is returned for
+// any isolated app that has it in metadata, not just subwallets with SUBWALLET_APPSTORE_APP_ID.
+// This is the fix for issue #1997.
+func TestHandleGetInfoEvent_IsolatedAppWithLud16(t *testing.T) {
+	ctx := context.TODO()
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	lightningAddress := "custom@example.com"
+
+	// Create metadata with lud16 but WITHOUT app_store_app_id
+	metadata := map[string]interface{}{
+		"lud16":     lightningAddress,
+		"custom_id": "my-custom-app",
+	}
+
+	svc.Cfg.SetUpdate("LNBackendType", config.LDKBackendType, "")
+	// Create an isolated app (true for isolated parameter)
+	app, _, err := svc.AppsService.CreateApp("custom-isolated-app", "", 0, "monthly", nil, []string{constants.GET_INFO_SCOPE}, true, metadata)
+	assert.NoError(t, err)
+
+	nip47Request := &models.Request{}
+	err = json.Unmarshal([]byte(nip47GetInfoJson), nip47Request)
+	assert.NoError(t, err)
+
+	dbRequestEvent := &db.RequestEvent{}
+	err = svc.DB.Create(&dbRequestEvent).Error
+	assert.NoError(t, err)
+
+	appPermission := &db.AppPermission{
+		AppId:     app.ID,
+		Scope:     constants.GET_INFO_SCOPE,
+		ExpiresAt: nil,
+	}
+	err = svc.DB.Create(appPermission).Error
+	assert.NoError(t, err)
+
+	var publishedResponse *models.Response
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		publishedResponse = response
+	}
+
+	NewTestNip47Controller(svc).
+		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
+
+	assert.Nil(t, publishedResponse.Error)
+	nodeInfo := publishedResponse.Result.(*getInfoResponse)
+	assert.Equal(t, tests.MockNodeInfo.Alias, *nodeInfo.Alias)
+	assert.Equal(t, tests.MockNodeInfo.Color, *nodeInfo.Color)
+	assert.Equal(t, tests.MockNodeInfo.Pubkey, *nodeInfo.Pubkey)
+	assert.Equal(t, tests.MockNodeInfo.Network, *nodeInfo.Network)
+	assert.Equal(t, tests.MockNodeInfo.BlockHeight, *nodeInfo.BlockHeight)
+	assert.Equal(t, tests.MockNodeInfo.BlockHash, *nodeInfo.BlockHash)
+	// This is the key assertion - lud16 should be returned even without SUBWALLET_APPSTORE_APP_ID
+	assert.Equal(t, lightningAddress, *nodeInfo.LightningAddress)
+	assert.Contains(t, nodeInfo.Methods, "get_info")
+	assert.Equal(t, []string{}, nodeInfo.Notifications)
+}
+
+
 func TestHandleGetInfoEvent_WithNotifications(t *testing.T) {
 	ctx := context.TODO()
 	svc, err := tests.CreateTestService(t)
