@@ -8,6 +8,9 @@ export function getNodeHealth(channels: Channel[]) {
     channels
       .map((channel) => {
         const totalBalance = channel.localBalance + channel.remoteBalance;
+        if (totalBalance === 0) {
+          return 0;
+        }
         const expectedBalance = totalBalance / 2;
         const actualBalance =
           Math.min(channel.localBalance, channel.remoteBalance) /

@@ -83,7 +83,13 @@ export function getChannelId(channel: NetworkGraphChannel): string {
   if (endpoints) {
     return `${endpoints[0]}-${endpoints[1]}`;
   }
-  return Math.random().toString(36);
+  // Deterministic fallback from available fields to avoid breaking deduplication
+  const stable = JSON.stringify(channel);
+  let hash = 0;
+  for (let i = 0; i < stable.length; i++) {
+    hash = (hash * 31 + stable.charCodeAt(i)) | 0;
+  }
+  return `unknown-${hash.toString(36)}`;
 }
 
 export async function fetchNodeAlias(pubkey: string): Promise<string | null> {
@@ -100,13 +106,18 @@ export async function fetchNodeAlias(pubkey: string): Promise<string | null> {
   }
   // Fallback: try amboss.space GraphQL API
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
     const resp = await fetch("https://api.amboss.space/graphql", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        query: `{ getNode(pubkey: "${pubkey}") { graph_info { node { alias } } } }`,
+        query: `query GetNode($pubkey: String!) { getNode(pubkey: $pubkey) { graph_info { node { alias } } } }`,
+        variables: { pubkey },
       }),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
     const json = await resp.json();
     const alias = json?.data?.getNode?.graph_info?.node?.alias;
     if (alias) {
@@ -134,6 +145,8 @@ export function processGossipChannels(
   newPeerIds: Set<string>;
 } {
   const newPeerIds = new Set<string>();
+  const newNodes: GraphNode[] = [];
+  const newLinks: GraphLink[] = [];
 
   for (const channel of channels) {
     const channelId = getChannelId(channel);
@@ -153,31 +166,29 @@ export function processGossipChannels(
     for (const nodeId of [node1, node2]) {
       if (!knownNodeIds.has(nodeId)) {
         knownNodeIds.add(nodeId);
-        currentNodes = [
-          ...currentNodes,
-          {
-            id: nodeId,
-            alias: nodeId.slice(0, 8),
-            hop,
-            isOurNode: false,
-            hasChannel: directPeerPubkeys.has(nodeId),
-            color: getHopColor(hop),
-          },
-        ];
+        newNodes.push({
+          id: nodeId,
+          alias: nodeId.slice(0, 8),
+          hop,
+          isOurNode: false,
+          hasChannel: directPeerPubkeys.has(nodeId),
+          color: getHopColor(hop),
+        });
         newPeerIds.add(nodeId);
       }
     }
 
-    currentLinks = [
-      ...currentLinks,
-      {
-        source: node1,
-        target: node2,
-        capacity: getChannelCapacity(channel),
-        isOurChannel: node1 === ourPubkey || node2 === ourPubkey,
-      },
-    ];
+    newLinks.push({
+      source: node1,
+      target: node2,
+      capacity: getChannelCapacity(channel),
+      isOurChannel: node1 === ourPubkey || node2 === ourPubkey,
+    });
   }
 
-  return { nodes: currentNodes, links: currentLinks, newPeerIds };
+  return {
+    nodes: [...currentNodes, ...newNodes],
+    links: [...currentLinks, ...newLinks],
+    newPeerIds,
+  };
 }

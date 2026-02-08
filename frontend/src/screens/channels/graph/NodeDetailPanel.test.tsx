@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 import NodeDetailPanel from "./NodeDetailPanel";
 import { GraphLink, GraphNode } from "./types";
@@ -68,6 +68,10 @@ const directPeerNode: GraphNode = {
 };
 
 describe("NodeDetailPanel", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("renders node alias and pubkey", () => {
     renderPanel({ node: remoteNode });
 

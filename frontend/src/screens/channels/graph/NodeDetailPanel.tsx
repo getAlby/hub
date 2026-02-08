@@ -70,6 +70,14 @@ export default function NodeDetailPanel({
           <div
             className="flex items-center gap-2 cursor-pointer group"
             onClick={() => copyToClipboard(node.id)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                copyToClipboard(node.id);
+              }
+            }}
+            role="button"
+            tabIndex={0}
           >
             <span className="text-xs font-mono break-all">{node.id}</span>
             <CopyIcon className="size-3 shrink-0 text-muted-foreground group-hover:text-foreground" />

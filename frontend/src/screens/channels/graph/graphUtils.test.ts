@@ -106,11 +106,13 @@ describe("getChannelId", () => {
     expect(getChannelId(ch)).toBe("pubA-pubB");
   });
 
-  it("returns random string when all fields are missing", () => {
+  it("returns deterministic string when all fields are missing", () => {
     const ch: NetworkGraphChannel = {};
-    const id = getChannelId(ch);
-    expect(typeof id).toBe("string");
-    expect(id.length).toBeGreaterThan(0);
+    const id1 = getChannelId(ch);
+    const id2 = getChannelId(ch);
+    expect(typeof id1).toBe("string");
+    expect(id1).toMatch(/^unknown-/);
+    expect(id1).toBe(id2); // deterministic
   });
 
   it("prefers shortChannelId over ChannelId and channel_id", () => {

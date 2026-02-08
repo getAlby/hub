@@ -65,7 +65,10 @@ export default function NetworkGraphPage() {
 
   const nodeHealth = channels ? getNodeHealth(channels) : 0;
 
-  const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const selectedNode = selectedNodeId
+    ? (nodes.find((n) => n.id === selectedNodeId) ?? null)
+    : null;
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState<{
     width: number;
@@ -103,7 +106,7 @@ export default function NetworkGraphPage() {
   }, []);
 
   const handleNodeClick = useCallback((node: GraphNode) => {
-    setSelectedNode((prev) => (prev?.id === node.id ? null : node));
+    setSelectedNodeId((prev) => (prev === node.id ? null : node.id));
   }, []);
 
   if (!nodeConnectionInfo || !channels) {
@@ -231,12 +234,12 @@ export default function NetworkGraphPage() {
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
                     <DropdownMenuLabel>Management</DropdownMenuLabel>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link className="w-full" to="/peers">
                         Connected Peers
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link className="w-full" to="/wallet/sign-message">
                         Sign Message
                       </Link>
@@ -329,8 +332,8 @@ export default function NetworkGraphPage() {
             currentHop={currentHop}
             maxHop={maxHop}
             onNodeClick={handleNodeClick}
-            onDeselect={() => setSelectedNode(null)}
-            selectedNodeId={selectedNode?.id ?? null}
+            onDeselect={() => setSelectedNodeId(null)}
+            selectedNodeId={selectedNodeId}
             width={dimensions.width}
             height={dimensions.height}
           />
@@ -340,7 +343,7 @@ export default function NetworkGraphPage() {
             node={selectedNode}
             graphLinks={links}
             graphNodes={nodes}
-            onClose={() => setSelectedNode(null)}
+            onClose={() => setSelectedNodeId(null)}
           />
         )}
       </div>
