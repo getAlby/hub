@@ -35,6 +35,7 @@ function renderPanel({
         graphLinks={graphLinks}
         graphNodes={graphNodes}
         onClose={() => {}}
+        onNodeSelect={() => {}}
       />
     </MemoryRouter>
   );

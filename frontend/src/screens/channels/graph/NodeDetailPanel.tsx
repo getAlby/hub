@@ -11,6 +11,7 @@ type Props = {
   graphLinks: GraphLink[];
   graphNodes: GraphNode[];
   onClose: () => void;
+  onNodeSelect: (nodeId: string) => void;
 };
 
 export default function NodeDetailPanel({
@@ -18,6 +19,7 @@ export default function NodeDetailPanel({
   graphLinks,
   graphNodes,
   onClose,
+  onNodeSelect,
 }: Props) {
   const { data: channels } = useChannels();
 
@@ -169,7 +171,16 @@ export default function NodeDetailPanel({
               {nodeGraphChannels.map((ch, i) => (
                 <div
                   key={`${ch.peerId}-${i}`}
-                  className="flex items-center justify-between text-xs border border-border rounded-md px-3 py-2"
+                  className="flex items-center justify-between text-xs border border-border rounded-md px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => onNodeSelect(ch.peerId)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      onNodeSelect(ch.peerId);
+                    }
+                  }}
                 >
                   <span className="truncate mr-2">
                     {ch.isOurChannel && !node.isOurNode ? (

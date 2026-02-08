@@ -29,9 +29,6 @@ interface D3ChargeForce {
 type Props = {
   nodes: GraphNode[];
   links: GraphLink[];
-  loading: boolean;
-  currentHop: number;
-  maxHop: number;
   onNodeClick: (node: GraphNode) => void;
   onDeselect: () => void;
   selectedNodeId: string | null;
@@ -54,9 +51,6 @@ function getNodeRadius(graphNode: GraphNode): number {
 export default function NetworkGraph({
   nodes,
   links,
-  loading,
-  currentHop,
-  maxHop,
   onNodeClick,
   onDeselect,
   selectedNodeId,
@@ -67,7 +61,6 @@ export default function NetworkGraph({
   const graphRef = useRef<ForceGraphMethods<NodeType>>();
   const initialCenterDone = useRef(false);
   const ourNodeRef = useRef<NodeType | null>(null);
-  const isDragging = useRef(false);
 
   // Build a lookup map for fast node access in canvas callbacks
   const nodeMap = useMemo(() => {
@@ -120,72 +113,41 @@ export default function NetworkGraph({
   }, [nodes, links]);
 
   // Center on our node: poll until ourNodeRef has coordinates after first render
-  const prevNodeCount = useRef(0);
   useEffect(() => {
     if (!graphRef.current || nodes.length === 0) {
       return;
     }
 
     if (!initialCenterDone.current) {
-      // Poll until ourNodeRef has position data (set by nodeCanvasObject on first paint)
+      // Wait for the simulation to settle, then zoom to fit all nodes
       let attempts = 0;
       const interval = setInterval(() => {
         attempts++;
         if (ourNodeRef.current?.x != null && graphRef.current) {
-          graphRef.current.centerAt(
-            ourNodeRef.current.x,
-            ourNodeRef.current.y,
-            0
-          );
-          graphRef.current.zoom(1.5, 0);
+          graphRef.current.zoomToFit(400, 60);
           initialCenterDone.current = true;
-          prevNodeCount.current = nodes.length;
           clearInterval(interval);
         } else if (attempts >= 50) {
-          graphRef.current?.centerAt(0, 0, 0);
-          graphRef.current?.zoom(1.5, 0);
+          graphRef.current?.zoomToFit(400, 60);
           initialCenterDone.current = true;
-          prevNodeCount.current = nodes.length;
           clearInterval(interval);
         }
       }, 100);
       return () => clearInterval(interval);
     }
+  }, [nodes]);
 
-    // Re-center when new hop data arrives during loading
-    const nodeCountChanged = nodes.length !== prevNodeCount.current;
-    prevNodeCount.current = nodes.length;
-    if (loading && nodeCountChanged) {
-      setTimeout(() => {
-        if (ourNodeRef.current?.x != null && graphRef.current) {
-          graphRef.current.centerAt(
-            ourNodeRef.current.x,
-            ourNodeRef.current.y,
-            400
-          );
-        }
-      }, 300);
-    }
-  }, [nodes, loading]);
-
-  // Build graphData early so findNearestNode can access d3-mutated node positions
   const graphData = useMemo(
     () => ({ nodes: [...nodes], links: links.map((l) => ({ ...l })) }),
     [nodes, links]
   );
 
   const centerOnOurNode = useCallback(() => {
-    if (ourNodeRef.current && graphRef.current) {
-      graphRef.current.centerAt(
-        ourNodeRef.current.x,
-        ourNodeRef.current.y,
-        500
-      );
-      graphRef.current.zoom(1.5, 500);
+    if (graphRef.current) {
+      graphRef.current.zoomToFit(500, 60);
     }
   }, []);
 
-  // Find the nearest node to a graph-space coordinate within a threshold
   const findNearestNode = useCallback(
     (gx: number, gy: number, threshold: number) => {
       let closest: { node: NodeType; dist: number } | null = null;
@@ -216,13 +178,6 @@ export default function NetworkGraph({
       }
     },
     [nodeMap, onNodeClick]
-  );
-
-  const handleNodeClick = useCallback(
-    (node: NodeType) => {
-      selectAndCenter(node);
-    },
-    [selectAndCenter]
   );
 
   const nodeCanvasObject = useCallback(
@@ -311,22 +266,31 @@ export default function NetworkGraph({
   );
 
   const nodePointerAreaPaint = useCallback(
-    (node: NodeType, color: string, ctx: CanvasRenderingContext2D) => {
+    (
+      node: NodeType,
+      color: string,
+      ctx: CanvasRenderingContext2D,
+      globalScale: number
+    ) => {
       const graphNode = node.id != null ? nodeMap.get(node.id) : undefined;
       if (!graphNode || node.x == null || node.y == null) {
         return;
       }
       const radius = getNodeRadius(graphNode);
-      // When a node is selected, dimmed nodes get exact-size hit areas
-      // to prevent their generous hit areas from intercepting clicks
-      // meant for highlighted nodes. Generous default hit areas since
-      // onBackgroundClick has a fallback nearest-node finder.
+      // Scale hit areas so they stay usable at any zoom level.
+      // 20px minimum screen-space radius ensures nodes are always grabbable.
+      const minGraphRadius = 20 / globalScale;
       let hitRadius: number;
       if (selectedNodeId != null) {
         const isHighlighted = highlightedNodeIds.has(graphNode.id);
-        hitRadius = isHighlighted ? Math.max(radius + 20, 35) : radius;
+        // Highlighted nodes get extra-generous areas; dimmed nodes get
+        // a smaller but still draggable area so they don't steal clicks
+        // from nearby highlighted nodes.
+        hitRadius = isHighlighted
+          ? Math.max(radius + 20, 35, 30 / globalScale)
+          : Math.max(radius + 5, minGraphRadius);
       } else {
-        hitRadius = Math.max(radius + 20, 35);
+        hitRadius = Math.max(radius + 15, 30 / globalScale);
       }
       ctx.beginPath();
       ctx.arc(node.x, node.y, hitRadius, 0, 2 * Math.PI);
@@ -352,13 +316,13 @@ export default function NetworkGraph({
               ? "rgba(255, 255, 255, 0.7)"
               : "rgba(0, 0, 0, 0.5)";
         }
-        return isDarkMode ? "rgba(255, 255, 255, 0.02)" : "rgba(0, 0, 0, 0.03)";
+        return isDarkMode ? "rgba(255, 255, 255, 0.02)" : "rgba(0, 0, 0, 0.08)";
       }
       return link.isOurChannel
         ? "rgba(255, 200, 50, 0.6)"
         : isDarkMode
           ? "rgba(255, 255, 255, 0.1)"
-          : "rgba(0, 0, 0, 0.12)";
+          : "rgba(0, 0, 0, 0.35)";
     },
     [selectedNodeId, isDarkMode]
   );
@@ -381,19 +345,21 @@ export default function NetworkGraph({
         return 2.5;
       }
       const cap = link.capacity || 1;
-      return Math.max(0.3, Math.min(2, Math.log10(cap) / 6));
+      const minWidth = isDarkMode ? 0.3 : 0.6;
+      return Math.max(minWidth, Math.min(2, Math.log10(cap) / 6));
     },
-    [selectedNodeId]
+    [selectedNodeId, isDarkMode]
   );
 
-  // Compute legend entries from actual hop depth
+  // Compute legend entries from actual node data
   const legendEntries = useMemo(() => {
+    const maxHop = nodes.reduce((max, n) => Math.max(max, n.hop), 0);
     const entries: { color: string; label: string }[] = [];
     for (let i = 0; i <= Math.min(maxHop, HOP_COLORS.length - 1); i++) {
       entries.push({ color: HOP_COLORS[i], label: HOP_LABELS[i] });
     }
     return entries;
-  }, [maxHop]);
+  }, [nodes]);
 
   return (
     <div className="relative w-full h-full">
@@ -411,9 +377,8 @@ export default function NetworkGraph({
         nodePointerAreaPaint={nodePointerAreaPaint}
         linkColor={linkColor}
         linkWidth={linkWidth}
-        onNodeClick={handleNodeClick}
+        onNodeClick={selectAndCenter}
         onBackgroundClick={(event: MouseEvent) => {
-          // Fallback: if library's hit detection missed, find nearest node manually
           if (graphRef.current) {
             const { x, y } = graphRef.current.screen2GraphCoords(
               event.offsetX,
@@ -429,23 +394,13 @@ export default function NetworkGraph({
         }}
         nodeLabel=""
         cooldownTicks={100000}
-        d3AlphaDecay={0.03}
-        d3VelocityDecay={0.4}
+        d3AlphaDecay={0.05}
+        d3VelocityDecay={0.5}
         warmupTicks={200}
-        onNodeDrag={() => {
-          // Reheat once at drag start for immediate spring response
-          if (!isDragging.current) {
-            isDragging.current = true;
-            graphRef.current?.d3ReheatSimulation();
-          }
-        }}
         onNodeDragEnd={(node: NodeType) => {
-          isDragging.current = false;
-          // Clear fixed position so the node can bounce back freely
-          node.fx = undefined;
-          node.fy = undefined;
-          // Reheat for bounce-back spring effect
-          graphRef.current?.d3ReheatSimulation();
+          // Pin the node where it was dropped
+          node.fx = node.x;
+          node.fy = node.y;
         }}
         enableNodeDrag={true}
         enableZoomInteraction={true}
@@ -477,13 +432,6 @@ export default function NetworkGraph({
       >
         <LocateFixedIcon className="size-4" />
       </Button>
-
-      {/* Hop indicator */}
-      {loading && (
-        <div className="absolute top-4 left-4 z-10 bg-background/80 backdrop-blur-sm rounded-md px-3 py-1.5 text-sm text-muted-foreground">
-          Exploring hop {currentHop}...
-        </div>
-      )}
 
       {/* Node count */}
       <div className="absolute bottom-4 left-4 z-10 bg-background/80 backdrop-blur-sm rounded-md px-3 py-1.5 text-xs text-muted-foreground">

@@ -37,6 +37,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
+import { Card } from "src/components/ui/card";
+import Loading from "src/components/Loading";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { ONCHAIN_DUST_SATS } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
@@ -58,7 +60,7 @@ export default function NetworkGraphPage() {
   const { data: balances } = useBalances(true);
   const { data: albyMe } = useAlbyMe();
   const navigate = useNavigate();
-  const { nodes, links, loading, currentHop, maxHop } = useNetworkGraph(
+  const { nodes, links, loading } = useNetworkGraph(
     nodeConnectionInfo?.pubkey,
     channels
   );
@@ -109,22 +111,14 @@ export default function NetworkGraphPage() {
     setSelectedNodeId((prev) => (prev === node.id ? null : node.id));
   }, []);
 
-  if (!nodeConnectionInfo || !channels) {
-    return (
-      <>
-        <AppHeader title="Network Graph" />
-        <div className="flex items-center justify-center h-64 text-muted-foreground">
-          Loading node info...
-        </div>
-      </>
-    );
-  }
+  const dataReady = !!nodeConnectionInfo && !!channels;
 
   return (
     <div className="flex flex-col flex-1 min-h-0">
       <AppHeader
         title="Network Graph"
         contentRight={
+          dataReady &&
           hasChannelManagement && (
             <div className="flex gap-3 items-center justify-center">
               <DropdownMenu modal={false}>
@@ -320,33 +314,36 @@ export default function NetworkGraphPage() {
           )
         }
       />
-      <div
-        ref={containerRef}
-        className="relative flex-1 min-h-0 w-full bg-muted/30 rounded-lg border border-border mt-4"
-      >
-        {dimensions && (
-          <NetworkGraph
-            nodes={nodes}
-            links={links}
-            loading={loading}
-            currentHop={currentHop}
-            maxHop={maxHop}
-            onNodeClick={handleNodeClick}
-            onDeselect={() => setSelectedNodeId(null)}
-            selectedNodeId={selectedNodeId}
-            width={dimensions.width}
-            height={dimensions.height}
-          />
-        )}
-        {selectedNode && (
-          <NodeDetailPanel
-            node={selectedNode}
-            graphLinks={links}
-            graphNodes={nodes}
-            onClose={() => setSelectedNodeId(null)}
-          />
-        )}
-      </div>
+      <Card className="relative flex-1 min-h-0 w-full mt-4 p-0 overflow-hidden">
+        <div ref={containerRef} className="absolute inset-0">
+          {(!dataReady || loading || nodes.length === 0) && (
+            <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
+              <Loading className="h-8 w-8" />
+              <span className="text-sm">Loading network graph...</span>
+            </div>
+          )}
+          {dimensions && dataReady && !loading && nodes.length > 0 && (
+            <NetworkGraph
+              nodes={nodes}
+              links={links}
+              onNodeClick={handleNodeClick}
+              onDeselect={() => setSelectedNodeId(null)}
+              selectedNodeId={selectedNodeId}
+              width={dimensions.width}
+              height={dimensions.height}
+            />
+          )}
+          {selectedNode && (
+            <NodeDetailPanel
+              node={selectedNode}
+              graphLinks={links}
+              graphNodes={nodes}
+              onClose={() => setSelectedNodeId(null)}
+              onNodeSelect={setSelectedNodeId}
+            />
+          )}
+        </div>
+      </Card>
     </div>
   );
 }
