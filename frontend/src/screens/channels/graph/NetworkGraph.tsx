@@ -5,6 +5,7 @@ import ForceGraph2D, {
   NodeObject,
 } from "react-force-graph-2d";
 import { Button } from "src/components/ui/button";
+import { useTheme } from "src/components/ui/theme-provider";
 import { HOP_COLORS, HOP_LABELS } from "./graphUtils";
 import { GraphLink, GraphNode } from "./types";
 
@@ -62,6 +63,7 @@ export default function NetworkGraph({
   width,
   height,
 }: Props) {
+  const { isDarkMode } = useTheme();
   const graphRef = useRef<ForceGraphMethods<NodeType>>();
   const initialCenterDone = useRef(false);
   const ourNodeRef = useRef<NodeType | null>(null);
@@ -244,7 +246,9 @@ export default function NetworkGraph({
       if (isSelected) {
         ctx.beginPath();
         ctx.arc(node.x, node.y, radius + 4, 0, 2 * Math.PI);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+        ctx.fillStyle = isDarkMode
+          ? "rgba(255, 255, 255, 0.3)"
+          : "rgba(0, 0, 0, 0.2)";
         ctx.fill();
       }
 
@@ -252,7 +256,9 @@ export default function NetworkGraph({
       if (isHighlighted && !isSelected && selectedNodeId != null) {
         ctx.beginPath();
         ctx.arc(node.x, node.y, radius + 3, 0, 2 * Math.PI);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+        ctx.fillStyle = isDarkMode
+          ? "rgba(255, 255, 255, 0.15)"
+          : "rgba(0, 0, 0, 0.1)";
         ctx.fill();
       }
 
@@ -264,7 +270,7 @@ export default function NetworkGraph({
       ctx.fill();
 
       if (graphNode.isOurNode || isSelected) {
-        ctx.strokeStyle = "white";
+        ctx.strokeStyle = isDarkMode ? "white" : "rgba(0, 0, 0, 0.5)";
         ctx.lineWidth = 2;
         ctx.stroke();
       }
@@ -289,15 +295,19 @@ export default function NetworkGraph({
         ctx.textBaseline = "top";
 
         // Text shadow for readability
-        ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+        ctx.fillStyle = isDarkMode
+          ? "rgba(0, 0, 0, 0.7)"
+          : "rgba(255, 255, 255, 0.8)";
         ctx.fillText(label, node.x + 0.5, node.y + radius + 3 + 0.5);
-        ctx.fillStyle = "rgba(255, 255, 255, 0.95)";
+        ctx.fillStyle = isDarkMode
+          ? "rgba(255, 255, 255, 0.95)"
+          : "rgba(0, 0, 0, 0.85)";
         ctx.fillText(label, node.x, node.y + radius + 3);
       }
 
       ctx.globalAlpha = 1;
     },
-    [nodeMap, selectedNodeId, highlightedNodeIds]
+    [nodeMap, selectedNodeId, highlightedNodeIds, isDarkMode]
   );
 
   const nodePointerAreaPaint = useCallback(
@@ -338,15 +348,19 @@ export default function NetworkGraph({
         if (isConnected) {
           return link.isOurChannel
             ? "rgba(255, 200, 50, 0.9)"
-            : "rgba(255, 255, 255, 0.7)";
+            : isDarkMode
+              ? "rgba(255, 255, 255, 0.7)"
+              : "rgba(0, 0, 0, 0.5)";
         }
-        return "rgba(255, 255, 255, 0.02)";
+        return isDarkMode ? "rgba(255, 255, 255, 0.02)" : "rgba(0, 0, 0, 0.03)";
       }
       return link.isOurChannel
         ? "rgba(255, 200, 50, 0.6)"
-        : "rgba(255, 255, 255, 0.1)";
+        : isDarkMode
+          ? "rgba(255, 255, 255, 0.1)"
+          : "rgba(0, 0, 0, 0.12)";
     },
-    [selectedNodeId]
+    [selectedNodeId, isDarkMode]
   );
 
   const linkWidth = useCallback(
