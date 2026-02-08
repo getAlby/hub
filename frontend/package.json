@@ -16,6 +16,8 @@
     "tsc:compile": "tsc --noEmit",
     "format": "prettier --check '**/*.(md|json)' 'src/**/*.(js|ts|tsx)' '!src/assets/**/*.json' 'platform_specific/**/*.ts'",
     "format:fix": "prettier --loglevel silent --write '**/*.(md|json)' 'src/**/*.(js|ts|tsx)' '!src/assets/**/*.json' 'platform_specific/**/*.ts'",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "preview": "vite preview",
     "prepare": "cd .. && husky frontend/.husky"
   },
@@ -92,6 +94,10 @@
     "@tailwindcss/forms": "^0.5.7",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.11",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^24.7.2",
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
@@ -105,6 +111,7 @@
     "eslint-plugin-react-refresh": "^0.4.3",
     "globals": "^15.4.0",
     "husky": "^9.0.11",
+    "jsdom": "^28.0.0",
     "lint-staged": "^15.2.5",
     "prettier": "3.6.2",
     "shx": "^0.4.0",
@@ -112,6 +119,7 @@
     "typescript": "^5.9.3",
     "vite": "^5.4.0",
     "vite-plugin-pwa": "^0.20.1",
-    "vite-tsconfig-paths": "^5.1.4"
+    "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^4.0.18"
   }
 }

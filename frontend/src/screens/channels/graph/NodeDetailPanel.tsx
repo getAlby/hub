@@ -1,19 +1,53 @@
 import { CopyIcon, ExternalLinkIcon, XIcon } from "lucide-react";
+import { useMemo } from "react";
 import ExternalLink from "src/components/ExternalLink";
 import { Button } from "src/components/ui/button";
 import { useChannels } from "src/hooks/useChannels";
 import { copyToClipboard } from "src/lib/clipboard";
-import { GraphNode } from "./types";
+import { GraphLink, GraphNode } from "./types";
 
 type Props = {
   node: GraphNode;
+  graphLinks: GraphLink[];
+  graphNodes: GraphNode[];
   onClose: () => void;
 };
 
-export default function NodeDetailPanel({ node, onClose }: Props) {
+export default function NodeDetailPanel({
+  node,
+  graphLinks,
+  graphNodes,
+  onClose,
+}: Props) {
   const { data: channels } = useChannels();
 
+  // Our direct channels with this peer (detailed local/remote balance info)
   const peerChannels = channels?.filter((c) => c.remotePubkey === node.id);
+
+  // Build a node alias lookup for graph channel display
+  const nodeAliasMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const n of graphNodes) {
+      map.set(n.id, n.alias);
+    }
+    return map;
+  }, [graphNodes]);
+
+  // All graph channels involving this node (from gossip data)
+  const nodeGraphChannels = useMemo(() => {
+    return graphLinks
+      .filter((l) => l.source === node.id || l.target === node.id)
+      .map((l) => {
+        const peerId = l.source === node.id ? l.target : l.source;
+        return {
+          peerId,
+          peerAlias: nodeAliasMap.get(peerId) || peerId.slice(0, 8),
+          capacity: l.capacity,
+          isOurChannel: l.isOurChannel,
+        };
+      })
+      .sort((a, b) => b.capacity - a.capacity);
+  }, [graphLinks, node.id, nodeAliasMap]);
 
   return (
     <div className="absolute top-0 right-0 z-20 w-80 max-w-full h-full bg-background border-l border-border p-4 overflow-y-auto">
@@ -62,10 +96,12 @@ export default function NodeDetailPanel({ node, onClose }: Props) {
           </div>
         </div>
 
-        {/* Channel info for direct peers */}
+        {/* Our channels with this peer (detailed balance info) */}
         {peerChannels && peerChannels.length > 0 && (
           <div>
-            <div className="text-xs text-muted-foreground mb-2">Channels</div>
+            <div className="text-xs text-muted-foreground mb-2">
+              Your Channels
+            </div>
             <div className="space-y-2">
               {peerChannels.map((channel) => {
                 const total = channel.localBalance + channel.remoteBalance;
@@ -111,6 +147,34 @@ export default function NodeDetailPanel({ node, onClose }: Props) {
                   </div>
                 );
               })}
+            </div>
+          </div>
+        )}
+
+        {/* All graph channels for this node */}
+        {nodeGraphChannels.length > 0 && (
+          <div>
+            <div className="text-xs text-muted-foreground mb-2">
+              Known Channels ({nodeGraphChannels.length})
+            </div>
+            <div className="space-y-1.5">
+              {nodeGraphChannels.map((ch, i) => (
+                <div
+                  key={`${ch.peerId}-${i}`}
+                  className="flex items-center justify-between text-xs border border-border rounded-md px-3 py-2"
+                >
+                  <span className="truncate mr-2">
+                    {ch.isOurChannel && !node.isOurNode ? (
+                      <span className="font-semibold text-primary">You</span>
+                    ) : (
+                      ch.peerAlias
+                    )}
+                  </span>
+                  <span className="text-muted-foreground whitespace-nowrap">
+                    {ch.capacity.toLocaleString()} sats
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         )}

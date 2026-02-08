@@ -39,43 +39,11 @@ import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
 import { copyToClipboard } from "src/lib/clipboard";
-import { Channel } from "src/types";
+import { getNodeHealth } from "src/lib/nodeHealth";
 import NetworkGraph from "./NetworkGraph";
 import NodeDetailPanel from "./NodeDetailPanel";
 import { GraphNode } from "./types";
 import { useNetworkGraph } from "./useNetworkGraph";
-
-function getNodeHealth(channels: Channel[]) {
-  const totalChannelCapacitySats = channels
-    .map((channel) => (channel.localBalance + channel.remoteBalance) / 1000)
-    .reduce((a, b) => a + b, 0);
-  const averageChannelBalance =
-    channels
-      .map((channel) => {
-        const totalBalance = channel.localBalance + channel.remoteBalance;
-        const expectedBalance = totalBalance / 2;
-        const actualBalance =
-          Math.min(channel.localBalance, channel.remoteBalance) /
-          expectedBalance;
-        return actualBalance;
-      })
-      .reduce((a, b) => a + b, 0) / (channels.length || 1);
-
-  const numUniqueChannelPartners = new Set(
-    channels.map((channel) => channel.remotePubkey)
-  ).size;
-
-  const nodeHealth = Math.ceil(
-    Math.min(
-      100,
-      (totalChannelCapacitySats / 20_000_000) * 25 +
-        averageChannelBalance * 25 +
-        Math.min(numUniqueChannelPartners / 5, 1) * 25 +
-        Math.min(channels.length / 5, 1) * 25
-    )
-  );
-  return nodeHealth;
-}
 
 export default function NetworkGraphPage() {
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
@@ -340,6 +308,7 @@ export default function NetworkGraphPage() {
           currentHop={currentHop}
           maxHop={maxHop}
           onNodeClick={handleNodeClick}
+          onDeselect={() => setSelectedNode(null)}
           selectedNodeId={selectedNode?.id ?? null}
           width={dimensions.width}
           height={dimensions.height}
@@ -347,6 +316,8 @@ export default function NetworkGraphPage() {
         {selectedNode && (
           <NodeDetailPanel
             node={selectedNode}
+            graphLinks={links}
+            graphNodes={nodes}
             onClose={() => setSelectedNode(null)}
           />
         )}

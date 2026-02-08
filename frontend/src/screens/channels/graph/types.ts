@@ -28,8 +28,24 @@ export type NetworkGraphNode = {
   } | null;
 };
 
+// Routing policy info from LDK gossip
+export type ChannelUpdateInfo = {
+  HtlcMaximumMsat?: number;
+  HtlcMinimumMsat?: number;
+  Fees?: {
+    BaseMsat?: number;
+    ProportionalMillionths?: number;
+  };
+};
+
 export type NetworkGraphChannel = {
-  // LDK fields (camelCase)
+  // LDK fields (PascalCase from Go struct without json tags)
+  NodeOne?: string;
+  OneToTwo?: ChannelUpdateInfo | null;
+  NodeTwo?: string;
+  TwoToOne?: ChannelUpdateInfo | null;
+  CapacitySats?: number | null;
+  // LDK fields (camelCase — older versions)
   shortChannelId?: number;
   capacitySats?: number;
   nodeOne?: string;
@@ -40,9 +56,7 @@ export type NetworkGraphChannel = {
   capacity?: string;
   node1_pub?: string;
   node2_pub?: string;
-  // LND fields (PascalCase from Go struct marshaling)
-  NodeOne?: string;
-  NodeTwo?: string;
+  // LND fields (PascalCase)
   ChannelId?: number;
   Capacity?: number;
 };

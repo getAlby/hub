@@ -5,6 +5,7 @@ import ForceGraph2D, {
   NodeObject,
 } from "react-force-graph-2d";
 import { Button } from "src/components/ui/button";
+import { HOP_COLORS, HOP_LABELS } from "./graphUtils";
 import { GraphLink, GraphNode } from "./types";
 
 // After d3-force processes links, source/target become node objects
@@ -24,26 +25,6 @@ interface D3ChargeForce {
   distanceMax(d: number): D3ChargeForce;
 }
 
-const HOP_LABELS = [
-  "Your node",
-  "Direct peers",
-  "2 hops",
-  "3 hops",
-  "4 hops",
-  "5 hops",
-  "6+ hops",
-];
-
-const HOP_COLORS = [
-  "hsl(45, 100%, 50%)",
-  "hsl(200, 90%, 55%)",
-  "hsl(160, 70%, 50%)",
-  "hsl(280, 60%, 55%)",
-  "hsl(20, 70%, 55%)",
-  "hsl(340, 60%, 50%)",
-  "hsl(0, 0%, 50%)",
-];
-
 type Props = {
   nodes: GraphNode[];
   links: GraphLink[];
@@ -51,6 +32,7 @@ type Props = {
   currentHop: number;
   maxHop: number;
   onNodeClick: (node: GraphNode) => void;
+  onDeselect: () => void;
   selectedNodeId: string | null;
   width: number;
   height: number;
@@ -75,6 +57,7 @@ export default function NetworkGraph({
   currentHop,
   maxHop,
   onNodeClick,
+  onDeselect,
   selectedNodeId,
   width,
   height,
@@ -132,41 +115,62 @@ export default function NetworkGraph({
     if (chargeForce) {
       chargeForce.strength(-500).distanceMax(1000);
     }
-
-    // Remove centering force so dragging feels free
-    graphRef.current.d3Force("center", null);
   }, [nodes, links]);
 
-  // Center on our node: initially, and re-center while loading new hops
+  // Center on our node: poll until ourNodeRef has coordinates after first render
   const prevNodeCount = useRef(0);
   useEffect(() => {
     if (!graphRef.current || nodes.length === 0) {
       return;
     }
 
+    if (!initialCenterDone.current) {
+      // Poll until ourNodeRef has position data (set by nodeCanvasObject on first paint)
+      let attempts = 0;
+      const interval = setInterval(() => {
+        attempts++;
+        if (ourNodeRef.current?.x != null && graphRef.current) {
+          graphRef.current.centerAt(
+            ourNodeRef.current.x,
+            ourNodeRef.current.y,
+            0
+          );
+          graphRef.current.zoom(1.5, 0);
+          initialCenterDone.current = true;
+          prevNodeCount.current = nodes.length;
+          clearInterval(interval);
+        } else if (attempts >= 50) {
+          graphRef.current?.centerAt(0, 0, 0);
+          graphRef.current?.zoom(1.5, 0);
+          initialCenterDone.current = true;
+          prevNodeCount.current = nodes.length;
+          clearInterval(interval);
+        }
+      }, 100);
+      return () => clearInterval(interval);
+    }
+
+    // Re-center when new hop data arrives during loading
     const nodeCountChanged = nodes.length !== prevNodeCount.current;
     prevNodeCount.current = nodes.length;
-
-    // Center on first render or when new hop data arrives during loading
-    if (!initialCenterDone.current || (loading && nodeCountChanged)) {
-      const delay = initialCenterDone.current ? 200 : 800;
+    if (loading && nodeCountChanged) {
       setTimeout(() => {
-        if (ourNodeRef.current && graphRef.current) {
+        if (ourNodeRef.current?.x != null && graphRef.current) {
           graphRef.current.centerAt(
             ourNodeRef.current.x,
             ourNodeRef.current.y,
             400
           );
-          if (!initialCenterDone.current) {
-            graphRef.current.zoom(1.5, 400);
-          }
-        } else {
-          graphRef.current?.centerAt(0, 0, 400);
         }
-        initialCenterDone.current = true;
-      }, delay);
+      }, 300);
     }
   }, [nodes, loading]);
+
+  // Build graphData early so findNearestNode can access d3-mutated node positions
+  const graphData = useMemo(
+    () => ({ nodes: [...nodes], links: links.map((l) => ({ ...l })) }),
+    [nodes, links]
+  );
 
   const centerOnOurNode = useCallback(() => {
     if (ourNodeRef.current && graphRef.current) {
@@ -179,18 +183,44 @@ export default function NetworkGraph({
     }
   }, []);
 
-  const handleNodeClick = useCallback(
+  // Find the nearest node to a graph-space coordinate within a threshold
+  const findNearestNode = useCallback(
+    (gx: number, gy: number, threshold: number) => {
+      let closest: { node: NodeType; dist: number } | null = null;
+      for (const node of graphData.nodes as NodeType[]) {
+        if (node.x == null || node.y == null) {
+          continue;
+        }
+        const dx = node.x - gx;
+        const dy = node.y - gy;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < threshold && (!closest || dist < closest.dist)) {
+          closest = { node, dist };
+        }
+      }
+      return closest?.node ?? null;
+    },
+    [graphData.nodes]
+  );
+
+  const selectAndCenter = useCallback(
     (node: NodeType) => {
       const graphNode = node.id != null ? nodeMap.get(node.id) : undefined;
       if (graphNode) {
         onNodeClick(graphNode);
-        // Center on clicked node
         if (node.x != null && node.y != null && graphRef.current) {
           graphRef.current.centerAt(node.x, node.y, 500);
         }
       }
     },
     [nodeMap, onNodeClick]
+  );
+
+  const handleNodeClick = useCallback(
+    (node: NodeType) => {
+      selectAndCenter(node);
+    },
+    [selectAndCenter]
   );
 
   const nodeCanvasObject = useCallback(
@@ -277,14 +307,23 @@ export default function NetworkGraph({
         return;
       }
       const radius = getNodeRadius(graphNode);
-      // Very generous click/drag target — especially for small hop 2+ nodes
-      const hitRadius = Math.max(radius + 12, 25);
+      // When a node is selected, dimmed nodes get exact-size hit areas
+      // to prevent their generous hit areas from intercepting clicks
+      // meant for highlighted nodes. Generous default hit areas since
+      // onBackgroundClick has a fallback nearest-node finder.
+      let hitRadius: number;
+      if (selectedNodeId != null) {
+        const isHighlighted = highlightedNodeIds.has(graphNode.id);
+        hitRadius = isHighlighted ? Math.max(radius + 20, 35) : radius;
+      } else {
+        hitRadius = Math.max(radius + 20, 35);
+      }
       ctx.beginPath();
       ctx.arc(node.x, node.y, hitRadius, 0, 2 * Math.PI);
       ctx.fillStyle = color;
       ctx.fill();
     },
-    [nodeMap]
+    [nodeMap, selectedNodeId, highlightedNodeIds]
   );
 
   const linkColor = useCallback(
@@ -333,11 +372,6 @@ export default function NetworkGraph({
     [selectedNodeId]
   );
 
-  const graphData = useMemo(
-    () => ({ nodes: [...nodes], links: links.map((l) => ({ ...l })) }),
-    [nodes, links]
-  );
-
   // Compute legend entries from actual hop depth
   const legendEntries = useMemo(() => {
     const entries: { color: string; label: string }[] = [];
@@ -364,11 +398,26 @@ export default function NetworkGraph({
         linkColor={linkColor}
         linkWidth={linkWidth}
         onNodeClick={handleNodeClick}
+        onBackgroundClick={(event: MouseEvent) => {
+          // Fallback: if library's hit detection missed, find nearest node manually
+          if (graphRef.current) {
+            const { x, y } = graphRef.current.screen2GraphCoords(
+              event.offsetX,
+              event.offsetY
+            );
+            const nearest = findNearestNode(x, y, 40);
+            if (nearest) {
+              selectAndCenter(nearest);
+              return;
+            }
+          }
+          onDeselect();
+        }}
         nodeLabel=""
         cooldownTicks={100000}
-        d3AlphaDecay={0.01}
-        d3VelocityDecay={0.3}
-        warmupTicks={100}
+        d3AlphaDecay={0.03}
+        d3VelocityDecay={0.4}
+        warmupTicks={200}
         onNodeDrag={() => {
           // Reheat once at drag start for immediate spring response
           if (!isDragging.current) {
