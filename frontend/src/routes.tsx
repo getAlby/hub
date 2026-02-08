@@ -24,6 +24,7 @@ import { Connections } from "src/screens/apps/Connections";
 import NewApp from "src/screens/apps/NewApp";
 import { AppStoreDetail } from "src/screens/appstore/AppStoreDetail";
 import Channels from "src/screens/channels/Channels";
+import NetworkGraphPage from "src/screens/channels/graph/NetworkGraphPage";
 import { CurrentChannelOrder } from "src/screens/channels/CurrentChannelOrder";
 import IncreaseIncomingCapacity from "src/screens/channels/IncreaseIncomingCapacity";
 import IncreaseOutgoingCapacity from "src/screens/channels/IncreaseOutgoingCapacity";
@@ -408,6 +409,11 @@ const routes: RouteObject[] = [
                 element: <OpenedAutoChannel />,
               },
             ],
+          },
+          {
+            path: "graph",
+            element: <NetworkGraphPage />,
+            handle: { crumb: () => "Network Graph" },
           },
           {
             path: "outgoing",
