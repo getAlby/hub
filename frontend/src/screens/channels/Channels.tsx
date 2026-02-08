@@ -5,6 +5,7 @@ import {
   ArrowRightIcon,
   CopyIcon,
   ExternalLinkIcon,
+  GitForkIcon,
   HeartIcon,
   HourglassIcon,
   InfoIcon,
@@ -295,6 +296,14 @@ export default function Channels() {
                 </DropdownMenuContent>
               </DropdownMenu>
 
+              <LinkButton
+                to="/channels/graph"
+                variant="secondary"
+                className="hidden sm:flex"
+              >
+                <GitForkIcon />
+                Graph
+              </LinkButton>
               <LinkButton
                 to="/wallet/swap"
                 variant="secondary"
