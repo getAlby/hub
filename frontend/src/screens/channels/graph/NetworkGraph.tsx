@@ -63,6 +63,8 @@ export default function NetworkGraph({
   const graphRef = useRef<ForceGraphMethods<NodeType>>();
   const initialCenterDone = useRef(false);
   const ourNodeRef = useRef<NodeType | null>(null);
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
 
   // Build a lookup map for fast node access in canvas callbacks
   const nodeMap = useMemo(() => {
@@ -128,18 +130,18 @@ export default function NetworkGraph({
         if (ourNodeRef.current?.x != null && graphRef.current) {
           graphRef.current.zoomToFit(400, 60);
           initialCenterDone.current = true;
-          onReady?.();
+          onReadyRef.current?.();
           clearInterval(interval);
         } else if (attempts >= 50) {
           graphRef.current?.zoomToFit(400, 60);
           initialCenterDone.current = true;
-          onReady?.();
+          onReadyRef.current?.();
           clearInterval(interval);
         }
       }, 100);
       return () => clearInterval(interval);
     }
-  }, [nodes, onReady]);
+  }, [nodes]);
 
   const graphData = useMemo(
     () => ({ nodes: [...nodes], links: links.map((l) => ({ ...l })) }),
