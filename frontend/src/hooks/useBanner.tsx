@@ -16,6 +16,11 @@ export function useBanner() {
       return;
     }
 
+    if (info.hideUpdateBanner) {
+      setShowBanner(false);
+      return;
+    }
+
     // vss migration (alby cloud only)
     // TODO: remove after 2026-01-01
     const vssMigrationRequired =
