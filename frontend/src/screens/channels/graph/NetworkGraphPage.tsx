@@ -67,6 +67,7 @@ export default function NetworkGraphPage() {
 
   const nodeHealth = channels ? getNodeHealth(channels) : 0;
 
+  const [graphReady, setGraphReady] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const selectedNode = selectedNodeId
     ? (nodes.find((n) => n.id === selectedNodeId) ?? null)
@@ -313,8 +314,8 @@ export default function NetworkGraphPage() {
       />
       <Card className="relative flex-1 min-h-0 w-full mt-4 p-0 overflow-hidden">
         <div ref={containerRef} className="absolute inset-0">
-          {(!dataReady || loading || nodes.length === 0) && (
-            <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground">
+          {(!dataReady || loading || !graphReady) && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 text-muted-foreground bg-background">
               <Loading className="h-8 w-8" />
               <span className="text-sm">Loading network graph...</span>
             </div>
@@ -328,6 +329,7 @@ export default function NetworkGraphPage() {
               selectedNodeId={selectedNodeId}
               width={dimensions.width}
               height={dimensions.height}
+              onReady={() => setGraphReady(true)}
             />
           )}
           {selectedNode && (

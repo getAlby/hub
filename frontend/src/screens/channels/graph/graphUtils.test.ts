@@ -6,8 +6,34 @@ import {
   getChannelId,
   getHopColor,
   HOP_COLORS,
+  HOP_LABELS,
+  MAX_HOPS,
+  MAX_NODES,
   processGossipChannels,
 } from "./graphUtils";
+
+describe("constants", () => {
+  it("MAX_NODES is 1000", () => {
+    expect(MAX_NODES).toBe(1000);
+  });
+
+  it("MAX_HOPS is 6", () => {
+    expect(MAX_HOPS).toBe(6);
+  });
+
+  it("HOP_COLORS has 7 entries (hops 0-6+)", () => {
+    expect(HOP_COLORS).toHaveLength(7);
+  });
+
+  it("HOP_LABELS has same length as HOP_COLORS", () => {
+    expect(HOP_LABELS).toHaveLength(HOP_COLORS.length);
+  });
+
+  it("HOP_LABELS starts with 'Your node' and ends with '6+ hops'", () => {
+    expect(HOP_LABELS[0]).toBe("Your node");
+    expect(HOP_LABELS[HOP_LABELS.length - 1]).toBe("6+ hops");
+  });
+});
 
 describe("getChannelCapacity", () => {
   it("returns LDK PascalCase CapacitySats", () => {
@@ -136,6 +162,12 @@ describe("getHopColor", () => {
 
   it("clamps to last color for hop beyond range", () => {
     expect(getHopColor(10)).toBe(HOP_COLORS[HOP_COLORS.length - 1]);
+  });
+
+  it("returns each distinct color for hops 0 through 6", () => {
+    for (let i = 0; i < HOP_COLORS.length; i++) {
+      expect(getHopColor(i)).toBe(HOP_COLORS[i]);
+    }
   });
 });
 

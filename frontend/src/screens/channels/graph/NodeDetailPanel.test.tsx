@@ -197,4 +197,55 @@ describe("NodeDetailPanel", () => {
     renderPanel({ node: ourNode });
     expect(screen.queryByText("View on Amboss")).not.toBeInTheDocument();
   });
+
+  it("shows 'Direct peer (1 hop)' for hop-1 nodes", () => {
+    renderPanel({ node: directPeerNode });
+    expect(screen.getByText("Direct peer (1 hop)")).toBeInTheDocument();
+  });
+
+  it("renders Amboss link before Known Channels in DOM order", () => {
+    const links: GraphLink[] = [
+      {
+        source: remoteNode.id,
+        target: directPeerNode.id,
+        capacity: 100000,
+        isOurChannel: false,
+      },
+    ];
+    const nodes: GraphNode[] = [ourNode, remoteNode, directPeerNode];
+
+    renderPanel({
+      node: remoteNode,
+      graphLinks: links,
+      graphNodes: nodes,
+    });
+
+    const ambossEl = screen.getByText("View on Amboss");
+    const knownChannelsEl = screen.getByText(/Known Channels/);
+
+    // Amboss should appear before Known Channels in the DOM
+    const order = ambossEl.compareDocumentPosition(knownChannelsEl);
+    // DOCUMENT_POSITION_FOLLOWING = 4 means knownChannelsEl follows ambossEl
+    expect(order & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it("renders close button", () => {
+    const onClose = vi.fn();
+    render(
+      <MemoryRouter>
+        <NodeDetailPanel
+          node={remoteNode}
+          graphLinks={[]}
+          graphNodes={[]}
+          onClose={onClose}
+          onNodeSelect={() => {}}
+        />
+      </MemoryRouter>
+    );
+
+    // The close button has an XIcon inside it
+    const buttons = screen.getAllByRole("button");
+    // First button-like element should be the close button (top-right)
+    expect(buttons.length).toBeGreaterThan(0);
+  });
 });

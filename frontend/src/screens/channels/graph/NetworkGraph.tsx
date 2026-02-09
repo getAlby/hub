@@ -34,6 +34,7 @@ type Props = {
   selectedNodeId: string | null;
   width: number;
   height: number;
+  onReady?: () => void;
 };
 
 type NodeType = NodeObject<GraphNode>;
@@ -56,6 +57,7 @@ export default function NetworkGraph({
   selectedNodeId,
   width,
   height,
+  onReady,
 }: Props) {
   const { isDarkMode } = useTheme();
   const graphRef = useRef<ForceGraphMethods<NodeType>>();
@@ -126,16 +128,18 @@ export default function NetworkGraph({
         if (ourNodeRef.current?.x != null && graphRef.current) {
           graphRef.current.zoomToFit(400, 60);
           initialCenterDone.current = true;
+          onReady?.();
           clearInterval(interval);
         } else if (attempts >= 50) {
           graphRef.current?.zoomToFit(400, 60);
           initialCenterDone.current = true;
+          onReady?.();
           clearInterval(interval);
         }
       }, 100);
       return () => clearInterval(interval);
     }
-  }, [nodes]);
+  }, [nodes, onReady]);
 
   const graphData = useMemo(
     () => ({ nodes: [...nodes], links: links.map((l) => ({ ...l })) }),
