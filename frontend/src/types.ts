@@ -164,6 +164,7 @@ export interface InfoResponse {
   nodeAlias: string;
   mempoolUrl: string;
   bitcoinDisplayFormat: BitcoinDisplayFormat;
+  hideUpdateBanner: boolean;
 }
 
 export type BitcoinDisplayFormat = "sats" | "bip177";

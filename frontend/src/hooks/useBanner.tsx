@@ -24,6 +24,11 @@ export function useBanner() {
       info.vssSupported &&
       !info.ldkVssEnabled;
 
+    if (info.hideUpdateBanner) {
+      setShowBanner(vssMigrationRequired);
+      return;
+    }
+
     const upToDate =
       Boolean(info.version) &&
       info.version.startsWith("v") &&

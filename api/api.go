@@ -1230,6 +1230,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	}
 
 	info.MempoolUrl = api.cfg.GetMempoolUrl()
+	info.HideUpdateBanner = api.cfg.GetEnv().HideUpdateBanner
 	info.AlbyAccountConnected = api.albyOAuthSvc.IsConnected(ctx)
 
 	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()
