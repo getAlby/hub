@@ -1198,7 +1198,12 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	backendType, _ := api.cfg.Get("LNBackendType", "")
 	ldkVssEnabled, _ := api.cfg.Get("LdkVssEnabled", "")
 	autoUnlockPassword, _ := api.cfg.Get("AutoUnlockPassword", "")
-	info.SetupCompleted = api.cfg.SetupCompleted()
+	setupCompleted, err := api.cfg.SetupCompleted()
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to check if setup is completed")
+		return nil, err
+	}
+	info.SetupCompleted = setupCompleted
 	info.Currency = api.cfg.GetCurrency()
 	info.BitcoinDisplayFormat = api.cfg.GetBitcoinDisplayFormat()
 	info.StartupState = api.svc.GetStartupState()

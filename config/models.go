@@ -86,7 +86,7 @@ type Config interface {
 	ChangeUnlockPassword(currentUnlockPassword string, newUnlockPassword string) error
 	SetAutoUnlockPassword(unlockPassword string) error
 	SaveUnlockPasswordCheck(encryptionKey string) error
-	SetupCompleted() bool
+	SetupCompleted() (bool, error)
 	GetCurrency() string
 	SetCurrency(value string) error
 	GetBitcoinDisplayFormat() string

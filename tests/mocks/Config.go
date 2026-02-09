@@ -778,7 +778,7 @@ func (_c *MockConfig_SetUpdate_Call) RunAndReturn(run func(key string, value str
 }
 
 // SetupCompleted provides a mock function for the type MockConfig
-func (_mock *MockConfig) SetupCompleted() bool {
+func (_mock *MockConfig) SetupCompleted() (bool, error) {
 	ret := _mock.Called()
 
 	if len(ret) == 0 {
@@ -786,12 +786,21 @@ func (_mock *MockConfig) SetupCompleted() bool {
 	}
 
 	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func() (bool, error)); ok {
+		return returnFunc()
+	}
 	if returnFunc, ok := ret.Get(0).(func() bool); ok {
 		r0 = returnFunc()
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
-	return r0
+	if returnFunc, ok := ret.Get(1).(func() error); ok {
+		r1 = returnFunc()
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
 }
 
 // MockConfig_SetupCompleted_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetupCompleted'
@@ -811,12 +820,12 @@ func (_c *MockConfig_SetupCompleted_Call) Run(run func()) *MockConfig_SetupCompl
 	return _c
 }
 
-func (_c *MockConfig_SetupCompleted_Call) Return(b bool) *MockConfig_SetupCompleted_Call {
-	_c.Call.Return(b)
+func (_c *MockConfig_SetupCompleted_Call) Return(b bool, err error) *MockConfig_SetupCompleted_Call {
+	_c.Call.Return(b, err)
 	return _c
 }
 
-func (_c *MockConfig_SetupCompleted_Call) RunAndReturn(run func() bool) *MockConfig_SetupCompleted_Call {
+func (_c *MockConfig_SetupCompleted_Call) RunAndReturn(run func() (bool, error)) *MockConfig_SetupCompleted_Call {
 	_c.Call.Return(run)
 	return _c
 }
