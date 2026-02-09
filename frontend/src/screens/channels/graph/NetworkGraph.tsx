@@ -9,6 +9,9 @@ import { useTheme } from "src/components/ui/theme-provider";
 import { HOP_COLORS, HOP_LABELS } from "./graphUtils";
 import { GraphLink, GraphNode } from "./types";
 
+// Must match the w-80 (320px) panel in NodeDetailPanel
+const DETAIL_PANEL_WIDTH = 320;
+
 // After d3-force processes links, source/target become node objects
 type ProcessedGraphLink = Omit<GraphLink, "source" | "target"> & {
   source: string | { id: string };
@@ -148,15 +151,62 @@ export default function NetworkGraph({
     [nodes, links]
   );
 
-  // Zoom to fit selected node and its connections when selection changes
+  // Compute and apply zoom-to-fit for a selected node and its neighbors.
+  // Centers content in the visible area left of the detail panel.
+  const applyZoomToFit = useCallback(
+    (nodeId: string) => {
+      const fg = graphRef.current;
+      if (!fg) {
+        return;
+      }
+
+      // Build the set of node IDs to fit (selected + direct neighbors)
+      const highlighted = new Set<string>();
+      highlighted.add(nodeId);
+      for (const link of links) {
+        if (link.source === nodeId || link.target === nodeId) {
+          highlighted.add(link.source);
+          highlighted.add(link.target);
+        }
+      }
+
+      const nodeFilter = (node: NodeType) => highlighted.has(node.id as string);
+      const bbox = fg.getGraphBbox(nodeFilter);
+      if (!bbox) {
+        return;
+      }
+      const pad = 80;
+      const bboxW = Math.max(bbox.x[1] - bbox.x[0], 1);
+      const bboxH = Math.max(bbox.y[1] - bbox.y[0], 1);
+      const visibleWidth = width - DETAIL_PANEL_WIDTH;
+      const targetZoom = Math.max(
+        0.1,
+        Math.min(
+          8,
+          Math.min((visibleWidth - pad * 2) / bboxW, (height - pad * 2) / bboxH)
+        )
+      );
+      const cx = (bbox.x[0] + bbox.x[1]) / 2;
+      const cy = (bbox.y[0] + bbox.y[1]) / 2;
+      const panelOffsetGraph = DETAIL_PANEL_WIDTH / 2 / targetZoom;
+      // Apply both instantly — no animation avoids d3-zoom transition conflicts
+      fg.centerAt(cx + panelOffsetGraph, cy);
+      fg.zoom(targetZoom);
+    },
+    [links, width, height]
+  );
+
+  // Zoom to fit when selection changes via programmatic means (e.g. NodeDetailPanel).
+  // Uses rAF to ensure ForceGraph2D has finished processing prop changes.
   useEffect(() => {
     if (!selectedNodeId || !graphRef.current) {
       return;
     }
-    graphRef.current.zoomToFit(500, 60, (node: NodeType) =>
-      highlightedNodeIds.has(node.id as string)
-    );
-  }, [selectedNodeId, highlightedNodeIds]);
+    const rafId = requestAnimationFrame(() => {
+      applyZoomToFit(selectedNodeId);
+    });
+    return () => cancelAnimationFrame(rafId);
+  }, [selectedNodeId, applyZoomToFit]);
 
   const centerOnOurNode = useCallback(() => {
     if (graphRef.current) {
@@ -187,13 +237,13 @@ export default function NetworkGraph({
     (node: NodeType) => {
       const graphNode = node.id != null ? nodeMap.get(node.id) : undefined;
       if (graphNode) {
+        // Apply zoom-to-fit immediately, before React re-render, to avoid
+        // any timing issues with ForceGraph2D internal state updates.
+        applyZoomToFit(graphNode.id);
         onNodeClick(graphNode);
-        if (node.x != null && node.y != null && graphRef.current) {
-          graphRef.current.centerAt(node.x, node.y, 500);
-        }
       }
     },
-    [nodeMap, onNodeClick]
+    [nodeMap, onNodeClick, applyZoomToFit]
   );
 
   const nodeCanvasObject = useCallback(
