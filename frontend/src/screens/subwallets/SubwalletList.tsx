@@ -168,7 +168,7 @@ export function SubwalletList() {
           <CardContent className="grow flex flex-col gap-4">
             <div className="flex flex-col gap-2">
               <span className="text-2xl font-medium">
-                {subwalletApps.length} /{" "}
+                {appsData.totalCount} /{" "}
                 {albyMe?.subscription.plan_code ? "∞" : 3}
               </span>
               {isSufficientlyBacked ? (
