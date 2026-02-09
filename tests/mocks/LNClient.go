@@ -1142,68 +1142,6 @@ func (_c *MockLNClient_ListPeers_Call) RunAndReturn(run func(ctx context.Context
 	return _c
 }
 
-// ListTransactions provides a mock function for the type MockLNClient
-func (_mock *MockLNClient) ListTransactions(ctx context.Context, from uint64, until uint64, limit uint64, offset uint64, unpaid bool, invoiceType string) ([]lnclient.Transaction, error) {
-	ret := _mock.Called(ctx, from, until, limit, offset, unpaid, invoiceType)
-
-	if len(ret) == 0 {
-		panic("no return value specified for ListTransactions")
-	}
-
-	var r0 []lnclient.Transaction
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, uint64, uint64, uint64, bool, string) ([]lnclient.Transaction, error)); ok {
-		return returnFunc(ctx, from, until, limit, offset, unpaid, invoiceType)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, uint64, uint64, uint64, bool, string) []lnclient.Transaction); ok {
-		r0 = returnFunc(ctx, from, until, limit, offset, unpaid, invoiceType)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]lnclient.Transaction)
-		}
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, uint64, uint64, uint64, uint64, bool, string) error); ok {
-		r1 = returnFunc(ctx, from, until, limit, offset, unpaid, invoiceType)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// MockLNClient_ListTransactions_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListTransactions'
-type MockLNClient_ListTransactions_Call struct {
-	*mock.Call
-}
-
-// ListTransactions is a helper method to define mock.On call
-//   - ctx
-//   - from
-//   - until
-//   - limit
-//   - offset
-//   - unpaid
-//   - invoiceType
-func (_e *MockLNClient_Expecter) ListTransactions(ctx interface{}, from interface{}, until interface{}, limit interface{}, offset interface{}, unpaid interface{}, invoiceType interface{}) *MockLNClient_ListTransactions_Call {
-	return &MockLNClient_ListTransactions_Call{Call: _e.mock.On("ListTransactions", ctx, from, until, limit, offset, unpaid, invoiceType)}
-}
-
-func (_c *MockLNClient_ListTransactions_Call) Run(run func(ctx context.Context, from uint64, until uint64, limit uint64, offset uint64, unpaid bool, invoiceType string)) *MockLNClient_ListTransactions_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(uint64), args[2].(uint64), args[3].(uint64), args[4].(uint64), args[5].(bool), args[6].(string))
-	})
-	return _c
-}
-
-func (_c *MockLNClient_ListTransactions_Call) Return(transactions []lnclient.Transaction, err error) *MockLNClient_ListTransactions_Call {
-	_c.Call.Return(transactions, err)
-	return _c
-}
-
-func (_c *MockLNClient_ListTransactions_Call) RunAndReturn(run func(ctx context.Context, from uint64, until uint64, limit uint64, offset uint64, unpaid bool, invoiceType string) ([]lnclient.Transaction, error)) *MockLNClient_ListTransactions_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // LookupInvoice provides a mock function for the type MockLNClient
 func (_mock *MockLNClient) LookupInvoice(ctx context.Context, paymentHash string) (*lnclient.Transaction, error) {
 	ret := _mock.Called(ctx, paymentHash)

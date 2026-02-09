@@ -816,11 +816,6 @@ func (ls *LDKService) LookupInvoice(ctx context.Context, paymentHash string) (tr
 	return nil, errors.New("this method should not be called")
 }
 
-func (ls *LDKService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []lnclient.Transaction, err error) {
-	// this method shouldn't be any more because this LNClient supports notifications
-	return nil, errors.New("this method should not be called")
-}
-
 func (ls *LDKService) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
 	transactions := []lnclient.OnchainTransaction{}
 	for _, payment := range ls.node.ListPayments() {
