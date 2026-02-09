@@ -1,6 +1,7 @@
 import { ZapIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import topup2fiat from "src/assets/suggested-apps/2fiat-topup.png";
+import albyCli from "src/assets/suggested-apps/alby.png";
 import albyExtension from "src/assets/suggested-apps/alby-extension.png";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
@@ -332,6 +333,58 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["wallet-interfaces"],
+    },
+    {
+      id: "alby-cli",
+      title: "Alby CLI",
+      description:
+        "Command-line interface for Nostr Wallet Connect with lightning tools",
+      webLink: "https://github.com/getAlby/cli",
+      logo: albyCli,
+      extendedDescription:
+        "Manage your Alby Hub from the command line. Send and receive payments, create invoices, check your balance, and automate lightning workflows. Built for developers and AI agents.",
+      categories: ["wallet-interfaces"],
+      installGuide: (
+        <>
+          <div>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Install the CLI globally:{" "}
+                <code className="font-medium text-foreground">
+                  npm install -g @getalby/cli
+                </code>
+              </li>
+              <li>
+                Or run directly with npx:{" "}
+                <code className="font-medium text-foreground">
+                  npx @getalby/cli
+                </code>
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">Connect to your Hub</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Save the connection secret to a file or set the{" "}
+                <code className="font-medium text-foreground">NWC_URL</code>{" "}
+                environment variable
+              </li>
+              <li>
+                Run{" "}
+                <code className="font-medium text-foreground">
+                  npx @getalby/cli -c /path/to/secret.txt get-info
+                </code>{" "}
+                to verify the connection
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
     },
     {
       id: "damus",
