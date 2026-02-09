@@ -1,10 +1,12 @@
 import { CopyIcon, ExternalLinkIcon, XIcon } from "lucide-react";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import ExternalLink from "src/components/ExternalLink";
 import { Button } from "src/components/ui/button";
 import { useChannels } from "src/hooks/useChannels";
 import { copyToClipboard } from "src/lib/clipboard";
 import { GraphLink, GraphNode } from "./types";
+
+const MAX_VISIBLE_CHANNELS = 50;
 
 type Props = {
   node: GraphNode;
@@ -37,6 +39,17 @@ export default function NodeDetailPanel({
     return map;
   }, [graphNodes]);
 
+  // Dismiss panel on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   // All graph channels involving this node (from gossip data)
   const nodeGraphChannels = useMemo(() => {
     return graphLinks
@@ -62,6 +75,7 @@ export default function NodeDetailPanel({
           size="icon"
           onClick={onClose}
           className="shrink-0"
+          aria-label="Close panel"
         >
           <XIcon className="size-4" />
         </Button>
@@ -209,7 +223,7 @@ export default function NodeDetailPanel({
               Known Channels ({nodeGraphChannels.length})
             </div>
             <div className="space-y-1.5">
-              {nodeGraphChannels.map((ch, i) => (
+              {nodeGraphChannels.slice(0, MAX_VISIBLE_CHANNELS).map((ch, i) => (
                 <div
                   key={`${ch.peerId}-${i}`}
                   className="flex items-center justify-between text-xs border border-border rounded-md px-3 py-2 cursor-pointer hover:bg-muted/50 transition-colors"
@@ -235,6 +249,12 @@ export default function NodeDetailPanel({
                   </span>
                 </div>
               ))}
+              {nodeGraphChannels.length > MAX_VISIBLE_CHANNELS && (
+                <div className="text-xs text-muted-foreground text-center py-1">
+                  {nodeGraphChannels.length - MAX_VISIBLE_CHANNELS} more
+                  channels not shown
+                </div>
+              )}
             </div>
           </div>
         )}

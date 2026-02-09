@@ -316,13 +316,17 @@ export default function NetworkGraph({
     [nodeMap, selectedNodeId, highlightedNodeIds]
   );
 
+  const getLinkNodeId = useCallback(
+    (endpoint: string | { id: string }): string =>
+      typeof endpoint === "object" ? endpoint.id : endpoint,
+    []
+  );
+
   const linkColor = useCallback(
     (link: ProcessedGraphLink) => {
       if (selectedNodeId) {
-        const sourceId =
-          typeof link.source === "object" ? link.source.id : link.source;
-        const targetId =
-          typeof link.target === "object" ? link.target.id : link.target;
+        const sourceId = getLinkNodeId(link.source);
+        const targetId = getLinkNodeId(link.target);
         const isConnected =
           sourceId === selectedNodeId || targetId === selectedNodeId;
         if (isConnected) {
@@ -340,16 +344,14 @@ export default function NetworkGraph({
           ? "rgba(255, 255, 255, 0.1)"
           : "rgba(0, 0, 0, 0.15)";
     },
-    [selectedNodeId, isDarkMode]
+    [selectedNodeId, isDarkMode, getLinkNodeId]
   );
 
   const linkWidth = useCallback(
     (link: ProcessedGraphLink) => {
       if (selectedNodeId) {
-        const sourceId =
-          typeof link.source === "object" ? link.source.id : link.source;
-        const targetId =
-          typeof link.target === "object" ? link.target.id : link.target;
+        const sourceId = getLinkNodeId(link.source);
+        const targetId = getLinkNodeId(link.target);
         const isConnected =
           sourceId === selectedNodeId || targetId === selectedNodeId;
         if (isConnected) {
@@ -364,14 +366,19 @@ export default function NetworkGraph({
       const minWidth = isDarkMode ? 0.3 : 0.6;
       return Math.max(minWidth, Math.min(2, Math.log10(cap) / 6));
     },
-    [selectedNodeId, isDarkMode]
+    [selectedNodeId, isDarkMode, getLinkNodeId]
   );
 
   // Compute legend entries from actual node data
   const legendEntries = useMemo(() => {
     const maxHop = nodes.reduce((max, n) => Math.max(max, n.hop), 0);
+    const maxIndex = Math.min(
+      maxHop,
+      HOP_COLORS.length - 1,
+      HOP_LABELS.length - 1
+    );
     const entries: { color: string; label: string }[] = [];
-    for (let i = 0; i <= Math.min(maxHop, HOP_COLORS.length - 1); i++) {
+    for (let i = 0; i <= maxIndex; i++) {
       entries.push({ color: HOP_COLORS[i], label: HOP_LABELS[i] });
     }
     return entries;
@@ -409,7 +416,7 @@ export default function NetworkGraph({
           onDeselect();
         }}
         nodeLabel=""
-        cooldownTicks={100000}
+        cooldownTicks={400}
         d3AlphaDecay={0.05}
         d3VelocityDecay={0.5}
         warmupTicks={200}

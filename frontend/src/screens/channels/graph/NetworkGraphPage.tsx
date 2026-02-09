@@ -320,6 +320,16 @@ export default function NetworkGraphPage() {
               <span className="text-sm">Loading network graph...</span>
             </div>
           )}
+          {dataReady && !loading && nodes.length === 0 && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+              <span className="text-sm">
+                No channels yet. Open a channel to see your network graph.
+              </span>
+              <LinkButton to="/channels/incoming" size="sm">
+                Open Channel
+              </LinkButton>
+            </div>
+          )}
           {dimensions && dataReady && !loading && nodes.length > 0 && (
             <NetworkGraph
               nodes={nodes}

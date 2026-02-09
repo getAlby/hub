@@ -84,8 +84,9 @@ export function getChannelId(channel: NetworkGraphChannel): string {
     const capacity = getChannelCapacity(channel);
     return `${endpoints[0]}-${endpoints[1]}-${capacity}`;
   }
-  // Deterministic fallback from available fields to avoid breaking deduplication
-  const stable = JSON.stringify(channel);
+  // Deterministic fallback from available fields to avoid breaking deduplication.
+  // Sort keys so the hash is independent of property insertion order.
+  const stable = JSON.stringify(channel, Object.keys(channel).sort());
   let hash = 0;
   for (let i = 0; i < stable.length; i++) {
     hash = (hash * 31 + stable.charCodeAt(i)) | 0;
@@ -96,9 +97,13 @@ export function getChannelId(channel: NetworkGraphChannel): string {
 export async function fetchNodeAlias(pubkey: string): Promise<string | null> {
   // Try mempool.space first (same as useNodeDetails hook)
   try {
+    const mempoolController = new AbortController();
+    const mempoolTimeout = setTimeout(() => mempoolController.abort(), 5000);
     const mempool = await request<MempoolNode>(
-      `/api/mempool?endpoint=/v1/lightning/nodes/${pubkey}`
+      `/api/mempool?endpoint=/v1/lightning/nodes/${pubkey}`,
+      { signal: mempoolController.signal }
     );
+    clearTimeout(mempoolTimeout);
     if (mempool?.alias) {
       return mempool.alias;
     }
@@ -130,7 +135,12 @@ export async function fetchNodeAlias(pubkey: string): Promise<string | null> {
   return null;
 }
 
-/** Process channels from a gossip API response, adding new nodes and links. */
+/**
+ * Process channels from a gossip API response, adding new nodes and links.
+ *
+ * NOTE: This function mutates the `knownNodeIds` and `knownChannelIds` Sets
+ * for deduplication across successive calls during BFS expansion.
+ */
 export function processGossipChannels(
   channels: NetworkGraphChannel[],
   hop: number,

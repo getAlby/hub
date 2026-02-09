@@ -26,6 +26,7 @@ export function useNetworkGraph(
   channelsRef.current = channels;
 
   const expand = useCallback(async () => {
+    const ALIAS_CONCURRENCY = 5;
     const ch = channelsRef.current;
     if (!ourPubkey || !ch) {
       return;
@@ -147,14 +148,20 @@ export function useNetworkGraph(
 
         // For hop 1 peers still without aliases, try mempool/amboss
         const unresolvedPeers = hop1PeerIds.filter((id) => !aliasMap.has(id));
-        const aliasPromises = unresolvedPeers.map(async (peerId) => {
-          const alias = await fetchNodeAlias(peerId);
-          return { peerId, alias };
-        });
-        const results = await Promise.allSettled(aliasPromises);
-        for (const result of results) {
-          if (result.status === "fulfilled" && result.value.alias) {
-            aliasMap.set(result.value.peerId, result.value.alias);
+        for (let i = 0; i < unresolvedPeers.length; i += ALIAS_CONCURRENCY) {
+          if (abortRef.current) {
+            break;
+          }
+          const batch = unresolvedPeers.slice(i, i + ALIAS_CONCURRENCY);
+          const aliasPromises = batch.map(async (peerId) => {
+            const alias = await fetchNodeAlias(peerId);
+            return { peerId, alias };
+          });
+          const results = await Promise.allSettled(aliasPromises);
+          for (const result of results) {
+            if (result.status === "fulfilled" && result.value.alias) {
+              aliasMap.set(result.value.peerId, result.value.alias);
+            }
           }
         }
       }
@@ -268,8 +275,13 @@ export function useNetworkGraph(
           .filter((n) => !aliasMap.has(n.id) && n.hop <= 3)
           .slice(0, 30);
 
-        if (stillUnresolved.length > 0 && !abortRef.current) {
-          const aliasPromises = stillUnresolved.map(async (node) => {
+        for (
+          let i = 0;
+          i < stillUnresolved.length && !abortRef.current;
+          i += ALIAS_CONCURRENCY
+        ) {
+          const batch = stillUnresolved.slice(i, i + ALIAS_CONCURRENCY);
+          const aliasPromises = batch.map(async (node) => {
             const alias = await fetchNodeAlias(node.id);
             return { id: node.id, alias };
           });
@@ -290,11 +302,15 @@ export function useNetworkGraph(
         });
       }
 
-      // Set all state once at the end
-      setNodes(currentNodes);
-      setLinks(currentLinks);
+      // Set all state once at the end (skip if aborted)
+      if (!abortRef.current) {
+        setNodes(currentNodes);
+        setLinks(currentLinks);
+      }
     } finally {
-      setLoading(false);
+      if (!abortRef.current) {
+        setLoading(false);
+      }
     }
   }, [ourPubkey]);
 
@@ -306,6 +322,7 @@ export function useNetworkGraph(
     expand();
     return () => {
       abortRef.current = true;
+      hasRunRef.current = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- channels triggers initial load only
   }, [expand, !!channels]);

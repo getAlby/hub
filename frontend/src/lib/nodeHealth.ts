@@ -35,5 +35,5 @@ export function getNodeHealth(channels: Channel[]) {
     return 100;
   }
 
-  return nodeHealth;
+  return Math.min(nodeHealth, 100);
 }

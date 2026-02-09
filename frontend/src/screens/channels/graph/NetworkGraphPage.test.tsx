@@ -223,4 +223,15 @@ describe("NetworkGraphPage", () => {
     renderPage();
     expect(screen.queryByTestId("network-graph")).not.toBeInTheDocument();
   });
+
+  it("shows empty state when loading finishes with no nodes", () => {
+    mockUseNetworkGraph.mockReturnValue({
+      nodes: [],
+      links: [],
+      loading: false,
+    });
+
+    renderPage();
+    expect(screen.getByText(/No channels yet/)).toBeInTheDocument();
+  });
 });

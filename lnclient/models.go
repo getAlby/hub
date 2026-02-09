@@ -209,6 +209,7 @@ type BalancesResponse struct {
 	Lightning LightningBalanceResponse `json:"lightning"`
 }
 
+// NetworkGraphResponse is backend-specific; each implementation returns its own structure.
 type NetworkGraphResponse = interface{}
 
 type PaymentFailedEventProperties struct {
