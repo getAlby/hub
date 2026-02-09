@@ -344,6 +344,7 @@ export const appStoreApps: AppStoreApp[] = (
       extendedDescription:
         "Manage your Alby Hub from the command line. Send and receive payments, create invoices, check your balance, and automate lightning workflows. Built for developers and AI agents.",
       categories: ["wallet-interfaces"],
+      hideConnectionQr: true,
       installGuide: (
         <>
           <div>
