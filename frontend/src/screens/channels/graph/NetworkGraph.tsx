@@ -326,13 +326,13 @@ export default function NetworkGraph({
               ? "rgba(255, 255, 255, 0.7)"
               : "rgba(0, 0, 0, 0.5)";
         }
-        return isDarkMode ? "rgba(255, 255, 255, 0.02)" : "rgba(0, 0, 0, 0.08)";
+        return isDarkMode ? "rgba(255, 255, 255, 0.02)" : "rgba(0, 0, 0, 0.04)";
       }
       return link.isOurChannel
         ? "rgba(255, 200, 50, 0.6)"
         : isDarkMode
           ? "rgba(255, 255, 255, 0.1)"
-          : "rgba(0, 0, 0, 0.35)";
+          : "rgba(0, 0, 0, 0.15)";
     },
     [selectedNodeId, isDarkMode]
   );
@@ -436,7 +436,7 @@ export default function NetworkGraph({
       <Button
         variant="secondary"
         size="icon"
-        className="absolute bottom-4 right-4 z-10"
+        className="absolute bottom-4 right-4 z-10 bg-foreground text-background hover:bg-foreground/90"
         onClick={centerOnOurNode}
         title="Center on your node"
       >

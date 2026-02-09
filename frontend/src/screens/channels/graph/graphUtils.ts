@@ -3,7 +3,7 @@ import { request } from "src/utils/request";
 import { GraphLink, GraphNode, NetworkGraphChannel } from "./types";
 
 export const MAX_HOPS = 6;
-export const MAX_NODES = 750;
+export const MAX_NODES = 1000;
 
 export const HOP_COLORS = [
   "hsl(45, 100%, 50%)", // hop 0: our node (gold)

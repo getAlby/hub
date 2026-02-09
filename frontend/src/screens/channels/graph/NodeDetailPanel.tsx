@@ -189,6 +189,19 @@ export default function NodeDetailPanel({
           </div>
         )}
 
+        {/* External links */}
+        {!node.isOurNode && (
+          <div className="pt-2 space-y-2">
+            <ExternalLink
+              to={`https://amboss.space/node/${node.id}`}
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+            >
+              View on Amboss
+              <ExternalLinkIcon className="size-3" />
+            </ExternalLink>
+          </div>
+        )}
+
         {/* All graph channels for this node */}
         {nodeGraphChannels.length > 0 && (
           <div>
@@ -223,19 +236,6 @@ export default function NodeDetailPanel({
                 </div>
               ))}
             </div>
-          </div>
-        )}
-
-        {/* External links */}
-        {!node.isOurNode && (
-          <div className="pt-2 space-y-2">
-            <ExternalLink
-              to={`https://amboss.space/node/${node.id}`}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-            >
-              View on Amboss
-              <ExternalLinkIcon className="size-3" />
-            </ExternalLink>
           </div>
         )}
       </div>
