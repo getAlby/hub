@@ -69,6 +69,7 @@ export default function Start() {
 
   return (
     <>
+      <title>Start - Alby Hub</title>
       <Container>
         <div className="mx-auto grid gap-5">
           <TwoColumnLayoutHeader

@@ -38,6 +38,7 @@ export function Welcome() {
 
   return (
     <Container>
+      <title>Welcome - Alby Hub</title>
       <div className="grid text-center gap-5">
         <div className="grid gap-2">
           <h1 className="font-semibold text-2xl font-headline">

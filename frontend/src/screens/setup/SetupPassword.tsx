@@ -50,6 +50,7 @@ export function SetupPassword() {
 
   return (
     <>
+      <title>Create Password - Alby Hub</title>
       <div className="grid max-w-sm">
         <form onSubmit={onSubmit} className="flex flex-col items-center w-full">
           <div className="grid gap-4">

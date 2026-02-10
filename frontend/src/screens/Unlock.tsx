@@ -59,6 +59,7 @@ export default function Unlock() {
 
   return (
     <>
+      <title>Login - Alby Hub</title>
       <form onSubmit={onSubmit} className="w-full p-5">
         <div className="mx-auto grid w-80 max-w-full gap-6">
           <TwoColumnLayoutHeader

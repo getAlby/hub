@@ -159,6 +159,7 @@ function SupportAlby() {
     <>
       <AppHeader
         title="Support Alby Hub"
+        pageTitle="Support Alby"
         description="We are committed to elevating the Bitcoin ecosystem by offering reliable, efficient, and user-friendly software solutions for seamless transactions. With your help, we can keep pushing boundaries and evolving Alby Hub into something extraordinary."
       />
       <h2 className="text-2xl font-semibold">Become a Supporter</h2>
