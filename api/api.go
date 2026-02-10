@@ -1247,6 +1247,22 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 		}
 
 		info.Network = nodeInfo.Network
+		switch backendType {
+		case config.LDKBackendType:
+			// Only LDK supports this right now. Using a local interface here
+			// so we don't have to bloat the main LNClient interface for everyone else.
+			type chainSourceProvider interface {
+				GetChainDataSource() (string, string)
+			}
+
+			if ldkService, ok := api.svc.GetLNClient().(chainSourceProvider); ok {
+				info.ChainDataSourceType, info.ChainDataSourceAddress = ldkService.GetChainDataSource()
+			}
+
+		case config.LNDBackendType:
+			info.ChainDataSourceType = "lnd"
+			info.ChainDataSourceAddress, _ = api.cfg.Get("LNDAddress", "")
+		}
 	}
 
 	info.NextBackupReminder, _ = api.cfg.Get("NextBackupReminder", "")

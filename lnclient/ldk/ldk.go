@@ -2511,3 +2511,16 @@ func (ls *LDKService) ConsumeEvent(ctx context.Context, event *events.Event, glo
 		ls.backupChannels()
 	}
 }
+
+func (ls *LDKService) GetChainDataSource() (string, string) {
+	if host := ls.cfg.GetEnv().LDKBitcoindRpcHost; host != "" {
+		return "bitcoind", host
+	}
+	if host := ls.cfg.GetEnv().LDKElectrumServer; host != "" {
+		return "electrum", host
+	}
+
+	// Fallback to Esplora
+	host := ls.cfg.GetEnv().LDKEsploraServer
+	return "esplora", host
+}
