@@ -1217,6 +1217,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.OAuthRedirect = !api.cfg.GetEnv().IsDefaultClientId()
 	info.Version = version.Tag
 	info.EnableAdvancedSetup = api.cfg.GetEnv().EnableAdvancedSetup
+	info.HideUpdateBanner = api.cfg.GetEnv().HideUpdateBanner
 	info.LdkVssEnabled = ldkVssEnabled == "true"
 	info.VssSupported = backendType == config.LDKBackendType && api.cfg.GetEnv().LDKVssUrl != ""
 	info.AutoUnlockPasswordEnabled = autoUnlockPassword != ""
@@ -1230,7 +1231,6 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	}
 
 	info.MempoolUrl = api.cfg.GetMempoolUrl()
-	info.HideUpdateBanner = api.cfg.GetEnv().HideUpdateBanner
 	info.AlbyAccountConnected = api.albyOAuthSvc.IsConnected(ctx)
 
 	albyUserIdentifier, err := api.albyOAuthSvc.GetUserIdentifier()

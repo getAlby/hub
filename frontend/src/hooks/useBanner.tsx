@@ -16,25 +16,12 @@ export function useBanner() {
       return;
     }
 
-    // vss migration (alby cloud only)
-    // TODO: remove after 2026-01-01
-    const vssMigrationRequired =
-      info.oauthRedirect &&
-      !!albyMe?.subscription.plan_code.includes("buzz") &&
-      info.vssSupported &&
-      !info.ldkVssEnabled;
-
-    if (info.hideUpdateBanner) {
-      setShowBanner(vssMigrationRequired);
-      return;
-    }
-
     const upToDate =
       Boolean(info.version) &&
       info.version.startsWith("v") &&
       compare(info.version.substring(1), albyInfo.hub.latestVersion, ">=");
 
-    setShowBanner(!upToDate || vssMigrationRequired);
+    setShowBanner(!info.hideUpdateBanner && !upToDate);
   }, [info, albyInfo, albyMe?.subscription.plan_code]);
 
   const dismissBanner = () => {
