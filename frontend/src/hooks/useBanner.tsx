@@ -12,16 +12,24 @@ export function useBanner() {
   const isDismissedRef = React.useRef(false);
 
   React.useEffect(() => {
-    if (!info || !albyInfo || isDismissedRef.current) {
+    if (!info || !albyInfo || info.hideUpdateBanner || isDismissedRef.current) {
       return;
     }
+
+    // vss migration (alby cloud only)
+    // TODO: remove after 2026-08-01
+    const vssMigrationRequired =
+      info.oauthRedirect &&
+      !!albyMe?.subscription.plan_code.includes("buzz") &&
+      info.vssSupported &&
+      !info.ldkVssEnabled;
 
     const upToDate =
       Boolean(info.version) &&
       info.version.startsWith("v") &&
       compare(info.version.substring(1), albyInfo.hub.latestVersion, ">=");
 
-    setShowBanner(!info.hideUpdateBanner && !upToDate);
+    setShowBanner(!upToDate || vssMigrationRequired);
   }, [info, albyInfo, albyMe?.subscription.plan_code]);
 
   const dismissBanner = () => {
