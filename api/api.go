@@ -495,12 +495,16 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 		query = query.Where("last_used_at IS NULL OR last_used_at < ?", time.Now().Add(-60*24*time.Hour))
 	}
 
-	if filters.SubWallets != nil && !*filters.SubWallets {
-		// exclude subwallets :scream:
-		if api.db.Dialector.Name() == "sqlite" {
-			query = query.Where("metadata is NULL OR JSON_EXTRACT(metadata, '$.app_store_app_id') IS NULL OR JSON_EXTRACT(metadata, '$.app_store_app_id') != ?", constants.SUBWALLET_APPSTORE_APP_ID)
+	if filters.SubWallets != nil {
+		if *filters.SubWallets {
+			query = query.Where(datatypes.JSONQuery("metadata").Equals(constants.SUBWALLET_APPSTORE_APP_ID, "app_store_app_id"))
 		} else {
-			query = query.Where("metadata IS NULL OR metadata->>'app_store_app_id' IS NULL OR metadata->>'app_store_app_id' != ?", constants.SUBWALLET_APPSTORE_APP_ID)
+			// exclude subwallets :scream:
+			if api.db.Dialector.Name() == "sqlite" {
+				query = query.Where("metadata is NULL OR JSON_EXTRACT(metadata, '$.app_store_app_id') IS NULL OR JSON_EXTRACT(metadata, '$.app_store_app_id') != ?", constants.SUBWALLET_APPSTORE_APP_ID)
+			} else {
+				query = query.Where("metadata IS NULL OR metadata->>'app_store_app_id' IS NULL OR metadata->>'app_store_app_id' != ?", constants.SUBWALLET_APPSTORE_APP_ID)
+			}
 		}
 	}
 
@@ -523,6 +527,13 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 		logger.Logger.WithError(result.Error).Error("Failed to count DB apps")
 		return nil, result.Error
 	}
+
+	var totalBalance *int64
+	if filters.SubWallets != nil && *filters.SubWallets {
+		totalBalanceMsat := queries.GetTotalSubwalletBalance(api.db)
+		totalBalance = &totalBalanceMsat
+	}
+
 	query = query.Offset(int(offset)).Limit(int(limit))
 
 	err := query.Find(&dbApps).Error
@@ -598,8 +609,9 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 		apiApps = append(apiApps, apiApp)
 	}
 	return &ListAppsResponse{
-		Apps:       apiApps,
-		TotalCount: uint64(totalCount),
+		Apps:         apiApps,
+		TotalCount:   uint64(totalCount),
+		TotalBalance: totalBalance,
 	}, nil
 }
 
