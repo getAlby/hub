@@ -1,3 +1,5 @@
+#!/bin/sh
+
 VERIFIER_URL="https://getalby.com/install/hub/verify.sh"
 
 echo ""
@@ -8,8 +10,8 @@ echo "Installing..."
 
 
 sudo mkdir -p /opt/albyhub
-sudo chown -R $USER:$USER /opt/albyhub
-cd /opt/albyhub
+sudo chown -R "$USER:$USER" /opt/albyhub
+cd /opt/albyhub || exit 1
 wget https://getalby.com/install/hub/server-linux-armv6.tar.bz2
 
 # add an update script to keep the Hub up to date
@@ -17,7 +19,7 @@ wget https://getalby.com/install/hub/server-linux-armv6.tar.bz2
 wget https://raw.githubusercontent.com/getAlby/hub/master/scripts/pi-arm/update.sh
 chmod +x update.sh
 
-if [[ ! -f "verify.sh" ]]; then
+if [ ! -f "verify.sh" ]; then
   echo "Downloading the verification script..."
   if ! wget -q "$VERIFIER_URL"; then
     echo "❌ Failed to download the verification script." >&2
@@ -26,17 +28,16 @@ if [[ ! -f "verify.sh" ]]; then
   chmod +x verify.sh
 fi
 
-./verify.sh server-linux-armv6.tar.bz2 albyhub-Server-Linux-armv6.tar.bz2
-if [[ $? -ne 0 ]]; then
+if ! ./verify.sh server-linux-armv6.tar.bz2 albyhub-Server-Linux-armv6.tar.bz2; then
   echo "❌ Verification failed, aborting installation"
   exit 1
 fi
 
 # Extract archives
-tar -xvf server-linux-armv6.tar.bz2
-if [[ $? -ne 0 ]]; then
+if ! tar -xvf server-linux-armv6.tar.bz2; then
   echo "Failed to unpack Alby Hub. Potentially bzip2 is missing"
   echo "Install it with sudo apt-get install bzip2"
+  exit 1
 fi
 
 # Cleanup
