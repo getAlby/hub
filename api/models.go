@@ -298,6 +298,7 @@ type InfoResponse struct {
 	Relays                      []InfoResponseRelay `json:"relays"`
 	NodeAlias                   string              `json:"nodeAlias"`
 	MempoolUrl                  string              `json:"mempoolUrl"`
+	HideUpdateBanner            bool                `json:"hideUpdateBanner"`
 }
 
 type UpdateSettingsRequest struct {
