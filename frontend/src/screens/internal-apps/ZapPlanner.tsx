@@ -355,9 +355,14 @@ export function ZapPlanner() {
           <>
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button
+                  className="max-lg:size-9"
+                  aria-label="New Recurring Payment"
+                >
                   <PlusCircleIcon />
-                  New Recurring Payment
+                  <span className="hidden lg:inline">
+                    New Recurring Payment
+                  </span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[600px]">
