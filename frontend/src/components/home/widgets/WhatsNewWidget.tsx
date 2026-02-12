@@ -14,7 +14,12 @@ export function WhatsNewWidget() {
   const { data: info } = useInfo();
   const { data: albyInfo } = useAlbyInfo();
 
-  if (!info || !albyInfo || !albyInfo.hub.latestReleaseNotes) {
+  if (
+    !info ||
+    !albyInfo ||
+    !albyInfo.hub.latestReleaseNotes ||
+    info.hideUpdateBanner
+  ) {
     return null;
   }
 

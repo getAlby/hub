@@ -139,9 +139,6 @@ func (mln *MockLn) LookupInvoice(ctx context.Context, paymentHash string) (trans
 	return MockLNClientTransaction, nil
 }
 
-func (mln *MockLn) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (invoices []lnclient.Transaction, err error) {
-	return MockLNClientTransactions, nil
-}
 func (mln *MockLn) Shutdown() error {
 	return nil
 }

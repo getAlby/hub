@@ -24,7 +24,6 @@ type AppConfig struct {
 	Workdir                            string `envconfig:"WORK_DIR"`
 	Port                               string `envconfig:"PORT" default:"8080"`
 	DatabaseUri                        string `envconfig:"DATABASE_URI" default:"nwc.db"`
-	JWTSecret                          string `envconfig:"JWT_SECRET"`
 	LogLevel                           string `envconfig:"LOG_LEVEL" default:"4"`
 	LogToFile                          bool   `envconfig:"LOG_TO_FILE" default:"true"`
 	Network                            string `envconfig:"NETWORK"`
@@ -35,8 +34,9 @@ type AppConfig struct {
 	LDKLogLevel                        string `envconfig:"LDK_LOG_LEVEL" default:"3"`
 	LDKMaxChannelSaturationPowerOfHalf uint8  `envconfig:"LDK_MAX_CHANNEL_SATURATION" default:"2"`
 	LDKMaxPathCount                    uint8  `envconfig:"LDK_MAX_PATH_COUNT" default:"5"`
+	LDKChannelMonitorWarningSizeBytes  uint64 `envconfig:"LDK_CHANNEL_MONITOR_WARNING_SIZE_BYTES" default:"5000000"`
 	LDKVssUrl                          string `envconfig:"LDK_VSS_URL" default:"https://vss.getalbypro.com/vss"`
-	LDKListeningAddresses              string `envconfig:"LDK_LISTENING_ADDRESSES" default:"0.0.0.0:9735,[::]:9735"`
+	LDKListeningAddresses              string `envconfig:"LDK_LISTENING_ADDRESSES" default:"[::]:9735"`
 	LDKAnnouncementAddresses           string `envconfig:"LDK_ANNOUNCEMENT_ADDRESSES"`
 	LDKTransientNetworkGraph           bool   `envconfig:"LDK_TRANSIENT_NETWORK_GRAPH" default:"false"`
 	RebalanceServiceUrl                string `envconfig:"REBALANCE_SERVICE_URL" default:"https://megalithic.me"`
@@ -58,6 +58,7 @@ type AppConfig struct {
 	AutoUnlockPassword                 string `envconfig:"AUTO_UNLOCK_PASSWORD"`
 	LogDBQueries                       bool   `envconfig:"LOG_DB_QUERIES" default:"false"`
 	BoltzApi                           string `envconfig:"BOLTZ_API" default:"https://api.boltz.exchange"`
+	HideUpdateBanner                   bool   `envconfig:"HIDE_UPDATE_BANNER" default:"false"`
 }
 
 func (c *AppConfig) IsDefaultClientId() bool {
@@ -73,10 +74,11 @@ func (c *AppConfig) GetBaseFrontendUrl() string {
 }
 
 type Config interface {
+	Unlock(encryptionKey string) error
 	Get(key string, encryptionKey string) (string, error)
 	SetIgnore(key string, value string, encryptionKey string) error
 	SetUpdate(key string, value string, encryptionKey string) error
-	GetJWTSecret() string
+	GetJWTSecret() (string, error)
 	GetRelayUrls() []string
 	GetNetwork() string
 	GetMempoolUrl() string
@@ -85,7 +87,7 @@ type Config interface {
 	ChangeUnlockPassword(currentUnlockPassword string, newUnlockPassword string) error
 	SetAutoUnlockPassword(unlockPassword string) error
 	SaveUnlockPasswordCheck(encryptionKey string) error
-	SetupCompleted() bool
+	SetupCompleted() (bool, error)
 	GetCurrency() string
 	SetCurrency(value string) error
 	GetBitcoinDisplayFormat() string
