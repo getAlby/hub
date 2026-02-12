@@ -406,7 +406,7 @@ func (api *api) DeleteLightningAddress(ctx context.Context, appId uint) error {
 	return nil
 }
 
-func (api *api) GetApp(dbApp *db.App) *App {
+func (api *api) GetApp(dbApp *db.App) (*App, error) {
 
 	paySpecificPermission := db.AppPermission{}
 	appPermissions := []db.AppPermission{}
@@ -430,6 +430,7 @@ func (api *api) GetApp(dbApp *db.App) *App {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
 			"app_id": dbApp.ID,
 		}).Error("Failed to get budget usage for app")
+		return nil, err
 	}
 
 	var metadata Metadata
@@ -474,12 +475,13 @@ func (api *api) GetApp(dbApp *db.App) *App {
 			logger.Logger.WithError(err).WithFields(logrus.Fields{
 				"app_id": dbApp.ID,
 			}).Error("Failed to get isolated app balance")
+			return nil, err
 		} else {
 			response.Balance = balance
 		}
 	}
 
-	return &response
+	return &response, nil
 }
 
 func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, orderBy string) (*ListAppsResponse, error) {

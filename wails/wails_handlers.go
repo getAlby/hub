@@ -72,7 +72,10 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 
 		switch method {
 		case "GET":
-			app := app.api.GetApp(dbApp)
+			app, err := app.api.GetApp(dbApp)
+			if err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
 			return WailsRequestRouterResponse{Body: app, Error: ""}
 		}
 	}
@@ -93,7 +96,10 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 
 		switch method {
 		case "GET":
-			app := app.api.GetApp(dbApp)
+			app, err := app.api.GetApp(dbApp)
+			if err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
 			return WailsRequestRouterResponse{Body: app, Error: ""}
 		case "PATCH":
 			updateAppRequest := &api.UpdateAppRequest{}
