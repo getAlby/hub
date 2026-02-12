@@ -25,13 +25,13 @@ verify_package() {
   done
 
   echo "Downloading manifest file..."
-  if ! wget -q "$MANIFEST_URL"; then
+  if ! wget -q -O manifest.txt "$MANIFEST_URL"; then
     echo "❌ Failed to download manifest file." >&2
     return 1
   fi
 
   echo "Downloading manifest signature file..."
-  if ! wget -q "$SIGNATURE_URL"; then
+  if ! wget -q -O manifest.txt.asc "$SIGNATURE_URL"; then
     echo "❌ Failed to download manifest signature file." >&2
     return 1
   fi

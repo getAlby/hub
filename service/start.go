@@ -30,6 +30,9 @@ import (
 
 func (svc *service) startNostr(ctx context.Context) error {
 	relayUrls := svc.cfg.GetRelayUrls()
+	if len(relayUrls) == 0 {
+		return errors.New("No relay URLs found")
+	}
 
 	npub, err := nip19.EncodePublicKey(svc.keys.GetNostrPublicKey())
 	if err != nil {
@@ -59,7 +62,7 @@ func (svc *service) startNostr(ctx context.Context) error {
 		}),
 	))
 
-	// initially try connect to relays (if hub has no apps, pool won't connect to apps by default)
+	// initially try connect to relays (if hub has no apps, pool won't connect to relays by default)
 	for _, relayUrl := range svc.cfg.GetRelayUrls() {
 		_, err := pool.EnsureRelay(relayUrl)
 		if err != nil {
@@ -228,7 +231,12 @@ func (svc *service) watchSubscription(ctx context.Context, pool *nostr.SimplePoo
 	go func() {
 		// loop through incoming events
 		for event := range eventsChannel {
-			go svc.nip47Service.HandleEvent(ctx, pool, event.Event, svc.lnClient)
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				go svc.nip47Service.HandleEvent(ctx, pool, event.Event, svc.lnClient)
+			}
 		}
 		logger.Logger.Debug("Relay subscription events channel ended")
 		eventsChannelClosed <- struct{}{}
@@ -268,14 +276,19 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return errors.New("invalid password")
 	}
 
-	ctx, cancelFn := context.WithCancel(svc.ctx)
+	err = svc.cfg.Unlock(encryptionKey)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to unlock config")
+		return err
+	}
 
 	err = svc.keys.Init(svc.cfg, encryptionKey)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to init nostr keys")
-		cancelFn()
 		return err
 	}
+
+	ctx, cancelFn := context.WithCancel(svc.ctx)
 
 	svc.startupState = "Launching Node"
 	err = svc.launchLNBackend(ctx, encryptionKey)
@@ -347,7 +360,7 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		setStartupState := func(startupState string) {
 			svc.startupState = startupState
 		}
-		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, mnemonic, ldkWorkdir, svc.cfg.GetNetwork(), vssToken, setStartupState)
+		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, mnemonic, ldkWorkdir, vssToken, setStartupState)
 	case config.PhoenixBackendType:
 		PhoenixdAddress, _ := svc.cfg.Get("PhoenixdAddress", encryptionKey)
 		PhoenixdAuthorization, _ := svc.cfg.Get("PhoenixdAuthorization", encryptionKey)

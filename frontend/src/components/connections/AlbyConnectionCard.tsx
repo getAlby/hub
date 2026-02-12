@@ -2,7 +2,6 @@ import {
   CheckCircle2Icon,
   CircleXIcon,
   EditIcon,
-  ExternalLinkIcon,
   InfoIcon,
   Link2Icon,
   User2Icon,
@@ -47,7 +46,6 @@ import { BudgetRenewalType } from "src/types";
 
 import AlbyAccountDarkSVG from "public/images/illustrations/alby-account-dark.svg";
 import AlbyAccountLightSVG from "public/images/illustrations/alby-account-light.svg";
-import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
 import { useApps } from "src/hooks/useApps";
@@ -173,26 +171,14 @@ function AlbyConnectionCard() {
                   </Button>
                 )
               )}
-              {!albyAccountApp && (
-                <ExternalLinkButton
-                  to="https://www.getalby.com/node"
-                  variant="outline"
-                  className="w-full sm:w-auto"
-                >
-                  <ExternalLinkIcon />
-                  Alby Account Settings
-                </ExternalLinkButton>
-              )}
-              {albyAccountApp && (
-                <LinkButton
-                  to="/settings/alby-account"
-                  className="w-full sm:w-auto"
-                  variant="outline"
-                >
-                  <User2Icon />
-                  Alby Account Settings
-                </LinkButton>
-              )}
+              <LinkButton
+                to="/settings/alby-account"
+                className="w-full sm:w-auto"
+                variant="outline"
+              >
+                <User2Icon />
+                Alby Account Settings
+              </LinkButton>
             </div>
           </div>
           {albyAccountApp && (
