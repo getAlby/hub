@@ -37,7 +37,18 @@ func (controller *nip47Controller) HandleGetBudgetEvent(ctx context.Context, nip
 		return
 	}
 
-	usedBudget := queries.GetBudgetUsageSat(controller.db, &appPermission)
+	usedBudget, err := queries.GetBudgetUsageSat(controller.db, &appPermission)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"request_event_id": requestEventId,
+		}).WithError(err).Error("Failed to fetch budget usage")
+		publishResponse(&models.Response{
+			ResultType: nip47Request.Method,
+			Error:      mapNip47Error(err),
+		}, nostr.Tags{})
+		return
+	}
+
 	responsePayload := &getBudgetResponse{
 		TotalBudget:   uint64(maxAmount * 1000),
 		UsedBudget:    usedBudget * 1000,

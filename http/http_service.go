@@ -1051,7 +1051,12 @@ func (httpSvc *HttpService) appsShowByPubkeyHandler(c echo.Context) error {
 		})
 	}
 
-	response := httpSvc.api.GetApp(dbApp)
+	response, err := httpSvc.api.GetApp(dbApp)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
 
 	return c.JSON(http.StatusOK, response)
 }
@@ -1079,7 +1084,12 @@ func (httpSvc *HttpService) appsShowHandler(c echo.Context) error {
 		})
 	}
 
-	response := httpSvc.api.GetApp(dbApp)
+	response, err := httpSvc.api.GetApp(dbApp)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
 
 	return c.JSON(http.StatusOK, response)
 }

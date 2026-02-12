@@ -16,7 +16,7 @@ type API interface {
 	UpdateApp(app *db.App, updateAppRequest *UpdateAppRequest) error
 	Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, amountMsat uint64) error
 	DeleteApp(app *db.App) error
-	GetApp(app *db.App) *App
+	GetApp(app *db.App) (*App, error)
 	ListApps(limit uint64, offset uint64, filters ListAppsFilters, orderBy string) (*ListAppsResponse, error)
 	CreateLightningAddress(ctx context.Context, createLightningAddressRequest *CreateLightningAddressRequest) error
 	DeleteLightningAddress(ctx context.Context, appId uint) error

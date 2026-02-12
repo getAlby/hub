@@ -406,7 +406,7 @@ func (api *api) DeleteLightningAddress(ctx context.Context, appId uint) error {
 	return nil
 }
 
-func (api *api) GetApp(dbApp *db.App) *App {
+func (api *api) GetApp(dbApp *db.App) (*App, error) {
 
 	paySpecificPermission := db.AppPermission{}
 	appPermissions := []db.AppPermission{}
@@ -424,9 +424,14 @@ func (api *api) GetApp(dbApp *db.App) *App {
 	}
 
 	// renewsIn := ""
-	budgetUsage := uint64(0)
 	maxAmount := uint64(paySpecificPermission.MaxAmountSat)
-	budgetUsage = queries.GetBudgetUsageSat(api.db, &paySpecificPermission)
+	budgetUsage, err := queries.GetBudgetUsageSat(api.db, &paySpecificPermission)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"app_id": dbApp.ID,
+		}).Error("Failed to get budget usage for app")
+		return nil, err
+	}
 
 	var metadata Metadata
 	if dbApp.Metadata != nil {
@@ -465,10 +470,18 @@ func (api *api) GetApp(dbApp *db.App) *App {
 	}
 
 	if dbApp.Isolated {
-		response.Balance = queries.GetIsolatedBalance(api.db, dbApp.ID)
+		balance, err := queries.GetIsolatedBalance(api.db, dbApp.ID)
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"app_id": dbApp.ID,
+			}).Error("Failed to get isolated app balance")
+			return nil, err
+		} else {
+			response.Balance = balance
+		}
 	}
 
-	return &response
+	return &response, nil
 }
 
 func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, orderBy string) (*ListAppsResponse, error) {
@@ -571,7 +584,14 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 		}
 
 		if dbApp.Isolated {
-			apiApp.Balance = queries.GetIsolatedBalance(api.db, dbApp.ID)
+			balance, err := queries.GetIsolatedBalance(api.db, dbApp.ID)
+			if err != nil {
+				logger.Logger.WithError(err).WithFields(logrus.Fields{
+					"app_id": dbApp.ID,
+				}).Error("Failed to get isolated app balance")
+				return nil, err
+			}
+			apiApp.Balance = balance
 		}
 
 		for _, appPermission := range permissionsMap[dbApp.ID] {
@@ -580,7 +600,14 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 			if appPermission.Scope == constants.PAY_INVOICE_SCOPE {
 				apiApp.BudgetRenewal = appPermission.BudgetRenewal
 				apiApp.MaxAmountSat = uint64(appPermission.MaxAmountSat)
-				apiApp.BudgetUsage = queries.GetBudgetUsageSat(api.db, &appPermission)
+				budgetUsage, err := queries.GetBudgetUsageSat(api.db, &appPermission)
+				if err != nil {
+					logger.Logger.WithError(err).WithFields(logrus.Fields{
+						"app_id": dbApp.ID,
+					}).Error("Failed to get budget usage for app")
+					return nil, err
+				}
+				apiApp.BudgetUsage = budgetUsage
 			}
 		}
 
