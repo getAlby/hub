@@ -317,7 +317,7 @@ func (_c *MockConfig_GetEnv_Call) RunAndReturn(run func() *config.AppConfig) *Mo
 }
 
 // GetJWTSecret provides a mock function for the type MockConfig
-func (_mock *MockConfig) GetJWTSecret() string {
+func (_mock *MockConfig) GetJWTSecret() (string, error) {
 	ret := _mock.Called()
 
 	if len(ret) == 0 {
@@ -325,12 +325,21 @@ func (_mock *MockConfig) GetJWTSecret() string {
 	}
 
 	var r0 string
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func() (string, error)); ok {
+		return returnFunc()
+	}
 	if returnFunc, ok := ret.Get(0).(func() string); ok {
 		r0 = returnFunc()
 	} else {
 		r0 = ret.Get(0).(string)
 	}
-	return r0
+	if returnFunc, ok := ret.Get(1).(func() error); ok {
+		r1 = returnFunc()
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
 }
 
 // MockConfig_GetJWTSecret_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetJWTSecret'
@@ -350,12 +359,12 @@ func (_c *MockConfig_GetJWTSecret_Call) Run(run func()) *MockConfig_GetJWTSecret
 	return _c
 }
 
-func (_c *MockConfig_GetJWTSecret_Call) Return(s string) *MockConfig_GetJWTSecret_Call {
-	_c.Call.Return(s)
+func (_c *MockConfig_GetJWTSecret_Call) Return(s string, err error) *MockConfig_GetJWTSecret_Call {
+	_c.Call.Return(s, err)
 	return _c
 }
 
-func (_c *MockConfig_GetJWTSecret_Call) RunAndReturn(run func() string) *MockConfig_GetJWTSecret_Call {
+func (_c *MockConfig_GetJWTSecret_Call) RunAndReturn(run func() (string, error)) *MockConfig_GetJWTSecret_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -769,7 +778,7 @@ func (_c *MockConfig_SetUpdate_Call) RunAndReturn(run func(key string, value str
 }
 
 // SetupCompleted provides a mock function for the type MockConfig
-func (_mock *MockConfig) SetupCompleted() bool {
+func (_mock *MockConfig) SetupCompleted() (bool, error) {
 	ret := _mock.Called()
 
 	if len(ret) == 0 {
@@ -777,12 +786,21 @@ func (_mock *MockConfig) SetupCompleted() bool {
 	}
 
 	var r0 bool
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func() (bool, error)); ok {
+		return returnFunc()
+	}
 	if returnFunc, ok := ret.Get(0).(func() bool); ok {
 		r0 = returnFunc()
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
-	return r0
+	if returnFunc, ok := ret.Get(1).(func() error); ok {
+		r1 = returnFunc()
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
 }
 
 // MockConfig_SetupCompleted_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetupCompleted'
@@ -802,12 +820,57 @@ func (_c *MockConfig_SetupCompleted_Call) Run(run func()) *MockConfig_SetupCompl
 	return _c
 }
 
-func (_c *MockConfig_SetupCompleted_Call) Return(b bool) *MockConfig_SetupCompleted_Call {
-	_c.Call.Return(b)
+func (_c *MockConfig_SetupCompleted_Call) Return(b bool, err error) *MockConfig_SetupCompleted_Call {
+	_c.Call.Return(b, err)
 	return _c
 }
 
-func (_c *MockConfig_SetupCompleted_Call) RunAndReturn(run func() bool) *MockConfig_SetupCompleted_Call {
+func (_c *MockConfig_SetupCompleted_Call) RunAndReturn(run func() (bool, error)) *MockConfig_SetupCompleted_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Unlock provides a mock function for the type MockConfig
+func (_mock *MockConfig) Unlock(encryptionKey string) error {
+	ret := _mock.Called(encryptionKey)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Unlock")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(string) error); ok {
+		r0 = returnFunc(encryptionKey)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockConfig_Unlock_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Unlock'
+type MockConfig_Unlock_Call struct {
+	*mock.Call
+}
+
+// Unlock is a helper method to define mock.On call
+//   - encryptionKey
+func (_e *MockConfig_Expecter) Unlock(encryptionKey interface{}) *MockConfig_Unlock_Call {
+	return &MockConfig_Unlock_Call{Call: _e.mock.On("Unlock", encryptionKey)}
+}
+
+func (_c *MockConfig_Unlock_Call) Run(run func(encryptionKey string)) *MockConfig_Unlock_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(string))
+	})
+	return _c
+}
+
+func (_c *MockConfig_Unlock_Call) Return(err error) *MockConfig_Unlock_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockConfig_Unlock_Call) RunAndReturn(run func(encryptionKey string) error) *MockConfig_Unlock_Call {
 	_c.Call.Return(run)
 	return _c
 }

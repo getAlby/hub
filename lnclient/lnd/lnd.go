@@ -870,61 +870,6 @@ func (svc *LNDService) LookupInvoice(ctx context.Context, paymentHash string) (t
 	return transaction, nil
 }
 
-// FIXME: this always returns limit * 2 transactions and offset is not used correctly
-func (svc *LNDService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []lnclient.Transaction, err error) {
-	// Fetch invoices
-	var invoices []*lnrpc.Invoice
-	if invoiceType == "" || invoiceType == "incoming" {
-		incomingResp, err := svc.client.ListInvoices(ctx, &lnrpc.ListInvoiceRequest{Reversed: true, NumMaxInvoices: limit, IndexOffset: offset})
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to fetch incoming invoices")
-			return nil, err
-		}
-		invoices = incomingResp.Invoices
-	}
-	for _, invoice := range invoices {
-		// this will cause retrieved amount to be less than limit if unpaid is false
-		if !unpaid && invoice.State != lnrpc.Invoice_SETTLED {
-			continue
-		}
-
-		transaction := lndInvoiceToTransaction(invoice)
-		transactions = append(transactions, *transaction)
-	}
-	// Fetch payments
-	var payments []*lnrpc.Payment
-	if invoiceType == "" || invoiceType == "outgoing" {
-		// Not just pending but failed payments will also be included because of IncludeIncomplete
-		outgoingResp, err := svc.client.ListPayments(ctx, &lnrpc.ListPaymentsRequest{Reversed: true, MaxPayments: limit, IndexOffset: offset, IncludeIncomplete: unpaid})
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to fetch outgoing invoices")
-			return nil, err
-		}
-		payments = outgoingResp.Payments
-	}
-	for _, payment := range payments {
-		if payment.Status == lnrpc.Payment_FAILED {
-			// don't return failed payments for now
-			// this will cause retrieved amount to be less than limit
-			continue
-		}
-
-		transaction, err := lndPaymentToTransaction(payment)
-		if err != nil {
-			return nil, err
-		}
-
-		transactions = append(transactions, *transaction)
-	}
-
-	// sort by created date descending
-	sort.SliceStable(transactions, func(i, j int) bool {
-		return transactions[i].CreatedAt > transactions[j].CreatedAt
-	})
-
-	return transactions, nil
-}
-
 func (svc *LNDService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
 	return svc.nodeInfo, nil
 }

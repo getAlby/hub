@@ -61,7 +61,7 @@ func NewAlbyOAuthService(db *gorm.DB, cfg config.Config, keys keys.Keys, eventPu
 	conf := &oauth2.Config{
 		ClientID:     cfg.GetEnv().AlbyClientId,
 		ClientSecret: cfg.GetEnv().AlbyClientSecret,
-		Scopes:       []string{"account:read", "balance:read", "payments:send"},
+		Scopes:       []string{"account:read"},
 		Endpoint: oauth2.Endpoint{
 			TokenURL:  albyOAuthAPIURL + "/oauth/token",
 			AuthURL:   albyOAuthAuthUrl,

@@ -2,11 +2,11 @@ package config
 
 import (
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"os"
-	"path"
 	"strings"
 	"sync"
 
@@ -21,8 +21,9 @@ import (
 type config struct {
 	Env        *AppConfig
 	db         *gorm.DB
-	cache      map[string]string
+	cache      map[string]map[string]string // key -> encryptionKeyHash -> value
 	cacheMutex sync.Mutex
+	jwtSecret  string
 }
 
 const (
@@ -32,7 +33,7 @@ const (
 func NewConfig(env *AppConfig, db *gorm.DB) (*config, error) {
 	cfg := &config{
 		db:    db,
-		cache: map[string]string{},
+		cache: map[string]map[string]string{},
 	}
 	err := cfg.init(env)
 	if err != nil {
@@ -110,50 +111,62 @@ func (cfg *config) init(env *AppConfig) error {
 		}
 	}
 
-	// set the JWT secret from the env, or generate a new one
-	existingSecret, _ := cfg.Get("JWTSecret", "")
-	if existingSecret == "" {
-		jwtSecret := cfg.Env.JWTSecret
-		if jwtSecret == "" {
-			hexSecret, err := randomHex(32)
-			if err != nil {
-				logger.Logger.WithError(err).Error("failed to generate JWT secret")
-				return err
-			}
-			jwtSecret = hexSecret
-			logger.Logger.Info("Generated new JWT secret")
-		}
+	return nil
+}
 
-		err := cfg.SetIgnore("JWTSecret", jwtSecret, "")
+func (cfg *config) SetupCompleted() (bool, error) {
+	nodeLastStartTime, err := cfg.Get("NodeLastStartTime", "")
+	if err != nil {
+		return false, err
+	}
+
+	logger.Logger.WithFields(logrus.Fields{
+		"has_node_last_start_time": nodeLastStartTime != "",
+	}).Debug("Checking if setup is completed")
+	return nodeLastStartTime != "", nil
+}
+
+func (cfg *config) GetJWTSecret() (string, error) {
+	if cfg.jwtSecret == "" {
+		return "", errors.New("config not unlocked")
+	}
+
+	return cfg.jwtSecret, nil
+}
+
+func (cfg *config) Unlock(encryptionKey string) error {
+	if !cfg.CheckUnlockPassword(encryptionKey) {
+		return errors.New("incorrect password")
+	}
+
+	// TODO: remove encryptedJwtSecret check after 2027-01-01
+	// - all hubs should have updated to use an encrypted JWT secret by then
+	encryptedJwtSecret, err := cfg.Get("JWTSecret", "")
+	if err != nil {
+		return err
+	}
+	jwtSecret, err := cfg.Get("JWTSecret", encryptionKey)
+	if err != nil {
+		return err
+	}
+	// generate a new one if none exists yet OR if the user has an unencrypted secret
+	if jwtSecret == "" || jwtSecret == encryptedJwtSecret {
+		hexSecret, err := randomHex(32)
+		if err != nil {
+			logger.Logger.WithError(err).Error("failed to generate JWT secret")
+			return err
+		}
+		jwtSecret = hexSecret
+		logger.Logger.Info("Generated new JWT secret")
+
+		err = cfg.SetUpdate("JWTSecret", jwtSecret, encryptionKey)
 		if err != nil {
 			logger.Logger.WithError(err).Error("failed to save JWT secret")
 			return err
 		}
 	}
+	cfg.jwtSecret = jwtSecret
 	return nil
-}
-
-func (cfg *config) SetupCompleted() bool {
-	// TODO: remove hasLdkDir check after 2025/01/01
-	// to give time for users to update to 1.6.0+
-	nodeLastStartTime, _ := cfg.Get("NodeLastStartTime", "")
-	ldkDir, err := os.Stat(path.Join(cfg.GetEnv().Workdir, "ldk"))
-	hasLdkDir := err == nil && ldkDir != nil && ldkDir.IsDir()
-
-	logger.Logger.WithFields(logrus.Fields{
-		"has_ldk_dir":              hasLdkDir,
-		"has_node_last_start_time": nodeLastStartTime != "",
-	}).Debug("Checking if setup is completed")
-	return nodeLastStartTime != "" || hasLdkDir
-}
-
-func (cfg *config) GetJWTSecret() string {
-	secret, err := cfg.Get("JWTSecret", "")
-	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to retrieve JWTSecret from database")
-		return ""
-	}
-	return secret
 }
 
 func (cfg *config) GetRelayUrls() []string {
@@ -180,13 +193,28 @@ func (cfg *config) GetMempoolUrl() string {
 	return strings.TrimSuffix(mempoolApiUrl, "/api")
 }
 
+func (cfg *config) getEncryptionKeyHash(encryptionKey string) string {
+	if encryptionKey == "" {
+		return ""
+	}
+	hash := sha256.Sum256([]byte(encryptionKey))
+	// For cache key purposes, 8 bytes (16 hex chars) provides:
+	//   2^64 possible values = ~18 quintillion combinations
+	//   More than sufficient to avoid collisions for cache keys
+	return hex.EncodeToString(hash[:8])
+}
+
 func (cfg *config) Get(key string, encryptionKey string) (string, error) {
 	cfg.cacheMutex.Lock()
 	defer cfg.cacheMutex.Unlock()
-	cachedValue, ok := cfg.cache[key]
-	if ok {
-		logger.Logger.WithField("key", key).Debug("hit config cache")
-		return cachedValue, nil
+
+	encKeyHash := cfg.getEncryptionKeyHash(encryptionKey)
+
+	if keyCache, ok := cfg.cache[key]; ok {
+		if cachedValue, ok := keyCache[encKeyHash]; ok {
+			logger.Logger.WithField("key", key).Debug("hit config cache")
+			return cachedValue, nil
+		}
 	}
 	logger.Logger.WithField("key", key).Debug("missed config cache")
 
@@ -194,7 +222,11 @@ func (cfg *config) Get(key string, encryptionKey string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	cfg.cache[key] = value
+
+	if cfg.cache[key] == nil {
+		cfg.cache[key] = make(map[string]string)
+	}
+	cfg.cache[key][encKeyHash] = value
 	logger.Logger.WithField("key", key).Debug("set config cache")
 	return value, nil
 }
@@ -256,7 +288,7 @@ func (cfg *config) SetIgnore(key string, value string, encryptionKey string) err
 func (cfg *config) SetUpdate(key string, value string, encryptionKey string) error {
 	clauses := clause.OnConflict{
 		Columns:   []clause.Column{{Name: "key"}},
-		DoUpdates: clause.AssignmentColumns([]string{"value"}),
+		DoUpdates: clause.AssignmentColumns([]string{"value", "encrypted"}),
 	}
 	err := cfg.set(key, value, clauses, encryptionKey, cfg.db)
 	if err != nil {
@@ -301,23 +333,14 @@ func (cfg *config) ChangeUnlockPassword(currentUnlockPassword string, newUnlockP
 			logger.Logger.WithField("key", userConfig.Key).Info("re-encrypted key")
 		}
 
-		newSecret, err := randomHex(32)
+		// delete the JWT secret so it will be re-generated on next unlock (to log all sessions out on password change)
+		err = tx.Where(&db.UserConfig{Key: "JWTSecret"}).Delete(&db.UserConfig{}).Error
 		if err != nil {
-			logger.Logger.WithError(err).Error("failed to generate new JWT secret during password change transaction")
-			return fmt.Errorf("failed to generate new JWT secret: %w", err)
+			logger.Logger.WithError(err).Error("failed to remove JWT secret during password change transaction")
+			return fmt.Errorf("failed to delete new JWT secret: %w", err)
 		}
 
-		updateClauses := clause.OnConflict{
-			Columns:   []clause.Column{{Name: "key"}},
-			DoUpdates: clause.AssignmentColumns([]string{"value"}),
-		}
-		err = cfg.set("JWTSecret", newSecret, updateClauses, "", tx)
-		if err != nil {
-			logger.Logger.WithError(err).Error("failed to save new JWT secret during password change transaction")
-			return fmt.Errorf("failed to save new JWT secret: %w", err)
-		}
-		logger.Logger.Info("Successfully regenerated JWT secret as part of password change transaction")
-
+		logger.Logger.Info("Successfully removed JWT secret as part of password change transaction")
 		return nil
 	})
 
@@ -325,6 +348,9 @@ func (cfg *config) ChangeUnlockPassword(currentUnlockPassword string, newUnlockP
 		logger.Logger.WithError(err).Error("failed to execute password change transaction")
 		return err
 	}
+
+	// JWT secret will be set on config unlock (required after password change)
+	cfg.jwtSecret = ""
 	return nil
 }
 
