@@ -530,7 +530,11 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 
 	var totalBalance *int64
 	if filters.SubWallets != nil && *filters.SubWallets {
-		totalBalanceMsat := queries.GetTotalSubwalletBalance(api.db)
+		totalBalanceMsat, err := queries.GetTotalSubwalletBalance(api.db)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to calculate total subwallet balance")
+			return nil, err
+		}
 		totalBalance = &totalBalanceMsat
 	}
 
