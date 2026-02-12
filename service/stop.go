@@ -10,8 +10,10 @@ import (
 func (svc *service) StopApp() {
 	if svc.appCancelFn != nil {
 		logger.Logger.Info("Stopping app...")
+		svc.shuttingDown.Store(true)
 		svc.appCancelFn()
 		svc.wg.Wait()
+		svc.shuttingDown.Store(false)
 		logger.Logger.Info("app stopped")
 	}
 }
