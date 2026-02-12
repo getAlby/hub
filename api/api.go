@@ -1198,7 +1198,12 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	backendType, _ := api.cfg.Get("LNBackendType", "")
 	ldkVssEnabled, _ := api.cfg.Get("LdkVssEnabled", "")
 	autoUnlockPassword, _ := api.cfg.Get("AutoUnlockPassword", "")
-	info.SetupCompleted = api.cfg.SetupCompleted()
+	setupCompleted, err := api.cfg.SetupCompleted()
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to check if setup is completed")
+		return nil, err
+	}
+	info.SetupCompleted = setupCompleted
 	info.Currency = api.cfg.GetCurrency()
 	info.BitcoinDisplayFormat = api.cfg.GetBitcoinDisplayFormat()
 	info.StartupState = api.svc.GetStartupState()
@@ -1212,6 +1217,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.OAuthRedirect = !api.cfg.GetEnv().IsDefaultClientId()
 	info.Version = version.Tag
 	info.EnableAdvancedSetup = api.cfg.GetEnv().EnableAdvancedSetup
+	info.HideUpdateBanner = api.cfg.GetEnv().HideUpdateBanner
 	info.LdkVssEnabled = ldkVssEnabled == "true"
 	info.VssSupported = backendType == config.LDKBackendType && api.cfg.GetEnv().LDKVssUrl != ""
 	info.AutoUnlockPasswordEnabled = autoUnlockPassword != ""
@@ -1336,7 +1342,7 @@ var startMutex sync.Mutex
 
 func (api *api) Start(startRequest *StartRequest) {
 	api.startupError = nil
-	err := api.StartInternal(startRequest)
+	err := api.startInternal(startRequest)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to start node")
 		api.startupError = err
@@ -1344,7 +1350,7 @@ func (api *api) Start(startRequest *StartRequest) {
 	}
 }
 
-func (api *api) StartInternal(startRequest *StartRequest) (err error) {
+func (api *api) startInternal(startRequest *StartRequest) (err error) {
 	if !startMutex.TryLock() {
 		// do not allow to start twice in case this is somehow called twice
 		return errors.New("app is busy")

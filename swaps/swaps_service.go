@@ -585,12 +585,17 @@ func (svc *swapsService) markSwapState(dbSwap *db.Swap, state string) {
 
 func (svc *swapsService) RefundSwap(swapId, address string, enableRetries bool) error {
 	var swap db.Swap
-	err := svc.db.Limit(1).Find(&swap, &db.Swap{
+	query := svc.db.Limit(1).Find(&swap, &db.Swap{
 		SwapId: swapId,
-	}).Error
+	})
+	err := query.Error
 	if err != nil {
-		logger.Logger.WithField("swapId", swapId).WithError(err).Error("Could not find swap to process refund")
+		logger.Logger.WithField("swapId", swapId).WithError(err).Error("Failed to lookup swap")
 		return err
+	}
+	if query.RowsAffected == 0 {
+		logger.Logger.WithField("swapId", swapId).Error("Could not find swap to process refund")
+		return errors.New("Could not find swap")
 	}
 
 	if swap.Type != constants.SWAP_TYPE_IN {

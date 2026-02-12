@@ -21,3 +21,6 @@ export const ALBY_ACCOUNT_APP_NAME = "getalby.com";
 
 export const DEFAULT_APP_BUDGET_SATS = 10_000;
 export const DEFAULT_APP_BUDGET_RENEWAL = "monthly";
+
+export const BITCOIN_DISPLAY_FORMAT_BIP177 = "bip177";
+export const BITCOIN_DISPLAY_FORMAT_SATS = "sats";

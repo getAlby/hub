@@ -132,7 +132,7 @@ func TestGetApps_ReadonlyPermission(t *testing.T) {
 	mockConfig := mocks.NewMockConfig(t)
 	mockConfig.On("GetEnv").Return(&config.AppConfig{})
 	mockConfig.On("CheckUnlockPassword", "123").Return(true)
-	mockConfig.On("GetJWTSecret").Return("dummy secret")
+	mockConfig.On("GetJWTSecret").Return("dummy secret", nil)
 
 	mockSvc.On("GetDB").Return(gormDb)
 	mockSvc.On("GetConfig").Return(mockConfig)
@@ -185,7 +185,7 @@ func TestGetApps_FullPermission(t *testing.T) {
 	mockConfig := mocks.NewMockConfig(t)
 	mockConfig.On("GetEnv").Return(&config.AppConfig{})
 	mockConfig.On("CheckUnlockPassword", "123").Return(true)
-	mockConfig.On("GetJWTSecret").Return("dummy secret")
+	mockConfig.On("GetJWTSecret").Return("dummy secret", nil)
 
 	mockSvc.On("GetDB").Return(gormDb)
 	mockSvc.On("GetConfig").Return(mockConfig)
@@ -270,7 +270,7 @@ func TestCreateApp_FullPermission(t *testing.T) {
 	mockConfig := mocks.NewMockConfig(t)
 	mockConfig.On("GetEnv").Return(&config.AppConfig{})
 	mockConfig.On("CheckUnlockPassword", "123").Return(true)
-	mockConfig.On("GetJWTSecret").Return("dummy secret")
+	mockConfig.On("GetJWTSecret").Return("dummy secret", nil)
 	mockConfig.On("GetRelayUrls").Return([]string{})
 
 	mockKeys := mocks.NewMockKeys(t)
@@ -334,7 +334,7 @@ func TestCreateApp_ReadonlyPermission(t *testing.T) {
 	mockConfig := mocks.NewMockConfig(t)
 	mockConfig.On("GetEnv").Return(&config.AppConfig{})
 	mockConfig.On("CheckUnlockPassword", "123").Return(true)
-	mockConfig.On("GetJWTSecret").Return("dummy secret")
+	mockConfig.On("GetJWTSecret").Return("dummy secret", nil)
 
 	mockKeys := mocks.NewMockKeys(t)
 

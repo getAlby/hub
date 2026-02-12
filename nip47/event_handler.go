@@ -47,6 +47,13 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, pool nostrmodels.Simpl
 		return
 	}
 
+	if lnClient == nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"requestEventNostrId": event.ID,
+		}).Error("cannot handle event due to LNClient not started")
+		return
+	}
+
 	// store request event
 	requestEvent := db.RequestEvent{AppId: nil, NostrId: event.ID, State: db.REQUEST_EVENT_STATE_HANDLER_EXECUTING}
 	err = svc.db.Create(&requestEvent).Error
