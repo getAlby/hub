@@ -44,7 +44,6 @@ func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, ni
 		}
 	} else {
 		balances, err := controller.lnClient.GetBalances(ctx, true)
-		balance = balances.Lightning.TotalSpendable
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"request_event_id": requestEventId,
@@ -55,6 +54,7 @@ func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, ni
 			}, nostr.Tags{})
 			return
 		}
+		balance = balances.Lightning.TotalSpendable
 	}
 
 	responsePayload := &getBalanceResponse{
