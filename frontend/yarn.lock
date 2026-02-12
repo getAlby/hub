@@ -6372,16 +6372,16 @@ victory-vendor@^36.6.8:
     d3-time "^3.0.0"
     d3-timer "^3.0.1"
 
-vite-plugin-pwa@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/vite-plugin-pwa/-/vite-plugin-pwa-1.1.0.tgz#3c08c638be084abda48fac977eac3e9cbcfb0d96"
-  integrity sha512-VsSpdubPzXhHWVINcSx6uHRMpOHVHQcHsef1QgkOlEoaIDAlssFEW88LBq1a59BuokAhsh2kUDJbaX1bZv4Bjw==
+vite-plugin-pwa@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/vite-plugin-pwa/-/vite-plugin-pwa-1.2.0.tgz#3c7de17d4eed662f273095a0ac52f7a98d0cde36"
+  integrity sha512-a2xld+SJshT9Lgcv8Ji4+srFJL4k/1bVbd1x06JIkvecpQkwkvCncD1+gSzcdm3s+owWLpMJerG3aN5jupJEVw==
   dependencies:
     debug "^4.3.6"
     pretty-bytes "^6.1.1"
     tinyglobby "^0.2.10"
-    workbox-build "^7.3.0"
-    workbox-window "^7.3.0"
+    workbox-build "^7.4.0"
+    workbox-window "^7.4.0"
 
 vite-tsconfig-paths@^5.1.4:
   version "5.1.4"
@@ -6504,7 +6504,7 @@ workbox-broadcast-update@7.4.0:
   dependencies:
     workbox-core "7.4.0"
 
-workbox-build@^7.3.0:
+workbox-build@^7.4.0:
   version "7.4.0"
   resolved "https://registry.yarnpkg.com/workbox-build/-/workbox-build-7.4.0.tgz#033f88ebbd9c6312983f3fb9c17a4161369d693f"
   integrity sha512-Ntk1pWb0caOFIvwz/hfgrov/OJ45wPEhI5PbTywQcYjyZiVhT3UrwwUPl6TRYbTm4moaFYithYnl1lvZ8UjxcA==
@@ -6639,7 +6639,7 @@ workbox-sw@7.4.0:
   resolved "https://registry.yarnpkg.com/workbox-sw/-/workbox-sw-7.4.0.tgz#05c9659399b8f3716e14406be66eb118fcb3968f"
   integrity sha512-ltU+Kr3qWR6BtbdlMnCjobZKzeV1hN+S6UvDywBrwM19TTyqA03X66dzw1tEIdJvQ4lYKkBFox6IAEhoSEZ8Xw==
 
-workbox-window@7.4.0, workbox-window@^7.3.0:
+workbox-window@7.4.0, workbox-window@^7.4.0:
   version "7.4.0"
   resolved "https://registry.yarnpkg.com/workbox-window/-/workbox-window-7.4.0.tgz#5399a5261b8c34d9d102f2d832d5857ee4d5748a"
   integrity sha512-/bIYdBLAVsNR3v7gYGaV4pQW3M3kEPx5E8vDxGvxo6khTrGtSSCS7QiFKv9ogzBgZiy0OXLP9zO28U/1nF1mfw==
