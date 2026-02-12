@@ -1056,7 +1056,7 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 		if app.Isolated {
 			balance, err := queries.GetIsolatedBalance(tx, appPermission.AppId)
 			if err != nil {
-				return errors.New("failed to calculate isolated balance for app")
+				return fmt.Errorf("failed to calculate isolated balance for app: %w", err)
 			}
 
 			if int64(amountWithFeeReserve) > balance {
@@ -1086,7 +1086,7 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 		if appPermission.MaxAmountSat > 0 {
 			budgetUsageSat, err := queries.GetBudgetUsageSat(tx, &appPermission)
 			if err != nil {
-				return errors.New("failed to calculate budget usage for app")
+				return fmt.Errorf("failed to calculate budget usage for app: %w", err)
 			}
 			if int(amountWithFeeReserve/1000) > appPermission.MaxAmountSat-int(budgetUsageSat) {
 				message := NewQuotaExceededError().Error()
