@@ -110,12 +110,39 @@ func TestWrappedInvoice(t *testing.T) {
 	require.NoError(t, err)
 	defer svc.Remove()
 
+	// invoices were created with long expiry in LND (Polar)
+	/*
+		lnd@grace:/$ lncli addinvoice --amt <amount> --preimage fcf200c74d9900dc77af17eb1f57c02eec0f94b5b169d3eee23df9a216a3411b --expiry 31536000
+		bash: amount: No such file or directory
+		lnd@grace:/$ lncli addinvoice --amt 1000 --preimage fcf200c74d9900dc77af17eb1f57c02eec0f94b5b169d3eee23df9a21
+		6a3411b --expiry 31536000
+		{
+				"r_hash":  "8f3cfa1cdcf19de4b6fdb9ec339b7470e724d0c755b7c7568164d5df1b70ea6e",
+				"payment_request":  "lnbcrt10u1p5cammypp53u7058xu7xw7fdhah8kr8xm5wrnjf5x82kmuw45pvn2a7xmsafhqdqqcqzzsxq97zvuqsp5k9qse5srd9mfaxlgucr0p2gzf9464xte5xtqgjxyxj7794jxav9q9qxpqysgqnvwx0j9qxkx6k9efetdr0vdkrnp4vn23ud4gwpm0k28vf3v0rcmzfnued907r7ju6d86wr25ypt366szd0f7s28nzrvwmp4rck4358spfr9vx9",
+				"add_index":  "1",
+				"payment_addr":  "b1410cd20369769e9be8e606f0a902496baa9979a1960448c434bde2d646eb0a"
+		}
+		lnd@grace:/$ lncli addholdinvoice 8f3cfa1cdcf19de4b6fdb9ec339b7470e724d0c755b7c7568164d5df1b70ea6e --amt 1100
+		--expiry 31536000
+		[lncli] rpc error: code = Unknown desc = invoice with payment hash already exists
+		lnd@grace:/$ lncli cancelinvoice 8f3cfa1cdcf19de4b6fdb9ec339b7470e724d0c755b7c7568164d5df1b70ea6e
+		{}
+		lnd@grace:/$ lncli deletecanceledinvoice 8f3cfa1cdcf19de4b6fdb9ec339b7470e724d0c755b7c7568164d5df1b70ea6e
+		{
+				"status": "canceled invoice deleted successfully: invoice hash 8f3cfa1cdcf19de4b6fdb9ec339b7470e724d0c755b7c7568164d5df1b70ea6e"
+		}
+		lnd@grace:/$ lncli addholdinvoice 8f3cfa1cdcf19de4b6fdb9ec339b7470e724d0c755b7c7568164d5df1b70ea6e --amt 1100 --expiry 31536000
+		{
+				"payment_request":  "lnbcrt11u1p5cama7pp53u7058xu7xw7fdhah8kr8xm5wrnjf5x82kmuw45pvn2a7xmsafhqdqqcqzzsxq97zvuqsp5mtvgejxel3yjyk55e58dgjg9v2mnxva9xn83yg05mducwz3ujhrq9qxpqysgqp48sr0r7x6hj5vcefn3wtj7g8r33agyp4aqfasyr2fptxp066wzppmr7rw9my3frezy65hw7u5l0tnqh7393x2km7tf2tk3efdl0c7qptan9m9",
+				"add_index":  "2",
+				"payment_addr":  "dad88cc8d9fc49225a94cd0ed4490562b73333a534cf1221f4db79870a3c95c6"
+		}
+	*/
+
 	// use the pubkey from Bob's invoice to activate self payments
-	svc.LNClient.(*tests.MockLn).Pubkey = "03b6b08ea1f2b70f2260886c9b28fed115b833f18c227abdbf0e8d0629d42b430c"
+	svc.LNClient.(*tests.MockLn).Pubkey = "03a53c23a3e12cb3b16dc23c8a6d18e5930b480443c5f46860f553b33d74731342"
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	// FIXME: undo this change and generate new invoices with 10y expiry
-	transactionsService.allowExpiredInvoices = true
 
 	// Charlie creates invoice with payment hash
 	// Bob also creates invoice with payment hash, but it's a HOLD invoice one.
@@ -137,30 +164,30 @@ func TestWrappedInvoice(t *testing.T) {
 	// Charlie's 1000 sat invoice
 	mockCharlieInvoice := &lnclient.Transaction{
 		Type:            "incoming",
-		Invoice:         "lnbc10u1p5hk29tdpq2pshjmt9de6zqmmxyqcnqvpsypekzarnnp4qwmtpr4p72ms7gnq3pkfk2876y2msvl33s3840dlp6xsv2w59dpscpp5jfng0kh5ea3gdx6m3fgg9ze8fy223e9qwugpr5pnmhlfnn7r8qlqsp5z8myf87llx9qw8nyhun7hmkhmysn3zn0hdr7afgpm0y6sq4uhrfs9qyysgqcqzp2xqyz5vqysqe04e5jnqnumxwnarneum0x200hag3txc9yxs2y3uvu9mwd39jw0j8sefyqul3e2f6mjr5uh2uk87fsm8s8hlqf7xyv4kwlvl4r6gqzcxtew",
+		Invoice:         "lnbcrt10u1p5cammypp53u7058xu7xw7fdhah8kr8xm5wrnjf5x82kmuw45pvn2a7xmsafhqdqqcqzzsxq97zvuqsp5k9qse5srd9mfaxlgucr0p2gzf9464xte5xtqgjxyxj7794jxav9q9qxpqysgqnvwx0j9qxkx6k9efetdr0vdkrnp4vn23ud4gwpm0k28vf3v0rcmzfnued907r7ju6d86wr25ypt366szd0f7s28nzrvwmp4rck4358spfr9vx9",
 		Description:     "mock hold invoice",
 		DescriptionHash: "",
-		Preimage:        "92e1454361a292de1d76e1bf3a2aeceee12e5efa3cd7de496a378de36e628056",
-		PaymentHash:     "926687daf4cf62869b5b8a50828b274914a8e4a0771011d033ddfe99cfc3383e",
+		Preimage:        "fcf200c74d9900dc77af17eb1f57c02eec0f94b5b169d3eee23df9a216a3411b",
+		PaymentHash:     "8f3cfa1cdcf19de4b6fdb9ec339b7470e724d0c755b7c7568164d5df1b70ea6e",
 		Amount:          1000_000,
 	}
 
-	// Bob's 1100 sat invoice lnbc11u1p5hk2dwdq5fphkcepqd9h8vmmfvdjsnp4qwmtpr4p72ms7gnq3pkfk2876y2msvl33s3840dlp6xsv2w59dpscpp5jfng0kh5ea3gdx6m3fgg9ze8fy223e9qwugpr5pnmhlfnn7r8qlqsp58wvher465xxt3aca7p3t9fgfxrf5kvztq9dkeuef4uk7kvhjmaaq9qyysgqcqzp2xqyz5vqk7sl3ldtt7l98df5h2kd2wfe55lup0vddmxdtkpjarklxj46zrvshgf7rrue2vs6qkaukse5fg024ex6z5cwuqp6qthq7zflxcazgdgq0elt53
+	// Bob's 1100 sat invoice
 	// (same payment hash)
 
-	mockBobInvoice := &lnclient.Transaction{
+	mockBobHoldInvoice := &lnclient.Transaction{
 		Type:            "incoming",
-		Invoice:         "lnbc11u1p5hk2dwdq5fphkcepqd9h8vmmfvdjsnp4qwmtpr4p72ms7gnq3pkfk2876y2msvl33s3840dlp6xsv2w59dpscpp5jfng0kh5ea3gdx6m3fgg9ze8fy223e9qwugpr5pnmhlfnn7r8qlqsp58wvher465xxt3aca7p3t9fgfxrf5kvztq9dkeuef4uk7kvhjmaaq9qyysgqcqzp2xqyz5vqk7sl3ldtt7l98df5h2kd2wfe55lup0vddmxdtkpjarklxj46zrvshgf7rrue2vs6qkaukse5fg024ex6z5cwuqp6qthq7zflxcazgdgq0elt53",
+		Invoice:         "lnbcrt11u1p5cama7pp53u7058xu7xw7fdhah8kr8xm5wrnjf5x82kmuw45pvn2a7xmsafhqdqqcqzzsxq97zvuqsp5mtvgejxel3yjyk55e58dgjg9v2mnxva9xn83yg05mducwz3ujhrq9qxpqysgqp48sr0r7x6hj5vcefn3wtj7g8r33agyp4aqfasyr2fptxp066wzppmr7rw9my3frezy65hw7u5l0tnqh7393x2km7tf2tk3efdl0c7qptan9m9",
 		Description:     "mock hold invoice",
 		DescriptionHash: "",
 		Preimage:        "",
-		PaymentHash:     "926687daf4cf62869b5b8a50828b274914a8e4a0771011d033ddfe99cfc3383e",
+		PaymentHash:     "8f3cfa1cdcf19de4b6fdb9ec339b7470e724d0c755b7c7568164d5df1b70ea6e",
 		Amount:          1100_000,
 	}
 
 	svc.LNClient.(*tests.MockLn).MakeInvoiceResponses = []*lnclient.Transaction{
 		mockCharlieInvoice,
-		mockBobInvoice,
+		mockBobHoldInvoice,
 	}
 	svc.LNClient.(*tests.MockLn).MakeInvoiceErrors = []error{nil, nil}
 
@@ -183,7 +210,7 @@ func TestWrappedInvoice(t *testing.T) {
 	bobWrappedInvoice, err := transactionsService.MakeHoldInvoice(ctx, 1100, "Bob wrapped invoice", "", 0, charlieInvoice.PaymentHash, nil, svc.LNClient, &bobApp.ID, nil)
 	require.NoError(t, err)
 	require.True(t, bobWrappedInvoice.Hold)
-	require.Equal(t, mockBobInvoice.Invoice, bobWrappedInvoice.PaymentRequest)
+	require.Equal(t, mockBobHoldInvoice.Invoice, bobWrappedInvoice.PaymentRequest)
 
 	// Top up Alice's wallet
 	aliceFundingTx := db.Transaction{

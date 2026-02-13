@@ -30,9 +30,8 @@ import (
 )
 
 type transactionsService struct {
-	db                   *gorm.DB
-	eventPublisher       events.EventPublisher
-	allowExpiredInvoices bool
+	db             *gorm.DB
+	eventPublisher events.EventPublisher
 }
 
 type TransactionsService interface {
@@ -292,7 +291,7 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 		return nil, err
 	}
 
-	if !svc.allowExpiredInvoices && time.Now().After(time.Unix(int64(paymentRequest.CreatedAt+paymentRequest.Expiry), 0)) {
+	if time.Now().After(time.Unix(int64(paymentRequest.CreatedAt+paymentRequest.Expiry), 0)) {
 		logger.Logger.WithFields(logrus.Fields{
 			"bolt11": payReq,
 			"expiry": time.Unix(int64(paymentRequest.CreatedAt+paymentRequest.Expiry), 0),
