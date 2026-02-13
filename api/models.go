@@ -113,8 +113,9 @@ type ListAppsFilters struct {
 }
 
 type ListAppsResponse struct {
-	Apps       []App  `json:"apps"`
-	TotalCount uint64 `json:"totalCount"`
+	Apps         []App  `json:"apps"`
+	TotalCount   uint64 `json:"totalCount"`
+	TotalBalance *int64 `json:"totalBalance,omitempty"`
 }
 
 type UpdateAppRequest struct {

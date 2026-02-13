@@ -640,6 +640,7 @@ export type OnchainTransaction = {
 export type ListAppsResponse = {
   apps: App[];
   totalCount: number;
+  totalBalance?: number;
 };
 
 export type ListTransactionsResponse = {

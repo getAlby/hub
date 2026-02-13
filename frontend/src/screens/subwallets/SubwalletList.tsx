@@ -27,7 +27,7 @@ import {
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
-import { LIST_APPS_LIMIT, SUBWALLET_APPSTORE_APP_ID } from "src/constants";
+import { LIST_APPS_LIMIT } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
 import { useBalances } from "src/hooks/useBalances";
@@ -38,11 +38,11 @@ export function SubwalletList() {
   const { data: info } = useInfo();
   const [page, setPage] = useState(1);
   const appsListRef = useRef<HTMLDivElement>(null);
-  const { data: appsData } = useApps(
+  const { data: subwalletAppsData } = useApps(
     undefined,
     page,
     {
-      appStoreAppId: SUBWALLET_APPSTORE_APP_ID,
+      subWallets: true,
     },
     "created_at"
   );
@@ -59,21 +59,20 @@ export function SubwalletList() {
 
   if (
     !info ||
-    !appsData ||
+    !subwalletAppsData ||
     !balances ||
     (info.albyAccountConnected && !albyMe && !albyMeError)
   ) {
     return <Loading />;
   }
 
-  const subwalletApps = appsData.apps;
+  const subwalletApps = subwalletAppsData.apps;
 
-  if (!subwalletApps.length) {
+  if (!subwalletAppsData.totalCount) {
     return <SubwalletIntro />;
   }
 
-  const subwalletTotalAmount =
-    subwalletApps.reduce((total, app) => total + app.balance, 0) || 0;
+  const subwalletTotalAmount = subwalletAppsData.totalBalance || 0;
   const isSufficientlyBacked =
     subwalletTotalAmount <= balances.lightning.totalSpendable;
 
@@ -91,7 +90,8 @@ export function SubwalletList() {
             >
               <HelpCircle className="size-4" />
             </ExternalLinkButton>
-            {!albyMe?.subscription.plan_code && subwalletApps?.length >= 3 ? (
+            {!albyMe?.subscription.plan_code &&
+            subwalletAppsData.totalCount >= 3 ? (
               <UpgradeDialog>
                 <ResponsiveButton icon={CirclePlusIcon} text="New Sub-wallet" />
               </UpgradeDialog>
@@ -106,7 +106,7 @@ export function SubwalletList() {
         }
       />
 
-      {!albyMe?.subscription.plan_code && subwalletApps.length >= 3 && (
+      {!albyMe?.subscription.plan_code && subwalletAppsData.totalCount >= 3 && (
         <>
           <Alert>
             <InfoIcon />
@@ -168,7 +168,7 @@ export function SubwalletList() {
           <CardContent className="grow flex flex-col gap-4">
             <div className="flex flex-col gap-2">
               <span className="text-2xl font-medium">
-                {subwalletApps.length} /{" "}
+                {subwalletAppsData.totalCount} /{" "}
                 {albyMe?.subscription.plan_code ? "∞" : 3}
               </span>
               {isSufficientlyBacked ? (
@@ -202,7 +202,7 @@ export function SubwalletList() {
 
       <CustomPagination
         limit={LIST_APPS_LIMIT}
-        totalCount={appsData.totalCount}
+        totalCount={subwalletAppsData.totalCount}
         page={page}
         handlePageChange={handlePageChange}
       />
