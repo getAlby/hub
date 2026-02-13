@@ -166,6 +166,7 @@ type EnableAutoSwapRequest struct {
 	BalanceThreshold uint64 `json:"balanceThreshold"`
 	SwapAmount       uint64 `json:"swapAmount"`
 	Destination      string `json:"destination"`
+	UnlockPassword   string `json:"unlockPassword"`
 }
 
 type GetAutoSwapConfigResponse struct {
