@@ -26,6 +26,7 @@ export function IsolatedAppTopupDialog({
 }: React.PropsWithChildren<IsolatedAppTopupProps>) {
   const { mutate: reloadApp } = useApp(appId);
   const [amountSat, setAmountSat] = React.useState("");
+  const [message, setMessage] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   async function onSubmit(e: React.FormEvent) {
@@ -40,6 +41,7 @@ export function IsolatedAppTopupDialog({
         body: JSON.stringify({
           toAppId: appId,
           amountSat: +amountSat,
+          ...(message && { message }), // Only include if not empty
         }),
       });
       await reloadApp();
@@ -54,6 +56,7 @@ export function IsolatedAppTopupDialog({
   function reset() {
     setOpen(false);
     setAmountSat("");
+    setMessage("");
   }
 
   return (
@@ -79,6 +82,18 @@ export function IsolatedAppTopupDialog({
               value={amountSat}
               onChange={(e) => {
                 setAmountSat(e.target.value.trim());
+              }}
+            />
+          </div>
+          <div className="grid gap-2 mt-3">
+            <Label htmlFor="message">Message (optional)</Label>
+            <Input
+              id="message"
+              type="text"
+              placeholder="e.g., Weekly allowance"
+              value={message}
+              onChange={(e) => {
+                setMessage(e.target.value);
               }}
             />
           </div>

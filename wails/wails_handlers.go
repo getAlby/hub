@@ -358,7 +358,13 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}).WithError(err).Error("Failed to decode request to wails router")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		err = app.api.Transfer(ctx, transferRequest.FromAppId, transferRequest.ToAppId, transferRequest.AmountSat*1000)
+
+		message := ""
+		if transferRequest.Message != nil {
+			message = *transferRequest.Message
+		}
+
+		err = app.api.Transfer(ctx, transferRequest.FromAppId, transferRequest.ToAppId, transferRequest.AmountSat*1000, message)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}

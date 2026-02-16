@@ -127,7 +127,7 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 	}
 }
 
-func (api *api) Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, amountMsat uint64) error {
+func (api *api) Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, amountMsat uint64, message string) error {
 	if api.svc.GetLNClient() == nil {
 		return errors.New("LNClient not started")
 	}
@@ -144,7 +144,13 @@ func (api *api) Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, am
 		}
 	}
 
-	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, "transfer", "", 0, nil, api.svc.GetLNClient(), toAppId, nil, nil)
+	// Use custom message or default to "transfer"
+	description := message
+	if description == "" {
+		description = "transfer"
+	}
+
+	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, description, "", 0, nil, api.svc.GetLNClient(), toAppId, nil, nil)
 
 	if err != nil {
 		return err

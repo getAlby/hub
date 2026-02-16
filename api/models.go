@@ -14,7 +14,7 @@ import (
 type API interface {
 	CreateApp(createAppRequest *CreateAppRequest) (*CreateAppResponse, error)
 	UpdateApp(app *db.App, updateAppRequest *UpdateAppRequest) error
-	Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, amountMsat uint64) error
+	Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, amountMsat uint64, message string) error
 	DeleteApp(app *db.App) error
 	GetApp(app *db.App) *App
 	ListApps(limit uint64, offset uint64, filters ListAppsFilters, orderBy string) (*ListAppsResponse, error)
@@ -129,9 +129,10 @@ type UpdateAppRequest struct {
 }
 
 type TransferRequest struct {
-	AmountSat uint64 `json:"amountSat"`
-	FromAppId *uint  `json:"fromAppId"`
-	ToAppId   *uint  `json:"toAppId"`
+	AmountSat uint64  `json:"amountSat"`
+	FromAppId *uint   `json:"fromAppId"`
+	ToAppId   *uint   `json:"toAppId"`
+	Message   *string `json:"message"`
 }
 
 type CreateAppRequest struct {
