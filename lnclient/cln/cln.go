@@ -1805,12 +1805,6 @@ func (c *CLNService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsa
 }
 
 func (c *CLNService) Shutdown() error {
-	logger.Logger.Info("Stopping CLN node...")
-
-	if _, err := c.client.Stop(c.ctx, &clngrpc.StopRequest{}); err != nil {
-		logger.Logger.WithError(err).Error("Failed to stop CLN")
-	}
-
 	logger.Logger.Info("Cancelling CLN context")
 	c.cancel()
 
@@ -1827,7 +1821,7 @@ func (c *CLNService) Shutdown() error {
 		}
 	}
 
-	logger.Logger.Info("CLN node shutdown complete")
+	logger.Logger.Info("CLN backend shutdown complete")
 	return nil
 }
 
