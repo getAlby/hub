@@ -258,7 +258,7 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/labstack/echo-jwt/v4 v4.4.0
 	github.com/lightningnetwork/lnd v0.20.0-beta.rc4
-	github.com/sirupsen/logrus v1.9.3
+	github.com/sirupsen/logrus v1.9.4
 	github.com/tyler-smith/go-bip32 v1.0.0
 	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6 // indirect
 	gorm.io/datatypes v1.2.7
