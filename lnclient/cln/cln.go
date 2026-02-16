@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -1669,6 +1670,9 @@ func (c *CLNService) RedeemOnchainFunds(ctx context.Context, toAddress string, a
 	}
 
 	if feeRate != nil {
+		if *feeRate > math.MaxUint32/1000 {
+			return "", fmt.Errorf("fee rate too high")
+		}
 		req.Feerate = &clngrpc.Feerate{
 			Style: &clngrpc.Feerate_Perkb{
 				Perkb: uint32(*feeRate) * 1000,
