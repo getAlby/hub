@@ -1285,7 +1285,7 @@ func (c *CLNService) clnInvoiceToTransaction(ctx context.Context, invoice *clngr
 	}
 
 	var amount int64
-	if invoice.Status == clngrpc.ListinvoicesInvoices_PAID {
+	if invoice.Status == clngrpc.ListinvoicesInvoices_PAID && invoice.AmountReceivedMsat != nil {
 		amount = int64(invoice.AmountReceivedMsat.Msat)
 	} else if invoice.AmountMsat != nil {
 		amount = int64(invoice.AmountMsat.Msat)
@@ -1297,6 +1297,9 @@ func (c *CLNService) clnInvoiceToTransaction(ctx context.Context, invoice *clngr
 
 	var paid_at *int64
 	if invoice.Status == clngrpc.ListinvoicesInvoices_PAID {
+		if invoice.PaidAt == nil {
+			return nil, fmt.Errorf("paid_at missing from paid invoice")
+		}
 		paid_at_int64 := int64(*invoice.PaidAt)
 		paid_at = &paid_at_int64
 	}
@@ -1318,10 +1321,17 @@ func (c *CLNService) clnInvoiceToTransaction(ctx context.Context, invoice *clngr
 		return nil, fmt.Errorf("created_at missing from invoice")
 	}
 
+	var description string
+	if invoice.Description != nil {
+		description = *invoice.Description
+	} else {
+		description = ""
+	}
+
 	transaction := &lnclient.Transaction{
 		Type:            "incoming",
 		Invoice:         invoiceStr,
-		Description:     *invoice.Description,
+		Description:     description,
 		DescriptionHash: "",
 		Preimage:        hex.EncodeToString(invoice.PaymentPreimage),
 		PaymentHash:     hex.EncodeToString(invoice.PaymentHash),
