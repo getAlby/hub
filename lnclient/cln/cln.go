@@ -934,7 +934,7 @@ func (c *CLNService) GetStorageDir() (string, error) {
 
 func (c *CLNService) GetSupportedNIP47Methods() []string {
 	logger.Logger.Info("GetSupportedNIP47Methods")
-	return []string{
+	methods := []string{
 		models.PAY_INVOICE_METHOD,
 		models.PAY_KEYSEND_METHOD,
 		models.GET_BALANCE_METHOD,
@@ -946,15 +946,27 @@ func (c *CLNService) GetSupportedNIP47Methods() []string {
 		models.MULTI_PAY_INVOICE_METHOD,
 		models.MULTI_PAY_KEYSEND_METHOD,
 		models.SIGN_MESSAGE_METHOD,
-		models.MAKE_HOLD_INVOICE_METHOD,
-		models.SETTLE_HOLD_INVOICE_METHOD,
-		models.CANCEL_HOLD_INVOICE_METHOD,
 	}
+
+	if c.holdEnabled {
+		methods = append(methods,
+			models.MAKE_HOLD_INVOICE_METHOD,
+			models.SETTLE_HOLD_INVOICE_METHOD,
+			models.CANCEL_HOLD_INVOICE_METHOD,
+		)
+	}
+
+	return methods
 }
 
 func (c *CLNService) GetSupportedNIP47NotificationTypes() []string {
-	// return []string{notifications.PAYMENT_RECEIVED_NOTIFICATION, notifications.PAYMENT_SENT_NOTIFICATION}
-	return []string{notifications.HOLD_INVOICE_ACCEPTED_NOTIFICATION}
+	result := make([]string, 0)
+
+	if c.holdEnabled {
+		result = append(result,
+			notifications.HOLD_INVOICE_ACCEPTED_NOTIFICATION)
+	}
+	return result
 }
 
 func (c *CLNService) ListChannels(ctx context.Context) (channels []lnclient.Channel, err error) {
