@@ -226,7 +226,7 @@ If you are copying the certificates to another machine make sure you get the `ca
 
 ### LND Backend parameters
 
-Currently only LND can be configured via env. Other node types must be configured via the UI.
+LND can be configured via env. Other node types may need to be configured via the UI.
 
 _To configure via env, the following parameters must be provided:_
 
