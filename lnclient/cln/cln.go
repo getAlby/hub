@@ -15,7 +15,6 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/getAlby/hub/events"
@@ -34,12 +33,13 @@ import (
 type CLNService struct {
 	ctx            context.Context
 	client         clngrpc.NodeClient
-	clientHold     *clngrpcHold.HoldClient
+	clientHold     clngrpcHold.HoldClient
+	holdEnabled    bool
 	conn           *grpc.ClientConn
+	connHold       *grpc.ClientConn
 	eventPublisher events.EventPublisher
 	pubkey         string
 	cancel         context.CancelFunc
-	wg             sync.WaitGroup
 }
 
 func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, address, lightningDir, addressHold string) (lnclient.LNClient, error) {
@@ -69,9 +69,24 @@ func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, ad
 
 	ctx, cancel := context.WithCancel(ctx)
 
+	var connHold *grpc.ClientConn
+
+	defer func() {
+		if err != nil {
+			cancel()
+			if conn != nil {
+				conn.Close()
+			}
+			if connHold != nil {
+				connHold.Close()
+			}
+		}
+	}()
+
 	svc := &CLNService{
 		ctx:            ctx,
 		client:         client,
+		holdEnabled:    false,
 		conn:           conn,
 		eventPublisher: eventPublisher,
 		cancel:         cancel,
@@ -86,7 +101,7 @@ func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, ad
 
 		credsHold := credentials.NewTLS(tlsConfigHold)
 
-		connHold, err := grpc.NewClient(
+		connHold, err = grpc.NewClient(
 			addressHold,
 			grpc.WithTransportCredentials(credsHold),
 		)
@@ -96,10 +111,11 @@ func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, ad
 
 		clientHold := clngrpcHold.NewHoldClient(connHold)
 
-		svc.clientHold = &clientHold
+		svc.connHold = connHold
+		svc.clientHold = clientHold
 
 		logger.Logger.Info("Testing CLN hold plugin gRPC connection")
-		_, err = (*svc.clientHold).List(ctx, &clngrpcHold.ListRequest{Constraint: &clngrpcHold.ListRequest_Pagination_{
+		_, err = svc.clientHold.List(ctx, &clngrpcHold.ListRequest{Constraint: &clngrpcHold.ListRequest_Pagination_{
 			Pagination: &clngrpcHold.ListRequest_Pagination{
 				IndexStart: 0,
 				Limit:      1,
@@ -107,10 +123,10 @@ func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, ad
 		}})
 
 		if err != nil {
-			connHold.Close()
 			logger.Logger.WithError(err).Error("Failed to connect to CLN hold plugin")
 			return nil, fmt.Errorf("failed to connect to CLN hold plugin: %w", err)
 		}
+		svc.holdEnabled = true
 		logger.Logger.Info("Successfully connected to CLN hold plugin via gRPC")
 
 		go svc.subscribeOpenHoldInvoices(ctx)
@@ -121,7 +137,6 @@ func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, ad
 	logger.Logger.Info("Testing CLN gRPC connection")
 	resp, err := svc.GetInfo(ctx)
 	if err != nil {
-		conn.Close()
 		logger.Logger.WithError(err).Error("Failed to connect to CLN")
 		return nil, fmt.Errorf("failed to connect to CLN: %w", err)
 	}
@@ -167,7 +182,7 @@ func (c *CLNService) subscribeOpenHoldInvoices(ctx context.Context) {
 	start := int64(1)
 
 	for {
-		lsr, err := (*c.clientHold).List(ctx, &clngrpcHold.ListRequest{
+		lsr, err := c.clientHold.List(ctx, &clngrpcHold.ListRequest{
 			Constraint: &clngrpcHold.ListRequest_Pagination_{
 				Pagination: &clngrpcHold.ListRequest_Pagination{
 					IndexStart: start,
@@ -216,7 +231,7 @@ func (c *CLNService) subscribeSingleInvoice(paymentHashBytes []byte) {
 		PaymentHash: paymentHashBytes,
 	}
 
-	invoiceStream, err := (*c.clientHold).Track(ctx, subReq)
+	invoiceStream, err := c.clientHold.Track(ctx, subReq)
 	if err != nil {
 		log.WithError(err).Error("SubscribeSingleInvoice call failed")
 		// Goroutine will exit
@@ -290,11 +305,11 @@ func (c *CLNService) buildHoldInvoiceTransaction(ctx context.Context, paymentHas
 }
 
 func (c *CLNService) fetchHoldInvoice(ctx context.Context, paymentHash []byte) (*clngrpcHold.Invoice, error) {
-	if c.clientHold == nil {
+	if !c.holdEnabled {
 		return nil, errors.New("hold client not configured")
 	}
 
-	resp, err := (*c.clientHold).List(ctx, &clngrpcHold.ListRequest{
+	resp, err := c.clientHold.List(ctx, &clngrpcHold.ListRequest{
 		Constraint: &clngrpcHold.ListRequest_PaymentHash{
 			PaymentHash: paymentHash,
 		},
@@ -1292,7 +1307,7 @@ func (c *CLNService) clnInvoiceToTransaction(ctx context.Context, invoice *clngr
 }
 
 func (c *CLNService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
-	if c.clientHold == nil {
+	if !c.holdEnabled {
 		return nil, errors.New("hold plugin not configured")
 	}
 
@@ -1340,7 +1355,7 @@ func (c *CLNService) MakeHoldInvoice(ctx context.Context, amount int64, descript
 		}
 	}
 
-	resp, err := (*c.clientHold).Invoice(ctx, req)
+	resp, err := c.clientHold.Invoice(ctx, req)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"paymentHash": paymentHash,
@@ -1372,7 +1387,7 @@ func (c *CLNService) MakeHoldInvoice(ctx context.Context, amount int64, descript
 }
 
 func (c *CLNService) SettleHoldInvoice(ctx context.Context, preimage string) (err error) {
-	if c.clientHold == nil {
+	if !c.holdEnabled {
 		return errors.New("hold plugin not configured")
 	}
 
@@ -1388,7 +1403,7 @@ func (c *CLNService) SettleHoldInvoice(ctx context.Context, preimage string) (er
 		return fmt.Errorf("Invalid preimage: %v", err)
 	}
 
-	_, err = (*c.clientHold).Settle(ctx, &clngrpcHold.SettleRequest{
+	_, err = c.clientHold.Settle(ctx, &clngrpcHold.SettleRequest{
 		PaymentPreimage: preimageBytes,
 	})
 	if err != nil {
@@ -1402,7 +1417,7 @@ func (c *CLNService) SettleHoldInvoice(ctx context.Context, preimage string) (er
 }
 
 func (c *CLNService) CancelHoldInvoice(ctx context.Context, paymentHash string) (err error) {
-	if c.clientHold == nil {
+	if !c.holdEnabled {
 		return errors.New("hold plugin not configured")
 	}
 
@@ -1418,7 +1433,7 @@ func (c *CLNService) CancelHoldInvoice(ctx context.Context, paymentHash string) 
 		return fmt.Errorf("Invalid paymentHash: %v", err)
 	}
 
-	_, err = (*c.clientHold).Cancel(ctx, &clngrpcHold.CancelRequest{
+	_, err = c.clientHold.Cancel(ctx, &clngrpcHold.CancelRequest{
 		PaymentHash: paymentHashBytes,
 	})
 	if err != nil {
@@ -1761,15 +1776,28 @@ func (c *CLNService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsa
 
 func (c *CLNService) Shutdown() error {
 	logger.Logger.Info("Stopping CLN node...")
-	_, err := c.client.Stop(c.ctx, &clngrpc.StopRequest{})
-	if err != nil {
+
+	if _, err := c.client.Stop(c.ctx, &clngrpc.StopRequest{}); err != nil {
 		logger.Logger.WithError(err).Error("Failed to stop CLN")
-		return err
 	}
 
 	logger.Logger.Info("Cancelling CLN context")
 	c.cancel()
 
+	logger.Logger.Info("Closing gRPC connections")
+	if c.conn != nil {
+		if err := c.conn.Close(); err != nil {
+			logger.Logger.WithError(err).Error("Failed to close CLN gRPC connection")
+		}
+	}
+
+	if c.connHold != nil {
+		if err := c.connHold.Close(); err != nil {
+			logger.Logger.WithError(err).Error("Failed to close CLN hold plugin gRPC connection")
+		}
+	}
+
+	logger.Logger.Info("CLN node shutdown complete")
 	return nil
 }
 
