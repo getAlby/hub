@@ -1314,8 +1314,14 @@ func (c *CLNService) clnInvoiceToTransaction(ctx context.Context, invoice *clngr
 	var created_at int64
 	switch decoded_invoice.ItemType {
 	case clngrpc.DecodeResponse_BOLT12_INVOICE:
+		if decoded_invoice.InvoiceCreatedAt == nil {
+			return nil, fmt.Errorf("invoice_created_at missing from bolt12 invoice")
+		}
 		created_at = int64(*decoded_invoice.InvoiceCreatedAt)
 	case clngrpc.DecodeResponse_BOLT11_INVOICE:
+		if decoded_invoice.CreatedAt == nil {
+			return nil, fmt.Errorf("created_at missing from bolt11 invoice")
+		}
 		created_at = int64(*decoded_invoice.CreatedAt)
 
 	default:
