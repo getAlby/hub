@@ -1777,7 +1777,7 @@ func (c *CLNService) SendPaymentSync(payReq string, amount *uint64) (*lnclient.P
 		return nil, fmt.Errorf("decode failed: %w", err)
 	}
 	if dec_resp == nil {
-		return nil, fmt.Errorf("decode result empty: %w", err)
+		return nil, fmt.Errorf("decode result empty")
 	}
 	if !dec_resp.Valid {
 		return nil, fmt.Errorf("payReq not valid")
@@ -1853,7 +1853,7 @@ func (c *CLNService) SignMessage(ctx context.Context, message string) (string, e
 		return "", fmt.Errorf("signmessage failed: %w", err)
 	}
 	if resp == nil {
-		return "", fmt.Errorf("signmessage result empty: %w", err)
+		return "", fmt.Errorf("signmessage result empty")
 	}
 
 	return resp.Zbase, nil
@@ -1876,7 +1876,7 @@ func (c *CLNService) UpdateChannel(ctx context.Context, updateChannelRequest *ln
 		return fmt.Errorf("setchannel failed: %w", err)
 	}
 	if resp == nil {
-		return fmt.Errorf("setchannel result empty: %w", err)
+		return fmt.Errorf("setchannel result empty")
 	}
 
 	return nil
