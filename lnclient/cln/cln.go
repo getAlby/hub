@@ -540,10 +540,36 @@ func (c *CLNService) GetNetworkGraph(ctx context.Context, nodeIds []string) (lnc
 		"nodeIds": nodeIds,
 	}).Debug("Get Network Graph")
 
-	listnodes, err := c.client.ListNodes(ctx, &clngrpc.ListnodesRequest{})
-	if err != nil {
-		logger.Logger.WithError(err).Error("listnodes failed")
-		return "", err
+	listnodes := make([]*clngrpc.ListnodesNodes, 0)
+	listchannels := make([]*clngrpc.ListchannelsChannels, 0)
+
+	for _, nodeId := range nodeIds {
+		nodeIdBytes, err := hex.DecodeString(nodeId)
+		if err != nil {
+			logger.Logger.WithError(err).Error("failed to decode nodeId string")
+			return nil, fmt.Errorf("failed to decode nodeId string: %w", err)
+		}
+
+		listnode, err := c.client.ListNodes(ctx, &clngrpc.ListnodesRequest{Id: nodeIdBytes})
+		if err != nil {
+			logger.Logger.WithError(err).Error("listnodes failed")
+			return "", err
+		}
+		listnodes = append(listnodes, listnode.Nodes...)
+
+		listchannel, err := c.client.ListChannels(ctx, &clngrpc.ListchannelsRequest{Source: nodeIdBytes})
+		if err != nil {
+			logger.Logger.WithError(err).Error("listchannels failed")
+			return "", err
+		}
+		listchannels = append(listchannels, listchannel.Channels...)
+
+		listchannel, err = c.client.ListChannels(ctx, &clngrpc.ListchannelsRequest{Destination: nodeIdBytes})
+		if err != nil {
+			logger.Logger.WithError(err).Error("listchannels failed")
+			return "", err
+		}
+		listchannels = append(listchannels, listchannel.Channels...)
 	}
 
 	type NetworkNode struct {
@@ -571,45 +597,37 @@ func (c *CLNService) GetNetworkGraph(ctx context.Context, nodeIds []string) (lnc
 	nodes := []NodeInfoWithId{}
 	channels := []*NetworkChannel{}
 
-	for _, node := range listnodes.Nodes {
+	for _, node := range listnodes {
 		nodeIdStr := hex.EncodeToString(node.Nodeid)
-		if slices.Contains(nodeIds, nodeIdStr) {
-			addrs := []string{}
-			for _, a := range node.Addresses {
-				addrs = append(addrs, fmt.Sprintf("%s:%d", a.GetAddress(), a.GetPort()))
-			}
-			networkNode := NetworkNode{
-				NodeId:    hex.EncodeToString(node.Nodeid),
-				Alias:     node.GetAlias(),
-				Color:     hex.EncodeToString(node.Color),
-				Addresses: addrs,
-				Features:  hex.EncodeToString(node.Features),
-			}
-			nodes = append(nodes, NodeInfoWithId{
-				Node:   &networkNode,
-				NodeId: nodeIdStr,
-			})
+		addrs := []string{}
+		for _, a := range node.Addresses {
+			addrs = append(addrs, fmt.Sprintf("%s:%d", a.GetAddress(), a.GetPort()))
 		}
+		networkNode := NetworkNode{
+			NodeId:    nodeIdStr,
+			Alias:     node.GetAlias(),
+			Color:     hex.EncodeToString(node.Color),
+			Addresses: addrs,
+			Features:  hex.EncodeToString(node.Features),
+		}
+		nodes = append(nodes, NodeInfoWithId{
+			Node:   &networkNode,
+			NodeId: nodeIdStr,
+		})
+
 	}
 
-	listchannels, err := c.client.ListChannels(ctx, &clngrpc.ListchannelsRequest{})
-	if err != nil {
-		logger.Logger.WithError(err).Error("listchannels failed")
-		return "", err
-	}
-
-	for _, edge := range listchannels.Channels {
-		if slices.Contains(nodeIds, hex.EncodeToString(edge.Source)) || slices.Contains(nodeIds, hex.EncodeToString(edge.Destination)) {
-			channel := NetworkChannel{
-				Scid:     edge.ShortChannelId,
-				Node1:    hex.EncodeToString(edge.Source),
-				Node2:    hex.EncodeToString(edge.Destination),
-				Capacity: sat(edge.AmountMsat),
-				Active:   edge.Active,
-				Public:   edge.Public,
-			}
-			channels = append(channels, &channel)
+	for _, edge := range listchannels {
+		channel := NetworkChannel{
+			Scid:     edge.ShortChannelId,
+			Node1:    hex.EncodeToString(edge.Source),
+			Node2:    hex.EncodeToString(edge.Destination),
+			Capacity: sat(edge.AmountMsat),
+			Active:   edge.Active,
+			Public:   edge.Public,
 		}
+		channels = append(channels, &channel)
+
 	}
 
 	networkGraph := map[string]interface{}{
