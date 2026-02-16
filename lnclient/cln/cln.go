@@ -554,21 +554,21 @@ func (c *CLNService) GetNetworkGraph(ctx context.Context, nodeIds []string) (lnc
 		listnode, err := c.client.ListNodes(ctx, &clngrpc.ListnodesRequest{Id: nodeIdBytes})
 		if err != nil {
 			logger.Logger.WithError(err).Error("listnodes failed")
-			return "", err
+			return nil, err
 		}
 		listnodes = append(listnodes, listnode.Nodes...)
 
 		listchannel, err := c.client.ListChannels(ctx, &clngrpc.ListchannelsRequest{Source: nodeIdBytes})
 		if err != nil {
 			logger.Logger.WithError(err).Error("listchannels failed")
-			return "", err
+			return nil, err
 		}
 		listchannels = append(listchannels, listchannel.Channels...)
 
 		listchannel, err = c.client.ListChannels(ctx, &clngrpc.ListchannelsRequest{Destination: nodeIdBytes})
 		if err != nil {
 			logger.Logger.WithError(err).Error("listchannels failed")
-			return "", err
+			return nil, err
 		}
 		listchannels = append(listchannels, listchannel.Channels...)
 	}
