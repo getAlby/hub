@@ -1048,10 +1048,10 @@ func (c *CLNService) ListChannels(ctx context.Context) (channels []lnclient.Chan
 		if isConfirmedState(channel.State) {
 			ConfirmationsRequired = 0
 		} else if isOpeningState(channel.State) {
-			confRequired, err := confirmationsRequiredFromStatus(channel.Status)
-			if err != nil {
-				logger.Logger.Error(err)
-				errorStrings = append(errorStrings, *err)
+			confRequired, errStr := confirmationsRequiredFromStatus(channel.Status)
+			if errStr != nil {
+				logger.Logger.Error(*errStr)
+				errorStrings = append(errorStrings, *errStr)
 			} else {
 				ConfirmationsRequired = confRequired
 			}
