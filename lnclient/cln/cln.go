@@ -174,6 +174,7 @@ func loadTLSCredentials(lightningDir string, serverName string) (*tls.Config, er
 		Certificates: []tls.Certificate{clientCert},
 		RootCAs:      certPool,
 		ServerName:   serverName, // CLN uses "cln" as default ServerName, hold plugin uses "hold"
+		MinVersion:   tls.VersionTLS12,
 	}, nil
 }
 
