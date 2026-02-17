@@ -1205,18 +1205,18 @@ func (c *CLNService) ListOnchainTransactions(ctx context.Context) ([]lnclient.On
 }
 
 func (c *CLNService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
-	resp, err := c.client.ListPeerChannels(ctx, &clngrpc.ListpeerchannelsRequest{})
+	resp, err := c.client.ListPeers(ctx, &clngrpc.ListpeersRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("listpeerchannels failed: %w", err)
 	}
 
-	peers := make([]lnclient.PeerDetails, 0, len(resp.Channels))
-	for _, peer := range resp.Channels {
+	peers := make([]lnclient.PeerDetails, 0, len(resp.Peers))
+	for _, peer := range resp.Peers {
 		if peer == nil {
 			continue
 		}
 
-		req_node := &clngrpc.ListnodesRequest{Id: peer.PeerId}
+		req_node := &clngrpc.ListnodesRequest{Id: peer.Id}
 
 		resp_node, err := c.client.ListNodes(ctx, req_node)
 		if err != nil {
@@ -1224,12 +1224,12 @@ func (c *CLNService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, err
 		}
 
 		if len(resp_node.Nodes) == 0 {
-			addr := "not gossip yet"
+			addr := ""
 			peers = append(peers, lnclient.PeerDetails{
-				NodeId:      hex.EncodeToString(peer.PeerId),
+				NodeId:      hex.EncodeToString(peer.Id),
 				Address:     addr,
-				IsPersisted: true,
-				IsConnected: peer.PeerConnected,
+				IsPersisted: peer.GetNumChannels() > 0,
+				IsConnected: peer.Connected,
 			})
 			continue
 		} else {
@@ -1269,7 +1269,7 @@ func (c *CLNService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, err
 			case torv3 != nil:
 				selected = torv3
 			default:
-				addr := "not announced"
+				addr := ""
 				selected = &clngrpc.ListnodesNodesAddresses{
 					Address: &addr,
 					Port:    0,
@@ -1277,10 +1277,10 @@ func (c *CLNService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, err
 			}
 
 			peers = append(peers, lnclient.PeerDetails{
-				NodeId:      hex.EncodeToString(peer.PeerId),
+				NodeId:      hex.EncodeToString(peer.Id),
 				Address:     *selected.Address,
-				IsPersisted: true,
-				IsConnected: peer.PeerConnected,
+				IsPersisted: peer.GetNumChannels() > 0,
+				IsConnected: peer.Connected,
 			})
 		}
 	}
