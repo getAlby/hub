@@ -660,7 +660,13 @@ func (c *CLNService) GetNetworkGraph(ctx context.Context, nodeIds []string) (lnc
 
 	}
 
+	seen := make(map[string]struct{})
 	for _, edge := range listchannels {
+		key := fmt.Sprintf("%s:%d", edge.ShortChannelId, edge.Direction)
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		seen[key] = struct{}{}
 		channel := NetworkChannel{
 			Scid:     edge.ShortChannelId,
 			Node1:    hex.EncodeToString(edge.Source),
