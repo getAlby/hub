@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -181,20 +182,59 @@ func loadTLSCredentials(lightningDir string, serverName string) (*tls.Config, er
 func (c *CLNService) subscribeOpenHoldInvoices(ctx context.Context) {
 	holdinvoices := make([]*clngrpcHold.Invoice, 0)
 
+	const (
+		maxRetries  = 5
+		baseBackoff = 500 * time.Millisecond
+		maxBackoff  = 5 * time.Second
+		pageSize    = 200
+	)
+
 	start := int64(1)
 
 	for {
-		lsr, err := c.clientHold.List(ctx, &clngrpcHold.ListRequest{
-			Constraint: &clngrpcHold.ListRequest_Pagination_{
-				Pagination: &clngrpcHold.ListRequest_Pagination{
-					IndexStart: start,
-					Limit:      200,
+		var lsr *clngrpcHold.ListResponse
+		var err error
+
+		for attempt := 0; attempt <= maxRetries; attempt++ {
+			lsr, err = c.clientHold.List(ctx, &clngrpcHold.ListRequest{
+				Constraint: &clngrpcHold.ListRequest_Pagination_{
+					Pagination: &clngrpcHold.ListRequest_Pagination{
+						IndexStart: start,
+						Limit:      pageSize,
+					},
 				},
-			},
-		})
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to list invoices")
-			return
+			})
+
+			if err == nil {
+				break
+			}
+
+			if attempt == maxRetries {
+				logger.Logger.WithError(err).
+					WithField("start", start).
+					Error("List invoices failed after retries")
+				return
+			}
+
+			backoff := min(baseBackoff*time.Duration(1<<attempt), maxBackoff)
+
+			jitter := time.Duration(rand.Int63n(int64(backoff / 2)))
+			sleep := backoff/2 + jitter
+
+			logger.Logger.WithError(err).
+				WithFields(logrus.Fields{
+					"attempt": attempt + 1,
+					"sleep":   sleep,
+				}).
+				Warn("List invoices failed, retrying")
+
+			select {
+			case <-time.After(sleep):
+			case <-ctx.Done():
+				logger.Logger.WithError(ctx.Err()).
+					Warn("Context cancelled during retry backoff")
+				return
+			}
 		}
 
 		if lsr == nil || len(lsr.Invoices) == 0 {
@@ -212,6 +252,7 @@ func (c *CLNService) subscribeOpenHoldInvoices(ctx context.Context) {
 				"paymentHash": paymentHashHex,
 				"addIndex":    invoice.Id,
 			}).Info("Resubscribing to pending hold invoice")
+
 			go c.subscribeSingleInvoice(invoice.PaymentHash)
 		}
 	}
