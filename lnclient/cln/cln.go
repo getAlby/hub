@@ -1289,10 +1289,6 @@ func (c *CLNService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, err
 
 }
 
-func (c *CLNService) ListTransactions(ctx context.Context, from uint64, until uint64, limit uint64, offset uint64, unpaid bool, invoiceType string) (transactions []lnclient.Transaction, err error) {
-	return nil, fmt.Errorf("obsolete function")
-}
-
 func (c *CLNService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
 	logger.Logger.WithFields(logrus.Fields{
 		"paymentHash": paymentHash,
