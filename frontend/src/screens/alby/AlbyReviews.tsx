@@ -120,17 +120,17 @@ export function AlbyReviews() {
                       ))}
                     </div>
                   </div>
-                  <div className="text-right font-medium flex-shrink-0">
-                    {opportunity.reward ? (
+                  <div className="text-right font-medium shrink-0">
+                    {opportunity.reward !== undefined ? (
                       <FormattedBitcoinAmount
                         amount={opportunity.reward * 1000}
                       />
-                    ) : (
-                      <span className="text-muted-foreground text-sm flex items-center gap-1">
+                    ) : opportunity.rewardText ? (
+                      <span className="text-muted-foreground text-sm inline-flex items-center justify-end gap-1">
                         <HeartIcon className="w-4 h-4" />
                         {opportunity.rewardText}
                       </span>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               ))}
