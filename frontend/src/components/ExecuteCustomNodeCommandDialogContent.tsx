@@ -32,7 +32,7 @@ export function ExecuteCustomNodeCommandDialogContent({
       null,
       2
     );
-  } catch (error) {
+  } catch {
     // ignore unexpected json
   }
 
