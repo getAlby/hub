@@ -12,7 +12,7 @@ import { LinkButton } from "src/components/ui/custom/link-button";
 
 export function AppOfTheDayWidget() {
   function seededRandom(seed: number) {
-    const x = Math.sin(seed++) * 10000;
+    const x = Math.sin(seed) * 10000;
     return x - Math.floor(x);
   }
 
