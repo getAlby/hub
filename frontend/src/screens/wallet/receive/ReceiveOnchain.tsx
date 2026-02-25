@@ -121,6 +121,16 @@ function ReceiveToOnchain() {
       if (unconfirmed) {
         setTxId(unconfirmed.txid);
         setPendingAmount(unconfirmed.value);
+        return;
+      }
+
+      const confirmed = mempoolAddressUtxos.find(
+        (utxo) => utxo.status.confirmed
+      );
+      if (confirmed) {
+        setTxId(confirmed.txid);
+        setConfirmedAmount(confirmed.value);
+        setPendingAmount(null);
       }
     }
   }, [mempoolAddressUtxos, txId]);
