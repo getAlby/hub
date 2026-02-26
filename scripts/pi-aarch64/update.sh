@@ -1,20 +1,24 @@
-#!/bin/bash
+#!/bin/sh
 
 echo "🔃 Updating Alby Hub..."
 sudo systemctl stop albyhub
 
 # Download new artifacts
-cd /opt/albyhub
+cd /opt/albyhub || exit 1
 rm -rf albyhub-backup
 mkdir albyhub-backup
-mv bin albyhub-backup
-mv lib albyhub-backup
-cp -r data albyhub-backup
+
+if command -v rsync > /dev/null 2>&1; then
+  rsync -av data bin lib albyhub-backup/
+else
+  mv bin albyhub-backup
+  mv lib albyhub-backup
+  cp -r data albyhub-backup
+fi
 
 wget https://getalby.com/install/hub/server-linux-aarch64.tar.bz2
 
-./verify.sh server-linux-aarch64.tar.bz2 albyhub-Server-Linux-aarch64.tar.bz2
-if [[ $? -ne 0 ]]; then
+if ! ./verify.sh server-linux-aarch64.tar.bz2 albyhub-Server-Linux-aarch64.tar.bz2; then
   echo "❌ Verification failed, aborting installation"
   exit 1
 fi
