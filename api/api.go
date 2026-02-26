@@ -411,7 +411,12 @@ func (api *api) GetApp(dbApp *db.App) (*App, error) {
 	paySpecificPermission := db.AppPermission{}
 	appPermissions := []db.AppPermission{}
 	var expiresAt *time.Time
-	api.db.Where("app_id = ?", dbApp.ID).Find(&appPermissions)
+	if err := api.db.Where("app_id = ?", dbApp.ID).Find(&appPermissions).Error; err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"app_id": dbApp.ID,
+		}).Error("Failed to list app permissions")
+		return nil, err
+	}
 
 	requestMethods := []string{}
 	for _, appPerm := range appPermissions {
