@@ -6,6 +6,7 @@ import { LightningIcon } from "src/components/icons/Lightning";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { Button } from "src/components/ui/button";
+import { useBitcoinMaxiMode } from "src/hooks/useBitcoinMaxiMode";
 import { copyToClipboard } from "src/lib/clipboard";
 import { ExternalLinkButton } from "./ui/custom/external-link-button";
 
@@ -14,6 +15,7 @@ type PayLightningInvoiceProps = {
 };
 
 export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
+  const { bitcoinMaxiMode } = useBitcoinMaxiMode();
   const amount = new Invoice({
     pr: invoice,
   }).satoshi;
@@ -59,14 +61,16 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
           <CopyIcon />
           Copy Invoice
         </Button>
-        <ExternalLinkButton
-          to={`https://ff.io/?to=BTCLN&address=${encodeURIComponent(invoice)}&ref=qnnjvywb`}
-          className="flex-1 flex gap-2 items-center justify-center"
-          variant="secondary"
-        >
-          Pay with other Cryptocurrency
-          <ExternalLinkIcon className="size-4" />
-        </ExternalLinkButton>
+        {!bitcoinMaxiMode && (
+          <ExternalLinkButton
+            to={`https://ff.io/?to=BTCLN&address=${encodeURIComponent(invoice)}&ref=qnnjvywb`}
+            className="flex-1 flex gap-2 items-center justify-center"
+            variant="secondary"
+          >
+            Pay with other Cryptocurrency
+            <ExternalLinkIcon className="size-4" />
+          </ExternalLinkButton>
+        )}
       </div>
     </div>
   );

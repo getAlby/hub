@@ -43,6 +43,7 @@ import {
 } from "src/components/ui/tabs";
 import { FIXED_FLOAT_MIN_SWAP_AMOUNT } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
+import { useBitcoinMaxiMode } from "src/hooks/useBitcoinMaxiMode";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
@@ -106,6 +107,7 @@ export default function ReceiveOnchain() {
 }
 
 function ReceiveToOnchain() {
+  const { bitcoinMaxiMode } = useBitcoinMaxiMode();
   const { data: onchainAddress, getNewAddress } = useOnchainAddress();
   const { data: mempoolAddressUtxos } = useMempoolApi<MempoolUtxo[]>(
     onchainAddress ? `/address/${onchainAddress}/utxo` : undefined,
@@ -188,15 +190,19 @@ function ReceiveToOnchain() {
               <RefreshCwIcon className="h-4 w-4" />
               New Address
             </Button>
-            <Separator className="my-2" />
-            <ExternalLinkButton
-              to={`https://ff.io/?to=BTC&address=${onchainAddress}&ref=qnnjvywb`}
-              className="w-full"
-              variant="secondary"
-            >
-              <ExternalLinkIcon className="size-4" />
-              Topup using other Cryptocurrency
-            </ExternalLinkButton>
+            {!bitcoinMaxiMode && (
+              <>
+                <Separator className="my-2" />
+                <ExternalLinkButton
+                  to={`https://ff.io/?to=BTC&address=${onchainAddress}&ref=qnnjvywb`}
+                  className="w-full"
+                  variant="secondary"
+                >
+                  <ExternalLinkIcon className="size-4" />
+                  Topup using other Cryptocurrency
+                </ExternalLinkButton>
+              </>
+            )}
           </CardFooter>
         </Card>
       )}
@@ -286,6 +292,7 @@ function DepositSuccess({ amount, txId }: { amount: number; txId: string }) {
 }
 
 function ReceiveToSpending() {
+  const { bitcoinMaxiMode } = useBitcoinMaxiMode();
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
   const { data: swapInfo } = useSwapInfo("in");
@@ -423,38 +430,46 @@ function ReceiveToSpending() {
               </div>
             </div>
           </div>
-          <div className="flex flex-col gap-4">
-            <Label>Swap from</Label>
-            <RadioGroup
-              defaultValue="bitcoin"
-              value={swapFrom}
-              onValueChange={(value) => {
-                setSwapFrom(value as "bitcoin" | "crypto");
-              }}
-              className="flex gap-4 flex-row"
-            >
-              <div className="flex items-start space-x-2 mb-2">
-                <RadioGroupItem
-                  value="bitcoin"
-                  id="bitcoin"
-                  className="shrink-0"
-                />
-                <Label htmlFor="bitcoin" className="font-medium cursor-pointer">
-                  Bitcoin
-                </Label>
-              </div>
-              <div className="flex items-start space-x-2">
-                <RadioGroupItem
-                  value="crypto"
-                  id="crypto"
-                  className="shrink-0"
-                />
-                <Label htmlFor="crypto" className="font-medium cursor-pointer">
-                  Other Cryptocurrency
-                </Label>
-              </div>
-            </RadioGroup>
-          </div>
+          {!bitcoinMaxiMode && (
+            <div className="flex flex-col gap-4">
+              <Label>Swap from</Label>
+              <RadioGroup
+                defaultValue="bitcoin"
+                value={swapFrom}
+                onValueChange={(value) => {
+                  setSwapFrom(value as "bitcoin" | "crypto");
+                }}
+                className="flex gap-4 flex-row"
+              >
+                <div className="flex items-start space-x-2 mb-2">
+                  <RadioGroupItem
+                    value="bitcoin"
+                    id="bitcoin"
+                    className="shrink-0"
+                  />
+                  <Label
+                    htmlFor="bitcoin"
+                    className="font-medium cursor-pointer"
+                  >
+                    Bitcoin
+                  </Label>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <RadioGroupItem
+                    value="crypto"
+                    id="crypto"
+                    className="shrink-0"
+                  />
+                  <Label
+                    htmlFor="crypto"
+                    className="font-medium cursor-pointer"
+                  >
+                    Other Cryptocurrency
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+          )}
         </>
       )}
 

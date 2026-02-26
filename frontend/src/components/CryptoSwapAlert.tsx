@@ -1,4 +1,5 @@
 import { CoinsIcon, ExternalLinkIcon } from "lucide-react";
+import { useBitcoinMaxiMode } from "src/hooks/useBitcoinMaxiMode";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { ExternalLinkButton } from "./ui/custom/external-link-button";
 
@@ -6,6 +7,12 @@ type CryptoSwapAlertProps = {
   className?: string;
 };
 export function CryptoSwapAlert({ className }: CryptoSwapAlertProps) {
+  const { bitcoinMaxiMode } = useBitcoinMaxiMode();
+
+  if (bitcoinMaxiMode) {
+    return null;
+  }
+
   return (
     <Alert className={className}>
       <AlertTitle className="flex items-center gap-2">

@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "src/components/ui/select";
+import { Switch } from "src/components/ui/switch";
 import {
   DarkMode,
   Theme,
@@ -23,6 +24,7 @@ import {
   BITCOIN_DISPLAY_FORMAT_SATS,
 } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
+import { useBitcoinMaxiMode } from "src/hooks/useBitcoinMaxiMode";
 import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -31,6 +33,7 @@ import { request } from "src/utils/request";
 function Settings() {
   const { data: albyMe } = useAlbyMe();
   const { theme, darkMode, setTheme, setDarkMode } = useTheme();
+  const { bitcoinMaxiMode, setBitcoinMaxiMode } = useBitcoinMaxiMode();
 
   const [fiatCurrencies, setFiatCurrencies] = useState<[string, string][]>([]);
 
@@ -218,6 +221,30 @@ function Settings() {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-medium">Experience</h3>
+          <div className="flex items-center justify-between max-w-md rounded-lg border p-3">
+            <div className="grid gap-2">
+              <Label htmlFor="bitcoin-maxi-mode">Bitcoin Maxi mode</Label>
+              <p className="text-xs text-muted-foreground">
+                Hide other cryptocurrency mentions and related actions
+              </p>
+            </div>
+            <Switch
+              id="bitcoin-maxi-mode"
+              checked={bitcoinMaxiMode}
+              onCheckedChange={(checked) => {
+                setBitcoinMaxiMode(checked);
+                toast(
+                  checked
+                    ? "Bitcoin Maxi mode enabled"
+                    : "Bitcoin Maxi mode disabled"
+                );
+              }}
+            />
           </div>
         </div>
       </form>
