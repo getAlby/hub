@@ -21,7 +21,6 @@ type getBalanceResponse struct {
 	// BudgetRenewal string `json:"budget_renewal"`
 }
 
-// TODO: remove checkPermission - can it be a middleware?
 func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc) {
 
 	logger.Logger.WithFields(logrus.Fields{

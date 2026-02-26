@@ -476,9 +476,8 @@ func (api *api) GetApp(dbApp *db.App) (*App, error) {
 				"app_id": dbApp.ID,
 			}).Error("Failed to get isolated app balance")
 			return nil, err
-		} else {
-			response.Balance = balance
 		}
+		response.Balance = balance
 	}
 
 	return &response, nil
