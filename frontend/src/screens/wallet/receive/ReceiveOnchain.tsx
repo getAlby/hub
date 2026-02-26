@@ -3,7 +3,9 @@ import {
   CopyIcon,
   ExternalLinkIcon,
   HandCoinsIcon,
+  LinkIcon,
   RefreshCwIcon,
+  ZapIcon,
 } from "lucide-react";
 import TickSVG from "public/images/illustrations/tick.svg";
 import { useEffect, useState } from "react";
@@ -31,19 +33,29 @@ import { InputWithAdornment } from "src/components/ui/custom/input-with-adornmen
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
+import { Separator } from "src/components/ui/separator";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
 } from "src/components/ui/tabs";
+import { FIXED_FLOAT_MIN_SWAP_AMOUNT } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
 import { useSwapInfo } from "src/hooks/useSwaps";
+import { useTransaction } from "src/hooks/useTransaction";
 import { copyToClipboard } from "src/lib/clipboard";
-import { MempoolUtxo, SwapResponse } from "src/types";
+import {
+  CreateInvoiceRequest,
+  MempoolUtxo,
+  SwapResponse,
+  Transaction,
+} from "src/types";
+import { openLink } from "src/utils/openLink";
 import { request } from "src/utils/request";
 
 export default function ReceiveOnchain() {
@@ -61,7 +73,7 @@ export default function ReceiveOnchain() {
 
   return (
     <div className="grid gap-5">
-      <AppHeader title="Receive On-chain" />
+      <AppHeader title="Receive from On-chain" />
       <div className="w-full max-w-lg grid gap-5">
         <MempoolAlert />
         <Tabs value={tab} onValueChange={setTab} className="w-full">
@@ -70,13 +82,15 @@ export default function ReceiveOnchain() {
               value="spending"
               className="flex gap-2 items-center w-full"
             >
-              Receive to Spending
+              <ZapIcon className="size-4" />
+              To Spending Balance
             </TabsTrigger>
             <TabsTrigger
               value="onchain"
               className="flex gap-2 items-center w-full"
             >
-              Receive to On-chain
+              <LinkIcon className="size-4" />
+              To On-chain Balance
             </TabsTrigger>
           </TabsList>
           <TabsContent value="spending">
@@ -163,7 +177,7 @@ function ReceiveToOnchain() {
               }}
               variant="secondary"
             >
-              <CopyIcon className="w-4 h-4 mr-2" />
+              <CopyIcon className="w-4 h-4" />
               Copy Address
             </Button>
             <Button
@@ -171,9 +185,18 @@ function ReceiveToOnchain() {
               variant="outline"
               onClick={getNewAddress}
             >
-              <RefreshCwIcon className="h-4 w-4 shrink-0 mr-2" />
+              <RefreshCwIcon className="h-4 w-4" />
               New Address
             </Button>
+            <Separator className="my-2" />
+            <ExternalLinkButton
+              to={`https://ff.io/?to=BTC&address=${onchainAddress}&ref=qnnjvywb`}
+              className="w-full"
+              variant="secondary"
+            >
+              <ExternalLinkIcon className="size-4" />
+              Topup using other Cryptocurrency
+            </ExternalLinkButton>
           </CardFooter>
         </Card>
       )}
@@ -274,9 +297,17 @@ function ReceiveToSpending() {
   }>("/v1/fees/recommended");
   const navigate = useNavigate();
 
+  const [swapFrom, setSwapFrom] = useState<"bitcoin" | "crypto">("bitcoin");
   const [swapAmount, setSwapAmount] = useState("");
   const [loading, setLoading] = useState(false);
   const [feeRate, setFeeRate] = useState("");
+  const [cryptoTransaction, setCryptoTransaction] =
+    useState<Transaction | null>(null);
+  const [cryptoPaymentDone, setCryptoPaymentDone] = useState(false);
+  const { data: cryptoInvoiceData } = useTransaction(
+    cryptoTransaction ? cryptoTransaction.paymentHash : "",
+    true
+  );
 
   useEffect(() => {
     if (recommendedFees?.fastestFee) {
@@ -284,11 +315,38 @@ function ReceiveToSpending() {
     }
   }, [recommendedFees]);
 
+  useEffect(() => {
+    if (cryptoInvoiceData?.settledAt) {
+      setCryptoPaymentDone(true);
+    }
+  }, [cryptoInvoiceData]);
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
       setLoading(true);
+      if (swapFrom === "crypto") {
+        const tx = await request<Transaction>("/api/invoices", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount: (parseInt(swapAmount) || 0) * 1000,
+          } as CreateInvoiceRequest),
+        });
+        if (!tx?.invoice) {
+          throw new Error("Failed to create invoice");
+        }
+        setCryptoTransaction(tx);
+        openLink(
+          `https://ff.io/?to=BTCLN&address=${encodeURIComponent(tx.invoice)}&ref=qnnjvywb`
+        );
+        toast("Initiated swap");
+        return;
+      }
+
       const swapInResponse = await request<SwapResponse>("/api/swaps/in", {
         method: "POST",
         headers: {
@@ -316,62 +374,255 @@ function ReceiveToSpending() {
     return <Loading />;
   }
 
+  const isCryptoReceiveState =
+    swapFrom === "crypto" && cryptoTransaction !== null;
+
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
-      {hasChannelManagement &&
-        parseInt(swapAmount || "0") * 1000 >=
-          0.8 * balances.lightning.totalReceivable && (
-          <LowReceivingCapacityAlert />
-        )}
-      <div className="grid gap-1.5">
-        <Label>Amount</Label>
-        <InputWithAdornment
-          type="number"
-          autoFocus
-          placeholder="Amount in satoshis"
-          value={swapAmount}
-          min={swapInfo.minAmount}
-          max={Math.min(
-            swapInfo.maxAmount,
-            (balances.lightning.totalReceivable / 1000) * 0.99
-          )}
-          onChange={(e) => setSwapAmount(e.target.value)}
-          required
-          endAdornment={
-            <FormattedFiatAmount amount={+swapAmount} className="mr-2" />
-          }
-        />
-        <div className="grid">
-          <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
-            <div>
-              Receiving Capacity:{" "}
-              <FormattedBitcoinAmount
-                amount={balances.lightning.totalReceivable}
-              />
-            </div>
-            <FormattedFiatAmount
-              className="text-xs"
-              amount={balances.lightning.totalReceivable / 1000}
+      {!isCryptoReceiveState && (
+        <>
+          {hasChannelManagement &&
+            parseInt(swapAmount || "0") * 1000 >=
+              0.8 * balances.lightning.totalReceivable && (
+              <LowReceivingCapacityAlert />
+            )}
+          <div className="grid gap-1.5">
+            <Label>Amount</Label>
+            <InputWithAdornment
+              type="number"
+              autoFocus
+              placeholder="Amount in satoshis"
+              value={swapAmount}
+              min={
+                swapFrom === "bitcoin"
+                  ? swapInfo.minAmount
+                  : FIXED_FLOAT_MIN_SWAP_AMOUNT
+              }
+              max={Math.min(
+                swapInfo.maxAmount,
+                (balances.lightning.totalReceivable / 1000) * 0.99
+              )}
+              onChange={(e) => setSwapAmount(e.target.value)}
+              required
+              endAdornment={
+                <FormattedFiatAmount amount={+swapAmount} className="mr-2" />
+              }
             />
+            <div className="grid">
+              <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
+                <div>
+                  Receiving Capacity:{" "}
+                  <FormattedBitcoinAmount
+                    amount={balances.lightning.totalReceivable}
+                  />
+                </div>
+                <FormattedFiatAmount
+                  className="text-xs"
+                  amount={balances.lightning.totalReceivable / 1000}
+                />
+              </div>
+            </div>
           </div>
+          <div className="flex flex-col gap-4">
+            <Label>Swap from</Label>
+            <RadioGroup
+              defaultValue="bitcoin"
+              value={swapFrom}
+              onValueChange={(value) => {
+                setSwapFrom(value as "bitcoin" | "crypto");
+              }}
+              className="flex gap-4 flex-row"
+            >
+              <div className="flex items-start space-x-2 mb-2">
+                <RadioGroupItem
+                  value="bitcoin"
+                  id="bitcoin"
+                  className="shrink-0"
+                />
+                <Label htmlFor="bitcoin" className="font-medium cursor-pointer">
+                  Bitcoin
+                </Label>
+              </div>
+              <div className="flex items-start space-x-2">
+                <RadioGroupItem
+                  value="crypto"
+                  id="crypto"
+                  className="shrink-0"
+                />
+                <Label htmlFor="crypto" className="font-medium cursor-pointer">
+                  Other Cryptocurrency
+                </Label>
+              </div>
+            </RadioGroup>
+          </div>
+        </>
+      )}
+
+      {swapFrom === "bitcoin" ? (
+        <BitcoinSwapFlow
+          feeRate={feeRate}
+          loading={loading}
+          swapFee={swapInfo.albyServiceFee + swapInfo.boltzServiceFee}
+        />
+      ) : (
+        <CryptoSwapFlow
+          loading={loading}
+          transaction={cryptoTransaction}
+          paymentDone={cryptoPaymentDone}
+          onReset={() => {
+            setCryptoTransaction(null);
+            setCryptoPaymentDone(false);
+            setSwapAmount("");
+          }}
+        />
+      )}
+    </form>
+  );
+}
+
+function BitcoinSwapFlow({
+  feeRate,
+  loading,
+  swapFee,
+}: {
+  feeRate: string;
+  loading: boolean;
+  swapFee: number;
+}) {
+  return (
+    <>
+      <div className="border-t pt-4 text-sm grid gap-2">
+        <div className="flex items-center justify-between">
+          <Label>On-chain Fee</Label>
+          {feeRate ? (
+            <p className="text-muted-foreground">{feeRate} sat/vB</p>
+          ) : (
+            <Loading className="w-4 h-4" />
+          )}
+        </div>
+        <div className="flex items-center justify-between">
+          <Label>Swap Fee</Label>
+          <p className="text-muted-foreground">{swapFee}%</p>
         </div>
       </div>
 
-      <div className="border-t pt-4 text-sm grid gap-2">
-        <div className="flex items-center justify-between">
-          <p className="text-muted-foreground">On-chain Fee</p>
-          {feeRate ? <p>{feeRate} sat/vB</p> : <Loading className="w-4 h-4" />}
+      <LoadingButton className="w-full" loading={loading}>
+        Continue
+      </LoadingButton>
+    </>
+  );
+}
+
+function CryptoSwapFlow({
+  loading,
+  transaction,
+  paymentDone,
+  onReset,
+}: {
+  loading: boolean;
+  transaction: Transaction | null;
+  paymentDone: boolean;
+  onReset: () => void;
+}) {
+  if (!transaction) {
+    return (
+      <>
+        <div className="border-t pt-4 text-sm grid gap-2">
+          <div className="flex items-center justify-between">
+            <Label>Swap Fee</Label>
+            <p className="text-muted-foreground">0.5%-1% + on-chain fees</p>
+          </div>
         </div>
-        <div className="flex items-center justify-between">
-          <p className="text-muted-foreground">Swap Fee</p>
-          <p>{swapInfo.albyServiceFee + swapInfo.boltzServiceFee}%</p>
+
+        <div className="grid gap-2">
+          <LoadingButton className="w-full" loading={loading}>
+            Continue
+            <ExternalLinkIcon className="size-4" />
+          </LoadingButton>
+          <p className="text-xs text-muted-foreground text-center">
+            powered by{" "}
+            <span className="font-medium text-foreground">Fixed Float</span>
+          </p>
         </div>
-      </div>
-      <div className="grid gap-2">
-        <LoadingButton className="w-full" loading={loading}>
-          Continue
-        </LoadingButton>
-      </div>
-    </form>
+      </>
+    );
+  }
+
+  if (!paymentDone) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-center">Waiting for Payment</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center gap-6">
+          <LottieLoading size={288} />
+          <div className="flex flex-col gap-1 items-center">
+            <p className="text-2xl font-medium slashed-zero">
+              <FormattedBitcoinAmount amount={transaction.amount} />
+            </p>
+            <FormattedFiatAmount
+              amount={Math.floor(transaction.amount / 1000)}
+              className="text-xl"
+            />
+          </div>
+        </CardContent>
+        <CardFooter className="flex flex-col gap-2 pt-2">
+          <Button
+            type="button"
+            className="w-full"
+            onClick={() => {
+              copyToClipboard(transaction.invoice);
+            }}
+            variant="secondary"
+          >
+            <CopyIcon className="w-4 h-4 mr-2" />
+            Copy Invoice
+          </Button>
+          <ExternalLinkButton
+            to={`https://ff.io/?to=BTCLN&address=${encodeURIComponent(transaction.invoice)}&ref=qnnjvywb`}
+            className="w-full"
+            variant="outline"
+          >
+            <ExternalLinkIcon className="size-4 mr-2" />
+            Open Fixed Float
+          </ExternalLinkButton>
+        </CardFooter>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="text-center">Transaction Received!</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col items-center gap-6">
+        <img src={TickSVG} className="w-48" />
+        <div className="flex flex-col gap-1 items-center">
+          <p className="text-2xl font-medium slashed-zero">
+            <FormattedBitcoinAmount amount={transaction.amount} />
+          </p>
+          <FormattedFiatAmount
+            amount={Math.floor(transaction.amount / 1000)}
+            className="text-xl"
+          />
+        </div>
+      </CardContent>
+      <CardFooter className="flex flex-col gap-2 pt-2">
+        <Button
+          type="button"
+          onClick={onReset}
+          variant="outline"
+          className="w-full"
+        >
+          <HandCoinsIcon className="w-4 h-4 mr-2" />
+          Receive Another Payment
+        </Button>
+        <LinkButton to="/wallet" variant="link" className="w-full">
+          <ArrowLeftIcon className="w-4 h-4 mr-2" />
+          Back to Wallet
+        </LinkButton>
+      </CardFooter>
+    </Card>
   );
 }
