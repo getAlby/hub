@@ -199,7 +199,7 @@ function ReceiveToOnchain() {
                   variant="secondary"
                 >
                   <ExternalLinkIcon className="size-4" />
-                  Topup using other Cryptocurrency
+                  Top up using other Cryptocurrency
                 </ExternalLinkButton>
               </>
             )}

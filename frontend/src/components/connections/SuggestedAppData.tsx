@@ -191,9 +191,9 @@ export const appStoreApps: AppStoreApp[] = (
     },
     {
       id: "2fiat",
-      title: "2fiat Topup",
+      title: "2fiat Top up",
       description:
-        "No-KYC virtual prepaid Mastercard with instant lightning topups",
+        "No-KYC virtual prepaid Mastercard with instant lightning top ups",
       logo: topup2fiat,
       categories: ["payment-tools"],
       extendedDescription:
@@ -226,7 +226,7 @@ export const appStoreApps: AppStoreApp[] = (
                   to="https://rolznz.github.io/2fiat-topup/"
                   className="underline"
                 >
-                  2fiat topup
+                  2fiat top up
                 </ExternalLink>{" "}
                 (on mobile save the app to your homescreen and open it there
                 before continuing) and

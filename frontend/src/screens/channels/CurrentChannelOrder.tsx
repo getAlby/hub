@@ -371,7 +371,7 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
         </Card>
 
         <ExternalLinkButton to={topupLink} className="w-full">
-          Topup with your credit card or bank account
+          Top up with your credit card or bank account
         </ExternalLinkButton>
         <LinkButton
           to="/channels/incoming"
