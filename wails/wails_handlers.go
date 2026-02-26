@@ -38,7 +38,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	case len(authCodeMatch) > 1:
 		code := authCodeMatch[1]
 
-		err := app.svc.GetAlbyOAuthSvc().CallbackHandler(ctx, code, app.svc.GetLNClient())
+		err := app.svc.GetAlbyOAuthSvc().CallbackHandler(ctx, code)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,

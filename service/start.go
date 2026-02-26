@@ -89,7 +89,7 @@ func (svc *service) startNostr(ctx context.Context) error {
 	}()
 
 	svc.nip47Service.StartNotifier(ctx, pool)
-	svc.nip47Service.StartNip47InfoPublisher(ctx, pool, svc.lnClient)
+	svc.nip47Service.StartNip47InfoPublisher(ctx, pool, svc.GetLNClient())
 
 	// register a subscriber for events of "nwc_app_created" which handles creation of nostr subscription for new app
 	createAppEventListener := &createAppConsumer{svc: svc, pool: pool}
@@ -235,7 +235,7 @@ func (svc *service) watchSubscription(ctx context.Context, pool *nostr.SimplePoo
 			case <-ctx.Done():
 				return
 			default:
-				go svc.nip47Service.HandleEvent(ctx, pool, event.Event, svc.lnClient)
+				go svc.nip47Service.HandleEvent(ctx, pool, event.Event, svc.GetLNClient())
 			}
 		}
 		logger.Logger.Debug("Relay subscription events channel ended")
@@ -301,7 +301,7 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return err
 	}
 
-	svc.swapsService = swaps.NewSwapsService(ctx, svc.db, svc.cfg, svc.keys, svc.eventPublisher, svc.lnClient, svc.transactionsService)
+	svc.swapsService = swaps.NewSwapsService(ctx, svc.db, svc.cfg, svc.keys, svc.eventPublisher, svc.GetLNClient(), svc.transactionsService)
 
 	svc.publishAllAppInfoEvents()
 
@@ -327,7 +327,9 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 	go func() {
 		// ensure the LNClient is stopped properly before exiting
 		<-ctx.Done()
+		svc.lnClientShuttingDown = true
 		svc.stopLNClient()
+		svc.lnClientShuttingDown = false
 	}()
 
 	lnBackend, _ := svc.cfg.Get("LNBackendType", "")

@@ -49,17 +49,18 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 
 	lnStorageDir := ""
 
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return fmt.Errorf("node not running")
 	}
-	lnStorageDir, err = api.svc.GetLNClient().GetStorageDir()
+	lnStorageDir, err = lnClient.GetStorageDir()
 	if err != nil {
 		return fmt.Errorf("failed to get storage dir: %w", err)
 	}
 	logger.Logger.WithField("path", lnStorageDir).Info("Found node storage dir")
 
 	// Reset the routing data to decrease the LDK DB size
-	err = api.svc.GetLNClient().ResetRouter("ALL")
+	err = lnClient.ResetRouter("ALL")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to reset router")
 		return fmt.Errorf("failed to reset router: %w", err)
