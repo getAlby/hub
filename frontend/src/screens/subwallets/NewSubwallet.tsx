@@ -8,7 +8,7 @@ import ResponsiveExternalLinkButton from "src/components/ResponsiveExternalLinkB
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
+import { MAX_FREE_SUBWALLETS, SUBWALLET_APPSTORE_APP_ID } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
@@ -47,7 +47,10 @@ export function NewSubwallet() {
     setLoading(true);
 
     try {
-      if (!albyMe?.subscription.plan_code && subwalletApps?.length >= 3) {
+      if (
+        !albyMe?.subscription.plan_code &&
+        subwalletApps?.length >= MAX_FREE_SUBWALLETS
+      ) {
         throw new Error(
           "Max limit reached. Please upgrade to Pro to create more sub-wallets."
         );

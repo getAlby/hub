@@ -27,7 +27,7 @@ import {
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
-import { LIST_APPS_LIMIT } from "src/constants";
+import { LIST_APPS_LIMIT, MAX_FREE_SUBWALLETS } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
 import { useBalances } from "src/hooks/useBalances";
@@ -91,7 +91,7 @@ export function SubwalletList() {
               <HelpCircle className="size-4" />
             </ExternalLinkButton>
             {!albyMe?.subscription.plan_code &&
-            subwalletAppsData.totalCount >= 3 ? (
+            subwalletAppsData.totalCount >= MAX_FREE_SUBWALLETS ? (
               <UpgradeDialog>
                 <ResponsiveButton icon={CirclePlusIcon} text="New Sub-wallet" />
               </UpgradeDialog>
@@ -106,26 +106,27 @@ export function SubwalletList() {
         }
       />
 
-      {!albyMe?.subscription.plan_code && subwalletAppsData.totalCount >= 3 && (
-        <>
-          <Alert>
-            <InfoIcon />
-            <AlertTitle>Need more Sub-wallets?</AlertTitle>
-            <AlertDescription className="flex flex-row gap-3">
-              <p className="grow">
-                Upgrade your subscription plan to Pro unlock unlimited number of
-                Sub-wallets.
-              </p>
-              <UpgradeDialog>
-                <Button>
-                  <SparklesIcon />
-                  Upgrade
-                </Button>
-              </UpgradeDialog>
-            </AlertDescription>
-          </Alert>
-        </>
-      )}
+      {!albyMe?.subscription.plan_code &&
+        subwalletAppsData.totalCount >= MAX_FREE_SUBWALLETS && (
+          <>
+            <Alert>
+              <InfoIcon />
+              <AlertTitle>Need more Sub-wallets?</AlertTitle>
+              <AlertDescription className="flex flex-row gap-3">
+                <p className="grow">
+                  Upgrade your subscription plan to Pro unlock unlimited number
+                  of Sub-wallets.
+                </p>
+                <UpgradeDialog>
+                  <Button>
+                    <SparklesIcon />
+                    Upgrade
+                  </Button>
+                </UpgradeDialog>
+              </AlertDescription>
+            </Alert>
+          </>
+        )}
 
       {!isSufficientlyBacked && (
         <Alert variant="warning">
@@ -169,7 +170,7 @@ export function SubwalletList() {
             <div className="flex flex-col gap-2">
               <span className="text-2xl font-medium">
                 {subwalletAppsData.totalCount} /{" "}
-                {albyMe?.subscription.plan_code ? "∞" : 3}
+                {albyMe?.subscription.plan_code ? "∞" : MAX_FREE_SUBWALLETS}
               </span>
               {isSufficientlyBacked ? (
                 <div className="flex items-center text-positive-foreground text-sm">
