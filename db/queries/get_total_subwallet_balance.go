@@ -10,7 +10,7 @@ import (
 func GetTotalSubwalletBalance(tx *gorm.DB) (int64, error) {
 	subwalletAppIDsQuery := tx.Model(&db.App{}).
 		Select("id").
-		Where(datatypes.JSONQuery("metadata").Equals(constants.SUBWALLET_APPSTORE_APP_ID, "app_store_app_id"))
+		Where(datatypes.JSONQuery("metadata").Equals(constants.SUBWALLET_APPSTORE_APP_ID, constants.METADATA_APPSTORE_APP_ID_KEY))
 
 	var received struct {
 		Sum int64

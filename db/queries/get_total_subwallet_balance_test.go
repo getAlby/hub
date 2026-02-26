@@ -21,13 +21,13 @@ func TestGetTotalSubwalletBalance(t *testing.T) {
 	subwalletA, _, err := tests.CreateApp(svc)
 	require.NoError(t, err)
 	subwalletA.Isolated = true
-	subwalletA.Metadata = datatypes.JSON([]byte(fmt.Sprintf(`{"app_store_app_id":"%s"}`, constants.SUBWALLET_APPSTORE_APP_ID)))
+	subwalletA.Metadata = datatypes.JSON([]byte(fmt.Sprintf(`{"%s":"%s"}`, constants.METADATA_APPSTORE_APP_ID_KEY, constants.SUBWALLET_APPSTORE_APP_ID)))
 	svc.DB.Save(&subwalletA)
 
 	subwalletB, _, err := tests.CreateApp(svc)
 	require.NoError(t, err)
 	subwalletB.Isolated = true
-	subwalletB.Metadata = datatypes.JSON([]byte(fmt.Sprintf(`{"app_store_app_id":"%s"}`, constants.SUBWALLET_APPSTORE_APP_ID)))
+	subwalletB.Metadata = datatypes.JSON([]byte(fmt.Sprintf(`{"%s":"%s"}`, constants.METADATA_APPSTORE_APP_ID_KEY, constants.SUBWALLET_APPSTORE_APP_ID)))
 	svc.DB.Save(&subwalletB)
 
 	incomingSubwalletTx := db.Transaction{

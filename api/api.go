@@ -177,7 +177,7 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 							}).Error("Failed to deserialize app metadata")
 							return err
 						}
-						if existingMetadata["app_store_app_id"] == constants.SUBWALLET_APPSTORE_APP_ID {
+						if existingMetadata[constants.METADATA_APPSTORE_APP_ID_KEY] == constants.SUBWALLET_APPSTORE_APP_ID {
 							return errors.New("Cannot update sub-wallet to be non-isolated")
 						}
 					}
@@ -487,7 +487,7 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 	}
 
 	if filters.AppStoreAppId != "" {
-		query = query.Where(datatypes.JSONQuery("metadata").Equals(filters.AppStoreAppId, "app_store_app_id"))
+		query = query.Where(datatypes.JSONQuery("metadata").Equals(filters.AppStoreAppId, constants.METADATA_APPSTORE_APP_ID_KEY))
 	}
 
 	if filters.Unused {
@@ -497,13 +497,13 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 
 	if filters.SubWallets != nil {
 		if *filters.SubWallets {
-			query = query.Where(datatypes.JSONQuery("metadata").Equals(constants.SUBWALLET_APPSTORE_APP_ID, "app_store_app_id"))
+			query = query.Where(datatypes.JSONQuery("metadata").Equals(constants.SUBWALLET_APPSTORE_APP_ID, constants.METADATA_APPSTORE_APP_ID_KEY))
 		} else {
 			// exclude subwallets :scream:
 			if api.db.Dialector.Name() == "sqlite" {
-				query = query.Where("metadata is NULL OR JSON_EXTRACT(metadata, '$.app_store_app_id') IS NULL OR JSON_EXTRACT(metadata, '$.app_store_app_id') != ?", constants.SUBWALLET_APPSTORE_APP_ID)
+				query = query.Where(fmt.Sprintf("metadata is NULL OR JSON_EXTRACT(metadata, '$.%s') IS NULL OR JSON_EXTRACT(metadata, '$.%s') != ?", constants.METADATA_APPSTORE_APP_ID_KEY, constants.METADATA_APPSTORE_APP_ID_KEY), constants.SUBWALLET_APPSTORE_APP_ID)
 			} else {
-				query = query.Where("metadata IS NULL OR metadata->>'app_store_app_id' IS NULL OR metadata->>'app_store_app_id' != ?", constants.SUBWALLET_APPSTORE_APP_ID)
+				query = query.Where(fmt.Sprintf("metadata IS NULL OR metadata->>'%s' IS NULL OR metadata->>'%s' != ?", constants.METADATA_APPSTORE_APP_ID_KEY, constants.METADATA_APPSTORE_APP_ID_KEY), constants.SUBWALLET_APPSTORE_APP_ID)
 			}
 		}
 	}
