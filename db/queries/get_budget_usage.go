@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetBudgetUsageSat(tx *gorm.DB, appPermission *db.AppPermission) (uint64, error) {
+func GetBudgetUsage(tx *gorm.DB, appPermission *db.AppPermission) (uint64, error) {
 	var result struct {
 		Sum uint64
 	}
@@ -19,7 +19,7 @@ func GetBudgetUsageSat(tx *gorm.DB, appPermission *db.AppPermission) (uint64, er
 	if err != nil {
 		return 0, err
 	}
-	return result.Sum / 1000, nil
+	return result.Sum, nil
 }
 
 func getStartOfBudget(budget_type string) time.Time {

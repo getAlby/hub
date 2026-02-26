@@ -430,7 +430,7 @@ func (api *api) GetApp(dbApp *db.App) (*App, error) {
 
 	// renewsIn := ""
 	maxAmount := uint64(paySpecificPermission.MaxAmountSat)
-	budgetUsage, err := queries.GetBudgetUsageSat(api.db, &paySpecificPermission)
+	budgetUsage, err := queries.GetBudgetUsage(api.db, &paySpecificPermission)
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
 			"app_id": dbApp.ID,
@@ -465,7 +465,7 @@ func (api *api) GetApp(dbApp *db.App) (*App, error) {
 		ExpiresAt:          expiresAt,
 		MaxAmountSat:       maxAmount,
 		Scopes:             requestMethods,
-		BudgetUsage:        budgetUsage,
+		BudgetUsage:        budgetUsage / 1000,
 		BudgetRenewal:      paySpecificPermission.BudgetRenewal,
 		Isolated:           dbApp.Isolated,
 		Metadata:           metadata,
@@ -604,14 +604,14 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 			if appPermission.Scope == constants.PAY_INVOICE_SCOPE {
 				apiApp.BudgetRenewal = appPermission.BudgetRenewal
 				apiApp.MaxAmountSat = uint64(appPermission.MaxAmountSat)
-				budgetUsage, err := queries.GetBudgetUsageSat(api.db, &appPermission)
+				budgetUsage, err := queries.GetBudgetUsage(api.db, &appPermission)
 				if err != nil {
 					logger.Logger.WithError(err).WithFields(logrus.Fields{
 						"app_id": dbApp.ID,
 					}).Error("Failed to get budget usage for app")
 					return nil, err
 				}
-				apiApp.BudgetUsage = budgetUsage
+				apiApp.BudgetUsage = budgetUsage / 1000
 			}
 		}
 

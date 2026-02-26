@@ -37,7 +37,7 @@ func (controller *nip47Controller) HandleGetBudgetEvent(ctx context.Context, nip
 		return
 	}
 
-	usedBudget, err := queries.GetBudgetUsageSat(controller.db, &appPermission)
+	usedBudget, err := queries.GetBudgetUsage(controller.db, &appPermission)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"request_event_id": requestEventId,
@@ -51,7 +51,7 @@ func (controller *nip47Controller) HandleGetBudgetEvent(ctx context.Context, nip
 
 	responsePayload := &getBudgetResponse{
 		TotalBudget:   uint64(maxAmount * 1000),
-		UsedBudget:    usedBudget * 1000,
+		UsedBudget:    usedBudget,
 		RenewalPeriod: appPermission.BudgetRenewal,
 		RenewsAt:      queries.GetBudgetRenewsAt(appPermission.BudgetRenewal),
 	}
