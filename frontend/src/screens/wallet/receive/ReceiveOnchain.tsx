@@ -341,6 +341,7 @@ function ReceiveToSpending() {
           },
           body: JSON.stringify({
             amount: (parseInt(swapAmount) || 0) * 1000,
+            description: "Fixed Float swap",
           } as CreateInvoiceRequest),
         });
         if (!tx?.invoice) {
