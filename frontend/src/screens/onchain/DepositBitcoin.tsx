@@ -14,6 +14,7 @@ import LottieLoading from "src/components/LottieLoading";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import OnchainAddressDisplay from "src/components/OnchainAddressDisplay";
 import QRCode from "src/components/QRCode";
+import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -80,10 +81,11 @@ export default function DepositBitcoin() {
         title="Deposit Bitcoin to On-Chain Balance"
         description="Deposit bitcoin to your on-chain address which then can be used to open new lightning channels."
         contentRight={
-          <LinkButton to="/channels/onchain/buy-bitcoin">
-            <CreditCardIcon />
-            Buy Bitcoin
-          </LinkButton>
+          <ResponsiveLinkButton
+            icon={CreditCardIcon}
+            text="Buy Bitcoin"
+            to="/channels/onchain/buy-bitcoin"
+          />
         }
       />
       <MempoolAlert />
