@@ -103,6 +103,7 @@ export default function Send() {
                 placeholder="Invoice, lightning address, on-chain address"
                 onChange={(e) => {
                   setRecipient(e.target.value.trim());
+                  setShowSwapAlert(false);
                 }}
               />
               <Button
