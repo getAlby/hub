@@ -109,7 +109,7 @@ func TestGetBudgetUsage_ExcludesWrongStateTypeAndApp(t *testing.T) {
 	assert.Equal(t, uint64(21000), budgetUsage)
 }
 
-func TestGetBudgetUsage_BudgetWindow(t *testing.T) {
+func TestGetBudgetUsage_BudgetWindowDaily(t *testing.T) {
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
@@ -149,8 +149,15 @@ func TestGetBudgetUsage_BudgetWindow(t *testing.T) {
 	budgetUsage, err := GetBudgetUsage(svc.DB, appPermissionDaily)
 	require.NoError(t, err)
 	assert.Equal(t, uint64(42000), budgetUsage)
+}
 
-	require.NoError(t, svc.DB.Where("app_id = ?", app.ID).Delete(&db.Transaction{}).Error)
+func TestGetBudgetUsage_BudgetWindowWeekly(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	app, _, err := tests.CreateApp(svc)
+	require.NoError(t, err)
 
 	appPermissionWeekly := &db.AppPermission{
 		AppId:         app.ID,
@@ -181,7 +188,7 @@ func TestGetBudgetUsage_BudgetWindow(t *testing.T) {
 		CreatedAt:      weeklyStart.Add(-1 * time.Hour),
 	}).Error)
 
-	budgetUsage, err = GetBudgetUsage(svc.DB, appPermissionWeekly)
+	budgetUsage, err := GetBudgetUsage(svc.DB, appPermissionWeekly)
 	require.NoError(t, err)
 	assert.Equal(t, uint64(11000), budgetUsage)
 }
