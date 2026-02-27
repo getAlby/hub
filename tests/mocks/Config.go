@@ -964,3 +964,60 @@ func (_c *MockConfig_Unlock_Call) RunAndReturn(run func(encryptionKey string) er
 	_c.Call.Return(run)
 	return _c
 }
+
+// ValidateChainSource provides a mock function for the type MockConfig
+func (_mock *MockConfig) ValidateChainSource(backendType string, url string) error {
+	ret := _mock.Called(backendType, url)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ValidateChainSource")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = returnFunc(backendType, url)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockConfig_ValidateChainSource_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ValidateChainSource'
+type MockConfig_ValidateChainSource_Call struct {
+	*mock.Call
+}
+
+// ValidateChainSource is a helper method to define mock.On call
+//   - backendType string
+//   - url string
+func (_e *MockConfig_Expecter) ValidateChainSource(backendType interface{}, url interface{}) *MockConfig_ValidateChainSource_Call {
+	return &MockConfig_ValidateChainSource_Call{Call: _e.mock.On("ValidateChainSource", backendType, url)}
+}
+
+func (_c *MockConfig_ValidateChainSource_Call) Run(run func(backendType string, url string)) *MockConfig_ValidateChainSource_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *MockConfig_ValidateChainSource_Call) Return(err error) *MockConfig_ValidateChainSource_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockConfig_ValidateChainSource_Call) RunAndReturn(run func(backendType string, url string) error) *MockConfig_ValidateChainSource_Call {
+	_c.Call.Return(run)
+	return _c
+}

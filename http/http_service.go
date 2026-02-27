@@ -195,6 +195,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	fullAccessApiGroup.POST("/autoswap", httpSvc.enableAutoSwapOutHandler)
 	fullAccessApiGroup.DELETE("/autoswap", httpSvc.disableAutoSwapOutHandler)
 	fullAccessApiGroup.POST("/node/alias", httpSvc.setNodeAliasHandler)
+	fullAccessApiGroup.PATCH("/ldk-onchain-source", httpSvc.updateLDKOnchainSource)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(readOnlyApiGroup, fullAccessApiGroup, e)
 }
@@ -1587,4 +1588,125 @@ func (httpSvc *HttpService) forwardsHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, forwards)
+}
+
+func (httpSvc *HttpService) updateLDKOnchainSource(c echo.Context) error {
+	backendType, _ := httpSvc.cfg.Get("LNBackendType", "")
+	if backendType != config.LDKBackendType {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "Changing chain source is only supported for LDK backend",
+		})
+	}
+
+	var payload config.UpdateChainConfigRequest
+	if err := c.Bind(&payload); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	setUpdate := func(key, value string) error {
+		if err := httpSvc.cfg.SetUpdate(key, value, ""); err != nil {
+			return fmt.Errorf("failed to update %s: %w", key, err)
+		}
+		return nil
+	}
+
+	switch payload.ChainSource {
+
+	case "default":
+		// Reset: Clear all overrides to fallback to env/default
+
+		if err := setUpdate("UserChainSource", ""); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserEsploraUrl", ""); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserElectrumUrl", ""); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserBitcoindHost", ""); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserBitcoindPort", ""); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserBitcoindUser", ""); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserBitcoindPass", ""); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+
+	case "esplora":
+		if payload.URL == "" {
+			return c.JSON(http.StatusBadRequest, ErrorResponse{Message: "Field 'url' is required for Esplora"})
+		}
+		if err := httpSvc.cfg.ValidateChainSource("esplora", payload.URL); err != nil {
+			return c.JSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
+		}
+
+		if err := setUpdate("UserChainSource", "esplora"); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserEsploraUrl", payload.URL); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+
+	case "electrum":
+		if payload.URL == "" {
+			return c.JSON(http.StatusBadRequest, ErrorResponse{Message: "Field 'url' is required for Electrum"})
+		}
+		if err := httpSvc.cfg.ValidateChainSource("electrum", payload.URL); err != nil {
+			return c.JSON(http.StatusBadRequest, ErrorResponse{Message: err.Error()})
+		}
+
+		if err := setUpdate("UserChainSource", "esplora"); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserElectrumUrl", payload.URL); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+
+	case "bitcoind_rpc":
+		if payload.Host == "" {
+			return c.JSON(http.StatusBadRequest, ErrorResponse{Message: "Field 'host' is required for Bitcoind"})
+		}
+		if payload.Port == "" {
+			return c.JSON(http.StatusBadRequest, ErrorResponse{Message: "Field 'port' is required for Bitcoind"})
+		}
+		if payload.User == "" {
+			return c.JSON(http.StatusBadRequest, ErrorResponse{Message: "Field 'user' is required for Bitcoind"})
+		}
+		if payload.Pass == "" {
+			return c.JSON(http.StatusBadRequest, ErrorResponse{Message: "Field 'pass' is required for Bitcoind"})
+		}
+		if _, err := strconv.ParseUint(payload.Port, 10, 16); err != nil {
+			return c.JSON(http.StatusBadRequest, ErrorResponse{Message: "Field 'port' must be a valid number (e.g. 8332)"})
+		}
+
+		if err := setUpdate("UserChainSource", "bitcoind_rpc"); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserBitcoindHost", payload.Host); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserBitcoindPort", payload.Port); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserBitcoindUser", payload.User); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+		if err := setUpdate("UserBitcoindPass", payload.Pass); err != nil {
+			return c.JSON(http.StatusInternalServerError, ErrorResponse{Message: err.Error()})
+		}
+
+	default:
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "Invalid chainSource. Must be 'esplora', 'electrum', 'bitcoind_rpc', or 'default'",
+		})
+	}
+
+	return c.JSON(http.StatusOK, "Settings saved. Please restart your Alby Hub to apply changes.")
 }
