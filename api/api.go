@@ -1222,6 +1222,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.SetupCompleted = setupCompleted
 	info.Currency = api.cfg.GetCurrency()
 	info.BitcoinDisplayFormat = api.cfg.GetBitcoinDisplayFormat()
+	info.BitcoinMaxiMode = api.cfg.GetBitcoinMaxiMode()
 	info.StartupState = api.svc.GetStartupState()
 	if api.startupError != nil {
 		info.StartupError = api.startupError.Error()
@@ -1301,6 +1302,16 @@ func (api *api) SetBitcoinDisplayFormat(format string) error {
 	return nil
 }
 
+func (api *api) SetBitcoinMaxiMode(enabled bool) error {
+	err := api.cfg.SetBitcoinMaxiMode(enabled)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to update bitcoin maxi mode")
+		return err
+	}
+
+	return nil
+}
+
 func (api *api) UpdateSettings(updateSettingsRequest *UpdateSettingsRequest) error {
 	if updateSettingsRequest.Currency != "" {
 		err := api.SetCurrency(updateSettingsRequest.Currency)
@@ -1313,6 +1324,13 @@ func (api *api) UpdateSettings(updateSettingsRequest *UpdateSettingsRequest) err
 		err := api.SetBitcoinDisplayFormat(updateSettingsRequest.BitcoinDisplayFormat)
 		if err != nil {
 			return fmt.Errorf("failed to set bitcoin display format: %w", err)
+		}
+	}
+
+	if updateSettingsRequest.BitcoinMaxiMode != nil {
+		err := api.SetBitcoinMaxiMode(*updateSettingsRequest.BitcoinMaxiMode)
+		if err != nil {
+			return fmt.Errorf("failed to set bitcoin maxi mode: %w", err)
 		}
 	}
 

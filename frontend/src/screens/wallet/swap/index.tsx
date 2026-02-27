@@ -98,6 +98,7 @@ function SwapInForm() {
   const { data: balances } = useBalances();
   const { data: swapInfo } = useSwapInfo("in");
   const { data: channels } = useChannels();
+  const { bitcoinMaxiMode } = useBitcoinMaxiMode();
   const navigate = useNavigate();
 
   const [swapAmount, setSwapAmount] = useState("");
@@ -289,16 +290,21 @@ function SwapInForm() {
                   External on-chain wallet
                 </Label>
               </div>
-              <div className="flex items-start space-x-2">
-                <RadioGroupItem
-                  value="crypto"
-                  id="crypto"
-                  className="shrink-0"
-                />
-                <Label htmlFor="crypto" className="font-medium cursor-pointer">
-                  Other Cryptocurrency
-                </Label>
-              </div>
+              {!bitcoinMaxiMode && (
+                <div className="flex items-start space-x-2">
+                  <RadioGroupItem
+                    value="crypto"
+                    id="crypto"
+                    className="shrink-0"
+                  />
+                  <Label
+                    htmlFor="crypto"
+                    className="font-medium cursor-pointer"
+                  >
+                    Other Cryptocurrency
+                  </Label>
+                </div>
+              )}
             </RadioGroup>
           </div>
         </>

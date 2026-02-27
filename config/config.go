@@ -397,6 +397,7 @@ func randomHex(n int) (string, error) {
 
 const defaultCurrency = "USD"
 const defaultBitcoinDisplayFormat = constants.BITCOIN_DISPLAY_FORMAT_BIP177
+const defaultBitcoinMaxiMode = false
 
 func (cfg *config) GetCurrency() string {
 	currency, err := cfg.Get("Currency", "")
@@ -441,6 +442,24 @@ func (cfg *config) SetBitcoinDisplayFormat(value string) error {
 	err := cfg.SetUpdate("BitcoinDisplayFormat", value, "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to update bitcoin display format")
+		return err
+	}
+	return nil
+}
+
+func (cfg *config) GetBitcoinMaxiMode() bool {
+	value, err := cfg.Get("BitcoinMaxiMode", "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch bitcoin maxi mode")
+		return defaultBitcoinMaxiMode
+	}
+	return value == "true"
+}
+
+func (cfg *config) SetBitcoinMaxiMode(value bool) error {
+	err := cfg.SetUpdate("BitcoinMaxiMode", fmt.Sprintf("%t", value), "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to update bitcoin maxi mode")
 		return err
 	}
 	return nil

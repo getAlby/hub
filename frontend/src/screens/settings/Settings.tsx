@@ -24,7 +24,6 @@ import {
   BITCOIN_DISPLAY_FORMAT_SATS,
 } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
-import { useBitcoinMaxiMode } from "src/hooks/useBitcoinMaxiMode";
 import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -33,7 +32,6 @@ import { request } from "src/utils/request";
 function Settings() {
   const { data: albyMe } = useAlbyMe();
   const { theme, darkMode, setTheme, setDarkMode } = useTheme();
-  const { bitcoinMaxiMode, setBitcoinMaxiMode } = useBitcoinMaxiMode();
 
   const [fiatCurrencies, setFiatCurrencies] = useState<[string, string][]>([]);
 
@@ -62,7 +60,7 @@ function Settings() {
   }, []);
 
   async function updateSettings(
-    payload: Record<string, string>,
+    payload: Record<string, string | boolean>,
     successMessage: string,
     errorMessage: string
   ) {
@@ -95,6 +93,16 @@ function Settings() {
       { bitcoinDisplayFormat },
       "Bitcoin display format updated",
       "Failed to update bitcoin display format"
+    );
+  }
+
+  async function updateBitcoinMaxiMode(bitcoinMaxiMode: boolean) {
+    await updateSettings(
+      { bitcoinMaxiMode },
+      bitcoinMaxiMode
+        ? "Bitcoin Maxi mode enabled"
+        : "Bitcoin Maxi mode disabled",
+      "Failed to update Bitcoin Maxi mode"
     );
   }
 
@@ -235,15 +243,8 @@ function Settings() {
             </div>
             <Switch
               id="bitcoin-maxi-mode"
-              checked={bitcoinMaxiMode}
-              onCheckedChange={(checked) => {
-                setBitcoinMaxiMode(checked);
-                toast(
-                  checked
-                    ? "Bitcoin Maxi mode enabled"
-                    : "Bitcoin Maxi mode disabled"
-                );
-              }}
+              checked={info?.bitcoinMaxiMode}
+              onCheckedChange={updateBitcoinMaxiMode}
             />
           </div>
         </div>

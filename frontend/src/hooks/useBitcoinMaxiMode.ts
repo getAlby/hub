@@ -1,18 +1,11 @@
 import React from "react";
-import { localStorageKeys } from "src/constants";
-
+import { useInfo } from "src/hooks/useInfo";
 export function useBitcoinMaxiMode() {
-  const [bitcoinMaxiMode, setBitcoinMaxiModeState] = React.useState<boolean>(
-    localStorage.getItem(localStorageKeys.bitcoinMaxiMode) === "true"
+  const { data: info } = useInfo();
+  return React.useMemo(
+    () => ({
+      bitcoinMaxiMode: info?.bitcoinMaxiMode ?? false,
+    }),
+    [info?.bitcoinMaxiMode]
   );
-
-  const setBitcoinMaxiMode = (enabled: boolean) => {
-    localStorage.setItem(localStorageKeys.bitcoinMaxiMode, String(enabled));
-    setBitcoinMaxiModeState(enabled);
-  };
-
-  return {
-    bitcoinMaxiMode,
-    setBitcoinMaxiMode,
-  };
 }
