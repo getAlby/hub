@@ -33,6 +33,7 @@ import { OpeningAutoChannel } from "src/screens/channels/auto/OpeningAutoChannel
 import { FirstChannel } from "src/screens/channels/first/FirstChannel";
 import { OpenedFirstChannel } from "src/screens/channels/first/OpenedFirstChannel";
 import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChannel";
+import { AlbyCliSkill } from "src/screens/internal-apps/AlbyCliSkill";
 import { Bitrefill } from "src/screens/internal-apps/Bitrefill";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
 import { Claude } from "src/screens/internal-apps/Claude";
@@ -346,6 +347,10 @@ const routes: RouteObject[] = [
           {
             path: "claude",
             element: <Claude />,
+          },
+          {
+            path: "alby-cli-skill",
+            element: <AlbyCliSkill />,
           },
           {
             path: "tictactoe",
