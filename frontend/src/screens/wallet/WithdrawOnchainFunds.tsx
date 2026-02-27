@@ -25,11 +25,14 @@ import {
 } from "src/components/ui/alert-dialog";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
+import { Separator } from "src/components/ui/separator";
 import { ONCHAIN_DUST_SATS } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
+import { useBitcoinMaxiMode } from "src/hooks/useBitcoinMaxiMode";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 
@@ -38,7 +41,7 @@ import { RedeemOnchainFundsResponse } from "src/types";
 import { request } from "src/utils/request";
 
 export default function WithdrawOnchainFunds() {
-  const [isLoading, setLoading] = React.useState(false);
+  const { bitcoinMaxiMode } = useBitcoinMaxiMode();
   const { data: info } = useInfo();
   const { data: balances } = useBalances();
   const { data: recommendedFees, error: mempoolError } = useMempoolApi<{
@@ -47,6 +50,7 @@ export default function WithdrawOnchainFunds() {
     economyFee: number;
     minimumFee: number;
   }>("/v1/fees/recommended");
+  const [isLoading, setLoading] = React.useState(false);
   const [onchainAddress, setOnchainAddress] = React.useState("");
   const [amount, setAmount] = React.useState("");
   const [feeRate, setFeeRate] = React.useState("");
@@ -376,6 +380,20 @@ export default function WithdrawOnchainFunds() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+
+            {!bitcoinMaxiMode && (
+              <>
+                <Separator className="my-4" />
+                <ExternalLinkButton
+                  to={`https://ff.io/?from=BTC&ref=qnnjvywb`}
+                  className="w-full"
+                  variant="secondary"
+                >
+                  <ExternalLinkIcon className="size-4" />
+                  Withdraw to other Cryptocurrency
+                </ExternalLinkButton>
+              </>
+            )}
           </div>
         </form>
       </div>

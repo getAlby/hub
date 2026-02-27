@@ -25,6 +25,8 @@ import {
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
+import { Separator } from "src/components/ui/separator";
+import { useBitcoinMaxiMode } from "src/hooks/useBitcoinMaxiMode";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
@@ -43,6 +45,7 @@ export default function DepositBitcoin() {
     onchainAddress ? `/address/${onchainAddress}/utxo` : undefined,
     3000
   );
+  const { bitcoinMaxiMode } = useBitcoinMaxiMode();
 
   const [txId, setTxId] = useState("");
   const [confirmedAmount, setConfirmedAmount] = useState<number | null>(null);
@@ -109,26 +112,41 @@ export default function DepositBitcoin() {
                 <OnchainAddressDisplay address={onchainAddress} />
               </div>
 
-              <div className="flex flex-row gap-4 justify-center">
-                <LoadingButton
-                  variant="outline"
-                  onClick={getNewAddress}
-                  className="w-28"
-                  loading={loadingAddress}
-                >
-                  {!loadingAddress && <RefreshCwIcon />}
-                  Change
-                </LoadingButton>
-                <Button
-                  variant="secondary"
-                  className="w-28"
-                  onClick={() => {
-                    copyToClipboard(onchainAddress);
-                  }}
-                >
-                  <CopyIcon />
-                  Copy
-                </Button>
+              <div className="flex flex-col">
+                <div className="flex flex-1 flex-row gap-4 justify-center w-full">
+                  <LoadingButton
+                    variant="outline"
+                    onClick={getNewAddress}
+                    className="flex-1"
+                    loading={loadingAddress}
+                  >
+                    {!loadingAddress && <RefreshCwIcon />}
+                    Change
+                  </LoadingButton>
+                  <Button
+                    variant="secondary"
+                    className="flex-1"
+                    onClick={() => {
+                      copyToClipboard(onchainAddress);
+                    }}
+                  >
+                    <CopyIcon />
+                    Copy
+                  </Button>
+                </div>
+                {!bitcoinMaxiMode && (
+                  <>
+                    <Separator className="my-4" />
+                    <ExternalLinkButton
+                      to={`https://ff.io/?to=BTC&address=${onchainAddress}&ref=qnnjvywb`}
+                      className="w-full"
+                      variant="secondary"
+                    >
+                      <ExternalLinkIcon className="size-4" />
+                      Deposit using other Cryptocurrency
+                    </ExternalLinkButton>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>
