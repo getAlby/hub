@@ -327,9 +327,7 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 	go func() {
 		// ensure the LNClient is stopped properly before exiting
 		<-ctx.Done()
-		svc.lnClientShuttingDown = true
 		svc.stopLNClient()
-		svc.lnClientShuttingDown = false
 	}()
 
 	lnBackend, _ := svc.cfg.Get("LNBackendType", "")

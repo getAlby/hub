@@ -17,7 +17,12 @@ func (svc *service) StopApp() {
 }
 
 func (svc *service) stopLNClient() {
-	defer svc.wg.Done()
+	svc.lnClientShuttingDown = true
+	defer func() {
+		svc.lnClientShuttingDown = false
+		svc.wg.Done()
+	}()
+
 	if svc.lnClient == nil {
 		return
 	}
