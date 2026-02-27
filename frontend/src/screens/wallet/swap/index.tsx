@@ -198,13 +198,17 @@ function SwapInForm() {
               placeholder="Amount in satoshis"
               value={swapAmount}
               min={swapFrom !== "crypto" ? swapInfo.minAmount : undefined}
-              max={Math.min(
-                swapInfo.maxAmount,
-                ...(isInternalSwap
-                  ? [spendableOnchainBalanceWithAnchorReserves]
-                  : []),
-                (balances.lightning.totalReceivable / 1000) * 0.99
-              )}
+              max={
+                swapFrom === "crypto"
+                  ? (balances.lightning.totalReceivable / 1000) * 0.99
+                  : Math.min(
+                      swapInfo.maxAmount,
+                      ...(isInternalSwap
+                        ? [spendableOnchainBalanceWithAnchorReserves]
+                        : []),
+                      (balances.lightning.totalReceivable / 1000) * 0.99
+                    )
+              }
               onChange={(e) => setSwapAmount(e.target.value)}
               required
             />

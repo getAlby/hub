@@ -416,10 +416,14 @@ function ReceiveToSpending() {
               placeholder="Amount in satoshis"
               value={swapAmount}
               min={swapFrom === "bitcoin" ? swapInfo.minAmount : undefined}
-              max={Math.min(
-                swapInfo.maxAmount,
-                (balances.lightning.totalReceivable / 1000) * 0.99
-              )}
+              max={
+                swapFrom === "bitcoin"
+                  ? Math.min(
+                      swapInfo.maxAmount,
+                      (balances.lightning.totalReceivable / 1000) * 0.99
+                    )
+                  : (balances.lightning.totalReceivable / 1000) * 0.99
+              }
               onChange={(e) => setSwapAmount(e.target.value)}
               required
               endAdornment={

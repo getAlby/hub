@@ -138,7 +138,10 @@ export function FixedFloatSwapInFlow({
       <CardFooter className="flex flex-col gap-2 pt-2">
         <Button
           type="button"
-          onClick={onReset}
+          onClick={() => {
+            onReset();
+            setPaymentDone(false);
+          }}
           variant="outline"
           className="w-full"
         >
