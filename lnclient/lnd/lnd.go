@@ -35,6 +35,8 @@ import (
 	"github.com/lightningnetwork/lnd/lnrpc/routerrpc"
 )
 
+const SEND_PAYMENT_TIMEOUT = 50
+
 type LNDService struct {
 	client         *wrapper.LNDWrapper
 	nodeInfo       *lnclient.NodeInfo
@@ -449,6 +451,7 @@ func (svc *LNDService) SendPaymentSync(payReq string, amount *uint64) (*lnclient
 		PaymentRequest: payReq,
 		MaxParts:       MAX_PARTIAL_PAYMENTS,
 		FeeLimitMsat:   int64(transactions.CalculateFeeReserveMsat(paymentAmountMsat)),
+		TimeoutSeconds: SEND_PAYMENT_TIMEOUT,
 	}
 
 	if amount != nil {
@@ -527,7 +530,6 @@ func (svc *LNDService) SendKeysend(amount uint64, destination string, custom_rec
 		destCustomRecords[record.Type] = decodedValue
 	}
 	const MAX_PARTIAL_PAYMENTS = 16
-	const SEND_PAYMENT_TIMEOUT = 50
 	const KEYSEND_CUSTOM_RECORD = 5482373484
 	destCustomRecords[KEYSEND_CUSTOM_RECORD] = preImageBytes
 	sendPaymentRequest := &routerrpc.SendPaymentRequest{

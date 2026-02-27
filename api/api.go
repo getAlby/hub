@@ -406,12 +406,17 @@ func (api *api) DeleteLightningAddress(ctx context.Context, appId uint) error {
 	return nil
 }
 
-func (api *api) GetApp(dbApp *db.App) *App {
+func (api *api) GetApp(dbApp *db.App) (*App, error) {
 
 	paySpecificPermission := db.AppPermission{}
 	appPermissions := []db.AppPermission{}
 	var expiresAt *time.Time
-	api.db.Where("app_id = ?", dbApp.ID).Find(&appPermissions)
+	if err := api.db.Where("app_id = ?", dbApp.ID).Find(&appPermissions).Error; err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"app_id": dbApp.ID,
+		}).Error("Failed to list app permissions")
+		return nil, err
+	}
 
 	requestMethods := []string{}
 	for _, appPerm := range appPermissions {
@@ -424,9 +429,14 @@ func (api *api) GetApp(dbApp *db.App) *App {
 	}
 
 	// renewsIn := ""
-	budgetUsage := uint64(0)
 	maxAmount := uint64(paySpecificPermission.MaxAmountSat)
-	budgetUsage = queries.GetBudgetUsageSat(api.db, &paySpecificPermission)
+	budgetUsage, err := queries.GetBudgetUsage(api.db, &paySpecificPermission)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"app_id": dbApp.ID,
+		}).Error("Failed to get budget usage for app")
+		return nil, err
+	}
 
 	var metadata Metadata
 	if dbApp.Metadata != nil {
@@ -455,7 +465,7 @@ func (api *api) GetApp(dbApp *db.App) *App {
 		ExpiresAt:          expiresAt,
 		MaxAmountSat:       maxAmount,
 		Scopes:             requestMethods,
-		BudgetUsage:        budgetUsage,
+		BudgetUsage:        budgetUsage / 1000,
 		BudgetRenewal:      paySpecificPermission.BudgetRenewal,
 		Isolated:           dbApp.Isolated,
 		Metadata:           metadata,
@@ -465,10 +475,17 @@ func (api *api) GetApp(dbApp *db.App) *App {
 	}
 
 	if dbApp.Isolated {
-		response.Balance = queries.GetIsolatedBalance(api.db, dbApp.ID)
+		balance, err := queries.GetIsolatedBalance(api.db, dbApp.ID)
+		if err != nil {
+			logger.Logger.WithError(err).WithFields(logrus.Fields{
+				"app_id": dbApp.ID,
+			}).Error("Failed to get isolated app balance")
+			return nil, err
+		}
+		response.Balance = balance
 	}
 
-	return &response
+	return &response, nil
 }
 
 func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, orderBy string) (*ListAppsResponse, error) {
@@ -586,7 +603,14 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 		}
 
 		if dbApp.Isolated {
-			apiApp.Balance = queries.GetIsolatedBalance(api.db, dbApp.ID)
+			balance, err := queries.GetIsolatedBalance(api.db, dbApp.ID)
+			if err != nil {
+				logger.Logger.WithError(err).WithFields(logrus.Fields{
+					"app_id": dbApp.ID,
+				}).Error("Failed to get isolated app balance")
+				return nil, err
+			}
+			apiApp.Balance = balance
 		}
 
 		for _, appPermission := range permissionsMap[dbApp.ID] {
@@ -595,7 +619,14 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 			if appPermission.Scope == constants.PAY_INVOICE_SCOPE {
 				apiApp.BudgetRenewal = appPermission.BudgetRenewal
 				apiApp.MaxAmountSat = uint64(appPermission.MaxAmountSat)
-				apiApp.BudgetUsage = queries.GetBudgetUsageSat(api.db, &appPermission)
+				budgetUsage, err := queries.GetBudgetUsage(api.db, &appPermission)
+				if err != nil {
+					logger.Logger.WithError(err).WithFields(logrus.Fields{
+						"app_id": dbApp.ID,
+					}).Error("Failed to get budget usage for app")
+					return nil, err
+				}
+				apiApp.BudgetUsage = budgetUsage / 1000
 			}
 		}
 
@@ -620,10 +651,11 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 }
 
 func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	channels, err := api.svc.GetLNClient().ListChannels(ctx)
+	channels, err := lnClient.ListChannels(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -689,10 +721,11 @@ func (api *api) GetLSPChannelOffer(ctx context.Context) (*alby.LSPChannelOffer, 
 }
 
 func (api *api) ResetRouter(key string) error {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return errors.New("LNClient not started")
 	}
-	err := api.svc.GetLNClient().ResetRouter(key)
+	err := lnClient.ResetRouter(key)
 	if err != nil {
 		return err
 	}
@@ -762,10 +795,11 @@ func (api *api) Stop() error {
 }
 
 func (api *api) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnectionInfo, error) {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	return api.svc.GetLNClient().GetNodeConnectionInfo(ctx)
+	return lnClient.GetNodeConnectionInfo(ctx)
 }
 
 func (api *api) RefundSwap(refundSwapRequest *RefundSwapRequest) error {
@@ -995,45 +1029,51 @@ func (api *api) GetSwapMnemonic() string {
 }
 
 func (api *api) GetNodeStatus(ctx context.Context) (*lnclient.NodeStatus, error) {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	return api.svc.GetLNClient().GetNodeStatus(ctx)
+	return lnClient.GetNodeStatus(ctx)
 }
 
 func (api *api) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	return api.svc.GetLNClient().ListPeers(ctx)
+	return lnClient.ListPeers(ctx)
 }
 
 func (api *api) ConnectPeer(ctx context.Context, connectPeerRequest *ConnectPeerRequest) error {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return errors.New("LNClient not started")
 	}
-	return api.svc.GetLNClient().ConnectPeer(ctx, connectPeerRequest)
+	return lnClient.ConnectPeer(ctx, connectPeerRequest)
 }
 
 func (api *api) OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error) {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	return api.svc.GetLNClient().OpenChannel(ctx, openChannelRequest)
+	return lnClient.OpenChannel(ctx, openChannelRequest)
 }
 
 func (api *api) DisconnectPeer(ctx context.Context, peerId string) error {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return errors.New("LNClient not started")
 	}
 	logger.Logger.WithFields(logrus.Fields{
 		"peer_id": peerId,
 	}).Info("Disconnecting peer")
-	return api.svc.GetLNClient().DisconnectPeer(ctx, peerId)
+	return lnClient.DisconnectPeer(ctx, peerId)
 }
 
 func (api *api) CloseChannel(ctx context.Context, peerId, channelId string, force bool) (*CloseChannelResponse, error) {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
 	logger.Logger.WithFields(logrus.Fields{
@@ -1041,7 +1081,7 @@ func (api *api) CloseChannel(ctx context.Context, peerId, channelId string, forc
 		"channel_id": channelId,
 		"force":      force,
 	}).Info("Closing channel")
-	return api.svc.GetLNClient().CloseChannel(ctx, &lnclient.CloseChannelRequest{
+	return lnClient.CloseChannel(ctx, &lnclient.CloseChannelRequest{
 		NodeId:    peerId,
 		ChannelId: channelId,
 		Force:     force,
@@ -1049,20 +1089,22 @@ func (api *api) CloseChannel(ctx context.Context, peerId, channelId string, forc
 }
 
 func (api *api) UpdateChannel(ctx context.Context, updateChannelRequest *UpdateChannelRequest) error {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return errors.New("LNClient not started")
 	}
 	logger.Logger.WithFields(logrus.Fields{
 		"request": updateChannelRequest,
 	}).Info("updating channel")
-	return api.svc.GetLNClient().UpdateChannel(ctx, updateChannelRequest)
+	return lnClient.UpdateChannel(ctx, updateChannelRequest)
 }
 
 func (api *api) MakeOffer(ctx context.Context, description string) (string, error) {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return "", errors.New("LNClient not started")
 	}
-	offer, err := api.svc.GetLNClient().MakeOffer(ctx, description)
+	offer, err := lnClient.MakeOffer(ctx, description)
 	if err != nil {
 		return "", err
 	}
@@ -1071,10 +1113,11 @@ func (api *api) MakeOffer(ctx context.Context, description string) (string, erro
 }
 
 func (api *api) GetNewOnchainAddress(ctx context.Context) (string, error) {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return "", errors.New("LNClient not started")
 	}
-	address, err := api.svc.GetLNClient().GetNewOnchainAddress(ctx)
+	address, err := lnClient.GetNewOnchainAddress(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -1127,10 +1170,11 @@ func (api *api) GetUnusedOnchainAddress(ctx context.Context) (string, error) {
 }
 
 func (api *api) SignMessage(ctx context.Context, message string) (*SignMessageResponse, error) {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	signature, err := api.svc.GetLNClient().SignMessage(ctx, message)
+	signature, err := lnClient.SignMessage(ctx, message)
 	if err != nil {
 		return nil, err
 	}
@@ -1141,10 +1185,11 @@ func (api *api) SignMessage(ctx context.Context, message string) (*SignMessageRe
 }
 
 func (api *api) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (*RedeemOnchainFundsResponse, error) {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	txId, err := api.svc.GetLNClient().RedeemOnchainFunds(ctx, toAddress, amount, feeRate, sendAll)
+	txId, err := lnClient.RedeemOnchainFunds(ctx, toAddress, amount, feeRate, sendAll)
 	if err != nil {
 		return nil, err
 	}
@@ -1154,10 +1199,11 @@ func (api *api) RedeemOnchainFunds(ctx context.Context, toAddress string, amount
 }
 
 func (api *api) GetBalances(ctx context.Context) (*BalancesResponse, error) {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	balances, err := api.svc.GetLNClient().GetBalances(ctx, false)
+	balances, err := lnClient.GetBalances(ctx, false)
 	if err != nil {
 		return nil, err
 	}
@@ -1228,7 +1274,8 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 		info.StartupError = api.startupError.Error()
 		info.StartupErrorTime = api.startupErrorTime
 	}
-	info.Running = api.svc.GetLNClient() != nil
+	lnClient := api.svc.GetLNClient()
+	info.Running = lnClient != nil
 	info.BackendType = backendType
 	info.AlbyAuthUrl = api.albyOAuthSvc.GetAuthUrl()
 	info.OAuthRedirect = !api.cfg.GetEnv().IsDefaultClientId()
@@ -1257,8 +1304,8 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	}
 	info.AlbyUserIdentifier = albyUserIdentifier
 
-	if api.svc.GetLNClient() != nil {
-		nodeInfo, err := api.svc.GetLNClient().GetInfo(ctx)
+	if lnClient != nil {
+		nodeInfo, err := lnClient.GetInfo(ctx)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to get nodeInfo")
 			return nil, err
@@ -1488,12 +1535,13 @@ func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
 }
 
 func (api *api) GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error) {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
 
-	methods := api.svc.GetLNClient().GetSupportedNIP47Methods()
-	notificationTypes := api.svc.GetLNClient().GetSupportedNIP47NotificationTypes()
+	methods := lnClient.GetSupportedNIP47Methods()
+	notificationTypes := lnClient.GetSupportedNIP47NotificationTypes()
 
 	scopes, err := permissions.RequestMethodsToScopes(methods)
 	if err != nil {
@@ -1511,12 +1559,13 @@ func (api *api) GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesR
 }
 
 func (api *api) SendPaymentProbes(ctx context.Context, sendPaymentProbesRequest *SendPaymentProbesRequest) (*SendPaymentProbesResponse, error) {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
 
 	var errMessage string
-	err := api.svc.GetLNClient().SendPaymentProbes(ctx, sendPaymentProbesRequest.Invoice)
+	err := lnClient.SendPaymentProbes(ctx, sendPaymentProbesRequest.Invoice)
 	if err != nil {
 		errMessage = err.Error()
 	}
@@ -1551,12 +1600,13 @@ func (api *api) MigrateNodeStorage(ctx context.Context, to string) error {
 }
 
 func (api *api) SendSpontaneousPaymentProbes(ctx context.Context, sendSpontaneousPaymentProbesRequest *SendSpontaneousPaymentProbesRequest) (*SendSpontaneousPaymentProbesResponse, error) {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
 
 	var errMessage string
-	err := api.svc.GetLNClient().SendSpontaneousPaymentProbes(ctx, sendSpontaneousPaymentProbesRequest.Amount, sendSpontaneousPaymentProbesRequest.NodeId)
+	err := lnClient.SendSpontaneousPaymentProbes(ctx, sendSpontaneousPaymentProbesRequest.Amount, sendSpontaneousPaymentProbesRequest.NodeId)
 	if err != nil {
 		errMessage = err.Error()
 	}
@@ -1565,24 +1615,27 @@ func (api *api) SendSpontaneousPaymentProbes(ctx context.Context, sendSpontaneou
 }
 
 func (api *api) GetNetworkGraph(ctx context.Context, nodeIds []string) (NetworkGraphResponse, error) {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	return api.svc.GetLNClient().GetNetworkGraph(ctx, nodeIds)
+	return lnClient.GetNetworkGraph(ctx, nodeIds)
 }
 
 func (api *api) SyncWallet() error {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return errors.New("LNClient not started")
 	}
-	api.svc.GetLNClient().UpdateLastWalletSyncRequest()
+	lnClient.UpdateLastWalletSyncRequest()
 	return nil
 }
 func (api *api) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	return api.svc.GetLNClient().ListOnchainTransactions(ctx)
+	return lnClient.ListOnchainTransactions(ctx)
 }
 
 func (api *api) GetLogOutput(ctx context.Context, logType string, getLogRequest *GetLogOutputRequest) (*GetLogOutputResponse, error) {
@@ -1590,11 +1643,12 @@ func (api *api) GetLogOutput(ctx context.Context, logType string, getLogRequest 
 	var logData []byte
 
 	if logType == LogTypeNode {
-		if api.svc.GetLNClient() == nil {
+		lnClient := api.svc.GetLNClient()
+		if lnClient == nil {
 			return nil, errors.New("LNClient not started")
 		}
 
-		logData, err = api.svc.GetLNClient().GetLogOutput(ctx, getLogRequest.MaxLen)
+		logData, err = lnClient.GetLogOutput(ctx, getLogRequest.MaxLen)
 		if err != nil {
 			return nil, err
 		}

@@ -93,7 +93,7 @@ func (svc *albyOAuthService) RemoveOAuthAccessToken() error {
 	return err
 }
 
-func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string, lnClient lnclient.LNClient) error {
+func (svc *albyOAuthService) CallbackHandler(ctx context.Context, code string) error {
 	token, err := svc.oauthConf.Exchange(ctx, code)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to exchange token")
@@ -526,6 +526,10 @@ func (svc *albyOAuthService) UnlinkAccount(ctx context.Context) error {
 }
 
 func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.LNClient, budget uint64, renewal string) error {
+	if lnClient == nil {
+		return errors.New("LNClient not available")
+	}
+
 	svc.deleteAlbyAccountApps()
 
 	connectionPubkey, err := svc.createAlbyAccountNWCNode(ctx)
@@ -1183,6 +1187,10 @@ func (svc *albyOAuthService) CreateLSPOrder(ctx context.Context, lsp, network st
 }
 
 func (svc *albyOAuthService) RequestAutoChannel(ctx context.Context, lnClient lnclient.LNClient, isPublic bool) (*AutoChannelResponse, error) {
+	if lnClient == nil {
+		return nil, errors.New("LNClient not available")
+	}
+
 	nodeInfo, err := lnClient.GetInfo(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to request own node info", err)

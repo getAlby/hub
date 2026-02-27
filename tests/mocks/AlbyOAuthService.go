@@ -41,16 +41,16 @@ func (_m *MockAlbyOAuthService) EXPECT() *MockAlbyOAuthService_Expecter {
 }
 
 // CallbackHandler provides a mock function for the type MockAlbyOAuthService
-func (_mock *MockAlbyOAuthService) CallbackHandler(ctx context.Context, code string, lnClient lnclient.LNClient) error {
-	ret := _mock.Called(ctx, code, lnClient)
+func (_mock *MockAlbyOAuthService) CallbackHandler(ctx context.Context, code string) error {
+	ret := _mock.Called(ctx, code)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CallbackHandler")
 	}
 
 	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string, lnclient.LNClient) error); ok {
-		r0 = returnFunc(ctx, code, lnClient)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
+		r0 = returnFunc(ctx, code)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -65,12 +65,11 @@ type MockAlbyOAuthService_CallbackHandler_Call struct {
 // CallbackHandler is a helper method to define mock.On call
 //   - ctx context.Context
 //   - code string
-//   - lnClient lnclient.LNClient
-func (_e *MockAlbyOAuthService_Expecter) CallbackHandler(ctx interface{}, code interface{}, lnClient interface{}) *MockAlbyOAuthService_CallbackHandler_Call {
-	return &MockAlbyOAuthService_CallbackHandler_Call{Call: _e.mock.On("CallbackHandler", ctx, code, lnClient)}
+func (_e *MockAlbyOAuthService_Expecter) CallbackHandler(ctx interface{}, code interface{}) *MockAlbyOAuthService_CallbackHandler_Call {
+	return &MockAlbyOAuthService_CallbackHandler_Call{Call: _e.mock.On("CallbackHandler", ctx, code)}
 }
 
-func (_c *MockAlbyOAuthService_CallbackHandler_Call) Run(run func(ctx context.Context, code string, lnClient lnclient.LNClient)) *MockAlbyOAuthService_CallbackHandler_Call {
+func (_c *MockAlbyOAuthService_CallbackHandler_Call) Run(run func(ctx context.Context, code string)) *MockAlbyOAuthService_CallbackHandler_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -80,14 +79,9 @@ func (_c *MockAlbyOAuthService_CallbackHandler_Call) Run(run func(ctx context.Co
 		if args[1] != nil {
 			arg1 = args[1].(string)
 		}
-		var arg2 lnclient.LNClient
-		if args[2] != nil {
-			arg2 = args[2].(lnclient.LNClient)
-		}
 		run(
 			arg0,
 			arg1,
-			arg2,
 		)
 	})
 	return _c
@@ -98,7 +92,7 @@ func (_c *MockAlbyOAuthService_CallbackHandler_Call) Return(err error) *MockAlby
 	return _c
 }
 
-func (_c *MockAlbyOAuthService_CallbackHandler_Call) RunAndReturn(run func(ctx context.Context, code string, lnClient lnclient.LNClient) error) *MockAlbyOAuthService_CallbackHandler_Call {
+func (_c *MockAlbyOAuthService_CallbackHandler_Call) RunAndReturn(run func(ctx context.Context, code string) error) *MockAlbyOAuthService_CallbackHandler_Call {
 	_c.Call.Return(run)
 	return _c
 }

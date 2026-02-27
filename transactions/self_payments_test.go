@@ -107,7 +107,9 @@ func TestSendPaymentSync_SelfPayment_NoAppToIsolatedApp(t *testing.T) {
 	result := svc.DB.Find(&transactions)
 	assert.Equal(t, int64(2), result.RowsAffected)
 	// expect balance to be increased
-	assert.Equal(t, int64(123000), queries.GetIsolatedBalance(svc.DB, app.ID))
+	balance, err := queries.GetIsolatedBalance(svc.DB, app.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(123000), balance)
 }
 
 func TestSendPaymentSync_SelfPayment_NoAppToApp(t *testing.T) {
@@ -230,7 +232,9 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToNoApp(t *testing.T) {
 	result := svc.DB.Find(&transactions)
 	assert.Equal(t, int64(3), result.RowsAffected)
 	// expect balance to be decreased
-	assert.Equal(t, int64(0), queries.GetIsolatedBalance(svc.DB, app.ID))
+	balance, err := queries.GetIsolatedBalance(svc.DB, app.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(0), balance)
 }
 
 func TestSendPaymentSync_SelfPayment_IsolatedAppToApp(t *testing.T) {
@@ -306,7 +310,9 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToApp(t *testing.T) {
 	result := svc.DB.Find(&transactions)
 	assert.Equal(t, int64(3), result.RowsAffected)
 	// expect balance to be decreased
-	assert.Equal(t, int64(0), queries.GetIsolatedBalance(svc.DB, app.ID))
+	balance, err := queries.GetIsolatedBalance(svc.DB, app.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(0), balance)
 }
 
 func TestSendPaymentSync_SelfPayment_IsolatedAppToIsolatedApp(t *testing.T) {
@@ -388,7 +394,9 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToIsolatedApp(t *testing.T) {
 	result := svc.DB.Find(&transactions)
 	assert.Equal(t, int64(3), result.RowsAffected)
 	// expect balance to be decreased
-	assert.Equal(t, int64(0), queries.GetIsolatedBalance(svc.DB, app.ID))
+	balance, err := queries.GetIsolatedBalance(svc.DB, app.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(0), balance)
 
 	// check notifications
 	assert.Equal(t, 2, len(mockEventConsumer.GetConsumedEvents()))
@@ -481,7 +489,9 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToSelf(t *testing.T) {
 	assert.Equal(t, int64(3), result.RowsAffected)
 
 	// expect balance to be unchanged
-	assert.Equal(t, int64(123000), queries.GetIsolatedBalance(svc.DB, app.ID))
+	balance, err := queries.GetIsolatedBalance(svc.DB, app.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(123000), balance)
 }
 
 func TestSendPaymentSync_SelfPayment_IsolatedAppToApp_AmountProvidedIgnoredOnNonZeroAmountInvoice(t *testing.T) {
@@ -560,5 +570,7 @@ func TestSendPaymentSync_SelfPayment_IsolatedAppToApp_AmountProvidedIgnoredOnNon
 	result := svc.DB.Find(&transactions)
 	assert.Equal(t, int64(3), result.RowsAffected)
 	// expect balance to be decreased
-	assert.Equal(t, int64(0), queries.GetIsolatedBalance(svc.DB, app.ID))
+	balance, err := queries.GetIsolatedBalance(svc.DB, app.ID)
+	assert.NoError(t, err)
+	assert.Equal(t, int64(0), balance)
 }

@@ -5,7 +5,7 @@ import {
   ExternalLinkIcon,
   RefreshCwIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AppHeader from "src/components/AppHeader";
 import { FixedFloatButton } from "src/components/FixedFloatButton";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
@@ -51,9 +51,20 @@ export default function DepositBitcoin() {
   const [txId, setTxId] = useState("");
   const [confirmedAmount, setConfirmedAmount] = useState<number | null>(null);
   const [pendingAmount, setPendingAmount] = useState<number | null>(null);
+  const startTimeRef = useRef(0);
 
   useEffect(() => {
-    if (!mempoolAddressUtxos || mempoolAddressUtxos.length === 0) {
+    if (startTimeRef.current === 0) {
+      startTimeRef.current = Math.floor(Date.now() / 1000);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (
+      !mempoolAddressUtxos ||
+      mempoolAddressUtxos.length === 0 ||
+      startTimeRef.current === 0
+    ) {
       return;
     }
 
@@ -71,6 +82,19 @@ export default function DepositBitcoin() {
       if (unconfirmed) {
         setTxId(unconfirmed.txid);
         setPendingAmount(unconfirmed.value);
+        return;
+      }
+
+      const confirmed = mempoolAddressUtxos.find(
+        (utxo) =>
+          utxo.status.confirmed &&
+          !!utxo.status.block_time &&
+          utxo.status.block_time >= startTimeRef.current
+      );
+      if (confirmed) {
+        setTxId(confirmed.txid);
+        setConfirmedAmount(confirmed.value);
+        setPendingAmount(null);
       }
     }
   }, [mempoolAddressUtxos, txId]);

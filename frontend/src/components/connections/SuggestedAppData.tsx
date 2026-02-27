@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import topup2fiat from "src/assets/suggested-apps/2fiat-topup.png";
 import albyExtension from "src/assets/suggested-apps/alby-extension.png";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
+import albySandbox from "src/assets/suggested-apps/alby-sandbox.png";
 import albyCli from "src/assets/suggested-apps/alby.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
 import bitrefill from "src/assets/suggested-apps/bitrefill.png";
@@ -20,6 +21,7 @@ import iris from "src/assets/suggested-apps/iris.png";
 import jumble from "src/assets/suggested-apps/jumble.png";
 import lightningMessageboard from "src/assets/suggested-apps/lightning-messageboard.png";
 import lnbits from "src/assets/suggested-apps/lnbits.png";
+import lnvps from "src/assets/suggested-apps/lnvps.png";
 import lume from "src/assets/suggested-apps/lume.png";
 import nakapay from "src/assets/suggested-apps/nakapay.png";
 import nostrcheckserver from "src/assets/suggested-apps/nostrcheck-server.png";
@@ -27,6 +29,7 @@ import nostrudel from "src/assets/suggested-apps/nostrudel.png";
 import nostter from "src/assets/suggested-apps/nostter.png";
 import nostur from "src/assets/suggested-apps/nostur.png";
 import paperScissorsHodl from "src/assets/suggested-apps/paper-scissors-hodl.png";
+import payperq from "src/assets/suggested-apps/payperq.png";
 import primal from "src/assets/suggested-apps/primal.png";
 import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
 import runstr from "src/assets/suggested-apps/runstr.png";
@@ -266,6 +269,67 @@ export const appStoreApps: AppStoreApp[] = (
       webLink: "https://claude.ai/",
     },
     {
+      id: "payperq",
+      title: "PayPerQ",
+      description: "Pay-Per-Prompt AI Service",
+      webLink: "https://ppq.ai",
+      logo: payperq,
+      hideConnectionQr: true,
+      extendedDescription:
+        "Access all of the latest AI models and tools in one place without the need for subscriptions",
+      installGuide: (
+        <>
+          <ul className="list-inside list-decimal text-muted-foreground">
+            <li>
+              Open{" "}
+              <ExternalLink
+                to="https://ppq.ai/api-docs"
+                className="font-medium text-foreground underline"
+              >
+                PayPerQ API docs page
+              </ExternalLink>{" "}
+              and scroll down to the{" "}
+              <span className="font-medium text-foreground">
+                NWC Auto-Topup
+              </span>{" "}
+              section.
+            </li>
+            <li>
+              Copy the CURL code example for{" "}
+              <span className="font-medium text-foreground">
+                POST /nwc-auto-topup/connect
+              </span>{" "}
+              and paste it into a notepad.
+            </li>
+          </ul>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">Connect Auto-Topup</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Replace the{" "}
+                <span className="font-medium text-foreground">"nwc_url"</span>{" "}
+                field with your connection secret.
+              </li>
+              <li>Execute the CURL command in your terminal.</li>
+              <li>
+                Verify settings with{" "}
+                <code className="text-foreground">
+                  GET https://api.ppq.ai/nwc-auto-topup
+                </code>{" "}
+                along with the{" "}
+                <code className="text-foreground">x-credit-id</code> header.
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["ai"],
+    },
+    {
       id: "simpleboost",
       title: "SimpleBoost",
       description: "Donation widget for your website",
@@ -284,6 +348,60 @@ export const appStoreApps: AppStoreApp[] = (
       logo: lightningMessageboard,
       categories: ["merchant-tools"],
       webLink: "https://github.com/getAlby/lightning-messageboard",
+    },
+    {
+      id: "lnvps",
+      title: "LNVPS",
+      description: "VPS powered by Bitcoin",
+      webLink: "https://lnvps.net/?ref=alby",
+      logo: lnvps,
+      hideConnectionQr: true,
+      extendedDescription:
+        "Run VPS infrastructure with Bitcoin-native billing and automated renewals through Nostr Wallet Connect.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://lnvps.net/?ref=alby"
+              className="font-medium text-foreground underline"
+            >
+              LNVPS
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In LNVPS</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Enable auto-renew on{" "}
+                <ExternalLink
+                  to="https://lnvps.net/vm/billing"
+                  className="font-medium text-foreground underline"
+                >
+                  lnvps.net/vm/billing
+                </ExternalLink>
+              </li>
+              <li>
+                Go to{" "}
+                <ExternalLink
+                  to="https://lnvps.net/account/settings"
+                  className="font-medium text-foreground underline"
+                >
+                  lnvps.net/account/settings
+                </ExternalLink>
+              </li>
+              <li>Paste the connection secret from Alby Hub</li>
+              <li>Save your settings to activate NWC auto-renewal</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["misc"],
     },
     {
       id: "alby-extension",
@@ -384,6 +502,53 @@ export const appStoreApps: AppStoreApp[] = (
           </div>
         </>
       ),
+    },
+    {
+      id: "alby-sandbox",
+      title: "Alby Sandbox",
+      description: "Interactive Lightning payment scenarios for app builders",
+      webLink: "https://sandbox.albylabs.com",
+      logo: albySandbox,
+      extendedDescription:
+        "Explore real-world Lightning and Nostr Wallet Connect flows with guided scenarios, test wallets, and code-oriented examples for app development.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://sandbox.albylabs.com"
+              className="font-medium text-foreground underline"
+            >
+              sandbox.albylabs.com
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Alby Sandbox</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>Choose any scenario in the sidebar</li>
+              <li>
+                Paste your Alby Hub{" "}
+                <span className="font-medium text-foreground">
+                  connection secret.
+                </span>{" "}
+                If you connected a test wallet first, disconnect it and
+                reconnect using your Alby Hub secret.
+              </li>
+              <li>
+                Click{" "}
+                <span className="font-medium text-foreground">Connect</span>
+              </li>
+              <li>Run a scenario to explore Lightning payment flows</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["misc"],
     },
     {
       id: "damus",
