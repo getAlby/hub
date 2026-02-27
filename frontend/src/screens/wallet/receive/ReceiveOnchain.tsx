@@ -546,7 +546,7 @@ function CryptoSwapFlow({
         <div className="border-t pt-4 text-sm grid gap-2">
           <div className="flex items-center justify-between">
             <Label>Swap Fee</Label>
-            <p className="text-muted-foreground">0.5%-1% + on-chain fees</p>
+            <p className="text-muted-foreground">1% + on-chain fees</p>
           </div>
         </div>
 
