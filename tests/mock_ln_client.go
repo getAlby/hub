@@ -77,6 +77,8 @@ var MockLNClientHoldTransaction = &lnclient.Transaction{
 }
 
 type MockLn struct {
+	MakeInvoiceResponses       []*lnclient.Transaction
+	MakeInvoiceErrors          []error
 	PayInvoiceResponses        []*lnclient.PayInvoiceResponse
 	PayInvoiceErrors           []error
 	PaymentDelay               *time.Duration
@@ -117,10 +119,24 @@ func (mln *MockLn) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err er
 }
 
 func (mln *MockLn) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
+	if len(mln.MakeInvoiceResponses) > 0 {
+		response := mln.MakeInvoiceResponses[0]
+		err := mln.MakeInvoiceErrors[0]
+		mln.MakeInvoiceResponses = mln.MakeInvoiceResponses[1:]
+		mln.MakeInvoiceErrors = mln.MakeInvoiceErrors[1:]
+		return response, err
+	}
 	return MockLNClientTransaction, nil
 }
 
 func (mln *MockLn) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
+	if len(mln.MakeInvoiceResponses) > 0 {
+		response := mln.MakeInvoiceResponses[0]
+		err := mln.MakeInvoiceErrors[0]
+		mln.MakeInvoiceResponses = mln.MakeInvoiceResponses[1:]
+		mln.MakeInvoiceErrors = mln.MakeInvoiceErrors[1:]
+		return response, err
+	}
 	return MockLNClientHoldTransaction, nil
 }
 
