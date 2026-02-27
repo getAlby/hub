@@ -1060,7 +1060,10 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 		}
 
 		if app.Isolated {
-			balance := queries.GetIsolatedBalance(tx, appPermission.AppId)
+			balance, err := queries.GetIsolatedBalance(tx, appPermission.AppId)
+			if err != nil {
+				return fmt.Errorf("failed to calculate isolated balance for app: %w", err)
+			}
 
 			if int64(amountWithFeeReserve) > balance {
 				logger.Logger.WithFields(logrus.Fields{
@@ -1087,8 +1090,11 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 		}
 
 		if appPermission.MaxAmountSat > 0 {
-			budgetUsageSat := queries.GetBudgetUsageSat(tx, &appPermission)
-			if int(amountWithFeeReserve/1000) > appPermission.MaxAmountSat-int(budgetUsageSat) {
+			budgetUsage, err := queries.GetBudgetUsage(tx, &appPermission)
+			if err != nil {
+				return fmt.Errorf("failed to calculate budget usage for app: %w", err)
+			}
+			if int(amountWithFeeReserve/1000) > appPermission.MaxAmountSat-int(budgetUsage/1000) {
 				message := NewQuotaExceededError().Error()
 				if description != "" {
 					message += " " + description
@@ -1429,9 +1435,14 @@ func (svc *transactionsService) checkBudgetUsage(dbTransaction *db.Transaction, 
 		return
 	}
 
-	budgetUsage := queries.GetBudgetUsageSat(gormTransaction, &appPermission)
+	budgetUsage, err := queries.GetBudgetUsage(gormTransaction, &appPermission)
+	if err != nil {
+		logger.Logger.WithField("app_id", dbTransaction.AppId).WithError(err).Error("failed to get budget usage")
+		return
+	}
+	budgetUsageSat := budgetUsage / 1000
 	warningUsage := uint64(math.Floor(float64(appPermission.MaxAmountSat) * 0.8))
-	if budgetUsage >= warningUsage && budgetUsage-dbTransaction.AmountMsat/1000 < warningUsage {
+	if budgetUsageSat >= warningUsage && budgetUsageSat-dbTransaction.AmountMsat/1000 < warningUsage {
 		svc.eventPublisher.Publish(&events.Event{
 			Event: "nwc_budget_warning",
 			Properties: map[string]interface{}{
