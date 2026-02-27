@@ -28,6 +28,7 @@ import nostrudel from "src/assets/suggested-apps/nostrudel.png";
 import nostter from "src/assets/suggested-apps/nostter.png";
 import nostur from "src/assets/suggested-apps/nostur.png";
 import paperScissorsHodl from "src/assets/suggested-apps/paper-scissors-hodl.png";
+import payperq from "src/assets/suggested-apps/payperq.png";
 import primal from "src/assets/suggested-apps/primal.png";
 import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
 import runstr from "src/assets/suggested-apps/runstr.png";
@@ -265,6 +266,67 @@ export const appStoreApps: AppStoreApp[] = (
       logo: claude,
       categories: ["ai"],
       webLink: "https://claude.ai/",
+    },
+    {
+      id: "payperq",
+      title: "PayPerQ",
+      description: "Pay-Per-Prompt AI Service",
+      webLink: "https://ppq.ai",
+      logo: payperq,
+      hideConnectionQr: true,
+      extendedDescription:
+        "Access all of the latest AI models and tools in one place without the need for subscriptions",
+      installGuide: (
+        <>
+          <ul className="list-inside list-decimal text-muted-foreground">
+            <li>
+              Open{" "}
+              <ExternalLink
+                to="https://ppq.ai/api-docs"
+                className="font-medium text-foreground underline"
+              >
+                PayPerQ API docs page
+              </ExternalLink>{" "}
+              and scroll down to the{" "}
+              <span className="font-medium text-foreground">
+                NWC Auto-Topup
+              </span>{" "}
+              section.
+            </li>
+            <li>
+              Copy the CURL code example for{" "}
+              <span className="font-medium text-foreground">
+                POST /nwc-auto-topup/connect
+              </span>{" "}
+              and paste it into a notepad.
+            </li>
+          </ul>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">Connect Auto-Topup</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Replace the{" "}
+                <span className="font-medium text-foreground">"nwc_url"</span>{" "}
+                field with your connection secret.
+              </li>
+              <li>Execute the CURL command in your terminal.</li>
+              <li>
+                Verify settings with{" "}
+                <code className="text-foreground">
+                  GET https://api.ppq.ai/nwc-auto-topup
+                </code>{" "}
+                along with the{" "}
+                <code className="text-foreground">x-credit-id</code> header.
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["ai"],
     },
     {
       id: "simpleboost",
