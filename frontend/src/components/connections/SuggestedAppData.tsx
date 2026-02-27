@@ -20,6 +20,7 @@ import iris from "src/assets/suggested-apps/iris.png";
 import jumble from "src/assets/suggested-apps/jumble.png";
 import lightningMessageboard from "src/assets/suggested-apps/lightning-messageboard.png";
 import lnbits from "src/assets/suggested-apps/lnbits.png";
+import lnvps from "src/assets/suggested-apps/lnvps.png";
 import lume from "src/assets/suggested-apps/lume.png";
 import nakapay from "src/assets/suggested-apps/nakapay.png";
 import nostrcheckserver from "src/assets/suggested-apps/nostrcheck-server.png";
@@ -284,6 +285,60 @@ export const appStoreApps: AppStoreApp[] = (
       logo: lightningMessageboard,
       categories: ["merchant-tools"],
       webLink: "https://github.com/getAlby/lightning-messageboard",
+    },
+    {
+      id: "lnvps",
+      title: "LNVPS",
+      description: "VPS powered by Bitcoin",
+      webLink: "https://lnvps.net/?ref=alby",
+      logo: lnvps,
+      hideConnectionQr: true,
+      extendedDescription:
+        "Run VPS infrastructure with Bitcoin-native billing and automated renewals through Nostr Wallet Connect.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://lnvps.net/?ref=alby"
+              className="font-medium text-foreground underline"
+            >
+              LNVPS
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In LNVPS</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Enable auto-renew on{" "}
+                <ExternalLink
+                  to="https://lnvps.net/vm/billing"
+                  className="font-medium text-foreground underline"
+                >
+                  lnvps.net/vm/billing
+                </ExternalLink>
+              </li>
+              <li>
+                Go to{" "}
+                <ExternalLink
+                  to="https://lnvps.net/account/settings"
+                  className="font-medium text-foreground underline"
+                >
+                  lnvps.net/account/settings
+                </ExternalLink>
+              </li>
+              <li>Paste the connection secret from Alby Hub</li>
+              <li>Save your settings to activate NWC auto-renewal</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["misc"],
     },
     {
       id: "alby-extension",
