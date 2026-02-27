@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/adrg/xdg"
@@ -34,7 +35,7 @@ type service struct {
 
 	db                   *gorm.DB
 	lnClient             lnclient.LNClient
-	lnClientShuttingDown bool
+	lnClientShuttingDown atomic.Bool
 	transactionsService  transactions.TransactionsService
 	swapsService         swaps.SwapsService
 	albySvc              alby.AlbyService
@@ -257,7 +258,7 @@ func (svc *service) GetEventPublisher() events.EventPublisher {
 }
 
 func (svc *service) GetLNClient() lnclient.LNClient {
-	if svc.lnClientShuttingDown {
+	if svc.lnClientShuttingDown.Load() {
 		return nil
 	}
 	return svc.lnClient
