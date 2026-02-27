@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import topup2fiat from "src/assets/suggested-apps/2fiat-topup.png";
 import albyExtension from "src/assets/suggested-apps/alby-extension.png";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
+import albySandbox from "src/assets/suggested-apps/alby-sandbox.png";
 import albyCli from "src/assets/suggested-apps/alby.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
 import bitrefill from "src/assets/suggested-apps/bitrefill.png";
@@ -384,6 +385,53 @@ export const appStoreApps: AppStoreApp[] = (
           </div>
         </>
       ),
+    },
+    {
+      id: "alby-sandbox",
+      title: "Alby Sandbox",
+      description: "Interactive Lightning payment scenarios for app builders",
+      webLink: "https://sandbox.albylabs.com",
+      logo: albySandbox,
+      extendedDescription:
+        "Explore real-world Lightning and Nostr Wallet Connect flows with guided scenarios, test wallets, and code-oriented examples for app development.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://sandbox.albylabs.com"
+              className="font-medium text-foreground underline"
+            >
+              sandbox.albylabs.com
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Alby Sandbox</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>Choose any scenario in the sidebar</li>
+              <li>
+                Paste your Alby Hub{" "}
+                <span className="font-medium text-foreground">
+                  connection secret.
+                </span>{" "}
+                If you connected a test wallet first, disconnect it and
+                reconnect using your Alby Hub secret.
+              </li>
+              <li>
+                Click{" "}
+                <span className="font-medium text-foreground">Connect</span>
+              </li>
+              <li>Run a scenario to explore Lightning payment flows</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["misc"],
     },
     {
       id: "damus",
