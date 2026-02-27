@@ -72,14 +72,20 @@ type MockAlbyService_GetBitcoinRate_Call struct {
 }
 
 // GetBitcoinRate is a helper method to define mock.On call
-//   - ctx
+//   - ctx context.Context
 func (_e *MockAlbyService_Expecter) GetBitcoinRate(ctx interface{}) *MockAlbyService_GetBitcoinRate_Call {
 	return &MockAlbyService_GetBitcoinRate_Call{Call: _e.mock.On("GetBitcoinRate", ctx)}
 }
 
 func (_c *MockAlbyService_GetBitcoinRate_Call) Run(run func(ctx context.Context)) *MockAlbyService_GetBitcoinRate_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
@@ -128,14 +134,20 @@ type MockAlbyService_GetChannelPeerSuggestions_Call struct {
 }
 
 // GetChannelPeerSuggestions is a helper method to define mock.On call
-//   - ctx
+//   - ctx context.Context
 func (_e *MockAlbyService_Expecter) GetChannelPeerSuggestions(ctx interface{}) *MockAlbyService_GetChannelPeerSuggestions_Call {
 	return &MockAlbyService_GetChannelPeerSuggestions_Call{Call: _e.mock.On("GetChannelPeerSuggestions", ctx)}
 }
 
 func (_c *MockAlbyService_GetChannelPeerSuggestions_Call) Run(run func(ctx context.Context)) *MockAlbyService_GetChannelPeerSuggestions_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
@@ -184,14 +196,20 @@ type MockAlbyService_GetInfo_Call struct {
 }
 
 // GetInfo is a helper method to define mock.On call
-//   - ctx
+//   - ctx context.Context
 func (_e *MockAlbyService_Expecter) GetInfo(ctx interface{}) *MockAlbyService_GetInfo_Call {
 	return &MockAlbyService_GetInfo_Call{Call: _e.mock.On("GetInfo", ctx)}
 }
 
 func (_c *MockAlbyService_GetInfo_Call) Run(run func(ctx context.Context)) *MockAlbyService_GetInfo_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }

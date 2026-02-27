@@ -63,16 +63,32 @@ type MockAlbyOAuthService_CallbackHandler_Call struct {
 }
 
 // CallbackHandler is a helper method to define mock.On call
-//   - ctx
-//   - code
-//   - lnClient
+//   - ctx context.Context
+//   - code string
+//   - lnClient lnclient.LNClient
 func (_e *MockAlbyOAuthService_Expecter) CallbackHandler(ctx interface{}, code interface{}, lnClient interface{}) *MockAlbyOAuthService_CallbackHandler_Call {
 	return &MockAlbyOAuthService_CallbackHandler_Call{Call: _e.mock.On("CallbackHandler", ctx, code, lnClient)}
 }
 
 func (_c *MockAlbyOAuthService_CallbackHandler_Call) Run(run func(ctx context.Context, code string, lnClient lnclient.LNClient)) *MockAlbyOAuthService_CallbackHandler_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(lnclient.LNClient))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 lnclient.LNClient
+		if args[2] != nil {
+			arg2 = args[2].(lnclient.LNClient)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
 	})
 	return _c
 }
@@ -99,16 +115,32 @@ type MockAlbyOAuthService_ConsumeEvent_Call struct {
 }
 
 // ConsumeEvent is a helper method to define mock.On call
-//   - ctx
-//   - event
-//   - globalProperties
+//   - ctx context.Context
+//   - event *events.Event
+//   - globalProperties map[string]interface{}
 func (_e *MockAlbyOAuthService_Expecter) ConsumeEvent(ctx interface{}, event interface{}, globalProperties interface{}) *MockAlbyOAuthService_ConsumeEvent_Call {
 	return &MockAlbyOAuthService_ConsumeEvent_Call{Call: _e.mock.On("ConsumeEvent", ctx, event, globalProperties)}
 }
 
 func (_c *MockAlbyOAuthService_ConsumeEvent_Call) Run(run func(ctx context.Context, event *events.Event, globalProperties map[string]interface{})) *MockAlbyOAuthService_ConsumeEvent_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(*events.Event), args[2].(map[string]interface{}))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 *events.Event
+		if args[1] != nil {
+			arg1 = args[1].(*events.Event)
+		}
+		var arg2 map[string]interface{}
+		if args[2] != nil {
+			arg2 = args[2].(map[string]interface{})
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
 	})
 	return _c
 }
@@ -157,17 +189,38 @@ type MockAlbyOAuthService_CreateLSPOrder_Call struct {
 }
 
 // CreateLSPOrder is a helper method to define mock.On call
-//   - ctx
-//   - lsp
-//   - network
-//   - lspChannelRequest
+//   - ctx context.Context
+//   - lsp string
+//   - network string
+//   - lspChannelRequest *alby.LSPChannelRequest
 func (_e *MockAlbyOAuthService_Expecter) CreateLSPOrder(ctx interface{}, lsp interface{}, network interface{}, lspChannelRequest interface{}) *MockAlbyOAuthService_CreateLSPOrder_Call {
 	return &MockAlbyOAuthService_CreateLSPOrder_Call{Call: _e.mock.On("CreateLSPOrder", ctx, lsp, network, lspChannelRequest)}
 }
 
 func (_c *MockAlbyOAuthService_CreateLSPOrder_Call) Run(run func(ctx context.Context, lsp string, network string, lspChannelRequest *alby.LSPChannelRequest)) *MockAlbyOAuthService_CreateLSPOrder_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(*alby.LSPChannelRequest))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		var arg3 *alby.LSPChannelRequest
+		if args[3] != nil {
+			arg3 = args[3].(*alby.LSPChannelRequest)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
 	})
 	return _c
 }
@@ -216,16 +269,32 @@ type MockAlbyOAuthService_CreateLightningAddress_Call struct {
 }
 
 // CreateLightningAddress is a helper method to define mock.On call
-//   - ctx
-//   - address
-//   - appId
+//   - ctx context.Context
+//   - address string
+//   - appId uint
 func (_e *MockAlbyOAuthService_Expecter) CreateLightningAddress(ctx interface{}, address interface{}, appId interface{}) *MockAlbyOAuthService_CreateLightningAddress_Call {
 	return &MockAlbyOAuthService_CreateLightningAddress_Call{Call: _e.mock.On("CreateLightningAddress", ctx, address, appId)}
 }
 
 func (_c *MockAlbyOAuthService_CreateLightningAddress_Call) Run(run func(ctx context.Context, address string, appId uint)) *MockAlbyOAuthService_CreateLightningAddress_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(uint))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint
+		if args[2] != nil {
+			arg2 = args[2].(uint)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
 	})
 	return _c
 }
@@ -263,15 +332,26 @@ type MockAlbyOAuthService_DeleteLightningAddress_Call struct {
 }
 
 // DeleteLightningAddress is a helper method to define mock.On call
-//   - ctx
-//   - address
+//   - ctx context.Context
+//   - address string
 func (_e *MockAlbyOAuthService_Expecter) DeleteLightningAddress(ctx interface{}, address interface{}) *MockAlbyOAuthService_DeleteLightningAddress_Call {
 	return &MockAlbyOAuthService_DeleteLightningAddress_Call{Call: _e.mock.On("DeleteLightningAddress", ctx, address)}
 }
 
 func (_c *MockAlbyOAuthService_DeleteLightningAddress_Call) Run(run func(ctx context.Context, address string)) *MockAlbyOAuthService_DeleteLightningAddress_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -364,14 +444,20 @@ type MockAlbyOAuthService_GetLSPChannelOffer_Call struct {
 }
 
 // GetLSPChannelOffer is a helper method to define mock.On call
-//   - ctx
+//   - ctx context.Context
 func (_e *MockAlbyOAuthService_Expecter) GetLSPChannelOffer(ctx interface{}) *MockAlbyOAuthService_GetLSPChannelOffer_Call {
 	return &MockAlbyOAuthService_GetLSPChannelOffer_Call{Call: _e.mock.On("GetLSPChannelOffer", ctx)}
 }
 
 func (_c *MockAlbyOAuthService_GetLSPChannelOffer_Call) Run(run func(ctx context.Context)) *MockAlbyOAuthService_GetLSPChannelOffer_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
@@ -420,16 +506,32 @@ type MockAlbyOAuthService_GetLSPInfo_Call struct {
 }
 
 // GetLSPInfo is a helper method to define mock.On call
-//   - ctx
-//   - lsp
-//   - network
+//   - ctx context.Context
+//   - lsp string
+//   - network string
 func (_e *MockAlbyOAuthService_Expecter) GetLSPInfo(ctx interface{}, lsp interface{}, network interface{}) *MockAlbyOAuthService_GetLSPInfo_Call {
 	return &MockAlbyOAuthService_GetLSPInfo_Call{Call: _e.mock.On("GetLSPInfo", ctx, lsp, network)}
 }
 
 func (_c *MockAlbyOAuthService_GetLSPInfo_Call) Run(run func(ctx context.Context, lsp string, network string)) *MockAlbyOAuthService_GetLSPInfo_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 string
+		if args[2] != nil {
+			arg2 = args[2].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
 	})
 	return _c
 }
@@ -531,14 +633,20 @@ type MockAlbyOAuthService_GetMe_Call struct {
 }
 
 // GetMe is a helper method to define mock.On call
-//   - ctx
+//   - ctx context.Context
 func (_e *MockAlbyOAuthService_Expecter) GetMe(ctx interface{}) *MockAlbyOAuthService_GetMe_Call {
 	return &MockAlbyOAuthService_GetMe_Call{Call: _e.mock.On("GetMe", ctx)}
 }
 
 func (_c *MockAlbyOAuthService_GetMe_Call) Run(run func(ctx context.Context)) *MockAlbyOAuthService_GetMe_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
@@ -638,15 +746,26 @@ type MockAlbyOAuthService_GetVssAuthToken_Call struct {
 }
 
 // GetVssAuthToken is a helper method to define mock.On call
-//   - ctx
-//   - nodeIdentifier
+//   - ctx context.Context
+//   - nodeIdentifier string
 func (_e *MockAlbyOAuthService_Expecter) GetVssAuthToken(ctx interface{}, nodeIdentifier interface{}) *MockAlbyOAuthService_GetVssAuthToken_Call {
 	return &MockAlbyOAuthService_GetVssAuthToken_Call{Call: _e.mock.On("GetVssAuthToken", ctx, nodeIdentifier)}
 }
 
 func (_c *MockAlbyOAuthService_GetVssAuthToken_Call) Run(run func(ctx context.Context, nodeIdentifier string)) *MockAlbyOAuthService_GetVssAuthToken_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -684,14 +803,20 @@ type MockAlbyOAuthService_IsConnected_Call struct {
 }
 
 // IsConnected is a helper method to define mock.On call
-//   - ctx
+//   - ctx context.Context
 func (_e *MockAlbyOAuthService_Expecter) IsConnected(ctx interface{}) *MockAlbyOAuthService_IsConnected_Call {
 	return &MockAlbyOAuthService_IsConnected_Call{Call: _e.mock.On("IsConnected", ctx)}
 }
 
 func (_c *MockAlbyOAuthService_IsConnected_Call) Run(run func(ctx context.Context)) *MockAlbyOAuthService_IsConnected_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
@@ -729,17 +854,38 @@ type MockAlbyOAuthService_LinkAccount_Call struct {
 }
 
 // LinkAccount is a helper method to define mock.On call
-//   - ctx
-//   - lnClient
-//   - budget
-//   - renewal
+//   - ctx context.Context
+//   - lnClient lnclient.LNClient
+//   - budget uint64
+//   - renewal string
 func (_e *MockAlbyOAuthService_Expecter) LinkAccount(ctx interface{}, lnClient interface{}, budget interface{}, renewal interface{}) *MockAlbyOAuthService_LinkAccount_Call {
 	return &MockAlbyOAuthService_LinkAccount_Call{Call: _e.mock.On("LinkAccount", ctx, lnClient, budget, renewal)}
 }
 
 func (_c *MockAlbyOAuthService_LinkAccount_Call) Run(run func(ctx context.Context, lnClient lnclient.LNClient, budget uint64, renewal string)) *MockAlbyOAuthService_LinkAccount_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(lnclient.LNClient), args[2].(uint64), args[3].(string))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 lnclient.LNClient
+		if args[1] != nil {
+			arg1 = args[1].(lnclient.LNClient)
+		}
+		var arg2 uint64
+		if args[2] != nil {
+			arg2 = args[2].(uint64)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
 	})
 	return _c
 }
@@ -832,16 +978,32 @@ type MockAlbyOAuthService_RequestAutoChannel_Call struct {
 }
 
 // RequestAutoChannel is a helper method to define mock.On call
-//   - ctx
-//   - lnClient
-//   - isPublic
+//   - ctx context.Context
+//   - lnClient lnclient.LNClient
+//   - isPublic bool
 func (_e *MockAlbyOAuthService_Expecter) RequestAutoChannel(ctx interface{}, lnClient interface{}, isPublic interface{}) *MockAlbyOAuthService_RequestAutoChannel_Call {
 	return &MockAlbyOAuthService_RequestAutoChannel_Call{Call: _e.mock.On("RequestAutoChannel", ctx, lnClient, isPublic)}
 }
 
 func (_c *MockAlbyOAuthService_RequestAutoChannel_Call) Run(run func(ctx context.Context, lnClient lnclient.LNClient, isPublic bool)) *MockAlbyOAuthService_RequestAutoChannel_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(lnclient.LNClient), args[2].(bool))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 lnclient.LNClient
+		if args[1] != nil {
+			arg1 = args[1].(lnclient.LNClient)
+		}
+		var arg2 bool
+		if args[2] != nil {
+			arg2 = args[2].(bool)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+		)
 	})
 	return _c
 }
@@ -879,14 +1041,20 @@ type MockAlbyOAuthService_UnlinkAccount_Call struct {
 }
 
 // UnlinkAccount is a helper method to define mock.On call
-//   - ctx
+//   - ctx context.Context
 func (_e *MockAlbyOAuthService_Expecter) UnlinkAccount(ctx interface{}) *MockAlbyOAuthService_UnlinkAccount_Call {
 	return &MockAlbyOAuthService_UnlinkAccount_Call{Call: _e.mock.On("UnlinkAccount", ctx)}
 }
 
 func (_c *MockAlbyOAuthService_UnlinkAccount_Call) Run(run func(ctx context.Context)) *MockAlbyOAuthService_UnlinkAccount_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
