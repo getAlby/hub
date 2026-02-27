@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
+import { FixedFloatButton } from "src/components/FixedFloatButton";
 import { FixedFloatSwapInFlow } from "src/components/FixedFloatSwapInFlow";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
@@ -192,14 +193,15 @@ function ReceiveToOnchain() {
             {!bitcoinMaxiMode && (
               <>
                 <Separator className="my-2" />
-                <ExternalLinkButton
-                  to={`https://ff.io/?to=BTC&address=${onchainAddress}&ref=qnnjvywb`}
+                <FixedFloatButton
+                  to="BTC"
+                  address={onchainAddress}
                   className="w-full"
                   variant="secondary"
                 >
                   <ExternalLinkIcon className="size-4" />
                   Top up using other Cryptocurrency
-                </ExternalLinkButton>
+                </FixedFloatButton>
               </>
             )}
           </CardFooter>

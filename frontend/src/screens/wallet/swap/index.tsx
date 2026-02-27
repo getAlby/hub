@@ -9,13 +9,13 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
+import { FixedFloatButton } from "src/components/FixedFloatButton";
 import { FixedFloatSwapInFlow } from "src/components/FixedFloatSwapInFlow";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
 import { Button } from "src/components/ui/button";
-import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -509,14 +509,10 @@ function SwapOutForm() {
       {!bitcoinMaxiMode && (
         <>
           <Separator className="my-2" />
-          <ExternalLinkButton
-            to={`https://ff.io/?from=BTCLN&ref=qnnjvywb`}
-            className="w-full"
-            variant="secondary"
-          >
+          <FixedFloatButton from="BTCLN" className="w-full" variant="secondary">
             <ExternalLinkIcon className="size-4" />
             Swap out to other Cryptocurrency
-          </ExternalLinkButton>
+          </FixedFloatButton>
         </>
       )}
     </form>

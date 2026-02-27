@@ -1,6 +1,7 @@
 import { Invoice, getFiatValue } from "@getalby/lightning-tools";
 import { CopyIcon, ExternalLinkIcon } from "lucide-react";
 import React from "react";
+import { FixedFloatButton } from "src/components/FixedFloatButton";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import { LightningIcon } from "src/components/icons/Lightning";
 import Loading from "src/components/Loading";
@@ -8,7 +9,6 @@ import QRCode from "src/components/QRCode";
 import { Button } from "src/components/ui/button";
 import { useBitcoinMaxiMode } from "src/hooks/useBitcoinMaxiMode";
 import { copyToClipboard } from "src/lib/clipboard";
-import { ExternalLinkButton } from "./ui/custom/external-link-button";
 
 type PayLightningInvoiceProps = {
   invoice: string;
@@ -62,14 +62,15 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
           Copy Invoice
         </Button>
         {!bitcoinMaxiMode && (
-          <ExternalLinkButton
-            to={`https://ff.io/?to=BTCLN&address=${encodeURIComponent(invoice)}&ref=qnnjvywb`}
+          <FixedFloatButton
+            to="BTCLN"
+            address={invoice}
             className="flex-1 flex gap-2 items-center justify-center"
             variant="secondary"
           >
             Pay with other Cryptocurrency
             <ExternalLinkIcon className="size-4" />
-          </ExternalLinkButton>
+          </FixedFloatButton>
         )}
       </div>
     </div>

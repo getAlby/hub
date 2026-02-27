@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FixedFloatButton } from "src/components/FixedFloatButton";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
@@ -25,7 +26,6 @@ import {
 } from "src/components/ui/alert-dialog";
 import { Button } from "src/components/ui/button";
 import { Checkbox } from "src/components/ui/checkbox";
-import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
@@ -384,14 +384,14 @@ export default function WithdrawOnchainFunds() {
             {!bitcoinMaxiMode && (
               <>
                 <Separator className="my-4" />
-                <ExternalLinkButton
-                  to={`https://ff.io/?from=BTC&ref=qnnjvywb`}
+                <FixedFloatButton
+                  from="BTC"
                   className="w-full"
                   variant="secondary"
                 >
                   <ExternalLinkIcon className="size-4" />
                   Withdraw to other Cryptocurrency
-                </ExternalLinkButton>
+                </FixedFloatButton>
               </>
             )}
           </div>

@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import AppHeader from "src/components/AppHeader";
+import { FixedFloatButton } from "src/components/FixedFloatButton";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
@@ -137,14 +138,15 @@ export default function DepositBitcoin() {
                 {!bitcoinMaxiMode && (
                   <>
                     <Separator className="my-4" />
-                    <ExternalLinkButton
-                      to={`https://ff.io/?to=BTC&address=${onchainAddress}&ref=qnnjvywb`}
+                    <FixedFloatButton
+                      to="BTC"
+                      address={onchainAddress}
                       className="w-full"
                       variant="secondary"
                     >
                       <ExternalLinkIcon className="size-4" />
                       Deposit using other Cryptocurrency
-                    </ExternalLinkButton>
+                    </FixedFloatButton>
                   </>
                 )}
               </div>

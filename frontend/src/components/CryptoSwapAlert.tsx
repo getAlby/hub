@@ -1,7 +1,7 @@
 import { CoinsIcon, ExternalLinkIcon } from "lucide-react";
+import { FixedFloatButton } from "src/components/FixedFloatButton";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { useBitcoinMaxiMode } from "src/hooks/useBitcoinMaxiMode";
-import { ExternalLinkButton } from "./ui/custom/external-link-button";
 
 type CryptoSwapAlertProps = {
   className?: string;
@@ -25,14 +25,14 @@ export function CryptoSwapAlert({ className }: CryptoSwapAlertProps) {
           FixedFloat to swap and complete the payment across 70+ supported
           cryptocurrencies.
         </p>
-        <ExternalLinkButton
-          to="https://ff.io/?from=BTCLN&ref=qnnjvywb"
+        <FixedFloatButton
+          from="BTCLN"
           variant="outline"
           className="text-foreground"
         >
           Pay with FixedFloat
           <ExternalLinkIcon className="size-4" />
-        </ExternalLinkButton>
+        </FixedFloatButton>
       </AlertDescription>
     </Alert>
   );

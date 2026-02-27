@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import TickSVG from "public/images/illustrations/tick.svg";
 import { useEffect, useState } from "react";
+import { FixedFloatButton } from "src/components/FixedFloatButton";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import LottieLoading from "src/components/LottieLoading";
@@ -23,7 +24,6 @@ import { Label } from "src/components/ui/label";
 import { useTransaction } from "src/hooks/useTransaction";
 import { copyToClipboard } from "src/lib/clipboard";
 import { Transaction } from "src/types";
-import { openLink } from "src/utils/openLink";
 
 export function FixedFloatSwapInFlow({
   loading,
@@ -101,22 +101,18 @@ export function FixedFloatSwapInFlow({
             }}
             variant="secondary"
           >
-            <CopyIcon className="w-4 h-4 mr-2" />
+            <CopyIcon className="w-4 h-4" />
             Copy Invoice
           </Button>
-          <Button
-            type="button"
-            className="w-full"
+          <FixedFloatButton
+            to="BTCLN"
+            address={transaction.invoice}
             variant="outline"
-            onClick={() => {
-              openLink(
-                `https://ff.io/?to=BTCLN&address=${encodeURIComponent(transaction.invoice)}&ref=qnnjvywb`
-              );
-            }}
+            className="w-full"
           >
-            <ExternalLinkIcon className="size-4 mr-2" />
+            <ExternalLinkIcon className="size-4" />
             Open Fixed Float
-          </Button>
+          </FixedFloatButton>
         </CardFooter>
       </Card>
     );
