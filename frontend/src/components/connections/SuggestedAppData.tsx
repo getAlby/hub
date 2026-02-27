@@ -274,21 +274,32 @@ export const appStoreApps: AppStoreApp[] = (
       logo: payperq,
       hideConnectionQr: true,
       extendedDescription:
-        "Access all of the latest AI models and tools in one place via Bitcoin without the need for subscriptions",
+        "Access all of the latest AI models and tools in one place without the need for subscriptions",
       installGuide: (
         <>
-          <p className="text-muted-foreground">
-            Open{" "}
-            <ExternalLink
-              to="https://ppq.ai/account-activity"
-              className="font-medium text-foreground underline"
-            >
-              PayPerQ
-            </ExternalLink>{" "}
-            and copy your{" "}
-            <span className="font-medium text-foreground">Credit ID</span> for
-            auto-topup setup.
-          </p>
+          <ul className="list-inside list-decimal text-muted-foreground">
+            <li>
+              Open{" "}
+              <ExternalLink
+                to="https://ppq.ai/api-docs"
+                className="font-medium text-foreground underline"
+              >
+                PayPerQ API docs page
+              </ExternalLink>{" "}
+              and scroll down to the{" "}
+              <span className="font-medium text-foreground">
+                NWC Auto-Topup
+              </span>{" "}
+              section.
+            </li>
+            <li>
+              Copy the CURL code example for{" "}
+              <span className="font-medium text-foreground">
+                POST /nwc-auto-topup/connect
+              </span>{" "}
+              and paste it into a notepad.
+            </li>
+          </ul>
         </>
       ),
       finalizeGuide: (
@@ -297,21 +308,11 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">Connect Auto-Topup</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                Run this command with your Credit ID and connection secret with
-                the required threshold and top up values:
-                <pre className="mt-2 rounded bg-muted p-2 overflow-x-auto">
-                  <code className="text-foreground whitespace-pre-wrap break-all">
-                    {`curl -X POST "https://api.ppq.ai/nwc-auto-topup/connect" \\
-  -H "Content-Type: application/json" \\
-  -H "x-credit-id: CREDIT_ID" \\
-  -d '{
-    "nwc_url": "nostr+walletconnect://....",
-    "threshold_usd": 5,
-    "topup_amount_usd": 10
-  }'`}
-                  </code>
-                </pre>
+                Replace the{" "}
+                <span className="font-medium text-foreground">"nwc_url"</span>{" "}
+                field with your connection secret.
               </li>
+              <li>Execute the CURL command in your terminal.</li>
               <li>
                 Verify settings with{" "}
                 <code className="text-foreground">
@@ -319,15 +320,6 @@ export const appStoreApps: AppStoreApp[] = (
                 </code>{" "}
                 along with the{" "}
                 <code className="text-foreground">x-credit-id</code> header.
-              </li>
-              <li>
-                For JavaScript/Python examples, see{" "}
-                <ExternalLink
-                  to="https://ppq.ai/api-docs"
-                  className="font-medium text-foreground underline"
-                >
-                  PayPerQ API docs
-                </ExternalLink>
               </li>
             </ul>
           </div>
