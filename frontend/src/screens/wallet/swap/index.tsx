@@ -1,5 +1,6 @@
 import {
   ClipboardPasteIcon,
+  ExternalLinkIcon,
   InfoIcon,
   MoveRightIcon,
   RefreshCwIcon,
@@ -8,15 +9,18 @@ import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
+import { FixedFloatSwapInFlow } from "src/components/FixedFloatSwapInFlow";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
 import { Button } from "src/components/ui/button";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
+import { Separator } from "src/components/ui/separator";
 import {
   Tabs,
   TabsContent,
@@ -30,10 +34,12 @@ import {
   TooltipTrigger,
 } from "src/components/ui/tooltip";
 import { useBalances } from "src/hooks/useBalances";
+import { useBitcoinMaxiMode } from "src/hooks/useBitcoinMaxiMode";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { useSwapInfo } from "src/hooks/useSwaps";
-import { SwapResponse } from "src/types";
+import { CreateInvoiceRequest, SwapResponse, Transaction } from "src/types";
+import { openLink } from "src/utils/openLink";
 import { request } from "src/utils/request";
 
 export default function Swap() {
@@ -85,7 +91,9 @@ export default function Swap() {
 }
 
 function SwapInForm() {
-  const [isInternalSwap, setInternalSwap] = useState(false);
+  const [swapFrom, setSwapFrom] = useState<"internal" | "external" | "crypto">(
+    "external"
+  );
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
   const { data: swapInfo } = useSwapInfo("in");
@@ -94,12 +102,36 @@ function SwapInForm() {
 
   const [swapAmount, setSwapAmount] = useState("");
   const [loading, setLoading] = useState(false);
+  const [cryptoTransaction, setCryptoTransaction] =
+    useState<Transaction | null>(null);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
       setLoading(true);
+      if (swapFrom === "crypto") {
+        const tx = await request<Transaction>("/api/invoices", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount: (parseInt(swapAmount) || 0) * 1000,
+            description: "Fixed Float swap",
+          } as CreateInvoiceRequest),
+        });
+        if (!tx?.invoice) {
+          throw new Error("Failed to create invoice");
+        }
+        setCryptoTransaction(tx);
+        openLink(
+          `https://ff.io/?to=BTCLN&address=${encodeURIComponent(tx.invoice)}&ref=qnnjvywb`
+        );
+        toast("Initiated swap");
+        return;
+      }
+
       const swapInResponse = await request<SwapResponse>("/api/swaps/in", {
         method: "POST",
         headers: {
@@ -113,7 +145,7 @@ function SwapInForm() {
         throw new Error("Error swapping in");
       }
       navigate(
-        `/wallet/swap/in/status/${swapInResponse.swapId}${isInternalSwap ? "?internal=true" : ""}`
+        `/wallet/swap/in/status/${swapInResponse.swapId}${swapFrom === "internal" ? "?internal=true" : ""}`
       );
       toast("Initiated swap");
     } catch (error) {
@@ -133,135 +165,177 @@ function SwapInForm() {
     balances.onchain.spendable - (channels?.length || 0) * 25000,
     0
   );
+  const isInternalSwap = swapFrom === "internal";
+  const isCryptoSwappingState =
+    swapFrom === "crypto" && cryptoTransaction !== null;
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
-      <div>
-        <h2 className="font-medium text-foreground flex items-center gap-1">
-          On-chain <MoveRightIcon /> Lightning
-        </h2>
-        <p className="mt-1 text-muted-foreground">
-          Swap on-chain funds into your lightning spending balance.
-        </p>
-      </div>
-      <div className="grid gap-1.5">
-        {hasChannelManagement &&
-          parseInt(swapAmount || "0") * 1000 >=
-            0.8 * balances.lightning.totalReceivable && (
-            <div className="mb-4">
-              <LowReceivingCapacityAlert />
-            </div>
-          )}
+      {!isCryptoSwappingState && (
+        <>
+          <div>
+            <h2 className="font-medium text-foreground flex items-center gap-1">
+              On-chain <MoveRightIcon /> Lightning
+            </h2>
+            <p className="mt-1 text-muted-foreground">
+              Swap on-chain funds into your lightning spending balance.
+            </p>
+          </div>
+          <div className="grid gap-1.5">
+            {hasChannelManagement &&
+              parseInt(swapAmount || "0") * 1000 >=
+                0.8 * balances.lightning.totalReceivable && (
+                <div className="mb-4">
+                  <LowReceivingCapacityAlert />
+                </div>
+              )}
 
-        <Label>Swap amount</Label>
-        <Input
-          type="number"
-          autoFocus
-          placeholder="Amount in satoshis"
-          value={swapAmount}
-          min={swapInfo.minAmount}
-          max={Math.min(
-            swapInfo.maxAmount,
-            ...(isInternalSwap
-              ? [spendableOnchainBalanceWithAnchorReserves]
-              : []),
-            (balances.lightning.totalReceivable / 1000) * 0.99
-          )}
-          onChange={(e) => setSwapAmount(e.target.value)}
-          required
-        />
+            <Label>Swap amount</Label>
+            <Input
+              type="number"
+              autoFocus
+              placeholder="Amount in satoshis"
+              value={swapAmount}
+              min={swapFrom !== "crypto" ? swapInfo.minAmount : undefined}
+              max={Math.min(
+                swapInfo.maxAmount,
+                ...(isInternalSwap
+                  ? [spendableOnchainBalanceWithAnchorReserves]
+                  : []),
+                (balances.lightning.totalReceivable / 1000) * 0.99
+              )}
+              onChange={(e) => setSwapAmount(e.target.value)}
+              required
+            />
 
-        <div className="flex justify-between">
-          {balances && (
-            <div>
-              <p className="text-xs text-muted-foreground">
-                Receiving Capacity:{" "}
-                <FormattedBitcoinAmount
-                  amount={balances.lightning.totalReceivable}
-                />
-              </p>
-              {isInternalSwap && (
-                <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                  Spendable On-Chain Balance:{" "}
-                  <FormattedBitcoinAmount
-                    amount={spendableOnchainBalanceWithAnchorReserves * 1000}
-                  />
-                  {!!channels?.length && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <div className="flex flex-row gap-1 items-center text-muted-foreground">
-                            <InfoIcon className="h-3 w-3 shrink-0" />
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          To ensure you can close channels, you need to set
-                          aside at least{" "}
-                          <FormattedBitcoinAmount
-                            amount={channels.length * 25000 * 1000}
-                          />{" "}
-                          on-chain. Your total on-chain balance is{" "}
-                          <FormattedBitcoinAmount
-                            amount={balances.onchain.spendable * 1000}
-                          />
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+            <div className="flex justify-between">
+              {balances && (
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    Receiving Capacity:{" "}
+                    <FormattedBitcoinAmount
+                      amount={balances.lightning.totalReceivable}
+                    />
+                  </p>
+                  {isInternalSwap && (
+                    <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                      Spendable On-Chain Balance:{" "}
+                      <FormattedBitcoinAmount
+                        amount={
+                          spendableOnchainBalanceWithAnchorReserves * 1000
+                        }
+                      />
+                      {!!channels?.length && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <div className="flex flex-row gap-1 items-center text-muted-foreground">
+                                <InfoIcon className="h-3 w-3 shrink-0" />
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              To ensure you can close channels, you need to set
+                              aside at least{" "}
+                              <FormattedBitcoinAmount
+                                amount={channels.length * 25000 * 1000}
+                              />{" "}
+                              on-chain. Your total on-chain balance is{" "}
+                              <FormattedBitcoinAmount
+                                amount={balances.onchain.spendable * 1000}
+                              />
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                    </p>
                   )}
-                </p>
+                </div>
               )}
             </div>
-          )}
-        </div>
-      </div>
-      <div className="flex flex-col gap-4">
-        <Label>Swap from</Label>
-        <RadioGroup
-          defaultValue="normal"
-          value={isInternalSwap ? "internal" : "external"}
-          onValueChange={() => {
-            setInternalSwap(!isInternalSwap);
-          }}
-          className="flex gap-4 flex-row"
-        >
-          <div className="flex items-start space-x-2 mb-2">
-            <RadioGroupItem
-              value="internal"
-              id="internal"
-              className="shrink-0"
-            />
-            <Label htmlFor="internal" className="font-medium cursor-pointer">
-              On-chain balance
-            </Label>
           </div>
-          <div className="flex items-start space-x-2">
-            <RadioGroupItem
-              value="external"
-              id="external"
-              className="shrink-0"
-            />
-            <Label htmlFor="external" className="font-medium cursor-pointer">
-              External on-chain wallet
-            </Label>
+          <div className="flex flex-col gap-4">
+            <Label>Swap from</Label>
+            <RadioGroup
+              defaultValue="external"
+              value={swapFrom}
+              onValueChange={(value: "internal" | "external" | "crypto") => {
+                setSwapFrom(value);
+              }}
+              className="flex gap-4 flex-wrap"
+            >
+              <div className="flex items-start space-x-2 mb-2">
+                <RadioGroupItem
+                  value="internal"
+                  id="internal"
+                  className="shrink-0"
+                />
+                <Label
+                  htmlFor="internal"
+                  className="font-medium cursor-pointer"
+                >
+                  On-chain balance
+                </Label>
+              </div>
+              <div className="flex items-start space-x-2">
+                <RadioGroupItem
+                  value="external"
+                  id="external"
+                  className="shrink-0"
+                />
+                <Label
+                  htmlFor="external"
+                  className="font-medium cursor-pointer"
+                >
+                  External on-chain wallet
+                </Label>
+              </div>
+              <div className="flex items-start space-x-2">
+                <RadioGroupItem
+                  value="crypto"
+                  id="crypto"
+                  className="shrink-0"
+                />
+                <Label htmlFor="crypto" className="font-medium cursor-pointer">
+                  Other Cryptocurrency
+                </Label>
+              </div>
+            </RadioGroup>
           </div>
-        </RadioGroup>
-      </div>
+        </>
+      )}
 
-      <div className="flex items-center justify-between border-t pt-4">
-        <Label>Fee</Label>
-        <p className="text-muted-foreground text-sm">
-          {swapInfo.albyServiceFee + swapInfo.boltzServiceFee}% + on-chain fees
-        </p>
-      </div>
-      <div className="grid gap-2">
-        <LoadingButton className="w-full" loading={loading}>
-          Swap In
-        </LoadingButton>
-        <p className="text-xs text-muted-foreground text-center">
-          powered by{" "}
-          <span className="font-medium text-foreground">boltz.exchange</span>
-        </p>
-      </div>
+      {swapFrom === "crypto" ? (
+        <FixedFloatSwapInFlow
+          loading={loading}
+          transaction={cryptoTransaction}
+          resetLabel="Swap Another Amount"
+          onReset={() => {
+            setCryptoTransaction(null);
+            setSwapAmount("");
+          }}
+        />
+      ) : (
+        <>
+          <div className="flex items-center justify-between border-t pt-4">
+            <Label>Fee</Label>
+            <p className="text-muted-foreground text-sm">
+              {swapInfo.albyServiceFee + swapInfo.boltzServiceFee}% + on-chain
+              fees
+            </p>
+          </div>
+          <div className="grid gap-2">
+            <LoadingButton className="w-full" loading={loading}>
+              Swap In
+            </LoadingButton>
+            <p className="text-xs text-muted-foreground text-center">
+              powered by{" "}
+              <span className="font-medium text-foreground">
+                boltz.exchange
+              </span>
+            </p>
+          </div>
+        </>
+      )}
     </form>
   );
 }
@@ -270,6 +344,7 @@ function SwapOutForm() {
   const { data: swapInfo } = useSwapInfo("out");
   const navigate = useNavigate();
   const { data: balances } = useBalances();
+  const { bitcoinMaxiMode } = useBitcoinMaxiMode();
 
   const [isInternalSwap, setInternalSwap] = useState(true);
   const [swapAmount, setSwapAmount] = useState("");
@@ -431,6 +506,19 @@ function SwapOutForm() {
           <span className="font-medium text-foreground">boltz.exchange</span>
         </p>
       </div>
+      {!bitcoinMaxiMode && (
+        <>
+          <Separator className="my-2" />
+          <ExternalLinkButton
+            to={`https://ff.io/?from=BTCLN&ref=qnnjvywb`}
+            className="w-full"
+            variant="secondary"
+          >
+            <ExternalLinkIcon className="size-4" />
+            Swap out to other Cryptocurrency
+          </ExternalLinkButton>
+        </>
+      )}
     </form>
   );
 }

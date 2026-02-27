@@ -1,6 +1,6 @@
 import { CoinsIcon, ExternalLinkIcon } from "lucide-react";
-import { useBitcoinMaxiMode } from "src/hooks/useBitcoinMaxiMode";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
+import { useBitcoinMaxiMode } from "src/hooks/useBitcoinMaxiMode";
 import { ExternalLinkButton } from "./ui/custom/external-link-button";
 
 type CryptoSwapAlertProps = {
@@ -26,7 +26,7 @@ export function CryptoSwapAlert({ className }: CryptoSwapAlertProps) {
           cryptocurrencies.
         </p>
         <ExternalLinkButton
-          to="https://ff.io/?ref=qnnjvywb&from=BTCLN"
+          to="https://ff.io/?from=BTCLN&ref=qnnjvywb"
           variant="outline"
           className="text-foreground"
         >
