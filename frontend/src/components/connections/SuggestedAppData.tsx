@@ -27,6 +27,7 @@ import nostrudel from "src/assets/suggested-apps/nostrudel.png";
 import nostter from "src/assets/suggested-apps/nostter.png";
 import nostur from "src/assets/suggested-apps/nostur.png";
 import paperScissorsHodl from "src/assets/suggested-apps/paper-scissors-hodl.png";
+import payperq from "src/assets/suggested-apps/payperq.png";
 import primal from "src/assets/suggested-apps/primal.png";
 import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
 import runstr from "src/assets/suggested-apps/runstr.png";
@@ -264,6 +265,75 @@ export const appStoreApps: AppStoreApp[] = (
       logo: claude,
       categories: ["ai"],
       webLink: "https://claude.ai/",
+    },
+    {
+      id: "payperq",
+      title: "PayPerQ",
+      description: "Pay-Per-Prompt AI Service",
+      webLink: "https://ppq.ai",
+      logo: payperq,
+      hideConnectionQr: true,
+      extendedDescription:
+        "Access all of the latest AI models and tools in one place via Bitcoin without the need for subscriptions",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://ppq.ai/account-activity"
+              className="font-medium text-foreground underline"
+            >
+              PayPerQ
+            </ExternalLink>{" "}
+            and copy your{" "}
+            <span className="font-medium text-foreground">Credit ID</span> for
+            auto-topup setup.
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">Connect Auto-Topup</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Run this command with your Credit ID and connection secret with
+                the required threshold and top up values:
+                <pre className="mt-2 rounded bg-muted p-2 overflow-x-auto">
+                  <code className="text-foreground whitespace-pre-wrap break-all">
+                    {`curl -X POST "https://api.ppq.ai/nwc-auto-topup/connect" \\
+  -H "Content-Type: application/json" \\
+  -H "x-credit-id: CREDIT_ID" \\
+  -d '{
+    "nwc_url": "nostr+walletconnect://....",
+    "threshold_usd": 5,
+    "topup_amount_usd": 10
+  }'`}
+                  </code>
+                </pre>
+              </li>
+              <li>
+                Verify settings with{" "}
+                <code className="text-foreground">
+                  GET https://api.ppq.ai/nwc-auto-topup
+                </code>{" "}
+                along with the{" "}
+                <code className="text-foreground">x-credit-id</code> header.
+              </li>
+              <li>
+                For JavaScript/Python examples, see{" "}
+                <ExternalLink
+                  to="https://ppq.ai/api-docs"
+                  className="font-medium text-foreground underline"
+                >
+                  PayPerQ API docs
+                </ExternalLink>
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["ai"],
     },
     {
       id: "simpleboost",
