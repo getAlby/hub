@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "src/components/ui/select";
+import { Switch } from "src/components/ui/switch";
 import {
   DarkMode,
   Theme,
@@ -59,7 +60,7 @@ function Settings() {
   }, []);
 
   async function updateSettings(
-    payload: Record<string, string>,
+    payload: Record<string, string | boolean>,
     successMessage: string,
     errorMessage: string
   ) {
@@ -92,6 +93,16 @@ function Settings() {
       { bitcoinDisplayFormat },
       "Bitcoin display format updated",
       "Failed to update bitcoin display format"
+    );
+  }
+
+  async function updateBitcoinMaxiMode(bitcoinMaxiMode: boolean) {
+    await updateSettings(
+      { bitcoinMaxiMode },
+      bitcoinMaxiMode
+        ? "Bitcoin Maxi mode enabled"
+        : "Bitcoin Maxi mode disabled",
+      "Failed to update Bitcoin Maxi mode"
     );
   }
 
@@ -218,6 +229,23 @@ function Settings() {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <h3 className="text-xl font-medium">Experience</h3>
+          <div className="flex items-center justify-between max-w-md rounded-lg border p-3">
+            <div className="grid gap-2">
+              <Label htmlFor="bitcoin-maxi-mode">Bitcoin Maxi mode</Label>
+              <p className="text-xs text-muted-foreground">
+                Hide other cryptocurrency mentions and related actions
+              </p>
+            </div>
+            <Switch
+              id="bitcoin-maxi-mode"
+              checked={info?.bitcoinMaxiMode}
+              onCheckedChange={updateBitcoinMaxiMode}
+            />
           </div>
         </div>
       </form>

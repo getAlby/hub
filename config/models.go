@@ -16,7 +16,7 @@ const (
 )
 
 type AppConfig struct {
-	Relay                              string `envconfig:"RELAY" default:"wss://relay.getalby.com/v1"`
+	Relay                              string `envconfig:"RELAY" default:"wss://relay.getalby.com,wss://relay2.getalby.com"`
 	LNBackendType                      string `envconfig:"LN_BACKEND_TYPE"`
 	LNDAddress                         string `envconfig:"LND_ADDRESS"`
 	LNDCertFile                        string `envconfig:"LND_CERT_FILE"`
@@ -92,4 +92,6 @@ type Config interface {
 	SetCurrency(value string) error
 	GetBitcoinDisplayFormat() string
 	SetBitcoinDisplayFormat(value string) error
+	GetBitcoinMaxiMode() bool
+	SetBitcoinMaxiMode(value bool) error
 }

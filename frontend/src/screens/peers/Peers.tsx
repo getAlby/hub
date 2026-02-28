@@ -1,13 +1,18 @@
-import { MoreHorizontalIcon, PlugZapIcon, Trash2Icon } from "lucide-react";
+import {
+  MoreHorizontalIcon,
+  PlugZapIcon,
+  RadioIcon,
+  Trash2Icon,
+} from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader.tsx";
 import { DisconnectPeerDialogContent } from "src/components/DisconnectPeerDialogContent";
+import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
 import { AlertDialog } from "src/components/ui/alert-dialog.tsx";
 import { Badge } from "src/components/ui/badge.tsx";
 import { Button } from "src/components/ui/button.tsx";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
-import { LinkButton } from "src/components/ui/custom/link-button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,7 +45,13 @@ export default function Peers() {
       <AppHeader
         title="Peers"
         description="Manage your connections with other lightning nodes"
-        contentRight={<LinkButton to="/peers/new">Connect Peer</LinkButton>}
+        contentRight={
+          <ResponsiveLinkButton
+            text="Connect Peer"
+            icon={RadioIcon}
+            to="/peers/new"
+          />
+        }
       />
       <Table>
         <TableHeader>

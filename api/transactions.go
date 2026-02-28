@@ -13,10 +13,11 @@ import (
 )
 
 func (api *api) CreateInvoice(ctx context.Context, amount uint64, description string) (*MakeInvoiceResponse, error) {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amount, description, "", 0, nil, api.svc.GetLNClient(), nil, nil, nil)
+	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amount, description, "", 0, nil, lnClient, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -24,10 +25,11 @@ func (api *api) CreateInvoice(ctx context.Context, amount uint64, description st
 }
 
 func (api *api) LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error) {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	transaction, err := api.svc.GetTransactionsService().LookupTransaction(ctx, paymentHash, nil, api.svc.GetLNClient(), nil)
+	transaction, err := api.svc.GetTransactionsService().LookupTransaction(ctx, paymentHash, nil, lnClient, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +37,8 @@ func (api *api) LookupInvoice(ctx context.Context, paymentHash string) (*LookupI
 }
 
 func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error) {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
 
@@ -44,7 +47,7 @@ func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64,
 		forceFilterByAppId = true
 	}
 
-	transactions, totalCount, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, true, false, nil, api.svc.GetLNClient(), appId, forceFilterByAppId)
+	transactions, totalCount, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, true, false, nil, lnClient, appId, forceFilterByAppId)
 	if err != nil {
 		return nil, err
 	}
@@ -61,10 +64,12 @@ func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64,
 }
 
 func (api *api) SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}) (*SendPaymentResponse, error) {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
-	transaction, err := api.svc.GetTransactionsService().SendPaymentSync(invoice, amountMsat, metadata, api.svc.GetLNClient(), nil, nil)
+
+	transaction, err := api.svc.GetTransactionsService().SendPaymentSync(invoice, amountMsat, metadata, lnClient, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +133,8 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 }
 
 func (api *api) Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, amountMsat uint64, message string) error {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return errors.New("LNClient not started")
 	}
 
@@ -150,13 +156,13 @@ func (api *api) Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, am
 		description = "transfer"
 	}
 
-	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, description, "", 0, nil, api.svc.GetLNClient(), toAppId, nil, nil)
+	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, description, "", 0, nil, lnClient, toAppId, nil, nil)
 
 	if err != nil {
 		return err
 	}
 
-	_, err = api.svc.GetTransactionsService().SendPaymentSync(transaction.PaymentRequest, nil, nil, api.svc.GetLNClient(), fromAppId, nil)
+	_, err = api.svc.GetTransactionsService().SendPaymentSync(transaction.PaymentRequest, nil, nil, lnClient, fromAppId, nil)
 	return err
 }
 

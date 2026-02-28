@@ -5,8 +5,9 @@ import {
   ExternalLinkIcon,
   RefreshCwIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AppHeader from "src/components/AppHeader";
+import { FixedFloatButton } from "src/components/FixedFloatButton";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
@@ -14,6 +15,7 @@ import LottieLoading from "src/components/LottieLoading";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import OnchainAddressDisplay from "src/components/OnchainAddressDisplay";
 import QRCode from "src/components/QRCode";
+import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -24,6 +26,8 @@ import {
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
+import { Separator } from "src/components/ui/separator";
+import { useBitcoinMaxiMode } from "src/hooks/useBitcoinMaxiMode";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
@@ -42,13 +46,25 @@ export default function DepositBitcoin() {
     onchainAddress ? `/address/${onchainAddress}/utxo` : undefined,
     3000
   );
+  const { bitcoinMaxiMode } = useBitcoinMaxiMode();
 
   const [txId, setTxId] = useState("");
   const [confirmedAmount, setConfirmedAmount] = useState<number | null>(null);
   const [pendingAmount, setPendingAmount] = useState<number | null>(null);
+  const startTimeRef = useRef(0);
 
   useEffect(() => {
-    if (!mempoolAddressUtxos || mempoolAddressUtxos.length === 0) {
+    if (startTimeRef.current === 0) {
+      startTimeRef.current = Math.floor(Date.now() / 1000);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (
+      !mempoolAddressUtxos ||
+      mempoolAddressUtxos.length === 0 ||
+      startTimeRef.current === 0
+    ) {
       return;
     }
 
@@ -66,6 +82,19 @@ export default function DepositBitcoin() {
       if (unconfirmed) {
         setTxId(unconfirmed.txid);
         setPendingAmount(unconfirmed.value);
+        return;
+      }
+
+      const confirmed = mempoolAddressUtxos.find(
+        (utxo) =>
+          utxo.status.confirmed &&
+          !!utxo.status.block_time &&
+          utxo.status.block_time >= startTimeRef.current
+      );
+      if (confirmed) {
+        setTxId(confirmed.txid);
+        setConfirmedAmount(confirmed.value);
+        setPendingAmount(null);
       }
     }
   }, [mempoolAddressUtxos, txId]);
@@ -80,10 +109,11 @@ export default function DepositBitcoin() {
         title="Deposit Bitcoin to On-Chain Balance"
         description="Deposit bitcoin to your on-chain address which then can be used to open new lightning channels."
         contentRight={
-          <LinkButton to="/channels/onchain/buy-bitcoin">
-            <CreditCardIcon />
-            Buy Bitcoin
-          </LinkButton>
+          <ResponsiveLinkButton
+            icon={CreditCardIcon}
+            text="Buy Bitcoin"
+            to="/channels/onchain/buy-bitcoin"
+          />
         }
       />
       <MempoolAlert />
@@ -107,26 +137,42 @@ export default function DepositBitcoin() {
                 <OnchainAddressDisplay address={onchainAddress} />
               </div>
 
-              <div className="flex flex-row gap-4 justify-center">
-                <LoadingButton
-                  variant="outline"
-                  onClick={getNewAddress}
-                  className="w-28"
-                  loading={loadingAddress}
-                >
-                  {!loadingAddress && <RefreshCwIcon />}
-                  Change
-                </LoadingButton>
-                <Button
-                  variant="secondary"
-                  className="w-28"
-                  onClick={() => {
-                    copyToClipboard(onchainAddress);
-                  }}
-                >
-                  <CopyIcon />
-                  Copy
-                </Button>
+              <div className="flex flex-col">
+                <div className="flex flex-1 flex-row gap-4 justify-center w-full">
+                  <LoadingButton
+                    variant="outline"
+                    onClick={getNewAddress}
+                    className="flex-1"
+                    loading={loadingAddress}
+                  >
+                    {!loadingAddress && <RefreshCwIcon />}
+                    Change
+                  </LoadingButton>
+                  <Button
+                    variant="secondary"
+                    className="flex-1"
+                    onClick={() => {
+                      copyToClipboard(onchainAddress);
+                    }}
+                  >
+                    <CopyIcon />
+                    Copy
+                  </Button>
+                </div>
+                {!bitcoinMaxiMode && (
+                  <>
+                    <Separator className="my-4" />
+                    <FixedFloatButton
+                      to="BTC"
+                      address={onchainAddress}
+                      className="w-full"
+                      variant="secondary"
+                    >
+                      <ExternalLinkIcon className="size-4" />
+                      Deposit using other Cryptocurrency
+                    </FixedFloatButton>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>

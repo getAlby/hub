@@ -164,6 +164,7 @@ export interface InfoResponse {
   nodeAlias: string;
   mempoolUrl: string;
   bitcoinDisplayFormat: BitcoinDisplayFormat;
+  bitcoinMaxiMode: boolean;
   hideUpdateBanner: boolean;
 }
 
@@ -367,7 +368,7 @@ export type OpenChannelResponse = {
   fundingTxId: string;
 };
 
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export type CloseChannelResponse = {};
 
 export type PendingBalancesDetails = {
@@ -640,6 +641,7 @@ export type OnchainTransaction = {
 export type ListAppsResponse = {
   apps: App[];
   totalCount: number;
+  totalBalance?: number;
 };
 
 export type ListTransactionsResponse = {

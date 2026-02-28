@@ -24,7 +24,7 @@ const ResponsiveButton = ({
   const content = (
     <>
       <Icon />
-      <span className="hidden lg:inline">{text}</span>
+      <span className="hidden md:inline">{text}</span>
     </>
   );
 
@@ -35,7 +35,7 @@ const ResponsiveButton = ({
       asChild={asChild}
       className={cn(
         className,
-        "max-lg:size-9" /* apply size="icon" only for mobile */
+        "max-md:size-9" /* apply size="icon" only for mobile */
       )}
     >
       {asChild

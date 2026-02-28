@@ -10,7 +10,7 @@ require (
 	github.com/getAlby/ldk-node-go v0.0.0-20260210094439-f4fc56578330
 	github.com/go-gormigrate/gormigrate/v2 v2.1.5
 	github.com/labstack/echo/v4 v4.13.4
-	github.com/mattn/go-sqlite3 v1.14.32
+	github.com/mattn/go-sqlite3 v1.14.34
 	github.com/nbd-wtf/go-nostr v0.52.3
 	github.com/nbd-wtf/ln-decodepay v1.13.0
 	github.com/orandin/lumberjackrus v1.0.1
@@ -18,7 +18,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/tyler-smith/go-bip39 v1.1.0
 	github.com/wailsapp/wails/v2 v2.11.0
-	golang.org/x/crypto v0.45.0
+	golang.org/x/crypto v0.48.0
 	golang.org/x/oauth2 v0.34.0
 	google.golang.org/grpc v1.77.0
 	gopkg.in/macaroon.v2 v2.1.0
@@ -216,14 +216,14 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/arch v0.15.0 // indirect
-	golang.org/x/mod v0.29.0 // indirect
-	golang.org/x/net v0.47.0 // indirect
-	golang.org/x/sync v0.18.0 // indirect
-	golang.org/x/sys v0.38.0 // indirect
-	golang.org/x/term v0.37.0 // indirect
-	golang.org/x/text v0.31.0 // indirect
+	golang.org/x/mod v0.32.0 // indirect
+	golang.org/x/net v0.49.0 // indirect
+	golang.org/x/sync v0.19.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/term v0.40.0 // indirect
+	golang.org/x/text v0.34.0 // indirect
 	golang.org/x/time v0.14.0 // indirect
-	golang.org/x/tools v0.38.0 // indirect
+	golang.org/x/tools v0.41.0 // indirect
 	google.golang.org/genproto v0.0.0-20240930140551-af27646dc61f // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20251022142026-3a174f9686a8 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251022142026-3a174f9686a8 // indirect
@@ -252,13 +252,13 @@ require (
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0
 	github.com/decred/dcrd/crypto/blake256 v1.1.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
-	github.com/golang-jwt/jwt/v5 v5.3.0
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/gorilla/websocket v1.5.3 // indirect
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/labstack/echo-jwt/v4 v4.4.0
 	github.com/lightningnetwork/lnd v0.20.0-beta.rc4
-	github.com/sirupsen/logrus v1.9.3
+	github.com/sirupsen/logrus v1.9.4
 	github.com/tyler-smith/go-bip32 v1.0.0
 	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6 // indirect
 	gorm.io/datatypes v1.2.7

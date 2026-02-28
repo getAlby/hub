@@ -83,7 +83,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
           <Card className="w-full relative py-2">
             <CardHeader className="flex flex-col justify-center items-center text-center p-4">
               <CreditCardIcon className="size-6" />
-              <CardTitle className="text-sm">Fiat Topups</CardTitle>
+              <CardTitle className="text-sm">Fiat Top ups</CardTitle>
               <CardDescription className="text-xs">
                 Top up with fiat and get Bitcoin delivered to your Alby Hub
               </CardDescription>

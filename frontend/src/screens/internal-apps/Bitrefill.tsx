@@ -34,7 +34,7 @@ export function Bitrefill() {
             const invoice = new Invoice({ pr: parsedData.paymentAddress });
             setInvoice(invoice);
           }
-        } catch (e) {
+        } catch {
           /* empty */
         }
       }

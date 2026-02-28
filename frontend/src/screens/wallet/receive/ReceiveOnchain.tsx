@@ -3,13 +3,17 @@ import {
   CopyIcon,
   ExternalLinkIcon,
   HandCoinsIcon,
+  LinkIcon,
   RefreshCwIcon,
+  ZapIcon,
 } from "lucide-react";
 import TickSVG from "public/images/illustrations/tick.svg";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
+import { FixedFloatButton } from "src/components/FixedFloatButton";
+import { FixedFloatSwapInFlow } from "src/components/FixedFloatSwapInFlow";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
@@ -31,6 +35,8 @@ import { InputWithAdornment } from "src/components/ui/custom/input-with-adornmen
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
+import { Separator } from "src/components/ui/separator";
 import {
   Tabs,
   TabsContent,
@@ -38,12 +44,19 @@ import {
   TabsTrigger,
 } from "src/components/ui/tabs";
 import { useBalances } from "src/hooks/useBalances";
+import { useBitcoinMaxiMode } from "src/hooks/useBitcoinMaxiMode";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
 import { useSwapInfo } from "src/hooks/useSwaps";
 import { copyToClipboard } from "src/lib/clipboard";
-import { MempoolUtxo, SwapResponse } from "src/types";
+import {
+  CreateInvoiceRequest,
+  MempoolUtxo,
+  SwapResponse,
+  Transaction,
+} from "src/types";
+import { openLink } from "src/utils/openLink";
 import { request } from "src/utils/request";
 
 export default function ReceiveOnchain() {
@@ -61,7 +74,7 @@ export default function ReceiveOnchain() {
 
   return (
     <div className="grid gap-5">
-      <AppHeader title="Receive On-chain" />
+      <AppHeader title="Receive from On-chain" />
       <div className="w-full max-w-lg grid gap-5">
         <MempoolAlert />
         <Tabs value={tab} onValueChange={setTab} className="w-full">
@@ -70,13 +83,15 @@ export default function ReceiveOnchain() {
               value="spending"
               className="flex gap-2 items-center w-full"
             >
-              Receive to Spending
+              <ZapIcon className="size-4" />
+              To Spending Balance
             </TabsTrigger>
             <TabsTrigger
               value="onchain"
               className="flex gap-2 items-center w-full"
             >
-              Receive to On-chain
+              <LinkIcon className="size-4" />
+              To On-chain Balance
             </TabsTrigger>
           </TabsList>
           <TabsContent value="spending">
@@ -92,6 +107,7 @@ export default function ReceiveOnchain() {
 }
 
 function ReceiveToOnchain() {
+  const { bitcoinMaxiMode } = useBitcoinMaxiMode();
   const { data: onchainAddress, getNewAddress } = useOnchainAddress();
   const { data: mempoolAddressUtxos } = useMempoolApi<MempoolUtxo[]>(
     onchainAddress ? `/address/${onchainAddress}/utxo` : undefined,
@@ -101,9 +117,20 @@ function ReceiveToOnchain() {
   const [txId, setTxId] = useState("");
   const [confirmedAmount, setConfirmedAmount] = useState<number | null>(null);
   const [pendingAmount, setPendingAmount] = useState<number | null>(null);
+  const startTimeRef = useRef(0);
 
   useEffect(() => {
-    if (!mempoolAddressUtxos || mempoolAddressUtxos.length === 0) {
+    if (startTimeRef.current === 0) {
+      startTimeRef.current = Math.floor(Date.now() / 1000);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (
+      !mempoolAddressUtxos ||
+      mempoolAddressUtxos.length === 0 ||
+      startTimeRef.current === 0
+    ) {
       return;
     }
 
@@ -121,6 +148,19 @@ function ReceiveToOnchain() {
       if (unconfirmed) {
         setTxId(unconfirmed.txid);
         setPendingAmount(unconfirmed.value);
+        return;
+      }
+
+      const confirmed = mempoolAddressUtxos.find(
+        (utxo) =>
+          utxo.status.confirmed &&
+          !!utxo.status.block_time &&
+          utxo.status.block_time >= startTimeRef.current
+      );
+      if (confirmed) {
+        setTxId(confirmed.txid);
+        setConfirmedAmount(confirmed.value);
+        setPendingAmount(null);
       }
     }
   }, [mempoolAddressUtxos, txId]);
@@ -163,7 +203,7 @@ function ReceiveToOnchain() {
               }}
               variant="secondary"
             >
-              <CopyIcon className="w-4 h-4 mr-2" />
+              <CopyIcon className="w-4 h-4" />
               Copy Address
             </Button>
             <Button
@@ -171,9 +211,23 @@ function ReceiveToOnchain() {
               variant="outline"
               onClick={getNewAddress}
             >
-              <RefreshCwIcon className="h-4 w-4 shrink-0 mr-2" />
+              <RefreshCwIcon className="h-4 w-4" />
               New Address
             </Button>
+            {!bitcoinMaxiMode && (
+              <>
+                <Separator className="my-2" />
+                <FixedFloatButton
+                  to="BTC"
+                  address={onchainAddress}
+                  className="w-full"
+                  variant="secondary"
+                >
+                  <ExternalLinkIcon className="size-4" />
+                  Top up using other Cryptocurrency
+                </FixedFloatButton>
+              </>
+            )}
           </CardFooter>
         </Card>
       )}
@@ -263,6 +317,7 @@ function DepositSuccess({ amount, txId }: { amount: number; txId: string }) {
 }
 
 function ReceiveToSpending() {
+  const { bitcoinMaxiMode } = useBitcoinMaxiMode();
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
   const { data: swapInfo } = useSwapInfo("in");
@@ -274,9 +329,12 @@ function ReceiveToSpending() {
   }>("/v1/fees/recommended");
   const navigate = useNavigate();
 
+  const [swapFrom, setSwapFrom] = useState<"bitcoin" | "crypto">("bitcoin");
   const [swapAmount, setSwapAmount] = useState("");
   const [loading, setLoading] = useState(false);
   const [feeRate, setFeeRate] = useState("");
+  const [cryptoTransaction, setCryptoTransaction] =
+    useState<Transaction | null>(null);
 
   useEffect(() => {
     if (recommendedFees?.fastestFee) {
@@ -289,6 +347,28 @@ function ReceiveToSpending() {
 
     try {
       setLoading(true);
+      if (swapFrom === "crypto") {
+        const tx = await request<Transaction>("/api/invoices", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount: (parseInt(swapAmount) || 0) * 1000,
+            description: "Fixed Float swap",
+          } as CreateInvoiceRequest),
+        });
+        if (!tx?.invoice) {
+          throw new Error("Failed to create invoice");
+        }
+        setCryptoTransaction(tx);
+        openLink(
+          `https://ff.io/?to=BTCLN&address=${encodeURIComponent(tx.invoice)}&ref=qnnjvywb`
+        );
+        toast("Initiated swap");
+        return;
+      }
+
       const swapInResponse = await request<SwapResponse>("/api/swaps/in", {
         method: "POST",
         headers: {
@@ -316,62 +396,148 @@ function ReceiveToSpending() {
     return <Loading />;
   }
 
+  const isCryptoReceiveState =
+    swapFrom === "crypto" && cryptoTransaction !== null;
+
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-6">
-      {hasChannelManagement &&
-        parseInt(swapAmount || "0") * 1000 >=
-          0.8 * balances.lightning.totalReceivable && (
-          <LowReceivingCapacityAlert />
-        )}
-      <div className="grid gap-1.5">
-        <Label>Amount</Label>
-        <InputWithAdornment
-          type="number"
-          autoFocus
-          placeholder="Amount in satoshis"
-          value={swapAmount}
-          min={swapInfo.minAmount}
-          max={Math.min(
-            swapInfo.maxAmount,
-            (balances.lightning.totalReceivable / 1000) * 0.99
-          )}
-          onChange={(e) => setSwapAmount(e.target.value)}
-          required
-          endAdornment={
-            <FormattedFiatAmount amount={+swapAmount} className="mr-2" />
-          }
-        />
-        <div className="grid">
-          <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
-            <div>
-              Receiving Capacity:{" "}
-              <FormattedBitcoinAmount
-                amount={balances.lightning.totalReceivable}
-              />
-            </div>
-            <FormattedFiatAmount
-              className="text-xs"
-              amount={balances.lightning.totalReceivable / 1000}
+      {!isCryptoReceiveState && (
+        <>
+          {hasChannelManagement &&
+            parseInt(swapAmount || "0") * 1000 >=
+              0.8 * balances.lightning.totalReceivable && (
+              <LowReceivingCapacityAlert />
+            )}
+          <div className="grid gap-1.5">
+            <Label>Amount</Label>
+            <InputWithAdornment
+              type="number"
+              autoFocus
+              placeholder="Amount in satoshis"
+              value={swapAmount}
+              min={swapFrom === "bitcoin" ? swapInfo.minAmount : undefined}
+              max={
+                swapFrom === "bitcoin"
+                  ? Math.min(
+                      swapInfo.maxAmount,
+                      (balances.lightning.totalReceivable / 1000) * 0.99
+                    )
+                  : (balances.lightning.totalReceivable / 1000) * 0.99
+              }
+              onChange={(e) => setSwapAmount(e.target.value)}
+              required
+              endAdornment={
+                <FormattedFiatAmount amount={+swapAmount} className="mr-2" />
+              }
             />
+            <div className="grid">
+              <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
+                <div>
+                  Receiving Capacity:{" "}
+                  <FormattedBitcoinAmount
+                    amount={balances.lightning.totalReceivable}
+                  />
+                </div>
+                <FormattedFiatAmount
+                  className="text-xs"
+                  amount={balances.lightning.totalReceivable / 1000}
+                />
+              </div>
+            </div>
           </div>
+          {!bitcoinMaxiMode && (
+            <div className="flex flex-col gap-4">
+              <Label>Swap from</Label>
+              <RadioGroup
+                defaultValue="bitcoin"
+                value={swapFrom}
+                onValueChange={(value) => {
+                  setSwapFrom(value as "bitcoin" | "crypto");
+                }}
+                className="flex gap-4 flex-row"
+              >
+                <div className="flex items-start space-x-2 mb-2">
+                  <RadioGroupItem
+                    value="bitcoin"
+                    id="bitcoin"
+                    className="shrink-0"
+                  />
+                  <Label
+                    htmlFor="bitcoin"
+                    className="font-medium cursor-pointer"
+                  >
+                    Bitcoin
+                  </Label>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <RadioGroupItem
+                    value="crypto"
+                    id="crypto"
+                    className="shrink-0"
+                  />
+                  <Label
+                    htmlFor="crypto"
+                    className="font-medium cursor-pointer"
+                  >
+                    Other Cryptocurrency
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+          )}
+        </>
+      )}
+
+      {swapFrom === "bitcoin" ? (
+        <BitcoinSwapFlow
+          feeRate={feeRate}
+          loading={loading}
+          swapFee={swapInfo.albyServiceFee + swapInfo.boltzServiceFee}
+        />
+      ) : (
+        <FixedFloatSwapInFlow
+          loading={loading}
+          transaction={cryptoTransaction}
+          resetLabel="Receive Another Payment"
+          onReset={() => {
+            setCryptoTransaction(null);
+            setSwapAmount("");
+          }}
+        />
+      )}
+    </form>
+  );
+}
+
+function BitcoinSwapFlow({
+  feeRate,
+  loading,
+  swapFee,
+}: {
+  feeRate: string;
+  loading: boolean;
+  swapFee: number;
+}) {
+  return (
+    <>
+      <div className="border-t pt-4 text-sm grid gap-2">
+        <div className="flex items-center justify-between">
+          <Label>On-chain Fee</Label>
+          {feeRate ? (
+            <p className="text-muted-foreground">{feeRate} sat/vB</p>
+          ) : (
+            <Loading className="w-4 h-4" />
+          )}
+        </div>
+        <div className="flex items-center justify-between">
+          <Label>Swap Fee</Label>
+          <p className="text-muted-foreground">{swapFee}%</p>
         </div>
       </div>
 
-      <div className="border-t pt-4 text-sm grid gap-2">
-        <div className="flex items-center justify-between">
-          <p className="text-muted-foreground">On-chain Fee</p>
-          {feeRate ? <p>{feeRate} sat/vB</p> : <Loading className="w-4 h-4" />}
-        </div>
-        <div className="flex items-center justify-between">
-          <p className="text-muted-foreground">Swap Fee</p>
-          <p>{swapInfo.albyServiceFee + swapInfo.boltzServiceFee}%</p>
-        </div>
-      </div>
-      <div className="grid gap-2">
-        <LoadingButton className="w-full" loading={loading}>
-          Continue
-        </LoadingButton>
-      </div>
-    </form>
+      <LoadingButton className="w-full" loading={loading}>
+        Continue
+      </LoadingButton>
+    </>
   );
 }

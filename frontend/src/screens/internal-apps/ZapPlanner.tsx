@@ -26,6 +26,7 @@ import opensats from "src/assets/zapplanner/opensats.png";
 import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
+import ResponsiveButton from "src/components/ResponsiveButton";
 import { Button } from "src/components/ui/button";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
@@ -354,12 +355,13 @@ export function ZapPlanner() {
         contentRight={
           <>
             <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <PlusCircleIcon />
-                  New Recurring Payment
-                </Button>
-              </DialogTrigger>
+              <ResponsiveButton
+                asChild
+                icon={PlusCircleIcon}
+                text="New Recurring Payment"
+              >
+                <DialogTrigger />
+              </ResponsiveButton>
               <DialogContent className="sm:max-w-[600px]">
                 <form onSubmit={handleSubmit}>
                   <DialogHeader>

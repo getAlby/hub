@@ -16,7 +16,7 @@ type API interface {
 	UpdateApp(app *db.App, updateAppRequest *UpdateAppRequest) error
 	Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, amountMsat uint64, message string) error
 	DeleteApp(app *db.App) error
-	GetApp(app *db.App) *App
+	GetApp(app *db.App) (*App, error)
 	ListApps(limit uint64, offset uint64, filters ListAppsFilters, orderBy string) (*ListAppsResponse, error)
 	CreateLightningAddress(ctx context.Context, createLightningAddressRequest *CreateLightningAddressRequest) error
 	DeleteLightningAddress(ctx context.Context, appId uint) error
@@ -66,6 +66,7 @@ type API interface {
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
 	SetBitcoinDisplayFormat(format string) error
+	SetBitcoinMaxiMode(enabled bool) error
 	UpdateSettings(updateSettingsRequest *UpdateSettingsRequest) error
 	LookupSwap(swapId string) (*LookupSwapResponse, error)
 	ListSwaps() (*ListSwapsResponse, error)
@@ -113,8 +114,9 @@ type ListAppsFilters struct {
 }
 
 type ListAppsResponse struct {
-	Apps       []App  `json:"apps"`
-	TotalCount uint64 `json:"totalCount"`
+	Apps         []App  `json:"apps"`
+	TotalCount   uint64 `json:"totalCount"`
+	TotalBalance *int64 `json:"totalBalance,omitempty"`
 }
 
 type UpdateAppRequest struct {
@@ -295,6 +297,7 @@ type InfoResponse struct {
 	AutoUnlockPasswordEnabled   bool                `json:"autoUnlockPasswordEnabled"`
 	Currency                    string              `json:"currency"`
 	BitcoinDisplayFormat        string              `json:"bitcoinDisplayFormat"`
+	BitcoinMaxiMode             bool                `json:"bitcoinMaxiMode"`
 	Relays                      []InfoResponseRelay `json:"relays"`
 	NodeAlias                   string              `json:"nodeAlias"`
 	MempoolUrl                  string              `json:"mempoolUrl"`
@@ -304,6 +307,7 @@ type InfoResponse struct {
 type UpdateSettingsRequest struct {
 	Currency             string `json:"currency"`
 	BitcoinDisplayFormat string `json:"bitcoinDisplayFormat"`
+	BitcoinMaxiMode      *bool  `json:"bitcoinMaxiMode"`
 }
 
 type SetNodeAliasRequest struct {

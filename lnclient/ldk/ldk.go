@@ -330,47 +330,6 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		"duration": math.Ceil(time.Since(syncStartTime).Seconds()),
 	}).Info("LDK node synced successfully")
 
-	if ls.network == "bitcoin" {
-		go func() {
-			// try to connect to some peers in the background to retrieve P2P gossip data.
-			// TODO: Remove once LDK can correctly do gossip with CLN and Eclair nodes
-			// see https://github.com/lightningdevkit/rust-lightning/issues/3075
-			peers := []string{
-				// "035e4ff418fc8b5554c5d9eea66396c227bd429a3251c8cbc711002ba215bfc226@170.75.163.209:9735",  // WoS
-				// "02fcc5bfc48e83f06c04483a2985e1c390cb0f35058baa875ad2053858b8e80dbd@35.239.148.251:9735",  // Blink
-				// "027100442c3b79f606f80f322d98d499eefcb060599efc5d4ecb00209c2cb54190@3.230.33.224:9735",    // c=
-
-				// Connect to our LSPs for both:
-				// - Gossip data
-				// - Ability for auto / free channels for users with eligible Alby subscriptions
-				"0364913d18a19c671bb36dd04d6ad5be0fe8f2894314c36a9db3f03c2d414907e1@192.243.215.102:9735",  // LQwD
-				"031b301307574bbe9b9ac7b79cbe1700e31e544513eae0b5d7497483083f99e581@45.79.192.236:9735",    // Olympus
-				"038a9e56512ec98da2b5789761f7af8f280baf98a09282360cd6ff1381b5e889bf@64.23.162.51:9735",     // Megalith LSP
-				"02b4552a7a85274e4da01a7c71ca57407181752e8568b31d51f13c111a2941dce3@159.223.176.115:48049", // LNServer_Wave
-				"038ba8f67ba8ff5c48764cdd3251c33598d55b203546d08a8f0ec9dcd9f27e3637@52.24.240.84:9735",     // flashsats
-			}
-			logger.Logger.Info("Connecting to some peers to retrieve P2P gossip data")
-			for _, peer := range peers {
-				parts := strings.FieldsFunc(peer, func(r rune) bool { return r == '@' || r == ':' })
-				port, err := strconv.ParseUint(parts[2], 10, 16)
-				if err != nil {
-					logger.Logger.WithError(err).Error("Failed to parse port number")
-					continue
-				}
-				err = ls.ConnectPeer(ctx, &lnclient.ConnectPeerRequest{
-					Pubkey:  parts[0],
-					Address: parts[1],
-					Port:    uint16(port),
-				})
-				if err != nil {
-					logger.Logger.WithFields(logrus.Fields{
-						"peer": peer,
-					}).WithError(err).Error("Failed to connect to peer")
-				}
-			}
-		}()
-	}
-
 	// setup background sync
 	go func() {
 		MIN_SYNC_INTERVAL := 1 * time.Minute
