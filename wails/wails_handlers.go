@@ -366,8 +366,8 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 
 		message := ""
-		if transferRequest.Message != nil {
-			message = *transferRequest.Message
+		if transferRequest.Description != nil {
+			message = *transferRequest.Description
 		}
 
 		err = app.api.Transfer(ctx, transferRequest.FromAppId, transferRequest.ToAppId, transferRequest.AmountSat*1000, message)

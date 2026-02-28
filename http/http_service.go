@@ -1131,8 +1131,8 @@ func (httpSvc *HttpService) transfersHandler(c echo.Context) error {
 	}
 
 	message := ""
-	if requestData.Message != nil {
-		message = *requestData.Message
+	if requestData.Description != nil {
+		message = *requestData.Description
 	}
 
 	err := httpSvc.api.Transfer(c.Request().Context(), requestData.FromAppId, requestData.ToAppId, requestData.AmountSat*1000, message)

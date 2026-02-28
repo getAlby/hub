@@ -131,10 +131,10 @@ type UpdateAppRequest struct {
 }
 
 type TransferRequest struct {
-	AmountSat uint64  `json:"amountSat"`
-	FromAppId *uint   `json:"fromAppId"`
-	ToAppId   *uint   `json:"toAppId"`
-	Message   *string `json:"message"`
+	AmountSat   uint64  `json:"amountSat"`
+	FromAppId   *uint   `json:"fromAppId"`
+	ToAppId     *uint   `json:"toAppId"`
+	Description *string `json:"description"`
 }
 
 type CreateAppRequest struct {

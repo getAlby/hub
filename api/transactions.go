@@ -132,7 +132,7 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 	}
 }
 
-func (api *api) Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, amountMsat uint64, message string) error {
+func (api *api) Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, amountMsat uint64, description string) error {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return errors.New("LNClient not started")
@@ -150,8 +150,7 @@ func (api *api) Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, am
 		}
 	}
 
-	// Use custom message or default to "transfer"
-	description := message
+	// default to "transfer"
 	if description == "" {
 		description = "transfer"
 	}

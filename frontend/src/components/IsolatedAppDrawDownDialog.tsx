@@ -26,7 +26,7 @@ export function IsolatedAppDrawDownDialog({
 }: React.PropsWithChildren<IsolatedAppTopupProps>) {
   const { mutate: reloadApp } = useApp(appId);
   const [amountSat, setAmountSat] = React.useState("");
-  const [message, setMessage] = React.useState("");
+  const [description, setDescription] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   async function onSubmit(e: React.FormEvent) {
@@ -41,7 +41,7 @@ export function IsolatedAppDrawDownDialog({
         body: JSON.stringify({
           fromAppId: appId,
           amountSat: +amountSat,
-          ...(message && { message }), // Only include if not empty
+          description,
         }),
       });
       await reloadApp();
@@ -56,7 +56,7 @@ export function IsolatedAppDrawDownDialog({
   function reset() {
     setOpen(false);
     setAmountSat("");
-    setMessage("");
+    setDescription("");
   }
 
   return (
@@ -84,14 +84,14 @@ export function IsolatedAppDrawDownDialog({
             />
           </div>
           <div className="grid gap-2 mt-3">
-            <Label htmlFor="message">Message (optional)</Label>
+            <Label htmlFor="description">Description (optional)</Label>
             <Input
-              id="message"
+              id="description"
               type="text"
-              placeholder="e.g., Returning unused funds"
-              value={message}
+              placeholder="transfer"
+              value={description}
               onChange={(e) => {
-                setMessage(e.target.value);
+                setDescription(e.target.value);
               }}
             />
           </div>
