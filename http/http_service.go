@@ -1130,12 +1130,7 @@ func (httpSvc *HttpService) transfersHandler(c echo.Context) error {
 		})
 	}
 
-	message := ""
-	if requestData.Description != nil {
-		message = *requestData.Description
-	}
-
-	err := httpSvc.api.Transfer(c.Request().Context(), requestData.FromAppId, requestData.ToAppId, requestData.AmountSat*1000, message)
+	err := httpSvc.api.Transfer(c.Request().Context(), requestData.FromAppId, requestData.ToAppId, requestData.AmountSat*1000, requestData.Description)
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to transfer funds")
