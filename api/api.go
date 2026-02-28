@@ -1531,6 +1531,30 @@ func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
 		}
 	}
 
+	if setupRequest.CLNAddress != "" {
+		err = api.cfg.SetUpdate("CLNAddress", setupRequest.CLNAddress, setupRequest.UnlockPassword)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save CLN address")
+			return err
+		}
+	}
+
+	if setupRequest.CLNLightningDir != "" {
+		err = api.cfg.SetUpdate("CLNLightningDir", setupRequest.CLNLightningDir, setupRequest.UnlockPassword)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save CLN Lightning directory path")
+			return err
+		}
+	}
+
+	if setupRequest.CLNAddressHold != "" {
+		err = api.cfg.SetUpdate("CLNAddressHold", setupRequest.CLNAddressHold, setupRequest.UnlockPassword)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to save cln hold plugin address")
+			return err
+		}
+	}
+
 	return nil
 }
 
