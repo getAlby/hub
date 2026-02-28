@@ -23,6 +23,7 @@ import { AppsCleanup } from "src/screens/apps/AppsCleanup";
 import { Connections } from "src/screens/apps/Connections";
 import NewApp from "src/screens/apps/NewApp";
 import { AppStoreDetail } from "src/screens/appstore/AppStoreDetail";
+import { Ark } from "src/screens/ark/Ark";
 import Channels from "src/screens/channels/Channels";
 import { CurrentChannelOrder } from "src/screens/channels/CurrentChannelOrder";
 import IncreaseIncomingCapacity from "src/screens/channels/IncreaseIncomingCapacity";
@@ -366,6 +367,17 @@ const routes: RouteObject[] = [
           {
             path: ":appStoreId",
             element: <AppStoreDetail />,
+          },
+        ],
+      },
+      {
+        path: "ark",
+        element: <DefaultRedirect />,
+        handle: { crumb: () => "Node" },
+        children: [
+          {
+            index: true,
+            element: <Ark />,
           },
         ],
       },
