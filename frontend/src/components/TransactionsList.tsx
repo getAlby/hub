@@ -4,17 +4,22 @@ import { CustomPagination } from "src/components/CustomPagination";
 import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
 import TransactionItem from "src/components/TransactionItem";
+import { Button } from "src/components/ui/button";
 import { LIST_TRANSACTIONS_LIMIT } from "src/constants";
 import { useTransactions } from "src/hooks/useTransactions";
 
 type TransactionsListProps = {
   appId?: number;
   showReceiveButton?: boolean;
+  minAmountSats?: number;
+  onFilterChange?: (value: number | undefined) => void;
 };
 
 function TransactionsList({
   appId,
   showReceiveButton = true,
+  minAmountSats,
+  onFilterChange,
 }: TransactionsListProps) {
   const [page, setPage] = useState(1);
   const transactionListRef = useRef<HTMLDivElement>(null);
@@ -26,6 +31,10 @@ function TransactionsList({
   );
   const transactions = transactionData?.transactions || [];
   const totalCount = transactionData?.totalCount || 0;
+
+  const filteredTransactions = minAmountSats
+    ? transactions.filter((tx) => Math.floor(tx.amount / 1000) >= minAmountSats)
+    : transactions;
 
   const handlePageChange = (page: number) => {
     setPage(page);
@@ -51,9 +60,31 @@ function TransactionsList({
           showButton={showReceiveButton}
           showBorder={false}
         />
+      ) : minAmountSats && !filteredTransactions.length ? (
+        <div className="flex flex-1 items-center justify-center rounded-lg p-8">
+          <div className="flex flex-col items-center gap-1 text-center max-w-sm">
+            <DrumIcon className="w-10 h-10 text-muted-foreground" />
+            <h3 className="mt-4 text-lg font-semibold">
+              No transactions found
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              You don't have any transactions of{" "}
+              {minAmountSats?.toLocaleString()} sats or more yet. Try selecting
+              a lower amount to see your transaction history.
+            </p>
+            {onFilterChange && (
+              <Button
+                onClick={() => onFilterChange(undefined)}
+                className="mt-4"
+              >
+                Show All Transactions
+              </Button>
+            )}
+          </div>
+        </div>
       ) : (
         <>
-          {transactions?.map((tx, i) => {
+          {filteredTransactions?.map((tx, i) => {
             return (
               <TransactionItem key={tx.paymentHash + tx.type + i} tx={tx} />
             );
