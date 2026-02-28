@@ -28,7 +28,7 @@ import { handleRequestError } from "src/utils/handleRequestError";
 
 const skillInstallCommand = "npx skills add getAlby/alby-cli-skill";
 const skillInstallPrompt =
-  "Install this skill as a custom skill: https://raw.githubusercontent.com/getAlby/alby-cli-skill/refs/heads/master/SKILL.md";
+  "Install this skill as a custom skill: https://getalby.com/cli/SKILL.md";
 const verifyPrompt = "What's your wallet balance?";
 
 export function AlbyCliSkill() {
@@ -86,19 +86,48 @@ export function AlbyCliSkill() {
 
           <Accordion type="single" collapsible>
             <AccordionItem value="install">
-              <AccordionTrigger>Install with one command</AccordionTrigger>
+              <AccordionTrigger>
+                Install with one command (Claude Code, Goose etc)
+              </AccordionTrigger>
               <AccordionContent>
-                <div className="flex items-center gap-2">
-                  <div className="font-mono text-foreground text-sm break-all bg-muted p-2 rounded">
-                    {skillInstallCommand}
+                <ul className="list-decimal list-inside space-y-2 text-muted-foreground">
+                  <li>
+                    Install the Alby CLI skill:
+                    <div className="my-4 flex items-center gap-4">
+                      <div className="font-mono text-foreground text-sm break-all bg-muted p-2 rounded">
+                        {skillInstallCommand}
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => copyToClipboard(skillInstallCommand)}
+                      >
+                        <CopyIcon />
+                        Copy Command
+                      </Button>
+                    </div>
+                  </li>
+                  <li>
+                    Save your wallet connection secret at
+                    <code className="ml-1 text-foreground">
+                      ~/.alby-cli/connection-secret.key
+                    </code>
+                    .
+                  </li>
+                </ul>
+
+                <div className="mt-4 flex flex-col gap-2">
+                  <div className="text-sm text-muted-foreground">
+                    Connection secret
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={() => copyToClipboard(skillInstallCommand)}
-                  >
-                    <CopyIcon />
-                    Copy command
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => copyToClipboard(connectionSecret)}
+                    >
+                      <CopyIcon />
+                      Copy Connection secret
+                    </Button>
+                  </div>
                 </div>
               </AccordionContent>
             </AccordionItem>
