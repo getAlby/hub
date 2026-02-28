@@ -151,6 +151,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	readOnlyApiGroup.GET("/swaps/mnemonic", httpSvc.swapMnemonicHandler)
 	readOnlyApiGroup.GET("/autoswap", httpSvc.getAutoSwapConfigHandler)
 	readOnlyApiGroup.GET("/forwards", httpSvc.forwardsHandler)
+	readOnlyApiGroup.GET("/offers", httpSvc.getOffersHandler)
 
 	// Full access API group - requires a token with full permissions
 	fullAccessApiGroup := e.Group("/api")
@@ -662,6 +663,19 @@ func (httpSvc *HttpService) makeOfferHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, offer)
+}
+
+func (httpSvc *HttpService) getOffersHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	offers, err := httpSvc.api.GetOffers(ctx)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to retrieve offers: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, offers)
 }
 
 func (httpSvc *HttpService) makeInvoiceHandler(c echo.Context) error {

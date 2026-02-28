@@ -38,6 +38,7 @@ func Migrate(gormDB *gorm.DB) error {
 		_202508151405_swap_xpub,
 		_202508192137_forwards,
 		_202509031250_transactions_updated_at_index,
+		_202509271400_create_offers_table,
 	})
 
 	return m.Migrate()
