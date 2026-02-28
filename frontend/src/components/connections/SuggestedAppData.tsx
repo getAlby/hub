@@ -269,6 +269,17 @@ export const appStoreApps: AppStoreApp[] = (
       webLink: "https://claude.ai/",
     },
     {
+      id: "alby-cli-skill",
+      title: "Alby CLI Skill",
+      description: "Skill wrapper that helps AI agents use Alby CLI better",
+      extendedDescription:
+        "Agent skill for Alby CLI with guided setup for skill-enabled coding agents and AI tooling.",
+      internal: true,
+      logo: albyCli,
+      categories: ["ai"],
+      webLink: "https://github.com/getAlby/alby-cli-skill",
+    },
+    {
       id: "payperq",
       title: "PayPerQ",
       description: "Pay-Per-Prompt AI Service",
