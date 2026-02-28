@@ -254,6 +254,50 @@ func (_c *MockConfig_GetBitcoinDisplayFormat_Call) RunAndReturn(run func() strin
 	return _c
 }
 
+// GetBitcoinMaxiMode provides a mock function for the type MockConfig
+func (_mock *MockConfig) GetBitcoinMaxiMode() bool {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetBitcoinMaxiMode")
+	}
+
+	var r0 bool
+	if returnFunc, ok := ret.Get(0).(func() bool); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	return r0
+}
+
+// MockConfig_GetBitcoinMaxiMode_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetBitcoinMaxiMode'
+type MockConfig_GetBitcoinMaxiMode_Call struct {
+	*mock.Call
+}
+
+// GetBitcoinMaxiMode is a helper method to define mock.On call
+func (_e *MockConfig_Expecter) GetBitcoinMaxiMode() *MockConfig_GetBitcoinMaxiMode_Call {
+	return &MockConfig_GetBitcoinMaxiMode_Call{Call: _e.mock.On("GetBitcoinMaxiMode")}
+}
+
+func (_c *MockConfig_GetBitcoinMaxiMode_Call) Run(run func()) *MockConfig_GetBitcoinMaxiMode_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockConfig_GetBitcoinMaxiMode_Call) Return(b bool) *MockConfig_GetBitcoinMaxiMode_Call {
+	_c.Call.Return(b)
+	return _c
+}
+
+func (_c *MockConfig_GetBitcoinMaxiMode_Call) RunAndReturn(run func() bool) *MockConfig_GetBitcoinMaxiMode_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetCurrency provides a mock function for the type MockConfig
 func (_mock *MockConfig) GetCurrency() string {
 	ret := _mock.Called()
@@ -680,6 +724,57 @@ func (_c *MockConfig_SetBitcoinDisplayFormat_Call) Return(err error) *MockConfig
 }
 
 func (_c *MockConfig_SetBitcoinDisplayFormat_Call) RunAndReturn(run func(value string) error) *MockConfig_SetBitcoinDisplayFormat_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// SetBitcoinMaxiMode provides a mock function for the type MockConfig
+func (_mock *MockConfig) SetBitcoinMaxiMode(value bool) error {
+	ret := _mock.Called(value)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SetBitcoinMaxiMode")
+	}
+
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(bool) error); ok {
+		r0 = returnFunc(value)
+	} else {
+		r0 = ret.Error(0)
+	}
+	return r0
+}
+
+// MockConfig_SetBitcoinMaxiMode_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SetBitcoinMaxiMode'
+type MockConfig_SetBitcoinMaxiMode_Call struct {
+	*mock.Call
+}
+
+// SetBitcoinMaxiMode is a helper method to define mock.On call
+//   - value bool
+func (_e *MockConfig_Expecter) SetBitcoinMaxiMode(value interface{}) *MockConfig_SetBitcoinMaxiMode_Call {
+	return &MockConfig_SetBitcoinMaxiMode_Call{Call: _e.mock.On("SetBitcoinMaxiMode", value)}
+}
+
+func (_c *MockConfig_SetBitcoinMaxiMode_Call) Run(run func(value bool)) *MockConfig_SetBitcoinMaxiMode_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 bool
+		if args[0] != nil {
+			arg0 = args[0].(bool)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockConfig_SetBitcoinMaxiMode_Call) Return(err error) *MockConfig_SetBitcoinMaxiMode_Call {
+	_c.Call.Return(err)
+	return _c
+}
+
+func (_c *MockConfig_SetBitcoinMaxiMode_Call) RunAndReturn(run func(value bool) error) *MockConfig_SetBitcoinMaxiMode_Call {
 	_c.Call.Return(run)
 	return _c
 }

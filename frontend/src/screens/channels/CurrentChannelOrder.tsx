@@ -371,7 +371,7 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
         </Card>
 
         <ExternalLinkButton to={topupLink} className="w-full">
-          Topup with your credit card or bank account
+          Top up with your credit card or bank account
         </ExternalLinkButton>
         <LinkButton
           to="/channels/incoming"
@@ -699,7 +699,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
             </div>
             <>
               {canPayInternally && (
-                <>
+                <div className="flex flex-col gap-2">
                   <LoadingButton
                     loading={isPaying}
                     className="mt-4"
@@ -738,13 +738,13 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                     <Button
                       type="button"
                       variant="link"
-                      className="text-muted-foreground text-xs"
+                      className="text-muted-foreground"
                       onClick={() => setPayExternally(true)}
                     >
                       Pay with another wallet
                     </Button>
                   )}
-                </>
+                </div>
               )}
 
               {(payExternally || !canPayInternally) && (
@@ -754,7 +754,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
               )}
 
               <div className="flex-1 flex flex-col justify-end items-center gap-4">
-                <Separator className="my-16" />
+                <Separator className="mt-4 mb-6" />
                 <p className="text-sm text-muted-foreground text-center">
                   Other options
                 </p>
