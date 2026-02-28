@@ -34,7 +34,7 @@ import { request } from "src/utils/request";
 // Must be a sub-wallet connection with only make invoice and list transactions permissions!
 const LIGHTNING_MESSAGEBOARD_NWC_URL =
   import.meta.env.VITE_LIGHTNING_MESSAGEBOARD_NWC_URL ||
-  "nostr+walletconnect://31758cb11d8060fa87ea955808dc22e3602aad7390717edd56dbbbd136c85a9b?relay=wss://relay.getalby.com/v1&secret=dce4d879ca8d875b0dc38f98425829eff71a5d213db9d5d423bf284fa75efc80";
+  "nostr+walletconnect://31758cb11d8060fa87ea955808dc22e3602aad7390717edd56dbbbd136c85a9b?relay=wss://relay.getalby.com&relay=wss://relay2.getalby.com&secret=dce4d879ca8d875b0dc38f98425829eff71a5d213db9d5d423bf284fa75efc80";
 
 type Message = {
   name?: string;
