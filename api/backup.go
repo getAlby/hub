@@ -319,3 +319,82 @@ func decryptingReader(r io.Reader, password string) (io.Reader, error) {
 
 	return cr, nil
 }
+
+func (api *api) GetLatestSCB() (*LatestSCBResponse, error) {
+	workDir, err := filepath.Abs(api.cfg.GetEnv().Workdir)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get absolute workdir: %w", err)
+	}
+
+	backupDirectory := filepath.Join(workDir, "static_channel_backups")
+	if _, err := os.Stat(backupDirectory); os.IsNotExist(err) {
+		return nil, fmt.Errorf("no static channel backups directory found")
+	}
+	files, err := os.ReadDir(backupDirectory)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read backup directory: %w", err)
+	}
+	if len(files) == 0 {
+		return nil, fmt.Errorf("no backup files found")
+	}
+	var latestFile os.DirEntry
+	var latestModTime time.Time
+
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		if filepath.Ext(file.Name()) != ".json" {
+			continue
+		}
+
+		info, err := file.Info()
+		if err != nil {
+			continue
+		}
+		if latestFile == nil || info.ModTime().After(latestModTime) {
+			latestFile = file
+			latestModTime = info.ModTime()
+		}
+	}
+
+	if latestFile == nil {
+		return nil, fmt.Errorf("no valid backup files found")
+	}
+
+	return &LatestSCBResponse{
+		FileName: latestFile.Name(),
+		FilePath: filepath.Join(backupDirectory, latestFile.Name()),
+		ModTime:  latestModTime,
+	}, nil
+}
+
+func (api *api) DownloadSCB(w io.Writer, filePath string) error {
+	workDir, err := filepath.Abs(api.cfg.GetEnv().Workdir)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute workdir: %w", err)
+	}
+
+	backupDirectory := filepath.Join(workDir, "static_channel_backups")
+	absFilePath, err := filepath.Abs(filePath)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute file path: %w", err)
+	}
+
+	if !strings.HasPrefix(absFilePath, backupDirectory) {
+		return fmt.Errorf("invalid file path: file must be within backup directory")
+	}
+
+	file, err := os.Open(absFilePath)
+	if err != nil {
+		return fmt.Errorf("failed to open backup file: %w", err)
+	}
+	defer file.Close()
+
+	_, err = io.Copy(w, file)
+	if err != nil {
+		return fmt.Errorf("failed to write backup file: %w", err)
+	}
+
+	return nil
+}
