@@ -283,7 +283,7 @@ export const appStoreApps: AppStoreApp[] = (
       id: "payperq",
       title: "PayPerQ",
       description: "Pay-Per-Prompt AI Service",
-      webLink: "https://ppq.ai",
+      webLink: "https://ppq.ai/invite/3f21c1e5",
       logo: payperq,
       hideConnectionQr: true,
       extendedDescription:
