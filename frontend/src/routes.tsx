@@ -16,7 +16,7 @@ import Start from "src/screens/Start";
 import Unlock from "src/screens/Unlock";
 import { Welcome } from "src/screens/Welcome";
 import AlbyAuthRedirect from "src/screens/alby/AlbyAuthRedirect";
-import { AlbyReviews } from "src/screens/alby/AlbyReviews";
+import { AlbyEarn } from "src/screens/alby/AlbyEarn";
 import SupportAlby from "src/screens/alby/SupportAlby";
 import AppDetails from "src/screens/apps/AppDetails";
 import { AppsCleanup } from "src/screens/apps/AppsCleanup";
@@ -462,9 +462,9 @@ const routes: RouteObject[] = [
         element: <SupportAlby />,
       },
       {
-        path: "review-earn",
-        element: <AlbyReviews />,
-        handle: { crumb: () => "Review & Earn" },
+        path: "earn",
+        element: <AlbyEarn />,
+        handle: { crumb: () => "Earn" },
       },
     ],
   },

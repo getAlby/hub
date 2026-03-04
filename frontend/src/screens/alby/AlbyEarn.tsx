@@ -1,4 +1,4 @@
-import { CoinsIcon, ExternalLinkIcon, HeartIcon } from "lucide-react";
+import { ExternalLinkIcon, HeartIcon, TrophyIcon } from "lucide-react";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
@@ -14,7 +14,7 @@ interface Platform {
   url: string;
 }
 
-interface ReviewOpportunity {
+interface EarnOpportunity {
   title: string;
   logo: string;
   reward?: number;
@@ -22,7 +22,18 @@ interface ReviewOpportunity {
   platforms: Platform[];
 }
 
-const reviewOpportunities: ReviewOpportunity[] = [
+const earnOpportunities: EarnOpportunity[] = [
+  {
+    title: "Invite friends, earn 10% for 12 months",
+    logo: alby,
+    rewardText: "10% subscription revenue share",
+    platforms: [
+      {
+        name: "getalby.com/referrals",
+        url: "https://getalby.com/referrals",
+      },
+    ],
+  },
   {
     title: "Alby Go",
     logo: albyGo,
@@ -66,17 +77,17 @@ const reviewOpportunities: ReviewOpportunity[] = [
   },
 ];
 
-export function AlbyReviews() {
+export function AlbyEarn() {
   return (
     <>
       <AppHeader
-        title="Review & Earn"
-        description="Help others discover Alby by leaving a review. Your feedback means the world to us!"
+        title="Earn"
+        description="Earn bitcoin and rewards by referring friends or leaving a review."
       />
       <div className="space-y-6">
         <Alert>
-          <CoinsIcon className="h-4 w-4" />
-          <AlertTitle>Earn bitcoin</AlertTitle>
+          <TrophyIcon className="h-4 w-4" />
+          <AlertTitle>Claim your reward</AlertTitle>
           <AlertDescription className="inline">
             Review one of our products and email your review link or screenshot
             to{" "}
@@ -93,14 +104,14 @@ export function AlbyReviews() {
         <Card>
           <CardContent>
             <div className="space-y-6">
-              {reviewOpportunities.map((opportunity) => (
+              {earnOpportunities.map((opportunity) => (
                 <div
                   key={opportunity.title}
                   className="flex items-center gap-4 pb-6 last:pb-0 border-b last:border-b-0"
                 >
                   <img
                     src={opportunity.logo}
-                    className="w-10 h-10 rounded-lg flex-shrink-0"
+                    className="w-10 h-10 rounded-lg shrink-0"
                     alt={opportunity.title}
                   />
                   <div className="flex-1 min-w-0">
