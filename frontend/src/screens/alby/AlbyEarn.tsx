@@ -24,9 +24,9 @@ interface EarnOpportunity {
 
 const earnOpportunities: EarnOpportunity[] = [
   {
-    title: "Invite friends, earn 10% for 12 months",
+    title: "Alby Referral Program",
     logo: alby,
-    rewardText: "10% subscription revenue share",
+    rewardText: "10% of subscription revenue",
     platforms: [
       {
         name: "getalby.com/referrals",
