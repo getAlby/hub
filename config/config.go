@@ -111,6 +111,26 @@ func (cfg *config) init(env *AppConfig) error {
 		}
 	}
 
+	// CLN specific to support env variables
+	if cfg.Env.CLNAddress != "" {
+		err := cfg.SetUpdate("CLNAddress", cfg.Env.CLNAddress, "")
+		if err != nil {
+			return err
+		}
+	}
+	if cfg.Env.CLNLightningDir != "" {
+		err := cfg.SetUpdate("CLNLightningDir", cfg.Env.CLNLightningDir, "")
+		if err != nil {
+			return err
+		}
+	}
+	if cfg.Env.CLNAddressHold != "" {
+		err := cfg.SetUpdate("CLNAddressHold", cfg.Env.CLNAddressHold, "")
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

@@ -11,7 +11,7 @@ import {
   WalletMinimalIcon,
 } from "lucide-react";
 
-export type BackendType = "LND" | "LDK" | "PHOENIX" | "CASHU";
+export type BackendType = "LND" | "LDK" | "PHOENIX" | "CASHU" | "CLN";
 
 export type Nip47RequestMethod =
   | "get_info"
@@ -444,6 +444,10 @@ export type SetupNodeInfo = Partial<{
 
   phoenixdAddress?: string;
   phoenixdAuthorization?: string;
+
+  clnAddress?: string;
+  clnLightningDir?: string;
+  clnAddressHold?: string;
 }>;
 
 export type LSPType = "LSPS1";
