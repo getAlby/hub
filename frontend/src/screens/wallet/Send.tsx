@@ -44,7 +44,10 @@ export default function Send() {
           if (queryString) {
             const params = new URLSearchParams(queryString);
             const btcAmount = params.get("amount");
-            if (btcAmount && /^\d+(\.\d{1,8})?$/.test(btcAmount)) {
+            if (btcAmount != null) {
+              if (!/^\d+(\.\d{1,8})?$/.test(btcAmount)) {
+                throw new Error("Invalid amount in BIP21 URI");
+              }
               const [whole, frac = ""] = btcAmount.split(".");
               const sats = parseInt(whole + frac.padEnd(8, "0"), 10);
               if (sats > 0) {
