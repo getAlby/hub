@@ -529,8 +529,14 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 		orderBy = "last_used_at"
 	}
 	if orderBy == "last_used_at" {
-		// when ordering by last used at, apps with last_used_at is NULL should be ordered last
 		orderBy = "last_used_at IS NULL, " + orderBy
+	}
+
+	if orderBy == "last_settled_transaction" {
+		query = query.Select("apps.*, MAX(transactions.created_at) as last_transaction_at").
+			Joins("LEFT JOIN transactions ON transactions.app_id = apps.id AND transactions.state = ?", constants.TRANSACTION_STATE_SETTLED).
+			Group("apps.id")
+		orderBy = "last_transaction_at IS NULL, last_transaction_at DESC, apps.last_used_at"
 	}
 
 	query = query.Order(orderBy + " DESC")
