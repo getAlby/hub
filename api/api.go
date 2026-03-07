@@ -2,6 +2,8 @@ package api
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -1109,7 +1111,54 @@ func (api *api) MakeOffer(ctx context.Context, description string) (string, erro
 		return "", err
 	}
 
+	// Store the offer in the database
+	err = api.storeOffer(ctx, offer, description)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to store offer in database")
+		// Don't fail the request if we can't store the offer, just log it
+	}
+
 	return offer, nil
+}
+
+// storeOffer stores the BOLT12 offer details in the database
+func (api *api) storeOffer(ctx context.Context, offerString, description string) error {
+	// Generate a unique offer ID from the offer string
+	// In the future, this should extract the actual offer ID from the BOLT12 offer
+	hash := sha256.Sum256([]byte(offerString))
+	offerID := hex.EncodeToString(hash[:16]) // Use first 16 bytes for shorter ID
+
+	offer := &db.Offer{
+		OfferID:     offerID,
+		OfferString: offerString,
+		Description: description,
+	}
+
+	err := api.db.WithContext(ctx).Create(offer).Error
+	if err != nil {
+		return fmt.Errorf("failed to store offer: %w", err)
+	}
+
+	logger.Logger.WithFields(logrus.Fields{
+		"offer_id":    offerID,
+		"description": description,
+	}).Info("Stored BOLT12 offer in database")
+
+	return nil
+}
+
+// GetOffers retrieves all BOLT12 offers from the database
+func (api *api) GetOffers(ctx context.Context) ([]db.Offer, error) {
+	var offers []db.Offer
+
+	err := api.db.WithContext(ctx).Order("created_at DESC").Find(&offers).Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve offers: %w", err)
+	}
+
+	logger.Logger.WithField("count", len(offers)).Info("Retrieved BOLT12 offers from database")
+
+	return offers, nil
 }
 
 func (api *api) GetNewOnchainAddress(ctx context.Context) (string, error) {
