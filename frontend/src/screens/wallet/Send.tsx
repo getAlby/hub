@@ -34,6 +34,28 @@ export default function Send() {
     event.preventDefault();
     try {
       setLoading(true);
+
+      // BIP21 URI: bitcoin:<address>?amount=<BTC>&...
+      if (recipient.toLowerCase().startsWith("bitcoin:")) {
+        const withoutScheme = recipient.slice("bitcoin:".length);
+        const [address, queryString] = withoutScheme.split("?", 2);
+        if (validateBitcoinAddress(address)) {
+          const args: { address: string; amount?: string } = { address };
+          if (queryString) {
+            const params = new URLSearchParams(queryString);
+            const btcAmount = params.get("amount");
+            if (btcAmount) {
+              const sats = Math.round(parseFloat(btcAmount) * 1e8);
+              if (sats > 0) {
+                args.amount = sats.toString();
+              }
+            }
+          }
+          navigate(`/wallet/send/onchain`, { state: { args } });
+          return;
+        }
+      }
+
       if (validateBitcoinAddress(recipient)) {
         navigate(`/wallet/send/onchain`, {
           state: {
@@ -100,7 +122,7 @@ export default function Send() {
                 type="text"
                 value={recipient}
                 autoFocus
-                placeholder="Invoice, lightning address, on-chain address"
+                placeholder="Invoice, lightning address, on-chain address, BIP21"
                 onChange={(e) => {
                   setRecipient(e.target.value.trim());
                   setShowSwapAlert(false);
