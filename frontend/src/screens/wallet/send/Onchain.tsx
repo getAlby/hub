@@ -36,9 +36,9 @@ export default function Onchain() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const [isSwap, setSwap] = React.useState(true);
-  const [amount, setAmount] = React.useState("");
-
   const address = state?.args?.address as string;
+  const initialAmount = (state?.args?.amount as string | undefined) ?? "";
+  const [amount, setAmount] = React.useState(initialAmount);
 
   React.useEffect(() => {
     if (!address) {
