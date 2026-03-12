@@ -66,7 +66,6 @@ type API interface {
 	Health(ctx context.Context) (*HealthResponse, error)
 	SetCurrency(currency string) error
 	SetBitcoinDisplayFormat(format string) error
-	SetBitcoinMaxiMode(enabled bool) error
 	UpdateSettings(updateSettingsRequest *UpdateSettingsRequest) error
 	LookupSwap(swapId string) (*LookupSwapResponse, error)
 	ListSwaps() (*ListSwapsResponse, error)
@@ -297,7 +296,6 @@ type InfoResponse struct {
 	AutoUnlockPasswordEnabled   bool                `json:"autoUnlockPasswordEnabled"`
 	Currency                    string              `json:"currency"`
 	BitcoinDisplayFormat        string              `json:"bitcoinDisplayFormat"`
-	BitcoinMaxiMode             bool                `json:"bitcoinMaxiMode"`
 	Relays                      []InfoResponseRelay `json:"relays"`
 	NodeAlias                   string              `json:"nodeAlias"`
 	MempoolUrl                  string              `json:"mempoolUrl"`
@@ -307,7 +305,6 @@ type InfoResponse struct {
 type UpdateSettingsRequest struct {
 	Currency             string `json:"currency"`
 	BitcoinDisplayFormat string `json:"bitcoinDisplayFormat"`
-	BitcoinMaxiMode      *bool  `json:"bitcoinMaxiMode"`
 }
 
 type SetNodeAliasRequest struct {

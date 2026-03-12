@@ -92,6 +92,4 @@ type Config interface {
 	SetCurrency(value string) error
 	GetBitcoinDisplayFormat() string
 	SetBitcoinDisplayFormat(value string) error
-	GetBitcoinMaxiMode() bool
-	SetBitcoinMaxiMode(value bool) error
 }

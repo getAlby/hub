@@ -27,7 +27,6 @@ import { ExternalLinkButton } from "src/components/ui/custom/external-link-butto
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Separator } from "src/components/ui/separator";
-import { useBitcoinMaxiMode } from "src/hooks/useBitcoinMaxiMode";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
@@ -46,8 +45,6 @@ export default function DepositBitcoin() {
     onchainAddress ? `/address/${onchainAddress}/utxo` : undefined,
     3000
   );
-  const { bitcoinMaxiMode } = useBitcoinMaxiMode();
-
   const [txId, setTxId] = useState("");
   const [confirmedAmount, setConfirmedAmount] = useState<number | null>(null);
   const [pendingAmount, setPendingAmount] = useState<number | null>(null);
@@ -159,20 +156,16 @@ export default function DepositBitcoin() {
                     Copy
                   </Button>
                 </div>
-                {!bitcoinMaxiMode && (
-                  <>
-                    <Separator className="my-4" />
-                    <FixedFloatButton
-                      to="BTC"
-                      address={onchainAddress}
-                      className="w-full"
-                      variant="secondary"
-                    >
-                      <ExternalLinkIcon className="size-4" />
-                      Deposit using other Cryptocurrency
-                    </FixedFloatButton>
-                  </>
-                )}
+                <Separator className="my-4" />
+                <FixedFloatButton
+                  to="BTC"
+                  address={onchainAddress}
+                  className="w-full"
+                  variant="secondary"
+                >
+                  <ExternalLinkIcon className="size-4" />
+                  Deposit using other Cryptocurrency
+                </FixedFloatButton>
               </div>
             </CardContent>
           </Card>
