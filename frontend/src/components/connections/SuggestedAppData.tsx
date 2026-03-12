@@ -10,6 +10,7 @@ import bitrefill from "src/assets/suggested-apps/bitrefill.png";
 import bringin from "src/assets/suggested-apps/bringin.png";
 import btcpay from "src/assets/suggested-apps/btcpay.png";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
+import castamatic from "src/assets/suggested-apps/castamatic.png";
 import clams from "src/assets/suggested-apps/clams.png";
 import claude from "src/assets/suggested-apps/claude.png";
 import coracle from "src/assets/suggested-apps/coracle.png";
@@ -179,6 +180,39 @@ export const appStoreApps: AppStoreApp[] = (
       logo: buzzpay,
       categories: ["merchant-tools"],
       webLink: "https://pos.albylabs.com",
+    },
+    {
+      id: "castamatic",
+      title: "Castamatic",
+      description: "Podcast player with Value4Value support",
+      webLink: "https://castamatic.com",
+      appleLink: 
+        "https://apps.apple.com/us/app/castamatic-podcast-player/id966632553",
+      logo: castamatic,
+      extendedDescription: 
+        "Castamatic is a feature-rich podcast player for iOS with built-in Value4Value support. Send boosts and stream sats to your favorite podcasters while you listen.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Download and open{" "}
+            <span className="font-medium text-foreground">Castamatic</span> on
+            your iOS device
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Castamatic</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>Open a podcast that supports Value4Value</li>
+              <li>Tap the Connect Wallet button in the player</li>
+              <li>Scan or paste the connection secret from Alby Hub</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["audio"],
     },
     {
       id: "goose",
