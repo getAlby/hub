@@ -1195,12 +1195,13 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 					}).WithError(err).Error("Failed to save lockup txid to swap")
 					return
 				}
-			case boltz.TransactionConfirmed:
-				logger.Logger.WithFields(logrus.Fields{
-					"swapId":     swap.SwapId,
-					"lockupTxId": swap.LockupTxId,
-				}).Info("Lockup transaction confirmed in mempool")
-
+				if swap.ClaimTxId != "" {
+					logger.Logger.WithFields(logrus.Fields{
+						"swapId":    swap.SwapId,
+						"claimTxId": swap.ClaimTxId,
+					}).Info("Claim transaction already recorded, skipping broadcast")
+					continue
+				}
 				var lockupTransaction boltz.Transaction
 				lockupTransaction, err = boltz.NewTxFromHex(boltz.CurrencyBtc, update.Transaction.Hex, nil)
 				if err != nil {
@@ -1317,6 +1318,11 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 					}).WithError(err).Error("Failed to save claim info to swap")
 					return
 				}
+			case boltz.TransactionConfirmed:
+				logger.Logger.WithFields(logrus.Fields{
+					"swapId":     swap.SwapId,
+					"lockupTxId": update.Transaction.Id,
+				}).Info("Lockup transaction confirmed in mempool")
 			case boltz.TransactionFailed, boltz.SwapExpired:
 				logger.Logger.WithFields(logrus.Fields{
 					"swapId": swap.SwapId,
