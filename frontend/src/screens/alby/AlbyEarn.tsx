@@ -111,37 +111,39 @@ export function AlbyEarn() {
                 >
                   <img
                     src={opportunity.logo}
-                    className="w-10 h-10 rounded-lg shrink-0"
+                    className="size-8 md:size-10 rounded-lg shrink-0"
                     alt={opportunity.title}
                   />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium">{opportunity.title}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {opportunity.platforms.map((platform, index) => (
-                        <span key={index}>
-                          {index > 0 && " • "}
-                          <ExternalLink
-                            to={platform.url}
-                            className="text-primary hover:underline"
-                          >
-                            {platform.name}
-                            <ExternalLinkIcon className="w-3 h-3 ml-1 inline" />
-                          </ExternalLink>
-                        </span>
-                      ))}
+                  <div className="flex flex-1 flex-col sm:flex-row sm:items-center gap-1">
+                    <div className="flex-1">
+                      <div className="font-medium">{opportunity.title}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {opportunity.platforms.map((platform, index) => (
+                          <span key={index}>
+                            {index > 0 && " • "}
+                            <ExternalLink
+                              to={platform.url}
+                              className="text-primary hover:underline"
+                            >
+                              {platform.name}
+                              <ExternalLinkIcon className="w-3 h-3 ml-1 inline" />
+                            </ExternalLink>
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                  <div className="text-right font-medium shrink-0">
-                    {opportunity.reward !== undefined ? (
-                      <FormattedBitcoinAmount
-                        amount={opportunity.reward * 1000}
-                      />
-                    ) : opportunity.rewardText ? (
-                      <span className="text-muted-foreground text-sm inline-flex items-center justify-end gap-1">
-                        <HeartIcon className="w-4 h-4" />
-                        {opportunity.rewardText}
-                      </span>
-                    ) : null}
+                    <div className="sm:text-right font-medium shrink-0">
+                      {opportunity.reward !== undefined ? (
+                        <FormattedBitcoinAmount
+                          amount={opportunity.reward * 1000}
+                        />
+                      ) : opportunity.rewardText ? (
+                        <span className="text-muted-foreground text-sm inline-flex items-start justify-end gap-1">
+                          <HeartIcon className="w-4 h-4 mt-0.5" />
+                          {opportunity.rewardText}
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
               ))}
