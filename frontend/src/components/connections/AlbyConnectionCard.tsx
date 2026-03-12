@@ -140,7 +140,6 @@ function AlbyConnectionCard() {
                             25000 /* the minimum should be a bit more than the Alby monthly fee */
                           }
                           budgetOptions={{
-                            "150k": 150_000,
                             "250k": 250_000,
                             "500k": 500_000,
                             "1M": 1_000_000,
