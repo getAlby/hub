@@ -60,7 +60,7 @@ function AlbyConnectionCard() {
   const { loading, linkStatus, loadingLinkStatus, linkAccount } =
     useLinkAccount(reloadAlbyAccountApp);
 
-  const [maxAmount, setMaxAmount] = useState(150_000);
+  const [maxAmount, setMaxAmount] = useState(250_000);
   const [budgetRenewal, setBudgetRenewal] =
     useState<BudgetRenewalType>("weekly");
 
