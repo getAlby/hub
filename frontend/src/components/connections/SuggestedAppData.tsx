@@ -186,10 +186,10 @@ export const appStoreApps: AppStoreApp[] = (
       title: "Castamatic",
       description: "Podcast player with Value4Value support",
       webLink: "https://castamatic.com",
-      appleLink: 
+      appleLink:
         "https://apps.apple.com/us/app/castamatic-podcast-player/id966632553",
       logo: castamatic,
-      extendedDescription: 
+      extendedDescription:
         "Castamatic is a feature-rich podcast player for iOS with built-in Value4Value support. Send boosts and stream sats to your favorite podcasters while you listen.",
       installGuide: (
         <>
@@ -207,6 +207,7 @@ export const appStoreApps: AppStoreApp[] = (
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>Open a podcast that supports Value4Value</li>
               <li>Tap the Connect Wallet button in the player</li>
+              <li>Select Connect NWC wallet</li>
               <li>Scan or paste the connection secret from Alby Hub</li>
             </ul>
           </div>
