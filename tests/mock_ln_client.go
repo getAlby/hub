@@ -84,6 +84,7 @@ type MockLn struct {
 	PaymentDelay               *time.Duration
 	Pubkey                     string
 	MockTransaction            *lnclient.Transaction
+	LastMinCltvExpiryDelta     *uint64
 	SupportedNotificationTypes *[]string
 }
 
