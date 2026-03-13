@@ -129,10 +129,9 @@ export default function SwapOutStatus() {
                         <Loading className="w-5 h-5 mr-2" />
                         <div className="flex items-center gap-2">
                           <p>
-                            Waiting for{" "}
                             {swap.claimTxId
-                              ? "1 on-chain confirmation"
-                              : "2 on-chain confirmations"}
+                              ? "Waiting for on-chain confirmation"
+                              : "Broadcasting claim transaction"}
                             ...
                           </p>
                           <ExternalLink
