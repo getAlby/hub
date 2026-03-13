@@ -14,9 +14,9 @@ import (
 type API interface {
 	CreateApp(createAppRequest *CreateAppRequest) (*CreateAppResponse, error)
 	UpdateApp(app *db.App, updateAppRequest *UpdateAppRequest) error
-	Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, amountMsat uint64) error
+	Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, amountMsat uint64, description string) error
 	DeleteApp(app *db.App) error
-	GetApp(app *db.App) *App
+	GetApp(app *db.App) (*App, error)
 	ListApps(limit uint64, offset uint64, filters ListAppsFilters, orderBy string) (*ListAppsResponse, error)
 	CreateLightningAddress(ctx context.Context, createLightningAddressRequest *CreateLightningAddressRequest) error
 	DeleteLightningAddress(ctx context.Context, appId uint) error
@@ -113,8 +113,9 @@ type ListAppsFilters struct {
 }
 
 type ListAppsResponse struct {
-	Apps       []App  `json:"apps"`
-	TotalCount uint64 `json:"totalCount"`
+	Apps         []App  `json:"apps"`
+	TotalCount   uint64 `json:"totalCount"`
+	TotalBalance *int64 `json:"totalBalance,omitempty"`
 }
 
 type UpdateAppRequest struct {
@@ -129,9 +130,10 @@ type UpdateAppRequest struct {
 }
 
 type TransferRequest struct {
-	AmountSat uint64 `json:"amountSat"`
-	FromAppId *uint  `json:"fromAppId"`
-	ToAppId   *uint  `json:"toAppId"`
+	AmountSat   uint64 `json:"amountSat"`
+	FromAppId   *uint  `json:"fromAppId"`
+	ToAppId     *uint  `json:"toAppId"`
+	Description string `json:"description"`
 }
 
 type CreateAppRequest struct {
@@ -298,6 +300,7 @@ type InfoResponse struct {
 	Relays                      []InfoResponseRelay `json:"relays"`
 	NodeAlias                   string              `json:"nodeAlias"`
 	MempoolUrl                  string              `json:"mempoolUrl"`
+	HideUpdateBanner            bool                `json:"hideUpdateBanner"`
 }
 
 type UpdateSettingsRequest struct {

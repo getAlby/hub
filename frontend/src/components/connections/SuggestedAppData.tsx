@@ -1,21 +1,28 @@
 import { ZapIcon } from "lucide-react";
 import { Link } from "react-router-dom";
+import topup2fiat from "src/assets/suggested-apps/2fiat-topup.png";
 import albyExtension from "src/assets/suggested-apps/alby-extension.png";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
+import albySandbox from "src/assets/suggested-apps/alby-sandbox.png";
+import albyCli from "src/assets/suggested-apps/alby.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
 import bitrefill from "src/assets/suggested-apps/bitrefill.png";
 import bringin from "src/assets/suggested-apps/bringin.png";
 import btcpay from "src/assets/suggested-apps/btcpay.png";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
+import castamatic from "src/assets/suggested-apps/castamatic.png";
 import clams from "src/assets/suggested-apps/clams.png";
 import claude from "src/assets/suggested-apps/claude.png";
 import coracle from "src/assets/suggested-apps/coracle.png";
 import damus from "src/assets/suggested-apps/damus.png";
+import fountain from "src/assets/suggested-apps/fountain.png";
 import goose from "src/assets/suggested-apps/goose.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import iris from "src/assets/suggested-apps/iris.png";
+import jumble from "src/assets/suggested-apps/jumble.png";
 import lightningMessageboard from "src/assets/suggested-apps/lightning-messageboard.png";
 import lnbits from "src/assets/suggested-apps/lnbits.png";
+import lnvps from "src/assets/suggested-apps/lnvps.png";
 import lume from "src/assets/suggested-apps/lume.png";
 import nakapay from "src/assets/suggested-apps/nakapay.png";
 import nostrcheckserver from "src/assets/suggested-apps/nostrcheck-server.png";
@@ -23,12 +30,18 @@ import nostrudel from "src/assets/suggested-apps/nostrudel.png";
 import nostter from "src/assets/suggested-apps/nostter.png";
 import nostur from "src/assets/suggested-apps/nostur.png";
 import paperScissorsHodl from "src/assets/suggested-apps/paper-scissors-hodl.png";
+import payperq from "src/assets/suggested-apps/payperq.png";
 import primal from "src/assets/suggested-apps/primal.png";
 import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
+import runstr from "src/assets/suggested-apps/runstr.png";
+import satsorter from "src/assets/suggested-apps/sat-sorter.png";
+import satoshisauctionhouse from "src/assets/suggested-apps/satoshis-auction-house.png";
 import simpleboost from "src/assets/suggested-apps/simple-boost.png";
 import snort from "src/assets/suggested-apps/snort.png";
 import stackernews from "src/assets/suggested-apps/stacker-news.png";
+import takemysats from "src/assets/suggested-apps/takemysats.png";
 import tictactoe from "src/assets/suggested-apps/tictactoe.png";
+import tunnelsats from "src/assets/suggested-apps/tunnelsats.png";
 import wavespace from "src/assets/suggested-apps/wave-space.png";
 import wavlake from "src/assets/suggested-apps/wavlake.png";
 import wherostr from "src/assets/suggested-apps/wherostr.png";
@@ -87,8 +100,8 @@ export const appStoreCategories = {
     title: "Merchant Tools",
     priority: 10,
   },
-  music: {
-    title: "Music",
+  audio: {
+    title: "Audio",
     priority: 20,
   },
   blogging: {
@@ -169,6 +182,40 @@ export const appStoreApps: AppStoreApp[] = (
       webLink: "https://pos.albylabs.com",
     },
     {
+      id: "castamatic",
+      title: "Castamatic",
+      description: "Podcast player with Value4Value support",
+      webLink: "https://castamatic.com",
+      appleLink:
+        "https://apps.apple.com/us/app/castamatic-podcast-player/id966632553",
+      logo: castamatic,
+      extendedDescription:
+        "Castamatic is a feature-rich podcast player for iOS with built-in Value4Value support. Send boosts and stream sats to your favorite podcasters while you listen.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Download and open{" "}
+            <span className="font-medium text-foreground">Castamatic</span> on
+            your iOS device
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Castamatic</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>Open a podcast that supports Value4Value</li>
+              <li>Tap the Connect Wallet button in the player</li>
+              <li>Select Connect NWC wallet</li>
+              <li>Scan or paste the connection secret from Alby Hub</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["audio"],
+    },
+    {
       id: "goose",
       title: "Goose",
       description:
@@ -181,6 +228,71 @@ export const appStoreApps: AppStoreApp[] = (
       webLink: "https://block.github.io/goose",
     },
     {
+      id: "2fiat",
+      title: "2fiat Top up",
+      description:
+        "No-KYC virtual prepaid Mastercard with instant lightning top ups",
+      logo: topup2fiat,
+      categories: ["payment-tools"],
+      extendedDescription:
+        "No-KYC virtual prepaid Mastercard. Anonymous payments, Instant lightning top-ups, Apple & Google Pay ready, Load amounts from $10 to $10,000,  All cards support 3D Secure (3DS), Global usage - pay anywhere Mastercard is accepted.",
+      webLink: "http://2fiat.com/getalby",
+      installGuide: (
+        <>
+          <div>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                <ExternalLink
+                  to="http://2fiat.com/getalby"
+                  className="underline"
+                >
+                  Sign up
+                </ExternalLink>{" "}
+                for a 2fiat card and set it up
+              </li>
+              <li>
+                On the 2fiat website, open the card page (where you can see the
+                full card number and transaction list) and{" "}
+                <span className="font-medium text-foreground">
+                  copy the entire URL
+                </span>
+                .
+              </li>
+              <li>
+                Open{" "}
+                <ExternalLink
+                  to="https://rolznz.github.io/2fiat-topup/"
+                  className="underline"
+                >
+                  2fiat top up
+                </ExternalLink>{" "}
+                (on mobile save the app to your homescreen and open it there
+                before continuing) and
+              </li>
+              <li>
+                Click the "Connect Card" button and paste the card link you
+                copied earlier.
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>Copy the connection secret below</li>
+              <li>
+                Click the "Connect Wallet" button inside the 2fiat topup app,
+                choose "Alby Hub {"->"} Connection Secret" and paste the
+                connection secret.
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+    },
+    {
       id: "claude",
       title: "Claude",
       description: "AI assistant for conversations, analysis, and coding",
@@ -190,6 +302,78 @@ export const appStoreApps: AppStoreApp[] = (
       logo: claude,
       categories: ["ai"],
       webLink: "https://claude.ai/",
+    },
+    {
+      id: "alby-cli-skill",
+      title: "Alby CLI Skill",
+      description: "Skill wrapper that helps AI agents use Alby CLI better",
+      extendedDescription:
+        "Agent skill for Alby CLI with guided setup for skill-enabled coding agents and AI tooling.",
+      internal: true,
+      logo: albyCli,
+      categories: ["ai"],
+      webLink: "https://github.com/getAlby/alby-cli-skill",
+    },
+    {
+      id: "payperq",
+      title: "PayPerQ",
+      description: "Pay-Per-Prompt AI Service",
+      webLink: "https://ppq.ai/invite/3f21c1e5",
+      logo: payperq,
+      hideConnectionQr: true,
+      extendedDescription:
+        "Access all of the latest AI models and tools in one place without the need for subscriptions",
+      installGuide: (
+        <>
+          <ul className="list-inside list-decimal text-muted-foreground">
+            <li>
+              Open{" "}
+              <ExternalLink
+                to="https://ppq.ai/api-docs"
+                className="font-medium text-foreground underline"
+              >
+                PayPerQ API docs page
+              </ExternalLink>{" "}
+              and scroll down to the{" "}
+              <span className="font-medium text-foreground">
+                NWC Auto-Topup
+              </span>{" "}
+              section.
+            </li>
+            <li>
+              Copy the CURL code example for{" "}
+              <span className="font-medium text-foreground">
+                POST /nwc-auto-topup/connect
+              </span>{" "}
+              and paste it into a notepad.
+            </li>
+          </ul>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">Connect Auto-Topup</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Replace the{" "}
+                <span className="font-medium text-foreground">"nwc_url"</span>{" "}
+                field with your connection secret.
+              </li>
+              <li>Execute the CURL command in your terminal.</li>
+              <li>
+                Verify settings with{" "}
+                <code className="text-foreground">
+                  GET https://api.ppq.ai/nwc-auto-topup
+                </code>{" "}
+                along with the{" "}
+                <code className="text-foreground">x-credit-id</code> header.
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["ai"],
     },
     {
       id: "simpleboost",
@@ -210,6 +394,60 @@ export const appStoreApps: AppStoreApp[] = (
       logo: lightningMessageboard,
       categories: ["merchant-tools"],
       webLink: "https://github.com/getAlby/lightning-messageboard",
+    },
+    {
+      id: "lnvps",
+      title: "LNVPS",
+      description: "VPS powered by Bitcoin",
+      webLink: "https://lnvps.net/?ref=alby",
+      logo: lnvps,
+      hideConnectionQr: true,
+      extendedDescription:
+        "Run VPS infrastructure with Bitcoin-native billing and automated renewals through Nostr Wallet Connect.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://lnvps.net/?ref=alby"
+              className="font-medium text-foreground underline"
+            >
+              LNVPS
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In LNVPS</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Enable auto-renew on{" "}
+                <ExternalLink
+                  to="https://lnvps.net/vm/billing"
+                  className="font-medium text-foreground underline"
+                >
+                  lnvps.net/vm/billing
+                </ExternalLink>
+              </li>
+              <li>
+                Go to{" "}
+                <ExternalLink
+                  to="https://lnvps.net/account/settings"
+                  className="font-medium text-foreground underline"
+                >
+                  lnvps.net/account/settings
+                </ExternalLink>
+              </li>
+              <li>Paste the connection secret from Alby Hub</li>
+              <li>Save your settings to activate NWC auto-renewal</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["misc"],
     },
     {
       id: "alby-extension",
@@ -259,6 +497,104 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["wallet-interfaces"],
+    },
+    {
+      id: "alby-cli",
+      title: "Alby CLI",
+      description:
+        "Command-line interface for Nostr Wallet Connect with lightning tools",
+      webLink: "https://github.com/getAlby/cli",
+      logo: albyCli,
+      extendedDescription:
+        "Manage your Alby Hub from the command line. Send and receive payments, create invoices, check your balance, and automate lightning workflows. Built for developers and AI agents.",
+      categories: ["wallet-interfaces"],
+      hideConnectionQr: true,
+      installGuide: (
+        <>
+          <div>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Install the CLI globally:{" "}
+                <code className="text-foreground">
+                  npm install -g @getalby/cli
+                </code>
+              </li>
+              <li>
+                Or run directly with npx:{" "}
+                <code className="text-foreground">npx @getalby/cli</code>
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">Connect to your Hub</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Set the <code className="text-foreground">NWC_URL</code>{" "}
+                environment variable or pass the connection string via{" "}
+                <code className="text-foreground">-c</code>
+              </li>
+              <li>
+                Run{" "}
+                <code className="text-foreground">
+                  npx @getalby/cli -c "nostr+walletconnect://..." get-info
+                </code>{" "}
+                to verify the connection
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+    },
+    {
+      id: "alby-sandbox",
+      title: "Alby Sandbox",
+      description: "Interactive Lightning payment scenarios for app builders",
+      webLink: "https://sandbox.albylabs.com",
+      logo: albySandbox,
+      extendedDescription:
+        "Explore real-world Lightning and Nostr Wallet Connect flows with guided scenarios, test wallets, and code-oriented examples for app development.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://sandbox.albylabs.com"
+              className="font-medium text-foreground underline"
+            >
+              sandbox.albylabs.com
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Alby Sandbox</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>Choose any scenario in the sidebar</li>
+              <li>
+                Paste your Alby Hub{" "}
+                <span className="font-medium text-foreground">
+                  connection secret.
+                </span>{" "}
+                If you connected a test wallet first, disconnect it and
+                reconnect using your Alby Hub secret.
+              </li>
+              <li>
+                Click{" "}
+                <span className="font-medium text-foreground">Connect</span>
+              </li>
+              <li>Run a scenario to explore Lightning payment flows</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["misc"],
     },
     {
       id: "damus",
@@ -386,6 +722,111 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["social-media"],
+    },
+    {
+      id: "runstr",
+      title: "RUNSTR",
+      description: "Bitcoin-powered fitness competitions",
+      webLink: "https://www.runstr.club",
+      zapStoreLink:
+        "https://zapstore.dev/apps/naddr1qvzqqqr7pvpzqcgsy8425f5jwsd3yd4me6j5c64f7g96xr9vuvtv82fag5yf5lg0qqwxxmmd9eskummw09kk7atn9ee82mnnw3ezuurjda4x2cm50etju8",
+      logo: runstr,
+      extendedDescription:
+        "Track workouts, join team competitions, and earn Bitcoin rewards through Lightning payments",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Download and open{" "}
+            <span className="font-medium text-foreground">RUNSTR</span> on your
+            iOS or Android device
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In RUNSTR</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Go to{" "}
+                <span className="font-medium text-foreground">Settings</span>{" "}
+                and expand the{" "}
+                <span className="font-medium text-foreground">Advanced</span>{" "}
+                section
+              </li>
+              <li>
+                Tap{" "}
+                <span className="font-medium text-foreground">
+                  Scan QR Code
+                </span>{" "}
+                to scan your Alby Hub connection QR
+              </li>
+              <li>
+                Or tap{" "}
+                <span className="font-medium text-foreground">
+                  Enter Manually
+                </span>{" "}
+                to paste your NWC connection string
+              </li>
+              <li>Confirm the connection when prompted</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["misc"],
+    },
+    {
+      id: "sat-sorter",
+      title: "Sat Sorter",
+      description: "A Bitcoin Budgeting App",
+      webLink: "https://satsorter.com",
+      logo: satsorter,
+      extendedDescription:
+        "A privacy-first, zero-based budgeting app for Bitcoiners. Connects via NWC for automatic Lightning transaction sync.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://satsorter.com"
+              className="font-medium text-foreground underline"
+            >
+              Sat Sorter
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Sat Sorter</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Tap the{" "}
+                <span className="font-medium text-foreground">Wallet</span> icon
+                in the header
+              </li>
+              <li>
+                Tap{" "}
+                <span className="font-medium text-foreground">
+                  Connect Wallet
+                </span>{" "}
+                and select{" "}
+                <span className="font-medium text-foreground">
+                  Nostr Wallet Connect
+                </span>
+              </li>
+              <li>Paste the connection secret from Alby Hub</li>
+              <li>
+                Tap <span className="font-medium text-foreground">Connect</span>{" "}
+                — your Lightning transactions will now sync automatically
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["misc"],
     },
     {
       id: "zap-stream",
@@ -669,11 +1110,12 @@ export const appStoreApps: AppStoreApp[] = (
     {
       id: "wavlake",
       title: "Wavlake",
-      description: "Creators platform",
+      description: "Turn up the value for your biggest fans",
       webLink: "https://www.wavlake.com/",
       playLink:
         "https://play.google.com/store/apps/details?id=com.wavlake.mobile",
-      appleLink: "https://testflight.apple.com/join/eWnqECG4",
+      appleLink:
+        "https://apps.apple.com/us/app/wavlake-social-music-player/id6463653431",
       logo: wavlake,
       extendedDescription:
         "Support artists by paying to upvote music you enjoy with your Hub",
@@ -696,7 +1138,44 @@ export const appStoreApps: AppStoreApp[] = (
           </div>
         </>
       ),
-      categories: ["music"],
+      categories: ["audio"],
+    },
+    {
+      id: "fountain",
+      title: "Fountain",
+      description:
+        "Discover millions of podcasts and emerging artists worth supporting",
+      webLink: "https://www.fountain.fm",
+      playLink:
+        "https://play.google.com/store/apps/details?id=fm.fountain.apps",
+      appleLink:
+        "https://apps.apple.com/us/app/fountain-podcast-player/id1576394424",
+      logo: fountain,
+      extendedDescription:
+        "Discover millions of podcasts and emerging artists worth supporting. Powered by RSS, Lightning and Nostr",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Download and open{" "}
+            <span className="font-medium text-foreground">Fountain</span> on
+            your iOS or Android device
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Fountain</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>Go to Wallet tab</li>
+              <li>Click the settings cog</li>
+              <li>Go to connected accounts {"->"} Nostr Wallet Connect</li>
+              <li>Scan or paste the connection secret from Alby Hub</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["audio"],
     },
     {
       id: "wavespace",
@@ -1624,11 +2103,11 @@ export const appStoreApps: AppStoreApp[] = (
       id: "bringin",
       title: "Bringin",
       description:
-        "Spend Bitcoin from your Alby Hub anywhere VISA is accepted (150M+ merchants).",
+        "Spend Bitcoin from your Alby Hub with VISA at 150M+ merchants worldwide",
       webLink: "https://bringin.xyz",
       playLink:
         "https://play.google.com/store/apps/details?id=xyz.bringin.client",
-      appleLink: "https://testflight.apple.com/join/HVh6eZsF",
+      appleLink: "https://apps.apple.com/in/app/bringin/id1579153016",
       zapStoreLink: "https://zapstore.dev/download/",
       logo: bringin,
       extendedDescription:
@@ -1667,6 +2146,199 @@ export const appStoreApps: AppStoreApp[] = (
           </div>
         </>
       ),
+    },
+    {
+      id: "jumble",
+      title: "Jumble",
+      description: "Social media client with Bitcoin Connect",
+      webLink: "https://jumble.social",
+      logo: jumble,
+      extendedDescription:
+        "A social media client that uses Bitcoin Connect for seamless wallet integration with your Hub",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://jumble.social"
+              className="font-medium text-foreground underline"
+            >
+              Jumble
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Jumble</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Click on Settings {"->"} Wallet {"->"}
+                <span className="font-medium text-foreground">
+                  other wallets
+                </span>
+              </li>
+              <li>
+                Choose{" "}
+                <span className="font-medium text-foreground">
+                  Nostr Wallet Connect
+                </span>
+              </li>
+              <li>Paste the connection secret from Alby Hub</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["social-media"],
+    },
+    {
+      id: "satoshis-auction-house",
+      title: "Satoshi's Auction House",
+      description: "Bitcoin-powered auction platform",
+      webLink: "https://satoshisauction.house",
+      logo: satoshisauctionhouse,
+      extendedDescription:
+        "Buy and sell items through Bitcoin-powered auctions directly from your Hub",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://satoshisauction.house"
+              className="font-medium text-foreground underline"
+            >
+              Satoshi's Auction House
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Satoshi's Auction House</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Click on the Hamburger menu on the top right and click{" "}
+                <span className="font-medium text-foreground">Settings</span>
+              </li>
+              <li>
+                Paste the connection secret from Alby Hub into the receive-only
+                connection secret field
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["shopping"],
+    },
+    {
+      id: "takemysats",
+      title: "Take My Sats",
+      description: "Create your online store and accept Bitcoin payments",
+      webLink: "https://www.takemysats.com",
+      logo: takemysats,
+      extendedDescription:
+        "A Bitcoin e-commerce platform that enables merchants to create online stores and accept Lightning payments directly to your Hub",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://www.takemysats.com"
+              className="font-medium text-foreground underline"
+            >
+              Take My Sats
+            </ExternalLink>{" "}
+            in your browser and create your store
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Take My Sats</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Go to your store{" "}
+                <span className="font-medium text-foreground">Settings</span>
+              </li>
+              <li>
+                Choose{" "}
+                <span className="font-medium text-foreground">
+                  Nostr Wallet Connect
+                </span>{" "}
+                as your payment method
+              </li>
+              <li>Paste the connection secret from Alby Hub</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["merchant-tools"],
+    },
+    {
+      id: "tunnelsats",
+      title: "TunnelSats",
+      description: "Privacy Lightning VPN",
+      webLink: "https://tunnelsats.com",
+      logo: tunnelsats,
+      extendedDescription:
+        "Secure your lightning node with a dedicated static IP. Automated, non-custodial VPN renewals via Nostr Wallet Connect.",
+      finalizeGuide: (
+        <>
+          <div>
+            <p>
+              Link your Alby Hub to TunnelSats for non-custodial automated
+              renewals:
+            </p>
+            <ol className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Go to the{" "}
+                <ExternalLink
+                  to="https://tunnelsats.com/dashboard?section=automation"
+                  className="font-medium text-foreground underline"
+                >
+                  TunnelSats Dashboard
+                </ExternalLink>
+                .
+              </li>
+              <li>Sign in with your node or Nostr extension.</li>
+              <li>
+                Navigate to the <span className="font-medium">Automation</span>{" "}
+                tab.
+              </li>
+              <li>
+                Click{" "}
+                <span className="font-medium text-foreground">
+                  Connect Wallet
+                </span>
+                .
+              </li>
+              <li>
+                Paste the{" "}
+                <span className="font-medium text-foreground">
+                  Connection Secret
+                </span>{" "}
+                from this Alby Hub.
+              </li>
+              <li>
+                Alternatively, use this{" "}
+                <ExternalLink
+                  to="https://tunnelsats.com/dashboard?section=automation"
+                  className="font-medium text-foreground underline"
+                >
+                  One-Click Connect
+                </ExternalLink>{" "}
+                link to pre-fill the connection.
+              </li>
+            </ol>
+          </div>
+        </>
+      ),
+      categories: ["misc"],
     },
   ] satisfies AppStoreApp[]
 ).sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));

@@ -66,7 +66,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		ContentTypeNosniff:    "nosniff",
 		XFrameOptions:         "DENY",
-		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https://uploads.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com https://zapplanner.albylabs.com wss://relay.getalby.com/v1; frame-src https://embed.bitrefill.com",
+		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https://uploads.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com https://zapplanner.albylabs.com wss://relay.getalby.com wss://relay2.getalby.com; frame-src https://embed.bitrefill.com",
 		ReferrerPolicy:        "no-referrer",
 	}))
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
@@ -113,7 +113,11 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 		},
 		// use a custom key func as the JWT secret will change if the user changes their unlock password
 		KeyFunc: func(token *jwt.Token) (interface{}, error) {
-			return []byte(httpSvc.cfg.GetJWTSecret()), nil
+			secret, err := httpSvc.cfg.GetJWTSecret()
+			if err != nil {
+				return nil, err
+			}
+			return []byte(secret), nil
 		},
 	}
 	// Read-only API group - accessible to both full and readonly tokens
@@ -209,7 +213,12 @@ func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 		if parts[0] == "Bearer" {
 			tokenString := parts[1]
 			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-				return []byte(httpSvc.cfg.GetJWTSecret()), nil
+				secret, err := httpSvc.cfg.GetJWTSecret()
+				if err != nil {
+					return nil, err
+				}
+
+				return []byte(secret), nil
 			})
 			if err != nil {
 				logger.Logger.WithError(err).Error("failed to parse token")
@@ -282,6 +291,17 @@ func (httpSvc *HttpService) startHandler(c echo.Context) error {
 	if !httpSvc.cfg.CheckUnlockPassword(startRequest.UnlockPassword) {
 		return c.JSON(http.StatusUnauthorized, ErrorResponse{
 			Message: "Invalid password",
+		})
+	}
+
+	// NOTE: the config is also unlocked as part of the start
+	// goroutine below. But since we execute start asynchronously it's hard to
+	// know when the config has been unlocked before being able to create the JWT token
+	err := httpSvc.cfg.Unlock(startRequest.UnlockPassword)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to unlock config: %s", err.Error()),
 		})
 	}
 
@@ -438,7 +458,12 @@ func (httpSvc *HttpService) createJWT(tokenExpiryDays *uint64, permission string
 		return "", errors.New("failed to create token")
 	}
 
-	signed, err := token.SignedString([]byte(httpSvc.cfg.GetJWTSecret()))
+	secret, err := httpSvc.cfg.GetJWTSecret()
+	if err != nil {
+		return "", err
+	}
+
+	signed, err := token.SignedString([]byte(secret))
 	if err != nil {
 		return "", err
 	}
@@ -1026,7 +1051,12 @@ func (httpSvc *HttpService) appsShowByPubkeyHandler(c echo.Context) error {
 		})
 	}
 
-	response := httpSvc.api.GetApp(dbApp)
+	response, err := httpSvc.api.GetApp(dbApp)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
 
 	return c.JSON(http.StatusOK, response)
 }
@@ -1054,7 +1084,12 @@ func (httpSvc *HttpService) appsShowHandler(c echo.Context) error {
 		})
 	}
 
-	response := httpSvc.api.GetApp(dbApp)
+	response, err := httpSvc.api.GetApp(dbApp)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
 
 	return c.JSON(http.StatusOK, response)
 }
@@ -1095,7 +1130,7 @@ func (httpSvc *HttpService) transfersHandler(c echo.Context) error {
 		})
 	}
 
-	err := httpSvc.api.Transfer(c.Request().Context(), requestData.FromAppId, requestData.ToAppId, requestData.AmountSat*1000)
+	err := httpSvc.api.Transfer(c.Request().Context(), requestData.FromAppId, requestData.ToAppId, requestData.AmountSat*1000, requestData.Description)
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to transfer funds")

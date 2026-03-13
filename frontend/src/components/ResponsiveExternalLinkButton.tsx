@@ -22,7 +22,7 @@ const ResponsiveExternalLinkButton = ({
     <>
       <ExternalLinkButton
         {...props}
-        className="hidden lg:inline-flex"
+        className="hidden md:inline-flex"
         variant={variant}
       >
         <Icon />
@@ -31,7 +31,7 @@ const ResponsiveExternalLinkButton = ({
       <ExternalLinkButton
         {...props}
         size="icon"
-        className="lg:hidden"
+        className="md:hidden"
         variant={variant}
       >
         <Icon />

@@ -38,7 +38,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	case len(authCodeMatch) > 1:
 		code := authCodeMatch[1]
 
-		err := app.svc.GetAlbyOAuthSvc().CallbackHandler(ctx, code, app.svc.GetLNClient())
+		err := app.svc.GetAlbyOAuthSvc().CallbackHandler(ctx, code)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,
@@ -72,7 +72,10 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 
 		switch method {
 		case "GET":
-			app := app.api.GetApp(dbApp)
+			app, err := app.api.GetApp(dbApp)
+			if err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
 			return WailsRequestRouterResponse{Body: app, Error: ""}
 		}
 	}
@@ -93,7 +96,10 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 
 		switch method {
 		case "GET":
-			app := app.api.GetApp(dbApp)
+			app, err := app.api.GetApp(dbApp)
+			if err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
 			return WailsRequestRouterResponse{Body: app, Error: ""}
 		case "PATCH":
 			updateAppRequest := &api.UpdateAppRequest{}
@@ -358,7 +364,8 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}).WithError(err).Error("Failed to decode request to wails router")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		err = app.api.Transfer(ctx, transferRequest.FromAppId, transferRequest.ToAppId, transferRequest.AmountSat*1000)
+
+		err = app.api.Transfer(ctx, transferRequest.FromAppId, transferRequest.ToAppId, transferRequest.AmountSat*1000, transferRequest.Description)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}

@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/tests"
 )
 
@@ -208,4 +209,100 @@ func TestSetUpdate_EncryptionKeyToNoEncryptionKey(t *testing.T) {
 	// value should be updated
 	updatedValue, err := svc.Cfg.Get("key", "")
 	assert.Equal(t, "value2", updatedValue)
+}
+
+func TestJWTSecret_GeneratedOnUnlock(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	cfg, err := config.NewConfig(&config.AppConfig{}, svc.DB)
+	require.NoError(t, err)
+
+	err = cfg.ChangeUnlockPassword("", "123")
+	require.NoError(t, err)
+
+	err = cfg.Unlock("123")
+	require.NoError(t, err)
+
+	jwtSecret, err := cfg.GetJWTSecret()
+	require.NoError(t, err)
+	assert.NotEmpty(t, jwtSecret)
+
+	encryptedSecret, err := cfg.Get("JWTSecret", "")
+	require.NoError(t, err)
+	decryptedSecret, err := cfg.Get("JWTSecret", "123")
+	require.NoError(t, err)
+	assert.NotEqual(t, encryptedSecret, decryptedSecret)
+
+	// unlock again without doing anything, ensure the same JWT secret is returned
+	err = cfg.Unlock("123")
+	require.NoError(t, err)
+	jwtSecret2, err := cfg.GetJWTSecret()
+	require.NoError(t, err)
+	assert.Equal(t, jwtSecret, jwtSecret2)
+}
+
+func TestJWTSecret_ChangePassword(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	cfg, err := config.NewConfig(&config.AppConfig{}, svc.DB)
+	require.NoError(t, err)
+
+	err = cfg.ChangeUnlockPassword("", "123")
+	require.NoError(t, err)
+
+	err = cfg.Unlock("123")
+	require.NoError(t, err)
+
+	jwtSecret, err := cfg.GetJWTSecret()
+	require.NoError(t, err)
+	assert.NotEmpty(t, jwtSecret)
+
+	err = cfg.ChangeUnlockPassword("", "1234")
+	require.NoError(t, err)
+
+	newJwtSecret, err := cfg.GetJWTSecret()
+	require.ErrorContains(t, err, "unlock")
+
+	err = cfg.Unlock("1234")
+	require.NoError(t, err)
+
+	// a new JWT secret must be generated after password change
+	newJwtSecret, err = cfg.GetJWTSecret()
+	require.NoError(t, err)
+	assert.NotEmpty(t, newJwtSecret)
+	assert.NotEqual(t, newJwtSecret, jwtSecret)
+}
+
+func TestJWTSecret_ReplaceUnencryptedSecretOnUnlock(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	cfg, err := config.NewConfig(&config.AppConfig{}, svc.DB)
+	require.NoError(t, err)
+
+	err = cfg.ChangeUnlockPassword("", "123")
+	require.NoError(t, err)
+
+	// simulate a hub that had an unencrypted JWT secret
+	oldJwtSecret := "dummy secret"
+	err = svc.Cfg.SetUpdate("JWTSecret", oldJwtSecret, "")
+	require.NoError(t, err)
+
+	err = cfg.Unlock("123")
+	require.NoError(t, err)
+
+	jwtSecret, err := cfg.GetJWTSecret()
+	require.NoError(t, err)
+	assert.NotEmpty(t, jwtSecret)
+	assert.NotEqual(t, jwtSecret, oldJwtSecret)
+
+	// ensure it is saved to DB
+	jwtSecretFromCfg, err := cfg.Get("JWTSecret", "123")
+	require.NoError(t, err)
+	assert.Equal(t, jwtSecret, jwtSecretFromCfg)
 }

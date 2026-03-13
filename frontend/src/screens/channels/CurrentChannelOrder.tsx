@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
+import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { Button } from "src/components/ui/button";
@@ -370,7 +371,7 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
         </Card>
 
         <ExternalLinkButton to={topupLink} className="w-full">
-          Topup with your credit card or bank account
+          Top up with your credit card or bank account
         </ExternalLinkButton>
         <LinkButton
           to="/channels/incoming"
@@ -626,7 +627,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
   return (
     <div className="flex flex-col gap-5">
       <AppHeader
-        title="Buy Channel"
+        title="Review Channel Purchase"
         description={
           lspOrderResponse
             ? "Complete Payment to open a channel to your node"
@@ -659,9 +660,15 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                         Incoming Liquidity
                       </TableCell>
                       <TableCell className="text-right p-3">
-                        <FormattedBitcoinAmount
-                          amount={lspOrderResponse.incomingLiquidity * 1000}
-                        />
+                        <div className="flex flex-col items-end">
+                          <FormattedBitcoinAmount
+                            amount={lspOrderResponse.incomingLiquidity * 1000}
+                          />
+                          <FormattedFiatAmount
+                            amount={lspOrderResponse.incomingLiquidity}
+                            showApprox
+                          />
+                        </div>
                       </TableCell>
                     </TableRow>
                   )}
@@ -670,9 +677,15 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                       Amount to pay
                     </TableCell>
                     <TableCell className="font-semibold text-right p-3">
-                      <FormattedBitcoinAmount
-                        amount={lspOrderResponse.invoiceAmount * 1000}
-                      />
+                      <div className="flex flex-col items-end">
+                        <FormattedBitcoinAmount
+                          amount={lspOrderResponse.invoiceAmount * 1000}
+                        />
+                        <FormattedFiatAmount
+                          amount={lspOrderResponse.invoiceAmount}
+                          showApprox
+                        />
+                      </div>
                     </TableCell>
                   </TableRow>
                 </TableBody>
@@ -686,7 +699,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
             </div>
             <>
               {canPayInternally && (
-                <>
+                <div className="flex flex-col gap-2">
                   <LoadingButton
                     loading={isPaying}
                     className="mt-4"
@@ -725,13 +738,13 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                     <Button
                       type="button"
                       variant="link"
-                      className="text-muted-foreground text-xs"
+                      className="text-muted-foreground"
                       onClick={() => setPayExternally(true)}
                     >
                       Pay with another wallet
                     </Button>
                   )}
-                </>
+                </div>
               )}
 
               {(payExternally || !canPayInternally) && (
@@ -741,7 +754,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
               )}
 
               <div className="flex-1 flex flex-col justify-end items-center gap-4">
-                <Separator className="my-16" />
+                <Separator className="mt-4 mb-6" />
                 <p className="text-sm text-muted-foreground text-center">
                   Other options
                 </p>

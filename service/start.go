@@ -62,7 +62,7 @@ func (svc *service) startNostr(ctx context.Context) error {
 		}),
 	))
 
-	// initially try connect to relays (if hub has no apps, pool won't connect to apps by default)
+	// initially try connect to relays (if hub has no apps, pool won't connect to relays by default)
 	for _, relayUrl := range svc.cfg.GetRelayUrls() {
 		_, err := pool.EnsureRelay(relayUrl)
 		if err != nil {
@@ -89,7 +89,7 @@ func (svc *service) startNostr(ctx context.Context) error {
 	}()
 
 	svc.nip47Service.StartNotifier(ctx, pool)
-	svc.nip47Service.StartNip47InfoPublisher(ctx, pool, svc.lnClient)
+	svc.nip47Service.StartNip47InfoPublisher(ctx, pool, svc.GetLNClient())
 
 	// register a subscriber for events of "nwc_app_created" which handles creation of nostr subscription for new app
 	createAppEventListener := &createAppConsumer{svc: svc, pool: pool}
@@ -231,7 +231,12 @@ func (svc *service) watchSubscription(ctx context.Context, pool *nostr.SimplePoo
 	go func() {
 		// loop through incoming events
 		for event := range eventsChannel {
-			go svc.nip47Service.HandleEvent(ctx, pool, event.Event, svc.lnClient)
+			select {
+			case <-ctx.Done():
+				return
+			default:
+				go svc.nip47Service.HandleEvent(ctx, pool, event.Event, svc.GetLNClient())
+			}
 		}
 		logger.Logger.Debug("Relay subscription events channel ended")
 		eventsChannelClosed <- struct{}{}
@@ -271,14 +276,19 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return errors.New("invalid password")
 	}
 
-	ctx, cancelFn := context.WithCancel(svc.ctx)
+	err = svc.cfg.Unlock(encryptionKey)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to unlock config")
+		return err
+	}
 
 	err = svc.keys.Init(svc.cfg, encryptionKey)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to init nostr keys")
-		cancelFn()
 		return err
 	}
+
+	ctx, cancelFn := context.WithCancel(svc.ctx)
 
 	svc.startupState = "Launching Node"
 	err = svc.launchLNBackend(ctx, encryptionKey)
@@ -291,7 +301,7 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return err
 	}
 
-	svc.swapsService = swaps.NewSwapsService(ctx, svc.db, svc.cfg, svc.keys, svc.eventPublisher, svc.lnClient, svc.transactionsService, encryptionKey)
+	svc.swapsService = swaps.NewSwapsService(ctx, svc.db, svc.cfg, svc.keys, svc.eventPublisher, svc.GetLNClient(), svc.transactionsService, encryptionKey)
 
 	svc.publishAllAppInfoEvents()
 

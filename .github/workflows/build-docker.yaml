@@ -9,6 +9,9 @@ jobs:
       TAG: ${{ github.ref_name }}
     runs-on: ubuntu-22.04
     steps:
+      # see https://github.com/orgs/community/discussions/25678#discussioncomment-5242449
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
       - uses: actions/checkout@v4
         name: Check out code
       - name: Install Go

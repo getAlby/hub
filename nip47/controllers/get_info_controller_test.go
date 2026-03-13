@@ -85,8 +85,8 @@ func TestHandleGetInfoEvent_SubwalletNoPermission(t *testing.T) {
 	lightningAddress := "hello@getalby.com"
 
 	metadata := map[string]interface{}{
-		"app_store_app_id": constants.SUBWALLET_APPSTORE_APP_ID,
-		"lud16":            lightningAddress,
+		constants.METADATA_APPSTORE_APP_ID_KEY: constants.SUBWALLET_APPSTORE_APP_ID,
+		"lud16":                                lightningAddress,
 	}
 
 	svc.Cfg.SetUpdate("LNBackendType", config.LDKBackendType, "")
@@ -248,9 +248,9 @@ func TestHandleGetInfoEvent_SubwalletWithMetadata(t *testing.T) {
 	lightningAddress := "hello@getalby.com"
 
 	metadata := map[string]interface{}{
-		"app_store_app_id": constants.SUBWALLET_APPSTORE_APP_ID,
-		"lud16":            lightningAddress,
-		"a":                123,
+		constants.METADATA_APPSTORE_APP_ID_KEY: constants.SUBWALLET_APPSTORE_APP_ID,
+		"lud16":                                lightningAddress,
+		"a":                                    123,
 	}
 
 	svc.Cfg.SetUpdate("LNBackendType", config.LDKBackendType, "")

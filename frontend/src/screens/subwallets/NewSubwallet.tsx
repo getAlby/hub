@@ -8,7 +8,7 @@ import ResponsiveExternalLinkButton from "src/components/ResponsiveExternalLinkB
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
-import { SUBWALLET_APPSTORE_APP_ID } from "src/constants";
+import { MAX_FREE_SUBWALLETS, SUBWALLET_APPSTORE_APP_ID } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
 import { useInfo } from "src/hooks/useInfo";
@@ -19,11 +19,11 @@ import { handleRequestError } from "src/utils/handleRequestError";
 export function NewSubwallet() {
   const navigate = useNavigate();
   const [name, setName] = React.useState("");
-  const { data: appsData } = useApps(
+  const { data: subwalletAppsData } = useApps(
     undefined,
     undefined,
     {
-      appStoreAppId: SUBWALLET_APPSTORE_APP_ID,
+      subWallets: true,
     },
     "created_at"
   );
@@ -34,20 +34,21 @@ export function NewSubwallet() {
 
   if (
     !info ||
-    !appsData ||
+    !subwalletAppsData ||
     (info.albyAccountConnected && !albyMe && !albyMeError)
   ) {
     return <Loading />;
   }
-
-  const subwalletApps = appsData?.apps;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoading(true);
 
     try {
-      if (!albyMe?.subscription.plan_code && subwalletApps?.length >= 3) {
+      if (
+        !albyMe?.subscription.plan_code &&
+        subwalletAppsData.totalCount >= MAX_FREE_SUBWALLETS
+      ) {
         throw new Error(
           "Max limit reached. Please upgrade to Pro to create more sub-wallets."
         );
