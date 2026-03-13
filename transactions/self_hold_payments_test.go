@@ -25,7 +25,7 @@ func TestSelfHoldPaymentSettled(t *testing.T) {
 	paymentHash := tests.MockLNClientHoldTransaction.PaymentHash
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.MakeHoldInvoice(ctx, 1000, "Hold payment test", "", 0, paymentHash, nil, svc.LNClient, nil, nil)
+	transaction, err := transactionsService.MakeHoldInvoice(ctx, 1000, "Hold payment test", "", 0, paymentHash, nil, nil, svc.LNClient, nil, nil)
 	require.NoError(t, err)
 	assert.True(t, transaction.Hold)
 	// use the pubkey from the decoded tests.MockLNClientHoldTransaction invoice
@@ -63,7 +63,7 @@ func TestSelfHoldPaymentCanceled(t *testing.T) {
 	paymentHash := tests.MockLNClientHoldTransaction.PaymentHash
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
-	transaction, err := transactionsService.MakeHoldInvoice(ctx, 1000, "Hold payment test", "", 0, paymentHash, nil, svc.LNClient, nil, nil)
+	transaction, err := transactionsService.MakeHoldInvoice(ctx, 1000, "Hold payment test", "", 0, paymentHash, nil, nil, svc.LNClient, nil, nil)
 	require.NoError(t, err)
 	assert.True(t, transaction.Hold)
 	// use the pubkey from the decoded tests.MockLNClientHoldTransaction invoice

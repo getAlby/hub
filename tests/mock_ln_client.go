@@ -120,7 +120,8 @@ func (mln *MockLn) MakeInvoice(ctx context.Context, amount int64, description st
 	return MockLNClientTransaction, nil
 }
 
-func (mln *MockLn) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
+func (mln *MockLn) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (transaction *lnclient.Transaction, err error) {
+	_ = minCltvExpiryDelta
 	return MockLNClientHoldTransaction, nil
 }
 

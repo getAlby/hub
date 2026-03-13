@@ -725,7 +725,7 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, descriptio
 	return transaction, nil
 }
 
-func (svc *LNDService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
+func (svc *LNDService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (transaction *lnclient.Transaction, err error) {
 	var descriptionHashBytes []byte
 	var paymentHashBytes []byte
 
@@ -776,6 +776,9 @@ func (svc *LNDService) MakeHoldInvoice(ctx context.Context, amount int64, descri
 		Expiry:          expiry,
 		Private:         !hasPublicChannels,
 		Hash:            paymentHashBytes,
+	}
+	if minCltvExpiryDelta != nil {
+		addInvoiceRequest.CltvExpiry = *minCltvExpiryDelta
 	}
 
 	_, err = svc.client.AddHoldInvoice(ctx, addInvoiceRequest)

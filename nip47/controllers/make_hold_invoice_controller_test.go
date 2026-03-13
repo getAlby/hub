@@ -23,6 +23,7 @@ const nip47MakeHoldInvoiceJson = `
 		"description": "Hello, world",
 		"payment_hash": "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
 		"expiry": 3600,
+		"min_cltv_expiry_delta": 144,
 		"metadata": {
 		  "a": 1,
 			"b": "2",
