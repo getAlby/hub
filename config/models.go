@@ -16,7 +16,7 @@ const (
 )
 
 type AppConfig struct {
-	Relay                              string `envconfig:"RELAY" default:"wss://relay.getalby.com/v1"`
+	Relay                              string `envconfig:"RELAY" default:"wss://relay.getalby.com,wss://relay2.getalby.com"`
 	LNBackendType                      string `envconfig:"LN_BACKEND_TYPE"`
 	LNDAddress                         string `envconfig:"LND_ADDRESS"`
 	LNDCertFile                        string `envconfig:"LND_CERT_FILE"`
@@ -58,6 +58,7 @@ type AppConfig struct {
 	AutoUnlockPassword                 string `envconfig:"AUTO_UNLOCK_PASSWORD"`
 	LogDBQueries                       bool   `envconfig:"LOG_DB_QUERIES" default:"false"`
 	BoltzApi                           string `envconfig:"BOLTZ_API" default:"https://api.boltz.exchange"`
+	HideUpdateBanner                   bool   `envconfig:"HIDE_UPDATE_BANNER" default:"false"`
 }
 
 func (c *AppConfig) IsDefaultClientId() bool {
@@ -86,7 +87,7 @@ type Config interface {
 	ChangeUnlockPassword(currentUnlockPassword string, newUnlockPassword string) error
 	SetAutoUnlockPassword(unlockPassword string) error
 	SaveUnlockPasswordCheck(encryptionKey string) error
-	SetupCompleted() bool
+	SetupCompleted() (bool, error)
 	GetCurrency() string
 	SetCurrency(value string) error
 	GetBitcoinDisplayFormat() string

@@ -148,7 +148,7 @@ func insertMockData(t *testing.T, tx *gorm.DB) {
 
 	userCfg1 := &db.UserConfig{
 		Key:       "Relay",
-		Value:     "wss://relay.getalby.com/v1",
+		Value:     "wss://relay.getalby.com",
 		Encrypted: false,
 		CreatedAt: baseTime,
 		UpdatedAt: baseTime,

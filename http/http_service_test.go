@@ -116,7 +116,7 @@ func TestGetApps_NoToken(t *testing.T) {
 	rec := httptest.NewRecorder()
 	e.ServeHTTP(rec, req)
 
-	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assert.Equal(t, http.StatusUnauthorized, rec.Code)
 }
 
 func TestGetApps_ReadonlyPermission(t *testing.T) {
@@ -254,7 +254,7 @@ func TestCreateApp_NoToken(t *testing.T) {
 	rec := httptest.NewRecorder()
 	e.ServeHTTP(rec, req)
 
-	assert.Equal(t, http.StatusBadRequest, rec.Code)
+	assert.Equal(t, http.StatusUnauthorized, rec.Code)
 }
 
 func TestCreateApp_FullPermission(t *testing.T) {

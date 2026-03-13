@@ -7,7 +7,6 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -127,117 +126,6 @@ func (svc *PhoenixService) GetBalances(ctx context.Context, includeInactiveChann
 			NextMaxReceivableMPP: 0,
 		},
 	}, nil
-}
-
-func (svc *PhoenixService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []lnclient.Transaction, err error) {
-	incomingQuery := url.Values{}
-	if from != 0 {
-		incomingQuery.Add("from", strconv.FormatUint(from*1000, 10))
-	}
-	if until != 0 {
-		incomingQuery.Add("to", strconv.FormatUint(until*1000, 10))
-	}
-	if limit != 0 {
-		incomingQuery.Add("limit", strconv.FormatUint(limit, 10))
-	}
-	if offset != 0 {
-		incomingQuery.Add("offset", strconv.FormatUint(offset, 10))
-	}
-	incomingQuery.Add("all", strconv.FormatBool(unpaid))
-
-	incomingUrl := svc.Address + "/payments/incoming?" + incomingQuery.Encode()
-
-	logger.Logger.WithFields(logrus.Fields{
-		"url": incomingUrl,
-	}).Infof("Fetching incoming transactions: %s", incomingUrl)
-	incomingReq, err := http.NewRequestWithContext(ctx, http.MethodGet, incomingUrl, nil)
-	if err != nil {
-		return nil, err
-	}
-	incomingReq.Header.Add("Authorization", "Basic "+svc.Authorization)
-	client := &http.Client{Timeout: 5 * time.Second}
-
-	incomingResp, err := client.Do(incomingReq)
-	if err != nil {
-		return nil, err
-	}
-	defer incomingResp.Body.Close()
-
-	var incomingPayments []InvoiceResponse
-	if err := json.NewDecoder(incomingResp.Body).Decode(&incomingPayments); err != nil {
-		return nil, err
-	}
-	transactions = []lnclient.Transaction{}
-	for _, invoice := range incomingPayments {
-		transaction, err := phoenixInvoiceToTransaction(&invoice)
-		if err != nil {
-			return nil, err
-		}
-
-		transactions = append(transactions, *transaction)
-	}
-
-	// get outgoing payments
-	outgoingQuery := url.Values{}
-	if from != 0 {
-		outgoingQuery.Add("from", strconv.FormatUint(from*1000, 10))
-	}
-	if until != 0 {
-		outgoingQuery.Add("to", strconv.FormatUint(until*1000, 10))
-	}
-	if limit != 0 {
-		outgoingQuery.Add("limit", strconv.FormatUint(limit, 10))
-	}
-	if offset != 0 {
-		outgoingQuery.Add("offset", strconv.FormatUint(offset, 10))
-	}
-	outgoingQuery.Add("all", strconv.FormatBool(unpaid))
-
-	outgoingUrl := svc.Address + "/payments/outgoing?" + outgoingQuery.Encode()
-
-	logger.Logger.WithFields(logrus.Fields{
-		"url": outgoingUrl,
-	}).Infof("Fetching outgoing transactions: %s", outgoingUrl)
-	outgoingReq, err := http.NewRequestWithContext(ctx, http.MethodGet, outgoingUrl, nil)
-	if err != nil {
-		return nil, err
-	}
-	outgoingReq.Header.Add("Authorization", "Basic "+svc.Authorization)
-	outgoingResp, err := client.Do(outgoingReq)
-	if err != nil {
-		return nil, err
-	}
-	defer outgoingResp.Body.Close()
-
-	var outgoingPayments []OutgoingPaymentResponse
-	if err := json.NewDecoder(outgoingResp.Body).Decode(&outgoingPayments); err != nil {
-		return nil, err
-	}
-	for _, invoice := range outgoingPayments {
-		var settledAt *int64
-		if invoice.CompletedAt != 0 {
-			settledAtUnix := time.UnixMilli(invoice.CompletedAt).Unix()
-			settledAt = &settledAtUnix
-		}
-		transaction := lnclient.Transaction{
-			Type:        "outgoing",
-			Invoice:     invoice.Invoice,
-			Preimage:    invoice.Preimage,
-			PaymentHash: invoice.PaymentHash,
-			Amount:      invoice.Sent * 1000,
-			FeesPaid:    invoice.Fees * 1000,
-			CreatedAt:   time.UnixMilli(invoice.CreatedAt).Unix(),
-			SettledAt:   settledAt,
-		}
-		transactions = append(transactions, transaction)
-	}
-
-	// sort by created date descending
-	sort.SliceStable(transactions, func(i, j int) bool {
-		return transactions[i].CreatedAt > transactions[j].CreatedAt
-	})
-
-	return transactions, nil
 }
 
 func (svc *PhoenixService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {

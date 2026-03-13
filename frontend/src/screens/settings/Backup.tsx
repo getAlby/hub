@@ -63,7 +63,7 @@ export default function Backup() {
 
       setDecryptedMnemonic(result?.mnemonic ?? "");
       setIsDialogOpen(true);
-    } catch (error) {
+    } catch {
       toast.error("Incorrect password", {
         description: "Failed to decrypt recovery phrase.",
       });
