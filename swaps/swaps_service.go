@@ -233,9 +233,6 @@ func (svc *swapsService) EnableAutoSwapOut(encryptionKey string) error {
 						continue
 					}
 					usedXpubDerivation = true
-				} else if swapDestination != "" {
-					// Regular address (not XPUB)
-					actualDestination = swapDestination
 				}
 
 				logger.Logger.WithFields(logrus.Fields{
