@@ -68,6 +68,11 @@ func TestHandleMakeHoldInvoiceEvent(t *testing.T) {
 	NewTestNip47Controller(svc).
 		HandleMakeHoldInvoiceEvent(ctx, nip47Request, dbRequestEvent.ID, *dbRequestEvent.AppId, publishResponse)
 
+	mockLn, ok := svc.LNClient.(*tests.MockLn)
+	require.True(t, ok)
+	require.NotNil(t, mockLn.LastMinCltvExpiryDelta)
+	assert.EqualValues(t, 144, *mockLn.LastMinCltvExpiryDelta)
+
 	expectedMetadata := map[string]interface{}{
 		"a": float64(1),
 		"b": "2",
