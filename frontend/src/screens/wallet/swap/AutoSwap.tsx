@@ -83,7 +83,21 @@ function AutoSwapOutForm() {
   const isXpub = externalType === "xpub" && !isInternalSwap;
 
   const submitAutoSwap = async (password?: string) => {
-    if (swapAmount > balanceThreshold) {
+    const swapAmountNum = Number(swapAmount);
+    const balanceThresholdNum = Number(balanceThreshold);
+
+    if (
+      !Number.isFinite(swapAmountNum) ||
+      !Number.isFinite(balanceThresholdNum)
+    ) {
+      toast.error("Invalid amount", {
+        description:
+          "Please enter valid numeric values for swap amount and balance threshold",
+      });
+      return;
+    }
+
+    if (!(swapAmountNum <= balanceThresholdNum)) {
       toast.info(
         "Balance threshold must be greater than or equal to swap amount"
       );
@@ -103,8 +117,8 @@ function AutoSwapOutForm() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          swapAmount: parseInt(swapAmount),
-          balanceThreshold: parseInt(balanceThreshold),
+          swapAmount: swapAmountNum,
+          balanceThreshold: balanceThresholdNum,
           destination,
           unlockPassword: isXpub ? password : undefined,
         }),
