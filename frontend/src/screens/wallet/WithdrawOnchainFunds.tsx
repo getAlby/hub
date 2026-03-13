@@ -32,7 +32,6 @@ import { Label } from "src/components/ui/label";
 import { Separator } from "src/components/ui/separator";
 import { ONCHAIN_DUST_SATS } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
-import { useBitcoinMaxiMode } from "src/hooks/useBitcoinMaxiMode";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 
@@ -41,7 +40,6 @@ import { RedeemOnchainFundsResponse } from "src/types";
 import { request } from "src/utils/request";
 
 export default function WithdrawOnchainFunds() {
-  const { bitcoinMaxiMode } = useBitcoinMaxiMode();
   const { data: info } = useInfo();
   const { data: balances } = useBalances();
   const { data: recommendedFees, error: mempoolError } = useMempoolApi<{
@@ -381,19 +379,11 @@ export default function WithdrawOnchainFunds() {
               </AlertDialogContent>
             </AlertDialog>
 
-            {!bitcoinMaxiMode && (
-              <>
-                <Separator className="my-4" />
-                <FixedFloatButton
-                  from="BTC"
-                  className="w-full"
-                  variant="secondary"
-                >
-                  <ExternalLinkIcon className="size-4" />
-                  Withdraw to other Cryptocurrency
-                </FixedFloatButton>
-              </>
-            )}
+            <Separator className="my-4" />
+            <FixedFloatButton from="BTC" className="w-full" variant="secondary">
+              <ExternalLinkIcon className="size-4" />
+              Withdraw to other Cryptocurrency
+            </FixedFloatButton>
           </div>
         </form>
       </div>

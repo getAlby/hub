@@ -34,7 +34,6 @@ import {
   TooltipTrigger,
 } from "src/components/ui/tooltip";
 import { useBalances } from "src/hooks/useBalances";
-import { useBitcoinMaxiMode } from "src/hooks/useBitcoinMaxiMode";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { useSwapInfo } from "src/hooks/useSwaps";
@@ -98,7 +97,6 @@ function SwapInForm() {
   const { data: balances } = useBalances();
   const { data: swapInfo } = useSwapInfo("in");
   const { data: channels } = useChannels();
-  const { bitcoinMaxiMode } = useBitcoinMaxiMode();
   const navigate = useNavigate();
 
   const [swapAmount, setSwapAmount] = useState("");
@@ -294,21 +292,16 @@ function SwapInForm() {
                   External on-chain wallet
                 </Label>
               </div>
-              {!bitcoinMaxiMode && (
-                <div className="flex items-start space-x-2">
-                  <RadioGroupItem
-                    value="crypto"
-                    id="crypto"
-                    className="shrink-0"
-                  />
-                  <Label
-                    htmlFor="crypto"
-                    className="font-medium cursor-pointer"
-                  >
-                    Other Cryptocurrency
-                  </Label>
-                </div>
-              )}
+              <div className="flex items-start space-x-2">
+                <RadioGroupItem
+                  value="crypto"
+                  id="crypto"
+                  className="shrink-0"
+                />
+                <Label htmlFor="crypto" className="font-medium cursor-pointer">
+                  Other Cryptocurrency
+                </Label>
+              </div>
             </RadioGroup>
           </div>
         </>
@@ -354,7 +347,6 @@ function SwapOutForm() {
   const { data: swapInfo } = useSwapInfo("out");
   const navigate = useNavigate();
   const { data: balances } = useBalances();
-  const { bitcoinMaxiMode } = useBitcoinMaxiMode();
 
   const [isInternalSwap, setInternalSwap] = useState(true);
   const [swapAmount, setSwapAmount] = useState("");
@@ -516,15 +508,11 @@ function SwapOutForm() {
           <span className="font-medium text-foreground">boltz.exchange</span>
         </p>
       </div>
-      {!bitcoinMaxiMode && (
-        <>
-          <Separator className="my-2" />
-          <FixedFloatButton from="BTCLN" className="w-full" variant="secondary">
-            <ExternalLinkIcon className="size-4" />
-            Swap out to other Cryptocurrency
-          </FixedFloatButton>
-        </>
-      )}
+      <Separator className="my-2" />
+      <FixedFloatButton from="BTCLN" className="w-full" variant="secondary">
+        <ExternalLinkIcon className="size-4" />
+        Swap out to other Cryptocurrency
+      </FixedFloatButton>
     </form>
   );
 }
