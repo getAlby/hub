@@ -1180,21 +1180,25 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 						return
 					}
 				}()
-			case boltz.TransactionMempool:
+			case boltz.TransactionMempool, boltz.TransactionConfirmed:
 				logger.Logger.WithFields(logrus.Fields{
 					"swapId":     swap.SwapId,
 					"lockupTxId": update.Transaction.Id,
-				}).Info("Lockup transaction found in mempool")
-				err = svc.db.Model(swap).Updates(&db.Swap{
-					LockupTxId: update.Transaction.Id,
-				}).Error
-				if err != nil {
-					logger.Logger.WithFields(logrus.Fields{
-						"swapId":     swap.SwapId,
-						"lockupTxId": update.Transaction.Id,
-					}).WithError(err).Error("Failed to save lockup txid to swap")
-					return
+				}).Info("Lockup transaction detected")
+
+				if swap.LockupTxId == "" {
+					err = svc.db.Model(swap).Updates(&db.Swap{
+						LockupTxId: update.Transaction.Id,
+					}).Error
+					if err != nil {
+						logger.Logger.WithFields(logrus.Fields{
+							"swapId":     swap.SwapId,
+							"lockupTxId": update.Transaction.Id,
+						}).WithError(err).Error("Failed to save lockup txid to swap")
+						return
+					}
 				}
+
 				if swap.ClaimTxId != "" {
 					logger.Logger.WithFields(logrus.Fields{
 						"swapId":    swap.SwapId,
@@ -1318,11 +1322,6 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 					}).WithError(err).Error("Failed to save claim info to swap")
 					return
 				}
-			case boltz.TransactionConfirmed:
-				logger.Logger.WithFields(logrus.Fields{
-					"swapId":     swap.SwapId,
-					"lockupTxId": update.Transaction.Id,
-				}).Info("Lockup transaction confirmed in mempool")
 			case boltz.TransactionFailed, boltz.SwapExpired:
 				logger.Logger.WithFields(logrus.Fields{
 					"swapId": swap.SwapId,
