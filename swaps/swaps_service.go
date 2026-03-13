@@ -1167,6 +1167,10 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 						logger.Logger.WithField("swapId", swap.SwapId).Info("Already initiated swap invoice payment")
 						return
 					}
+					if !errors.Is(err, transactions.NewNotFoundError()) {
+						logger.Logger.WithError(err).WithField("swapId", swap.SwapId).Warn("Failed to lookup transaction")
+						return
+					}
 					metadata := map[string]interface{}{
 						"swap_id": swap.SwapId,
 					}
