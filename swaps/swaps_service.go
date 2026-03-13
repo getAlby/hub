@@ -37,19 +37,19 @@ import (
 type Swap = db.Swap
 
 type swapsService struct {
-	autoSwapOutCancelFn context.CancelFunc
-	db                  *gorm.DB
-	ctx                 context.Context
-	lnClient            lnclient.LNClient
-	cfg                 config.Config
-	keys                keys.Keys
-	eventPublisher      events.EventPublisher
-	transactionsService transactions.TransactionsService
-	boltzApi            *boltz.Api
-	boltzWs             *boltz.Websocket
-	swapListeners       map[string]chan boltz.SwapUpdate
-	swapListenersLock   sync.Mutex
-	autoSwapOutDecryptedXpub       string
+	autoSwapOutCancelFn      context.CancelFunc
+	db                       *gorm.DB
+	ctx                      context.Context
+	lnClient                 lnclient.LNClient
+	cfg                      config.Config
+	keys                     keys.Keys
+	eventPublisher           events.EventPublisher
+	transactionsService      transactions.TransactionsService
+	boltzApi                 *boltz.Api
+	boltzWs                  *boltz.Websocket
+	swapListeners            map[string]chan boltz.SwapUpdate
+	swapListenersLock        sync.Mutex
+	autoSwapOutDecryptedXpub string
 }
 
 type SwapsService interface {
@@ -1569,10 +1569,15 @@ func (svc *swapsService) getNextUnusedAddressFromXpub() (string, error) {
 }
 
 func (svc *swapsService) ValidateXpub(xpub string) error {
-	_, err := hdkeychain.NewKeyFromString(xpub)
+	extendedKey, err := hdkeychain.NewKeyFromString(xpub)
 	if err != nil {
 		return fmt.Errorf("invalid xpub: %w", err)
 	}
+
+	if extendedKey.IsPrivate() {
+		return fmt.Errorf("private extended key not allowed")
+	}
+
 	return nil
 }
 
