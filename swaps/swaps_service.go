@@ -856,6 +856,11 @@ func (svc *swapsService) subscribePendingSwaps() {
 }
 
 func (svc *swapsService) startSwapInListener(swap *db.Swap) {
+	updateCh := make(chan boltz.SwapUpdate, 1)
+	svc.swapListenersLock.Lock()
+	svc.swapListeners[swap.SwapId] = updateCh
+	svc.swapListenersLock.Unlock()
+
 	for {
 		err := svc.boltzWs.Subscribe([]string{swap.SwapId})
 		if err != nil {
@@ -867,11 +872,6 @@ func (svc *swapsService) startSwapInListener(swap *db.Swap) {
 	}
 
 	logger.Logger.WithField("swapId", swap.SwapId).Info("Subscribed to boltz websocket")
-
-	updateCh := make(chan boltz.SwapUpdate)
-	svc.swapListenersLock.Lock()
-	svc.swapListeners[swap.SwapId] = updateCh
-	svc.swapListenersLock.Unlock()
 
 	var err error
 	defer func() {
@@ -1024,6 +1024,11 @@ func (svc *swapsService) startSwapInListener(swap *db.Swap) {
 }
 
 func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
+	updateCh := make(chan boltz.SwapUpdate, 1)
+	svc.swapListenersLock.Lock()
+	svc.swapListeners[swap.SwapId] = updateCh
+	svc.swapListenersLock.Unlock()
+
 	for {
 		err := svc.boltzWs.Subscribe([]string{swap.SwapId})
 		if err != nil {
@@ -1035,11 +1040,6 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 	}
 
 	logger.Logger.WithField("swapId", swap.SwapId).Info("Subscribed to boltz websocket")
-
-	updateCh := make(chan boltz.SwapUpdate)
-	svc.swapListenersLock.Lock()
-	svc.swapListeners[swap.SwapId] = updateCh
-	svc.swapListenersLock.Unlock()
 
 	var err error
 	defer func() {
@@ -1163,7 +1163,7 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 				logger.Logger.WithField("swapId", swap.SwapId).Info("Paying the swap invoice")
 				go func() {
 					_, err := svc.transactionsService.LookupTransaction(svc.ctx, swap.PaymentHash, nil, svc.lnClient, nil)
-					if err == transactions.NewNotFoundError() {
+					if err == nil {
 						logger.Logger.WithField("swapId", swap.SwapId).Info("Already initiated swap invoice payment")
 						return
 					}
