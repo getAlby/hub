@@ -13,6 +13,15 @@ import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import PasswordInput from "src/components/password/PasswordInput";
 import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "src/components/ui/alert-dialog";
 import { Button } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
@@ -67,11 +76,13 @@ function AutoSwapOutForm() {
     "address"
   );
   const [unlockPassword, setUnlockPassword] = useState("");
+  const [showUnlockPasswordDialog, setShowUnlockPasswordDialog] =
+    useState(false);
   const [loading, setLoading] = useState(false);
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const isXpub = externalType === "xpub" && !isInternalSwap;
 
+  const submitAutoSwap = async (password?: string) => {
     if (swapAmount > balanceThreshold) {
       toast.info(
         "Balance threshold must be greater than or equal to swap amount"
@@ -79,11 +90,8 @@ function AutoSwapOutForm() {
       return;
     }
 
-    const isXpub = externalType === "xpub" && !isInternalSwap;
-    if (isXpub && !unlockPassword) {
-      toast.error("Password required", {
-        description: "Please enter your unlock password to encrypt the XPUB",
-      });
+    if (isXpub && !password) {
+      setShowUnlockPasswordDialog(true);
       return;
     }
 
@@ -98,10 +106,12 @@ function AutoSwapOutForm() {
           swapAmount: parseInt(swapAmount),
           balanceThreshold: parseInt(balanceThreshold),
           destination,
-          unlockPassword: isXpub ? unlockPassword : undefined,
+          unlockPassword: isXpub ? password : undefined,
         }),
       });
       toast("Auto swap enabled successfully");
+      setUnlockPassword("");
+      setShowUnlockPasswordDialog(false);
       await mutate();
     } catch (error) {
       toast("Failed to save auto swap settings", {
@@ -110,6 +120,12 @@ function AutoSwapOutForm() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    await submitAutoSwap(unlockPassword);
   };
 
   const paste = async () => {
@@ -122,208 +138,249 @@ function AutoSwapOutForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-6">
-      <div>
-        <h2 className="font-medium text-foreground flex items-center gap-1">
-          Lightning <MoveRightIcon /> On-chain
-        </h2>
-        <p className="mt-1 text-muted-foreground">
-          Setup automatic swap of lightning funds into your on-chain balance
-          every time a set threshold is reached.
-        </p>
-        <p className="mt-2 text-muted-foreground flex gap-2 items-center text-sm">
-          <ClockIcon className="w-4 h-4" />
-          Swaps will be made once per hour
-        </p>
-      </div>
+    <>
+      <form onSubmit={onSubmit} className="flex flex-col gap-6">
+        <div>
+          <h2 className="font-medium text-foreground flex items-center gap-1">
+            Lightning <MoveRightIcon /> On-chain
+          </h2>
+          <p className="mt-1 text-muted-foreground">
+            Setup automatic swap of lightning funds into your on-chain balance
+            every time a set threshold is reached.
+          </p>
+          <p className="mt-2 text-muted-foreground flex gap-2 items-center text-sm">
+            <ClockIcon className="w-4 h-4" />
+            Swaps will be made once per hour
+          </p>
+        </div>
 
-      <div className="grid gap-1.5">
-        <Label>Spending balance threshold</Label>
-        <Input
-          type="number"
-          placeholder="Amount in satoshis"
-          value={balanceThreshold}
-          min={swapAmount}
-          onChange={(e) => setBalanceThreshold(e.target.value)}
-          required
-        />
-        <p className="text-xs text-muted-foreground">
-          Swap out as soon as this amount is reached
-        </p>
-      </div>
+        <div className="grid gap-1.5">
+          <Label>Spending balance threshold</Label>
+          <Input
+            type="number"
+            placeholder="Amount in satoshis"
+            value={balanceThreshold}
+            min={swapAmount}
+            onChange={(e) => setBalanceThreshold(e.target.value)}
+            required
+          />
+          <p className="text-xs text-muted-foreground">
+            Swap out as soon as this amount is reached
+          </p>
+        </div>
 
-      <div className="grid gap-1.5">
-        <Label>Swap amount</Label>
-        <Input
-          type="number"
-          placeholder="Amount in satoshis"
-          value={swapAmount}
-          min={swapInfo.minAmount}
-          max={swapInfo.maxAmount}
-          onChange={(e) => setSwapAmount(e.target.value)}
-          required
-        />
-        <p className="text-xs text-muted-foreground">
-          Minimum <FormattedBitcoinAmount amount={swapInfo.minAmount * 1000} />
-        </p>
-      </div>
-      <div className="flex flex-col gap-4">
-        <Label>Swap to</Label>
-        <RadioGroup
-          defaultValue="normal"
-          value={isInternalSwap ? "internal" : "external"}
-          onValueChange={() => {
-            setDestination("");
-            setInternalSwap(!isInternalSwap);
-          }}
-          className="flex gap-4 flex-row"
-        >
-          <div className="flex items-start space-x-2 mb-2">
-            <RadioGroupItem
-              value="internal"
-              id="internal"
-              className="shrink-0"
-            />
-            <Label
-              htmlFor="internal"
-              className="text-primary font-medium cursor-pointer"
-            >
-              On-chain balance
-            </Label>
-          </div>
-          <div className="flex items-start space-x-2">
-            <RadioGroupItem
-              value="external"
-              id="external"
-              className="shrink-0"
-            />
-            <Label
-              htmlFor="external"
-              className="text-primary font-medium cursor-pointer"
-            >
-              External on-chain wallet
-            </Label>
-          </div>
-        </RadioGroup>
-      </div>
-      {!isInternalSwap && (
-        <div className="grid gap-4">
-          <div className="flex flex-col gap-3">
-            <Label>Destination Type</Label>
-            <RadioGroup
-              value={externalType}
-              onValueChange={(value) => {
-                setExternalType(value as "address" | "xpub");
-                setDestination("");
-              }}
-              className="flex gap-4 flex-row"
-            >
-              <div className="flex items-start space-x-2">
-                <RadioGroupItem
-                  value="address"
-                  id="address"
-                  className="shrink-0"
-                />
-                <div className="grid gap-1.5">
-                  <Label
-                    htmlFor="address"
-                    className="text-sm font-medium cursor-pointer"
-                  >
-                    Single Address
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    Send to the same address each time
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-2">
-                <RadioGroupItem value="xpub" id="xpub" className="shrink-0" />
-                <div className="grid gap-1.5">
-                  <Label
-                    htmlFor="xpub"
-                    className="text-sm font-medium cursor-pointer"
-                  >
-                    XPUB
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    Generate new addresses from extended public key
-                  </p>
-                </div>
-              </div>
-            </RadioGroup>
-          </div>
-          <div className="grid gap-1.5">
-            <Label>
-              {externalType === "address"
-                ? "Receiving on-chain address"
-                : "Extended Public Key (XPUB)"}
-            </Label>
-            <div className="flex gap-2">
-              <Input
-                placeholder={externalType === "address" ? "bc1..." : "xpub..."}
-                value={destination}
-                onChange={(e) => setDestination(e.target.value)}
-                required
+        <div className="grid gap-1.5">
+          <Label>Swap amount</Label>
+          <Input
+            type="number"
+            placeholder="Amount in satoshis"
+            value={swapAmount}
+            min={swapInfo.minAmount}
+            max={swapInfo.maxAmount}
+            onChange={(e) => setSwapAmount(e.target.value)}
+            required
+          />
+          <p className="text-xs text-muted-foreground">
+            Minimum{" "}
+            <FormattedBitcoinAmount amount={swapInfo.minAmount * 1000} />
+          </p>
+        </div>
+        <div className="flex flex-col gap-4">
+          <Label>Swap to</Label>
+          <RadioGroup
+            defaultValue="normal"
+            value={isInternalSwap ? "internal" : "external"}
+            onValueChange={() => {
+              setDestination("");
+              setInternalSwap(!isInternalSwap);
+            }}
+            className="flex gap-4 flex-row"
+          >
+            <div className="flex items-start space-x-2 mb-2">
+              <RadioGroupItem
+                value="internal"
+                id="internal"
+                className="shrink-0"
               />
-              <Button
-                type="button"
-                variant="outline"
-                className="px-2"
-                onClick={paste}
+              <Label
+                htmlFor="internal"
+                className="text-primary font-medium cursor-pointer"
               >
-                <ClipboardPasteIcon className="w-4 h-4" />
-              </Button>
+                On-chain balance
+              </Label>
             </div>
-            <p className="text-xs text-muted-foreground">
-              {externalType === "address"
-                ? "Enter a Bitcoin address to receive swapped funds"
-                : "Enter an XPUB to automatically generate new addresses for each swap"}
-            </p>
-          </div>
-          {externalType === "xpub" && (
-            <div className="grid gap-1.5">
-              <Label>Unlock Password</Label>
-              <PasswordInput
-                id="unlockPassword"
-                value={unlockPassword}
-                onChange={setUnlockPassword}
-                placeholder="Enter your unlock password"
-                required
+            <div className="flex items-start space-x-2">
+              <RadioGroupItem
+                value="external"
+                id="external"
+                className="shrink-0"
               />
+              <Label
+                htmlFor="external"
+                className="text-primary font-medium cursor-pointer"
+              >
+                External on-chain wallet
+              </Label>
+            </div>
+          </RadioGroup>
+        </div>
+        {!isInternalSwap && (
+          <div className="grid gap-4">
+            <div className="flex flex-col gap-3">
+              <Label>Destination Type</Label>
+              <RadioGroup
+                value={externalType}
+                onValueChange={(value) => {
+                  setExternalType(value as "address" | "xpub");
+                  setDestination("");
+                }}
+                className="flex gap-4 flex-row"
+              >
+                <div className="flex items-start space-x-2">
+                  <RadioGroupItem
+                    value="address"
+                    id="address"
+                    className="shrink-0"
+                  />
+                  <div className="grid gap-1.5">
+                    <Label
+                      htmlFor="address"
+                      className="text-sm font-medium cursor-pointer"
+                    >
+                      Single Address
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Send to the same address each time
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <RadioGroupItem value="xpub" id="xpub" className="shrink-0" />
+                  <div className="grid gap-1.5">
+                    <Label
+                      htmlFor="xpub"
+                      className="text-sm font-medium cursor-pointer"
+                    >
+                      XPUB
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Generate new addresses from extended public key
+                    </p>
+                  </div>
+                </div>
+              </RadioGroup>
+            </div>
+            <div className="grid gap-1.5">
+              <Label>
+                {externalType === "address"
+                  ? "Receiving on-chain address"
+                  : "Extended Public Key (XPUB)"}
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder={
+                    externalType === "address" ? "bc1..." : "xpub..."
+                  }
+                  value={destination}
+                  onChange={(e) => setDestination(e.target.value)}
+                  required
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="px-2"
+                  onClick={paste}
+                >
+                  <ClipboardPasteIcon className="w-4 h-4" />
+                </Button>
+              </div>
               <p className="text-xs text-muted-foreground">
-                Your password is required to encrypt the XPUB for secure storage
+                {externalType === "address"
+                  ? "Enter a Bitcoin address to receive swapped funds"
+                  : "Enter an XPUB to automatically generate new addresses for each swap"}
               </p>
             </div>
+            {externalType === "xpub" && (
+              <p className="text-xs text-muted-foreground">
+                You will be asked to enter your unlock password when enabling
+                auto swap.
+              </p>
+            )}
+          </div>
+        )}
+
+        <div className="flex items-center justify-between border-t pt-4">
+          <Label>Fee</Label>
+          {swapInfo ? (
+            <p className="text-muted-foreground text-sm">
+              {swapInfo.albyServiceFee + swapInfo.boltzServiceFee}% + on-chain
+              fees
+            </p>
+          ) : (
+            <Loading />
           )}
         </div>
-      )}
-
-      <div className="flex items-center justify-between border-t pt-4">
-        <Label>Fee</Label>
-        {swapInfo ? (
-          <p className="text-muted-foreground text-sm">
-            {swapInfo.albyServiceFee + swapInfo.boltzServiceFee}% + on-chain
-            fees
+        <div className="grid gap-1">
+          <LoadingButton className="w-full" loading={loading}>
+            Begin Auto Swap
+          </LoadingButton>
+          <p className="text-xs text-muted-foreground text-right">
+            powered by{" "}
+            <ExternalLink
+              to="https://boltz.exchange"
+              className="font-medium text-foreground"
+            >
+              boltz.exchange
+            </ExternalLink>
           </p>
-        ) : (
-          <Loading />
-        )}
-      </div>
-      <div className="grid gap-1">
-        <LoadingButton className="w-full" loading={loading}>
-          Begin Auto Swap
-        </LoadingButton>
-        <p className="text-xs text-muted-foreground text-right">
-          powered by{" "}
-          <ExternalLink
-            to="https://boltz.exchange"
-            className="font-medium text-foreground"
+        </div>
+      </form>
+      <AlertDialog
+        open={showUnlockPasswordDialog}
+        onOpenChange={(open) => {
+          setShowUnlockPasswordDialog(open);
+          if (!open) {
+            setUnlockPassword("");
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <form
+            onSubmit={(e: React.FormEvent) => {
+              e.preventDefault();
+              void submitAutoSwap(unlockPassword);
+            }}
           >
-            boltz.exchange
-          </ExternalLink>
-        </p>
-      </div>
-    </form>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Auto Swap Setup</AlertDialogTitle>
+              <AlertDialogDescription>
+                <div className="flex flex-col gap-4">
+                  <p>
+                    Please enter your unlock password to encrypt and securely
+                    store the XPUB.
+                  </p>
+                  <div className="grid gap-1.5">
+                    <Label htmlFor="unlockPassword">Unlock Password</Label>
+                    <PasswordInput
+                      id="unlockPassword"
+                      onChange={setUnlockPassword}
+                      autoFocus
+                      value={unlockPassword}
+                    />
+                  </div>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter className="mt-3">
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <Button type="submit" disabled={!unlockPassword || loading}>
+                Confirm
+              </Button>
+            </AlertDialogFooter>
+          </form>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
