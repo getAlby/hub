@@ -207,7 +207,7 @@ func TestWrappedInvoice(t *testing.T) {
 
 	// Bob creates a wrapped invoice with the same payment hash but higher amount (1100 sats)
 	// Bob acts as an intermediary, adding a fee of 100 sats
-	bobWrappedInvoice, err := transactionsService.MakeHoldInvoice(ctx, 1100, "Bob wrapped invoice", "", 0, charlieInvoice.PaymentHash, nil, svc.LNClient, &bobApp.ID, nil)
+	bobWrappedInvoice, err := transactionsService.MakeHoldInvoice(ctx, 1100, "Bob wrapped invoice", "", 0, charlieInvoice.PaymentHash, nil, nil, svc.LNClient, &bobApp.ID, nil)
 	require.NoError(t, err)
 	require.True(t, bobWrappedInvoice.Hold)
 	require.Equal(t, mockBobHoldInvoice.Invoice, bobWrappedInvoice.PaymentRequest)
