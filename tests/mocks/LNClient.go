@@ -1428,7 +1428,7 @@ func (_c *MockLNClient_MakeHoldInvoice_Call) Run(run func(ctx context.Context, a
 			arg3,
 			arg4,
 			arg5,
-      minCltvExpiryDelta
+			minCltvExpiryDelta,
 		)
 	})
 	return _c
