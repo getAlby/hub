@@ -10,6 +10,10 @@ NON_INTERACTIVE=false
 while [ $# -gt 0 ]; do
   case "$1" in
     -d|--install-dir)
+      if [ -z "$2" ] || [ "${2#-}" != "$2" ]; then
+        echo "Error: --install-dir requires a non-empty directory path"
+        exit 1
+      fi
       INSTALL_DIR="$2"
       shift 2
       ;;
