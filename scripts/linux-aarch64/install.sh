@@ -2,16 +2,74 @@
 
 ALBYHUB_URL="https://getalby.com/install/hub/server-linux-aarch64.tar.bz2"
 VERIFIER_URL="https://getalby.com/install/hub/verify.sh"
+
+# Default values
+INSTALL_DIR=""
+SYSTEMD=""
+NON_INTERACTIVE=false
+
+# Parse command-line arguments
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -d|--install-dir)
+      INSTALL_DIR="$2"
+      shift 2
+      ;;
+    -s|--systemd)
+      SYSTEMD="yes"
+      shift
+      ;;
+    --no-systemd)
+      SYSTEMD="no"
+      shift
+      ;;
+    -y|--yes)
+      NON_INTERACTIVE=true
+      shift
+      ;;
+    -h|--help)
+      echo "Usage: $0 [OPTIONS]"
+      echo ""
+      echo "Options:"
+      echo "  -d, --install-dir DIR    Set installation directory (default: \$HOME/albyhub)"
+      echo "  -s, --systemd            Setup systemd service (auto-yes)"
+      echo "      --no-systemd         Skip systemd service setup (auto-no)"
+      echo "  -y, --yes                Non-interactive mode (auto-confirm all prompts)"
+      echo "  -h, --help               Show this help message"
+      echo ""
+      echo "Examples:"
+      echo "  $0                                    # Interactive mode"
+      echo "  $0 -y -d /opt/albyhub -s              # Non-interactive with systemd"
+      echo "  $0 --yes --install-dir /app/albyhub   # Non-interactive, no systemd"
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1"
+      echo "Use -h or --help for usage information"
+      exit 1
+      ;;
+  esac
+done
+
 echo ""
 echo ""
 echo "⚡️ Welcome to Alby Hub"
 echo "-----------------------------------------"
 echo "Installing Alby Hub"
 echo ""
-printf "Absolute install directory path (default: %s/albyhub): " "$HOME"
-read USER_INSTALL_DIR
 
-INSTALL_DIR="${USER_INSTALL_DIR:-$HOME/albyhub}"
+# Determine install directory
+if [ -z "$INSTALL_DIR" ]; then
+  if [ "$NON_INTERACTIVE" = true ]; then
+    INSTALL_DIR="$HOME/albyhub"
+  else
+    printf "Absolute install directory path (default: %s/albyhub): " "$HOME"
+    read USER_INSTALL_DIR
+    INSTALL_DIR="${USER_INSTALL_DIR:-$HOME/albyhub}"
+  fi
+fi
+
+echo "Installing to: $INSTALL_DIR"
 
 # create installation directory
 mkdir -p "$INSTALL_DIR"
@@ -65,18 +123,32 @@ echo "✅ Installation done."
 echo ""
 
 # optionally create a systemd service to start alby hub
-printf "Do you want to setup a systemd service (requires sudo permission)? (y/n): "
-read REPLY
-case "$REPLY" in
-  [Yy]*) ;;
-  *)
-    echo ""
-    echo ""
-    echo "Run $INSTALL_DIR/start.sh to start Alby Hub"
-    echo "✅ DONE"
-    exit
-    ;;
-esac
+SETUP_SYSTEMD=""
+if [ -n "$SYSTEMD" ]; then
+  if [ "$SYSTEMD" = "yes" ]; then
+    SETUP_SYSTEMD="y"
+  else
+    SETUP_SYSTEMD="n"
+  fi
+elif [ "$NON_INTERACTIVE" = true ]; then
+  # Default to no systemd in non-interactive mode unless explicitly requested
+  SETUP_SYSTEMD="n"
+else
+  printf "Do you want to setup a systemd service (requires sudo permission)? (y/n): "
+  read REPLY
+  case "$REPLY" in
+    [Yy]*) SETUP_SYSTEMD="y" ;;
+    *) SETUP_SYSTEMD="n" ;;
+  esac
+fi
+
+if [ "$SETUP_SYSTEMD" = "n" ]; then
+  echo ""
+  echo ""
+  echo "Run $INSTALL_DIR/start.sh to start Alby Hub"
+  echo "✅ DONE"
+  exit 0
+fi
 
 sudo tee /etc/systemd/system/albyhub.service > /dev/null << EOF
 [Unit]
