@@ -24,7 +24,6 @@ while [ $# -gt 0 ]; do
       INSTALL_DIR="$2"
       shift 2
       ;;
-      ;;
     -s|--systemd)
       SYSTEMD="yes"
       shift
