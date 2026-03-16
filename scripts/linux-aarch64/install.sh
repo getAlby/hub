@@ -17,6 +17,10 @@ while [ $# -gt 0 ]; do
         echo "Error: --install-dir requires a non-empty directory path"
         exit 1
       fi
+      if printf '%s' "$2" | grep -q '[[:space:]]'; then
+        echo "Error: --install-dir must not contain whitespace"
+        exit 1
+      fi
       INSTALL_DIR="$2"
       shift 2
       ;;
