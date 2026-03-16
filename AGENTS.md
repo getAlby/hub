@@ -16,7 +16,7 @@ Alby Hub is a self-custodial **Nostr Wallet Connect (NWC)** service that bridges
 
 ## Project Structure
 
-```
+```text
 hub/
 ├── api/                  # HTTP API handlers and request/response models
 ├── alby/                 # Alby account integration (OAuth, backups)
@@ -45,7 +45,7 @@ hub/
 
 ### Frontend Structure
 
-```
+```text
 frontend/src/
 ├── components/           # Reusable UI components
 ├── screens/              # Page-level route components
@@ -132,7 +132,7 @@ docker build . -t albyhub:latest
 
 ### Request Flow
 
-```
+```text
 HTTP Request / NIP-47 Nostr Event
     → HTTP Handler / NIP-47 Event Handler
     → api/ package (business logic)
