@@ -18,7 +18,8 @@ import (
 )
 
 func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *RebalanceChannelRequest) (*RebalanceChannelResponse, error) {
-	if api.svc.GetLNClient() == nil {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
 		return nil, errors.New("LNClient not started")
 	}
 
@@ -26,7 +27,7 @@ func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *R
 		"receive_through": rebalanceChannelRequest.ReceiveThroughNodePubkey,
 	}
 
-	receiveInvoice, err := api.svc.GetTransactionsService().MakeInvoice(ctx, rebalanceChannelRequest.AmountSat*1000, "Alby Hub Rebalance through "+rebalanceChannelRequest.ReceiveThroughNodePubkey, "", 0, receiveMetadata, api.svc.GetLNClient(), nil, nil, &rebalanceChannelRequest.ReceiveThroughNodePubkey)
+	receiveInvoice, err := api.svc.GetTransactionsService().MakeInvoice(ctx, rebalanceChannelRequest.AmountSat*1000, "Alby Hub Rebalance through "+rebalanceChannelRequest.ReceiveThroughNodePubkey, "", 0, receiveMetadata, lnClient, nil, nil, &rebalanceChannelRequest.ReceiveThroughNodePubkey)
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to generate rebalance receive invoice")
 		return nil, err
@@ -125,7 +126,7 @@ func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *R
 		"order_id":        rebalanceCreateOrderResponse.OrderId,
 	}
 
-	payRebalanceInvoiceResponse, err := api.svc.GetTransactionsService().SendPaymentSync(rebalanceCreateOrderResponse.PayRequest, nil, payMetadata, api.svc.GetLNClient(), nil, nil)
+	payRebalanceInvoiceResponse, err := api.svc.GetTransactionsService().SendPaymentSync(rebalanceCreateOrderResponse.PayRequest, nil, payMetadata, lnClient, nil, nil)
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to pay rebalance invoice")

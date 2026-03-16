@@ -91,7 +91,7 @@ func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47
 			if !app.Isolated {
 				lightningAddress, _ := controller.albyOAuthService.GetLightningAddress()
 				responsePayload.LightningAddress = &lightningAddress
-			} else if metadata["app_store_app_id"] == constants.SUBWALLET_APPSTORE_APP_ID && metadata["lud16"] != nil {
+			} else if metadata[constants.METADATA_APPSTORE_APP_ID_KEY] == constants.SUBWALLET_APPSTORE_APP_ID && metadata["lud16"] != nil {
 				lightningAddress := metadata["lud16"].(string)
 				responsePayload.LightningAddress = &lightningAddress
 			}

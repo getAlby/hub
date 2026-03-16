@@ -166,7 +166,7 @@ export function FirstChannel() {
           </div>
           <PayLightningInvoice invoice={invoice} />
 
-          <Separator className="mt-8" />
+          <Separator className="mt-2" />
           <p className="mt-8 text-sm mb-2 text-muted-foreground">
             Other options
           </p>

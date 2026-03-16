@@ -134,7 +134,7 @@ export default function Channels() {
           id: channel.id,
           message: "Unconfirmed for " + unconfirmedHours + " hours",
         });
-      } catch (error) {
+      } catch {
         _longUnconfirmedZeroConfChannels.push({
           id: channel.id,
           message: "Channel transaction not in the mempool yet",

@@ -59,7 +59,7 @@ function Settings() {
   }, []);
 
   async function updateSettings(
-    payload: Record<string, string>,
+    payload: Record<string, string | boolean>,
     successMessage: string,
     errorMessage: string
   ) {

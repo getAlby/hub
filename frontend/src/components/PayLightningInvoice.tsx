@@ -1,13 +1,13 @@
 import { Invoice, getFiatValue } from "@getalby/lightning-tools";
-import { CopyIcon, LightbulbIcon } from "lucide-react";
+import { CopyIcon, ExternalLinkIcon } from "lucide-react";
 import React from "react";
+import { FixedFloatButton } from "src/components/FixedFloatButton";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import { LightningIcon } from "src/components/icons/Lightning";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
 import { Button } from "src/components/ui/button";
 import { copyToClipboard } from "src/lib/clipboard";
-import { ExternalLinkButton } from "./ui/custom/external-link-button";
 
 type PayLightningInvoiceProps = {
   invoice: string;
@@ -50,7 +50,7 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
           }).format(fiatAmount)}
         </p>
       </div>
-      <div className="flex gap-4 w-full">
+      <div className="flex flex-col gap-2 w-full">
         <Button
           onClick={copy}
           variant="outline"
@@ -59,13 +59,15 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
           <CopyIcon />
           Copy Invoice
         </Button>
-        <ExternalLinkButton
-          to="https://guides.getalby.com/user-guide/alby-hub/wallet/open-your-first-channel"
-          variant="secondary"
+        <FixedFloatButton
+          to="BTCLN"
+          address={invoice}
           className="flex-1 flex gap-2 items-center justify-center"
+          variant="secondary"
         >
-          <LightbulbIcon className="size-4" /> How to pay
-        </ExternalLinkButton>
+          Pay with other Cryptocurrency
+          <ExternalLinkIcon className="size-4" />
+        </FixedFloatButton>
       </div>
     </div>
   );

@@ -48,14 +48,20 @@ type MockEventPublisher_Publish_Call struct {
 }
 
 // Publish is a helper method to define mock.On call
-//   - event
+//   - event *events.Event
 func (_e *MockEventPublisher_Expecter) Publish(event interface{}) *MockEventPublisher_Publish_Call {
 	return &MockEventPublisher_Publish_Call{Call: _e.mock.On("Publish", event)}
 }
 
 func (_c *MockEventPublisher_Publish_Call) Run(run func(event *events.Event)) *MockEventPublisher_Publish_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*events.Event))
+		var arg0 *events.Event
+		if args[0] != nil {
+			arg0 = args[0].(*events.Event)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
@@ -82,14 +88,20 @@ type MockEventPublisher_PublishSync_Call struct {
 }
 
 // PublishSync is a helper method to define mock.On call
-//   - event
+//   - event *events.Event
 func (_e *MockEventPublisher_Expecter) PublishSync(event interface{}) *MockEventPublisher_PublishSync_Call {
 	return &MockEventPublisher_PublishSync_Call{Call: _e.mock.On("PublishSync", event)}
 }
 
 func (_c *MockEventPublisher_PublishSync_Call) Run(run func(event *events.Event)) *MockEventPublisher_PublishSync_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(*events.Event))
+		var arg0 *events.Event
+		if args[0] != nil {
+			arg0 = args[0].(*events.Event)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
@@ -116,14 +128,20 @@ type MockEventPublisher_RegisterSubscriber_Call struct {
 }
 
 // RegisterSubscriber is a helper method to define mock.On call
-//   - eventListener
+//   - eventListener events.EventSubscriber
 func (_e *MockEventPublisher_Expecter) RegisterSubscriber(eventListener interface{}) *MockEventPublisher_RegisterSubscriber_Call {
 	return &MockEventPublisher_RegisterSubscriber_Call{Call: _e.mock.On("RegisterSubscriber", eventListener)}
 }
 
 func (_c *MockEventPublisher_RegisterSubscriber_Call) Run(run func(eventListener events.EventSubscriber)) *MockEventPublisher_RegisterSubscriber_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(events.EventSubscriber))
+		var arg0 events.EventSubscriber
+		if args[0] != nil {
+			arg0 = args[0].(events.EventSubscriber)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
@@ -150,14 +168,20 @@ type MockEventPublisher_RemoveSubscriber_Call struct {
 }
 
 // RemoveSubscriber is a helper method to define mock.On call
-//   - eventListener
+//   - eventListener events.EventSubscriber
 func (_e *MockEventPublisher_Expecter) RemoveSubscriber(eventListener interface{}) *MockEventPublisher_RemoveSubscriber_Call {
 	return &MockEventPublisher_RemoveSubscriber_Call{Call: _e.mock.On("RemoveSubscriber", eventListener)}
 }
 
 func (_c *MockEventPublisher_RemoveSubscriber_Call) Run(run func(eventListener events.EventSubscriber)) *MockEventPublisher_RemoveSubscriber_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(events.EventSubscriber))
+		var arg0 events.EventSubscriber
+		if args[0] != nil {
+			arg0 = args[0].(events.EventSubscriber)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
@@ -184,15 +208,26 @@ type MockEventPublisher_SetGlobalProperty_Call struct {
 }
 
 // SetGlobalProperty is a helper method to define mock.On call
-//   - key
-//   - value
+//   - key string
+//   - value interface{}
 func (_e *MockEventPublisher_Expecter) SetGlobalProperty(key interface{}, value interface{}) *MockEventPublisher_SetGlobalProperty_Call {
 	return &MockEventPublisher_SetGlobalProperty_Call{Call: _e.mock.On("SetGlobalProperty", key, value)}
 }
 
 func (_c *MockEventPublisher_SetGlobalProperty_Call) Run(run func(key string, value interface{})) *MockEventPublisher_SetGlobalProperty_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(string), args[1].(interface{}))
+		var arg0 string
+		if args[0] != nil {
+			arg0 = args[0].(string)
+		}
+		var arg1 interface{}
+		if args[1] != nil {
+			arg1 = args[1].(interface{})
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }

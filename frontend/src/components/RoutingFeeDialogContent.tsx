@@ -71,6 +71,12 @@ export function RoutingFeeDialogContent({ channel }: Props) {
     }
   }
 
+  const handleSubmit = (_e: React.FormEvent) => {
+    // NOTE: some weird behavior due to this dialog being triggered from a dropdown
+    //e.preventDefault();
+    updateFee();
+  };
+
   return (
     <AlertDialogContent>
       <AlertDialogHeader>
@@ -82,36 +88,37 @@ export function RoutingFeeDialogContent({ channel }: Props) {
             unwanted routing. No matter the fee, you can still receive
             payments.{" "}
           </p>
-          <Label htmlFor="fee" className="block mb-2">
-            Base Routing Fee (sats)
-          </Label>
-          <Input
-            id="fee"
-            name="fee"
-            type="number"
-            required
-            autoFocus
-            min={0}
-            value={baseFeeSats}
-            onChange={(e) => {
-              setBaseFeeSats(e.target.value.trim());
-            }}
-          />
-          <Label htmlFor="fee" className="block mt-4 mb-2">
-            PPM Fee (1 PPM = 1 per 1 million sats)
-          </Label>
-          <Input
-            id="fee"
-            name="fee"
-            type="number"
-            required
-            autoFocus
-            min={0}
-            value={forwardingFeeProportionalMillionths}
-            onChange={(e) => {
-              setForwardingFeeProportionalMillionths(e.target.value.trim());
-            }}
-          />
+          <form id="routing-fee-form" onSubmit={handleSubmit}>
+            <Label htmlFor="baseFee" className="block mb-2">
+              Base Routing Fee (sats)
+            </Label>
+            <Input
+              id="baseFee"
+              name="baseFee"
+              type="number"
+              required
+              autoFocus
+              min={0}
+              value={baseFeeSats}
+              onChange={(e) => {
+                setBaseFeeSats(e.target.value.trim());
+              }}
+            />
+            <Label htmlFor="ppmFee" className="block mt-4 mb-2">
+              PPM Fee (1 PPM = 1 per 1 million sats)
+            </Label>
+            <Input
+              id="ppmFee"
+              name="ppmFee"
+              type="number"
+              required
+              min={0}
+              value={forwardingFeeProportionalMillionths}
+              onChange={(e) => {
+                setForwardingFeeProportionalMillionths(e.target.value.trim());
+              }}
+            />
+          </form>
           <ExternalLink
             to="https://guides.getalby.com/user-guide/alby-hub/faq/how-can-i-change-routing-fees#understanding-routing-fees-and-alby-hub"
             className="underline flex items-center mt-4"
@@ -129,7 +136,9 @@ export function RoutingFeeDialogContent({ channel }: Props) {
             (parseInt(forwardingFeeProportionalMillionths) || 0) ===
               currentFeePPM
           }
-          onClick={updateFee}
+          type="submit"
+          form="routing-fee-form"
+          onClick={handleSubmit}
         >
           Confirm
         </AlertDialogAction>

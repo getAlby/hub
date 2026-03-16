@@ -76,6 +76,8 @@ const (
 	ENCRYPTION_TYPE_NIP44_V2 = "nip44_v2"
 )
 
+const METADATA_APPSTORE_APP_ID_KEY = "app_store_app_id"
+
 const SUBWALLET_APPSTORE_APP_ID = "uncle-jim"
 
 const (

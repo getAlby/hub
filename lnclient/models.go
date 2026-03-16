@@ -66,7 +66,6 @@ type LNClient interface {
 	SettleHoldInvoice(ctx context.Context, preimage string) (err error)
 	CancelHoldInvoice(ctx context.Context, paymentHash string) (err error)
 	LookupInvoice(ctx context.Context, paymentHash string) (transaction *Transaction, err error)
-	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Transaction, err error)
 	ListOnchainTransactions(ctx context.Context) ([]OnchainTransaction, error)
 	Shutdown() error
 	ListChannels(ctx context.Context) (channels []Channel, err error)

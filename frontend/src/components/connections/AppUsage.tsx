@@ -54,7 +54,7 @@ export function AppUsage({ app }: { app: App }) {
 
   const totalSpent = allTransactions
     .filter((tx) => tx.type === "outgoing" && tx.state === "settled")
-    .map((tx) => Math.floor(tx.amount / 1000))
+    .map((tx) => Math.floor((tx.amount + tx.feesPaid) / 1000))
     .reduce((a, b) => a + b, 0);
 
   const totalReceived = allTransactions

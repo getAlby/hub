@@ -23,7 +23,7 @@ type AlbyOAuthService interface {
 	GetLightningAddress() (string, error)
 	IsConnected(ctx context.Context) bool
 	LinkAccount(ctx context.Context, lnClient lnclient.LNClient, budget uint64, renewal string) error
-	CallbackHandler(ctx context.Context, code string, lnClient lnclient.LNClient) error
+	CallbackHandler(ctx context.Context, code string) error
 	GetMe(ctx context.Context) (*AlbyMe, error)
 	UnlinkAccount(ctx context.Context) error
 	RequestAutoChannel(ctx context.Context, lnClient lnclient.LNClient, isPublic bool) (*AutoChannelResponse, error)

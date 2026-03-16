@@ -166,6 +166,7 @@ export interface InfoResponse {
   bitcoinDisplayFormat: BitcoinDisplayFormat;
   chainDataSourceType?: string;
   chainDataSourceAddress?: string;
+  hideUpdateBanner: boolean;
 }
 
 export type BitcoinDisplayFormat = "sats" | "bip177";
@@ -368,7 +369,7 @@ export type OpenChannelResponse = {
   fundingTxId: string;
 };
 
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export type CloseChannelResponse = {};
 
 export type PendingBalancesDetails = {
@@ -641,6 +642,7 @@ export type OnchainTransaction = {
 export type ListAppsResponse = {
   apps: App[];
   totalCount: number;
+  totalBalance?: number;
 };
 
 export type ListTransactionsResponse = {
