@@ -90,7 +90,10 @@ mkdir -p "$INSTALL_DIR"
 cd "$INSTALL_DIR" || exit 1
 
 # download and extract the Alby Hub executable
-wget "$ALBYHUB_URL"
+if ! wget "$ALBYHUB_URL"; then
+  echo "❌ Failed to download Alby Hub" >&2
+  exit 1
+fi
 
 if [ "$SKIP_VERIFY" = false ]; then
   if [ ! -f "verify.sh" ]; then
