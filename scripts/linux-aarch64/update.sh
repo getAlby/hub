@@ -5,6 +5,7 @@ ALBYHUB_URL="https://getalby.com/install/hub/server-linux-aarch64.tar.bz2"
 # Default values
 INSTALL_DIR=""
 NON_INTERACTIVE=false
+SKIP_VERIFY=false
 
 # Parse command-line arguments
 while [ $# -gt 0 ]; do
@@ -21,12 +22,17 @@ while [ $# -gt 0 ]; do
       NON_INTERACTIVE=true
       shift
       ;;
+    --skip-verify)
+      SKIP_VERIFY=true
+      shift
+      ;;
     -h|--help)
       echo "Usage: $0 [OPTIONS]"
       echo ""
       echo "Options:"
       echo "  -d, --install-dir DIR    Set installation directory (auto-detected by default)"
       echo "  -y, --yes                Non-interactive mode (skip confirmation prompt)"
+      echo "      --skip-verify        Skip package signature verification"
       echo "  -h, --help               Show this help message"
       echo ""
       echo "Examples:"
@@ -114,9 +120,11 @@ fi
 echo "Downloading latest version"
 wget "$ALBYHUB_URL"
 
-if ! ./verify.sh server-linux-aarch64.tar.bz2 albyhub-Server-Linux-aarch64.tar.bz2; then
-  echo "❌ Verification failed, aborting installation"
-  exit 1
+if [ "$SKIP_VERIFY" = false ]; then
+  if ! ./verify.sh server-linux-aarch64.tar.bz2 albyhub-Server-Linux-aarch64.tar.bz2; then
+    echo "❌ Verification failed, aborting installation"
+    exit 1
+  fi
 fi
 
 tar -xvf server-linux-aarch64.tar.bz2

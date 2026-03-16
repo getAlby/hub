@@ -7,6 +7,7 @@ VERIFIER_URL="https://getalby.com/install/hub/verify.sh"
 INSTALL_DIR=""
 SYSTEMD=""
 NON_INTERACTIVE=false
+SKIP_VERIFY=false
 
 # Parse command-line arguments
 while [ $# -gt 0 ]; do
@@ -31,6 +32,10 @@ while [ $# -gt 0 ]; do
       NON_INTERACTIVE=true
       shift
       ;;
+    --skip-verify)
+      SKIP_VERIFY=true
+      shift
+      ;;
     -h|--help)
       echo "Usage: $0 [OPTIONS]"
       echo ""
@@ -39,6 +44,7 @@ while [ $# -gt 0 ]; do
       echo "  -s, --systemd            Setup systemd service (auto-yes)"
       echo "      --no-systemd         Skip systemd service setup (auto-no)"
       echo "  -y, --yes                Non-interactive mode (auto-confirm all prompts)"
+      echo "      --skip-verify        Skip package signature verification"
       echo "  -h, --help               Show this help message"
       echo ""
       echo "Examples:"
@@ -82,18 +88,20 @@ cd "$INSTALL_DIR" || exit 1
 # download and extract the Alby Hub executable
 wget "$ALBYHUB_URL"
 
-if [ ! -f "verify.sh" ]; then
-  echo "Downloading the verification script..."
-  if ! wget -q "$VERIFIER_URL"; then
-    echo "❌ Failed to download the verification script." >&2
+if [ "$SKIP_VERIFY" = false ]; then
+  if [ ! -f "verify.sh" ]; then
+    echo "Downloading the verification script..."
+    if ! wget -q "$VERIFIER_URL"; then
+      echo "❌ Failed to download the verification script." >&2
+      exit 1
+    fi
+    chmod +x verify.sh
+  fi
+
+  if ! ./verify.sh server-linux-aarch64.tar.bz2 albyhub-Server-Linux-aarch64.tar.bz2; then
+    echo "❌ Verification failed, aborting installation"
     exit 1
   fi
-  chmod +x verify.sh
-fi
-
-if ! ./verify.sh server-linux-aarch64.tar.bz2 albyhub-Server-Linux-aarch64.tar.bz2; then
-  echo "❌ Verification failed, aborting installation"
-  exit 1
 fi
 
 if ! tar xvf server-linux-aarch64.tar.bz2; then
