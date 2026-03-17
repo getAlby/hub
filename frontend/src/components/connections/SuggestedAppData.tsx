@@ -41,6 +41,7 @@ import snort from "src/assets/suggested-apps/snort.png";
 import stackernews from "src/assets/suggested-apps/stacker-news.png";
 import takemysats from "src/assets/suggested-apps/takemysats.png";
 import tictactoe from "src/assets/suggested-apps/tictactoe.png";
+import lendaswap from "src/assets/suggested-apps/lendaswap.png";
 import tunnelsats from "src/assets/suggested-apps/tunnelsats.png";
 import wavespace from "src/assets/suggested-apps/wave-space.png";
 import wavlake from "src/assets/suggested-apps/wavlake.png";
@@ -2339,6 +2340,61 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["misc"],
+    },
+    {
+      id: "lendaswap",
+      title: "LendaSwap",
+      description: "Self-custodial Bitcoin ↔ Stablecoin atomic swaps",
+      webLink: "https://lendaswap.com",
+      logo: lendaswap,
+      extendedDescription:
+        "Swap between Lightning Bitcoin and stablecoins (USDC, USDT) on Polygon, Arbitrum, and Ethereum. LendaSwap uses your Hub to pay swap invoices and generate receiving invoices — all self-custodial via HTLCs.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://lendaswap.com"
+              className="font-medium text-foreground underline"
+            >
+              LendaSwap
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In LendaSwap</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Click the{" "}
+                <span className="font-medium text-foreground">⚡ Lightning</span>{" "}
+                button in the header
+              </li>
+              <li>
+                Paste the connection secret from Alby Hub
+              </li>
+              <li>
+                When swapping Lightning → stablecoins, click{" "}
+                <span className="font-medium text-foreground">
+                  Pay with Lightning Wallet
+                </span>{" "}
+                to pay directly from your Hub
+              </li>
+              <li>
+                When swapping stablecoins → Lightning, click{" "}
+                <span className="font-medium text-foreground">
+                  Generate invoice from wallet
+                </span>{" "}
+                to receive directly into your Hub
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["payment-tools"],
     },
   ] satisfies AppStoreApp[]
 ).sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
