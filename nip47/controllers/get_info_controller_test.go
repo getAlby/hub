@@ -248,8 +248,6 @@ func TestHandleGetInfoEvent_WithMetadata(t *testing.T) {
 	assert.Equal(t, lightningAddress, *nodeInfo.LightningAddress)
 	assert.Contains(t, nodeInfo.Methods, "get_info")
 	assert.Equal(t, []string{}, nodeInfo.Notifications)
-
-	assert.NoError(t, err)
 	assert.Equal(t, float64(123), nodeInfo.Metadata.(map[string]interface{})["a"])
 }
 
@@ -307,8 +305,6 @@ func TestHandleGetInfoEvent_SubwalletWithMetadata(t *testing.T) {
 	assert.Equal(t, lightningAddress, *nodeInfo.LightningAddress)
 	assert.Contains(t, nodeInfo.Methods, "get_info")
 	assert.Equal(t, []string{}, nodeInfo.Notifications)
-
-	assert.NoError(t, err)
 	assert.Equal(t, float64(123), nodeInfo.Metadata.(map[string]interface{})["a"])
 }
 
