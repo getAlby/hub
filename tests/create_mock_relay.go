@@ -22,7 +22,7 @@ func (relay *mockSimplePool) PublishMany(ctx context.Context, relayUrls []string
 	channel := make(chan nostr.PublishResult)
 	go func() {
 		channel <- nostr.PublishResult{
-			RelayURL: "wss://fakerelay.com/v1",
+			RelayURL: "wss://fakerelay.com",
 		}
 		close(channel)
 	}()

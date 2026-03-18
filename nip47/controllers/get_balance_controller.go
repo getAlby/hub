@@ -21,7 +21,6 @@ type getBalanceResponse struct {
 	// BudgetRenewal string `json:"budget_renewal"`
 }
 
-// TODO: remove checkPermission - can it be a middleware?
 func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, nip47Request *models.Request, requestEventId uint, app *db.App, publishResponse publishFunc) {
 
 	logger.Logger.WithFields(logrus.Fields{
@@ -30,10 +29,20 @@ func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, ni
 
 	balance := int64(0)
 	if app.Isolated {
-		balance = queries.GetIsolatedBalance(controller.db, app.ID)
+		var err error
+		balance, err = queries.GetIsolatedBalance(controller.db, app.ID)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"request_event_id": requestEventId,
+			}).WithError(err).Error("Failed to fetch isolated balance")
+			publishResponse(&models.Response{
+				ResultType: nip47Request.Method,
+				Error:      mapNip47Error(err),
+			}, nostr.Tags{})
+			return
+		}
 	} else {
 		balances, err := controller.lnClient.GetBalances(ctx, true)
-		balance = balances.Lightning.TotalSpendable
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"request_event_id": requestEventId,
@@ -44,6 +53,7 @@ func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, ni
 			}, nostr.Tags{})
 			return
 		}
+		balance = balances.Lightning.TotalSpendable
 	}
 
 	responsePayload := &getBalanceResponse{

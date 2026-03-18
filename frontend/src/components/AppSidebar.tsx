@@ -2,6 +2,7 @@ import {
   BoxIcon,
   ChevronsUpDown,
   CircleHelp,
+  HandCoins,
   HomeIcon,
   LogOut,
   LucideIcon,
@@ -10,7 +11,6 @@ import {
   Settings,
   Sparkles,
   SquareStack,
-  StarIcon,
   WalletIcon,
 } from "lucide-react";
 import React from "react";
@@ -112,9 +112,9 @@ export function AppSidebar() {
         icon: Settings,
       },
       {
-        title: "Review & Earn",
-        url: "/review-earn",
-        icon: StarIcon,
+        title: "Earn",
+        url: "/earn",
+        icon: HandCoins,
       },
     ],
   };

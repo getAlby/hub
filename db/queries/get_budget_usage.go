@@ -8,15 +8,18 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetBudgetUsageSat(tx *gorm.DB, appPermission *db.AppPermission) uint64 {
+func GetBudgetUsage(tx *gorm.DB, appPermission *db.AppPermission) (uint64, error) {
 	var result struct {
 		Sum uint64
 	}
-	tx.
+	err := tx.
 		Table("transactions").
 		Select("SUM(amount_msat + fee_msat + fee_reserve_msat) as sum").
-		Where("app_id = ? AND type = ? AND (state = ? OR state = ?) AND created_at > ?", appPermission.AppId, constants.TRANSACTION_TYPE_OUTGOING, constants.TRANSACTION_STATE_SETTLED, constants.TRANSACTION_STATE_PENDING, getStartOfBudget(appPermission.BudgetRenewal)).Scan(&result)
-	return result.Sum / 1000
+		Where("app_id = ? AND type = ? AND (state = ? OR state = ?) AND created_at > ?", appPermission.AppId, constants.TRANSACTION_TYPE_OUTGOING, constants.TRANSACTION_STATE_SETTLED, constants.TRANSACTION_STATE_PENDING, getStartOfBudget(appPermission.BudgetRenewal)).Scan(&result).Error
+	if err != nil {
+		return 0, err
+	}
+	return result.Sum, nil
 }
 
 func getStartOfBudget(budget_type string) time.Time {

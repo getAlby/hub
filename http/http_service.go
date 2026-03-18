@@ -66,7 +66,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		ContentTypeNosniff:    "nosniff",
 		XFrameOptions:         "DENY",
-		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https://uploads.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com https://zapplanner.albylabs.com wss://relay.getalby.com/v1; frame-src https://embed.bitrefill.com",
+		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https://uploads.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com https://zapplanner.albylabs.com wss://relay.getalby.com wss://relay2.getalby.com; frame-src https://embed.bitrefill.com",
 		ReferrerPolicy:        "no-referrer",
 	}))
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
@@ -1051,7 +1051,12 @@ func (httpSvc *HttpService) appsShowByPubkeyHandler(c echo.Context) error {
 		})
 	}
 
-	response := httpSvc.api.GetApp(dbApp)
+	response, err := httpSvc.api.GetApp(dbApp)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
 
 	return c.JSON(http.StatusOK, response)
 }
@@ -1079,7 +1084,12 @@ func (httpSvc *HttpService) appsShowHandler(c echo.Context) error {
 		})
 	}
 
-	response := httpSvc.api.GetApp(dbApp)
+	response, err := httpSvc.api.GetApp(dbApp)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
 
 	return c.JSON(http.StatusOK, response)
 }
@@ -1120,7 +1130,7 @@ func (httpSvc *HttpService) transfersHandler(c echo.Context) error {
 		})
 	}
 
-	err := httpSvc.api.Transfer(c.Request().Context(), requestData.FromAppId, requestData.ToAppId, requestData.AmountSat*1000)
+	err := httpSvc.api.Transfer(c.Request().Context(), requestData.FromAppId, requestData.ToAppId, requestData.AmountSat*1000, requestData.Description)
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to transfer funds")

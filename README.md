@@ -157,7 +157,7 @@ For more information on the Go pprof library, see the [official documentation](h
 
 The following configuration options can be set as environment variables or in a .env file
 
-- `RELAY`: default: "wss://relay.getalby.com/v1" (can support multiple separated by commas)
+- `RELAY`: default: "wss://relay.getalby.com,wss://relay2.getalby.com" (supports multiple separated by commas)
 - `DATABASE_URI`: A sqlite filename or postgres URL. Default is SQLite DB `nwc.db` without a path, which will be put in the user home directory: $XDG_DATA_HOME/albyhub/nwc.db
 - `PORT`: The port on which the app should listen on (default: 8080)
 - `WORK_DIR`: Directory to store NWC data files. Default: $XDG_DATA_HOME/albyhub
@@ -230,6 +230,7 @@ _To configure via env, the following parameters must be provided:_
 - `LDK_MAX_CHANNEL_SATURATION`: Sets the maximum portion of a channel's total capacity that may be used for sending a payment, expressed as a power of 1/2. See `max_channel_saturation_power_of_half` in [LDK docs](https://docs.rs/lightning/latest/lightning/routing/router/struct.PaymentParameters.html#structfield.max_channel_saturation_power_of_half).
 - `LDK_MAX_PATH_COUNT`: Maximum number of paths that may be used by MPP payments.
 - `LDK_LOG_LEVEL`: Log level for the LDK node. Higher is more verbose. Default: 3. This is separate from the main application log level, allowing you to enable more verbose LDK logging (e.g., level 4, 5 or 6) without enabling verbose logging for the entire application.
+- `LDK_CHANNEL_MONITOR_WARNING_SIZE_BYTES`: If a channel monitor is larger than this value, a performance warning will be shown on the node page.
 
 #### LDK Network Configuration
 
@@ -243,6 +244,12 @@ _To configure via env, the following parameters must be provided:_
 (or electrum instead of esplora)
 
 - `LDK_ELECTRUM_SERVER=electrum.mutinynet.com:50001`
+
+##### Signet
+
+- `MEMPOOL_API=https://mempool.space/signet/api`
+- `LDK_NETWORK=signet`
+- `LDK_ESPLORA_SERVER=https://mempool.space/signet/api`
 
 ##### Testnet (Not recommended - try Mutinynet)
 

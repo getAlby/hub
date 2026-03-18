@@ -16,7 +16,7 @@ const (
 )
 
 type AppConfig struct {
-	Relay                              string `envconfig:"RELAY" default:"wss://relay.getalby.com/v1"`
+	Relay                              string `envconfig:"RELAY" default:"wss://relay.getalby.com,wss://relay2.getalby.com"`
 	LNBackendType                      string `envconfig:"LN_BACKEND_TYPE"`
 	LNDAddress                         string `envconfig:"LND_ADDRESS"`
 	LNDCertFile                        string `envconfig:"LND_CERT_FILE"`
@@ -34,6 +34,7 @@ type AppConfig struct {
 	LDKLogLevel                        string `envconfig:"LDK_LOG_LEVEL" default:"3"`
 	LDKMaxChannelSaturationPowerOfHalf uint8  `envconfig:"LDK_MAX_CHANNEL_SATURATION" default:"2"`
 	LDKMaxPathCount                    uint8  `envconfig:"LDK_MAX_PATH_COUNT" default:"5"`
+	LDKChannelMonitorWarningSizeBytes  uint64 `envconfig:"LDK_CHANNEL_MONITOR_WARNING_SIZE_BYTES" default:"5000000"`
 	LDKVssUrl                          string `envconfig:"LDK_VSS_URL" default:"https://vss.getalbypro.com/vss"`
 	LDKListeningAddresses              string `envconfig:"LDK_LISTENING_ADDRESSES" default:"[::]:9735"`
 	LDKAnnouncementAddresses           string `envconfig:"LDK_ANNOUNCEMENT_ADDRESSES"`
@@ -57,6 +58,7 @@ type AppConfig struct {
 	AutoUnlockPassword                 string `envconfig:"AUTO_UNLOCK_PASSWORD"`
 	LogDBQueries                       bool   `envconfig:"LOG_DB_QUERIES" default:"false"`
 	BoltzApi                           string `envconfig:"BOLTZ_API" default:"https://api.boltz.exchange"`
+	HideUpdateBanner                   bool   `envconfig:"HIDE_UPDATE_BANNER" default:"false"`
 }
 
 func (c *AppConfig) IsDefaultClientId() bool {
@@ -85,7 +87,7 @@ type Config interface {
 	ChangeUnlockPassword(currentUnlockPassword string, newUnlockPassword string) error
 	SetAutoUnlockPassword(unlockPassword string) error
 	SaveUnlockPasswordCheck(encryptionKey string) error
-	SetupCompleted() bool
+	SetupCompleted() (bool, error)
 	GetCurrency() string
 	SetCurrency(value string) error
 	GetBitcoinDisplayFormat() string

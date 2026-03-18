@@ -66,7 +66,11 @@ export function SubwalletCreated() {
   const { data: app } = useApp(createAppResponse?.id, true);
   const [intendedLightningAddress, setIntendedLightningAddress] =
     React.useState(
-      createAppResponse?.name.toLowerCase().replace(/[^a-z0-9]/g, "") || ""
+      createAppResponse?.name
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, "_")
+        .replace(/[^a-z0-9_]/g, "") || ""
     );
 
   const { data: albyMe } = useAlbyMe();

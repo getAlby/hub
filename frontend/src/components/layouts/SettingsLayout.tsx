@@ -134,7 +134,7 @@ export default function SettingsLayout() {
   );
 }
 
-const MenuItem = ({
+export const MenuItem = ({
   to,
   children,
 }: {
@@ -159,5 +159,3 @@ const MenuItem = ({
     </NavLink>
   </>
 );
-
-MenuItem;

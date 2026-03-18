@@ -99,7 +99,7 @@ func (albyHttpSvc *AlbyHttpService) albyBitcoinRateHandler(c echo.Context) error
 func (albyHttpSvc *AlbyHttpService) albyCallbackHandler(c echo.Context) error {
 	code := c.QueryParam("code")
 
-	err := albyHttpSvc.albyOAuthSvc.CallbackHandler(c.Request().Context(), code, albyHttpSvc.svc.GetLNClient())
+	err := albyHttpSvc.albyOAuthSvc.CallbackHandler(c.Request().Context(), code)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to handle Alby OAuth callback")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{

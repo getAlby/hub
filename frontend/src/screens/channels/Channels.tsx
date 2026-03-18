@@ -20,6 +20,7 @@ import AppHeader from "src/components/AppHeader.tsx";
 import { ChannelsCards } from "src/components/channels/ChannelsCards.tsx";
 import { ChannelsTable } from "src/components/channels/ChannelsTable.tsx";
 import { HealthCheckAlert } from "src/components/channels/HealthcheckAlert";
+import { LDKChannelMonitorSizeAlert } from "src/components/channels/LDKChannelMonitorSizeAlert";
 import { LDKChannelWithoutPeerAlert } from "src/components/channels/LDKChannelWithoutPeerAlert";
 import { OnchainTransactionsTable } from "src/components/channels/OnchainTransactionsTable.tsx";
 import EmptyState from "src/components/EmptyState.tsx";
@@ -133,7 +134,7 @@ export default function Channels() {
           id: channel.id,
           message: "Unconfirmed for " + unconfirmedHours + " hours",
         });
-      } catch (error) {
+      } catch {
         _longUnconfirmedZeroConfChannels.push({
           id: channel.id,
           message: "Channel transaction not in the mempool yet",
@@ -612,6 +613,7 @@ export default function Channels() {
             />
           )}
 
+          <LDKChannelMonitorSizeAlert />
           <LDKChannelWithoutPeerAlert />
 
           <ChannelsTable

@@ -60,6 +60,14 @@ export function About() {
             </p>
           </div>
         )}
+        {info.albyAccountConnected && albyMe?.hub.name && (
+          <div className="grid gap-2">
+            <p className="font-medium text-sm">Alby Hub Name</p>
+            <p className="text-muted-foreground text-sm slashed-zero">
+              {albyMe.hub.name}
+            </p>
+          </div>
+        )}
         {info.albyAccountConnected && (
           <div className="grid gap-2">
             <p className="font-medium text-sm">Alby Account Plan</p>
