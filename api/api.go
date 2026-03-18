@@ -1367,10 +1367,6 @@ func (api *api) createJWT(tokenExpiryDays *uint64, permission string) (string, e
 	// Create token with claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	if token == nil {
-		return "", errors.New("failed to create token")
-	}
-
 	secret, err := api.cfg.GetJWTSecret()
 	if err != nil {
 		return "", err
