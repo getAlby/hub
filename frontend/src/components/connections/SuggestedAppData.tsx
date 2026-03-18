@@ -880,7 +880,8 @@ export const appStoreApps: AppStoreApp[] = (
       title: "Bitrequest",
       description: "Non-custodial payment requests",
       webLink: "https://www.bitrequest.io",
-      playLink: "https://play.google.com/store/apps/details?id=io.bitrequest.app",
+      playLink:
+        "https://play.google.com/store/apps/details?id=io.bitrequest.app",
       appleLink: "https://apps.apple.com/us/app/bitrequest/id1484815377",
       logo: bitrequest,
       extendedDescription:
@@ -891,7 +892,7 @@ export const appStoreApps: AppStoreApp[] = (
             <p className="text-muted-foreground">
               Open{" "}
               <ExternalLink
-                to="https://bitrequest.github.io/?lnconnect=true"
+                to="https://bitrequest.github.io"
                 className="font-medium text-foreground underline"
               >
                 Bitrequest
@@ -900,8 +901,8 @@ export const appStoreApps: AppStoreApp[] = (
             </p>
             <p className="text-muted-foreground mt-4">
               In the next step, set wallet permissions to{" "}
-              <span className="font-medium text-foreground">Custom</span>
-              {" "}and enable:
+              <span className="font-medium text-foreground">Custom</span> and
+              enable:
             </p>
             <ul className="list-inside list-disc text-muted-foreground mt-1">
               <li>Read your node info</li>
@@ -918,7 +919,27 @@ export const appStoreApps: AppStoreApp[] = (
             <h3 className="font-medium">In Bitrequest</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
-                Scan or paste the connection secret from Alby Hub
+                Click on{" "}
+                <span className="font-medium text-foreground">Bitcoin</span> and
+                then{" "}
+                <span className="font-medium text-foreground">Lightning</span>{" "}
+                to open the{" "}
+                <span className="font-medium text-foreground">
+                  Add lightning node
+                </span>{" "}
+                modal
+              </li>
+              <li>
+                Set{" "}
+                <span className="font-medium text-foreground">
+                  implementation
+                </span>{" "}
+                to <span className="font-medium text-foreground">NWC</span>
+              </li>
+              <li>Enter a name for the connection</li>
+              <li>
+                Paste the connection secret (nostr+walletconnect://....) and
+                click <span className="font-medium text-foreground">OK</span>
               </li>
             </ul>
           </div>
