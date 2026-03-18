@@ -6,10 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"slices"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	echojwt "github.com/labstack/echo-jwt/v4"
@@ -305,7 +303,7 @@ func (httpSvc *HttpService) startHandler(c echo.Context) error {
 		})
 	}
 
-	token, err := httpSvc.createJWT(nil, "full")
+	token, err := httpSvc.api.CreateStartupSessionToken()
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -334,23 +332,10 @@ func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 		})
 	}
 
-	if unlockRequest.Permission == "" {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Message: "Permission field is required",
-		})
-	}
-
-	if !slices.Contains([]string{"full", "readonly"}, unlockRequest.Permission) {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Message: "Permission field is unknown",
-		})
-	}
-
-	token, err := httpSvc.createJWT(unlockRequest.TokenExpiryDays, unlockRequest.Permission)
-
+	token, err := httpSvc.api.CreateSessionToken(&unlockRequest)
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to save session: %s", err.Error()),
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: err.Error(),
 		})
 	}
 
@@ -432,44 +417,6 @@ func (httpSvc *HttpService) autoUnlockHandler(c echo.Context) error {
 
 	return c.NoContent(http.StatusNoContent)
 }
-
-func (httpSvc *HttpService) createJWT(tokenExpiryDays *uint64, permission string) (string, error) {
-	if !slices.Contains([]string{"full", "readonly"}, permission) {
-		return "", errors.New("invalid token permission")
-	}
-
-	expiryDays := uint64(30)
-	if tokenExpiryDays != nil {
-		expiryDays = *tokenExpiryDays
-	}
-
-	// Set custom claims
-	claims := &jwtCustomClaims{
-		Permission: permission,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * time.Duration(expiryDays))),
-		},
-	}
-
-	// Create token with claims
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	if token == nil {
-		return "", errors.New("failed to create token")
-	}
-
-	secret, err := httpSvc.cfg.GetJWTSecret()
-	if err != nil {
-		return "", err
-	}
-
-	signed, err := token.SignedString([]byte(secret))
-	if err != nil {
-		return "", err
-	}
-	return signed, nil
-}
-
 func (httpSvc *HttpService) channelsListHandler(c echo.Context) error {
 	ctx := c.Request().Context()
 
