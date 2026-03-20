@@ -28,7 +28,11 @@ func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 	require.NoError(t, err)
 	defer svc.Remove()
 
-	app, _, err := tests.CreateApp(svc)
+	metadata := map[string]interface{}{
+		"a": 123,
+	}
+
+	app, _, err := svc.AppsService.CreateApp("test", "", 0, "monthly", nil, []string{constants.GET_INFO_SCOPE}, false, metadata)
 	assert.NoError(t, err)
 
 	lightningAddress := "hello@getalby.com"
@@ -70,10 +74,15 @@ func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 	assert.Nil(t, nodeInfo.Network)
 	assert.Nil(t, nodeInfo.BlockHeight)
 	assert.Nil(t, nodeInfo.BlockHash)
-	assert.Nil(t, nodeInfo.LightningAddress)
+	require.NotNil(t, nodeInfo.LightningAddress)
+	assert.Equal(t, lightningAddress, *nodeInfo.LightningAddress)
 	// get_info method is always granted, but does not return pubkey
 	assert.Contains(t, nodeInfo.Methods, models.GET_INFO_METHOD)
 	assert.Equal(t, []string{}, nodeInfo.Notifications)
+	require.NotNil(t, nodeInfo.Metadata)
+	assert.Equal(t, float64(123), nodeInfo.Metadata.(map[string]interface{})["a"])
+	assert.Equal(t, app.ID, nodeInfo.Metadata.(map[string]interface{})["id"])
+	assert.Equal(t, app.Name, nodeInfo.Metadata.(map[string]interface{})["name"])
 }
 
 func TestHandleGetInfoEvent_SubwalletNoPermission(t *testing.T) {
@@ -130,10 +139,15 @@ func TestHandleGetInfoEvent_SubwalletNoPermission(t *testing.T) {
 	assert.Nil(t, nodeInfo.Network)
 	assert.Nil(t, nodeInfo.BlockHeight)
 	assert.Nil(t, nodeInfo.BlockHash)
-	assert.Nil(t, nodeInfo.LightningAddress)
+	require.NotNil(t, nodeInfo.LightningAddress)
+	assert.Equal(t, lightningAddress, *nodeInfo.LightningAddress)
 	// get_info method is always granted, but does not return pubkey
 	assert.Contains(t, nodeInfo.Methods, models.GET_INFO_METHOD)
 	assert.Equal(t, []string{}, nodeInfo.Notifications)
+	require.NotNil(t, nodeInfo.Metadata)
+	assert.Equal(t, lightningAddress, nodeInfo.Metadata.(map[string]interface{})["lud16"])
+	assert.Equal(t, app.ID, nodeInfo.Metadata.(map[string]interface{})["id"])
+	assert.Equal(t, app.Name, nodeInfo.Metadata.(map[string]interface{})["name"])
 }
 
 func TestHandleGetInfoEvent_WithPermission(t *testing.T) {
@@ -234,8 +248,6 @@ func TestHandleGetInfoEvent_WithMetadata(t *testing.T) {
 	assert.Equal(t, lightningAddress, *nodeInfo.LightningAddress)
 	assert.Contains(t, nodeInfo.Methods, "get_info")
 	assert.Equal(t, []string{}, nodeInfo.Notifications)
-
-	assert.NoError(t, err)
 	assert.Equal(t, float64(123), nodeInfo.Metadata.(map[string]interface{})["a"])
 }
 
@@ -293,8 +305,6 @@ func TestHandleGetInfoEvent_SubwalletWithMetadata(t *testing.T) {
 	assert.Equal(t, lightningAddress, *nodeInfo.LightningAddress)
 	assert.Contains(t, nodeInfo.Methods, "get_info")
 	assert.Equal(t, []string{}, nodeInfo.Notifications)
-
-	assert.NoError(t, err)
 	assert.Equal(t, float64(123), nodeInfo.Metadata.(map[string]interface{})["a"])
 }
 

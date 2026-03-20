@@ -36,6 +36,34 @@ func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47
 		Notifications: supportedNotifications,
 	}
 
+	if app != nil {
+		metadata := map[string]interface{}{}
+		if app.Metadata != nil {
+			jsonErr := json.Unmarshal(app.Metadata, &metadata)
+			if jsonErr != nil {
+				logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
+					"id":       app.ID,
+					"metadata": app.Metadata,
+				}).Error("Failed to deserialize app metadata")
+			}
+		}
+		if metadata["id"] == nil {
+			metadata["id"] = app.ID
+		}
+		if metadata["name"] == nil {
+			metadata["name"] = app.Name
+		}
+		if !app.Isolated {
+			lightningAddress, _ := controller.albyOAuthService.GetLightningAddress()
+			responsePayload.LightningAddress = &lightningAddress
+		} else if metadata[constants.METADATA_APPSTORE_APP_ID_KEY] == constants.SUBWALLET_APPSTORE_APP_ID && metadata["lud16"] != nil {
+			lightningAddress := metadata["lud16"].(string)
+			responsePayload.LightningAddress = &lightningAddress
+		}
+
+		responsePayload.Metadata = metadata
+	}
+
 	// basic permissions check
 	// this is inconsistent with other methods. Ideally we move fetching node info to a separate method,
 	// so that get_info does not require its own scope. This would require a change in the NIP-47 spec.
@@ -70,34 +98,6 @@ func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47
 		responsePayload.Network = &network
 		responsePayload.BlockHeight = &info.BlockHeight
 		responsePayload.BlockHash = &info.BlockHash
-
-		if app != nil {
-			metadata := map[string]interface{}{}
-			if app.Metadata != nil {
-				jsonErr := json.Unmarshal(app.Metadata, &metadata)
-				if jsonErr != nil {
-					logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
-						"id":       app.ID,
-						"metadata": app.Metadata,
-					}).Error("Failed to deserialize app metadata")
-				}
-			}
-			if metadata["id"] == nil {
-				metadata["id"] = app.ID
-			}
-			if metadata["name"] == nil {
-				metadata["name"] = app.Name
-			}
-			if !app.Isolated {
-				lightningAddress, _ := controller.albyOAuthService.GetLightningAddress()
-				responsePayload.LightningAddress = &lightningAddress
-			} else if metadata[constants.METADATA_APPSTORE_APP_ID_KEY] == constants.SUBWALLET_APPSTORE_APP_ID && metadata["lud16"] != nil {
-				lightningAddress := metadata["lud16"].(string)
-				responsePayload.LightningAddress = &lightningAddress
-			}
-
-			responsePayload.Metadata = metadata
-		}
 	}
 
 	publishResponse(&models.Response{
