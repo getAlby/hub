@@ -135,7 +135,7 @@ jobs:
         shell: bash
 
       - name: Import Code-Signing Certificates for macOS
-        if: runner.os == 'macOS' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false)
+        if: runner.os == 'macOS' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false) && (github.event_name != 'workflow_call' || inputs.build-release)
         uses: Apple-Actions/import-codesign-certs@v3
         with:
           # The certificates in a PKCS12 file encoded as a base64 string
@@ -196,7 +196,7 @@ jobs:
           mv ./build/out/${{ env.PACKAGE_NAME }}.tar.bz2 ./build/bin/
 
       - name: Sign the macOS binary
-        if: runner.os == 'macOS' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false)
+        if: runner.os == 'macOS' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false) && (github.event_name != 'workflow_call' || inputs.build-release)
         run: |
           echo "Signing Package"
           /usr/bin/codesign -s "Developer ID Application: Alby Inc." -f -v --deep --timestamp --options runtime --entitlements ./build/darwin/entitlements.plist "./build/bin/${{ env.EXEC_NAME }}.app"
@@ -206,23 +206,15 @@ jobs:
           AC_PROVIDER: ${{ secrets.APPLE_TEAM_ID }}
 
       - name: Make DMG image for macOS
-        if: runner.os == 'macOS' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false)
+        if: runner.os == 'macOS' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false) && (github.event_name != 'workflow_call' || inputs.build-release)
         run: |
           mkdir -p ./build/out
           create-dmg --volname "Alby Hub" --background "./build/darwin/dmgcover.png" --window-pos 200 120 --window-size 800 400 --icon-size 80 --icon "${{ env.EXEC_NAME }}.app" 200 160 --hide-extension "${{ env.EXEC_NAME }}.app" --app-drop-link 600 160 "./build/out/${{ env.PACKAGE_NAME }}.dmg" "./build/bin/${{ env.EXEC_NAME }}.app"
           rm -Rf ./build/bin/*
           mv ./build/out/${{ env.PACKAGE_NAME }}.dmg ./build/bin/
 
-      - name: Zip unsigned macOS app (fork PRs)
-        if: runner.os == 'macOS' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork
-        run: |
-          mkdir -p ./build/out
-          cd ./build/bin
-          zip -qry "../out/${{ env.PACKAGE_NAME }}-unsigned.zip" "./${{ env.EXEC_NAME }}.app"
-        shell: bash
-
       - name: Generate gon-notarize.json
-        if: runner.os == 'macOS' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false)
+        if: runner.os == 'macOS' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false) && (github.event_name != 'workflow_call' || inputs.build-release)
         run: |
           cat > ./build/darwin/gon-notarize.json << EOF
           {
@@ -236,7 +228,7 @@ jobs:
           EOF
 
       - name: Notarize the DMG image
-        if: runner.os == 'macOS' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false)
+        if: runner.os == 'macOS' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false) && (github.event_name != 'workflow_call' || inputs.build-release)
         run: |
           echo "Notarizing Zip Files"
           gon -log-level=info -log-json ./build/darwin/gon-notarize.json
@@ -263,12 +255,20 @@ jobs:
           if-no-files-found: error
 
       - uses: actions/upload-artifact@v4
-        if: runner.os == 'macOS' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false)
+        if: runner.os == 'macOS' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false) && (github.event_name != 'workflow_call' || inputs.build-release)
         with:
           name: ${{ env.PACKAGE_NAME }}
           path: |
             ./build/bin/${{ env.PACKAGE_NAME }}.dmg
           if-no-files-found: error
+
+      - name: Zip unsigned macOS app (fork PRs)
+        if: runner.os == 'macOS' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork
+        run: |
+          mkdir -p ./build/out
+          cd ./build/bin
+          zip -qry "../out/${{ env.PACKAGE_NAME }}-unsigned.zip" "./${{ env.EXEC_NAME }}.app"
+        shell: bash
 
       - uses: actions/upload-artifact@v4
         if: runner.os == 'macOS' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork
