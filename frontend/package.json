@@ -20,6 +20,7 @@
     "prepare": "cd .. && husky frontend/.husky"
   },
   "dependencies": {
+    "@fontsource-variable/figtree": "^5.2.10",
     "@getalby/lightning-tools": "^6.0.0",
     "@getalby/sdk": "^7.0.0",
     "@radix-ui/react-accordion": "^1.2.12",
