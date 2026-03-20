@@ -25,7 +25,6 @@ on:
 jobs:
   build:
     strategy:
-      fail-fast: false
       matrix:
         build:
           [
@@ -62,11 +61,6 @@ jobs:
         name: Check out code
         with:
           submodules: recursive
-
-      # CGO must use the full Xcode SDK on macOS (not Command Line Tools only).
-      - name: Select Xcode for CGO builds
-        if: runner.os == 'macOS'
-        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
@@ -134,7 +128,7 @@ jobs:
         run: go build ${{ env.GOTAGS }} -o build/bin/${{ env.PACKAGE_NAME }}/bin/${{ env.EXEC_NAME }} -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}'" cmd/http/main.go
 
       - name: Import Code-Signing Certificates for macOS
-        if: runner.os == 'macOS' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false) && (github.event_name != 'workflow_call' || inputs.build-release)
+        if: runner.os == 'macOS'
         uses: Apple-Actions/import-codesign-certs@v3
         with:
           # The certificates in a PKCS12 file encoded as a base64 string
@@ -171,7 +165,7 @@ jobs:
         shell: bash
 
       - name: Sign the MacOS binary and libraries
-        if: runner.os == 'macOS' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false) && (github.event_name != 'workflow_call' || inputs.build-release)
+        if: runner.os == 'macOS'
         run: |
           /usr/bin/codesign -s "Developer ID Application: Alby Inc." -f -v --deep --timestamp --options runtime ./build/bin/${{ env.PACKAGE_NAME }}/bin/${{ env.EXEC_NAME }}
           /usr/bin/codesign -s "Developer ID Application: Alby Inc." -f -v --deep --timestamp --options runtime ./build/bin/${{ env.PACKAGE_NAME }}/lib/*.dylib
