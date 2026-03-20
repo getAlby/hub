@@ -62,79 +62,82 @@ export function Intro() {
   );
 
   return (
-    <Carousel className={cn("w-full bg-background")} setApi={setApi}>
-      <div
-        className="w-full h-full absolute top-0 left-0 bg-no-repeat"
-        style={{
-          backgroundImage: `url(${Cloud})`,
-          backgroundPositionX: `calc(${-Math.max(progress, 0) * 120}px - ${windowWidth * 0.06}px - ${cloudDesktopSizePositionModifier * 4}px)`,
-        }}
-      />
-      <div
-        className="w-full h-full absolute top-0 left-0 bg-no-repeat"
-        style={{
-          backgroundImage: `url(${Cloud2})`,
-          backgroundPositionX: `calc(${-Math.max(progress, 0) * 120}px + ${windowWidth * 0.5}px + ${Math.floor(cloudDesktopSizePositionModifier * 0.1)}px)`,
-          backgroundPositionY: "100%",
-        }}
-      />
-      <CarouselContent className="select-none bg-transparent">
-        <CarouselItem>
-          <div className="flex flex-col justify-center items-center h-screen p-5">
-            <div className="flex flex-col gap-4 text-center max-w-lg">
-              <div className="text-4xl font-extrabold text-foreground">
-                Welcome to Alby Hub
-              </div>
-              <div className="text-2xl text-muted-foreground font-semibold">
-                A powerful, all-in-one bitcoin lightning wallet with the
-                superpower of connecting to applications.
-              </div>
-              <div className="mt-20">
-                <Button onClick={() => api?.scrollNext()} size="lg">
-                  Next
-                </Button>
+    <>
+      <title>Welcome - Alby Hub</title>
+      <Carousel className={cn("w-full bg-background")} setApi={setApi}>
+        <div
+          className="w-full h-full absolute top-0 left-0 bg-no-repeat"
+          style={{
+            backgroundImage: `url(${Cloud})`,
+            backgroundPositionX: `calc(${-Math.max(progress, 0) * 120}px - ${windowWidth * 0.06}px - ${cloudDesktopSizePositionModifier * 4}px)`,
+          }}
+        />
+        <div
+          className="w-full h-full absolute top-0 left-0 bg-no-repeat"
+          style={{
+            backgroundImage: `url(${Cloud2})`,
+            backgroundPositionX: `calc(${-Math.max(progress, 0) * 120}px + ${windowWidth * 0.5}px + ${Math.floor(cloudDesktopSizePositionModifier * 0.1)}px)`,
+            backgroundPositionY: "100%",
+          }}
+        />
+        <CarouselContent className="select-none bg-transparent">
+          <CarouselItem>
+            <div className="flex flex-col justify-center items-center h-screen p-5">
+              <div className="flex flex-col gap-4 text-center max-w-lg">
+                <div className="text-4xl font-extrabold text-foreground">
+                  Welcome to Alby Hub
+                </div>
+                <div className="text-2xl text-muted-foreground font-semibold">
+                  A powerful, all-in-one bitcoin lightning wallet with the
+                  superpower of connecting to applications.
+                </div>
+                <div className="mt-20">
+                  <Button onClick={() => api?.scrollNext()} size="lg">
+                    Next
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        </CarouselItem>
-        <CarouselItem>
-          <Slide
-            api={api}
-            icon={CloudLightningIcon}
-            title="Anywhere & Anytime"
-            description="Your wallet is always online and ready to use on any device."
-          />
-        </CarouselItem>
-        <CarouselItem>
-          <Slide
-            api={api}
-            icon={ShieldCheckIcon}
-            title="Your Keys Are Safe"
-            description="Your wallet is encrypted by a password of your choice. No one can access your funds but you."
-          />
-        </CarouselItem>
-        <CarouselItem>
-          <Slide
-            api={api}
-            icon={WalletIcon}
-            title="Take Your Wallet With You"
-            description="Connect your wallet to dozens of apps and participate in the bitcoin digital economy."
-          />
-        </CarouselItem>
-      </CarouselContent>
-      <div className="absolute bottom-5 left-1/2 -translate-x-1/2">
-        <CarouselDots>
-          {scrollSnaps.map((_, index) => (
-            <CarouselDotButton
-              key={index}
-              data-selected={index === selectedIndex}
-              onClick={() => onDotButtonClick(index)}
-              aria-label={`Go to slide ${index + 1}`}
+          </CarouselItem>
+          <CarouselItem>
+            <Slide
+              api={api}
+              icon={CloudLightningIcon}
+              title="Anywhere & Anytime"
+              description="Your wallet is always online and ready to use on any device."
             />
-          ))}
-        </CarouselDots>
-      </div>
-    </Carousel>
+          </CarouselItem>
+          <CarouselItem>
+            <Slide
+              api={api}
+              icon={ShieldCheckIcon}
+              title="Your Keys Are Safe"
+              description="Your wallet is encrypted by a password of your choice. No one can access your funds but you."
+            />
+          </CarouselItem>
+          <CarouselItem>
+            <Slide
+              api={api}
+              icon={WalletIcon}
+              title="Take Your Wallet With You"
+              description="Connect your wallet to dozens of apps and participate in the bitcoin digital economy."
+            />
+          </CarouselItem>
+        </CarouselContent>
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2">
+          <CarouselDots>
+            {scrollSnaps.map((_, index) => (
+              <CarouselDotButton
+                key={index}
+                data-selected={index === selectedIndex}
+                onClick={() => onDotButtonClick(index)}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </CarouselDots>
+        </div>
+      </Carousel>
+    </>
   );
 }
 
