@@ -31,7 +31,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
           title="Connect Your Alby Account"
           description="Your Alby Account brings several benefits to your Alby Hub"
         />
-        <div className="grid grid-cols-1 md:grid-cols-2 w-full gap-2 mt-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 w-full gap-3 mt-5">
           <Card className="w-full relative py-2">
             <CardHeader className="flex flex-col justify-center items-center text-center p-4">
               <ZapIcon className="size-6" />

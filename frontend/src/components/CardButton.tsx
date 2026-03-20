@@ -12,7 +12,7 @@ type Props = {
 function CardButton({ title, description, to }: Props) {
   return (
     <Link to={to}>
-      <Card className="p-4 shadow-none hover:bg-accent">
+      <Card className="p-4 hover:bg-accent">
         <div className="flex flex-row justify-between items-center">
           <div>
             <div className="font-medium flex flex-row items-center gap-2">

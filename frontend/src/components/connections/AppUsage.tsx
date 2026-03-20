@@ -77,7 +77,7 @@ export function AppUsage({ app }: { app: App }) {
       {app.isolated && (
         <div
           className={cn(
-            "grid grid-cols-1 gap-2",
+            "grid grid-cols-1 gap-3",
             app.metadata?.app_store_app_id === SUBWALLET_APPSTORE_APP_ID &&
               "lg:grid-cols-2"
           )}
@@ -201,7 +201,7 @@ export function AppUsage({ app }: { app: App }) {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         <Card>
           <CardHeader>
             <CardTitle>Total Spent</CardTitle>
