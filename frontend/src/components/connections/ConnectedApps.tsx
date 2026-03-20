@@ -96,7 +96,7 @@ function ConnectedApps() {
       {otherApps.length > 0 && (
         <div
           ref={appsListRef}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list"
+          className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch app-list"
         >
           {otherApps.map((app, index) => (
             <AppCard key={index} app={app} />

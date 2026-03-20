@@ -65,9 +65,9 @@ function Home() {
         title={getGreeting(albyMe?.name)}
         contentRight={<SearchInput placeholder="Search" />}
       />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start justify-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start justify-start">
         {/* LEFT */}
-        <div className="grid gap-5">
+        <div className="grid gap-3">
           <OnboardingChecklist />
           <WhatsNewWidget />
           <SupportAlbyWidget />
@@ -160,7 +160,7 @@ function Home() {
         </div>
 
         {/* RIGHT */}
-        <div className="grid gap-5">
+        <div className="grid gap-3">
           <LatestUsedAppsWidget />
           <LightningMessageboardWidget />
           <AppOfTheDayWidget />
@@ -204,7 +204,7 @@ function Home() {
             </CardHeader>
             {isNerd && (
               <CardContent>
-                <div className="grid gap-5">
+                <div className="grid gap-3">
                   <NodeStatusWidget />
                   <BlockHeightWidget />
                   <OnchainFeesWidget />
