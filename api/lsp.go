@@ -59,6 +59,7 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 
 	invoice, fee, err := api.requestLSPS1Invoice(ctx, lnClient, request, nodeInfo.Network, nodeInfo.Pubkey, lspInfo.MaxChannelExpiryBlocks, lspInfo.MinRequiredChannelConfirmations, lspInfo.MinFundingConfirmsWithinBlocks)
 	invoiceAmount := uint64(0)
+	invoiceAmountMsat := uint64(0)
 	incomingLiquidity := request.Amount
 
 	if err != nil {
@@ -73,15 +74,24 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 			return nil, err
 		}
 
-		invoiceAmount = uint64(paymentRequest.MSatoshi / 1000)
+		invoiceAmountMsat = uint64(paymentRequest.MSatoshi)
+		invoiceAmount = invoiceAmountMsat / 1000
 	}
 
 	newChannelResponse := &LSPOrderResponse{
-		Invoice:           invoice,
-		Fee:               fee,
-		InvoiceAmount:     invoiceAmount,
-		IncomingLiquidity: incomingLiquidity,
-		OutgoingLiquidity: uint64(0), // JIT channel no longer supported
+		Invoice:               invoice,
+		Fee:                   fee,
+		FeeSat:                fee,
+		FeeMsat:               fee * 1000,
+		InvoiceAmount:         invoiceAmount,
+		InvoiceAmountSat:      invoiceAmount,
+		InvoiceAmountMsat:     invoiceAmountMsat,
+		IncomingLiquidity:     incomingLiquidity,
+		IncomingLiquiditySat:  incomingLiquidity,
+		IncomingLiquidityMsat: incomingLiquidity * 1000,
+		OutgoingLiquidity:     uint64(0),
+		OutgoingLiquiditySat:  uint64(0),
+		OutgoingLiquidityMsat: uint64(0),
 	}
 
 	logger.Logger.WithFields(logrus.Fields{

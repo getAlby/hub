@@ -483,6 +483,8 @@ func (api *api) GetApp(dbApp *db.App) (*App, error) {
 			return nil, err
 		}
 		response.Balance = balance
+		response.BalanceSat = balance / 1000
+		response.BalanceMsat = balance
 	}
 
 	return &response, nil
@@ -546,6 +548,7 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 	}
 
 	var totalBalance *int64
+	var totalBalanceSat *int64
 	if filters.SubWallets != nil && *filters.SubWallets {
 		totalBalanceMsat, err := queries.GetTotalSubwalletBalance(api.db)
 		if err != nil {
@@ -553,6 +556,8 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 			return nil, err
 		}
 		totalBalance = &totalBalanceMsat
+		totalBalanceSatVal := totalBalanceMsat / 1000
+		totalBalanceSat = &totalBalanceSatVal
 	}
 
 	query = query.Offset(int(offset)).Limit(int(limit))
@@ -611,6 +616,8 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 				return nil, err
 			}
 			apiApp.Balance = balance
+			apiApp.BalanceSat = balance / 1000
+			apiApp.BalanceMsat = balance
 		}
 
 		for _, appPermission := range permissionsMap[dbApp.ID] {
@@ -644,9 +651,11 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 		apiApps = append(apiApps, apiApp)
 	}
 	return &ListAppsResponse{
-		Apps:         apiApps,
-		TotalCount:   uint64(totalCount),
-		TotalBalance: totalBalance,
+		Apps:             apiApps,
+		TotalCount:       uint64(totalCount),
+		TotalBalance:     totalBalance,
+		TotalBalanceSat:  totalBalanceSat,
+		TotalBalanceMsat: totalBalance,
 	}, nil
 }
 
@@ -671,8 +680,14 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 
 		apiChannels = append(apiChannels, Channel{
 			LocalBalance:                             channel.LocalBalance,
+			LocalBalanceSat:                          channel.LocalBalance / 1000,
+			LocalBalanceMsat:                         channel.LocalBalance,
 			LocalSpendableBalance:                    channel.LocalSpendableBalance,
+			LocalSpendableBalanceSat:                 channel.LocalSpendableBalance / 1000,
+			LocalSpendableBalanceMsat:                channel.LocalSpendableBalance,
 			RemoteBalance:                            channel.RemoteBalance,
+			RemoteBalanceSat:                         channel.RemoteBalance / 1000,
+			RemoteBalanceMsat:                        channel.RemoteBalance,
 			Id:                                       channel.Id,
 			RemotePubkey:                             channel.RemotePubkey,
 			FundingTxId:                              channel.FundingTxId,
@@ -685,10 +700,14 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 			ForwardingFeeBaseMsat:                    channel.ForwardingFeeBaseMsat,
 			ForwardingFeeProportionalMillionths:      channel.ForwardingFeeProportionalMillionths,
 			UnspendablePunishmentReserve:             channel.UnspendablePunishmentReserve,
+			UnspendablePunishmentReserveSat:          channel.UnspendablePunishmentReserve,
+			UnspendablePunishmentReserveMsat:         channel.UnspendablePunishmentReserve * 1000,
 			CounterpartyUnspendablePunishmentReserve: channel.CounterpartyUnspendablePunishmentReserve,
-			Error:                                    channel.Error,
-			IsOutbound:                               channel.IsOutbound,
-			Status:                                   status,
+			CounterpartyUnspendablePunishmentReserveSat: channel.CounterpartyUnspendablePunishmentReserve,
+			CounterpartyUnspendablePunishmentReserveMsat: channel.CounterpartyUnspendablePunishmentReserve * 1000,
+			Error:      channel.Error,
+			IsOutbound: channel.IsOutbound,
+			Status:     status,
 		})
 	}
 
@@ -827,11 +846,15 @@ func (api *api) GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error) {
 	}
 
 	return &GetAutoSwapConfigResponse{
-		Type:             constants.SWAP_TYPE_OUT,
-		Enabled:          swapOutEnabled,
-		BalanceThreshold: swapOutBalanceThreshold,
-		SwapAmount:       swapOutAmount,
-		Destination:      swapOutDestination,
+		Type:                constants.SWAP_TYPE_OUT,
+		Enabled:             swapOutEnabled,
+		BalanceThreshold:     swapOutBalanceThreshold,
+		BalanceThresholdSat:  swapOutBalanceThreshold,
+		BalanceThresholdMsat: swapOutBalanceThreshold * 1000,
+		SwapAmount:           swapOutAmount,
+		SwapAmountSat:        swapOutAmount,
+		SwapAmountMsat:       swapOutAmount * 1000,
+		Destination:         swapOutDestination,
 	}, nil
 }
 
@@ -874,7 +897,11 @@ func toApiSwap(swap *swaps.Swap) *Swap {
 		State:              swap.State,
 		Invoice:            swap.Invoice,
 		SendAmount:         swap.SendAmount,
+		SendAmountSat:      swap.SendAmount,
+		SendAmountMsat:     swap.SendAmount * 1000,
 		ReceiveAmount:      swap.ReceiveAmount,
+		ReceiveAmountSat:   swap.ReceiveAmount,
+		ReceiveAmountMsat:  swap.ReceiveAmount * 1000,
 		PaymentHash:        swap.PaymentHash,
 		DestinationAddress: swap.DestinationAddress,
 		RefundAddress:      swap.RefundAddress,
@@ -900,11 +927,17 @@ func (api *api) GetSwapInInfo() (*SwapInfoResponse, error) {
 	}
 
 	return &SwapInfoResponse{
-		AlbyServiceFee:  swapInInfo.AlbyServiceFee,
-		BoltzServiceFee: swapInInfo.BoltzServiceFee,
-		BoltzNetworkFee: swapInInfo.BoltzNetworkFee,
-		MinAmount:       swapInInfo.MinAmount,
-		MaxAmount:       swapInInfo.MaxAmount,
+		AlbyServiceFee:      swapInInfo.AlbyServiceFee,
+		BoltzServiceFee:     swapInInfo.BoltzServiceFee,
+		BoltzNetworkFee:     swapInInfo.BoltzNetworkFee,
+		BoltzNetworkFeeSat:  swapInInfo.BoltzNetworkFee,
+		BoltzNetworkFeeMsat: swapInInfo.BoltzNetworkFee * 1000,
+		MinAmount:           swapInInfo.MinAmount,
+		MinAmountSat:        swapInInfo.MinAmount,
+		MinAmountMsat:       swapInInfo.MinAmount * 1000,
+		MaxAmount:           swapInInfo.MaxAmount,
+		MaxAmountSat:        swapInInfo.MaxAmount,
+		MaxAmountMsat:       swapInInfo.MaxAmount * 1000,
 	}, nil
 }
 
@@ -919,11 +952,17 @@ func (api *api) GetSwapOutInfo() (*SwapInfoResponse, error) {
 	}
 
 	return &SwapInfoResponse{
-		AlbyServiceFee:  swapOutInfo.AlbyServiceFee,
-		BoltzServiceFee: swapOutInfo.BoltzServiceFee,
-		BoltzNetworkFee: swapOutInfo.BoltzNetworkFee,
-		MinAmount:       swapOutInfo.MinAmount,
-		MaxAmount:       swapOutInfo.MaxAmount,
+		AlbyServiceFee:      swapOutInfo.AlbyServiceFee,
+		BoltzServiceFee:     swapOutInfo.BoltzServiceFee,
+		BoltzNetworkFee:     swapOutInfo.BoltzNetworkFee,
+		BoltzNetworkFeeSat:  swapOutInfo.BoltzNetworkFee,
+		BoltzNetworkFeeMsat: swapOutInfo.BoltzNetworkFee * 1000,
+		MinAmount:           swapOutInfo.MinAmount,
+		MinAmountSat:        swapOutInfo.MinAmount,
+		MinAmountMsat:       swapOutInfo.MinAmount * 1000,
+		MaxAmount:           swapOutInfo.MaxAmount,
+		MaxAmountSat:        swapOutInfo.MaxAmount,
+		MaxAmountMsat:       swapOutInfo.MaxAmount * 1000,
 	}, nil
 }
 
