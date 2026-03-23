@@ -13,7 +13,7 @@ import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
 import { useApps } from "src/hooks/useApps";
 
 export function LatestUsedAppsWidget() {
-  const { data: appsData } = useApps(3, undefined, undefined, "last_used_at");
+  const { data: appsData } = useApps(3, undefined, undefined, "last_settled_transaction");
   const apps = appsData?.apps;
   const usedApps = apps?.filter((x) => x.lastUsedAt);
 
@@ -32,28 +32,22 @@ export function LatestUsedAppsWidget() {
         </CardTitle>
       </CardHeader>
       <CardContent className="grid grid-cols-1 gap-4">
-        {usedApps
-          .sort(
-            (a, b) =>
-              new Date(b.lastUsedAt ?? 0).getTime() -
-              new Date(a.lastUsedAt ?? 0).getTime()
-          )
-          .map((app) => (
-            <Link key={app.id} to={`/apps/${app.id}`}>
-              <div className="flex items-center w-full gap-4">
-                <AppAvatar app={app} className="w-14 h-14 rounded-lg" />
-                <p className="text-sm font-medium flex-1 truncate">
-                  {app.name === ALBY_ACCOUNT_APP_NAME
-                    ? "Alby Account"
-                    : app.name}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {app.lastUsedAt ? dayjs(app.lastUsedAt).fromNow() : "never"}
-                </p>
-                <ChevronRightIcon className="text-muted-foreground size-8" />
-              </div>
-            </Link>
-          ))}
+        {usedApps.map((app) => (
+          <Link key={app.id} to={`/apps/${app.id}`}>
+            <div className="flex items-center w-full gap-4">
+              <AppAvatar app={app} className="w-14 h-14 rounded-lg" />
+              <p className="text-sm font-medium flex-1 truncate">
+                {app.name === ALBY_ACCOUNT_APP_NAME
+                  ? "Alby Account"
+                  : app.name}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {app.lastUsedAt ? dayjs(app.lastUsedAt).fromNow() : "never"}
+              </p>
+              <ChevronRightIcon className="text-muted-foreground size-8" />
+            </div>
+          </Link>
+        ))}
       </CardContent>
     </Card>
   );
