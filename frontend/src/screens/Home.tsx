@@ -8,6 +8,7 @@ import {
 import { AlbyBlogWidget } from "src/components/home/widgets/AlbyBlogWidget";
 import { AppOfTheDayWidget } from "src/components/home/widgets/AppOfTheDayWidget";
 import { HomeTopChartsRow } from "src/components/home/widgets/HomeTopChartsRow";
+import { LatestUsedAppsWidget } from "src/components/home/widgets/LatestUsedAppsWidget";
 import { NewArrivalWidget } from "src/components/home/widgets/NewArrivalWidget";
 import { StoriesWidget } from "src/components/home/widgets/StoriesWidget";
 import { SupportAlbyWidget } from "src/components/home/widgets/SupportAlbyWidget";
@@ -52,6 +53,7 @@ function Home() {
       <div className="grid grid-cols-1 items-start gap-3 xl:grid-cols-2">
         <div className="grid min-w-0 gap-3">
           <OnboardingChecklist />
+          <LatestUsedAppsWidget />
           <NewArrivalWidget app={latestArrivalApp} />
           <AppOfTheDayWidget app={appOfTheDay} />
         </div>
