@@ -16,6 +16,7 @@
     "tsc:compile": "tsc --noEmit",
     "format": "prettier --check '**/*.(md|json)' 'src/**/*.(js|ts|tsx)' '!src/assets/**/*.json' 'platform_specific/**/*.ts'",
     "format:fix": "prettier --loglevel silent --write '**/*.(md|json)' 'src/**/*.(js|ts|tsx)' '!src/assets/**/*.json' 'platform_specific/**/*.ts'",
+    "sync:framer-blog": "node scripts/sync-framer-blog.mjs",
     "preview": "vite preview",
     "prepare": "cd .. && husky frontend/.husky"
   },
@@ -56,6 +57,7 @@
     "react-lottie": "^1.2.4",
     "react-qr-code": "^2.0.12",
     "react-router-dom": "^6.21.0",
+    "recharts": "^3.8.0",
     "sonner": "^2.0.7",
     "swr": "^2.3.6",
     "tailwind-merge": "^3.4.1",
@@ -81,6 +83,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
+    "framer-api": "^0.1.3",
     "globals": "^15.4.0",
     "husky": "^9.0.11",
     "lint-staged": "^16.4.0",
@@ -92,5 +95,6 @@
     "vite": "^5.4.0",
     "vite-plugin-pwa": "^1.2.0",
     "vite-tsconfig-paths": "^6.1.1"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

@@ -135,6 +135,17 @@ export const sortedAppStoreCategories = Object.entries(appStoreCategories).sort(
   (a, b) => a[1].priority - b[1].priority
 );
 
+// Curated list for Home's "New Arrival" widget.
+// Keep this updated when new app store entries should be highlighted.
+export const latestAppStoreAppIds = [
+  "goose",
+  "claude",
+  "alby-cli-skill",
+  "bitrefill",
+  "tictactoe",
+  "wherostr",
+] as const;
+
 export const appStoreApps: AppStoreApp[] = (
   [
     {
