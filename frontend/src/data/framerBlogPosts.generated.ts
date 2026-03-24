@@ -12,14 +12,15 @@ export type FramerBlogPost = {
   imageUrl?: string;
 };
 
-export const generatedAt = "2026-03-23T19:09:25.918Z";
+export const generatedAt = "2026-03-24T02:06:53.959Z";
 
 export const framerBlogPosts: FramerBlogPost[] = [
   {
     id: "g4dW2rpsh",
     slug: "how-pull-that-up-jamie-uses-the-alby-cli-skill",
     title: "how-pull-that-up-jamie-uses-the-alby-cli-skill",
-    description: "",
+    description:
+      "Learn how Pull That Up Jamie uses the Alby CLI skill to let AI agents automate bitcoin payments and access premium podcast insights.",
     category: "Developer",
     publishedAt: "2026-03-04T20:52:00.000Z",
     imageUrl:
@@ -30,7 +31,8 @@ export const framerBlogPosts: FramerBlogPost[] = [
     id: "Apxu23eJh",
     slug: "alby-product-ecosystem-explained",
     title: "alby-product-ecosystem-explained",
-    description: "",
+    description:
+      "From browser to mobile to AI-native apps, Alby’s interconnected products form a complete bitcoin payment stack built around openness, self-custody, and user choice.",
     category: "Vision",
     publishedAt: "2026-02-27T00:00:00.000Z",
     imageUrl:
@@ -41,7 +43,8 @@ export const framerBlogPosts: FramerBlogPost[] = [
     id: "mP62tebcG",
     slug: "building-a-lightning-paywall-app-in-one-session-with-replit-ai",
     title: "building-a-lightning-paywall-app-in-one-session-with-replit-ai",
-    description: "",
+    description:
+      "How Bitcoin's Lightning Network, Alby's developer tools, and Replit Agent make it possible for anyone to build apps, integrate payments, monetize content in minutes.",
     category: "Developer",
     publishedAt: "2026-02-24T17:28:00.000Z",
     imageUrl:
@@ -52,7 +55,8 @@ export const framerBlogPosts: FramerBlogPost[] = [
     id: "H0QkfOknc",
     slug: "introducing-alby-sandbox",
     title: "introducing-alby-sandbox",
-    description: "",
+    description:
+      "Build and test bitcoin payments in minutes. Alby Sandbox offers zero-setup test wallets, different payment scenarios, and ready-to-use code examples.",
     category: "Developer",
     publishedAt: "2026-02-03T13:36:00.000Z",
     imageUrl:
@@ -63,7 +67,8 @@ export const framerBlogPosts: FramerBlogPost[] = [
     id: "n7bEGcSs5",
     slug: "how-to-earn-bitcoin-mining-rewards-from-nicehash-with-alby-hub",
     title: "how-to-earn-bitcoin-mining-rewards-from-nicehash-with-alby-hub",
-    description: "",
+    description:
+      "Earn Bitcoin mining rewards directly in Alby Hub, your own self-custodial wallet. Learn how to set up bitcoin lightning payouts from NiceHash and receive mining rewards seamlessly into your on-chain or lightning wallet.",
     category: "Experience",
     publishedAt: "2025-12-22T15:00:00.000Z",
     imageUrl:
@@ -74,7 +79,8 @@ export const framerBlogPosts: FramerBlogPost[] = [
     id: "qO2g3AjmL",
     slug: "how-to-accept-bitcoin-payments-on-woocommerce",
     title: "how-to-accept-bitcoin-payments-on-woocommerce",
-    description: "",
+    description:
+      "Learn how to add Bitcoin payments to WooCommerce quickly and easily with a single, user-friendly plugin.",
     category: "NWC",
     publishedAt: "2025-12-16T00:00:00.000Z",
     imageUrl:
@@ -85,7 +91,8 @@ export const framerBlogPosts: FramerBlogPost[] = [
     id: "zzbIrK6xi",
     slug: "modularizing-alby-hub-user-hosted-serverless-signers",
     title: "Modularizing Alby Hub: User-Hosted Serverless Signers",
-    description: "",
+    description:
+      "A user-hosted, serverless signer architecture using Spark, Ark, and NWC to power self-custodial bitcoin wallets optimized for payments in 3rd-party apps.",
     category: "Alby Hub",
     publishedAt: "2025-12-09T16:00:00.000Z",
     imageUrl:
@@ -96,7 +103,8 @@ export const framerBlogPosts: FramerBlogPost[] = [
     id: "K8Kyfnx2d",
     slug: "how-to-earn-bitcoin-mining-rewards-from-ocean-with-alby-hub",
     title: "how-to-earn-bitcoin-mining-rewards-from-ocean-with-alby-hub",
-    description: "",
+    description:
+      "Earn Bitcoin mining rewards directly in Alby Hub, your own self-custodial wallet. Learn how to set up Ocean’s BOLT12 bitcoin lightning payouts and receive mining rewards seamlessly into your on-chain or Lightning wallet.",
     category: "Experience",
     publishedAt: "2025-12-02T14:02:00.000Z",
     imageUrl:
@@ -107,7 +115,8 @@ export const framerBlogPosts: FramerBlogPost[] = [
     id: "GDEbYljCd",
     slug: "modularizing-alby-hub",
     title: "modularizing-alby-hub",
-    description: "",
+    description:
+      "Learn how a lightweight, suspendable signer architecture based on Spark, Ark, and NWC enables scalable, low-cost, self-custodial lightning wallets that lower onboarding barriers and strengthen the bitcoin app ecosystem.",
     category: "Alby Hub",
     publishedAt: "2025-11-25T10:03:00.000Z",
     imageUrl:
@@ -118,7 +127,8 @@ export const framerBlogPosts: FramerBlogPost[] = [
     id: "JjS7xrnQo",
     slug: "accept-bitcoin-at-shopify",
     title: "How to Accept Bitcoin Payments on Shopify: 3 Easy Options",
-    description: "",
+    description:
+      "Learn three simple ways to accept bitcoin on Shopify from fully self-hosted solutions to easy managed setups.",
     category: "Experience",
     publishedAt: "2025-11-20T00:00:00.000Z",
     imageUrl:
@@ -129,7 +139,8 @@ export const framerBlogPosts: FramerBlogPost[] = [
     id: "Bg_ySPPnm",
     slug: "stop-shorting-bitcoin-with-alby-hub-and-wavecard",
     title: "stop-shorting-bitcoin-with-alby-hub-and-wavecard",
-    description: "",
+    description:
+      "Many bitcoiners unknowingly short BTC by holding fiat. Learn how wavecard and Alby Hub let you truly live on bitcoin—paying bills, rent, and daily expenses.",
     category: "Experience",
     publishedAt: "2025-11-18T16:35:00.000Z",
     imageUrl:
@@ -140,7 +151,8 @@ export const framerBlogPosts: FramerBlogPost[] = [
     id: "vQI5Bq9Zz",
     slug: "pay-your-bills-with-alby-hub-at-bitcoin-well",
     title: "pay-your-bills-with-alby-hub-at-bitcoin-well",
-    description: "",
+    description:
+      "Pay bills, automate payments, and buy or sell bitcoin directly from your self-custodial wallet with Bitcoin Well based on NWC.",
     category: "Experience",
     publishedAt: "2025-11-06T15:37:00.000Z",
     imageUrl:
@@ -151,7 +163,8 @@ export const framerBlogPosts: FramerBlogPost[] = [
     id: "VlqODPFjo",
     slug: "build-conditional-payment-logic-into-your-app",
     title: "build-conditional-payment-logic-into-your-app",
-    description: "",
+    description:
+      '"Hold invoices" let you build conditional payment logic and trust minimized escrow services right into your app on top of bitcoin. Learn how.',
     category: "Developer",
     publishedAt: "2025-10-29T15:49:00.000Z",
     imageUrl:
@@ -162,7 +175,8 @@ export const framerBlogPosts: FramerBlogPost[] = [
     id: "I6r0AzMQH",
     slug: "a-trust-minimized-multi-user-nwc-wallet-with-ark-spark",
     title: "A Trust-Minimized Multi-user NWC Wallet With Ark & Spark",
-    description: "",
+    description:
+      "Discover a novel multi-user wallet architecture built on Ark or Spark that delivers a seamless in-app payment experience using Nostr Wallet Connect (NWC).",
     category: "NWC",
     publishedAt: "2025-10-28T16:24:00.000Z",
     imageUrl:
@@ -173,7 +187,8 @@ export const framerBlogPosts: FramerBlogPost[] = [
     id: "rU1fSVynA",
     slug: "introducing-new-alby-brand-identity",
     title: "introducing-new-alby-brand-identity",
-    description: "",
+    description:
+      "We’re excited to unveil a refreshed look that better reflects who we are today and where we’re heading.",
     category: "News",
     publishedAt: "2025-10-16T00:00:00.000Z",
     imageUrl:
@@ -184,7 +199,8 @@ export const framerBlogPosts: FramerBlogPost[] = [
     id: "s6MX1YeJy",
     slug: "creating-a-bridge-to-local-payments-using-alby-hub",
     title: "A Bridge to Local Payments with Alby Hub and wapu",
-    description: "",
+    description:
+      "Wapu Pay uses Alby Hub, a self-custodial bitcoin lightning wallet, to give foreigners access to Argentinian payment rails.",
     category: "Case Study",
     publishedAt: "2025-09-17T00:00:00.000Z",
     imageUrl:
@@ -195,7 +211,8 @@ export const framerBlogPosts: FramerBlogPost[] = [
     id: "zUCqisZon",
     slug: "lightning-channel-stats-h1-2025",
     title: "Lightning Channel Stats: H1 2025",
-    description: "",
+    description:
+      "Alby Hub users opened 7626 channels with a total of 197 BTC of liquidity in H1 2025.",
     category: "News",
     publishedAt: "2025-09-10T00:00:00.000Z",
     imageUrl:
@@ -206,7 +223,8 @@ export const framerBlogPosts: FramerBlogPost[] = [
     id: "dEoznbEXC",
     slug: "subscriptions-with-bitcoin-how-to-pay-and-get-paid-with-recurring-bitcoin-payments",
     title: "Subscriptions with Bitcoin: Recurring Bitcoin Payments",
-    description: "",
+    description:
+      "Learn how subscription bitcoin payments work, their benefits, and the best tools to set up recurring payments for services, SaaS, and creators.",
     category: "Experience",
     publishedAt: "2025-09-01T00:00:00.000Z",
     imageUrl:
@@ -217,7 +235,8 @@ export const framerBlogPosts: FramerBlogPost[] = [
     id: "zG4qoiPKM",
     slug: "build-bitcoin-powered-workflows-with-n8n-and-nwc",
     title: "build-bitcoin-powered-workflows-with-n8n-and-nwc",
-    description: "",
+    description:
+      "Automate bitcoin payments with n8n + NWC. Connect Alby Hub and build no-code workflows for invoices, subscriptions, and more.",
     category: "Developer",
     publishedAt: "2025-08-27T00:00:00.000Z",
     imageUrl:
@@ -228,7 +247,8 @@ export const framerBlogPosts: FramerBlogPost[] = [
     id: "jZkZCzwTz",
     slug: "receive-bitcoin-mining-payouts-with-alby-hub",
     title: "receive-bitcoin-mining-payouts-with-alby-hub",
-    description: "",
+    description:
+      "All you need is a miner and a Braiins Pool account to get your BTC mining rewards instantly in your self-custodial Alby Hub wallet.",
     category: "Alby Hub",
     publishedAt: "2025-08-20T00:00:00.000Z",
     imageUrl:

@@ -178,6 +178,23 @@ function decodeHtmlAttrEntities(s) {
     .replace(/&gt;/g, ">");
 }
 
+function extractMetaContent(html, attr, value) {
+  const escaped = value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const attrThenContent = new RegExp(
+    `<meta[^>]*${attr}=["']${escaped}["'][^>]*content=(["'])([\\s\\S]*?)\\1[^>]*>`,
+    "i"
+  );
+  const contentThenAttr = new RegExp(
+    `<meta[^>]*content=(["'])([\\s\\S]*?)\\1[^>]*${attr}=["']${escaped}["'][^>]*>`,
+    "i"
+  );
+  const m = html.match(attrThenContent) || html.match(contentThenAttr);
+  if (m?.[2]) {
+    return decodeHtmlAttrEntities(m[2].trim());
+  }
+  return undefined;
+}
+
 /**
  * Live blog pages expose og:image (Framer-hosted). Used when CMS image field is empty.
  */
@@ -194,19 +211,45 @@ async function fetchOgImageUrl(pageUrl) {
       return undefined;
     }
     const html = await res.text();
-    let m =
-      html.match(/property=["']og:image["'][^>]*\scontent=["']([^"']+)["']/i) ||
-      html.match(/content=["']([^"']+)["'][^>]*property=["']og:image["']/i);
-    if (!m) {
-      m = html.match(
-        /name=["']twitter:image(?::src)?["'][^>]*\scontent=["']([^"']+)["']/i
-      );
-    }
-    if (m?.[1]) {
-      return decodeHtmlAttrEntities(m[1].trim());
+    const image =
+      extractMetaContent(html, "property", "og:image") ||
+      extractMetaContent(html, "name", "twitter:image") ||
+      extractMetaContent(html, "name", "twitter:image:src");
+    if (image) {
+      return image;
     }
   } catch (err) {
     console.warn("og:image fetch failed:", pageUrl, err?.message || err);
+  }
+  return undefined;
+}
+
+/**
+ * Live blog pages expose og:description or meta description.
+ * Used when CMS description/excerpt fields are empty.
+ */
+async function fetchOgDescription(pageUrl) {
+  try {
+    const res = await fetch(pageUrl, {
+      headers: {
+        Accept: "text/html,application/xhtml+xml",
+        "User-Agent": "AlbyHubBlogSync/1.0 (+https://getalby.com)",
+      },
+      redirect: "follow",
+    });
+    if (!res.ok) {
+      return undefined;
+    }
+    const html = await res.text();
+    const text =
+      extractMetaContent(html, "property", "og:description") ||
+      extractMetaContent(html, "name", "description") ||
+      extractMetaContent(html, "name", "twitter:description");
+    if (text) {
+      return text || undefined;
+    }
+  } catch (err) {
+    console.warn("og:description fetch failed:", pageUrl, err?.message || err);
   }
   return undefined;
 }
@@ -438,7 +481,8 @@ async function run() {
     const { collection, fields } = selected;
     const items = await collection.getItems();
 
-    const descriptionFieldId = findFieldId(fields, [
+    const leadFieldId = findFieldId(fields, [/^lead$/i, /post lead/i, /article lead/i, /lead/i]);
+    const descriptionFieldId = leadFieldId || findFieldId(fields, [
       /excerpt/i,
       /summary/i,
       /description/i,
@@ -474,6 +518,10 @@ async function run() {
 
     const ogDelayMs = Number(process.env.FRAMER_OG_FETCH_DELAY_MS || 120);
     for (const post of posts) {
+      // If a dedicated Lead field exists in CMS, trust CMS content only for descriptions.
+      if (!post.description && !leadFieldId) {
+        post.description = (await fetchOgDescription(post.url)) || "";
+      }
       if (!post.imageUrl) {
         post.imageUrl = await fetchOgImageUrl(post.url);
       }
