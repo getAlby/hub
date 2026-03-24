@@ -193,7 +193,7 @@ export function SubwalletList() {
         <h3 className="font-semibold text-2xl mb-4">Managed Sub-wallets</h3>
         <div
           ref={appsListRef}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch app-list"
+          className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch"
         >
           {subwalletApps.map((app, index) => (
             <AppCard key={index} app={app} />
