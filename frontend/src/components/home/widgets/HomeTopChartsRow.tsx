@@ -17,14 +17,15 @@ import {
 import { useBalances } from "src/hooks/useBalances";
 import { useBitcoinRate } from "src/hooks/useBitcoinRate";
 import { useInfo } from "src/hooks/useInfo";
-import { useTransactions } from "src/hooks/useTransactions";
-import { Transaction } from "src/types";
+import { ListTransactionsResponse, Transaction } from "src/types";
 import { formatBitcoinAmount } from "src/utils/bitcoinFormatting";
 import { request } from "src/utils/request";
 import { cn } from "src/lib/utils";
 
 const DAYS = 7;
 const WINDOW_MS = DAYS * 24 * 60 * 60 * 1000;
+const TX_PAGE_SIZE = 200;
+const MAX_TX_PAGES = 40;
 
 type Point = {
   day: string;
@@ -103,6 +104,53 @@ function getNetSatForTx(tx: Transaction) {
 
 function getTxTimestamp(tx: Transaction) {
   return new Date(tx.settledAt || tx.updatedAt || tx.createdAt).getTime();
+}
+
+async function fetchSettledTransactionsForWindow(windowStart: number) {
+  const results: Transaction[] = [];
+  const seen = new Set<string>();
+  let offset = 0;
+  let totalCount = Number.POSITIVE_INFINITY;
+  let page = 0;
+
+  while (offset < totalCount && page < MAX_TX_PAGES) {
+    const response = await request<ListTransactionsResponse>(
+      `/api/transactions?limit=${TX_PAGE_SIZE}&offset=${offset}`
+    );
+    const transactions = response?.transactions || [];
+    totalCount = response?.totalCount ?? totalCount;
+    if (!transactions.length) {
+      break;
+    }
+
+    let pageReachedOlderRange = false;
+    for (const tx of transactions) {
+      if (tx.state !== "settled") {
+        continue;
+      }
+      const ts = getTxTimestamp(tx);
+      if (ts < windowStart) {
+        pageReachedOlderRange = true;
+        continue;
+      }
+      const key = `${tx.paymentHash}:${tx.createdAt}:${tx.type}:${tx.amount}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        results.push(tx);
+      }
+    }
+
+    // The API returns newest-first; once page includes older-than-window settled txs
+    // we have reached the lower boundary needed for accurate 7d charts.
+    if (pageReachedOlderRange) {
+      break;
+    }
+
+    offset += TX_PAGE_SIZE;
+    page += 1;
+  }
+
+  return results.sort((a, b) => getTxTimestamp(a) - getTxTimestamp(b));
 }
 
 function flattenSeriesVisual(data: Point[], factor = 0.7) {
@@ -291,7 +339,7 @@ function MetricCard({
           <AreaChart
             data={chartData}
             // Keep the chart hard-pinned to card edges.
-            margin={{ left: -16, right: -16, top: 4, bottom: -10 }}
+            margin={{ left: -16, right: -16, top: 8, bottom: -10 }}
           >
             <defs>
               <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -329,7 +377,6 @@ function MetricCard({
 
 export function HomeTopChartsRow() {
   const { data: balances } = useBalances(true);
-  const { data: txResponse } = useTransactions(undefined, true, 500, 1);
   const { data: info } = useInfo();
   const { data: bitcoinRate } = useBitcoinRate(true);
   const priceHistoryCurrency =
@@ -363,7 +410,16 @@ export function HomeTopChartsRow() {
     return () => window.clearInterval(id);
   }, []);
 
-  if (!balances || !txResponse || !info) {
+  const windowStart = nowTs - WINDOW_MS;
+  const { data: settledTxsInWindow } = useSWR<Transaction[]>(
+    info
+      ? ["home-settled-transactions-window", Math.floor(windowStart / 60_000)]
+      : null,
+    () => fetchSettledTransactionsForWindow(windowStart),
+    { refreshInterval: 5000, refreshWhenHidden: true }
+  );
+
+  if (!balances || !settledTxsInWindow || !info) {
     return null;
   }
 
@@ -371,7 +427,7 @@ export function HomeTopChartsRow() {
     msatFromSat(balances.onchain.total) + balances.lightning.totalSpendable
   );
 
-  const hasIncomingDeposit = txResponse.transactions.some(
+  const hasIncomingDeposit = settledTxsInWindow.some(
     (tx) =>
       tx.state === "settled" &&
       tx.type === "incoming" &&
@@ -384,17 +440,12 @@ export function HomeTopChartsRow() {
   }
 
   const now = nowTs;
-  const windowStart = now - WINDOW_MS;
-  const settledTxsInWindow = txResponse.transactions
-    .filter((tx) => tx.state === "settled")
-    .map((tx) => ({
-      tx,
-      timestamp: getTxTimestamp(tx),
-    }))
-    .filter((entry) => entry.timestamp >= windowStart && entry.timestamp <= now)
-    .sort((a, b) => a.timestamp - b.timestamp);
+  const settledTxEntries = settledTxsInWindow.map((tx) => ({
+    tx,
+    timestamp: getTxTimestamp(tx),
+  }));
 
-  const netFlows7d = settledTxsInWindow.reduce(
+  const netFlows7d = settledTxEntries.reduce(
     (sum, entry) => sum + getNetSatForTx(entry.tx),
     0
   );
@@ -408,7 +459,7 @@ export function HomeTopChartsRow() {
         value: running,
       },
     ];
-    for (const entry of settledTxsInWindow) {
+    for (const entry of settledTxEntries) {
       running += getNetSatForTx(entry.tx);
       series.push({
         day: new Date(entry.timestamp).toISOString().slice(11, 16),
@@ -429,7 +480,7 @@ export function HomeTopChartsRow() {
     const series: Point[] = [
       { day: new Date(windowStart).toISOString().slice(11, 16), value: 0 },
     ];
-    for (const entry of settledTxsInWindow) {
+    for (const entry of settledTxEntries) {
       running += getNetSatForTx(entry.tx);
       series.push({
         day: new Date(entry.timestamp).toISOString().slice(11, 16),
