@@ -135,12 +135,12 @@ func (cfg *config) GetJWTSecret() (string, error) {
 }
 
 func (cfg *config) LoadJWTSecret(encryptionKey string) error {
-	if cfg.jwtSecret != "" {
-		return nil
-	}
-
 	if !cfg.CheckUnlockPassword(encryptionKey) {
 		return errors.New("incorrect password")
+	}
+
+	if cfg.jwtSecret != "" {
+		return nil
 	}
 
 	// TODO: remove encryptedJwtSecret check after 2027-01-01

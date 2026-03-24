@@ -243,6 +243,27 @@ func TestJWTSecret_GeneratedOnLoad(t *testing.T) {
 	assert.Equal(t, jwtSecret, jwtSecret2)
 }
 
+func TestJWTSecret_WrongPassword(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	cfg, err := config.NewConfig(&config.AppConfig{}, svc.DB)
+	require.NoError(t, err)
+
+	err = cfg.ChangeUnlockPassword("", "123")
+	require.NoError(t, err)
+
+	err = cfg.SaveUnlockPasswordCheck("123")
+	require.NoError(t, err)
+
+	err = cfg.LoadJWTSecret("123")
+	require.NoError(t, err)
+
+	err = cfg.LoadJWTSecret("wrong")
+	require.ErrorContains(t, err, "incorrect password")
+}
+
 func TestJWTSecret_ChangePassword(t *testing.T) {
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
