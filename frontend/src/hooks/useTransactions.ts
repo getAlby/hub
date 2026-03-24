@@ -5,6 +5,7 @@ import { swrFetcher } from "src/utils/swr";
 
 const pollConfiguration: SWRConfiguration = {
   refreshInterval: 3000,
+  refreshWhenHidden: true,
 };
 
 export function useTransactions(

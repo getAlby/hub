@@ -1,3 +1,4 @@
+import React from "react";
 import { Area, AreaChart, YAxis } from "recharts";
 import { ChevronDownIcon, ChevronUpIcon, MinusIcon } from "lucide-react";
 import useSWR from "swr";
@@ -23,6 +24,7 @@ import { request } from "src/utils/request";
 import { cn } from "src/lib/utils";
 
 const DAYS = 7;
+const WINDOW_MS = DAYS * 24 * 60 * 60 * 1000;
 
 type Point = {
   day: string;
@@ -97,6 +99,21 @@ function getNetSatForTx(tx: Transaction) {
     return amount;
   }
   return -(amount + fees);
+}
+
+function getTxTimestamp(tx: Transaction) {
+  return new Date(tx.settledAt || tx.updatedAt || tx.createdAt).getTime();
+}
+
+function flattenSeriesVisual(data: Point[], factor = 0.7) {
+  if (data.length <= 1) {
+    return data;
+  }
+  const avg = data.reduce((sum, point) => sum + point.value, 0) / data.length;
+  return data.map((point) => ({
+    ...point,
+    value: avg + (point.value - avg) * factor,
+  }));
 }
 
 function parsePricePoints(input: unknown, currencyCode: string) {
@@ -232,20 +249,22 @@ function MetricCard({
   const valueColor = getChangeClass(changeValue);
   const stroke =
     changeValue >= 0 ? "var(--color-positive-foreground)" : "#f97316";
+  const gradientId = `${title.toLowerCase().replace(/\s+/g, "-")}-area-gradient`;
   const IndicatorIcon =
     changeValue > 0
       ? ChevronUpIcon
       : changeValue < 0
         ? ChevronDownIcon
         : MinusIcon;
+  const chartData = flattenSeriesVisual(data, 0.7);
 
   return (
     <Card className="gap-0 overflow-hidden rounded-[14px] py-0 shadow-none">
-      <CardHeader className="px-5 pb-0 pt-5">
+      <CardHeader className="px-5 pb-0 pt-4">
         <CardTitle className="text-base font-semibold">{title}</CardTitle>
       </CardHeader>
-      <CardContent className="px-0 pb-0 pt-3">
-        <div className="mb-1.5 flex items-end justify-between gap-3 px-5">
+      <CardContent className="px-0 pb-0 pt-2">
+        <div className="mb-1 flex items-end justify-between gap-3 px-5">
           <p className="text-2xl leading-none font-medium tracking-tight text-foreground">
             {value}
           </p>
@@ -261,7 +280,7 @@ function MetricCard({
           </CardDescription>
         </div>
         <ChartContainer
-          className="h-[98px] w-full overflow-hidden"
+          className="h-[68px] w-full overflow-hidden"
           config={{
             value: {
               label: title,
@@ -270,10 +289,17 @@ function MetricCard({
           }}
         >
           <AreaChart
-            data={data}
+            data={chartData}
             // Keep the chart hard-pinned to card edges.
-            margin={{ left: -16, right: -16, top: 8, bottom: -10 }}
+            margin={{ left: -16, right: -16, top: 4, bottom: -10 }}
           >
+            <defs>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={stroke} stopOpacity={0.4} />
+                <stop offset="65%" stopColor={stroke} stopOpacity={0.14} />
+                <stop offset="100%" stopColor={stroke} stopOpacity={0.03} />
+              </linearGradient>
+            </defs>
             <YAxis
               hide
               domain={["dataMin", "dataMax"]}
@@ -288,8 +314,8 @@ function MetricCard({
               type="monotone"
               dataKey="value"
               stroke={stroke}
-              fill={stroke}
-              fillOpacity={0.16}
+              fill={`url(#${gradientId})`}
+              fillOpacity={1}
               strokeWidth={2}
               isAnimationActive={false}
               baseLine={0}
@@ -302,10 +328,10 @@ function MetricCard({
 }
 
 export function HomeTopChartsRow() {
-  const { data: balances } = useBalances();
-  const { data: txResponse } = useTransactions(undefined, false, 500, 1);
+  const { data: balances } = useBalances(true);
+  const { data: txResponse } = useTransactions(undefined, true, 500, 1);
   const { data: info } = useInfo();
-  const { data: bitcoinRate } = useBitcoinRate();
+  const { data: bitcoinRate } = useBitcoinRate(true);
   const priceHistoryCurrency =
     (info?.currency || "USD").toUpperCase() === "SATS"
       ? "USD"
@@ -325,8 +351,17 @@ export function HomeTopChartsRow() {
         historicalPriceEndpoints.map((endpoint) => request<unknown>(endpoint))
       );
       return responses;
-    }
+    },
+    { refreshInterval: 3000, refreshWhenHidden: true }
   );
+  const [nowTs, setNowTs] = React.useState(() => Date.now());
+
+  React.useEffect(() => {
+    const id = window.setInterval(() => {
+      setNowTs(Date.now());
+    }, 3000);
+    return () => window.clearInterval(id);
+  }, []);
 
   if (!balances || !txResponse || !info) {
     return null;
@@ -348,50 +383,65 @@ export function HomeTopChartsRow() {
     return null;
   }
 
-  const days = buildDaySeries();
-  const dayIndexByKey = new Map(days.map((d, idx) => [dayKey(d), idx]));
-  const dailyNet = new Array<number>(DAYS).fill(0);
+  const now = nowTs;
+  const windowStart = now - WINDOW_MS;
+  const settledTxsInWindow = txResponse.transactions
+    .filter((tx) => tx.state === "settled")
+    .map((tx) => ({
+      tx,
+      timestamp: getTxTimestamp(tx),
+    }))
+    .filter((entry) => entry.timestamp >= windowStart && entry.timestamp <= now)
+    .sort((a, b) => a.timestamp - b.timestamp);
 
-  for (const tx of txResponse.transactions) {
-    if (tx.state !== "settled") {
-      continue;
-    }
-    const txDate = new Date(tx.settledAt || tx.updatedAt || tx.createdAt);
-    const idx = dayIndexByKey.get(dayKey(txDate));
-    if (idx === undefined) {
-      continue;
-    }
-    dailyNet[idx] += getNetSatForTx(tx);
-  }
-
-  const netFlows7d = dailyNet.reduce((sum, value) => sum + value, 0);
+  const netFlows7d = settledTxsInWindow.reduce(
+    (sum, entry) => sum + getNetSatForTx(entry.tx),
+    0
+  );
   const startingBalance = totalBalanceSat - netFlows7d;
 
   const totalBalanceSeries: Point[] = (() => {
-    const { series } = days.reduce(
-      (acc, date, idx) => {
-        const next = acc.running + dailyNet[idx];
-        return {
-          running: next,
-          series: [...acc.series, { day: dayKey(date).slice(5), value: next }],
-        };
+    let running = startingBalance;
+    const series: Point[] = [
+      {
+        day: new Date(windowStart).toISOString().slice(11, 16),
+        value: running,
       },
-      { running: startingBalance, series: [] as Point[] }
-    );
+    ];
+    for (const entry of settledTxsInWindow) {
+      running += getNetSatForTx(entry.tx);
+      series.push({
+        day: new Date(entry.timestamp).toISOString().slice(11, 16),
+        value: running,
+      });
+    }
+    if (series.length === 1 || running !== totalBalanceSat) {
+      series.push({
+        day: new Date(now).toISOString().slice(11, 16),
+        value: totalBalanceSat,
+      });
+    }
     return series;
   })();
 
   const netFlowSeries: Point[] = (() => {
-    const { series } = days.reduce(
-      (acc, date, idx) => {
-        const next = acc.running + dailyNet[idx];
-        return {
-          running: next,
-          series: [...acc.series, { day: dayKey(date).slice(5), value: next }],
-        };
-      },
-      { running: 0, series: [] as Point[] }
-    );
+    let running = 0;
+    const series: Point[] = [
+      { day: new Date(windowStart).toISOString().slice(11, 16), value: 0 },
+    ];
+    for (const entry of settledTxsInWindow) {
+      running += getNetSatForTx(entry.tx);
+      series.push({
+        day: new Date(entry.timestamp).toISOString().slice(11, 16),
+        value: running,
+      });
+    }
+    if (series.length === 1 || running !== netFlows7d) {
+      series.push({
+        day: new Date(now).toISOString().slice(11, 16),
+        value: netFlows7d,
+      });
+    }
     return series;
   })();
 
