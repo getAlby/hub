@@ -276,9 +276,9 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return errors.New("invalid password")
 	}
 
-	err = svc.cfg.Unlock(encryptionKey)
+	err = svc.cfg.LoadJWTSecret(encryptionKey)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to unlock config")
+		logger.Logger.WithError(err).Error("Failed to load JWT secret")
 		return err
 	}
 

@@ -134,7 +134,11 @@ func (cfg *config) GetJWTSecret() (string, error) {
 	return cfg.jwtSecret, nil
 }
 
-func (cfg *config) Unlock(encryptionKey string) error {
+func (cfg *config) LoadJWTSecret(encryptionKey string) error {
+	if cfg.jwtSecret != "" {
+		return nil
+	}
+
 	if !cfg.CheckUnlockPassword(encryptionKey) {
 		return errors.New("incorrect password")
 	}
