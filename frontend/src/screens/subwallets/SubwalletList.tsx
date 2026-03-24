@@ -77,7 +77,7 @@ export function SubwalletList() {
     subwalletTotalAmount <= balances.lightning.totalSpendable;
 
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-3">
       <AppHeader
         title="Sub-wallets"
         description="Create sub-wallets for yourself, friends, family or coworkers"
@@ -146,7 +146,7 @@ export function SubwalletList() {
         </Alert>
       )}
 
-      <div className="flex flex-col sm:flex-row flex-wrap gap-4 slashed-zero">
+      <div className="flex flex-col sm:flex-row flex-wrap gap-3 slashed-zero">
         <Card className="flex flex-1 flex-col">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">
@@ -193,7 +193,7 @@ export function SubwalletList() {
         <h3 className="font-semibold text-2xl mb-4">Managed Sub-wallets</h3>
         <div
           ref={appsListRef}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list"
+          className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch"
         >
           {subwalletApps.map((app, index) => (
             <AppCard key={index} app={app} />
