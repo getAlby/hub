@@ -105,18 +105,6 @@ func NewSwapsService(ctx context.Context, db *gorm.DB, cfg config.Config, keys k
 	boltzApi := &boltz.Api{URL: cfg.GetEnv().BoltzApi}
 	boltzWs := boltzApi.NewWebsocket()
 
-	for {
-		err := boltzWs.Connect()
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to connect to boltz websocket, retrying in 2s...")
-			time.Sleep(2 * time.Second)
-			continue
-		}
-		break
-	}
-
-	logger.Logger.Info("Connected to boltz websocket")
-
 	svc := &swapsService{
 		ctx:                 ctx,
 		cfg:                 cfg,
