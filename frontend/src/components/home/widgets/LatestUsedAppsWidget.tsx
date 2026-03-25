@@ -22,7 +22,7 @@ export function LatestUsedAppsWidget() {
   }
 
   return (
-    <Card className="overflow-hidden rounded-[14px] shadow-none">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div>Recently Used Apps</div>
