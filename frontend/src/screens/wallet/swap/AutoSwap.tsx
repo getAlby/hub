@@ -2,6 +2,7 @@ import {
   ArrowDownUpIcon,
   ClipboardPasteIcon,
   ClockIcon,
+  CopyIcon,
   MoveRightIcon,
   XCircleIcon,
 } from "lucide-react";
@@ -28,6 +29,7 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useAutoSwapsConfig, useSwapInfo } from "src/hooks/useSwaps";
+import { copyToClipboard } from "src/lib/clipboard";
 import { AutoSwapConfig } from "src/types";
 import { request } from "src/utils/request";
 
@@ -419,8 +421,16 @@ function ActiveSwapOutConfig({ swapConfig }: { swapConfig: AutoSwapConfig }) {
         </div>
         <div className="flex justify-between items-center gap-2">
           <div className="font-medium">Destination</div>
-          <div className="truncate text-muted-foreground text-right">
-            {swapConfig.destination || "On-chain Balance"}
+          <div className="flex min-w-0 items-center justify-end gap-2 text-muted-foreground">
+            <div className="truncate text-right">
+              {swapConfig.destination || "On-chain Balance"}
+            </div>
+            {swapConfig.destination && (
+              <CopyIcon
+                className="cursor-pointer size-4 shrink-0"
+                onClick={() => copyToClipboard(swapConfig.destination)}
+              />
+            )}
           </div>
         </div>
         <div className="flex justify-between items-center gap-2">
