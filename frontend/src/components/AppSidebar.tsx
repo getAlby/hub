@@ -20,10 +20,7 @@ import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import ExternalLink from "src/components/ExternalLink";
 import { AlbyIcon } from "src/components/icons/Alby";
 import { AlbyHubIcon } from "src/components/icons/AlbyHubIcon";
-import {
-  AlbyHubLogo,
-  HUB_LOGO_HEIGHT_SIDEBAR_PX,
-} from "src/components/icons/AlbyHubLogo";
+import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
 import { ProBadge } from "src/components/ProBadge";
 import SidebarHint from "src/components/SidebarHint";
 import {
@@ -130,12 +127,7 @@ export function AppSidebar() {
       <SidebarHeader>
         <div className="p-2 flex flex-row items-center justify-between">
           <Link to="/home" onClick={() => setOpenMobile(false)}>
-            <AlbyHubLogo
-              style={{
-                height: `${HUB_LOGO_HEIGHT_SIDEBAR_PX}px`,
-                width: "auto",
-              }}
-            />
+            <AlbyHubLogo className="h-7" />
           </Link>
           <div className="flex gap-3 items-center">
             <HealthIndicator />

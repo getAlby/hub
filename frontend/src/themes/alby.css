@@ -7,6 +7,8 @@
 
 .theme-alby {
   --app-font-sans: "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
+  --logo-ink: #202020;
+  --logo-accent: #ffc800;
   --radius: 0.875rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -77,6 +79,8 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --logo-ink: #ffffff;
+  --logo-accent: #ffe480;
 }
 
 /*
