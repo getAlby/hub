@@ -92,7 +92,7 @@ export default function SuggestedApps() {
             return (
               <div key={categoryId} className="pt-4">
                 <h3 className="font-semibold text-xl">{category.title}</h3>
-                <div className="grid md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
+                <div className="grid md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 mt-4">
                   {appStoreApps
                     .filter((app) =>
                       (app.categories as string[]).includes(categoryId)
