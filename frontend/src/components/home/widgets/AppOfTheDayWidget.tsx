@@ -39,7 +39,7 @@ export function AppOfTheDayWidget() {
           <img
             src={app.logo}
             alt={`${app.title} logo`}
-            className="size-[60px] rounded-[9px] object-cover"
+            className="size-15 rounded-lg object-cover"
           />
           <div className="min-w-0 flex-1">
             <p className="truncate text-base font-semibold text-foreground">
