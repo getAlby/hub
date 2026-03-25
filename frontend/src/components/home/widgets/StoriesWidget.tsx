@@ -15,6 +15,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from "src/components/ui/dialog";
+import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";
 
 const STORIES_VIEWED_STORAGE_KEY = "alby-hub-home-stories-viewed";
@@ -24,7 +25,40 @@ type Story = {
   title: string;
   avatar: string;
   videoUrl?: string;
+  kind?: "update" | "alby-go" | "alby-extension";
 };
+
+type StoryAction = {
+  label: string;
+  url: string;
+  openInNewTab: boolean;
+};
+
+const previewStories: Story[] = [
+  {
+    id: "preview-update",
+    title: "Hub Update",
+    avatar:
+      "https://uploads.getalby-assets.com/images/alby_hub_profile_picture.png",
+    videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    kind: "update",
+  },
+  {
+    id: "preview-alby-go",
+    title: "Alby Go",
+    avatar: "https://uploads.getalby-assets.com/images/alby-go.jpg",
+    videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    kind: "alby-go",
+  },
+  {
+    id: "preview-extension",
+    title: "Alby Extension",
+    avatar:
+      "https://uploads.getalby-assets.com/images/alby_extension_profile_picture.png",
+    videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    kind: "alby-extension",
+  },
+];
 
 function loadViewedStoryIds(): Set<string> {
   try {
@@ -97,12 +131,60 @@ function StoryAvatar({ story, viewed }: { story: Story; viewed: boolean }) {
   );
 }
 
+function normalizeStoryKind(story: Story): Story["kind"] | undefined {
+  if (story.kind) {
+    return story.kind;
+  }
+
+  const normalized = story.title.toLowerCase();
+  if (normalized.includes("alby go")) {
+    return "alby-go";
+  }
+  if (normalized.includes("extension")) {
+    return "alby-extension";
+  }
+  if (normalized.includes("update")) {
+    return "update";
+  }
+  return undefined;
+}
+
+function getStoryAction(
+  story: Story,
+  hubVersion?: string
+): StoryAction | undefined {
+  const kind = normalizeStoryKind(story);
+  if (kind === "update") {
+    return {
+      label: "Update Alby Hub",
+      url: `https://getalby.com/update/hub?version=${encodeURIComponent(hubVersion || "")}`,
+      openInNewTab: true,
+    };
+  }
+  if (kind === "alby-go") {
+    return {
+      label: "Open Alby Go",
+      url: "/appstore/alby-go",
+      openInNewTab: false,
+    };
+  }
+  if (kind === "alby-extension") {
+    return {
+      label: "Install Alby Extension",
+      url: "https://getalby.com/alby-extension",
+      openInNewTab: true,
+    };
+  }
+  return undefined;
+}
+
 export function StoriesWidget() {
   const [stories, setStories] = React.useState<Story[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [activeStory, setActiveStory] = React.useState<Story | null>(null);
   const [viewedIds, setViewedIds] =
     React.useState<Set<string>>(loadViewedStoryIds);
+  const { data: info } = useInfo();
 
   React.useEffect(() => {
     const loadStories = async () => {
@@ -122,10 +204,11 @@ export function StoriesWidget() {
           title: story.title,
           avatar: story.avatar,
           videoUrl: story.videoUrl,
+          kind: (story as { kind?: Story["kind"] }).kind,
         }));
         setStories(mappedStories);
       } catch {
-        setStories([]);
+        setStories(previewStories);
       } finally {
         setIsLoading(false);
       }
@@ -240,6 +323,30 @@ export function StoriesWidget() {
 
               {activeStory.videoUrl && (
                 <div className="flex items-center justify-end gap-3 px-5 py-4">
+                  {(() => {
+                    const action = getStoryAction(activeStory, info?.version);
+                    if (!action) {
+                      return null;
+                    }
+                    if (action.openInNewTab) {
+                      return (
+                        <ExternalLink
+                          to={action.url}
+                          className="inline-flex h-9 items-center rounded-md border border-white/15 px-4 text-sm font-medium text-white transition-colors hover:bg-white/10"
+                        >
+                          {action.label}
+                        </ExternalLink>
+                      );
+                    }
+                    return (
+                      <a
+                        href={action.url}
+                        className="inline-flex h-9 items-center rounded-md border border-white/15 px-4 text-sm font-medium text-white transition-colors hover:bg-white/10"
+                      >
+                        {action.label}
+                      </a>
+                    );
+                  })()}
                   <ExternalLink
                     to={activeStory.videoUrl}
                     className="inline-flex h-9 items-center rounded-md border border-white/15 px-4 text-sm font-medium text-white transition-colors hover:bg-white/10"
