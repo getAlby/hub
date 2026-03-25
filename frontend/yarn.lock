@@ -1224,6 +1224,11 @@
   resolved "https://registry.yarnpkg.com/@fontsource-variable/figtree/-/figtree-5.2.10.tgz#ad72d1b91646918073108e06464974d4f132b878"
   integrity sha512-a5Gumbpy3mdd+Yg31g6Qb7CmjYbrfyutJa3bWfP5q8A4GclIOwX7mI+ZuSHsJnw/mHvW6r9oh1AHJcJTIxK4JA==
 
+"@fontsource-variable/inter@^5.2.8":
+  version "5.2.8"
+  resolved "https://registry.yarnpkg.com/@fontsource-variable/inter/-/inter-5.2.8.tgz#29b11476f5149f6a443b4df6516e26002d87941a"
+  integrity sha512-kOfP2D+ykbcX/P3IFnokOhVRNoTozo5/JxhAIVYLpea/UBmCQ/YWPBfWIDuBImXX/15KH+eKh4xpEUyS2sQQGQ==
+
 "@getalby/lightning-tools@^6.0.0":
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/@getalby/lightning-tools/-/lightning-tools-6.0.0.tgz#07c19cdf29ed8e3d51f125fba780d31a29ba0864"
