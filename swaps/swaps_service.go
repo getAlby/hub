@@ -37,23 +37,25 @@ import (
 type Swap = db.Swap
 
 type swapsService struct {
-	autoSwapOutCancelFn context.CancelFunc
-	db                  *gorm.DB
-	ctx                 context.Context
-	lnClient            lnclient.LNClient
-	cfg                 config.Config
-	keys                keys.Keys
-	eventPublisher      events.EventPublisher
-	transactionsService transactions.TransactionsService
-	boltzApi            *boltz.Api
-	boltzWs             *boltz.Websocket
-	swapListeners       map[string]chan boltz.SwapUpdate
-	swapListenersLock   sync.Mutex
+	autoSwapOutCancelFn      context.CancelFunc
+	db                       *gorm.DB
+	ctx                      context.Context
+	lnClient                 lnclient.LNClient
+	cfg                      config.Config
+	keys                     keys.Keys
+	eventPublisher           events.EventPublisher
+	transactionsService      transactions.TransactionsService
+	boltzApi                 *boltz.Api
+	boltzWs                  *boltz.Websocket
+	swapListeners            map[string]chan boltz.SwapUpdate
+	swapListenersLock        sync.Mutex
+	autoSwapOutXpubLock      sync.Mutex
+	autoSwapOutDecryptedXpub string
 }
 
 type SwapsService interface {
 	StopAutoSwapOut()
-	EnableAutoSwapOut() error
+	EnableAutoSwapOut(encryptionKey string) error
 	SwapOut(amount uint64, destination string, autoSwap, usedXpubDerivation bool) (*SwapResponse, error)
 	SwapIn(amount uint64, autoSwap bool) (*SwapResponse, error)
 	GetSwapOutInfo() (*SwapInfo, error)
@@ -61,6 +63,9 @@ type SwapsService interface {
 	RefundSwap(swapId, address string, enableRetries bool) error
 	GetSwap(swapId string) (*Swap, error)
 	ListSwaps() ([]Swap, error)
+	GetDecryptedAutoSwapXpub() string
+	ValidateAddress(address string) error
+	ValidateXpub(xpub string) error
 }
 
 const (
@@ -101,7 +106,7 @@ type SwapResponse struct {
 }
 
 func NewSwapsService(ctx context.Context, db *gorm.DB, cfg config.Config, keys keys.Keys, eventPublisher events.EventPublisher,
-	lnClient lnclient.LNClient, transactionsService transactions.TransactionsService) SwapsService {
+	lnClient lnclient.LNClient, transactionsService transactions.TransactionsService, encryptionKey string) SwapsService {
 	boltzApi := &boltz.Api{URL: cfg.GetEnv().BoltzApi}
 	boltzWs := boltzApi.NewWebsocket()
 
@@ -137,7 +142,7 @@ func NewSwapsService(ctx context.Context, db *gorm.DB, cfg config.Config, keys k
 		}
 	}()
 
-	err := svc.EnableAutoSwapOut()
+	err := svc.EnableAutoSwapOut(encryptionKey)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Couldn't enable auto swaps")
 	}
@@ -153,13 +158,28 @@ func (svc *swapsService) StopAutoSwapOut() {
 		svc.autoSwapOutCancelFn()
 		logger.Logger.Info("Auto swap out service stopped")
 	}
+	svc.autoSwapOutXpubLock.Lock()
+	svc.autoSwapOutDecryptedXpub = ""
+	svc.autoSwapOutXpubLock.Unlock()
 }
 
-func (svc *swapsService) EnableAutoSwapOut() error {
+func (svc *swapsService) EnableAutoSwapOut(encryptionKey string) error {
 	svc.StopAutoSwapOut()
 
 	ctx, cancelFn := context.WithCancel(svc.ctx)
-	swapDestination, _ := svc.cfg.Get(config.AutoSwapDestinationKey, "")
+	svc.autoSwapOutXpubLock.Lock()
+	svc.autoSwapOutDecryptedXpub = ""
+	svc.autoSwapOutXpubLock.Unlock()
+
+	swapDestination, _ := svc.cfg.Get(config.AutoSwapDestinationKey, encryptionKey)
+	if swapDestination != "" {
+		if err := svc.ValidateXpub(swapDestination); err == nil {
+			svc.autoSwapOutXpubLock.Lock()
+			svc.autoSwapOutDecryptedXpub = swapDestination
+			svc.autoSwapOutXpubLock.Unlock()
+		}
+	}
+
 	balanceThresholdStr, _ := svc.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
 	amountStr, _ := svc.cfg.Get(config.AutoSwapAmountKey, "")
 
@@ -202,15 +222,17 @@ func (svc *swapsService) EnableAutoSwapOut() error {
 
 				actualDestination := swapDestination
 				var usedXpubDerivation bool
-				if swapDestination != "" {
-					if err := svc.validateXpub(swapDestination); err == nil {
-						actualDestination, err = svc.getNextUnusedAddressFromXpub()
-						if err != nil {
-							logger.Logger.WithError(err).Error("Failed to get next address from xpub")
-							continue
-						}
-						usedXpubDerivation = true
+				// Check if we have a decrypted XPUB in memory
+				svc.autoSwapOutXpubLock.Lock()
+				hasDecryptedXpub := svc.autoSwapOutDecryptedXpub != ""
+				svc.autoSwapOutXpubLock.Unlock()
+				if hasDecryptedXpub {
+					actualDestination, err = svc.getNextUnusedAddressFromXpub()
+					if err != nil {
+						logger.Logger.WithError(err).Error("Failed to get next address from xpub")
+						continue
 					}
+					usedXpubDerivation = true
 				}
 
 				logger.Logger.WithFields(logrus.Fields{
@@ -1428,7 +1450,7 @@ func (svc *swapsService) bumpAutoswapXpubIndex(swapId uint) {
 	}).Info("Updated xpub index start for swap address")
 }
 
-func (svc *swapsService) deriveAddressFromXpub(xpub string, index uint32) (string, error) {
+func (svc *swapsService) getChainParams() (*chaincfg.Params, error) {
 	var netParams *chaincfg.Params
 	switch svc.cfg.GetNetwork() {
 	case "bitcoin", "mainnet":
@@ -1440,7 +1462,16 @@ func (svc *swapsService) deriveAddressFromXpub(xpub string, index uint32) (strin
 	case "signet":
 		netParams = &chaincfg.SigNetParams
 	default:
-		return "", fmt.Errorf("unsupported network: %s", svc.cfg.GetNetwork())
+		return nil, fmt.Errorf("unsupported network: %s", svc.cfg.GetNetwork())
+	}
+
+	return netParams, nil
+}
+
+func (svc *swapsService) deriveAddressFromXpub(xpub string, index uint32) (string, error) {
+	netParams, err := svc.getChainParams()
+	if err != nil {
+		return "", err
 	}
 
 	extPubKey, err := hdkeychain.NewKeyFromString(xpub)
@@ -1487,13 +1518,12 @@ func (svc *swapsService) checkAddressHasTransactions(address string, esploraApiR
 }
 
 func (svc *swapsService) getNextUnusedAddressFromXpub() (string, error) {
-	destination, _ := svc.cfg.Get(config.AutoSwapDestinationKey, "")
+	// Use the decrypted XPUB from memory (already decrypted during EnableAutoSwapOut)
+	svc.autoSwapOutXpubLock.Lock()
+	destination := svc.autoSwapOutDecryptedXpub
+	svc.autoSwapOutXpubLock.Unlock()
 	if destination == "" {
-		return "", errors.New("no destination configured")
-	}
-
-	if err := svc.validateXpub(destination); err != nil {
-		return "", errors.New("destination is not a valid XPUB")
+		return "", errors.New("no XPUB configured")
 	}
 
 	indexStr, err := svc.cfg.Get(config.AutoSwapXpubIndexStart, "")
@@ -1559,10 +1589,36 @@ func (svc *swapsService) getNextUnusedAddressFromXpub() (string, error) {
 	return "", fmt.Errorf("could not find unused address within %d addresses starting from index %d", addressLookAheadLimit, index)
 }
 
-func (svc *swapsService) validateXpub(xpub string) error {
-	_, err := hdkeychain.NewKeyFromString(xpub)
+func (svc *swapsService) ValidateAddress(address string) error {
+	netParams, err := svc.getChainParams()
+	if err != nil {
+		return err
+	}
+
+	_, err = btcutil.DecodeAddress(address, netParams)
+	if err != nil {
+		return fmt.Errorf("invalid bitcoin address: %w", err)
+	}
+
+	return nil
+}
+
+func (svc *swapsService) ValidateXpub(xpub string) error {
+	extendedKey, err := hdkeychain.NewKeyFromString(xpub)
 	if err != nil {
 		return fmt.Errorf("invalid xpub: %w", err)
 	}
+
+	if extendedKey.IsPrivate() {
+		return fmt.Errorf("private extended key not allowed")
+	}
+
 	return nil
+}
+
+func (svc *swapsService) GetDecryptedAutoSwapXpub() string {
+	svc.autoSwapOutXpubLock.Lock()
+	defer svc.autoSwapOutXpubLock.Unlock()
+
+	return svc.autoSwapOutDecryptedXpub
 }
