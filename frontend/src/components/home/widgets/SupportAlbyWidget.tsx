@@ -30,7 +30,7 @@ export function SupportAlbyWidget() {
   }
 
   return (
-    <Card className="overflow-hidden rounded-[14px] shadow-none">
+    <Card>
       <CardHeader className="px-6 pb-0">
         <CardTitle className="text-base font-semibold">
           Support Open Source
