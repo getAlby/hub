@@ -6,7 +6,7 @@
 /* Use generalized selector (:root, .dark) here because all themes 
    should fall back to these values */
 :root {
-  --app-font-sans: "Inter var", serif;
+  --app-font-sans: "Inter var", ui-sans-serif, system-ui, sans-serif;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
