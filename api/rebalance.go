@@ -84,7 +84,7 @@ func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *R
 		return nil, errors.New("failed to read response body")
 	}
 
-	if res.StatusCode >= 300 {
+	if res.StatusCode != http.StatusOK {
 		logger.Logger.WithFields(logrus.Fields{
 			"request":    newRspCreateOrderRequest,
 			"body":       string(body),

@@ -40,6 +40,9 @@ function Settings() {
     async function fetchCurrencies() {
       try {
         const response = await fetch(`https://getalby.com/api/rates`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch currencies: ${response.status}`);
+        }
         const data: Record<string, { name: string }> = await response.json();
 
         const mappedCurrencies: [string, string][] = Object.entries(data).map(

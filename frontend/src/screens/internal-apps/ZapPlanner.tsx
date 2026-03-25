@@ -126,6 +126,9 @@ export function ZapPlanner() {
     async function fetchCurrencies() {
       try {
         const res = await fetch("https://getalby.com/api/rates");
+        if (!res.ok) {
+          throw new Error(`Failed to load currencies: ${res.status}`);
+        }
         const data: Record<string, { name: string; priority: number }> =
           await res.json();
         const fiatCodes = Object.keys(data)
