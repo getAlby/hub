@@ -5,29 +5,12 @@ import {
   OctagonXIcon,
   TriangleAlertIcon,
 } from "lucide-react";
-import * as React from "react";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
-
-/** Sync with Hub `ThemeProvider` (`.dark` on `document.documentElement`), not next-themes. */
-function useDocumentDarkTheme(): ToasterProps["theme"] {
-  const [theme, setTheme] = React.useState<ToasterProps["theme"]>("light");
-
-  React.useEffect(() => {
-    const el = document.documentElement;
-    const sync = () => {
-      setTheme(el.classList.contains("dark") ? "dark" : "light");
-    };
-    sync();
-    const observer = new MutationObserver(sync);
-    observer.observe(el, { attributes: true, attributeFilter: ["class"] });
-    return () => observer.disconnect();
-  }, []);
-
-  return theme;
-}
+import { useTheme } from "./theme-provider";
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const theme = useDocumentDarkTheme();
+  const { isDarkMode } = useTheme();
+  const theme: ToasterProps["theme"] = isDarkMode ? "dark" : "light";
 
   return (
     <Sonner
