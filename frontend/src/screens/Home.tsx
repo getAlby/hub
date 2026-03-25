@@ -29,7 +29,6 @@ import { LightningMessageboardWidget } from "src/components/home/widgets/Lightni
 import { NodeStatusWidget } from "src/components/home/widgets/NodeStatusWidget";
 import { OnchainFeesWidget } from "src/components/home/widgets/OnchainFeesWidget";
 import { SupportAlbyWidget } from "src/components/home/widgets/SupportAlbyWidget";
-import { WhatsNewWidget } from "src/components/home/widgets/WhatsNewWidget";
 import { SearchInput } from "src/components/ui/search-input";
 
 function getGreeting(name: string | undefined) {
@@ -69,7 +68,6 @@ function Home() {
         {/* LEFT */}
         <div className="grid gap-3">
           <OnboardingChecklist />
-          <WhatsNewWidget />
           <SupportAlbyWidget />
           {info.albyAccountConnected && (
             <ExternalLink to="https://www.getalby.com/dashboard">
