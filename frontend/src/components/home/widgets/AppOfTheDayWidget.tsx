@@ -25,7 +25,7 @@ export function AppOfTheDayWidget() {
   const app = apps[todayIndex];
 
   return (
-    <Card className="overflow-hidden rounded-[14px] shadow-none">
+    <Card>
       <CardHeader className="px-6 pb-0">
         <CardTitle className="text-base font-semibold">
           App of the Day
