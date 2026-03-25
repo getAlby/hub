@@ -716,6 +716,10 @@ func (api *api) GetChannelPeerSuggestions(ctx context.Context) ([]alby.ChannelPe
 	return api.albySvc.GetChannelPeerSuggestions(ctx)
 }
 
+func (api *api) GetStories(ctx context.Context) ([]alby.Story, error) {
+	return api.albyOAuthSvc.GetStories(ctx)
+}
+
 func (api *api) GetLSPChannelOffer(ctx context.Context) (*alby.LSPChannelOffer, error) {
 	return api.albyOAuthSvc.GetLSPChannelOffer(ctx)
 }
