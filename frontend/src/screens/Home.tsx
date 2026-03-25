@@ -22,6 +22,7 @@ import React from "react";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
 import zapplanner from "src/assets/suggested-apps/zapplanner.png";
 import { AppOfTheDayWidget } from "src/components/home/widgets/AppOfTheDayWidget";
+import { AlbyBlogWidget } from "src/components/home/widgets/AlbyBlogWidget";
 import { BlockHeightWidget } from "src/components/home/widgets/BlockHeightWidget";
 import { ForwardsWidget } from "src/components/home/widgets/ForwardsWidget";
 import { LatestUsedAppsWidget } from "src/components/home/widgets/LatestUsedAppsWidget";
@@ -162,6 +163,7 @@ function Home() {
         {/* RIGHT */}
         <div className="grid gap-3">
           <LatestUsedAppsWidget />
+          <AlbyBlogWidget />
           <LightningMessageboardWidget />
           <AppOfTheDayWidget />
 
