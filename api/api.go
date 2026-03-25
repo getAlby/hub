@@ -810,19 +810,16 @@ func (api *api) RefundSwap(refundSwapRequest *RefundSwapRequest) error {
 }
 
 func (api *api) GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error) {
-	swapOutBalanceThresholdStr, _ := api.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
-	swapOutAmountStr, _ := api.cfg.Get(config.AutoSwapAmountKey, "")
-
-	swapOutDestination := ""
-	if api.svc.GetSwapsService() != nil {
-		decryptedXpub := api.svc.GetSwapsService().GetDecryptedAutoSwapXpub()
-		if decryptedXpub != "" {
-			swapOutDestination = decryptedXpub
-		}
+	if api.svc.GetSwapsService() == nil {
+		return nil, errors.New("SwapsService not started")
 	}
 
-	if swapOutDestination == "" {
-		swapOutDestination, _ = api.cfg.Get(config.AutoSwapDestinationKey, "")
+	swapOutBalanceThresholdStr, _ := api.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
+	swapOutAmountStr, _ := api.cfg.Get(config.AutoSwapAmountKey, "")
+	swapOutDestination, _ := api.cfg.Get(config.AutoSwapDestinationKey, "")
+
+	if xpub := api.svc.GetSwapsService().GetDecryptedAutoSwapXpub(); xpub != "" {
+		swapOutDestination = xpub
 	}
 
 	swapOutEnabled := swapOutBalanceThresholdStr != "" && swapOutAmountStr != ""
@@ -995,6 +992,10 @@ func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *Initi
 }
 
 func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *EnableAutoSwapRequest) error {
+	if api.svc.GetSwapsService() == nil {
+		return errors.New("SwapsService not started")
+	}
+
 	err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, strconv.FormatUint(enableAutoSwapsRequest.BalanceThreshold, 10), "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save autoswap balance threshold to config")
@@ -1007,17 +1008,13 @@ func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *E
 		return err
 	}
 
-	if api.svc.GetSwapsService() == nil {
-		return errors.New("SwapsService not started")
-	}
-
 	encryptionKey := ""
 	if enableAutoSwapsRequest.Destination != "" {
-
-		if err := api.svc.GetSwapsService().ValidateXpub(enableAutoSwapsRequest.Destination); err == nil {
-			if enableAutoSwapsRequest.UnlockPassword == "" {
-				return errors.New("unlock password is required when using an xpub as destination")
-			}
+		isXpub, err := api.svc.GetSwapsService().ParseSwapDestination(enableAutoSwapsRequest.Destination)
+		if err != nil {
+			return err
+		}
+		if isXpub {
 			if !api.cfg.CheckUnlockPassword(enableAutoSwapsRequest.UnlockPassword) {
 				return errors.New("invalid unlock password")
 			}

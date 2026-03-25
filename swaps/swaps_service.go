@@ -63,7 +63,7 @@ type SwapsService interface {
 	GetSwap(swapId string) (*Swap, error)
 	ListSwaps() ([]Swap, error)
 	GetDecryptedAutoSwapXpub() string
-	ValidateXpub(xpub string) error
+	ParseSwapDestination(destination string) (bool, error)
 }
 
 const (
@@ -176,11 +176,15 @@ func (svc *swapsService) EnableAutoSwapOut(encryptionKey string) error {
 	ctx, cancelFn := context.WithCancel(svc.ctx)
 
 	swapDestination, _ := svc.cfg.Get(config.AutoSwapDestinationKey, encryptionKey)
-
-	if swapDestination != "" && svc.ValidateXpub(swapDestination) == nil {
-		svc.autoSwapOutDecryptedXpub = swapDestination
-	} else {
-		svc.autoSwapOutDecryptedXpub = "" // Not an XPUB or empty
+	if swapDestination != "" {
+		isXpub, err := svc.ParseSwapDestination(swapDestination)
+		if err != nil {
+			cancelFn()
+			return err
+		}
+		if isXpub {
+			svc.autoSwapOutDecryptedXpub = swapDestination
+		}
 	}
 
 	balanceThresholdStr, _ := svc.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
@@ -1506,10 +1510,6 @@ func (svc *swapsService) getNextUnusedAddressFromXpub() (string, error) {
 		return "", errors.New("no XPUB configured")
 	}
 
-	if err := svc.ValidateXpub(destination); err != nil {
-		return "", errors.New("destination is not a valid XPUB")
-	}
-
 	indexStr, err := svc.cfg.Get(config.AutoSwapXpubIndexStart, "")
 	if err != nil {
 		return "", err
@@ -1573,17 +1573,17 @@ func (svc *swapsService) getNextUnusedAddressFromXpub() (string, error) {
 	return "", fmt.Errorf("could not find unused address within %d addresses starting from index %d", addressLookAheadLimit, index)
 }
 
-func (svc *swapsService) ValidateXpub(xpub string) error {
-	extendedKey, err := hdkeychain.NewKeyFromString(xpub)
+func (svc *swapsService) ParseSwapDestination(destination string) (isXpub bool, err error) {
+	extendedKey, err := hdkeychain.NewKeyFromString(destination)
 	if err != nil {
-		return fmt.Errorf("invalid xpub: %w", err)
+		return false, nil
 	}
 
 	if extendedKey.IsPrivate() {
-		return fmt.Errorf("private extended key not allowed")
+		return true, fmt.Errorf("private extended key not allowed")
 	}
 
-	return nil
+	return true, nil
 }
 
 func (svc *swapsService) GetDecryptedAutoSwapXpub() string {

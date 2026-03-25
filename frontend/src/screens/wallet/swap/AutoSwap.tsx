@@ -27,7 +27,6 @@ import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
-import { useBalances } from "src/hooks/useBalances";
 import { useAutoSwapsConfig, useSwapInfo } from "src/hooks/useSwaps";
 import { AutoSwapConfig } from "src/types";
 import { request } from "src/utils/request";
@@ -64,7 +63,6 @@ export default function AutoSwap() {
 }
 
 function AutoSwapOutForm() {
-  const { data: balances } = useBalances();
   const { mutate } = useAutoSwapsConfig();
   const { data: swapInfo } = useSwapInfo("out");
 
@@ -80,35 +78,30 @@ function AutoSwapOutForm() {
     useState(false);
   const [loading, setLoading] = useState(false);
 
-  const isXpub = externalType === "xpub" && !isInternalSwap;
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  const submitAutoSwap = async (password?: string) => {
-    const swapAmountNum = Number(swapAmount);
-    const balanceThresholdNum = Number(balanceThreshold);
-
-    if (
-      !Number.isFinite(swapAmountNum) ||
-      !Number.isFinite(balanceThresholdNum)
-    ) {
-      toast.error("Invalid amount", {
-        description:
-          "Please enter valid numeric values for swap amount and balance threshold",
-      });
-      return;
-    }
-
-    if (!(swapAmountNum <= balanceThresholdNum)) {
+    if (Number(swapAmount) > Number(balanceThreshold)) {
       toast.info(
         "Balance threshold must be greater than or equal to swap amount"
       );
       return;
     }
 
-    if (isXpub && !password) {
+    if (externalType === "xpub" && !isInternalSwap) {
       setShowUnlockPasswordDialog(true);
       return;
     }
 
+    await submitAutoSwap();
+  };
+
+  const onConfirmUnlockPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await submitAutoSwap(unlockPassword);
+  };
+
+  const submitAutoSwap = async (password?: string) => {
     try {
       setLoading(true);
       await request("/api/autoswap", {
@@ -117,15 +110,15 @@ function AutoSwapOutForm() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          swapAmount: swapAmountNum,
-          balanceThreshold: balanceThresholdNum,
+          swapAmount: parseInt(swapAmount),
+          balanceThreshold: parseInt(balanceThreshold),
           destination,
-          unlockPassword: isXpub ? password : undefined,
+          unlockPassword: password,
         }),
       });
-      toast("Auto swap enabled successfully");
       setUnlockPassword("");
       setShowUnlockPasswordDialog(false);
+      toast("Auto swap enabled successfully");
       await mutate();
     } catch (error) {
       toast("Failed to save auto swap settings", {
@@ -136,18 +129,12 @@ function AutoSwapOutForm() {
     }
   };
 
-  const onSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    await submitAutoSwap(unlockPassword);
-  };
-
   const paste = async () => {
     const text = await navigator.clipboard.readText();
     setDestination(text.trim());
   };
 
-  if (!balances || !swapInfo) {
+  if (!swapInfo) {
     return <Loading />;
   }
 
@@ -202,7 +189,6 @@ function AutoSwapOutForm() {
         <div className="flex flex-col gap-4">
           <Label>Swap to</Label>
           <RadioGroup
-            defaultValue="normal"
             value={isInternalSwap ? "internal" : "external"}
             onValueChange={() => {
               setDestination("");
@@ -311,28 +297,18 @@ function AutoSwapOutForm() {
               <p className="text-xs text-muted-foreground">
                 {externalType === "address"
                   ? "Enter a Bitcoin address to receive swapped funds"
-                  : "Enter an XPUB to automatically generate new addresses for each swap"}
+                  : "Enter an XPUB to automatically generate new addresses for each swap. You will be asked to enter your unlock password to encrypt it safely"}
               </p>
             </div>
-            {externalType === "xpub" && (
-              <p className="text-xs text-muted-foreground">
-                You will be asked to enter your unlock password when enabling
-                auto swap.
-              </p>
-            )}
           </div>
         )}
 
         <div className="flex items-center justify-between border-t pt-4">
           <Label>Fee</Label>
-          {swapInfo ? (
-            <p className="text-muted-foreground text-sm">
-              {swapInfo.albyServiceFee + swapInfo.boltzServiceFee}% + on-chain
-              fees
-            </p>
-          ) : (
-            <Loading />
-          )}
+          <p className="text-muted-foreground text-sm">
+            {swapInfo.albyServiceFee + swapInfo.boltzServiceFee}% + on-chain
+            fees
+          </p>
         </div>
         <div className="grid gap-1">
           <LoadingButton className="w-full" loading={loading}>
@@ -359,12 +335,7 @@ function AutoSwapOutForm() {
         }}
       >
         <AlertDialogContent>
-          <form
-            onSubmit={(e: React.FormEvent) => {
-              e.preventDefault();
-              void submitAutoSwap(unlockPassword);
-            }}
-          >
+          <form onSubmit={onConfirmUnlockPassword}>
             <AlertDialogHeader>
               <AlertDialogTitle>Confirm Auto Swap Setup</AlertDialogTitle>
               <AlertDialogDescription>
@@ -448,9 +419,7 @@ function ActiveSwapOutConfig({ swapConfig }: { swapConfig: AutoSwapConfig }) {
         <div className="flex justify-between items-center gap-2">
           <div className="font-medium">Destination</div>
           <div className="truncate text-muted-foreground text-right">
-            {swapConfig.destination
-              ? swapConfig.destination
-              : "On-chain Balance"}
+            {swapConfig.destination || "On-chain Balance"}
           </div>
         </div>
         <div className="flex justify-between items-center gap-2">
@@ -481,11 +450,7 @@ function ActiveSwapOutConfig({ swapConfig }: { swapConfig: AutoSwapConfig }) {
           )}
         </div>
       </div>
-      <Button
-        onClick={() => onDeactivate()}
-        disabled={loading}
-        variant="outline"
-      >
+      <Button onClick={onDeactivate} disabled={loading} variant="outline">
         <XCircleIcon />
         Deactivate Auto Swap
       </Button>
