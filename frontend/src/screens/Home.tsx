@@ -163,7 +163,6 @@ function Home() {
         {/* RIGHT */}
         <div className="grid gap-3">
           <LatestUsedAppsWidget />
-          <AlbyBlogWidget />
           <LightningMessageboardWidget />
           <AppOfTheDayWidget />
 
@@ -194,6 +193,8 @@ function Home() {
               </CardContent>
             </Card>
           </Link>
+
+          <AlbyBlogWidget />
 
           <Card>
             <CardHeader>
