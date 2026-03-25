@@ -26,6 +26,7 @@ import { BlockHeightWidget } from "src/components/home/widgets/BlockHeightWidget
 import { ForwardsWidget } from "src/components/home/widgets/ForwardsWidget";
 import { LatestUsedAppsWidget } from "src/components/home/widgets/LatestUsedAppsWidget";
 import { LightningMessageboardWidget } from "src/components/home/widgets/LightningMessageboardWidget";
+import { NewArrivalsWidget } from "src/components/home/widgets/NewArrivalsWidget";
 import { NodeStatusWidget } from "src/components/home/widgets/NodeStatusWidget";
 import { OnchainFeesWidget } from "src/components/home/widgets/OnchainFeesWidget";
 import { SupportAlbyWidget } from "src/components/home/widgets/SupportAlbyWidget";
@@ -71,6 +72,7 @@ function Home() {
           <OnboardingChecklist />
           <WhatsNewWidget />
           <SupportAlbyWidget />
+          <NewArrivalsWidget />
           {info.albyAccountConnected && (
             <ExternalLink to="https://www.getalby.com/dashboard">
               <Card>
