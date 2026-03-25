@@ -2,11 +2,11 @@ import { SVGAttributes } from "react";
 import { cn } from "src/lib/utils";
 
 interface AlbyHubLogoProps extends SVGAttributes<SVGElement> {
-  invert?: boolean;
+  monochrome?: boolean;
 }
 
 export function AlbyHubLogo({
-  invert = false,
+  monochrome = false,
   className,
   style,
   ...props
@@ -21,10 +21,10 @@ export function AlbyHubLogo({
       fill="none"
       className={cn("w-auto shrink-0", className)}
       style={
-        invert
+        monochrome
           ? ({
-              "--logo-ink": "#ffffff",
-              "--logo-accent": "#ffe480",
+              "--logo-ink": "currentColor",
+              "--logo-accent": "currentColor",
               ...style,
             } as React.CSSProperties)
           : style
