@@ -2,21 +2,13 @@ import { Link } from "react-router-dom";
 import { isHttpMode } from "src/utils/isHttpMode";
 import { openLink } from "src/utils/openLink";
 
-type Props = React.PropsWithChildren<{
+type Props = {
   to: string;
   className?: string;
-}> &
-  Omit<
-    React.AnchorHTMLAttributes<HTMLAnchorElement>,
-    "href" | "className" | "children"
-  >;
+  children?: React.ReactNode;
+};
 
-export default function ExternalLink({
-  to,
-  className,
-  children,
-  ...rest
-}: Props) {
+export default function ExternalLink({ to, className, children }: Props) {
   const _isHttpMode = isHttpMode();
 
   return _isHttpMode ? (
@@ -25,12 +17,11 @@ export default function ExternalLink({
       target="_blank"
       rel="noreferer noopener"
       className={className}
-      {...rest}
     >
       {children}
     </Link>
   ) : (
-    <span className={className} onClick={() => openLink(to)} {...rest}>
+    <span className={className} onClick={() => openLink(to)}>
       {children}
     </span>
   );
