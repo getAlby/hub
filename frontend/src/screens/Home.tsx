@@ -70,7 +70,6 @@ function Home() {
         <div className="grid gap-3">
           <OnboardingChecklist />
           <WhatsNewWidget />
-          <SupportAlbyWidget />
           {info.albyAccountConnected && (
             <ExternalLink to="https://www.getalby.com/dashboard">
               <Card>
@@ -162,6 +161,7 @@ function Home() {
         {/* RIGHT */}
         <div className="grid gap-3">
           <LatestUsedAppsWidget />
+          <SupportAlbyWidget />
           <LightningMessageboardWidget />
           <AppOfTheDayWidget />
 
