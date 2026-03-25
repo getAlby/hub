@@ -1386,7 +1386,7 @@ type MockLNClient_MakeHoldInvoice_Call struct {
 //   - descriptionHash string
 //   - expiry int64
 //   - paymentHash string
-//   - minCltvExpiryDelta
+//   - minCltvExpiryDelta *uint64
 func (_e *MockLNClient_Expecter) MakeHoldInvoice(ctx interface{}, amount interface{}, description interface{}, descriptionHash interface{}, expiry interface{}, paymentHash interface{}, minCltvExpiryDelta interface{}) *MockLNClient_MakeHoldInvoice_Call {
 	return &MockLNClient_MakeHoldInvoice_Call{Call: _e.mock.On("MakeHoldInvoice", ctx, amount, description, descriptionHash, expiry, paymentHash, minCltvExpiryDelta)}
 }
@@ -1394,7 +1394,6 @@ func (_e *MockLNClient_Expecter) MakeHoldInvoice(ctx interface{}, amount interfa
 func (_c *MockLNClient_MakeHoldInvoice_Call) Run(run func(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64)) *MockLNClient_MakeHoldInvoice_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
-		var minCltvExpiryDelta *uint64
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
@@ -1418,8 +1417,9 @@ func (_c *MockLNClient_MakeHoldInvoice_Call) Run(run func(ctx context.Context, a
 		if args[5] != nil {
 			arg5 = args[5].(string)
 		}
+		var arg6 *uint64
 		if args[6] != nil {
-			minCltvExpiryDelta = args[6].(*uint64)
+			arg6 = args[6].(*uint64)
 		}
 		run(
 			arg0,
@@ -1428,7 +1428,7 @@ func (_c *MockLNClient_MakeHoldInvoice_Call) Run(run func(ctx context.Context, a
 			arg3,
 			arg4,
 			arg5,
-			minCltvExpiryDelta,
+			arg6,
 		)
 	})
 	return _c
