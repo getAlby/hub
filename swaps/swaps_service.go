@@ -174,6 +174,7 @@ func (svc *swapsService) EnableAutoSwapOut(encryptionKey string) error {
 	svc.StopAutoSwapOut()
 
 	ctx, cancelFn := context.WithCancel(svc.ctx)
+	svc.autoSwapOutDecryptedXpub = ""
 
 	swapDestination, _ := svc.cfg.Get(config.AutoSwapDestinationKey, encryptionKey)
 	if swapDestination != "" {
