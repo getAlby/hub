@@ -1,5 +1,4 @@
 import { StarsIcon } from "lucide-react";
-import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
@@ -27,39 +26,39 @@ import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
+import useSWR from "swr";
+
+const albyRatesFetcher = (url: string) =>
+  fetch(url).then((res) => {
+    if (!res.ok) {
+      throw new Error(`Failed to fetch currencies: ${res.status}`);
+    }
+    return res.json() as Promise<Record<string, { name: string }>>;
+  });
 
 function Settings() {
   const { data: albyMe } = useAlbyMe();
   const { theme, darkMode, setTheme, setDarkMode } = useTheme();
 
-  const [fiatCurrencies, setFiatCurrencies] = useState<[string, string][]>([]);
+  const { data: ratesData } = useSWR(
+    "https://getalby.com/api/rates",
+    albyRatesFetcher,
+    {
+      onError: (error) =>
+        handleRequestError("Failed to fetch currencies", error),
+    }
+  );
+
+  const fiatCurrencies: [string, string][] = ratesData
+    ? Object.entries(ratesData)
+        .map(([code, details]): [string, string] => [
+          code.toUpperCase(),
+          details.name,
+        ])
+        .sort((a, b) => a[1].localeCompare(b[1]))
+    : [];
 
   const { data: info, mutate: reloadInfo } = useInfo();
-
-  useEffect(() => {
-    async function fetchCurrencies() {
-      try {
-        const response = await fetch(`https://getalby.com/api/rates`);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch currencies: ${response.status}`);
-        }
-        const data: Record<string, { name: string }> = await response.json();
-
-        const mappedCurrencies: [string, string][] = Object.entries(data).map(
-          ([code, details]) => [code.toUpperCase(), details.name]
-        );
-
-        mappedCurrencies.sort((a, b) => a[1].localeCompare(b[1]));
-
-        setFiatCurrencies(mappedCurrencies);
-      } catch (error) {
-        console.error(error);
-        handleRequestError("Failed to fetch currencies", error);
-      }
-    }
-
-    fetchCurrencies();
-  }, []);
 
   async function updateSettings(
     payload: Record<string, string | boolean>,

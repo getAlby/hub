@@ -1,4 +1,5 @@
 import React from "react";
+import useSWR from "swr";
 import AppCard from "src/components/connections/AppCard";
 import {
   Card,
@@ -114,41 +115,38 @@ export function ZapPlanner() {
   const [frequencyValue, setFrequencyValue] = React.useState("1");
   const [frequencyUnit, setFrequencyUnit] = React.useState("months");
   const [currency, setCurrency] = React.useState<string>("USD");
-  const [currencies, setCurrencies] = React.useState<string[]>([]);
+
+  const { data: ratesData } = useSWR(
+    "https://getalby.com/api/rates",
+    (url: string) =>
+      fetch(url).then((res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to load currencies: ${res.status}`);
+        }
+        return res.json() as Promise<
+          Record<string, { name: string; priority: number }>
+        >;
+      }),
+    { onError: (err) => console.error("Failed to load currencies", err) }
+  );
+
+  const currencies = ratesData
+    ? [
+        "SATS",
+        ...Object.keys(ratesData)
+          .filter((code) => code !== "BTC")
+          .sort((a, b) => {
+            const priorityDiff = ratesData[a].priority - ratesData[b].priority;
+            return priorityDiff !== 0 ? priorityDiff : a.localeCompare(b);
+          })
+          .map((c) => c.toUpperCase()),
+      ]
+    : ["SATS"];
 
   const [convertedAmount, setConvertedAmount] = React.useState<string>("");
   const [satoshiAmount, setSatoshiAmount] = React.useState<number | undefined>(
     undefined
   );
-
-  React.useEffect(() => {
-    // fetch the fiat list and prepend sats/BTC
-    async function fetchCurrencies() {
-      try {
-        const res = await fetch("https://getalby.com/api/rates");
-        if (!res.ok) {
-          throw new Error(`Failed to load currencies: ${res.status}`);
-        }
-        const data: Record<string, { name: string; priority: number }> =
-          await res.json();
-        const fiatCodes = Object.keys(data)
-          // drop "BTC" - ZapPlanner uses SATS for the bitcoin currency
-          .filter((code) => code !== "BTC")
-          .sort((a, b) => {
-            const priorityDiff = data[a].priority - data[b].priority;
-            if (priorityDiff !== 0) {
-              return priorityDiff;
-            }
-            return a.localeCompare(b);
-          })
-          .map((c) => c.toUpperCase());
-        setCurrencies(["SATS", ...fiatCodes]);
-      } catch (err) {
-        console.error("Failed to load currencies", err);
-      }
-    }
-    fetchCurrencies();
-  }, []);
 
   React.useEffect(() => {
     // reset form on close
