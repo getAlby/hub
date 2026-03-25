@@ -84,6 +84,7 @@ type MockLn struct {
 	PaymentDelay               *time.Duration
 	Pubkey                     string
 	MockTransaction            *lnclient.Transaction
+	LastMinCltvExpiryDelta     *uint64
 	SupportedNotificationTypes *[]string
 }
 
@@ -129,7 +130,14 @@ func (mln *MockLn) MakeInvoice(ctx context.Context, amount int64, description st
 	return MockLNClientTransaction, nil
 }
 
-func (mln *MockLn) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
+func (mln *MockLn) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (transaction *lnclient.Transaction, err error) {
+	if minCltvExpiryDelta == nil {
+		mln.LastMinCltvExpiryDelta = nil
+	} else {
+		value := *minCltvExpiryDelta
+		mln.LastMinCltvExpiryDelta = &value
+	}
+
 	if len(mln.MakeInvoiceResponses) > 0 {
 		response := mln.MakeInvoiceResponses[0]
 		err := mln.MakeInvoiceErrors[0]

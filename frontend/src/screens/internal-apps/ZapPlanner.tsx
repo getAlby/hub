@@ -555,7 +555,7 @@ export function ZapPlanner() {
       {!!zapplannerApps?.length && (
         <>
           <h2 className="font-semibold text-xl">Recurring Payments</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch">
             {zapplannerApps.map((app, index) => (
               <AppCard
                 key={index}

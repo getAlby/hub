@@ -108,7 +108,7 @@ export function SubwalletCreated() {
                 topping it up. That way it's ready to use as soon as it's
                 connected.
               </div>
-              <div className="grid gap-5">
+              <div className="grid gap-3">
                 {!app.metadata?.lud16 && (
                   <Card>
                     <CardHeader>
@@ -201,7 +201,7 @@ export function SubwalletCreated() {
             </div>
           )}
           {step === 2 && (
-            <div className="grid gap-5">
+            <div className="grid gap-3">
               <div>
                 Select which apps to connect to this sub-wallet — whether for
                 yourself or someone you're inviting. Connect to as many services
