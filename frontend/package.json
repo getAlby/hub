@@ -56,6 +56,7 @@
     "react-lottie": "^1.2.4",
     "react-qr-code": "^2.0.12",
     "react-router-dom": "^6.21.0",
+    "recharts": "^3.8.0",
     "sonner": "^2.0.7",
     "swr": "^2.3.6",
     "tailwind-merge": "^3.4.1",

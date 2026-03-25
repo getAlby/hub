@@ -42,6 +42,7 @@ type API interface {
 	SignMessage(ctx context.Context, message string) (*SignMessageResponse, error)
 	RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (*RedeemOnchainFundsResponse, error)
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
+	GetHomeChartsData(ctx context.Context, from uint64) (*HomeChartsResponse, error)
 	ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error)
 	ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error)
 	SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}) (*SendPaymentResponse, error)
@@ -362,6 +363,17 @@ type LookupInvoiceResponse = Transaction
 type ListTransactionsResponse struct {
 	TotalCount   uint64        `json:"totalCount"`
 	Transactions []Transaction `json:"transactions"`
+}
+
+type HomeChartsTxPoint struct {
+	Timestamp int64 `json:"timestamp"`
+	NetSat    int64 `json:"netSat"`
+}
+
+type HomeChartsResponse struct {
+	TxPoints           []HomeChartsTxPoint `json:"txPoints"`
+	HasIncomingDeposit bool                `json:"hasIncomingDeposit"`
+	NetFlowsSat        int64               `json:"netFlowsSat"`
 }
 
 // TODO: camelCase

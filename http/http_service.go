@@ -139,6 +139,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	readOnlyApiGroup.GET("/wallet/capabilities", httpSvc.capabilitiesHandler)
 	readOnlyApiGroup.GET("/transactions", httpSvc.listTransactionsHandler)
 	readOnlyApiGroup.GET("/transactions/:paymentHash", httpSvc.lookupTransactionHandler)
+	readOnlyApiGroup.GET("/home/charts", httpSvc.homeChartsHandler)
 	readOnlyApiGroup.GET("/balances", httpSvc.balancesHandler)
 	readOnlyApiGroup.GET("/mempool", httpSvc.mempoolApiHandler)
 	readOnlyApiGroup.GET("/log/:type", httpSvc.getLogOutputHandler)
