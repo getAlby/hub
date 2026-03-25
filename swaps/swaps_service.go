@@ -49,6 +49,7 @@ type swapsService struct {
 	boltzWs                  *boltz.Websocket
 	swapListeners            map[string]chan boltz.SwapUpdate
 	swapListenersLock        sync.Mutex
+	autoSwapOutXpubLock      sync.Mutex
 	autoSwapOutDecryptedXpub string
 }
 
@@ -169,18 +170,25 @@ func (svc *swapsService) StopAutoSwapOut() {
 		svc.autoSwapOutCancelFn()
 		logger.Logger.Info("Auto swap out service stopped")
 	}
+	svc.autoSwapOutXpubLock.Lock()
+	svc.autoSwapOutDecryptedXpub = ""
+	svc.autoSwapOutXpubLock.Unlock()
 }
 
 func (svc *swapsService) EnableAutoSwapOut(encryptionKey string) error {
 	svc.StopAutoSwapOut()
 
 	ctx, cancelFn := context.WithCancel(svc.ctx)
+	svc.autoSwapOutXpubLock.Lock()
 	svc.autoSwapOutDecryptedXpub = ""
+	svc.autoSwapOutXpubLock.Unlock()
 
 	swapDestination, _ := svc.cfg.Get(config.AutoSwapDestinationKey, encryptionKey)
 	if swapDestination != "" {
 		if err := svc.ValidateXpub(swapDestination); err == nil {
+			svc.autoSwapOutXpubLock.Lock()
 			svc.autoSwapOutDecryptedXpub = swapDestination
+			svc.autoSwapOutXpubLock.Unlock()
 		}
 	}
 
@@ -227,7 +235,10 @@ func (svc *swapsService) EnableAutoSwapOut(encryptionKey string) error {
 				actualDestination := swapDestination
 				var usedXpubDerivation bool
 				// Check if we have a decrypted XPUB in memory
-				if svc.autoSwapOutDecryptedXpub != "" {
+				svc.autoSwapOutXpubLock.Lock()
+				hasDecryptedXpub := svc.autoSwapOutDecryptedXpub != ""
+				svc.autoSwapOutXpubLock.Unlock()
+				if hasDecryptedXpub {
 					actualDestination, err = svc.getNextUnusedAddressFromXpub()
 					if err != nil {
 						logger.Logger.WithError(err).Error("Failed to get next address from xpub")
@@ -1511,7 +1522,9 @@ func (svc *swapsService) checkAddressHasTransactions(address string, esploraApiR
 
 func (svc *swapsService) getNextUnusedAddressFromXpub() (string, error) {
 	// Use the decrypted XPUB from memory (already decrypted during EnableAutoSwapOut)
+	svc.autoSwapOutXpubLock.Lock()
 	destination := svc.autoSwapOutDecryptedXpub
+	svc.autoSwapOutXpubLock.Unlock()
 	if destination == "" {
 		return "", errors.New("no XPUB configured")
 	}
@@ -1607,5 +1620,8 @@ func (svc *swapsService) ValidateXpub(xpub string) error {
 }
 
 func (svc *swapsService) GetDecryptedAutoSwapXpub() string {
+	svc.autoSwapOutXpubLock.Lock()
+	defer svc.autoSwapOutXpubLock.Unlock()
+
 	return svc.autoSwapOutDecryptedXpub
 }
