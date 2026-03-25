@@ -172,6 +172,9 @@ Code under `frontend/platform_specific/http/` and `frontend/platform_specific/wa
 ### TypeScript / React
 
 - **Use shadcn/ui components** for all UI — do not create custom components unless no shadcn equivalent exists.
+- **Do not modify core shadcn/ui components** — customize behavior by composing or wrapping them, not by editing the source files directly.
+- **Prefer Tailwind utility classes** over custom `px` definitions or inline styles. Use Tailwind's spacing, sizing, and layout utilities instead of hardcoded pixel values.
+- **Use the theme system** for colors, border-radius, shadows, and other design tokens. Reference CSS variables / Tailwind theme tokens (e.g., `bg-primary`, `rounded-lg`, `shadow-sm`) rather than hardcoding hex values or arbitrary values. See `frontend/src/index.css` for available theme variables.
 - Strict TypeScript — no `any` types.
 - Functional components with hooks only.
 - SWR for server state; Zustand for client state (stores in `frontend/src/state/`).
