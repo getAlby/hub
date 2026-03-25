@@ -113,6 +113,7 @@ function AutoSwapOutForm() {
           swapAmount: parseInt(swapAmount),
           balanceThreshold: parseInt(balanceThreshold),
           destination,
+          destinationType: !isInternalSwap ? externalType : undefined,
           unlockPassword: password,
         }),
       });

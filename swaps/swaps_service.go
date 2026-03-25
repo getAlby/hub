@@ -63,7 +63,8 @@ type SwapsService interface {
 	GetSwap(swapId string) (*Swap, error)
 	ListSwaps() ([]Swap, error)
 	GetDecryptedAutoSwapXpub() string
-	ParseSwapDestination(destination string) (bool, error)
+	ValidateAddress(address string) error
+	ValidateXpub(xpub string) error
 }
 
 const (
@@ -178,12 +179,7 @@ func (svc *swapsService) EnableAutoSwapOut(encryptionKey string) error {
 
 	swapDestination, _ := svc.cfg.Get(config.AutoSwapDestinationKey, encryptionKey)
 	if swapDestination != "" {
-		isXpub, err := svc.ParseSwapDestination(swapDestination)
-		if err != nil {
-			cancelFn()
-			return err
-		}
-		if isXpub {
+		if err := svc.ValidateXpub(swapDestination); err == nil {
 			svc.autoSwapOutDecryptedXpub = swapDestination
 		}
 	}
@@ -1446,7 +1442,7 @@ func (svc *swapsService) bumpAutoswapXpubIndex(swapId uint) {
 	}).Info("Updated xpub index start for swap address")
 }
 
-func (svc *swapsService) deriveAddressFromXpub(xpub string, index uint32) (string, error) {
+func (svc *swapsService) getChainParams() (*chaincfg.Params, error) {
 	var netParams *chaincfg.Params
 	switch svc.cfg.GetNetwork() {
 	case "bitcoin", "mainnet":
@@ -1458,7 +1454,16 @@ func (svc *swapsService) deriveAddressFromXpub(xpub string, index uint32) (strin
 	case "signet":
 		netParams = &chaincfg.SigNetParams
 	default:
-		return "", fmt.Errorf("unsupported network: %s", svc.cfg.GetNetwork())
+		return nil, fmt.Errorf("unsupported network: %s", svc.cfg.GetNetwork())
+	}
+
+	return netParams, nil
+}
+
+func (svc *swapsService) deriveAddressFromXpub(xpub string, index uint32) (string, error) {
+	netParams, err := svc.getChainParams()
+	if err != nil {
+		return "", err
 	}
 
 	extPubKey, err := hdkeychain.NewKeyFromString(xpub)
@@ -1574,17 +1579,31 @@ func (svc *swapsService) getNextUnusedAddressFromXpub() (string, error) {
 	return "", fmt.Errorf("could not find unused address within %d addresses starting from index %d", addressLookAheadLimit, index)
 }
 
-func (svc *swapsService) ParseSwapDestination(destination string) (isXpub bool, err error) {
-	extendedKey, err := hdkeychain.NewKeyFromString(destination)
+func (svc *swapsService) ValidateAddress(address string) error {
+	netParams, err := svc.getChainParams()
 	if err != nil {
-		return false, nil
+		return err
+	}
+
+	_, err = btcutil.DecodeAddress(address, netParams)
+	if err != nil {
+		return fmt.Errorf("invalid bitcoin address: %w", err)
+	}
+
+	return nil
+}
+
+func (svc *swapsService) ValidateXpub(xpub string) error {
+	extendedKey, err := hdkeychain.NewKeyFromString(xpub)
+	if err != nil {
+		return fmt.Errorf("invalid xpub: %w", err)
 	}
 
 	if extendedKey.IsPrivate() {
-		return true, fmt.Errorf("private extended key not allowed")
+		return fmt.Errorf("private extended key not allowed")
 	}
 
-	return true, nil
+	return nil
 }
 
 func (svc *swapsService) GetDecryptedAutoSwapXpub() string {

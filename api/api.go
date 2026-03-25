@@ -996,6 +996,26 @@ func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *E
 		return errors.New("SwapsService not started")
 	}
 
+	encryptionKey := ""
+	if enableAutoSwapsRequest.Destination != "" {
+		switch enableAutoSwapsRequest.DestinationType {
+		case "address":
+			if err := api.svc.GetSwapsService().ValidateAddress(enableAutoSwapsRequest.Destination); err != nil {
+				return err
+			}
+		case "xpub":
+			if !api.cfg.CheckUnlockPassword(enableAutoSwapsRequest.UnlockPassword) {
+				return errors.New("invalid unlock password")
+			}
+			if err := api.svc.GetSwapsService().ValidateXpub(enableAutoSwapsRequest.Destination); err != nil {
+				return err
+			}
+			encryptionKey = enableAutoSwapsRequest.UnlockPassword
+		default:
+			return errors.New("destination type must be address or xpub")
+		}
+	}
+
 	err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, strconv.FormatUint(enableAutoSwapsRequest.BalanceThreshold, 10), "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save autoswap balance threshold to config")
@@ -1006,20 +1026,6 @@ func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *E
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save autoswap amount to config")
 		return err
-	}
-
-	encryptionKey := ""
-	if enableAutoSwapsRequest.Destination != "" {
-		isXpub, err := api.svc.GetSwapsService().ParseSwapDestination(enableAutoSwapsRequest.Destination)
-		if err != nil {
-			return err
-		}
-		if isXpub {
-			if !api.cfg.CheckUnlockPassword(enableAutoSwapsRequest.UnlockPassword) {
-				return errors.New("invalid unlock password")
-			}
-			encryptionKey = enableAutoSwapsRequest.UnlockPassword
-		}
 	}
 
 	err = api.cfg.SetUpdate(config.AutoSwapDestinationKey, enableAutoSwapsRequest.Destination, encryptionKey)
