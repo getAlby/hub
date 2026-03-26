@@ -46,11 +46,12 @@ function normalizePost(input: unknown): BlogPost | null {
     toStringValue(item.description) ||
     toStringValue(item.excerpt);
   const url = toStringValue(item.url) || toStringValue(item.link);
-  const imageUrl =
+  const imageUrlValue =
     toStringValue(item.imageUrl) ||
     toStringValue(item.image_url) ||
     toStringValue(item.coverImage) ||
     toStringValue(item.cover_image);
+  const imageUrl = imageUrlValue?.replace(/&amp;/g, "&");
   const publishedAt =
     toStringValue(item.publishedAt) || toStringValue(item.published_at);
 
