@@ -2283,7 +2283,6 @@ func (ls *LDKService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 }
 
 func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (*lnclient.Transaction, error) {
-	// TODO: Support minCltvExpiryDelta
 	if time.Duration(expiry)*time.Second > maxInvoiceExpiry {
 		return nil, errors.New("expiry is too long")
 	}
@@ -2326,10 +2325,26 @@ func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amount int64, descrip
 
 	ldkPaymentHash := ldk_node.PaymentHash(hex.EncodeToString(paymentHash32[:]))
 
-	invoiceObj, err := ls.node.Bolt11Payment().ReceiveForHash(uint64(amount),
-		descriptionType,
-		uint32(expiry),
-		ldkPaymentHash)
+	var invoiceObj *ldk_node.Bolt11Invoice
+	if minCltvExpiryDelta != nil {
+		if *minCltvExpiryDelta > uint64(^uint16(0)) {
+			return nil, errors.New("min_cltv_expiry_delta must be <= 65535")
+		}
+        invoiceObj, err = ls.node.Bolt11Payment().ReceiveForHashWithMinCltvExpiryDelta(
+            uint64(amount),
+            descriptionType,
+            uint32(expiry),
+            ldkPaymentHash,
+            uint16(*minCltvExpiryDelta),
+        )
+	} else {
+        invoiceObj, err = ls.node.Bolt11Payment().ReceiveForHash(
+            uint64(amount),
+            descriptionType,
+            uint32(expiry),
+            ldkPaymentHash,
+        )
+	}
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("MakeHoldInvoice failed")
