@@ -232,9 +232,7 @@ const defineStepper = <const Steps extends Stepperize.Step[]>(
         return (
           <Comp
             date-component="stepper-step-panel"
-            ref={(node: HTMLDivElement | null) =>
-              scrollIntoStepperPanel(node, tracking)
-            }
+            ref={(node) => scrollIntoStepperPanel(node, tracking)}
             {...props}
           >
             {children}
@@ -409,10 +407,7 @@ const classForSeparator = cva(
   }
 );
 
-function scrollIntoStepperPanel(
-  node: HTMLDivElement | null,
-  tracking?: boolean
-) {
+function scrollIntoStepperPanel(node: HTMLElement | null, tracking?: boolean) {
   if (tracking) {
     node?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
