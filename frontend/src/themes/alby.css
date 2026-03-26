@@ -89,7 +89,9 @@
  * keep the same structure but read closer to design.
  */
 @layer components {
-  .theme-alby :is(button, a, span)[data-slot="button"][data-variant="default"]:not(:disabled):not(
+  .theme-alby
+    :is(button, a, span)[data-slot="button"][data-variant="default"]:not(
+      :disabled,
       [aria-disabled="true"]
     ) {
     background:
@@ -103,7 +105,8 @@
   }
 
   .theme-alby
-    :is(button, a, span)[data-slot="button"][data-variant="default"]:hover:not(:disabled):not(
+    :is(button, a, span)[data-slot="button"][data-variant="default"]:hover:not(
+      :disabled,
       [aria-disabled="true"]
     ) {
     background:
@@ -118,7 +121,8 @@
 
   /* Keep keyboard focus ring (Button uses ring via box-shadow); stack with brand stroke. */
   .theme-alby
-    :is(button, a, span)[data-slot="button"][data-variant="default"]:focus-visible:not(:disabled):not(
+    :is(button, a, span)[data-slot="button"][data-variant="default"]:focus-visible:not(
+      :disabled,
       [aria-disabled="true"]
     ) {
     box-shadow:
