@@ -2327,7 +2327,7 @@ func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amount int64, descrip
 
 	var invoiceObj *ldk_node.Bolt11Invoice
 	if minCltvExpiryDelta != nil {
-		if *minCltvExpiryDelta > 65535) {
+		if *minCltvExpiryDelta > uint64(65535)) {
 			return nil, errors.New("min_cltv_expiry_delta must be <= 65535")
 		}
         invoiceObj, err = ls.node.Bolt11Payment().ReceiveForHashWithMinCltvExpiryDelta(
