@@ -854,10 +854,40 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 				}
 
 				if result.RowsAffected == 0 {
-					// Note: payments made from outside cannot be associated with an app
-					// for now this is disabled as it only applies to LND, and we do not import LND transactions either.
-					logger.Logger.WithField("payment_hash", lnClientTransaction.PaymentHash).Error("failed to mark payment as sent: payment not found")
-					return NewNotFoundError()
+					result := tx.Limit(1).Find(&dbTransaction, &db.Transaction{
+						Type:        constants.TRANSACTION_TYPE_OUTGOING,
+						PaymentHash: lnClientTransaction.PaymentHash,
+					})
+
+					if result.Error != nil {
+						return result.Error
+					}
+
+					if result.RowsAffected == 0 {
+						dbTransaction = db.Transaction{
+							Type:            constants.TRANSACTION_TYPE_OUTGOING,
+							State:           constants.TRANSACTION_STATE_PENDING,
+							AmountMsat:      uint64(lnClientTransaction.Amount),
+							FeeReserveMsat:  0,
+							PaymentRequest:  lnClientTransaction.Invoice,
+							PaymentHash:     lnClientTransaction.PaymentHash,
+							Description:     lnClientTransaction.Description,
+							DescriptionHash: lnClientTransaction.DescriptionHash,
+						}
+
+						if lnClientTransaction.ExpiresAt != nil {
+							expiresAtValue := time.Unix(*lnClientTransaction.ExpiresAt, 0)
+							dbTransaction.ExpiresAt = &expiresAtValue
+						}
+
+						err := tx.Create(&dbTransaction).Error
+						if err != nil {
+							logger.Logger.WithFields(logrus.Fields{
+								"payment_hash": lnClientTransaction.PaymentHash,
+							}).WithError(err).Error("Failed to create outgoing transaction")
+							return err
+						}
+					}
 				}
 			}
 

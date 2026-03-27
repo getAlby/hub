@@ -201,8 +201,41 @@ func TestNotifications_SentUnknownPayment(t *testing.T) {
 
 	transactionType := constants.TRANSACTION_TYPE_OUTGOING
 	outgoingTransaction, err := transactionsService.LookupTransaction(ctx, tests.MockLNClientTransaction.PaymentHash, &transactionType, svc.LNClient, nil)
-	assert.Nil(t, outgoingTransaction)
-	assert.ErrorIs(t, err, NewNotFoundError())
+	assert.NoError(t, err)
+	assert.Equal(t, uint64(tests.MockLNClientTransaction.Amount), outgoingTransaction.AmountMsat)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, outgoingTransaction.State)
+	assert.Equal(t, tests.MockLNClientTransaction.Preimage, *outgoingTransaction.Preimage)
+	assert.Zero(t, outgoingTransaction.FeeReserveMsat)
+	assert.Nil(t, outgoingTransaction.AppId)
+
+	transactions = []db.Transaction{}
+	result = svc.DB.Find(&transactions)
+	assert.Equal(t, int64(1), result.RowsAffected)
+}
+
+func TestNotifications_SentUnknownPaymentIdempotent(t *testing.T) {
+	ctx := context.TODO()
+
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+
+	for range 2 {
+		transactionsService.ConsumeEvent(ctx, &events.Event{
+			Event:      "nwc_lnclient_payment_sent",
+			Properties: tests.MockLNClientTransaction,
+		}, map[string]interface{}{})
+	}
+
+	transactions := []db.Transaction{}
+	result := svc.DB.Find(&transactions, &db.Transaction{
+		Type:        constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentHash: tests.MockLNClientTransaction.PaymentHash,
+	})
+	assert.Equal(t, int64(1), result.RowsAffected)
+	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transactions[0].State)
 }
 
 func TestNotifications_FailedKnownPendingPayment(t *testing.T) {
