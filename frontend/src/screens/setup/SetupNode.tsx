@@ -70,7 +70,7 @@ export function SetupNode() {
           description="Decide between one of available lightning wallet backends."
         />
         <div className="flex flex-col gap-5 w-full mt-6">
-          <div className="w-full grid grid-cols-2 gap-4">
+          <div className="w-full grid grid-cols-2 gap-3">
             {backendTypeDisplayConfigList
               .filter((item) =>
                 hasImportedMnemonic

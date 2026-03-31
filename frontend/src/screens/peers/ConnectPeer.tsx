@@ -23,10 +23,10 @@ export default function ConnectPeer() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!connectionString) {
-      throw new Error("connection details missing");
-    }
     try {
+      if (!connectionString) {
+        throw new Error("connection details missing");
+      }
       const [pubkey, socketAddress] = connectionString.split("@");
       const { address, port } = splitSocketAddress(socketAddress);
       if (!pubkey || !address || !port) {

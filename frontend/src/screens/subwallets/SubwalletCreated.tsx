@@ -1,14 +1,14 @@
 import {
-  AlertCircle,
+  AlertCircleIcon,
   AlertTriangleIcon,
   CopyIcon,
   ExternalLinkIcon,
-  Monitor,
-  Radio,
-  Smartphone,
-  TriangleAlert,
-  User,
-  Zap,
+  MonitorIcon,
+  RadioIcon,
+  SmartphoneIcon,
+  TriangleAlertIcon,
+  UserIcon,
+  ZapIcon,
 } from "lucide-react";
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -112,7 +112,7 @@ export function SubwalletCreated() {
                 topping it up. That way it's ready to use as soon as it's
                 connected.
               </div>
-              <div className="grid gap-5">
+              <div className="grid gap-3">
                 {!app.metadata?.lud16 && (
                   <Card>
                     <CardHeader>
@@ -205,14 +205,14 @@ export function SubwalletCreated() {
             </div>
           )}
           {step === 2 && (
-            <div className="grid gap-5">
+            <div className="grid gap-3">
               <div>
                 Select which apps to connect to this sub-wallet — whether for
                 yourself or someone you're inviting. Connect to as many services
                 as you want:
               </div>
               <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
+                <AlertCircleIcon className="h-4 w-4" />
                 <AlertTitle>Important</AlertTitle>
                 <AlertDescription className="inline">
                   For your security, these connection details are only visible
@@ -228,7 +228,7 @@ export function SubwalletCreated() {
                 <AccordionItem value="other">
                   <AccordionTrigger>
                     <div className="flex items-center gap-2">
-                      <Zap className="h-4 w-4" />
+                      <ZapIcon className="h-4 w-4" />
                       Connect Your App
                     </div>
                   </AccordionTrigger>
@@ -246,7 +246,7 @@ export function SubwalletCreated() {
                 <AccordionItem value="mobile">
                   <AccordionTrigger>
                     <div className="flex items-center gap-2">
-                      <Smartphone className="h-4 w-4" />
+                      <SmartphoneIcon className="h-4 w-4" />
                       Alby Go
                     </div>
                   </AccordionTrigger>
@@ -326,7 +326,7 @@ export function SubwalletCreated() {
                 <AccordionItem value="account">
                   <AccordionTrigger>
                     <div className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
+                      <UserIcon className="h-4 w-4" />
                       Alby Account
                     </div>
                   </AccordionTrigger>
@@ -382,7 +382,7 @@ export function SubwalletCreated() {
                 <AccordionItem value="extension">
                   <AccordionTrigger>
                     <div className="flex items-center gap-2">
-                      <Monitor className="h-4 w-4" />
+                      <MonitorIcon className="h-4 w-4" />
                       Alby Browser Extension
                     </div>
                   </AccordionTrigger>
@@ -443,7 +443,7 @@ export function SubwalletCreated() {
                 <AccordionItem value="podcasting">
                   <AccordionTrigger>
                     <div className="flex items-center gap-2">
-                      <Radio className="h-4 w-4" />
+                      <RadioIcon className="h-4 w-4" />
                       Podcasting 2.0
                     </div>
                   </AccordionTrigger>
@@ -474,7 +474,7 @@ export function SubwalletCreated() {
                       </Button>
                       <Alert>
                         <AlertTitle className="flex flex-row gap-2">
-                          <TriangleAlert className="w-4 h-4" />
+                          <TriangleAlertIcon className="w-4 h-4" />
                           Make sure you also connect other options
                         </AlertTitle>
                         <AlertDescription>

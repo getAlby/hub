@@ -1,10 +1,9 @@
 import {
   CirclePlusIcon,
-  HelpCircle,
+  HelpCircleIcon,
   InfoIcon,
   ShieldCheckIcon,
   SparklesIcon,
-  TriangleAlert,
   TriangleAlertIcon,
 } from "lucide-react";
 import { useRef, useState } from "react";
@@ -77,7 +76,7 @@ export function SubwalletList() {
     subwalletTotalAmount <= balances.lightning.totalSpendable;
 
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-3">
       <AppHeader
         title="Sub-wallets"
         pageTitle="Sub-wallets"
@@ -89,7 +88,7 @@ export function SubwalletList() {
               variant="outline"
               size="icon"
             >
-              <HelpCircle className="size-4" />
+              <HelpCircleIcon className="size-4" />
             </ExternalLinkButton>
             {!albyMe?.subscription.plan_code &&
             subwalletAppsData.totalCount >= MAX_FREE_SUBWALLETS ? (
@@ -131,7 +130,7 @@ export function SubwalletList() {
 
       {!isSufficientlyBacked && (
         <Alert variant="warning">
-          <TriangleAlert />
+          <TriangleAlertIcon />
           <AlertTitle>
             Sub-wallets you manage are insufficiently backed
           </AlertTitle>
@@ -147,7 +146,7 @@ export function SubwalletList() {
         </Alert>
       )}
 
-      <div className="flex flex-col sm:flex-row flex-wrap gap-4 slashed-zero">
+      <div className="flex flex-col sm:flex-row flex-wrap gap-3 slashed-zero">
         <Card className="flex flex-1 flex-col">
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">
@@ -194,7 +193,7 @@ export function SubwalletList() {
         <h3 className="font-semibold text-2xl mb-4">Managed Sub-wallets</h3>
         <div
           ref={appsListRef}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list"
+          className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch"
         >
           {subwalletApps.map((app, index) => (
             <AppCard key={index} app={app} />
