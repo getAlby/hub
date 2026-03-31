@@ -43,6 +43,7 @@ export function useCurrencies(includeSats = false) {
     }
 
     return Object.entries(ratesData)
+      .filter(([code]) => code !== "BTC")
       .map(([code, details]): [string, string] => [
         code.toUpperCase(),
         details.name,

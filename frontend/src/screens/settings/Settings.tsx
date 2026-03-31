@@ -31,7 +31,7 @@ import { request } from "src/utils/request";
 function Settings() {
   const { data: albyMe } = useAlbyMe();
   const { theme, darkMode, setTheme, setDarkMode } = useTheme();
-  const { currencies } = useCurrencies();
+  const { currencies, isLoading: isCurrenciesLoading } = useCurrencies();
 
   const { data: info, mutate: reloadInfo } = useInfo();
 
@@ -183,9 +183,19 @@ function Settings() {
             </div>
             <div className="grid gap-1.5">
               <Label htmlFor="currency">Fiat Currency</Label>
-              <Select value={info?.currency} onValueChange={updateCurrency}>
+              <Select
+                value={info?.currency}
+                onValueChange={updateCurrency}
+                disabled={isCurrenciesLoading}
+              >
                 <SelectTrigger className="w-full md:w-60">
-                  <SelectValue placeholder="Select a currency" />
+                  <SelectValue
+                    placeholder={
+                      isCurrenciesLoading
+                        ? "Loading currencies..."
+                        : "Select a currency"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {currencies.map(([code, name]) => (

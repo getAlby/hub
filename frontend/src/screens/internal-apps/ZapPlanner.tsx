@@ -115,7 +115,7 @@ export function ZapPlanner() {
   const [frequencyValue, setFrequencyValue] = React.useState("1");
   const [frequencyUnit, setFrequencyUnit] = React.useState("months");
   const [currency, setCurrency] = React.useState<string>("USD");
-  const { currencies } = useCurrencies(true);
+  const { currencies, isLoading: isCurrenciesLoading } = useCurrencies(true);
 
   const [convertedAmount, setConvertedAmount] = React.useState<string>("");
   const [satoshiAmount, setSatoshiAmount] = React.useState<number | undefined>(
@@ -139,6 +139,10 @@ export function ZapPlanner() {
   }, [open]);
 
   React.useEffect(() => {
+    if (isCurrenciesLoading) {
+      return;
+    }
+
     // If amount is empty, clear conversion output
     if (!amount) {
       setConvertedAmount("");
@@ -175,7 +179,7 @@ export function ZapPlanner() {
     };
 
     convertCurrency();
-  }, [amount, currency, open]);
+  }, [amount, currency, open, isCurrenciesLoading]);
 
   const appStoreApp = appStoreApps.find((app) => app.id === "zapplanner");
   if (!appStoreApp) {
@@ -403,9 +407,19 @@ export function ZapPlanner() {
                           )}
                         </div>
 
-                        <Select value={currency} onValueChange={setCurrency}>
+                        <Select
+                          value={currency}
+                          onValueChange={setCurrency}
+                          disabled={isCurrenciesLoading}
+                        >
                           <SelectTrigger className="w-1/2">
-                            <SelectValue />
+                            <SelectValue
+                              placeholder={
+                                isCurrenciesLoading
+                                  ? "Loading currencies..."
+                                  : "Select a currency"
+                              }
+                            />
                           </SelectTrigger>
                           <SelectContent>
                             {currencies.map(([code]) => (
