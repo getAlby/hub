@@ -22,41 +22,16 @@ import {
   BITCOIN_DISPLAY_FORMAT_SATS,
 } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
+import { useCurrencies } from "src/hooks/useCurrencies";
 import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
-import useSWR from "swr";
-
-const albyRatesFetcher = (url: string) =>
-  fetch(url).then((res) => {
-    if (!res.ok) {
-      throw new Error(`Failed to fetch currencies: ${res.status}`);
-    }
-    return res.json() as Promise<Record<string, { name: string }>>;
-  });
 
 function Settings() {
   const { data: albyMe } = useAlbyMe();
   const { theme, darkMode, setTheme, setDarkMode } = useTheme();
-
-  const { data: ratesData } = useSWR(
-    "https://getalby.com/api/rates",
-    albyRatesFetcher,
-    {
-      onError: (error) =>
-        handleRequestError("Failed to fetch currencies", error),
-    }
-  );
-
-  const fiatCurrencies: [string, string][] = ratesData
-    ? Object.entries(ratesData)
-        .map(([code, details]): [string, string] => [
-          code.toUpperCase(),
-          details.name,
-        ])
-        .sort((a, b) => a[1].localeCompare(b[1]))
-    : [];
+  const { currencies } = useCurrencies();
 
   const { data: info, mutate: reloadInfo } = useInfo();
 
@@ -213,7 +188,7 @@ function Settings() {
                   <SelectValue placeholder="Select a currency" />
                 </SelectTrigger>
                 <SelectContent>
-                  {fiatCurrencies.map(([code, name]) => (
+                  {currencies.map(([code, name]) => (
                     <SelectItem key={code} value={code}>
                       {name} ({code})
                     </SelectItem>

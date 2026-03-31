@@ -1,5 +1,4 @@
 import React from "react";
-import useSWR from "swr";
 import AppCard from "src/components/connections/AppCard";
 import {
   Card,
@@ -8,6 +7,7 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { useApps } from "src/hooks/useApps";
+import { useCurrencies } from "src/hooks/useCurrencies";
 import { createApp } from "src/requests/createApp";
 import { CreateAppRequest, UpdateAppRequest } from "src/types";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -115,33 +115,7 @@ export function ZapPlanner() {
   const [frequencyValue, setFrequencyValue] = React.useState("1");
   const [frequencyUnit, setFrequencyUnit] = React.useState("months");
   const [currency, setCurrency] = React.useState<string>("USD");
-
-  const { data: ratesData } = useSWR(
-    "https://getalby.com/api/rates",
-    (url: string) =>
-      fetch(url).then((res) => {
-        if (!res.ok) {
-          throw new Error(`Failed to load currencies: ${res.status}`);
-        }
-        return res.json() as Promise<
-          Record<string, { name: string; priority: number }>
-        >;
-      }),
-    { onError: (err) => console.error("Failed to load currencies", err) }
-  );
-
-  const currencies = ratesData
-    ? [
-        "SATS",
-        ...Object.keys(ratesData)
-          .filter((code) => code !== "BTC")
-          .sort((a, b) => {
-            const priorityDiff = ratesData[a].priority - ratesData[b].priority;
-            return priorityDiff !== 0 ? priorityDiff : a.localeCompare(b);
-          })
-          .map((c) => c.toUpperCase()),
-      ]
-    : ["SATS"];
+  const { currencies } = useCurrencies(true);
 
   const [convertedAmount, setConvertedAmount] = React.useState<string>("");
   const [satoshiAmount, setSatoshiAmount] = React.useState<number | undefined>(
@@ -434,9 +408,9 @@ export function ZapPlanner() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {currencies.map((code) => (
+                            {currencies.map(([code]) => (
                               <SelectItem key={code} value={code}>
-                                {code === "BTC" ? "BTC (sats)" : code}
+                                {code}
                               </SelectItem>
                             ))}
                           </SelectContent>
