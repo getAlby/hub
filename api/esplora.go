@@ -49,7 +49,6 @@ func (api *api) RequestEsploraApi(ctx context.Context, endpoint string) (interfa
 	if res.StatusCode != http.StatusOK {
 		logger.Logger.WithFields(logrus.Fields{
 			"endpoint":    endpoint,
-			"url":         url,
 			"status_code": res.StatusCode,
 			"body":        string(body),
 		}).Error("Esplora endpoint returned non-success code")

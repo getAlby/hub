@@ -1276,7 +1276,6 @@ func (api *api) RequestMempoolApi(ctx context.Context, endpoint string) (interfa
 	if res.StatusCode != http.StatusOK {
 		logger.Logger.WithFields(logrus.Fields{
 			"endpoint":    endpoint,
-			"url":         url,
 			"status_code": res.StatusCode,
 			"body":        string(body),
 		}).Error("Mempool endpoint returned non-success code")

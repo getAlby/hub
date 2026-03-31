@@ -1417,17 +1417,11 @@ func (svc *swapsService) doMempoolRequest(endpoint string, result interface{}) e
 
 	if res.StatusCode != http.StatusOK {
 		logger.Logger.WithFields(logrus.Fields{
-			"component":   "swaps",
 			"endpoint":    endpoint,
-			"url":         url,
 			"status_code": res.StatusCode,
 			"body":        string(body),
 		}).Error("Swaps mempool API endpoint returned non-success code")
-		return fmt.Errorf(
-			"swaps mempool API endpoint returned non-success code for %s: %s",
-			endpoint,
-			string(body),
-		)
+		return fmt.Errorf("swaps mempool API endpoint returned non-success code: %s", string(body))
 	}
 
 	jsonErr := json.Unmarshal(body, &result)
@@ -1577,17 +1571,11 @@ func (svc *swapsService) getNextUnusedAddressFromXpub() (string, error) {
 
 		if res.StatusCode != http.StatusOK {
 			logger.Logger.WithFields(logrus.Fields{
-				"component":   "swaps",
 				"endpoint":    endpoint,
-				"url":         url,
 				"status_code": res.StatusCode,
 				"body":        string(body),
 			}).Error("Swaps esplora endpoint returned non-success code")
-			return nil, fmt.Errorf(
-				"swaps esplora endpoint returned non-success code for %s: %s",
-				endpoint,
-				string(body),
-			)
+			return nil, fmt.Errorf("swaps esplora endpoint returned non-success code: %s", string(body))
 		}
 
 		var jsonContent interface{}
