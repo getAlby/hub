@@ -313,7 +313,11 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   if (unsupportedError) {
     return (
       <>
-        <AppHeader title="Unsupported App" description={unsupportedError} />
+        <AppHeader
+          pageTitle="Unsupported App"
+          title="Unsupported App"
+          description={unsupportedError}
+        />
         <p>Try the Alby Hub LDK backend for extra features.</p>
       </>
     );
@@ -322,6 +326,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   return (
     <>
       <AppHeader
+        pageTitle={appName ? `Connect to ${appName}` : "Connect a new app"}
         title={appName ? `Connect to ${appName}` : "Connect a new app"}
         icon={
           appStoreApp?.logo ? (

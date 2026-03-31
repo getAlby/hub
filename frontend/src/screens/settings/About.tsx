@@ -27,7 +27,11 @@ export function About() {
 
   return (
     <>
-      <SettingsHeader title="About" description="Info about your Alby Hub" />
+      <SettingsHeader
+        pageTitle="About"
+        title="About"
+        description="Info about your Alby Hub"
+      />
       <div className="grid gap-4">
         <div className="grid gap-2">
           <p className="font-medium text-sm">Alby Hub Version</p>

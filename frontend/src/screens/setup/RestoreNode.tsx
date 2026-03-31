@@ -47,6 +47,7 @@ export function RestoreNode() {
       <div className="flex flex-col gap-5 items-center">
         <TwoColumnLayoutHeader
           title="Restart your Hub"
+          pageTitle="Restart your Hub"
           description="Alby Hub needs to restart to finish restoring your node"
         />
         <PowerCircleIcon className="w-32 h-32" />
@@ -107,74 +108,73 @@ export function RestoreNode() {
   };
 
   return (
-    <>
-      <form
-        onSubmit={onSubmit}
-        className="flex flex-col gap-5 mx-auto max-w-2xl text-sm"
-      >
-        <TwoColumnLayoutHeader
-          // TODO: Show different message in wails mode
-          title="Import Wallet from Migration File"
-          description="Upload your encrypted wallet migration file."
+    <form
+      onSubmit={onSubmit}
+      className="flex flex-col gap-5 mx-auto max-w-2xl text-sm"
+    >
+      <TwoColumnLayoutHeader
+        // TODO: Show different message in wails mode
+        title="Import Wallet from Migration File"
+        pageTitle="Import Wallet from Migration File"
+        description="Upload your encrypted wallet migration file."
+      />
+      <div className="grid gap-2">
+        <Label htmlFor="password">Unlock Password</Label>
+        <PasswordInput
+          onChange={setUnlockPassword}
+          value={unlockPassword}
+          placeholder="Unlock Password"
         />
+      </div>
+      {_isHttpMode && (
         <div className="grid gap-2">
-          <Label htmlFor="password">Unlock Password</Label>
-          <PasswordInput
-            onChange={setUnlockPassword}
-            value={unlockPassword}
-            placeholder="Unlock Password"
+          <Label htmlFor="backup">Migration File</Label>
+          <Input
+            type="file"
+            required
+            id="backup"
+            name="backup"
+            accept=".bkp"
+            onChange={handleChangeFile}
+            className="cursor-pointer pt-2"
           />
         </div>
-        {_isHttpMode && (
-          <div className="grid gap-2">
-            <Label htmlFor="backup">Migration File</Label>
-            <Input
-              type="file"
-              required
-              id="backup"
-              name="backup"
-              accept=".bkp"
-              onChange={handleChangeFile}
-              className="cursor-pointer pt-2"
-            />
-          </div>
-        )}
-        <AlertDialog open={showAlert}>
-          <AlertDialogTrigger asChild>
-            <LoadingButton type="submit" loading={loading}>
-              Import Wallet
-            </LoadingButton>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>
-                Restore Node from Migration File
-              </AlertDialogTitle>
-              <AlertDialogDescription>
-                <div>
-                  <p>
-                    As part of the node restore process your Alby Hub will be
-                    shut down.
-                  </p>
-                  <p className="mt-4">
-                    If you're running in the cloud, your Alby Hub will restart
-                    automatically. Otherwise, please manually restart your Alby
-                    Hub to finish the restore process.
-                  </p>
-                </div>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setShowAlert(false)}>
-                Cancel
-              </AlertDialogCancel>
-              <AlertDialogAction onClick={restoreNode}>
-                Continue
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      </form>
-    </>
+      )}
+      <AlertDialog open={showAlert}>
+        <AlertDialogTrigger asChild>
+          <LoadingButton type="submit" loading={loading}>
+            Import Wallet
+          </LoadingButton>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Restore Node from Migration File
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              <div>
+                <p>
+                  As part of the node restore process your Alby Hub will be shut
+                  down.
+                </p>
+                <p className="mt-4">
+                  If you're running in the cloud, your Alby Hub will restart
+                  automatically. Otherwise, please manually restart your Alby
+                  Hub to finish the restore process.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowAlert(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={restoreNode}>
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </form>
   );
 }

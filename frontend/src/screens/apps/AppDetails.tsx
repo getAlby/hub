@@ -192,6 +192,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
       <div className="w-full">
         <div className="flex flex-col gap-2">
           <AppHeader
+            pageTitle={appName}
             title={
               <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
                 <div className="flex flex-row gap-2 items-center min-w-0">

@@ -75,6 +75,7 @@ export function MigrateNode() {
     <>
       <SettingsHeader
         title="Migrate Alby Hub"
+        pageTitle="Migrate"
         description="Create migration file in order to move your Alby Hub to another device or server."
       />
 

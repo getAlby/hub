@@ -38,7 +38,7 @@ export default function OnchainSuccess() {
 
   return (
     <div className="grid gap-4">
-      <AppHeader title="Send to On-chain" />
+      <AppHeader pageTitle="Send to On-chain" title="Send to On-chain" />
       <div className="w-full md:max-w-lg">
         <Card className="w-full">
           <CardHeader>

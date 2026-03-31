@@ -75,6 +75,7 @@ export default function Backup() {
   return (
     <>
       <SettingsHeader
+        pageTitle="Backup"
         title="Backup"
         description={
           <>

@@ -34,7 +34,7 @@ export default function Receive() {
 
   return (
     <div className="grid gap-5">
-      <AppHeader title="Receive" />
+      <AppHeader pageTitle="Receive" title="Receive" />
       <div className="w-full max-w-lg">
         {info?.albyAccountConnected && me?.lightning_address && (
           <Card>

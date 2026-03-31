@@ -79,6 +79,7 @@ export function SubwalletList() {
     <div className="grid gap-3">
       <AppHeader
         title="Sub-wallets"
+        pageTitle="Sub-wallets"
         description="Create sub-wallets for yourself, friends, family or coworkers"
         contentRight={
           <>

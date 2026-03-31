@@ -24,5 +24,10 @@ export function LDKForm() {
     navigate("/setup/security");
   }, [navigate, searchParams]);
 
-  return <Loading />;
+  return (
+    <>
+      <title>Loading... · Alby Hub</title>
+      <Loading />
+    </>
+  );
 }
