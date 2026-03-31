@@ -1273,6 +1273,15 @@ func (api *api) RequestMempoolApi(ctx context.Context, endpoint string) (interfa
 		return nil, errors.New("failed to read response body")
 	}
 
+	if res.StatusCode != http.StatusOK {
+		logger.Logger.WithFields(logrus.Fields{
+			"endpoint":    endpoint,
+			"status_code": res.StatusCode,
+			"body":        string(body),
+		}).Error("Mempool endpoint returned non-success code")
+		return nil, fmt.Errorf("mempool endpoint returned non-success code: %s", string(body))
+	}
+
 	var jsonContent interface{}
 	jsonErr := json.Unmarshal(body, &jsonContent)
 	if jsonErr != nil {
