@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/getAlby/hub/db"
@@ -55,12 +57,15 @@ func (svc *service) startNostr(ctx context.Context) error {
 	}
 
 	// Start infinite loop which will be only broken by canceling ctx (SIGINT)
-	pool := nostr.NewSimplePool(ctx, nostr.WithRelayOptions(
+	relayOptions := []nostr.RelayOption{
 		nostr.WithNoticeHandler(svc.noticeHandler),
-		nostr.WithRequestHeader(http.Header{
+	}
+	if shouldUseCustomNostrUserAgentHeader() {
+		relayOptions = append(relayOptions, nostr.WithRequestHeader(http.Header{
 			"User-Agent": {"AlbyHub/" + version.Tag},
-		}),
-	))
+		}))
+	}
+	pool := nostr.NewSimplePool(ctx, nostr.WithRelayOptions(relayOptions...))
 
 	// initially try connect to relays (if hub has no apps, pool won't connect to relays by default)
 	for _, relayUrl := range svc.cfg.GetRelayUrls() {
@@ -315,6 +320,26 @@ func (svc *service) StartApp(encryptionKey string) error {
 	svc.appCancelFn = cancelFn
 
 	return nil
+}
+
+func shouldUseCustomNostrUserAgentHeader() bool {
+	proxyEnvVars := []string{
+		"HTTP_PROXY",
+		"HTTPS_PROXY",
+		"ALL_PROXY",
+		"http_proxy",
+		"https_proxy",
+		"all_proxy",
+	}
+	for _, envVar := range proxyEnvVars {
+		if strings.TrimSpace(os.Getenv(envVar)) != "" {
+			// go-nostr currently drops proxy-from-env handling when a custom request header
+			// is set. Until hub moves away from go-nostr, prefer reliable proxy behavior.
+			logger.Logger.WithField("env_var", envVar).Warn("Proxy detected, disabling custom Nostr websocket User-Agent header")
+			return false
+		}
+	}
+	return true
 }
 
 func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) error {
