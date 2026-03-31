@@ -123,6 +123,8 @@ export interface App {
   expiresAt?: string;
   isolated: boolean;
   balance: number;
+  balanceSat: number;
+  balanceMsat: number;
 
   scopes: Scope[];
   maxAmount: number;
@@ -203,7 +205,11 @@ export type AutoSwapConfig = {
   type: "out";
   enabled: boolean;
   balanceThreshold: number;
+  balanceThresholdSat: number;
+  balanceThresholdMsat: number;
   swapAmount: number;
+  swapAmountSat: number;
+  swapAmountMsat: number;
   destination: string;
 };
 
@@ -211,13 +217,21 @@ export type SwapInfo = {
   albyServiceFee: number;
   boltzServiceFee: number;
   boltzNetworkFee: number;
+  boltzNetworkFeeSat: number;
+  boltzNetworkFeeMsat: number;
   minAmount: number;
+  minAmountSat: number;
+  minAmountMsat: number;
   maxAmount: number;
+  maxAmountSat: number;
+  maxAmountMsat: number;
 };
 
 export type BaseSwap = {
   id: string;
   sendAmount: number;
+  sendAmountSat: number;
+  sendAmountMsat: number;
   lockupAddress: string;
   paymentHash: string;
   invoice: string;
@@ -229,6 +243,8 @@ export type BaseSwap = {
   lockupTxId?: string;
   claimTxId?: string;
   receiveAmount?: number;
+  receiveAmountSat?: number;
+  receiveAmountMsat?: number;
 };
 
 export type SwapIn = BaseSwap & {
@@ -292,8 +308,14 @@ export type UpdateAppRequest = {
 
 export type Channel = {
   localBalance: number;
+  localBalanceSat: number;
+  localBalanceMsat: number;
   localSpendableBalance: number;
+  localSpendableBalanceSat: number;
+  localSpendableBalanceMsat: number;
   remoteBalance: number;
+  remoteBalanceSat: number;
+  remoteBalanceMsat: number;
   remotePubkey: string;
   id: string;
   fundingTxId: string;
@@ -305,7 +327,11 @@ export type Channel = {
   forwardingFeeBaseMsat: number;
   forwardingFeeProportionalMillionths: number;
   unspendablePunishmentReserve: number;
+  unspendablePunishmentReserveSat: number;
+  unspendablePunishmentReserveMsat: number;
   counterpartyUnspendablePunishmentReserve: number;
+  counterpartyUnspendablePunishmentReserveSat: number;
+  counterpartyUnspendablePunishmentReserveMsat: number;
   error?: string;
   status: "online" | "opening" | "offline";
   isOutbound: boolean;
@@ -374,15 +400,25 @@ export type PendingBalancesDetails = {
   channelId: string;
   nodeId: string;
   amount: number;
+  amountSat: number;
+  amountMsat: number;
   fundingTxId: string;
   fundingTxVout: number;
 };
 
 export type OnchainBalanceResponse = {
   spendable: number;
+  spendableSat: number;
+  spendableMsat: number;
   total: number;
+  totalSat: number;
+  totalMsat: number;
   reserved: number;
+  reservedSat: number;
+  reservedMsat: number;
   pendingBalancesFromChannelClosures: number;
+  pendingBalancesFromChannelClosuresSat: number;
+  pendingBalancesFromChannelClosuresMsat: number;
   pendingBalancesDetails: PendingBalancesDetails[];
   pendingSweepBalancesDetails: PendingBalancesDetails[];
 };
@@ -539,9 +575,17 @@ export type LSPOrderRequest = {
 export type LSPOrderResponse = {
   invoice?: string;
   fee: number;
+  feeSat: number;
+  feeMsat: number;
   invoiceAmount: number;
+  invoiceAmountSat: number;
+  invoiceAmountMsat: number;
   incomingLiquidity: number;
+  incomingLiquiditySat: number;
+  incomingLiquidityMsat: number;
   outgoingLiquidity: number;
+  outgoingLiquiditySat: number;
+  outgoingLiquidityMsat: number;
 };
 
 export type AutoChannelRequest = {
@@ -559,11 +603,23 @@ export type RedeemOnchainFundsResponse = {
 
 export type LightningBalanceResponse = {
   totalSpendable: number;
+  totalSpendableSat: number;
+  totalSpendableMsat: number;
   totalReceivable: number;
+  totalReceivableSat: number;
+  totalReceivableMsat: number;
   nextMaxSpendable: number;
+  nextMaxSpendableSat: number;
+  nextMaxSpendableMsat: number;
   nextMaxReceivable: number;
+  nextMaxReceivableSat: number;
+  nextMaxReceivableMsat: number;
   nextMaxSpendableMPP: number;
+  nextMaxSpendableMPPSat: number;
+  nextMaxSpendableMPPMsat: number;
   nextMaxReceivableMPP: number;
+  nextMaxReceivableMPPSat: number;
+  nextMaxReceivableMPPMsat: number;
 };
 
 export type BalancesResponse = {
@@ -581,7 +637,11 @@ export type Transaction = {
   preimage: string | undefined;
   paymentHash: string;
   amount: number;
+  amountSat: number;
+  amountMsat: number;
   feesPaid: number;
+  feesPaidSat: number;
+  feesPaidMsat: number;
   updatedAt: string;
   createdAt: string;
   settledAt: string | undefined;
@@ -641,6 +701,8 @@ export type ListAppsResponse = {
   apps: App[];
   totalCount: number;
   totalBalance?: number;
+  totalBalanceSat?: number;
+  totalBalanceMsat?: number;
 };
 
 export type ListTransactionsResponse = {
