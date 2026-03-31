@@ -10,7 +10,7 @@ type Props = {
 function SettingsHeader({ title, description, pageTitle }: Props) {
   return (
     <>
-      {pageTitle && <title>{`${pageTitle} - Alby Hub`}</title>}
+      {pageTitle && <title>{`${pageTitle} · Alby Hub`}</title>}
       <div className="space-y-6">
         <div>
           <h3 className="text-2xl font-medium">{title}</h3>

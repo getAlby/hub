@@ -32,6 +32,7 @@ export default function AutoSwap() {
   return (
     <div className="grid gap-5">
       <AppHeader
+        pageTitle="Auto Swap Out"
         title="Auto Swap Out"
         contentRight={
           <ResponsiveLinkButton

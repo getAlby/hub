@@ -98,7 +98,11 @@ export function SubwalletCreated() {
 
   return (
     <div className="grid gap-5">
-      <AppHeader title={`Connect ${name}`} description="" />
+      <AppHeader
+        pageTitle={`Connect ${name}`}
+        title={`Connect ${name}`}
+        description=""
+      />
       <div className="max-w-lg">
         <div className="flex flex-col col-span-3 gap-5 items-start">
           {step === 1 && app && (

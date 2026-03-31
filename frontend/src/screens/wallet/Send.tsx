@@ -88,7 +88,7 @@ export default function Send() {
 
   return (
     <div className="grid gap-4">
-      <AppHeader title="Send" />
+      <AppHeader pageTitle="Send" title="Send" />
       <div className="w-full md:max-w-lg">
         <form onSubmit={onSubmit} className="grid gap-6">
           {showSwapAlert && <CryptoSwapAlert />}

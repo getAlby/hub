@@ -66,6 +66,7 @@ export function SetupNode() {
       <Container>
         <TwoColumnLayoutHeader
           title="Choose Wallet Implementation"
+          pageTitle="Choose Wallet Implementation"
           description="Decide between one of available lightning wallet backends."
         />
         <div className="flex flex-col gap-5 w-full mt-6">

@@ -22,7 +22,7 @@ function AppHeader({
 }: Props) {
   return (
     <>
-      {pageTitle && <title>{`${pageTitle} - Alby Hub`}</title>}
+      {pageTitle && <title>{`${pageTitle} · Alby Hub`}</title>}
       <header className="flex flex-row flex-wrap items-center border-b border-border pb-4 gap-2">
         {addSidebarTrigger && <SidebarTrigger className="-ml-1 md:hidden" />}
         <Separator orientation="vertical" className="mr-2 h-4 md:hidden" />

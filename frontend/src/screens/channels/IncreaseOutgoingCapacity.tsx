@@ -212,6 +212,7 @@ function NewChannelInternal({
   return (
     <>
       <AppHeader
+        pageTitle="Open Channel with On-Chain"
         title="Open Channel with On-Chain"
         description="Funds used to open a channel minus fees will be added to your spending balance"
         contentRight={

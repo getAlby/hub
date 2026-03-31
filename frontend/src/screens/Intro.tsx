@@ -63,7 +63,7 @@ export function Intro() {
 
   return (
     <>
-      <title>Welcome - Alby Hub</title>
+      <title>Welcome · Alby Hub</title>
       <Carousel className={cn("w-full bg-background")} setApi={setApi}>
         <div
           className="w-full h-full absolute top-0 left-0 bg-no-repeat"

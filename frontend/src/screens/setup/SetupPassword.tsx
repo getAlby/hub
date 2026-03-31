@@ -50,12 +50,12 @@ export function SetupPassword() {
 
   return (
     <>
-      <title>Create Password - Alby Hub</title>
       <div className="grid max-w-sm">
         <form onSubmit={onSubmit} className="flex flex-col items-center w-full">
           <div className="grid gap-4">
             <TwoColumnLayoutHeader
               title="Create Password"
+              pageTitle="Create Password"
               description="Your password is used to access your wallet, and it can't be reset or recovered if you lose it."
             />
             <div className="grid gap-4 w-full">

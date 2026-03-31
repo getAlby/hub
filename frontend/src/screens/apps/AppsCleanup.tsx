@@ -52,6 +52,7 @@ export function AppsCleanup() {
   return (
     <>
       <AppHeader
+        pageTitle="Cleanup Unused Apps"
         title="Cleanup Unused Apps"
         description="Review apps that haven't been used for 2 months or longer"
       />

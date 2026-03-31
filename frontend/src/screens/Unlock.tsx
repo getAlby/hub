@@ -59,12 +59,12 @@ export default function Unlock() {
 
   return (
     <>
-      <title>Login - Alby Hub</title>
       <form onSubmit={onSubmit} className="w-full p-5">
         <div className="mx-auto grid w-80 max-w-full gap-6">
           <TwoColumnLayoutHeader
             title="Login"
-            description=" Enter your unlock password to continue"
+            pageTitle="Login"
+            description="Enter your unlock password to continue"
           />
           <div className="grid gap-4">
             <div className="grid gap-1.5">

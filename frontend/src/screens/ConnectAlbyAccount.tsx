@@ -26,11 +26,11 @@ type ConnectAlbyAccountProps = {
 export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
   return (
     <>
-      <title>Connect Alby Account - Alby Hub</title>
       <div className="w-full h-full flex flex-col items-center justify-center gap-5">
         <Container>
           <TwoColumnLayoutHeader
             title="Connect Your Alby Account"
+            pageTitle="Connect Your Alby Account"
             description="Your Alby Account brings several benefits to your Alby Hub"
           />
           <div className="grid grid-cols-1 md:grid-cols-2 w-full gap-2 mt-5">

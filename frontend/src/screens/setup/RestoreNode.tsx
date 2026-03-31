@@ -47,6 +47,7 @@ export function RestoreNode() {
       <div className="flex flex-col gap-5 items-center">
         <TwoColumnLayoutHeader
           title="Restart your Hub"
+          pageTitle="Restart your Hub"
           description="Alby Hub needs to restart to finish restoring your node"
         />
         <PowerCircleIcon className="w-32 h-32" />
@@ -115,6 +116,7 @@ export function RestoreNode() {
         <TwoColumnLayoutHeader
           // TODO: Show different message in wails mode
           title="Import Wallet from Migration File"
+          pageTitle="Import Wallet from Migration File"
           description="Upload your encrypted wallet migration file."
         />
         <div className="grid gap-2">

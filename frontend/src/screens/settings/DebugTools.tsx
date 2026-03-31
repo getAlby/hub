@@ -350,6 +350,7 @@ export default function DebugTools() {
   return (
     <div>
       <SettingsHeader
+        pageTitle="Debug Tools"
         title="Debug Tools"
         description="Extra tools for debugging purposes."
       />

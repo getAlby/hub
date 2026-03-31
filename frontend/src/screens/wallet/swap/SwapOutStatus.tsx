@@ -48,7 +48,7 @@ export default function SwapOutStatus() {
 
   return (
     <div className="grid gap-5">
-      <AppHeader title="Swap Out" />
+      <AppHeader pageTitle="Swap Out" title="Swap Out" />
       <div className="w-full max-w-lg">
         <Card className="w-full md:max-w-xs">
           <CardHeader>

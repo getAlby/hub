@@ -49,7 +49,7 @@ export default function PaymentSuccess() {
 
   return (
     <div className="grid gap-4">
-      <AppHeader title={pageTitle || "Send"} />
+      <AppHeader pageTitle={pageTitle || "Send"} title={pageTitle || "Send"} />
       <div className="w-full md:max-w-lg">
         <Card className="w-full">
           <CardHeader>

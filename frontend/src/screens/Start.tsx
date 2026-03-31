@@ -69,11 +69,11 @@ export default function Start() {
 
   return (
     <>
-      <title>Start - Alby Hub</title>
       <Container>
         <div className="mx-auto grid gap-5">
           <TwoColumnLayoutHeader
             title="Start"
+            pageTitle="Start"
             description="Enter your password to unlock and start Alby Hub."
           />
           <form onSubmit={onSubmit}>

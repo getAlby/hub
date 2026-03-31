@@ -62,6 +62,7 @@ function AuthCodeForm({ url }: AuthCodeFormProps) {
         <div className="grid gap-5">
           <TwoColumnLayoutHeader
             title="Connect your Alby Account"
+            pageTitle="Connect your Alby Account"
             description="A new window will open. Sign in with your Alby Account, copy the Authorization Code, and paste it here."
           />
           {!hasRequestedCode && (

@@ -32,6 +32,7 @@ export function CashuForm() {
     <Container>
       <TwoColumnLayoutHeader
         title="Configure Cashu Mint"
+        pageTitle="Configure Cashu Mint"
         description="Fill out wallet details to finish setup."
       />
       <form className="w-full grid gap-5 mt-6" onSubmit={onSubmit}>

@@ -62,6 +62,7 @@ export function ImportMnemonic() {
       >
         <TwoColumnLayoutHeader
           title="Import Recovery Phrase"
+          pageTitle="Import Recovery Phrase"
           description="Enter your recovery phrase to import your Alby Hub."
         />
 

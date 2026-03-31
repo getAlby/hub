@@ -32,6 +32,7 @@ export function SetupSecurity() {
         <form onSubmit={onSubmit} className="flex flex-col items-center w-full">
           <TwoColumnLayoutHeader
             title="Security & Recovery"
+            pageTitle="Security & Recovery"
             description="Take your time to understand how to secure and recover your funds on Alby Hub."
           />
 
