@@ -9,6 +9,7 @@ import { cn } from "src/lib/utils";
 import { BackendType } from "src/types";
 
 import cashu from "src/assets/images/node/cashu.png";
+import cln from "src/assets/images/node/cln.png";
 import lnd from "src/assets/images/node/lnd.png";
 import { backendTypeConfigs } from "src/lib/backendType";
 import useSetupStore from "src/state/SetupStore";
@@ -36,6 +37,10 @@ const backendTypeDisplayConfigs: Partial<
   CASHU: {
     title: "Cashu Mint",
     icon: <img src={cashu} />,
+  },
+  CLN: {
+    title: "CLN",
+    icon: <img src={cln} />,
   },
 };
 

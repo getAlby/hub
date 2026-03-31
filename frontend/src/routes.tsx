@@ -62,6 +62,7 @@ import { SetupFinish } from "src/screens/setup/SetupFinish";
 import { SetupNode } from "src/screens/setup/SetupNode";
 import { SetupPassword } from "src/screens/setup/SetupPassword";
 import { SetupSecurity } from "src/screens/setup/SetupSecurity";
+import { CLNForm } from "src/screens/setup/node/CLNForm";
 import { CashuForm } from "src/screens/setup/node/CashuForm";
 import { LDKForm } from "src/screens/setup/node/LDKForm";
 import { LNDForm } from "src/screens/setup/node/LNDForm";
@@ -540,6 +541,10 @@ const routes: RouteObject[] = [
               {
                 path: "ldk",
                 element: <LDKForm />,
+              },
+              {
+                path: "cln",
+                element: <CLNForm />,
               },
               {
                 path: "preset",
