@@ -1,9 +1,9 @@
 import {
   CodeIcon,
-  HandCoins,
+  HandCoinsIcon,
   PlusCircleIcon,
   RefreshCwIcon,
-  Sparkles,
+  SparklesIcon,
 } from "lucide-react";
 import React from "react";
 import { useNavigate } from "react-router-dom";
@@ -174,7 +174,7 @@ function SupportAlby() {
           <CardFooter className="flex justify-end">
             <UpgradeDialog>
               <Button>
-                <Sparkles />
+                <SparklesIcon />
                 Upgrade to Pro
               </Button>
             </UpgradeDialog>
@@ -194,7 +194,7 @@ function SupportAlby() {
               <div className="flex flex-col items-center justify-center gap-2">
                 <DialogTrigger asChild>
                   <Button>
-                    <HandCoins />
+                    <HandCoinsIcon />
                     Setup Donation
                   </Button>
                 </DialogTrigger>
