@@ -56,17 +56,21 @@ export default function SwapOutStatus() {
               {swapStatus === "PENDING" && <Loading className="w-4 h-4 mr-2" />}
               {statusText[swapStatus]}
             </CardTitle>
-            <CardDescription className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
+            <CardDescription className="text-muted-foreground text-sm">
               {swap.autoSwap && (
-                <span>Auto swap{swap.usedXpub && <> to xpub</>} • </span>
+                <p className="text-center mb-1">
+                  Auto swap{swap.usedXpub && <> to xpub</>}
+                </p>
               )}
-              Swap ID: {swap.id}{" "}
-              <CopyIcon
-                className="cursor-pointer text-muted-foreground size-4"
-                onClick={() => {
-                  copyToClipboard(swap.id);
-                }}
-              />
+              <div className="flex items-center justify-center gap-2">
+                Swap ID: {swap.id}{" "}
+                <CopyIcon
+                  className="cursor-pointer text-muted-foreground size-4"
+                  onClick={() => {
+                    copyToClipboard(swap.id);
+                  }}
+                />
+              </div>
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
