@@ -126,6 +126,7 @@ export function FirstChannel() {
   return (
     <>
       <AppHeader
+        pageTitle="Open Your First Channel"
         title="Open Your First Channel"
         description="Open a channel to another lightning network node to join the lightning network"
       />

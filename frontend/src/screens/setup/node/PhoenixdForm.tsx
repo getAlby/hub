@@ -42,6 +42,7 @@ export function PhoenixdForm() {
     <Container>
       <TwoColumnLayoutHeader
         title="Configure phoenixd"
+        pageTitle="Configure phoenixd"
         description="Fill out wallet details to finish setup."
       />
       <form className="w-full grid gap-5 mt-6" onSubmit={onSubmit}>

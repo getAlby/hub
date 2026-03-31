@@ -228,6 +228,7 @@ function NewChannelInternal({
   return (
     <>
       <AppHeader
+        pageTitle="Open Channel with Lightning"
         title="Open Channel with Lightning"
         description="Purchase a channel that allows you to receive payments"
         contentRight={

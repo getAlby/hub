@@ -1,25 +1,25 @@
 import {
-  ArrowUpDown,
-  Code2,
-  CreditCard,
-  FileSignature,
-  FileText,
-  Home,
-  Info,
-  LayoutGrid,
-  Link,
-  Network,
-  Plug,
-  QrCode,
-  RefreshCw,
-  Send,
-  Settings,
-  Shield,
-  Shuffle,
-  SquareStack,
-  User,
-  UserPlus2,
-  Wallet,
+  ArrowUpDownIcon,
+  Code2Icon,
+  CreditCardIcon,
+  FileSignatureIcon,
+  FileTextIcon,
+  HomeIcon,
+  InfoIcon,
+  LayoutGridIcon,
+  LinkIcon,
+  NetworkIcon,
+  PlugIcon,
+  QrCodeIcon,
+  RefreshCwIcon,
+  SendIcon,
+  SettingsIcon,
+  ShieldIcon,
+  ShuffleIcon,
+  SquareStackIcon,
+  UserIcon,
+  UserPlus2Icon,
+  WalletIcon,
 } from "lucide-react";
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
@@ -79,11 +79,11 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             onSelect={() => runCommand(() => navigate("/home"))}
             keywords={["dashboard"]}
           >
-            <Home />
+            <HomeIcon />
             <span>Home</span>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => navigate("/wallet"))}>
-            <Wallet />
+            <WalletIcon />
             <span>Wallet</span>
           </CommandItem>
           <CommandItem
@@ -91,30 +91,30 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
               runCommand(() => navigate("/apps?tab=connected-apps"))
             }
           >
-            <Plug />
+            <PlugIcon />
             <span>Connected Apps</span>
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => navigate("/sub-wallets"))}
           >
-            <CreditCard />
+            <CreditCardIcon />
             <span>Sub-wallets</span>
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => navigate("/channels"))}
             keywords={["node", "liquidity", "channels"]}
           >
-            <Network />
+            <NetworkIcon />
             <span>Node</span>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => navigate("/peers"))}>
-            <Network />
+            <NetworkIcon />
             <span>Peers</span>
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => navigate("/apps?tab=app-store"))}
           >
-            <LayoutGrid />
+            <LayoutGridIcon />
             <span>App Store</span>
           </CommandItem>
         </CommandGroup>
@@ -123,25 +123,25 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
           <CommandItem
             onSelect={() => runCommand(() => navigate("/wallet/send"))}
           >
-            <Send />
+            <SendIcon />
             <span>Send Payment</span>
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => navigate("/wallet/receive"))}
           >
-            <QrCode />
+            <QrCodeIcon />
             <span>Receive Payment</span>
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => navigate("/wallet/swap"))}
           >
-            <Shuffle />
+            <ShuffleIcon />
             <span>Swap</span>
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => navigate("/wallet/swap/auto"))}
           >
-            <RefreshCw />
+            <RefreshCwIcon />
             <span>Auto Swap</span>
           </CommandItem>
           <CommandItem
@@ -149,7 +149,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
               runCommand(() => navigate("/wallet/receive/invoice"))
             }
           >
-            <FileText />
+            <FileTextIcon />
             <span>Create Invoice</span>
           </CommandItem>
           <CommandItem
@@ -157,13 +157,13 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
               runCommand(() => navigate("/wallet/receive/onchain"))
             }
           >
-            <Link />
+            <LinkIcon />
             <span>Receive On-chain</span>
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => navigate("/wallet/sign-message"))}
           >
-            <FileSignature />
+            <FileSignatureIcon />
             <span>Sign Message</span>
           </CommandItem>
         </CommandGroup>
@@ -173,13 +173,13 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             onSelect={() => runCommand(() => navigate("/settings"))}
             keywords={["theme", "fiat", "currency", "dark"]}
           >
-            <Settings />
+            <SettingsIcon />
             <span>Settings</span>
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => navigate("/settings/backup"))}
           >
-            <Shield />
+            <ShieldIcon />
             <span>Backup</span>
           </CommandItem>
           <CommandItem
@@ -187,47 +187,47 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
               runCommand(() => navigate("/settings/alby-account"))
             }
           >
-            <User />
+            <UserIcon />
             <span>Alby Account</span>
           </CommandItem>
           <CommandItem
             keywords={["info"]}
             onSelect={() => runCommand(() => navigate("/settings/about"))}
           >
-            <Info />
+            <InfoIcon />
             <span>About</span>
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => navigate("/settings/developer"))}
           >
-            <Code2 />
+            <Code2Icon />
             <span>Developer Settings</span>
           </CommandItem>
         </CommandGroup>
         <CommandSeparator />
         <CommandGroup heading="Quick Actions">
           <CommandItem onSelect={() => runCommand(() => navigate("/apps/new"))}>
-            <Plug />
+            <PlugIcon />
             <span>Connect New App</span>
           </CommandItem>
           <CommandItem
             keywords={["New Sub-Wallet"]}
             onSelect={() => runCommand(() => navigate("/sub-wallets/new"))}
           >
-            <SquareStack />
+            <SquareStackIcon />
             <span>Create Sub-wallet</span>
           </CommandItem>
           <CommandItem
             keywords={["New Channel"]}
             onSelect={() => runCommand(() => navigate("/channels/incoming"))}
           >
-            <ArrowUpDown />
+            <ArrowUpDownIcon />
             <span>Open Channel</span>
           </CommandItem>
           <CommandItem
             onSelect={() => runCommand(() => navigate("/peers/new"))}
           >
-            <UserPlus2 />
+            <UserPlus2Icon />
             <span>Connect Peer</span>
           </CommandItem>
         </CommandGroup>

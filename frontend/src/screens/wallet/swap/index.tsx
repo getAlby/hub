@@ -57,6 +57,7 @@ export default function Swap() {
   return (
     <div className="grid gap-5">
       <AppHeader
+        pageTitle="Swap"
         title="Swap"
         contentRight={
           tab === "out" && (

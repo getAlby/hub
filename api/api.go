@@ -810,9 +810,17 @@ func (api *api) RefundSwap(refundSwapRequest *RefundSwapRequest) error {
 }
 
 func (api *api) GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error) {
+	if api.svc.GetSwapsService() == nil {
+		return nil, errors.New("SwapsService not started")
+	}
+
 	swapOutBalanceThresholdStr, _ := api.cfg.Get(config.AutoSwapBalanceThresholdKey, "")
 	swapOutAmountStr, _ := api.cfg.Get(config.AutoSwapAmountKey, "")
 	swapOutDestination, _ := api.cfg.Get(config.AutoSwapDestinationKey, "")
+
+	if xpub := api.svc.GetSwapsService().GetDecryptedAutoSwapXpub(); xpub != "" {
+		swapOutDestination = xpub
+	}
 
 	swapOutEnabled := swapOutBalanceThresholdStr != "" && swapOutAmountStr != ""
 	var swapOutBalanceThreshold, swapOutAmount uint64
@@ -984,6 +992,30 @@ func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *Initi
 }
 
 func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *EnableAutoSwapRequest) error {
+	if api.svc.GetSwapsService() == nil {
+		return errors.New("SwapsService not started")
+	}
+
+	encryptionKey := ""
+	if enableAutoSwapsRequest.Destination != "" {
+		switch enableAutoSwapsRequest.DestinationType {
+		case "address":
+			if err := api.svc.GetSwapsService().ValidateAddress(enableAutoSwapsRequest.Destination); err != nil {
+				return err
+			}
+		case "xpub":
+			if !api.cfg.CheckUnlockPassword(enableAutoSwapsRequest.UnlockPassword) {
+				return errors.New("invalid unlock password")
+			}
+			if err := api.svc.GetSwapsService().ValidateXpub(enableAutoSwapsRequest.Destination); err != nil {
+				return err
+			}
+			encryptionKey = enableAutoSwapsRequest.UnlockPassword
+		default:
+			return errors.New("destination type must be address or xpub")
+		}
+	}
+
 	err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, strconv.FormatUint(enableAutoSwapsRequest.BalanceThreshold, 10), "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save autoswap balance threshold to config")
@@ -996,16 +1028,13 @@ func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *E
 		return err
 	}
 
-	err = api.cfg.SetUpdate(config.AutoSwapDestinationKey, enableAutoSwapsRequest.Destination, "")
+	err = api.cfg.SetUpdate(config.AutoSwapDestinationKey, enableAutoSwapsRequest.Destination, encryptionKey)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save autoswap destination to config")
 		return err
 	}
 
-	if api.svc.GetSwapsService() == nil {
-		return errors.New("SwapsService not started")
-	}
-	return api.svc.GetSwapsService().EnableAutoSwapOut()
+	return api.svc.GetSwapsService().EnableAutoSwapOut(enableAutoSwapsRequest.UnlockPassword)
 }
 
 func (api *api) DisableAutoSwap() error {

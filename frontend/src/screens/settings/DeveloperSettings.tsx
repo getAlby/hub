@@ -65,6 +65,7 @@ export default function DeveloperSettings() {
   return (
     <>
       <SettingsHeader
+        pageTitle="Developer"
         title="Developer"
         description="Power your apps with Alby Hub."
       />

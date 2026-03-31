@@ -86,6 +86,7 @@ export function NewSubwallet() {
   return (
     <div className="grid gap-5">
       <AppHeader
+        pageTitle="Create Sub-wallet"
         title="Create Sub-wallet"
         contentRight={
           <>

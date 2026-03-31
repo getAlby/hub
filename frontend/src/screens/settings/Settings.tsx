@@ -108,6 +108,7 @@ function Settings() {
     <>
       <SettingsHeader
         title="General"
+        pageTitle="Settings"
         description="General Alby Hub settings."
       />
       <form className="w-full flex flex-col gap-8">
