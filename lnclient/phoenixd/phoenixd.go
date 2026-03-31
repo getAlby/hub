@@ -112,7 +112,11 @@ func (svc *PhoenixService) GetBalances(ctx context.Context, includeInactiveChann
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("phoenixd /getbalance returned non-success status: %d %s", resp.StatusCode, string(body))
+		logger.Logger.WithFields(logrus.Fields{
+			"body":        string(body),
+			"status_code": resp.StatusCode,
+		}).Error("phoenixd get balance endpoint returned non-success code")
+		return nil, fmt.Errorf("phoenixd get balance endpoint returned non-success code: %d %s", resp.StatusCode, string(body))
 	}
 
 	var balanceRes BalanceResponse
@@ -160,7 +164,11 @@ func fetchNodeInfo(ctx context.Context, svc *PhoenixService) (info *lnclient.Nod
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("phoenixd /getinfo returned non-success status: %d %s", resp.StatusCode, string(body))
+		logger.Logger.WithFields(logrus.Fields{
+			"body":        string(body),
+			"status_code": resp.StatusCode,
+		}).Error("phoenixd get info endpoint returned non-success code")
+		return nil, fmt.Errorf("phoenixd get info endpoint returned non-success code: %d %s", resp.StatusCode, string(body))
 	}
 
 	var infoRes InfoResponse
@@ -222,7 +230,11 @@ func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, descri
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("phoenixd /createinvoice returned non-success status: %d %s", resp.StatusCode, string(body))
+		logger.Logger.WithFields(logrus.Fields{
+			"body":        string(body),
+			"status_code": resp.StatusCode,
+		}).Error("phoenixd create invoice endpoint returned non-success code")
+		return nil, fmt.Errorf("phoenixd create invoice endpoint returned non-success code: %d %s", resp.StatusCode, string(body))
 	}
 
 	var invoiceRes MakeInvoiceResponse
@@ -269,7 +281,11 @@ func (svc *PhoenixService) LookupInvoice(ctx context.Context, paymentHash string
 		return nil, err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("phoenixd /payments/incoming returned non-success status: %d %s", resp.StatusCode, string(body))
+		logger.Logger.WithFields(logrus.Fields{
+			"body":        string(body),
+			"status_code": resp.StatusCode,
+		}).Error("phoenixd incoming payments endpoint returned non-success code")
+		return nil, fmt.Errorf("phoenixd incoming payments endpoint returned non-success code: %d %s", resp.StatusCode, string(body))
 	}
 
 	var invoiceRes InvoiceResponse
