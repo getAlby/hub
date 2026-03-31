@@ -1,27 +1,15 @@
 import { SquareArrowOutUpRightIcon } from "lucide-react";
-import React from "react";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
+import { useAlbyBlog } from "src/hooks/useAlbyBlog";
 import { cn } from "src/lib/utils";
-
-type BlogPost = {
-  id: string;
-  title: string;
-  description: string;
-  url: string;
-  imageUrl?: string;
-  publishedAt?: string;
-};
-
-const ALBY_BLOG_ENDPOINT =
-  import.meta.env.VITE_ALBY_BLOG_ENDPOINT ||
-  "https://getalby.com/api/hub/blog/latest";
 
 const fallbackThemes = [
   "from-emerald-200 via-cyan-200 to-yellow-200",
@@ -30,111 +18,25 @@ const fallbackThemes = [
   "from-sky-200 via-indigo-100 to-violet-100",
 ];
 
-function toStringValue(value: unknown): string | undefined {
-  return typeof value === "string" && value.trim() ? value.trim() : undefined;
-}
-
-function normalizePost(input: unknown): BlogPost | null {
-  if (!input || typeof input !== "object") {
-    return null;
-  }
-  const item = input as Record<string, unknown>;
-  const id = toStringValue(item.id) || toStringValue(item.slug) || "latest";
-  const title = toStringValue(item.title);
-  const description =
-    toStringValue(item.lead) ||
-    toStringValue(item.description) ||
-    toStringValue(item.excerpt);
-  const url = toStringValue(item.url) || toStringValue(item.link);
-  const imageUrlValue =
-    toStringValue(item.imageUrl) ||
-    toStringValue(item.image_url) ||
-    toStringValue(item.coverImage) ||
-    toStringValue(item.cover_image);
-  const imageUrl = imageUrlValue?.replace(/&amp;/g, "&");
-  const publishedAt =
-    toStringValue(item.publishedAt) || toStringValue(item.published_at);
-
-  if (!title || !url || !description) {
-    return null;
-  }
-
-  return {
-    id,
-    title,
-    description,
-    url,
-    imageUrl,
-    publishedAt,
-  };
-}
-
-function pickLatestPost(posts: BlogPost[]): BlogPost {
-  const dated = posts.filter((p) => p.publishedAt);
-  if (dated.length > 0) {
-    return [...dated].sort(
-      (a, b) =>
-        new Date(b.publishedAt || "").getTime() -
-        new Date(a.publishedAt || "").getTime()
-    )[0];
-  }
-  return posts[0];
-}
-
-async function fetchBlogPosts(): Promise<BlogPost[]> {
-  const response = await fetch(ALBY_BLOG_ENDPOINT);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch blog posts: ${response.status}`);
-  }
-
-  const payload = (await response.json()) as unknown;
-  const candidates = Array.isArray(payload)
-    ? payload
-    : Array.isArray((payload as { posts?: unknown[] })?.posts)
-      ? (payload as { posts: unknown[] }).posts
-      : [payload];
-
-  return candidates
-    .map(normalizePost)
-    .filter((post): post is BlogPost => !!post);
+function hashString(str: string): number {
+  return Math.abs([...str].reduce((sum, ch) => sum + ch.charCodeAt(0), 0));
 }
 
 export function AlbyBlogWidget() {
-  const [post, setPost] = React.useState<BlogPost | null>(null);
-  const [themeClassName, setThemeClassName] = React.useState(fallbackThemes[0]);
-
-  React.useEffect(() => {
-    const loadPost = async () => {
-      try {
-        const posts = await fetchBlogPosts();
-        if (!posts.length) {
-          setPost(null);
-          return;
-        }
-        const latest = pickLatestPost(posts);
-        setPost(latest);
-        const themeIndex = Math.abs(
-          [...latest.id].reduce((sum, ch) => sum + ch.charCodeAt(0), 0)
-        );
-        setThemeClassName(fallbackThemes[themeIndex % fallbackThemes.length]);
-      } catch {
-        setPost(null);
-      }
-    };
-
-    void loadPost();
-  }, []);
+  const { data: post } = useAlbyBlog();
 
   if (!post) {
     return null;
   }
 
+  const theme = fallbackThemes[hashString(post.id) % fallbackThemes.length];
+
   return (
-    <Card className="overflow-hidden rounded-[14px] shadow-none">
-      <CardHeader className="px-6 pb-0">
-        <CardTitle className="text-base font-semibold">Alby Blog</CardTitle>
+    <Card>
+      <CardHeader>
+        <CardTitle>Alby Blog</CardTitle>
       </CardHeader>
-      <CardContent className="px-6 pt-0">
+      <CardContent>
         <div className="relative h-[247px] overflow-hidden rounded-xl border">
           {post.imageUrl ? (
             <img
@@ -143,12 +45,7 @@ export function AlbyBlogWidget() {
               className="absolute inset-0 size-full object-cover"
             />
           ) : (
-            <div
-              className={cn(
-                "absolute inset-0 bg-gradient-to-br",
-                themeClassName
-              )}
-            >
+            <div className={cn("absolute inset-0 bg-gradient-to-br", theme)}>
               <div className="absolute -left-10 top-6 size-36 rounded-full bg-white/35 blur-3xl" />
               <div className="absolute -right-8 bottom-2 size-40 rounded-full bg-white/20 blur-3xl" />
               <div className="absolute inset-0 bg-white/10" />
@@ -156,14 +53,12 @@ export function AlbyBlogWidget() {
           )}
         </div>
       </CardContent>
-      <CardFooter className="flex flex-col items-start gap-4 px-6 pb-6 pt-0">
+      <CardFooter className="flex flex-col items-start gap-4">
         <div className="space-y-1">
-          <p className="text-xl font-semibold leading-7 text-foreground">
-            {post.title}
-          </p>
-          <p className="text-base leading-6 text-muted-foreground">
+          <CardTitle className="text-xl leading-7">{post.title}</CardTitle>
+          <CardDescription className="text-base leading-6">
             {post.description}
-          </p>
+          </CardDescription>
         </div>
         <div className="flex w-full justify-end">
           <ExternalLinkButton to={post.url} variant="outline">

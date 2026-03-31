@@ -11,6 +11,15 @@ type AlbyService interface {
 	GetInfo(ctx context.Context) (*AlbyInfo, error)
 	GetBitcoinRate(ctx context.Context) (*BitcoinRate, error)
 	GetChannelPeerSuggestions(ctx context.Context) ([]ChannelPeerSuggestion, error)
+	GetLatestBlogPost(ctx context.Context) (*BlogPost, error)
+}
+
+type BlogPost struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	URL         string `json:"url"`
+	ImageURL    string `json:"imageUrl,omitempty"`
 }
 
 type AlbyOAuthService interface {
