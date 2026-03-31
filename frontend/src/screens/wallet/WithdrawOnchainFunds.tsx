@@ -1,6 +1,6 @@
 import {
   AlertTriangleIcon,
-  ChevronDown,
+  ChevronDownIcon,
   CopyIcon,
   ExternalLinkIcon,
   InfoIcon,
@@ -310,7 +310,7 @@ export default function WithdrawOnchainFunds() {
                   className="text-muted-foreground text-xs"
                   onClick={() => setShowAdvanced((current) => !current)}
                 >
-                  <ChevronDown />
+                  <ChevronDownIcon />
                   Advanced Options
                 </Button>
               )}

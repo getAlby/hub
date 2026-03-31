@@ -1,10 +1,9 @@
 import {
   CirclePlusIcon,
-  HelpCircle,
+  HelpCircleIcon,
   InfoIcon,
   ShieldCheckIcon,
   SparklesIcon,
-  TriangleAlert,
   TriangleAlertIcon,
 } from "lucide-react";
 import { useRef, useState } from "react";
@@ -88,7 +87,7 @@ export function SubwalletList() {
               variant="outline"
               size="icon"
             >
-              <HelpCircle className="size-4" />
+              <HelpCircleIcon className="size-4" />
             </ExternalLinkButton>
             {!albyMe?.subscription.plan_code &&
             subwalletAppsData.totalCount >= MAX_FREE_SUBWALLETS ? (
@@ -130,7 +129,7 @@ export function SubwalletList() {
 
       {!isSufficientlyBacked && (
         <Alert variant="warning">
-          <TriangleAlert />
+          <TriangleAlertIcon />
           <AlertTitle>
             Sub-wallets you manage are insufficiently backed
           </AlertTitle>
