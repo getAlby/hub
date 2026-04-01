@@ -146,10 +146,7 @@ function RefundSwapDialogContent() {
                     id="internal"
                     className="shrink-0"
                   />
-                  <Label
-                    htmlFor="internal"
-                    className="font-medium cursor-pointer"
-                  >
+                  <Label htmlFor="internal" className="cursor-pointer">
                     On-chain balance
                   </Label>
                 </div>
@@ -159,10 +156,7 @@ function RefundSwapDialogContent() {
                     id="external"
                     className="shrink-0"
                   />
-                  <Label
-                    htmlFor="external"
-                    className="font-medium cursor-pointer"
-                  >
+                  <Label htmlFor="external" className="cursor-pointer">
                     External on-chain wallet
                   </Label>
                 </div>

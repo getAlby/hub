@@ -205,10 +205,7 @@ function AutoSwapOutForm() {
                 id="internal"
                 className="shrink-0"
               />
-              <Label
-                htmlFor="internal"
-                className="text-primary font-medium cursor-pointer"
-              >
+              <Label htmlFor="internal" className="cursor-pointer">
                 On-chain balance
               </Label>
             </div>
@@ -218,10 +215,7 @@ function AutoSwapOutForm() {
                 id="external"
                 className="shrink-0"
               />
-              <Label
-                htmlFor="external"
-                className="text-primary font-medium cursor-pointer"
-              >
+              <Label htmlFor="external" className="cursor-pointer">
                 External on-chain wallet
               </Label>
             </div>
@@ -246,10 +240,7 @@ function AutoSwapOutForm() {
                     className="shrink-0"
                   />
                   <div className="grid gap-1.5">
-                    <Label
-                      htmlFor="address"
-                      className="text-sm font-medium cursor-pointer"
-                    >
+                    <Label htmlFor="address" className="cursor-pointer">
                       Single Address
                     </Label>
                     <p className="text-xs text-muted-foreground">
@@ -260,10 +251,7 @@ function AutoSwapOutForm() {
                 <div className="flex items-start space-x-2">
                   <RadioGroupItem value="xpub" id="xpub" className="shrink-0" />
                   <div className="grid gap-1.5">
-                    <Label
-                      htmlFor="xpub"
-                      className="text-sm font-medium cursor-pointer"
-                    >
+                    <Label htmlFor="xpub" className="cursor-pointer">
                       XPUB
                     </Label>
                     <p className="text-xs text-muted-foreground">

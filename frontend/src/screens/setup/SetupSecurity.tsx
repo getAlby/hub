@@ -113,7 +113,7 @@ export function SetupSecurity() {
               />
               <Label
                 htmlFor="securePassword"
-                className="ml-2 text-foreground leading-4"
+                className="ml-2 text-foreground leading-4 cursor-pointer"
               >
                 I understand how to secure and recover funds
               </Label>

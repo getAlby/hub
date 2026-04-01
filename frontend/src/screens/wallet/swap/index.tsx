@@ -272,10 +272,7 @@ function SwapInForm() {
                   id="internal"
                   className="shrink-0"
                 />
-                <Label
-                  htmlFor="internal"
-                  className="font-medium cursor-pointer"
-                >
+                <Label htmlFor="internal" className="cursor-pointer">
                   On-chain balance
                 </Label>
               </div>
@@ -285,10 +282,7 @@ function SwapInForm() {
                   id="external"
                   className="shrink-0"
                 />
-                <Label
-                  htmlFor="external"
-                  className="font-medium cursor-pointer"
-                >
+                <Label htmlFor="external" className="cursor-pointer">
                   External on-chain wallet
                 </Label>
               </div>
@@ -298,7 +292,7 @@ function SwapInForm() {
                   id="crypto"
                   className="shrink-0"
                 />
-                <Label htmlFor="crypto" className="font-medium cursor-pointer">
+                <Label htmlFor="crypto" className="cursor-pointer">
                   Other Cryptocurrency
                 </Label>
               </div>
@@ -449,7 +443,9 @@ function SwapOutForm() {
               id="internal"
               className="shrink-0"
             />
-            <Label htmlFor="internal">On-chain balance</Label>
+            <Label htmlFor="internal" className="cursor-pointer">
+              On-chain balance
+            </Label>
           </div>
           <div className="flex items-start space-x-2">
             <RadioGroupItem
@@ -457,7 +453,9 @@ function SwapOutForm() {
               id="external"
               className="shrink-0"
             />
-            <Label htmlFor="external">External on-chain wallet</Label>
+            <Label htmlFor="external" className="cursor-pointer">
+              External on-chain wallet
+            </Label>
           </div>
         </RadioGroup>
       </div>
