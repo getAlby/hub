@@ -348,7 +348,7 @@ export function AI() {
                   setExpandedAgent(value);
                 }}
               >
-                <SelectTrigger className="w-[240px]">
+                <SelectTrigger className="w-60">
                   <SelectValue
                     placeholder={
                       <span className="flex items-center gap-2">
