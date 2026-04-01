@@ -1,12 +1,11 @@
 import {
   ArrowRightIcon,
   ArrowUpRightIcon,
-  PlusIcon,
   CheckCircleIcon,
+  CopyIcon,
   LayersIcon,
+  PlusIcon,
   SparklesIcon,
-  TerminalIcon,
-  WrenchIcon,
   XIcon,
   ZapIcon,
 } from "lucide-react";
@@ -16,12 +15,13 @@ import { toast } from "sonner";
 import bitrefillLogo from "src/assets/suggested-apps/bitrefill.png";
 import claudeLogo from "src/assets/suggested-apps/claude.png";
 import clineLogo from "src/assets/suggested-apps/cline.png";
+import codexLogo from "src/assets/suggested-apps/codex.png";
 import cursorLogo from "src/assets/suggested-apps/cursor.png";
 import gooseLogo from "src/assets/suggested-apps/goose.png";
+import openclawLogo from "src/assets/suggested-apps/openclaw.png";
 import opencodeLogo from "src/assets/suggested-apps/opencode.png";
 import payperqLogo from "src/assets/suggested-apps/payperq.png";
 import AppHeader from "src/components/AppHeader";
-import { Avatar, AvatarFallback, AvatarImage } from "src/components/ui/avatar";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
 import {
@@ -30,6 +30,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "src/components/ui/accordion";
+import { Avatar, AvatarFallback, AvatarImage } from "src/components/ui/avatar";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
 import {
@@ -39,6 +40,17 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "src/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "src/components/ui/tooltip";
 import {
   DEFAULT_APP_BUDGET_RENEWAL,
   DEFAULT_APP_BUDGET_SATS,
@@ -97,8 +109,14 @@ export function AI() {
   const handleCreateConnection = async (agentId: string) => {
     setLoading(true);
     try {
+      const agentName =
+        agentId === "claude"
+          ? "Claude"
+          : agentId === "goose"
+            ? "Goose"
+            : "AI Agent";
       const createAppResponse = await createApp({
-        name: agentId === "claude" ? "Claude" : "Goose",
+        name: agentName,
         scopes: [
           "get_info",
           "get_balance",
@@ -117,7 +135,7 @@ export function AI() {
       });
       setConnectionSecret(createAppResponse.pairingUri);
       setExpandedAgent(agentId);
-      toast(`${agentId === "claude" ? "Claude" : "Goose"} connection created`);
+      toast(`${agentName} connection created`);
     } catch (error) {
       handleRequestError("Failed to create connection", error);
     }
@@ -251,9 +269,9 @@ export function AI() {
       )}
 
       {/* Connect section */}
-      <div className="space-y-6">
+      <div className="space-y-4">
         {!heroDismissed && (
-          <h2 className="text-2xl font-bold">Connect Your Agent</h2>
+          <h2 className="text-2xl font-bold mt-4">Connect Your Agent</h2>
         )}
 
         {/* Agent grid — flat, no nesting */}
@@ -297,16 +315,27 @@ export function AI() {
           })}
 
           {/* Generic: Any MCP Agent */}
-          <Link
-            to="/apps/new"
-            className="group rounded-xl border border-dashed bg-card p-4 text-left hover:border-primary/40 transition-colors"
+          <button
+            onClick={() =>
+              connectionSecret && expandedAgent === "other"
+                ? undefined
+                : handleCreateConnection("other")
+            }
+            disabled={isLoading}
+            className="group rounded-xl border border-dashed bg-card p-4 text-left hover:border-primary/40 transition-colors disabled:opacity-50"
           >
             <div className="flex items-center mb-3">
               <Avatar className="size-10 rounded-lg border-2 border-card">
+                <AvatarImage src={clineLogo} alt="Cline" />
+              </Avatar>
+              <Avatar className="size-10 rounded-lg border-2 border-card -ml-3">
+                <AvatarImage src={codexLogo} alt="Codex" />
+              </Avatar>
+              <Avatar className="size-10 rounded-lg border-2 border-card -ml-3">
                 <AvatarImage src={cursorLogo} alt="Cursor" />
               </Avatar>
               <Avatar className="size-10 rounded-lg border-2 border-card -ml-3">
-                <AvatarImage src={clineLogo} alt="Cline" />
+                <AvatarImage src={openclawLogo} alt="OpenClaw" />
               </Avatar>
               <Avatar className="size-10 rounded-lg border-2 border-card -ml-3">
                 <AvatarImage src={opencodeLogo} alt="OpenCode" />
@@ -319,13 +348,13 @@ export function AI() {
             </div>
             <p className="font-semibold text-sm">Other Agent</p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              OpenCode, Cursor, Cline, or any MCP agent
+              Cline, Codex, Cursor, OpenClaw, OpenCode & others
             </p>
-          </Link>
+          </button>
 
           {/* Browse all AI apps */}
           <Link
-            to="/apps?tab=app-store"
+            to="/apps?tab=app-store&category=ai"
             className="group rounded-xl border border-dashed bg-card p-4 text-left hover:border-primary/40 transition-colors"
           >
             <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center mb-3">
@@ -343,13 +372,20 @@ export function AI() {
           <Card>
             <CardHeader>
               <div className="flex items-center gap-3">
-                <img
-                  src={expandedAgent === "claude" ? claudeLogo : gooseLogo}
-                  className="w-10 h-10 rounded-lg"
-                />
+                {expandedAgent !== "other" && (
+                  <img
+                    src={expandedAgent === "claude" ? claudeLogo : gooseLogo}
+                    className="w-10 h-10 rounded-lg"
+                  />
+                )}
                 <div>
                   <CardTitle>
-                    Connect {expandedAgent === "claude" ? "Claude" : "Goose"}
+                    Connect{" "}
+                    {expandedAgent === "claude"
+                      ? "Claude"
+                      : expandedAgent === "goose"
+                        ? "Goose"
+                        : "Your Agent"}
                   </CardTitle>
                   <CardDescription>
                     Follow the steps below to complete the connection.
@@ -369,66 +405,8 @@ export function AI() {
           </Card>
         )}
 
-        {/* Skills */}
-        <div className="rounded-xl overflow-hidden border border-border bg-muted/30">
-          <div className="p-6 lg:p-8 pb-0 lg:pb-0">
-            <h2 className="text-2xl font-bold">Skills & Tools</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Install skills to extend what your agent can do.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border mt-4">
-            <Link
-              to="/internal-apps/alby-cli-skill"
-              className="group p-6 lg:p-8 hover:bg-muted/50 transition-colors flex flex-col"
-            >
-              <div className="rounded-lg bg-primary/10 p-2.5 w-fit mb-3">
-                <TerminalIcon className="w-5 h-5 text-primary" />
-              </div>
-              <p className="font-semibold mb-1">Payments Skill</p>
-              <p className="text-sm text-muted-foreground line-clamp-2 flex-1">
-                Send and receive payments, check balances, and manage invoices.
-              </p>
-              <p className="text-xs text-primary mt-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                Install <ArrowRightIcon className="w-3 h-3" />
-              </p>
-            </Link>
-
-            <ExternalLink
-              to="https://github.com/getAlby/builder-skill"
-              className="group p-6 lg:p-8 hover:bg-muted/50 transition-colors flex flex-col"
-            >
-              <div className="rounded-lg bg-primary/10 p-2.5 w-fit mb-3">
-                <WrenchIcon className="w-5 h-5 text-primary" />
-              </div>
-              <p className="font-semibold mb-1">Builder Skill</p>
-              <p className="text-sm text-muted-foreground line-clamp-2 flex-1">
-                Context on how to build Lightning apps with Alby tools.
-              </p>
-              <p className="text-xs text-primary mt-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                View on GitHub
-                <ArrowUpRightIcon className="w-3 h-3" />
-              </p>
-            </ExternalLink>
-
-            <ExternalLink
-              to="https://github.com/getAlby/awesome-ai-bitcoin/?tab=readme-ov-file#mcp-servers"
-              className="group p-6 lg:p-8 hover:bg-muted/50 transition-colors flex flex-col"
-            >
-              <div className="rounded-lg bg-primary/10 p-2.5 w-fit mb-3">
-                <SparklesIcon className="w-5 h-5 text-primary" />
-              </div>
-              <p className="font-semibold mb-1">Awesome AI + Bitcoin</p>
-              <p className="text-sm text-muted-foreground line-clamp-2 flex-1">
-                Curated list of MCP servers, tools, and resources.
-              </p>
-              <p className="text-xs text-primary mt-3 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                Browse list
-                <ArrowUpRightIcon className="w-3 h-3" />
-              </p>
-            </ExternalLink>
-          </div>
-        </div>
+        {/* Inspiration */}
+        <InspirationPrompts />
 
         {/* Featured services — branded full cards */}
         <div>
@@ -565,6 +543,108 @@ function ConnectionInstructions({
   mcpUrlWithSecret: string;
   gooseDesktopLink: string;
 }) {
+  if (agentId === "other") {
+    return (
+      <Tabs defaultValue="mcp">
+        <TabsList>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <TabsTrigger value="mcp">MCP Server</TabsTrigger>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              Recommended. Works with any MCP-compatible agent.
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <TabsTrigger value="skills">Skills</TabsTrigger>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              For Claude Code, Goose, and other skill-enabled agents.
+            </TooltipContent>
+          </Tooltip>
+        </TabsList>
+        <TabsContent value="mcp">
+          <div className="space-y-3 text-sm">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between rounded-lg bg-muted px-4 py-2.5">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5">
+                    Endpoint URL
+                  </p>
+                  <p className="font-mono text-xs">{mcpUrl}</p>
+                </div>
+                <Button
+                  onClick={() => copyToClipboard(mcpUrl)}
+                  size="sm"
+                  variant="secondary"
+                >
+                  Copy
+                </Button>
+              </div>
+              <div className="flex items-center justify-between rounded-lg bg-muted px-4 py-2.5">
+                <div>
+                  <p className="text-xs text-muted-foreground mb-0.5">
+                    Authorization Header
+                  </p>
+                  <p className="font-mono text-xs truncate max-w-md">
+                    Bearer {connectionSecret.slice(0, 20)}...
+                  </p>
+                </div>
+                <Button
+                  onClick={() => copyToClipboard(`Bearer ${connectionSecret}`)}
+                  size="sm"
+                  variant="secondary"
+                >
+                  Copy
+                </Button>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Set the transport to{" "}
+              <span className="font-semibold">Streamable HTTP</span> and add the
+              Authorization header to authenticate.
+            </p>
+          </div>
+        </TabsContent>
+        <TabsContent value="skills">
+          <div className="space-y-4 text-sm">
+            <div className="flex items-center gap-2 rounded-md bg-muted px-3 py-2">
+              <code className="flex-1 text-xs whitespace-pre-wrap break-all">
+                {` mkdir -p ~/.alby-cli && echo "${connectionSecret}" > ~/.alby-cli/connection-secret.key && npx skills add getAlby/payments-skill`}
+              </code>
+              <Button
+                onClick={() =>
+                  copyToClipboard(
+                    ` mkdir -p ~/.alby-cli && echo "${connectionSecret}" > ~/.alby-cli/connection-secret.key && npx skills add getAlby/payments-skill`
+                  )
+                }
+                size="sm"
+                variant="ghost"
+                className="h-6 px-2 shrink-0"
+              >
+                <CopyIcon className="w-3 h-3" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Building a Lightning app?{" "}
+              <ExternalLink
+                to="https://github.com/getAlby/builder-skill"
+                className="underline hover:text-foreground transition-colors"
+              >
+                Add the Builder Skill
+              </ExternalLink>
+            </p>
+          </div>
+        </TabsContent>
+      </Tabs>
+    );
+  }
+
   if (agentId === "claude") {
     return (
       <Accordion type="single" collapsible>
@@ -724,5 +804,123 @@ function ConnectionInstructions({
         </AccordionContent>
       </AccordionItem>
     </Accordion>
+  );
+}
+
+const inspirationCategories = [
+  {
+    label: "Payments",
+    prompts: [
+      "send $5 to alex@getalby.com for coffee.",
+      "pay this Lightning invoice: lnbc1pjk...",
+      "send 1,000 sats to each of these 20 podcast hosts.",
+      "every Monday, send 50,000 sats to my savings wallet.",
+    ],
+  },
+  {
+    label: "Shopping",
+    prompts: [
+      "buy a $25 Netflix gift card.",
+      "get me an eSIM with 5GB of data for my trip to Portugal.",
+      "find me a VPN and a phone number, no KYC.",
+    ],
+  },
+  {
+    label: "Automation",
+    prompts: [
+      "read invoices.csv and pay all 47 Lightning invoices.",
+      "check my balance every morning and message me if it drops below 100k sats.",
+      "split last night's dinner bill equally between these 4 lightning addresses.",
+    ],
+  },
+  {
+    label: "Research",
+    prompts: [
+      "search the web for bitcoin news and summarize the top 5 stories.",
+      "find the mass of the earth in mass units of mass of the sun.",
+      "look up the latest nostr posts about AI agents.",
+    ],
+  },
+  {
+    label: "Builder",
+    prompts: [
+      "build a paywall for my API that charges 10 sats per request.",
+      "scaffold a Next.js app with Lightning login using Alby JS SDK.",
+      "create a tipping page that generates invoices on the fly.",
+    ],
+  },
+];
+
+function RotatingPrompt({ prompts }: { prompts: string[] }) {
+  const [index, setIndex] = React.useState(0);
+  const [fading, setFading] = React.useState(false);
+
+  React.useEffect(() => {
+    setIndex(0);
+    setFading(false);
+  }, [prompts]);
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setFading(true);
+      setTimeout(() => {
+        setIndex((i) => (i + 1) % prompts.length);
+        setFading(false);
+      }, 200);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, [prompts]);
+
+  return (
+    <div className="flex items-center gap-3 rounded-lg bg-muted/50 border border-border px-4 py-3">
+      <span className="text-muted-foreground select-none">&rsaquo;</span>
+      <p
+        className={`flex-1 text-sm font-mono transition-opacity duration-200 ${
+          fading ? "opacity-0" : "opacity-100"
+        }`}
+      >
+        {prompts[index]}
+      </p>
+      <button
+        onClick={() => copyToClipboard(prompts[index])}
+        className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
+        aria-label="Copy prompt"
+      >
+        <CopyIcon className="w-4 h-4" />
+      </button>
+    </div>
+  );
+}
+
+function InspirationPrompts() {
+  return (
+    <Tabs defaultValue={inspirationCategories[0].label}>
+      <div className="rounded-xl border border-border bg-card px-5 py-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <p className="font-semibold text-sm">
+            Give your agent new capabilities
+          </p>
+          <ExternalLink
+            to="https://402index.io"
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            View all services
+            <ArrowRightIcon className="w-3 h-3 inline ml-0.5" />
+          </ExternalLink>
+        </div>
+        <TabsList>
+          {inspirationCategories.map((cat) => (
+            <TabsTrigger key={cat.label} value={cat.label}>
+              {cat.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+        {inspirationCategories.map((cat) => (
+          <TabsContent key={cat.label} value={cat.label} className="mt-0">
+            <RotatingPrompt prompts={cat.prompts} />
+          </TabsContent>
+        ))}
+      </div>
+    </Tabs>
   );
 }
