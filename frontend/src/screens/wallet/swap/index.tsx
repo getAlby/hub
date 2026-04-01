@@ -450,12 +450,7 @@ function SwapOutForm() {
               id="internal"
               className="shrink-0"
             />
-            <Label
-              htmlFor="internal"
-              className="text-primary font-medium cursor-pointer"
-            >
-              On-chain balance
-            </Label>
+            <Label htmlFor="internal">On-chain balance</Label>
           </div>
           <div className="flex items-start space-x-2">
             <RadioGroupItem
@@ -463,12 +458,7 @@ function SwapOutForm() {
               id="external"
               className="shrink-0"
             />
-            <Label
-              htmlFor="external"
-              className="text-primary font-medium cursor-pointer"
-            >
-              External on-chain wallet
-            </Label>
+            <Label htmlFor="external">External on-chain wallet</Label>
           </div>
         </RadioGroup>
       </div>
