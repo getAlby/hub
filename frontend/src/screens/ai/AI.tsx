@@ -371,8 +371,8 @@ export function AI() {
                       : expandedAgent === "goose"
                         ? gooseConnections
                         : undefined;
-                  const isConnected = (connections?.length ?? 0) > 0;
-                  if (isConnected && agent?.setupUrl) {
+                  const hasExistingConnection = (connections?.length ?? 0) > 0;
+                  if (hasExistingConnection && agent?.setupUrl) {
                     navigate(agent.setupUrl);
                   } else {
                     handleCreateConnection(expandedAgent);
@@ -388,29 +388,17 @@ export function AI() {
             {expandedAgent &&
               connectionSecret &&
               (isConnected ? (
-                <div className="flex items-center justify-between rounded-lg border border-positive/30 bg-positive/5 px-4 py-3">
-                  <div className="flex items-center gap-2 text-sm text-positive-foreground font-medium">
-                    <CheckCircleIcon className="w-4 h-4" />
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircleIcon className="w-4 h-4 text-positive-foreground" />
+                  <span className="text-positive-foreground font-medium">
                     Agent connected
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Link to={`/apps/${createdAppId}`}>
-                      <Button variant="outline" size="sm">
-                        Manage connection
-                      </Button>
-                    </Link>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setConnectionSecret("");
-                        setCreatedAppId(undefined);
-                        setExpandedAgent(null);
-                      }}
-                    >
-                      Connect another
-                    </Button>
-                  </div>
+                  </span>
+                  <Link
+                    to={`/apps/${createdAppId}`}
+                    className="text-muted-foreground hover:text-foreground underline transition-colors"
+                  >
+                    Edit permissions & budget
+                  </Link>
                 </div>
               ) : (
                 <>
