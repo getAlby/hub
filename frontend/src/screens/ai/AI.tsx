@@ -418,7 +418,7 @@ export function AI() {
                     to={`/apps/${createdAppId}`}
                     className="text-muted-foreground hover:text-foreground underline transition-colors"
                   >
-                    Manage
+                    Set name & manage
                   </Link>
                 </div>
               ) : (
