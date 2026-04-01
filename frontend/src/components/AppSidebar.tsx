@@ -93,15 +93,15 @@ export function AppSidebar() {
         icon: SquareStackIcon,
       },
       {
+        title: "Connections",
+        url: "/apps",
+        icon: Plug2Icon,
+      },
+      {
         title: "AI & Agents",
         url: "/ai",
         icon: BotIcon,
         badge: "NEW",
-      },
-      {
-        title: "Connections",
-        url: "/apps",
-        icon: Plug2Icon,
       },
     ],
     navSecondary: [
