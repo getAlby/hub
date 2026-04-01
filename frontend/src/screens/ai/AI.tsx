@@ -155,12 +155,8 @@ export function AI() {
   const handleCreateConnection = async (agentId: string) => {
     setLoading(true);
     try {
-      const agentName =
-        agentId === "claude"
-          ? "Claude"
-          : agentId === "goose"
-            ? "Goose"
-            : "AI Agent";
+      const agent = agents.find((a) => a.id === agentId);
+      const agentName = agent?.name ?? "AI Agent";
       const createAppResponse = await createApp({
         name: agentName,
         scopes: [
@@ -261,7 +257,7 @@ export function AI() {
                     <div>
                       <span className="text-muted-foreground">&gt; </span>
                       <span className="text-foreground">
-                        Send $5 to rene@getalby.com
+                        Send $5 to hub@getalby.com
                       </span>
                     </div>
                     <div className="text-muted-foreground pl-3 border-l-2 border-primary/40 space-y-1">
@@ -422,7 +418,7 @@ export function AI() {
                     to={`/apps/${createdAppId}`}
                     className="text-muted-foreground hover:text-foreground underline transition-colors"
                   >
-                    Edit permissions & budget
+                    Manage
                   </Link>
                 </div>
               ) : (
@@ -753,7 +749,7 @@ const inspirationCategories: {
     icon: ZapIcon,
     prompts: [
       "send $5 to hub@getalby.com for coffee",
-      "pay this Lightning invoice: lnbc1pjk...",
+      "pay this lightning invoice: lnbc1pjk...",
       "send 1,000 sats to each of these 20 podcast hosts",
       "split last night's dinner bill equally between these 4 lightning addresses",
     ],
@@ -771,7 +767,7 @@ const inspirationCategories: {
     label: "Automation",
     icon: RepeatIcon,
     prompts: [
-      "read invoices.csv and pay all 47 Lightning invoices",
+      "read invoices.csv and pay all 47 lightning invoices",
       "check my balance every morning and message me if it drops below 100k sats",
       "every Monday, send 50,000 sats to hub@getalby.com",
     ],
@@ -781,9 +777,9 @@ const inspirationCategories: {
     icon: HammerIcon,
     prompts: [
       "build a paywall for my API that charges 10 sats per request",
-      "scaffold a Next.js app with Lightning login using Alby JS SDK",
+      "scaffold a Next.js app with lightning login using Alby JS SDK",
       "create a tipping page that generates invoices on the fly",
-      "add a Lightning paywall to my Express API using L402",
+      "add a lightning paywall to my Express API using L402",
     ],
     skill: {
       prompt: "Install the skill from https://github.com/getAlby/builder-skill",
@@ -798,7 +794,7 @@ const inspirationCategories: {
       "open a channel with 2M sats to ACINQ's node",
       "show me my top 5 channels by routing volume this month",
       "close all channels with less than 10k sats capacity",
-      "what's my on-chain vs Lightning balance breakdown?",
+      "what's my on-chain vs lightning balance breakdown?",
     ],
     skill: {
       prompt: "Install the skill from https://github.com/getAlby/hub-skill",
