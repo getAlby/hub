@@ -16,6 +16,7 @@ import Start from "src/screens/Start";
 import Unlock from "src/screens/Unlock";
 import { Welcome } from "src/screens/Welcome";
 import AlbyAuthRedirect from "src/screens/alby/AlbyAuthRedirect";
+import { AI } from "src/screens/ai/AI";
 import { AlbyEarn } from "src/screens/alby/AlbyEarn";
 import SupportAlby from "src/screens/alby/SupportAlby";
 import AppDetails from "src/screens/apps/AppDetails";
@@ -465,6 +466,11 @@ const routes: RouteObject[] = [
         path: "earn",
         element: <AlbyEarn />,
         handle: { crumb: () => "Earn" },
+      },
+      {
+        path: "ai",
+        element: <AI />,
+        handle: { crumb: () => "AI & Agents" },
       },
     ],
   },
