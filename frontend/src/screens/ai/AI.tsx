@@ -1,6 +1,7 @@
 import {
   ArrowRightIcon,
   ArrowUpRightIcon,
+  BotIcon,
   BoxIcon,
   CheckCircleIcon,
   CopyIcon,
@@ -315,13 +316,18 @@ export function AI() {
       <div className="space-y-4">
         <Card className="border-primary bg-primary/10">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Connect Your Agent</CardTitle>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Create a connection and paste it into your AI agent to get
-                  started
-                </p>
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                  <BotIcon className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <CardTitle>Connect Your Agent</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Create a connection and paste it into your AI agent to get
+                    started
+                  </p>
+                </div>
               </div>
               <Link
                 to="/apps?tab=app-store&category=ai"
@@ -873,18 +879,9 @@ function InspirationPrompts() {
     <Tabs defaultValue={inspirationCategories[0].label} variant="line">
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="px-5 pt-5 pb-4">
-          <div className="flex items-center justify-between mb-4">
-            <p className="font-semibold text-sm">
-              Give your agent new capabilities
-            </p>
-            <ExternalLink
-              to="https://402index.io"
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-            >
-              View all services
-              <ArrowRightIcon className="w-3 h-3" />
-            </ExternalLink>
-          </div>
+          <p className="font-semibold text-sm mb-4">
+            Give your agent new capabilities
+          </p>
           <TabsList>
             {inspirationCategories.map((cat) => {
               const Icon = cat.icon;
