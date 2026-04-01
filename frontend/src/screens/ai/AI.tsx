@@ -852,8 +852,8 @@ function RotatingPrompt({ prompts }: { prompts: string[] }) {
       <p className="flex-1 text-sm font-mono">
         {currentPrompt.slice(0, charCount)}
         <span
-          className={`inline-block w-[5px] h-[1.1em] translate-y-[2px] ml-px ${
-            isTyping ? "bg-primary" : "bg-primary animate-pulse"
+          className={`inline-block w-2 h-[1.1em] translate-y-[2px] ml-0.5 bg-primary ${
+            isTyping ? "" : "animate-[blink_1s_step-end_infinite]"
           }`}
         />
       </p>
