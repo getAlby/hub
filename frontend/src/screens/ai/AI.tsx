@@ -277,7 +277,7 @@ export function AI() {
                     </div>
                     <div className="flex items-center">
                       <span className="text-muted-foreground">&gt; </span>
-                      <span className="w-2 h-4 bg-primary animate-pulse ml-0.5" />
+                      <span className="w-2 h-4 bg-primary ml-0.5 animate-[blink_1s_step-end_infinite]" />
                     </div>
                   </div>
                 </div>
@@ -317,10 +317,16 @@ export function AI() {
 
       {/* Connect section */}
       <div className="space-y-4">
-        <Card>
+        <Card className="border-primary bg-primary/10">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Connect Your Agent</CardTitle>
+              <div>
+                <CardTitle>Connect Your Agent</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Create a connection and paste it into your AI agent to get
+                  started
+                </p>
+              </div>
               <Link
                 to="/apps?tab=app-store&category=ai"
                 className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
@@ -333,15 +339,33 @@ export function AI() {
           <CardContent className="space-y-4">
             <div className="flex items-center gap-2">
               <Select
-                value={expandedAgent ?? ""}
+                value={expandedAgent ?? undefined}
                 onValueChange={(value) => {
                   setConnectionSecret("");
                   setCreatedAppId(undefined);
                   setExpandedAgent(value);
                 }}
               >
-                <SelectTrigger className="w-[200px]">
-                  <SelectValue placeholder="Select your agent" />
+                <SelectTrigger className="w-[240px]">
+                  <SelectValue
+                    placeholder={
+                      <span className="flex items-center gap-2">
+                        <span className="flex -space-x-2">
+                          {agents.slice(0, 4).map((agent) => (
+                            <img
+                              key={agent.id}
+                              src={agent.logo}
+                              alt={agent.name}
+                              className="w-5 h-5 rounded-full border-2 border-background"
+                            />
+                          ))}
+                        </span>
+                        <span className="text-muted-foreground">
+                          Choose your agent
+                        </span>
+                      </span>
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {agents.map((agent) => (
@@ -350,7 +374,7 @@ export function AI() {
                         <img
                           src={agent.logo}
                           alt={agent.name}
-                          className="w-4 h-4 rounded"
+                          className="w-5 h-5 rounded"
                         />
                         {agent.name}
                       </div>
@@ -380,6 +404,7 @@ export function AI() {
                 }}
                 disabled={isLoading || !expandedAgent}
               >
+                <ZapIcon className="w-4 h-4" />
                 Connect
               </Button>
             </div>
@@ -424,7 +449,7 @@ export function AI() {
         {/* Featured services — branded full cards */}
         <div>
           <h2 className="text-2xl font-bold mb-4">Featured Services</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <ExternalLink to="https://www.bitrefill.com/agents">
               <Card className="group relative h-full hover:border-primary/30 transition-colors p-0">
                 <CardContent className="p-4 flex flex-col h-full">
@@ -502,36 +527,6 @@ export function AI() {
                   </p>
                   <p className="text-xs text-muted-foreground/60 mt-3 font-mono">
                     L402 / x402 / MPP
-                  </p>
-                </CardContent>
-              </Card>
-            </ExternalLink>
-
-            <ExternalLink to="https://nadanada.me">
-              <Card className="group relative h-full hover:border-primary/30 transition-colors p-0">
-                <CardContent className="p-4 flex flex-col h-full">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-[#ffd700] flex items-center justify-center">
-                      <span className="text-black font-black text-[10px] leading-none text-center">
-                        nada
-                        <br />
-                        nada
-                      </span>
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold">nadanada</p>
-                      <p className="text-xs text-muted-foreground">
-                        VPN, eSIM & phone numbers
-                      </p>
-                    </div>
-                  </div>
-                  <ArrowUpRightIcon className="w-4 h-4 text-muted-foreground/0 group-hover:text-muted-foreground transition-colors absolute top-4 right-4" />
-                  <p className="text-sm text-muted-foreground flex-1">
-                    Anonymous VPN, eSIM, and phone numbers. No account, no KYC —
-                    pay with Lightning.
-                  </p>
-                  <p className="text-xs text-muted-foreground/60 mt-3 font-mono">
-                    Lightning Payments
                   </p>
                 </CardContent>
               </Card>
@@ -815,36 +810,59 @@ const inspirationCategories: {
 
 function RotatingPrompt({ prompts }: { prompts: string[] }) {
   const [index, setIndex] = React.useState(0);
-  const [fading, setFading] = React.useState(false);
+  const [charCount, setCharCount] = React.useState(0);
+  const [isTyping, setIsTyping] = React.useState(true);
 
+  const currentPrompt = prompts[index];
+
+  // Reset when prompts change (tab switch)
   React.useEffect(() => {
     setIndex(0);
-    setFading(false);
+    setCharCount(0);
+    setIsTyping(true);
   }, [prompts]);
 
+  // Typing effect — advance characters
   React.useEffect(() => {
-    const interval = setInterval(() => {
-      setFading(true);
-      setTimeout(() => {
-        setIndex((i) => (i + 1) % prompts.length);
-        setFading(false);
-      }, 200);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [prompts]);
+    if (!isTyping) {
+      return;
+    }
+    if (charCount >= currentPrompt.length) {
+      setIsTyping(false);
+      return;
+    }
+    const timeout = setTimeout(() => {
+      setCharCount((c) => c + 1);
+    }, 30);
+    return () => clearTimeout(timeout);
+  }, [charCount, currentPrompt, isTyping]);
+
+  // Pause then rotate to next prompt
+  React.useEffect(() => {
+    if (isTyping) {
+      return;
+    }
+    const pause = setTimeout(() => {
+      setIndex((i) => (i + 1) % prompts.length);
+      setCharCount(0);
+      setIsTyping(true);
+    }, 3000);
+    return () => clearTimeout(pause);
+  }, [isTyping, prompts]);
 
   return (
     <div className="flex items-center gap-3 rounded-lg bg-muted/50 border border-border px-4 py-3">
       <span className="text-muted-foreground select-none">&rsaquo;</span>
-      <p
-        className={`flex-1 text-sm font-mono transition-opacity duration-200 ${
-          fading ? "opacity-0" : "opacity-100"
-        }`}
-      >
-        {prompts[index]}
+      <p className="flex-1 text-sm font-mono">
+        {currentPrompt.slice(0, charCount)}
+        <span
+          className={`inline-block w-[5px] h-[1.1em] translate-y-[2px] ml-px ${
+            isTyping ? "bg-primary" : "bg-primary animate-pulse"
+          }`}
+        />
       </p>
       <button
-        onClick={() => copyToClipboard(prompts[index])}
+        onClick={() => copyToClipboard(currentPrompt)}
         className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
         aria-label="Copy prompt"
       >
