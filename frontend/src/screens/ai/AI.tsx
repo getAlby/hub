@@ -358,7 +358,7 @@ export function AI() {
                               key={agent.id}
                               src={agent.logo}
                               alt={agent.name}
-                              className="w-5 h-5 rounded-full border-2 border-background"
+                              className="w-5 h-5 rounded border-2 border-background"
                             />
                           ))}
                         </span>
