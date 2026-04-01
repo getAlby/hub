@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/getAlby/hub/config"
@@ -206,5 +207,65 @@ func (svc *albyService) GetInfo(ctx context.Context) (*AlbyInfo, error) {
 		Healthy:          info.Healthy,
 		AccountAvailable: info.AccountAvailable,
 		Incidents:        incidents,
+	}, nil
+}
+
+func (svc *albyService) GetLatestBlogPost(ctx context.Context) (*BlogPost, error) {
+	client := &http.Client{Timeout: 10 * time.Second}
+
+	url := fmt.Sprintf("%s/hub/blog/latest", albyInternalAPIURL)
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Error creating request to blog endpoint")
+		return nil, err
+	}
+	setDefaultRequestHeaders(req)
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch blog endpoint")
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to read response body")
+		return nil, errors.New("failed to read response body")
+	}
+
+	if res.StatusCode >= 300 {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":        string(body),
+			"status_code": res.StatusCode,
+		}).Error("Blog endpoint returned non-success code")
+		return nil, fmt.Errorf("blog endpoint returned non-success code: %s", string(body))
+	}
+
+	var post struct {
+		ID          string `json:"id"`
+		Title       string `json:"title"`
+		Lead        string `json:"lead"`
+		URL         string `json:"url"`
+		ImageURL    string `json:"imageUrl"`
+		PublishedAt string `json:"publishedAt"`
+	}
+	err = json.Unmarshal(body, &post)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to decode blog API response")
+		return nil, err
+	}
+
+	if post.Title == "" || post.URL == "" {
+		return nil, errors.New("no blog post found")
+	}
+
+	return &BlogPost{
+		ID:          post.ID,
+		Title:       post.Title,
+		Description: post.Lead,
+		URL:         post.URL,
+		ImageURL:    strings.ReplaceAll(post.ImageURL, "&amp;", "&"),
 	}, nil
 }

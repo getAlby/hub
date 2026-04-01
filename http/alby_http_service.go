@@ -32,6 +32,7 @@ func (albyHttpSvc *AlbyHttpService) RegisterSharedRoutes(readOnlyApiGroup *echo.
 	e.GET("/api/alby/callback", albyHttpSvc.albyCallbackHandler)
 	e.GET("/api/alby/info", albyHttpSvc.albyInfoHandler)
 	e.GET("/api/alby/rates", albyHttpSvc.albyBitcoinRateHandler)
+	e.GET("/api/alby/blog/latest", albyHttpSvc.albyBlogLatestHandler)
 	readOnlyApiGroup.GET("/alby/me", albyHttpSvc.albyMeHandler)
 	fullAccessApiGroup.POST("/alby/link-account", albyHttpSvc.albyLinkAccountHandler)
 	fullAccessApiGroup.POST("/alby/auto-channel", albyHttpSvc.autoChannelHandler)
@@ -94,6 +95,17 @@ func (albyHttpSvc *AlbyHttpService) albyBitcoinRateHandler(c echo.Context) error
 		})
 	}
 	return c.JSON(http.StatusOK, rate)
+}
+
+func (albyHttpSvc *AlbyHttpService) albyBlogLatestHandler(c echo.Context) error {
+	post, err := albyHttpSvc.albySvc.GetLatestBlogPost(c.Request().Context())
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to get latest blog post")
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get latest blog post: %s", err.Error()),
+		})
+	}
+	return c.JSON(http.StatusOK, post)
 }
 
 func (albyHttpSvc *AlbyHttpService) albyCallbackHandler(c echo.Context) error {
