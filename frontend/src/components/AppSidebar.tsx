@@ -1,4 +1,5 @@
 import {
+  BotIcon,
   BoxIcon,
   ChevronsUpDownIcon,
   CircleHelpIcon,
@@ -21,6 +22,7 @@ import ExternalLink from "src/components/ExternalLink";
 import { AlbyIcon } from "src/components/icons/Alby";
 import { AlbyHubIcon } from "src/components/icons/AlbyHubIcon";
 import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
+import { Badge } from "src/components/ui/badge";
 import { ProBadge } from "src/components/ProBadge";
 import SidebarHint from "src/components/SidebarHint";
 import {
@@ -91,6 +93,12 @@ export function AppSidebar() {
         icon: SquareStackIcon,
       },
       {
+        title: "AI & Agents",
+        url: "/ai",
+        icon: BotIcon,
+        badge: "NEW",
+      },
+      {
         title: "Connections",
         url: "/apps",
         icon: Plug2Icon,
@@ -152,6 +160,11 @@ export function AppSidebar() {
                     >
                       <item.icon />
                       <span>{item.title}</span>
+                      {item.badge && (
+                        <Badge className="ml-auto text-[10px] px-1.5 py-0">
+                          {item.badge}
+                        </Badge>
+                      )}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
