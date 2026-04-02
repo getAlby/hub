@@ -533,7 +533,13 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 		orderBy = "last_used_at IS NULL, " + orderBy
 	}
 
-	query = query.Order(orderBy + " DESC")
+	sortBySettled := orderBy == "last_settled_transaction"
+	if sortBySettled {
+		query = query.Select("apps.*, MAX(transactions.settled_at) as last_transaction_at").
+			Joins("LEFT JOIN transactions ON transactions.app_id = apps.id AND transactions.state = ?", constants.TRANSACTION_STATE_SETTLED).
+			Group("apps.id")
+		orderBy = "last_transaction_at IS NULL, last_transaction_at DESC, apps.last_used_at"
+	}
 
 	if limit == 0 {
 		limit = 100
@@ -555,6 +561,7 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 		totalBalance = &totalBalanceMsat
 	}
 
+	query = query.Order(orderBy + " DESC")
 	query = query.Offset(int(offset)).Limit(int(limit))
 
 	err := query.Find(&dbApps).Error
@@ -581,6 +588,28 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 		permissionsMap[perm.AppId] = append(permissionsMap[perm.AppId], perm)
 	}
 
+	// fetch last settled transaction time per app if needed
+	lastSettledMap := make(map[uint]*time.Time)
+	if sortBySettled {
+		type settledResult struct {
+			AppID             uint       `gorm:"column:app_id"`
+			LastTransactionAt *time.Time `gorm:"column:last_transaction_at"`
+		}
+		var results []settledResult
+		err = api.db.Model(&db.Transaction{}).
+			Select("app_id, MAX(settled_at) as last_transaction_at").
+			Where("app_id IN ? AND state = ?", appIds, constants.TRANSACTION_STATE_SETTLED).
+			Group("app_id").
+			Find(&results).Error
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to fetch last settled transaction times")
+			return nil, err
+		}
+		for _, r := range results {
+			lastSettledMap[r.AppID] = r.LastTransactionAt
+		}
+	}
+
 	apiApps := []App{}
 	for _, dbApp := range dbApps {
 		walletPubkey := api.keys.GetNostrPublicKey()
@@ -600,6 +629,7 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 			WalletPubkey:       walletPubkey,
 			UniqueWalletPubkey: uniqueWalletPubkey,
 			LastUsedAt:         dbApp.LastUsedAt,
+			LastSettledAt:      lastSettledMap[dbApp.ID],
 		}
 
 		if dbApp.Isolated {
