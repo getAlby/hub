@@ -36,7 +36,9 @@ export default function Onchain() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const [isSwap, setSwap] = React.useState(true);
-  const [amount, setAmount] = React.useState("");
+  const [amount, setAmount] = React.useState(
+    (state?.args?.amount as string) || ""
+  );
 
   const address = state?.args?.address as string;
 
