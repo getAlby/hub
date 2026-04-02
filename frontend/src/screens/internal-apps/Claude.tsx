@@ -10,13 +10,7 @@ import { AppDetailConnectedApps } from "src/components/connections/AppDetailConn
 import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "src/components/ui/accordion";
-import { Button } from "src/components/ui/button";
+import { ClaudeConnectionInstructions } from "src/components/connections/ClaudeConnectionInstructions";
 import {
   Card,
   CardContent,
@@ -28,7 +22,6 @@ import {
   DEFAULT_APP_BUDGET_RENEWAL,
   DEFAULT_APP_BUDGET_SATS,
 } from "src/constants";
-import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
 
@@ -85,98 +78,10 @@ export function Claude() {
           <p>
             Click one of the below options to connect Claude to your Alby Hub.
           </p>
-          <Accordion type="single" collapsible>
-            <AccordionItem value="web">
-              <AccordionTrigger>Claude Web</AccordionTrigger>
-              <AccordionContent>
-                <ul className="list-decimal list-inside">
-                  <li className="list-item">
-                    Visit{" "}
-                    <a
-                      href="https://claude.ai"
-                      target="_blank"
-                      className="underline"
-                    >
-                      claude.ai
-                    </a>{" "}
-                    and sign in
-                  </li>
-                  <li className="list-item">Go to Settings → Integrations</li>
-                  <li className="list-item">Click +Add integration</li>
-                  <li className="list-item">Integration Name: Alby</li>
-                  <li className="list-item">
-                    Paste the integration URL:{" "}
-                    <Button
-                      onClick={() => copyToClipboard(mcpLinkWithEncodedSecret)}
-                      size="sm"
-                    >
-                      Copy URL
-                    </Button>
-                  </li>
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="desktop">
-              <AccordionTrigger>Claude Desktop</AccordionTrigger>
-              <AccordionContent>
-                <ul className="list-decimal list-inside">
-                  <li className="list-item">
-                    Download and install Claude Desktop from{" "}
-                    <a
-                      href="https://claude.ai/download"
-                      target="_blank"
-                      className="underline"
-                    >
-                      claude.ai/download
-                    </a>
-                  </li>
-                  <li className="list-item">Open Claude Desktop and sign in</li>
-                  <li className="list-item">Go to Settings → Integrations</li>
-                  <li className="list-item">Click +Add integration</li>
-                  <li className="list-item">Integration Name: Alby</li>
-                  <li className="list-item">
-                    Paste the integration URL:{" "}
-                    <Button
-                      onClick={() => copyToClipboard(mcpLinkWithEncodedSecret)}
-                      size="sm"
-                    >
-                      Copy URL
-                    </Button>
-                  </li>
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="code">
-              <AccordionTrigger>Claude Code</AccordionTrigger>
-              <AccordionContent>
-                <ul className="list-decimal list-inside">
-                  <li className="list-item">
-                    Install{" "}
-                    <a
-                      href="https://www.anthropic.com/claude-code"
-                      target="_blank"
-                      className="underline"
-                    >
-                      Claude Code
-                    </a>
-                  </li>
-                  <li className="list-item">
-                    Paste the MCP add command into your terminal:{" "}
-                    <Button
-                      onClick={() =>
-                        copyToClipboard(
-                          `claude mcp add --transport http alby https://mcp.getalby.com/mcp --header "Authorization: Bearer ${connectionSecret}"`
-                        )
-                      }
-                      size="sm"
-                    >
-                      Copy command
-                    </Button>
-                  </li>
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+          <ClaudeConnectionInstructions
+            connectionSecret={connectionSecret}
+            mcpUrlWithSecret={mcpLinkWithEncodedSecret}
+          />
         </div>
       )}
       {!connectionSecret && (
