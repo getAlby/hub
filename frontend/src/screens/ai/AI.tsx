@@ -774,6 +774,16 @@ const inspirationCategories: {
     },
   },
   {
+    label: "Services",
+    icon: LayersIcon,
+    prompts: [
+      "generate a watercolor painting of a mountain cabin at sunset on ppq.ai",
+      "set up an anonymous email address on lnemail.net",
+      "buy the domain my-awesome-project.dev on unhuman.domains",
+      "spin up a VPS with 2 cores and 4GB RAM on lnvps.net",
+    ],
+  },
+  {
     label: "Automation",
     icon: RepeatIcon,
     prompts: [
