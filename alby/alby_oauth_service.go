@@ -1367,6 +1367,52 @@ func (svc *albyOAuthService) requestAutoChannel(ctx context.Context, url string,
 	}, nil
 }
 
+func (svc *albyOAuthService) GetStories(ctx context.Context) ([]Story, error) {
+	client := &http.Client{Timeout: 10 * time.Second}
+	url := fmt.Sprintf("%s/stories", albyInternalAPIURL)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Error creating request to stories endpoint")
+		return nil, err
+	}
+	setDefaultRequestHeaders(req)
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch stories from API")
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to read response body")
+		return nil, errors.New("failed to read response body")
+	}
+
+	if res.StatusCode >= 300 {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":        string(body),
+			"status_code": res.StatusCode,
+		}).Error("stories endpoint returned non-success code")
+		return nil, fmt.Errorf("stories endpoint returned non-success code: %s", string(body))
+	}
+
+	var stories []Story
+	if err := json.Unmarshal(body, &stories); err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":  string(body),
+			"error": err,
+		}).Error("Failed to decode stories API response")
+		return nil, err
+	}
+
+	return stories, nil
+}
+
 func setDefaultRequestHeaders(req *http.Request) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("User-Agent", "AlbyHub/"+version.Tag)
