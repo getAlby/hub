@@ -1,6 +1,9 @@
 package test
 
 import (
+	"net"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -305,4 +308,136 @@ func TestJWTSecret_ReplaceUnencryptedSecretOnUnlock(t *testing.T) {
 	jwtSecretFromCfg, err := cfg.Get("JWTSecret", "123")
 	require.NoError(t, err)
 	assert.Equal(t, jwtSecret, jwtSecretFromCfg)
+}
+
+func TestValidateChainSource(t *testing.T) {
+	// Setup a Mock Esplora Server (Returns 200 OK)
+	esploraServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer esploraServer.Close()
+
+	// Setup a Mock "Bad" Server (Returns 500 Error)
+	badServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer badServer.Close()
+
+	// Listen on a random available port
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	defer listener.Close()
+	validElectrumAddr := listener.Addr().String()
+
+	// We open it just to get a valid number, then close it immediately.
+	l, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	closedAddr := l.Addr().String()
+	l.Close()
+
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	tests := []struct {
+		name          string
+		backendType   string
+		url           string
+		shouldError   bool
+		errorContains string // substring to check in error message
+	}{
+		// --- Esplora Cases ---
+		{
+			name:        "Esplora - Valid HTTP",
+			backendType: "esplora",
+			url:         esploraServer.URL,
+			shouldError: false,
+		},
+		{
+			name:        "Esplora - Valid HTTPS (Mocked)",
+			backendType: "esplora",
+			url:         esploraServer.URL,
+			shouldError: false,
+		},
+		{
+			name:          "Esplora - Invalid Prefix",
+			backendType:   "esplora",
+			url:           "ftp://example.com",
+			shouldError:   true,
+			errorContains: "must start with http:// or https://",
+		},
+		{
+			name:          "Esplora - Connection Refused",
+			backendType:   "esplora",
+			url:           "http://" + closedAddr,
+			shouldError:   true,
+			errorContains: "failed to connect",
+		},
+		{
+			name:          "Esplora - Server Error (Non-200)",
+			backendType:   "esplora",
+			url:           badServer.URL,
+			shouldError:   true,
+			errorContains: "server returned error code 500",
+		},
+
+		// --- Electrum Cases ---
+		{
+			name:        "Electrum - Valid TCP",
+			backendType: "electrum",
+			url:         "tcp://" + validElectrumAddr,
+			shouldError: false,
+		},
+		{
+			name:        "Electrum - Valid SSL (Prefix check only)",
+			backendType: "electrum",
+			// We use the same listener. logic trims 'ssl://' and dials.
+			// Since our mock is just a raw TCP listener, it will accept the connection even if we call it "ssl".
+			url:         "ssl://" + validElectrumAddr,
+			shouldError: false,
+		},
+		{
+			name:          "Electrum - Invalid Prefix",
+			backendType:   "electrum",
+			url:           "http://example.com",
+			shouldError:   true,
+			errorContains: "must start with ssl:// or tcp://",
+		},
+		{
+			name:          "Electrum - Missing Port",
+			backendType:   "electrum",
+			url:           "tcp://127.0.0.1",
+			shouldError:   true,
+			errorContains: "missing a port number",
+		},
+		{
+			name:          "Electrum - Connection Refused",
+			backendType:   "electrum",
+			url:           "tcp://" + closedAddr,
+			shouldError:   true,
+			errorContains: "could not connect",
+		},
+
+		// --- General Cases ---
+		{
+			name:          "Unsupported Backend",
+			backendType:   "unknown_backend",
+			url:           "http://localhost",
+			shouldError:   true,
+			errorContains: "unsupported backend type",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := svc.Cfg.ValidateChainSource(tc.backendType, tc.url)
+
+			if tc.shouldError {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tc.errorContains)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
 }
