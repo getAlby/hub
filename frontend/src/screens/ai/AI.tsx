@@ -633,17 +633,17 @@ function ConnectionInstructions({
                 </a>
               </li>
               <li>
-                Run this command in your terminal:{" "}
+                Copy this prompt and paste it into Claude Code:{" "}
                 <Button
                   onClick={() =>
                     copyToClipboard(
-                      `claude mcp add --transport http alby https://mcp.getalby.com/mcp --header "Authorization: Bearer ${connectionSecret}"`
+                      `Install the skill from https://getalby.com/cli/SKILL.md and use the setup command with this connection secret: ${connectionSecret}`
                     )
                   }
                   size="sm"
                   variant="secondary"
                 >
-                  Copy command
+                  Copy prompt
                 </Button>
               </li>
             </ol>
@@ -751,13 +751,12 @@ const inspirationCategories: {
   skill?: { prompt: string; skillName: string; url: string };
 }[] = [
   {
-    label: "Payments",
+    label: "Wallet",
     icon: ZapIcon,
     prompts: [
       "send $5 to hub@getalby.com for coffee",
-      "pay this lightning invoice: lnbc1pjk...",
-      "send 1,000 sats to each of these 20 podcast hosts",
-      "split last night's dinner bill equally between these 4 lightning addresses",
+      "how much is $10 in sats right now?",
+      "make an invoice for 50,000 sats",
     ],
   },
   {
@@ -766,26 +765,30 @@ const inspirationCategories: {
     prompts: [
       "buy a $25 Netflix gift card",
       "get me an eSIM with 5GB of data for my trip to Portugal",
-      "find me a VPN and a phone number, no KYC",
+      "what gift cards are available in the US?",
     ],
+    skill: {
+      prompt: "Install the skill from https://bitrefill.com/agents",
+      skillName: "Bitrefill Skill",
+      url: "https://bitrefill.com/agents",
+    },
   },
   {
     label: "Automation",
     icon: RepeatIcon,
     prompts: [
-      "read invoices.csv and pay all 47 lightning invoices",
-      "check my balance every morning and message me if it drops below 100k sats",
-      "every Monday, send 50,000 sats to hub@getalby.com",
+      "read payouts.csv and send 1,000 sats to each lightning address",
+      "read invoices.csv and pay all the lightning invoices in it",
+      "export all my transactions from the last 12 months as a CSV",
     ],
   },
   {
     label: "Build Bitcoin Apps",
     icon: HammerIcon,
     prompts: [
-      "build a paywall for my API that charges 10 sats per request",
-      "scaffold a Next.js app with lightning login using Alby JS SDK",
-      "create a tipping page that generates invoices on the fly",
-      "add a lightning paywall to my Express API using L402",
+      "build an AI image generator that charges 500 sats per image",
+      "create a file converter that charges 50 sats per conversion",
+      "build a blog where readers unlock articles for 50 sats each",
     ],
     skill: {
       prompt: "Install the skill from https://github.com/getAlby/builder-skill",
@@ -798,9 +801,8 @@ const inspirationCategories: {
     icon: BoxIcon,
     prompts: [
       "open a channel with 2M sats to ACINQ's node",
-      "show me my top 5 channels by routing volume this month",
-      "close all channels with less than 10k sats capacity",
-      "what's my on-chain vs lightning balance breakdown?",
+      "show me my channels and their balances",
+      "what's my node's connection info?",
     ],
     skill: {
       prompt: "Install the skill from https://github.com/getAlby/hub-skill",
