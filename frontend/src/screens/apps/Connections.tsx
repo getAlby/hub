@@ -20,7 +20,11 @@ export function Connections() {
     const newTabValue = searchParams.get("tab");
     if (newTabValue) {
       setTab(newTabValue);
-      setSearchParams({}, { replace: true });
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("tab");
+      setSearchParams(Object.fromEntries(newParams.entries()), {
+        replace: true,
+      });
     }
   }, [searchParams, setSearchParams]);
 
