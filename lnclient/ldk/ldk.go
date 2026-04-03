@@ -8,7 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"slices"
@@ -2480,4 +2482,54 @@ func (ls *LDKService) ConsumeEvent(ctx context.Context, event *events.Event, glo
 		// backup existing channels to the user's Alby Account on first connect
 		ls.backupChannels()
 	}
+}
+
+func (ls *LDKService) GetChainDataSource() (string, string) {
+	if endpoint := ls.cfg.GetEnv().LDKBitcoindRpcHost; endpoint != "" {
+		rpcPort := ls.cfg.GetEnv().LDKBitcoindRpcPort
+		if rpcPort == "" {
+			rpcPort = "8332"
+		}
+
+		return "bitcoind", sanitizeChainEndpoint(endpoint, rpcPort)
+	}
+	if endpoint := ls.cfg.GetEnv().LDKElectrumServer; endpoint != "" {
+		return "electrum", sanitizeChainEndpoint(endpoint, "")
+	}
+
+	// Fallback to Esplora
+	endpoint := ls.cfg.GetEnv().LDKEsploraServer
+	return "esplora", sanitizeChainEndpoint(endpoint, "")
+}
+
+func sanitizeChainEndpoint(endpoint string, defaultPort string) string {
+	u, err := url.Parse(endpoint)
+	if err != nil || u.Host == "" {
+		u, err = url.Parse("//" + endpoint)
+	}
+	if err != nil {
+		return endpoint
+	}
+
+	u.User = nil
+
+	hostname := u.Hostname()
+	port := u.Port()
+	if port == "" {
+		port = defaultPort
+	}
+	if hostname != "" {
+		if port != "" {
+			u.Host = net.JoinHostPort(hostname, port)
+		} else {
+			u.Host = hostname
+		}
+	}
+
+	sanitized := u.String()
+	if u.Scheme == "" {
+		return strings.TrimPrefix(sanitized, "//")
+	}
+
+	return sanitized
 }

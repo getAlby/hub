@@ -164,6 +164,8 @@ export interface InfoResponse {
   nodeAlias: string;
   mempoolUrl: string;
   bitcoinDisplayFormat: BitcoinDisplayFormat;
+  chainDataSourceType?: string;
+  chainDataSourceAddress?: string;
   hideUpdateBanner: boolean;
 }
 
