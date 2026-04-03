@@ -21,9 +21,9 @@ export function GooseConnectionInstructions({
       <AccordionItem value="desktop">
         <AccordionTrigger>Goose Desktop</AccordionTrigger>
         <AccordionContent>
-          <a href={gooseDesktopLink}>
-            <Button>Connect to Goose Desktop</Button>
-          </a>
+          <Button asChild>
+            <a href={gooseDesktopLink}>Connect to Goose Desktop</a>
+          </Button>
         </AccordionContent>
       </AccordionItem>
       <AccordionItem value="cli">

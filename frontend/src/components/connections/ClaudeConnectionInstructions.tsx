@@ -6,6 +6,7 @@ import {
   AccordionTrigger,
 } from "src/components/ui/accordion";
 import { Button } from "src/components/ui/button";
+import ExternalLink from "src/components/ExternalLink";
 
 export function ClaudeConnectionInstructions({
   connectionSecret,
@@ -22,9 +23,9 @@ export function ClaudeConnectionInstructions({
           <ol className="list-decimal list-inside space-y-1 text-sm">
             <li>
               Visit{" "}
-              <a href="https://claude.ai" target="_blank" className="underline">
+              <ExternalLink to="https://claude.ai" className="underline">
                 claude.ai
-              </a>{" "}
+              </ExternalLink>{" "}
               and sign in
             </li>
             <li>Go to Settings &rarr; Integrations</li>
@@ -49,13 +50,12 @@ export function ClaudeConnectionInstructions({
           <ol className="list-decimal list-inside space-y-1 text-sm">
             <li>
               Download{" "}
-              <a
-                href="https://claude.ai/download"
-                target="_blank"
+              <ExternalLink
+                to="https://claude.ai/download"
                 className="underline"
               >
                 Claude Desktop
-              </a>
+              </ExternalLink>
             </li>
             <li>Open Claude Desktop and sign in</li>
             <li>Go to Settings &rarr; Integrations</li>
@@ -80,13 +80,12 @@ export function ClaudeConnectionInstructions({
           <ol className="list-decimal list-inside space-y-1 text-sm">
             <li>
               Install{" "}
-              <a
-                href="https://www.anthropic.com/claude-code"
-                target="_blank"
+              <ExternalLink
+                to="https://www.anthropic.com/claude-code"
                 className="underline"
               >
                 Claude Code
-              </a>
+              </ExternalLink>
             </li>
             <li>
               Copy this prompt and paste it into Claude Code:{" "}
