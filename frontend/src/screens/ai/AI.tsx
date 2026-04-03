@@ -7,6 +7,7 @@ import {
   CopyIcon,
   HammerIcon,
   InfoIcon,
+  LayoutGridIcon,
   LayersIcon,
   type LucideIcon,
   RepeatIcon,
@@ -188,7 +189,18 @@ export function AI() {
 
   return (
     <>
-      <AppHeader title="AI & Agents" pageTitle="AI & Agents" />
+      <AppHeader
+        title="AI & Agents"
+        pageTitle="AI & Agents"
+        contentRight={
+          <Link to="/apps?tab=app-store&category=ai">
+            <Button variant="outline">
+              <LayoutGridIcon className="w-4 h-4" />
+              Explore App Store
+            </Button>
+          </Link>
+        }
+      />
 
       {/* Hero — collapsible, persisted in localStorage */}
       {!heroDismissed && (
@@ -326,10 +338,10 @@ export function AI() {
                 </div>
               </div>
               <Link
-                to="/apps?tab=app-store&category=ai"
+                to="/apps?tab=connected-apps"
                 className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
               >
-                All AI Apps
+                Manage Connections
                 <ArrowRightIcon className="w-3 h-3" />
               </Link>
             </div>
