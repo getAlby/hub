@@ -17,7 +17,7 @@ import {
   ZapIcon,
 } from "lucide-react";
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import bitrefillLogo from "src/assets/suggested-apps/bitrefill.png";
 import claudeLogo from "src/assets/suggested-apps/claude.png";
@@ -29,7 +29,6 @@ import openclawLogo from "src/assets/suggested-apps/openclaw.png";
 import opencodeLogo from "src/assets/suggested-apps/opencode.png";
 import payperqLogo from "src/assets/suggested-apps/payperq.png";
 import AppHeader from "src/components/AppHeader";
-import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
@@ -58,7 +57,6 @@ import {
   localStorageKeys,
 } from "src/constants";
 import { useApp } from "src/hooks/useApp";
-import { useAppsForAppStoreApp } from "src/hooks/useApps";
 import { ClaudeConnectionInstructions } from "src/components/connections/ClaudeConnectionInstructions";
 import { GooseConnectionInstructions } from "src/components/connections/GooseConnectionInstructions";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -126,7 +124,6 @@ const agents: Agent[] = [
 ];
 
 export function AI() {
-  const navigate = useNavigate();
   const [isLoading, setLoading] = React.useState(false);
   const [connectionSecret, setConnectionSecret] = React.useState("");
   const [createdAppId, setCreatedAppId] = React.useState<number>();
@@ -138,12 +135,6 @@ export function AI() {
   // Poll the created app to detect when the agent connects
   const { data: createdApp } = useApp(createdAppId, !!createdAppId);
   const isConnected = !!createdApp?.lastUsedAt;
-
-  const claudeApp = appStoreApps.find((app) => app.id === "claude");
-  const gooseApp = appStoreApps.find((app) => app.id === "goose");
-
-  const claudeConnections = useAppsForAppStoreApp(claudeApp!);
-  const gooseConnections = useAppsForAppStoreApp(gooseApp!);
 
   const dismissHero = React.useCallback(() => {
     setHeroDismissed(true);
@@ -398,19 +389,7 @@ export function AI() {
                   if (!expandedAgent) {
                     return;
                   }
-                  const agent = agents.find((a) => a.id === expandedAgent);
-                  const connections =
-                    expandedAgent === "claude"
-                      ? claudeConnections
-                      : expandedAgent === "goose"
-                        ? gooseConnections
-                        : undefined;
-                  const hasExistingConnection = (connections?.length ?? 0) > 0;
-                  if (hasExistingConnection && agent?.setupUrl) {
-                    navigate(agent.setupUrl);
-                  } else {
-                    handleCreateConnection(expandedAgent);
-                  }
+                  handleCreateConnection(expandedAgent);
                 }}
                 disabled={isLoading || !expandedAgent}
               >
