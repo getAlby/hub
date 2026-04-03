@@ -90,6 +90,48 @@ func TestUnlock_UnknownPermission(t *testing.T) {
 	mockConfig.AssertNotCalled(t, "GetJWTSecret")
 }
 
+func TestUnlock_NodeNotStarted(t *testing.T) {
+	e := echo.New()
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+	mockSvc := mocks.NewMockService(t)
+	gormDb, err := db.NewDB(t)
+	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
+
+	mockEventPublisher := events.NewEventPublisher()
+
+	mockConfig := mocks.NewMockConfig(t)
+	mockConfig.On("GetEnv").Return(&config.AppConfig{})
+	mockConfig.On("CheckUnlockPassword", "123").Return(true)
+
+	mockSvc.On("GetDB").Return(gormDb)
+	mockSvc.On("GetConfig").Return(mockConfig)
+	mockSvc.On("GetKeys").Return(mocks.NewMockKeys(t))
+	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
+	mockSvc.On("GetAlbyOAuthSvc").Return(mocks.NewMockAlbyOAuthService(t))
+	mockSvc.On("GetLNClient").Return(nil)
+
+	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
+	httpSvc.RegisterSharedRoutes(e)
+
+	requestBody := api.UnlockRequest{UnlockPassword: "123", Permission: "full"}
+	jsonBody, _ := json.Marshal(requestBody)
+	req := httptest.NewRequest(http.MethodPost, "/api/unlock", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+	body, err := io.ReadAll(rec.Body)
+	require.NoError(t, err)
+
+	var response ErrorResponse
+	err = json.Unmarshal(body, &response)
+	require.NoError(t, err)
+	assert.Equal(t, "LNClient not started", response.Message)
+}
+
 func TestGetApps_NoToken(t *testing.T) {
 	e := echo.New()
 	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
@@ -133,12 +175,14 @@ func TestGetApps_ReadonlyPermission(t *testing.T) {
 	mockConfig.On("GetEnv").Return(&config.AppConfig{})
 	mockConfig.On("CheckUnlockPassword", "123").Return(true)
 	mockConfig.On("GetJWTSecret").Return("dummy secret", nil)
+	mockLNClient := mocks.NewMockLNClient(t)
 
 	mockSvc.On("GetDB").Return(gormDb)
 	mockSvc.On("GetConfig").Return(mockConfig)
 	mockSvc.On("GetKeys").Return(mocks.NewMockKeys(t))
 	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
 	mockSvc.On("GetAlbyOAuthSvc").Return(mocks.NewMockAlbyOAuthService(t))
+	mockSvc.On("GetLNClient").Return(mockLNClient)
 
 	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
 	httpSvc.RegisterSharedRoutes(e)
@@ -186,12 +230,14 @@ func TestGetApps_FullPermission(t *testing.T) {
 	mockConfig.On("GetEnv").Return(&config.AppConfig{})
 	mockConfig.On("CheckUnlockPassword", "123").Return(true)
 	mockConfig.On("GetJWTSecret").Return("dummy secret", nil)
+	mockLNClient := mocks.NewMockLNClient(t)
 
 	mockSvc.On("GetDB").Return(gormDb)
 	mockSvc.On("GetConfig").Return(mockConfig)
 	mockSvc.On("GetKeys").Return(mocks.NewMockKeys(t))
 	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
 	mockSvc.On("GetAlbyOAuthSvc").Return(mocks.NewMockAlbyOAuthService(t))
+	mockSvc.On("GetLNClient").Return(mockLNClient)
 
 	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
 	httpSvc.RegisterSharedRoutes(e)
@@ -275,6 +321,7 @@ func TestCreateApp_FullPermission(t *testing.T) {
 
 	mockKeys := mocks.NewMockKeys(t)
 	mockKeys.On("GetAppWalletKey", uint(1)).Return("", nil)
+	mockLNClient := mocks.NewMockLNClient(t)
 
 	mockAlbyOAuthService := mocks.NewMockAlbyOAuthService(t)
 	mockAlbyOAuthService.On("GetLightningAddress").Return("", nil)
@@ -284,6 +331,7 @@ func TestCreateApp_FullPermission(t *testing.T) {
 	mockSvc.On("GetKeys").Return(mockKeys)
 	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
 	mockSvc.On("GetAlbyOAuthSvc").Return(mockAlbyOAuthService)
+	mockSvc.On("GetLNClient").Return(mockLNClient)
 
 	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
 	httpSvc.RegisterSharedRoutes(e)
@@ -337,6 +385,7 @@ func TestCreateApp_ReadonlyPermission(t *testing.T) {
 	mockConfig.On("GetJWTSecret").Return("dummy secret", nil)
 
 	mockKeys := mocks.NewMockKeys(t)
+	mockLNClient := mocks.NewMockLNClient(t)
 
 	mockAlbyOAuthService := mocks.NewMockAlbyOAuthService(t)
 
@@ -345,6 +394,7 @@ func TestCreateApp_ReadonlyPermission(t *testing.T) {
 	mockSvc.On("GetKeys").Return(mockKeys)
 	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
 	mockSvc.On("GetAlbyOAuthSvc").Return(mockAlbyOAuthService)
+	mockSvc.On("GetLNClient").Return(mockLNClient)
 
 	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
 	httpSvc.RegisterSharedRoutes(e)

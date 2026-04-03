@@ -15,6 +15,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/sirupsen/logrus"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -48,6 +49,11 @@ type api struct {
 	startupError     error
 	startupErrorTime time.Time
 	eventPublisher   events.EventPublisher
+}
+
+type jwtCustomClaims struct {
+	Permission string `json:"permission,omitempty"`
+	jwt.RegisteredClaims
 }
 
 func NewAPI(svc service.Service, gormDB *gorm.DB, config config.Config, keys keys.Keys, albySvc alby.AlbyService, albyOAuthSvc alby.AlbyOAuthService, eventPublisher events.EventPublisher) *api {
@@ -1356,6 +1362,55 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.NodeAlias, _ = api.cfg.Get("NodeAlias", "")
 
 	return &info, nil
+}
+
+func (api *api) CreateSessionToken(unlockRequest *UnlockRequest) (string, error) {
+	if unlockRequest.Permission == "" {
+		return "", errors.New("Permission field is required")
+	}
+
+	if !slices.Contains([]string{"full", "readonly"}, unlockRequest.Permission) {
+		return "", errors.New("Permission field is unknown")
+	}
+
+	if api.svc.GetLNClient() == nil {
+		return "", errors.New("LNClient not started")
+	}
+
+	return api.createJWT(unlockRequest.TokenExpiryDays, unlockRequest.Permission)
+}
+
+func (api *api) CreateStartupSessionToken() (string, error) {
+	return api.createJWT(nil, "full")
+}
+
+func (api *api) createJWT(tokenExpiryDays *uint64, permission string) (string, error) {
+	if !slices.Contains([]string{"full", "readonly"}, permission) {
+		return "", errors.New("invalid token permission")
+	}
+
+	expiryDays := uint64(30)
+	if tokenExpiryDays != nil {
+		expiryDays = *tokenExpiryDays
+	}
+
+	// Set custom claims
+	claims := &jwtCustomClaims{
+		Permission: permission,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 24 * time.Duration(expiryDays))),
+		},
+	}
+
+	// Create token with claims
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	secret, err := api.cfg.GetJWTSecret()
+	if err != nil {
+		return "", err
+	}
+
+	return token.SignedString([]byte(secret))
 }
 
 func (api *api) SetCurrency(currency string) error {
