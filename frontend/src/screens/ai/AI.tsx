@@ -320,8 +320,8 @@ export function AI() {
                 <div>
                   <CardTitle>Connect Your Agent</CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Create a connection and paste it into your AI agent to get
-                    started
+                    Pick your agent, create a connection, and follow the setup
+                    steps
                   </p>
                 </div>
               </div>
