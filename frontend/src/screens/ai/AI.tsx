@@ -34,6 +34,7 @@ import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import {
   Card,
   CardContent,
@@ -130,6 +131,7 @@ export function AI() {
   const [connectionSecret, setConnectionSecret] = React.useState("");
   const [createdAppId, setCreatedAppId] = React.useState<number>();
   const [expandedAgent, setExpandedAgent] = React.useState<string | null>(null);
+  const [selectorLocked, setSelectorLocked] = React.useState(false);
   const [heroDismissed, setHeroDismissed] = React.useState(
     () => localStorage.getItem(localStorageKeys.aiHeroDismissed) === "true"
   );
@@ -144,7 +146,12 @@ export function AI() {
   }, []);
 
   const handleCreateConnection = async (agentId: string) => {
+    // Prevent multiple concurrent app creations
+    if (isLoading || connectionSecret || createdAppId) {
+      return;
+    }
     setLoading(true);
+    setSelectorLocked(true);
     try {
       const agent = agents.find((a) => a.id === agentId);
       const agentName = agent?.name ?? "AI Agent";
@@ -172,6 +179,7 @@ export function AI() {
       toast(`${agentName} connection created`);
     } catch (error) {
       handleRequestError("Failed to create connection", error);
+      setSelectorLocked(false);
     }
     setLoading(false);
   };
@@ -186,12 +194,10 @@ export function AI() {
         title="AI & Agents"
         pageTitle="AI & Agents"
         contentRight={
-          <Link to="/apps?tab=app-store&category=ai">
-            <Button variant="outline">
-              <LayoutGridIcon className="w-4 h-4" />
-              Explore App Store
-            </Button>
-          </Link>
+          <LinkButton to="/apps?tab=app-store&category=ai" variant="outline">
+            <LayoutGridIcon className="w-4 h-4" />
+            Explore App Store
+          </LinkButton>
         }
       />
 
@@ -341,8 +347,10 @@ export function AI() {
                 onValueChange={(value) => {
                   setConnectionSecret("");
                   setCreatedAppId(undefined);
+                  setSelectorLocked(false);
                   setExpandedAgent(value);
                 }}
+                disabled={selectorLocked || isLoading || !!connectionSecret || !!createdAppId}
               >
                 <SelectTrigger className="w-60">
                   <SelectValue
@@ -388,7 +396,7 @@ export function AI() {
                   }
                   handleCreateConnection(expandedAgent);
                 }}
-                disabled={isLoading || !expandedAgent}
+                disabled={selectorLocked || isLoading || !expandedAgent || !!connectionSecret || !!createdAppId}
               >
                 <ZapIcon className="w-4 h-4" />
                 Connect
