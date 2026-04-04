@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Badge } from "src/components/ui/badge";
 import {
   Card,
@@ -51,8 +51,12 @@ function InternalAppCard({ id, title, description, logo }: AppStoreApp) {
 }
 
 export default function SuggestedApps() {
+  const [searchParams] = useSearchParams();
   const [selectedCategories, setSelectedCategories] = React.useState<string[]>(
-    []
+    () => {
+      const category = searchParams.get("category");
+      return category ? [category] : [];
+    }
   );
 
   return (

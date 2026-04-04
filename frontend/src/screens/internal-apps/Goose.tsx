@@ -11,27 +11,19 @@ import { AppDetailConnectedApps } from "src/components/connections/AppDetailConn
 import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "src/components/ui/accordion";
+import { GooseConnectionInstructions } from "src/components/connections/GooseConnectionInstructions";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   DEFAULT_APP_BUDGET_RENEWAL,
   DEFAULT_APP_BUDGET_SATS,
 } from "src/constants";
-import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
 
@@ -104,73 +96,11 @@ export function Goose() {
             </a>{" "}
             and buy AI credits with lightning.
           </p>
-          <Accordion type="single" collapsible>
-            <AccordionItem value="desktop">
-              <AccordionTrigger>Goose Desktop</AccordionTrigger>
-              <AccordionContent>
-                <ExternalLinkButton to={gooseDesktopLink}>
-                  Connect to Goose Desktop
-                </ExternalLinkButton>
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="cli">
-              <AccordionTrigger>Goose CLI</AccordionTrigger>
-              <AccordionContent>
-                <ul className="list-decimal list-inside">
-                  <li className="list-item">
-                    Run <span className="font-semibold">goose configure</span>
-                  </li>
-                  <li className="list-item">
-                    Choose{" "}
-                    <span className="font-semibold">
-                      Remote Extension (Streaming HTTP)
-                    </span>
-                  </li>
-                  <li className="list-item">
-                    Set the name: <span className="font-semibold">Alby</span>
-                  </li>
-                  <li className="list-item">
-                    Set the Streaming HTTP endpoint URI:{" "}
-                    <Button
-                      onClick={() => copyToClipboard(streamableHttpLink)}
-                      size="sm"
-                    >
-                      Copy URI
-                    </Button>
-                  </li>
-                  <li className="list-item">
-                    Set the timeout: <span className="font-semibold">300</span>
-                  </li>
-                  <li className="list-item">
-                    Set a description: <span className="font-semibold">no</span>
-                  </li>
-                  <li className="list-item">
-                    Would you like to add custom headers:{" "}
-                    <span className="font-semibold">yes</span>
-                  </li>
-                  <li className="list-item">
-                    Header name:{" "}
-                    <span className="font-semibold">Authorization</span>
-                  </li>
-                  <li className="list-item">
-                    Header value:{" "}
-                    <Button
-                      onClick={() =>
-                        copyToClipboard(`Bearer ${connectionSecret}`)
-                      }
-                      size="sm"
-                    >
-                      Copy value
-                    </Button>
-                  </li>
-                  <li className="list-item">
-                    Add another header:{" "}
-                    <span className="font-semibold">no</span>
-                  </li>
-                </ul>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+          <GooseConnectionInstructions
+            connectionSecret={connectionSecret}
+            mcpUrl={streamableHttpLink}
+            gooseDesktopLink={gooseDesktopLink}
+          />
 
           <Alert>
             <LightbulbIcon />
