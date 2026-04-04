@@ -5,6 +5,8 @@ import {
   BoxIcon,
   CheckCircleIcon,
   CopyIcon,
+  EyeOffIcon,
+  ShieldCheckIcon,
   HammerIcon,
   InfoIcon,
   LayoutGridIcon,
@@ -208,16 +210,16 @@ export function AI() {
               {/* Left */}
               <div className="flex-1 p-8 lg:p-12 flex flex-col justify-center">
                 <p className="text-muted-foreground text-sm font-medium tracking-widest uppercase mb-4">
-                  Agentic Payments
+                  AI + Bitcoin
                 </p>
                 <h2 className="text-4xl lg:text-5xl font-bold tracking-tight leading-[1.1] mb-4">
-                  Your AI agent,
+                  Give your AI agent
                   <br />
-                  <span className="text-primary">powered by bitcoin</span>
+                  <span className="text-primary">a wallet</span>
                 </h2>
                 <p className="text-muted-foreground text-lg max-w-md">
-                  Connect any AI agent and let it pay for services, buy gift
-                  cards, trade, and access 16,000+ paid APIs.
+                  Connect any AI agent to your Alby Hub and let it send
+                  payments, buy gift cards, and access paid services on its own.
                 </p>
               </div>
 
@@ -280,32 +282,27 @@ export function AI() {
               </div>
             </div>
 
-            {/* How it works — 3 steps */}
+            {/* Why Lightning — value props */}
             <div className="border-t border-border grid grid-cols-1 sm:grid-cols-3">
-              <div className="p-6 lg:p-8 border-b sm:border-b-0 sm:border-r border-border">
-                <div className="text-primary font-mono text-sm mb-2">01</div>
-                <h3 className="font-semibold text-lg mb-1">Connect</h3>
-                <p className="text-muted-foreground text-sm">
-                  Create a connection and paste it into OpenClaw, Cursor,
-                  Claude, or any AI agent.
-                </p>
-              </div>
-              <div className="p-6 lg:p-8 border-b sm:border-b-0 sm:border-r border-border">
-                <div className="text-primary font-mono text-sm mb-2">02</div>
-                <h3 className="font-semibold text-lg mb-1">Prompt</h3>
-                <p className="text-muted-foreground text-sm">
-                  Ask your agent to buy, pay, trade, or access any paid API
-                  using natural language.
-                </p>
-              </div>
-              <div className="p-6 lg:p-8">
-                <div className="text-primary font-mono text-sm mb-2">03</div>
-                <h3 className="font-semibold text-lg mb-1">Pay</h3>
-                <p className="text-muted-foreground text-sm">
-                  Your agent pays instantly via Lightning. Set budgets and
-                  permissions per agent.
-                </p>
-              </div>
+              {whyLightningItems.map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <div
+                    key={item.title}
+                    className={`p-6 lg:p-8 border-b sm:border-b-0 ${
+                      i < whyLightningItems.length - 1
+                        ? "sm:border-r border-border"
+                        : ""
+                    }`}
+                  >
+                    <Icon className="w-5 h-5 text-primary mb-2" />
+                    <h3 className="font-semibold text-lg mb-1">{item.title}</h3>
+                    <p className="text-muted-foreground text-sm">
+                      {item.description}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -505,7 +502,7 @@ export function AI() {
                     <div className="flex-1">
                       <p className="font-semibold">402 Index</p>
                       <p className="text-xs text-muted-foreground">
-                        16,000+ APIs
+                        1,000+ APIs
                       </p>
                     </div>
                   </div>
@@ -585,6 +582,27 @@ function ConnectionInstructions({
     </div>
   );
 }
+
+const whyLightningItems = [
+  {
+    icon: ShieldCheckIcon,
+    title: "Stay in Control",
+    description:
+      "Set spending limits per agent. You decide how much it can spend and when budgets reset — no surprise bills.",
+  },
+  {
+    icon: EyeOffIcon,
+    title: "Private by Default",
+    description:
+      "No credit cards, no accounts, no sign-ups. What your agent spends stays between you and your wallet.",
+  },
+  {
+    icon: ZapIcon,
+    title: "Instant Access to Paid Services",
+    description:
+      "Your agent can access 1,000+ paid APIs instantly — gift cards, domains, hosting, AI models, and more.",
+  },
+];
 
 const inspirationCategories: {
   label: string;
