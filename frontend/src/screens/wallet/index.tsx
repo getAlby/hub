@@ -4,6 +4,7 @@ import {
   ArrowDownIcon,
   ArrowDownUpIcon,
   ArrowUpIcon,
+  CalendarSyncIcon,
   CreditCardIcon,
   ExternalLinkIcon,
   LightbulbIcon,
@@ -45,21 +46,68 @@ function Wallet() {
         description=""
         contentRight={
           <div className="flex items-center gap-1 sm:gap-2">
+            {hasChannelManagement && (
+              <LinkButton
+                to="/wallet/swap"
+                variant="ghost"
+                size="sm"
+                className="hidden sm:inline-flex"
+              >
+                <ArrowDownUpIcon />
+                Swap
+              </LinkButton>
+            )}
+            <LinkButton
+              to="/internal-apps/zapplanner"
+              variant="ghost"
+              size="sm"
+              className="hidden sm:inline-flex"
+            >
+              <CalendarSyncIcon />
+              Recurring
+            </LinkButton>
             <ExternalLinkButton
               to="https://www.getalby.com/topup"
               variant="ghost"
               size="sm"
+              className="hidden sm:inline-flex"
             >
               <CreditCardIcon />
-              <span className="hidden sm:inline">Buy Bitcoin</span>
+              Buy
             </ExternalLinkButton>
-            {hasChannelManagement && (
-              <LinkButton to="/wallet/swap" variant="ghost" size="sm">
-                <ArrowDownUpIcon />
-                <span className="hidden sm:inline">Swap</span>
-              </LinkButton>
-            )}
-            <TransactionsListMenu buttonVariant="ghost" />
+            <TransactionsListMenu
+              buttonVariant="ghost"
+              buttonClassName="sm:hidden"
+              menuItems={[
+                ...(hasChannelManagement
+                  ? [
+                      {
+                        id: "swap",
+                        label: "Swap",
+                        icon: <ArrowDownUpIcon className="h-4 w-4" />,
+                        to: "/wallet/swap",
+                      },
+                    ]
+                  : []),
+                {
+                  id: "recurring",
+                  label: "Recurring",
+                  icon: <CalendarSyncIcon className="h-4 w-4" />,
+                  to: "/internal-apps/zapplanner",
+                },
+                {
+                  id: "buy",
+                  label: "Buy",
+                  icon: <CreditCardIcon className="h-4 w-4" />,
+                  to: "https://www.getalby.com/topup",
+                  external: true,
+                },
+              ]}
+            />
+            <TransactionsListMenu
+              buttonVariant="ghost"
+              buttonClassName="hidden sm:inline-flex"
+            />
           </div>
         }
       />

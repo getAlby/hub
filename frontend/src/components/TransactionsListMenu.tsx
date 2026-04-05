@@ -1,5 +1,7 @@
 import type { VariantProps } from "class-variance-authority";
 import { DownloadIcon, EllipsisVerticalIcon } from "lucide-react";
+import { Link } from "react-router-dom";
+import ExternalLink from "src/components/ExternalLink";
 import { toast } from "sonner";
 import { Button } from "src/components/ui/button";
 import { buttonVariants } from "src/components/ui/buttonVariants";
@@ -93,22 +95,54 @@ const handleExportTransactions = async (appId?: number) => {
 type TransactionsListMenuProps = {
   appId?: number;
   buttonVariant?: VariantProps<typeof buttonVariants>["variant"];
+  buttonClassName?: string;
+  menuItems?: {
+    id: string;
+    label: string;
+    icon: React.ReactNode;
+    to: string;
+    external?: boolean;
+  }[];
 };
 
 export const TransactionsListMenu = ({
   appId,
   buttonVariant = "secondary",
+  buttonClassName,
+  menuItems = [],
 }: TransactionsListMenuProps) => {
   const { data: albyMe } = useAlbyMe();
 
   return (
     <DropdownMenu>
-      <Button asChild size="icon" variant={buttonVariant}>
+      <Button
+        asChild
+        size="icon"
+        variant={buttonVariant}
+        className={buttonClassName}
+      >
         <DropdownMenuTrigger>
           <EllipsisVerticalIcon className="h-4 w-4" />
         </DropdownMenuTrigger>
       </Button>
       <DropdownMenuContent align="end">
+        {menuItems.map((item) =>
+          item.external ? (
+            <DropdownMenuItem key={item.id} asChild>
+              <ExternalLink to={item.to} className="w-full cursor-pointer">
+                {item.icon}
+                {item.label}
+              </ExternalLink>
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem key={item.id} asChild>
+              <Link to={item.to} className="w-full cursor-pointer">
+                {item.icon}
+                {item.label}
+              </Link>
+            </DropdownMenuItem>
+          )
+        )}
         {!albyMe?.subscription.plan_code ? (
           <UpgradeDialog>
             <div className="cursor-pointer">
