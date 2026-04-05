@@ -79,7 +79,7 @@ const agents: Agent[] = [
     id: "openclaw",
     name: "OpenClaw",
     logo: openclawLogo,
-    description: "Open-source AI coding agent",
+    description: "Open-source personal AI assistant",
     setupUrl: "",
   },
   {
