@@ -6,13 +6,13 @@ import {
   CheckCircleIcon,
   CopyIcon,
   EyeOffIcon,
-  ShieldCheckIcon,
   HammerIcon,
   InfoIcon,
-  LayoutGridIcon,
   LayersIcon,
+  LayoutGridIcon,
   type LucideIcon,
   RepeatIcon,
+  ShieldCheckIcon,
   ShoppingBagIcon,
   SparklesIcon,
   XIcon,
@@ -31,16 +31,18 @@ import openclawLogo from "src/assets/suggested-apps/openclaw.png";
 import opencodeLogo from "src/assets/suggested-apps/opencode.png";
 import payperqLogo from "src/assets/suggested-apps/payperq.png";
 import AppHeader from "src/components/AppHeader";
+import { ClaudeConnectionInstructions } from "src/components/connections/ClaudeConnectionInstructions";
+import { GooseConnectionInstructions } from "src/components/connections/GooseConnectionInstructions";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
-import { LinkButton } from "src/components/ui/custom/link-button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import {
   Select,
   SelectContent,
@@ -60,8 +62,6 @@ import {
   localStorageKeys,
 } from "src/constants";
 import { useApp } from "src/hooks/useApp";
-import { ClaudeConnectionInstructions } from "src/components/connections/ClaudeConnectionInstructions";
-import { GooseConnectionInstructions } from "src/components/connections/GooseConnectionInstructions";
 import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -316,7 +316,7 @@ export function AI() {
 
       {/* Connect section */}
       <div className="space-y-4">
-        <Card className="border-primary bg-primary/10">
+        <Card className="border-primary/75 bg-primary/5">
           <CardHeader>
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
