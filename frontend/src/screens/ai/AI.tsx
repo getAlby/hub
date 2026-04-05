@@ -281,7 +281,7 @@ export function AI() {
                     </div>
                     <div className="flex items-center">
                       <span className="text-muted-foreground">&gt; </span>
-                      <span className="w-2 h-4 bg-primary ml-0.5 animate-[blink_1s_step-end_infinite]" />
+                      <span className="w-2 h-4 bg-primary ml-0.5 animate-[blink_1s_step-end_3]" />
                     </div>
                   </div>
                 </div>
