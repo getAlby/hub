@@ -350,7 +350,12 @@ export function AI() {
                   setSelectorLocked(false);
                   setExpandedAgent(value);
                 }}
-                disabled={selectorLocked || isLoading || !!connectionSecret || !!createdAppId}
+                disabled={
+                  selectorLocked ||
+                  isLoading ||
+                  !!connectionSecret ||
+                  !!createdAppId
+                }
               >
                 <SelectTrigger className="w-60">
                   <SelectValue
@@ -396,7 +401,13 @@ export function AI() {
                   }
                   handleCreateConnection(expandedAgent);
                 }}
-                disabled={selectorLocked || isLoading || !expandedAgent || !!connectionSecret || !!createdAppId}
+                disabled={
+                  selectorLocked ||
+                  isLoading ||
+                  !expandedAgent ||
+                  !!connectionSecret ||
+                  !!createdAppId
+                }
               >
                 <ZapIcon className="w-4 h-4" />
                 Connect
