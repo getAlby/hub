@@ -103,7 +103,6 @@ export const budgetOptions: Record<string, number> = {
   "10k": 10_000,
   "100k": 100_000,
   "1M": 1_000_000,
-  Unlimited: 0,
 };
 
 export interface ErrorResponse {
