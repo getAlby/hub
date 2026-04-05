@@ -289,18 +289,11 @@ export function AI() {
             </div>
 
             {/* Why Lightning — value props */}
-            <div className="border-t border-border grid grid-cols-1 sm:grid-cols-3">
-              {whyLightningItems.map((item, i) => {
+            <div className="border-t border-border grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border">
+              {whyLightningItems.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <div
-                    key={item.title}
-                    className={`p-6 lg:p-8 border-b sm:border-b-0 ${
-                      i < whyLightningItems.length - 1
-                        ? "sm:border-r border-border"
-                        : ""
-                    }`}
-                  >
+                  <div key={item.title} className="p-6 lg:p-8">
                     <Icon className="w-5 h-5 text-primary mb-2" />
                     <h3 className="font-semibold text-lg mb-1">{item.title}</h3>
                     <p className="text-muted-foreground text-sm">
