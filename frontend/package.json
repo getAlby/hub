@@ -38,7 +38,7 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@radix-ui/react-switch": "^1.2.6",
     "@radix-ui/react-tabs": "^1.1.12",
-    "@radix-ui/react-tooltip": "^1.2.7",
+    "@radix-ui/react-tooltip": "^1.2.8",
     "@scure/bip39": "^2.0.1",
     "@stepperize/react": "^5.1.9",
     "argon2-wasm-esm": "^1.0.3",
