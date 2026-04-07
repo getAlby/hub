@@ -53,7 +53,8 @@ function BudgetAmountSelect({
           min={minAmount || 1}
           value={value || ""}
           onChange={(e) => {
-            onChange(parseInt(e.target.value));
+            const n = e.target.valueAsNumber;
+            onChange(Number.isFinite(n) ? n : 0);
           }}
         />
       </div>
