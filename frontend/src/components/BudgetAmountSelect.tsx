@@ -19,7 +19,7 @@ function BudgetAmountSelect({
     <>
       <div className="grid grid-cols-3 gap-3 text-xs mb-3">
         {Object.keys(budgetOptions)
-          .filter((budget) => !minAmount || budgetOptions[budget] > minAmount)
+          .filter((budget) => !minAmount || budgetOptions[budget] >= minAmount)
           .map((budget) => (
             <button
               type="button"
