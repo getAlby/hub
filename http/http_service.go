@@ -294,14 +294,11 @@ func (httpSvc *HttpService) startHandler(c echo.Context) error {
 		})
 	}
 
-	// NOTE: the config is also unlocked as part of the start
-	// goroutine below. But since we execute start asynchronously it's hard to
-	// know when the config has been unlocked before being able to create the JWT token
-	err := httpSvc.cfg.Unlock(startRequest.UnlockPassword)
+	err := httpSvc.cfg.LoadJWTSecret(startRequest.UnlockPassword)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to unlock config: %s", err.Error()),
+			Message: fmt.Sprintf("Failed to load JWT secret: %s", err.Error()),
 		})
 	}
 
