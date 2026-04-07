@@ -145,11 +145,24 @@ export function AI() {
     localStorage.setItem(localStorageKeys.aiHeroDismissed, "true");
   }, []);
 
+  // CLI agents use the auth flow — keys are generated locally, secret never
+  // leaves the device. Only MCP-based agents (Claude Web/Desktop, Goose Desktop)
+  // need a pre-created connection with a secret.
+  const needsConnection = (id: string) => id === "claude" || id === "goose";
+
   const handleCreateConnection = async (agentId: string) => {
     // Prevent multiple concurrent app creations
     if (isLoading || connectionSecret || createdAppId) {
       return;
     }
+
+    // CLI agents skip connection creation — they use `auth` locally
+    if (!needsConnection(agentId)) {
+      setExpandedAgent(agentId);
+      setSelectorLocked(true);
+      return;
+    }
+
     setLoading(true);
     setSelectorLocked(true);
     try {
@@ -409,8 +422,8 @@ export function AI() {
 
             {/* Connection state */}
             {expandedAgent &&
-              connectionSecret &&
-              (isConnected ? (
+              selectorLocked &&
+              (connectionSecret && isConnected ? (
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircleIcon className="w-4 h-4 text-positive-foreground" />
                   <span className="text-positive-foreground font-medium">
@@ -427,15 +440,15 @@ export function AI() {
                 <>
                   <ConnectionInstructions
                     agentId={expandedAgent}
-                    connectionSecret={connectionSecret}
-                    mcpUrl={mcpUrl}
                     mcpUrlWithSecret={mcpUrlWithSecret}
                     gooseDesktopLink={gooseDesktopLink}
                   />
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Loading className="size-4" />
-                    Waiting for agent to connect...
-                  </div>
+                  {connectionSecret && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loading className="size-4" />
+                      Waiting for agent to connect...
+                    </div>
+                  )}
                 </>
               ))}
           </CardContent>
@@ -538,43 +551,25 @@ export function AI() {
 
 function ConnectionInstructions({
   agentId,
-  connectionSecret,
-  mcpUrl,
   mcpUrlWithSecret,
   gooseDesktopLink,
 }: {
   agentId: string;
-  connectionSecret: string;
-  mcpUrl: string;
   mcpUrlWithSecret: string;
   gooseDesktopLink: string;
 }) {
   if (agentId === "claude") {
-    return (
-      <ClaudeConnectionInstructions
-        connectionSecret={connectionSecret}
-        mcpUrlWithSecret={mcpUrlWithSecret}
-      />
-    );
+    return <ClaudeConnectionInstructions mcpUrlWithSecret={mcpUrlWithSecret} />;
   }
 
   if (agentId === "goose") {
-    return (
-      <GooseConnectionInstructions
-        connectionSecret={connectionSecret}
-        mcpUrl={mcpUrl}
-        gooseDesktopLink={gooseDesktopLink}
-      />
-    );
+    return <GooseConnectionInstructions gooseDesktopLink={gooseDesktopLink} />;
   }
 
-  // Generic fallback — a human-readable prompt the user copies into their agent
-  const promptTemplate = (secret: string) =>
-    `Install the skill from https://getalby.com/cli/SKILL.md and use the setup command with this connection secret: ${secret}`;
-  const genericPrompt = promptTemplate(connectionSecret);
-  const redactedPrompt = promptTemplate(
-    `${connectionSecret.slice(0, 30)}${"•".repeat(20)}`
-  );
+  // The auth flow generates keys locally — the secret never leaves the device
+  // and is never sent to the AI model.
+  const hubUrl = window.location.origin;
+  const genericPrompt = `Install the skill from https://getalby.com/cli/SKILL.md and use the auth command to connect to my Alby Hub wallet at ${hubUrl}`;
 
   return (
     <div className="space-y-3 text-sm">
@@ -587,7 +582,7 @@ function ConnectionInstructions({
       >
         <ArrowRightIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
         <p className="flex-1 text-sm font-mono break-all select-none">
-          {redactedPrompt}
+          {genericPrompt}
         </p>
         <CopyIcon className="w-4 h-4 text-muted-foreground shrink-0" />
       </button>

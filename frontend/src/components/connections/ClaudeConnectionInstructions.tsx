@@ -9,10 +9,8 @@ import { Button } from "src/components/ui/button";
 import ExternalLink from "src/components/ExternalLink";
 
 export function ClaudeConnectionInstructions({
-  connectionSecret,
   mcpUrlWithSecret,
 }: {
-  connectionSecret: string;
   mcpUrlWithSecret: string;
 }) {
   return (
@@ -92,7 +90,7 @@ export function ClaudeConnectionInstructions({
               <Button
                 onClick={() =>
                   copyToClipboard(
-                    `Install the skill from https://getalby.com/cli/SKILL.md and use the setup command with this connection secret: ${connectionSecret}`
+                    `Install the skill from https://getalby.com/cli/SKILL.md and use the auth command to connect to my Alby Hub wallet at ${window.location.origin}`
                   )
                 }
                 size="sm"
