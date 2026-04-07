@@ -17,11 +17,14 @@ import {
   AlertDialogTitle,
 } from "src/components/ui/alert-dialog";
 import { Button } from "src/components/ui/button";
+import { Card, CardContent } from "src/components/ui/card";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { createApp } from "src/requests/createApp";
 import {
+  App,
   AppPermissions,
   BudgetRenewalType,
   CreateAppRequest,
@@ -232,9 +235,9 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
           id: "configure",
           title: "Configure",
         },
-        ...(returnTo || pubkey ? [] : [{ id: "finalize", title: "Finalize" }])
+        ...(returnTo ? [] : [{ id: "finalize", title: "Finalize" }])
       ),
-    [appStoreApp, returnTo, pubkey]
+    [appStoreApp, returnTo]
   );
 
   const handleCreateApp = async (nextFunc: () => void) => {
@@ -299,9 +302,6 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       }
       toast("App created");
       setCreateAppResponse(createAppResponse);
-      if (pubkey) {
-        return;
-      }
 
       nextFunc();
     } catch (error) {
@@ -452,7 +452,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                             </div>
                           ),
                       })}
-                      {(!methods.isLast || returnTo || pubkey) && (
+                      {(!methods.isLast || returnTo) && (
                         <Stepper.Controls className="mt-6">
                           {!methods.isFirst && (
                             <Button
@@ -506,6 +506,7 @@ function FinalizeConnection({
   const navigate = useNavigate();
 
   const pairingUri = createAppResponse.pairingUri;
+  const hasPairingSecret = !!createAppResponse.pairingSecretKey;
   const { data: app } = useApp(createAppResponse.id, true);
 
   React.useEffect(() => {
@@ -519,6 +520,10 @@ function FinalizeConnection({
 
   if (!createAppResponse) {
     return <Navigate to="/apps/new" />;
+  }
+
+  if (!hasPairingSecret) {
+    return <WaitingForConnection app={app} />;
   }
 
   return (
@@ -558,6 +563,39 @@ function FinalizeConnection({
         )}
       </div>
     </>
+  );
+}
+
+function WaitingForConnection({ app }: { app: App | undefined }) {
+  const [timeout, setTimeout] = React.useState(false);
+
+  React.useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setTimeout(true);
+    }, 30000);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  return (
+    <Card className="w-full">
+      <CardContent className="flex flex-col items-center gap-4 py-6">
+        <div className="flex flex-row items-center gap-2 text-sm font-medium">
+          <Loading className="size-4" />
+          <p>Waiting for connection</p>
+        </div>
+        <p className="text-xs text-muted-foreground text-center">
+          Make your first request to complete the connection.
+        </p>
+        {timeout && app && (
+          <div className="text-xs text-muted-foreground flex flex-col gap-3 items-center text-center border-t pt-4 w-full">
+            Connecting is taking longer than usual.
+            <LinkButton to={`/apps/${app.id}`} variant="secondary" size="sm">
+              Continue anyway
+            </LinkButton>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

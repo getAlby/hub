@@ -7,7 +7,7 @@ require (
 	github.com/btcsuite/btcd v0.24.3-0.20250318170759-4f4ea81776d6
 	github.com/btcsuite/btcd/btcutil v1.1.6
 	github.com/elnosh/gonuts v0.4.2
-	github.com/getAlby/ldk-node-go v0.0.0-20260210094439-f4fc56578330
+	github.com/getAlby/ldk-node-go v0.0.0-20260325180303-fbe7fe6a114d
 	github.com/go-gormigrate/gormigrate/v2 v2.1.5
 	github.com/labstack/echo/v4 v4.15.1
 	github.com/mattn/go-sqlite3 v1.14.38
@@ -17,7 +17,7 @@ require (
 	github.com/peterldowns/pgtestdb v0.1.1
 	github.com/stretchr/testify v1.11.1
 	github.com/tyler-smith/go-bip39 v1.1.0
-	github.com/wailsapp/wails/v2 v2.11.0
+	github.com/wailsapp/wails/v2 v2.12.0
 	golang.org/x/crypto v0.49.0
 	golang.org/x/oauth2 v0.36.0
 	google.golang.org/grpc v1.79.3
@@ -30,6 +30,7 @@ require (
 require (
 	dario.cat/mergo v1.0.2 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
+	git.sr.ht/~jackmordaunt/go-toast/v2 v2.0.3 // indirect
 	github.com/Azure/go-ansiterm v0.0.0-20250102033503-faa5f7b0171c // indirect
 	github.com/FactomProject/basen v0.0.0-20150613233007-fe3947df716e // indirect
 	github.com/FactomProject/btcutilecc v0.0.0-20130527213604-d3a63a5752ec // indirect
