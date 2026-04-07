@@ -96,11 +96,7 @@ export function Goose() {
             </a>{" "}
             and buy AI credits with lightning.
           </p>
-          <GooseConnectionInstructions
-            connectionSecret={connectionSecret}
-            mcpUrl={streamableHttpLink}
-            gooseDesktopLink={gooseDesktopLink}
-          />
+          <GooseConnectionInstructions gooseDesktopLink={gooseDesktopLink} />
 
           <Alert>
             <LightbulbIcon />

@@ -79,7 +79,6 @@ export function Claude() {
             Click one of the below options to connect Claude to your Alby Hub.
           </p>
           <ClaudeConnectionInstructions
-            connectionSecret={connectionSecret}
             mcpUrlWithSecret={mcpLinkWithEncodedSecret}
           />
         </div>
