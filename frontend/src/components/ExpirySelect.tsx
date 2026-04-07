@@ -29,39 +29,35 @@ const ExpirySelect: React.FC<ExpiryProps> = ({ value, onChange }) => {
 
   const isPreset =
     expiryDays !== undefined &&
-    Object.values(expiryOptions)
-      .filter((v) => v !== 0)
-      .includes(expiryDays);
+    Object.values(expiryOptions).includes(expiryDays);
 
   return (
     <>
       <div className="grid grid-cols-3 gap-3 text-xs mb-3">
-        {Object.keys(expiryOptions)
-          .filter((expiry) => expiryOptions[expiry] !== 0)
-          .map((expiry) => {
-            return (
-              <button
-                type="button"
-                key={expiry}
-                onClick={() => {
-                  const date = dayjs()
-                    .add(expiryOptions[expiry], "day")
-                    .endOf("day")
-                    .toDate();
-                  onChange(date);
-                  setExpiryDays(expiryOptions[expiry]);
-                }}
-                className={cn(
-                  "cursor-pointer rounded text-nowrap border-2 text-center p-3 py-4",
-                  isPreset && expiryDays == expiryOptions[expiry]
-                    ? "border-primary"
-                    : "border-muted"
-                )}
-              >
-                {expiry}
-              </button>
-            );
-          })}
+        {Object.keys(expiryOptions).map((expiry) => {
+          return (
+            <button
+              type="button"
+              key={expiry}
+              onClick={() => {
+                const date = dayjs()
+                  .add(expiryOptions[expiry], "day")
+                  .endOf("day")
+                  .toDate();
+                onChange(date);
+                setExpiryDays(expiryOptions[expiry]);
+              }}
+              className={cn(
+                "cursor-pointer rounded text-nowrap border-2 text-center p-3 py-4",
+                isPreset && expiryDays == expiryOptions[expiry]
+                  ? "border-primary"
+                  : "border-muted"
+              )}
+            >
+              {expiry}
+            </button>
+          );
+        })}
       </div>
       <div>
         <Popover>

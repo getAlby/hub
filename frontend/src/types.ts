@@ -96,7 +96,6 @@ export const expiryOptions: Record<string, number> = {
   "1 week": 7,
   "1 month": 30,
   "1 year": 365,
-  Never: 0,
 };
 
 export const budgetOptions: Record<string, number> = {
