@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { CalendarIcon, XIcon } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import React from "react";
 import { Calendar } from "src/components/ui/calendar";
 import {
@@ -22,10 +22,9 @@ const daysFromNow = (date?: Date) => {
 interface ExpiryProps {
   value?: Date | undefined;
   onChange: (expiryDate?: Date) => void;
-  onClose?: () => void;
 }
 
-const ExpirySelect: React.FC<ExpiryProps> = ({ value, onChange, onClose }) => {
+const ExpirySelect: React.FC<ExpiryProps> = ({ value, onChange }) => {
   const [expiryDays, setExpiryDays] = React.useState(daysFromNow(value));
 
   const isPreset =
@@ -36,15 +35,6 @@ const ExpirySelect: React.FC<ExpiryProps> = ({ value, onChange, onClose }) => {
 
   return (
     <>
-      <div className="flex items-center mb-2">
-        <p className="font-medium text-sm">Connection expiration</p>
-        {onClose && (
-          <XIcon
-            className="cursor-pointer w-4 ml-2 text-muted-foreground"
-            onClick={onClose}
-          />
-        )}
-      </div>
       <div className="grid grid-cols-3 gap-3 text-xs mb-3">
         {Object.keys(expiryOptions)
           .filter((expiry) => expiryOptions[expiry] !== 0)
@@ -73,7 +63,7 @@ const ExpirySelect: React.FC<ExpiryProps> = ({ value, onChange, onClose }) => {
             );
           })}
       </div>
-      <div className="mb-4">
+      <div>
         <Popover>
           <PopoverTrigger asChild>
             <button

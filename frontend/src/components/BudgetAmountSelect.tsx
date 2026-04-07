@@ -43,7 +43,7 @@ function BudgetAmountSelect({
             </button>
           ))}
       </div>
-      <div className="mb-4">
+      <div>
         <Input
           id="budget"
           name="budget"

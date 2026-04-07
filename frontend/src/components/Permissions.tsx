@@ -1,4 +1,4 @@
-import { AlertTriangleIcon, PlusCircleIcon } from "lucide-react";
+import { AlertTriangleIcon, CoinsIcon, TimerIcon } from "lucide-react";
 import React from "react";
 import BudgetAmountSelect from "src/components/BudgetAmountSelect";
 import BudgetRenewalSelect from "src/components/BudgetRenewalSelect";
@@ -6,7 +6,7 @@ import ExpirySelect from "src/components/ExpirySelect";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Scopes from "src/components/Scopes";
 import { Badge } from "src/components/ui/badge";
-import { Button } from "src/components/ui/button";
+import { Switch } from "src/components/ui/switch";
 import {
   DEFAULT_APP_BUDGET_RENEWAL,
   DEFAULT_APP_BUDGET_SATS,
@@ -92,7 +92,7 @@ const Permissions: React.FC<PermissionsProps> = ({
   );
 
   return (
-    <div className={cn(!readOnly && "max-w-lg")}>
+    <div className={cn("space-y-4", !readOnly && "max-w-lg")}>
       {!readOnly && !scopesReadOnly ? (
         <Scopes
           capabilities={capabilities}
@@ -127,40 +127,48 @@ const Permissions: React.FC<PermissionsProps> = ({
       {permissions.scopes.includes("pay_invoice") && showBudgetUsage && (
         <>
           {!readOnly && !budgetReadOnly ? (
-            <>
-              {!showBudgetOptions && (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => {
-                    handleBudgetRenewalChange(DEFAULT_APP_BUDGET_RENEWAL);
-                    handleBudgetMaxAmountChange(DEFAULT_APP_BUDGET_SATS);
-                    setShowBudgetOptions(true);
-                  }}
-                  className={cn("mr-4", showExpiryOptions && "mb-4")}
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center justify-between">
+                <label
+                  htmlFor="budget-toggle"
+                  className="flex items-center gap-2 cursor-pointer"
                 >
-                  <PlusCircleIcon />
-                  Set budget
-                </Button>
-              )}
+                  <CoinsIcon className="size-5 text-muted-foreground" />
+                  <div className="flex flex-col gap-0.5">
+                    <p className="text-sm font-medium">Budget</p>
+                    <p className="text-xs text-muted-foreground">
+                      Limit how much this app can spend
+                    </p>
+                  </div>
+                </label>
+                <Switch
+                  id="budget-toggle"
+                  checked={showBudgetOptions}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      handleBudgetRenewalChange(DEFAULT_APP_BUDGET_RENEWAL);
+                      handleBudgetMaxAmountChange(DEFAULT_APP_BUDGET_SATS);
+                    } else {
+                      handleBudgetRenewalChange("never");
+                      handleBudgetMaxAmountChange(0);
+                    }
+                    setShowBudgetOptions(checked);
+                  }}
+                />
+              </div>
               {showBudgetOptions && (
-                <>
+                <div className="mt-4">
                   <BudgetRenewalSelect
                     value={permissions.budgetRenewal}
                     onChange={handleBudgetRenewalChange}
-                    onClose={() => {
-                      handleBudgetRenewalChange("never");
-                      handleBudgetMaxAmountChange(0);
-                      setShowBudgetOptions(false);
-                    }}
                   />
                   <BudgetAmountSelect
                     value={permissions.maxAmount}
                     onChange={handleBudgetMaxAmountChange}
                   />
-                </>
+                </div>
               )}
-            </>
+            </div>
           ) : (
             <div className="pl-4 ml-2 border-l-2 border-l-primary mb-4">
               <div className="flex flex-col gap-2 text-muted-foreground text-sm">
@@ -199,29 +207,40 @@ const Permissions: React.FC<PermissionsProps> = ({
 
       <>
         {!readOnly && !expiresAtReadOnly ? (
-          <>
-            {!showExpiryOptions && (
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => setShowExpiryOptions(true)}
+          <div className="rounded-lg border p-4">
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="expiry-toggle"
+                className="flex items-center gap-2 cursor-pointer"
               >
-                <PlusCircleIcon />
-                Set expiration time
-              </Button>
-            )}
-
-            {showExpiryOptions && (
-              <ExpirySelect
-                value={permissions.expiresAt}
-                onChange={handleExpiryChange}
-                onClose={() => {
-                  handleExpiryChange(undefined);
-                  setShowExpiryOptions(false);
+                <TimerIcon className="size-5 text-muted-foreground" />
+                <div className="flex flex-col gap-0.5">
+                  <p className="text-sm font-medium">Expiration</p>
+                  <p className="text-xs text-muted-foreground">
+                    Automatically expire this connection
+                  </p>
+                </div>
+              </label>
+              <Switch
+                id="expiry-toggle"
+                checked={showExpiryOptions}
+                onCheckedChange={(checked) => {
+                  if (!checked) {
+                    handleExpiryChange(undefined);
+                  }
+                  setShowExpiryOptions(checked);
                 }}
               />
+            </div>
+            {showExpiryOptions && (
+              <div className="mt-4">
+                <ExpirySelect
+                  value={permissions.expiresAt}
+                  onChange={handleExpiryChange}
+                />
+              </div>
             )}
-          </>
+          </div>
         ) : (
           <>
             <p className="text-sm font-medium mb-2">Connection expiry</p>

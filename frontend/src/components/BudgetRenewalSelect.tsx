@@ -1,4 +1,3 @@
-import { XIcon } from "lucide-react";
 import React from "react";
 import { Label } from "src/components/ui/label";
 import {
@@ -13,17 +12,15 @@ import { BudgetRenewalType, validBudgetRenewals } from "src/types";
 interface BudgetRenewalProps {
   value: BudgetRenewalType;
   onChange: (value: BudgetRenewalType) => void;
-  onClose?: () => void;
 }
 
 const BudgetRenewalSelect: React.FC<BudgetRenewalProps> = ({
   value,
   onChange,
-  onClose,
 }) => {
   return (
-    <div className="flex gap-3 items-center mb-4">
-      <Label htmlFor="budget-renewal">Budget Renewal</Label>
+    <div className="flex gap-3 items-center mb-3">
+      <Label htmlFor="budget-renewal">Renewal</Label>
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger id="budget-renewal" className="w-[150px] capitalize">
           <SelectValue placeholder={value} />
@@ -35,12 +32,6 @@ const BudgetRenewalSelect: React.FC<BudgetRenewalProps> = ({
             </SelectItem>
           ))}
         </SelectContent>
-        {onClose && (
-          <XIcon
-            className="cursor-pointer w-4 text-muted-foreground"
-            onClick={onClose}
-          />
-        )}
       </Select>
     </div>
   );
