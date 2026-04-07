@@ -1,4 +1,3 @@
-import { CheckIcon } from "lucide-react";
 import { useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 
@@ -17,7 +16,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "src/components/ui/alert-dialog";
-import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
 import { Card, CardContent } from "src/components/ui/card";
 import { LinkButton } from "src/components/ui/custom/link-button";
@@ -581,33 +579,20 @@ function WaitingForConnection({ app }: { app: App | undefined }) {
   return (
     <Card className="w-full">
       <CardContent className="flex flex-col items-center gap-4 py-6">
-        {!app?.lastUsedAt ? (
-          <>
-            <div className="flex flex-row items-center gap-2 text-sm font-medium">
-              <Loading className="size-4" />
-              <p>Waiting for connection</p>
-            </div>
-            <p className="text-xs text-muted-foreground text-center">
-              Make your first request to complete the connection.
-            </p>
-            {timeout && app && (
-              <div className="text-xs text-muted-foreground flex flex-col gap-3 items-center text-center border-t pt-4 w-full">
-                Connecting is taking longer than usual.
-                <LinkButton
-                  to={`/apps/${app.id}`}
-                  variant="secondary"
-                  size="sm"
-                >
-                  Continue anyway
-                </LinkButton>
-              </div>
-            )}
-          </>
-        ) : (
-          <Badge variant="positive">
-            <CheckIcon />
-            Connected
-          </Badge>
+        <div className="flex flex-row items-center gap-2 text-sm font-medium">
+          <Loading className="size-4" />
+          <p>Waiting for connection</p>
+        </div>
+        <p className="text-xs text-muted-foreground text-center">
+          Make your first request to complete the connection.
+        </p>
+        {timeout && app && (
+          <div className="text-xs text-muted-foreground flex flex-col gap-3 items-center text-center border-t pt-4 w-full">
+            Connecting is taking longer than usual.
+            <LinkButton to={`/apps/${app.id}`} variant="secondary" size="sm">
+              Continue anyway
+            </LinkButton>
+          </div>
         )}
       </CardContent>
     </Card>
