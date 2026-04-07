@@ -225,7 +225,12 @@ const Permissions: React.FC<PermissionsProps> = ({
                 id="expiry-toggle"
                 checked={showExpiryOptions}
                 onCheckedChange={(checked) => {
-                  if (!checked) {
+                  if (checked) {
+                    const defaultExpiry = new Date();
+                    defaultExpiry.setFullYear(defaultExpiry.getFullYear() + 1);
+                    defaultExpiry.setHours(23, 59, 59);
+                    handleExpiryChange(defaultExpiry);
+                  } else {
                     handleExpiryChange(undefined);
                   }
                   setShowExpiryOptions(checked);
