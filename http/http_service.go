@@ -343,8 +343,20 @@ func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 		})
 	}
 
-	token, err := httpSvc.createJWT(unlockRequest.TokenExpiryDays, unlockRequest.Permission)
+	_, err := httpSvc.api.GetNodeStatus(c.Request().Context())
+	if err != nil {
+		if errors.Is(err, api.ErrLNClientNotStarted) {
+			return c.JSON(http.StatusBadRequest, ErrorResponse{
+				Message: "Node is not running, start it before unlocking.",
+			})
+		}
 
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	token, err := httpSvc.createJWT(unlockRequest.TokenExpiryDays, unlockRequest.Permission)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to save session: %s", err.Error()),

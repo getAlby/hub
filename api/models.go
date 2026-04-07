@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	"io"
 	"time"
 
@@ -84,6 +85,8 @@ type API interface {
 	SendEvent(event string, properties interface{})
 	GetForwards() (*GetForwardsResponse, error)
 }
+
+var ErrLNClientNotStarted = errors.New("LNClient not started")
 
 type App struct {
 	ID                 uint       `json:"id"`
