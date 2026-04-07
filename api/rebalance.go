@@ -20,7 +20,7 @@ import (
 func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *RebalanceChannelRequest) (*RebalanceChannelResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 
 	receiveMetadata := map[string]interface{}{

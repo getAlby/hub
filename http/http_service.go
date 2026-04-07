@@ -348,8 +348,14 @@ func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 
 	_, err := httpSvc.api.GetNodeStatus(c.Request().Context())
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Message: "Node is not running, start it before unlocking.",
+		if errors.Is(err, api.ErrLNClientNotStarted) {
+			return c.JSON(http.StatusBadRequest, ErrorResponse{
+				Message: "Node is not running, start it before unlocking.",
+			})
+		}
+
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
 		})
 	}
 

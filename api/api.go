@@ -653,7 +653,7 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 	channels, err := lnClient.ListChannels(ctx)
 	if err != nil {
@@ -723,7 +723,7 @@ func (api *api) GetLSPChannelOffer(ctx context.Context) (*alby.LSPChannelOffer, 
 func (api *api) ResetRouter(key string) error {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return errors.New("LNClient not started")
+		return ErrLNClientNotStarted
 	}
 	err := lnClient.ResetRouter(key)
 	if err != nil {
@@ -737,7 +737,7 @@ func (api *api) ResetRouter(key string) error {
 
 func (api *api) ChangeUnlockPassword(changeUnlockPasswordRequest *ChangeUnlockPasswordRequest) error {
 	if api.svc.GetLNClient() == nil {
-		return errors.New("LNClient not started")
+		return ErrLNClientNotStarted
 	}
 
 	autoUnlockPassword, err := api.cfg.Get("AutoUnlockPassword", "")
@@ -762,7 +762,7 @@ func (api *api) ChangeUnlockPassword(changeUnlockPasswordRequest *ChangeUnlockPa
 
 func (api *api) SetAutoUnlockPassword(unlockPassword string) error {
 	if api.svc.GetLNClient() == nil {
-		return errors.New("LNClient not started")
+		return ErrLNClientNotStarted
 	}
 
 	err := api.cfg.SetAutoUnlockPassword(unlockPassword)
@@ -784,7 +784,7 @@ func (api *api) Stop() error {
 
 	logger.Logger.Info("Running Stop command")
 	if api.svc.GetLNClient() == nil {
-		return errors.New("LNClient not started")
+		return ErrLNClientNotStarted
 	}
 
 	// stop the lnclient, nostr relay etc.
@@ -797,7 +797,7 @@ func (api *api) Stop() error {
 func (api *api) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnectionInfo, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 	return lnClient.GetNodeConnectionInfo(ctx)
 }
@@ -930,7 +930,7 @@ func (api *api) GetSwapOutInfo() (*SwapInfoResponse, error) {
 func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (*swaps.SwapResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 
 	if api.svc.GetSwapsService() == nil {
@@ -959,7 +959,7 @@ func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *Ini
 func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (*swaps.SwapResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 
 	if api.svc.GetSwapsService() == nil {
@@ -1031,7 +1031,7 @@ func (api *api) GetSwapMnemonic() string {
 func (api *api) GetNodeStatus(ctx context.Context) (*lnclient.NodeStatus, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 	return lnClient.GetNodeStatus(ctx)
 }
@@ -1039,7 +1039,7 @@ func (api *api) GetNodeStatus(ctx context.Context) (*lnclient.NodeStatus, error)
 func (api *api) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 	return lnClient.ListPeers(ctx)
 }
@@ -1047,7 +1047,7 @@ func (api *api) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
 func (api *api) ConnectPeer(ctx context.Context, connectPeerRequest *ConnectPeerRequest) error {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return errors.New("LNClient not started")
+		return ErrLNClientNotStarted
 	}
 	return lnClient.ConnectPeer(ctx, connectPeerRequest)
 }
@@ -1055,7 +1055,7 @@ func (api *api) ConnectPeer(ctx context.Context, connectPeerRequest *ConnectPeer
 func (api *api) OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 	return lnClient.OpenChannel(ctx, openChannelRequest)
 }
@@ -1063,7 +1063,7 @@ func (api *api) OpenChannel(ctx context.Context, openChannelRequest *OpenChannel
 func (api *api) DisconnectPeer(ctx context.Context, peerId string) error {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return errors.New("LNClient not started")
+		return ErrLNClientNotStarted
 	}
 	logger.Logger.WithFields(logrus.Fields{
 		"peer_id": peerId,
@@ -1074,7 +1074,7 @@ func (api *api) DisconnectPeer(ctx context.Context, peerId string) error {
 func (api *api) CloseChannel(ctx context.Context, peerId, channelId string, force bool) (*CloseChannelResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 	logger.Logger.WithFields(logrus.Fields{
 		"peer_id":    peerId,
@@ -1091,7 +1091,7 @@ func (api *api) CloseChannel(ctx context.Context, peerId, channelId string, forc
 func (api *api) UpdateChannel(ctx context.Context, updateChannelRequest *UpdateChannelRequest) error {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return errors.New("LNClient not started")
+		return ErrLNClientNotStarted
 	}
 	logger.Logger.WithFields(logrus.Fields{
 		"request": updateChannelRequest,
@@ -1102,7 +1102,7 @@ func (api *api) UpdateChannel(ctx context.Context, updateChannelRequest *UpdateC
 func (api *api) MakeOffer(ctx context.Context, description string) (string, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return "", errors.New("LNClient not started")
+		return "", ErrLNClientNotStarted
 	}
 	offer, err := lnClient.MakeOffer(ctx, description)
 	if err != nil {
@@ -1115,7 +1115,7 @@ func (api *api) MakeOffer(ctx context.Context, description string) (string, erro
 func (api *api) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return "", errors.New("LNClient not started")
+		return "", ErrLNClientNotStarted
 	}
 	address, err := lnClient.GetNewOnchainAddress(ctx)
 	if err != nil {
@@ -1132,7 +1132,7 @@ func (api *api) GetNewOnchainAddress(ctx context.Context) (string, error) {
 
 func (api *api) GetUnusedOnchainAddress(ctx context.Context) (string, error) {
 	if api.svc.GetLNClient() == nil {
-		return "", errors.New("LNClient not started")
+		return "", ErrLNClientNotStarted
 	}
 
 	currentAddress, err := api.cfg.Get(config.OnchainAddressKey, "")
@@ -1172,7 +1172,7 @@ func (api *api) GetUnusedOnchainAddress(ctx context.Context) (string, error) {
 func (api *api) SignMessage(ctx context.Context, message string) (*SignMessageResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 	signature, err := lnClient.SignMessage(ctx, message)
 	if err != nil {
@@ -1187,7 +1187,7 @@ func (api *api) SignMessage(ctx context.Context, message string) (*SignMessageRe
 func (api *api) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (*RedeemOnchainFundsResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 	txId, err := lnClient.RedeemOnchainFunds(ctx, toAddress, amount, feeRate, sendAll)
 	if err != nil {
@@ -1201,7 +1201,7 @@ func (api *api) RedeemOnchainFunds(ctx context.Context, toAddress string, amount
 func (api *api) GetBalances(ctx context.Context) (*BalancesResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 	balances, err := lnClient.GetBalances(ctx, false)
 	if err != nil {
@@ -1519,7 +1519,7 @@ func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
 func (api *api) GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 
 	methods := lnClient.GetSupportedNIP47Methods()
@@ -1543,7 +1543,7 @@ func (api *api) GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesR
 func (api *api) SendPaymentProbes(ctx context.Context, sendPaymentProbesRequest *SendPaymentProbesRequest) (*SendPaymentProbesResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 
 	var errMessage string
@@ -1557,7 +1557,7 @@ func (api *api) SendPaymentProbes(ctx context.Context, sendPaymentProbesRequest 
 
 func (api *api) MigrateNodeStorage(ctx context.Context, to string) error {
 	if api.svc.GetLNClient() == nil {
-		return errors.New("LNClient not started")
+		return ErrLNClientNotStarted
 	}
 	if to != "VSS" {
 		return fmt.Errorf("migration type not supported: %s", to)
@@ -1584,7 +1584,7 @@ func (api *api) MigrateNodeStorage(ctx context.Context, to string) error {
 func (api *api) SendSpontaneousPaymentProbes(ctx context.Context, sendSpontaneousPaymentProbesRequest *SendSpontaneousPaymentProbesRequest) (*SendSpontaneousPaymentProbesResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 
 	var errMessage string
@@ -1599,7 +1599,7 @@ func (api *api) SendSpontaneousPaymentProbes(ctx context.Context, sendSpontaneou
 func (api *api) GetNetworkGraph(ctx context.Context, nodeIds []string) (NetworkGraphResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 	return lnClient.GetNetworkGraph(ctx, nodeIds)
 }
@@ -1607,7 +1607,7 @@ func (api *api) GetNetworkGraph(ctx context.Context, nodeIds []string) (NetworkG
 func (api *api) SyncWallet() error {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return errors.New("LNClient not started")
+		return ErrLNClientNotStarted
 	}
 	lnClient.UpdateLastWalletSyncRequest()
 	return nil
@@ -1615,7 +1615,7 @@ func (api *api) SyncWallet() error {
 func (api *api) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 	return lnClient.ListOnchainTransactions(ctx)
 }
@@ -1627,7 +1627,7 @@ func (api *api) GetLogOutput(ctx context.Context, logType string, getLogRequest 
 	if logType == LogTypeNode {
 		lnClient := api.svc.GetLNClient()
 		if lnClient == nil {
-			return nil, errors.New("LNClient not started")
+			return nil, ErrLNClientNotStarted
 		}
 
 		logData, err = lnClient.GetLogOutput(ctx, getLogRequest.MaxLen)
@@ -1722,7 +1722,7 @@ func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 func (api *api) GetCustomNodeCommands() (*CustomNodeCommandsResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 
 	allCommandDefs := lnClient.GetCustomNodeCommandDefinitions()
@@ -1748,7 +1748,7 @@ func (api *api) GetCustomNodeCommands() (*CustomNodeCommandsResponse, error) {
 func (api *api) ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 
 	// Split command line into arguments. Command name must be the first argument.
