@@ -215,6 +215,10 @@ const Permissions: React.FC<PermissionsProps> = ({
               <ExpirySelect
                 value={permissions.expiresAt}
                 onChange={handleExpiryChange}
+                onClose={() => {
+                  handleExpiryChange(undefined);
+                  setShowExpiryOptions(false);
+                }}
               />
             )}
           </>
