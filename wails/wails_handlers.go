@@ -409,6 +409,17 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: rate, Error: ""}
+	case "/api/alby/currencies":
+		currencies, err := app.svc.GetAlbySvc().GetCurrencies(ctx)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":  route,
+				"method": method,
+				"body":   body,
+			}).WithError(err).Error("Failed to get currencies")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: currencies, Error: ""}
 	case "/api/apps":
 		switch method {
 		case "POST":

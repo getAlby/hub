@@ -162,6 +162,68 @@ func (_c *MockAlbyService_GetChannelPeerSuggestions_Call) RunAndReturn(run func(
 	return _c
 }
 
+// GetCurrencies provides a mock function for the type MockAlbyService
+func (_mock *MockAlbyService) GetCurrencies(ctx context.Context) ([]alby.Currency, error) {
+	ret := _mock.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetCurrencies")
+	}
+
+	var r0 []alby.Currency
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) ([]alby.Currency, error)); ok {
+		return returnFunc(ctx)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context) []alby.Currency); ok {
+		r0 = returnFunc(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]alby.Currency)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = returnFunc(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockAlbyService_GetCurrencies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCurrencies'
+type MockAlbyService_GetCurrencies_Call struct {
+	*mock.Call
+}
+
+// GetCurrencies is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *MockAlbyService_Expecter) GetCurrencies(ctx interface{}) *MockAlbyService_GetCurrencies_Call {
+	return &MockAlbyService_GetCurrencies_Call{Call: _e.mock.On("GetCurrencies", ctx)}
+}
+
+func (_c *MockAlbyService_GetCurrencies_Call) Run(run func(ctx context.Context)) *MockAlbyService_GetCurrencies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockAlbyService_GetCurrencies_Call) Return(currencys []alby.Currency, err error) *MockAlbyService_GetCurrencies_Call {
+	_c.Call.Return(currencys, err)
+	return _c
+}
+
+func (_c *MockAlbyService_GetCurrencies_Call) RunAndReturn(run func(ctx context.Context) ([]alby.Currency, error)) *MockAlbyService_GetCurrencies_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetInfo provides a mock function for the type MockAlbyService
 func (_mock *MockAlbyService) GetInfo(ctx context.Context) (*alby.AlbyInfo, error) {
 	ret := _mock.Called(ctx)
