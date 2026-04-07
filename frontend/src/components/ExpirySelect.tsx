@@ -49,7 +49,7 @@ const ExpirySelect: React.FC<ExpiryProps> = ({ value, onChange }) => {
               }}
               className={cn(
                 "cursor-pointer rounded text-nowrap border-2 text-center p-3 py-4",
-                isPreset && expiryDays == expiryOptions[expiry]
+                isPreset && expiryDays === expiryOptions[expiry]
                   ? "border-primary"
                   : "border-muted"
               )}

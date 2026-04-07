@@ -205,58 +205,56 @@ const Permissions: React.FC<PermissionsProps> = ({
         </>
       )}
 
-      <>
-        {!readOnly && !expiresAtReadOnly ? (
-          <div className="rounded-lg border p-4">
-            <div className="flex items-center justify-between">
-              <label
-                htmlFor="expiry-toggle"
-                className="flex items-center gap-2 cursor-pointer"
-              >
-                <TimerIcon className="size-5 text-muted-foreground" />
-                <div className="flex flex-col gap-0.5">
-                  <p className="text-sm font-medium">Expiration</p>
-                  <p className="text-xs text-muted-foreground">
-                    Automatically expire this connection
-                  </p>
-                </div>
-              </label>
-              <Switch
-                id="expiry-toggle"
-                checked={showExpiryOptions}
-                onCheckedChange={(checked) => {
-                  if (checked) {
-                    const defaultExpiry = new Date();
-                    defaultExpiry.setFullYear(defaultExpiry.getFullYear() + 1);
-                    defaultExpiry.setHours(23, 59, 59);
-                    handleExpiryChange(defaultExpiry);
-                  } else {
-                    handleExpiryChange(undefined);
-                  }
-                  setShowExpiryOptions(checked);
-                }}
+      {!readOnly && !expiresAtReadOnly ? (
+        <div className="rounded-lg border p-4">
+          <div className="flex items-center justify-between">
+            <label
+              htmlFor="expiry-toggle"
+              className="flex items-center gap-2 cursor-pointer"
+            >
+              <TimerIcon className="size-5 text-muted-foreground" />
+              <div className="flex flex-col gap-0.5">
+                <p className="text-sm font-medium">Expiration</p>
+                <p className="text-xs text-muted-foreground">
+                  Automatically expire this connection
+                </p>
+              </div>
+            </label>
+            <Switch
+              id="expiry-toggle"
+              checked={showExpiryOptions}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  const defaultExpiry = new Date();
+                  defaultExpiry.setFullYear(defaultExpiry.getFullYear() + 1);
+                  defaultExpiry.setHours(23, 59, 59);
+                  handleExpiryChange(defaultExpiry);
+                } else {
+                  handleExpiryChange(undefined);
+                }
+                setShowExpiryOptions(checked);
+              }}
+            />
+          </div>
+          {showExpiryOptions && (
+            <div className="mt-4">
+              <ExpirySelect
+                value={permissions.expiresAt}
+                onChange={handleExpiryChange}
               />
             </div>
-            {showExpiryOptions && (
-              <div className="mt-4">
-                <ExpirySelect
-                  value={permissions.expiresAt}
-                  onChange={handleExpiryChange}
-                />
-              </div>
-            )}
-          </div>
-        ) : (
-          <>
-            <p className="text-sm font-medium mb-2">Connection expiry</p>
-            <p className="text-muted-foreground text-sm">
-              {permissions.expiresAt
-                ? new Date(permissions.expiresAt).toString()
-                : "This app will never expire"}
-            </p>
-          </>
-        )}
-      </>
+          )}
+        </div>
+      ) : (
+        <div>
+          <p className="text-sm font-medium mb-2">Connection expiry</p>
+          <p className="text-muted-foreground text-sm">
+            {permissions.expiresAt
+              ? new Date(permissions.expiresAt).toString()
+              : "This app will never expire"}
+          </p>
+        </div>
+      )}
 
       {permissions.scopes.includes("superuser") && (
         <>

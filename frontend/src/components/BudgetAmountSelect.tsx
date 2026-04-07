@@ -1,3 +1,4 @@
+import React from "react";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import { Input } from "src/components/ui/input";
@@ -15,6 +16,14 @@ function BudgetAmountSelect({
   minAmount?: number;
   budgetOptions?: typeof defaultBudgetOptions;
 }) {
+  const [inputValue, setInputValue] = React.useState(
+    value ? String(value) : ""
+  );
+
+  React.useEffect(() => {
+    setInputValue(value ? String(value) : "");
+  }, [value]);
+
   return (
     <>
       <div className="grid grid-cols-3 gap-3 text-xs mb-3">
@@ -29,7 +38,7 @@ function BudgetAmountSelect({
               }}
               className={cn(
                 "cursor-pointer rounded text-nowrap border-2 text-center p-3 py-4 slashed-zero",
-                value == budgetOptions[budget]
+                value === budgetOptions[budget]
                   ? "border-primary"
                   : "border-muted"
               )}
@@ -47,14 +56,15 @@ function BudgetAmountSelect({
         <Input
           id="budget"
           name="budget"
-          type="number"
+          type="text"
+          inputMode="numeric"
           required
           placeholder="Custom amount in sats"
-          min={minAmount || 1}
-          value={value || ""}
+          value={inputValue}
           onChange={(e) => {
-            const n = e.target.valueAsNumber;
-            onChange(Number.isFinite(n) ? n : 0);
+            setInputValue(e.target.value);
+            const n = parseInt(e.target.value);
+            onChange(!isNaN(n) && n > 0 ? n : 0);
           }}
         />
       </div>
