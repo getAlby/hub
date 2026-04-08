@@ -25,6 +25,7 @@ import claudeLogo from "src/assets/suggested-apps/claude.png";
 import clineLogo from "src/assets/suggested-apps/cline.png";
 import codexLogo from "src/assets/suggested-apps/codex.png";
 import cursorLogo from "src/assets/suggested-apps/cursor.png";
+import geminiLogo from "src/assets/suggested-apps/gemini.png";
 import gooseLogo from "src/assets/suggested-apps/goose.png";
 import openclawLogo from "src/assets/suggested-apps/openclaw.png";
 import opencodeLogo from "src/assets/suggested-apps/opencode.png";
@@ -83,6 +84,13 @@ const agents: Agent[] = [
     name: "Claude",
     logo: claudeLogo,
     description: "Anthropic's AI assistant (Code, Web & Desktop)",
+    setupUrl: "",
+  },
+  {
+    id: "gemini",
+    name: "Gemini CLI",
+    logo: geminiLogo,
+    description: "Google's open-source AI agent for the terminal",
     setupUrl: "",
   },
   {
@@ -480,7 +488,7 @@ function GenericAuthPrompt({ agent }: { agent: Agent }) {
         <p className="text-muted-foreground">
           Using Claude Web or Desktop?{" "}
           <Link
-            to="/apps/new?app=claude"
+            to="/internal-apps/claude"
             className="underline font-medium text-foreground hover:text-primary transition-colors"
           >
             Set up via MCP instead
