@@ -196,19 +196,17 @@ const Scopes: React.FC<ScopesProps> = ({
       </Sheet>
       <button
         type="button"
-        className="flex items-center rounded-lg border cursor-pointer p-4 w-full"
+        className="flex items-center gap-2 rounded-lg border cursor-pointer p-4 w-full"
         onClick={() => {
           setSheetOpen(true);
         }}
       >
-        <div className="flex items-center gap-2">
-          <ActiveScopeGroupIcon className="shrink-0 size-5 text-muted-foreground" />
-          <div className="flex flex-col gap-0.5 text-left">
-            <p className="text-sm font-medium">{scopeGroupTitle[scopeGroup]}</p>
-            <span className="text-xs text-muted-foreground">
-              {scopeGroupDescriptions[scopeGroup]}
-            </span>
-          </div>
+        <ActiveScopeGroupIcon className="shrink-0 size-5 text-muted-foreground" />
+        <div className="flex flex-col gap-0.5 text-left">
+          <p className="text-sm font-medium">{scopeGroupTitle[scopeGroup]}</p>
+          <span className="text-xs text-muted-foreground">
+            {scopeGroupDescriptions[scopeGroup]}
+          </span>
         </div>
         <ChevronsUpDownIcon className="ml-auto shrink-0 size-4 text-muted-foreground" />
       </button>

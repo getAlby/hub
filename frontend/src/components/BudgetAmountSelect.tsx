@@ -52,12 +52,12 @@ function BudgetAmountSelect({
             </button>
           ))}
       </div>
-      <div>
+      <div className="mb-3">
         <Input
           id="budget"
           name="budget"
-          type="text"
-          inputMode="numeric"
+          type="number"
+          min={1}
           required
           placeholder="Custom amount in sats"
           value={inputValue}
