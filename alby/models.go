@@ -106,8 +106,10 @@ type ChannelPeerSuggestion struct {
 	Pubkey                     string  `json:"pubkey"`
 	Host                       string  `json:"host"`
 	MinimumChannelSize         uint64  `json:"minimumChannelSize"`
+	MinimumChannelSizeSat      uint64  `json:"minimumChannelSizeSat"`
 	MinimumChannelSizeMsat     uint64  `json:"minimumChannelSizeMsat"`
 	MaximumChannelSize         uint64  `json:"maximumChannelSize"`
+	MaximumChannelSizeSat      uint64  `json:"maximumChannelSizeSat"`
 	MaximumChannelSizeMsat     uint64  `json:"maximumChannelSizeMsat"`
 	MaximumChannelExpiryBlocks *uint32 `json:"maximumChannelExpiryBlocks"`
 	Name                       string  `json:"name"`

@@ -95,7 +95,8 @@ type App struct {
 	LastUsedAt         *time.Time `json:"lastUsedAt"`
 	ExpiresAt          *time.Time `json:"expiresAt"`
 	Scopes             []string   `json:"scopes"`
-	MaxAmountSat       uint64     `json:"maxAmount"`
+	MaxAmount          uint64     `json:"maxAmount"`
+	MaxAmountSat       uint64     `json:"maxAmountSat"`
 	MaxAmountMsat      uint64     `json:"maxAmountMsat"`
 	BudgetUsage        uint64     `json:"budgetUsage"`
 	BudgetUsageSat     uint64     `json:"budgetUsageSat"`

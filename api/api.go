@@ -463,6 +463,7 @@ func (api *api) GetApp(dbApp *db.App) (*App, error) {
 		UpdatedAt:          dbApp.UpdatedAt,
 		AppPubkey:          dbApp.AppPubkey,
 		ExpiresAt:          expiresAt,
+		MaxAmount:          maxAmount,
 		MaxAmountSat:       maxAmount,
 		MaxAmountMsat:      maxAmount * 1000,
 		Scopes:             requestMethods,
@@ -628,6 +629,7 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 			apiApp.ExpiresAt = appPermission.ExpiresAt
 			if appPermission.Scope == constants.PAY_INVOICE_SCOPE {
 				apiApp.BudgetRenewal = appPermission.BudgetRenewal
+				apiApp.MaxAmount = uint64(appPermission.MaxAmountSat)
 				apiApp.MaxAmountSat = uint64(appPermission.MaxAmountSat)
 				apiApp.MaxAmountMsat = uint64(appPermission.MaxAmountSat) * 1000
 				budgetUsage, err := queries.GetBudgetUsage(api.db, &appPermission)

@@ -124,7 +124,9 @@ func (svc *albyService) GetChannelPeerSuggestions(ctx context.Context) ([]Channe
 	}
 
 	for i := range suggestions {
+		suggestions[i].MinimumChannelSizeSat = suggestions[i].MinimumChannelSize
 		suggestions[i].MinimumChannelSizeMsat = suggestions[i].MinimumChannelSize * 1000
+		suggestions[i].MaximumChannelSizeSat = suggestions[i].MaximumChannelSize
 		suggestions[i].MaximumChannelSizeMsat = suggestions[i].MaximumChannelSize * 1000
 
 		if suggestions[i].FeeTotalSat1m != nil {

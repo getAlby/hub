@@ -128,7 +128,11 @@ export interface App {
 
   scopes: Scope[];
   maxAmount: number;
+  maxAmountSat: number;
+  maxAmountMsat: number;
   budgetUsage: number;
+  budgetUsageSat: number;
+  budgetUsageMsat: number;
   budgetRenewal: BudgetRenewalType;
   metadata?: AppMetadata;
 }
@@ -494,7 +498,9 @@ export type LSPChannelOffer = {
   lspDescription: string;
   lspContactUrl: string;
   lspBalanceSat: number;
+  lspBalanceMsat: number;
   feeTotalSat: number;
+  feeTotalMsat: number;
   feeTotalUsd: number;
   currentPaymentMethod: LSPChannelOfferPaymentMethod;
   terms: string;
@@ -505,7 +511,11 @@ export type RecommendedChannelPeer = {
   image: string;
   name: string;
   minimumChannelSize: number;
+  minimumChannelSizeSat: number;
+  minimumChannelSizeMsat: number;
   maximumChannelSize: number;
+  maximumChannelSizeSat: number;
+  maximumChannelSizeMsat: number;
   note: string;
   publicChannelsAllowed: boolean;
   description: string;
@@ -524,8 +534,11 @@ export type RecommendedChannelPeer = {
       pubkey?: string;
       maximumChannelExpiryBlocks?: number;
       feeTotalSat1m?: number;
+      feeTotalMsat1m?: number;
       feeTotalSat2m?: number;
+      feeTotalMsat2m?: number;
       feeTotalSat3m?: number;
+      feeTotalMsat3m?: number;
     }
 );
 
@@ -594,7 +607,11 @@ export type AutoChannelRequest = {
 export type AutoChannelResponse = {
   invoice?: string;
   fee?: number;
+  feeSat?: number;
+  feeMsat?: number;
   channelSize: number;
+  channelSizeSat: number;
+  channelSizeMsat: number;
 };
 
 export type RedeemOnchainFundsResponse = {
@@ -685,11 +702,13 @@ export type Boostagram = {
   senderName: string;
   time: string;
   action: "boost";
+  valueSatTotal: number;
   valueMsatTotal: number;
 };
 
 export type OnchainTransaction = {
   amountSat: number;
+  amountMsat: number;
   createdAt: number;
   type: "incoming" | "outgoing";
   state: "confirmed" | "unconfirmed";
@@ -739,7 +758,9 @@ export type AuthTokenResponse = {
 };
 
 export type GetForwardsResponse = {
+  outboundAmountForwardedSat: number;
   outboundAmountForwardedMsat: number;
+  totalFeeEarnedSat: number;
   totalFeeEarnedMsat: number;
   numForwards: number;
 };
