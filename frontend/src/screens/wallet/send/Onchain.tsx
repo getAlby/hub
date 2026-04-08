@@ -35,7 +35,7 @@ import { request } from "src/utils/request";
 export default function Onchain() {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const [isSwap, setSwap] = React.useState(true);
+  const [isSwap, setSwap] = React.useState(false);
   const address = state?.args?.address as string;
   const initialAmount = (state?.args?.amount as string | undefined) ?? "";
   const [amount, setAmount] = React.useState(initialAmount);
