@@ -17,7 +17,6 @@ import claude from "src/assets/suggested-apps/claude.png";
 import coracle from "src/assets/suggested-apps/coracle.png";
 import damus from "src/assets/suggested-apps/damus.png";
 import fountain from "src/assets/suggested-apps/fountain.png";
-import goose from "src/assets/suggested-apps/goose.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import iris from "src/assets/suggested-apps/iris.png";
 import jumble from "src/assets/suggested-apps/jumble.png";
@@ -217,18 +216,6 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["audio"],
-    },
-    {
-      id: "goose",
-      title: "Goose",
-      description:
-        "Your local AI agent, automating engineering tasks seamlessly",
-      internal: true,
-      logo: goose,
-      categories: ["ai"],
-      extendedDescription:
-        "Your local AI agent, automating engineering tasks seamlessly",
-      webLink: "https://block.github.io/goose",
     },
     {
       id: "2fiat",

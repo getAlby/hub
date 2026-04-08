@@ -1,8 +1,25 @@
+import clineLogo from "src/assets/suggested-apps/cline.png";
+import codexLogo from "src/assets/suggested-apps/codex.png";
+import cursorLogo from "src/assets/suggested-apps/cursor.png";
+import gooseLogo from "src/assets/suggested-apps/goose.png";
+import openclawLogo from "src/assets/suggested-apps/openclaw.png";
+import opencodeLogo from "src/assets/suggested-apps/opencode.png";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import UserAvatar from "src/components/UserAvatar";
 import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
 import { cn } from "src/lib/utils";
 import { App } from "src/types";
+
+// Lightweight logo map for agents that don't have full app store entries.
+// Matches on app_store_app_id metadata set when the connection was created.
+const agentLogos: Record<string, string> = {
+  goose: gooseLogo,
+  openclaw: openclawLogo,
+  cursor: cursorLogo,
+  codex: codexLogo,
+  cline: clineLogo,
+  opencode: opencodeLogo,
+};
 
 type Props = {
   app: App;
@@ -13,13 +30,16 @@ export default function AppAvatar({ app, className }: Props) {
   if (app.name === ALBY_ACCOUNT_APP_NAME) {
     return <UserAvatar className={className} />;
   }
+  const agentLogo = app?.metadata?.app_store_app_id
+    ? agentLogos[app.metadata.app_store_app_id]
+    : undefined;
   const appStoreApp = appStoreApps.find(
     (suggestedApp) =>
       (app?.metadata?.app_store_app_id &&
         suggestedApp.id === app.metadata?.app_store_app_id) ||
       app.name.includes(suggestedApp.title)
   );
-  const image = appStoreApp?.logo;
+  const image = agentLogo || appStoreApp?.logo;
 
   const gradient =
     app.name
