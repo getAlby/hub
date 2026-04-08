@@ -15,7 +15,7 @@ export function useApps(
     unused?: boolean;
     subWallets?: boolean;
   },
-  orderBy?: "last_used_at" | "created_at",
+  orderBy?: "last_used_at" | "last_settled_transaction" | "created_at",
   isEnabled = true
 ) {
   const offset = (page - 1) * limit;

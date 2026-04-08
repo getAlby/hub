@@ -472,6 +472,7 @@ func (api *api) GetApp(dbApp *db.App) (*App, error) {
 		WalletPubkey:       walletPubkey,
 		UniqueWalletPubkey: uniqueWalletPubkey,
 		LastUsedAt:         dbApp.LastUsedAt,
+		LastSettledTxAt:    dbApp.LastSettledTxAt,
 	}
 
 	if dbApp.Isolated {
@@ -525,15 +526,7 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 		}
 	}
 
-	if orderBy == "" {
-		orderBy = "last_used_at"
-	}
-	if orderBy == "last_used_at" {
-		// when ordering by last used at, apps with last_used_at is NULL should be ordered last
-		orderBy = "last_used_at IS NULL, " + orderBy
-	}
-
-	query = query.Order(orderBy + " DESC")
+	query = query.Order(resolveAppOrderBy(orderBy))
 
 	if limit == 0 {
 		limit = 100
@@ -600,6 +593,7 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 			WalletPubkey:       walletPubkey,
 			UniqueWalletPubkey: uniqueWalletPubkey,
 			LastUsedAt:         dbApp.LastUsedAt,
+			LastSettledTxAt:    dbApp.LastSettledTxAt,
 		}
 
 		if dbApp.Isolated {
@@ -648,6 +642,17 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 		TotalCount:   uint64(totalCount),
 		TotalBalance: totalBalance,
 	}, nil
+}
+
+func resolveAppOrderBy(orderBy string) string {
+	switch orderBy {
+	case "created_at":
+		return "created_at DESC"
+	case "last_settled_transaction":
+		return "last_settled_tx_at IS NULL, last_settled_tx_at DESC"
+	default:
+		return "last_used_at IS NULL, last_used_at DESC"
+	}
 }
 
 func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {

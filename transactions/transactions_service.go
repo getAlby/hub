@@ -1404,13 +1404,13 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 		return &existingSettledTransaction, nil
 	}
 
-	now := time.Now()
+	settledAt := time.Now()
 	err := tx.Model(dbTransaction).Updates(map[string]interface{}{
 		"State":          constants.TRANSACTION_STATE_SETTLED,
 		"Preimage":       &preimage,
 		"FeeMsat":        fee,
 		"FeeReserveMsat": 0,
-		"SettledAt":      &now,
+		"SettledAt":      &settledAt,
 		"SelfPayment":    selfPayment,
 	}).Error
 	if err != nil {
@@ -1435,14 +1435,14 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 		Properties: dbTransaction,
 	})
 
-	if dbTransaction.Type == constants.TRANSACTION_TYPE_OUTGOING && dbTransaction.AppId != nil {
-		svc.checkBudgetUsage(dbTransaction, tx)
+	if dbTransaction.AppId != nil {
+		svc.handleSettledAppTransaction(dbTransaction, tx, &settledAt)
 	}
 
 	return dbTransaction, nil
 }
 
-func (svc *transactionsService) checkBudgetUsage(dbTransaction *db.Transaction, gormTransaction *gorm.DB) {
+func (svc *transactionsService) handleSettledAppTransaction(dbTransaction *db.Transaction, gormTransaction *gorm.DB, settledAt *time.Time) {
 	var app db.App
 	result := gormTransaction.Limit(1).Find(&app, &db.App{
 		ID: *dbTransaction.AppId,
@@ -1451,7 +1451,17 @@ func (svc *transactionsService) checkBudgetUsage(dbTransaction *db.Transaction, 
 		logger.Logger.WithField("app_id", dbTransaction.AppId).Error("failed to find app by id")
 		return
 	}
+
+	if err := gormTransaction.Model(&app).Update("last_settled_tx_at", settledAt).Error; err != nil {
+		logger.Logger.WithField("app_id", dbTransaction.AppId).WithError(err).Error("failed to update app last settled transaction time")
+		return
+	}
+
 	if app.Isolated {
+		return
+	}
+
+	if dbTransaction.Type != constants.TRANSACTION_TYPE_OUTGOING {
 		return
 	}
 

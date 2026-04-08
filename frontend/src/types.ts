@@ -120,6 +120,7 @@ export interface App {
   createdAt: string;
   updatedAt: string;
   lastUsedAt?: string;
+  lastSettledTxAt?: string;
   expiresAt?: string;
   isolated: boolean;
   balance: number;

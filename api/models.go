@@ -96,6 +96,7 @@ type App struct {
 	CreatedAt          time.Time  `json:"createdAt"`
 	UpdatedAt          time.Time  `json:"updatedAt"`
 	LastUsedAt         *time.Time `json:"lastUsedAt"`
+	LastSettledTxAt    *time.Time `json:"lastSettledTxAt"`
 	ExpiresAt          *time.Time `json:"expiresAt"`
 	Scopes             []string   `json:"scopes"`
 	MaxAmountSat       uint64     `json:"maxAmount"`
