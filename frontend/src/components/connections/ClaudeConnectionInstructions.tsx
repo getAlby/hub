@@ -26,11 +26,11 @@ export function ClaudeConnectionInstructions({
               </ExternalLink>{" "}
               and sign in
             </li>
-            <li>Go to Settings &rarr; Integrations</li>
-            <li>Click +Add integration</li>
-            <li>Integration Name: Alby</li>
+            <li>Go to Settings &rarr; Connectors</li>
+            <li>Add custom connector</li>
+            <li>Enter "Alby" as connector name</li>
             <li>
-              Paste the integration URL:{" "}
+              Paste the MCP server URL{" "}
               <Button
                 onClick={() => copyToClipboard(mcpUrlWithSecret)}
                 size="sm"
@@ -56,11 +56,11 @@ export function ClaudeConnectionInstructions({
               </ExternalLink>
             </li>
             <li>Open Claude Desktop and sign in</li>
-            <li>Go to Settings &rarr; Integrations</li>
-            <li>Click +Add integration</li>
-            <li>Integration Name: Alby</li>
+            <li>Go to Settings &rarr; Connectors</li>
+            <li>Add custom connector</li>
+            <li>Enter "Alby" as connector name</li>
             <li>
-              Paste the integration URL:{" "}
+              Paste the MCP server URL{" "}
               <Button
                 onClick={() => copyToClipboard(mcpUrlWithSecret)}
                 size="sm"
