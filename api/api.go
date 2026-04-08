@@ -456,23 +456,23 @@ func (api *api) GetApp(dbApp *db.App) (*App, error) {
 	}
 
 	response := App{
-		ID:                 dbApp.ID,
-		Name:               dbApp.Name,
-		Description:        dbApp.Description,
-		CreatedAt:          dbApp.CreatedAt,
-		UpdatedAt:          dbApp.UpdatedAt,
-		AppPubkey:          dbApp.AppPubkey,
-		ExpiresAt:          expiresAt,
-		MaxAmountSat:       maxAmount,
-		Scopes:             requestMethods,
-		BudgetUsage:        budgetUsage / 1000,
-		BudgetRenewal:      paySpecificPermission.BudgetRenewal,
-		Isolated:           dbApp.Isolated,
-		Metadata:           metadata,
-		WalletPubkey:       walletPubkey,
-		UniqueWalletPubkey: uniqueWalletPubkey,
-		LastUsedAt:         dbApp.LastUsedAt,
-		LastSettledTxAt:    dbApp.LastSettledTxAt,
+		ID:                       dbApp.ID,
+		Name:                     dbApp.Name,
+		Description:              dbApp.Description,
+		CreatedAt:                dbApp.CreatedAt,
+		UpdatedAt:                dbApp.UpdatedAt,
+		AppPubkey:                dbApp.AppPubkey,
+		ExpiresAt:                expiresAt,
+		MaxAmountSat:             maxAmount,
+		Scopes:                   requestMethods,
+		BudgetUsage:              budgetUsage / 1000,
+		BudgetRenewal:            paySpecificPermission.BudgetRenewal,
+		Isolated:                 dbApp.Isolated,
+		Metadata:                 metadata,
+		WalletPubkey:             walletPubkey,
+		UniqueWalletPubkey:       uniqueWalletPubkey,
+		LastUsedAt:               dbApp.LastUsedAt,
+		LastSettledTransactionAt: dbApp.LastSettledTransactionAt,
 	}
 
 	if dbApp.Isolated {
@@ -583,17 +583,17 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 			uniqueWalletPubkey = true
 		}
 		apiApp := App{
-			ID:                 dbApp.ID,
-			Name:               dbApp.Name,
-			Description:        dbApp.Description,
-			CreatedAt:          dbApp.CreatedAt,
-			UpdatedAt:          dbApp.UpdatedAt,
-			AppPubkey:          dbApp.AppPubkey,
-			Isolated:           dbApp.Isolated,
-			WalletPubkey:       walletPubkey,
-			UniqueWalletPubkey: uniqueWalletPubkey,
-			LastUsedAt:         dbApp.LastUsedAt,
-			LastSettledTxAt:    dbApp.LastSettledTxAt,
+			ID:                       dbApp.ID,
+			Name:                     dbApp.Name,
+			Description:              dbApp.Description,
+			CreatedAt:                dbApp.CreatedAt,
+			UpdatedAt:                dbApp.UpdatedAt,
+			AppPubkey:                dbApp.AppPubkey,
+			Isolated:                 dbApp.Isolated,
+			WalletPubkey:             walletPubkey,
+			UniqueWalletPubkey:       uniqueWalletPubkey,
+			LastUsedAt:               dbApp.LastUsedAt,
+			LastSettledTransactionAt: dbApp.LastSettledTransactionAt,
 		}
 
 		if dbApp.Isolated {
@@ -649,7 +649,7 @@ func resolveAppOrderBy(orderBy string) string {
 	case "created_at":
 		return "created_at DESC"
 	case "last_settled_transaction":
-		return "last_settled_tx_at IS NULL, last_settled_tx_at DESC"
+		return "last_settled_transaction_at IS NULL, last_settled_transaction_at DESC"
 	default:
 		return "last_used_at IS NULL, last_used_at DESC"
 	}

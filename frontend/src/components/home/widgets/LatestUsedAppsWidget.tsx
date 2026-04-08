@@ -20,7 +20,7 @@ export function LatestUsedAppsWidget() {
     "last_settled_transaction"
   );
   const apps = appsData?.apps;
-  const usedApps = apps?.filter((x) => x.lastSettledTxAt);
+  const usedApps = apps?.filter((x) => x.lastSettledTransactionAt);
 
   if (!usedApps?.length) {
     return null;
@@ -45,8 +45,8 @@ export function LatestUsedAppsWidget() {
                 {app.name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : app.name}
               </p>
               <p className="text-xs text-muted-foreground">
-                {app.lastSettledTxAt
-                  ? dayjs(app.lastSettledTxAt).fromNow()
+                {app.lastSettledTransactionAt
+                  ? dayjs(app.lastSettledTransactionAt).fromNow()
                   : "never"}
               </p>
               <ChevronRightIcon className="text-muted-foreground size-8" />

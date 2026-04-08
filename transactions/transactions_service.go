@@ -1452,7 +1452,7 @@ func (svc *transactionsService) handleSettledAppTransaction(dbTransaction *db.Tr
 		return
 	}
 
-	if err := gormTransaction.Model(&app).Update("last_settled_tx_at", settledAt).Error; err != nil {
+	if err := gormTransaction.Model(&app).Update("last_settled_transaction_at", settledAt).Error; err != nil {
 		logger.Logger.WithField("app_id", dbTransaction.AppId).WithError(err).Error("failed to update app last settled transaction time")
 		return
 	}
