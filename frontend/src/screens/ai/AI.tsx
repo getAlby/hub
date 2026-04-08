@@ -19,22 +19,19 @@ import {
   ZapIcon,
 } from "lucide-react";
 import React from "react";
-import { Link } from "react-router-dom";
-import { toast } from "sonner";
+import { Link, useNavigate } from "react-router-dom";
 import bitrefillLogo from "src/assets/suggested-apps/bitrefill.png";
 import claudeLogo from "src/assets/suggested-apps/claude.png";
 import clineLogo from "src/assets/suggested-apps/cline.png";
 import codexLogo from "src/assets/suggested-apps/codex.png";
 import cursorLogo from "src/assets/suggested-apps/cursor.png";
+import geminiLogo from "src/assets/suggested-apps/gemini.png";
 import gooseLogo from "src/assets/suggested-apps/goose.png";
 import openclawLogo from "src/assets/suggested-apps/openclaw.png";
 import opencodeLogo from "src/assets/suggested-apps/opencode.png";
 import payperqLogo from "src/assets/suggested-apps/payperq.png";
 import AppHeader from "src/components/AppHeader";
-import { ClaudeConnectionInstructions } from "src/components/connections/ClaudeConnectionInstructions";
-import { GooseConnectionInstructions } from "src/components/connections/GooseConnectionInstructions";
 import ExternalLink from "src/components/ExternalLink";
-import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -56,15 +53,8 @@ import {
   TabsList,
   TabsTrigger,
 } from "src/components/ui/tabs";
-import {
-  DEFAULT_APP_BUDGET_RENEWAL,
-  DEFAULT_APP_BUDGET_SATS,
-  localStorageKeys,
-} from "src/constants";
-import { useApp } from "src/hooks/useApp";
+import { localStorageKeys } from "src/constants";
 import { copyToClipboard } from "src/lib/clipboard";
-import { createApp } from "src/requests/createApp";
-import { handleRequestError } from "src/utils/handleRequestError";
 
 type Agent = {
   id: string;
@@ -93,8 +83,15 @@ const agents: Agent[] = [
     id: "claude",
     name: "Claude",
     logo: claudeLogo,
-    description: "AI assistant for conversations, analysis, and coding",
-    setupUrl: "/internal-apps/claude",
+    description: "Anthropic's AI assistant (Code, Web & Desktop)",
+    setupUrl: "",
+  },
+  {
+    id: "gemini",
+    name: "Gemini CLI",
+    logo: geminiLogo,
+    description: "Google's open-source AI agent for the terminal",
+    setupUrl: "",
   },
   {
     id: "codex",
@@ -115,7 +112,7 @@ const agents: Agent[] = [
     name: "Goose",
     logo: gooseLogo,
     description: "Local AI agent by Block for automating engineering tasks",
-    setupUrl: "/internal-apps/goose",
+    setupUrl: "",
   },
   {
     id: "opencode",
@@ -127,79 +124,25 @@ const agents: Agent[] = [
 ];
 
 export function AI() {
-  const [isLoading, setLoading] = React.useState(false);
-  const [connectionSecret, setConnectionSecret] = React.useState("");
-  const [createdAppId, setCreatedAppId] = React.useState<number>();
-  const [expandedAgent, setExpandedAgent] = React.useState<string | null>(null);
-  const [selectorLocked, setSelectorLocked] = React.useState(false);
+  const navigate = useNavigate();
+  const [selectedAgent, setSelectedAgent] = React.useState<string | null>(null);
   const [heroDismissed, setHeroDismissed] = React.useState(
     () => localStorage.getItem(localStorageKeys.aiHeroDismissed) === "true"
   );
-
-  // Poll the created app to detect when the agent connects
-  const { data: createdApp } = useApp(createdAppId, !!createdAppId);
-  const isConnected = !!createdApp?.lastUsedAt;
 
   const dismissHero = React.useCallback(() => {
     setHeroDismissed(true);
     localStorage.setItem(localStorageKeys.aiHeroDismissed, "true");
   }, []);
 
-  // CLI agents use the auth flow — keys are generated locally, secret never
-  // leaves the device. Only MCP-based agents (Claude Web/Desktop, Goose Desktop)
-  // need a pre-created connection with a secret.
-  const needsConnection = (id: string) => id === "claude" || id === "goose";
+  const selectedAgentData = agents.find((a) => a.id === selectedAgent);
+  const showAuthPrompt = selectedAgent && !selectedAgentData?.setupUrl;
 
-  const handleCreateConnection = async (agentId: string) => {
-    // Prevent multiple concurrent app creations
-    if (isLoading || connectionSecret || createdAppId) {
-      return;
+  const handleConnect = () => {
+    if (selectedAgentData?.setupUrl) {
+      navigate(selectedAgentData.setupUrl);
     }
-
-    // CLI agents skip connection creation — they use `auth` locally
-    if (!needsConnection(agentId)) {
-      setExpandedAgent(agentId);
-      setSelectorLocked(true);
-      return;
-    }
-
-    setLoading(true);
-    setSelectorLocked(true);
-    try {
-      const agent = agents.find((a) => a.id === agentId);
-      const agentName = agent?.name ?? "AI Agent";
-      const createAppResponse = await createApp({
-        name: agentName,
-        scopes: [
-          "get_info",
-          "get_balance",
-          "list_transactions",
-          "lookup_invoice",
-          "make_invoice",
-          "notifications",
-          "pay_invoice",
-          "sign_message",
-        ],
-        maxAmount: DEFAULT_APP_BUDGET_SATS,
-        budgetRenewal: DEFAULT_APP_BUDGET_RENEWAL,
-        metadata: {
-          app_store_app_id: agentId,
-        },
-      });
-      setConnectionSecret(createAppResponse.pairingUri);
-      setCreatedAppId(createAppResponse.id);
-      setExpandedAgent(agentId);
-      toast(`${agentName} connection created`);
-    } catch (error) {
-      handleRequestError("Failed to create connection", error);
-      setSelectorLocked(false);
-    }
-    setLoading(false);
   };
-
-  const mcpUrl = `https://mcp.getalby.com/mcp`;
-  const mcpUrlWithSecret = `${mcpUrl}?nwc=${encodeURIComponent(connectionSecret)}`;
-  const gooseDesktopLink = `goose://extension?transport=streamable_http&url=${encodeURIComponent(mcpUrlWithSecret)}&id=alby&name=Alby&description=Connect%20Goose%20to%20your%20Bitcoin%20Lightning%20Wallet`;
 
   return (
     <>
@@ -326,9 +269,17 @@ export function AI() {
           <CardHeader>
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
-                  <BotIcon className="w-5 h-5 text-primary" />
-                </div>
+                {selectedAgentData ? (
+                  <img
+                    src={selectedAgentData.logo}
+                    alt={selectedAgentData.name}
+                    className="w-10 h-10 rounded-lg shrink-0"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                    <BotIcon className="w-5 h-5 text-primary" />
+                  </div>
+                )}
                 <div>
                   <CardTitle>Connect Your Agent</CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">
@@ -349,19 +300,10 @@ export function AI() {
           <CardContent className="space-y-4">
             <div className="flex items-center gap-2">
               <Select
-                value={expandedAgent ?? undefined}
+                value={selectedAgent ?? undefined}
                 onValueChange={(value) => {
-                  setConnectionSecret("");
-                  setCreatedAppId(undefined);
-                  setSelectorLocked(false);
-                  setExpandedAgent(value);
+                  setSelectedAgent(value);
                 }}
-                disabled={
-                  selectorLocked ||
-                  isLoading ||
-                  !!connectionSecret ||
-                  !!createdAppId
-                }
               >
                 <SelectTrigger className="w-60">
                   <SelectValue
@@ -400,57 +342,28 @@ export function AI() {
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
-              <Button
-                onClick={() => {
-                  if (!expandedAgent) {
-                    return;
-                  }
-                  handleCreateConnection(expandedAgent);
-                }}
-                disabled={
-                  selectorLocked ||
-                  isLoading ||
-                  !expandedAgent ||
-                  !!connectionSecret ||
-                  !!createdAppId
-                }
-              >
-                <ZapIcon className="w-4 h-4" />
-                Connect
-              </Button>
+              {selectedAgentData?.setupUrl && (
+                <Button onClick={handleConnect}>
+                  <ZapIcon className="w-4 h-4" />
+                  Connect
+                </Button>
+              )}
             </div>
 
-            {/* Connection state */}
-            {expandedAgent &&
-              selectorLocked &&
-              (connectionSecret && isConnected ? (
-                <div className="flex items-center gap-2 text-sm">
-                  <CheckCircleIcon className="w-4 h-4 text-positive-foreground" />
-                  <span className="text-positive-foreground font-medium">
-                    Agent connected
-                  </span>
-                  <Link
-                    to={`/apps/${createdAppId}`}
-                    className="text-muted-foreground hover:text-foreground underline transition-colors"
-                  >
-                    Set name & manage
-                  </Link>
-                </div>
-              ) : (
-                <>
-                  <ConnectionInstructions
-                    agentId={expandedAgent}
-                    mcpUrlWithSecret={mcpUrlWithSecret}
-                    gooseDesktopLink={gooseDesktopLink}
-                  />
-                  {connectionSecret && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Loading className="size-4" />
-                      Waiting for agent to connect...
-                    </div>
-                  )}
-                </>
-              ))}
+            {/* Auth prompt shown immediately for CLI agents */}
+            {showAuthPrompt && (
+              <GenericAuthPrompt
+                agent={
+                  selectedAgentData ?? {
+                    id: "other",
+                    name: "your agent",
+                    logo: "",
+                    description: "",
+                    setupUrl: "",
+                  }
+                }
+              />
+            )}
           </CardContent>
         </Card>
 
@@ -549,32 +462,17 @@ export function AI() {
   );
 }
 
-function ConnectionInstructions({
-  agentId,
-  mcpUrlWithSecret,
-  gooseDesktopLink,
-}: {
-  agentId: string;
-  mcpUrlWithSecret: string;
-  gooseDesktopLink: string;
-}) {
-  if (agentId === "claude") {
-    return <ClaudeConnectionInstructions mcpUrlWithSecret={mcpUrlWithSecret} />;
-  }
-
-  if (agentId === "goose") {
-    return <GooseConnectionInstructions gooseDesktopLink={gooseDesktopLink} />;
-  }
-
-  // The auth flow generates keys locally — the secret never leaves the device
-  // and is never sent to the AI model.
+function GenericAuthPrompt({ agent }: { agent: Agent }) {
   const hubUrl = window.location.origin;
   const genericPrompt = `Install the skill from https://getalby.com/cli/SKILL.md and use the auth command to connect to my Alby Hub wallet at ${hubUrl}`;
 
   return (
-    <div className="space-y-3 text-sm">
+    <div
+      key={agent.id}
+      className="space-y-3 text-sm animate-[flash_0.4s_ease-out]"
+    >
       <p className="text-muted-foreground">
-        Copy this prompt and paste it into your agent:
+        Copy this prompt and paste it into {agent.name}:
       </p>
       <button
         onClick={() => copyToClipboard(genericPrompt)}
@@ -586,6 +484,17 @@ function ConnectionInstructions({
         </p>
         <CopyIcon className="w-4 h-4 text-muted-foreground shrink-0" />
       </button>
+      {agent.id === "claude" && (
+        <p className="text-muted-foreground">
+          Using Claude Web or Desktop?{" "}
+          <Link
+            to="/internal-apps/claude"
+            className="underline font-medium text-foreground hover:text-primary transition-colors"
+          >
+            Set up via MCP instead
+          </Link>
+        </p>
+      )}
     </div>
   );
 }

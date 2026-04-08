@@ -10,7 +10,13 @@ import { AppDetailConnectedApps } from "src/components/connections/AppDetailConn
 import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
 import ExternalLink from "src/components/ExternalLink";
-import { ClaudeConnectionInstructions } from "src/components/connections/ClaudeConnectionInstructions";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "src/components/ui/accordion";
+import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
@@ -22,6 +28,7 @@ import {
   DEFAULT_APP_BUDGET_RENEWAL,
   DEFAULT_APP_BUDGET_SATS,
 } from "src/constants";
+import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
 
@@ -34,7 +41,7 @@ export function Claude() {
     return null;
   }
 
-  const mcpLinkWithEncodedSecret = `https://mcp.getalby.com/mcp?nwc=${encodeURIComponent(connectionSecret)}`;
+  const mcpUrlWithSecret = `https://mcp.getalby.com/mcp?nwc=${encodeURIComponent(connectionSecret)}`;
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -78,9 +85,65 @@ export function Claude() {
           <p>
             Click one of the below options to connect Claude to your Alby Hub.
           </p>
-          <ClaudeConnectionInstructions
-            mcpUrlWithSecret={mcpLinkWithEncodedSecret}
-          />
+          <Accordion type="single" collapsible>
+            <AccordionItem value="web">
+              <AccordionTrigger>Claude Web</AccordionTrigger>
+              <AccordionContent>
+                <ol className="list-decimal list-inside space-y-1 text-sm">
+                  <li>
+                    Visit{" "}
+                    <ExternalLink to="https://claude.ai" className="underline">
+                      claude.ai
+                    </ExternalLink>{" "}
+                    and sign in
+                  </li>
+                  <li>Go to Settings &rarr; Connectors</li>
+                  <li>Add custom connector</li>
+                  <li>Enter "Alby" as connector name</li>
+                  <li>
+                    Paste the MCP server URL{" "}
+                    <Button
+                      onClick={() => copyToClipboard(mcpUrlWithSecret)}
+                      size="sm"
+                      variant="secondary"
+                    >
+                      Copy URL
+                    </Button>
+                  </li>
+                </ol>
+              </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="desktop">
+              <AccordionTrigger>Claude Desktop</AccordionTrigger>
+              <AccordionContent>
+                <ol className="list-decimal list-inside space-y-1 text-sm">
+                  <li>
+                    Download{" "}
+                    <ExternalLink
+                      to="https://claude.ai/download"
+                      className="underline"
+                    >
+                      Claude Desktop
+                    </ExternalLink>
+                  </li>
+                  <li>Open Claude Desktop and sign in</li>
+                  <li>Go to Settings &rarr; Connectors</li>
+                  <li>Add custom connector</li>
+                  <li>Enter "Alby" as connector name</li>
+                  <li>
+                    Paste the MCP server URL{" "}
+                    <Button
+                      onClick={() => copyToClipboard(mcpUrlWithSecret)}
+                      size="sm"
+                      variant="secondary"
+                    >
+                      Copy URL
+                    </Button>
+                  </li>
+                </ol>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
       )}
       {!connectionSecret && (

@@ -38,7 +38,6 @@ import { AlbyCliSkill } from "src/screens/internal-apps/AlbyCliSkill";
 import { Bitrefill } from "src/screens/internal-apps/Bitrefill";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
 import { Claude } from "src/screens/internal-apps/Claude";
-import { Goose } from "src/screens/internal-apps/Goose";
 import { LightningMessageboard } from "src/screens/internal-apps/LightningMessageboard";
 import { SimpleBoost } from "src/screens/internal-apps/SimpleBoost";
 import { Tictactoe } from "src/screens/internal-apps/Tictactoe";
@@ -340,10 +339,6 @@ const routes: RouteObject[] = [
           {
             path: "bitrefill",
             element: <Bitrefill />,
-          },
-          {
-            path: "goose",
-            element: <Goose />,
           },
           {
             path: "claude",
