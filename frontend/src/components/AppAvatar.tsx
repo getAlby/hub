@@ -1,6 +1,7 @@
 import clineLogo from "src/assets/suggested-apps/cline.png";
 import codexLogo from "src/assets/suggested-apps/codex.png";
 import cursorLogo from "src/assets/suggested-apps/cursor.png";
+import geminiLogo from "src/assets/suggested-apps/gemini.png";
 import gooseLogo from "src/assets/suggested-apps/goose.png";
 import openclawLogo from "src/assets/suggested-apps/openclaw.png";
 import opencodeLogo from "src/assets/suggested-apps/opencode.png";
@@ -18,6 +19,7 @@ const agentLogos: Record<string, string> = {
   cursor: cursorLogo,
   codex: codexLogo,
   cline: clineLogo,
+  gemini: geminiLogo,
   opencode: opencodeLogo,
 };
 
