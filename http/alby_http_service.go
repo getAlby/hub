@@ -32,6 +32,7 @@ func (albyHttpSvc *AlbyHttpService) RegisterSharedRoutes(readOnlyApiGroup *echo.
 	e.GET("/api/alby/callback", albyHttpSvc.albyCallbackHandler)
 	e.GET("/api/alby/info", albyHttpSvc.albyInfoHandler)
 	e.GET("/api/alby/rates", albyHttpSvc.albyBitcoinRateHandler)
+	e.GET("/api/alby/stories", albyHttpSvc.albyStoriesHandler)
 	readOnlyApiGroup.GET("/alby/me", albyHttpSvc.albyMeHandler)
 	fullAccessApiGroup.POST("/alby/link-account", albyHttpSvc.albyLinkAccountHandler)
 	fullAccessApiGroup.POST("/alby/auto-channel", albyHttpSvc.autoChannelHandler)
@@ -94,6 +95,17 @@ func (albyHttpSvc *AlbyHttpService) albyBitcoinRateHandler(c echo.Context) error
 		})
 	}
 	return c.JSON(http.StatusOK, rate)
+}
+
+func (albyHttpSvc *AlbyHttpService) albyStoriesHandler(c echo.Context) error {
+	stories, err := albyHttpSvc.albyOAuthSvc.GetStories(c.Request().Context())
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to get stories")
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get stories: %s", err.Error()),
+		})
+	}
+	return c.JSON(http.StatusOK, stories)
 }
 
 func (albyHttpSvc *AlbyHttpService) albyCallbackHandler(c echo.Context) error {

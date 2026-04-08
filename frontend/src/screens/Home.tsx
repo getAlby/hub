@@ -29,6 +29,7 @@ import { LightningMessageboardWidget } from "src/components/home/widgets/Lightni
 import { NodeStatusWidget } from "src/components/home/widgets/NodeStatusWidget";
 import { OnchainFeesWidget } from "src/components/home/widgets/OnchainFeesWidget";
 import { SupportAlbyWidget } from "src/components/home/widgets/SupportAlbyWidget";
+import { StoriesWidget } from "src/components/home/widgets/StoriesWidget";
 import { WhatsNewWidget } from "src/components/home/widgets/WhatsNewWidget";
 import { SearchInput } from "src/components/ui/search-input";
 
@@ -161,6 +162,7 @@ function Home() {
 
         {/* RIGHT */}
         <div className="grid gap-3">
+          <StoriesWidget />
           <LatestUsedAppsWidget />
           <SupportAlbyWidget />
           <LightningMessageboardWidget />

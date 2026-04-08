@@ -31,6 +31,7 @@ type AlbyOAuthService interface {
 	RemoveOAuthAccessToken() error
 	CreateLightningAddress(ctx context.Context, address string, appId uint) (*CreateLightningAddressResponse, error)
 	DeleteLightningAddress(ctx context.Context, address string) error
+	GetStories(ctx context.Context) ([]Story, error)
 }
 
 type CreateLightningAddressResponse struct {
@@ -139,6 +140,13 @@ type BitcoinRate struct {
 
 type ErrorResponse struct {
 	Message string `json:"message"`
+}
+
+type Story struct {
+	ID       int    `json:"id"`
+	Title    string `json:"title"`
+	Avatar   string `json:"avatar"`
+	VideoUrl string `json:"videoUrl,omitempty"`
 }
 
 type LSPChannelPaymentBolt11 struct {
