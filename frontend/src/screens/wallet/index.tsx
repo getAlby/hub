@@ -1,4 +1,3 @@
-import dayjs from "dayjs";
 import {
   AlertTriangleIcon,
   ArrowDownIcon,
@@ -6,17 +5,19 @@ import {
   ArrowUpIcon,
   CalendarSyncIcon,
   CreditCardIcon,
-  ExternalLinkIcon,
-  LightbulbIcon,
 } from "lucide-react";
+import React from "react";
 import { Link } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
+import { OnchainTransactionsTable } from "src/components/channels/OnchainTransactionsTable";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import TransactionsList from "src/components/TransactionsList";
 import { TransactionsListMenu } from "src/components/TransactionsListMenu";
+import { OnchainBalanceSummary } from "src/components/wallet/OnchainBalanceSummary";
+import { PendingClosedChannelsAlert } from "src/components/wallet/PendingClosedChannelsAlert";
 import {
   Alert,
   AlertDescription,
@@ -27,12 +28,26 @@ import { LinkButton } from "src/components/ui/custom/link-button";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
-import { useOnchainTransactions } from "src/hooks/useOnchainTransactions";
+import { useSyncWallet } from "src/hooks/useSyncWallet";
+
+type BalanceMode = "lightning" | "onchain";
 
 function Wallet() {
+  useSyncWallet();
   const { data: info, hasChannelManagement } = useInfo();
-  const { data: balances } = useBalances();
+  const { data: balances } = useBalances(true);
   const { data: channels } = useChannels();
+  const [activeBalanceMode, setActiveBalanceMode] =
+    React.useState<BalanceMode>("lightning");
+
+  const isOnchainMode = activeBalanceMode === "onchain";
+  const hasChannelsOpen = !!channels?.length;
+
+  const toggleBalanceMode = () => {
+    setActiveBalanceMode((currentMode) =>
+      currentMode === "lightning" ? "onchain" : "lightning"
+    );
+  };
 
   if (!info || !balances) {
     return <Loading />;
@@ -111,8 +126,9 @@ function Wallet() {
           </div>
         }
       />
-      {hasChannelManagement &&
-        !!channels?.length &&
+      {!isOnchainMode &&
+        hasChannelManagement &&
+        hasChannelsOpen &&
         channels?.every(
           (channel) =>
             channel.localBalance < channel.unspendablePunishmentReserve * 1000
@@ -129,13 +145,14 @@ function Wallet() {
             </AlertDescription>
           </Alert>
         )}
-      {hasChannelManagement &&
-        !!channels?.length &&
+      {!isOnchainMode &&
+        hasChannelManagement &&
+        hasChannelsOpen &&
         balances.lightning.totalReceivable <
           balances.lightning.totalSpendable * 0.1 && (
           <LowReceivingCapacityAlert />
         )}
-      {hasChannelManagement && !channels?.length && (
+      {!isOnchainMode && hasChannelManagement && !hasChannelsOpen && (
         <Alert>
           <AlertTriangleIcon className="h-4 w-4" />
           <AlertTitle>Open Your First Channel</AlertTitle>
@@ -148,63 +165,76 @@ function Wallet() {
           </AlertDescription>
         </Alert>
       )}
-      <div className="flex flex-col items-center gap-8 py-10 md:py-14 text-center">
-        <div className="flex flex-col gap-2">
-          <div className="text-5xl md:text-6xl font-medium balance sensitive slashed-zero">
-            <FormattedBitcoinAmount
-              amount={balances.lightning.totalSpendable}
+      <div className="flex w-full flex-col items-center gap-8 pt-12 pb-16 text-center">
+        <div className="flex flex-col items-center gap-4">
+          <button
+            type="button"
+            onClick={toggleBalanceMode}
+            className="inline-flex items-center justify-center gap-1 text-xs font-medium leading-none uppercase text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {isOnchainMode ? "On-Chain Balance" : "Spending Balance"}
+            <ArrowDownUpIcon className="size-3 shrink-0" />
+          </button>
+          {isOnchainMode ? (
+            <OnchainBalanceSummary
+              balance={balances.onchain}
+              hasChannels={hasChannelsOpen}
+              className="items-center"
+              amountClassName="text-5xl md:text-6xl font-medium slashed-zero leading-none"
+              fiatClassName="text-3xl font-normal leading-9 text-muted-foreground"
+              incomingClassName="text-sm md:text-base"
             />
-          </div>
-          <FormattedFiatAmount
-            className="text-xl md:text-2xl"
-            amount={balances.lightning.totalSpendable / 1000}
-          />
+          ) : (
+            <div className="flex flex-col items-center gap-3">
+              <div className="text-5xl md:text-6xl font-medium balance sensitive slashed-zero leading-none">
+                <FormattedBitcoinAmount
+                  amount={balances.lightning.totalSpendable}
+                />
+              </div>
+              <FormattedFiatAmount
+                className="text-3xl font-normal leading-9 text-muted-foreground"
+                amount={balances.lightning.totalSpendable / 1000}
+              />
+            </div>
+          )}
         </div>
-        <div className="grid w-full max-w-md grid-cols-2 items-center gap-3">
-          <LinkButton to="/wallet/receive" size="lg" className="!px-12">
+        <div className="grid w-full max-w-[399px] grid-cols-2 items-center gap-3">
+          <LinkButton
+            to={
+              isOnchainMode
+                ? "/wallet/receive/onchain?type=onchain"
+                : "/wallet/receive"
+            }
+            size="lg"
+          >
             <ArrowDownIcon />
             Receive
           </LinkButton>
-          <LinkButton to="/wallet/send" size="lg" className="!px-12">
+          <LinkButton
+            to={isOnchainMode ? "/wallet/send/onchain" : "/wallet/send"}
+            size="lg"
+          >
             <ArrowUpIcon />
             Send
           </LinkButton>
         </div>
       </div>
 
-      <OnchainTransactionsAlert />
-      <TransactionsList />
+      {isOnchainMode && (
+        <PendingClosedChannelsAlert balance={balances.onchain} />
+      )}
+
+      {isOnchainMode ? (
+        <OnchainTransactionsTable
+          wrapInCard={false}
+          className="w-full"
+          showEmptyState={true}
+        />
+      ) : (
+        <TransactionsList />
+      )}
     </>
   );
 }
 
 export default Wallet;
-
-function OnchainTransactionsAlert() {
-  const { data: onchainTransactions } = useOnchainTransactions();
-  if (
-    onchainTransactions?.some(
-      (tx) => dayjs().diff(tx.createdAt * 1000, "hours") < 24
-    )
-  ) {
-    return (
-      <Alert>
-        <AlertTitle className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 text-sm">
-            <LightbulbIcon className="w-4 h-4" /> On-chain transactions are
-            shown on the Node page
-          </div>
-          <LinkButton
-            to="/channels"
-            variant="secondary"
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            <ExternalLinkIcon className="w-4 h-4" /> View On-chain transactions
-          </LinkButton>
-        </AlertTitle>
-      </Alert>
-    );
-  }
-  return null;
-}

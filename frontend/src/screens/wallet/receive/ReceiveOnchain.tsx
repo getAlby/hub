@@ -58,16 +58,27 @@ import {
 import { openLink } from "src/utils/openLink";
 import { request } from "src/utils/request";
 
+type ReceiveOnchainTab = "spending" | "onchain";
+
+function tabFromSearchParam(value: string | null): ReceiveOnchainTab | null {
+  if (value === "spending" || value === "onchain") {
+    return value;
+  }
+  return null;
+}
+
 export default function ReceiveOnchain() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [tab, setTab] = useState(searchParams.get("type") || "spending");
+  const [tab, setTab] = useState<ReceiveOnchainTab>(() => {
+    return tabFromSearchParam(searchParams.get("type")) ?? "spending";
+  });
 
   useEffect(() => {
-    const newTabValue = searchParams.get("type");
-    if (newTabValue) {
+    const fromParam = tabFromSearchParam(searchParams.get("type"));
+    if (fromParam) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setTab(newTabValue);
-      setSearchParams({});
+      setTab(fromParam);
+      setSearchParams({}, { replace: true });
     }
   }, [searchParams, setSearchParams]);
 
@@ -79,7 +90,16 @@ export default function ReceiveOnchain() {
       />
       <div className="w-full max-w-lg grid gap-5">
         <MempoolAlert />
-        <Tabs value={tab} onValueChange={setTab} className="w-full">
+        <Tabs
+          value={tab}
+          onValueChange={(value) => {
+            const next = tabFromSearchParam(value);
+            if (next) {
+              setTab(next);
+            }
+          }}
+          className="w-full"
+        >
           <TabsList className="w-full mb-2">
             <TabsTrigger
               value="spending"

@@ -1,12 +1,9 @@
 import dayjs from "dayjs";
 import {
-  AlertTriangleIcon,
   ArrowDownUpIcon,
   ArrowRightIcon,
   CopyIcon,
-  ExternalLinkIcon,
   HeartIcon,
-  HourglassIcon,
   InfoIcon,
   LinkIcon,
   Settings2Icon,
@@ -29,11 +26,8 @@ import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import ResponsiveButton from "src/components/ResponsiveButton";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "src/components/ui/alert.tsx";
+import { PendingClosedChannelsAlert } from "src/components/wallet/PendingClosedChannelsAlert";
+import { OnchainBalanceSummary } from "src/components/wallet/OnchainBalanceSummary";
 import {
   Card,
   CardContent,
@@ -64,7 +58,6 @@ import { useBalances } from "src/hooks/useBalances.ts";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo.ts";
-import { useNodeDetails } from "src/hooks/useNodeDetails";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
 import { copyToClipboard } from "src/lib/clipboard.ts";
 import { cn } from "src/lib/utils.ts";
@@ -72,7 +65,6 @@ import {
   Channel,
   LongUnconfirmedZeroConfChannel,
   MempoolTransaction,
-  PendingBalancesDetails,
 } from "src/types";
 import { request } from "src/utils/request";
 
@@ -507,101 +499,19 @@ export default function Channels() {
                 )}
                 <div>
                   {balances && (
-                    <>
-                      <div className="mb-1">
-                        <span className="text-xl font-medium balance sensitive mb-1 mr-1">
-                          <FormattedBitcoinAmount
-                            amount={balances.onchain.spendable * 1000}
-                          />
-                        </span>
-                        {!!channels?.length &&
-                          balances.onchain.reserved +
-                            balances.onchain.spendable <
-                            25_000 && (
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger>
-                                  <AlertTriangleIcon className="size-3 text-muted-foreground" />
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  You have insufficient funds in reserve to
-                                  close channels or bump on-chain transactions
-                                  and currently rely on the counterparty. It is
-                                  recommended to deposit at least{" "}
-                                  <FormattedBitcoinAmount
-                                    amount={25_000 * 1000}
-                                  />{" "}
-                                  to your on-chain balance.
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          )}
-                      </div>
-                      <FormattedFiatAmount
-                        amount={balances.onchain.spendable}
-                        className="mb-1"
-                      />
-                      {balances &&
-                        balances.onchain.spendable !==
-                          balances.onchain.total && (
-                          <p className="text-xs text-muted-foreground animate-pulse">
-                            +
-                            <FormattedBitcoinAmount
-                              amount={
-                                (balances.onchain.total -
-                                  balances.onchain.spendable) *
-                                1000
-                              }
-                            />{" "}
-                            incoming
-                          </p>
-                        )}
-                    </>
+                    <OnchainBalanceSummary
+                      balance={balances.onchain}
+                      hasChannels={!!channels?.length}
+                    />
                   )}
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {balances &&
-            balances.onchain.pendingBalancesFromChannelClosures > 0 && (
-              <Alert>
-                <HourglassIcon />
-                <AlertTitle>Pending Closed Channels</AlertTitle>
-                <AlertDescription className="block">
-                  You have{" "}
-                  <FormattedBitcoinAmount
-                    amount={
-                      balances.onchain.pendingBalancesFromChannelClosures * 1000
-                    }
-                  />{" "}
-                  pending from closed channels with
-                  {[
-                    ...balances.onchain.pendingBalancesDetails,
-                    ...balances.onchain.pendingSweepBalancesDetails,
-                  ].map((details, index) => {
-                    const isLast =
-                      index <
-                      balances.onchain.pendingBalancesDetails.length - 1;
-                    return (
-                      <PendingBalancesDetailsItem
-                        details={details}
-                        isLast={isLast}
-                      />
-                    );
-                  })}
-                  . Once spendable again these will become available in your
-                  on-chain balance. Funds from channels that were force closed
-                  may take up to 2 weeks to become available.{" "}
-                  <ExternalLink
-                    to="https://guides.getalby.com/user-guide/alby-hub/faq/why-was-my-lightning-channel-closed-and-what-to-do-next"
-                    className="underline"
-                  >
-                    Learn more
-                  </ExternalLink>
-                </AlertDescription>
-              </Alert>
-            )}
+          {balances && (
+            <PendingClosedChannelsAlert balance={balances.onchain} />
+          )}
 
           {channels && channels.length === 0 && (
             <EmptyState
@@ -664,40 +574,4 @@ function getNodeHealth(channels: Channel[]) {
   }
 
   return nodeHealth;
-}
-
-type PendingBalancesDetailsItemProps = {
-  details: PendingBalancesDetails;
-  isLast: boolean;
-};
-
-function PendingBalancesDetailsItem({
-  details,
-  isLast,
-}: PendingBalancesDetailsItemProps) {
-  const { data: info } = useInfo();
-  const { data: nodeDetails } = useNodeDetails(details.nodeId);
-
-  return (
-    <div key={details.channelId} className="inline">
-      &nbsp;
-      <ExternalLink
-        to={`https://amboss.space/node/${details.nodeId}`}
-        className="underline"
-      >
-        {nodeDetails?.alias || "Unknown"}
-        <ExternalLinkIcon className="ml-1 w-4 h-4 inline" />
-      </ExternalLink>{" "}
-      (<FormattedBitcoinAmount amount={details.amount * 1000} />
-      )&nbsp;
-      <ExternalLink
-        to={`${info?.mempoolUrl}/tx/${details.fundingTxId}#flow=&vout=${details.fundingTxVout}`}
-        className="underline"
-      >
-        funding tx
-        <ExternalLinkIcon className="ml-1 w-4 h-4 inline" />
-      </ExternalLink>
-      {isLast && ","}
-    </div>
-  );
 }
