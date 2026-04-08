@@ -464,8 +464,11 @@ func (api *api) GetApp(dbApp *db.App) (*App, error) {
 		AppPubkey:          dbApp.AppPubkey,
 		ExpiresAt:          expiresAt,
 		MaxAmountSat:       maxAmount,
+		MaxAmountMsat:      maxAmount * 1000,
 		Scopes:             requestMethods,
 		BudgetUsage:        budgetUsage / 1000,
+		BudgetUsageSat:     budgetUsage / 1000,
+		BudgetUsageMsat:    budgetUsage,
 		BudgetRenewal:      paySpecificPermission.BudgetRenewal,
 		Isolated:           dbApp.Isolated,
 		Metadata:           metadata,
@@ -626,6 +629,7 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 			if appPermission.Scope == constants.PAY_INVOICE_SCOPE {
 				apiApp.BudgetRenewal = appPermission.BudgetRenewal
 				apiApp.MaxAmountSat = uint64(appPermission.MaxAmountSat)
+				apiApp.MaxAmountMsat = uint64(appPermission.MaxAmountSat) * 1000
 				budgetUsage, err := queries.GetBudgetUsage(api.db, &appPermission)
 				if err != nil {
 					logger.Logger.WithError(err).WithFields(logrus.Fields{
@@ -634,6 +638,8 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 					return nil, err
 				}
 				apiApp.BudgetUsage = budgetUsage / 1000
+				apiApp.BudgetUsageSat = budgetUsage / 1000
+				apiApp.BudgetUsageMsat = budgetUsage
 			}
 		}
 
@@ -703,7 +709,7 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 			UnspendablePunishmentReserveSat:          channel.UnspendablePunishmentReserve,
 			UnspendablePunishmentReserveMsat:         channel.UnspendablePunishmentReserve * 1000,
 			CounterpartyUnspendablePunishmentReserve: channel.CounterpartyUnspendablePunishmentReserve,
-			CounterpartyUnspendablePunishmentReserveSat: channel.CounterpartyUnspendablePunishmentReserve,
+			CounterpartyUnspendablePunishmentReserveSat:  channel.CounterpartyUnspendablePunishmentReserve,
 			CounterpartyUnspendablePunishmentReserveMsat: channel.CounterpartyUnspendablePunishmentReserve * 1000,
 			Error:      channel.Error,
 			IsOutbound: channel.IsOutbound,
@@ -846,15 +852,15 @@ func (api *api) GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error) {
 	}
 
 	return &GetAutoSwapConfigResponse{
-		Type:                constants.SWAP_TYPE_OUT,
-		Enabled:             swapOutEnabled,
+		Type:                 constants.SWAP_TYPE_OUT,
+		Enabled:              swapOutEnabled,
 		BalanceThreshold:     swapOutBalanceThreshold,
 		BalanceThresholdSat:  swapOutBalanceThreshold,
 		BalanceThresholdMsat: swapOutBalanceThreshold * 1000,
 		SwapAmount:           swapOutAmount,
 		SwapAmountSat:        swapOutAmount,
 		SwapAmountMsat:       swapOutAmount * 1000,
-		Destination:         swapOutDestination,
+		Destination:          swapOutDestination,
 	}, nil
 }
 
@@ -1884,7 +1890,9 @@ func (api *api) GetForwards() (*GetForwardsResponse, error) {
 	numForwards := len(forwards)
 
 	return &GetForwardsResponse{
+		OutboundAmountForwardedSat:  totalOutboundAmount / 1000,
 		OutboundAmountForwardedMsat: totalOutboundAmount,
+		TotalFeeEarnedSat:           totalFeeEarned / 1000,
 		TotalFeeEarnedMsat:          totalFeeEarned,
 		NumForwards:                 uint64(numForwards),
 	}, nil

@@ -184,6 +184,7 @@ func toApiBoostagram(boostagram *transactions.Boostagram) *Boostagram {
 		SenderName:     boostagram.SenderName,
 		Time:           boostagram.Time,
 		Action:         boostagram.Action,
+		ValueSatTotal:  boostagram.ValueMsatTotal / 1000,
 		ValueMsatTotal: boostagram.ValueMsatTotal,
 	}
 }

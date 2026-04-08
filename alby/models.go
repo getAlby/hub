@@ -48,9 +48,13 @@ type AutoChannelRequest struct {
 }
 
 type AutoChannelResponse struct {
-	Invoice     string `json:"invoice"`
-	ChannelSize uint64 `json:"channelSize"`
-	Fee         uint64 `json:"fee"`
+	Invoice         string `json:"invoice"`
+	ChannelSize     uint64 `json:"channelSize"`
+	ChannelSizeSat  uint64 `json:"channelSizeSat"`
+	ChannelSizeMsat uint64 `json:"channelSizeMsat"`
+	Fee             uint64 `json:"fee"`
+	FeeSat          uint64 `json:"feeSat"`
+	FeeMsat         uint64 `json:"feeMsat"`
 }
 
 type AlbyInfoHub struct {
@@ -102,7 +106,9 @@ type ChannelPeerSuggestion struct {
 	Pubkey                     string  `json:"pubkey"`
 	Host                       string  `json:"host"`
 	MinimumChannelSize         uint64  `json:"minimumChannelSize"`
+	MinimumChannelSizeMsat     uint64  `json:"minimumChannelSizeMsat"`
 	MaximumChannelSize         uint64  `json:"maximumChannelSize"`
+	MaximumChannelSizeMsat     uint64  `json:"maximumChannelSizeMsat"`
 	MaximumChannelExpiryBlocks *uint32 `json:"maximumChannelExpiryBlocks"`
 	Name                       string  `json:"name"`
 	Image                      string  `json:"image"`
@@ -114,15 +120,20 @@ type ChannelPeerSuggestion struct {
 	Note                       string  `json:"note"`
 	PublicChannelsAllowed      bool    `json:"publicChannelsAllowed"`
 	FeeTotalSat1m              *uint32 `json:"feeTotalSat1m"`
+	FeeTotalMsat1m             *uint64 `json:"feeTotalMsat1m"`
 	FeeTotalSat2m              *uint32 `json:"feeTotalSat2m"`
+	FeeTotalMsat2m             *uint64 `json:"feeTotalMsat2m"`
 	FeeTotalSat3m              *uint32 `json:"feeTotalSat3m"`
+	FeeTotalMsat3m             *uint64 `json:"feeTotalMsat3m"`
 }
 
 type LSPChannelOffer struct {
 	LspName              string `json:"lspName"`
 	LspContactUrl        string `json:"lspContactUrl"`
 	LspBalanceSat        uint64 `json:"lspBalanceSat"`
+	LspBalanceMsat       uint64 `json:"lspBalanceMsat"`
 	FeeTotalSat          uint64 `json:"feeTotalSat"`
+	FeeTotalMsat         uint64 `json:"feeTotalMsat"`
 	FeeTotalUsd          uint64 `json:"feeTotalUsd"` // in cents
 	CurrentPaymentMethod string `json:"currentPaymentMethod"`
 	Terms                string `json:"terms"`

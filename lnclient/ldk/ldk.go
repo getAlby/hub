@@ -812,6 +812,7 @@ func (ls *LDKService) ListOnchainTransactions(ctx context.Context) ([]lnclient.O
 
 		transactions = append(transactions, lnclient.OnchainTransaction{
 			AmountSat:        amountMsat / 1000,
+			AmountMsat:       amountMsat,
 			CreatedAt:        createdAt,
 			State:            status,
 			Type:             transactionType,
@@ -1224,8 +1225,8 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 		PendingBalancesFromChannelClosures:     pendingBalancesFromChannelClosures,
 		PendingBalancesFromChannelClosuresSat:  pendingBalancesFromChannelClosures,
 		PendingBalancesFromChannelClosuresMsat: pendingBalancesFromChannelClosures * 1000,
-		PendingBalancesDetails:                pendingBalancesDetails,
-		PendingSweepBalancesDetails:           pendingSweepBalanceDetails,
+		PendingBalancesDetails:                 pendingBalancesDetails,
+		PendingSweepBalancesDetails:            pendingSweepBalanceDetails,
 		InternalBalances: map[string]interface{}{
 			"internal_lightning_balances": internalLightningBalances,
 			"all_balances":                balances,

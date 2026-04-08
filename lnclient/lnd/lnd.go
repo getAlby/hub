@@ -1284,8 +1284,8 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 		PendingBalancesFromChannelClosures:     pendingBalancesFromChannelClosures,
 		PendingBalancesFromChannelClosuresSat:  pendingBalancesFromChannelClosures,
 		PendingBalancesFromChannelClosuresMsat: pendingBalancesFromChannelClosures * 1000,
-		PendingBalancesDetails:                pendingBalancesDetails,
-		PendingSweepBalancesDetails:           []lnclient.PendingBalanceDetails{},
+		PendingBalancesDetails:                 pendingBalancesDetails,
+		PendingSweepBalancesDetails:            []lnclient.PendingBalanceDetails{},
 		InternalBalances: map[string]interface{}{
 			"balances":         balances,
 			"pending_channels": pendingChannels,
@@ -1686,6 +1686,7 @@ func (svc *LNDService) ListOnchainTransactions(ctx context.Context) ([]lnclient.
 
 		transactions = append(transactions, lnclient.OnchainTransaction{
 			AmountSat:        uint64(amountSat),
+			AmountMsat:       uint64(amountSat) * 1000,
 			CreatedAt:        uint64(tx.TimeStamp),
 			State:            state,
 			Type:             txType,

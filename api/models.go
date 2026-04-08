@@ -96,7 +96,10 @@ type App struct {
 	ExpiresAt          *time.Time `json:"expiresAt"`
 	Scopes             []string   `json:"scopes"`
 	MaxAmountSat       uint64     `json:"maxAmount"`
+	MaxAmountMsat      uint64     `json:"maxAmountMsat"`
 	BudgetUsage        uint64     `json:"budgetUsage"`
+	BudgetUsageSat     uint64     `json:"budgetUsageSat"`
+	BudgetUsageMsat    uint64     `json:"budgetUsageMsat"`
 	BudgetRenewal      string     `json:"budgetRenewal"`
 	Isolated           bool       `json:"isolated"`
 	WalletPubkey       string     `json:"walletPubkey"`
@@ -175,20 +178,20 @@ type EnableAutoSwapRequest struct {
 }
 
 type GetAutoSwapConfigResponse struct {
-	Type                string `json:"type"`
-	Enabled             bool   `json:"enabled"`
+	Type                 string `json:"type"`
+	Enabled              bool   `json:"enabled"`
 	BalanceThreshold     uint64 `json:"balanceThreshold"`
 	BalanceThresholdSat  uint64 `json:"balanceThresholdSat"`
 	BalanceThresholdMsat uint64 `json:"balanceThresholdMsat"`
 	SwapAmount           uint64 `json:"swapAmount"`
 	SwapAmountSat        uint64 `json:"swapAmountSat"`
 	SwapAmountMsat       uint64 `json:"swapAmountMsat"`
-	Destination         string `json:"destination"`
+	Destination          string `json:"destination"`
 }
 
 type SwapInfoResponse struct {
-	AlbyServiceFee     float64 `json:"albyServiceFee"`
-	BoltzServiceFee    float64 `json:"boltzServiceFee"`
+	AlbyServiceFee      float64 `json:"albyServiceFee"`
+	BoltzServiceFee     float64 `json:"boltzServiceFee"`
 	BoltzNetworkFee     uint64  `json:"boltzNetworkFee"`
 	BoltzNetworkFeeSat  uint64  `json:"boltzNetworkFeeSat"`
 	BoltzNetworkFeeMsat uint64  `json:"boltzNetworkFeeMsat"`
@@ -356,7 +359,8 @@ type RebalanceChannelRequest struct {
 	AmountSat                uint64 `json:"amountSat"`
 }
 type RebalanceChannelResponse struct {
-	TotalFeeSat uint64 `json:"totalFeeSat"`
+	TotalFeeSat  uint64 `json:"totalFeeSat"`
+	TotalFeeMsat uint64 `json:"totalFeeMsat"`
 }
 
 type RedeemOnchainFundsRequest struct {
@@ -422,6 +426,7 @@ type Boostagram struct {
 	SenderName     string `json:"senderName"`
 	Time           string `json:"time"`
 	Action         string `json:"action"`
+	ValueSatTotal  int64  `json:"valueSatTotal"`
 	ValueMsatTotal int64  `json:"valueMsatTotal"`
 }
 
@@ -501,7 +506,7 @@ type LSPOrderRequest struct {
 }
 
 type LSPOrderResponse struct {
-	Invoice              string `json:"invoice"`
+	Invoice               string `json:"invoice"`
 	Fee                   uint64 `json:"fee"`
 	FeeSat                uint64 `json:"feeSat"`
 	FeeMsat               uint64 `json:"feeMsat"`
@@ -523,35 +528,35 @@ type WalletCapabilitiesResponse struct {
 }
 
 type Channel struct {
-	LocalBalance                             int64       `json:"localBalance"`
-	LocalBalanceSat                          int64       `json:"localBalanceSat"`
-	LocalBalanceMsat                         int64       `json:"localBalanceMsat"`
-	LocalSpendableBalance                    int64       `json:"localSpendableBalance"`
-	LocalSpendableBalanceSat                 int64       `json:"localSpendableBalanceSat"`
-	LocalSpendableBalanceMsat                int64       `json:"localSpendableBalanceMsat"`
-	RemoteBalance                            int64       `json:"remoteBalance"`
-	RemoteBalanceSat                         int64       `json:"remoteBalanceSat"`
-	RemoteBalanceMsat                        int64       `json:"remoteBalanceMsat"`
-	Id                                       string      `json:"id"`
-	RemotePubkey                             string      `json:"remotePubkey"`
-	FundingTxId                              string      `json:"fundingTxId"`
-	FundingTxVout                            uint32      `json:"fundingTxVout"`
-	Active                                   bool        `json:"active"`
-	Public                                   bool        `json:"public"`
-	InternalChannel                          interface{} `json:"internalChannel"`
-	Confirmations                            *uint32     `json:"confirmations"`
-	ConfirmationsRequired                    *uint32     `json:"confirmationsRequired"`
-	ForwardingFeeBaseMsat                    uint32      `json:"forwardingFeeBaseMsat"`
-	ForwardingFeeProportionalMillionths      uint32      `json:"forwardingFeeProportionalMillionths"`
-	UnspendablePunishmentReserve             uint64      `json:"unspendablePunishmentReserve"`
-	UnspendablePunishmentReserveSat          uint64      `json:"unspendablePunishmentReserveSat"`
-	UnspendablePunishmentReserveMsat         uint64      `json:"unspendablePunishmentReserveMsat"`
-	CounterpartyUnspendablePunishmentReserve uint64      `json:"counterpartyUnspendablePunishmentReserve"`
-	CounterpartyUnspendablePunishmentReserveSat uint64   `json:"counterpartyUnspendablePunishmentReserveSat"`
-	CounterpartyUnspendablePunishmentReserveMsat uint64  `json:"counterpartyUnspendablePunishmentReserveMsat"`
-	Error                                    *string     `json:"error"`
-	Status                                   string      `json:"status"`
-	IsOutbound                               bool        `json:"isOutbound"`
+	LocalBalance                                 int64       `json:"localBalance"`
+	LocalBalanceSat                              int64       `json:"localBalanceSat"`
+	LocalBalanceMsat                             int64       `json:"localBalanceMsat"`
+	LocalSpendableBalance                        int64       `json:"localSpendableBalance"`
+	LocalSpendableBalanceSat                     int64       `json:"localSpendableBalanceSat"`
+	LocalSpendableBalanceMsat                    int64       `json:"localSpendableBalanceMsat"`
+	RemoteBalance                                int64       `json:"remoteBalance"`
+	RemoteBalanceSat                             int64       `json:"remoteBalanceSat"`
+	RemoteBalanceMsat                            int64       `json:"remoteBalanceMsat"`
+	Id                                           string      `json:"id"`
+	RemotePubkey                                 string      `json:"remotePubkey"`
+	FundingTxId                                  string      `json:"fundingTxId"`
+	FundingTxVout                                uint32      `json:"fundingTxVout"`
+	Active                                       bool        `json:"active"`
+	Public                                       bool        `json:"public"`
+	InternalChannel                              interface{} `json:"internalChannel"`
+	Confirmations                                *uint32     `json:"confirmations"`
+	ConfirmationsRequired                        *uint32     `json:"confirmationsRequired"`
+	ForwardingFeeBaseMsat                        uint32      `json:"forwardingFeeBaseMsat"`
+	ForwardingFeeProportionalMillionths          uint32      `json:"forwardingFeeProportionalMillionths"`
+	UnspendablePunishmentReserve                 uint64      `json:"unspendablePunishmentReserve"`
+	UnspendablePunishmentReserveSat              uint64      `json:"unspendablePunishmentReserveSat"`
+	UnspendablePunishmentReserveMsat             uint64      `json:"unspendablePunishmentReserveMsat"`
+	CounterpartyUnspendablePunishmentReserve     uint64      `json:"counterpartyUnspendablePunishmentReserve"`
+	CounterpartyUnspendablePunishmentReserveSat  uint64      `json:"counterpartyUnspendablePunishmentReserveSat"`
+	CounterpartyUnspendablePunishmentReserveMsat uint64      `json:"counterpartyUnspendablePunishmentReserveMsat"`
+	Error                                        *string     `json:"error"`
+	Status                                       string      `json:"status"`
+	IsOutbound                                   bool        `json:"isOutbound"`
 }
 
 type MigrateNodeStorageRequest struct {
@@ -604,7 +609,9 @@ type ExecuteCustomNodeCommandRequest struct {
 }
 
 type GetForwardsResponse struct {
+	OutboundAmountForwardedSat  uint64 `json:"outboundAmountForwardedSat"`
 	OutboundAmountForwardedMsat uint64 `json:"outboundAmountForwardedMsat"`
+	TotalFeeEarnedSat           uint64 `json:"totalFeeEarnedSat"`
 	TotalFeeEarnedMsat          uint64 `json:"totalFeeEarnedMsat"`
 	NumForwards                 uint64 `json:"numForwards"`
 }
