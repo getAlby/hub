@@ -1436,37 +1436,39 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 	})
 
 	if dbTransaction.AppId != nil {
-		svc.handleSettledAppTransaction(dbTransaction, tx, &settledAt)
+		var app db.App
+		result := tx.Limit(1).Find(&app, &db.App{
+			ID: *dbTransaction.AppId,
+		})
+		if result.RowsAffected == 0 {
+			logger.Logger.WithField("app_id", dbTransaction.AppId).Error("failed to find app by id")
+			return dbTransaction, nil
+		}
+
+		svc.updateAppLastSettledTransactionAt(&app, tx, &settledAt)
+
+		if dbTransaction.Type == constants.TRANSACTION_TYPE_OUTGOING {
+			svc.checkBudgetUsage(&app, dbTransaction, tx)
+		}
 	}
 
 	return dbTransaction, nil
 }
 
-func (svc *transactionsService) handleSettledAppTransaction(dbTransaction *db.Transaction, gormTransaction *gorm.DB, settledAt *time.Time) {
-	var app db.App
-	result := gormTransaction.Limit(1).Find(&app, &db.App{
-		ID: *dbTransaction.AppId,
-	})
-	if result.RowsAffected == 0 {
-		logger.Logger.WithField("app_id", dbTransaction.AppId).Error("failed to find app by id")
+func (svc *transactionsService) updateAppLastSettledTransactionAt(app *db.App, gormTransaction *gorm.DB, settledAt *time.Time) {
+	if err := gormTransaction.Model(app).Update("last_settled_transaction_at", settledAt).Error; err != nil {
+		logger.Logger.WithField("app_id", app.ID).WithError(err).Error("failed to update app last settled transaction time")
 		return
 	}
+}
 
-	if err := gormTransaction.Model(&app).Update("last_settled_transaction_at", settledAt).Error; err != nil {
-		logger.Logger.WithField("app_id", dbTransaction.AppId).WithError(err).Error("failed to update app last settled transaction time")
-		return
-	}
-
+func (svc *transactionsService) checkBudgetUsage(app *db.App, dbTransaction *db.Transaction, gormTransaction *gorm.DB) {
 	if app.Isolated {
 		return
 	}
 
-	if dbTransaction.Type != constants.TRANSACTION_TYPE_OUTGOING {
-		return
-	}
-
 	var appPermission db.AppPermission
-	result = gormTransaction.Limit(1).Find(&appPermission, &db.AppPermission{
+	result := gormTransaction.Limit(1).Find(&appPermission, &db.AppPermission{
 		AppId: app.ID,
 		Scope: constants.PAY_INVOICE_SCOPE,
 	})
