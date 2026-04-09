@@ -706,7 +706,7 @@ const inspirationCategories: {
     label: "Services",
     icon: LayersIcon,
     prompts: [
-      "find a paid API for real-time bitcoin price data",
+      "search podcasts for discussions about bitcoin scaling",
       "set up an anonymous email address on lnemail.net",
       "buy the domain my-awesome-project.dev on unhuman.domains",
       "spin up a VPS with 2 cores and 4GB RAM on lnvps.net",
