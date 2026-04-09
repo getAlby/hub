@@ -159,7 +159,7 @@ type CloseChannelResponse struct {
 type PendingBalanceDetails struct {
 	ChannelId     string `json:"channelId"`
 	NodeId        string `json:"nodeId"`
-	Amount        uint64 `json:"amount"`
+	Amount        uint64 `json:"amount"` // deprecated
 	AmountSat     uint64 `json:"amountSat"`
 	AmountMsat    uint64 `json:"amountMsat"`
 	FundingTxId   string `json:"fundingTxId"`
@@ -167,16 +167,16 @@ type PendingBalanceDetails struct {
 }
 
 type OnchainBalanceResponse struct {
-	Spendable                              int64                   `json:"spendable"`
+	Spendable                              int64                   `json:"spendable"` // deprecated
 	SpendableSat                           int64                   `json:"spendableSat"`
 	SpendableMsat                          int64                   `json:"spendableMsat"`
-	Total                                  int64                   `json:"total"`
+	Total                                  int64                   `json:"total"` // deprecated
 	TotalSat                               int64                   `json:"totalSat"`
 	TotalMsat                              int64                   `json:"totalMsat"`
-	Reserved                               int64                   `json:"reserved"`
+	Reserved                               int64                   `json:"reserved"` // deprecated
 	ReservedSat                            int64                   `json:"reservedSat"`
 	ReservedMsat                           int64                   `json:"reservedMsat"`
-	PendingBalancesFromChannelClosures     uint64                  `json:"pendingBalancesFromChannelClosures"`
+	PendingBalancesFromChannelClosures     uint64                  `json:"pendingBalancesFromChannelClosures"` // deprecated
 	PendingBalancesFromChannelClosuresSat  uint64                  `json:"pendingBalancesFromChannelClosuresSat"`
 	PendingBalancesFromChannelClosuresMsat uint64                  `json:"pendingBalancesFromChannelClosuresMsat"`
 	PendingBalancesDetails                 []PendingBalanceDetails `json:"pendingBalancesDetails"`
@@ -191,22 +191,22 @@ type PeerDetails struct {
 	IsConnected bool   `json:"isConnected"`
 }
 type LightningBalanceResponse struct {
-	TotalSpendable           int64 `json:"totalSpendable"`
+	TotalSpendable           int64 `json:"totalSpendable"` // deprecated
 	TotalSpendableSat        int64 `json:"totalSpendableSat"`
 	TotalSpendableMsat       int64 `json:"totalSpendableMsat"`
-	TotalReceivable          int64 `json:"totalReceivable"`
+	TotalReceivable          int64 `json:"totalReceivable"` // deprecated
 	TotalReceivableSat       int64 `json:"totalReceivableSat"`
 	TotalReceivableMsat      int64 `json:"totalReceivableMsat"`
-	NextMaxSpendable         int64 `json:"nextMaxSpendable"`
+	NextMaxSpendable         int64 `json:"nextMaxSpendable"` // deprecated
 	NextMaxSpendableSat      int64 `json:"nextMaxSpendableSat"`
 	NextMaxSpendableMsat     int64 `json:"nextMaxSpendableMsat"`
-	NextMaxReceivable        int64 `json:"nextMaxReceivable"`
+	NextMaxReceivable        int64 `json:"nextMaxReceivable"` // deprecated
 	NextMaxReceivableSat     int64 `json:"nextMaxReceivableSat"`
 	NextMaxReceivableMsat    int64 `json:"nextMaxReceivableMsat"`
-	NextMaxSpendableMPP      int64 `json:"nextMaxSpendableMPP"`
+	NextMaxSpendableMPP      int64 `json:"nextMaxSpendableMPP"` // deprecated
 	NextMaxSpendableMPPSat   int64 `json:"nextMaxSpendableMPPSat"`
 	NextMaxSpendableMPPMsat  int64 `json:"nextMaxSpendableMPPMsat"`
-	NextMaxReceivableMPP     int64 `json:"nextMaxReceivableMPP"`
+	NextMaxReceivableMPP     int64 `json:"nextMaxReceivableMPP"` // deprecated
 	NextMaxReceivableMPPSat  int64 `json:"nextMaxReceivableMPPSat"`
 	NextMaxReceivableMPPMsat int64 `json:"nextMaxReceivableMPPMsat"`
 }
