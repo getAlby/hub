@@ -31,7 +31,7 @@ func NewAlbyHttpService(svc service.Service, albySvc alby.AlbyService, albyOAuth
 func (albyHttpSvc *AlbyHttpService) RegisterSharedRoutes(readOnlyApiGroup *echo.Group, fullAccessApiGroup *echo.Group, e *echo.Echo) {
 	e.GET("/api/alby/callback", albyHttpSvc.albyCallbackHandler)
 	e.GET("/api/alby/info", albyHttpSvc.albyInfoHandler)
-	e.GET("/api/alby/rates", albyHttpSvc.albyBitcoinRateHandler)
+	e.GET("/api/alby/rates/:currency", albyHttpSvc.albyBitcoinRateHandler)
 	e.GET("/api/alby/currencies", albyHttpSvc.albyCurrenciesHandler)
 	readOnlyApiGroup.GET("/alby/me", albyHttpSvc.albyMeHandler)
 	fullAccessApiGroup.POST("/alby/link-account", albyHttpSvc.albyLinkAccountHandler)
@@ -87,7 +87,7 @@ func (albyHttpSvc *AlbyHttpService) albyInfoHandler(c echo.Context) error {
 }
 
 func (albyHttpSvc *AlbyHttpService) albyBitcoinRateHandler(c echo.Context) error {
-	rate, err := albyHttpSvc.albySvc.GetBitcoinRate(c.Request().Context())
+	rate, err := albyHttpSvc.albySvc.GetBitcoinRate(c.Request().Context(), c.Param("currency"))
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to get Bitcoin rate")
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{

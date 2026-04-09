@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/logger"
 	"github.com/sirupsen/logrus"
 )
@@ -17,14 +16,10 @@ import (
 const albyInternalAPIURL = "https://getalby.com/api"
 
 type albyService struct {
-	cfg config.Config
 }
 
-func NewAlbyService(cfg config.Config) *albyService {
-	albySvc := &albyService{
-		cfg: cfg,
-	}
-	return albySvc
+func NewAlbyService() *albyService {
+	return &albyService{}
 }
 
 func (svc *albyService) GetCurrencies(ctx context.Context) ([]Currency, error) {
@@ -80,9 +75,8 @@ func (svc *albyService) GetCurrencies(ctx context.Context) ([]Currency, error) {
 	return currencies, nil
 }
 
-func (svc *albyService) GetBitcoinRate(ctx context.Context) (*BitcoinRate, error) {
+func (svc *albyService) GetBitcoinRate(ctx context.Context, currency string) (*BitcoinRate, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
-	currency := svc.cfg.GetCurrency()
 
 	url := fmt.Sprintf("%s/rates/%s", albyInternalAPIURL, currency)
 

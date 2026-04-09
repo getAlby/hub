@@ -9,7 +9,7 @@ import (
 
 type AlbyService interface {
 	GetInfo(ctx context.Context) (*AlbyInfo, error)
-	GetBitcoinRate(ctx context.Context) (*BitcoinRate, error)
+	GetBitcoinRate(ctx context.Context, currency string) (*BitcoinRate, error)
 	GetCurrencies(ctx context.Context) ([]Currency, error)
 	GetChannelPeerSuggestions(ctx context.Context) ([]ChannelPeerSuggestion, error)
 }
