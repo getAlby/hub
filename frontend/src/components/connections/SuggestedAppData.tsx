@@ -21,6 +21,7 @@ import goose from "src/assets/suggested-apps/goose.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import iris from "src/assets/suggested-apps/iris.png";
 import jumble from "src/assets/suggested-apps/jumble.png";
+import lendaswap from "src/assets/suggested-apps/lendaswap.png";
 import lightningMessageboard from "src/assets/suggested-apps/lightning-messageboard.png";
 import lnbits from "src/assets/suggested-apps/lnbits.png";
 import lnvps from "src/assets/suggested-apps/lnvps.png";
@@ -42,7 +43,6 @@ import snort from "src/assets/suggested-apps/snort.png";
 import stackernews from "src/assets/suggested-apps/stacker-news.png";
 import takemysats from "src/assets/suggested-apps/takemysats.png";
 import tictactoe from "src/assets/suggested-apps/tictactoe.png";
-import lendaswap from "src/assets/suggested-apps/lendaswap.png";
 import tunnelsats from "src/assets/suggested-apps/tunnelsats.png";
 import wavespace from "src/assets/suggested-apps/wave-space.png";
 import wavlake from "src/assets/suggested-apps/wavlake.png";
@@ -2418,7 +2418,7 @@ export const appStoreApps: AppStoreApp[] = (
       id: "lendaswap",
       title: "LendaSwap",
       description: "Self-custodial Bitcoin ↔ Stablecoin atomic swaps",
-      webLink: "https://lendaswap.com",
+      webLink: "https://lendaswap.com/?ref=lnds_e3f8dd88_f7db93dbf176",
       logo: lendaswap,
       extendedDescription:
         "Swap between Lightning Bitcoin and stablecoins (USDC, USDT) on Polygon, Arbitrum, and Ethereum. LendaSwap uses your Hub to pay swap invoices and generate receiving invoices — all self-custodial via HTLCs.",
@@ -2427,7 +2427,7 @@ export const appStoreApps: AppStoreApp[] = (
           <p className="text-muted-foreground">
             Open{" "}
             <ExternalLink
-              to="https://lendaswap.com"
+              to="https://lendaswap.com/?ref=lnds_e3f8dd88_f7db93dbf176"
               className="font-medium text-foreground underline"
             >
               LendaSwap
@@ -2443,12 +2443,12 @@ export const appStoreApps: AppStoreApp[] = (
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
                 Click the{" "}
-                <span className="font-medium text-foreground">⚡ Lightning</span>{" "}
+                <span className="font-medium text-foreground">
+                  ⚡ Lightning
+                </span>{" "}
                 button in the header
               </li>
-              <li>
-                Paste the connection secret from Alby Hub
-              </li>
+              <li>Paste the connection secret from Alby Hub</li>
               <li>
                 When swapping Lightning → stablecoins, click{" "}
                 <span className="font-medium text-foreground">
