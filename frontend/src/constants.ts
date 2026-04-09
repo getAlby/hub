@@ -25,5 +25,3 @@ export const DEFAULT_APP_BUDGET_RENEWAL = "monthly";
 
 export const BITCOIN_DISPLAY_FORMAT_BIP177 = "bip177";
 export const BITCOIN_DISPLAY_FORMAT_SATS = "sats";
-
-export const RATES_API_URL = "https://getalby.com/api/rates";
