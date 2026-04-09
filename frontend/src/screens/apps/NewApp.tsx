@@ -366,7 +366,18 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                             <InstallApp appStoreApp={appStoreApp} />
                           ),
                         configure: () => (
-                          <div className="flex flex-col gap-4">
+                          <form
+                            id="new-app"
+                            className="flex flex-col gap-4"
+                            onSubmit={(e: React.FormEvent) => {
+                              e.preventDefault();
+                              if (superuser) {
+                                setShowSuperuserConfirmPasswordDialog(true);
+                                return;
+                              }
+                              handleCreateApp(methods.next);
+                            }}
+                          >
                             <SuperuserConfirmPasswordDialog
                               open={showSuperuserConfirmPasswordDialog}
                               setOpen={setShowSuperuserConfirmPasswordDialog}
@@ -440,7 +451,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                                 You will automatically return to {returnTo}
                               </p>
                             )}
-                          </div>
+                          </form>
                         ),
                         finalize: () =>
                           createAppResponse && (
@@ -465,15 +476,12 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                           )}
                           <LoadingButton
                             loading={isLoading}
+                            type={step.id === "configure" ? "submit" : "button"}
+                            form={
+                              step.id === "configure" ? "new-app" : undefined
+                            }
                             onClick={
-                              step.id === "configure"
-                                ? () =>
-                                    superuser
-                                      ? setShowSuperuserConfirmPasswordDialog(
-                                          true
-                                        )
-                                      : handleCreateApp(methods.next)
-                                : methods.next
+                              step.id === "configure" ? undefined : methods.next
                             }
                           >
                             {step.id === "configure" && pubkey
