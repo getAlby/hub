@@ -507,19 +507,17 @@ type LSPOrderRequest struct {
 }
 
 type LSPOrderResponse struct {
-	Invoice               string `json:"invoice"`
-	Fee                   uint64 `json:"fee"` // deprecated
-	FeeSat                uint64 `json:"feeSat"`
-	FeeMsat               uint64 `json:"feeMsat"`
-	InvoiceAmount         uint64 `json:"invoiceAmount"` // deprecated
-	InvoiceAmountSat      uint64 `json:"invoiceAmountSat"`
-	InvoiceAmountMsat     uint64 `json:"invoiceAmountMsat"`
-	IncomingLiquidity     uint64 `json:"incomingLiquidity"` // deprecated
-	IncomingLiquiditySat  uint64 `json:"incomingLiquiditySat"`
-	IncomingLiquidityMsat uint64 `json:"incomingLiquidityMsat"`
-	OutgoingLiquidity     uint64 `json:"outgoingLiquidity"` // deprecated
-	OutgoingLiquiditySat  uint64 `json:"outgoingLiquiditySat"`
-	OutgoingLiquidityMsat uint64 `json:"outgoingLiquidityMsat"`
+	Invoice              string `json:"invoice"`
+	Fee                  uint64 `json:"fee"` // deprecated
+	FeeSat               uint64 `json:"feeSat"`
+	FeeMsat              uint64 `json:"feeMsat"`
+	InvoiceAmount        uint64 `json:"invoiceAmount"` // deprecated
+	InvoiceAmountSat     uint64 `json:"invoiceAmountSat"`
+	InvoiceAmountMsat    uint64 `json:"invoiceAmountMsat"`
+	IncomingLiquidity    uint64 `json:"incomingLiquidity"` // deprecated
+	IncomingLiquiditySat uint64 `json:"incomingLiquiditySat"`
+	OutgoingLiquidity    uint64 `json:"outgoingLiquidity"` // deprecated
+	OutgoingLiquiditySat uint64 `json:"outgoingLiquiditySat"`
 }
 
 type WalletCapabilitiesResponse struct {

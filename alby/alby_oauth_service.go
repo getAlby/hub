@@ -1364,13 +1364,12 @@ func (svc *albyOAuthService) requestAutoChannel(ctx context.Context, url string,
 	}
 
 	return &AutoChannelResponse{
-		Invoice:         invoice,
-		Fee:             feeSat,
-		FeeSat:          feeSat,
-		FeeMsat:         feeSat * 1000,
-		ChannelSize:     channelSizeSat,
-		ChannelSizeSat:  channelSizeSat,
-		ChannelSizeMsat: channelSizeSat * 1000,
+		Invoice:        invoice,
+		Fee:            feeSat,
+		FeeSat:         feeSat,
+		FeeMsat:        feeSat * 1000,
+		ChannelSize:    channelSizeSat,
+		ChannelSizeSat: channelSizeSat,
 	}, nil
 }
 

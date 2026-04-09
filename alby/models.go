@@ -48,13 +48,12 @@ type AutoChannelRequest struct {
 }
 
 type AutoChannelResponse struct {
-	Invoice         string `json:"invoice"`
-	ChannelSize     uint64 `json:"channelSize"` // deprecated
-	ChannelSizeSat  uint64 `json:"channelSizeSat"`
-	ChannelSizeMsat uint64 `json:"channelSizeMsat"`
-	Fee             uint64 `json:"fee"` // deprecated
-	FeeSat          uint64 `json:"feeSat"`
-	FeeMsat         uint64 `json:"feeMsat"`
+	Invoice        string `json:"invoice"`
+	ChannelSize    uint64 `json:"channelSize"` // deprecated
+	ChannelSizeSat uint64 `json:"channelSizeSat"`
+	Fee            uint64 `json:"fee"` // deprecated
+	FeeSat         uint64 `json:"feeSat"`
+	FeeMsat        uint64 `json:"feeMsat"`
 }
 
 type AlbyInfoHub struct {
@@ -107,10 +106,8 @@ type ChannelPeerSuggestion struct {
 	Host                       string  `json:"host"`
 	MinimumChannelSize         uint64  `json:"minimumChannelSize"` // deprecated
 	MinimumChannelSizeSat      uint64  `json:"minimumChannelSizeSat"`
-	MinimumChannelSizeMsat     uint64  `json:"minimumChannelSizeMsat"`
 	MaximumChannelSize         uint64  `json:"maximumChannelSize"` // deprecated
 	MaximumChannelSizeSat      uint64  `json:"maximumChannelSizeSat"`
-	MaximumChannelSizeMsat     uint64  `json:"maximumChannelSizeMsat"`
 	MaximumChannelExpiryBlocks *uint32 `json:"maximumChannelExpiryBlocks"`
 	Name                       string  `json:"name"`
 	Image                      string  `json:"image"`

@@ -79,19 +79,17 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 	}
 
 	newChannelResponse := &LSPOrderResponse{
-		Invoice:               invoice,
-		Fee:                   feeSat,
-		FeeSat:                feeSat,
-		FeeMsat:               feeSat * 1000,
-		InvoiceAmount:         invoiceAmountSat,
-		InvoiceAmountSat:      invoiceAmountSat,
-		InvoiceAmountMsat:     invoiceAmountMsat,
-		IncomingLiquidity:     incomingLiquiditySat,
-		IncomingLiquiditySat:  incomingLiquiditySat,
-		IncomingLiquidityMsat: incomingLiquiditySat * 1000,
-		OutgoingLiquidity:     uint64(0),
-		OutgoingLiquiditySat:  uint64(0),
-		OutgoingLiquidityMsat: uint64(0),
+		Invoice:              invoice,
+		Fee:                  feeSat,
+		FeeSat:               feeSat,
+		FeeMsat:              feeSat * 1000,
+		InvoiceAmount:        invoiceAmountSat,
+		InvoiceAmountSat:     invoiceAmountSat,
+		InvoiceAmountMsat:    invoiceAmountMsat,
+		IncomingLiquidity:    incomingLiquiditySat,
+		IncomingLiquiditySat: incomingLiquiditySat,
+		OutgoingLiquidity:    uint64(0),
+		OutgoingLiquiditySat: uint64(0),
 	}
 
 	logger.Logger.WithFields(logrus.Fields{

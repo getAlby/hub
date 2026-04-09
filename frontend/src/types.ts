@@ -512,10 +512,8 @@ export type RecommendedChannelPeer = {
   name: string;
   minimumChannelSize: number;
   minimumChannelSizeSat: number;
-  minimumChannelSizeMsat: number;
   maximumChannelSize: number;
   maximumChannelSizeSat: number;
-  maximumChannelSizeMsat: number;
   note: string;
   publicChannelsAllowed: boolean;
   description: string;
@@ -595,10 +593,8 @@ export type LSPOrderResponse = {
   invoiceAmountMsat: number;
   incomingLiquidity: number;
   incomingLiquiditySat: number;
-  incomingLiquidityMsat: number;
   outgoingLiquidity: number;
   outgoingLiquiditySat: number;
-  outgoingLiquidityMsat: number;
 };
 
 export type AutoChannelRequest = {
@@ -611,7 +607,6 @@ export type AutoChannelResponse = {
   feeMsat?: number;
   channelSize: number;
   channelSizeSat: number;
-  channelSizeMsat: number;
 };
 
 export type RedeemOnchainFundsResponse = {
