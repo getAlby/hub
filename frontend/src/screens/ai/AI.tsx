@@ -682,9 +682,9 @@ const inspirationCategories: {
     label: "Shopping",
     icon: ShoppingBagIcon,
     prompts: [
-      "buy a $25 Netflix gift card",
-      "get me an eSIM with 5GB of data for my trip to Portugal",
-      "what gift cards are available in the US?",
+      "buy a $25 Netflix gift card on bitrefill.com",
+      "get me an eSIM with 5GB of data for my trip to Portugal on bitrefill.com",
+      "what gift cards are available in the US on bitrefill.com?",
     ],
     skill: {
       prompt: "Install the skill from https://bitrefill.com/agents",
@@ -693,10 +693,18 @@ const inspirationCategories: {
     },
   },
   {
+    label: "Creative",
+    icon: SparklesIcon,
+    prompts: [
+      "generate a watercolor painting of a mountain cabin at sunset on ppq.ai",
+      "generate a cool bitcoin logo on ppq.ai and print it on a t-shirt on unhuman.store",
+      "create a logo for my coffee shop using ppq.ai image generation",
+    ],
+  },
+  {
     label: "Services",
     icon: LayersIcon,
     prompts: [
-      "generate a watercolor painting of a mountain cabin at sunset on ppq.ai",
       "set up an anonymous email address on lnemail.net",
       "buy the domain my-awesome-project.dev on unhuman.domains",
       "spin up a VPS with 2 cores and 4GB RAM on lnvps.net",
@@ -707,12 +715,12 @@ const inspirationCategories: {
     icon: RepeatIcon,
     prompts: [
       "read payouts.csv and send 1,000 sats to each lightning address",
-      "read invoices.csv and pay all the lightning invoices in it",
+      "calculate how much I spent this month and break it down by day",
       "export all my transactions from the last 12 months as a CSV",
     ],
   },
   {
-    label: "Build Bitcoin Apps",
+    label: "Build Apps",
     icon: HammerIcon,
     prompts: [
       "build an AI image generator that charges 500 sats per image",
@@ -726,7 +734,7 @@ const inspirationCategories: {
     },
   },
   {
-    label: "Node Management",
+    label: "Node",
     icon: BoxIcon,
     prompts: [
       "open a channel with 2M sats to ACINQ's node",
@@ -810,9 +818,7 @@ function InspirationPrompts() {
     <Tabs defaultValue={inspirationCategories[0].label} variant="line">
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="px-5 pt-5 pb-4">
-          <p className="font-semibold text-sm mb-4">
-            Give your agent new capabilities
-          </p>
+          <p className="font-semibold text-sm mb-4">What can your agent do?</p>
           <TabsList>
             {inspirationCategories.map((cat) => {
               const Icon = cat.icon;
