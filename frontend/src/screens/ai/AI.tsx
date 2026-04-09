@@ -4,6 +4,7 @@ import {
   BotIcon,
   BoxIcon,
   CheckCircleIcon,
+  ChevronRightIcon,
   CopyIcon,
   EyeOffIcon,
   HammerIcon,
@@ -516,7 +517,7 @@ function GenericAuthPrompt({ agent }: { agent: Agent }) {
             onClick={() => copyToClipboard(genericPrompt)}
             className="flex items-center gap-3 rounded-lg bg-muted/50 border border-border px-4 py-3 w-full text-left cursor-pointer hover:border-primary/30 transition-colors"
           >
-            <ArrowRightIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            <ChevronRightIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
             <p className="flex-1 text-sm font-mono break-all select-none">
               {genericPrompt}
             </p>
@@ -705,6 +706,7 @@ const inspirationCategories: {
     label: "Services",
     icon: LayersIcon,
     prompts: [
+      "find a paid API for real-time bitcoin price data",
       "set up an anonymous email address on lnemail.net",
       "buy the domain my-awesome-project.dev on unhuman.domains",
       "spin up a VPS with 2 cores and 4GB RAM on lnvps.net",
@@ -792,8 +794,11 @@ function RotatingPrompt({ prompts }: { prompts: string[] }) {
   }, [isTyping, prompts]);
 
   return (
-    <div className="flex items-center gap-3 rounded-lg bg-muted/50 border border-border px-4 py-3">
-      <span className="text-muted-foreground select-none">&rsaquo;</span>
+    <button
+      onClick={() => copyToClipboard(currentPrompt)}
+      className="flex items-center gap-3 rounded-lg bg-muted/50 border border-border px-4 py-3 w-full text-left cursor-pointer hover:border-primary/30 transition-colors"
+    >
+      <ChevronRightIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
       <p className="flex-1 text-sm font-mono">
         {currentPrompt.slice(0, charCount)}
         <span
@@ -802,14 +807,8 @@ function RotatingPrompt({ prompts }: { prompts: string[] }) {
           }`}
         />
       </p>
-      <button
-        onClick={() => copyToClipboard(currentPrompt)}
-        className="text-muted-foreground hover:text-foreground transition-colors shrink-0"
-        aria-label="Copy prompt"
-      >
-        <CopyIcon className="w-4 h-4" />
-      </button>
-    </div>
+      <CopyIcon className="w-4 h-4 text-muted-foreground shrink-0" />
+    </button>
   );
 }
 
