@@ -162,6 +162,67 @@ func (_c *MockAlbyService_GetChannelPeerSuggestions_Call) RunAndReturn(run func(
 	return _c
 }
 
+func (_mock *MockAlbyService) GetLatestBlogPost(ctx context.Context) (*alby.BlogPost, error) {
+	ret := _mock.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetLatestBlogPost")
+	}
+
+	var r0 *alby.BlogPost
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) (*alby.BlogPost, error)); ok {
+		return returnFunc(ctx)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context) *alby.BlogPost); ok {
+		r0 = returnFunc(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*alby.BlogPost)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = returnFunc(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockAlbyService_GetLatestBlogPost_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetLatestBlogPost'
+type MockAlbyService_GetLatestBlogPost_Call struct {
+	*mock.Call
+}
+
+// GetLatestBlogPost is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *MockAlbyService_Expecter) GetLatestBlogPost(ctx interface{}) *MockAlbyService_GetLatestBlogPost_Call {
+	return &MockAlbyService_GetLatestBlogPost_Call{Call: _e.mock.On("GetLatestBlogPost", ctx)}
+}
+
+func (_c *MockAlbyService_GetLatestBlogPost_Call) Run(run func(ctx context.Context)) *MockAlbyService_GetLatestBlogPost_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockAlbyService_GetLatestBlogPost_Call) Return(blogPost *alby.BlogPost, err error) *MockAlbyService_GetLatestBlogPost_Call {
+	_c.Call.Return(blogPost, err)
+	return _c
+}
+
+func (_c *MockAlbyService_GetLatestBlogPost_Call) RunAndReturn(run func(ctx context.Context) (*alby.BlogPost, error)) *MockAlbyService_GetLatestBlogPost_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetInfo provides a mock function for the type MockAlbyService
 func (_mock *MockAlbyService) GetInfo(ctx context.Context) (*alby.AlbyInfo, error) {
 	ret := _mock.Called(ctx)
