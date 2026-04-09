@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
+import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
 import { BudgetRenewalType } from "src/types";
 import { twMerge } from "tailwind-merge";
 
@@ -15,8 +16,14 @@ export function formatAmount(amount: number, decimals = 1) {
   return amount.toFixed(i > 0 ? decimals : 0) + ["", "k", "M", "G"][i];
 }
 
-export function splitSocketAddress(socketAddress: string) {
+export function splitSocketAddress(socketAddress?: string) {
+  if (!socketAddress) {
+    return { address: "", port: "" };
+  }
   const lastColonIndex = socketAddress.lastIndexOf(":");
+  if (lastColonIndex <= 0) {
+    return { address: "", port: "" };
+  }
   const address = socketAddress.slice(0, lastColonIndex);
   const port = socketAddress.slice(lastColonIndex + 1);
   return { address, port };
@@ -74,4 +81,8 @@ export function getBudgetRenewalLabel(renewalType: BudgetRenewalType): string {
     case "":
       return "";
   }
+}
+
+export function getAppDisplayName(name: string) {
+  return name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : name;
 }

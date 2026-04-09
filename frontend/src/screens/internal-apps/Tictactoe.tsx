@@ -71,6 +71,7 @@ export function Tictactoe() {
   return (
     <div className="grid gap-5">
       <AppHeader
+        pageTitle={appStoreApp.title}
         title={
           <div className="flex flex-row items-center">
             <img src={appStoreApp.logo} className="w-14 h-14 rounded-lg mr-4" />
@@ -145,7 +146,7 @@ export function Tictactoe() {
       {!!tictactoeApps?.length && (
         <>
           <h2 className="font-semibold text-xl">Tic Tac Toe connections</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch app-list">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-stretch">
             {tictactoeApps.map((app, index) => (
               <AppCard key={index} app={app} />
             ))}

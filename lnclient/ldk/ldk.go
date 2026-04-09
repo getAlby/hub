@@ -8,7 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"slices"
@@ -164,7 +166,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 			return nil, err
 		}
 		builder.SetChainSourceBitcoindRpc(cfg.GetEnv().LDKBitcoindRpcHost, uint16(port), cfg.GetEnv().LDKBitcoindRpcUser, cfg.GetEnv().LDKBitcoindRpcPassword)
-		chainSource = "bitcoind_rpc"
+		chainSource = "bitcoind"
 	} else if cfg.GetEnv().LDKElectrumServer != "" {
 		builder.SetChainSourceElectrum(cfg.GetEnv().LDKElectrumServer, &ldk_node.ElectrumSyncConfig{
 			// turn off background sync - we manage syncs ourselves
@@ -2307,7 +2309,7 @@ func (ls *LDKService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 	return nil, lnclient.ErrUnknownCustomNodeCommand
 }
 
-func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (*lnclient.Transaction, error) {
+func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (*lnclient.Transaction, error) {
 	if time.Duration(expiry)*time.Second > maxInvoiceExpiry {
 		return nil, errors.New("expiry is too long")
 	}
@@ -2350,10 +2352,26 @@ func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amount int64, descrip
 
 	ldkPaymentHash := ldk_node.PaymentHash(hex.EncodeToString(paymentHash32[:]))
 
-	invoiceObj, err := ls.node.Bolt11Payment().ReceiveForHash(uint64(amount),
-		descriptionType,
-		uint32(expiry),
-		ldkPaymentHash)
+	var invoiceObj *ldk_node.Bolt11Invoice
+	if minCltvExpiryDelta != nil {
+		if *minCltvExpiryDelta > uint64(65535) {
+			return nil, errors.New("min_cltv_expiry_delta must be <= 65535")
+		}
+        invoiceObj, err = ls.node.Bolt11Payment().ReceiveForHashWithMinCltvExpiryDelta(
+            uint64(amount),
+            descriptionType,
+            uint32(expiry),
+            ldkPaymentHash,
+            uint16(*minCltvExpiryDelta),
+        )
+	} else {
+        invoiceObj, err = ls.node.Bolt11Payment().ReceiveForHash(
+            uint64(amount),
+            descriptionType,
+            uint32(expiry),
+            ldkPaymentHash,
+        )
+	}
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("MakeHoldInvoice failed")
@@ -2489,4 +2507,52 @@ func (ls *LDKService) ConsumeEvent(ctx context.Context, event *events.Event, glo
 		// backup existing channels to the user's Alby Account on first connect
 		ls.backupChannels()
 	}
+}
+
+func (ls *LDKService) GetChainDataSource() (string, string) {
+	if endpoint := ls.cfg.GetEnv().LDKBitcoindRpcHost; endpoint != "" {
+		rpcPort := ls.cfg.GetEnv().LDKBitcoindRpcPort
+		return "bitcoind", sanitizeChainEndpoint(endpoint, rpcPort)
+	}
+	if endpoint := ls.cfg.GetEnv().LDKElectrumServer; endpoint != "" {
+		return "electrum", sanitizeChainEndpoint(endpoint, "")
+	}
+
+	// Fallback to Esplora
+	endpoint := ls.cfg.GetEnv().LDKEsploraServer
+	return "esplora", sanitizeChainEndpoint(endpoint, "")
+}
+
+func sanitizeChainEndpoint(endpoint string, port string) string {
+	u, err := url.Parse(endpoint)
+	if err != nil || u.Host == "" {
+		u, err = url.Parse("//" + endpoint)
+	}
+	if err != nil {
+		return endpoint
+	}
+
+	u.User = nil
+	host := u.Hostname()
+	if host == "" {
+		return endpoint
+	}
+
+	existingPort := u.Port()
+	if existingPort == "" {
+		existingPort = port
+	}
+
+	if existingPort != "" {
+		u.Host = net.JoinHostPort(host, existingPort)
+	} else {
+		u.Host = host
+	}
+
+	sanitized := u.String()
+	if u.Scheme == "" {
+		return strings.TrimPrefix(sanitized, "//")
+	}
+
+	return sanitized
 }

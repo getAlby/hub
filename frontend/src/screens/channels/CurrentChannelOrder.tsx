@@ -120,6 +120,7 @@ function Success() {
     <div className="flex flex-col justify-center gap-5 p-5 max-w-md items-stretch">
       <TwoColumnLayoutHeader
         title="Channel Opened"
+        pageTitle="Channel Opened"
         description="Your new lightning channel is ready to use"
       />
 
@@ -277,6 +278,7 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
   return (
     <div className="grid gap-5">
       <AppHeader
+        pageTitle="Deposit bitcoin"
         title="Deposit bitcoin"
         description="You don't have enough Bitcoin to open your intended channel"
       />
@@ -500,6 +502,7 @@ function PayBitcoinChannelOrderWithSpendableFunds({
   return (
     <div className="flex flex-col gap-5">
       <AppHeader
+        pageTitle="Opening channel"
         title="Opening channel"
         description="Your funds have been successfully deposited"
       />
@@ -627,6 +630,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
   return (
     <div className="flex flex-col gap-5">
       <AppHeader
+        pageTitle="Review Channel Purchase"
         title="Review Channel Purchase"
         description={
           lspOrderResponse

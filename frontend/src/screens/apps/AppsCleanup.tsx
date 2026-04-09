@@ -52,6 +52,7 @@ export function AppsCleanup() {
   return (
     <>
       <AppHeader
+        pageTitle="Cleanup Unused Apps"
         title="Cleanup Unused Apps"
         description="Review apps that haven't been used for 2 months or longer"
       />
@@ -67,7 +68,7 @@ export function AppsCleanup() {
           </AlertDescription>
         </Alert>
       )}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
         <div className="lg:col-span-3 flex flex-col gap-3">
           {currentApp && (
             <>

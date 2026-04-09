@@ -62,39 +62,38 @@ export function SetupNode() {
   const hasImportedMnemonic = !!setupStore.nodeInfo.mnemonic;
 
   return (
-    <>
-      <Container>
-        <TwoColumnLayoutHeader
-          title="Choose Wallet Implementation"
-          description="Decide between one of available lightning wallet backends."
-        />
-        <div className="flex flex-col gap-5 w-full mt-6">
-          <div className="w-full grid grid-cols-2 gap-4">
-            {backendTypeDisplayConfigList
-              .filter((item) =>
-                hasImportedMnemonic
-                  ? backendTypeConfigs[item.backendType].hasMnemonic
-                  : true
-              )
-              .map((item) => (
-                <div
-                  key={item.backendType}
-                  className={cn(
-                    "border-foreground-muted border px-4 py-6 flex flex-col gap-3 items-center rounded cursor-pointer",
-                    selectedBackendType === item.backendType && "border-primary"
-                  )}
-                  onClick={() => setSelectedBackupType(item.backendType)}
-                >
-                  <div className="h-6 w-6">{item.icon}</div>
-                  {item.title}
-                </div>
-              ))}
-          </div>
-          <Button onClick={() => next()} disabled={!selectedBackendType}>
-            Next
-          </Button>
+    <Container>
+      <TwoColumnLayoutHeader
+        title="Choose Wallet Implementation"
+        pageTitle="Choose Wallet Implementation"
+        description="Decide between one of available lightning wallet backends."
+      />
+      <div className="flex flex-col gap-5 w-full mt-6">
+        <div className="w-full grid grid-cols-2 gap-3">
+          {backendTypeDisplayConfigList
+            .filter((item) =>
+              hasImportedMnemonic
+                ? backendTypeConfigs[item.backendType].hasMnemonic
+                : true
+            )
+            .map((item) => (
+              <div
+                key={item.backendType}
+                className={cn(
+                  "border-foreground-muted border px-4 py-6 flex flex-col gap-3 items-center rounded cursor-pointer",
+                  selectedBackendType === item.backendType && "border-primary"
+                )}
+                onClick={() => setSelectedBackupType(item.backendType)}
+              >
+                <div className="h-6 w-6">{item.icon}</div>
+                {item.title}
+              </div>
+            ))}
         </div>
-      </Container>
-    </>
+        <Button onClick={() => next()} disabled={!selectedBackendType}>
+          Next
+        </Button>
+      </div>
+    </Container>
   );
 }

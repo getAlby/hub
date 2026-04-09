@@ -86,6 +86,7 @@ export function Bitrefill() {
     <>
       <div className="flex flex-col gap-5 h-full">
         <AppHeader
+          pageTitle="Bitrefill"
           title="Bitrefill"
           description="Live on bitcoin by purchasing digital gift cards, eSIMs, and phone refills"
         />

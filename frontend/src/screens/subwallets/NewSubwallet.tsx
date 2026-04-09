@@ -19,14 +19,9 @@ import { handleRequestError } from "src/utils/handleRequestError";
 export function NewSubwallet() {
   const navigate = useNavigate();
   const [name, setName] = React.useState("");
-  const { data: subwalletAppsData } = useApps(
-    undefined,
-    undefined,
-    {
-      subWallets: true,
-    },
-    "created_at"
-  );
+  const { data: subwalletAppsData } = useApps(undefined, undefined, {
+    subWallets: true,
+  });
   const { data: info } = useInfo();
   const { data: albyMe, error: albyMeError } = useAlbyMe();
 
@@ -86,6 +81,7 @@ export function NewSubwallet() {
   return (
     <div className="grid gap-5">
       <AppHeader
+        pageTitle="Create Sub-wallet"
         title="Create Sub-wallet"
         contentRight={
           <>

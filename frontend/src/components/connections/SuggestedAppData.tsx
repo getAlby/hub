@@ -7,6 +7,7 @@ import albySandbox from "src/assets/suggested-apps/alby-sandbox.png";
 import albyCli from "src/assets/suggested-apps/alby.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
 import bitrefill from "src/assets/suggested-apps/bitrefill.png";
+import bitrequest from "src/assets/suggested-apps/bitrequest.png";
 import bringin from "src/assets/suggested-apps/bringin.png";
 import btcpay from "src/assets/suggested-apps/btcpay.png";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
@@ -20,6 +21,7 @@ import goose from "src/assets/suggested-apps/goose.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import iris from "src/assets/suggested-apps/iris.png";
 import jumble from "src/assets/suggested-apps/jumble.png";
+import lendaswap from "src/assets/suggested-apps/lendaswap.png";
 import lightningMessageboard from "src/assets/suggested-apps/lightning-messageboard.png";
 import lnbits from "src/assets/suggested-apps/lnbits.png";
 import lnvps from "src/assets/suggested-apps/lnvps.png";
@@ -873,6 +875,78 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["social-media"],
+    },
+    {
+      id: "bitrequest",
+      title: "Bitrequest",
+      description: "Non-custodial payment requests",
+      webLink: "https://www.bitrequest.io",
+      playLink:
+        "https://play.google.com/store/apps/details?id=io.bitrequest.app",
+      appleLink: "https://apps.apple.com/us/app/bitrequest/id1484815377",
+      logo: bitrequest,
+      extendedDescription:
+        "Open-source, Non-custodial app for creating and sharing cryptocurrency payment requests",
+      installGuide: (
+        <>
+          <div>
+            <p className="text-muted-foreground">
+              Open{" "}
+              <ExternalLink
+                to="https://bitrequest.github.io"
+                className="font-medium text-foreground underline"
+              >
+                Bitrequest
+              </ExternalLink>{" "}
+              in your browser, or download the app on iOS or Android
+            </p>
+            <p className="text-muted-foreground mt-4">
+              In the next step, set wallet permissions to{" "}
+              <span className="font-medium text-foreground">Custom</span> and
+              enable:
+            </p>
+            <ul className="list-inside list-disc text-muted-foreground mt-1">
+              <li>Read your node info</li>
+              <li>Create invoices</li>
+              <li>Lookup status of invoices</li>
+              <li>Read transaction history</li>
+            </ul>
+          </div>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Bitrequest</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Click on{" "}
+                <span className="font-medium text-foreground">Bitcoin</span> and
+                then{" "}
+                <span className="font-medium text-foreground">Lightning</span>{" "}
+                to open the{" "}
+                <span className="font-medium text-foreground">
+                  Add lightning node
+                </span>{" "}
+                modal
+              </li>
+              <li>
+                Set{" "}
+                <span className="font-medium text-foreground">
+                  implementation
+                </span>{" "}
+                to <span className="font-medium text-foreground">NWC</span>
+              </li>
+              <li>Enter a name for the connection</li>
+              <li>
+                Paste the connection secret (nostr+walletconnect://....) and
+                click <span className="font-medium text-foreground">OK</span>
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["merchant-tools"],
     },
     {
       id: "btcpay",
@@ -2339,6 +2413,61 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["misc"],
+    },
+    {
+      id: "lendaswap",
+      title: "LendaSwap",
+      description: "Self-custodial Bitcoin ↔ Stablecoin atomic swaps",
+      webLink: "https://lendaswap.com/?ref=lnds_e3f8dd88_f7db93dbf176",
+      logo: lendaswap,
+      extendedDescription:
+        "Swap between Lightning Bitcoin and stablecoins (USDC, USDT) on Polygon, Arbitrum, and Ethereum. LendaSwap uses your Hub to pay swap invoices and generate receiving invoices — all self-custodial via HTLCs.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://lendaswap.com/?ref=lnds_e3f8dd88_f7db93dbf176"
+              className="font-medium text-foreground underline"
+            >
+              LendaSwap
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In LendaSwap</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Click the{" "}
+                <span className="font-medium text-foreground">
+                  ⚡ Lightning
+                </span>{" "}
+                button in the header
+              </li>
+              <li>Paste the connection secret from Alby Hub</li>
+              <li>
+                When swapping Lightning → stablecoins, click{" "}
+                <span className="font-medium text-foreground">
+                  Pay with Lightning Wallet
+                </span>{" "}
+                to pay directly from your Hub
+              </li>
+              <li>
+                When swapping stablecoins → Lightning, click{" "}
+                <span className="font-medium text-foreground">
+                  Generate invoice from wallet
+                </span>{" "}
+                to receive directly into your Hub
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["payment-tools"],
     },
   ] satisfies AppStoreApp[]
 ).sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));

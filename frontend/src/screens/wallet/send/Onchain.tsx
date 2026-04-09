@@ -52,7 +52,7 @@ export default function Onchain() {
 
   return (
     <div className="grid gap-4">
-      <AppHeader title="Send to On-chain" />
+      <AppHeader pageTitle="Send to On-chain" title="Send to On-chain" />
       <div className="grid gap-6 md:max-w-lg">
         <MempoolAlert />
         <div className="grid gap-2">

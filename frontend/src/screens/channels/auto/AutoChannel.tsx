@@ -102,6 +102,7 @@ export function AutoChannel() {
   return (
     <>
       <AppHeader
+        pageTitle="Open a lightning channel"
         title="Open a lightning channel"
         description="Open a channel to another node on the lightning network"
       />
