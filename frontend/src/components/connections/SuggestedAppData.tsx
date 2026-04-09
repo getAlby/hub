@@ -13,7 +13,6 @@ import btcpay from "src/assets/suggested-apps/btcpay.png";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
 import castamatic from "src/assets/suggested-apps/castamatic.png";
 import clams from "src/assets/suggested-apps/clams.png";
-import claude from "src/assets/suggested-apps/claude.png";
 import coracle from "src/assets/suggested-apps/coracle.png";
 import damus from "src/assets/suggested-apps/damus.png";
 import fountain from "src/assets/suggested-apps/fountain.png";
@@ -281,17 +280,6 @@ export const appStoreApps: AppStoreApp[] = (
           </div>
         </>
       ),
-    },
-    {
-      id: "claude",
-      title: "Claude",
-      description: "AI assistant for conversations, analysis, and coding",
-      extendedDescription:
-        "AI assistant for conversations, analysis, and coding",
-      internal: true,
-      logo: claude,
-      categories: ["ai"],
-      webLink: "https://claude.ai/",
     },
     {
       id: "alby-cli-skill",

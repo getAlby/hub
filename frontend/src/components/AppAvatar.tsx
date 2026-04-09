@@ -1,3 +1,4 @@
+import claudeLogo from "src/assets/suggested-apps/claude.png";
 import clineLogo from "src/assets/suggested-apps/cline.png";
 import codexLogo from "src/assets/suggested-apps/codex.png";
 import cursorLogo from "src/assets/suggested-apps/cursor.png";
@@ -14,6 +15,7 @@ import { App } from "src/types";
 // Lightweight logo map for agents that don't have full app store entries.
 // Matches on app_store_app_id metadata set when the connection was created.
 const agentLogos: Record<string, string> = {
+  claude: claudeLogo,
   goose: gooseLogo,
   openclaw: openclawLogo,
   cursor: cursorLogo,

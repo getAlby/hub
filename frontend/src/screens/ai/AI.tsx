@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import bitrefillLogo from "src/assets/suggested-apps/bitrefill.png";
 import claudeLogo from "src/assets/suggested-apps/claude.png";
 import clineLogo from "src/assets/suggested-apps/cline.png";
@@ -32,6 +33,7 @@ import opencodeLogo from "src/assets/suggested-apps/opencode.png";
 import payperqLogo from "src/assets/suggested-apps/payperq.png";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -53,8 +55,14 @@ import {
   TabsList,
   TabsTrigger,
 } from "src/components/ui/tabs";
-import { localStorageKeys } from "src/constants";
+import {
+  DEFAULT_APP_BUDGET_RENEWAL,
+  DEFAULT_APP_BUDGET_SATS,
+  localStorageKeys,
+} from "src/constants";
 import { copyToClipboard } from "src/lib/clipboard";
+import { createApp } from "src/requests/createApp";
+import { handleRequestError } from "src/utils/handleRequestError";
 
 type Agent = {
   id: string;
@@ -62,6 +70,7 @@ type Agent = {
   logo: string;
   description: string;
   setupUrl: string;
+  mcpInstructions?: () => React.ReactNode;
 };
 
 const agents: Agent[] = [
@@ -85,6 +94,25 @@ const agents: Agent[] = [
     logo: claudeLogo,
     description: "Anthropic's AI assistant (Code, Web & Desktop)",
     setupUrl: "",
+    mcpInstructions: () => (
+      <ol className="list-decimal list-inside space-y-1 text-sm">
+        <li>
+          Open{" "}
+          <a
+            href="https://claude.ai"
+            target="_blank"
+            className="underline font-medium"
+          >
+            claude.ai
+          </a>{" "}
+          or Claude Desktop and sign in
+        </li>
+        <li>Go to Settings &rarr; Connectors</li>
+        <li>Add custom connector</li>
+        <li>Enter &ldquo;Alby&rdquo; as connector name</li>
+        <li>Paste the URL below as the connector URL</li>
+      </ol>
+    ),
   },
   {
     id: "gemini",
@@ -463,7 +491,9 @@ export function AI() {
 }
 
 function GenericAuthPrompt({ agent }: { agent: Agent }) {
-  const hubUrl = window.location.origin;
+  const [mcpMode, setMcpMode] = React.useState(false);
+  const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+  const hubUrl = window.location.origin + basePath;
   const genericPrompt = `Install the skill from https://getalby.com/cli/SKILL.md and use the auth command to connect to my Alby Hub wallet at ${hubUrl}`;
 
   return (
@@ -471,30 +501,143 @@ function GenericAuthPrompt({ agent }: { agent: Agent }) {
       key={agent.id}
       className="space-y-3 text-sm animate-[flash_0.4s_ease-out]"
     >
-      <p className="text-muted-foreground">
-        Copy this prompt and paste it into {agent.name}:
-      </p>
+      {mcpMode && agent.mcpInstructions ? (
+        <McpSetup
+          agentName={agent.name}
+          mcpInstructions={agent.mcpInstructions}
+          onBack={() => setMcpMode(false)}
+        />
+      ) : (
+        <>
+          <p className="text-muted-foreground">
+            Copy this prompt and paste it into {agent.name}:
+          </p>
+          <button
+            onClick={() => copyToClipboard(genericPrompt)}
+            className="flex items-center gap-3 rounded-lg bg-muted/50 border border-border px-4 py-3 w-full text-left cursor-pointer hover:border-primary/30 transition-colors"
+          >
+            <ArrowRightIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            <p className="flex-1 text-sm font-mono break-all select-none">
+              {genericPrompt}
+            </p>
+            <CopyIcon className="w-4 h-4 text-muted-foreground shrink-0" />
+          </button>
+          {agent.mcpInstructions && (
+            <p className="text-xs text-muted-foreground">
+              <button
+                onClick={() => setMcpMode(true)}
+                className="underline hover:text-foreground transition-colors"
+              >
+                Using {agent.name} Web / Desktop?
+              </button>
+            </p>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function McpSetup({
+  agentName,
+  mcpInstructions,
+  onBack,
+}: {
+  agentName: string;
+  mcpInstructions: () => React.ReactNode;
+  onBack: () => void;
+}) {
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [mcpUrl, setMcpUrl] = React.useState("");
+  const [createdAppId, setCreatedAppId] = React.useState<number>();
+
+  const handleCreateConnection = React.useCallback(async () => {
+    if (isLoading || mcpUrl) {
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const response = await createApp({
+        name: agentName,
+        scopes: [
+          "get_info",
+          "get_balance",
+          "list_transactions",
+          "lookup_invoice",
+          "make_invoice",
+          "notifications",
+          "pay_invoice",
+          "sign_message",
+        ],
+        maxAmount: DEFAULT_APP_BUDGET_SATS,
+        budgetRenewal: DEFAULT_APP_BUDGET_RENEWAL,
+        metadata: {
+          app_store_app_id: agentName.toLowerCase().replace(/\s+/g, "-"),
+        },
+      });
+      setMcpUrl(
+        `https://mcp.getalby.com/mcp?nwc=${encodeURIComponent(response.pairingUri)}`
+      );
+      setCreatedAppId(response.id);
+      toast("Connection created");
+    } catch (error) {
+      handleRequestError("Failed to create connection", error);
+    }
+    setIsLoading(false);
+  }, [agentName, isLoading, mcpUrl]);
+
+  // Create connection immediately when the component mounts
+  React.useEffect(() => {
+    handleCreateConnection();
+  }, [handleCreateConnection]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Loading className="size-4" />
+        Creating connection...
+      </div>
+    );
+  }
+
+  if (!mcpUrl) {
+    return (
+      <Button onClick={handleCreateConnection} size="sm">
+        Retry
+      </Button>
+    );
+  }
+
+  const maskedUrl = `https://mcp.getalby.com/mcp?nwc=${"•".repeat(20)}`;
+
+  return (
+    <div className="space-y-3 text-sm">
+      {mcpInstructions()}
       <button
-        onClick={() => copyToClipboard(genericPrompt)}
-        className="flex items-center gap-3 rounded-lg bg-muted/50 border border-border px-4 py-3 w-full text-left cursor-pointer hover:border-primary/30 transition-colors"
+        onClick={() => copyToClipboard(mcpUrl)}
+        className="flex items-center gap-2 rounded-lg bg-muted/50 border border-border px-3 py-2 w-full text-left cursor-pointer hover:border-primary/30 transition-colors"
       >
-        <ArrowRightIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-        <p className="flex-1 text-sm font-mono break-all select-none">
-          {genericPrompt}
+        <p className="flex-1 text-xs font-mono select-none truncate">
+          {maskedUrl}
         </p>
         <CopyIcon className="w-4 h-4 text-muted-foreground shrink-0" />
       </button>
-      {agent.id === "claude" && (
-        <p className="text-muted-foreground">
-          Using Claude Web or Desktop?{" "}
+      <div className="flex items-center gap-3">
+        {createdAppId && (
           <Link
-            to="/internal-apps/claude"
-            className="underline font-medium text-foreground hover:text-primary transition-colors"
+            to={`/apps/${createdAppId}`}
+            className="text-xs text-muted-foreground hover:text-foreground underline transition-colors"
           >
-            Set up via MCP instead
+            Edit budget & permissions
           </Link>
-        </p>
-      )}
+        )}
+        <button
+          onClick={onBack}
+          className="text-xs text-muted-foreground hover:text-foreground underline transition-colors"
+        >
+          Use CLI instead
+        </button>
+      </div>
     </div>
   );
 }
@@ -510,7 +653,7 @@ const whyLightningItems = [
     icon: EyeOffIcon,
     title: "Private by Default",
     description:
-      "No credit cards, no accounts, no sign-ups. What your agent spends stays between you and your wallet.",
+      "No credit cards or personal info shared with merchants. Your agent pays over Lightning — fast, direct, and private.",
   },
   {
     icon: ZapIcon,
