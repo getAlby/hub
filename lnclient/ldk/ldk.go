@@ -551,7 +551,7 @@ func (ls *LDKService) SendPaymentSync(invoice string, amount *uint64) (*lnclient
 		logger.Logger.WithError(err).Error("SendPayment failed")
 		return nil, err
 	}
-	fee := uint64(0)
+	feeMsat := uint64(0)
 	preimage := ""
 
 	for {
@@ -577,18 +577,18 @@ func (ls *LDKService) SendPaymentSync(invoice string, amount *uint64) (*lnclient
 				preimage = *event.PaymentPreimage
 
 				if event.FeePaidMsat != nil {
-					fee = *event.FeePaidMsat
+					feeMsat = *event.FeePaidMsat
 				}
 
 				logger.Logger.WithFields(logrus.Fields{
 					"duration":     time.Since(paymentStart).Milliseconds(),
-					"fee":          fee,
+					"fee":          feeMsat,
 					"payment_hash": event.PaymentHash,
 				}).Info("Successful payment")
 
 				return &lnclient.PayInvoiceResponse{
 					Preimage: preimage,
-					Fee:      fee,
+					Fee:      feeMsat,
 				}, nil
 			case ldk_node.EventPaymentFailed:
 				if event.PaymentHash != nil && *event.PaymentHash == paymentHash {
@@ -638,7 +638,7 @@ func (ls *LDKService) SendKeysend(amount uint64, destination string, custom_reco
 		logger.Logger.WithError(err).Error("Keysend failed")
 		return nil, err
 	}
-	fee := uint64(0)
+	feeMsat := uint64(0)
 	for {
 		select {
 		case <-ls.ctx.Done():
@@ -652,14 +652,14 @@ func (ls *LDKService) SendKeysend(amount uint64, destination string, custom_reco
 				logger.Logger.Info("Got payment success event")
 
 				if eventPaymentSuccessful.FeePaidMsat != nil {
-					fee = *eventPaymentSuccessful.FeePaidMsat
+					feeMsat = *eventPaymentSuccessful.FeePaidMsat
 				}
 				logger.Logger.WithFields(logrus.Fields{
 					"duration": time.Since(paymentStart).Milliseconds(),
-					"fee":      fee,
+					"fee":      feeMsat,
 				}).Info("Successful keysend payment")
 				return &lnclient.PayKeysendResponse{
-					Fee: fee,
+					Fee: feeMsat,
 				}, nil
 			}
 			if isEventPaymentFailedEvent && eventPaymentFailed.PaymentHash != nil && *eventPaymentFailed.PaymentHash == paymentHash {
@@ -1431,14 +1431,14 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 		metadata["tlv_records"] = tlvRecords
 	}
 
-	var amount uint64 = 0
+	var amountMsat uint64 = 0
 	if payment.AmountMsat != nil {
-		amount = *payment.AmountMsat
+		amountMsat = *payment.AmountMsat
 	}
 
-	var fee uint64 = 0
+	var feeMsat uint64 = 0
 	if payment.FeePaidMsat != nil {
-		fee = *payment.FeePaidMsat
+		feeMsat = *payment.FeePaidMsat
 	}
 
 	return &lnclient.Transaction{
@@ -1446,9 +1446,9 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 		Preimage:        preimage,
 		PaymentHash:     paymentHash,
 		SettledAt:       settledAt,
-		Amount:          int64(amount),
+		Amount:          int64(amountMsat),
 		Invoice:         bolt11Invoice,
-		FeesPaid:        int64(fee),
+		FeesPaid:        int64(feeMsat),
 		CreatedAt:       createdAt,
 		Description:     description,
 		DescriptionHash: descriptionHash,

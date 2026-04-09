@@ -429,8 +429,8 @@ func (api *api) GetApp(dbApp *db.App) (*App, error) {
 	}
 
 	// renewsIn := ""
-	maxAmount := uint64(paySpecificPermission.MaxAmountSat)
-	budgetUsage, err := queries.GetBudgetUsage(api.db, &paySpecificPermission)
+	maxAmountSat := uint64(paySpecificPermission.MaxAmountSat)
+	budgetUsageMsat, err := queries.GetBudgetUsageMsat(api.db, &paySpecificPermission)
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
 			"app_id": dbApp.ID,
@@ -463,13 +463,13 @@ func (api *api) GetApp(dbApp *db.App) (*App, error) {
 		UpdatedAt:          dbApp.UpdatedAt,
 		AppPubkey:          dbApp.AppPubkey,
 		ExpiresAt:          expiresAt,
-		MaxAmount:          maxAmount,
-		MaxAmountSat:       maxAmount,
-		MaxAmountMsat:      maxAmount * 1000,
+		MaxAmount:          maxAmountSat,
+		MaxAmountSat:       maxAmountSat,
+		MaxAmountMsat:      maxAmountSat * 1000,
 		Scopes:             requestMethods,
-		BudgetUsage:        budgetUsage / 1000,
-		BudgetUsageSat:     budgetUsage / 1000,
-		BudgetUsageMsat:    budgetUsage,
+		BudgetUsage:        budgetUsageMsat / 1000,
+		BudgetUsageSat:     budgetUsageMsat / 1000,
+		BudgetUsageMsat:    budgetUsageMsat,
 		BudgetRenewal:      paySpecificPermission.BudgetRenewal,
 		Isolated:           dbApp.Isolated,
 		Metadata:           metadata,
@@ -632,16 +632,16 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 				apiApp.MaxAmount = uint64(appPermission.MaxAmountSat)
 				apiApp.MaxAmountSat = uint64(appPermission.MaxAmountSat)
 				apiApp.MaxAmountMsat = uint64(appPermission.MaxAmountSat) * 1000
-				budgetUsage, err := queries.GetBudgetUsage(api.db, &appPermission)
+				budgetUsageMsat, err := queries.GetBudgetUsageMsat(api.db, &appPermission)
 				if err != nil {
 					logger.Logger.WithError(err).WithFields(logrus.Fields{
 						"app_id": dbApp.ID,
 					}).Error("Failed to get budget usage for app")
 					return nil, err
 				}
-				apiApp.BudgetUsage = budgetUsage / 1000
-				apiApp.BudgetUsageSat = budgetUsage / 1000
-				apiApp.BudgetUsageMsat = budgetUsage
+				apiApp.BudgetUsage = budgetUsageMsat / 1000
+				apiApp.BudgetUsageSat = budgetUsageMsat / 1000
+				apiApp.BudgetUsageMsat = budgetUsageMsat
 			}
 		}
 

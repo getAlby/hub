@@ -1328,11 +1328,11 @@ func (svc *albyOAuthService) requestAutoChannel(ctx context.Context, url string,
 	}
 
 	var invoice string
-	var fee uint64
+	var feeSat uint64
 
 	if newAutoChannelResponse.Payment != nil {
 		invoice = newAutoChannelResponse.Payment.Bolt11.Invoice
-		fee, err = strconv.ParseUint(newAutoChannelResponse.Payment.Bolt11.FeeTotalSat, 10, 64)
+		feeSat, err = strconv.ParseUint(newAutoChannelResponse.Payment.Bolt11.FeeTotalSat, 10, 64)
 		if err != nil {
 			logger.Logger.WithError(err).WithFields(logrus.Fields{
 				"url": url,
@@ -1346,16 +1346,16 @@ func (svc *albyOAuthService) requestAutoChannel(ctx context.Context, url string,
 			return nil, err
 		}
 
-		if fee != uint64(paymentRequest.MSatoshi/1000) {
+		if feeSat != uint64(paymentRequest.MSatoshi/1000) {
 			logger.Logger.WithFields(logrus.Fields{
 				"invoice_amount": paymentRequest.MSatoshi / 1000,
-				"fee":            fee,
+				"fee":            feeSat,
 			}).WithError(err).Error("Invoice amount does not match LSP fee")
 			return nil, errors.New("invoice amount does not match LSP fee")
 		}
 	}
 
-	channelSize, err := strconv.ParseUint(newAutoChannelResponse.LspBalanceSat, 10, 64)
+	channelSizeSat, err := strconv.ParseUint(newAutoChannelResponse.LspBalanceSat, 10, 64)
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
 			"url": url,
@@ -1365,12 +1365,12 @@ func (svc *albyOAuthService) requestAutoChannel(ctx context.Context, url string,
 
 	return &AutoChannelResponse{
 		Invoice:         invoice,
-		Fee:             fee,
-		FeeSat:          fee,
-		FeeMsat:         fee * 1000,
-		ChannelSize:     channelSize,
-		ChannelSizeSat:  channelSize,
-		ChannelSizeMsat: channelSize * 1000,
+		Fee:             feeSat,
+		FeeSat:          feeSat,
+		FeeMsat:         feeSat * 1000,
+		ChannelSize:     channelSizeSat,
+		ChannelSizeSat:  channelSizeSat,
+		ChannelSizeMsat: channelSizeSat * 1000,
 	}, nil
 }
 
