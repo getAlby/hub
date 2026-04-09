@@ -68,7 +68,7 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApp } from "src/hooks/useApp";
 import { useAppsForAppStoreApp } from "src/hooks/useApps";
 import { useCapabilities } from "src/hooks/useCapabilities";
-import { cn } from "src/lib/utils";
+import { cn, getAppDisplayName } from "src/lib/utils";
 
 function AppDetails() {
   const { id } = useParams() as { id: string };
@@ -181,8 +181,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
     }
   };
 
-  const appName =
-    app.name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : app.name;
+  const appName = getAppDisplayName(app.name);
 
   const appStoreApp = getAppStoreApp(app);
   const connectedApps = useAppsForAppStoreApp(appStoreApp);

@@ -9,8 +9,8 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { LinkButton } from "src/components/ui/custom/link-button";
-import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
 import { useApps } from "src/hooks/useApps";
+import { getAppDisplayName } from "src/lib/utils";
 
 export function LatestUsedAppsWidget() {
   const { data: appsData } = useApps(
@@ -42,7 +42,7 @@ export function LatestUsedAppsWidget() {
             <div className="flex items-center w-full gap-4">
               <AppAvatar app={app} className="w-14 h-14 rounded-lg" />
               <p className="text-sm font-medium flex-1 truncate">
-                {app.name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : app.name}
+                {getAppDisplayName(app.name)}
               </p>
               <p className="text-xs text-muted-foreground">
                 {app.lastSettledTransactionAt
