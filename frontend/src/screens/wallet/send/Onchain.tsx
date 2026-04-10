@@ -215,7 +215,7 @@ function OnchainForm({
         </div>
       </div>
       <div className="flex items-center justify-between">
-        <Label htmlFor="swap" className="font-medium text-sm cursor-pointer">
+        <Label htmlFor="swap" className="cursor-pointer">
           Swap from Spending Balance
         </Label>
         <Switch id="swap" onCheckedChange={setSwap} />
@@ -415,7 +415,7 @@ function SwapForm({
         </div>
       </div>
       <div className="flex items-center justify-between">
-        <Label htmlFor="swap" className="font-medium text-sm cursor-pointer">
+        <Label htmlFor="swap" className="cursor-pointer">
           Swap from Spending Balance
         </Label>
         <Switch id="swap" checked onCheckedChange={setSwap} />

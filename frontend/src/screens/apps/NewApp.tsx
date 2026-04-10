@@ -422,7 +422,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                                 />
                                 <Label
                                   htmlFor="superuser"
-                                  className="ml-2 text-sm text-foreground flex flex-col items-start justify-center cursor-pointer"
+                                  className="ml-2 flex flex-col items-start justify-center cursor-pointer"
                                 >
                                   <div>
                                     Enable accepting connections to other apps
