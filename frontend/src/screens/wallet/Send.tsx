@@ -47,6 +47,9 @@ export default function Send() {
         return;
       }
       if (bip21.address) {
+        if (!validateBitcoinAddress(bip21.address)) {
+          throw new Error("invalid bitcoin address");
+        }
         navigate(`/wallet/send/onchain`, {
           state: {
             args: {
