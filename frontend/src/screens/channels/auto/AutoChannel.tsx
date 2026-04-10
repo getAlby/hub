@@ -182,7 +182,10 @@ export function AutoChannel() {
                     className="mr-2"
                   />
                   <div className="grid gap-1.5 leading-none">
-                    <Label htmlFor="public-channel" className="cursor-pointer">
+                    <Label
+                      htmlFor="public-channel"
+                      className="cursor-pointer text-foreground"
+                    >
                       Public Channel
                     </Label>
                     <p className="text-xs text-muted-foreground">
