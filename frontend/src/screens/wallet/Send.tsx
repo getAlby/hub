@@ -1,8 +1,12 @@
+import { Invoice } from "@getalby/lightning-tools/bolt11";
+import { LightningAddress } from "@getalby/lightning-tools/lnurl";
 import { validate as validateBitcoinAddress } from "bitcoin-address-validation";
 import { ClipboardPasteIcon } from "lucide-react";
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
+import AppHeader from "src/components/AppHeader";
+import { CryptoSwapAlert } from "src/components/CryptoSwapAlert";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
@@ -10,20 +14,58 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
-
-import { Invoice } from "@getalby/lightning-tools/bolt11";
-import { LightningAddress } from "@getalby/lightning-tools/lnurl";
-import AppHeader from "src/components/AppHeader";
-import { CryptoSwapAlert } from "src/components/CryptoSwapAlert";
+import { parseBip21 } from "src/utils/parseBip21";
 
 export default function Send() {
   const { data: balances } = useBalances();
   const { data: channels } = useChannels();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [recipient, setRecipient] = React.useState("");
   const [isLoading, setLoading] = React.useState(false);
   const [showSwapAlert, setShowSwapAlert] = React.useState(false);
+
+  React.useEffect(() => {
+    const uri = searchParams.get("bip21");
+    if (!uri) {
+      return;
+    }
+    try {
+      const bip21 = parseBip21(uri);
+      if (bip21.lightning) {
+        const invoice = new Invoice({ pr: bip21.lightning });
+        if (invoice.satoshi === 0) {
+          navigate(`/wallet/send/0-amount`, {
+            state: { args: { paymentRequest: invoice } },
+            replace: true,
+          });
+        } else {
+          navigate(`/wallet/send/confirm-payment`, {
+            state: { args: { paymentRequest: invoice } },
+            replace: true,
+          });
+        }
+        return;
+      }
+      if (bip21.address) {
+        if (!validateBitcoinAddress(bip21.address)) {
+          throw new Error("invalid bitcoin address");
+        }
+        navigate(`/wallet/send/onchain`, {
+          state: {
+            args: {
+              address: bip21.address,
+              amount: bip21.amount ? String(bip21.amount) : undefined,
+            },
+          },
+          replace: true,
+        });
+      }
+    } catch (error) {
+      toast.error("Invalid Bitcoin URI", { description: "" + error });
+    }
+  }, [searchParams, navigate]);
 
   const paste = async () => {
     const text = await navigator.clipboard.readText();
