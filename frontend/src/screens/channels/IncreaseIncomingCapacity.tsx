@@ -441,10 +441,7 @@ function NewChannelInternal({
                   }
                 />
                 <div className="grid gap-1.5 leading-none">
-                  <Label
-                    htmlFor="public-channel"
-                    className="flex items-center gap-2"
-                  >
+                  <Label htmlFor="public-channel" className="cursor-pointer">
                     Public Channel
                   </Label>
                   <p className="text-xs text-muted-foreground">

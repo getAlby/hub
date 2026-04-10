@@ -83,7 +83,7 @@ export default function MnemonicDialog({
                 onCheckedChange={() => setIsBackedUp(!backedUp)}
                 className="mt-0.5"
               />
-              <Label htmlFor="backup" className="ml-2 text-sm text-foreground">
+              <Label htmlFor="backup" className="ml-2 cursor-pointer">
                 I've backed up my recovery phrase to my wallet in a private and
                 secure place
               </Label>
@@ -98,10 +98,7 @@ export default function MnemonicDialog({
                   onCheckedChange={() => setIsBackedUp2(!backedUp2)}
                   className="mt-0.5"
                 />
-                <Label
-                  htmlFor="backup2"
-                  className="ml-2 text-sm text-foreground"
-                >
+                <Label htmlFor="backup2" className="ml-2 cursor-pointer">
                   I understand the recovery phrase AND a backup of my hub data
                   directory after each channel opening is required to recover
                   funds from my lightning channels.

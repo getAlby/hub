@@ -113,7 +113,7 @@ export function ImportMnemonic() {
           required
           onCheckedChange={() => setIsBackedUp(!backedUp)}
         />
-        <Label htmlFor="confirmedNoChannels" className="ml-2">
+        <Label htmlFor="confirmedNoChannels" className="ml-2 cursor-pointer">
           I don't have another Alby Hub to migrate or open channels (funds from
           channels will be lost!).
         </Label>

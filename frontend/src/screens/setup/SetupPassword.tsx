@@ -89,7 +89,7 @@ export function SetupPassword() {
               />
               <Label
                 htmlFor="securePassword"
-                className="ml-2 text-foreground leading-4"
+                className="ml-2 leading-4 cursor-pointer"
               >
                 I've secured this password in a safe place
               </Label>
@@ -105,7 +105,7 @@ export function SetupPassword() {
                 />
                 <Label
                   htmlFor="securePassword2"
-                  className="ml-2 leading-4 font-semibold"
+                  className="ml-2 leading-4 cursor-pointer"
                 >
                   I understand this password cannot be recovered
                 </Label>

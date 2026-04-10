@@ -151,7 +151,7 @@ export default function DeveloperSettings() {
                     <RadioGroupItem value="readonly" id="readonly" />
                     <Label
                       htmlFor="readonly"
-                      className="flex-1  flex flex-col justify-center items-start cursor-pointer"
+                      className="flex-1 flex flex-col justify-center items-start cursor-pointer"
                     >
                       <div className="font-medium">Read-Only Access</div>
                       <div className="text-sm text-muted-foreground">
