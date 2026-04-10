@@ -9,7 +9,8 @@ export function useRegisterProtocolHandler(basePath: string) {
     }
 
     try {
-      const handlerUrl = `${window.location.origin}${basePath}/wallet/send?bip21=%s`;
+      const normalizedBasePath = basePath.replace(/\/$/, "");
+      const handlerUrl = `${window.location.origin}${normalizedBasePath}/wallet/send?bip21=%s`;
       navigator.registerProtocolHandler("bitcoin", handlerUrl);
     } catch (e) {
       console.error("Failed to register bitcoin protocol handler", e);
