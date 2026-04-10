@@ -1,4 +1,3 @@
-import React from "react";
 import {
   RouterProvider,
   createBrowserRouter,
@@ -8,6 +7,7 @@ import { Toaster } from "src/components/ui/sonner";
 import { ThemeProvider } from "src/components/ui/theme-provider";
 import { TouchProvider } from "src/components/ui/tooltip";
 import { useInfo } from "src/hooks/useInfo";
+import { useRegisterProtocolHandler } from "src/hooks/useRegisterProtocolHandler";
 import routes from "src/routes.tsx";
 import { isHttpMode } from "src/utils/isHttpMode";
 
@@ -23,17 +23,7 @@ const router = createRouterFunc(routes, {
 function App() {
   const { data: info } = useInfo();
 
-  React.useEffect(() => {
-    if (!isHttpMode() || !("registerProtocolHandler" in navigator)) {
-      return;
-    }
-    try {
-      const handlerUrl = `${window.location.origin}${basePath}/wallet/send?bip21=%s`;
-      navigator.registerProtocolHandler("bitcoin", handlerUrl);
-    } catch (e) {
-      console.error("Failed to register bitcoin protocol handler", e);
-    }
-  }, []);
+  useRegisterProtocolHandler(basePath);
 
   return (
     <>
