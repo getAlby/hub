@@ -854,10 +854,40 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 				}
 
 				if result.RowsAffected == 0 {
-					// Note: payments made from outside cannot be associated with an app
-					// for now this is disabled as it only applies to LND, and we do not import LND transactions either.
-					logger.Logger.WithField("payment_hash", lnClientTransaction.PaymentHash).Error("failed to mark payment as sent: payment not found")
-					return NewNotFoundError()
+					result := tx.Limit(1).Find(&dbTransaction, &db.Transaction{
+						Type:        constants.TRANSACTION_TYPE_OUTGOING,
+						PaymentHash: lnClientTransaction.PaymentHash,
+					})
+
+					if result.Error != nil {
+						return result.Error
+					}
+
+					if result.RowsAffected == 0 {
+						dbTransaction = db.Transaction{
+							Type:            constants.TRANSACTION_TYPE_OUTGOING,
+							State:           constants.TRANSACTION_STATE_PENDING,
+							AmountMsat:      uint64(lnClientTransaction.Amount),
+							FeeReserveMsat:  0,
+							PaymentRequest:  lnClientTransaction.Invoice,
+							PaymentHash:     lnClientTransaction.PaymentHash,
+							Description:     lnClientTransaction.Description,
+							DescriptionHash: lnClientTransaction.DescriptionHash,
+						}
+
+						if lnClientTransaction.ExpiresAt != nil {
+							expiresAtValue := time.Unix(*lnClientTransaction.ExpiresAt, 0)
+							dbTransaction.ExpiresAt = &expiresAtValue
+						}
+
+						err := tx.Create(&dbTransaction).Error
+						if err != nil {
+							logger.Logger.WithFields(logrus.Fields{
+								"payment_hash": lnClientTransaction.PaymentHash,
+							}).WithError(err).Error("Failed to create outgoing transaction")
+							return err
+						}
+					}
 				}
 			}
 
@@ -1374,13 +1404,13 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 		return &existingSettledTransaction, nil
 	}
 
-	now := time.Now()
+	settledAt := time.Now()
 	err := tx.Model(dbTransaction).Updates(map[string]interface{}{
 		"State":          constants.TRANSACTION_STATE_SETTLED,
 		"Preimage":       &preimage,
 		"FeeMsat":        fee,
 		"FeeReserveMsat": 0,
-		"SettledAt":      &now,
+		"SettledAt":      &settledAt,
 		"SelfPayment":    selfPayment,
 	}).Error
 	if err != nil {
@@ -1405,28 +1435,40 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 		Properties: dbTransaction,
 	})
 
-	if dbTransaction.Type == constants.TRANSACTION_TYPE_OUTGOING && dbTransaction.AppId != nil {
-		svc.checkBudgetUsage(dbTransaction, tx)
+	if dbTransaction.AppId != nil {
+		var app db.App
+		result := tx.Limit(1).Find(&app, &db.App{
+			ID: *dbTransaction.AppId,
+		})
+		if result.RowsAffected == 0 {
+			logger.Logger.WithField("app_id", dbTransaction.AppId).Error("failed to find app by id")
+			return dbTransaction, nil
+		}
+
+		svc.updateAppLastSettledTransactionAt(&app, tx, &settledAt)
+
+		if dbTransaction.Type == constants.TRANSACTION_TYPE_OUTGOING {
+			svc.checkBudgetUsage(&app, dbTransaction, tx)
+		}
 	}
 
 	return dbTransaction, nil
 }
 
-func (svc *transactionsService) checkBudgetUsage(dbTransaction *db.Transaction, gormTransaction *gorm.DB) {
-	var app db.App
-	result := gormTransaction.Limit(1).Find(&app, &db.App{
-		ID: *dbTransaction.AppId,
-	})
-	if result.RowsAffected == 0 {
-		logger.Logger.WithField("app_id", dbTransaction.AppId).Error("failed to find app by id")
+func (svc *transactionsService) updateAppLastSettledTransactionAt(app *db.App, gormTransaction *gorm.DB, settledAt *time.Time) {
+	if err := gormTransaction.Model(app).Update("last_settled_transaction_at", settledAt).Error; err != nil {
+		logger.Logger.WithField("app_id", app.ID).WithError(err).Error("failed to update app last settled transaction time")
 		return
 	}
+}
+
+func (svc *transactionsService) checkBudgetUsage(app *db.App, dbTransaction *db.Transaction, gormTransaction *gorm.DB) {
 	if app.Isolated {
 		return
 	}
 
 	var appPermission db.AppPermission
-	result = gormTransaction.Limit(1).Find(&appPermission, &db.AppPermission{
+	result := gormTransaction.Limit(1).Find(&appPermission, &db.AppPermission{
 		AppId: app.ID,
 		Scope: constants.PAY_INVOICE_SCOPE,
 	})

@@ -1,6 +1,6 @@
 import {
   AlertTriangleIcon,
-  ChevronDown,
+  ChevronDownIcon,
   CopyIcon,
   ExternalLinkIcon,
   InfoIcon,
@@ -125,6 +125,7 @@ export default function WithdrawOnchainFunds() {
     return (
       <div className="grid gap-5">
         <AppHeader
+          pageTitle="Withdrawal Transaction Broadcasted"
           title="Withdrawal Transaction Broadcasted"
           description={
             "You will receive the funds at the destination after the transaction is confirmed"
@@ -167,6 +168,7 @@ export default function WithdrawOnchainFunds() {
   return (
     <div className="grid gap-5">
       <AppHeader
+        pageTitle="Withdraw On-Chain Balance"
         title="Withdraw On-Chain Balance"
         description="Withdraw your onchain funds to another bitcoin wallet"
       />
@@ -310,7 +312,7 @@ export default function WithdrawOnchainFunds() {
                   className="text-muted-foreground text-xs"
                   onClick={() => setShowAdvanced((current) => !current)}
                 >
-                  <ChevronDown />
+                  <ChevronDownIcon />
                   Advanced Options
                 </Button>
               )}

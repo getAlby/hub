@@ -28,7 +28,11 @@ func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 	require.NoError(t, err)
 	defer svc.Remove()
 
-	app, _, err := tests.CreateApp(svc)
+	metadata := map[string]interface{}{
+		"a": 123,
+	}
+
+	app, _, err := svc.AppsService.CreateApp("test", "", 0, "monthly", nil, []string{constants.GET_INFO_SCOPE}, false, metadata)
 	assert.NoError(t, err)
 
 	lightningAddress := "hello@getalby.com"
@@ -63,17 +67,22 @@ func TestHandleGetInfoEvent_NoPermission(t *testing.T) {
 		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
-	nodeInfo := publishedResponse.Result.(*getInfoResponse)
-	assert.Nil(t, nodeInfo.Alias)
-	assert.Nil(t, nodeInfo.Color)
-	assert.Nil(t, nodeInfo.Pubkey)
-	assert.Nil(t, nodeInfo.Network)
-	assert.Nil(t, nodeInfo.BlockHeight)
-	assert.Nil(t, nodeInfo.BlockHash)
-	assert.Nil(t, nodeInfo.LightningAddress)
+	infoResponse := publishedResponse.Result.(*getInfoResponse)
+	assert.Nil(t, infoResponse.Alias)
+	assert.Nil(t, infoResponse.Color)
+	assert.Nil(t, infoResponse.Pubkey)
+	assert.Nil(t, infoResponse.Network)
+	assert.Nil(t, infoResponse.BlockHeight)
+	assert.Nil(t, infoResponse.BlockHash)
+	require.NotNil(t, infoResponse.LightningAddress)
+	assert.Equal(t, lightningAddress, *infoResponse.LightningAddress)
 	// get_info method is always granted, but does not return pubkey
-	assert.Contains(t, nodeInfo.Methods, models.GET_INFO_METHOD)
-	assert.Equal(t, []string{}, nodeInfo.Notifications)
+	assert.Contains(t, infoResponse.Methods, models.GET_INFO_METHOD)
+	assert.Equal(t, []string{}, infoResponse.Notifications)
+	require.NotNil(t, infoResponse.Metadata)
+	assert.Equal(t, float64(123), infoResponse.Metadata.(map[string]interface{})["a"])
+	assert.Equal(t, app.ID, infoResponse.Metadata.(map[string]interface{})["id"])
+	assert.Equal(t, app.Name, infoResponse.Metadata.(map[string]interface{})["name"])
 }
 
 func TestHandleGetInfoEvent_SubwalletNoPermission(t *testing.T) {
@@ -123,17 +132,22 @@ func TestHandleGetInfoEvent_SubwalletNoPermission(t *testing.T) {
 		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
-	nodeInfo := publishedResponse.Result.(*getInfoResponse)
-	assert.Nil(t, nodeInfo.Alias)
-	assert.Nil(t, nodeInfo.Color)
-	assert.Nil(t, nodeInfo.Pubkey)
-	assert.Nil(t, nodeInfo.Network)
-	assert.Nil(t, nodeInfo.BlockHeight)
-	assert.Nil(t, nodeInfo.BlockHash)
-	assert.Nil(t, nodeInfo.LightningAddress)
+	infoResponse := publishedResponse.Result.(*getInfoResponse)
+	assert.Nil(t, infoResponse.Alias)
+	assert.Nil(t, infoResponse.Color)
+	assert.Nil(t, infoResponse.Pubkey)
+	assert.Nil(t, infoResponse.Network)
+	assert.Nil(t, infoResponse.BlockHeight)
+	assert.Nil(t, infoResponse.BlockHash)
+	require.NotNil(t, infoResponse.LightningAddress)
+	assert.Equal(t, lightningAddress, *infoResponse.LightningAddress)
 	// get_info method is always granted, but does not return pubkey
-	assert.Contains(t, nodeInfo.Methods, models.GET_INFO_METHOD)
-	assert.Equal(t, []string{}, nodeInfo.Notifications)
+	assert.Contains(t, infoResponse.Methods, models.GET_INFO_METHOD)
+	assert.Equal(t, []string{}, infoResponse.Notifications)
+	require.NotNil(t, infoResponse.Metadata)
+	assert.Equal(t, lightningAddress, infoResponse.Metadata.(map[string]interface{})["lud16"])
+	assert.Equal(t, app.ID, infoResponse.Metadata.(map[string]interface{})["id"])
+	assert.Equal(t, app.Name, infoResponse.Metadata.(map[string]interface{})["name"])
 }
 
 func TestHandleGetInfoEvent_WithPermission(t *testing.T) {
@@ -171,15 +185,15 @@ func TestHandleGetInfoEvent_WithPermission(t *testing.T) {
 		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
-	nodeInfo := publishedResponse.Result.(*getInfoResponse)
-	assert.Equal(t, tests.MockNodeInfo.Alias, *nodeInfo.Alias)
-	assert.Equal(t, tests.MockNodeInfo.Color, *nodeInfo.Color)
-	assert.Equal(t, tests.MockNodeInfo.Pubkey, *nodeInfo.Pubkey)
-	assert.Equal(t, tests.MockNodeInfo.Network, *nodeInfo.Network)
-	assert.Equal(t, tests.MockNodeInfo.BlockHeight, *nodeInfo.BlockHeight)
-	assert.Equal(t, tests.MockNodeInfo.BlockHash, *nodeInfo.BlockHash)
-	assert.Contains(t, nodeInfo.Methods, "get_info")
-	assert.Equal(t, []string{}, nodeInfo.Notifications)
+	infoResponse := publishedResponse.Result.(*getInfoResponse)
+	assert.Equal(t, tests.MockNodeInfo.Alias, *infoResponse.Alias)
+	assert.Equal(t, tests.MockNodeInfo.Color, *infoResponse.Color)
+	assert.Equal(t, tests.MockNodeInfo.Pubkey, *infoResponse.Pubkey)
+	assert.Equal(t, tests.MockNodeInfo.Network, *infoResponse.Network)
+	assert.Equal(t, tests.MockNodeInfo.BlockHeight, *infoResponse.BlockHeight)
+	assert.Equal(t, tests.MockNodeInfo.BlockHash, *infoResponse.BlockHash)
+	assert.Contains(t, infoResponse.Methods, "get_info")
+	assert.Equal(t, []string{}, infoResponse.Notifications)
 }
 
 func TestHandleGetInfoEvent_WithMetadata(t *testing.T) {
@@ -224,19 +238,17 @@ func TestHandleGetInfoEvent_WithMetadata(t *testing.T) {
 		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
-	nodeInfo := publishedResponse.Result.(*getInfoResponse)
-	assert.Equal(t, tests.MockNodeInfo.Alias, *nodeInfo.Alias)
-	assert.Equal(t, tests.MockNodeInfo.Color, *nodeInfo.Color)
-	assert.Equal(t, tests.MockNodeInfo.Pubkey, *nodeInfo.Pubkey)
-	assert.Equal(t, tests.MockNodeInfo.Network, *nodeInfo.Network)
-	assert.Equal(t, tests.MockNodeInfo.BlockHeight, *nodeInfo.BlockHeight)
-	assert.Equal(t, tests.MockNodeInfo.BlockHash, *nodeInfo.BlockHash)
-	assert.Equal(t, lightningAddress, *nodeInfo.LightningAddress)
-	assert.Contains(t, nodeInfo.Methods, "get_info")
-	assert.Equal(t, []string{}, nodeInfo.Notifications)
-
-	assert.NoError(t, err)
-	assert.Equal(t, float64(123), nodeInfo.Metadata.(map[string]interface{})["a"])
+	infoResponse := publishedResponse.Result.(*getInfoResponse)
+	assert.Equal(t, tests.MockNodeInfo.Alias, *infoResponse.Alias)
+	assert.Equal(t, tests.MockNodeInfo.Color, *infoResponse.Color)
+	assert.Equal(t, tests.MockNodeInfo.Pubkey, *infoResponse.Pubkey)
+	assert.Equal(t, tests.MockNodeInfo.Network, *infoResponse.Network)
+	assert.Equal(t, tests.MockNodeInfo.BlockHeight, *infoResponse.BlockHeight)
+	assert.Equal(t, tests.MockNodeInfo.BlockHash, *infoResponse.BlockHash)
+	assert.Equal(t, lightningAddress, *infoResponse.LightningAddress)
+	assert.Contains(t, infoResponse.Methods, "get_info")
+	assert.Equal(t, []string{}, infoResponse.Notifications)
+	assert.Equal(t, float64(123), infoResponse.Metadata.(map[string]interface{})["a"])
 }
 
 func TestHandleGetInfoEvent_SubwalletWithMetadata(t *testing.T) {
@@ -283,19 +295,17 @@ func TestHandleGetInfoEvent_SubwalletWithMetadata(t *testing.T) {
 		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
-	nodeInfo := publishedResponse.Result.(*getInfoResponse)
-	assert.Equal(t, tests.MockNodeInfo.Alias, *nodeInfo.Alias)
-	assert.Equal(t, tests.MockNodeInfo.Color, *nodeInfo.Color)
-	assert.Equal(t, tests.MockNodeInfo.Pubkey, *nodeInfo.Pubkey)
-	assert.Equal(t, tests.MockNodeInfo.Network, *nodeInfo.Network)
-	assert.Equal(t, tests.MockNodeInfo.BlockHeight, *nodeInfo.BlockHeight)
-	assert.Equal(t, tests.MockNodeInfo.BlockHash, *nodeInfo.BlockHash)
-	assert.Equal(t, lightningAddress, *nodeInfo.LightningAddress)
-	assert.Contains(t, nodeInfo.Methods, "get_info")
-	assert.Equal(t, []string{}, nodeInfo.Notifications)
-
-	assert.NoError(t, err)
-	assert.Equal(t, float64(123), nodeInfo.Metadata.(map[string]interface{})["a"])
+	infoResponse := publishedResponse.Result.(*getInfoResponse)
+	assert.Equal(t, tests.MockNodeInfo.Alias, *infoResponse.Alias)
+	assert.Equal(t, tests.MockNodeInfo.Color, *infoResponse.Color)
+	assert.Equal(t, tests.MockNodeInfo.Pubkey, *infoResponse.Pubkey)
+	assert.Equal(t, tests.MockNodeInfo.Network, *infoResponse.Network)
+	assert.Equal(t, tests.MockNodeInfo.BlockHeight, *infoResponse.BlockHeight)
+	assert.Equal(t, tests.MockNodeInfo.BlockHash, *infoResponse.BlockHash)
+	assert.Equal(t, lightningAddress, *infoResponse.LightningAddress)
+	assert.Contains(t, infoResponse.Methods, "get_info")
+	assert.Equal(t, []string{}, infoResponse.Notifications)
+	assert.Equal(t, float64(123), infoResponse.Metadata.(map[string]interface{})["a"])
 }
 
 func TestHandleGetInfoEvent_WithNotifications(t *testing.T) {
@@ -341,13 +351,13 @@ func TestHandleGetInfoEvent_WithNotifications(t *testing.T) {
 		HandleGetInfoEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
 
 	assert.Nil(t, publishedResponse.Error)
-	nodeInfo := publishedResponse.Result.(*getInfoResponse)
-	assert.Equal(t, tests.MockNodeInfo.Alias, *nodeInfo.Alias)
-	assert.Equal(t, tests.MockNodeInfo.Color, *nodeInfo.Color)
-	assert.Equal(t, tests.MockNodeInfo.Pubkey, *nodeInfo.Pubkey)
-	assert.Equal(t, tests.MockNodeInfo.Network, *nodeInfo.Network)
-	assert.Equal(t, tests.MockNodeInfo.BlockHeight, *nodeInfo.BlockHeight)
-	assert.Equal(t, tests.MockNodeInfo.BlockHash, *nodeInfo.BlockHash)
-	assert.Contains(t, nodeInfo.Methods, "get_info")
-	assert.Equal(t, []string{"payment_received", "payment_sent"}, nodeInfo.Notifications)
+	infoResponse := publishedResponse.Result.(*getInfoResponse)
+	assert.Equal(t, tests.MockNodeInfo.Alias, *infoResponse.Alias)
+	assert.Equal(t, tests.MockNodeInfo.Color, *infoResponse.Color)
+	assert.Equal(t, tests.MockNodeInfo.Pubkey, *infoResponse.Pubkey)
+	assert.Equal(t, tests.MockNodeInfo.Network, *infoResponse.Network)
+	assert.Equal(t, tests.MockNodeInfo.BlockHeight, *infoResponse.BlockHeight)
+	assert.Equal(t, tests.MockNodeInfo.BlockHash, *infoResponse.BlockHash)
+	assert.Contains(t, infoResponse.Methods, "get_info")
+	assert.Equal(t, []string{"payment_received", "payment_sent"}, infoResponse.Notifications)
 }

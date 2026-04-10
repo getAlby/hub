@@ -34,7 +34,7 @@ export default function Receive() {
 
   return (
     <div className="grid gap-5">
-      <AppHeader title="Receive" />
+      <AppHeader pageTitle="Receive" title="Receive" />
       <div className="w-full max-w-lg">
         {info?.albyAccountConnected && me?.lightning_address && (
           <Card>
@@ -71,7 +71,7 @@ export default function Receive() {
                 )}
                 <LinkButton to="onchain" variant="outline" className="flex-1">
                   <LinkIcon className="w-4 h-4 mr-2" />
-                  Receive from On-chain
+                  Receive from On-chain / Other Cryptocurrency
                 </LinkButton>
               </div>
             </CardContent>

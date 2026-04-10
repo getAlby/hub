@@ -73,7 +73,10 @@ export default function ReceiveOnchain() {
 
   return (
     <div className="grid gap-5">
-      <AppHeader title="Receive from On-chain" />
+      <AppHeader
+        pageTitle="Receive from On-chain"
+        title="Receive from On-chain"
+      />
       <div className="w-full max-w-lg grid gap-5">
         <MempoolAlert />
         <Tabs value={tab} onValueChange={setTab} className="w-full">

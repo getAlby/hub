@@ -1,5 +1,5 @@
 import {
-  AlertTriangle,
+  AlertTriangleIcon,
   ExternalLinkIcon,
   EyeIcon,
   Link2Icon,
@@ -75,6 +75,7 @@ export default function Backup() {
   return (
     <>
       <SettingsHeader
+        pageTitle="Backup"
         title="Backup"
         description={
           <>
@@ -107,7 +108,7 @@ export default function Backup() {
             </p>
           </div>
           <Alert variant="destructive">
-            <AlertTriangle />
+            <AlertTriangleIcon />
             <AlertTitle>Important</AlertTitle>
             <AlertDescription>
               If you lose access to your Hub and do not have your recovery

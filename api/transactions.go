@@ -15,7 +15,7 @@ import (
 func (api *api) CreateInvoice(ctx context.Context, amount uint64, description string) (*MakeInvoiceResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amount, description, "", 0, nil, lnClient, nil, nil, nil)
 	if err != nil {
@@ -27,7 +27,7 @@ func (api *api) CreateInvoice(ctx context.Context, amount uint64, description st
 func (api *api) LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 	transaction, err := api.svc.GetTransactionsService().LookupTransaction(ctx, paymentHash, nil, lnClient, nil)
 	if err != nil {
@@ -39,7 +39,7 @@ func (api *api) LookupInvoice(ctx context.Context, paymentHash string) (*LookupI
 func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 
 	forceFilterByAppId := false
@@ -66,7 +66,7 @@ func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64,
 func (api *api) SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}) (*SendPaymentResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 
 	transaction, err := api.svc.GetTransactionsService().SendPaymentSync(invoice, amountMsat, metadata, lnClient, nil, nil)
@@ -135,7 +135,7 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 func (api *api) Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, amountMsat uint64, description string) error {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return errors.New("LNClient not started")
+		return ErrLNClientNotStarted
 	}
 
 	for _, appId := range []*uint{fromAppId, toAppId} {

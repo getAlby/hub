@@ -120,6 +120,7 @@ export interface App {
   createdAt: string;
   updatedAt: string;
   lastUsedAt?: string;
+  lastSettledTransactionAt?: string;
   expiresAt?: string;
   isolated: boolean;
   balance: number;
@@ -164,6 +165,8 @@ export interface InfoResponse {
   nodeAlias: string;
   mempoolUrl: string;
   bitcoinDisplayFormat: BitcoinDisplayFormat;
+  chainDataSourceType?: string;
+  chainDataSourceAddress?: string;
   hideUpdateBanner: boolean;
 }
 
@@ -506,6 +509,13 @@ export type BitcoinRate = {
   rate: string;
   rate_float: number;
   rate_cents: number;
+};
+
+export type Currency = {
+  iso_code: string;
+  symbol: string;
+  name: string;
+  priority: number;
 };
 
 // TODO: use camel case (needs mapping in the Alby OAuth Service - see how AlbyInfo is done above)
