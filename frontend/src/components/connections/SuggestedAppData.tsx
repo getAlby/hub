@@ -26,6 +26,7 @@ import lightningMessageboard from "src/assets/suggested-apps/lightning-messagebo
 import lnbits from "src/assets/suggested-apps/lnbits.png";
 import lnvps from "src/assets/suggested-apps/lnvps.png";
 import lume from "src/assets/suggested-apps/lume.png";
+import nadanada from "src/assets/suggested-apps/nadanada.png";
 import nakapay from "src/assets/suggested-apps/nakapay.png";
 import nostrcheckserver from "src/assets/suggested-apps/nostrcheck-server.png";
 import nostrudel from "src/assets/suggested-apps/nostrudel.png";
@@ -1715,6 +1716,68 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["social-media"],
+    },
+    {
+      id: "nadanada",
+      title: "nadanada",
+      description: "No-KYC eSIM, VPN and phone numbers",
+      webLink: "https://nadanada.me?ref=getalby",
+      logo: nadanada,
+      extendedDescription:
+        "Privacy-first eSIM, VPN, and phone numbers with no account required.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://nadanada.me?ref=getalby"
+              className="font-medium text-foreground underline"
+            >
+              nadanada
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In nadanada</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>Choose a service of your choice</li>
+              <li>
+                At checkout, choose{" "}
+                <span className="font-medium text-foreground">
+                  Lightning
+                </span>{" "}
+              </li>
+              <li>
+                Click{" "}
+                <span className="font-medium text-foreground">
+                  Pay with Wallet
+                </span>
+              </li>
+              <li>
+                In the modal, click{" "}
+                <span className="font-medium text-foreground">
+                  Connect Wallet to Pay
+                </span>
+              </li>
+              <li>
+                Choose{" "}
+                <span className="font-medium text-foreground">
+                  Nostr Wallet Connect
+                </span>{" "}
+              </li>
+              <li>
+                Paste the connection secret from Alby Hub and continue to
+                confirm payment
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["misc"],
     },
     {
       id: "nakapay",
