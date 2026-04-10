@@ -41,7 +41,6 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "src/components/ui/alert-dialog";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
@@ -101,6 +100,7 @@ type AppInternalProps = {
 function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const location = useLocation();
   const [isEditingPermissions, setIsEditingPermissions] = React.useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
   const [showConnectionDetails, setShowConnectionDetails] =
     React.useState(false);
   const [showDisconnectAppDialog, setShowDisconnectAppDialog] =
@@ -185,6 +185,10 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
 
   const appStoreApp = getAppStoreApp(app);
   const connectedApps = useAppsForAppStoreApp(appStoreApp);
+  const needsConfirmation =
+    (app.isolated && !permissions.isolated) ||
+    (!app.scopes.includes("pay_invoice") &&
+      permissions.scopes.includes("pay_invoice"));
 
   return (
     <>
@@ -321,13 +325,14 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                           Cancel
                         </Button>
 
-                        {(app.isolated && !permissions.isolated) ||
-                        (!app.scopes.includes("pay_invoice") &&
-                          permissions.scopes.includes("pay_invoice")) ? (
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button type="button">Save</Button>
-                            </AlertDialogTrigger>
+                        {needsConfirmation ? (
+                          <AlertDialog
+                            open={showConfirmDialog}
+                            onOpenChange={setShowConfirmDialog}
+                          >
+                            <Button type="submit" form="app-details">
+                              Save
+                            </Button>
                             <AlertDialogContent>
                               <AlertDialogTitle>
                                 Confirm Update App
@@ -373,7 +378,9 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                             </AlertDialogContent>
                           </AlertDialog>
                         ) : (
-                          <Button onClick={handleSave}>Save</Button>
+                          <Button type="submit" form="app-details">
+                            Save
+                          </Button>
                         )}
                       </div>
                     )}
@@ -394,49 +401,76 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
               <AppUsage app={app} />
             </>
           )}
-          {isEditingPermissions && app.name !== ALBY_ACCOUNT_APP_NAME && (
+          {isEditingPermissions ? (
+            <form
+              id="app-details"
+              className="flex flex-col gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (needsConfirmation) {
+                  setShowConfirmDialog(true);
+                  return;
+                }
+                handleSave();
+              }}
+            >
+              {app.name !== ALBY_ACCOUNT_APP_NAME && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>App Name</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-row gap-2 items-center">
+                      <Input
+                        autoFocus
+                        type="text"
+                        name="name"
+                        value={name}
+                        id="name"
+                        onChange={(e) => setName(e.target.value)}
+                        required
+                        autoComplete="off"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    <div className="flex flex-row justify-between items-center">
+                      Permissions
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Permissions
+                    capabilities={capabilities}
+                    permissions={permissions}
+                    setPermissions={setPermissions}
+                  />
+                </CardContent>
+              </Card>
+            </form>
+          ) : (
             <Card>
               <CardHeader>
-                <CardTitle>App Name</CardTitle>
+                <CardTitle>
+                  <div className="flex flex-row justify-between items-center">
+                    Permissions
+                  </div>
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-row gap-2 items-center">
-                  <Input
-                    autoFocus
-                    type="text"
-                    name="name"
-                    value={name}
-                    id="name"
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    autoComplete="off"
-                  />
-                </div>
+                <Permissions
+                  capabilities={capabilities}
+                  permissions={savedPermissions}
+                  setPermissions={setPermissions}
+                  readOnly
+                />
               </CardContent>
             </Card>
           )}
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                <div className="flex flex-row justify-between items-center">
-                  Permissions
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Permissions
-                capabilities={capabilities}
-                permissions={
-                  isEditingPermissions ? permissions : savedPermissions
-                }
-                setPermissions={setPermissions}
-                readOnly={!isEditingPermissions}
-                isNewConnection={false}
-                budgetUsage={app.budgetUsage}
-                showBudgetUsage={isEditingPermissions}
-              />
-            </CardContent>
-          </Card>
           {!isEditingPermissions && (
             <>
               {showConnectionDetails && (
