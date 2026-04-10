@@ -1720,7 +1720,7 @@ export const appStoreApps: AppStoreApp[] = (
       id: "nadanada",
       title: "nadanada",
       description: "No-KYC eSIM, VPN and phone numbers",
-      webLink: "https://nadanada.me",
+      webLink: "https://nadanada.me?ref=getalby",
       logo: nadanada,
       extendedDescription:
         "Privacy-first eSIM, VPN, and phone numbers with no account required.",
@@ -1729,7 +1729,7 @@ export const appStoreApps: AppStoreApp[] = (
           <p className="text-muted-foreground">
             Open{" "}
             <ExternalLink
-              to="https://nadanada.me"
+              to="https://nadanada.me?ref=getalby"
               className="font-medium text-foreground underline"
             >
               nadanada
@@ -1743,20 +1743,35 @@ export const appStoreApps: AppStoreApp[] = (
           <div>
             <h3 className="font-medium">In nadanada</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
+              <li>Choose a service of your choice</li>
               <li>
-                Open{" "}
-                <span className="font-medium text-foreground">Account</span> →{" "}
+                At checkout, choose{" "}
                 <span className="font-medium text-foreground">
-                  Wallet Settings
+                  Lightning
+                </span>{" "}
+              </li>
+              <li>
+                Click{" "}
+                <span className="font-medium text-foreground">
+                  Pay with Wallet
+                </span>
+              </li>
+              <li>
+                In the modal, click{" "}
+                <span className="font-medium text-foreground">
+                  Connect Wallet to Pay
                 </span>
               </li>
               <li>
                 Choose{" "}
                 <span className="font-medium text-foreground">
                   Nostr Wallet Connect
-                </span>
+                </span>{" "}
               </li>
-              <li>Paste the connection secret from Alby Hub</li>
+              <li>
+                Paste the connection secret from Alby Hub and continue to
+                confirm payment
+              </li>
             </ul>
           </div>
         </>
