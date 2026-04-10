@@ -410,14 +410,6 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                                 capabilities={capabilities}
                                 permissions={permissions}
                                 setPermissions={setPermissions}
-                                isNewConnection
-                                scopesReadOnly={
-                                  !!reqMethodsParam ||
-                                  !!notificationTypesParam ||
-                                  !!isolatedParam
-                                }
-                                budgetReadOnly={!!budgetMaxAmountMsatParam}
-                                expiresAtReadOnly={!!expiresAtParam}
                               />
                             </div>
                             {appStoreApp?.superuser && (

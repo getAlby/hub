@@ -3,7 +3,6 @@ import React from "react";
 import BudgetAmountSelect from "src/components/BudgetAmountSelect";
 import BudgetRenewalSelect from "src/components/BudgetRenewalSelect";
 import ExpirySelect from "src/components/ExpirySelect";
-import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Scopes from "src/components/Scopes";
 import { Badge } from "src/components/ui/badge";
 import { Switch } from "src/components/ui/switch";
@@ -26,25 +25,13 @@ interface PermissionsProps {
   permissions: AppPermissions;
   setPermissions?: React.Dispatch<React.SetStateAction<AppPermissions>>;
   readOnly?: boolean;
-  scopesReadOnly?: boolean;
-  budgetReadOnly?: boolean;
-  expiresAtReadOnly?: boolean;
-  budgetUsage?: number;
-  isNewConnection: boolean;
-  showBudgetUsage?: boolean;
 }
 
 const Permissions: React.FC<PermissionsProps> = ({
   capabilities,
   permissions,
   setPermissions,
-  isNewConnection,
-  budgetUsage,
   readOnly,
-  scopesReadOnly,
-  budgetReadOnly,
-  expiresAtReadOnly,
-  showBudgetUsage = true,
 }) => {
   const [showBudgetOptions, setShowBudgetOptions] = React.useState(
     permissions.scopes.includes("pay_invoice") && permissions.maxAmount > 0
@@ -93,13 +80,12 @@ const Permissions: React.FC<PermissionsProps> = ({
 
   return (
     <div className={cn("space-y-4", !readOnly && "max-w-lg")}>
-      {!readOnly && !scopesReadOnly ? (
+      {!readOnly ? (
         <Scopes
           capabilities={capabilities}
           scopes={permissions.scopes}
           isolated={permissions.isolated}
           onScopesChanged={onScopesChanged}
-          isNewConnection={isNewConnection}
         />
       ) : (
         <>
@@ -124,88 +110,53 @@ const Permissions: React.FC<PermissionsProps> = ({
         </>
       )}
 
-      {permissions.scopes.includes("pay_invoice") && showBudgetUsage && (
-        <>
-          {!readOnly && !budgetReadOnly ? (
-            <div className="rounded-lg border p-4">
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="budget-toggle"
-                  className="flex items-center gap-2 cursor-pointer"
-                >
-                  <CoinsIcon className="size-5 text-muted-foreground" />
-                  <div className="flex flex-col gap-0.5">
-                    <p className="text-sm font-medium">Budget</p>
-                    <p className="text-xs text-muted-foreground">
-                      Limit how much this app can spend
-                    </p>
-                  </div>
-                </label>
-                <Switch
-                  id="budget-toggle"
-                  checked={showBudgetOptions}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      handleBudgetRenewalChange(DEFAULT_APP_BUDGET_RENEWAL);
-                      handleBudgetMaxAmountChange(DEFAULT_APP_BUDGET_SATS);
-                    } else {
-                      handleBudgetRenewalChange("never");
-                      handleBudgetMaxAmountChange(0);
-                    }
-                    setShowBudgetOptions(checked);
-                  }}
-                />
-              </div>
-              {showBudgetOptions && (
-                <div className="mt-4">
-                  <BudgetRenewalSelect
-                    value={permissions.budgetRenewal}
-                    onChange={handleBudgetRenewalChange}
-                  />
-                  <BudgetAmountSelect
-                    value={permissions.maxAmount}
-                    onChange={handleBudgetMaxAmountChange}
-                  />
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="pl-4 ml-2 border-l-2 border-l-primary mb-4">
-              <div className="flex flex-col gap-2 text-muted-foreground text-sm">
-                <p className="capitalize">
-                  <span className="text-primary font-medium">
-                    Budget Renewal:
-                  </span>{" "}
-                  {permissions.budgetRenewal || "Never"}
-                </p>
-                <p className="slashed-zero">
-                  <span className="text-primary font-medium">
-                    Budget Amount:
-                  </span>{" "}
-                  {permissions.maxAmount ? (
-                    <FormattedBitcoinAmount
-                      amount={permissions.maxAmount * 1000}
-                    />
-                  ) : (
-                    "∞"
-                  )}{" "}
-                  {!isNewConnection && (
-                    <>
-                      (
-                      <FormattedBitcoinAmount
-                        amount={(budgetUsage || 0) * 1000}
-                      />{" "}
-                      used)
-                    </>
-                  )}
+      {/* We skip read only component here as budget is shown in AppUsage */}
+      {permissions.scopes.includes("pay_invoice") && !readOnly && (
+        <div className="rounded-lg border p-4">
+          <div className="flex items-center justify-between">
+            <label
+              htmlFor="budget-toggle"
+              className="flex items-center gap-2 cursor-pointer"
+            >
+              <CoinsIcon className="size-5 text-muted-foreground" />
+              <div className="flex flex-col gap-0.5">
+                <p className="text-sm font-medium">Budget</p>
+                <p className="text-xs text-muted-foreground">
+                  Limit how much this app can spend
                 </p>
               </div>
+            </label>
+            <Switch
+              id="budget-toggle"
+              checked={showBudgetOptions}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  handleBudgetRenewalChange(DEFAULT_APP_BUDGET_RENEWAL);
+                  handleBudgetMaxAmountChange(DEFAULT_APP_BUDGET_SATS);
+                } else {
+                  handleBudgetRenewalChange("never");
+                  handleBudgetMaxAmountChange(0);
+                }
+                setShowBudgetOptions(checked);
+              }}
+            />
+          </div>
+          {showBudgetOptions && (
+            <div className="mt-4">
+              <BudgetRenewalSelect
+                value={permissions.budgetRenewal}
+                onChange={handleBudgetRenewalChange}
+              />
+              <BudgetAmountSelect
+                value={permissions.maxAmount}
+                onChange={handleBudgetMaxAmountChange}
+              />
             </div>
           )}
-        </>
+        </div>
       )}
 
-      {!readOnly && !expiresAtReadOnly ? (
+      {!readOnly ? (
         <div className="rounded-lg border p-4">
           <div className="flex items-center justify-between">
             <label

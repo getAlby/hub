@@ -449,10 +449,6 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                     capabilities={capabilities}
                     permissions={permissions}
                     setPermissions={setPermissions}
-                    readOnly={false}
-                    isNewConnection={false}
-                    budgetUsage={app.budgetUsage}
-                    showBudgetUsage
                   />
                 </CardContent>
               </Card>
@@ -472,9 +468,6 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                   permissions={savedPermissions}
                   setPermissions={setPermissions}
                   readOnly
-                  isNewConnection={false}
-                  budgetUsage={app.budgetUsage}
-                  showBudgetUsage={false}
                 />
               </CardContent>
             </Card>

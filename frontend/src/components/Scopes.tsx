@@ -50,7 +50,6 @@ interface ScopesProps {
   capabilities: WalletCapabilities;
   scopes: Scope[];
   isolated: boolean;
-  isNewConnection: boolean;
   onScopesChanged: (scopes: Scope[], isolated: boolean) => void;
 }
 
