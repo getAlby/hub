@@ -27,12 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "src/components/ui/select";
-import {
-  DarkMode,
-  Theme,
-  Themes,
-  useTheme,
-} from "src/components/ui/theme-provider";
+import { DarkMode, Themes, useTheme } from "src/components/ui/theme-provider";
 import {
   BITCOIN_DISPLAY_FORMAT_BIP177,
   BITCOIN_DISPLAY_FORMAT_SATS,
@@ -44,22 +39,9 @@ import { cn } from "src/lib/utils";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
-const themeColors: Record<
-  Theme,
-  { bg: string; primary: string; accent: string }
-> = {
-  default: { bg: "#ffffff", primary: "#171717", accent: "#f5f5f5" },
-  alby: { bg: "#1a1a1a", primary: "#ffdf6f", accent: "#2a2a2a" },
-  bitcoin: { bg: "#1a1a1a", primary: "#e08a00", accent: "#2a2a2a" },
-  nostr: { bg: "#1e1a2e", primary: "#6b21a8", accent: "#2a2540" },
-  matrix: { bg: "#0a1a0a", primary: "#22c55e", accent: "#0f2a0f" },
-  ghibli: { bg: "#e8dfc8", primary: "#6a9a42", accent: "#d4c9ae" },
-  claymorphism: { bg: "#ebe8e4", primary: "#6d45d8", accent: "#ddd8d2" },
-};
-
 function Settings() {
   const { data: albyMe } = useAlbyMe();
-  const { theme, darkMode, setTheme, setDarkMode } = useTheme();
+  const { theme, darkMode, isDarkMode, setTheme, setDarkMode } = useTheme();
   const { currencies, isLoading: isCurrenciesLoading } = useCurrencies();
 
   const { data: info, mutate: reloadInfo } = useInfo();
@@ -145,7 +127,7 @@ function Settings() {
                   const isPaidTheme = paidThemes.includes(t);
                   const isDisabled = isPaidTheme && !hasPlan;
                   const isSelected = theme === t;
-                  const colors = themeColors[t];
+                  const previewClass = cn(`theme-${t}`, isDarkMode && "dark");
 
                   const themeCard = (
                     <button
@@ -170,35 +152,20 @@ function Settings() {
                         isDisabled && "opacity-50 hover:border-border"
                       )}
                     >
-                      {/* Mini preview */}
+                      {/* Mini preview using actual theme CSS variables */}
                       <div
-                        className="rounded-md w-full aspect-16/10 flex flex-col overflow-hidden"
-                        style={{ backgroundColor: colors.bg }}
+                        className={cn(
+                          "rounded-md w-full aspect-16/10 flex flex-col overflow-hidden bg-background",
+                          previewClass
+                        )}
                       >
-                        {/* Simulated header bar */}
-                        <div
-                          className="h-2 w-full"
-                          style={{ backgroundColor: colors.primary }}
-                        />
-                        {/* Simulated content */}
+                        <div className="h-2 w-full bg-primary" />
                         <div className="flex-1 p-1.5 flex flex-col gap-1">
-                          <div
-                            className="h-1 w-3/4 rounded-full"
-                            style={{ backgroundColor: colors.accent }}
-                          />
-                          <div
-                            className="h-1 w-1/2 rounded-full"
-                            style={{ backgroundColor: colors.accent }}
-                          />
+                          <div className="h-1 w-3/4 rounded-full bg-muted" />
+                          <div className="h-1 w-1/2 rounded-full bg-muted" />
                           <div className="mt-auto flex gap-1">
-                            <div
-                              className="h-1.5 w-6 rounded-full"
-                              style={{ backgroundColor: colors.primary }}
-                            />
-                            <div
-                              className="h-1.5 w-4 rounded-full"
-                              style={{ backgroundColor: colors.accent }}
-                            />
+                            <div className="h-1.5 w-6 rounded-full bg-primary" />
+                            <div className="h-1.5 w-4 rounded-full bg-muted" />
                           </div>
                         </div>
                       </div>
