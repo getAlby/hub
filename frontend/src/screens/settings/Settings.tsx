@@ -148,9 +148,21 @@ function Settings() {
                   const colors = themeColors[t];
 
                   const themeCard = (
-                    <div
+                    <button
+                      key={t}
+                      type="button"
+                      aria-pressed={isSelected}
+                      aria-disabled={isDisabled || undefined}
+                      onClick={
+                        isDisabled
+                          ? undefined
+                          : () => {
+                              setTheme(t);
+                              toast("Theme updated.");
+                            }
+                      }
                       className={cn(
-                        "group relative flex flex-col rounded-lg border-2 p-1 transition-all cursor-pointer",
+                        "group relative flex flex-col rounded-lg border-2 p-1 text-left transition-all cursor-pointer w-full",
                         "hover:border-primary/50",
                         isSelected
                           ? "border-primary ring-2 ring-primary/20"
@@ -217,25 +229,14 @@ function Settings() {
                           <LockIcon className="size-4 text-muted-foreground" />
                         </div>
                       )}
-                    </div>
+                    </button>
                   );
 
                   if (isDisabled) {
                     return <UpgradeDialog key={t}>{themeCard}</UpgradeDialog>;
                   }
 
-                  return (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => {
-                        setTheme(t);
-                        toast("Theme updated.");
-                      }}
-                    >
-                      {themeCard}
-                    </button>
-                  );
+                  return themeCard;
                 })}
               </div>
             </div>
@@ -247,6 +248,7 @@ function Settings() {
                   <button
                     key={option.value}
                     type="button"
+                    aria-pressed={darkMode === option.value}
                     onClick={() => {
                       setDarkMode(option.value);
                       toast("Appearance updated.");

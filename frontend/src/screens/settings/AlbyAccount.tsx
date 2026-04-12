@@ -46,6 +46,11 @@ export function AlbyAccount() {
                     </span>
                     {hasPlan && <ProBadge />}
                   </div>
+                  {albyMe.name && (
+                    <div className="truncate text-sm text-muted-foreground">
+                      {albyMe.email}
+                    </div>
+                  )}
                   {albyMe.lightning_address && (
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                       <ZapIcon className="size-3" />
