@@ -14,7 +14,9 @@ function SettingsHeader({ title, description, pageTitle }: Props) {
       <div className="space-y-6">
         <div>
           <h3 className="text-2xl font-medium">{title}</h3>
-          <p className="text-base text-muted-foreground">{description}</p>
+          {description && (
+            <p className="text-base text-muted-foreground">{description}</p>
+          )}
         </div>
         <Separator />
       </div>

@@ -142,7 +142,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    isActive={location.pathname === item.url}
+                    isActive={location.pathname.startsWith(item.url)}
                   >
                     <Link
                       to={item.url}
@@ -300,7 +300,7 @@ export function NavSecondary({
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
                 asChild
-                isActive={location.pathname === item.url}
+                isActive={location.pathname.startsWith(item.url)}
               >
                 <NavLink
                   to={item.url}

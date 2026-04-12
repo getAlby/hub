@@ -1,11 +1,22 @@
 import React, { useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import AppHeader from "src/components/AppHeader";
-import { buttonVariants } from "../ui/buttonVariants";
 
 import { useInfo } from "src/hooks/useInfo";
 
-import { PowerIcon } from "lucide-react";
+import {
+  CloudBackupIcon,
+  ArrowRightLeftIcon,
+  BugIcon,
+  CodeIcon,
+  FingerprintIcon,
+  InfoIcon,
+  KeyRoundIcon,
+  type LucideIcon,
+  PowerIcon,
+  SlidersHorizontalIcon,
+  UserIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -100,27 +111,67 @@ export default function SettingsLayout() {
 
       <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-4 lg:space-y-0 h-full">
         <aside className="flex flex-col justify-between lg:w-1/5">
-          <nav className="flex flex-wrap lg:flex-col lg:space-y-1">
-            <MenuItem to="/settings">General</MenuItem>
-            {info?.autoUnlockPasswordSupported && (
-              <MenuItem to="/settings/auto-unlock">Auto Unlock</MenuItem>
-            )}
-            <MenuItem to="/settings/change-unlock-password">
-              Unlock Password
+          <nav className="flex flex-wrap lg:flex-col lg:space-y-0.5">
+            <MenuItem to="/settings" icon={SlidersHorizontalIcon}>
+              General
             </MenuItem>
-            {hasMnemonic && <MenuItem to="/settings/backup">Backup</MenuItem>}
-            {hasNodeBackup && (
-              <MenuItem to="/settings/node-migrate">Migrate Alby Hub</MenuItem>
+
+            <NavGroup label="Security">
+              <MenuItem
+                to="/settings/change-unlock-password"
+                icon={KeyRoundIcon}
+              >
+                Unlock Password
+              </MenuItem>
+              {info?.autoUnlockPasswordSupported && (
+                <MenuItem to="/settings/auto-unlock" icon={FingerprintIcon}>
+                  Auto Unlock
+                </MenuItem>
+              )}
+            </NavGroup>
+
+            {(hasMnemonic || hasNodeBackup) && (
+              <NavGroup label="Data">
+                {hasMnemonic && (
+                  <MenuItem to="/settings/backup" icon={CloudBackupIcon}>
+                    Backup
+                  </MenuItem>
+                )}
+                {hasNodeBackup && (
+                  <MenuItem
+                    to="/settings/node-migrate"
+                    icon={ArrowRightLeftIcon}
+                  >
+                    Migrate Alby Hub
+                  </MenuItem>
+                )}
+              </NavGroup>
             )}
-            {info?.albyAccountConnected && (
-              <MenuItem to="/settings/alby-account">Your Alby Account</MenuItem>
-            )}
-            {info && !info.albyAccountConnected && (
-              <MenuItem to="/alby/account">Alby Account</MenuItem>
-            )}
-            <MenuItem to="/settings/developer">Developer</MenuItem>
-            <MenuItem to="/settings/debug-tools">Debug Tools</MenuItem>
-            <MenuItem to="/settings/about">About</MenuItem>
+
+            <NavGroup label="Account">
+              {info?.albyAccountConnected && (
+                <MenuItem to="/settings/alby-account" icon={UserIcon}>
+                  Your Alby Account
+                </MenuItem>
+              )}
+              {info && !info.albyAccountConnected && (
+                <MenuItem to="/alby/account" icon={UserIcon}>
+                  Alby Account
+                </MenuItem>
+              )}
+            </NavGroup>
+
+            <NavGroup label="Advanced">
+              <MenuItem to="/settings/developer" icon={CodeIcon}>
+                Developer
+              </MenuItem>
+              <MenuItem to="/settings/debug-tools" icon={BugIcon}>
+                Debug Tools
+              </MenuItem>
+              <MenuItem to="/settings/about" icon={InfoIcon}>
+                About
+              </MenuItem>
+            </NavGroup>
           </nav>
         </aside>
         <Separator orientation="vertical" className="hidden lg:block" />
@@ -134,28 +185,54 @@ export default function SettingsLayout() {
   );
 }
 
+const NavGroup = ({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) => (
+  <div className="pt-4 space-y-0.5">
+    <span className="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
+      {label}
+    </span>
+    {children}
+  </div>
+);
+
 export const MenuItem = ({
   to,
+  icon: Icon,
   children,
 }: {
   to: string;
+  icon?: LucideIcon;
   children: React.ReactNode | string;
 }) => (
-  <>
-    <NavLink
-      end
-      to={to}
-      className={({ isActive }) =>
-        cn(
-          buttonVariants({ variant: "ghost" }),
-          isActive
-            ? "bg-muted hover:bg-muted"
-            : "hover:bg-transparent hover:underline",
-          "justify-start"
-        )
-      }
-    >
-      {children}
-    </NavLink>
-  </>
+  <NavLink
+    end
+    to={to}
+    className={({ isActive }) =>
+      cn(
+        "relative flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+        isActive
+          ? "bg-muted text-foreground"
+          : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+      )
+    }
+  >
+    {({ isActive }) => (
+      <>
+        {Icon && (
+          <Icon
+            className={cn(
+              "size-5 shrink-0",
+              isActive ? "text-primary" : "text-muted-foreground"
+            )}
+          />
+        )}
+        {children}
+      </>
+    )}
+  </NavLink>
 );
