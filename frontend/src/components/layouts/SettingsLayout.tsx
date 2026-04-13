@@ -111,7 +111,7 @@ export default function SettingsLayout() {
 
       <div className="flex flex-col space-y-8 lg:flex-row lg:space-x-4 lg:space-y-0 h-full">
         <aside className="flex flex-col justify-between lg:w-1/5">
-          <nav className="flex flex-wrap lg:flex-col lg:space-y-0.5">
+          <nav className="flex overflow-x-auto pb-2 gap-1 lg:flex-col lg:overflow-x-visible lg:pb-0 lg:gap-0 lg:space-y-0.5">
             <MenuItem to="/settings" icon={SlidersHorizontalIcon}>
               General
             </MenuItem>
@@ -192,8 +192,8 @@ const NavGroup = ({
   label: string;
   children: React.ReactNode;
 }) => (
-  <div className="pt-4 space-y-0.5">
-    <span className="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
+  <div className="contents lg:block lg:pt-4 lg:space-y-0.5">
+    <span className="hidden lg:block px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground/60">
       {label}
     </span>
     {children}
@@ -214,7 +214,7 @@ export const MenuItem = ({
     to={to}
     className={({ isActive }) =>
       cn(
-        "relative flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+        "relative flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors",
         isActive
           ? "bg-muted text-foreground"
           : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
