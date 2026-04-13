@@ -1,16 +1,16 @@
 import {
   BoxIcon,
-  ChevronsUpDown,
-  CircleHelp,
-  HandCoins,
+  ChevronsUpDownIcon,
+  CircleHelpIcon,
+  HandCoinsIcon,
   HomeIcon,
-  LogOut,
+  LogOutIcon,
   LucideIcon,
   Plug2Icon,
   PlugZapIcon,
-  Settings,
-  Sparkles,
-  SquareStack,
+  SettingsIcon,
+  SparklesIcon,
+  SquareStackIcon,
   WalletIcon,
 } from "lucide-react";
 import React from "react";
@@ -88,7 +88,7 @@ export function AppSidebar() {
       {
         title: "Sub-wallets",
         url: "/sub-wallets",
-        icon: SquareStack,
+        icon: SquareStackIcon,
       },
       {
         title: "Connections",
@@ -109,12 +109,12 @@ export function AppSidebar() {
       {
         title: "Settings",
         url: "/settings",
-        icon: Settings,
+        icon: SettingsIcon,
       },
       {
         title: "Earn",
         url: "/earn",
-        icon: HandCoins,
+        icon: HandCoinsIcon,
       },
     ],
   };
@@ -200,7 +200,7 @@ export function AppSidebar() {
                       </div>
                     </>
                   )}
-                  <ChevronsUpDown className="ml-auto size-4" />
+                  <ChevronsUpDownIcon className="ml-auto size-4" />
                 </DropdownMenuTrigger>
               </SidebarMenuButton>
               <DropdownMenuContent
@@ -255,7 +255,7 @@ export function AppSidebar() {
                   <>
                     <UpgradeDialog>
                       <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <Sparkles />
+                        <SparklesIcon />
                         Upgrade to Pro
                       </DropdownMenuItem>
                     </UpgradeDialog>
@@ -265,7 +265,7 @@ export function AppSidebar() {
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={logout}>
-                      <LogOut className="size-4" />
+                      <LogOutIcon className="size-4" />
                       Log out
                     </DropdownMenuItem>
                   </>
@@ -318,7 +318,7 @@ export function NavSecondary({
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <ExternalLink to="https://support.getalby.com">
-                <CircleHelp className="h-4 w-4" />
+                <CircleHelpIcon className="h-4 w-4" />
                 Help
               </ExternalLink>
             </SidebarMenuButton>

@@ -59,7 +59,7 @@ By default Alby Hub uses the embedded LDK based lightning node. Optionally it ca
 Go to `/frontend`
 
 1. `yarn install`
-2. `yarn dev`
+2. `yarn dev:http`
 
 ### HTTP Production build
 

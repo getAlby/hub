@@ -5,6 +5,8 @@ import (
 	b64 "encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -105,8 +107,20 @@ func (svc *PhoenixService) GetBalances(ctx context.Context, includeInactiveChann
 	}
 	defer resp.Body.Close()
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":        string(body),
+			"status_code": resp.StatusCode,
+		}).Error("phoenixd get balance endpoint returned non-success code")
+		return nil, fmt.Errorf("phoenixd get balance endpoint returned non-success code: %d %s", resp.StatusCode, string(body))
+	}
+
 	var balanceRes BalanceResponse
-	if err := json.NewDecoder(resp.Body).Decode(&balanceRes); err != nil {
+	if err := json.Unmarshal(body, &balanceRes); err != nil {
 		return nil, err
 	}
 
@@ -145,8 +159,20 @@ func fetchNodeInfo(ctx context.Context, svc *PhoenixService) (info *lnclient.Nod
 	}
 	defer resp.Body.Close()
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":        string(body),
+			"status_code": resp.StatusCode,
+		}).Error("phoenixd get info endpoint returned non-success code")
+		return nil, fmt.Errorf("phoenixd get info endpoint returned non-success code: %d %s", resp.StatusCode, string(body))
+	}
+
 	var infoRes InfoResponse
-	if err := json.NewDecoder(resp.Body).Decode(&infoRes); err != nil {
+	if err := json.Unmarshal(body, &infoRes); err != nil {
 		return nil, err
 	}
 	return &lnclient.NodeInfo{
@@ -199,8 +225,20 @@ func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, descri
 	}
 	defer resp.Body.Close()
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":        string(body),
+			"status_code": resp.StatusCode,
+		}).Error("phoenixd create invoice endpoint returned non-success code")
+		return nil, fmt.Errorf("phoenixd create invoice endpoint returned non-success code: %d %s", resp.StatusCode, string(body))
+	}
+
 	var invoiceRes MakeInvoiceResponse
-	if err := json.NewDecoder(resp.Body).Decode(&invoiceRes); err != nil {
+	if err := json.Unmarshal(body, &invoiceRes); err != nil {
 		return nil, err
 	}
 
@@ -238,8 +276,20 @@ func (svc *PhoenixService) LookupInvoice(ctx context.Context, paymentHash string
 	}
 	defer resp.Body.Close()
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":        string(body),
+			"status_code": resp.StatusCode,
+		}).Error("phoenixd incoming payments endpoint returned non-success code")
+		return nil, fmt.Errorf("phoenixd incoming payments endpoint returned non-success code: %d %s", resp.StatusCode, string(body))
+	}
+
 	var invoiceRes InvoiceResponse
-	if err := json.NewDecoder(resp.Body).Decode(&invoiceRes); err != nil {
+	if err := json.Unmarshal(body, &invoiceRes); err != nil {
 		return nil, err
 	}
 
@@ -271,8 +321,16 @@ func (svc *PhoenixService) SendPaymentSync(payReq string, amount *uint64) (*lncl
 	}
 	defer resp.Body.Close()
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("phoenixd /payinvoice returned non-success status: %d %s", resp.StatusCode, string(body))
+	}
+
 	var payRes PayResponse
-	if err := json.NewDecoder(resp.Body).Decode(&payRes); err != nil {
+	if err := json.Unmarshal(body, &payRes); err != nil {
 		return nil, err
 	}
 
@@ -312,8 +370,16 @@ func (svc *PhoenixService) GetNodeConnectionInfo(ctx context.Context) (nodeConne
 	}
 	defer resp.Body.Close()
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("phoenixd /getinfo returned non-success status: %d %s", resp.StatusCode, string(body))
+	}
+
 	var infoRes InfoResponse
-	if err := json.NewDecoder(resp.Body).Decode(&infoRes); err != nil {
+	if err := json.Unmarshal(body, &infoRes); err != nil {
 		return nil, err
 	}
 	return &lnclient.NodeConnectionInfo{

@@ -27,11 +27,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "src/components/ui/dialog";
-import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
 import { useApp } from "src/hooks/useApp";
 import { useSwap } from "src/hooks/useSwaps";
 import { copyToClipboard } from "src/lib/clipboard";
-import { cn } from "src/lib/utils";
+import { cn, getAppDisplayName } from "src/lib/utils";
 import { Transaction } from "src/types";
 
 dayjs.extend(utc);
@@ -154,7 +153,7 @@ function TransactionItem({ tx }: Props) {
         {app && (
           <div
             className="absolute -bottom-1 -right-1"
-            title={`${typeStateText} via ${app.name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : app.name}`}
+            title={`${typeStateText} via ${getAppDisplayName(app.name)}`}
           >
             <AppAvatar
               app={app}
@@ -244,11 +243,7 @@ function TransactionItem({ tx }: Props) {
               <div className="mt-8">
                 <p>App</p>
                 <Link to={`/apps/${app.id}`}>
-                  <p className="font-semibold">
-                    {app.name === ALBY_ACCOUNT_APP_NAME
-                      ? "Alby Account"
-                      : app.name}
-                  </p>
+                  <p className="font-semibold">{getAppDisplayName(app.name)}</p>
                 </Link>
               </div>
             )}

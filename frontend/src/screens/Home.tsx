@@ -63,6 +63,7 @@ function Home() {
     <>
       <AppHeader
         title={getGreeting(albyMe?.name)}
+        pageTitle="Home"
         contentRight={<SearchInput placeholder="Search" />}
       />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start justify-start">
@@ -70,7 +71,6 @@ function Home() {
         <div className="grid gap-3">
           <OnboardingChecklist />
           <WhatsNewWidget />
-          <SupportAlbyWidget />
           {info.albyAccountConnected && (
             <ExternalLink to="https://www.getalby.com/dashboard">
               <Card>
@@ -162,6 +162,7 @@ function Home() {
         {/* RIGHT */}
         <div className="grid gap-3">
           <LatestUsedAppsWidget />
+          <SupportAlbyWidget />
           <LightningMessageboardWidget />
           <AppOfTheDayWidget />
 

@@ -19,7 +19,7 @@ import (
 func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (*LSPOrderResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 
 	if request.LSPType != lsp.LSP_TYPE_LSPS1 {
