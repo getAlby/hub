@@ -6,7 +6,7 @@ import {
   XIcon,
 } from "lucide-react";
 import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";

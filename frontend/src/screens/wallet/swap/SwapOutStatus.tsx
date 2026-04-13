@@ -4,7 +4,7 @@ import {
   CircleXIcon,
   CopyIcon,
 } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";

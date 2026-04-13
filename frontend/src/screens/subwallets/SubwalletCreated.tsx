@@ -11,7 +11,7 @@ import {
   ZapIcon,
 } from "lucide-react";
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";

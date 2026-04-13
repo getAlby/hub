@@ -1,6 +1,6 @@
 import { CopyIcon, LinkIcon, ReceiptTextIcon, ZapIcon } from "lucide-react";
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";

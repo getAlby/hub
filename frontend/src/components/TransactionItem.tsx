@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { nip19 } from "nostr-tools";
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import AppAvatar from "src/components/AppAvatar";
 import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
