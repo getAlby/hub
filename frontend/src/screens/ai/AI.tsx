@@ -495,7 +495,7 @@ function GenericAuthPrompt({ agent }: { agent: Agent }) {
   const [mcpMode, setMcpMode] = React.useState(false);
   const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
   const hubUrl = window.location.origin + basePath;
-  const genericPrompt = `Install the skill from https://getalby.com/cli/SKILL.md and use the auth command to connect to my Alby Hub wallet at ${hubUrl}`;
+  const genericPrompt = `Run \`npx -y skills add getAlby/bitcoin-payments-skill\` and auth with my Alby Hub wallet at ${hubUrl}`;
 
   return (
     <div
@@ -517,7 +517,7 @@ function GenericAuthPrompt({ agent }: { agent: Agent }) {
             onClick={() => copyToClipboard(genericPrompt)}
             className="flex items-center gap-3 rounded-lg bg-muted/50 border border-border px-4 py-3 w-full text-left cursor-pointer hover:border-primary/30 transition-colors"
           >
-            <ChevronRightIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            <ChevronRightIcon className="w-3.5 h-3.5 text-muted-foreground shrink-0 self-start mt-0.5" />
             <p className="flex-1 text-sm font-mono break-all select-none">
               {genericPrompt}
             </p>
