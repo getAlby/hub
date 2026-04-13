@@ -1,8 +1,5 @@
-import {
-  RouterProvider,
-  createBrowserRouter,
-  createHashRouter,
-} from "react-router-dom";
+import { createBrowserRouter, createHashRouter } from "react-router";
+import { RouterProvider } from "react-router/dom";
 import { Toaster } from "src/components/ui/sonner";
 import { ThemeProvider } from "src/components/ui/theme-provider";
 import { TouchProvider } from "src/components/ui/tooltip";

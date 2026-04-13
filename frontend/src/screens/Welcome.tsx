@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import Container from "src/components/Container";
 import { Button } from "src/components/ui/button";
 import { localStorageKeys } from "src/constants";

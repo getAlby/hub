@@ -6,7 +6,7 @@ import {
   ZapIcon,
 } from "lucide-react";
 import React, { ReactElement } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 import { toast } from "sonner";
 import {
   Card,

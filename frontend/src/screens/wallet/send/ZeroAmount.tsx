@@ -3,7 +3,7 @@ import { Label } from "src/components/ui/label";
 
 import type { Invoice } from "@getalby/lightning-tools/bolt11";
 import { XIcon } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";

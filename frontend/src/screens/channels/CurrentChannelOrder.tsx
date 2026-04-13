@@ -9,7 +9,7 @@ import {
 } from "src/types";
 
 import { CopyIcon, QrCodeIcon, RefreshCwIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
