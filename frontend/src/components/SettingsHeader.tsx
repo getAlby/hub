@@ -3,7 +3,7 @@ import { Separator } from "src/components/ui/separator";
 
 type Props = {
   title: string;
-  description: string | React.ReactNode;
+  description?: string | React.ReactNode;
   pageTitle?: string;
 };
 

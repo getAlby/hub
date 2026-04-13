@@ -28,11 +28,7 @@ export function AlbyAccount() {
 
   return (
     <>
-      <SettingsHeader
-        pageTitle="Alby Account"
-        title="Alby Account"
-        description=""
-      />
+      <SettingsHeader pageTitle="Alby Account" title="Alby Account" />
       <div className="flex flex-col gap-6">
         <Card>
           {albyMe && (

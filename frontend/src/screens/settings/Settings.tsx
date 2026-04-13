@@ -36,12 +36,13 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useCurrencies } from "src/hooks/useCurrencies";
 import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";
+import { ThemePreview } from "src/screens/settings/ThemePreview";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
 function Settings() {
   const { data: albyMe } = useAlbyMe();
-  const { theme, darkMode, isDarkMode, setTheme, setDarkMode } = useTheme();
+  const { theme, darkMode, setTheme, setDarkMode } = useTheme();
   const { currencies, isLoading: isCurrenciesLoading } = useCurrencies();
 
   const { data: info, mutate: reloadInfo } = useInfo();
@@ -127,7 +128,6 @@ function Settings() {
                   const isPaidTheme = paidThemes.includes(t);
                   const isDisabled = isPaidTheme && !hasPlan;
                   const isSelected = theme === t;
-                  const previewClass = cn(`theme-${t}`, isDarkMode && "dark");
 
                   const themeCard = (
                     <button
@@ -144,7 +144,7 @@ function Settings() {
                             }
                       }
                       className={cn(
-                        "group relative flex flex-col rounded-lg border-2 p-1 text-left transition-all cursor-pointer w-full",
+                        "group relative flex flex-col rounded-lg border-2 text-left transition-all cursor-pointer w-full overflow-hidden",
                         "hover:border-primary/50",
                         isSelected
                           ? "border-primary ring-2 ring-primary/20"
@@ -152,23 +152,7 @@ function Settings() {
                         isDisabled && "opacity-50 hover:border-border"
                       )}
                     >
-                      {/* Mini preview using actual theme CSS variables */}
-                      <div
-                        className={cn(
-                          "rounded-md w-full aspect-16/10 flex flex-col overflow-hidden bg-background",
-                          previewClass
-                        )}
-                      >
-                        <div className="h-2 w-full bg-primary" />
-                        <div className="flex-1 p-1.5 flex flex-col gap-1">
-                          <div className="h-1 w-3/4 rounded-full bg-muted" />
-                          <div className="h-1 w-1/2 rounded-full bg-muted" />
-                          <div className="mt-auto flex gap-1">
-                            <div className="h-1.5 w-6 rounded-full bg-primary" />
-                            <div className="h-1.5 w-4 rounded-full bg-muted" />
-                          </div>
-                        </div>
-                      </div>
+                      <ThemePreview theme={t} />
                       {/* Label */}
                       <div className="flex items-center justify-center gap-1.5 py-1.5 px-1">
                         <span className="text-xs font-medium capitalize truncate">
