@@ -3,7 +3,7 @@ import { LightningAddress } from "@getalby/lightning-tools/lnurl";
 import { validate as validateBitcoinAddress } from "bitcoin-address-validation";
 import { ClipboardPasteIcon } from "lucide-react";
 import React from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { CryptoSwapAlert } from "src/components/CryptoSwapAlert";

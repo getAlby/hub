@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { ChevronRightIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import AppAvatar from "src/components/AppAvatar";
 import {
   Card,
