@@ -51,12 +51,14 @@ function Wallet() {
               size="sm"
             >
               <CreditCardIcon />
-              <span className="hidden sm:inline">Buy Bitcoin</span>
+              <span className="sr-only sm:not-sr-only sm:inline">
+                Buy Bitcoin
+              </span>
             </ExternalLinkButton>
             {hasChannelManagement && (
               <LinkButton to="/wallet/swap" variant="ghost" size="sm">
                 <ArrowDownUpIcon />
-                <span className="hidden sm:inline">Swap</span>
+                <span className="sr-only sm:not-sr-only sm:inline">Swap</span>
               </LinkButton>
             )}
             <TransactionsListMenu />
