@@ -495,7 +495,7 @@ function GenericAuthPrompt({ agent }: { agent: Agent }) {
   const [mcpMode, setMcpMode] = React.useState(false);
   const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
   const hubUrl = window.location.origin + basePath;
-  const genericPrompt = `Run \`npx -y skills add getAlby/payments-skill\` and connect to my Alby Hub wallet at ${hubUrl}`;
+  const genericPrompt = `Run \`npx -y skills add getAlby/payments-skill -y\` and connect to my Alby Hub wallet at ${hubUrl}`;
 
   return (
     <div

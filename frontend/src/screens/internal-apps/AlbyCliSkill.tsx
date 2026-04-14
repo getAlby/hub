@@ -28,7 +28,7 @@ import { handleRequestError } from "src/utils/handleRequestError";
 
 const skillInstallCommand = "npx skills add getAlby/payments-skill";
 const skillInstallPrompt =
-  "Run `npx -y skills add getAlby/payments-skill` to install the Alby bitcoin payments skill";
+  "Run `npx -y skills add getAlby/payments-skill -y` to install the Alby bitcoin payments skill";
 const verifyPrompt = "What's your wallet balance?";
 
 export function AlbyCliSkill() {
