@@ -6,7 +6,7 @@ import {
   XIcon,
 } from "lucide-react";
 import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
@@ -36,9 +36,9 @@ export default function Onchain() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const [isSwap, setSwap] = React.useState(true);
-  const [amount, setAmount] = React.useState("");
-
   const address = state?.args?.address as string;
+  const initialAmount = (state?.args?.amount as string | undefined) ?? "";
+  const [amount, setAmount] = React.useState(initialAmount);
 
   React.useEffect(() => {
     if (!address) {
@@ -215,7 +215,7 @@ function OnchainForm({
         </div>
       </div>
       <div className="flex items-center justify-between">
-        <Label htmlFor="swap" className="font-medium text-sm cursor-pointer">
+        <Label htmlFor="swap" className="cursor-pointer">
           Swap from Spending Balance
         </Label>
         <Switch id="swap" onCheckedChange={setSwap} />
@@ -415,7 +415,7 @@ function SwapForm({
         </div>
       </div>
       <div className="flex items-center justify-between">
-        <Label htmlFor="swap" className="font-medium text-sm cursor-pointer">
+        <Label htmlFor="swap" className="cursor-pointer">
           Swap from Spending Balance
         </Label>
         <Switch id="swap" checked onCheckedChange={setSwap} />

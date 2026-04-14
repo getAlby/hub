@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router";
 
 import React from "react";
 import { toast } from "sonner";
@@ -344,13 +344,14 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         {({ methods }) => (
           <>
             <Stepper.Navigation>
-              {methods.all.map((step) => (
+              {methods.state.all.map((step) => (
                 <Stepper.Step
                   key={step.id}
                   of={step.id}
                   onClick={() =>
-                    methods.current.id === "configure" && step.id === "install"
-                      ? methods.goTo(step.id)
+                    methods.state.current.data.id === "configure" &&
+                    step.id === "install"
+                      ? methods.navigation.goTo(step.id)
                       : undefined
                   }
                 >
@@ -358,20 +359,33 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                     {step.title ||
                       (isInstallable ? "Install" : "Open") + " " + appName}
                   </Stepper.Title>
-                  {methods.when(step.id, () => (
+                  {methods.flow.when(step.id, () => (
                     <>
-                      {methods.switch({
+                      {methods.flow.switch({
                         install: () =>
                           appStoreApp && (
                             <InstallApp appStoreApp={appStoreApp} />
                           ),
                         configure: () => (
-                          <div className="flex flex-col gap-4">
+                          <form
+                            id="new-app"
+                            className="flex flex-col gap-4"
+                            onSubmit={(e: React.FormEvent) => {
+                              e.preventDefault();
+                              if (superuser) {
+                                setShowSuperuserConfirmPasswordDialog(true);
+                                return;
+                              }
+                              handleCreateApp(() => methods.navigation.next());
+                            }}
+                          >
                             <SuperuserConfirmPasswordDialog
                               open={showSuperuserConfirmPasswordDialog}
                               setOpen={setShowSuperuserConfirmPasswordDialog}
                               onSubmit={() => {
-                                handleCreateApp(methods.next);
+                                handleCreateApp(() =>
+                                  methods.navigation.next()
+                                );
                               }}
                               unlockPassword={unlockPassword}
                               setUnlockPassword={setUnlockPassword}
@@ -399,14 +413,6 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                                 capabilities={capabilities}
                                 permissions={permissions}
                                 setPermissions={setPermissions}
-                                isNewConnection
-                                scopesReadOnly={
-                                  !!reqMethodsParam ||
-                                  !!notificationTypesParam ||
-                                  !!isolatedParam
-                                }
-                                budgetReadOnly={!!budgetMaxAmountMsatParam}
-                                expiresAtReadOnly={!!expiresAtParam}
                               />
                             </div>
                             {appStoreApp?.superuser && (
@@ -422,7 +428,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                                 />
                                 <Label
                                   htmlFor="superuser"
-                                  className="ml-2 text-sm text-foreground flex flex-col items-start justify-center"
+                                  className="ml-2 flex flex-col items-start justify-center cursor-pointer"
                                 >
                                   <div>
                                     Enable accepting connections to other apps
@@ -440,7 +446,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                                 You will automatically return to {returnTo}
                               </p>
                             )}
-                          </div>
+                          </form>
                         ),
                         finalize: () =>
                           createAppResponse && (
@@ -452,28 +458,27 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                             </div>
                           ),
                       })}
-                      {(!methods.isLast || returnTo) && (
+                      {(!methods.state.isLast || returnTo) && (
                         <Stepper.Controls className="mt-6">
-                          {!methods.isFirst && (
+                          {!methods.state.isFirst && (
                             <Button
                               type="button"
                               variant="secondary"
-                              onClick={methods.prev}
+                              onClick={() => methods.navigation.prev()}
                             >
                               Back
                             </Button>
                           )}
                           <LoadingButton
                             loading={isLoading}
+                            type={step.id === "configure" ? "submit" : "button"}
+                            form={
+                              step.id === "configure" ? "new-app" : undefined
+                            }
                             onClick={
                               step.id === "configure"
-                                ? () =>
-                                    superuser
-                                      ? setShowSuperuserConfirmPasswordDialog(
-                                          true
-                                        )
-                                      : handleCreateApp(methods.next)
-                                : methods.next
+                                ? undefined
+                                : () => methods.navigation.next()
                             }
                           >
                             {step.id === "configure" && pubkey

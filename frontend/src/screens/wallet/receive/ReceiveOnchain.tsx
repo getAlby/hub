@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import TickSVG from "public/images/illustrations/tick.svg";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { FixedFloatButton } from "src/components/FixedFloatButton";
@@ -457,7 +457,7 @@ function ReceiveToSpending() {
                   id="bitcoin"
                   className="shrink-0"
                 />
-                <Label htmlFor="bitcoin" className="font-medium cursor-pointer">
+                <Label htmlFor="bitcoin" className="cursor-pointer">
                   Bitcoin
                 </Label>
               </div>
@@ -467,7 +467,7 @@ function ReceiveToSpending() {
                   id="crypto"
                   className="shrink-0"
                 />
-                <Label htmlFor="crypto" className="font-medium cursor-pointer">
+                <Label htmlFor="crypto" className="cursor-pointer">
                   Other Cryptocurrency
                 </Label>
               </div>

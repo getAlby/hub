@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router";
 import { ChannelWaitingForConfirmations } from "src/components/channels/ChannelWaitingForConfirmations";
 import { useChannels } from "src/hooks/useChannels";
 import { useSyncWallet } from "src/hooks/useSyncWallet";

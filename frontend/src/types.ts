@@ -96,14 +96,12 @@ export const expiryOptions: Record<string, number> = {
   "1 week": 7,
   "1 month": 30,
   "1 year": 365,
-  Never: 0,
 };
 
 export const budgetOptions: Record<string, number> = {
   "10k": 10_000,
   "100k": 100_000,
   "1M": 1_000_000,
-  Unlimited: 0,
 };
 
 export interface ErrorResponse {

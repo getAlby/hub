@@ -1,5 +1,5 @@
 import { ExternalLinkIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { AlbyHead } from "src/components/images/AlbyHead";

@@ -2,7 +2,7 @@ import { Invoice } from "@getalby/lightning-tools";
 import type { LightningAddress } from "@getalby/lightning-tools/lnurl";
 import { XIcon } from "lucide-react";
 import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
