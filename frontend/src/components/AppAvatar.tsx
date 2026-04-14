@@ -34,9 +34,13 @@ export default function AppAvatar({ app, className }: Props) {
   if (app.name === ALBY_ACCOUNT_APP_NAME) {
     return <UserAvatar className={className} />;
   }
-  const agentLogo = app?.metadata?.app_store_app_id
-    ? agentLogos[app.metadata.app_store_app_id]
-    : undefined;
+  const agentLogo =
+    (app?.metadata?.app_store_app_id
+      ? agentLogos[app.metadata.app_store_app_id]
+      : undefined) ||
+    Object.entries(agentLogos).find(([key]) =>
+      app.name.toLowerCase().includes(key)
+    )?.[1];
   const appStoreApp = appStoreApps.find(
     (suggestedApp) =>
       (app?.metadata?.app_store_app_id &&
