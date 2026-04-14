@@ -2536,21 +2536,8 @@ export const appStoreApps: AppStoreApp[] = (
       categories: ["payment-tools"],
       addedDate: "2026-04-10",
     },
-  ] as AppStoreApp[]
-).sort((a, b) => {
-  // Apps with addedDate come first (newest first)
-  if (a.addedDate && b.addedDate) {
-    return b.addedDate.localeCompare(a.addedDate);
-  }
-  if (a.addedDate) {
-    return -1;
-  }
-  if (b.addedDate) {
-    return 1;
-  }
-  // Then alphabetically
-  return a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1;
-});
+  ] satisfies AppStoreApp[]
+).sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
 
 export const getAppStoreApp = (app: App) => {
   return appStoreApps.find(
