@@ -23,7 +23,7 @@ function AppCard(app: AppStoreApp) {
           <div className="flex gap-3 items-center">
             <img
               src={app.logo}
-              alt="logo"
+              alt={`${app.title} logo`}
               className="inline rounded-lg size-12"
             />
             <div className="grow">
