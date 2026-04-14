@@ -519,9 +519,9 @@ function FinalizeConnection({
       toast("Connection established!", {
         description: "You can now use the app with your Alby Hub.",
       });
-      navigate("/apps?tab=connected-apps");
+      navigate(`/apps/${createAppResponse.id}`);
     }
-  }, [app?.lastUsedAt, navigate]);
+  }, [app?.lastUsedAt, createAppResponse.id, navigate]);
 
   if (!createAppResponse) {
     return <Navigate to="/apps/new" />;

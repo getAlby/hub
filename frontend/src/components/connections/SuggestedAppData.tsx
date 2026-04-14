@@ -13,11 +13,9 @@ import btcpay from "src/assets/suggested-apps/btcpay.png";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
 import castamatic from "src/assets/suggested-apps/castamatic.png";
 import clams from "src/assets/suggested-apps/clams.png";
-import claude from "src/assets/suggested-apps/claude.png";
 import coracle from "src/assets/suggested-apps/coracle.png";
 import damus from "src/assets/suggested-apps/damus.png";
 import fountain from "src/assets/suggested-apps/fountain.png";
-import goose from "src/assets/suggested-apps/goose.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import iris from "src/assets/suggested-apps/iris.png";
 import jumble from "src/assets/suggested-apps/jumble.png";
@@ -221,18 +219,6 @@ export const appStoreApps: AppStoreApp[] = (
       addedDate: "2026-03-12",
     },
     {
-      id: "goose",
-      title: "Goose",
-      description:
-        "Your local AI agent, automating engineering tasks seamlessly",
-      internal: true,
-      logo: goose,
-      categories: ["ai"],
-      extendedDescription:
-        "Your local AI agent, automating engineering tasks seamlessly",
-      webLink: "https://block.github.io/goose",
-    },
-    {
       id: "2fiat",
       title: "2fiat Top up",
       description:
@@ -296,17 +282,6 @@ export const appStoreApps: AppStoreApp[] = (
           </div>
         </>
       ),
-    },
-    {
-      id: "claude",
-      title: "Claude",
-      description: "AI assistant for conversations, analysis, and coding",
-      extendedDescription:
-        "AI assistant for conversations, analysis, and coding",
-      internal: true,
-      logo: claude,
-      categories: ["ai"],
-      webLink: "https://claude.ai/",
     },
     {
       id: "alby-cli-skill",
