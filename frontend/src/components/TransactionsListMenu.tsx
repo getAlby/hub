@@ -1,8 +1,6 @@
-import type { VariantProps } from "class-variance-authority";
 import { DownloadIcon, EllipsisVerticalIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "src/components/ui/button";
-import { buttonVariants } from "src/components/ui/buttonVariants";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -90,20 +88,12 @@ const handleExportTransactions = async (appId?: number) => {
   }
 };
 
-type TransactionsListMenuProps = {
-  appId?: number;
-  buttonVariant?: VariantProps<typeof buttonVariants>["variant"];
-};
-
-export const TransactionsListMenu = ({
-  appId,
-  buttonVariant = "secondary",
-}: TransactionsListMenuProps) => {
+export const TransactionsListMenu = ({ appId }: { appId?: number }) => {
   const { data: albyMe } = useAlbyMe();
 
   return (
     <DropdownMenu>
-      <Button asChild size="icon" variant={buttonVariant}>
+      <Button asChild size="icon" variant="ghost">
         <DropdownMenuTrigger>
           <EllipsisVerticalIcon className="h-4 w-4" />
         </DropdownMenuTrigger>

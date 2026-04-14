@@ -59,7 +59,7 @@ function Wallet() {
                 <span className="hidden sm:inline">Swap</span>
               </LinkButton>
             )}
-            <TransactionsListMenu buttonVariant="ghost" />
+            <TransactionsListMenu />
           </div>
         }
       />
