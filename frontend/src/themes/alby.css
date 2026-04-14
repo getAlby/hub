@@ -1,41 +1,132 @@
+@import "@fontsource-variable/figtree/wght.css";
+
+/*
+ * Alby theme — yellow primary (brand) + neutral gray base (shadcn-style achromatic
+ * neutrals), aligned with `default.css` lightness ramps.
+ */
+
 .theme-alby {
-  --primary: hsl(47 100% 72%);
-  --primary-foreground: hsl(0 0% 2%);
-
-  --secondary: hsl(0 0% 96%);
-  --secondary-foreground: hsl(0 0% 5%);
-
-  --muted: hsl(0 0% 96%);
-  --muted-foreground: hsl(0 0% 45%);
-
-  --accent: hsl(0 0% 96%);
-  --accent-foreground: hsl(0 0% 5%);
-
-  --destructive: hsl(0 84% 60%);
-
-  --border: hsl(0 0% 92%);
-  --input: hsl(0 0% 85%);
-  --ring: hsl(0 0% 76%);
-
-  --radius: 0.5rem;
+  --app-font-sans: "Figtree Variable", ui-sans-serif, system-ui, sans-serif;
+  --logo-ink: #202020;
+  --logo-accent: #ffc800;
+  --radius: 0.875rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.852 0.199 91.936);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  /* Match default button label color to secondary (`text-secondary-foreground`). */
+  --primary-foreground: var(--secondary-foreground);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.905 0.182 98.111);
+  --chart-2: oklch(0.795 0.184 86.047);
+  --chart-3: oklch(0.681 0.162 75.834);
+  --chart-4: oklch(0.554 0.135 66.442);
+  --chart-5: oklch(0.476 0.114 61.907);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.681 0.162 75.834);
+  --sidebar-primary-foreground: oklch(0.987 0.026 102.212);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
 }
 
 .theme-alby.dark {
-  --primary: hsl(47 100% 72%);
-  --primary-foreground: hsl(0 0% 2%);
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.269 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.795 0.184 86.047);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  /* Primary buttons keep the light yellow fill in dark mode; label stays dark like light theme. */
+  --primary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.371 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.985 0 0);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.905 0.182 98.111);
+  --chart-2: oklch(0.795 0.184 86.047);
+  --chart-3: oklch(0.681 0.162 75.834);
+  --chart-4: oklch(0.554 0.135 66.442);
+  --chart-5: oklch(0.476 0.114 61.907);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.795 0.184 86.047);
+  --sidebar-primary-foreground: oklch(0.987 0.026 102.212);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+  --logo-ink: #ffffff;
+  --logo-accent: #ffe480;
+}
 
-  --secondary: hsl(0 0% 0%);
-  --secondary-foreground: hsl(0 0% 98%);
+/*
+ * Default (primary) buttons: light top → warm yellow bottom (Figma-style).
+ * Darker overlays were stacking on the base fill; lighter base + softer stops
+ * keep the same structure but read closer to design.
+ */
+@layer components {
+  .theme-alby
+    :is(button, a, span)[data-slot="button"][data-variant="default"]:not(
+      :disabled,
+      [aria-disabled="true"]
+    ) {
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.58) 0%,
+        rgba(255, 236, 175, 0.22) 100%
+      ),
+      #fff0b8;
+    box-shadow: 0 0 0 1px #ffdf6f;
+  }
 
-  --muted: hsl(0 0% 10%);
-  --muted-foreground: hsl(0 0% 49%);
+  .theme-alby
+    :is(button, a, span)[data-slot="button"][data-variant="default"]:hover:not(
+      :disabled,
+      [aria-disabled="true"]
+    ) {
+    background:
+      linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.45) 0%,
+        rgba(255, 224, 140, 0.28) 100%
+      ),
+      #ffe9a3;
+    box-shadow: 0 0 0 1px #ffdf6f;
+  }
 
-  --accent: hsl(0 0% 0%);
-  --accent-foreground: hsl(0 0% 98%);
-
-  --destructive: hsl(0 84% 60%);
-
-  --border: hsl(0 0% 15%);
-  --input: hsl(0 0% 15%);
-  --ring: hsl(47 100% 40%);
+  /* Keep keyboard focus ring (Button uses ring via box-shadow); stack with brand stroke. */
+  .theme-alby
+    :is(button, a, span)[data-slot="button"][data-variant="default"]:focus-visible:not(
+      :disabled,
+      [aria-disabled="true"]
+    ) {
+    box-shadow:
+      0 0 0 1px #ffdf6f,
+      0 0 0 3px color-mix(in oklch, var(--ring), transparent 50%);
+  }
 }

@@ -172,6 +172,12 @@ Code under `frontend/platform_specific/http/` and `frontend/platform_specific/wa
 ### TypeScript / React
 
 - **Use shadcn/ui components** for all UI — do not create custom components unless no shadcn equivalent exists.
+- **Do not modify core shadcn/ui components** — customize behavior by composing or wrapping them, not by editing the source files directly.
+- **Prefer Tailwind utility classes** over custom `px` definitions or inline styles. Use Tailwind's spacing, sizing, and layout utilities instead of hardcoded pixel values.
+- **Use the theme system** for colors, border-radius, shadows, and other design tokens. Reference CSS variables / Tailwind theme tokens (e.g., `bg-primary`, `rounded-lg`, `shadow-sm`) rather than hardcoding hex values or arbitrary values. See `frontend/src/index.css` for available theme variables.
+- **Keep layouts flat** — avoid nesting cards inside cards or wrapping elements in unnecessary bordered containers. Prefer clear, flat visual hierarchy.
+- **Match existing spacing patterns** — before adding new components, check sibling components for consistent padding, margins, and gaps. Ensure sibling elements have equal dimensions where appropriate.
+- **Write copy from the user's perspective** — Alby Hub IS the wallet; don't explain what a lightning wallet is or tell the user to "connect to a wallet" when they're already inside one. Keep UI copy concise and use the product's own vocabulary (sats, connections, apps).
 - Strict TypeScript — no `any` types.
 - Functional components with hooks only.
 - SWR for server state; Zustand for client state (stores in `frontend/src/state/`).

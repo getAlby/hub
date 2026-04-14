@@ -11,37 +11,24 @@ import { cn } from "src/lib/utils";
 import {
   AppStoreApp,
   appStoreApps,
+  getAppStoreUrl,
   sortedAppStoreCategories,
 } from "./SuggestedAppData";
 
-function SuggestedAppCard({ id, title, description, logo }: AppStoreApp) {
+function AppCard(app: AppStoreApp) {
   return (
-    <Link to={`/appstore/${id}`}>
+    <Link to={getAppStoreUrl(app)}>
       <Card className="h-full">
         <CardContent>
           <div className="flex gap-3 items-center">
-            <img src={logo} alt="logo" className="inline rounded-lg size-12" />
+            <img
+              src={app.logo}
+              alt={`${app.title} logo`}
+              className="inline rounded-lg size-12"
+            />
             <div className="grow">
-              <CardTitle>{title}</CardTitle>
-              <CardDescription>{description}</CardDescription>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
-  );
-}
-
-function InternalAppCard({ id, title, description, logo }: AppStoreApp) {
-  return (
-    <Link to={`/internal-apps/${id}`}>
-      <Card className="h-full">
-        <CardContent>
-          <div className="flex gap-3 items-center">
-            <img src={logo} alt="logo" className="inline rounded-lg size-12" />
-            <div className="grow">
-              <CardTitle>{title}</CardTitle>
-              <CardDescription>{description}</CardDescription>
+              <CardTitle>{app.title}</CardTitle>
+              <CardDescription>{app.description}</CardDescription>
             </div>
           </div>
         </CardContent>
@@ -101,13 +88,9 @@ export default function SuggestedApps() {
                     .filter((app) =>
                       (app.categories as string[]).includes(categoryId)
                     )
-                    .map((app) =>
-                      app.internal ? (
-                        <InternalAppCard key={app.id} {...app} />
-                      ) : (
-                        <SuggestedAppCard key={app.id} {...app} />
-                      )
-                    )}
+                    .map((app) => (
+                      <AppCard key={app.id} {...app} />
+                    ))}
                 </div>
               </div>
             );

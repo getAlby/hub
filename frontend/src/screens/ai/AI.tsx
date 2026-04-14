@@ -814,11 +814,11 @@ function RotatingPrompt({ prompts }: { prompts: string[] }) {
 
 function InspirationPrompts() {
   return (
-    <Tabs defaultValue={inspirationCategories[0].label} variant="line">
+    <Tabs defaultValue={inspirationCategories[0].label}>
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="px-5 pt-5 pb-4">
           <p className="font-semibold text-sm mb-4">What can your agent do?</p>
-          <TabsList>
+          <TabsList variant="line">
             {inspirationCategories.map((cat) => {
               const Icon = cat.icon;
               return (
