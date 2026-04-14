@@ -103,7 +103,10 @@ export default function ReceiveInvoice() {
 
   return (
     <div className="grid gap-5">
-      <AppHeader title={transaction ? "Lightning Invoice" : "Create Invoice"} />
+      <AppHeader
+        pageTitle={transaction ? "Lightning Invoice" : "Create Invoice"}
+        title={transaction ? "Lightning Invoice" : "Create Invoice"}
+      />
       <div className="flex flex-col md:flex-row gap-12">
         <div className="w-full md:max-w-lg grid gap-6">
           {hasChannelManagement &&

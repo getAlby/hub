@@ -294,14 +294,11 @@ func (httpSvc *HttpService) startHandler(c echo.Context) error {
 		})
 	}
 
-	// NOTE: the config is also unlocked as part of the start
-	// goroutine below. But since we execute start asynchronously it's hard to
-	// know when the config has been unlocked before being able to create the JWT token
-	err := httpSvc.cfg.Unlock(startRequest.UnlockPassword)
+	err := httpSvc.cfg.LoadJWTSecret(startRequest.UnlockPassword)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to unlock config: %s", err.Error()),
+			Message: fmt.Sprintf("Failed to load JWT secret: %s", err.Error()),
 		})
 	}
 
@@ -346,8 +343,20 @@ func (httpSvc *HttpService) unlockHandler(c echo.Context) error {
 		})
 	}
 
-	token, err := httpSvc.createJWT(unlockRequest.TokenExpiryDays, unlockRequest.Permission)
+	_, err := httpSvc.api.GetNodeStatus(c.Request().Context())
+	if err != nil {
+		if errors.Is(err, api.ErrLNClientNotStarted) {
+			return c.JSON(http.StatusBadRequest, ErrorResponse{
+				Message: "Node is not running, start it before unlocking.",
+			})
+		}
 
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	token, err := httpSvc.createJWT(unlockRequest.TokenExpiryDays, unlockRequest.Permission)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Message: fmt.Sprintf("Failed to save session: %s", err.Error()),

@@ -276,9 +276,9 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return errors.New("invalid password")
 	}
 
-	err = svc.cfg.Unlock(encryptionKey)
+	err = svc.cfg.LoadJWTSecret(encryptionKey)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to unlock config")
+		logger.Logger.WithError(err).Error("Failed to load JWT secret")
 		return err
 	}
 
@@ -301,7 +301,7 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return err
 	}
 
-	svc.swapsService = swaps.NewSwapsService(ctx, svc.db, svc.cfg, svc.keys, svc.eventPublisher, svc.GetLNClient(), svc.transactionsService)
+	svc.swapsService = swaps.NewSwapsService(ctx, svc.db, svc.cfg, svc.keys, svc.eventPublisher, svc.GetLNClient(), svc.transactionsService, encryptionKey)
 
 	svc.publishAllAppInfoEvents()
 

@@ -71,6 +71,7 @@ export function Tictactoe() {
   return (
     <div className="grid gap-5">
       <AppHeader
+        pageTitle={appStoreApp.title}
         title={
           <div className="flex flex-row items-center">
             <img src={appStoreApp.logo} className="w-14 h-14 rounded-lg mr-4" />

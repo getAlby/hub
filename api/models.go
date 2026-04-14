@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	"io"
 	"time"
 
@@ -85,24 +86,27 @@ type API interface {
 	GetForwards() (*GetForwardsResponse, error)
 }
 
+var ErrLNClientNotStarted = errors.New("LNClient not started")
+
 type App struct {
-	ID                 uint       `json:"id"`
-	Name               string     `json:"name"`
-	Description        string     `json:"description"`
-	AppPubkey          string     `json:"appPubkey"`
-	CreatedAt          time.Time  `json:"createdAt"`
-	UpdatedAt          time.Time  `json:"updatedAt"`
-	LastUsedAt         *time.Time `json:"lastUsedAt"`
-	ExpiresAt          *time.Time `json:"expiresAt"`
-	Scopes             []string   `json:"scopes"`
-	MaxAmountSat       uint64     `json:"maxAmount"`
-	BudgetUsage        uint64     `json:"budgetUsage"`
-	BudgetRenewal      string     `json:"budgetRenewal"`
-	Isolated           bool       `json:"isolated"`
-	WalletPubkey       string     `json:"walletPubkey"`
-	UniqueWalletPubkey bool       `json:"uniqueWalletPubkey"`
-	Balance            int64      `json:"balance"`
-	Metadata           Metadata   `json:"metadata,omitempty"`
+	ID                       uint       `json:"id"`
+	Name                     string     `json:"name"`
+	Description              string     `json:"description"`
+	AppPubkey                string     `json:"appPubkey"`
+	CreatedAt                time.Time  `json:"createdAt"`
+	UpdatedAt                time.Time  `json:"updatedAt"`
+	LastUsedAt               *time.Time `json:"lastUsedAt"`
+	LastSettledTransactionAt *time.Time `json:"lastSettledTransactionAt"`
+	ExpiresAt                *time.Time `json:"expiresAt"`
+	Scopes                   []string   `json:"scopes"`
+	MaxAmountSat             uint64     `json:"maxAmount"`
+	BudgetUsage              uint64     `json:"budgetUsage"`
+	BudgetRenewal            string     `json:"budgetRenewal"`
+	Isolated                 bool       `json:"isolated"`
+	WalletPubkey             string     `json:"walletPubkey"`
+	UniqueWalletPubkey       bool       `json:"uniqueWalletPubkey"`
+	Balance                  int64      `json:"balance"`
+	Metadata                 Metadata   `json:"metadata,omitempty"`
 }
 
 type ListAppsFilters struct {
@@ -168,6 +172,8 @@ type EnableAutoSwapRequest struct {
 	BalanceThreshold uint64 `json:"balanceThreshold"`
 	SwapAmount       uint64 `json:"swapAmount"`
 	Destination      string `json:"destination"`
+	DestinationType  string `json:"destinationType"`
+	UnlockPassword   string `json:"unlockPassword"`
 }
 
 type GetAutoSwapConfigResponse struct {
@@ -299,6 +305,8 @@ type InfoResponse struct {
 	Relays                      []InfoResponseRelay `json:"relays"`
 	NodeAlias                   string              `json:"nodeAlias"`
 	MempoolUrl                  string              `json:"mempoolUrl"`
+	ChainDataSourceType         string              `json:"chainDataSourceType,omitempty"`
+	ChainDataSourceAddress      string              `json:"chainDataSourceAddress,omitempty"`
 	HideUpdateBanner            bool                `json:"hideUpdateBanner"`
 }
 

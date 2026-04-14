@@ -34,7 +34,10 @@ export default function AlbyAuthRedirect() {
   }, [info, url]);
 
   return !info || info.oauthRedirect || !url ? (
-    <Loading />
+    <>
+      <title>Connect your Alby Account · Alby Hub</title>
+      <Loading />
+    </>
   ) : (
     <AuthCodeForm url={url} />
   );

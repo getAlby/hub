@@ -85,7 +85,7 @@ export default function ConfirmPayment() {
 
   return (
     <div className="grid gap-4">
-      <AppHeader title="Pay Invoice" />
+      <AppHeader pageTitle="Pay Invoice" title="Pay Invoice" />
       <div className="max-w-lg grid gap-4">
         <PendingPaymentAlert />
         {errorMessage && (

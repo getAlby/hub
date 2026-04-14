@@ -352,6 +352,25 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		return WailsRequestRouterResponse{Body: paymentResponse, Error: ""}
 	}
 
+	albyRateRegex := regexp.MustCompile(`/api/alby/rates/([^/?]+)`)
+	albyRateMatch := albyRateRegex.FindStringSubmatch(route)
+
+	switch {
+	case len(albyRateMatch) > 1:
+		currency := albyRateMatch[1]
+		rate, err := app.svc.GetAlbySvc().GetBitcoinRate(ctx, currency)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":    route,
+				"method":   method,
+				"body":     body,
+				"currency": currency,
+			}).WithError(err).Error("Failed to get Bitcoin rate")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: rate, Error: ""}
+	}
+
 	switch route {
 	case "/api/transfers":
 		transferRequest := &api.TransferRequest{}
@@ -398,17 +417,17 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/alby/rates":
-		rate, err := app.svc.GetAlbySvc().GetBitcoinRate(ctx)
+	case "/api/alby/currencies":
+		currencies, err := app.svc.GetAlbySvc().GetCurrencies(ctx)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,
 				"method": method,
 				"body":   body,
-			}).WithError(err).Error("Failed to get Bitcoin rate")
+			}).WithError(err).Error("Failed to get currencies")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		return WailsRequestRouterResponse{Body: rate, Error: ""}
+		return WailsRequestRouterResponse{Body: currencies, Error: ""}
 	case "/api/apps":
 		switch method {
 		case "POST":

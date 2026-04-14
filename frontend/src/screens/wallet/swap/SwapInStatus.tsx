@@ -152,7 +152,7 @@ export default function SwapInStatus() {
 
   return (
     <div className="grid gap-5">
-      <AppHeader title="Swap In" />
+      <AppHeader pageTitle="Swap In" title="Swap In" />
       <div className="w-full max-w-lg">
         <Card className="w-full md:max-w-xs">
           <CardHeader>

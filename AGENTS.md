@@ -8,7 +8,7 @@ Alby Hub is a self-custodial **Nostr Wallet Connect (NWC)** service that bridges
 
 ## Tech Stack
 
-- **Backend:** Go 1.24, Echo v4, GORM, SQLite (default) / PostgreSQL
+- **Backend:** Go 1.25, Echo v4, GORM, SQLite (default) / PostgreSQL
 - **Frontend:** React 18, TypeScript, Vite, Tailwind CSS 4, shadcn/ui, Radix UI, Zustand, SWR
 - **Desktop:** Wails v2 (produces native desktop app using Go + web frontend)
 - **Lightning:** LDK (embedded), LND (gRPC), Phoenixd, Cashu

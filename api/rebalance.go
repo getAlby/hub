@@ -20,7 +20,7 @@ import (
 func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *RebalanceChannelRequest) (*RebalanceChannelResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 
 	receiveMetadata := map[string]interface{}{
@@ -84,7 +84,7 @@ func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *R
 		return nil, errors.New("failed to read response body")
 	}
 
-	if res.StatusCode >= 300 {
+	if res.StatusCode != http.StatusOK {
 		logger.Logger.WithFields(logrus.Fields{
 			"request":    newRspCreateOrderRequest,
 			"body":       string(body),
