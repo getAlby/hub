@@ -72,6 +72,8 @@ function Home() {
         <div className="grid gap-3">
           <OnboardingChecklist />
           <WhatsNewWidget />
+          <SupportAlbyWidget />
+          <LatestUsedAppsWidget />
           <NewArrivalsWidget />
           <AppOfTheDayWidget />
           {info.albyAccountConnected && (
@@ -164,8 +166,6 @@ function Home() {
 
         {/* RIGHT */}
         <div className="grid gap-3">
-          <LatestUsedAppsWidget />
-          <SupportAlbyWidget />
           <LightningMessageboardWidget />
 
           <Link to="/internal-apps/zapplanner">
