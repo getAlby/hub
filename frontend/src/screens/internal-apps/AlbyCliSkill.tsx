@@ -26,9 +26,9 @@ import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
 
-const skillInstallCommand = "npx skills add getAlby/bitcoin-payments-skill";
+const skillInstallCommand = "npx skills add getAlby/payments-skill";
 const skillInstallPrompt =
-  "Run `npx -y skills add getAlby/bitcoin-payments-skill` to install the Alby bitcoin payments skill";
+  "Run `npx -y skills add getAlby/payments-skill` to install the Alby bitcoin payments skill";
 const verifyPrompt = "What's your wallet balance?";
 
 export function AlbyCliSkill() {
