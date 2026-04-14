@@ -74,10 +74,10 @@ func (c *AppConfig) GetBaseFrontendUrl() string {
 }
 
 type Config interface {
-	Unlock(encryptionKey string) error
 	Get(key string, encryptionKey string) (string, error)
 	SetIgnore(key string, value string, encryptionKey string) error
 	SetUpdate(key string, value string, encryptionKey string) error
+	LoadJWTSecret(encryptionKey string) error
 	GetJWTSecret() (string, error)
 	GetRelayUrls() []string
 	GetNetwork() string

@@ -1,4 +1,5 @@
 import {
+  BotIcon,
   BoxIcon,
   ChevronsUpDownIcon,
   CircleHelpIcon,
@@ -15,12 +16,13 @@ import {
 } from "lucide-react";
 import React from "react";
 
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router";
 
 import ExternalLink from "src/components/ExternalLink";
 import { AlbyIcon } from "src/components/icons/Alby";
 import { AlbyHubIcon } from "src/components/icons/AlbyHubIcon";
 import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
+import { Badge } from "src/components/ui/badge";
 import { ProBadge } from "src/components/ProBadge";
 import SidebarHint from "src/components/SidebarHint";
 import {
@@ -95,6 +97,12 @@ export function AppSidebar() {
         url: "/apps",
         icon: Plug2Icon,
       },
+      {
+        title: "AI & Agents",
+        url: "/ai",
+        icon: BotIcon,
+        badge: "NEW",
+      },
     ],
     navSecondary: [
       ...(hasChannelManagement
@@ -127,7 +135,7 @@ export function AppSidebar() {
       <SidebarHeader>
         <div className="p-2 flex flex-row items-center justify-between">
           <Link to="/home" onClick={() => setOpenMobile(false)}>
-            <AlbyHubLogo className="w-32" />
+            <AlbyHubLogo className="h-7" />
           </Link>
           <div className="flex gap-3 items-center">
             <HealthIndicator />
@@ -152,6 +160,11 @@ export function AppSidebar() {
                     >
                       <item.icon />
                       <span>{item.title}</span>
+                      {item.badge && (
+                        <Badge className="ml-auto text-[10px] px-1.5 py-0">
+                          {item.badge}
+                        </Badge>
+                      )}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

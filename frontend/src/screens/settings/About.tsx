@@ -45,6 +45,17 @@ export function About() {
             {info.backendType}
           </p>
         </div>
+        {info.chainDataSourceType && (
+          <div className="grid gap-2">
+            <p className="font-medium text-sm">Chain Data Source</p>
+            <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+              <p className="capitalize">{info.chainDataSourceType}</p>
+              {info.chainDataSourceAddress && (
+                <p className="break-all">{info.chainDataSourceAddress}</p>
+              )}
+            </div>
+          </div>
+        )}
         <div className="grid gap-2">
           <p className="font-medium text-sm">Nostr Relays</p>
           {info.relays.map((relay) => (

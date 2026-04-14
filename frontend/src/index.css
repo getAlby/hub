@@ -45,6 +45,21 @@ body {
   }
 }
 
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes flash {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* bitcoin-connect styles */
 html {
   --bc-color-brand: hsl(0 0% 0%); /* use a different brand color in dark mode */

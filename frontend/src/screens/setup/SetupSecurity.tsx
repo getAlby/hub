@@ -5,7 +5,7 @@ import {
   UnlockIcon,
 } from "lucide-react";
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import ExternalLink from "src/components/ExternalLink";
 
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
@@ -110,10 +110,7 @@ export function SetupSecurity() {
               required
               onCheckedChange={() => setConfirmed(!hasConfirmed)}
             />
-            <Label
-              htmlFor="securePassword"
-              className="ml-2 text-foreground leading-4"
-            >
+            <Label htmlFor="securePassword" className="ml-2 cursor-pointer">
               I understand how to secure and recover funds
             </Label>
           </div>

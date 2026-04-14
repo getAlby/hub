@@ -8,6 +8,9 @@
 }
 
 @theme inline {
+  /* Bound to per-theme `--app-font-sans` (see `default.css`, `alby.css`, …). */
+  --font-sans: var(--app-font-sans);
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -51,6 +54,8 @@
 
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+
+  --shadow-sm: none;
 
   --animate-spin-slow: spin 3s linear infinite;
   --animate-highlight: pulse 1s 2 cubic-bezier(0.4, 0, 0.6, 1);

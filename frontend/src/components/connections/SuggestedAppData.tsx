@@ -1,5 +1,5 @@
 import { ZapIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import topup2fiat from "src/assets/suggested-apps/2fiat-topup.png";
 import albyExtension from "src/assets/suggested-apps/alby-extension.png";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
@@ -13,18 +13,18 @@ import btcpay from "src/assets/suggested-apps/btcpay.png";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
 import castamatic from "src/assets/suggested-apps/castamatic.png";
 import clams from "src/assets/suggested-apps/clams.png";
-import claude from "src/assets/suggested-apps/claude.png";
 import coracle from "src/assets/suggested-apps/coracle.png";
 import damus from "src/assets/suggested-apps/damus.png";
 import fountain from "src/assets/suggested-apps/fountain.png";
-import goose from "src/assets/suggested-apps/goose.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import iris from "src/assets/suggested-apps/iris.png";
 import jumble from "src/assets/suggested-apps/jumble.png";
+import lendaswap from "src/assets/suggested-apps/lendaswap.png";
 import lightningMessageboard from "src/assets/suggested-apps/lightning-messageboard.png";
 import lnbits from "src/assets/suggested-apps/lnbits.png";
 import lnvps from "src/assets/suggested-apps/lnvps.png";
 import lume from "src/assets/suggested-apps/lume.png";
+import nadanada from "src/assets/suggested-apps/nadanada.png";
 import nakapay from "src/assets/suggested-apps/nakapay.png";
 import nostrcheckserver from "src/assets/suggested-apps/nostrcheck-server.png";
 import nostrudel from "src/assets/suggested-apps/nostrudel.png";
@@ -82,6 +82,7 @@ export type AppStoreApp = {
   hideConnectionQr?: boolean;
   internal?: boolean;
   superuser?: boolean;
+  addedDate?: string;
 };
 
 export const appStoreCategories = {
@@ -215,18 +216,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["audio"],
-    },
-    {
-      id: "goose",
-      title: "Goose",
-      description:
-        "Your local AI agent, automating engineering tasks seamlessly",
-      internal: true,
-      logo: goose,
-      categories: ["ai"],
-      extendedDescription:
-        "Your local AI agent, automating engineering tasks seamlessly",
-      webLink: "https://block.github.io/goose",
+      addedDate: "2026-03-12",
     },
     {
       id: "2fiat",
@@ -292,17 +282,6 @@ export const appStoreApps: AppStoreApp[] = (
           </div>
         </>
       ),
-    },
-    {
-      id: "claude",
-      title: "Claude",
-      description: "AI assistant for conversations, analysis, and coding",
-      extendedDescription:
-        "AI assistant for conversations, analysis, and coding",
-      internal: true,
-      logo: claude,
-      categories: ["ai"],
-      webLink: "https://claude.ai/",
     },
     {
       id: "alby-cli-skill",
@@ -1716,6 +1695,69 @@ export const appStoreApps: AppStoreApp[] = (
       categories: ["social-media"],
     },
     {
+      id: "nadanada",
+      title: "nadanada",
+      description: "No-KYC eSIM, VPN and phone numbers",
+      webLink: "https://nadanada.me?ref=getalby",
+      logo: nadanada,
+      extendedDescription:
+        "Privacy-first eSIM, VPN, and phone numbers with no account required.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://nadanada.me?ref=getalby"
+              className="font-medium text-foreground underline"
+            >
+              nadanada
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In nadanada</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>Choose a service of your choice</li>
+              <li>
+                At checkout, choose{" "}
+                <span className="font-medium text-foreground">
+                  Lightning
+                </span>{" "}
+              </li>
+              <li>
+                Click{" "}
+                <span className="font-medium text-foreground">
+                  Pay with Wallet
+                </span>
+              </li>
+              <li>
+                In the modal, click{" "}
+                <span className="font-medium text-foreground">
+                  Connect Wallet to Pay
+                </span>
+              </li>
+              <li>
+                Choose{" "}
+                <span className="font-medium text-foreground">
+                  Nostr Wallet Connect
+                </span>{" "}
+              </li>
+              <li>
+                Paste the connection secret from Alby Hub and continue to
+                confirm payment
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["misc"],
+      addedDate: "2026-04-10",
+    },
+    {
       id: "nakapay",
       title: "NakaPay",
       description: "Non-custodial Lightning payments for businesses via NWC",
@@ -2413,8 +2455,68 @@ export const appStoreApps: AppStoreApp[] = (
       ),
       categories: ["misc"],
     },
+    {
+      id: "lendaswap",
+      title: "LendaSwap",
+      description: "Self-custodial Bitcoin ↔ Stablecoin atomic swaps",
+      webLink: "https://lendaswap.com/?ref=lnds_e3f8dd88_f7db93dbf176",
+      logo: lendaswap,
+      extendedDescription:
+        "Swap between Lightning Bitcoin and stablecoins (USDC, USDT) on Polygon, Arbitrum, and Ethereum. LendaSwap uses your Hub to pay swap invoices and generate receiving invoices — all self-custodial via HTLCs.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://lendaswap.com/?ref=lnds_e3f8dd88_f7db93dbf176"
+              className="font-medium text-foreground underline"
+            >
+              LendaSwap
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In LendaSwap</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Click the{" "}
+                <span className="font-medium text-foreground">
+                  ⚡ Lightning
+                </span>{" "}
+                button in the header
+              </li>
+              <li>Paste the connection secret from Alby Hub</li>
+              <li>
+                When swapping Lightning → stablecoins, click{" "}
+                <span className="font-medium text-foreground">
+                  Pay with Lightning Wallet
+                </span>{" "}
+                to pay directly from your Hub
+              </li>
+              <li>
+                When swapping stablecoins → Lightning, click{" "}
+                <span className="font-medium text-foreground">
+                  Generate invoice from wallet
+                </span>{" "}
+                to receive directly into your Hub
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["payment-tools"],
+      addedDate: "2026-04-10",
+    },
   ] satisfies AppStoreApp[]
 ).sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
+
+export function getAppStoreUrl(app: AppStoreApp) {
+  return app.internal ? `/internal-apps/${app.id}` : `/appstore/${app.id}`;
+}
 
 export const getAppStoreApp = (app: App) => {
   return appStoreApps.find(

@@ -7,7 +7,7 @@ import {
   ShieldCheckIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 import { toast } from "sonner";
 import MnemonicInputs from "src/components/mnemonic/MnemonicInputs";
@@ -113,7 +113,7 @@ export function ImportMnemonic() {
           required
           onCheckedChange={() => setIsBackedUp(!backedUp)}
         />
-        <Label htmlFor="confirmedNoChannels" className="ml-2">
+        <Label htmlFor="confirmedNoChannels" className="ml-2 cursor-pointer">
           I don't have another Alby Hub to migrate or open channels (funds from
           channels will be lost!).
         </Label>

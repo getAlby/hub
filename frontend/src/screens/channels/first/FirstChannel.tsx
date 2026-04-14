@@ -1,6 +1,6 @@
 import { ChevronDownIcon, InfoIcon } from "lucide-react";
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
@@ -282,7 +282,7 @@ export function FirstChannel() {
                   <div className="grid gap-1.5 leading-none">
                     <Label
                       htmlFor="public-channel"
-                      className="flex items-center gap-2"
+                      className="cursor-pointer text-foreground"
                     >
                       Public Channel
                     </Label>

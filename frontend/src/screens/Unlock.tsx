@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router";
 import PasswordInput from "src/components/password/PasswordInput";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { LoadingButton } from "src/components/ui/custom/loading-button";

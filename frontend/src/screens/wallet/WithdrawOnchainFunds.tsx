@@ -200,7 +200,7 @@ export default function WithdrawOnchainFunds() {
                     id="send-all"
                     onCheckedChange={() => setSendAll(!sendAll)}
                   />
-                  <Label htmlFor="send-all" className="text-xs">
+                  <Label htmlFor="send-all" className="text-xs cursor-pointer">
                     Send All
                   </Label>
                 </div>

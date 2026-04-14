@@ -13,12 +13,14 @@ import (
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/events"
+	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/tests/db"
 	"github.com/getAlby/hub/tests/mocks"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -119,6 +121,49 @@ func TestGetApps_NoToken(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, rec.Code)
 }
 
+func TestUnlock_NodeNotStarted(t *testing.T) {
+	e := echo.New()
+	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
+	mockSvc := mocks.NewMockService(t)
+	gormDb, err := db.NewDB(t)
+	require.NoError(t, err)
+	defer db.CloseDB(gormDb)
+
+	mockEventPublisher := events.NewEventPublisher()
+
+	mockConfig := mocks.NewMockConfig(t)
+	mockConfig.On("GetEnv").Return(&config.AppConfig{})
+	mockConfig.On("CheckUnlockPassword", "123").Return(true)
+
+	mockSvc.On("GetDB").Return(gormDb)
+	mockSvc.On("GetConfig").Return(mockConfig)
+	mockSvc.On("GetKeys").Return(mocks.NewMockKeys(t))
+	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
+	mockSvc.On("GetAlbyOAuthSvc").Return(mocks.NewMockAlbyOAuthService(t))
+	mockSvc.On("GetLNClient").Return(nil)
+
+	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
+	httpSvc.RegisterSharedRoutes(e)
+
+	requestBody := api.UnlockRequest{UnlockPassword: "123", Permission: "full"}
+	jsonBody, _ := json.Marshal(requestBody)
+	req := httptest.NewRequest(http.MethodPost, "/api/unlock", bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	e.ServeHTTP(rec, req)
+
+	assert.Equal(t, http.StatusBadRequest, rec.Code)
+
+	body, err := io.ReadAll(rec.Body)
+	require.NoError(t, err)
+
+	var response ErrorResponse
+	err = json.Unmarshal(body, &response)
+	require.NoError(t, err)
+	assert.Equal(t, "Node is not running, start it before unlocking.", response.Message)
+	mockConfig.AssertNotCalled(t, "GetJWTSecret")
+}
+
 func TestGetApps_ReadonlyPermission(t *testing.T) {
 	e := echo.New()
 	logger.Init(strconv.Itoa(int(logrus.DebugLevel)))
@@ -139,6 +184,9 @@ func TestGetApps_ReadonlyPermission(t *testing.T) {
 	mockSvc.On("GetKeys").Return(mocks.NewMockKeys(t))
 	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
 	mockSvc.On("GetAlbyOAuthSvc").Return(mocks.NewMockAlbyOAuthService(t))
+	lnClient := mocks.NewMockLNClient(t)
+	lnClient.On("GetNodeStatus", mock.Anything).Return(&lnclient.NodeStatus{}, nil)
+	mockSvc.On("GetLNClient").Return(lnClient)
 
 	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
 	httpSvc.RegisterSharedRoutes(e)
@@ -192,6 +240,9 @@ func TestGetApps_FullPermission(t *testing.T) {
 	mockSvc.On("GetKeys").Return(mocks.NewMockKeys(t))
 	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
 	mockSvc.On("GetAlbyOAuthSvc").Return(mocks.NewMockAlbyOAuthService(t))
+	lnClient := mocks.NewMockLNClient(t)
+	lnClient.On("GetNodeStatus", mock.Anything).Return(&lnclient.NodeStatus{}, nil)
+	mockSvc.On("GetLNClient").Return(lnClient)
 
 	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
 	httpSvc.RegisterSharedRoutes(e)
@@ -284,6 +335,9 @@ func TestCreateApp_FullPermission(t *testing.T) {
 	mockSvc.On("GetKeys").Return(mockKeys)
 	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
 	mockSvc.On("GetAlbyOAuthSvc").Return(mockAlbyOAuthService)
+	lnClient := mocks.NewMockLNClient(t)
+	lnClient.On("GetNodeStatus", mock.Anything).Return(&lnclient.NodeStatus{}, nil)
+	mockSvc.On("GetLNClient").Return(lnClient)
 
 	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
 	httpSvc.RegisterSharedRoutes(e)
@@ -345,6 +399,9 @@ func TestCreateApp_ReadonlyPermission(t *testing.T) {
 	mockSvc.On("GetKeys").Return(mockKeys)
 	mockSvc.On("GetAlbySvc").Return(mocks.NewMockAlbyService(t))
 	mockSvc.On("GetAlbyOAuthSvc").Return(mockAlbyOAuthService)
+	lnClient := mocks.NewMockLNClient(t)
+	lnClient.On("GetNodeStatus", mock.Anything).Return(&lnclient.NodeStatus{}, nil)
+	mockSvc.On("GetLNClient").Return(lnClient)
 
 	httpSvc := NewHttpService(mockSvc, mockEventPublisher)
 	httpSvc.RegisterSharedRoutes(e)

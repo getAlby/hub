@@ -1,5 +1,5 @@
 import { AlertTriangleIcon, ExternalLinkIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import ExternalLink from "src/components/ExternalLink";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { useChannels } from "src/hooks/useChannels";

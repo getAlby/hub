@@ -1,7 +1,7 @@
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween"; // Add this line
 import { CalendarClockIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { Badge } from "src/components/ui/badge";
 import {
   Tooltip,
