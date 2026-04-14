@@ -7,7 +7,7 @@ import {
   WalletIcon,
 } from "lucide-react";
 import React, { ReactElement } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import Cloud from "src/assets/images/cloud.png";
 import Cloud2 from "src/assets/images/cloud2.png";
 import { Button } from "src/components/ui/button";

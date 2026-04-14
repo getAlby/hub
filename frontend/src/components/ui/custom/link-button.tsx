@@ -1,6 +1,6 @@
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { cn } from "src/lib/utils";
 import { buttonVariants } from "../buttonVariants";
 
