@@ -5,7 +5,7 @@ import {
   UnlockIcon,
 } from "lucide-react";
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import ExternalLink from "src/components/ExternalLink";
 
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";

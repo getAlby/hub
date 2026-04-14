@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import AppAvatar from "src/components/AppAvatar";
 import { AppCardConnectionInfo } from "src/components/connections/AppCardConnectionInfo";
 import { AppCardNotice } from "src/components/connections/AppCardNotice";

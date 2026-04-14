@@ -1,5 +1,5 @@
 import { ExternalLinkIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { AlbyHead } from "src/components/images/AlbyHead";
@@ -26,6 +26,7 @@ import { BlockHeightWidget } from "src/components/home/widgets/BlockHeightWidget
 import { ForwardsWidget } from "src/components/home/widgets/ForwardsWidget";
 import { LatestUsedAppsWidget } from "src/components/home/widgets/LatestUsedAppsWidget";
 import { LightningMessageboardWidget } from "src/components/home/widgets/LightningMessageboardWidget";
+import { NewArrivalsWidget } from "src/components/home/widgets/NewArrivalsWidget";
 import { NodeStatusWidget } from "src/components/home/widgets/NodeStatusWidget";
 import { OnchainFeesWidget } from "src/components/home/widgets/OnchainFeesWidget";
 import { SupportAlbyWidget } from "src/components/home/widgets/SupportAlbyWidget";
@@ -71,6 +72,10 @@ function Home() {
         <div className="grid gap-3">
           <OnboardingChecklist />
           <WhatsNewWidget />
+          <SupportAlbyWidget />
+          <LatestUsedAppsWidget />
+          <NewArrivalsWidget />
+          <AppOfTheDayWidget />
           {info.albyAccountConnected && (
             <ExternalLink to="https://www.getalby.com/dashboard">
               <Card>
@@ -161,10 +166,7 @@ function Home() {
 
         {/* RIGHT */}
         <div className="grid gap-3">
-          <LatestUsedAppsWidget />
-          <SupportAlbyWidget />
           <LightningMessageboardWidget />
-          <AppOfTheDayWidget />
 
           <Link to="/internal-apps/zapplanner">
             <Card>

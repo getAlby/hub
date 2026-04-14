@@ -1,5 +1,5 @@
 import { ZapIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import topup2fiat from "src/assets/suggested-apps/2fiat-topup.png";
 import albyExtension from "src/assets/suggested-apps/alby-extension.png";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
@@ -13,11 +13,9 @@ import btcpay from "src/assets/suggested-apps/btcpay.png";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
 import castamatic from "src/assets/suggested-apps/castamatic.png";
 import clams from "src/assets/suggested-apps/clams.png";
-import claude from "src/assets/suggested-apps/claude.png";
 import coracle from "src/assets/suggested-apps/coracle.png";
 import damus from "src/assets/suggested-apps/damus.png";
 import fountain from "src/assets/suggested-apps/fountain.png";
-import goose from "src/assets/suggested-apps/goose.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import iris from "src/assets/suggested-apps/iris.png";
 import jumble from "src/assets/suggested-apps/jumble.png";
@@ -84,6 +82,7 @@ export type AppStoreApp = {
   hideConnectionQr?: boolean;
   internal?: boolean;
   superuser?: boolean;
+  addedDate?: string;
 };
 
 export const appStoreCategories = {
@@ -217,18 +216,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["audio"],
-    },
-    {
-      id: "goose",
-      title: "Goose",
-      description:
-        "Your local AI agent, automating engineering tasks seamlessly",
-      internal: true,
-      logo: goose,
-      categories: ["ai"],
-      extendedDescription:
-        "Your local AI agent, automating engineering tasks seamlessly",
-      webLink: "https://block.github.io/goose",
+      addedDate: "2026-03-12",
     },
     {
       id: "2fiat",
@@ -294,17 +282,6 @@ export const appStoreApps: AppStoreApp[] = (
           </div>
         </>
       ),
-    },
-    {
-      id: "claude",
-      title: "Claude",
-      description: "AI assistant for conversations, analysis, and coding",
-      extendedDescription:
-        "AI assistant for conversations, analysis, and coding",
-      internal: true,
-      logo: claude,
-      categories: ["ai"],
-      webLink: "https://claude.ai/",
     },
     {
       id: "alby-cli-skill",
@@ -1778,6 +1755,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["misc"],
+      addedDate: "2026-04-10",
     },
     {
       id: "nakapay",
@@ -2531,9 +2509,14 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["payment-tools"],
+      addedDate: "2026-04-10",
     },
   ] satisfies AppStoreApp[]
 ).sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
+
+export function getAppStoreUrl(app: AppStoreApp) {
+  return app.internal ? `/internal-apps/${app.id}` : `/appstore/${app.id}`;
+}
 
 export const getAppStoreApp = (app: App) => {
   return appStoreApps.find(

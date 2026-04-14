@@ -6,7 +6,7 @@ import {
   Trash2Icon,
 } from "lucide-react";
 import React from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import { CloseChannelDialogContent } from "src/components/CloseChannelDialogContent";
 import ExternalLink from "src/components/ExternalLink";
 import { RebalanceChannelDialogContent } from "src/components/RebalanceChannelDialogContent";

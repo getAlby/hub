@@ -1,4 +1,4 @@
-import { Slot } from "@radix-ui/react-slot";
+import { Slot } from "radix-ui";
 import * as Stepperize from "@stepperize/react";
 import { type VariantProps, cva } from "class-variance-authority";
 import * as React from "react";
@@ -94,17 +94,16 @@ const defineStepper = <const Steps extends Stepperize.Step[]>(
       },
       Step: ({ children, className, icon, ...props }) => {
         const { variant, labelOrientation } = useStepperProvider();
-        const { current } = useStepper();
+        const stepper = useStepper();
+        const currentStep = stepper.state.current.data;
+        const currentIndex = stepper.state.current.index;
+        const allSteps = stepper.state.all;
 
-        const utils = rest.utils;
-        const steps = rest.steps;
+        const stepIndex = stepper.lookup.getIndex(props.of);
+        const step = allSteps[stepIndex];
 
-        const stepIndex = utils.getIndex(props.of);
-        const step = steps[stepIndex];
-        const currentIndex = utils.getIndex(current.id);
-
-        const isLast = utils.getLast().id === props.of;
-        const isActive = current.id === props.of;
+        const isLast = stepper.lookup.getLast().id === props.of;
+        const isActive = currentStep.id === props.of;
 
         const dataState = getStepState(currentIndex, stepIndex);
         const childMap = useStepChildren(children);
@@ -124,7 +123,7 @@ const defineStepper = <const Steps extends Stepperize.Step[]>(
             >
               <CircleStepIndicator
                 currentStep={stepIndex + 1}
-                totalSteps={steps.length}
+                totalSteps={allSteps.length}
               />
               <div
                 date-component="stepper-step-content"
@@ -165,13 +164,13 @@ const defineStepper = <const Steps extends Stepperize.Step[]>(
                 aria-controls={`step-panel-${props.of}`}
                 aria-current={isActive ? "step" : undefined}
                 aria-posinset={stepIndex + 1}
-                aria-setsize={steps.length}
+                aria-setsize={allSteps.length}
                 aria-selected={isActive}
                 onKeyDown={(e) =>
                   onStepKeyDown(
                     e,
-                    utils.getNext(props.of),
-                    utils.getPrev(props.of)
+                    stepper.lookup.getNext(props.of),
+                    stepper.lookup.getPrev(props.of)
                   )
                 }
                 {...props}
@@ -208,7 +207,7 @@ const defineStepper = <const Steps extends Stepperize.Step[]>(
             {variant === "vertical" && (
               <div className="flex gap-4">
                 {!isLast && (
-                  <div className="flex justify-center ps-[calc(var(--spacing)_*_4.5_-_1px)]">
+                  <div className="flex justify-center ps-[calc(var(--spacing)*4.5-1px)]">
                     <StepperSeparator
                       orientation="vertical"
                       isLast={isLast}
@@ -226,7 +225,7 @@ const defineStepper = <const Steps extends Stepperize.Step[]>(
       Title,
       Description,
       Panel: ({ children, asChild, ...props }) => {
-        const Comp = asChild ? Slot : "div";
+        const Comp = asChild ? Slot.Root : "div";
         const { tracking } = useStepperProvider();
 
         return (
@@ -240,7 +239,7 @@ const defineStepper = <const Steps extends Stepperize.Step[]>(
         );
       },
       Controls: ({ children, className, asChild, ...props }) => {
-        const Comp = asChild ? Slot : "div";
+        const Comp = asChild ? Slot.Root : "div";
         return (
           <Comp
             date-component="stepper-controls"
@@ -262,7 +261,7 @@ const Title = ({
   asChild,
   ...props
 }: React.ComponentProps<"h4"> & { asChild?: boolean }) => {
-  const Comp = asChild ? Slot : "h4";
+  const Comp = asChild ? Slot.Root : "h4";
 
   return (
     <Comp
@@ -282,7 +281,7 @@ const Description = ({
   asChild,
   ...props
 }: React.ComponentProps<"p"> & { asChild?: boolean }) => {
-  const Comp = asChild ? Slot : "p";
+  const Comp = asChild ? Slot.Root : "p";
 
   return (
     <Comp
@@ -407,10 +406,7 @@ const classForSeparator = cva(
   }
 );
 
-function scrollIntoStepperPanel(
-  node: HTMLDivElement | null,
-  tracking?: boolean
-) {
+function scrollIntoStepperPanel(node: HTMLElement | null, tracking?: boolean) {
   if (tracking) {
     node?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
@@ -441,8 +437,8 @@ const extractChildren = (children: React.ReactNode) => {
 
 const onStepKeyDown = (
   e: React.KeyboardEvent<HTMLButtonElement>,
-  nextStep: Stepperize.Step,
-  prevStep: Stepperize.Step
+  nextStep: Stepperize.Step | undefined,
+  prevStep: Stepperize.Step | undefined
 ) => {
   const { key } = e;
   const directions = {
@@ -494,7 +490,7 @@ namespace Stepper {
 
   export type DefineProps<Steps extends Stepperize.Step[]> = Omit<
     Stepperize.StepperReturn<Steps>,
-    "Scoped"
+    "Scoped" | "Stepper"
   > & {
     Stepper: {
       Provider: (

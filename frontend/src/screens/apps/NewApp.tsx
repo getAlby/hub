@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router";
 
 import React from "react";
 import { toast } from "sonner";
@@ -344,13 +344,14 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         {({ methods }) => (
           <>
             <Stepper.Navigation>
-              {methods.all.map((step) => (
+              {methods.state.all.map((step) => (
                 <Stepper.Step
                   key={step.id}
                   of={step.id}
                   onClick={() =>
-                    methods.current.id === "configure" && step.id === "install"
-                      ? methods.goTo(step.id)
+                    methods.state.current.data.id === "configure" &&
+                    step.id === "install"
+                      ? methods.navigation.goTo(step.id)
                       : undefined
                   }
                 >
@@ -358,9 +359,9 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                     {step.title ||
                       (isInstallable ? "Install" : "Open") + " " + appName}
                   </Stepper.Title>
-                  {methods.when(step.id, () => (
+                  {methods.flow.when(step.id, () => (
                     <>
-                      {methods.switch({
+                      {methods.flow.switch({
                         install: () =>
                           appStoreApp && (
                             <InstallApp appStoreApp={appStoreApp} />
@@ -375,14 +376,16 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                                 setShowSuperuserConfirmPasswordDialog(true);
                                 return;
                               }
-                              handleCreateApp(methods.next);
+                              handleCreateApp(() => methods.navigation.next());
                             }}
                           >
                             <SuperuserConfirmPasswordDialog
                               open={showSuperuserConfirmPasswordDialog}
                               setOpen={setShowSuperuserConfirmPasswordDialog}
                               onSubmit={() => {
-                                handleCreateApp(methods.next);
+                                handleCreateApp(() =>
+                                  methods.navigation.next()
+                                );
                               }}
                               unlockPassword={unlockPassword}
                               setUnlockPassword={setUnlockPassword}
@@ -455,13 +458,13 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                             </div>
                           ),
                       })}
-                      {(!methods.isLast || returnTo) && (
+                      {(!methods.state.isLast || returnTo) && (
                         <Stepper.Controls className="mt-6">
-                          {!methods.isFirst && (
+                          {!methods.state.isFirst && (
                             <Button
                               type="button"
                               variant="secondary"
-                              onClick={methods.prev}
+                              onClick={() => methods.navigation.prev()}
                             >
                               Back
                             </Button>
@@ -473,7 +476,9 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                               step.id === "configure" ? "new-app" : undefined
                             }
                             onClick={
-                              step.id === "configure" ? undefined : methods.next
+                              step.id === "configure"
+                                ? undefined
+                                : () => methods.navigation.next()
                             }
                           >
                             {step.id === "configure" && pubkey
@@ -514,9 +519,9 @@ function FinalizeConnection({
       toast("Connection established!", {
         description: "You can now use the app with your Alby Hub.",
       });
-      navigate("/apps?tab=connected-apps");
+      navigate(`/apps/${createAppResponse.id}`);
     }
-  }, [app?.lastUsedAt, navigate]);
+  }, [app?.lastUsedAt, createAppResponse.id, navigate]);
 
   if (!createAppResponse) {
     return <Navigate to="/apps/new" />;

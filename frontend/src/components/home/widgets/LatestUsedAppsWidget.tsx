@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import { ChevronRightIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import AppAvatar from "src/components/AppAvatar";
 import {
   Card,
@@ -31,28 +31,34 @@ export function LatestUsedAppsWidget() {
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div>Recently Used Apps</div>
-          <LinkButton to="/apps?tab=connected-apps" variant="secondary">
+          <LinkButton to="/apps?tab=connected-apps" variant="ghost" size="sm">
             See All
           </LinkButton>
         </CardTitle>
       </CardHeader>
       <CardContent className="grid grid-cols-1 gap-4">
-        {usedApps.map((app) => (
-          <Link key={app.id} to={`/apps/${app.id}`}>
-            <div className="flex items-center w-full gap-4">
-              <AppAvatar app={app} className="w-14 h-14 rounded-lg" />
-              <p className="text-sm font-medium flex-1 truncate">
-                {getAppDisplayName(app.name)}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {app.lastSettledTransactionAt
-                  ? dayjs(app.lastSettledTransactionAt).fromNow()
-                  : "never"}
-              </p>
-              <ChevronRightIcon className="text-muted-foreground size-8" />
-            </div>
-          </Link>
-        ))}
+        {usedApps
+          .sort(
+            (a, b) =>
+              new Date(b.lastSettledTransactionAt ?? 0).getTime() -
+              new Date(a.lastSettledTransactionAt ?? 0).getTime()
+          )
+          .map((app) => (
+            <Link key={app.id} to={`/apps/${app.id}`} className="group">
+              <div className="flex items-center w-full gap-4">
+                <AppAvatar app={app} className="w-14 h-14 rounded-lg" />
+                <p className="text-sm font-medium flex-1 truncate">
+                  {getAppDisplayName(app.name)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {app.lastSettledTransactionAt
+                    ? dayjs(app.lastSettledTransactionAt).fromNow()
+                    : "never"}
+                </p>
+                <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+              </div>
+            </Link>
+          ))}
       </CardContent>
     </Card>
   );
