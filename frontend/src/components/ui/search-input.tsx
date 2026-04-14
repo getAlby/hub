@@ -1,6 +1,6 @@
 "use client";
 
-import { Command, SearchIcon } from "lucide-react";
+import { CommandIcon, SearchIcon } from "lucide-react";
 import React from "react";
 import { Badge } from "src/components/ui/badge";
 
@@ -50,7 +50,7 @@ export function SearchInput({
         variant="secondary"
         className="absolute right-2 top-1/2 transform -translate-y-1/2 max-sm:hidden"
       >
-        <Command />K
+        <CommandIcon />K
       </Badge>
     </div>
   );

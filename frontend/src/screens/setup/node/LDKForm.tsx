@@ -1,6 +1,6 @@
 import { wordlist } from "@scure/bip39/wordlists/english.js";
 import { useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router";
 import useSetupStore from "src/state/SetupStore";
 
 import * as bip39 from "@scure/bip39";
@@ -24,5 +24,10 @@ export function LDKForm() {
     navigate("/setup/security");
   }, [navigate, searchParams]);
 
-  return <Loading />;
+  return (
+    <>
+      <title>Loading... · Alby Hub</title>
+      <Loading />
+    </>
+  );
 }

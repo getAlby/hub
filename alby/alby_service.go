@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/logger"
 	"github.com/sirupsen/logrus"
 )
@@ -17,19 +16,67 @@ import (
 const albyInternalAPIURL = "https://getalby.com/api"
 
 type albyService struct {
-	cfg config.Config
 }
 
-func NewAlbyService(cfg config.Config) *albyService {
-	albySvc := &albyService{
-		cfg: cfg,
-	}
-	return albySvc
+func NewAlbyService() *albyService {
+	return &albyService{}
 }
 
-func (svc *albyService) GetBitcoinRate(ctx context.Context) (*BitcoinRate, error) {
+func (svc *albyService) GetCurrencies(ctx context.Context) ([]Currency, error) {
 	client := &http.Client{Timeout: 10 * time.Second}
-	currency := svc.cfg.GetCurrency()
+	url := fmt.Sprintf("%s/rates", albyInternalAPIURL)
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Error creating request to currencies endpoint")
+		return nil, err
+	}
+	setDefaultRequestHeaders(req)
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch currencies from API")
+		return nil, err
+	}
+
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to read response body")
+		return nil, errors.New("failed to read response body")
+	}
+
+	if res.StatusCode >= 300 {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":        string(body),
+			"status_code": res.StatusCode,
+		}).Error("Currencies endpoint returned non-success code")
+		return nil, fmt.Errorf("currencies endpoint returned non-success code: %s", string(body))
+	}
+
+	rawCurrencies := map[string]Currency{}
+	err = json.Unmarshal(body, &rawCurrencies)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":  string(body),
+			"error": err,
+		}).Error("Failed to decode currencies API response")
+		return nil, err
+	}
+
+	currencies := []Currency{}
+	for _, currency := range rawCurrencies {
+		currencies = append(currencies, currency)
+	}
+
+	return currencies, nil
+}
+
+func (svc *albyService) GetBitcoinRate(ctx context.Context, currency string) (*BitcoinRate, error) {
+	client := &http.Client{Timeout: 10 * time.Second}
 
 	url := fmt.Sprintf("%s/rates/%s", albyInternalAPIURL, currency)
 

@@ -1,6 +1,6 @@
 import { InfoIcon } from "lucide-react";
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import Container from "src/components/Container";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
@@ -43,6 +43,7 @@ export function LNDForm() {
     <Container>
       <TwoColumnLayoutHeader
         title="Configure LND"
+        pageTitle="Configure LND"
         description="Fill out wallet details to finish setup."
       />
       <form className="w-full grid gap-5 mt-6" onSubmit={onSubmit}>

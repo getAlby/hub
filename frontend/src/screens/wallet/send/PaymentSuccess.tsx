@@ -6,7 +6,7 @@ import {
   HandCoinsIcon,
 } from "lucide-react";
 import { useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router";
 import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
@@ -49,7 +49,7 @@ export default function PaymentSuccess() {
 
   return (
     <div className="grid gap-4">
-      <AppHeader title={pageTitle || "Send"} />
+      <AppHeader pageTitle={pageTitle || "Send"} title={pageTitle || "Send"} />
       <div className="w-full md:max-w-lg">
         <Card className="w-full">
           <CardHeader>

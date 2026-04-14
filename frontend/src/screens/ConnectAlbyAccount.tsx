@@ -29,6 +29,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
       <Container>
         <TwoColumnLayoutHeader
           title="Connect Your Alby Account"
+          pageTitle="Connect Your Alby Account"
           description="Your Alby Account brings several benefits to your Alby Hub"
         />
         <div className="grid grid-cols-1 md:grid-cols-2 w-full gap-3 mt-5">

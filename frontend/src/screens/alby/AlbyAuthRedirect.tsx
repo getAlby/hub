@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 import AuthCodeForm from "src/components/AuthCodeForm";
 
 import Loading from "src/components/Loading";
@@ -34,7 +34,10 @@ export default function AlbyAuthRedirect() {
   }, [info, url]);
 
   return !info || info.oauthRedirect || !url ? (
-    <Loading />
+    <>
+      <title>Connect your Alby Account · Alby Hub</title>
+      <Loading />
+    </>
   ) : (
     <AuthCodeForm url={url} />
   );

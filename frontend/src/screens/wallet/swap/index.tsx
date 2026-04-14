@@ -6,7 +6,7 @@ import {
   RefreshCwIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { FixedFloatButton } from "src/components/FixedFloatButton";
@@ -57,6 +57,7 @@ export default function Swap() {
   return (
     <div className="grid gap-5">
       <AppHeader
+        pageTitle="Swap"
         title="Swap"
         contentRight={
           tab === "out" && (
@@ -272,10 +273,7 @@ function SwapInForm() {
                   id="internal"
                   className="shrink-0"
                 />
-                <Label
-                  htmlFor="internal"
-                  className="font-medium cursor-pointer"
-                >
+                <Label htmlFor="internal" className="cursor-pointer">
                   On-chain balance
                 </Label>
               </div>
@@ -285,10 +283,7 @@ function SwapInForm() {
                   id="external"
                   className="shrink-0"
                 />
-                <Label
-                  htmlFor="external"
-                  className="font-medium cursor-pointer"
-                >
+                <Label htmlFor="external" className="cursor-pointer">
                   External on-chain wallet
                 </Label>
               </div>
@@ -298,7 +293,7 @@ function SwapInForm() {
                   id="crypto"
                   className="shrink-0"
                 />
-                <Label htmlFor="crypto" className="font-medium cursor-pointer">
+                <Label htmlFor="crypto" className="cursor-pointer">
                   Other Cryptocurrency
                 </Label>
               </div>
@@ -449,10 +444,7 @@ function SwapOutForm() {
               id="internal"
               className="shrink-0"
             />
-            <Label
-              htmlFor="internal"
-              className="text-primary font-medium cursor-pointer"
-            >
+            <Label htmlFor="internal" className="cursor-pointer">
               On-chain balance
             </Label>
           </div>
@@ -462,10 +454,7 @@ function SwapOutForm() {
               id="external"
               className="shrink-0"
             />
-            <Label
-              htmlFor="external"
-              className="text-primary font-medium cursor-pointer"
-            >
+            <Label htmlFor="external" className="cursor-pointer">
               External on-chain wallet
             </Label>
           </div>

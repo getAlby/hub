@@ -211,7 +211,7 @@ func TestSetUpdate_EncryptionKeyToNoEncryptionKey(t *testing.T) {
 	assert.Equal(t, "value2", updatedValue)
 }
 
-func TestJWTSecret_GeneratedOnUnlock(t *testing.T) {
+func TestJWTSecret_GeneratedOnLoad(t *testing.T) {
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
@@ -222,7 +222,7 @@ func TestJWTSecret_GeneratedOnUnlock(t *testing.T) {
 	err = cfg.ChangeUnlockPassword("", "123")
 	require.NoError(t, err)
 
-	err = cfg.Unlock("123")
+	err = cfg.LoadJWTSecret("123")
 	require.NoError(t, err)
 
 	jwtSecret, err := cfg.GetJWTSecret()
@@ -235,12 +235,33 @@ func TestJWTSecret_GeneratedOnUnlock(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotEqual(t, encryptedSecret, decryptedSecret)
 
-	// unlock again without doing anything, ensure the same JWT secret is returned
-	err = cfg.Unlock("123")
+	// load again without doing anything, ensure the same JWT secret is returned
+	err = cfg.LoadJWTSecret("123")
 	require.NoError(t, err)
 	jwtSecret2, err := cfg.GetJWTSecret()
 	require.NoError(t, err)
 	assert.Equal(t, jwtSecret, jwtSecret2)
+}
+
+func TestJWTSecret_WrongPassword(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	cfg, err := config.NewConfig(&config.AppConfig{}, svc.DB)
+	require.NoError(t, err)
+
+	err = cfg.ChangeUnlockPassword("", "123")
+	require.NoError(t, err)
+
+	err = cfg.SaveUnlockPasswordCheck("123")
+	require.NoError(t, err)
+
+	err = cfg.LoadJWTSecret("123")
+	require.NoError(t, err)
+
+	err = cfg.LoadJWTSecret("wrong")
+	require.ErrorContains(t, err, "incorrect password")
 }
 
 func TestJWTSecret_ChangePassword(t *testing.T) {
@@ -254,7 +275,7 @@ func TestJWTSecret_ChangePassword(t *testing.T) {
 	err = cfg.ChangeUnlockPassword("", "123")
 	require.NoError(t, err)
 
-	err = cfg.Unlock("123")
+	err = cfg.LoadJWTSecret("123")
 	require.NoError(t, err)
 
 	jwtSecret, err := cfg.GetJWTSecret()
@@ -267,7 +288,7 @@ func TestJWTSecret_ChangePassword(t *testing.T) {
 	newJwtSecret, err := cfg.GetJWTSecret()
 	require.ErrorContains(t, err, "unlock")
 
-	err = cfg.Unlock("1234")
+	err = cfg.LoadJWTSecret("1234")
 	require.NoError(t, err)
 
 	// a new JWT secret must be generated after password change
@@ -277,7 +298,7 @@ func TestJWTSecret_ChangePassword(t *testing.T) {
 	assert.NotEqual(t, newJwtSecret, jwtSecret)
 }
 
-func TestJWTSecret_ReplaceUnencryptedSecretOnUnlock(t *testing.T) {
+func TestJWTSecret_ReplaceUnencryptedSecretOnLoad(t *testing.T) {
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
 	defer svc.Remove()
@@ -293,7 +314,7 @@ func TestJWTSecret_ReplaceUnencryptedSecretOnUnlock(t *testing.T) {
 	err = svc.Cfg.SetUpdate("JWTSecret", oldJwtSecret, "")
 	require.NoError(t, err)
 
-	err = cfg.Unlock("123")
+	err = cfg.LoadJWTSecret("123")
 	require.NoError(t, err)
 
 	jwtSecret, err := cfg.GetJWTSecret()

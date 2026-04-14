@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router";
 import AppHeader from "src/components/AppHeader";
 import { buttonVariants } from "../ui/buttonVariants";
 

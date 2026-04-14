@@ -15,7 +15,7 @@ import {
   ZapIcon,
 } from "lucide-react";
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router";
 import AppHeader from "src/components/AppHeader.tsx";
 import { ChannelsCards } from "src/components/channels/ChannelsCards.tsx";
 import { ChannelsTable } from "src/components/channels/ChannelsTable.tsx";
@@ -152,6 +152,7 @@ export default function Channels() {
     <>
       <AppHeader
         title="Node"
+        pageTitle="Node"
         contentRight={
           hasChannelManagement && (
             <div className="flex gap-3 items-center justify-center">
