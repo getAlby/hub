@@ -85,7 +85,7 @@ export default function TwoColumnFullScreenLayout() {
         />
         <div className="flex-1 w-full h-full flex flex-col">
           <div className="flex flex-row justify-between items-center">
-            <AlbyHubLogo className="w-36" invert={true} />
+            <AlbyHubLogo monochrome className="h-8" />
             {info?.version && (
               <p className="text-sm text-muted-foreground">{info.version}</p>
             )}

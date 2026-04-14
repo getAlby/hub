@@ -1,4 +1,4 @@
-import { Slot } from "@radix-ui/react-slot";
+import { Slot } from "radix-ui";
 import * as Stepperize from "@stepperize/react";
 import { type VariantProps, cva } from "class-variance-authority";
 import * as React from "react";
@@ -225,7 +225,7 @@ const defineStepper = <const Steps extends Stepperize.Step[]>(
       Title,
       Description,
       Panel: ({ children, asChild, ...props }) => {
-        const Comp = asChild ? Slot : "div";
+        const Comp = asChild ? Slot.Root : "div";
         const { tracking } = useStepperProvider();
 
         return (
@@ -239,7 +239,7 @@ const defineStepper = <const Steps extends Stepperize.Step[]>(
         );
       },
       Controls: ({ children, className, asChild, ...props }) => {
-        const Comp = asChild ? Slot : "div";
+        const Comp = asChild ? Slot.Root : "div";
         return (
           <Comp
             date-component="stepper-controls"
@@ -261,7 +261,7 @@ const Title = ({
   asChild,
   ...props
 }: React.ComponentProps<"h4"> & { asChild?: boolean }) => {
-  const Comp = asChild ? Slot : "h4";
+  const Comp = asChild ? Slot.Root : "h4";
 
   return (
     <Comp
@@ -281,7 +281,7 @@ const Description = ({
   asChild,
   ...props
 }: React.ComponentProps<"p"> & { asChild?: boolean }) => {
-  const Comp = asChild ? Slot : "p";
+  const Comp = asChild ? Slot.Root : "p";
 
   return (
     <Comp
@@ -406,10 +406,7 @@ const classForSeparator = cva(
   }
 );
 
-function scrollIntoStepperPanel(
-  node: HTMLDivElement | null,
-  tracking?: boolean
-) {
+function scrollIntoStepperPanel(node: HTMLElement | null, tracking?: boolean) {
   if (tracking) {
     node?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
