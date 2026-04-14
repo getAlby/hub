@@ -69,7 +69,7 @@ func TestNotifications_ReceivedUnknownPayment(t *testing.T) {
 	transactionType := constants.TRANSACTION_TYPE_INCOMING
 	incomingTransaction, err := transactionsService.LookupTransaction(ctx, tests.MockLNClientTransaction.PaymentHash, &transactionType, svc.LNClient, nil)
 	assert.NoError(t, err)
-	assert.Equal(t, uint64(tests.MockLNClientTransaction.Amount), incomingTransaction.AmountMsat)
+	assert.Equal(t, uint64(tests.MockLNClientTransaction.AmountMsat), incomingTransaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, incomingTransaction.State)
 	assert.Equal(t, tests.MockLNClientTransaction.Preimage, *incomingTransaction.Preimage)
 	assert.Zero(t, incomingTransaction.FeeReserveMsat)
@@ -104,8 +104,8 @@ func TestNotifications_ReceivedKeysend(t *testing.T) {
 		DescriptionHash: "",
 		Preimage:        tests.MockLNClientTransaction.Preimage,
 		PaymentHash:     tests.MockLNClientTransaction.PaymentHash,
-		Amount:          2000,
-		FeesPaid:        75,
+		AmountMsat:      2000,
+		FeesPaidMsat:    75,
 		SettledAt:       &tests.MockTimeUnix,
 		Metadata:        metadata,
 	}
@@ -202,7 +202,7 @@ func TestNotifications_SentUnknownPayment(t *testing.T) {
 	transactionType := constants.TRANSACTION_TYPE_OUTGOING
 	outgoingTransaction, err := transactionsService.LookupTransaction(ctx, tests.MockLNClientTransaction.PaymentHash, &transactionType, svc.LNClient, nil)
 	assert.NoError(t, err)
-	assert.Equal(t, uint64(tests.MockLNClientTransaction.Amount), outgoingTransaction.AmountMsat)
+	assert.Equal(t, uint64(tests.MockLNClientTransaction.AmountMsat), outgoingTransaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, outgoingTransaction.State)
 	assert.Equal(t, tests.MockLNClientTransaction.Preimage, *outgoingTransaction.Preimage)
 	assert.Zero(t, outgoingTransaction.FeeReserveMsat)
