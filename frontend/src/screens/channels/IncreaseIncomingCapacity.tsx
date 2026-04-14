@@ -1,6 +1,6 @@
 import { ChevronDownIcon, InfoIcon } from "lucide-react";
 import React, { FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { ChannelPeerNote } from "src/components/channels/ChannelPeerNote";

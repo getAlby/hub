@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import Container from "src/components/Container";
 import PasswordInput from "src/components/password/PasswordInput";

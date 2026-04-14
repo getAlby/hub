@@ -1,4 +1,4 @@
-import { Navigate, RouteObject } from "react-router-dom";
+import { Navigate, RouteObject } from "react-router";
 import AppLayout from "src/components/layouts/AppLayout";
 import SettingsLayout from "src/components/layouts/SettingsLayout";
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";

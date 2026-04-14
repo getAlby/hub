@@ -1,5 +1,5 @@
 import { ZapIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import topup2fiat from "src/assets/suggested-apps/2fiat-topup.png";
 import albyExtension from "src/assets/suggested-apps/alby-extension.png";
 import albyGo from "src/assets/suggested-apps/alby-go.png";

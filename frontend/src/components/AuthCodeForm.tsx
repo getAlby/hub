@@ -1,6 +1,6 @@
 import { RefreshCwIcon } from "lucide-react";
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import Container from "src/components/Container";
 import PasswordInput from "src/components/password/PasswordInput";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";

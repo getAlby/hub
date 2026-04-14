@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import TickSVG from "public/images/illustrations/tick.svg";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { FixedFloatButton } from "src/components/FixedFloatButton";

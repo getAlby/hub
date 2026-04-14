@@ -1,5 +1,5 @@
 import { ExternalLinkIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { AlbyHead } from "src/components/images/AlbyHead";
@@ -73,6 +73,7 @@ function Home() {
           <OnboardingChecklist />
           <WhatsNewWidget />
           <NewArrivalsWidget />
+          <AppOfTheDayWidget />
           {info.albyAccountConnected && (
             <ExternalLink to="https://www.getalby.com/dashboard">
               <Card>
@@ -166,7 +167,6 @@ function Home() {
           <LatestUsedAppsWidget />
           <SupportAlbyWidget />
           <LightningMessageboardWidget />
-          <AppOfTheDayWidget />
 
           <Link to="/internal-apps/zapplanner">
             <Card>

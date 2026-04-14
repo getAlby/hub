@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import MnemonicDialog from "src/components/mnemonic/MnemonicDialog";
