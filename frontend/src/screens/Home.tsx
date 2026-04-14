@@ -71,6 +71,7 @@ function Home() {
         <div className="grid gap-3">
           <OnboardingChecklist />
           <WhatsNewWidget />
+          <AppOfTheDayWidget />
           {info.albyAccountConnected && (
             <ExternalLink to="https://www.getalby.com/dashboard">
               <Card>
@@ -164,7 +165,6 @@ function Home() {
           <LatestUsedAppsWidget />
           <SupportAlbyWidget />
           <LightningMessageboardWidget />
-          <AppOfTheDayWidget />
 
           <Link to="/internal-apps/zapplanner">
             <Card>
