@@ -218,6 +218,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["audio"],
+      addedDate: "2026-03-12",
     },
     {
       id: "goose",
@@ -949,7 +950,6 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["merchant-tools"],
-      addedDate: "2026-03-18",
     },
     {
       id: "btcpay",
