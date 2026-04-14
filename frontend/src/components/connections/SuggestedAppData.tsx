@@ -84,6 +84,7 @@ export type AppStoreApp = {
   hideConnectionQr?: boolean;
   internal?: boolean;
   superuser?: boolean;
+  addedDate?: string;
 };
 
 export const appStoreCategories = {
@@ -948,6 +949,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["merchant-tools"],
+      addedDate: "2026-03-18",
     },
     {
       id: "btcpay",
@@ -1778,6 +1780,7 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["misc"],
+      addedDate: "2026-04-10",
     },
     {
       id: "nakapay",
@@ -2531,9 +2534,23 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["payment-tools"],
+      addedDate: "2026-04-10",
     },
-  ] satisfies AppStoreApp[]
-).sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
+  ] as AppStoreApp[]
+).sort((a, b) => {
+  // Apps with addedDate come first (newest first)
+  if (a.addedDate && b.addedDate) {
+    return b.addedDate.localeCompare(a.addedDate);
+  }
+  if (a.addedDate) {
+    return -1;
+  }
+  if (b.addedDate) {
+    return 1;
+  }
+  // Then alphabetically
+  return a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1;
+});
 
 export const getAppStoreApp = (app: App) => {
   return appStoreApps.find(
