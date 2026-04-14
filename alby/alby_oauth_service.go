@@ -1032,9 +1032,6 @@ func (svc *albyOAuthService) GetLSPChannelOffer(ctx context.Context) (*LSPChanne
 		return nil, err
 	}
 
-	lspChannelOffer.LspBalanceMsat = lspChannelOffer.LspBalanceSat * 1000
-	lspChannelOffer.FeeTotalMsat = lspChannelOffer.FeeTotalSat * 1000
-
 	return lspChannelOffer, nil
 }
 
@@ -1367,7 +1364,6 @@ func (svc *albyOAuthService) requestAutoChannel(ctx context.Context, url string,
 		Invoice:        invoice,
 		Fee:            feeSat,
 		FeeSat:         feeSat,
-		FeeMsat:        feeSat * 1000,
 		ChannelSize:    channelSizeSat,
 		ChannelSizeSat: channelSizeSat,
 	}, nil

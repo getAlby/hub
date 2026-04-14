@@ -173,19 +173,6 @@ func (svc *albyService) GetChannelPeerSuggestions(ctx context.Context) ([]Channe
 	for i := range suggestions {
 		suggestions[i].MinimumChannelSizeSat = suggestions[i].MinimumChannelSize
 		suggestions[i].MaximumChannelSizeSat = suggestions[i].MaximumChannelSize
-
-		if suggestions[i].FeeTotalSat1m != nil {
-			feeTotalMsat1m := uint64(*suggestions[i].FeeTotalSat1m) * 1000
-			suggestions[i].FeeTotalMsat1m = &feeTotalMsat1m
-		}
-		if suggestions[i].FeeTotalSat2m != nil {
-			feeTotalMsat2m := uint64(*suggestions[i].FeeTotalSat2m) * 1000
-			suggestions[i].FeeTotalMsat2m = &feeTotalMsat2m
-		}
-		if suggestions[i].FeeTotalSat3m != nil {
-			feeTotalMsat3m := uint64(*suggestions[i].FeeTotalSat3m) * 1000
-			suggestions[i].FeeTotalMsat3m = &feeTotalMsat3m
-		}
 	}
 
 	logger.Logger.WithFields(logrus.Fields{"channel_suggestions": suggestions}).Debug("Alby channel peer suggestions response")

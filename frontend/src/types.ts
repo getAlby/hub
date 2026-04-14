@@ -501,9 +501,7 @@ export type LSPChannelOffer = {
   lspDescription: string;
   lspContactUrl: string;
   lspBalanceSat: number;
-  lspBalanceMsat: number;
   feeTotalSat: number;
-  feeTotalMsat: number;
   feeTotalUsd: number;
   currentPaymentMethod: LSPChannelOfferPaymentMethod;
   terms: string;
@@ -535,11 +533,8 @@ export type RecommendedChannelPeer = {
       pubkey?: string;
       maximumChannelExpiryBlocks?: number;
       feeTotalSat1m?: number;
-      feeTotalMsat1m?: number;
       feeTotalSat2m?: number;
-      feeTotalMsat2m?: number;
       feeTotalSat3m?: number;
-      feeTotalMsat3m?: number;
     }
 );
 
@@ -614,7 +609,6 @@ export type AutoChannelResponse = {
   invoice?: string;
   fee?: number;
   feeSat?: number;
-  feeMsat?: number;
   channelSize: number;
   channelSizeSat: number;
 };

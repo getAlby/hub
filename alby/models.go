@@ -54,7 +54,6 @@ type AutoChannelResponse struct {
 	ChannelSizeSat uint64 `json:"channelSizeSat"`
 	Fee            uint64 `json:"fee"` // deprecated
 	FeeSat         uint64 `json:"feeSat"`
-	FeeMsat        uint64 `json:"feeMsat"`
 }
 
 type AlbyInfoHub struct {
@@ -120,20 +119,15 @@ type ChannelPeerSuggestion struct {
 	Note                       string  `json:"note"`
 	PublicChannelsAllowed      bool    `json:"publicChannelsAllowed"`
 	FeeTotalSat1m              *uint32 `json:"feeTotalSat1m"`
-	FeeTotalMsat1m             *uint64 `json:"feeTotalMsat1m"`
 	FeeTotalSat2m              *uint32 `json:"feeTotalSat2m"`
-	FeeTotalMsat2m             *uint64 `json:"feeTotalMsat2m"`
 	FeeTotalSat3m              *uint32 `json:"feeTotalSat3m"`
-	FeeTotalMsat3m             *uint64 `json:"feeTotalMsat3m"`
 }
 
 type LSPChannelOffer struct {
 	LspName              string `json:"lspName"`
 	LspContactUrl        string `json:"lspContactUrl"`
 	LspBalanceSat        uint64 `json:"lspBalanceSat"`
-	LspBalanceMsat       uint64 `json:"lspBalanceMsat"`
 	FeeTotalSat          uint64 `json:"feeTotalSat"`
-	FeeTotalMsat         uint64 `json:"feeTotalMsat"`
 	FeeTotalUsd          uint64 `json:"feeTotalUsd"` // in cents
 	CurrentPaymentMethod string `json:"currentPaymentMethod"`
 	Terms                string `json:"terms"`
