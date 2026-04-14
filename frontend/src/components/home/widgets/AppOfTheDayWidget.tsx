@@ -1,6 +1,9 @@
 import { ChevronRightIcon } from "lucide-react";
 import { Link } from "react-router";
-import { appStoreApps } from "src/components/connections/SuggestedAppData";
+import {
+  appStoreApps,
+  getAppStoreUrl,
+} from "src/components/connections/SuggestedAppData";
 import {
   Card,
   CardContent,
@@ -33,7 +36,7 @@ export function AppOfTheDayWidget() {
       </CardHeader>
       <CardContent className="px-6 pt-0">
         <Link
-          to={app.internal ? `/internal-apps/${app.id}` : `/appstore/${app.id}`}
+          to={getAppStoreUrl(app)}
           className="group flex items-center gap-4 rounded-md"
         >
           <img
