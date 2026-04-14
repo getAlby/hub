@@ -44,6 +44,7 @@ export default function Peers() {
     <>
       <AppHeader
         title="Peers"
+        pageTitle="Peers"
         description="Manage your connections with other lightning nodes"
         contentRight={
           <ResponsiveLinkButton

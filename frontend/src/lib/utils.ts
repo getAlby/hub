@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
+import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
 import { BudgetRenewalType } from "src/types";
 import { twMerge } from "tailwind-merge";
 
@@ -80,4 +81,8 @@ export function getBudgetRenewalLabel(renewalType: BudgetRenewalType): string {
     case "":
       return "";
   }
+}
+
+export function getAppDisplayName(name: string) {
+  return name === ALBY_ACCOUNT_APP_NAME ? "Alby Account" : name;
 }

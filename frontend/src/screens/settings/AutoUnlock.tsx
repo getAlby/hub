@@ -56,6 +56,7 @@ export function AutoUnlock() {
   return (
     <>
       <SettingsHeader
+        pageTitle="Auto Unlock"
         title="Auto Unlock"
         description="Configure Alby Hub will automatically unlock on start (e.g. after machine reboot)"
       />

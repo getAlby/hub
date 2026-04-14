@@ -3,7 +3,7 @@ import { Label } from "src/components/ui/label";
 
 import type { Invoice } from "@getalby/lightning-tools/bolt11";
 import { XIcon } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
@@ -84,7 +84,7 @@ export default function ZeroAmount() {
 
   return (
     <div className="grid gap-4">
-      <AppHeader title="Pay Invoice" />
+      <AppHeader pageTitle="Pay Invoice" title="Pay Invoice" />
       <div className="max-w-lg grid gap-4">
         <PendingPaymentAlert />
         {errorMessage && (

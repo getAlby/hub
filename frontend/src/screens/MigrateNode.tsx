@@ -1,6 +1,6 @@
 import { InfoIcon, TriangleAlertIcon } from "lucide-react";
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import PasswordInput from "src/components/password/PasswordInput";
 
 import SettingsHeader from "src/components/SettingsHeader";
@@ -75,6 +75,7 @@ export function MigrateNode() {
     <>
       <SettingsHeader
         title="Migrate Alby Hub"
+        pageTitle="Migrate"
         description="Create migration file in order to move your Alby Hub to another device or server."
       />
 

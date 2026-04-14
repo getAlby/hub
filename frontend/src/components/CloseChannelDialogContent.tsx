@@ -177,7 +177,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                   <div className="grid gap-1.5">
                     <Label
                       htmlFor="normal"
-                      className="text-primary font-medium cursor-pointer"
+                      className="text-primary cursor-pointer"
                     >
                       Normal Close (Recommended)
                     </Label>
@@ -198,7 +198,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                   <div className="grid gap-1.5">
                     <Label
                       htmlFor="force"
-                      className="text-primary font-medium cursor-pointer"
+                      className="text-primary cursor-pointer"
                     >
                       Force Close
                     </Label>

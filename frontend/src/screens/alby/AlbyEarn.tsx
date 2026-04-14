@@ -83,6 +83,7 @@ export function AlbyEarn() {
       <AppHeader
         title="Earn"
         description="Earn bitcoin by referring new users or leaving a review."
+        pageTitle="Earn"
       />
       <div className="space-y-6">
         <Alert>

@@ -1,4 +1,4 @@
-import { Outlet } from "react-router-dom";
+import { Outlet } from "react-router";
 
 import { AppSidebar } from "src/components/AppSidebar";
 import { Banner } from "src/components/Banner";

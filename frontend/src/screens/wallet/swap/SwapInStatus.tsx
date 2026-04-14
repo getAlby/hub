@@ -7,7 +7,7 @@ import {
   ExternalLinkIcon,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
@@ -152,7 +152,7 @@ export default function SwapInStatus() {
 
   return (
     <div className="grid gap-5">
-      <AppHeader title="Swap In" />
+      <AppHeader pageTitle="Swap In" title="Swap In" />
       <div className="w-full max-w-lg">
         <Card className="w-full md:max-w-xs">
           <CardHeader>

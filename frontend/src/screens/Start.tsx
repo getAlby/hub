@@ -68,40 +68,39 @@ export default function Start() {
   }
 
   return (
-    <>
-      <Container>
-        <div className="mx-auto grid gap-5">
-          <TwoColumnLayoutHeader
-            title="Start"
-            description="Enter your password to unlock and start Alby Hub."
-          />
-          <form onSubmit={onSubmit}>
-            <div className="grid gap-4">
-              <div className="grid gap-1.5">
-                <Label htmlFor="password">Password</Label>
-                <PasswordInput
-                  id="password"
-                  onChange={setUnlockPassword}
-                  autoFocus
-                  value={unlockPassword}
-                />
-              </div>
-              <LoadingButton
-                type="submit"
-                loading={loading}
-                disabled={!unlockPassword}
-              >
-                {buttonText}
-              </LoadingButton>
-              {loading && (
-                <p className="text-muted-foreground text-xs text-center">
-                  Starting Alby Hub may take a few minutes.
-                </p>
-              )}
+    <Container>
+      <div className="mx-auto grid gap-5">
+        <TwoColumnLayoutHeader
+          title="Start"
+          pageTitle="Start"
+          description="Enter your password to unlock and start Alby Hub."
+        />
+        <form onSubmit={onSubmit}>
+          <div className="grid gap-4">
+            <div className="grid gap-1.5">
+              <Label htmlFor="password">Password</Label>
+              <PasswordInput
+                id="password"
+                onChange={setUnlockPassword}
+                autoFocus
+                value={unlockPassword}
+              />
             </div>
-          </form>
-        </div>
-      </Container>
-    </>
+            <LoadingButton
+              type="submit"
+              loading={loading}
+              disabled={!unlockPassword}
+            >
+              {buttonText}
+            </LoadingButton>
+            {loading && (
+              <p className="text-muted-foreground text-xs text-center">
+                Starting Alby Hub may take a few minutes.
+              </p>
+            )}
+          </div>
+        </form>
+      </div>
+    </Container>
   );
 }

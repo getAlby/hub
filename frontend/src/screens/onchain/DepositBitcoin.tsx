@@ -103,6 +103,7 @@ export default function DepositBitcoin() {
   return (
     <div className="grid gap-5">
       <AppHeader
+        pageTitle="Deposit Bitcoin to On-Chain Balance"
         title="Deposit Bitcoin to On-Chain Balance"
         description="Deposit bitcoin to your on-chain address which then can be used to open new lightning channels."
         contentRight={

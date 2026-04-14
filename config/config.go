@@ -19,11 +19,12 @@ import (
 )
 
 type config struct {
-	Env        *AppConfig
-	db         *gorm.DB
-	cache      map[string]map[string]string // key -> encryptionKeyHash -> value
-	cacheMutex sync.Mutex
-	jwtSecret  string
+	Env            *AppConfig
+	db             *gorm.DB
+	cache          map[string]map[string]string // key -> encryptionKeyHash -> value
+	cacheMutex     sync.Mutex
+	jwtSecret      string
+	jwtSecretMutex sync.Mutex
 }
 
 const (
@@ -127,17 +128,29 @@ func (cfg *config) SetupCompleted() (bool, error) {
 }
 
 func (cfg *config) GetJWTSecret() (string, error) {
-	if cfg.jwtSecret == "" {
+	cfg.jwtSecretMutex.Lock()
+	jwtSecret := cfg.jwtSecret
+	cfg.jwtSecretMutex.Unlock()
+
+	if jwtSecret == "" {
 		return "", errors.New("config not unlocked")
 	}
 
-	return cfg.jwtSecret, nil
+	return jwtSecret, nil
 }
 
-func (cfg *config) Unlock(encryptionKey string) error {
+// Decrypt and store the JWT secret in memory
+func (cfg *config) LoadJWTSecret(encryptionKey string) error {
 	if !cfg.CheckUnlockPassword(encryptionKey) {
 		return errors.New("incorrect password")
 	}
+
+	cfg.jwtSecretMutex.Lock()
+	if cfg.jwtSecret != "" {
+		cfg.jwtSecretMutex.Unlock()
+		return nil
+	}
+	cfg.jwtSecretMutex.Unlock()
 
 	// TODO: remove encryptedJwtSecret check after 2027-01-01
 	// - all hubs should have updated to use an encrypted JWT secret by then
@@ -165,7 +178,9 @@ func (cfg *config) Unlock(encryptionKey string) error {
 			return err
 		}
 	}
+	cfg.jwtSecretMutex.Lock()
 	cfg.jwtSecret = jwtSecret
+	cfg.jwtSecretMutex.Unlock()
 	return nil
 }
 
@@ -350,7 +365,9 @@ func (cfg *config) ChangeUnlockPassword(currentUnlockPassword string, newUnlockP
 	}
 
 	// JWT secret will be set on config unlock (required after password change)
+	cfg.jwtSecretMutex.Lock()
 	cfg.jwtSecret = ""
+	cfg.jwtSecretMutex.Unlock()
 	return nil
 }
 

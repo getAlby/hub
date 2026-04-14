@@ -1,12 +1,12 @@
 import {
   CodeIcon,
-  HandCoins,
+  HandCoinsIcon,
   PlusCircleIcon,
   RefreshCwIcon,
-  Sparkles,
+  SparklesIcon,
 } from "lucide-react";
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
@@ -159,6 +159,7 @@ function SupportAlby() {
     <>
       <AppHeader
         title="Support Alby Hub"
+        pageTitle="Support Alby"
         description="We are committed to elevating the Bitcoin ecosystem by offering reliable, efficient, and user-friendly software solutions for seamless transactions. With your help, we can keep pushing boundaries and evolving Alby Hub into something extraordinary."
       />
       <h2 className="text-2xl font-semibold">Become a Supporter</h2>
@@ -174,7 +175,7 @@ function SupportAlby() {
           <CardFooter className="flex justify-end">
             <UpgradeDialog>
               <Button>
-                <Sparkles />
+                <SparklesIcon />
                 Upgrade to Pro
               </Button>
             </UpgradeDialog>
@@ -194,7 +195,7 @@ function SupportAlby() {
               <div className="flex flex-col items-center justify-center gap-2">
                 <DialogTrigger asChild>
                   <Button>
-                    <HandCoins />
+                    <HandCoinsIcon />
                     Setup Donation
                   </Button>
                 </DialogTrigger>

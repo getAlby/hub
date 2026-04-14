@@ -1,6 +1,6 @@
 import { CirclePlusIcon, LayoutGridIcon, Plug2Icon } from "lucide-react";
 import React from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import AppHeader from "src/components/AppHeader";
 import AppStore from "src/components/connections/AppStore";
 import ConnectedApps from "src/components/connections/ConnectedApps";
@@ -28,6 +28,7 @@ export function Connections() {
     <>
       <AppHeader
         title="Connections"
+        pageTitle="Connections"
         contentRight={
           <ResponsiveLinkButton
             to="/apps/new"

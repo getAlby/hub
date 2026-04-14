@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router";
 
 import React from "react";
 import { toast } from "sonner";
@@ -17,11 +17,14 @@ import {
   AlertDialogTitle,
 } from "src/components/ui/alert-dialog";
 import { Button } from "src/components/ui/button";
+import { Card, CardContent } from "src/components/ui/card";
+import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { createApp } from "src/requests/createApp";
 import {
+  App,
   AppPermissions,
   BudgetRenewalType,
   CreateAppRequest,
@@ -232,9 +235,9 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
           id: "configure",
           title: "Configure",
         },
-        ...(returnTo || pubkey ? [] : [{ id: "finalize", title: "Finalize" }])
+        ...(returnTo ? [] : [{ id: "finalize", title: "Finalize" }])
       ),
-    [appStoreApp, returnTo, pubkey]
+    [appStoreApp, returnTo]
   );
 
   const handleCreateApp = async (nextFunc: () => void) => {
@@ -299,9 +302,6 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       }
       toast("App created");
       setCreateAppResponse(createAppResponse);
-      if (pubkey) {
-        return;
-      }
 
       nextFunc();
     } catch (error) {
@@ -313,7 +313,11 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   if (unsupportedError) {
     return (
       <>
-        <AppHeader title="Unsupported App" description={unsupportedError} />
+        <AppHeader
+          pageTitle="Unsupported App"
+          title="Unsupported App"
+          description={unsupportedError}
+        />
         <p>Try the Alby Hub LDK backend for extra features.</p>
       </>
     );
@@ -322,6 +326,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   return (
     <>
       <AppHeader
+        pageTitle={appName ? `Connect to ${appName}` : "Connect a new app"}
         title={appName ? `Connect to ${appName}` : "Connect a new app"}
         icon={
           appStoreApp?.logo ? (
@@ -339,13 +344,14 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         {({ methods }) => (
           <>
             <Stepper.Navigation>
-              {methods.all.map((step) => (
+              {methods.state.all.map((step) => (
                 <Stepper.Step
                   key={step.id}
                   of={step.id}
                   onClick={() =>
-                    methods.current.id === "configure" && step.id === "install"
-                      ? methods.goTo(step.id)
+                    methods.state.current.data.id === "configure" &&
+                    step.id === "install"
+                      ? methods.navigation.goTo(step.id)
                       : undefined
                   }
                 >
@@ -353,20 +359,33 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                     {step.title ||
                       (isInstallable ? "Install" : "Open") + " " + appName}
                   </Stepper.Title>
-                  {methods.when(step.id, () => (
+                  {methods.flow.when(step.id, () => (
                     <>
-                      {methods.switch({
+                      {methods.flow.switch({
                         install: () =>
                           appStoreApp && (
                             <InstallApp appStoreApp={appStoreApp} />
                           ),
                         configure: () => (
-                          <div className="flex flex-col gap-4">
+                          <form
+                            id="new-app"
+                            className="flex flex-col gap-4"
+                            onSubmit={(e: React.FormEvent) => {
+                              e.preventDefault();
+                              if (superuser) {
+                                setShowSuperuserConfirmPasswordDialog(true);
+                                return;
+                              }
+                              handleCreateApp(() => methods.navigation.next());
+                            }}
+                          >
                             <SuperuserConfirmPasswordDialog
                               open={showSuperuserConfirmPasswordDialog}
                               setOpen={setShowSuperuserConfirmPasswordDialog}
                               onSubmit={() => {
-                                handleCreateApp(methods.next);
+                                handleCreateApp(() =>
+                                  methods.navigation.next()
+                                );
                               }}
                               unlockPassword={unlockPassword}
                               setUnlockPassword={setUnlockPassword}
@@ -394,14 +413,6 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                                 capabilities={capabilities}
                                 permissions={permissions}
                                 setPermissions={setPermissions}
-                                isNewConnection
-                                scopesReadOnly={
-                                  !!reqMethodsParam ||
-                                  !!notificationTypesParam ||
-                                  !!isolatedParam
-                                }
-                                budgetReadOnly={!!budgetMaxAmountMsatParam}
-                                expiresAtReadOnly={!!expiresAtParam}
                               />
                             </div>
                             {appStoreApp?.superuser && (
@@ -417,7 +428,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                                 />
                                 <Label
                                   htmlFor="superuser"
-                                  className="ml-2 text-sm text-foreground flex flex-col items-start justify-center"
+                                  className="ml-2 flex flex-col items-start justify-center cursor-pointer"
                                 >
                                   <div>
                                     Enable accepting connections to other apps
@@ -435,7 +446,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                                 You will automatically return to {returnTo}
                               </p>
                             )}
-                          </div>
+                          </form>
                         ),
                         finalize: () =>
                           createAppResponse && (
@@ -447,28 +458,27 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                             </div>
                           ),
                       })}
-                      {(!methods.isLast || returnTo || pubkey) && (
+                      {(!methods.state.isLast || returnTo) && (
                         <Stepper.Controls className="mt-6">
-                          {!methods.isFirst && (
+                          {!methods.state.isFirst && (
                             <Button
                               type="button"
                               variant="secondary"
-                              onClick={methods.prev}
+                              onClick={() => methods.navigation.prev()}
                             >
                               Back
                             </Button>
                           )}
                           <LoadingButton
                             loading={isLoading}
+                            type={step.id === "configure" ? "submit" : "button"}
+                            form={
+                              step.id === "configure" ? "new-app" : undefined
+                            }
                             onClick={
                               step.id === "configure"
-                                ? () =>
-                                    superuser
-                                      ? setShowSuperuserConfirmPasswordDialog(
-                                          true
-                                        )
-                                      : handleCreateApp(methods.next)
-                                : methods.next
+                                ? undefined
+                                : () => methods.navigation.next()
                             }
                           >
                             {step.id === "configure" && pubkey
@@ -501,6 +511,7 @@ function FinalizeConnection({
   const navigate = useNavigate();
 
   const pairingUri = createAppResponse.pairingUri;
+  const hasPairingSecret = !!createAppResponse.pairingSecretKey;
   const { data: app } = useApp(createAppResponse.id, true);
 
   React.useEffect(() => {
@@ -514,6 +525,10 @@ function FinalizeConnection({
 
   if (!createAppResponse) {
     return <Navigate to="/apps/new" />;
+  }
+
+  if (!hasPairingSecret) {
+    return <WaitingForConnection app={app} />;
   }
 
   return (
@@ -553,6 +568,39 @@ function FinalizeConnection({
         )}
       </div>
     </>
+  );
+}
+
+function WaitingForConnection({ app }: { app: App | undefined }) {
+  const [timeout, setTimeout] = React.useState(false);
+
+  React.useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setTimeout(true);
+    }, 30000);
+    return () => window.clearTimeout(timeoutId);
+  }, []);
+
+  return (
+    <Card className="w-full">
+      <CardContent className="flex flex-col items-center gap-4 py-6">
+        <div className="flex flex-row items-center gap-2 text-sm font-medium">
+          <Loading className="size-4" />
+          <p>Waiting for connection</p>
+        </div>
+        <p className="text-xs text-muted-foreground text-center">
+          Make your first request to complete the connection.
+        </p>
+        {timeout && app && (
+          <div className="text-xs text-muted-foreground flex flex-col gap-3 items-center text-center border-t pt-4 w-full">
+            Connecting is taking longer than usual.
+            <LinkButton to={`/apps/${app.id}`} variant="secondary" size="sm">
+              Continue anyway
+            </LinkButton>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

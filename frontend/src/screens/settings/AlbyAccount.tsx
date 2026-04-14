@@ -22,6 +22,7 @@ export function AlbyAccount() {
   return (
     <>
       <SettingsHeader
+        pageTitle="Alby Account"
         title="Alby Account"
         description="Manage your Alby Account."
       />

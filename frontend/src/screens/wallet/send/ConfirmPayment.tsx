@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 
@@ -85,7 +85,7 @@ export default function ConfirmPayment() {
 
   return (
     <div className="grid gap-4">
-      <AppHeader title="Pay Invoice" />
+      <AppHeader pageTitle="Pay Invoice" title="Pay Invoice" />
       <div className="max-w-lg grid gap-4">
         <PendingPaymentAlert />
         {errorMessage && (

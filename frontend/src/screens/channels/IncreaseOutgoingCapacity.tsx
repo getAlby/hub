@@ -1,6 +1,6 @@
 import { InfoIcon } from "lucide-react";
 import React, { FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { ChannelPeerNote } from "src/components/channels/ChannelPeerNote";
@@ -212,6 +212,7 @@ function NewChannelInternal({
   return (
     <>
       <AppHeader
+        pageTitle="Open Channel with On-Chain"
         title="Open Channel with On-Chain"
         description="Funds used to open a channel minus fees will be added to your spending balance"
         contentRight={
@@ -398,10 +399,7 @@ function NewChannelInternal({
                 }
               />
               <div className="grid gap-1.5 leading-none">
-                <Label
-                  htmlFor="public-channel"
-                  className="flex items-center gap-2"
-                >
+                <Label htmlFor="public-channel" className="cursor-pointer">
                   Public Channel
                 </Label>
                 <p className="text-xs text-muted-foreground">
