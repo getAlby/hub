@@ -113,11 +113,11 @@ function Wallet() {
           />
         </div>
         <div className="grid w-full max-w-md grid-cols-2 items-center gap-3">
-          <LinkButton to="/wallet/receive" size="lg" className="!px-12">
+          <LinkButton to="/wallet/receive" size="lg">
             <ArrowDownIcon />
             Receive
           </LinkButton>
-          <LinkButton to="/wallet/send" size="lg" className="!px-12">
+          <LinkButton to="/wallet/send" size="lg">
             <ArrowUpIcon />
             Send
           </LinkButton>
