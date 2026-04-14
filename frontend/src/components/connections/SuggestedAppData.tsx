@@ -2539,6 +2539,10 @@ export const appStoreApps: AppStoreApp[] = (
   ] satisfies AppStoreApp[]
 ).sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
 
+export function getAppStoreUrl(app: AppStoreApp) {
+  return app.internal ? `/internal-apps/${app.id}` : `/appstore/${app.id}`;
+}
+
 export const getAppStoreApp = (app: App) => {
   return appStoreApps.find(
     (suggestedApp) =>

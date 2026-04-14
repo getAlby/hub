@@ -1,6 +1,9 @@
 import { ChevronRightIcon } from "lucide-react";
 import { Link } from "react-router";
-import { appStoreApps } from "src/components/connections/SuggestedAppData";
+import {
+  appStoreApps,
+  getAppStoreUrl,
+} from "src/components/connections/SuggestedAppData";
 import {
   Card,
   CardContent,
@@ -25,13 +28,7 @@ export function NewArrivalsWidget() {
       </CardHeader>
       <CardContent className="grid gap-4">
         {latestApps.map((app) => (
-          <Link
-            key={app.id}
-            to={
-              app.internal ? `/internal-apps/${app.id}` : `/appstore/${app.id}`
-            }
-            className="group"
-          >
+          <Link key={app.id} to={getAppStoreUrl(app)} className="group">
             <div className="flex items-center gap-3">
               <img
                 src={app.logo}
