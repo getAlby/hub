@@ -31,33 +31,35 @@ export function WalletActionsMenu({
         </DropdownMenuTrigger>
       </Button>
       <DropdownMenuContent align="end">
-        {hasChannelManagement && (
+        <div className="sm:hidden">
+          {hasChannelManagement && (
+            <DropdownMenuItem asChild>
+              <Link to="/wallet/swap" className="w-full cursor-pointer">
+                <ArrowDownUpIcon className="h-4 w-4" />
+                Swap
+              </Link>
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem asChild>
-            <Link to="/wallet/swap" className="w-full cursor-pointer">
-              <ArrowDownUpIcon className="h-4 w-4" />
-              Swap
+            <Link
+              to="/internal-apps/zapplanner"
+              className="w-full cursor-pointer"
+            >
+              <CalendarSyncIcon className="h-4 w-4" />
+              Recurring
             </Link>
           </DropdownMenuItem>
-        )}
-        <DropdownMenuItem asChild>
-          <Link
-            to="/internal-apps/zapplanner"
-            className="w-full cursor-pointer"
-          >
-            <CalendarSyncIcon className="h-4 w-4" />
-            Recurring
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <ExternalLink
-            to="https://www.getalby.com/topup"
-            className="w-full cursor-pointer"
-          >
-            <CreditCardIcon className="h-4 w-4" />
-            Buy
-          </ExternalLink>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <ExternalLink
+              to="https://www.getalby.com/topup"
+              className="w-full cursor-pointer"
+            >
+              <CreditCardIcon className="h-4 w-4" />
+              Buy
+            </ExternalLink>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+        </div>
         <ProDropdownMenuItem onClick={() => handleExportTransactions()}>
           <DownloadIcon className="h-4 w-4" />
           Export Transactions

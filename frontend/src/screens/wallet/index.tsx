@@ -16,7 +16,6 @@ import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import TransactionsList from "src/components/TransactionsList";
-import { TransactionsListMenu } from "src/components/TransactionsListMenu";
 import { WalletActionsMenu } from "src/components/WalletActionsMenu";
 import {
   Alert,
@@ -76,14 +75,7 @@ function Wallet() {
               <CreditCardIcon />
               Buy
             </ExternalLinkButton>
-            <div className="sm:hidden">
-              <WalletActionsMenu
-                hasChannelManagement={!!hasChannelManagement}
-              />
-            </div>
-            <div className="hidden sm:inline-flex">
-              <TransactionsListMenu />
-            </div>
+            <WalletActionsMenu hasChannelManagement={!!hasChannelManagement} />
           </div>
         }
       />
