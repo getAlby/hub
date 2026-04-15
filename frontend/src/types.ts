@@ -121,15 +121,15 @@ export interface App {
   lastSettledTransactionAt?: string;
   expiresAt?: string;
   isolated: boolean;
-  balance: number;
+  balance: number; // @depreated
   balanceSat: number;
   balanceMsat: number;
 
   scopes: Scope[];
-  maxAmount: number;
+  maxAmount: number; // @depreated
   maxAmountSat: number;
   maxAmountMsat: number;
-  budgetUsage: number;
+  budgetUsage: number; // @depreated
   budgetUsageSat: number;
   budgetUsageMsat: number;
   budgetRenewal: BudgetRenewalType;
@@ -209,9 +209,9 @@ export type AppMetadata = {
 export type AutoSwapConfig = {
   type: "out";
   enabled: boolean;
-  balanceThreshold: number;
+  balanceThreshold: number; // @depreated
   balanceThresholdSat: number;
-  swapAmount: number;
+  swapAmount: number; // @depreated
   swapAmountSat: number;
   destination: string;
 };
@@ -219,17 +219,17 @@ export type AutoSwapConfig = {
 export type SwapInfo = {
   albyServiceFee: number;
   boltzServiceFee: number;
-  boltzNetworkFee: number;
+  boltzNetworkFee: number; // @depreated
   boltzNetworkFeeSat: number;
-  minAmount: number;
+  minAmount: number; // @depreated
   minAmountSat: number;
-  maxAmount: number;
+  maxAmount: number; // @depreated
   maxAmountSat: number;
 };
 
 export type BaseSwap = {
   id: string;
-  sendAmount: number;
+  sendAmount: number; // @depreated
   sendAmountSat: number;
   lockupAddress: string;
   paymentHash: string;
@@ -241,7 +241,7 @@ export type BaseSwap = {
   updatedAt: string;
   lockupTxId?: string;
   claimTxId?: string;
-  receiveAmount?: number;
+  receiveAmount?: number; // @depreated
   receiveAmountSat?: number;
 };
 
@@ -305,13 +305,13 @@ export type UpdateAppRequest = {
 };
 
 export type Channel = {
-  localBalance: number;
+  localBalance: number; // @depreated
   localBalanceSat: number;
   localBalanceMsat: number;
-  localSpendableBalance: number;
+  localSpendableBalance: number; // @depreated
   localSpendableBalanceSat: number;
   localSpendableBalanceMsat: number;
-  remoteBalance: number;
+  remoteBalance: number; // @depreated
   remoteBalanceSat: number;
   remoteBalanceMsat: number;
   remotePubkey: string;
@@ -324,9 +324,9 @@ export type Channel = {
   confirmationsRequired?: number;
   forwardingFeeBaseMsat: number;
   forwardingFeeProportionalMillionths: number;
-  unspendablePunishmentReserve: number;
+  unspendablePunishmentReserve: number; // @depreated
   unspendablePunishmentReserveSat: number;
-  counterpartyUnspendablePunishmentReserve: number;
+  counterpartyUnspendablePunishmentReserve: number; // @depreated
   counterpartyUnspendablePunishmentReserveSat: number;
   error?: string;
   status: "online" | "opening" | "offline";
@@ -395,20 +395,20 @@ export type CloseChannelResponse = {};
 export type PendingBalancesDetails = {
   channelId: string;
   nodeId: string;
-  amount: number;
+  amount: number; // @depreated
   amountSat: number;
   fundingTxId: string;
   fundingTxVout: number;
 };
 
 export type OnchainBalanceResponse = {
-  spendable: number;
+  spendable: number; // @depreated
   spendableSat: number;
-  total: number;
+  total: number; // @depreated
   totalSat: number;
-  reserved: number;
+  reserved: number; // @depreated
   reservedSat: number;
-  pendingBalancesFromChannelClosures: number;
+  pendingBalancesFromChannelClosures: number; // @depreated
   pendingBalancesFromChannelClosuresSat: number;
   pendingBalancesDetails: PendingBalancesDetails[];
   pendingSweepBalancesDetails: PendingBalancesDetails[];
@@ -495,9 +495,9 @@ export type RecommendedChannelPeer = {
   network: Network;
   image: string;
   name: string;
-  minimumChannelSize: number;
+  minimumChannelSize: number; // @depreated
   minimumChannelSizeSat: number;
-  maximumChannelSize: number;
+  maximumChannelSize: number; // @depreated
   maximumChannelSizeSat: number;
   note: string;
   publicChannelsAllowed: boolean;
@@ -574,13 +574,13 @@ export type LSPOrderRequest = {
 
 export type LSPOrderResponse = {
   invoice?: string;
-  fee: number;
+  fee: number; // @depreated
   feeSat: number;
-  invoiceAmount: number;
+  invoiceAmount: number; // @depreated
   invoiceAmountSat: number;
-  incomingLiquidity: number;
+  incomingLiquidity: number; // @depreated
   incomingLiquiditySat: number;
-  outgoingLiquidity: number;
+  outgoingLiquidity: number; // @depreated
   outgoingLiquiditySat: number;
 };
 
@@ -589,9 +589,9 @@ export type AutoChannelRequest = {
 };
 export type AutoChannelResponse = {
   invoice?: string;
-  fee?: number;
+  fee?: number; // @depreated
   feeSat?: number;
-  channelSize: number;
+  channelSize: number; // @depreated
   channelSizeSat: number;
 };
 
@@ -600,22 +600,22 @@ export type RedeemOnchainFundsResponse = {
 };
 
 export type LightningBalanceResponse = {
-  totalSpendable: number;
+  totalSpendable: number; // @depreated
   totalSpendableSat: number;
   totalSpendableMsat: number;
-  totalReceivable: number;
+  totalReceivable: number; // @depreated
   totalReceivableSat: number;
   totalReceivableMsat: number;
-  nextMaxSpendable: number;
+  nextMaxSpendable: number; // @depreated
   nextMaxSpendableSat: number;
   nextMaxSpendableMsat: number;
-  nextMaxReceivable: number;
+  nextMaxReceivable: number; // @depreated
   nextMaxReceivableSat: number;
   nextMaxReceivableMsat: number;
-  nextMaxSpendableMPP: number;
+  nextMaxSpendableMPP: number; // @depreated
   nextMaxSpendableMPPSat: number;
   nextMaxSpendableMPPMsat: number;
-  nextMaxReceivableMPP: number;
+  nextMaxReceivableMPP: number; // @depreated
   nextMaxReceivableMPPSat: number;
   nextMaxReceivableMPPMsat: number;
 };
@@ -634,10 +634,10 @@ export type Transaction = {
   descriptionHash: string;
   preimage: string | undefined;
   paymentHash: string;
-  amount: number;
+  amount: number; // @depreated
   amountSat: number;
   amountMsat: number;
-  feesPaid: number;
+  feesPaid: number; // @depreated
   feesPaidSat: number;
   feesPaidMsat: number;
   updatedAt: string;
@@ -700,7 +700,7 @@ export type OnchainTransaction = {
 export type ListAppsResponse = {
   apps: App[];
   totalCount: number;
-  totalBalance?: number;
+  totalBalance?: number; // @depreated
   totalBalanceSat?: number;
   totalBalanceMsat?: number;
 };
