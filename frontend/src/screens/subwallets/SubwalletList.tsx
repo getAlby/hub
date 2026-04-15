@@ -15,7 +15,12 @@ import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import ResponsiveButton from "src/components/ResponsiveButton";
 import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
-import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
+import {
+  Alert,
+  AlertAction,
+  AlertDescription,
+  AlertTitle,
+} from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -108,24 +113,21 @@ export function SubwalletList() {
 
       {!albyMe?.subscription.plan_code &&
         subwalletAppsData.totalCount >= MAX_FREE_SUBWALLETS && (
-          <>
-            <Alert>
-              <InfoIcon />
-              <AlertTitle>Need more Sub-wallets?</AlertTitle>
-              <AlertDescription className="flex flex-row gap-3">
-                <p className="grow">
-                  Upgrade your subscription plan to Pro unlock unlimited number
-                  of Sub-wallets.
-                </p>
-                <UpgradeDialog>
-                  <Button>
-                    <SparklesIcon />
-                    Upgrade
-                  </Button>
-                </UpgradeDialog>
-              </AlertDescription>
-            </Alert>
-          </>
+          <Alert>
+            <InfoIcon />
+            <AlertTitle>Need more Sub-wallets?</AlertTitle>
+            <AlertDescription>
+              Upgrade to Pro for unlimited sub-wallets.
+            </AlertDescription>
+            <AlertAction>
+              <UpgradeDialog>
+                <Button size="sm">
+                  <SparklesIcon />
+                  Upgrade
+                </Button>
+              </UpgradeDialog>
+            </AlertAction>
+          </Alert>
         )}
 
       {!isSufficientlyBacked && (

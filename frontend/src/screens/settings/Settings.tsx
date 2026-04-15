@@ -1,7 +1,9 @@
-import { StarsIcon } from "lucide-react";
+import React from "react";
 import { toast } from "sonner";
 import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
+import { StarsIcon } from "lucide-react";
+import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { Badge } from "src/components/ui/badge";
 import { Label } from "src/components/ui/label";
 import {
@@ -24,7 +26,6 @@ import {
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useCurrencies } from "src/hooks/useCurrencies";
 import { useInfo } from "src/hooks/useInfo";
-import { cn } from "src/lib/utils";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
@@ -32,6 +33,7 @@ function Settings() {
   const { data: albyMe } = useAlbyMe();
   const { theme, darkMode, setTheme, setDarkMode } = useTheme();
   const { currencies, isLoading: isCurrenciesLoading } = useCurrencies();
+  const [showUpgradeDialog, setShowUpgradeDialog] = React.useState(false);
 
   const { data: info, mutate: reloadInfo } = useInfo();
 
@@ -96,6 +98,10 @@ function Settings() {
               <Select
                 value={theme}
                 onValueChange={(value) => {
+                  if (paidThemes.includes(value) && !hasPlan) {
+                    setShowUpgradeDialog(true);
+                    return;
+                  }
                   setTheme(value as Theme);
                   toast("Theme updated.");
                 }}
@@ -106,23 +112,11 @@ function Settings() {
                 <SelectContent>
                   {Themes.map((theme) => {
                     const isPaidTheme = paidThemes.includes(theme);
-                    const isDisabled = isPaidTheme && !hasPlan;
 
                     return (
-                      <SelectItem
-                        key={theme}
-                        value={theme}
-                        disabled={isDisabled}
-                      >
+                      <SelectItem key={theme} value={theme}>
                         <div className="flex items-center justify-between gap-2 w-full">
-                          <span
-                            className={cn(
-                              "capitalize",
-                              isDisabled && "text-muted-foreground"
-                            )}
-                          >
-                            {theme}
-                          </span>
+                          <span className="capitalize">{theme}</span>
                           {isPaidTheme && (
                             <Badge variant="outline">
                               <StarsIcon />
@@ -135,6 +129,10 @@ function Settings() {
                   })}
                 </SelectContent>
               </Select>
+              <UpgradeDialog
+                open={showUpgradeDialog}
+                onOpenChange={setShowUpgradeDialog}
+              />
             </div>
             <div className="grid gap-2">
               <Label htmlFor="appearance">Appearance</Label>

@@ -4,6 +4,7 @@ import {
   ArrowDownIcon,
   ArrowDownUpIcon,
   ArrowUpIcon,
+  CalendarSyncIcon,
   CreditCardIcon,
   ExternalLinkIcon,
   LightbulbIcon,
@@ -15,7 +16,7 @@ import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import TransactionsList from "src/components/TransactionsList";
-import { TransactionsListMenu } from "src/components/TransactionsListMenu";
+import { WalletActionsMenu } from "src/components/WalletActionsMenu";
 import {
   Alert,
   AlertDescription,
@@ -45,23 +46,36 @@ function Wallet() {
         description=""
         contentRight={
           <div className="flex items-center gap-1 sm:gap-2">
+            {hasChannelManagement && (
+              <LinkButton
+                to="/wallet/swap"
+                variant="ghost"
+                size="sm"
+                className="hidden sm:inline-flex"
+              >
+                <ArrowDownUpIcon />
+                Swap
+              </LinkButton>
+            )}
+            <LinkButton
+              to="/internal-apps/zapplanner"
+              variant="ghost"
+              size="sm"
+              className="hidden sm:inline-flex"
+            >
+              <CalendarSyncIcon />
+              Recurring
+            </LinkButton>
             <ExternalLinkButton
               to="https://www.getalby.com/topup"
               variant="ghost"
               size="sm"
+              className="hidden sm:inline-flex"
             >
               <CreditCardIcon />
-              <span className="sr-only sm:not-sr-only sm:inline">
-                Buy Bitcoin
-              </span>
+              Buy
             </ExternalLinkButton>
-            {hasChannelManagement && (
-              <LinkButton to="/wallet/swap" variant="ghost" size="sm">
-                <ArrowDownUpIcon />
-                <span className="sr-only sm:not-sr-only sm:inline">Swap</span>
-              </LinkButton>
-            )}
-            <TransactionsListMenu />
+            <WalletActionsMenu hasChannelManagement={!!hasChannelManagement} />
           </div>
         }
       />

@@ -3,27 +3,77 @@ import {
   MailIcon,
   RefreshCwIcon,
   SparklesIcon,
+  StarsIcon,
   UsersIcon,
   ZapIcon,
 } from "lucide-react";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
+import { Badge } from "src/components/ui/badge";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "src/components/ui/dialog";
+import { DropdownMenuItem } from "src/components/ui/dropdown-menu";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 import { ExternalLinkButton } from "./ui/custom/external-link-button";
 
 interface UpgradeDialogProps {
-  children: ReactNode;
+  children?: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
+interface ProDropdownMenuItemProps {
+  children: ReactNode;
+  onClick?: () => void;
+}
+
+export function ProDropdownMenuItem({
+  children,
+  onClick,
+}: ProDropdownMenuItemProps) {
+  const { data: albyMe } = useAlbyMe();
+
+  if (!albyMe?.subscription.plan_code) {
+    return (
+      <UpgradeDialog>
+        <div className="cursor-pointer">
+          <DropdownMenuItem className="w-full pointer-events-none">
+            {children}
+            <Badge variant="outline">
+              <StarsIcon />
+              Pro
+            </Badge>
+          </DropdownMenuItem>
+        </div>
+      </UpgradeDialog>
+    );
+  }
+
+  return (
+    <DropdownMenuItem className="cursor-pointer" onClick={onClick}>
+      {children}
+      <Badge variant="outline">
+        <StarsIcon />
+        Pro
+      </Badge>
+    </DropdownMenuItem>
+  );
+}
+
+export const UpgradeDialog = ({
+  children,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+}: UpgradeDialogProps) => {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = controlledOnOpenChange ?? setInternalOpen;
+
   const { data: albyMe } = useAlbyMe();
   const { data: info } = useInfo();
 
@@ -37,8 +87,12 @@ export const UpgradeDialog = ({ children }: UpgradeDialogProps) => {
   }
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>{children}</DialogTrigger>
+    <Dialog open={open} onOpenChange={setOpen}>
+      {children && (
+        <span onClick={() => setOpen(true)} className="cursor-pointer">
+          {children}
+        </span>
+      )}
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex flex-row gap-2 items-center">
