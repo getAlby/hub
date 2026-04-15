@@ -17,6 +17,7 @@ import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import TransactionsList from "src/components/TransactionsList";
 import { TransactionsListMenu } from "src/components/TransactionsListMenu";
+import { WalletActionsMenu } from "src/components/WalletActionsMenu";
 import {
   Alert,
   AlertDescription,
@@ -75,39 +76,14 @@ function Wallet() {
               <CreditCardIcon />
               Buy
             </ExternalLinkButton>
-            <TransactionsListMenu
-              buttonVariant="ghost"
-              buttonClassName="sm:hidden"
-              menuItems={[
-                ...(hasChannelManagement
-                  ? [
-                      {
-                        id: "swap",
-                        label: "Swap",
-                        icon: <ArrowDownUpIcon className="h-4 w-4" />,
-                        to: "/wallet/swap",
-                      },
-                    ]
-                  : []),
-                {
-                  id: "recurring",
-                  label: "Recurring",
-                  icon: <CalendarSyncIcon className="h-4 w-4" />,
-                  to: "/internal-apps/zapplanner",
-                },
-                {
-                  id: "buy",
-                  label: "Buy",
-                  icon: <CreditCardIcon className="h-4 w-4" />,
-                  to: "https://www.getalby.com/topup",
-                  external: true,
-                },
-              ]}
-            />
-            <TransactionsListMenu
-              buttonVariant="ghost"
-              buttonClassName="hidden sm:inline-flex"
-            />
+            <div className="sm:hidden">
+              <WalletActionsMenu
+                hasChannelManagement={!!hasChannelManagement}
+              />
+            </div>
+            <div className="hidden sm:inline-flex">
+              <TransactionsListMenu />
+            </div>
           </div>
         }
       />
@@ -161,11 +137,11 @@ function Wallet() {
           />
         </div>
         <div className="grid w-full max-w-md grid-cols-2 items-center gap-3">
-          <LinkButton to="/wallet/receive" size="lg" className="!px-12">
+          <LinkButton to="/wallet/receive" size="lg">
             <ArrowDownIcon />
             Receive
           </LinkButton>
-          <LinkButton to="/wallet/send" size="lg" className="!px-12">
+          <LinkButton to="/wallet/send" size="lg">
             <ArrowUpIcon />
             Send
           </LinkButton>
