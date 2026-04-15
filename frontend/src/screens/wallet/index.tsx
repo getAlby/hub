@@ -117,7 +117,7 @@ function Wallet() {
         </Alert>
       )}
       <div className="flex flex-col items-center gap-8 py-10 md:py-14 text-center">
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col items-center gap-2">
           <div className="text-5xl md:text-6xl font-medium balance sensitive slashed-zero">
             <FormattedBitcoinAmount
               amount={balances.lightning.totalSpendable}
