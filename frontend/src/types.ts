@@ -590,10 +590,8 @@ export type LSPOrderResponse = {
   invoice?: string;
   fee: number;
   feeSat: number;
-  feeMsat: number;
   invoiceAmount: number;
   invoiceAmountSat: number;
-  invoiceAmountMsat: number;
   incomingLiquidity: number;
   incomingLiquiditySat: number;
   outgoingLiquidity: number;

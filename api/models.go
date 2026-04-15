@@ -41,12 +41,12 @@ type API interface {
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	GetUnusedOnchainAddress(ctx context.Context) (string, error)
 	SignMessage(ctx context.Context, message string) (*SignMessageResponse, error)
-	RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (*RedeemOnchainFundsResponse, error)
+	RedeemOnchainFunds(ctx context.Context, toAddress string, amountSat uint64, feeRate *uint64, sendAll bool) (*RedeemOnchainFundsResponse, error)
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
 	ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error)
 	ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error)
 	SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}) (*SendPaymentResponse, error)
-	CreateInvoice(ctx context.Context, amount uint64, description string) (*MakeInvoiceResponse, error)
+	CreateInvoice(ctx context.Context, amountMsat uint64, description string) (*MakeInvoiceResponse, error)
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
 	RequestMempoolApi(ctx context.Context, endpoint string) (interface{}, error)
 	GetInfo(ctx context.Context) (*InfoResponse, error)
@@ -518,10 +518,8 @@ type LSPOrderResponse struct {
 	Invoice              string `json:"invoice"`
 	Fee                  uint64 `json:"fee"` // deprecated
 	FeeSat               uint64 `json:"feeSat"`
-	FeeMsat              uint64 `json:"feeMsat"`
 	InvoiceAmount        uint64 `json:"invoiceAmount"` // deprecated
 	InvoiceAmountSat     uint64 `json:"invoiceAmountSat"`
-	InvoiceAmountMsat    uint64 `json:"invoiceAmountMsat"`
 	IncomingLiquidity    uint64 `json:"incomingLiquidity"` // deprecated
 	IncomingLiquiditySat uint64 `json:"incomingLiquiditySat"`
 	OutgoingLiquidity    uint64 `json:"outgoingLiquidity"` // deprecated

@@ -525,7 +525,7 @@ func (svc *albyOAuthService) UnlinkAccount(ctx context.Context) error {
 	return nil
 }
 
-func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.LNClient, budget uint64, renewal string) error {
+func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.LNClient, budgetSat uint64, renewal string) error {
 	if lnClient == nil {
 		return errors.New("LNClient not available")
 	}
@@ -551,7 +551,7 @@ func (svc *albyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.
 	app, _, err := apps.NewAppsService(svc.db, svc.eventPublisher, svc.keys, svc.cfg).CreateApp(
 		ALBY_ACCOUNT_APP_NAME,
 		connectionPubkey,
-		budget,
+		budgetSat,
 		renewal,
 		nil,
 		scopes,

@@ -210,7 +210,7 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 			updateAppRequest.BudgetRenewal != nil || updateAppRequest.ExpiresAt != nil || updateAppRequest.UpdateExpiresAt {
 
 			// Get current values or use provided ones
-			var maxAmount uint64
+			var maxAmountSat uint64
 			var budgetRenewal string
 			var expiresAt *time.Time
 
@@ -225,7 +225,7 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 				// Find pay_invoice permission for budget-related fields
 				for _, perm := range existingPermissions {
 					if perm.Scope == constants.PAY_INVOICE_SCOPE {
-						maxAmount = uint64(perm.MaxAmountSat)
+						maxAmountSat = uint64(perm.MaxAmountSat)
 						budgetRenewal = perm.BudgetRenewal
 						expiresAt = perm.ExpiresAt
 						break
@@ -235,7 +235,7 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 
 			// Override with provided values
 			if updateAppRequest.MaxAmountSat != nil {
-				maxAmount = *updateAppRequest.MaxAmountSat
+				maxAmountSat = *updateAppRequest.MaxAmountSat
 			}
 			if updateAppRequest.BudgetRenewal != nil {
 				budgetRenewal = *updateAppRequest.BudgetRenewal
@@ -254,7 +254,7 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 			// Update existing permissions with new budget and expiry
 			err := tx.Model(&db.AppPermission{}).Where("app_id", userApp.ID).Updates(map[string]interface{}{
 				"ExpiresAt":     expiresAt,
-				"MaxAmountSat":  maxAmount,
+				"MaxAmountSat":  maxAmountSat,
 				"BudgetRenewal": budgetRenewal,
 			}).Error
 			if err != nil {
@@ -284,7 +284,7 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 							App:           *userApp,
 							Scope:         scope,
 							ExpiresAt:     expiresAt,
-							MaxAmountSat:  int(maxAmount),
+							MaxAmountSat:  int(maxAmountSat),
 							BudgetRenewal: budgetRenewal,
 						}
 						if err := tx.Create(&perm).Error; err != nil {
@@ -480,16 +480,16 @@ func (api *api) GetApp(dbApp *db.App) (*App, error) {
 	}
 
 	if dbApp.Isolated {
-		balance, err := queries.GetIsolatedBalance(api.db, dbApp.ID)
+		balanceMsat, err := queries.GetIsolatedBalanceMsat(api.db, dbApp.ID)
 		if err != nil {
 			logger.Logger.WithError(err).WithFields(logrus.Fields{
 				"app_id": dbApp.ID,
 			}).Error("Failed to get isolated app balance")
 			return nil, err
 		}
-		response.Balance = balance
-		response.BalanceSat = balance / 1000
-		response.BalanceMsat = balance
+		response.Balance = balanceMsat
+		response.BalanceSat = balanceMsat / 1000
+		response.BalanceMsat = balanceMsat
 	}
 
 	return &response, nil
@@ -547,7 +547,7 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 	var totalBalance *int64
 	var totalBalanceSat *int64
 	if filters.SubWallets != nil && *filters.SubWallets {
-		totalBalanceMsat, err := queries.GetTotalSubwalletBalance(api.db)
+		totalBalanceMsat, err := queries.GetTotalSubwalletBalanceMsat(api.db)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to calculate total subwallet balance")
 			return nil, err
@@ -606,16 +606,16 @@ func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, o
 		}
 
 		if dbApp.Isolated {
-			balance, err := queries.GetIsolatedBalance(api.db, dbApp.ID)
+			balanceMsat, err := queries.GetIsolatedBalanceMsat(api.db, dbApp.ID)
 			if err != nil {
 				logger.Logger.WithError(err).WithFields(logrus.Fields{
 					"app_id": dbApp.ID,
 				}).Error("Failed to get isolated app balance")
 				return nil, err
 			}
-			apiApp.Balance = balance
-			apiApp.BalanceSat = balance / 1000
-			apiApp.BalanceMsat = balance
+			apiApp.Balance = balanceMsat
+			apiApp.BalanceSat = balanceMsat / 1000
+			apiApp.BalanceMsat = balanceMsat
 		}
 
 		for _, appPermission := range permissionsMap[dbApp.ID] {
@@ -1265,12 +1265,12 @@ func (api *api) SignMessage(ctx context.Context, message string) (*SignMessageRe
 	}, nil
 }
 
-func (api *api) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (*RedeemOnchainFundsResponse, error) {
+func (api *api) RedeemOnchainFunds(ctx context.Context, toAddress string, amountSat uint64, feeRate *uint64, sendAll bool) (*RedeemOnchainFundsResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return nil, ErrLNClientNotStarted
 	}
-	txId, err := lnClient.RedeemOnchainFunds(ctx, toAddress, amount, feeRate, sendAll)
+	txId, err := lnClient.RedeemOnchainFunds(ctx, toAddress, amountSat, feeRate, sendAll)
 	if err != nil {
 		return nil, err
 	}
@@ -1935,21 +1935,21 @@ func (api *api) GetForwards() (*GetForwardsResponse, error) {
 		return nil, err
 	}
 
-	var totalOutboundAmount uint64
-	var totalFeeEarned uint64
+	var totalOutboundAmountMsat uint64
+	var totalFeeEarnedMsat uint64
 
 	for _, forward := range forwards {
-		totalOutboundAmount += forward.OutboundAmountForwardedMsat
-		totalFeeEarned += forward.TotalFeeEarnedMsat
+		totalOutboundAmountMsat += forward.OutboundAmountForwardedMsat
+		totalFeeEarnedMsat += forward.TotalFeeEarnedMsat
 	}
 
 	numForwards := len(forwards)
 
 	return &GetForwardsResponse{
-		OutboundAmountForwardedSat:  totalOutboundAmount / 1000,
-		OutboundAmountForwardedMsat: totalOutboundAmount,
-		TotalFeeEarnedSat:           totalFeeEarned / 1000,
-		TotalFeeEarnedMsat:          totalFeeEarned,
+		OutboundAmountForwardedSat:  totalOutboundAmountMsat / 1000,
+		OutboundAmountForwardedMsat: totalOutboundAmountMsat,
+		TotalFeeEarnedSat:           totalFeeEarnedMsat / 1000,
+		TotalFeeEarnedMsat:          totalFeeEarnedMsat,
 		NumForwards:                 uint64(numForwards),
 	}, nil
 }

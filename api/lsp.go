@@ -59,7 +59,6 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 
 	invoice, feeSat, err := api.requestLSPS1Invoice(ctx, lnClient, request, nodeInfo.Network, nodeInfo.Pubkey, lspInfo.MaxChannelExpiryBlocks, lspInfo.MinRequiredChannelConfirmations, lspInfo.MinFundingConfirmsWithinBlocks)
 	invoiceAmountSat := uint64(0)
-	invoiceAmountMsat := uint64(0)
 	incomingLiquiditySat := request.Amount
 
 	if err != nil {
@@ -74,18 +73,15 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 			return nil, err
 		}
 
-		invoiceAmountMsat = uint64(paymentRequest.MSatoshi)
-		invoiceAmountSat = invoiceAmountMsat / 1000
+		invoiceAmountSat = uint64(paymentRequest.MSatoshi / 1000)
 	}
 
 	newChannelResponse := &LSPOrderResponse{
 		Invoice:              invoice,
 		Fee:                  feeSat,
 		FeeSat:               feeSat,
-		FeeMsat:              feeSat * 1000,
 		InvoiceAmount:        invoiceAmountSat,
 		InvoiceAmountSat:     invoiceAmountSat,
-		InvoiceAmountMsat:    invoiceAmountMsat,
 		IncomingLiquidity:    incomingLiquiditySat,
 		IncomingLiquiditySat: incomingLiquiditySat,
 		OutgoingLiquidity:    uint64(0),

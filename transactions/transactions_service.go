@@ -1090,14 +1090,14 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 		}
 
 		if app.Isolated {
-			balance, err := queries.GetIsolatedBalance(tx, appPermission.AppId)
+			balanceMsat, err := queries.GetIsolatedBalanceMsat(tx, appPermission.AppId)
 			if err != nil {
 				return fmt.Errorf("failed to calculate isolated balance for app: %w", err)
 			}
 
-			if int64(amountWithFeeReserve) > balance {
+			if int64(amountWithFeeReserve) > balanceMsat {
 				logger.Logger.WithFields(logrus.Fields{
-					"balance":                 balance,
+					"balance_msat":            balanceMsat,
 					"self_payment":            selfPayment,
 					"amount":                  amount,
 					"amount_with_fee_reserve": amountWithFeeReserve,

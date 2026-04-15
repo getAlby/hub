@@ -12,12 +12,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (api *api) CreateInvoice(ctx context.Context, amount uint64, description string) (*MakeInvoiceResponse, error) {
+func (api *api) CreateInvoice(ctx context.Context, amountMsat uint64, description string) (*MakeInvoiceResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return nil, ErrLNClientNotStarted
 	}
-	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amount, description, "", 0, nil, lnClient, nil, nil, nil)
+	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, description, "", 0, nil, lnClient, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
