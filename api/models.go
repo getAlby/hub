@@ -526,35 +526,33 @@ type WalletCapabilitiesResponse struct {
 }
 
 type Channel struct {
-	LocalBalance                                 int64       `json:"localBalance"` // deprecated
-	LocalBalanceSat                              int64       `json:"localBalanceSat"`
-	LocalBalanceMsat                             int64       `json:"localBalanceMsat"`
-	LocalSpendableBalance                        int64       `json:"localSpendableBalance"` // deprecated
-	LocalSpendableBalanceSat                     int64       `json:"localSpendableBalanceSat"`
-	LocalSpendableBalanceMsat                    int64       `json:"localSpendableBalanceMsat"`
-	RemoteBalance                                int64       `json:"remoteBalance"` // deprecated
-	RemoteBalanceSat                             int64       `json:"remoteBalanceSat"`
-	RemoteBalanceMsat                            int64       `json:"remoteBalanceMsat"`
-	Id                                           string      `json:"id"`
-	RemotePubkey                                 string      `json:"remotePubkey"`
-	FundingTxId                                  string      `json:"fundingTxId"`
-	FundingTxVout                                uint32      `json:"fundingTxVout"`
-	Active                                       bool        `json:"active"`
-	Public                                       bool        `json:"public"`
-	InternalChannel                              interface{} `json:"internalChannel"`
-	Confirmations                                *uint32     `json:"confirmations"`
-	ConfirmationsRequired                        *uint32     `json:"confirmationsRequired"`
-	ForwardingFeeBaseMsat                        uint32      `json:"forwardingFeeBaseMsat"`
-	ForwardingFeeProportionalMillionths          uint32      `json:"forwardingFeeProportionalMillionths"`
-	UnspendablePunishmentReserve                 uint64      `json:"unspendablePunishmentReserve"` // deprecated
-	UnspendablePunishmentReserveSat              uint64      `json:"unspendablePunishmentReserveSat"`
-	UnspendablePunishmentReserveMsat             uint64      `json:"unspendablePunishmentReserveMsat"`
-	CounterpartyUnspendablePunishmentReserve     uint64      `json:"counterpartyUnspendablePunishmentReserve"` // deprecated
-	CounterpartyUnspendablePunishmentReserveSat  uint64      `json:"counterpartyUnspendablePunishmentReserveSat"`
-	CounterpartyUnspendablePunishmentReserveMsat uint64      `json:"counterpartyUnspendablePunishmentReserveMsat"`
-	Error                                        *string     `json:"error"`
-	Status                                       string      `json:"status"`
-	IsOutbound                                   bool        `json:"isOutbound"`
+	LocalBalance                                int64       `json:"localBalance"` // deprecated
+	LocalBalanceSat                             int64       `json:"localBalanceSat"`
+	LocalBalanceMsat                            int64       `json:"localBalanceMsat"`
+	LocalSpendableBalance                       int64       `json:"localSpendableBalance"` // deprecated
+	LocalSpendableBalanceSat                    int64       `json:"localSpendableBalanceSat"`
+	LocalSpendableBalanceMsat                   int64       `json:"localSpendableBalanceMsat"`
+	RemoteBalance                               int64       `json:"remoteBalance"` // deprecated
+	RemoteBalanceSat                            int64       `json:"remoteBalanceSat"`
+	RemoteBalanceMsat                           int64       `json:"remoteBalanceMsat"`
+	Id                                          string      `json:"id"`
+	RemotePubkey                                string      `json:"remotePubkey"`
+	FundingTxId                                 string      `json:"fundingTxId"`
+	FundingTxVout                               uint32      `json:"fundingTxVout"`
+	Active                                      bool        `json:"active"`
+	Public                                      bool        `json:"public"`
+	InternalChannel                             interface{} `json:"internalChannel"`
+	Confirmations                               *uint32     `json:"confirmations"`
+	ConfirmationsRequired                       *uint32     `json:"confirmationsRequired"`
+	ForwardingFeeBaseMsat                       uint32      `json:"forwardingFeeBaseMsat"` // expressed only in msat as per Lightning spec
+	ForwardingFeeProportionalMillionths         uint32      `json:"forwardingFeeProportionalMillionths"`
+	UnspendablePunishmentReserve                uint64      `json:"unspendablePunishmentReserve"` // deprecated
+	UnspendablePunishmentReserveSat             uint64      `json:"unspendablePunishmentReserveSat"`
+	CounterpartyUnspendablePunishmentReserve    uint64      `json:"counterpartyUnspendablePunishmentReserve"` // deprecated
+	CounterpartyUnspendablePunishmentReserveSat uint64      `json:"counterpartyUnspendablePunishmentReserveSat"`
+	Error                                       *string     `json:"error"`
+	Status                                      string      `json:"status"`
+	IsOutbound                                  bool        `json:"isOutbound"`
 }
 
 type MigrateNodeStorageRequest struct {

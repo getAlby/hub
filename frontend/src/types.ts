@@ -326,10 +326,8 @@ export type Channel = {
   forwardingFeeProportionalMillionths: number;
   unspendablePunishmentReserve: number;
   unspendablePunishmentReserveSat: number;
-  unspendablePunishmentReserveMsat: number;
   counterpartyUnspendablePunishmentReserve: number;
   counterpartyUnspendablePunishmentReserveSat: number;
-  counterpartyUnspendablePunishmentReserveMsat: number;
   error?: string;
   status: "online" | "opening" | "offline";
   isOutbound: boolean;
