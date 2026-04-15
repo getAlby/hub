@@ -187,10 +187,7 @@ func (cs *CashuService) GetNewOnchainAddress(ctx context.Context) (string, error
 }
 
 func (cs *CashuService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
-	return &lnclient.OnchainBalanceResponse{
-		PendingBalancesDetails:      []lnclient.PendingBalanceDetails{},
-		PendingSweepBalancesDetails: []lnclient.PendingBalanceDetails{},
-	}, nil
+	return &lnclient.OnchainBalanceResponse{}, nil
 }
 
 func (cs *CashuService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (string, error) {
