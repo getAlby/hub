@@ -1,12 +1,11 @@
-import { AlertTriangleIcon, PlusCircleIcon } from "lucide-react";
+import { AlertTriangleIcon, CoinsIcon, TimerIcon } from "lucide-react";
 import React from "react";
 import BudgetAmountSelect from "src/components/BudgetAmountSelect";
 import BudgetRenewalSelect from "src/components/BudgetRenewalSelect";
 import ExpirySelect from "src/components/ExpirySelect";
-import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Scopes from "src/components/Scopes";
 import { Badge } from "src/components/ui/badge";
-import { Button } from "src/components/ui/button";
+import { Switch } from "src/components/ui/switch";
 import {
   DEFAULT_APP_BUDGET_RENEWAL,
   DEFAULT_APP_BUDGET_SATS,
@@ -26,25 +25,13 @@ interface PermissionsProps {
   permissions: AppPermissions;
   setPermissions?: React.Dispatch<React.SetStateAction<AppPermissions>>;
   readOnly?: boolean;
-  scopesReadOnly?: boolean;
-  budgetReadOnly?: boolean;
-  expiresAtReadOnly?: boolean;
-  budgetUsage?: number;
-  isNewConnection: boolean;
-  showBudgetUsage?: boolean;
 }
 
 const Permissions: React.FC<PermissionsProps> = ({
   capabilities,
   permissions,
   setPermissions,
-  isNewConnection,
-  budgetUsage,
   readOnly,
-  scopesReadOnly,
-  budgetReadOnly,
-  expiresAtReadOnly,
-  showBudgetUsage = true,
 }) => {
   const [showBudgetOptions, setShowBudgetOptions] = React.useState(
     permissions.scopes.includes("pay_invoice") && permissions.maxAmount > 0
@@ -92,14 +79,13 @@ const Permissions: React.FC<PermissionsProps> = ({
   );
 
   return (
-    <div className={cn(!readOnly && "max-w-lg")}>
-      {!readOnly && !scopesReadOnly ? (
+    <div className={cn("space-y-4", !readOnly && "max-w-lg")}>
+      {!readOnly ? (
         <Scopes
           capabilities={capabilities}
           scopes={permissions.scopes}
           isolated={permissions.isolated}
           onScopesChanged={onScopesChanged}
-          isNewConnection={isNewConnection}
         />
       ) : (
         <>
@@ -124,111 +110,102 @@ const Permissions: React.FC<PermissionsProps> = ({
         </>
       )}
 
-      {permissions.scopes.includes("pay_invoice") && showBudgetUsage && (
-        <>
-          {!readOnly && !budgetReadOnly ? (
-            <>
-              {!showBudgetOptions && (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => {
-                    handleBudgetRenewalChange(DEFAULT_APP_BUDGET_RENEWAL);
-                    handleBudgetMaxAmountChange(DEFAULT_APP_BUDGET_SATS);
-                    setShowBudgetOptions(true);
-                  }}
-                  className={cn("mr-4", showExpiryOptions && "mb-4")}
-                >
-                  <PlusCircleIcon />
-                  Set budget
-                </Button>
-              )}
-              {showBudgetOptions && (
-                <>
-                  <BudgetRenewalSelect
-                    value={permissions.budgetRenewal}
-                    onChange={handleBudgetRenewalChange}
-                    onClose={() => {
-                      handleBudgetRenewalChange("never");
-                      handleBudgetMaxAmountChange(0);
-                      setShowBudgetOptions(false);
-                    }}
-                  />
-                  <BudgetAmountSelect
-                    value={permissions.maxAmount}
-                    onChange={handleBudgetMaxAmountChange}
-                  />
-                </>
-              )}
-            </>
-          ) : (
-            <div className="pl-4 ml-2 border-l-2 border-l-primary mb-4">
-              <div className="flex flex-col gap-2 text-muted-foreground text-sm">
-                <p className="capitalize">
-                  <span className="text-primary font-medium">
-                    Budget Renewal:
-                  </span>{" "}
-                  {permissions.budgetRenewal || "Never"}
-                </p>
-                <p className="slashed-zero">
-                  <span className="text-primary font-medium">
-                    Budget Amount:
-                  </span>{" "}
-                  {permissions.maxAmount ? (
-                    <FormattedBitcoinAmount
-                      amount={permissions.maxAmount * 1000}
-                    />
-                  ) : (
-                    "∞"
-                  )}{" "}
-                  {!isNewConnection && (
-                    <>
-                      (
-                      <FormattedBitcoinAmount
-                        amount={(budgetUsage || 0) * 1000}
-                      />{" "}
-                      used)
-                    </>
-                  )}
+      {/* We skip read only component here as budget is shown in AppUsage */}
+      {permissions.scopes.includes("pay_invoice") && !readOnly && (
+        <div className="rounded-lg border p-4">
+          <div className="flex items-center justify-between">
+            <label
+              htmlFor="budget-toggle"
+              className="flex items-center gap-2 cursor-pointer"
+            >
+              <CoinsIcon className="size-5 text-muted-foreground" />
+              <div className="flex flex-col gap-0.5">
+                <p className="text-sm font-medium">Budget</p>
+                <p className="text-xs text-muted-foreground">
+                  Limit how much this app can spend
                 </p>
               </div>
+            </label>
+            <Switch
+              id="budget-toggle"
+              checked={showBudgetOptions}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  handleBudgetRenewalChange(DEFAULT_APP_BUDGET_RENEWAL);
+                  handleBudgetMaxAmountChange(DEFAULT_APP_BUDGET_SATS);
+                } else {
+                  handleBudgetRenewalChange("never");
+                  handleBudgetMaxAmountChange(0);
+                }
+                setShowBudgetOptions(checked);
+              }}
+            />
+          </div>
+          {showBudgetOptions && (
+            <div className="mt-4">
+              <BudgetRenewalSelect
+                value={permissions.budgetRenewal}
+                onChange={handleBudgetRenewalChange}
+              />
+              <BudgetAmountSelect
+                value={permissions.maxAmount}
+                onChange={handleBudgetMaxAmountChange}
+              />
             </div>
           )}
-        </>
+        </div>
       )}
 
-      <>
-        {!readOnly && !expiresAtReadOnly ? (
-          <>
-            {!showExpiryOptions && (
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => setShowExpiryOptions(true)}
-              >
-                <PlusCircleIcon />
-                Set expiration time
-              </Button>
-            )}
-
-            {showExpiryOptions && (
+      {!readOnly ? (
+        <div className="rounded-lg border p-4">
+          <div className="flex items-center justify-between">
+            <label
+              htmlFor="expiry-toggle"
+              className="flex items-center gap-2 cursor-pointer"
+            >
+              <TimerIcon className="size-5 text-muted-foreground" />
+              <div className="flex flex-col gap-0.5">
+                <p className="text-sm font-medium">Expiration</p>
+                <p className="text-xs text-muted-foreground">
+                  Automatically expire this connection
+                </p>
+              </div>
+            </label>
+            <Switch
+              id="expiry-toggle"
+              checked={showExpiryOptions}
+              onCheckedChange={(checked) => {
+                if (checked) {
+                  const defaultExpiry = new Date();
+                  defaultExpiry.setFullYear(defaultExpiry.getFullYear() + 1);
+                  defaultExpiry.setHours(23, 59, 59);
+                  handleExpiryChange(defaultExpiry);
+                } else {
+                  handleExpiryChange(undefined);
+                }
+                setShowExpiryOptions(checked);
+              }}
+            />
+          </div>
+          {showExpiryOptions && (
+            <div className="mt-4">
               <ExpirySelect
                 value={permissions.expiresAt}
                 onChange={handleExpiryChange}
               />
-            )}
-          </>
-        ) : (
-          <>
-            <p className="text-sm font-medium mb-2">Connection expiry</p>
-            <p className="text-muted-foreground text-sm">
-              {permissions.expiresAt
-                ? new Date(permissions.expiresAt).toString()
-                : "This app will never expire"}
-            </p>
-          </>
-        )}
-      </>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div>
+          <p className="text-sm font-medium mb-2">Connection expiry</p>
+          <p className="text-muted-foreground text-sm">
+            {permissions.expiresAt
+              ? new Date(permissions.expiresAt).toString()
+              : "This app will never expire"}
+          </p>
+        </div>
+      )}
 
       {permissions.scopes.includes("superuser") && (
         <>

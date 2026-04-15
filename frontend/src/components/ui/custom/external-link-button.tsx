@@ -22,6 +22,8 @@ export function ExternalLinkButton({
       to={to}
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
+      data-slot="button"
+      data-variant={variant ?? "default"}
     >
       {children}
     </ExternalLink>

@@ -1,4 +1,4 @@
-import { Navigate, RouteObject } from "react-router-dom";
+import { Navigate, RouteObject } from "react-router";
 import AppLayout from "src/components/layouts/AppLayout";
 import SettingsLayout from "src/components/layouts/SettingsLayout";
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
@@ -16,6 +16,7 @@ import Start from "src/screens/Start";
 import Unlock from "src/screens/Unlock";
 import { Welcome } from "src/screens/Welcome";
 import AlbyAuthRedirect from "src/screens/alby/AlbyAuthRedirect";
+import { AI } from "src/screens/ai/AI";
 import { AlbyEarn } from "src/screens/alby/AlbyEarn";
 import SupportAlby from "src/screens/alby/SupportAlby";
 import AppDetails from "src/screens/apps/AppDetails";
@@ -36,8 +37,6 @@ import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChan
 import { AlbyCliSkill } from "src/screens/internal-apps/AlbyCliSkill";
 import { Bitrefill } from "src/screens/internal-apps/Bitrefill";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
-import { Claude } from "src/screens/internal-apps/Claude";
-import { Goose } from "src/screens/internal-apps/Goose";
 import { LightningMessageboard } from "src/screens/internal-apps/LightningMessageboard";
 import { SimpleBoost } from "src/screens/internal-apps/SimpleBoost";
 import { Tictactoe } from "src/screens/internal-apps/Tictactoe";
@@ -341,14 +340,6 @@ const routes: RouteObject[] = [
             element: <Bitrefill />,
           },
           {
-            path: "goose",
-            element: <Goose />,
-          },
-          {
-            path: "claude",
-            element: <Claude />,
-          },
-          {
             path: "alby-cli-skill",
             element: <AlbyCliSkill />,
           },
@@ -465,6 +456,11 @@ const routes: RouteObject[] = [
         path: "earn",
         element: <AlbyEarn />,
         handle: { crumb: () => "Earn" },
+      },
+      {
+        path: "ai",
+        element: <AI />,
+        handle: { crumb: () => "AI & Agents" },
       },
     ],
   },

@@ -1,6 +1,6 @@
 import { CopyIcon, LinkIcon, ReceiptTextIcon, ZapIcon } from "lucide-react";
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
@@ -71,7 +71,7 @@ export default function Receive() {
                 )}
                 <LinkButton to="onchain" variant="outline" className="flex-1">
                   <LinkIcon className="w-4 h-4 mr-2" />
-                  Receive from On-chain
+                  Receive from On-chain / Other Cryptocurrency
                 </LinkButton>
               </div>
             </CardContent>

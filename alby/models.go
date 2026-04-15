@@ -9,7 +9,8 @@ import (
 
 type AlbyService interface {
 	GetInfo(ctx context.Context) (*AlbyInfo, error)
-	GetBitcoinRate(ctx context.Context) (*BitcoinRate, error)
+	GetBitcoinRate(ctx context.Context, currency string) (*BitcoinRate, error)
+	GetCurrencies(ctx context.Context) ([]Currency, error)
 	GetChannelPeerSuggestions(ctx context.Context) ([]ChannelPeerSuggestion, error)
 }
 
@@ -127,6 +128,13 @@ type LSPChannelOffer struct {
 	CurrentPaymentMethod string `json:"currentPaymentMethod"`
 	Terms                string `json:"terms"`
 	LspDescription       string `json:"lspDescription"`
+}
+
+type Currency struct {
+	IsoCode  string `json:"iso_code"`
+	Symbol   string `json:"symbol"`
+	Name     string `json:"name"`
+	Priority int    `json:"priority"`
 }
 
 type BitcoinRate struct {

@@ -96,14 +96,12 @@ export const expiryOptions: Record<string, number> = {
   "1 week": 7,
   "1 month": 30,
   "1 year": 365,
-  Never: 0,
 };
 
 export const budgetOptions: Record<string, number> = {
   "10k": 10_000,
   "100k": 100_000,
   "1M": 1_000_000,
-  Unlimited: 0,
 };
 
 export interface ErrorResponse {
@@ -120,6 +118,7 @@ export interface App {
   createdAt: string;
   updatedAt: string;
   lastUsedAt?: string;
+  lastSettledTransactionAt?: string;
   expiresAt?: string;
   isolated: boolean;
   balance: number;
@@ -164,6 +163,8 @@ export interface InfoResponse {
   nodeAlias: string;
   mempoolUrl: string;
   bitcoinDisplayFormat: BitcoinDisplayFormat;
+  chainDataSourceType?: string;
+  chainDataSourceAddress?: string;
   hideUpdateBanner: boolean;
 }
 
@@ -506,6 +507,13 @@ export type BitcoinRate = {
   rate: string;
   rate_float: number;
   rate_cents: number;
+};
+
+export type Currency = {
+  iso_code: string;
+  symbol: string;
+  name: string;
+  priority: number;
 };
 
 // TODO: use camel case (needs mapping in the Alby OAuth Service - see how AlbyInfo is done above)

@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import MnemonicDialog from "src/components/mnemonic/MnemonicDialog";
@@ -136,10 +136,7 @@ export default function Backup() {
               {!!unlockPassword && (
                 <div className="flex">
                   <Checkbox id="private" required className="mt-0.5" />
-                  <Label
-                    htmlFor="private"
-                    className="ml-2 text-sm text-foreground"
-                  >
+                  <Label htmlFor="private" className="ml-2 cursor-pointer">
                     I'll NEVER share my recovery phrase with anyone, including
                     Alby support
                   </Label>

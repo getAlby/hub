@@ -9,7 +9,7 @@ import {
   ExternalLinkIcon,
   LightbulbIcon,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import AppHeader from "src/components/AppHeader";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";

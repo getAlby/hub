@@ -1,6 +1,6 @@
 import type { VariantProps } from "class-variance-authority";
 import { DownloadIcon, EllipsisVerticalIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import ExternalLink from "src/components/ExternalLink";
 import { toast } from "sonner";
 import { Button } from "src/components/ui/button";

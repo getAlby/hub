@@ -1,6 +1,6 @@
 import { CirclePlusIcon, LayoutGridIcon, Plug2Icon } from "lucide-react";
 import React from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import AppHeader from "src/components/AppHeader";
 import AppStore from "src/components/connections/AppStore";
 import ConnectedApps from "src/components/connections/ConnectedApps";
@@ -20,7 +20,11 @@ export function Connections() {
     const newTabValue = searchParams.get("tab");
     if (newTabValue) {
       setTab(newTabValue);
-      setSearchParams({});
+      const newParams = new URLSearchParams(searchParams);
+      newParams.delete("tab");
+      setSearchParams(Object.fromEntries(newParams.entries()), {
+        replace: true,
+      });
     }
   }, [searchParams, setSearchParams]);
 
