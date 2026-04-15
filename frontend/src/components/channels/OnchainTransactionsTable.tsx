@@ -244,7 +244,7 @@ export function OnchainTransactionsTable({
   contentClassName,
   showEmptyState = false,
   emptyStateTitle = "No on-chain transactions yet",
-  emptyStateDescription = "Your most recent incoming and outgoing on-chain payments will show up here.",
+  emptyStateDescription = "Your most recent incoming and outgoing on-chain transactions will show up here.",
   emptyStateButtonText = "Receive to On-chain Balance",
   emptyStateButtonLink = "/wallet/receive/onchain?type=onchain",
 }: OnchainTransactionsTableProps) {
