@@ -814,7 +814,6 @@ func (ls *LDKService) ListOnchainTransactions(ctx context.Context) ([]lnclient.O
 
 		transactions = append(transactions, lnclient.OnchainTransaction{
 			AmountSat:        amountMsat / 1000,
-			AmountMsat:       amountMsat,
 			CreatedAt:        createdAt,
 			State:            status,
 			Type:             transactionType,
@@ -2357,20 +2356,20 @@ func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amount int64, descrip
 		if *minCltvExpiryDelta > uint64(65535) {
 			return nil, errors.New("min_cltv_expiry_delta must be <= 65535")
 		}
-        invoiceObj, err = ls.node.Bolt11Payment().ReceiveForHashWithMinCltvExpiryDelta(
-            uint64(amount),
-            descriptionType,
-            uint32(expiry),
-            ldkPaymentHash,
-            uint16(*minCltvExpiryDelta),
-        )
+		invoiceObj, err = ls.node.Bolt11Payment().ReceiveForHashWithMinCltvExpiryDelta(
+			uint64(amount),
+			descriptionType,
+			uint32(expiry),
+			ldkPaymentHash,
+			uint16(*minCltvExpiryDelta),
+		)
 	} else {
-        invoiceObj, err = ls.node.Bolt11Payment().ReceiveForHash(
-            uint64(amount),
-            descriptionType,
-            uint32(expiry),
-            ldkPaymentHash,
-        )
+		invoiceObj, err = ls.node.Bolt11Payment().ReceiveForHash(
+			uint64(amount),
+			descriptionType,
+			uint32(expiry),
+			ldkPaymentHash,
+		)
 	}
 
 	if err != nil {

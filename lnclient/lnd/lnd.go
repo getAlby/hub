@@ -1689,7 +1689,6 @@ func (svc *LNDService) ListOnchainTransactions(ctx context.Context) ([]lnclient.
 
 		transactions = append(transactions, lnclient.OnchainTransaction{
 			AmountSat:        uint64(amountSat),
-			AmountMsat:       uint64(amountSat) * 1000,
 			CreatedAt:        uint64(tx.TimeStamp),
 			State:            state,
 			Type:             txType,
