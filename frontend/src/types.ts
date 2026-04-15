@@ -406,7 +406,6 @@ export type PendingBalancesDetails = {
   nodeId: string;
   amount: number;
   amountSat: number;
-  amountMsat: number;
   fundingTxId: string;
   fundingTxVout: number;
 };
@@ -414,16 +413,12 @@ export type PendingBalancesDetails = {
 export type OnchainBalanceResponse = {
   spendable: number;
   spendableSat: number;
-  spendableMsat: number;
   total: number;
   totalSat: number;
-  totalMsat: number;
   reserved: number;
   reservedSat: number;
-  reservedMsat: number;
   pendingBalancesFromChannelClosures: number;
   pendingBalancesFromChannelClosuresSat: number;
-  pendingBalancesFromChannelClosuresMsat: number;
   pendingBalancesDetails: PendingBalancesDetails[];
   pendingSweepBalancesDetails: PendingBalancesDetails[];
 };

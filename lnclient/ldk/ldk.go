@@ -1151,7 +1151,6 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 					ChannelId:     channelId,
 					Amount:        amount,
 					AmountSat:     amount,
-					AmountMsat:    amount * 1000,
 					FundingTxId:   fundingTxId,
 					FundingTxVout: uint32(fundingTxIndex),
 				})
@@ -1189,7 +1188,6 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 				ChannelId:     *channelId,
 				Amount:        amount,
 				AmountSat:     amount,
-				AmountMsat:    amount * 1000,
 				FundingTxId:   *fundingTxId,
 				FundingTxVout: uint32(*fundingTxIndex),
 			})
@@ -1214,20 +1212,16 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 	}
 
 	return &lnclient.OnchainBalanceResponse{
-		Spendable:                              int64(balances.SpendableOnchainBalanceSats),
-		SpendableSat:                           int64(balances.SpendableOnchainBalanceSats),
-		SpendableMsat:                          int64(balances.SpendableOnchainBalanceSats) * 1000,
-		Total:                                  int64(balances.TotalOnchainBalanceSats - balances.TotalAnchorChannelsReserveSats),
-		TotalSat:                               int64(balances.TotalOnchainBalanceSats - balances.TotalAnchorChannelsReserveSats),
-		TotalMsat:                              int64(balances.TotalOnchainBalanceSats-balances.TotalAnchorChannelsReserveSats) * 1000,
-		Reserved:                               int64(balances.TotalAnchorChannelsReserveSats),
-		ReservedSat:                            int64(balances.TotalAnchorChannelsReserveSats),
-		ReservedMsat:                           int64(balances.TotalAnchorChannelsReserveSats) * 1000,
-		PendingBalancesFromChannelClosures:     pendingBalancesFromChannelClosures,
-		PendingBalancesFromChannelClosuresSat:  pendingBalancesFromChannelClosures,
-		PendingBalancesFromChannelClosuresMsat: pendingBalancesFromChannelClosures * 1000,
-		PendingBalancesDetails:                 pendingBalancesDetails,
-		PendingSweepBalancesDetails:            pendingSweepBalanceDetails,
+		Spendable:                             int64(balances.SpendableOnchainBalanceSats),
+		SpendableSat:                          int64(balances.SpendableOnchainBalanceSats),
+		Total:                                 int64(balances.TotalOnchainBalanceSats - balances.TotalAnchorChannelsReserveSats),
+		TotalSat:                              int64(balances.TotalOnchainBalanceSats - balances.TotalAnchorChannelsReserveSats),
+		Reserved:                              int64(balances.TotalAnchorChannelsReserveSats),
+		ReservedSat:                           int64(balances.TotalAnchorChannelsReserveSats),
+		PendingBalancesFromChannelClosures:    pendingBalancesFromChannelClosures,
+		PendingBalancesFromChannelClosuresSat: pendingBalancesFromChannelClosures,
+		PendingBalancesDetails:                pendingBalancesDetails,
+		PendingSweepBalancesDetails:           pendingSweepBalanceDetails,
 		InternalBalances: map[string]interface{}{
 			"internal_lightning_balances": internalLightningBalances,
 			"all_balances":                balances,

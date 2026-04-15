@@ -160,27 +160,22 @@ type PendingBalanceDetails struct {
 	NodeId        string `json:"nodeId"`
 	Amount        uint64 `json:"amount"` // deprecated
 	AmountSat     uint64 `json:"amountSat"`
-	AmountMsat    uint64 `json:"amountMsat"`
 	FundingTxId   string `json:"fundingTxId"`
 	FundingTxVout uint32 `json:"fundingTxVout"`
 }
 
 type OnchainBalanceResponse struct {
-	Spendable                              int64                   `json:"spendable"` // deprecated
-	SpendableSat                           int64                   `json:"spendableSat"`
-	SpendableMsat                          int64                   `json:"spendableMsat"`
-	Total                                  int64                   `json:"total"` // deprecated
-	TotalSat                               int64                   `json:"totalSat"`
-	TotalMsat                              int64                   `json:"totalMsat"`
-	Reserved                               int64                   `json:"reserved"` // deprecated
-	ReservedSat                            int64                   `json:"reservedSat"`
-	ReservedMsat                           int64                   `json:"reservedMsat"`
-	PendingBalancesFromChannelClosures     uint64                  `json:"pendingBalancesFromChannelClosures"` // deprecated
-	PendingBalancesFromChannelClosuresSat  uint64                  `json:"pendingBalancesFromChannelClosuresSat"`
-	PendingBalancesFromChannelClosuresMsat uint64                  `json:"pendingBalancesFromChannelClosuresMsat"`
-	PendingBalancesDetails                 []PendingBalanceDetails `json:"pendingBalancesDetails"`
-	PendingSweepBalancesDetails            []PendingBalanceDetails `json:"pendingSweepBalancesDetails"`
-	InternalBalances                       interface{}             `json:"internalBalances"`
+	Spendable                             int64                   `json:"spendable"` // deprecated
+	SpendableSat                          int64                   `json:"spendableSat"`
+	Total                                 int64                   `json:"total"` // deprecated
+	TotalSat                              int64                   `json:"totalSat"`
+	Reserved                              int64                   `json:"reserved"` // deprecated
+	ReservedSat                           int64                   `json:"reservedSat"`
+	PendingBalancesFromChannelClosures    uint64                  `json:"pendingBalancesFromChannelClosures"` // deprecated
+	PendingBalancesFromChannelClosuresSat uint64                  `json:"pendingBalancesFromChannelClosuresSat"`
+	PendingBalancesDetails                []PendingBalanceDetails `json:"pendingBalancesDetails"`
+	PendingSweepBalancesDetails           []PendingBalanceDetails `json:"pendingSweepBalancesDetails"`
+	InternalBalances                      interface{}             `json:"internalBalances"`
 }
 
 type PeerDetails struct {
