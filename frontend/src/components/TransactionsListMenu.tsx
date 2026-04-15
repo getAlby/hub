@@ -1,4 +1,4 @@
-import { DownloadIcon, MoreHorizontalIcon } from "lucide-react";
+import { DownloadIcon, EllipsisVerticalIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "src/components/ui/button";
 import {
@@ -93,9 +93,9 @@ export const TransactionsListMenu = ({ appId }: { appId?: number }) => {
 
   return (
     <DropdownMenu>
-      <Button asChild size="icon" variant="secondary">
+      <Button asChild size="icon" variant="ghost">
         <DropdownMenuTrigger>
-          <MoreHorizontalIcon className="h-4 w-4" />
+          <EllipsisVerticalIcon className="h-4 w-4" />
         </DropdownMenuTrigger>
       </Button>
       <DropdownMenuContent align="end">

@@ -44,24 +44,25 @@ function Wallet() {
         pageTitle="Wallet"
         description=""
         contentRight={
-          <>
-            <LinkButton
-              to="/wallet/receive"
-              size="lg"
-              className="hidden xl:inline-flex !px-12"
+          <div className="flex items-center gap-1 sm:gap-2">
+            <ExternalLinkButton
+              to="https://www.getalby.com/topup"
+              variant="ghost"
+              size="sm"
             >
-              <ArrowDownIcon />
-              Receive
-            </LinkButton>
-            <LinkButton
-              to="/wallet/send"
-              size="lg"
-              className="hidden xl:inline-flex !px-12"
-            >
-              <ArrowUpIcon />
-              Send
-            </LinkButton>
-          </>
+              <CreditCardIcon />
+              <span className="sr-only sm:not-sr-only sm:inline">
+                Buy Bitcoin
+              </span>
+            </ExternalLinkButton>
+            {hasChannelManagement && (
+              <LinkButton to="/wallet/swap" variant="ghost" size="sm">
+                <ArrowDownUpIcon />
+                <span className="sr-only sm:not-sr-only sm:inline">Swap</span>
+              </LinkButton>
+            )}
+            <TransactionsListMenu />
+          </div>
         }
       />
       {hasChannelManagement &&
@@ -101,43 +102,27 @@ function Wallet() {
           </AlertDescription>
         </Alert>
       )}
-      <div className="flex flex-col xl:flex-row justify-between xl:items-start gap-3">
-        <div className="flex flex-col gap-1 p-6 xl:p-0 text-center xl:text-left">
-          <div className="text-5xl font-medium balance sensitive slashed-zero">
+      <div className="flex flex-col items-center gap-8 py-10 md:py-14 text-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="text-5xl md:text-6xl font-medium balance sensitive slashed-zero">
             <FormattedBitcoinAmount
               amount={balances.lightning.totalSpendable}
             />
           </div>
           <FormattedFiatAmount
-            className="text-xl"
+            className="text-xl md:text-2xl"
             amount={balances.lightning.totalSpendable / 1000}
           />
         </div>
-        <div className="grid grid-cols-2 items-center gap-3 xl:hidden">
+        <div className="grid w-full max-w-md grid-cols-2 items-center gap-3">
           <LinkButton to="/wallet/receive" size="lg">
+            <ArrowDownIcon />
             Receive
           </LinkButton>
           <LinkButton to="/wallet/send" size="lg">
+            <ArrowUpIcon />
             Send
           </LinkButton>
-        </div>
-        <div className="flex items-center gap-3">
-          <ExternalLinkButton
-            to="https://www.getalby.com/topup"
-            variant="secondary"
-          >
-            <CreditCardIcon />
-            Buy Bitcoin
-          </ExternalLinkButton>
-          {hasChannelManagement && (
-            <LinkButton to="/wallet/swap" variant="secondary">
-              <ArrowDownUpIcon />
-              Swap
-            </LinkButton>
-          )}
-          <div>
-            <TransactionsListMenu />
-          </div>
         </div>
       </div>
 
