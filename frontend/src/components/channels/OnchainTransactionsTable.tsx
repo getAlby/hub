@@ -17,6 +17,7 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { Button } from "src/components/ui/button";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import {
   Dialog,
   DialogContent,
@@ -31,7 +32,6 @@ import { copyToClipboard } from "src/lib/clipboard";
 import { useOnchainTransactions } from "src/hooks/useOnchainTransactions";
 import { cn } from "src/lib/utils";
 import { OnchainTransaction } from "src/types";
-import { openLink } from "src/utils/openLink";
 
 dayjs.extend(relativeTime);
 
@@ -220,17 +220,12 @@ function OnchainTransactionRow({
             <CopyIcon className="size-4" />
             Copy Transaction ID
           </Button>
-          <Button
-            type="button"
-            onClick={() => {
-              if (mempoolUrl) {
-                openLink(`${mempoolUrl}/tx/${tx.txId}`);
-              }
-            }}
-          >
-            <ExternalLinkIcon className="size-4" />
-            View on Mempool
-          </Button>
+          {mempoolUrl && (
+            <ExternalLinkButton to={`${mempoolUrl}/tx/${tx.txId}`}>
+              <ExternalLinkIcon className="size-4" />
+              View on Mempool
+            </ExternalLinkButton>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
