@@ -22,8 +22,11 @@ export const convertToCSV = (transactions: Transaction[]) => {
         }
         const stringValue =
           typeof value === "object" ? JSON.stringify(value) : String(value);
+        const safeValue = /^[\t\r ]*[=+\-@]/.test(stringValue)
+          ? `'${stringValue}`
+          : stringValue;
         // based on https://stackoverflow.com/a/68146412
-        return `"${stringValue.replaceAll('"', '""')}"`; // escape double quotes
+        return `"${safeValue.replaceAll('"', '""')}"`; // escape double quotes
       })
       .join(",");
   });

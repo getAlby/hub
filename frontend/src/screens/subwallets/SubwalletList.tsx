@@ -117,8 +117,7 @@ export function SubwalletList() {
             <InfoIcon />
             <AlertTitle>Need more Sub-wallets?</AlertTitle>
             <AlertDescription>
-              Upgrade your subscription plan to Pro unlock unlimited number of
-              Sub-wallets.
+              Upgrade to Pro for unlimited sub-wallets.
             </AlertDescription>
             <AlertAction>
               <UpgradeDialog>
