@@ -36,7 +36,7 @@ export function PendingClosedChannelsAlert({
           <PendingBalancesDetailsItem
             key={`${details.fundingTxId}:${details.fundingTxVout}:${details.nodeId}:${index}`}
             details={details}
-            isLast={index < pendingDetails.length - 1}
+            showSeparator={index < pendingDetails.length - 1}
           />
         ))}
         . Once spendable again these will become available in your on-chain
@@ -55,12 +55,12 @@ export function PendingClosedChannelsAlert({
 
 type PendingBalancesDetailsItemProps = {
   details: PendingBalancesDetails;
-  isLast: boolean;
+  showSeparator: boolean;
 };
 
 function PendingBalancesDetailsItem({
   details,
-  isLast,
+  showSeparator,
 }: PendingBalancesDetailsItemProps) {
   const { data: info } = useInfo();
   const { data: nodeDetails } = useNodeDetails(details.nodeId);
@@ -84,7 +84,7 @@ function PendingBalancesDetailsItem({
         funding tx
         <ExternalLinkIcon className="ml-1 inline h-4 w-4" />
       </ExternalLink>
-      {isLast && ","}
+      {showSeparator && ","}
     </span>
   );
 }
