@@ -855,27 +855,25 @@ func (api *api) GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error) {
 	}
 
 	swapOutEnabled := swapOutBalanceThresholdStr != "" && swapOutAmountStr != ""
-	var swapOutBalanceThreshold, swapOutAmount uint64
+	var swapOutBalanceThresholdSat, swapOutAmountSat uint64
 	if swapOutEnabled {
 		var err error
-		if swapOutBalanceThreshold, err = strconv.ParseUint(swapOutBalanceThresholdStr, 10, 64); err != nil {
+		if swapOutBalanceThresholdSat, err = strconv.ParseUint(swapOutBalanceThresholdStr, 10, 64); err != nil {
 			return nil, fmt.Errorf("invalid autoswap out balance threshold: %w", err)
 		}
-		if swapOutAmount, err = strconv.ParseUint(swapOutAmountStr, 10, 64); err != nil {
+		if swapOutAmountSat, err = strconv.ParseUint(swapOutAmountStr, 10, 64); err != nil {
 			return nil, fmt.Errorf("invalid autoswap out amount: %w", err)
 		}
 	}
 
 	return &GetAutoSwapConfigResponse{
-		Type:                 constants.SWAP_TYPE_OUT,
-		Enabled:              swapOutEnabled,
-		BalanceThreshold:     swapOutBalanceThreshold,
-		BalanceThresholdSat:  swapOutBalanceThreshold,
-		BalanceThresholdMsat: swapOutBalanceThreshold * 1000,
-		SwapAmount:           swapOutAmount,
-		SwapAmountSat:        swapOutAmount,
-		SwapAmountMsat:       swapOutAmount * 1000,
-		Destination:          swapOutDestination,
+		Type:                constants.SWAP_TYPE_OUT,
+		Enabled:             swapOutEnabled,
+		BalanceThreshold:    swapOutBalanceThresholdSat,
+		BalanceThresholdSat: swapOutBalanceThresholdSat,
+		SwapAmount:          swapOutAmountSat,
+		SwapAmountSat:       swapOutAmountSat,
+		Destination:         swapOutDestination,
 	}, nil
 }
 
@@ -919,10 +917,8 @@ func toApiSwap(swap *swaps.Swap) *Swap {
 		Invoice:            swap.Invoice,
 		SendAmount:         swap.SendAmount,
 		SendAmountSat:      swap.SendAmount,
-		SendAmountMsat:     swap.SendAmount * 1000,
 		ReceiveAmount:      swap.ReceiveAmount,
 		ReceiveAmountSat:   swap.ReceiveAmount,
-		ReceiveAmountMsat:  swap.ReceiveAmount * 1000,
 		PaymentHash:        swap.PaymentHash,
 		DestinationAddress: swap.DestinationAddress,
 		RefundAddress:      swap.RefundAddress,
@@ -948,17 +944,14 @@ func (api *api) GetSwapInInfo() (*SwapInfoResponse, error) {
 	}
 
 	return &SwapInfoResponse{
-		AlbyServiceFee:      swapInInfo.AlbyServiceFee,
-		BoltzServiceFee:     swapInInfo.BoltzServiceFee,
-		BoltzNetworkFee:     swapInInfo.BoltzNetworkFee,
-		BoltzNetworkFeeSat:  swapInInfo.BoltzNetworkFee,
-		BoltzNetworkFeeMsat: swapInInfo.BoltzNetworkFee * 1000,
-		MinAmount:           swapInInfo.MinAmount,
-		MinAmountSat:        swapInInfo.MinAmount,
-		MinAmountMsat:       swapInInfo.MinAmount * 1000,
-		MaxAmount:           swapInInfo.MaxAmount,
-		MaxAmountSat:        swapInInfo.MaxAmount,
-		MaxAmountMsat:       swapInInfo.MaxAmount * 1000,
+		AlbyServiceFee:     swapInInfo.AlbyServiceFee,
+		BoltzServiceFee:    swapInInfo.BoltzServiceFee,
+		BoltzNetworkFee:    swapInInfo.BoltzNetworkFee,
+		BoltzNetworkFeeSat: swapInInfo.BoltzNetworkFee,
+		MinAmount:          swapInInfo.MinAmount,
+		MinAmountSat:       swapInInfo.MinAmount,
+		MaxAmount:          swapInInfo.MaxAmount,
+		MaxAmountSat:       swapInInfo.MaxAmount,
 	}, nil
 }
 
@@ -973,17 +966,14 @@ func (api *api) GetSwapOutInfo() (*SwapInfoResponse, error) {
 	}
 
 	return &SwapInfoResponse{
-		AlbyServiceFee:      swapOutInfo.AlbyServiceFee,
-		BoltzServiceFee:     swapOutInfo.BoltzServiceFee,
-		BoltzNetworkFee:     swapOutInfo.BoltzNetworkFee,
-		BoltzNetworkFeeSat:  swapOutInfo.BoltzNetworkFee,
-		BoltzNetworkFeeMsat: swapOutInfo.BoltzNetworkFee * 1000,
-		MinAmount:           swapOutInfo.MinAmount,
-		MinAmountSat:        swapOutInfo.MinAmount,
-		MinAmountMsat:       swapOutInfo.MinAmount * 1000,
-		MaxAmount:           swapOutInfo.MaxAmount,
-		MaxAmountSat:        swapOutInfo.MaxAmount,
-		MaxAmountMsat:       swapOutInfo.MaxAmount * 1000,
+		AlbyServiceFee:     swapOutInfo.AlbyServiceFee,
+		BoltzServiceFee:    swapOutInfo.BoltzServiceFee,
+		BoltzNetworkFee:    swapOutInfo.BoltzNetworkFee,
+		BoltzNetworkFeeSat: swapOutInfo.BoltzNetworkFee,
+		MinAmount:          swapOutInfo.MinAmount,
+		MinAmountSat:       swapOutInfo.MinAmount,
+		MaxAmount:          swapOutInfo.MaxAmount,
+		MaxAmountSat:       swapOutInfo.MaxAmount,
 	}, nil
 }
 

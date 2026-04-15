@@ -185,29 +185,24 @@ type EnableAutoSwapRequest struct {
 }
 
 type GetAutoSwapConfigResponse struct {
-	Type                 string `json:"type"`
-	Enabled              bool   `json:"enabled"`
-	BalanceThreshold     uint64 `json:"balanceThreshold"` // deprecated
-	BalanceThresholdSat  uint64 `json:"balanceThresholdSat"`
-	BalanceThresholdMsat uint64 `json:"balanceThresholdMsat"`
-	SwapAmount           uint64 `json:"swapAmount"` // deprecated
-	SwapAmountSat        uint64 `json:"swapAmountSat"`
-	SwapAmountMsat       uint64 `json:"swapAmountMsat"`
-	Destination          string `json:"destination"`
+	Type                string `json:"type"`
+	Enabled             bool   `json:"enabled"`
+	BalanceThreshold    uint64 `json:"balanceThreshold"` // deprecated
+	BalanceThresholdSat uint64 `json:"balanceThresholdSat"`
+	SwapAmount          uint64 `json:"swapAmount"` // deprecated
+	SwapAmountSat       uint64 `json:"swapAmountSat"`
+	Destination         string `json:"destination"`
 }
 
 type SwapInfoResponse struct {
-	AlbyServiceFee      float64 `json:"albyServiceFee"`
-	BoltzServiceFee     float64 `json:"boltzServiceFee"`
-	BoltzNetworkFee     uint64  `json:"boltzNetworkFee"` // deprecated
-	BoltzNetworkFeeSat  uint64  `json:"boltzNetworkFeeSat"`
-	BoltzNetworkFeeMsat uint64  `json:"boltzNetworkFeeMsat"`
-	MinAmount           uint64  `json:"minAmount"` // deprecated
-	MinAmountSat        uint64  `json:"minAmountSat"`
-	MinAmountMsat       uint64  `json:"minAmountMsat"`
-	MaxAmount           uint64  `json:"maxAmount"` // deprecated
-	MaxAmountSat        uint64  `json:"maxAmountSat"`
-	MaxAmountMsat       uint64  `json:"maxAmountMsat"`
+	AlbyServiceFee     float64 `json:"albyServiceFee"`
+	BoltzServiceFee    float64 `json:"boltzServiceFee"`
+	BoltzNetworkFee    uint64  `json:"boltzNetworkFee"` // deprecated
+	BoltzNetworkFeeSat uint64  `json:"boltzNetworkFeeSat"`
+	MinAmount          uint64  `json:"minAmount"` // deprecated
+	MinAmountSat       uint64  `json:"minAmountSat"`
+	MaxAmount          uint64  `json:"maxAmount"` // deprecated
+	MaxAmountSat       uint64  `json:"maxAmountSat"`
 }
 
 type ListSwapsResponse struct {
@@ -223,10 +218,8 @@ type Swap struct {
 	Invoice            string `json:"invoice"`
 	SendAmount         uint64 `json:"sendAmount"` // deprecated
 	SendAmountSat      uint64 `json:"sendAmountSat"`
-	SendAmountMsat     uint64 `json:"sendAmountMsat"`
 	ReceiveAmount      uint64 `json:"receiveAmount"` // deprecated
 	ReceiveAmountSat   uint64 `json:"receiveAmountSat"`
-	ReceiveAmountMsat  uint64 `json:"receiveAmountMsat"`
 	PaymentHash        string `json:"paymentHash"`
 	DestinationAddress string `json:"destinationAddress"`
 	RefundAddress      string `json:"refundAddress"`

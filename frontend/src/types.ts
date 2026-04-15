@@ -211,10 +211,8 @@ export type AutoSwapConfig = {
   enabled: boolean;
   balanceThreshold: number;
   balanceThresholdSat: number;
-  balanceThresholdMsat: number;
   swapAmount: number;
   swapAmountSat: number;
-  swapAmountMsat: number;
   destination: string;
 };
 
@@ -223,20 +221,16 @@ export type SwapInfo = {
   boltzServiceFee: number;
   boltzNetworkFee: number;
   boltzNetworkFeeSat: number;
-  boltzNetworkFeeMsat: number;
   minAmount: number;
   minAmountSat: number;
-  minAmountMsat: number;
   maxAmount: number;
   maxAmountSat: number;
-  maxAmountMsat: number;
 };
 
 export type BaseSwap = {
   id: string;
   sendAmount: number;
   sendAmountSat: number;
-  sendAmountMsat: number;
   lockupAddress: string;
   paymentHash: string;
   invoice: string;
@@ -249,7 +243,6 @@ export type BaseSwap = {
   claimTxId?: string;
   receiveAmount?: number;
   receiveAmountSat?: number;
-  receiveAmountMsat?: number;
 };
 
 export type SwapIn = BaseSwap & {
