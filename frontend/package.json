@@ -48,7 +48,7 @@
     "tailwind-merge": "^3.4.1",
     "tw-animate-css": "^1.3.5",
     "vaul": "^1.1.2",
-    "zustand": "^4.5.0"
+    "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",

@@ -5925,7 +5925,7 @@ use-sidecar@^1.1.3:
     detect-node-es "^1.1.0"
     tslib "^2.0.0"
 
-use-sync-external-store@^1.2.2, use-sync-external-store@^1.4.0, use-sync-external-store@^1.5.0:
+use-sync-external-store@^1.4.0, use-sync-external-store@^1.5.0:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/use-sync-external-store/-/use-sync-external-store-1.5.0.tgz#55122e2a3edd2a6c106174c27485e0fd59bcfca0"
   integrity sha512-Rb46I4cGGVBmjamjphe8L/UnvJD+uPPtTkNvX5mZgqdbavhI4EbgIWJiIHXJ8bc/i9EQGPRh4DwEURJ552Do0A==
@@ -6311,9 +6311,7 @@ yocto-queue@^0.1.0:
   resolved "https://registry.yarnpkg.com/zod/-/zod-4.1.12.tgz#64f1ea53d00eab91853195653b5af9eee68970f0"
   integrity sha512-JInaHOamG8pt5+Ey8kGmdcAcg3OL9reK8ltczgHTAwNhMys/6ThXHityHxVV2p3fkw/c+MAvBHFVYHFZDmjMCQ==
 
-zustand@^4.5.0:
-  version "4.5.7"
-  resolved "https://registry.yarnpkg.com/zustand/-/zustand-4.5.7.tgz#7d6bb2026a142415dd8be8891d7870e6dbe65f55"
-  integrity sha512-CHOUy7mu3lbD6o6LJLfllpjkzhHXSBlX8B9+qPddUsIfeF5S/UZ5q0kmCsnRqT1UHFQZchNFDDzMbQsuesHWlw==
-  dependencies:
-    use-sync-external-store "^1.2.2"
+zustand@^5.0.12:
+  version "5.0.12"
+  resolved "https://registry.yarnpkg.com/zustand/-/zustand-5.0.12.tgz#ed36f647aa89965c4019b671dfc23ef6c6e3af8c"
+  integrity sha512-i77ae3aZq4dhMlRhJVCYgMLKuSiZAaUPAct2AksxQ+gOtimhGMdXljRT21P5BNpeT4kXlLIckvkPM029OljD7g==
