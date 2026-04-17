@@ -688,7 +688,8 @@ const inspirationCategories: {
       "what gift cards are available in the US on bitrefill.com?",
     ],
     skill: {
-      prompt: "Install the skill from https://bitrefill.com/agents",
+      prompt:
+        "Run `npx -y skills add bitrefill/agents -y` to install the Bitrefill Skill",
       skillName: "Bitrefill Skill",
       url: "https://bitrefill.com/agents",
     },
