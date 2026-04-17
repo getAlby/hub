@@ -826,8 +826,8 @@ func (_c *MockAlbyOAuthService_IsConnected_Call) RunAndReturn(run func(ctx conte
 }
 
 // LinkAccount provides a mock function for the type MockAlbyOAuthService
-func (_mock *MockAlbyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.LNClient, budget uint64, renewal string) error {
-	ret := _mock.Called(ctx, lnClient, budget, renewal)
+func (_mock *MockAlbyOAuthService) LinkAccount(ctx context.Context, lnClient lnclient.LNClient, budgetSat uint64, renewal string) error {
+	ret := _mock.Called(ctx, lnClient, budgetSat, renewal)
 
 	if len(ret) == 0 {
 		panic("no return value specified for LinkAccount")
@@ -835,7 +835,7 @@ func (_mock *MockAlbyOAuthService) LinkAccount(ctx context.Context, lnClient lnc
 
 	var r0 error
 	if returnFunc, ok := ret.Get(0).(func(context.Context, lnclient.LNClient, uint64, string) error); ok {
-		r0 = returnFunc(ctx, lnClient, budget, renewal)
+		r0 = returnFunc(ctx, lnClient, budgetSat, renewal)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -850,13 +850,13 @@ type MockAlbyOAuthService_LinkAccount_Call struct {
 // LinkAccount is a helper method to define mock.On call
 //   - ctx context.Context
 //   - lnClient lnclient.LNClient
-//   - budget uint64
+//   - budgetSat uint64
 //   - renewal string
-func (_e *MockAlbyOAuthService_Expecter) LinkAccount(ctx interface{}, lnClient interface{}, budget interface{}, renewal interface{}) *MockAlbyOAuthService_LinkAccount_Call {
-	return &MockAlbyOAuthService_LinkAccount_Call{Call: _e.mock.On("LinkAccount", ctx, lnClient, budget, renewal)}
+func (_e *MockAlbyOAuthService_Expecter) LinkAccount(ctx interface{}, lnClient interface{}, budgetSat interface{}, renewal interface{}) *MockAlbyOAuthService_LinkAccount_Call {
+	return &MockAlbyOAuthService_LinkAccount_Call{Call: _e.mock.On("LinkAccount", ctx, lnClient, budgetSat, renewal)}
 }
 
-func (_c *MockAlbyOAuthService_LinkAccount_Call) Run(run func(ctx context.Context, lnClient lnclient.LNClient, budget uint64, renewal string)) *MockAlbyOAuthService_LinkAccount_Call {
+func (_c *MockAlbyOAuthService_LinkAccount_Call) Run(run func(ctx context.Context, lnClient lnclient.LNClient, budgetSat uint64, renewal string)) *MockAlbyOAuthService_LinkAccount_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -889,7 +889,7 @@ func (_c *MockAlbyOAuthService_LinkAccount_Call) Return(err error) *MockAlbyOAut
 	return _c
 }
 
-func (_c *MockAlbyOAuthService_LinkAccount_Call) RunAndReturn(run func(ctx context.Context, lnClient lnclient.LNClient, budget uint64, renewal string) error) *MockAlbyOAuthService_LinkAccount_Call {
+func (_c *MockAlbyOAuthService_LinkAccount_Call) RunAndReturn(run func(ctx context.Context, lnClient lnclient.LNClient, budgetSat uint64, renewal string) error) *MockAlbyOAuthService_LinkAccount_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -692,15 +692,15 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 		}
 
 		apiChannels = append(apiChannels, Channel{
-			LocalBalance:                             channel.LocalBalance,
-			LocalBalanceSat:                          channel.LocalBalance / 1000,
-			LocalBalanceMsat:                         channel.LocalBalance,
-			LocalSpendableBalance:                    channel.LocalSpendableBalance,
-			LocalSpendableBalanceSat:                 channel.LocalSpendableBalance / 1000,
-			LocalSpendableBalanceMsat:                channel.LocalSpendableBalance,
-			RemoteBalance:                            channel.RemoteBalance,
-			RemoteBalanceSat:                         channel.RemoteBalance / 1000,
-			RemoteBalanceMsat:                        channel.RemoteBalance,
+			LocalBalance:                             channel.LocalBalanceMsat,
+			LocalBalanceSat:                          channel.LocalBalanceMsat / 1000,
+			LocalBalanceMsat:                         channel.LocalBalanceMsat,
+			LocalSpendableBalance:                    channel.LocalSpendableBalanceMsat,
+			LocalSpendableBalanceSat:                 channel.LocalSpendableBalanceMsat / 1000,
+			LocalSpendableBalanceMsat:                channel.LocalSpendableBalanceMsat,
+			RemoteBalance:                            channel.RemoteBalanceMsat,
+			RemoteBalanceSat:                         channel.RemoteBalanceMsat / 1000,
+			RemoteBalanceMsat:                        channel.RemoteBalanceMsat,
 			Id:                                       channel.Id,
 			RemotePubkey:                             channel.RemotePubkey,
 			FundingTxId:                              channel.FundingTxId,
@@ -712,10 +712,10 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 			ConfirmationsRequired:                    channel.ConfirmationsRequired,
 			ForwardingFeeBaseMsat:                    channel.ForwardingFeeBaseMsat,
 			ForwardingFeeProportionalMillionths:      channel.ForwardingFeeProportionalMillionths,
-			UnspendablePunishmentReserve:             channel.UnspendablePunishmentReserve,
-			UnspendablePunishmentReserveSat:          channel.UnspendablePunishmentReserve,
-			CounterpartyUnspendablePunishmentReserve: channel.CounterpartyUnspendablePunishmentReserve,
-			CounterpartyUnspendablePunishmentReserveSat: channel.CounterpartyUnspendablePunishmentReserve,
+			UnspendablePunishmentReserve:             channel.UnspendablePunishmentReserveSat,
+			UnspendablePunishmentReserveSat:          channel.UnspendablePunishmentReserveSat,
+			CounterpartyUnspendablePunishmentReserve: channel.CounterpartyUnspendablePunishmentReserveSat,
+			CounterpartyUnspendablePunishmentReserveSat: channel.CounterpartyUnspendablePunishmentReserveSat,
 			Error:      channel.Error,
 			IsOutbound: channel.IsOutbound,
 			Status:     status,
@@ -913,10 +913,10 @@ func toApiSwap(swap *swaps.Swap) *Swap {
 		Type:               swap.Type,
 		State:              swap.State,
 		Invoice:            swap.Invoice,
-		SendAmount:         swap.SendAmount,
-		SendAmountSat:      swap.SendAmount,
-		ReceiveAmount:      swap.ReceiveAmount,
-		ReceiveAmountSat:   swap.ReceiveAmount,
+		SendAmount:         swap.SendAmountSat,
+		SendAmountSat:      swap.SendAmountSat,
+		ReceiveAmount:      swap.ReceiveAmountSat,
+		ReceiveAmountSat:   swap.ReceiveAmountSat,
 		PaymentHash:        swap.PaymentHash,
 		DestinationAddress: swap.DestinationAddress,
 		RefundAddress:      swap.RefundAddress,
@@ -944,12 +944,12 @@ func (api *api) GetSwapInInfo() (*SwapInfoResponse, error) {
 	return &SwapInfoResponse{
 		AlbyServiceFee:     swapInInfo.AlbyServiceFee,
 		BoltzServiceFee:    swapInInfo.BoltzServiceFee,
-		BoltzNetworkFee:    swapInInfo.BoltzNetworkFee,
-		BoltzNetworkFeeSat: swapInInfo.BoltzNetworkFee,
-		MinAmount:          swapInInfo.MinAmount,
-		MinAmountSat:       swapInInfo.MinAmount,
-		MaxAmount:          swapInInfo.MaxAmount,
-		MaxAmountSat:       swapInInfo.MaxAmount,
+		BoltzNetworkFee:    swapInInfo.BoltzNetworkFeeSat,
+		BoltzNetworkFeeSat: swapInInfo.BoltzNetworkFeeSat,
+		MinAmount:          swapInInfo.MinAmountSat,
+		MinAmountSat:       swapInInfo.MinAmountSat,
+		MaxAmount:          swapInInfo.MaxAmountSat,
+		MaxAmountSat:       swapInInfo.MaxAmountSat,
 	}, nil
 }
 
@@ -966,12 +966,12 @@ func (api *api) GetSwapOutInfo() (*SwapInfoResponse, error) {
 	return &SwapInfoResponse{
 		AlbyServiceFee:     swapOutInfo.AlbyServiceFee,
 		BoltzServiceFee:    swapOutInfo.BoltzServiceFee,
-		BoltzNetworkFee:    swapOutInfo.BoltzNetworkFee,
-		BoltzNetworkFeeSat: swapOutInfo.BoltzNetworkFee,
-		MinAmount:          swapOutInfo.MinAmount,
-		MinAmountSat:       swapOutInfo.MinAmount,
-		MaxAmount:          swapOutInfo.MaxAmount,
-		MaxAmountSat:       swapOutInfo.MaxAmount,
+		BoltzNetworkFee:    swapOutInfo.BoltzNetworkFeeSat,
+		BoltzNetworkFeeSat: swapOutInfo.BoltzNetworkFeeSat,
+		MinAmount:          swapOutInfo.MinAmountSat,
+		MinAmountSat:       swapOutInfo.MinAmountSat,
+		MaxAmount:          swapOutInfo.MaxAmountSat,
+		MaxAmountSat:       swapOutInfo.MaxAmountSat,
 	}, nil
 }
 
@@ -985,17 +985,17 @@ func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *Ini
 		return nil, errors.New("SwapsService not started")
 	}
 
-	amount := initiateSwapOutRequest.SwapAmount
+	amountSat := initiateSwapOutRequest.SwapAmount
 	destination := initiateSwapOutRequest.Destination
 
-	if amount == 0 {
+	if amountSat == 0 {
 		return nil, errors.New("invalid swap amount")
 	}
 
-	swapOutResponse, err := api.svc.GetSwapsService().SwapOut(amount, destination, false, false)
+	swapOutResponse, err := api.svc.GetSwapsService().SwapOut(amountSat, destination, false, false)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
-			"amount":      amount,
+			"amount_sat":  amountSat,
 			"destination": destination,
 		}).WithError(err).Error("Failed to initiate swap out")
 		return nil, err
@@ -1014,16 +1014,16 @@ func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *Initi
 		return nil, errors.New("SwapsService not started")
 	}
 
-	amount := initiateSwapInRequest.SwapAmount
+	amountSat := initiateSwapInRequest.SwapAmount
 
-	if amount == 0 {
+	if amountSat == 0 {
 		return nil, errors.New("invalid swap amount")
 	}
 
-	swapInResponse, err := api.svc.GetSwapsService().SwapIn(amount, false)
+	swapInResponse, err := api.svc.GetSwapsService().SwapIn(amountSat, false)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
-			"amount": amount,
+			"amount_sat": amountSat,
 		}).WithError(err).Error("Failed to initiate swap in")
 		return nil, err
 	}

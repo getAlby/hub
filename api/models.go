@@ -367,7 +367,7 @@ type RebalanceChannelResponse struct {
 
 type RedeemOnchainFundsRequest struct {
 	ToAddress string  `json:"toAddress"`
-	Amount    uint64  `json:"amount"`
+	AmountSat uint64  `json:"amount"`
 	FeeRate   *uint64 `json:"feeRate"`
 	SendAll   bool    `json:"sendAll"`
 }

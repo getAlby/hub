@@ -54,8 +54,8 @@ func doTestSendNotificationPaymentReceived(t *testing.T, svc *tests.TestService,
 		DescriptionHash: tests.MockLNClientTransaction.DescriptionHash,
 		Preimage:        &tests.MockLNClientTransaction.Preimage,
 		PaymentHash:     tests.MockLNClientTransaction.PaymentHash,
-		AmountMsat:      uint64(tests.MockLNClientTransaction.Amount),
-		FeeMsat:         uint64(tests.MockLNClientTransaction.FeesPaid),
+		AmountMsat:      uint64(tests.MockLNClientTransaction.AmountMsat),
+		FeeMsat:         uint64(tests.MockLNClientTransaction.FeesPaidMsat),
 		SettledAt:       &settledAt,
 		AppId:           &app.ID,
 		State:           constants.TRANSACTION_STATE_SETTLED,
@@ -110,8 +110,8 @@ func doTestSendNotificationPaymentReceived(t *testing.T, svc *tests.TestService,
 	assert.Equal(t, tests.MockLNClientTransaction.DescriptionHash, transaction.DescriptionHash)
 	assert.Equal(t, tests.MockLNClientTransaction.Preimage, transaction.Preimage)
 	assert.Equal(t, tests.MockLNClientTransaction.PaymentHash, transaction.PaymentHash)
-	assert.Equal(t, tests.MockLNClientTransaction.Amount, transaction.Amount)
-	assert.Equal(t, tests.MockLNClientTransaction.FeesPaid, transaction.FeesPaid)
+	assert.Equal(t, tests.MockLNClientTransaction.AmountMsat, transaction.Amount)
+	assert.Equal(t, tests.MockLNClientTransaction.FeesPaidMsat, transaction.FeesPaid)
 	assert.Equal(t, tests.MockLNClientTransaction.SettledAt, transaction.SettledAt)
 }
 
@@ -169,8 +169,8 @@ func doTestSendNotificationPaymentSent(t *testing.T, svc *tests.TestService, cre
 		DescriptionHash: tests.MockLNClientTransaction.DescriptionHash,
 		Preimage:        &tests.MockLNClientTransaction.Preimage,
 		PaymentHash:     tests.MockLNClientTransaction.PaymentHash,
-		AmountMsat:      uint64(tests.MockLNClientTransaction.Amount),
-		FeeMsat:         uint64(tests.MockLNClientTransaction.FeesPaid),
+		AmountMsat:      uint64(tests.MockLNClientTransaction.AmountMsat),
+		FeeMsat:         uint64(tests.MockLNClientTransaction.FeesPaidMsat),
 		SettledAt:       &settledAt,
 		AppId:           &app.ID,
 	}
@@ -224,8 +224,8 @@ func doTestSendNotificationPaymentSent(t *testing.T, svc *tests.TestService, cre
 	assert.Equal(t, tests.MockLNClientTransaction.DescriptionHash, transaction.DescriptionHash)
 	assert.Equal(t, tests.MockLNClientTransaction.Preimage, transaction.Preimage)
 	assert.Equal(t, tests.MockLNClientTransaction.PaymentHash, transaction.PaymentHash)
-	assert.Equal(t, tests.MockLNClientTransaction.Amount, transaction.Amount)
-	assert.Equal(t, tests.MockLNClientTransaction.FeesPaid, transaction.FeesPaid)
+	assert.Equal(t, tests.MockLNClientTransaction.AmountMsat, transaction.Amount)
+	assert.Equal(t, tests.MockLNClientTransaction.FeesPaidMsat, transaction.FeesPaid)
 	assert.Equal(t, tests.MockLNClientTransaction.SettledAt, transaction.SettledAt)
 }
 

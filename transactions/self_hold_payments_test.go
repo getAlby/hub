@@ -169,7 +169,7 @@ func TestWrappedInvoice(t *testing.T) {
 		DescriptionHash: "",
 		Preimage:        "fcf200c74d9900dc77af17eb1f57c02eec0f94b5b169d3eee23df9a216a3411b",
 		PaymentHash:     "8f3cfa1cdcf19de4b6fdb9ec339b7470e724d0c755b7c7568164d5df1b70ea6e",
-		Amount:          1000_000,
+		AmountMsat:      1000_000,
 	}
 
 	// Bob's 1100 sat invoice
@@ -182,7 +182,7 @@ func TestWrappedInvoice(t *testing.T) {
 		DescriptionHash: "",
 		Preimage:        "",
 		PaymentHash:     "8f3cfa1cdcf19de4b6fdb9ec339b7470e724d0c755b7c7568164d5df1b70ea6e",
-		Amount:          1100_000,
+		AmountMsat:      1100_000,
 	}
 
 	svc.LNClient.(*tests.MockLn).MakeInvoiceResponses = []*lnclient.Transaction{
