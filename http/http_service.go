@@ -640,8 +640,9 @@ func (httpSvc *HttpService) sendPaymentHandler(c echo.Context) error {
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
+	amountMsat, _ := api.ResolveToMsat(payInvoiceRequest.AmountSat, payInvoiceRequest.AmountMsat, nil, payInvoiceRequest.Amount)
 
-	paymentResponse, err := httpSvc.api.SendPayment(ctx, c.Param("invoice"), payInvoiceRequest.Amount, payInvoiceRequest.Metadata)
+	paymentResponse, err := httpSvc.api.SendPayment(ctx, c.Param("invoice"), amountMsat, payInvoiceRequest.Metadata)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -681,7 +682,10 @@ func (httpSvc *HttpService) makeInvoiceHandler(c echo.Context) error {
 		})
 	}
 
-	invoice, err := httpSvc.api.CreateInvoice(c.Request().Context(), makeInvoiceRequest.Amount, makeInvoiceRequest.Description)
+	resolvedAmountMsat, _ := api.ResolveToMsat(makeInvoiceRequest.AmountSat, makeInvoiceRequest.AmountMsat, nil, makeInvoiceRequest.Amount)
+	amountMsat := *resolvedAmountMsat
+
+	invoice, err := httpSvc.api.CreateInvoice(c.Request().Context(), amountMsat, makeInvoiceRequest.Description)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -979,7 +983,10 @@ func (httpSvc *HttpService) redeemOnchainFundsHandler(c echo.Context) error {
 		})
 	}
 
-	redeemOnchainFundsResponse, err := httpSvc.api.RedeemOnchainFunds(ctx, redeemOnchainFundsRequest.ToAddress, redeemOnchainFundsRequest.AmountSat, redeemOnchainFundsRequest.FeeRate, redeemOnchainFundsRequest.SendAll)
+	resolvedAmountSat, _ := api.ResolveToSat(redeemOnchainFundsRequest.AmountSat, nil, redeemOnchainFundsRequest.Amount, nil)
+	amountSat := *resolvedAmountSat
+
+	redeemOnchainFundsResponse, err := httpSvc.api.RedeemOnchainFunds(ctx, redeemOnchainFundsRequest.ToAddress, amountSat, redeemOnchainFundsRequest.FeeRate, redeemOnchainFundsRequest.SendAll)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -1139,7 +1146,10 @@ func (httpSvc *HttpService) transfersHandler(c echo.Context) error {
 		})
 	}
 
-	err := httpSvc.api.Transfer(c.Request().Context(), requestData.FromAppId, requestData.ToAppId, requestData.AmountSat*1000, requestData.Description)
+	resolvedAmountMsat, _ := api.ResolveToMsat(requestData.AmountSat, requestData.AmountMsat, nil, nil)
+	amountMsat := *resolvedAmountMsat
+
+	err := httpSvc.api.Transfer(c.Request().Context(), requestData.FromAppId, requestData.ToAppId, amountMsat, requestData.Description)
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to transfer funds")

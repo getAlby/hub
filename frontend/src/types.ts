@@ -121,15 +121,15 @@ export interface App {
   lastSettledTransactionAt?: string;
   expiresAt?: string;
   isolated: boolean;
-  balance: number; // @depreated
+  balance: number; // @deprecated
   balanceSat: number;
   balanceMsat: number;
 
   scopes: Scope[];
-  maxAmount: number; // @depreated
+  maxAmount: number; // @deprecated
   maxAmountSat: number;
   maxAmountMsat: number;
-  budgetUsage: number; // @depreated
+  budgetUsage: number; // @deprecated
   budgetUsageSat: number;
   budgetUsageMsat: number;
   budgetRenewal: BudgetRenewalType;
@@ -209,9 +209,9 @@ export type AppMetadata = {
 export type AutoSwapConfig = {
   type: "out";
   enabled: boolean;
-  balanceThreshold: number; // @depreated
+  balanceThreshold: number; // @deprecated
   balanceThresholdSat: number;
-  swapAmount: number; // @depreated
+  swapAmount: number; // @deprecated
   swapAmountSat: number;
   destination: string;
 };
@@ -219,17 +219,17 @@ export type AutoSwapConfig = {
 export type SwapInfo = {
   albyServiceFee: number;
   boltzServiceFee: number;
-  boltzNetworkFee: number; // @depreated
+  boltzNetworkFee: number; // @deprecated
   boltzNetworkFeeSat: number;
-  minAmount: number; // @depreated
+  minAmount: number; // @deprecated
   minAmountSat: number;
-  maxAmount: number; // @depreated
+  maxAmount: number; // @deprecated
   maxAmountSat: number;
 };
 
 export type BaseSwap = {
   id: string;
-  sendAmount: number; // @depreated
+  sendAmount: number; // @deprecated
   sendAmountSat: number;
   lockupAddress: string;
   paymentHash: string;
@@ -241,7 +241,7 @@ export type BaseSwap = {
   updatedAt: string;
   lockupTxId?: string;
   claimTxId?: string;
-  receiveAmount?: number; // @depreated
+  receiveAmount?: number; // @deprecated
   receiveAmountSat?: number;
 };
 
@@ -271,7 +271,9 @@ export interface MnemonicResponse {
 export interface CreateAppRequest {
   name: string;
   pubkey?: string;
-  maxAmount?: number;
+  maxAmount?: number; // @deprecated
+  maxAmountSat?: number;
+  maxAmountMsat?: number;
   budgetRenewal?: BudgetRenewalType;
   expiresAt?: string;
   scopes: Scope[];
@@ -295,7 +297,9 @@ export interface CreateAppResponse {
 
 export type UpdateAppRequest = {
   name?: string;
-  maxAmount?: number;
+  maxAmount?: number; // @deprecated
+  maxAmountSat?: number;
+  maxAmountMsat?: number;
   budgetRenewal?: string;
   expiresAt?: string | undefined;
   updateExpiresAt?: boolean;
@@ -305,13 +309,13 @@ export type UpdateAppRequest = {
 };
 
 export type Channel = {
-  localBalance: number; // @depreated
+  localBalance: number; // @deprecated
   localBalanceSat: number;
   localBalanceMsat: number;
-  localSpendableBalance: number; // @depreated
+  localSpendableBalance: number; // @deprecated
   localSpendableBalanceSat: number;
   localSpendableBalanceMsat: number;
-  remoteBalance: number; // @depreated
+  remoteBalance: number; // @deprecated
   remoteBalanceSat: number;
   remoteBalanceMsat: number;
   remotePubkey: string;
@@ -324,9 +328,9 @@ export type Channel = {
   confirmationsRequired?: number;
   forwardingFeeBaseMsat: number;
   forwardingFeeProportionalMillionths: number;
-  unspendablePunishmentReserve: number; // @depreated
+  unspendablePunishmentReserve: number; // @deprecated
   unspendablePunishmentReserveSat: number;
-  counterpartyUnspendablePunishmentReserve: number; // @depreated
+  counterpartyUnspendablePunishmentReserve: number; // @deprecated
   counterpartyUnspendablePunishmentReserveSat: number;
   error?: string;
   status: "online" | "opening" | "offline";
@@ -375,8 +379,17 @@ export type CreateOfferRequest = {
 };
 
 export type CreateInvoiceRequest = {
-  amount: number;
+  amount?: number; // @deprecated
+  amountSat?: number;
+  amountMsat?: number;
   description: string;
+};
+
+export type PayInvoiceRequest = {
+  amount?: number; // @deprecated
+  amountSat?: number;
+  amountMsat?: number;
+  metadata?: Record<string, unknown>;
 };
 
 export type OpenChannelRequest = {
@@ -395,20 +408,20 @@ export type CloseChannelResponse = {};
 export type PendingBalancesDetails = {
   channelId: string;
   nodeId: string;
-  amount: number; // @depreated
+  amount: number; // @deprecated
   amountSat: number;
   fundingTxId: string;
   fundingTxVout: number;
 };
 
 export type OnchainBalanceResponse = {
-  spendable: number; // @depreated
+  spendable: number; // @deprecated
   spendableSat: number;
-  total: number; // @depreated
+  total: number; // @deprecated
   totalSat: number;
-  reserved: number; // @depreated
+  reserved: number; // @deprecated
   reservedSat: number;
-  pendingBalancesFromChannelClosures: number; // @depreated
+  pendingBalancesFromChannelClosures: number; // @deprecated
   pendingBalancesFromChannelClosuresSat: number;
   pendingBalancesDetails: PendingBalancesDetails[];
   pendingSweepBalancesDetails: PendingBalancesDetails[];
@@ -495,9 +508,9 @@ export type RecommendedChannelPeer = {
   network: Network;
   image: string;
   name: string;
-  minimumChannelSize: number; // @depreated
+  minimumChannelSize: number; // @deprecated
   minimumChannelSizeSat: number;
-  maximumChannelSize: number; // @depreated
+  maximumChannelSize: number; // @deprecated
   maximumChannelSizeSat: number;
   note: string;
   publicChannelsAllowed: boolean;
@@ -566,21 +579,46 @@ export type AlbyMe = {
 };
 
 export type LSPOrderRequest = {
-  amount: number;
+  amount?: number; // @deprecated
+  amountSat?: number;
   lspType: LSPType;
   lspIdentifier: string;
   public: boolean;
 };
 
+export type RedeemOnchainFundsRequest = {
+  toAddress: string;
+  amount?: number; // @deprecated
+  amountSat?: number;
+  feeRate?: number;
+  sendAll?: boolean;
+};
+
+export type AutoSwapRequest = {
+  balanceThreshold?: number; // @deprecated
+  balanceThresholdSat?: number;
+  swapAmount?: number; // @deprecated
+  swapAmountSat?: number;
+  destination: string;
+  destinationType?: string;
+  unlockPassword?: string;
+};
+
+export type InitiateSwapRequest = {
+  swapAmount?: number; // @deprecated
+  swapAmountSat?: number;
+  destination?: string;
+};
+
 export type LSPOrderResponse = {
   invoice?: string;
-  fee: number; // @depreated
+  fee: number; // @deprecated
   feeSat: number;
-  invoiceAmount: number; // @depreated
+  invoiceAmount: number; // @deprecated
   invoiceAmountSat: number;
-  incomingLiquidity: number; // @depreated
+  incomingLiquidity: number; // @deprecated
   incomingLiquiditySat: number;
-  outgoingLiquidity: number; // @depreated
+  outgoingLiquidity: number; // @deprecated
   outgoingLiquiditySat: number;
 };
 
@@ -589,9 +627,9 @@ export type AutoChannelRequest = {
 };
 export type AutoChannelResponse = {
   invoice?: string;
-  fee?: number; // @depreated
+  fee?: number; // @deprecated
   feeSat?: number;
-  channelSize: number; // @depreated
+  channelSize: number; // @deprecated
   channelSizeSat: number;
 };
 
@@ -600,22 +638,22 @@ export type RedeemOnchainFundsResponse = {
 };
 
 export type LightningBalanceResponse = {
-  totalSpendable: number; // @depreated
+  totalSpendable: number; // @deprecated
   totalSpendableSat: number;
   totalSpendableMsat: number;
-  totalReceivable: number; // @depreated
+  totalReceivable: number; // @deprecated
   totalReceivableSat: number;
   totalReceivableMsat: number;
-  nextMaxSpendable: number; // @depreated
+  nextMaxSpendable: number; // @deprecated
   nextMaxSpendableSat: number;
   nextMaxSpendableMsat: number;
-  nextMaxReceivable: number; // @depreated
+  nextMaxReceivable: number; // @deprecated
   nextMaxReceivableSat: number;
   nextMaxReceivableMsat: number;
-  nextMaxSpendableMPP: number; // @depreated
+  nextMaxSpendableMPP: number; // @deprecated
   nextMaxSpendableMPPSat: number;
   nextMaxSpendableMPPMsat: number;
-  nextMaxReceivableMPP: number; // @depreated
+  nextMaxReceivableMPP: number; // @deprecated
   nextMaxReceivableMPPSat: number;
   nextMaxReceivableMPPMsat: number;
 };
@@ -634,10 +672,10 @@ export type Transaction = {
   descriptionHash: string;
   preimage: string | undefined;
   paymentHash: string;
-  amount: number; // @depreated
+  amount: number; // @deprecated
   amountSat: number;
   amountMsat: number;
-  feesPaid: number; // @depreated
+  feesPaid: number; // @deprecated
   feesPaidSat: number;
   feesPaidMsat: number;
   updatedAt: string;
@@ -700,7 +738,7 @@ export type OnchainTransaction = {
 export type ListAppsResponse = {
   apps: App[];
   totalCount: number;
-  totalBalance?: number; // @depreated
+  totalBalance?: number; // @deprecated
   totalBalanceSat?: number;
   totalBalanceMsat?: number;
 };

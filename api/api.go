@@ -72,6 +72,8 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		}
 	}
 
+	maxAmountSat, _ := ResolveToSat(createAppRequest.MaxAmountSat, createAppRequest.MaxAmountMsat, createAppRequest.MaxAmount, nil)
+
 	if createAppRequest.Name == alby.ALBY_ACCOUNT_APP_NAME {
 		return nil, fmt.Errorf("Reserved app name: %s", alby.ALBY_ACCOUNT_APP_NAME)
 	}
@@ -90,7 +92,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	app, pairingSecretKey, err := api.appsSvc.CreateApp(
 		createAppRequest.Name,
 		createAppRequest.Pubkey,
-		createAppRequest.MaxAmountSat,
+		*maxAmountSat,
 		createAppRequest.BudgetRenewal,
 		expiresAt,
 		createAppRequest.Scopes,
@@ -144,6 +146,8 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 }
 
 func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) error {
+	resolvedMaxAmountSat, _ := ResolveToSat(updateAppRequest.MaxAmountSat, updateAppRequest.MaxAmountMsat, updateAppRequest.MaxAmount, nil)
+
 	err := api.db.Transaction(func(tx *gorm.DB) error {
 		// Initialize name with current app name, update if provided
 		name := userApp.Name
@@ -206,7 +210,7 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 		}
 
 		// Handle permissions updates only if any permission-related field is provided
-		if updateAppRequest.Scopes != nil || updateAppRequest.MaxAmountSat != nil ||
+		if updateAppRequest.Scopes != nil || resolvedMaxAmountSat != nil ||
 			updateAppRequest.BudgetRenewal != nil || updateAppRequest.ExpiresAt != nil || updateAppRequest.UpdateExpiresAt {
 
 			// Get current values or use provided ones
@@ -234,8 +238,8 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 			}
 
 			// Override with provided values
-			if updateAppRequest.MaxAmountSat != nil {
-				maxAmountSat = *updateAppRequest.MaxAmountSat
+			if resolvedMaxAmountSat != nil {
+				maxAmountSat = *resolvedMaxAmountSat
 			}
 			if updateAppRequest.BudgetRenewal != nil {
 				budgetRenewal = *updateAppRequest.BudgetRenewal
@@ -985,7 +989,8 @@ func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *Ini
 		return nil, errors.New("SwapsService not started")
 	}
 
-	amountSat := initiateSwapOutRequest.SwapAmount
+	resolvedAmountSat, _ := ResolveToSat(initiateSwapOutRequest.SwapAmountSat, nil, initiateSwapOutRequest.SwapAmount, nil)
+	amountSat := *resolvedAmountSat
 	destination := initiateSwapOutRequest.Destination
 
 	if amountSat == 0 {
@@ -1014,7 +1019,8 @@ func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *Initi
 		return nil, errors.New("SwapsService not started")
 	}
 
-	amountSat := initiateSwapInRequest.SwapAmount
+	resolvedAmountSat, _ := ResolveToSat(initiateSwapInRequest.SwapAmountSat, nil, initiateSwapInRequest.SwapAmount, nil)
+	amountSat := *resolvedAmountSat
 
 	if amountSat == 0 {
 		return nil, errors.New("invalid swap amount")
@@ -1056,13 +1062,17 @@ func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *E
 		}
 	}
 
-	err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, strconv.FormatUint(enableAutoSwapsRequest.BalanceThreshold, 10), "")
+	resolvedBalanceThresholdSat, _ := ResolveToSat(enableAutoSwapsRequest.BalanceThresholdSat, nil, enableAutoSwapsRequest.BalanceThreshold, nil)
+	balanceThresholdSat := *resolvedBalanceThresholdSat
+	err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, strconv.FormatUint(balanceThresholdSat, 10), "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save autoswap balance threshold to config")
 		return err
 	}
 
-	err = api.cfg.SetUpdate(config.AutoSwapAmountKey, strconv.FormatUint(enableAutoSwapsRequest.SwapAmount, 10), "")
+	resolvedSwapAmountSat, _ := ResolveToSat(enableAutoSwapsRequest.SwapAmountSat, nil, enableAutoSwapsRequest.SwapAmount, nil)
+	swapAmountSat := *resolvedSwapAmountSat
+	err = api.cfg.SetUpdate(config.AutoSwapAmountKey, strconv.FormatUint(swapAmountSat, 10), "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save autoswap amount to config")
 		return err
@@ -1671,13 +1681,16 @@ func (api *api) MigrateNodeStorage(ctx context.Context, to string) error {
 }
 
 func (api *api) SendSpontaneousPaymentProbes(ctx context.Context, sendSpontaneousPaymentProbesRequest *SendSpontaneousPaymentProbesRequest) (*SendSpontaneousPaymentProbesResponse, error) {
+	resolvedAmountMsat, _ := ResolveToMsat(sendSpontaneousPaymentProbesRequest.AmountSat, sendSpontaneousPaymentProbesRequest.AmountMsat, nil, sendSpontaneousPaymentProbesRequest.Amount)
+	amountMsat := *resolvedAmountMsat
+
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return nil, ErrLNClientNotStarted
 	}
 
 	var errMessage string
-	err := lnClient.SendSpontaneousPaymentProbes(ctx, sendSpontaneousPaymentProbesRequest.Amount, sendSpontaneousPaymentProbesRequest.NodeId)
+	err := lnClient.SendSpontaneousPaymentProbes(ctx, amountMsat, sendSpontaneousPaymentProbesRequest.NodeId)
 	if err != nil {
 		errMessage = err.Error()
 	}

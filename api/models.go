@@ -132,7 +132,9 @@ type ListAppsResponse struct {
 
 type UpdateAppRequest struct {
 	Name            *string   `json:"name"`
-	MaxAmountSat    *uint64   `json:"maxAmount"`
+	MaxAmount       *uint64   `json:"maxAmount"` // deprecated
+	MaxAmountSat    *uint64   `json:"maxAmountSat"`
+	MaxAmountMsat   *uint64   `json:"maxAmountMsat"`
 	BudgetRenewal   *string   `json:"budgetRenewal"`
 	ExpiresAt       *string   `json:"expiresAt"`
 	UpdateExpiresAt bool      `json:"updateExpiresAt"`
@@ -142,16 +144,19 @@ type UpdateAppRequest struct {
 }
 
 type TransferRequest struct {
-	AmountSat   uint64 `json:"amountSat"`
-	FromAppId   *uint  `json:"fromAppId"`
-	ToAppId     *uint  `json:"toAppId"`
-	Description string `json:"description"`
+	AmountSat   *uint64 `json:"amountSat"`
+	AmountMsat  *uint64 `json:"amountMsat"`
+	FromAppId   *uint   `json:"fromAppId"`
+	ToAppId     *uint   `json:"toAppId"`
+	Description string  `json:"description"`
 }
 
 type CreateAppRequest struct {
 	Name           string   `json:"name"`
 	Pubkey         string   `json:"pubkey"`
-	MaxAmountSat   uint64   `json:"maxAmount"`
+	MaxAmount      *uint64  `json:"maxAmount"` // deprecated
+	MaxAmountSat   *uint64  `json:"maxAmountSat"`
+	MaxAmountMsat  *uint64  `json:"maxAmountMsat"`
 	BudgetRenewal  string   `json:"budgetRenewal"`
 	ExpiresAt      string   `json:"expiresAt"`
 	Scopes         []string `json:"scopes"`
@@ -167,8 +172,9 @@ type CreateLightningAddressRequest struct {
 }
 
 type InitiateSwapRequest struct {
-	SwapAmount  uint64 `json:"swapAmount"`
-	Destination string `json:"destination"`
+	SwapAmount    *uint64 `json:"swapAmount"` // deprecated
+	SwapAmountSat *uint64 `json:"swapAmountSat"`
+	Destination   string  `json:"destination"`
 }
 
 type RefundSwapRequest struct {
@@ -177,11 +183,13 @@ type RefundSwapRequest struct {
 }
 
 type EnableAutoSwapRequest struct {
-	BalanceThreshold uint64 `json:"balanceThreshold"`
-	SwapAmount       uint64 `json:"swapAmount"`
-	Destination      string `json:"destination"`
-	DestinationType  string `json:"destinationType"`
-	UnlockPassword   string `json:"unlockPassword"`
+	BalanceThreshold    *uint64 `json:"balanceThreshold"` // deprecated
+	BalanceThresholdSat *uint64 `json:"balanceThresholdSat"`
+	SwapAmount          *uint64 `json:"swapAmount"` // deprecated
+	SwapAmountSat       *uint64 `json:"swapAmountSat"`
+	Destination         string  `json:"destination"`
+	DestinationType     string  `json:"destinationType"`
+	UnlockPassword      string  `json:"unlockPassword"`
 }
 
 type GetAutoSwapConfigResponse struct {
@@ -357,8 +365,9 @@ type CloseChannelResponse = lnclient.CloseChannelResponse
 type UpdateChannelRequest = lnclient.UpdateChannelRequest
 
 type RebalanceChannelRequest struct {
-	ReceiveThroughNodePubkey string `json:"receiveThroughNodePubkey"`
-	AmountSat                uint64 `json:"amountSat"`
+	ReceiveThroughNodePubkey string  `json:"receiveThroughNodePubkey"`
+	AmountSat                *uint64 `json:"amountSat"`
+	AmountMsat               *uint64 `json:"amountMsat"`
 }
 type RebalanceChannelResponse struct {
 	TotalFeeSat  uint64 `json:"totalFeeSat"`
@@ -367,7 +376,8 @@ type RebalanceChannelResponse struct {
 
 type RedeemOnchainFundsRequest struct {
 	ToAddress string  `json:"toAddress"`
-	AmountSat uint64  `json:"amount"`
+	Amount    *uint64 `json:"amount"` // deprecated
+	AmountSat *uint64 `json:"amountSat"`
 	FeeRate   *uint64 `json:"feeRate"`
 	SendAll   bool    `json:"sendAll"`
 }
@@ -442,8 +452,10 @@ type SendPaymentProbesResponse struct {
 }
 
 type SendSpontaneousPaymentProbesRequest struct {
-	Amount uint64 `json:"amount"`
-	NodeId string `json:"nodeId"`
+	Amount     *uint64 `json:"amount"` // deprecated
+	AmountSat  *uint64 `json:"amountSat"`
+	AmountMsat *uint64 `json:"amountMsat"`
+	NodeId     string  `json:"nodeId"`
 }
 
 type SendSpontaneousPaymentProbesResponse struct {
@@ -473,8 +485,10 @@ type SignMessageResponse struct {
 }
 
 type PayInvoiceRequest struct {
-	Amount   *uint64  `json:"amount"`
-	Metadata Metadata `json:"metadata"`
+	Amount     *uint64  `json:"amount"` // deprecated
+	AmountSat  *uint64  `json:"amountSat"`
+	AmountMsat *uint64  `json:"amountMsat"`
+	Metadata   Metadata `json:"metadata"`
 }
 
 type MakeOfferRequest struct {
@@ -482,8 +496,10 @@ type MakeOfferRequest struct {
 }
 
 type MakeInvoiceRequest struct {
-	Amount      uint64 `json:"amount"`
-	Description string `json:"description"`
+	Amount      *uint64 `json:"amount"` // deprecated
+	AmountSat   *uint64 `json:"amountSat"`
+	AmountMsat  *uint64 `json:"amountMsat"`
+	Description string  `json:"description"`
 }
 
 type ResetRouterRequest struct {
@@ -501,10 +517,11 @@ type BasicRestoreWailsRequest struct {
 type NetworkGraphResponse = lnclient.NetworkGraphResponse
 
 type LSPOrderRequest struct {
-	Amount        uint64 `json:"amount"`
-	LSPType       string `json:"lspType"`
-	LSPIdentifier string `json:"lspIdentifier"`
-	Public        bool   `json:"public"`
+	Amount        *uint64 `json:"amount"` // deprecated
+	AmountSat     *uint64 `json:"amountSat"`
+	LSPType       string  `json:"lspType"`
+	LSPIdentifier string  `json:"lspIdentifier"`
+	Public        bool    `json:"public"`
 }
 
 type LSPOrderResponse struct {
@@ -610,4 +627,56 @@ type GetForwardsResponse struct {
 	TotalFeeEarnedSat           uint64 `json:"totalFeeEarnedSat"`
 	TotalFeeEarnedMsat          uint64 `json:"totalFeeEarnedMsat"`
 	NumForwards                 uint64 `json:"numForwards"`
+}
+
+func ResolveToSat(satValue *uint64, msatValue *uint64, legacyValueSat *uint64, legacyValueMsat *uint64) (resolvedSatValue *uint64, err error) {
+	if legacyValueSat != nil {
+		resolvedSatValue = legacyValueSat
+	}
+
+	if legacyValueMsat != nil {
+		satValue := *legacyValueMsat / 1000
+		resolvedSatValue = &satValue
+	}
+
+	if satValue != nil {
+		resolvedSatValue = satValue
+	}
+
+	if msatValue != nil {
+		satValue := *msatValue / 1000
+		resolvedSatValue = &satValue
+	}
+
+	if resolvedSatValue == nil {
+		return nil, errors.New("all fields are empty")
+	}
+
+	return resolvedSatValue, nil
+}
+
+func ResolveToMsat(satValue *uint64, msatValue *uint64, legacyValueSat *uint64, legacyValueMsat *uint64) (resolvedMsatValue *uint64, err error) {
+	if legacyValueSat != nil {
+		msatValue := *legacyValueSat * 1000
+		resolvedMsatValue = &msatValue
+	}
+
+	if legacyValueMsat != nil {
+		resolvedMsatValue = legacyValueMsat
+	}
+
+	if satValue != nil {
+		msatValue := *satValue * 1000
+		resolvedMsatValue = &msatValue
+	}
+
+	if msatValue != nil {
+		resolvedMsatValue = msatValue
+	}
+
+	if resolvedMsatValue == nil {
+		return nil, errors.New("all fields are empty")
+	}
+
+	return resolvedMsatValue, nil
 }
