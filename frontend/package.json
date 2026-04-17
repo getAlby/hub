@@ -22,7 +22,7 @@
   "dependencies": {
     "@fontsource-variable/figtree": "^5.2.10",
     "@fontsource-variable/inter": "^5.2.8",
-    "@getalby/lightning-tools": "^6.0.0",
+    "@getalby/lightning-tools": "^8.1.0",
     "@getalby/sdk": "^7.0.0",
     "@scure/bip39": "^2.0.1",
     "@stepperize/react": "^6.1.0",
