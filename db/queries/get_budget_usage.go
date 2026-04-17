@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetBudgetUsage(tx *gorm.DB, appPermission *db.AppPermission) (uint64, error) {
+func GetBudgetUsageMsat(tx *gorm.DB, appPermission *db.AppPermission) (uint64, error) {
 	var result struct {
 		Sum uint64
 	}

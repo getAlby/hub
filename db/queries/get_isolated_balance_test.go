@@ -36,9 +36,9 @@ func TestGetIsolatedBalance_PendingNoOverflow(t *testing.T) {
 	}
 	svc.DB.Save(&tx)
 
-	balance, err := GetIsolatedBalance(svc.DB, app.ID)
+	balanceMsat, err := GetIsolatedBalanceMsat(svc.DB, app.ID)
 	require.NoError(t, err)
-	assert.Equal(t, int64(-11000), balance)
+	assert.Equal(t, int64(-11000), balanceMsat)
 }
 
 func TestGetIsolatedBalance_SettledNoOverflow(t *testing.T) {
@@ -66,7 +66,7 @@ func TestGetIsolatedBalance_SettledNoOverflow(t *testing.T) {
 	}
 	svc.DB.Save(&tx)
 
-	balance, err := GetIsolatedBalance(svc.DB, app.ID)
+	balanceMsat, err := GetIsolatedBalanceMsat(svc.DB, app.ID)
 	require.NoError(t, err)
-	assert.Equal(t, int64(-1000), balance)
+	assert.Equal(t, int64(-1000), balanceMsat)
 }

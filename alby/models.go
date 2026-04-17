@@ -23,7 +23,7 @@ type AlbyOAuthService interface {
 	GetUserIdentifier() (string, error)
 	GetLightningAddress() (string, error)
 	IsConnected(ctx context.Context) bool
-	LinkAccount(ctx context.Context, lnClient lnclient.LNClient, budget uint64, renewal string) error
+	LinkAccount(ctx context.Context, lnClient lnclient.LNClient, budgetSat uint64, renewal string) error
 	CallbackHandler(ctx context.Context, code string) error
 	GetMe(ctx context.Context) (*AlbyMe, error)
 	UnlinkAccount(ctx context.Context) error
@@ -49,9 +49,11 @@ type AutoChannelRequest struct {
 }
 
 type AutoChannelResponse struct {
-	Invoice     string `json:"invoice"`
-	ChannelSize uint64 `json:"channelSize"`
-	Fee         uint64 `json:"fee"`
+	Invoice        string `json:"invoice"`
+	ChannelSize    uint64 `json:"channelSize"` // deprecated
+	ChannelSizeSat uint64 `json:"channelSizeSat"`
+	Fee            uint64 `json:"fee"` // deprecated
+	FeeSat         uint64 `json:"feeSat"`
 }
 
 type AlbyInfoHub struct {
@@ -102,8 +104,10 @@ type ChannelPeerSuggestion struct {
 	PaymentMethod              string  `json:"paymentMethod"`
 	Pubkey                     string  `json:"pubkey"`
 	Host                       string  `json:"host"`
-	MinimumChannelSize         uint64  `json:"minimumChannelSize"`
-	MaximumChannelSize         uint64  `json:"maximumChannelSize"`
+	MinimumChannelSize         uint64  `json:"minimumChannelSize"` // deprecated
+	MinimumChannelSizeSat      uint64  `json:"minimumChannelSizeSat"`
+	MaximumChannelSize         uint64  `json:"maximumChannelSize"` // deprecated
+	MaximumChannelSizeSat      uint64  `json:"maximumChannelSizeSat"`
 	MaximumChannelExpiryBlocks *uint32 `json:"maximumChannelExpiryBlocks"`
 	Name                       string  `json:"name"`
 	Image                      string  `json:"image"`
