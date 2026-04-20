@@ -71,9 +71,9 @@ func (cs *CashuService) Shutdown() error {
 	return cs.wallet.Shutdown()
 }
 
-func (cs *CashuService) SendPaymentSync(invoice string, amount *uint64) (response *lnclient.PayInvoiceResponse, err error) {
+func (cs *CashuService) SendPaymentSync(invoice string, amountMsat *uint64) (response *lnclient.PayInvoiceResponse, err error) {
 	// TODO: support 0-amount invoices
-	if amount != nil {
+	if amountMsat != nil {
 		return nil, errors.New("0-amount invoices not supported")
 	}
 
@@ -93,23 +93,31 @@ func (cs *CashuService) SendPaymentSync(invoice string, amount *uint64) (respons
 		return nil, errors.New("no preimage in melt response")
 	}
 	fee := meltResponse.FeeReserve - meltResponse.Change.Amount()
+	feeMsat := fee * 1000
 
 	return &lnclient.PayInvoiceResponse{
 		Preimage: meltResponse.Preimage,
-		Fee:      fee * 1000,
+		Fee:      feeMsat,
+		FeeMsat:  feeMsat,
 	}, nil
 }
 
-func (cs *CashuService) SendKeysend(amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+func (cs *CashuService) SendKeysend(amountMsat uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	return nil, errors.New("keysend not supported")
 }
 
-func (cs *CashuService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
+func (cs *CashuService) MakeInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
 	// TODO: support expiry
 	if expiry == 0 {
 		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
 	}
-	mintResponse, err := cs.wallet.RequestMint(uint64(amount/1000), cs.wallet.CurrentMint())
+	if amountMsat <= 0 {
+		return nil, errors.New("amountMsat must be positive")
+	}
+	if amountMsat%1000 != 0 {
+		return nil, errors.New("cashu only supports sat-granular amounts")
+	}
+	mintResponse, err := cs.wallet.RequestMint(uint64(amountMsat/1000), cs.wallet.CurrentMint())
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to mint")
 		return nil, err
@@ -119,7 +127,7 @@ func (cs *CashuService) MakeInvoice(ctx context.Context, amount int64, descripti
 	return cs.cashuMintQuoteToTransaction(mintQuote), nil
 }
 
-func (cs *CashuService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (transaction *lnclient.Transaction, err error) {
+func (cs *CashuService) MakeHoldInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (transaction *lnclient.Transaction, err error) {
 	_ = minCltvExpiryDelta
 	return nil, errors.New("not implemented")
 }
@@ -190,7 +198,7 @@ func (cs *CashuService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchai
 	return &lnclient.OnchainBalanceResponse{}, nil
 }
 
-func (cs *CashuService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (string, error) {
+func (cs *CashuService) RedeemOnchainFunds(ctx context.Context, toAddress string, amountSat uint64, feeRateSatPerVbyte *uint64, sendAll bool) (string, error) {
 	return "", nil
 }
 
@@ -301,7 +309,7 @@ func (cs *CashuService) cashuMintQuoteToTransaction(mintQuote *storage.MintQuote
 		PaymentHash: paymentRequest.PaymentHash,
 		// note: setting dummy preimage so that it gets marked as settled
 		Preimage:        paymentRequest.PaymentHash,
-		Amount:          paymentRequest.MSatoshi,
+		AmountMsat:      paymentRequest.MSatoshi,
 		CreatedAt:       int64(paymentRequest.CreatedAt),
 		ExpiresAt:       expiresAt,
 		Description:     description,
@@ -330,14 +338,14 @@ func (cs *CashuService) cashuMeltQuoteToTransaction(meltQuote *storage.MeltQuote
 		Type:            constants.TRANSACTION_TYPE_OUTGOING,
 		Invoice:         meltQuote.PaymentRequest,
 		PaymentHash:     paymentRequest.PaymentHash,
-		Amount:          paymentRequest.MSatoshi,
+		AmountMsat:      paymentRequest.MSatoshi,
 		CreatedAt:       int64(paymentRequest.CreatedAt),
 		ExpiresAt:       expiresAt,
 		Description:     description,
 		DescriptionHash: descriptionHash,
 		Preimage:        meltQuote.Preimage,
 		SettledAt:       settledAt,
-		FeesPaid:        int64(meltQuote.FeeReserve * 1000),
+		FeesPaidMsat:    int64(meltQuote.FeeReserve * 1000),
 	}
 }
 

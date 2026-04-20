@@ -494,7 +494,7 @@ func (ls *LDKService) MakeOffer(ctx context.Context, description string) (string
 	return offer.String(), nil
 }
 
-func (ls *LDKService) SendPaymentSync(invoice string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (ls *LDKService) SendPaymentSync(invoice string, amountMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
 	paymentRequest, err := decodepay.Decodepay(invoice)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -505,8 +505,8 @@ func (ls *LDKService) SendPaymentSync(invoice string, amount *uint64) (*lnclient
 	}
 
 	paymentAmountMsat := uint64(paymentRequest.MSatoshi)
-	if amount != nil {
-		paymentAmountMsat = *amount
+	if amountMsat != nil {
+		paymentAmountMsat = *amountMsat
 	}
 
 	maxSpendable := ls.getMaxSpendable()
@@ -544,10 +544,10 @@ func (ls *LDKService) SendPaymentSync(invoice string, amount *uint64) (*lnclient
 	}
 
 	var paymentHash string
-	if amount == nil {
+	if amountMsat == nil {
 		paymentHash, err = ls.node.Bolt11Payment().Send(invoiceObj, routeParameters)
 	} else {
-		paymentHash, err = ls.node.Bolt11Payment().SendUsingAmount(invoiceObj, *amount, routeParameters)
+		paymentHash, err = ls.node.Bolt11Payment().SendUsingAmount(invoiceObj, *amountMsat, routeParameters)
 	}
 	if err != nil {
 		logger.Logger.WithError(err).Error("SendPayment failed")
@@ -591,6 +591,7 @@ func (ls *LDKService) SendPaymentSync(invoice string, amount *uint64) (*lnclient
 				return &lnclient.PayInvoiceResponse{
 					Preimage: preimage,
 					Fee:      feeMsat,
+					FeeMsat:  feeMsat,
 				}, nil
 			case ldk_node.EventPaymentFailed:
 				if event.PaymentHash != nil && *event.PaymentHash == paymentHash {
@@ -606,7 +607,7 @@ func (ls *LDKService) SendPaymentSync(invoice string, amount *uint64) (*lnclient
 	}
 }
 
-func (ls *LDKService) SendKeysend(amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+func (ls *LDKService) SendKeysend(amountMsat uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	paymentStart := time.Now()
 	customTlvs := []ldk_node.CustomTlvRecord{}
 
@@ -626,7 +627,7 @@ func (ls *LDKService) SendKeysend(amount uint64, destination string, custom_reco
 
 	saturationPower := ls.cfg.GetEnv().LDKMaxChannelSaturationPowerOfHalf
 	maxPathCount := ls.cfg.GetEnv().LDKMaxPathCount
-	maxTotalRoutingFeeMsat := getMaxTotalRoutingFeeLimit(amount)
+	maxTotalRoutingFeeMsat := getMaxTotalRoutingFeeLimit(amountMsat)
 
 	routeParameters := &ldk_node.RouteParametersConfig{
 		MaxTotalRoutingFeeMsat:          &maxTotalRoutingFeeMsat,
@@ -635,7 +636,7 @@ func (ls *LDKService) SendKeysend(amount uint64, destination string, custom_reco
 		MaxTotalCltvExpiryDelta:         1008, // TODO: remove and use default
 	}
 
-	paymentHash, err := ls.node.SpontaneousPayment().SendWithPreimageAndCustomTlvs(amount, destination, customTlvs, preimage, routeParameters)
+	paymentHash, err := ls.node.SpontaneousPayment().SendWithPreimageAndCustomTlvs(amountMsat, destination, customTlvs, preimage, routeParameters)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Keysend failed")
 		return nil, err
@@ -661,7 +662,8 @@ func (ls *LDKService) SendKeysend(amount uint64, destination string, custom_reco
 					"fee":      feeMsat,
 				}).Info("Successful keysend payment")
 				return &lnclient.PayKeysendResponse{
-					Fee: feeMsat,
+					Fee:     feeMsat,
+					FeeMsat: feeMsat,
 				}, nil
 			}
 			if isEventPaymentFailedEvent && eventPaymentFailed.PaymentHash != nil && *eventPaymentFailed.PaymentHash == paymentHash {
@@ -702,7 +704,7 @@ func (ls *LDKService) getMaxSpendable() uint64 {
 	return spendable
 }
 
-func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
+func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
 
 	if time.Duration(expiry)*time.Second > maxInvoiceExpiry {
 		return nil, errors.New("expiry is too long")
@@ -710,7 +712,7 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 
 	maxReceivable := ls.getMaxReceivable()
 
-	if amount > maxReceivable {
+	if amountMsat > maxReceivable {
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_incoming_liquidity_required",
 			Properties: map[string]interface{}{
@@ -736,7 +738,7 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 		}
 	}
 
-	invoiceObj, err := ls.node.Bolt11Payment().Receive(uint64(amount),
+	invoiceObj, err := ls.node.Bolt11Payment().Receive(uint64(amountMsat),
 		descriptionType,
 		uint32(expiry))
 
@@ -762,7 +764,7 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amount int64, description
 		Invoice:         invoice,
 		PaymentHash:     paymentRequest.PaymentHash,
 		Preimage:        *payment.Kind.(ldk_node.PaymentKindBolt11).Preimage,
-		Amount:          amount,
+		AmountMsat:      amountMsat,
 		CreatedAt:       int64(paymentRequest.CreatedAt),
 		ExpiresAt:       &expiresAtUnix,
 		Description:     paymentRequest.Description,
@@ -890,24 +892,24 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 		isActive := ldkChannel.IsUsable /* superset of ldkChannel.IsReady */ && channelError == nil
 
 		channels = append(channels, lnclient.Channel{
-			InternalChannel:                          internalChannel,
-			LocalBalance:                             int64(ldkChannel.ChannelValueSats*1000 - ldkChannel.InboundCapacityMsat - ldkChannel.CounterpartyUnspendablePunishmentReserve*1000),
-			LocalSpendableBalance:                    int64(ldkChannel.OutboundCapacityMsat),
-			RemoteBalance:                            int64(ldkChannel.InboundCapacityMsat),
-			RemotePubkey:                             ldkChannel.CounterpartyNodeId,
-			Id:                                       ldkChannel.UserChannelId, // CloseChannel takes the UserChannelId
-			Active:                                   isActive,
-			Public:                                   ldkChannel.IsAnnounced,
-			FundingTxId:                              fundingTxId,
-			FundingTxVout:                            fundingTxVout,
-			Confirmations:                            ldkChannel.Confirmations,
-			ConfirmationsRequired:                    ldkChannel.ConfirmationsRequired,
-			ForwardingFeeBaseMsat:                    ldkChannel.Config.ForwardingFeeBaseMsat,
-			ForwardingFeeProportionalMillionths:      ldkChannel.Config.ForwardingFeeProportionalMillionths,
-			UnspendablePunishmentReserve:             unspendablePunishmentReserve,
-			CounterpartyUnspendablePunishmentReserve: ldkChannel.CounterpartyUnspendablePunishmentReserve,
-			Error:                                    channelError,
-			IsOutbound:                               ldkChannel.IsOutbound,
+			InternalChannel:                       internalChannel,
+			LocalBalanceMsat:                    int64(ldkChannel.ChannelValueSats*1000 - ldkChannel.InboundCapacityMsat - ldkChannel.CounterpartyUnspendablePunishmentReserve*1000),
+			LocalSpendableBalanceMsat:           int64(ldkChannel.OutboundCapacityMsat),
+			RemoteBalanceMsat:                   int64(ldkChannel.InboundCapacityMsat),
+			RemotePubkey:                        ldkChannel.CounterpartyNodeId,
+			Id:                                  ldkChannel.UserChannelId, // CloseChannel takes the UserChannelId
+			Active:                              isActive,
+			Public:                              ldkChannel.IsAnnounced,
+			FundingTxId:                         fundingTxId,
+			FundingTxVout:                       fundingTxVout,
+			Confirmations:                       ldkChannel.Confirmations,
+			ConfirmationsRequired:               ldkChannel.ConfirmationsRequired,
+			ForwardingFeeBaseMsat:               ldkChannel.Config.ForwardingFeeBaseMsat,
+			ForwardingFeeProportionalMillionths:  ldkChannel.Config.ForwardingFeeProportionalMillionths,
+			UnspendablePunishmentReserveSat:     unspendablePunishmentReserve,
+			CounterpartyUnspendablePunishmentReserveSat: ldkChannel.CounterpartyUnspendablePunishmentReserve,
+			Error:                               channelError,
+			IsOutbound:                          ldkChannel.IsOutbound,
 		})
 	}
 
@@ -1229,14 +1231,14 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 	}, nil
 }
 
-func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (string, error) {
+func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, amountSat uint64, feeRateSatPerVbyte *uint64, sendAll bool) (string, error) {
 	if ls.redeemedOnchainFundsWithinThisSync {
 		return "", errors.New("please wait a minute for the wallet to sync before doing another on-chain payment")
 	}
 
 	var feePtr **ldk_node.FeeRate
-	if feeRate != nil {
-		fee := ldk_node.FeeRateFromSatPerVbUnchecked(*feeRate)
+	if feeRateSatPerVbyte != nil {
+		fee := ldk_node.FeeRateFromSatPerVbUnchecked(*feeRateSatPerVbyte)
 		feePtr = &fee
 	}
 
@@ -1246,7 +1248,7 @@ func (ls *LDKService) RedeemOnchainFunds(ctx context.Context, toAddress string, 
 	if !sendAll {
 		// NOTE: this may fail if user does not reserve enough for the onchain transaction
 		// and can also drain the anchor reserves if the user provides a too high amount.
-		txId, err = ls.node.OnchainPayment().SendToAddress(toAddress, amount, feePtr)
+		txId, err = ls.node.OnchainPayment().SendToAddress(toAddress, amountSat, feePtr)
 	} else {
 		txId, err = ls.node.OnchainPayment().SendAllToAddress(toAddress, false, feePtr)
 	}
@@ -1441,9 +1443,9 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 		Preimage:        preimage,
 		PaymentHash:     paymentHash,
 		SettledAt:       settledAt,
-		Amount:          int64(amountMsat),
+		AmountMsat:      int64(amountMsat),
 		Invoice:         bolt11Invoice,
-		FeesPaid:        int64(feeMsat),
+		FeesPaidMsat:    int64(feeMsat),
 		CreatedAt:       createdAt,
 		Description:     description,
 		DescriptionHash: descriptionHash,
@@ -2188,6 +2190,7 @@ func (ls *LDKService) PayOfferSync(ctx context.Context, offer string, amount uin
 		PaymentHash: paymentHash,
 		Preimage:    preimage,
 		Fee:         fee,
+		FeeMsat:     fee,
 	}, nil
 }
 
@@ -2259,7 +2262,7 @@ func (ls *LDKService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 			Response: map[string]interface{}{
 				"paymentHash": payOfferResponse.PaymentHash,
 				"preimage":    payOfferResponse.Preimage,
-				"fee":         payOfferResponse.Fee,
+				"fee":         payOfferResponse.FeeMsat,
 			},
 		}, nil
 	case nodeCommandExportPathfindingScores:
@@ -2302,14 +2305,14 @@ func (ls *LDKService) ExecuteCustomNodeCommand(ctx context.Context, command *lnc
 	return nil, lnclient.ErrUnknownCustomNodeCommand
 }
 
-func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (*lnclient.Transaction, error) {
+func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (*lnclient.Transaction, error) {
 	if time.Duration(expiry)*time.Second > maxInvoiceExpiry {
 		return nil, errors.New("expiry is too long")
 	}
 
 	maxReceivable := ls.getMaxReceivable()
 
-	if amount > maxReceivable {
+	if amountMsat > maxReceivable {
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_incoming_liquidity_required",
 			Properties: map[string]interface{}{
@@ -2351,7 +2354,7 @@ func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amount int64, descrip
 			return nil, errors.New("min_cltv_expiry_delta must be <= 65535")
 		}
 		invoiceObj, err = ls.node.Bolt11Payment().ReceiveForHashWithMinCltvExpiryDelta(
-			uint64(amount),
+			uint64(amountMsat),
 			descriptionType,
 			uint32(expiry),
 			ldkPaymentHash,
@@ -2359,7 +2362,7 @@ func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amount int64, descrip
 		)
 	} else {
 		invoiceObj, err = ls.node.Bolt11Payment().ReceiveForHash(
-			uint64(amount),
+			uint64(amountMsat),
 			descriptionType,
 			uint32(expiry),
 			ldkPaymentHash,
@@ -2386,7 +2389,7 @@ func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amount int64, descrip
 		Type:            "incoming",
 		Invoice:         *payment.Kind.(ldk_node.PaymentKindBolt11).Bolt11Invoice,
 		PaymentHash:     paymentRequest.PaymentHash,
-		Amount:          amount,
+		AmountMsat:      amountMsat,
 		CreatedAt:       int64(payment.CreatedAt),
 		ExpiresAt:       &expiresAtUnix,
 		Description:     paymentRequest.Description,

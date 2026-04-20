@@ -308,7 +308,7 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap, us
 		Preimage:           hex.EncodeToString(preimage),
 		AutoSwap:           autoSwap,
 		UsedXpub:           usedXpubDerivation,
-		ReceiveAmount:      amount,
+		ReceiveAmountSat:   amount,
 	}
 
 	var ourKeys *btcec.PrivateKey
@@ -362,7 +362,7 @@ func (svc *swapsService) SwapOut(amount uint64, destination string, autoSwap, us
 
 		err = tx.Model(&dbSwap).Updates(&db.Swap{
 			SwapId:             swap.Id,
-			SendAmount:         uint64(paymentRequest.MSatoshi / 1000),
+			SendAmountSat:      uint64(paymentRequest.MSatoshi / 1000),
 			Invoice:            swap.Invoice,
 			LockupAddress:      swap.LockupAddress,
 			TimeoutBlockHeight: swap.TimeoutBlockHeight,
@@ -483,7 +483,7 @@ func (svc *swapsService) SwapIn(amount uint64, autoSwap bool) (*SwapResponse, er
 
 		err = tx.Model(&dbSwap).Updates(&db.Swap{
 			SwapId:             swap.Id,
-			SendAmount:         swap.ExpectedAmount,
+			SendAmountSat:      swap.ExpectedAmount,
 			LockupAddress:      swap.Address,
 			TimeoutBlockHeight: swap.TimeoutBlockHeight,
 			BoltzPubkey:        hex.EncodeToString(swap.ClaimPublicKey),
@@ -797,9 +797,9 @@ func (svc *swapsService) RefundSwap(swapId, address string, enableRetries bool) 
 	}).Info("Claim transaction broadcasted for refund")
 
 	err = svc.db.Model(&swap).Updates(&db.Swap{
-		ClaimTxId:     claimTxId,
-		ReceiveAmount: refundAmount,
-		State:         constants.SWAP_STATE_REFUNDED,
+		ClaimTxId:        claimTxId,
+		ReceiveAmountSat: refundAmount,
+		State:            constants.SWAP_STATE_REFUNDED,
 	}).Error
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -998,7 +998,7 @@ func (svc *swapsService) startSwapInListener(swap *db.Swap) {
 			case boltz.InvoicePaid:
 				svc.markSwapState(swap, constants.SWAP_STATE_SUCCESS)
 				err = svc.db.Model(swap).Updates(&db.Swap{
-					ReceiveAmount: amount,
+					ReceiveAmountSat: amount,
 				}).Error
 				if err != nil {
 					logger.Logger.WithFields(logrus.Fields{
@@ -1253,7 +1253,7 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 				}
 
 				var boltzFee boltz.Fee
-				if swap.ReceiveAmount != 0 {
+				if swap.ReceiveAmountSat != 0 {
 					lockupAmount, err := lockupTransaction.VoutValue(vout)
 					if err != nil {
 						logger.Logger.WithError(err).WithFields(logrus.Fields{
@@ -1261,7 +1261,15 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 						}).Error("Failed to find lockup output value")
 						return
 					}
-					fee := lockupAmount - swap.ReceiveAmount
+					if lockupAmount < swap.ReceiveAmountSat {
+						logger.Logger.WithFields(logrus.Fields{
+							"swapId":           swap.SwapId,
+							"lockupAmountSat":  lockupAmount,
+							"receiveAmountSat": swap.ReceiveAmountSat,
+						}).Error("Lockup amount is lower than expected receive amount; refusing invalid fee calculation")
+						return
+					}
+					fee := lockupAmount - swap.ReceiveAmountSat
 					boltzFee.Sats = &fee
 				} else {
 					var feeRates *FeeRates
@@ -1325,8 +1333,8 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 				}).Info("Claim transaction broadcasted")
 
 				err = svc.db.Model(swap).Updates(&db.Swap{
-					ClaimTxId:     claimTxId,
-					ReceiveAmount: claimAmount,
+					ClaimTxId:        claimTxId,
+					ReceiveAmountSat: claimAmount,
 				}).Error
 				if err != nil {
 					logger.Logger.WithFields(logrus.Fields{
@@ -1336,6 +1344,8 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 					}).WithError(err).Error("Failed to save claim info to swap")
 					return
 				}
+				swap.ClaimTxId = claimTxId
+				swap.ReceiveAmountSat = claimAmount
 			case boltz.TransactionFailed, boltz.SwapExpired:
 				logger.Logger.WithFields(logrus.Fields{
 					"swapId": swap.SwapId,

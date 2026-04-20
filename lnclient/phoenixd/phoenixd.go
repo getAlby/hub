@@ -192,13 +192,19 @@ func (svc *PhoenixService) ListChannels(ctx context.Context) ([]lnclient.Channel
 	return channels, nil
 }
 
-func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
+func (svc *PhoenixService) MakeInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
 	// TODO: support expiry
 	if expiry == 0 {
 		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
 	}
+	if amountMsat <= 0 {
+		return nil, errors.New("amountMsat must be positive")
+	}
+	if amountMsat%1000 != 0 {
+		return nil, fmt.Errorf("amountMsat must be sat-granular")
+	}
 	form := url.Values{}
-	amountSat := strconv.FormatInt(amount/1000, 10)
+	amountSat := strconv.FormatInt(amountMsat/1000, 10)
 	form.Add("amountSat", amountSat)
 	if description != "" {
 		form.Add("description", description)
@@ -253,7 +259,7 @@ func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, descri
 	return tx, nil
 }
 
-func (svc *PhoenixService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (transaction *lnclient.Transaction, err error) {
+func (svc *PhoenixService) MakeHoldInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (transaction *lnclient.Transaction, err error) {
 	return nil, errors.New("not implemented")
 }
 
@@ -303,9 +309,9 @@ func (svc *PhoenixService) LookupInvoice(ctx context.Context, paymentHash string
 	return transaction, nil
 }
 
-func (svc *PhoenixService) SendPaymentSync(payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (svc *PhoenixService) SendPaymentSync(payReq string, amountMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
 	// TODO: support 0-amount invoices
-	if amount != nil {
+	if amountMsat != nil {
 		return nil, errors.New("0-amount invoices not supported")
 	}
 	form := url.Values{}
@@ -336,17 +342,19 @@ func (svc *PhoenixService) SendPaymentSync(payReq string, amount *uint64) (*lncl
 		return nil, err
 	}
 
+	feeMsat := uint64(payRes.RoutingFeeSat) * 1000
 	return &lnclient.PayInvoiceResponse{
 		Preimage: payRes.PaymentPreimage,
-		Fee:      uint64(payRes.RoutingFeeSat) * 1000,
+		Fee:      feeMsat,
+		FeeMsat:  feeMsat,
 	}, nil
 }
 
-func (svc *PhoenixService) SendKeysend(amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+func (svc *PhoenixService) SendKeysend(amountMsat uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (svc *PhoenixService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (txId string, err error) {
+func (svc *PhoenixService) RedeemOnchainFunds(ctx context.Context, toAddress string, amountSat uint64, feeRateSatPerVbyte *uint64, sendAll bool) (txId string, err error) {
 	return "", errors.New("not implemented")
 }
 
@@ -492,8 +500,8 @@ func phoenixInvoiceToTransaction(invoiceRes *InvoiceResponse) (*lnclient.Transac
 		Invoice:         invoiceRes.Invoice,
 		Preimage:        invoiceRes.Preimage,
 		PaymentHash:     invoiceRes.PaymentHash,
-		Amount:          paymentRequest.MSatoshi,
-		FeesPaid:        invoiceRes.Fees * 1000,
+		AmountMsat:      paymentRequest.MSatoshi,
+		FeesPaidMsat:    invoiceRes.Fees * 1000,
 		CreatedAt:       time.UnixMilli(invoiceRes.CreatedAt).Unix(),
 		Description:     invoiceRes.Description,
 		SettledAt:       settledAt,

@@ -692,15 +692,15 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 		}
 
 		apiChannels = append(apiChannels, Channel{
-			LocalBalance:                             channel.LocalBalance,
-			LocalBalanceSat:                          channel.LocalBalance / 1000,
-			LocalBalanceMsat:                         channel.LocalBalance,
-			LocalSpendableBalance:                    channel.LocalSpendableBalance,
-			LocalSpendableBalanceSat:                 channel.LocalSpendableBalance / 1000,
-			LocalSpendableBalanceMsat:                channel.LocalSpendableBalance,
-			RemoteBalance:                            channel.RemoteBalance,
-			RemoteBalanceSat:                         channel.RemoteBalance / 1000,
-			RemoteBalanceMsat:                        channel.RemoteBalance,
+			LocalBalance:                             channel.LocalBalanceMsat,
+			LocalBalanceSat:                          channel.LocalBalanceMsat / 1000,
+			LocalBalanceMsat:                         channel.LocalBalanceMsat,
+			LocalSpendableBalance:                    channel.LocalSpendableBalanceMsat,
+			LocalSpendableBalanceSat:                 channel.LocalSpendableBalanceMsat / 1000,
+			LocalSpendableBalanceMsat:                channel.LocalSpendableBalanceMsat,
+			RemoteBalance:                            channel.RemoteBalanceMsat,
+			RemoteBalanceSat:                         channel.RemoteBalanceMsat / 1000,
+			RemoteBalanceMsat:                        channel.RemoteBalanceMsat,
 			Id:                                       channel.Id,
 			RemotePubkey:                             channel.RemotePubkey,
 			FundingTxId:                              channel.FundingTxId,
@@ -712,10 +712,10 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 			ConfirmationsRequired:                    channel.ConfirmationsRequired,
 			ForwardingFeeBaseMsat:                    channel.ForwardingFeeBaseMsat,
 			ForwardingFeeProportionalMillionths:      channel.ForwardingFeeProportionalMillionths,
-			UnspendablePunishmentReserve:             channel.UnspendablePunishmentReserve,
-			UnspendablePunishmentReserveSat:          channel.UnspendablePunishmentReserve,
-			CounterpartyUnspendablePunishmentReserve: channel.CounterpartyUnspendablePunishmentReserve,
-			CounterpartyUnspendablePunishmentReserveSat: channel.CounterpartyUnspendablePunishmentReserve,
+			UnspendablePunishmentReserve:             channel.UnspendablePunishmentReserveSat,
+			UnspendablePunishmentReserveSat:          channel.UnspendablePunishmentReserveSat,
+			CounterpartyUnspendablePunishmentReserve: channel.CounterpartyUnspendablePunishmentReserveSat,
+			CounterpartyUnspendablePunishmentReserveSat: channel.CounterpartyUnspendablePunishmentReserveSat,
 			Error:      channel.Error,
 			IsOutbound: channel.IsOutbound,
 			Status:     status,
@@ -913,10 +913,10 @@ func toApiSwap(swap *swaps.Swap) *Swap {
 		Type:               swap.Type,
 		State:              swap.State,
 		Invoice:            swap.Invoice,
-		SendAmount:         swap.SendAmount,
-		SendAmountSat:      swap.SendAmount,
-		ReceiveAmount:      swap.ReceiveAmount,
-		ReceiveAmountSat:   swap.ReceiveAmount,
+		SendAmount:         swap.SendAmountSat,
+		SendAmountSat:      swap.SendAmountSat,
+		ReceiveAmount:      swap.ReceiveAmountSat,
+		ReceiveAmountSat:   swap.ReceiveAmountSat,
 		PaymentHash:        swap.PaymentHash,
 		DestinationAddress: swap.DestinationAddress,
 		RefundAddress:      swap.RefundAddress,
@@ -985,7 +985,7 @@ func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *Ini
 		return nil, errors.New("SwapsService not started")
 	}
 
-	amount := initiateSwapOutRequest.SwapAmount
+	amount := initiateSwapOutRequest.ResolvedSwapAmountSat()
 	destination := initiateSwapOutRequest.Destination
 
 	if amount == 0 {
@@ -1014,7 +1014,7 @@ func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *Initi
 		return nil, errors.New("SwapsService not started")
 	}
 
-	amount := initiateSwapInRequest.SwapAmount
+	amount := initiateSwapInRequest.ResolvedSwapAmountSat()
 
 	if amount == 0 {
 		return nil, errors.New("invalid swap amount")
@@ -1056,13 +1056,13 @@ func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *E
 		}
 	}
 
-	err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, strconv.FormatUint(enableAutoSwapsRequest.BalanceThreshold, 10), "")
+	err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, strconv.FormatUint(enableAutoSwapsRequest.ResolvedBalanceThresholdSat(), 10), "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save autoswap balance threshold to config")
 		return err
 	}
 
-	err = api.cfg.SetUpdate(config.AutoSwapAmountKey, strconv.FormatUint(enableAutoSwapsRequest.SwapAmount, 10), "")
+	err = api.cfg.SetUpdate(config.AutoSwapAmountKey, strconv.FormatUint(enableAutoSwapsRequest.ResolvedSwapAmountSat(), 10), "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save autoswap amount to config")
 		return err
@@ -1677,7 +1677,7 @@ func (api *api) SendSpontaneousPaymentProbes(ctx context.Context, sendSpontaneou
 	}
 
 	var errMessage string
-	err := lnClient.SendSpontaneousPaymentProbes(ctx, sendSpontaneousPaymentProbesRequest.Amount, sendSpontaneousPaymentProbesRequest.NodeId)
+	err := lnClient.SendSpontaneousPaymentProbes(ctx, sendSpontaneousPaymentProbesRequest.ResolvedAmountMsat(), sendSpontaneousPaymentProbesRequest.NodeId)
 	if err != nil {
 		errMessage = err.Error()
 	}

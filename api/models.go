@@ -167,8 +167,9 @@ type CreateLightningAddressRequest struct {
 }
 
 type InitiateSwapRequest struct {
-	SwapAmount  uint64 `json:"swapAmount"`
-	Destination string `json:"destination"`
+	SwapAmount    uint64 `json:"swapAmount"` // deprecated: use swapAmountSat
+	SwapAmountSat uint64 `json:"swapAmountSat"`
+	Destination   string `json:"destination"`
 }
 
 type RefundSwapRequest struct {
@@ -177,11 +178,13 @@ type RefundSwapRequest struct {
 }
 
 type EnableAutoSwapRequest struct {
-	BalanceThreshold uint64 `json:"balanceThreshold"`
-	SwapAmount       uint64 `json:"swapAmount"`
-	Destination      string `json:"destination"`
-	DestinationType  string `json:"destinationType"`
-	UnlockPassword   string `json:"unlockPassword"`
+	BalanceThreshold    uint64 `json:"balanceThreshold"` // deprecated: use balanceThresholdSat
+	BalanceThresholdSat uint64 `json:"balanceThresholdSat"`
+	SwapAmount          uint64 `json:"swapAmount"` // deprecated: use swapAmountSat
+	SwapAmountSat       uint64 `json:"swapAmountSat"`
+	Destination         string `json:"destination"`
+	DestinationType     string `json:"destinationType"`
+	UnlockPassword      string `json:"unlockPassword"`
 }
 
 type GetAutoSwapConfigResponse struct {
@@ -366,10 +369,12 @@ type RebalanceChannelResponse struct {
 }
 
 type RedeemOnchainFundsRequest struct {
-	ToAddress string  `json:"toAddress"`
-	Amount    uint64  `json:"amount"`
-	FeeRate   *uint64 `json:"feeRate"`
-	SendAll   bool    `json:"sendAll"`
+	ToAddress          string  `json:"toAddress"`
+	Amount             uint64  `json:"amount"` // deprecated: use amountSat (on-chain sats)
+	AmountSat          uint64  `json:"amountSat"`
+	FeeRate            *uint64 `json:"feeRate"` // deprecated: use feeRateSatPerVbyte
+	FeeRateSatPerVbyte *uint64 `json:"feeRateSatPerVbyte"`
+	SendAll            bool    `json:"sendAll"`
 }
 
 type RedeemOnchainFundsResponse struct {
@@ -442,8 +447,9 @@ type SendPaymentProbesResponse struct {
 }
 
 type SendSpontaneousPaymentProbesRequest struct {
-	Amount uint64 `json:"amount"`
-	NodeId string `json:"nodeId"`
+	Amount     uint64 `json:"amount"` // deprecated: use amountMsat
+	AmountMsat uint64 `json:"amountMsat"`
+	NodeId     string `json:"nodeId"`
 }
 
 type SendSpontaneousPaymentProbesResponse struct {
@@ -473,8 +479,9 @@ type SignMessageResponse struct {
 }
 
 type PayInvoiceRequest struct {
-	Amount   *uint64  `json:"amount"`
-	Metadata Metadata `json:"metadata"`
+	Amount     *uint64  `json:"amount"` // deprecated: use amountMsat
+	AmountMsat *uint64  `json:"amountMsat"`
+	Metadata   Metadata `json:"metadata"`
 }
 
 type MakeOfferRequest struct {
@@ -482,8 +489,9 @@ type MakeOfferRequest struct {
 }
 
 type MakeInvoiceRequest struct {
-	Amount      uint64 `json:"amount"`
-	Description string `json:"description"`
+	Amount      uint64  `json:"amount"` // deprecated: use amountMsat when set
+	AmountMsat  *uint64 `json:"amountMsat"`
+	Description string  `json:"description"`
 }
 
 type ResetRouterRequest struct {
@@ -501,7 +509,8 @@ type BasicRestoreWailsRequest struct {
 type NetworkGraphResponse = lnclient.NetworkGraphResponse
 
 type LSPOrderRequest struct {
-	Amount        uint64 `json:"amount"`
+	Amount        uint64 `json:"amount"` // deprecated: use amountSat
+	AmountSat     uint64 `json:"amountSat"`
 	LSPType       string `json:"lspType"`
 	LSPIdentifier string `json:"lspIdentifier"`
 	Public        bool   `json:"public"`

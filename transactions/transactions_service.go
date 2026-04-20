@@ -196,7 +196,7 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount uint64, 
 		RequestEventId:  requestEventId,
 		Type:            lnClientTransaction.Type,
 		State:           constants.TRANSACTION_STATE_PENDING,
-		AmountMsat:      uint64(lnClientTransaction.Amount),
+		AmountMsat:      uint64(lnClientTransaction.AmountMsat),
 		Description:     description,
 		DescriptionHash: descriptionHash,
 		PaymentRequest:  lnClientTransaction.Invoice,
@@ -249,7 +249,7 @@ func (svc *transactionsService) MakeHoldInvoice(ctx context.Context, amount uint
 		RequestEventId:  requestEventId,
 		Type:            constants.TRANSACTION_TYPE_INCOMING,
 		State:           constants.TRANSACTION_STATE_PENDING,
-		AmountMsat:      uint64(lnClientTransaction.Amount),
+		AmountMsat:      uint64(lnClientTransaction.AmountMsat),
 		Description:     description,
 		DescriptionHash: descriptionHash,
 		PaymentRequest:  lnClientTransaction.Invoice,
@@ -411,7 +411,7 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 	// the payment definitely succeeded
 	var settledTransaction *db.Transaction
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
-		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, response.Preimage, response.Fee, selfPayment)
+		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, response.Preimage, response.FeeMsat, selfPayment)
 		return err
 	})
 	if err != nil {
@@ -523,7 +523,8 @@ func (svc *transactionsService) SendKeysend(amount uint64, destination string, c
 		_, err = svc.interceptSelfPayment("", paymentHash, lnClient)
 		if err == nil {
 			payKeysendResponse = &lnclient.PayKeysendResponse{
-				Fee: 0,
+				Fee:     0,
+				FeeMsat: 0,
 			}
 		}
 	} else {
@@ -553,7 +554,7 @@ func (svc *transactionsService) SendKeysend(amount uint64, destination string, c
 	// the payment definitely succeeded
 	var settledTransaction *db.Transaction
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
-		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, preimage, payKeysendResponse.Fee, selfPayment)
+		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, preimage, payKeysendResponse.FeeMsat, selfPayment)
 		return err
 	})
 
@@ -721,7 +722,7 @@ func (svc *transactionsService) checkUnsettledTransaction(ctx context.Context, t
 	// update transaction state
 	if lnClientTransaction.SettledAt != nil {
 		err = svc.db.Transaction(func(tx *gorm.DB) error {
-			_, err = svc.markTransactionSettled(tx, transaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaid), false)
+			_, err = svc.markTransactionSettled(tx, transaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaidMsat), false)
 			return err
 		})
 
@@ -778,7 +779,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 				}
 				dbTransaction = db.Transaction{
 					Type:            constants.TRANSACTION_TYPE_INCOMING,
-					AmountMsat:      uint64(lnClientTransaction.Amount),
+					AmountMsat:      uint64(lnClientTransaction.AmountMsat),
 					PaymentRequest:  lnClientTransaction.Invoice,
 					PaymentHash:     lnClientTransaction.PaymentHash,
 					Description:     description,
@@ -797,7 +798,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 				}
 			}
 
-			_, err := svc.markTransactionSettled(tx, &dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaid), false)
+			_, err := svc.markTransactionSettled(tx, &dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaidMsat), false)
 			return err
 		})
 
@@ -867,7 +868,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 						dbTransaction = db.Transaction{
 							Type:            constants.TRANSACTION_TYPE_OUTGOING,
 							State:           constants.TRANSACTION_STATE_PENDING,
-							AmountMsat:      uint64(lnClientTransaction.Amount),
+							AmountMsat:      uint64(lnClientTransaction.AmountMsat),
 							FeeReserveMsat:  0,
 							PaymentRequest:  lnClientTransaction.Invoice,
 							PaymentHash:     lnClientTransaction.PaymentHash,
@@ -891,7 +892,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 				}
 			}
 
-			_, err := svc.markTransactionSettled(tx, &dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaid), false)
+			_, err := svc.markTransactionSettled(tx, &dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaidMsat), false)
 			return err
 		})
 
@@ -1023,6 +1024,7 @@ func (svc *transactionsService) interceptSelfPayment(paymentRequest string, paym
 	return &lnclient.PayInvoiceResponse{
 		Preimage: *incomingTransaction.Preimage,
 		Fee:      0,
+		FeeMsat:  0,
 	}, nil
 }
 
@@ -1057,6 +1059,7 @@ func (svc *transactionsService) interceptSelfHoldPayment(paymentRequest string, 
 		return &lnclient.PayInvoiceResponse{
 			Preimage: *settledTransaction.Preimage,
 			Fee:      0,
+			FeeMsat:  0,
 		}, nil
 	case canceledTransaction := <-canceledChannel:
 		logger.Logger.WithField("canceled_transaction", canceledTransaction).Info("self hold payment was canceled")

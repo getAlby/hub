@@ -59,7 +59,7 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 
 	invoice, feeSat, err := api.requestLSPS1Invoice(ctx, lnClient, request, nodeInfo.Network, nodeInfo.Pubkey, lspInfo.MaxChannelExpiryBlocks, lspInfo.MinRequiredChannelConfirmations, lspInfo.MinFundingConfirmsWithinBlocks)
 	invoiceAmountSat := uint64(0)
-	incomingLiquiditySat := request.Amount
+	incomingLiquiditySat := request.ResolvedAmountSat()
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to request invoice")
@@ -142,7 +142,7 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, lnClient lnclient.LNCli
 
 	lsps1ChannelRequest := &alby.LSPChannelRequest{
 		PublicKey:                    pubkey,
-		LSPBalanceSat:                strconv.FormatUint(request.Amount, 10),
+		LSPBalanceSat:                strconv.FormatUint(request.ResolvedAmountSat(), 10),
 		ClientBalanceSat:             "0",
 		RequiredChannelConfirmations: requiredChannelConfirmations,
 		FundingConfirmsWithinBlocks:  minFundingConfirmsWithinBlocks,

@@ -641,7 +641,7 @@ func (httpSvc *HttpService) sendPaymentHandler(c echo.Context) error {
 		})
 	}
 
-	paymentResponse, err := httpSvc.api.SendPayment(ctx, c.Param("invoice"), payInvoiceRequest.Amount, payInvoiceRequest.Metadata)
+	paymentResponse, err := httpSvc.api.SendPayment(ctx, c.Param("invoice"), payInvoiceRequest.ResolvedAmountMsat(), payInvoiceRequest.Metadata)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -681,7 +681,7 @@ func (httpSvc *HttpService) makeInvoiceHandler(c echo.Context) error {
 		})
 	}
 
-	invoice, err := httpSvc.api.CreateInvoice(c.Request().Context(), makeInvoiceRequest.Amount, makeInvoiceRequest.Description)
+	invoice, err := httpSvc.api.CreateInvoice(c.Request().Context(), makeInvoiceRequest.ResolvedAmountMsat(), makeInvoiceRequest.Description)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -979,7 +979,7 @@ func (httpSvc *HttpService) redeemOnchainFundsHandler(c echo.Context) error {
 		})
 	}
 
-	redeemOnchainFundsResponse, err := httpSvc.api.RedeemOnchainFunds(ctx, redeemOnchainFundsRequest.ToAddress, redeemOnchainFundsRequest.Amount, redeemOnchainFundsRequest.FeeRate, redeemOnchainFundsRequest.SendAll)
+	redeemOnchainFundsResponse, err := httpSvc.api.RedeemOnchainFunds(ctx, redeemOnchainFundsRequest.ToAddress, redeemOnchainFundsRequest.ResolvedAmountSat(), redeemOnchainFundsRequest.ResolvedFeeRateSatPerVbyte(), redeemOnchainFundsRequest.SendAll)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
