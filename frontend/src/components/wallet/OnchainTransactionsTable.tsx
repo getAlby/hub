@@ -219,7 +219,7 @@ export function OnchainTransactionsTable() {
         <EmptyState
           icon={LinkIcon}
           title="No on-chain transactions yet"
-          description="Your most recent incoming and outgoing on-chain payments will show up here."
+          description="Your most recent incoming and outgoing on-chain transactions will show up here."
           buttonText="Receive to On-chain Balance"
           buttonLink="/wallet/receive/onchain?type=onchain"
           showBorder={false}
