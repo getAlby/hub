@@ -54,11 +54,11 @@ function ChannelWithoutPeerAlertInternal({ channel }: { channel: Channel }) {
           </ExternalLink>{" "}
         </p>
         <p>
-          2. Open{" "}
+          2. Open <span className="font-semibold">Advanced</span> and click{" "}
           <Link to="/peers" className="font-semibold">
-            Peers
+            Connected Peers
           </Link>{" "}
-          to re-connect the peer.
+          to reconnect the peer.
         </p>
       </AlertDescription>
     </Alert>
