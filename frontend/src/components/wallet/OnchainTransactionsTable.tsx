@@ -4,12 +4,6 @@ import { ArrowDownIcon, ArrowUpIcon, LinkIcon } from "lucide-react";
 import EmptyState from "src/components/EmptyState";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "src/components/ui/card";
 import { useInfo } from "src/hooks/useInfo";
 import { useOnchainTransactions } from "src/hooks/useOnchainTransactions";
 import { cn } from "src/lib/utils";
@@ -17,18 +11,6 @@ import { OnchainTransaction } from "src/types";
 import { openLink } from "src/utils/openLink";
 
 dayjs.extend(relativeTime);
-
-type OnchainTransactionsTableProps = {
-  wrapInCard?: boolean;
-  title?: string;
-  className?: string;
-  contentClassName?: string;
-  showEmptyState?: boolean;
-  emptyStateTitle?: string;
-  emptyStateDescription?: string;
-  emptyStateButtonText?: string;
-  emptyStateButtonLink?: string;
-};
 
 function typeStateLabel(tx: OnchainTransaction) {
   if (tx.type === "outgoing") {
@@ -140,82 +122,34 @@ function OnchainTransactionRow({
   );
 }
 
-export function OnchainTransactionsTable({
-  wrapInCard = true,
-  title = "On-Chain Transactions",
-  className,
-  contentClassName,
-  showEmptyState = false,
-  emptyStateTitle = "No on-chain transactions yet",
-  emptyStateDescription = "Your most recent incoming and outgoing on-chain payments will show up here.",
-  emptyStateButtonText = "Receive to On-chain Balance",
-  emptyStateButtonLink = "/wallet/receive/onchain?type=onchain",
-}: OnchainTransactionsTableProps) {
+export function OnchainTransactionsTable() {
   const { data: info } = useInfo();
   const { data: transactions } = useOnchainTransactions();
 
   if (!transactions?.length) {
-    if (!showEmptyState) {
-      return null;
-    }
-
-    const emptyState = (
-      <EmptyState
-        icon={LinkIcon}
-        title={emptyStateTitle}
-        description={emptyStateDescription}
-        buttonText={emptyStateButtonText}
-        buttonLink={emptyStateButtonLink}
-        showBorder={false}
-      />
-    );
-
-    if (!wrapInCard) {
-      return (
-        <div className={cn("flex flex-1 flex-col", className)}>
-          {emptyState}
-        </div>
-      );
-    }
-
     return (
-      <Card className={cn("mt-6", className)}>
-        {title && (
-          <CardHeader>
-            <CardTitle className="text-2xl">{title}</CardTitle>
-          </CardHeader>
-        )}
-        <CardContent className={contentClassName}>{emptyState}</CardContent>
-      </Card>
-    );
-  }
-
-  const rows = transactions.map((tx) => (
-    <OnchainTransactionRow
-      key={tx.txId}
-      tx={tx}
-      mempoolUrl={info?.mempoolUrl}
-    />
-  ));
-
-  if (!wrapInCard) {
-    return (
-      <div className={cn("flex flex-1 flex-col space-y-4", className)}>
-        {rows}
+      <div className="flex w-full flex-1 flex-col">
+        <EmptyState
+          icon={LinkIcon}
+          title="No on-chain transactions yet"
+          description="Your most recent incoming and outgoing on-chain payments will show up here."
+          buttonText="Receive to On-chain Balance"
+          buttonLink="/wallet/receive/onchain?type=onchain"
+          showBorder={false}
+        />
       </div>
     );
   }
 
   return (
-    <Card className={cn("mt-6", className)}>
-      {title && (
-        <CardHeader>
-          <CardTitle className="text-2xl">{title}</CardTitle>
-        </CardHeader>
-      )}
-      <CardContent className={cn("space-y-4", contentClassName)}>
-        {rows}
-      </CardContent>
-    </Card>
+    <div className="flex w-full flex-1 flex-col space-y-4">
+      {transactions.map((tx) => (
+        <OnchainTransactionRow
+          key={tx.txId}
+          tx={tx}
+          mempoolUrl={info?.mempoolUrl}
+        />
+      ))}
+    </div>
   );
 }

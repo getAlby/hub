@@ -203,15 +203,7 @@ function Wallet() {
         </div>
       </div>
 
-      {isOnchainMode ? (
-        <OnchainTransactionsTable
-          wrapInCard={false}
-          className="w-full"
-          showEmptyState={true}
-        />
-      ) : (
-        <TransactionsList />
-      )}
+      {isOnchainMode ? <OnchainTransactionsTable /> : <TransactionsList />}
     </>
   );
 }
