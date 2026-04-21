@@ -89,8 +89,15 @@ echo "Installing to: $INSTALL_DIR"
 mkdir -p "$INSTALL_DIR"
 cd "$INSTALL_DIR" || exit 1
 
+# check bzip2 is available before downloading
+if ! command -v bzip2 > /dev/null 2>&1; then
+  echo "❌ bzip2 is required but not installed. Run: sudo apt-get install -y bzip2" >&2
+  exit 1
+fi
+
 # download and extract the Alby Hub executable
-if ! wget "$ALBYHUB_URL"; then
+echo "Downloading Alby Hub..."
+if ! wget -q "$ALBYHUB_URL"; then
   echo "❌ Failed to download Alby Hub package." >&2
   exit 1
 fi
@@ -111,7 +118,7 @@ if [ "$SKIP_VERIFY" = false ]; then
   fi
 fi
 
-if ! tar xvf server-linux-aarch64.tar.bz2; then
+if ! tar xf server-linux-aarch64.tar.bz2; then
   echo "Failed to unpack Alby Hub. Potentially bzip2 is missing"
   echo "Install it with sudo apt-get install bzip2"
   exit 1
@@ -133,7 +140,7 @@ chmod +x "$INSTALL_DIR/start.sh"
 
 # add an update script to keep the Hub up to date
 # run this to update the hub
-wget https://raw.githubusercontent.com/getAlby/hub/master/scripts/linux-aarch64/update.sh
+wget -q https://raw.githubusercontent.com/getAlby/hub/master/scripts/linux-aarch64/update.sh
 chmod +x "$INSTALL_DIR/update.sh"
 
 echo ""
