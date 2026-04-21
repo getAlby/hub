@@ -183,7 +183,8 @@ function OnchainTransactionRow({
               <Button
                 type="button"
                 variant="ghost"
-                size="icon-xs"
+                size="icon-sm"
+                className="text-muted-foreground"
                 onClick={() => copyToClipboard(tx.txId)}
                 aria-label="Copy transaction ID"
               >
@@ -192,16 +193,8 @@ function OnchainTransactionRow({
             </div>
           </div>
         </div>
-        <DialogFooter className="sm:justify-between">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => copyToClipboard(tx.txId)}
-          >
-            <CopyIcon className="size-4" />
-            Copy Transaction ID
-          </Button>
-          {mempoolUrl && (
+        {mempoolUrl && (
+          <DialogFooter>
             <Button
               type="button"
               onClick={() => openLink(`${mempoolUrl}/tx/${tx.txId}`)}
@@ -209,8 +202,8 @@ function OnchainTransactionRow({
               <ExternalLinkIcon className="size-4" />
               View on Mempool
             </Button>
-          )}
-        </DialogFooter>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );

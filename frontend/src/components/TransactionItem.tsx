@@ -19,6 +19,7 @@ import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import { PaymentFailedAlert } from "src/components/PaymentFailedAlert";
 import PodcastingInfo from "src/components/PodcastingInfo";
+import { Button } from "src/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -358,12 +359,18 @@ function TransactionItem({ tx }: Props) {
                         <p className="text-muted-foreground break-all">
                           {bolt12Offer.id}
                         </p>
-                        <CopyIcon
-                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          className="text-muted-foreground"
                           onClick={() => {
                             copy(bolt12Offer.id as string);
                           }}
-                        />
+                          aria-label="Copy BOLT-12 offer id"
+                        >
+                          <CopyIcon />
+                        </Button>
                       </div>
                     </div>
                   )}
@@ -374,14 +381,20 @@ function TransactionItem({ tx }: Props) {
                         <p className="text-muted-foreground break-all">
                           {tx.preimage}
                         </p>
-                        <CopyIcon
-                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          className="text-muted-foreground"
                           onClick={() => {
                             if (tx.preimage) {
                               copy(tx.preimage);
                             }
                           }}
-                        />
+                          aria-label="Copy preimage"
+                        >
+                          <CopyIcon />
+                        </Button>
                       </div>
                     </div>
                   )}
@@ -391,12 +404,18 @@ function TransactionItem({ tx }: Props) {
                       <p className="text-muted-foreground break-all">
                         {tx.paymentHash}
                       </p>
-                      <CopyIcon
-                        className="cursor-pointer text-muted-foreground size-4 shrink-0"
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        className="text-muted-foreground"
                         onClick={() => {
                           copy(tx.paymentHash);
                         }}
-                      />
+                        aria-label="Copy hash"
+                      >
+                        <CopyIcon />
+                      </Button>
                     </div>
                   </div>
                   <div className="mt-6">
@@ -405,12 +424,18 @@ function TransactionItem({ tx }: Props) {
                       <p className="text-muted-foreground break-all">
                         {tx.invoice}
                       </p>
-                      <CopyIcon
-                        className="cursor-pointer text-muted-foreground size-4 shrink-0"
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        className="text-muted-foreground"
                         onClick={() => {
                           copy(tx.invoice);
                         }}
-                      />
+                        aria-label="Copy invoice"
+                      >
+                        <CopyIcon />
+                      </Button>
                     </div>
                   </div>
                   {!!tx.failureReason && (
@@ -420,12 +445,18 @@ function TransactionItem({ tx }: Props) {
                         <p className="text-muted-foreground break-anywhere">
                           {tx.failureReason}
                         </p>
-                        <CopyIcon
-                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          className="text-muted-foreground"
                           onClick={() => {
                             copy(tx.failureReason);
                           }}
-                        />
+                          aria-label="Copy failure reason"
+                        >
+                          <CopyIcon />
+                        </Button>
                       </div>
                     </div>
                   )}
@@ -436,12 +467,18 @@ function TransactionItem({ tx }: Props) {
                         <p className="text-muted-foreground break-all">
                           {JSON.stringify(tx.metadata)}
                         </p>
-                        <CopyIcon
-                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          className="text-muted-foreground"
                           onClick={() => {
                             copy(JSON.stringify(tx.metadata));
                           }}
-                        />
+                          aria-label="Copy metadata"
+                        >
+                          <CopyIcon />
+                        </Button>
                       </div>
                     </div>
                   )}
