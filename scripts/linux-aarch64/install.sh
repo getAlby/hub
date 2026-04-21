@@ -91,7 +91,7 @@ cd "$INSTALL_DIR" || exit 1
 
 # check bzip2 is available before downloading
 if ! command -v bzip2 > /dev/null 2>&1; then
-  echo "❌ bzip2 is required but not installed. Run: sudo apt-get install -y bzip2" >&2
+  echo "❌ bzip2 is required but not installed." >&2
   exit 1
 fi
 
