@@ -31,14 +31,20 @@ export function PendingClosedChannelsAlert({
         <FormattedBitcoinAmount
           amount={balance.pendingBalancesFromChannelClosures * 1000}
         />{" "}
-        pending from closed channels with
-        {pendingDetails.map((details, index) => (
-          <PendingBalancesDetailsItem
-            key={`${details.fundingTxId}:${details.fundingTxVout}`}
-            details={details}
-            showSeparator={index < pendingDetails.length - 1}
-          />
-        ))}
+        pending from closed channels
+        {pendingDetails.length > 0 && (
+          <>
+            {" "}
+            with
+            {pendingDetails.map((details, index) => (
+              <PendingBalancesDetailsItem
+                key={`${details.fundingTxId}:${details.fundingTxVout}`}
+                details={details}
+                showSeparator={index < pendingDetails.length - 1}
+              />
+            ))}
+          </>
+        )}
         . Once spendable again these will become available in your on-chain
         balance. Funds from channels that were force closed may take up to 2
         weeks to become available.{" "}
@@ -75,15 +81,19 @@ function PendingBalancesDetailsItem({
         {nodeDetails?.alias || "Unknown"}
         <ExternalLinkIcon className="ml-1 inline h-4 w-4" />
       </ExternalLink>{" "}
-      (<FormattedBitcoinAmount amount={details.amount * 1000} />
-      )&nbsp;
-      <ExternalLink
-        to={`${info?.mempoolUrl}/tx/${details.fundingTxId}#flow=&vout=${details.fundingTxVout}`}
-        className="underline"
-      >
-        funding tx
-        <ExternalLinkIcon className="ml-1 inline h-4 w-4" />
-      </ExternalLink>
+      (<FormattedBitcoinAmount amount={details.amount * 1000} />)
+      {info?.mempoolUrl && (
+        <>
+          &nbsp;
+          <ExternalLink
+            to={`${info.mempoolUrl}/tx/${details.fundingTxId}#flow=&vout=${details.fundingTxVout}`}
+            className="underline"
+          >
+            funding tx
+            <ExternalLinkIcon className="ml-1 inline h-4 w-4" />
+          </ExternalLink>
+        </>
+      )}
       {showSeparator && ","}
     </span>
   );

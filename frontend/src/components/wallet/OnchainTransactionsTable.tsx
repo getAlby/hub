@@ -60,7 +60,9 @@ function OnchainTransactionRow({
               ? "bg-orange-100 dark:bg-amber-950"
               : "bg-green-100 dark:bg-emerald-950"
         )}
-        title={`${tx.numConfirmations} confirmations`}
+        title={`${tx.numConfirmations} ${
+          tx.numConfirmations === 1 ? "confirmation" : "confirmations"
+        }`}
       >
         <Icon
           strokeWidth={3}
