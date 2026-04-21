@@ -640,7 +640,7 @@ func (httpSvc *HttpService) sendPaymentHandler(c echo.Context) error {
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
-	amountMsat, _ := api.ResolveToMsat(payInvoiceRequest.AmountSat, payInvoiceRequest.AmountMsat, nil, payInvoiceRequest.Amount)
+	amountMsat := api.ResolveToMsat(payInvoiceRequest.AmountSat, payInvoiceRequest.AmountMsat, nil, payInvoiceRequest.Amount)
 
 	paymentResponse, err := httpSvc.api.SendPayment(ctx, c.Param("invoice"), amountMsat, payInvoiceRequest.Metadata)
 
@@ -682,8 +682,11 @@ func (httpSvc *HttpService) makeInvoiceHandler(c echo.Context) error {
 		})
 	}
 
-	resolvedAmountMsat, _ := api.ResolveToMsat(makeInvoiceRequest.AmountSat, makeInvoiceRequest.AmountMsat, nil, makeInvoiceRequest.Amount)
-	amountMsat := *resolvedAmountMsat
+	amountMsat := uint64(0)
+	resolvedAmountMsat := api.ResolveToMsat(makeInvoiceRequest.AmountSat, makeInvoiceRequest.AmountMsat, nil, makeInvoiceRequest.Amount)
+	if resolvedAmountMsat != nil {
+		amountMsat = *resolvedAmountMsat
+	}
 
 	invoice, err := httpSvc.api.CreateInvoice(c.Request().Context(), amountMsat, makeInvoiceRequest.Description)
 
@@ -983,8 +986,11 @@ func (httpSvc *HttpService) redeemOnchainFundsHandler(c echo.Context) error {
 		})
 	}
 
-	resolvedAmountSat, _ := api.ResolveToSat(redeemOnchainFundsRequest.AmountSat, nil, redeemOnchainFundsRequest.Amount, nil)
-	amountSat := *resolvedAmountSat
+	amountSat := uint64(0)
+	resolvedAmountSat := api.ResolveToSat(redeemOnchainFundsRequest.AmountSat, nil, redeemOnchainFundsRequest.Amount, nil)
+	if resolvedAmountSat != nil {
+		amountSat = *resolvedAmountSat
+	}
 
 	redeemOnchainFundsResponse, err := httpSvc.api.RedeemOnchainFunds(ctx, redeemOnchainFundsRequest.ToAddress, amountSat, redeemOnchainFundsRequest.FeeRate, redeemOnchainFundsRequest.SendAll)
 
@@ -1146,8 +1152,11 @@ func (httpSvc *HttpService) transfersHandler(c echo.Context) error {
 		})
 	}
 
-	resolvedAmountMsat, _ := api.ResolveToMsat(requestData.AmountSat, requestData.AmountMsat, nil, nil)
-	amountMsat := *resolvedAmountMsat
+	amountMsat := uint64(0)
+	resolvedAmountMsat := api.ResolveToMsat(requestData.AmountSat, requestData.AmountMsat, nil, nil)
+	if resolvedAmountMsat != nil {
+		amountMsat = *resolvedAmountMsat
+	}
 
 	err := httpSvc.api.Transfer(c.Request().Context(), requestData.FromAppId, requestData.ToAppId, amountMsat, requestData.Description)
 

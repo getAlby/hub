@@ -629,7 +629,7 @@ type GetForwardsResponse struct {
 	NumForwards                 uint64 `json:"numForwards"`
 }
 
-func ResolveToSat(satValue *uint64, msatValue *uint64, legacyValueSat *uint64, legacyValueMsat *uint64) (resolvedSatValue *uint64, err error) {
+func ResolveToSat(satValue *uint64, msatValue *uint64, legacyValueSat *uint64, legacyValueMsat *uint64) (resolvedSatValue *uint64) {
 	if legacyValueSat != nil {
 		resolvedSatValue = legacyValueSat
 	}
@@ -648,14 +648,10 @@ func ResolveToSat(satValue *uint64, msatValue *uint64, legacyValueSat *uint64, l
 		resolvedSatValue = &satValue
 	}
 
-	if resolvedSatValue == nil {
-		return nil, errors.New("all fields are empty")
-	}
-
-	return resolvedSatValue, nil
+	return resolvedSatValue
 }
 
-func ResolveToMsat(satValue *uint64, msatValue *uint64, legacyValueSat *uint64, legacyValueMsat *uint64) (resolvedMsatValue *uint64, err error) {
+func ResolveToMsat(satValue *uint64, msatValue *uint64, legacyValueSat *uint64, legacyValueMsat *uint64) (resolvedMsatValue *uint64) {
 	if legacyValueSat != nil {
 		msatValue := *legacyValueSat * 1000
 		resolvedMsatValue = &msatValue
@@ -674,9 +670,5 @@ func ResolveToMsat(satValue *uint64, msatValue *uint64, legacyValueSat *uint64, 
 		resolvedMsatValue = msatValue
 	}
 
-	if resolvedMsatValue == nil {
-		return nil, errors.New("all fields are empty")
-	}
-
-	return resolvedMsatValue, nil
+	return resolvedMsatValue
 }

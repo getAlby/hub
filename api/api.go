@@ -73,7 +73,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	}
 
 	maxAmountSat := uint64(0)
-	resolvedMaxAmountSat, _ := ResolveToSat(createAppRequest.MaxAmountSat, createAppRequest.MaxAmountMsat, createAppRequest.MaxAmount, nil)
+	resolvedMaxAmountSat := ResolveToSat(createAppRequest.MaxAmountSat, createAppRequest.MaxAmountMsat, createAppRequest.MaxAmount, nil)
 	if resolvedMaxAmountSat != nil {
 		maxAmountSat = *resolvedMaxAmountSat
 	}
@@ -150,7 +150,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 }
 
 func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) error {
-	resolvedMaxAmountSat, _ := ResolveToSat(updateAppRequest.MaxAmountSat, updateAppRequest.MaxAmountMsat, updateAppRequest.MaxAmount, nil)
+	resolvedMaxAmountSat := ResolveToSat(updateAppRequest.MaxAmountSat, updateAppRequest.MaxAmountMsat, updateAppRequest.MaxAmount, nil)
 
 	err := api.db.Transaction(func(tx *gorm.DB) error {
 		// Initialize name with current app name, update if provided
@@ -993,8 +993,11 @@ func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *Ini
 		return nil, errors.New("SwapsService not started")
 	}
 
-	resolvedAmountSat, _ := ResolveToSat(initiateSwapOutRequest.SwapAmountSat, nil, initiateSwapOutRequest.SwapAmount, nil)
-	amountSat := *resolvedAmountSat
+	amountSat := uint64(0)
+	resolvedAmountSat := ResolveToSat(initiateSwapOutRequest.SwapAmountSat, nil, initiateSwapOutRequest.SwapAmount, nil)
+	if resolvedAmountSat != nil {
+		amountSat = *resolvedAmountSat
+	}
 	destination := initiateSwapOutRequest.Destination
 
 	if amountSat == 0 {
@@ -1023,8 +1026,11 @@ func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *Initi
 		return nil, errors.New("SwapsService not started")
 	}
 
-	resolvedAmountSat, _ := ResolveToSat(initiateSwapInRequest.SwapAmountSat, nil, initiateSwapInRequest.SwapAmount, nil)
-	amountSat := *resolvedAmountSat
+	amountSat := uint64(0)
+	resolvedAmountSat := ResolveToSat(initiateSwapInRequest.SwapAmountSat, nil, initiateSwapInRequest.SwapAmount, nil)
+	if resolvedAmountSat != nil {
+		amountSat = *resolvedAmountSat
+	}
 
 	if amountSat == 0 {
 		return nil, errors.New("invalid swap amount")
@@ -1066,16 +1072,24 @@ func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *E
 		}
 	}
 
-	resolvedBalanceThresholdSat, _ := ResolveToSat(enableAutoSwapsRequest.BalanceThresholdSat, nil, enableAutoSwapsRequest.BalanceThreshold, nil)
-	balanceThresholdSat := *resolvedBalanceThresholdSat
+	balanceThresholdSat := uint64(0)
+	resolvedBalanceThresholdSat := ResolveToSat(enableAutoSwapsRequest.BalanceThresholdSat, nil, enableAutoSwapsRequest.BalanceThreshold, nil)
+	if resolvedBalanceThresholdSat != nil {
+		balanceThresholdSat = *resolvedBalanceThresholdSat
+	}
+
 	err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, strconv.FormatUint(balanceThresholdSat, 10), "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save autoswap balance threshold to config")
 		return err
 	}
 
-	resolvedSwapAmountSat, _ := ResolveToSat(enableAutoSwapsRequest.SwapAmountSat, nil, enableAutoSwapsRequest.SwapAmount, nil)
-	swapAmountSat := *resolvedSwapAmountSat
+	swapAmountSat := uint64(0)
+	resolvedSwapAmountSat := ResolveToSat(enableAutoSwapsRequest.SwapAmountSat, nil, enableAutoSwapsRequest.SwapAmount, nil)
+	if resolvedSwapAmountSat != nil {
+		swapAmountSat = *resolvedSwapAmountSat
+	}
+
 	err = api.cfg.SetUpdate(config.AutoSwapAmountKey, strconv.FormatUint(swapAmountSat, 10), "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save autoswap amount to config")
@@ -1685,8 +1699,11 @@ func (api *api) MigrateNodeStorage(ctx context.Context, to string) error {
 }
 
 func (api *api) SendSpontaneousPaymentProbes(ctx context.Context, sendSpontaneousPaymentProbesRequest *SendSpontaneousPaymentProbesRequest) (*SendSpontaneousPaymentProbesResponse, error) {
-	resolvedAmountMsat, _ := ResolveToMsat(sendSpontaneousPaymentProbesRequest.AmountSat, sendSpontaneousPaymentProbesRequest.AmountMsat, nil, sendSpontaneousPaymentProbesRequest.Amount)
-	amountMsat := *resolvedAmountMsat
+	amountMsat := uint64(0)
+	resolvedAmountMsat := ResolveToMsat(sendSpontaneousPaymentProbesRequest.AmountSat, sendSpontaneousPaymentProbesRequest.AmountMsat, nil, sendSpontaneousPaymentProbesRequest.Amount)
+	if resolvedAmountMsat != nil {
+		amountMsat = *resolvedAmountMsat
+	}
 
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {

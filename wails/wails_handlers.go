@@ -344,7 +344,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
 		}
-		amountMsat, _ := api.ResolveToMsat(payRequest.AmountSat, payRequest.AmountMsat, nil, payRequest.Amount)
+		amountMsat := api.ResolveToMsat(payRequest.AmountSat, payRequest.AmountMsat, nil, payRequest.Amount)
 		paymentResponse, err := app.api.SendPayment(ctx, invoice, amountMsat, payRequest.Metadata)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
@@ -384,8 +384,11 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}).WithError(err).Error("Failed to decode request to wails router")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		resolvedAmountMsat, _ := api.ResolveToMsat(transferRequest.AmountSat, transferRequest.AmountMsat, nil, nil)
-		amountMsat := *resolvedAmountMsat
+		amountMsat := uint64(0)
+		resolvedAmountMsat := api.ResolveToMsat(transferRequest.AmountSat, transferRequest.AmountMsat, nil, nil)
+		if resolvedAmountMsat != nil {
+			amountMsat = *resolvedAmountMsat
+		}
 
 		err = app.api.Transfer(ctx, transferRequest.FromAppId, transferRequest.ToAppId, amountMsat, transferRequest.Description)
 		if err != nil {
@@ -550,8 +553,11 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}).WithError(err).Error("Failed to decode request to wails router")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		resolvedAmountMsat, _ := api.ResolveToMsat(makeInvoiceRequest.AmountSat, makeInvoiceRequest.AmountMsat, nil, makeInvoiceRequest.Amount)
-		amountMsat := *resolvedAmountMsat
+		amountMsat := uint64(0)
+		resolvedAmountMsat := api.ResolveToMsat(makeInvoiceRequest.AmountSat, makeInvoiceRequest.AmountMsat, nil, makeInvoiceRequest.Amount)
+		if resolvedAmountMsat != nil {
+			amountMsat = *resolvedAmountMsat
+		}
 		invoice, err := app.api.CreateInvoice(ctx, amountMsat, makeInvoiceRequest.Description)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
@@ -585,8 +591,11 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 
-		resolvedAmountSat, _ := api.ResolveToSat(redeemOnchainFundsRequest.AmountSat, nil, redeemOnchainFundsRequest.Amount, nil)
-		amountSat := *resolvedAmountSat
+		amountSat := uint64(0)
+		resolvedAmountSat := api.ResolveToSat(redeemOnchainFundsRequest.AmountSat, nil, redeemOnchainFundsRequest.Amount, nil)
+		if resolvedAmountSat != nil {
+			amountSat = *resolvedAmountSat
+		}
 
 		redeemOnchainFundsResponse, err := app.api.RedeemOnchainFunds(ctx, redeemOnchainFundsRequest.ToAddress, amountSat, redeemOnchainFundsRequest.FeeRate, redeemOnchainFundsRequest.SendAll)
 		if err != nil {

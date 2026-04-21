@@ -23,8 +23,11 @@ func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *R
 		return nil, ErrLNClientNotStarted
 	}
 
-	resolvedAmountSat, _ := ResolveToSat(rebalanceChannelRequest.AmountSat, rebalanceChannelRequest.AmountMsat, nil, nil)
-	amountSat := *resolvedAmountSat
+	amountSat := uint64(0)
+	resolvedAmountSat := ResolveToSat(rebalanceChannelRequest.AmountSat, rebalanceChannelRequest.AmountMsat, nil, nil)
+	if resolvedAmountSat != nil {
+		amountSat = *resolvedAmountSat
+	}
 
 	receiveMetadata := map[string]interface{}{
 		"receive_through": rebalanceChannelRequest.ReceiveThroughNodePubkey,
