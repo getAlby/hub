@@ -1,11 +1,27 @@
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { ArrowDownIcon, ArrowUpIcon, LinkIcon } from "lucide-react";
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  CopyIcon,
+  ExternalLinkIcon,
+  LinkIcon,
+} from "lucide-react";
 import EmptyState from "src/components/EmptyState";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
+import { Button } from "src/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "src/components/ui/dialog";
 import { useInfo } from "src/hooks/useInfo";
 import { useOnchainTransactions } from "src/hooks/useOnchainTransactions";
+import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
 import { OnchainTransaction } from "src/types";
 import { openLink } from "src/utils/openLink";
@@ -29,6 +45,8 @@ function OnchainTransactionRow({
   const Icon = tx.type === "outgoing" ? ArrowUpIcon : ArrowDownIcon;
   const isUnconfirmed = tx.state === "unconfirmed";
   const typeStateText = typeStateLabel(tx);
+  const statusText = isUnconfirmed ? "Unconfirmed" : "Confirmed";
+  const createdAt = dayjs(tx.createdAt * 1000).local();
 
   const icon = (
     <div className="flex items-center">
@@ -64,61 +82,133 @@ function OnchainTransactionRow({
       : tx.txId;
 
   return (
-    <button
-      type="button"
-      className="transaction sensitive slashed-zero w-full cursor-pointer rounded-md p-3 text-left hover:bg-muted/50"
-      onClick={() => {
-        if (mempoolUrl) {
-          openLink(`${mempoolUrl}/tx/${tx.txId}`);
-        }
-      }}
-    >
-      <div className={cn("flex gap-3", isUnconfirmed && "animate-pulse")}>
-        {icon}
-        <div className="mr-3 flex max-w-full flex-col items-start justify-center overflow-hidden text-left">
-          <div className="flex items-center gap-2">
-            <span className="line-clamp-1 break-all font-semibold md:text-xl">
-              {typeStateText}
-            </span>
-            <span
-              className="shrink-0 text-xs text-muted-foreground md:text-base"
-              title={dayjs(tx.createdAt * 1000)
-                .local()
-                .format("D MMMM YYYY, HH:mm")}
-            >
-              {dayjs(tx.createdAt * 1000)
-                .local()
-                .fromNow()}
-            </span>
-          </div>
-          <p className="line-clamp-1 break-all font-mono text-sm text-muted-foreground md:text-base">
-            {subtitle}
-          </p>
-        </div>
-        <div className="ml-auto flex shrink-0 space-x-3">
-          <div className="flex flex-col items-end md:text-xl">
-            <div className="flex flex-row gap-1">
-              <p
-                className={cn(
-                  tx.type === "incoming" &&
-                    "text-green-600 dark:text-emerald-500"
-                )}
-              >
-                {tx.type === "outgoing" ? "-" : "+"}
-                <FormattedBitcoinAmount
-                  amount={tx.amountSat * 1000}
-                  className="font-medium"
-                />
+    <Dialog>
+      <DialogTrigger asChild>
+        <button
+          type="button"
+          className="transaction sensitive slashed-zero w-full cursor-pointer rounded-md p-3 text-left hover:bg-muted/50"
+        >
+          <div className={cn("flex gap-3", isUnconfirmed && "animate-pulse")}>
+            {icon}
+            <div className="mr-3 flex max-w-full flex-col items-start justify-center overflow-hidden text-left">
+              <div className="flex items-center gap-2">
+                <span className="line-clamp-1 break-all font-semibold md:text-xl">
+                  {typeStateText}
+                </span>
+                <span
+                  className="shrink-0 text-xs text-muted-foreground md:text-base"
+                  title={createdAt.format("D MMMM YYYY, HH:mm")}
+                >
+                  {createdAt.fromNow()}
+                </span>
+              </div>
+              <p className="line-clamp-1 break-all font-mono text-sm text-muted-foreground md:text-base">
+                {subtitle}
               </p>
             </div>
-            <FormattedFiatAmount
-              className="text-xs md:text-base"
-              amount={tx.amountSat}
-            />
+            <div className="ml-auto flex shrink-0 space-x-3">
+              <div className="flex flex-col items-end md:text-xl">
+                <div className="flex flex-row gap-1">
+                  <p
+                    className={cn(
+                      tx.type === "incoming" &&
+                        "text-green-600 dark:text-emerald-500"
+                    )}
+                  >
+                    {tx.type === "outgoing" ? "-" : "+"}
+                    <FormattedBitcoinAmount
+                      amount={tx.amountSat * 1000}
+                      className="font-medium"
+                    />
+                  </p>
+                </div>
+                <FormattedFiatAmount
+                  className="text-xs md:text-base"
+                  amount={tx.amountSat}
+                />
+              </div>
+            </div>
+          </div>
+        </button>
+      </DialogTrigger>
+      <DialogContent className="slashed-zero">
+        <DialogHeader>
+          <DialogTitle className={cn(isUnconfirmed && "animate-pulse")}>
+            {`${typeStateText} On-chain Transaction`}
+          </DialogTitle>
+        </DialogHeader>
+        <div className="space-y-6 text-sm">
+          <div
+            className={cn(
+              "flex items-center",
+              isUnconfirmed && "animate-pulse"
+            )}
+          >
+            {icon}
+            <div className="ml-4">
+              <p className="sensitive text-xl font-semibold md:text-2xl">
+                {tx.type === "outgoing" ? "-" : "+"}
+                <FormattedBitcoinAmount amount={tx.amountSat * 1000} />
+              </p>
+              <FormattedFiatAmount amount={tx.amountSat} />
+            </div>
+          </div>
+
+          <div>
+            <p>Status</p>
+            <p className="text-muted-foreground">{statusText}</p>
+          </div>
+
+          <div>
+            <p>Confirmations</p>
+            <p className="text-muted-foreground">{tx.numConfirmations}</p>
+          </div>
+
+          <div>
+            <p>Date & Time</p>
+            <p className="text-muted-foreground">
+              {createdAt.format("D MMMM YYYY, HH:mm")}
+            </p>
+          </div>
+
+          <div>
+            <p>Transaction ID</p>
+            <div className="mt-1 flex items-start gap-3">
+              <p className="break-all font-mono text-muted-foreground">
+                {tx.txId}
+              </p>
+              <button
+                type="button"
+                className="shrink-0 cursor-pointer text-muted-foreground"
+                onClick={() => copyToClipboard(tx.txId)}
+                aria-label="Copy transaction ID"
+              >
+                <CopyIcon className="size-4" />
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    </button>
+        <DialogFooter className="sm:justify-between">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => copyToClipboard(tx.txId)}
+          >
+            <CopyIcon className="size-4" />
+            Copy Transaction ID
+          </Button>
+          {mempoolUrl && (
+            <Button
+              type="button"
+              onClick={() => openLink(`${mempoolUrl}/tx/${tx.txId}`)}
+            >
+              <ExternalLinkIcon className="size-4" />
+              View on Mempool
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
