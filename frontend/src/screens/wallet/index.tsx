@@ -118,29 +118,34 @@ function Wallet() {
           balances.lightning.totalSpendable * 0.1 && (
           <LowReceivingCapacityAlert />
         )}
-      {!isOnchainMode && hasChannelManagement && !hasChannelsOpen && (
-        <Alert>
-          <AlertTriangleIcon className="h-4 w-4" />
-          <AlertTitle>Open Your First Channel</AlertTitle>
-          <AlertDescription className="inline">
-            You won't be able to receive or send payments until you{" "}
-            <Link className="underline" to="/channels/first">
-              open your first channel
-            </Link>
-            .
-          </AlertDescription>
-        </Alert>
-      )}
+      {!isOnchainMode &&
+        hasChannelManagement &&
+        channels &&
+        !hasChannelsOpen && (
+          <Alert>
+            <AlertTriangleIcon className="h-4 w-4" />
+            <AlertTitle>Open Your First Channel</AlertTitle>
+            <AlertDescription className="inline">
+              You won't be able to receive or send payments until you{" "}
+              <Link className="underline" to="/channels/first">
+                open your first channel
+              </Link>
+              .
+            </AlertDescription>
+          </Alert>
+        )}
       <div className="flex w-full flex-col items-center gap-8 pt-12 pb-16 text-center">
         <div className="flex flex-col items-center gap-4">
           {hasChannelManagement ? (
             <button
               type="button"
               onClick={toggleBalanceMode}
-              aria-label="Switch balance mode"
+              aria-label={`Toggle balance mode, currently ${
+                isOnchainMode ? "On-chain Balance" : "Spending Balance"
+              }`}
               className="inline-flex items-center justify-center gap-1 text-xs font-medium leading-none uppercase text-muted-foreground transition-colors hover:text-foreground"
             >
-              {isOnchainMode ? "On-Chain Balance" : "Spending Balance"}
+              {isOnchainMode ? "On-chain Balance" : "Spending Balance"}
               <ArrowDownUpIcon aria-hidden className="size-3 shrink-0" />
             </button>
           ) : (

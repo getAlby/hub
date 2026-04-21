@@ -14,6 +14,7 @@ import { Button } from "src/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -136,6 +137,11 @@ function OnchainTransactionRow({
           <DialogTitle className={cn(isPending && "animate-pulse")}>
             {`${typeStateText} On-chain Transaction`}
           </DialogTitle>
+          <DialogDescription>
+            {isPending
+              ? "This transaction is pending confirmation."
+              : "This transaction has been confirmed on the blockchain."}
+          </DialogDescription>
         </DialogHeader>
         <div className="space-y-6 text-sm">
           <div
@@ -174,14 +180,15 @@ function OnchainTransactionRow({
               <p className="break-all font-mono text-muted-foreground">
                 {tx.txId}
               </p>
-              <button
+              <Button
                 type="button"
-                className="shrink-0 cursor-pointer text-muted-foreground"
+                variant="ghost"
+                size="icon-xs"
                 onClick={() => copyToClipboard(tx.txId)}
                 aria-label="Copy transaction ID"
               >
-                <CopyIcon className="size-4" />
-              </button>
+                <CopyIcon />
+              </Button>
             </div>
           </div>
         </div>
@@ -213,7 +220,11 @@ export function OnchainTransactionsTable() {
   const { data: info } = useInfo();
   const { data: transactions } = useOnchainTransactions();
 
-  if (!transactions?.length) {
+  if (!transactions) {
+    return null;
+  }
+
+  if (transactions.length === 0) {
     return (
       <div className="flex w-full flex-1 flex-col">
         <EmptyState
