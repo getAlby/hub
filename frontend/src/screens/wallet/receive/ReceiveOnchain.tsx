@@ -146,6 +146,14 @@ function ReceiveToOnchain() {
     }
   }, []);
 
+  const receiveAnother = async () => {
+    setTxId("");
+    setConfirmedAmount(null);
+    setPendingAmount(null);
+    startTimeRef.current = Math.floor(Date.now() / 1000);
+    await getNewAddress();
+  };
+
   useEffect(() => {
     if (
       !mempoolAddressUtxos ||
@@ -193,7 +201,11 @@ function ReceiveToOnchain() {
   return (
     <>
       {confirmedAmount ? (
-        <DepositSuccess amount={confirmedAmount} txId={txId} />
+        <DepositSuccess
+          amount={confirmedAmount}
+          txId={txId}
+          onReceiveAnother={receiveAnother}
+        />
       ) : txId ? (
         <DepositPending amount={pendingAmount} txId={txId} />
       ) : (
@@ -294,7 +306,15 @@ function DepositPending({
   );
 }
 
-function DepositSuccess({ amount, txId }: { amount: number; txId: string }) {
+function DepositSuccess({
+  amount,
+  txId,
+  onReceiveAnother,
+}: {
+  amount: number;
+  txId: string;
+  onReceiveAnother: () => void;
+}) {
   const { data: info } = useInfo();
 
   return (
@@ -320,10 +340,15 @@ function DepositSuccess({ amount, txId }: { amount: number; txId: string }) {
           <ExternalLinkIcon className="w-4 h-4 mr-2" />
           View on Mempool
         </ExternalLinkButton>
-        <LinkButton to="/wallet/send" variant="outline" className="w-full">
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={onReceiveAnother}
+        >
           <HandCoinsIcon className="w-4 h-4 mr-2" />
           Receive Another Payment
-        </LinkButton>
+        </Button>
         <LinkButton to="/wallet" variant="link" className="w-full">
           <ArrowLeftIcon className="w-4 h-4 mr-2" />
           Back to Wallet
