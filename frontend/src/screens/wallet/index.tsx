@@ -9,7 +9,7 @@ import {
 import { useState } from "react";
 import { Link } from "react-router";
 import AppHeader from "src/components/AppHeader";
-import { OnchainTransactionsTable } from "src/components/channels/OnchainTransactionsTable";
+import { OnchainTransactionsTable } from "src/components/wallet/OnchainTransactionsTable";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";

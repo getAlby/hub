@@ -19,7 +19,6 @@ import { ChannelsTable } from "src/components/channels/ChannelsTable.tsx";
 import { HealthCheckAlert } from "src/components/channels/HealthcheckAlert";
 import { LDKChannelMonitorSizeAlert } from "src/components/channels/LDKChannelMonitorSizeAlert";
 import { LDKChannelWithoutPeerAlert } from "src/components/channels/LDKChannelWithoutPeerAlert";
-import { OnchainTransactionsTable } from "src/components/channels/OnchainTransactionsTable.tsx";
 import EmptyState from "src/components/EmptyState.tsx";
 import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
@@ -561,7 +560,6 @@ export default function Channels() {
             channels={channels}
             longUnconfirmedZeroConfChannels={longUnconfirmedZeroConfChannels}
           />
-          <OnchainTransactionsTable />
         </>
       )}
     </>
