@@ -72,7 +72,11 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		}
 	}
 
-	maxAmountSat, _ := ResolveToSat(createAppRequest.MaxAmountSat, createAppRequest.MaxAmountMsat, createAppRequest.MaxAmount, nil)
+	maxAmountSat := uint64(0)
+	resolvedMaxAmountSat, _ := ResolveToSat(createAppRequest.MaxAmountSat, createAppRequest.MaxAmountMsat, createAppRequest.MaxAmount, nil)
+	if resolvedMaxAmountSat != nil {
+		maxAmountSat = *resolvedMaxAmountSat
+	}
 
 	if createAppRequest.Name == alby.ALBY_ACCOUNT_APP_NAME {
 		return nil, fmt.Errorf("Reserved app name: %s", alby.ALBY_ACCOUNT_APP_NAME)
@@ -92,7 +96,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	app, pairingSecretKey, err := api.appsSvc.CreateApp(
 		createAppRequest.Name,
 		createAppRequest.Pubkey,
-		*maxAmountSat,
+		maxAmountSat,
 		createAppRequest.BudgetRenewal,
 		expiresAt,
 		createAppRequest.Scopes,
