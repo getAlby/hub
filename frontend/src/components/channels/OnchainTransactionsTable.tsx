@@ -84,7 +84,7 @@ function OnchainTransactionRow({
   return (
     <button
       type="button"
-      className="transaction sensitive slashed-zero mb-4 w-full cursor-pointer rounded-md p-3 text-left hover:bg-muted/50"
+      className="transaction sensitive slashed-zero w-full cursor-pointer rounded-md p-3 text-left hover:bg-muted/50"
       onClick={() => {
         if (mempoolUrl) {
           openLink(`${mempoolUrl}/tx/${tx.txId}`);
@@ -199,7 +199,11 @@ export function OnchainTransactionsTable({
   ));
 
   if (!wrapInCard) {
-    return <div className={cn("flex flex-1 flex-col", className)}>{rows}</div>;
+    return (
+      <div className={cn("flex flex-1 flex-col space-y-4", className)}>
+        {rows}
+      </div>
+    );
   }
 
   return (
@@ -209,7 +213,9 @@ export function OnchainTransactionsTable({
           <CardTitle className="text-2xl">{title}</CardTitle>
         </CardHeader>
       )}
-      <CardContent className={contentClassName}>{rows}</CardContent>
+      <CardContent className={cn("space-y-4", contentClassName)}>
+        {rows}
+      </CardContent>
     </Card>
   );
 }

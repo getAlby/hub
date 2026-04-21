@@ -34,7 +34,7 @@ export function PendingClosedChannelsAlert({
         pending from closed channels with
         {pendingDetails.map((details, index) => (
           <PendingBalancesDetailsItem
-            key={`${details.fundingTxId}:${details.fundingTxVout}:${details.nodeId}:${index}`}
+            key={`${details.fundingTxId}:${details.fundingTxVout}`}
             details={details}
             showSeparator={index < pendingDetails.length - 1}
           />

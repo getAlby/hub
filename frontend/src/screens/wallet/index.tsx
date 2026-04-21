@@ -6,7 +6,7 @@ import {
   CalendarSyncIcon,
   CreditCardIcon,
 } from "lucide-react";
-import React from "react";
+import { useState } from "react";
 import { Link } from "react-router";
 import AppHeader from "src/components/AppHeader";
 import { OnchainTransactionsTable } from "src/components/channels/OnchainTransactionsTable";
@@ -36,7 +36,7 @@ function Wallet() {
   const { data: balances } = useBalances(true);
   const { data: channels } = useChannels();
   const [activeBalanceMode, setActiveBalanceMode] =
-    React.useState<BalanceMode>("lightning");
+    useState<BalanceMode>("lightning");
 
   const isOnchainMode = activeBalanceMode === "onchain";
   const hasChannelsOpen = !!channels?.length;
@@ -137,10 +137,11 @@ function Wallet() {
             <button
               type="button"
               onClick={toggleBalanceMode}
+              aria-label="Switch balance mode"
               className="inline-flex items-center justify-center gap-1 text-xs font-medium leading-none uppercase text-muted-foreground transition-colors hover:text-foreground"
             >
               {isOnchainMode ? "On-Chain Balance" : "Spending Balance"}
-              <ArrowDownUpIcon className="size-3 shrink-0" />
+              <ArrowDownUpIcon aria-hidden className="size-3 shrink-0" />
             </button>
           ) : (
             <span className="text-xs font-medium leading-none uppercase text-muted-foreground">
