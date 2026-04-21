@@ -43,9 +43,9 @@ function OnchainTransactionRow({
   mempoolUrl?: string;
 }) {
   const Icon = tx.type === "outgoing" ? ArrowUpIcon : ArrowDownIcon;
-  const isUnconfirmed = tx.state === "unconfirmed";
+  const isPending = tx.state === "unconfirmed";
   const typeStateText = typeStateLabel(tx);
-  const statusText = isUnconfirmed ? "Unconfirmed" : "Confirmed";
+  const statusText = isPending ? "Pending" : "Confirmed";
   const createdAt = dayjs(tx.createdAt * 1000).local();
 
   const icon = (
@@ -53,7 +53,7 @@ function OnchainTransactionRow({
       <div
         className={cn(
           "relative flex h-10 w-10 items-center justify-center rounded-full md:h-14 md:w-14",
-          isUnconfirmed
+          isPending
             ? "bg-blue-100 dark:bg-sky-950"
             : tx.type === "outgoing"
               ? "bg-orange-100 dark:bg-amber-950"
@@ -65,7 +65,7 @@ function OnchainTransactionRow({
           strokeWidth={3}
           className={cn(
             "size-6 md:h-8 md:w-8",
-            isUnconfirmed
+            isPending
               ? "stroke-blue-500 dark:stroke-sky-500"
               : tx.type === "outgoing"
                 ? "stroke-orange-500 dark:stroke-amber-500"
@@ -88,7 +88,7 @@ function OnchainTransactionRow({
           type="button"
           className="transaction sensitive slashed-zero w-full cursor-pointer rounded-md p-3 text-left hover:bg-muted/50"
         >
-          <div className={cn("flex gap-3", isUnconfirmed && "animate-pulse")}>
+          <div className={cn("flex gap-3", isPending && "animate-pulse")}>
             {icon}
             <div className="mr-3 flex max-w-full flex-col items-start justify-center overflow-hidden text-left">
               <div className="flex items-center gap-2">
@@ -133,16 +133,13 @@ function OnchainTransactionRow({
       </DialogTrigger>
       <DialogContent className="slashed-zero">
         <DialogHeader>
-          <DialogTitle className={cn(isUnconfirmed && "animate-pulse")}>
+          <DialogTitle className={cn(isPending && "animate-pulse")}>
             {`${typeStateText} On-chain Transaction`}
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-6 text-sm">
           <div
-            className={cn(
-              "flex items-center",
-              isUnconfirmed && "animate-pulse"
-            )}
+            className={cn("flex items-center", isPending && "animate-pulse")}
           >
             {icon}
             <div className="ml-4">
