@@ -81,19 +81,15 @@ function PendingBalancesDetailsItem({
         {nodeDetails?.alias || "Unknown"}
         <ExternalLinkIcon className="ml-1 inline h-4 w-4" />
       </ExternalLink>{" "}
-      (<FormattedBitcoinAmount amount={details.amount * 1000} />)
-      {info?.mempoolUrl && (
-        <>
-          &nbsp;
-          <ExternalLink
-            to={`${info.mempoolUrl}/tx/${details.fundingTxId}#flow=&vout=${details.fundingTxVout}`}
-            className="underline"
-          >
-            funding tx
-            <ExternalLinkIcon className="ml-1 inline h-4 w-4" />
-          </ExternalLink>
-        </>
-      )}
+      (<FormattedBitcoinAmount amount={details.amount * 1000} />
+      )&nbsp;
+      <ExternalLink
+        to={`${info?.mempoolUrl}/tx/${details.fundingTxId}#flow=&vout=${details.fundingTxVout}`}
+        className="underline"
+      >
+        funding tx
+        <ExternalLinkIcon className="ml-1 inline h-4 w-4" />
+      </ExternalLink>
       {showSeparator && ","}
     </span>
   );

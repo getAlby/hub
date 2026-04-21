@@ -195,17 +195,15 @@ function OnchainTransactionRow({
             </div>
           </div>
         </div>
-        {mempoolUrl && (
-          <DialogFooter>
-            <Button
-              type="button"
-              onClick={() => openLink(`${mempoolUrl}/tx/${tx.txId}`)}
-            >
-              <ExternalLinkIcon className="size-4" />
-              View on Mempool
-            </Button>
-          </DialogFooter>
-        )}
+        <DialogFooter>
+          <Button
+            type="button"
+            onClick={() => openLink(`${mempoolUrl}/tx/${tx.txId}`)}
+          >
+            <ExternalLinkIcon className="size-4" />
+            View on Mempool
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
