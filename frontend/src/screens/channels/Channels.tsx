@@ -1,5 +1,6 @@
 import dayjs from "dayjs";
 import {
+  AlertTriangleIcon,
   ArrowDownUpIcon,
   ArrowRightIcon,
   CopyIcon,
@@ -26,7 +27,6 @@ import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import ResponsiveButton from "src/components/ResponsiveButton";
 import { PendingClosedChannelsAlert } from "src/components/wallet/PendingClosedChannelsAlert";
-import { OnchainBalanceSummary } from "src/components/wallet/OnchainBalanceSummary";
 import {
   Card,
   CardContent,
@@ -481,10 +481,55 @@ export default function Channels() {
                 )}
                 <div>
                   {balances && (
-                    <OnchainBalanceSummary
-                      balance={balances.onchain}
-                      hasChannels={!!channels?.length}
-                    />
+                    <>
+                      <div className="mb-1">
+                        <span className="mr-1 mb-1 text-xl font-medium balance sensitive">
+                          <FormattedBitcoinAmount
+                            amount={balances.onchain.spendable * 1000}
+                          />
+                        </span>
+                        {!!channels?.length &&
+                          balances.onchain.reserved +
+                            balances.onchain.spendable <
+                            25_000 && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <AlertTriangleIcon className="size-3 text-muted-foreground" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  You have insufficient funds in reserve to
+                                  close channels or bump on-chain transactions
+                                  and currently rely on the counterparty. It is
+                                  recommended to deposit at least{" "}
+                                  <FormattedBitcoinAmount
+                                    amount={25_000 * 1000}
+                                  />{" "}
+                                  to your on-chain balance.
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
+                      </div>
+                      <FormattedFiatAmount
+                        amount={balances.onchain.spendable}
+                        className="mb-1"
+                      />
+                      {balances.onchain.spendable !==
+                        balances.onchain.total && (
+                        <p className="text-xs text-muted-foreground animate-pulse">
+                          +
+                          <FormattedBitcoinAmount
+                            amount={
+                              (balances.onchain.total -
+                                balances.onchain.spendable) *
+                              1000
+                            }
+                          />{" "}
+                          incoming
+                        </p>
+                      )}
+                    </>
                   )}
                 </div>
               </CardContent>

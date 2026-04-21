@@ -15,9 +15,6 @@ import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import TransactionsList from "src/components/TransactionsList";
-import { WalletActionsMenu } from "src/components/WalletActionsMenu";
-import { OnchainBalanceSummary } from "src/components/wallet/OnchainBalanceSummary";
-import { PendingClosedChannelsAlert } from "src/components/wallet/PendingClosedChannelsAlert";
 import {
   Alert,
   AlertDescription,
@@ -25,6 +22,7 @@ import {
 } from "src/components/ui/alert.tsx";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LinkButton } from "src/components/ui/custom/link-button";
+import { WalletActionsMenu } from "src/components/WalletActionsMenu";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
@@ -149,30 +147,40 @@ function Wallet() {
               Spending Balance
             </span>
           )}
-          {isOnchainMode ? (
-            <OnchainBalanceSummary
-              balance={balances.onchain}
-              hasChannels={hasChannelsOpen}
-              className="items-center"
-              amountClassName="text-5xl md:text-6xl font-medium slashed-zero leading-none"
-              fiatClassName="text-3xl font-normal leading-9 text-muted-foreground"
-              incomingClassName="text-sm md:text-base"
-            />
-          ) : (
-            <div className="flex flex-col items-center gap-3">
-              <div className="text-5xl md:text-6xl font-medium balance sensitive slashed-zero leading-none">
-                <FormattedBitcoinAmount
-                  amount={balances.lightning.totalSpendable}
-                />
-              </div>
-              <FormattedFiatAmount
-                className="text-3xl font-normal leading-9 text-muted-foreground"
-                amount={balances.lightning.totalSpendable / 1000}
+          <div className="flex flex-col items-center gap-3">
+            <div className="text-5xl md:text-6xl font-medium balance sensitive slashed-zero leading-none">
+              <FormattedBitcoinAmount
+                amount={
+                  isOnchainMode
+                    ? balances.onchain.spendable * 1000
+                    : balances.lightning.totalSpendable
+                }
               />
             </div>
-          )}
+            <FormattedFiatAmount
+              className="text-3xl font-normal leading-9 text-muted-foreground"
+              amount={
+                isOnchainMode
+                  ? balances.onchain.spendable
+                  : balances.lightning.totalSpendable / 1000
+              }
+            />
+            {isOnchainMode &&
+              balances.onchain.total > balances.onchain.spendable && (
+                <p className="text-sm md:text-base text-muted-foreground animate-pulse">
+                  +
+                  <FormattedBitcoinAmount
+                    amount={
+                      (balances.onchain.total - balances.onchain.spendable) *
+                      1000
+                    }
+                  />{" "}
+                  incoming
+                </p>
+              )}
+          </div>
         </div>
-        <div className="grid w-full max-w-[399px] grid-cols-2 items-center gap-3">
+        <div className="grid w-full max-w-100 grid-cols-2 items-center gap-3">
           <LinkButton
             to={
               isOnchainMode
@@ -193,10 +201,6 @@ function Wallet() {
           </LinkButton>
         </div>
       </div>
-
-      {isOnchainMode && (
-        <PendingClosedChannelsAlert balance={balances.onchain} />
-      )}
 
       {isOnchainMode ? (
         <OnchainTransactionsTable
