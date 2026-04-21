@@ -263,8 +263,6 @@ type SetupRequest struct {
 	LNDAddress      string `json:"lndAddress"`
 	LNDCertFile     string `json:"lndCertFile"`
 	LNDMacaroonFile string `json:"lndMacaroonFile"`
-	LNDCertHex      string `json:"lndCertHex"`
-	LNDMacaroonHex  string `json:"lndMacaroonHex"`
 
 	// Phoenixd fields
 	PhoenixdAddress       string `json:"phoenixdAddress"`

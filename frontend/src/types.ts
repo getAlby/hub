@@ -465,8 +465,8 @@ export type SetupNodeInfo = Partial<{
   nextBackupReminder?: string;
 
   lndAddress?: string;
-  lndCertHex?: string;
-  lndMacaroonHex?: string;
+  lndCertFile?: string;
+  lndMacaroonFile?: string;
 
   phoenixdAddress?: string;
   phoenixdAuthorization?: string;

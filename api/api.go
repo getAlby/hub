@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -9,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
@@ -1564,15 +1566,27 @@ func (api *api) Setup(ctx context.Context, setupRequest *SetupRequest) error {
 			return err
 		}
 	}
-	if setupRequest.LNDCertHex != "" {
-		err = api.cfg.SetUpdate("LNDCertHex", setupRequest.LNDCertHex, setupRequest.UnlockPassword)
+	if setupRequest.LNDCertFile != "" {
+		certBytes, err := os.ReadFile(setupRequest.LNDCertFile)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to read lnd cert file")
+			return err
+		}
+		certHex := hex.EncodeToString(certBytes)
+		err = api.cfg.SetUpdate("LNDCertHex", certHex, setupRequest.UnlockPassword)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to save lnd cert hex")
 			return err
 		}
 	}
-	if setupRequest.LNDMacaroonHex != "" {
-		err = api.cfg.SetUpdate("LNDMacaroonHex", setupRequest.LNDMacaroonHex, setupRequest.UnlockPassword)
+	if setupRequest.LNDMacaroonFile != "" {
+		macaroonBytes, err := os.ReadFile(setupRequest.LNDMacaroonFile)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to read lnd macaroon file")
+			return err
+		}
+		macaroonHex := hex.EncodeToString(macaroonBytes)
+		err = api.cfg.SetUpdate("LNDMacaroonHex", macaroonHex, setupRequest.UnlockPassword)
 		if err != nil {
 			logger.Logger.WithError(err).Error("Failed to save lnd macaroon hex")
 			return err
