@@ -117,7 +117,7 @@ export const UpgradeDialog = ({
             <span className="text-sm text-muted-foreground">/ month</span>
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
-            Billed $36 yearly · bitcoin or fiat · cancel anytime
+            Billed $36 yearly · bitcoin or credit card · cancel anytime
           </p>
         </div>
 
