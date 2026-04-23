@@ -5,7 +5,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func GetIsolatedBalance(tx *gorm.DB, appId uint) (int64, error) {
+func GetIsolatedBalanceMsat(tx *gorm.DB, appId uint) (int64, error) {
 	var received struct {
 		Sum int64
 	}

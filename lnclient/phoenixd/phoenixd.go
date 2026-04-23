@@ -128,16 +128,18 @@ func (svc *PhoenixService) GetBalances(ctx context.Context, includeInactiveChann
 
 	return &lnclient.BalancesResponse{
 		Onchain: lnclient.OnchainBalanceResponse{
-			Spendable: 0,
-			Total:     0,
-		},
+			PendingBalancesDetails:      []lnclient.PendingBalanceDetails{},
+			PendingSweepBalancesDetails: []lnclient.PendingBalanceDetails{}},
 		Lightning: lnclient.LightningBalanceResponse{
-			TotalSpendable:       balance,
-			TotalReceivable:      0,
-			NextMaxSpendable:     balance,
-			NextMaxReceivable:    0,
-			NextMaxSpendableMPP:  balance,
-			NextMaxReceivableMPP: 0,
+			TotalSpendable:          balance,
+			TotalSpendableSat:       balance / 1000,
+			TotalSpendableMsat:      balance,
+			NextMaxSpendable:        balance,
+			NextMaxSpendableSat:     balance / 1000,
+			NextMaxSpendableMsat:    balance,
+			NextMaxSpendableMPP:     balance,
+			NextMaxSpendableMPPSat:  balance / 1000,
+			NextMaxSpendableMPPMsat: balance,
 		},
 	}, nil
 }

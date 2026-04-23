@@ -57,9 +57,9 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 		return nil, err
 	}
 
-	invoice, fee, err := api.requestLSPS1Invoice(ctx, lnClient, request, nodeInfo.Network, nodeInfo.Pubkey, lspInfo.MaxChannelExpiryBlocks, lspInfo.MinRequiredChannelConfirmations, lspInfo.MinFundingConfirmsWithinBlocks)
-	invoiceAmount := uint64(0)
-	incomingLiquidity := request.Amount
+	invoice, feeSat, err := api.requestLSPS1Invoice(ctx, lnClient, request, nodeInfo.Network, nodeInfo.Pubkey, lspInfo.MaxChannelExpiryBlocks, lspInfo.MinRequiredChannelConfirmations, lspInfo.MinFundingConfirmsWithinBlocks)
+	invoiceAmountSat := uint64(0)
+	incomingLiquiditySat := request.Amount
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to request invoice")
@@ -73,15 +73,19 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 			return nil, err
 		}
 
-		invoiceAmount = uint64(paymentRequest.MSatoshi / 1000)
+		invoiceAmountSat = uint64(paymentRequest.MSatoshi / 1000)
 	}
 
 	newChannelResponse := &LSPOrderResponse{
-		Invoice:           invoice,
-		Fee:               fee,
-		InvoiceAmount:     invoiceAmount,
-		IncomingLiquidity: incomingLiquidity,
-		OutgoingLiquidity: uint64(0), // JIT channel no longer supported
+		Invoice:              invoice,
+		Fee:                  feeSat,
+		FeeSat:               feeSat,
+		InvoiceAmount:        invoiceAmountSat,
+		InvoiceAmountSat:     invoiceAmountSat,
+		IncomingLiquidity:    incomingLiquiditySat,
+		IncomingLiquiditySat: incomingLiquiditySat,
+		OutgoingLiquidity:    uint64(0),
+		OutgoingLiquiditySat: uint64(0),
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
@@ -91,7 +95,7 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 	return newChannelResponse, nil
 }
 
-func (api *api) requestLSPS1Invoice(ctx context.Context, lnClient lnclient.LNClient, request *LSPOrderRequest, network, pubkey string, channelExpiryBlocks uint64, minRequiredChannelConfirmations uint64, minFundingConfirmsWithinBlocks uint64) (invoice string, fee uint64, err error) {
+func (api *api) requestLSPS1Invoice(ctx context.Context, lnClient lnclient.LNClient, request *LSPOrderRequest, network, pubkey string, channelExpiryBlocks uint64, minRequiredChannelConfirmations uint64, minFundingConfirmsWithinBlocks uint64) (invoice string, feeSat uint64, err error) {
 	refundAddress, err := lnClient.GetNewOnchainAddress(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to request onchain address")
@@ -155,7 +159,7 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, lnClient lnclient.LNCli
 
 	if channelResponse.Payment != nil {
 		invoice = channelResponse.Payment.Bolt11.Invoice
-		fee, err = strconv.ParseUint(channelResponse.Payment.Bolt11.FeeTotalSat, 10, 64)
+		feeSat, err = strconv.ParseUint(channelResponse.Payment.Bolt11.FeeTotalSat, 10, 64)
 		if err != nil {
 			logger.Logger.WithError(err).WithFields(logrus.Fields{
 				"lspIdentifier": request.LSPIdentifier,
@@ -164,5 +168,5 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, lnClient lnclient.LNCli
 		}
 	}
 
-	return invoice, fee, nil
+	return invoice, feeSat, nil
 }

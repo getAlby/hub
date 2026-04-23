@@ -399,9 +399,9 @@ func TestSendKeysend_IsolatedAppToNoApp(t *testing.T) {
 	result := svc.DB.Find(&transactions)
 	assert.Equal(t, int64(3), result.RowsAffected)
 	// expect balance to be decreased
-	balance, err := queries.GetIsolatedBalance(svc.DB, app.ID)
+	balanceMsat, err := queries.GetIsolatedBalanceMsat(svc.DB, app.ID)
 	assert.NoError(t, err)
-	assert.Equal(t, int64(10000), balance)
+	assert.Equal(t, int64(10000), balanceMsat)
 }
 
 func TestSendKeysend_IsolatedAppToIsolatedApp(t *testing.T) {
@@ -491,14 +491,14 @@ func TestSendKeysend_IsolatedAppToIsolatedApp(t *testing.T) {
 	result := svc.DB.Find(&transactions)
 	assert.Equal(t, int64(3), result.RowsAffected)
 	// expect balance to be decreased
-	balance, err := queries.GetIsolatedBalance(svc.DB, app.ID)
+	balanceMsat, err := queries.GetIsolatedBalanceMsat(svc.DB, app.ID)
 	assert.NoError(t, err)
-	assert.Equal(t, int64(10000), balance)
+	assert.Equal(t, int64(10000), balanceMsat)
 
 	// expect app2 to receive the payment
-	balance, err = queries.GetIsolatedBalance(svc.DB, app2.ID)
+	balanceMsat, err = queries.GetIsolatedBalanceMsat(svc.DB, app2.ID)
 	assert.NoError(t, err)
-	assert.Equal(t, int64(123000), balance)
+	assert.Equal(t, int64(123000), balanceMsat)
 
 	// check notifications
 	assert.Equal(t, 2, len(mockEventConsumer.GetConsumedEvents()))

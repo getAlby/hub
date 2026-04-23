@@ -29,7 +29,9 @@ var MockNodeInfo = lnclient.NodeInfo{
 
 var MockLNClientBalances = lnclient.BalancesResponse{
 	Lightning: lnclient.LightningBalanceResponse{
-		TotalSpendable: 21000,
+		TotalSpendable:     21000,
+		TotalSpendableSat:  21,
+		TotalSpendableMsat: 21000,
 	},
 }
 

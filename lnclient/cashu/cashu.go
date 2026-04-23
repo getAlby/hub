@@ -187,10 +187,7 @@ func (cs *CashuService) GetNewOnchainAddress(ctx context.Context) (string, error
 }
 
 func (cs *CashuService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
-	return &lnclient.OnchainBalanceResponse{
-		Spendable: 0,
-		Total:     0,
-	}, nil
+	return &lnclient.OnchainBalanceResponse{}, nil
 }
 
 func (cs *CashuService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (string, error) {
@@ -267,16 +264,18 @@ func (cs *CashuService) GetBalances(ctx context.Context, includeInactiveChannels
 
 	return &lnclient.BalancesResponse{
 		Onchain: lnclient.OnchainBalanceResponse{
-			Spendable: 0,
-			Total:     0,
-		},
+			PendingBalancesDetails:      []lnclient.PendingBalanceDetails{},
+			PendingSweepBalancesDetails: []lnclient.PendingBalanceDetails{}},
 		Lightning: lnclient.LightningBalanceResponse{
-			TotalSpendable:       balance,
-			TotalReceivable:      0,
-			NextMaxSpendable:     balance,
-			NextMaxReceivable:    0,
-			NextMaxSpendableMPP:  balance,
-			NextMaxReceivableMPP: 0,
+			TotalSpendable:          balance,
+			TotalSpendableSat:       balance / 1000,
+			TotalSpendableMsat:      balance,
+			NextMaxSpendable:        balance,
+			NextMaxSpendableSat:     balance / 1000,
+			NextMaxSpendableMsat:    balance,
+			NextMaxSpendableMPP:     balance,
+			NextMaxSpendableMPPSat:  balance / 1000,
+			NextMaxSpendableMPPMsat: balance,
 		},
 	}, nil
 }

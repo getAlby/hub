@@ -35,6 +35,7 @@ import payperq from "src/assets/suggested-apps/payperq.png";
 import primal from "src/assets/suggested-apps/primal.png";
 import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
 import runstr from "src/assets/suggested-apps/runstr.png";
+import sats4ai from "src/assets/suggested-apps/sats4ai.png";
 import satsorter from "src/assets/suggested-apps/sat-sorter.png";
 import satoshisauctionhouse from "src/assets/suggested-apps/satoshis-auction-house.png";
 import simpleboost from "src/assets/suggested-apps/simple-boost.png";
@@ -354,6 +355,16 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["ai"],
+    },
+    {
+      id: "sats4ai",
+      title: "Sats4AI",
+      description: "30+ AI tools paid with lightning micropayments",
+      extendedDescription:
+        "Access 30+ AI tools including image generation, video, text-to-speech, transcription, and more. No signup, no API keys — just pay per use with lightning.",
+      logo: sats4ai,
+      categories: ["ai"],
+      webLink: "https://sats4ai.com",
     },
     {
       id: "simpleboost",

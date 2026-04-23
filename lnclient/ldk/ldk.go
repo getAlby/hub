@@ -553,7 +553,7 @@ func (ls *LDKService) SendPaymentSync(invoice string, amount *uint64) (*lnclient
 		logger.Logger.WithError(err).Error("SendPayment failed")
 		return nil, err
 	}
-	fee := uint64(0)
+	feeMsat := uint64(0)
 	preimage := ""
 
 	for {
@@ -579,18 +579,18 @@ func (ls *LDKService) SendPaymentSync(invoice string, amount *uint64) (*lnclient
 				preimage = *event.PaymentPreimage
 
 				if event.FeePaidMsat != nil {
-					fee = *event.FeePaidMsat
+					feeMsat = *event.FeePaidMsat
 				}
 
 				logger.Logger.WithFields(logrus.Fields{
 					"duration":     time.Since(paymentStart).Milliseconds(),
-					"fee":          fee,
+					"fee":          feeMsat,
 					"payment_hash": event.PaymentHash,
 				}).Info("Successful payment")
 
 				return &lnclient.PayInvoiceResponse{
 					Preimage: preimage,
-					Fee:      fee,
+					Fee:      feeMsat,
 				}, nil
 			case ldk_node.EventPaymentFailed:
 				if event.PaymentHash != nil && *event.PaymentHash == paymentHash {
@@ -640,7 +640,7 @@ func (ls *LDKService) SendKeysend(amount uint64, destination string, custom_reco
 		logger.Logger.WithError(err).Error("Keysend failed")
 		return nil, err
 	}
-	fee := uint64(0)
+	feeMsat := uint64(0)
 	for {
 		select {
 		case <-ls.ctx.Done():
@@ -654,14 +654,14 @@ func (ls *LDKService) SendKeysend(amount uint64, destination string, custom_reco
 				logger.Logger.Info("Got payment success event")
 
 				if eventPaymentSuccessful.FeePaidMsat != nil {
-					fee = *eventPaymentSuccessful.FeePaidMsat
+					feeMsat = *eventPaymentSuccessful.FeePaidMsat
 				}
 				logger.Logger.WithFields(logrus.Fields{
 					"duration": time.Since(paymentStart).Milliseconds(),
-					"fee":      fee,
+					"fee":      feeMsat,
 				}).Info("Successful keysend payment")
 				return &lnclient.PayKeysendResponse{
-					Fee: fee,
+					Fee: feeMsat,
 				}, nil
 			}
 			if isEventPaymentFailedEvent && eventPaymentFailed.PaymentHash != nil && *eventPaymentFailed.PaymentHash == paymentHash {
@@ -1150,6 +1150,7 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 					NodeId:        nodeId,
 					ChannelId:     channelId,
 					Amount:        amount,
+					AmountSat:     amount,
 					FundingTxId:   fundingTxId,
 					FundingTxVout: uint32(fundingTxIndex),
 				})
@@ -1186,6 +1187,7 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 				NodeId:        *nodeId,
 				ChannelId:     *channelId,
 				Amount:        amount,
+				AmountSat:     amount,
 				FundingTxId:   *fundingTxId,
 				FundingTxVout: uint32(*fundingTxIndex),
 			})
@@ -1210,12 +1212,16 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 	}
 
 	return &lnclient.OnchainBalanceResponse{
-		Spendable:                          int64(balances.SpendableOnchainBalanceSats),
-		Total:                              int64(balances.TotalOnchainBalanceSats - balances.TotalAnchorChannelsReserveSats),
-		Reserved:                           int64(balances.TotalAnchorChannelsReserveSats),
-		PendingBalancesFromChannelClosures: pendingBalancesFromChannelClosures,
-		PendingBalancesDetails:             pendingBalancesDetails,
-		PendingSweepBalancesDetails:        pendingSweepBalanceDetails,
+		Spendable:                             int64(balances.SpendableOnchainBalanceSats),
+		SpendableSat:                          int64(balances.SpendableOnchainBalanceSats),
+		Total:                                 int64(balances.TotalOnchainBalanceSats - balances.TotalAnchorChannelsReserveSats),
+		TotalSat:                              int64(balances.TotalOnchainBalanceSats - balances.TotalAnchorChannelsReserveSats),
+		Reserved:                              int64(balances.TotalAnchorChannelsReserveSats),
+		ReservedSat:                           int64(balances.TotalAnchorChannelsReserveSats),
+		PendingBalancesFromChannelClosures:    pendingBalancesFromChannelClosures,
+		PendingBalancesFromChannelClosuresSat: pendingBalancesFromChannelClosures,
+		PendingBalancesDetails:                pendingBalancesDetails,
+		PendingSweepBalancesDetails:           pendingSweepBalanceDetails,
 		InternalBalances: map[string]interface{}{
 			"internal_lightning_balances": internalLightningBalances,
 			"all_balances":                balances,
@@ -1420,14 +1426,14 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 		metadata["tlv_records"] = tlvRecords
 	}
 
-	var amount uint64 = 0
+	var amountMsat uint64 = 0
 	if payment.AmountMsat != nil {
-		amount = *payment.AmountMsat
+		amountMsat = *payment.AmountMsat
 	}
 
-	var fee uint64 = 0
+	var feeMsat uint64 = 0
 	if payment.FeePaidMsat != nil {
-		fee = *payment.FeePaidMsat
+		feeMsat = *payment.FeePaidMsat
 	}
 
 	return &lnclient.Transaction{
@@ -1435,9 +1441,9 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 		Preimage:        preimage,
 		PaymentHash:     paymentHash,
 		SettledAt:       settledAt,
-		Amount:          int64(amount),
+		Amount:          int64(amountMsat),
 		Invoice:         bolt11Invoice,
-		FeesPaid:        int64(fee),
+		FeesPaid:        int64(feeMsat),
 		CreatedAt:       createdAt,
 		Description:     description,
 		DescriptionHash: descriptionHash,
@@ -1870,12 +1876,24 @@ func (ls *LDKService) GetBalances(ctx context.Context, includeInactiveChannels b
 	return &lnclient.BalancesResponse{
 		Onchain: *onchainBalance,
 		Lightning: lnclient.LightningBalanceResponse{
-			TotalSpendable:       totalSpendable,
-			TotalReceivable:      totalReceivable,
-			NextMaxSpendable:     nextMaxSpendable,
-			NextMaxReceivable:    nextMaxReceivable,
-			NextMaxSpendableMPP:  nextMaxSpendableMPP,
-			NextMaxReceivableMPP: nextMaxReceivableMPP,
+			TotalSpendable:           totalSpendable,
+			TotalSpendableSat:        totalSpendable / 1000,
+			TotalSpendableMsat:       totalSpendable,
+			TotalReceivable:          totalReceivable,
+			TotalReceivableSat:       totalReceivable / 1000,
+			TotalReceivableMsat:      totalReceivable,
+			NextMaxSpendable:         nextMaxSpendable,
+			NextMaxSpendableSat:      nextMaxSpendable / 1000,
+			NextMaxSpendableMsat:     nextMaxSpendable,
+			NextMaxReceivable:        nextMaxReceivable,
+			NextMaxReceivableSat:     nextMaxReceivable / 1000,
+			NextMaxReceivableMsat:    nextMaxReceivable,
+			NextMaxSpendableMPP:      nextMaxSpendableMPP,
+			NextMaxSpendableMPPSat:   nextMaxSpendableMPP / 1000,
+			NextMaxSpendableMPPMsat:  nextMaxSpendableMPP,
+			NextMaxReceivableMPP:     nextMaxReceivableMPP,
+			NextMaxReceivableMPPSat:  nextMaxReceivableMPP / 1000,
+			NextMaxReceivableMPPMsat: nextMaxReceivableMPP,
 		},
 	}, nil
 }
@@ -2332,20 +2350,20 @@ func (ls *LDKService) MakeHoldInvoice(ctx context.Context, amount int64, descrip
 		if *minCltvExpiryDelta > uint64(65535) {
 			return nil, errors.New("min_cltv_expiry_delta must be <= 65535")
 		}
-        invoiceObj, err = ls.node.Bolt11Payment().ReceiveForHashWithMinCltvExpiryDelta(
-            uint64(amount),
-            descriptionType,
-            uint32(expiry),
-            ldkPaymentHash,
-            uint16(*minCltvExpiryDelta),
-        )
+		invoiceObj, err = ls.node.Bolt11Payment().ReceiveForHashWithMinCltvExpiryDelta(
+			uint64(amount),
+			descriptionType,
+			uint32(expiry),
+			ldkPaymentHash,
+			uint16(*minCltvExpiryDelta),
+		)
 	} else {
-        invoiceObj, err = ls.node.Bolt11Payment().ReceiveForHash(
-            uint64(amount),
-            descriptionType,
-            uint32(expiry),
-            ldkPaymentHash,
-        )
+		invoiceObj, err = ls.node.Bolt11Payment().ReceiveForHash(
+			uint64(amount),
+			descriptionType,
+			uint32(expiry),
+			ldkPaymentHash,
+		)
 	}
 
 	if err != nil {

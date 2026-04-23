@@ -1264,6 +1264,7 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 			pendingBalancesDetails = append(pendingBalancesDetails, lnclient.PendingBalanceDetails{
 				NodeId:        closingChannel.Channel.RemoteNodePub,
 				Amount:        uint64(closingChannel.LimboBalance),
+				AmountSat:     uint64(closingChannel.LimboBalance),
 				FundingTxId:   channelPoint.GetFundingTxidStr(),
 				FundingTxVout: channelPoint.GetOutputIndex(),
 			})
@@ -1273,12 +1274,16 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 		"balances": balances,
 	}).Debug("Listed Balances")
 	return &lnclient.OnchainBalanceResponse{
-		Spendable:                          int64(balances.ConfirmedBalance),
-		Total:                              int64(balances.TotalBalance),
-		Reserved:                           int64(balances.ReservedBalanceAnchorChan),
-		PendingBalancesFromChannelClosures: pendingBalancesFromChannelClosures,
-		PendingBalancesDetails:             pendingBalancesDetails,
-		PendingSweepBalancesDetails:        []lnclient.PendingBalanceDetails{},
+		Spendable:                             int64(balances.ConfirmedBalance),
+		SpendableSat:                          int64(balances.ConfirmedBalance),
+		Total:                                 int64(balances.TotalBalance),
+		TotalSat:                              int64(balances.TotalBalance),
+		Reserved:                              int64(balances.ReservedBalanceAnchorChan),
+		ReservedSat:                           int64(balances.ReservedBalanceAnchorChan),
+		PendingBalancesFromChannelClosures:    pendingBalancesFromChannelClosures,
+		PendingBalancesFromChannelClosuresSat: pendingBalancesFromChannelClosures,
+		PendingBalancesDetails:                pendingBalancesDetails,
+		PendingSweepBalancesDetails:           []lnclient.PendingBalanceDetails{},
 		InternalBalances: map[string]interface{}{
 			"balances":         balances,
 			"pending_channels": pendingChannels,
@@ -1449,12 +1454,24 @@ func (svc *LNDService) GetBalances(ctx context.Context, includeInactiveChannels 
 	return &lnclient.BalancesResponse{
 		Onchain: *onchainBalance,
 		Lightning: lnclient.LightningBalanceResponse{
-			TotalSpendable:       totalSpendable,
-			TotalReceivable:      totalReceivable,
-			NextMaxSpendable:     nextMaxSpendable,
-			NextMaxReceivable:    nextMaxReceivable,
-			NextMaxSpendableMPP:  nextMaxSpendableMPP,
-			NextMaxReceivableMPP: nextMaxReceivableMPP,
+			TotalSpendable:           totalSpendable,
+			TotalSpendableSat:        totalSpendable / 1000,
+			TotalSpendableMsat:       totalSpendable,
+			TotalReceivable:          totalReceivable,
+			TotalReceivableSat:       totalReceivable / 1000,
+			TotalReceivableMsat:      totalReceivable,
+			NextMaxSpendable:         nextMaxSpendable,
+			NextMaxSpendableSat:      nextMaxSpendable / 1000,
+			NextMaxSpendableMsat:     nextMaxSpendable,
+			NextMaxReceivable:        nextMaxReceivable,
+			NextMaxReceivableSat:     nextMaxReceivable / 1000,
+			NextMaxReceivableMsat:    nextMaxReceivable,
+			NextMaxSpendableMPP:      nextMaxSpendableMPP,
+			NextMaxSpendableMPPSat:   nextMaxSpendableMPP / 1000,
+			NextMaxSpendableMPPMsat:  nextMaxSpendableMPP,
+			NextMaxReceivableMPP:     nextMaxReceivableMPP,
+			NextMaxReceivableMPPSat:  nextMaxReceivableMPP / 1000,
+			NextMaxReceivableMPPMsat: nextMaxReceivableMPP,
 		},
 	}, nil
 }

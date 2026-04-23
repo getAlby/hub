@@ -688,7 +688,8 @@ const inspirationCategories: {
       "what gift cards are available in the US on bitrefill.com?",
     ],
     skill: {
-      prompt: "Install the skill from https://bitrefill.com/agents",
+      prompt:
+        "Run `npx -y skills add bitrefill/agents -y` to install the Bitrefill Skill",
       skillName: "Bitrefill Skill",
       url: "https://bitrefill.com/agents",
     },
@@ -730,7 +731,8 @@ const inspirationCategories: {
       "build a blog where readers unlock articles for 50 sats each",
     ],
     skill: {
-      prompt: "Install the skill from https://github.com/getAlby/builder-skill",
+      prompt:
+        "Run `npx -y skills add getAlby/builder-skill -y` to install the Builder Skill",
       skillName: "Builder Skill",
       url: "https://github.com/getAlby/builder-skill",
     },
@@ -744,7 +746,8 @@ const inspirationCategories: {
       "what's my node's connection info?",
     ],
     skill: {
-      prompt: "Install the skill from https://github.com/getAlby/hub-skill",
+      prompt:
+        "Run `npx -y skills add getAlby/hub-skill -y` to install the Alby Hub Skill",
       skillName: "Alby Hub Skill",
       url: "https://github.com/getAlby/hub-skill",
     },
