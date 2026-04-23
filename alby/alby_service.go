@@ -170,6 +170,11 @@ func (svc *albyService) GetChannelPeerSuggestions(ctx context.Context) ([]Channe
 		return nil, err
 	}
 
+	for i := range suggestions {
+		suggestions[i].MinimumChannelSizeSat = suggestions[i].MinimumChannelSize
+		suggestions[i].MaximumChannelSizeSat = suggestions[i].MaximumChannelSize
+	}
+
 	logger.Logger.WithFields(logrus.Fields{"channel_suggestions": suggestions}).Debug("Alby channel peer suggestions response")
 	return suggestions, nil
 }

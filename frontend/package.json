@@ -22,7 +22,7 @@
   "dependencies": {
     "@fontsource-variable/figtree": "^5.2.10",
     "@fontsource-variable/inter": "^5.2.8",
-    "@getalby/lightning-tools": "^6.0.0",
+    "@getalby/lightning-tools": "^8.1.0",
     "@getalby/sdk": "^7.0.0",
     "@scure/bip39": "^2.0.1",
     "@stepperize/react": "^6.1.0",
@@ -48,7 +48,7 @@
     "tailwind-merge": "^3.4.1",
     "tw-animate-css": "^1.3.5",
     "vaul": "^1.1.2",
-    "zustand": "^4.5.0"
+    "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.5.0",
@@ -59,7 +59,7 @@
     "@tailwindcss/forms": "^0.5.7",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.11",
-    "@types/node": "^25.3.3",
+    "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.0.0",
     "@types/react-lottie": "^1.2.10",
@@ -71,11 +71,11 @@
     "globals": "^17.4.0",
     "husky": "^9.0.11",
     "lint-staged": "^16.4.0",
-    "prettier": "3.8.1",
+    "prettier": "3.8.3",
     "shx": "^0.4.0",
     "tailwindcss": "^4.2.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.57.1",
+    "typescript-eslint": "^8.58.2",
     "vite": "^5.4.0",
     "vite-plugin-pwa": "^1.2.0",
     "vite-tsconfig-paths": "^6.1.1"

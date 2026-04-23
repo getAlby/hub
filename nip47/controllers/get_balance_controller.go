@@ -27,10 +27,10 @@ func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, ni
 		"request_event_id": requestEventId,
 	}).Debug("Getting balance")
 
-	balance := int64(0)
+	balanceMsat := int64(0)
 	if app.Isolated {
 		var err error
-		balance, err = queries.GetIsolatedBalance(controller.db, app.ID)
+		balanceMsat, err = queries.GetIsolatedBalanceMsat(controller.db, app.ID)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"request_event_id": requestEventId,
@@ -53,11 +53,11 @@ func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, ni
 			}, nostr.Tags{})
 			return
 		}
-		balance = balances.Lightning.TotalSpendable
+		balanceMsat = balances.Lightning.TotalSpendable
 	}
 
 	responsePayload := &getBalanceResponse{
-		Balance: balance,
+		Balance: balanceMsat,
 	}
 
 	// this is not part of the spec and does not seem to be used

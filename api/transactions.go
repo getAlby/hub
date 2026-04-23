@@ -12,12 +12,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (api *api) CreateInvoice(ctx context.Context, amount uint64, description string) (*MakeInvoiceResponse, error) {
+func (api *api) CreateInvoice(ctx context.Context, amountMsat uint64, description string) (*MakeInvoiceResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return nil, ErrLNClientNotStarted
 	}
-	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amount, description, "", 0, nil, lnClient, nil, nil, nil)
+	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, description, "", 0, nil, lnClient, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -121,8 +121,12 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 		Preimage:        preimage,
 		PaymentHash:     transaction.PaymentHash,
 		Amount:          transaction.AmountMsat,
+		AmountSat:       transaction.AmountMsat / 1000,
+		AmountMsat:      transaction.AmountMsat,
 		AppId:           transaction.AppId,
 		FeesPaid:        transaction.FeeMsat,
+		FeesPaidSat:     transaction.FeeMsat / 1000,
+		FeesPaidMsat:    transaction.FeeMsat,
 		UpdatedAt:       updatedAt,
 		CreatedAt:       createdAt,
 		SettledAt:       settledAt,
@@ -180,6 +184,7 @@ func toApiBoostagram(boostagram *transactions.Boostagram) *Boostagram {
 		SenderName:     boostagram.SenderName,
 		Time:           boostagram.Time,
 		Action:         boostagram.Action,
+		ValueSatTotal:  boostagram.ValueMsatTotal / 1000,
 		ValueMsatTotal: boostagram.ValueMsatTotal,
 	}
 }

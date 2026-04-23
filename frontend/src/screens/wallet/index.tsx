@@ -4,6 +4,7 @@ import {
   ArrowDownIcon,
   ArrowDownUpIcon,
   ArrowUpIcon,
+  CalendarSyncIcon,
   CreditCardIcon,
   ExternalLinkIcon,
   LightbulbIcon,
@@ -15,7 +16,7 @@ import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import TransactionsList from "src/components/TransactionsList";
-import { TransactionsListMenu } from "src/components/TransactionsListMenu";
+import { WalletActionsMenu } from "src/components/WalletActionsMenu";
 import {
   Alert,
   AlertDescription,
@@ -44,24 +45,38 @@ function Wallet() {
         pageTitle="Wallet"
         description=""
         contentRight={
-          <>
+          <div className="flex items-center gap-1 sm:gap-2">
+            {hasChannelManagement && (
+              <LinkButton
+                to="/wallet/swap"
+                variant="ghost"
+                size="sm"
+                className="hidden sm:inline-flex"
+              >
+                <ArrowDownUpIcon />
+                Swap
+              </LinkButton>
+            )}
             <LinkButton
-              to="/wallet/receive"
-              size="lg"
-              className="hidden xl:inline-flex !px-12"
+              to="/internal-apps/zapplanner"
+              variant="ghost"
+              size="sm"
+              className="hidden sm:inline-flex"
             >
-              <ArrowDownIcon />
-              Receive
+              <CalendarSyncIcon />
+              Recurring
             </LinkButton>
-            <LinkButton
-              to="/wallet/send"
-              size="lg"
-              className="hidden xl:inline-flex !px-12"
+            <ExternalLinkButton
+              to="https://www.getalby.com/topup"
+              variant="ghost"
+              size="sm"
+              className="hidden sm:inline-flex"
             >
-              <ArrowUpIcon />
-              Send
-            </LinkButton>
-          </>
+              <CreditCardIcon />
+              Buy
+            </ExternalLinkButton>
+            <WalletActionsMenu hasChannelManagement={!!hasChannelManagement} />
+          </div>
         }
       />
       {hasChannelManagement &&
@@ -101,43 +116,27 @@ function Wallet() {
           </AlertDescription>
         </Alert>
       )}
-      <div className="flex flex-col xl:flex-row justify-between xl:items-start gap-3">
-        <div className="flex flex-col gap-1 p-6 xl:p-0 text-center xl:text-left">
-          <div className="text-5xl font-medium balance sensitive slashed-zero">
+      <div className="flex flex-col items-center gap-8 py-10 md:py-14 text-center">
+        <div className="flex flex-col items-center gap-2">
+          <div className="text-5xl md:text-6xl font-medium balance sensitive slashed-zero">
             <FormattedBitcoinAmount
               amount={balances.lightning.totalSpendable}
             />
           </div>
           <FormattedFiatAmount
-            className="text-xl"
+            className="text-xl md:text-2xl"
             amount={balances.lightning.totalSpendable / 1000}
           />
         </div>
-        <div className="grid grid-cols-2 items-center gap-3 xl:hidden">
+        <div className="grid w-full max-w-md grid-cols-2 items-center gap-3">
           <LinkButton to="/wallet/receive" size="lg">
+            <ArrowDownIcon />
             Receive
           </LinkButton>
           <LinkButton to="/wallet/send" size="lg">
+            <ArrowUpIcon />
             Send
           </LinkButton>
-        </div>
-        <div className="flex items-center gap-3">
-          <ExternalLinkButton
-            to="https://www.getalby.com/topup"
-            variant="secondary"
-          >
-            <CreditCardIcon />
-            Buy Bitcoin
-          </ExternalLinkButton>
-          {hasChannelManagement && (
-            <LinkButton to="/wallet/swap" variant="secondary">
-              <ArrowDownUpIcon />
-              Swap
-            </LinkButton>
-          )}
-          <div>
-            <TransactionsListMenu />
-          </div>
         </div>
       </div>
 

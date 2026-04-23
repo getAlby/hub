@@ -45,9 +45,9 @@ func TestGetBudgetUsage_IncludesPendingAndSettledOutgoing(t *testing.T) {
 		FeeReserveMsat: 500,
 	}).Error)
 
-	budgetUsage, err := GetBudgetUsage(svc.DB, appPermission)
+	budgetUsageMsat, err := GetBudgetUsageMsat(svc.DB, appPermission)
 	require.NoError(t, err)
-	assert.Equal(t, uint64(79000), budgetUsage)
+	assert.Equal(t, uint64(79000), budgetUsageMsat)
 }
 
 func TestGetBudgetUsage_ExcludesWrongStateTypeAndApp(t *testing.T) {
@@ -104,9 +104,9 @@ func TestGetBudgetUsage_ExcludesWrongStateTypeAndApp(t *testing.T) {
 		FeeReserveMsat: 0,
 	}).Error)
 
-	budgetUsage, err := GetBudgetUsage(svc.DB, appPermission)
+	budgetUsageMsat, err := GetBudgetUsageMsat(svc.DB, appPermission)
 	require.NoError(t, err)
-	assert.Equal(t, uint64(21000), budgetUsage)
+	assert.Equal(t, uint64(21000), budgetUsageMsat)
 }
 
 func TestGetBudgetUsage_BudgetWindowDaily(t *testing.T) {
@@ -146,9 +146,9 @@ func TestGetBudgetUsage_BudgetWindowDaily(t *testing.T) {
 		CreatedAt:      dailyStart.Add(2 * time.Hour),
 	}).Error)
 
-	budgetUsage, err := GetBudgetUsage(svc.DB, appPermissionDaily)
+	budgetUsageMsat, err := GetBudgetUsageMsat(svc.DB, appPermissionDaily)
 	require.NoError(t, err)
-	assert.Equal(t, uint64(42000), budgetUsage)
+	assert.Equal(t, uint64(42000), budgetUsageMsat)
 }
 
 func TestGetBudgetUsage_BudgetWindowWeekly(t *testing.T) {
@@ -188,9 +188,9 @@ func TestGetBudgetUsage_BudgetWindowWeekly(t *testing.T) {
 		CreatedAt:      weeklyStart.Add(-1 * time.Hour),
 	}).Error)
 
-	budgetUsage, err := GetBudgetUsage(svc.DB, appPermissionWeekly)
+	budgetUsageMsat, err := GetBudgetUsageMsat(svc.DB, appPermissionWeekly)
 	require.NoError(t, err)
-	assert.Equal(t, uint64(11000), budgetUsage)
+	assert.Equal(t, uint64(11000), budgetUsageMsat)
 }
 
 func TestGetBudgetUsage_BudgetWindowNever(t *testing.T) {
@@ -228,7 +228,7 @@ func TestGetBudgetUsage_BudgetWindowNever(t *testing.T) {
 		CreatedAt:      time.Now().AddDate(-1, 0, 0),
 	}).Error)
 
-	budgetUsage, err := GetBudgetUsage(svc.DB, appPermission)
+	budgetUsageMsat, err := GetBudgetUsageMsat(svc.DB, appPermission)
 	require.NoError(t, err)
-	assert.Equal(t, uint64(11000), budgetUsage)
+	assert.Equal(t, uint64(11000), budgetUsageMsat)
 }

@@ -138,7 +138,10 @@ func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *R
 		Properties: map[string]interface{}{},
 	})
 
+	totalFeeMsat := uint64(paymentRequest.MSatoshi) + payRebalanceInvoiceResponse.FeeMsat - rebalanceChannelRequest.AmountSat*1000
+
 	return &RebalanceChannelResponse{
-		TotalFeeSat: uint64(paymentRequest.MSatoshi)/1000 + payRebalanceInvoiceResponse.FeeMsat/1000 - rebalanceChannelRequest.AmountSat,
+		TotalFeeSat:  totalFeeMsat / 1000,
+		TotalFeeMsat: totalFeeMsat,
 	}, nil
 }
