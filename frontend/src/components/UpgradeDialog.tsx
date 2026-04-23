@@ -1,14 +1,7 @@
-import {
-  LifeBuoyIcon,
-  MailIcon,
-  RefreshCwIcon,
-  SparklesIcon,
-  StarsIcon,
-  UsersIcon,
-  ZapIcon,
-} from "lucide-react";
+import { StarsIcon } from "lucide-react";
 import { ReactNode, useState } from "react";
 import { Badge } from "src/components/ui/badge";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +12,6 @@ import {
 import { DropdownMenuItem } from "src/components/ui/dropdown-menu";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
-import { ExternalLinkButton } from "./ui/custom/external-link-button";
 
 interface UpgradeDialogProps {
   children?: ReactNode;
@@ -95,81 +87,61 @@ export const UpgradeDialog = ({
       )}
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="flex flex-row gap-2 items-center">
-            <SparklesIcon className="size-6" />
-            Unlock Pro
-          </DialogTitle>
-          <DialogDescription>
-            Take your Alby Hub experience to the next level
+          <DialogTitle className="sr-only">Unlock Pro</DialogTitle>
+          <DialogDescription className="sr-only">
+            Upgrade to Alby Hub Pro to remove limits and unlock additional
+            features.
           </DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col gap-6 my-4">
-          <div className="space-y-5">
-            <h3 className="font-medium text-lg">Pro Features Include:</h3>
-            <ul className="space-y-3">
-              <li className="flex items-center">
-                <UsersIcon className="size-5 mr-3" />
-                <div>
-                  <span className="font-medium">Unlimited Sub-wallets</span>
-                  <p className="text-sm text-muted-foreground">
-                    Share with friends, family, coworkers
-                  </p>
-                </div>
-              </li>
-              {info?.backendType === "LDK" && (
-                <li className="flex items-center">
-                  <RefreshCwIcon className="size-5 mr-3" />
-                  <div>
-                    <span className="font-medium">
-                      Encrypted Remote Backups
-                    </span>
-                    <p className="text-sm text-muted-foreground">
-                      Secure wallet backups in the cloud
-                    </p>
-                  </div>
-                </li>
-              )}
-              <li className="flex items-center">
-                <LifeBuoyIcon className="size-5 mr-3" />
-                <div>
-                  <span className="font-medium">Priority Support</span>
-                  <p className="text-sm text-muted-foreground">
-                    Get help faster when you need it
-                  </p>
-                </div>
-              </li>
-              <li className="flex items-center">
-                <ZapIcon className="size-5 mr-3" />
-                <div>
-                  <span className="font-medium">Custom Lightning Address</span>
-                  <p className="text-sm text-muted-foreground">
-                    Create your personalized address
-                  </p>
-                </div>
-              </li>
-              <li className="flex items-center">
-                <MailIcon className="size-5 mr-3" />
-                <div>
-                  <span className="font-medium">Email Notifications</span>
-                  <p className="text-sm text-muted-foreground">
-                    Stay updated on important activity
-                  </p>
-                </div>
-              </li>
-            </ul>
+
+        <div className="flex flex-col px-1 pt-2">
+          <Badge variant="outline" className="w-fit">
+            <StarsIcon />
+            Pro
+          </Badge>
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight">
+            More wallets. Better backups. Less hassle.
+          </h2>
+          <div className="mt-4 flex flex-col">
+            <span className="text-5xl font-semibold leading-none tracking-tighter tabular-nums">
+              $3
+            </span>
+            <span className="mt-1 text-xs text-muted-foreground">
+              per month, billed yearly
+            </span>
           </div>
         </div>
-        <div className="flex-col gap-1">
+
+        <ul className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm">
+          {[
+            "Unlimited sub-wallets",
+            info.backendType === "LDK" && "Encrypted remote backups",
+            "Custom lightning address",
+            "Export transactions",
+            "Email notifications",
+            "Priority support",
+          ]
+            .filter((b): b is string => Boolean(b))
+            .map((benefit) => (
+              <li
+                key={benefit}
+                className="text-muted-foreground before:mr-2 before:text-foreground before:content-['·']"
+              >
+                {benefit}
+              </li>
+            ))}
+        </ul>
+
+        <div className="mt-5 space-y-2">
           <ExternalLinkButton
-            variant="premium"
             size="lg"
             className="w-full"
             to="https://www.getalby.com/subscription/pro"
           >
-            Upgrade Now
+            Upgrade to Pro · $3/mo
           </ExternalLinkButton>
-          <p className="text-xs text-center text-muted-foreground mt-2">
-            30 day money back guarantee • Cancel anytime
+          <p className="text-center text-xs text-muted-foreground">
+            30 day money back guarantee · Cancel anytime
           </p>
         </div>
       </DialogContent>
