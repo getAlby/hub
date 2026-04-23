@@ -48,6 +48,7 @@ function OnchainTransactionRow({
   const typeStateText = typeStateLabel(tx);
   const statusText = isPending ? "Pending" : "Confirmed";
   const createdAt = dayjs(tx.createdAt * 1000).local();
+  const subtitle = `${tx.txId.slice(0, 10)}…${tx.txId.slice(-8)}`;
 
   const icon = (
     <div className="flex items-center">
@@ -78,8 +79,6 @@ function OnchainTransactionRow({
       </div>
     </div>
   );
-
-  const subtitle = `${tx.txId.slice(0, 10)}…${tx.txId.slice(-8)}`;
 
   return (
     <Dialog>
