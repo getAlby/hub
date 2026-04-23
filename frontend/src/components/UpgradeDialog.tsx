@@ -96,16 +96,15 @@ export const UpgradeDialog = ({
         </DialogHeader>
 
         <div className="flex flex-col">
-          <Badge
-            variant="outline"
-            className="w-fit border-primary/40 bg-primary/10 text-foreground"
-          >
-            <SparklesIcon />
-            Pro
-          </Badge>
-
-          <h2 className="mt-4 text-xl font-semibold tracking-tight">
-            Do more with your Hub.
+          <h2 className="flex flex-wrap items-center gap-2 text-xl font-semibold tracking-tight">
+            Do more with your Hub
+            <Badge
+              variant="outline"
+              className="border-primary/40 bg-primary/10 text-foreground"
+            >
+              <SparklesIcon />
+              Pro
+            </Badge>
           </h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
             Unlock advanced features and help fund Alby's open-source work.
@@ -118,7 +117,7 @@ export const UpgradeDialog = ({
             <span className="text-sm text-muted-foreground">/ month</span>
           </div>
           <p className="mt-1 text-xs text-muted-foreground">
-            Billed $36 yearly · cancel anytime
+            Billed $36 yearly · bitcoin or fiat · cancel anytime
           </p>
         </div>
 
