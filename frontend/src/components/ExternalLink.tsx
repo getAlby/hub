@@ -15,7 +15,15 @@ export default function ExternalLink({ to, children, ...props }: Props) {
       {children}
     </Link>
   ) : (
-    <span {...props} onClick={() => openLink(to)}>
+    <span
+      {...props}
+      onClick={(e) => {
+        props.onClick?.(e);
+        if (!e.defaultPrevented) {
+          openLink(to);
+        }
+      }}
+    >
       {children}
     </span>
   );
