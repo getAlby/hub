@@ -1,25 +1,18 @@
 import {
   CheckIcon,
-  CoinsIcon,
   LockIcon,
   MonitorIcon,
   MoonIcon,
-  PaletteIcon,
   StarsIcon,
   SunIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import Loading from "src/components/Loading";
+import SettingsHeader from "src/components/SettingsHeader";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { Badge } from "src/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "src/components/ui/card";
 import { Label } from "src/components/ui/label";
+import { Separator } from "src/components/ui/separator";
 import {
   Select,
   SelectContent,
@@ -107,20 +100,20 @@ function Settings() {
 
   return (
     <>
-      <title>Settings · Alby Hub</title>
-      <div className="w-full flex flex-col gap-6">
-        {/* Theme & Appearance Section */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <PaletteIcon className="size-5 text-muted-foreground" />
-              <CardTitle>Appearance</CardTitle>
-            </div>
-            <CardDescription>
-              Customize how Alby Hub looks and feels.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
+      <SettingsHeader
+        pageTitle="Settings"
+        title="General"
+        description="Customize how Alby Hub looks and feels."
+      />
+      <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1 text-sm">
+            <h3 className="font-semibold">Appearance</h3>
+            <p className="text-muted-foreground">
+              Choose a theme and light/dark mode.
+            </p>
+          </div>
+          <div className="space-y-6">
             <div className="space-y-3">
               <Label>Theme</Label>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -217,19 +210,17 @@ function Settings() {
                 ))}
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Units & Currency Section */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <CoinsIcon className="size-5 text-muted-foreground" />
-              <CardTitle>Units & Currency</CardTitle>
-            </div>
-            <CardDescription>Choose how amounts are displayed.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
+          </div>
+        </div>
+        <Separator />
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1 text-sm">
+            <h3 className="font-semibold">Units & Currency</h3>
+            <p className="text-muted-foreground">
+              Choose how amounts are displayed.
+            </p>
+          </div>
+          <div className="space-y-4">
             <div className="grid gap-1.5">
               <Label htmlFor="bitcoinDisplayFormat">Display Unit</Label>
               <Select
@@ -274,8 +265,8 @@ function Settings() {
                 </SelectContent>
               </Select>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </>
   );
