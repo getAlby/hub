@@ -482,7 +482,7 @@ export default function Channels() {
                   {balances && (
                     <>
                       <div className="mb-1">
-                        <span className="mr-1 mb-1 text-xl font-medium balance sensitive">
+                        <span className="mr-1 text-xl font-medium balance sensitive">
                           <FormattedBitcoinAmount
                             amount={balances.onchain.spendable * 1000}
                           />
@@ -514,8 +514,7 @@ export default function Channels() {
                         amount={balances.onchain.spendable}
                         className="mb-1"
                       />
-                      {balances.onchain.spendable !==
-                        balances.onchain.total && (
+                      {balances.onchain.total > balances.onchain.spendable && (
                         <p className="text-xs text-muted-foreground animate-pulse">
                           +
                           <FormattedBitcoinAmount
