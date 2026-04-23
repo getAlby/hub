@@ -1,21 +1,26 @@
 import {
+  ArrowLeftRightIcon,
   Link2OffIcon,
-  RefreshCcwIcon,
+  MailIcon,
   SquareArrowOutUpRightIcon,
+  ZapIcon,
 } from "lucide-react";
 
 import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
+import UserAvatar from "src/components/UserAvatar";
 import { Button } from "src/components/ui/button";
+import { Card, CardContent } from "src/components/ui/card";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
-import { Separator } from "src/components/ui/separator";
 import { UnlinkAlbyAccount } from "src/components/UnlinkAlbyAccount";
+import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 
 export function AlbyAccount() {
   const { data: info } = useInfo();
+  const { data: albyMe } = useAlbyMe();
 
-  if (!info) {
+  if (!info || !albyMe) {
     return <Loading />;
   }
 
@@ -24,67 +29,81 @@ export function AlbyAccount() {
       <SettingsHeader
         pageTitle="Alby Account"
         title="Alby Account"
-        description="Manage your Alby Account."
+        description="Manage the Alby Account linked to your Hub."
       />
       <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1 text-sm">
-            <h3 className="font-semibold">Manage Alby Account</h3>
-            <p className="text-muted-foreground">
-              Manage your Alby Account settings such as lightning address or
-              notifications on getalby.com
-            </p>
-          </div>
-          <div>
+        <Card>
+          <CardContent className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4 min-w-0">
+              <UserAvatar className="h-14 w-14" />
+              <div className="flex flex-col min-w-0">
+                <span className="font-semibold truncate">
+                  {albyMe.name || albyMe.email}
+                </span>
+                {albyMe.name && albyMe.email && (
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground min-w-0">
+                    <MailIcon className="size-4 shrink-0" />
+                    <span className="truncate">{albyMe.email}</span>
+                  </div>
+                )}
+                {albyMe.lightning_address && (
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground min-w-0">
+                    <ZapIcon className="size-4 shrink-0" />
+                    <span className="truncate">{albyMe.lightning_address}</span>
+                  </div>
+                )}
+              </div>
+            </div>
             <ExternalLinkButton
-              size={"lg"}
-              variant={"secondary"}
+              variant="outline"
+              size="sm"
               to="https://getalby.com/settings"
-              className="flex-1 gap-2 items-center justify-center"
+              className="gap-2 shrink-0"
             >
-              Alby Account Settings <SquareArrowOutUpRightIcon />
+              Manage on getalby.com <SquareArrowOutUpRightIcon />
             </ExternalLinkButton>
-          </div>
-        </div>
-        <Separator />
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1 text-sm">
-            <h3 className="font-semibold">Change Alby Account</h3>
-            <p className="text-muted-foreground">
-              Link your Hub to a different Alby Account
-            </p>
-          </div>
-          <div>
-            <UnlinkAlbyAccount
-              navigateTo="/alby/auth?force_login=true"
-              successMessage="Please login with another Alby Account"
-            >
-              <Button
-                size="lg"
-                variant="destructive"
-                className="flex-1 gap-2 items-center justify-center py-2 px-4"
+          </CardContent>
+        </Card>
+
+        <div className="flex flex-col gap-3">
+          <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+            Danger Zone
+          </h3>
+          <Card className="border-destructive/40">
+            <CardContent className="flex items-center justify-between gap-4">
+              <div className="flex flex-col gap-1 text-sm min-w-0">
+                <h3 className="font-semibold">Switch Alby Account</h3>
+                <p className="text-muted-foreground">
+                  Disconnects this account, then prompts you to sign in with
+                  another.
+                </p>
+              </div>
+              <UnlinkAlbyAccount
+                navigateTo="/alby/auth?force_login=true"
+                successMessage="Please login with another Alby Account"
               >
-                <RefreshCcwIcon /> Change Alby Account
-              </Button>
-            </UnlinkAlbyAccount>
-          </div>
-        </div>
-        <Separator />
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1 text-sm">
-            <h3 className="font-semibold">Unlink Alby Account</h3>
-            <p className="text-muted-foreground">
-              Use your Alby Hub without an Alby Account.
-            </p>
-          </div>
-          <div>
-            <UnlinkAlbyAccount>
-              <Button size="lg" variant="destructive">
-                <Link2OffIcon />
-                Unlink Alby Account
-              </Button>
-            </UnlinkAlbyAccount>
-          </div>
+                <Button variant="outline" className="gap-2 shrink-0">
+                  <ArrowLeftRightIcon /> Switch Account
+                </Button>
+              </UnlinkAlbyAccount>
+            </CardContent>
+            <div className="border-t" />
+            <CardContent className="flex items-center justify-between gap-4">
+              <div className="flex flex-col gap-1 text-sm min-w-0">
+                <h3 className="font-semibold">Disconnect Alby Account</h3>
+                <p className="text-muted-foreground">
+                  Stops lightning address, notifications, and subscription
+                  payments.
+                </p>
+              </div>
+              <UnlinkAlbyAccount>
+                <Button variant="destructive" className="gap-2 shrink-0">
+                  <Link2OffIcon />
+                  Disconnect
+                </Button>
+              </UnlinkAlbyAccount>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </>
