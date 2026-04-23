@@ -1,4 +1,4 @@
-import { StarsIcon } from "lucide-react";
+import { CheckIcon, SparklesIcon, StarsIcon } from "lucide-react";
 import { ReactNode, useState } from "react";
 import { Badge } from "src/components/ui/badge";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "src/components/ui/dialog";
 import { DropdownMenuItem } from "src/components/ui/dropdown-menu";
+import { Separator } from "src/components/ui/separator";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 
@@ -87,32 +88,43 @@ export const UpgradeDialog = ({
       )}
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="sr-only">Unlock Pro</DialogTitle>
+          <DialogTitle className="sr-only">Upgrade to Pro</DialogTitle>
           <DialogDescription className="sr-only">
-            Upgrade to Alby Hub Pro to remove limits and unlock additional
-            features.
+            Upgrade to Alby Hub Pro to unlock advanced features and help fund
+            Alby's open-source work.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col px-1 pt-2">
-          <Badge variant="outline" className="w-fit">
-            <StarsIcon />
+        <div className="flex flex-col">
+          <Badge
+            variant="outline"
+            className="w-fit border-primary/40 bg-primary/10 text-foreground"
+          >
+            <SparklesIcon />
             Pro
           </Badge>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight">
-            More wallets. Better backups. Less hassle.
+
+          <h2 className="mt-4 text-xl font-semibold tracking-tight">
+            Do more with your Hub.
           </h2>
-          <div className="mt-4 flex flex-col">
-            <span className="text-5xl font-semibold leading-none tracking-tighter tabular-nums">
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            Unlock advanced features and help fund Alby's open-source work.
+          </p>
+
+          <div className="mt-5 flex items-baseline gap-1.5">
+            <span className="text-4xl font-semibold tracking-tight tabular-nums">
               $3
             </span>
-            <span className="mt-1 text-xs text-muted-foreground">
-              per month, billed yearly
-            </span>
+            <span className="text-sm text-muted-foreground">/ month</span>
           </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Billed $36 yearly · cancel anytime
+          </p>
         </div>
 
-        <ul className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm">
+        <Separator />
+
+        <ul className="grid gap-2.5 text-sm">
           {[
             "Unlimited sub-wallets",
             info.backendType === "LDK" && "Encrypted remote backups",
@@ -123,25 +135,28 @@ export const UpgradeDialog = ({
           ]
             .filter((b): b is string => Boolean(b))
             .map((benefit) => (
-              <li
-                key={benefit}
-                className="text-muted-foreground before:mr-2 before:text-foreground before:content-['·']"
-              >
-                {benefit}
+              <li key={benefit} className="flex items-center gap-2.5">
+                <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-primary/15">
+                  <CheckIcon
+                    className="size-3 text-foreground/70"
+                    strokeWidth={2.5}
+                  />
+                </span>
+                <span>{benefit}</span>
               </li>
             ))}
         </ul>
 
-        <div className="mt-5 space-y-2">
+        <div className="mt-2 space-y-2.5">
           <ExternalLinkButton
             size="lg"
             className="w-full"
             to="https://www.getalby.com/subscription/pro"
           >
-            Upgrade to Pro · $3/mo
+            Upgrade to Pro
           </ExternalLinkButton>
           <p className="text-center text-xs text-muted-foreground">
-            30 day money back guarantee · Cancel anytime
+            30-day money-back guarantee
           </p>
         </div>
       </DialogContent>
