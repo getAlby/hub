@@ -21,6 +21,7 @@ import React from "react";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
 import { AppOfTheDayWidget } from "src/components/home/widgets/AppOfTheDayWidget";
 import { BlockHeightWidget } from "src/components/home/widgets/BlockHeightWidget";
+import { DailyStreakWidget } from "src/components/home/widgets/DailyStreakWidget";
 import { ForwardsWidget } from "src/components/home/widgets/ForwardsWidget";
 import { LatestUsedAppsWidget } from "src/components/home/widgets/LatestUsedAppsWidget";
 import { LightningMessageboardWidget } from "src/components/home/widgets/LightningMessageboardWidget";
@@ -68,6 +69,7 @@ function Home() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start justify-start">
         {/* LEFT */}
         <div className="grid gap-3">
+          <DailyStreakWidget />
           <OnboardingChecklist />
           <WhatsNewWidget />
           <SupportAlbyWidget />
