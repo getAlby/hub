@@ -11,6 +11,7 @@ import EmptyState from "src/components/EmptyState";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import { Button } from "src/components/ui/button";
+import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +26,6 @@ import { useOnchainTransactions } from "src/hooks/useOnchainTransactions";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
 import { OnchainTransaction } from "src/types";
-import { openLink } from "src/utils/openLink";
 
 dayjs.extend(relativeTime);
 
@@ -192,13 +192,10 @@ function OnchainTransactionRow({
           </div>
         </div>
         <DialogFooter>
-          <Button
-            type="button"
-            onClick={() => openLink(`${mempoolUrl}/tx/${tx.txId}`)}
-          >
+          <ExternalLinkButton to={`${mempoolUrl}/tx/${tx.txId}`}>
             <ExternalLinkIcon className="size-4" />
             View on Mempool
-          </Button>
+          </ExternalLinkButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>
