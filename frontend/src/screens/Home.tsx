@@ -12,7 +12,6 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import OnboardingChecklist from "src/screens/wallet/OnboardingChecklist";
@@ -31,25 +30,9 @@ import { SupportAlbyWidget } from "src/components/home/widgets/SupportAlbyWidget
 import { WhatsNewWidget } from "src/components/home/widgets/WhatsNewWidget";
 import { SearchInput } from "src/components/ui/search-input";
 
-function getGreeting(name: string | undefined) {
-  const hours = new Date().getHours();
-  let greeting;
-
-  if (hours < 11) {
-    greeting = "Good Morning";
-  } else if (hours < 16) {
-    greeting = "Good Afternoon";
-  } else {
-    greeting = "Good Evening";
-  }
-
-  return `${greeting}${name ? `, ${name}` : ""}!`;
-}
-
 function Home() {
   const { data: info } = useInfo();
   const { data: balances } = useBalances();
-  const { data: albyMe } = useAlbyMe();
   const [isNerd, setNerd] = React.useState(false);
   /* eslint-disable  @typescript-eslint/no-explicit-any */
   const extensionInstalled = (window as any).alby !== undefined;
@@ -61,8 +44,7 @@ function Home() {
   return (
     <>
       <AppHeader
-        title={getGreeting(albyMe?.name)}
-        pageTitle="Home"
+        title="Home"
         contentRight={<SearchInput placeholder="Search" />}
       />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start justify-start">
