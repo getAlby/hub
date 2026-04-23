@@ -65,15 +65,14 @@ function Home() {
         pageTitle="Home"
         contentRight={<SearchInput placeholder="Search" />}
       />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start justify-start">
-        {/* LEFT */}
-        <div className="grid gap-3">
-          <OnboardingChecklist />
-          <WhatsNewWidget />
-          <SupportAlbyWidget />
-          <LatestUsedAppsWidget />
-          <NewArrivalsWidget />
-          <AppOfTheDayWidget />
+      <div className="columns-1 lg:columns-2 gap-3 *:mb-3 *:break-inside-avoid">
+        <OnboardingChecklist />
+        <WhatsNewWidget />
+        <LatestUsedAppsWidget />
+        <NewArrivalsWidget />
+        <AppOfTheDayWidget />
+        <SupportAlbyWidget />
+        <div className="flex flex-col gap-3">
           {info.albyAccountConnected && (
             <ExternalLink to="https://www.getalby.com/dashboard">
               <Card>
@@ -104,7 +103,6 @@ function Home() {
               </Card>
             </ExternalLink>
           )}
-
           <Link to="/appstore/alby-go">
             <Card>
               <CardHeader>
@@ -161,32 +159,27 @@ function Home() {
             </ExternalLink>
           )}
         </div>
-
-        {/* RIGHT */}
-        <div className="grid gap-3">
-          <LightningMessageboardWidget />
-
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>Stats for nerds</CardTitle>
-                <Button variant="secondary" onClick={() => setNerd(!isNerd)}>
-                  {isNerd ? "Hide" : "Show"}
-                </Button>
+        <LightningMessageboardWidget />
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle>Stats for nerds</CardTitle>
+              <Button variant="secondary" onClick={() => setNerd(!isNerd)}>
+                {isNerd ? "Hide" : "Show"}
+              </Button>
+            </div>
+          </CardHeader>
+          {isNerd && (
+            <CardContent>
+              <div className="grid gap-3">
+                <NodeStatusWidget />
+                <BlockHeightWidget />
+                <OnchainFeesWidget />
+                <ForwardsWidget />
               </div>
-            </CardHeader>
-            {isNerd && (
-              <CardContent>
-                <div className="grid gap-3">
-                  <NodeStatusWidget />
-                  <BlockHeightWidget />
-                  <OnchainFeesWidget />
-                  <ForwardsWidget />
-                </div>
-              </CardContent>
-            )}
-          </Card>
-        </div>
+            </CardContent>
+          )}
+        </Card>
       </div>
     </>
   );
