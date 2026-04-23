@@ -30,7 +30,7 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useCurrencies } from "src/hooks/useCurrencies";
 import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";
-import { ThemePreview } from "src/screens/settings/ThemePreview";
+import { ThemePreview } from "src/components/ThemePreview";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
