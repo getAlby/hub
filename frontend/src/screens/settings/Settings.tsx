@@ -6,6 +6,7 @@ import {
   StarsIcon,
   SunIcon,
 } from "lucide-react";
+import React from "react";
 import { toast } from "sonner";
 import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
@@ -37,6 +38,7 @@ function Settings() {
   const { data: albyMe } = useAlbyMe();
   const { theme, darkMode, setTheme, setDarkMode } = useTheme();
   const { currencies, isLoading: isCurrenciesLoading } = useCurrencies();
+  const [showUpgradeDialog, setShowUpgradeDialog] = React.useState(false);
 
   const { data: info, mutate: reloadInfo } = useInfo();
 
@@ -77,7 +79,7 @@ function Settings() {
     );
   }
 
-  if (!info) {
+  if (!info || (info.albyAccountConnected && !albyMe)) {
     return <Loading />;
   }
 
@@ -115,34 +117,39 @@ function Settings() {
           </div>
           <div className="space-y-6">
             <div className="space-y-3">
-              <Label>Theme</Label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              <Label id="theme-label">Theme</Label>
+              <div
+                role="radiogroup"
+                aria-labelledby="theme-label"
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"
+              >
                 {Themes.map((t) => {
                   const isPaidTheme = paidThemes.includes(t);
                   const isDisabled = isPaidTheme && !hasPlan;
                   const isSelected = theme === t;
 
-                  const themeCard = (
+                  return (
                     <button
                       key={t}
                       type="button"
-                      aria-pressed={isSelected}
-                      aria-disabled={isDisabled || undefined}
-                      onClick={
-                        isDisabled
-                          ? undefined
-                          : () => {
-                              setTheme(t);
-                              toast("Theme updated.");
-                            }
-                      }
+                      role="radio"
+                      aria-checked={isSelected}
+                      onClick={() => {
+                        if (isDisabled) {
+                          setShowUpgradeDialog(true);
+                          return;
+                        }
+                        setTheme(t);
+                        toast("Theme updated.");
+                      }}
                       className={cn(
-                        "group relative flex flex-col rounded-lg border-2 text-left transition-all cursor-pointer w-full overflow-hidden",
-                        "hover:border-primary/50",
+                        "group relative flex flex-col rounded-lg border-2 text-left transition-all w-full overflow-hidden hover:border-primary/50",
                         isSelected
                           ? "border-primary ring-2 ring-primary/20"
                           : "border-border",
-                        isDisabled && "opacity-50 hover:border-border"
+                        isDisabled
+                          ? "cursor-not-allowed opacity-60 hover:border-border"
+                          : "cursor-pointer"
                       )}
                     >
                       <ThemePreview theme={t} />
@@ -175,30 +182,33 @@ function Settings() {
                       )}
                     </button>
                   );
-
-                  if (isDisabled) {
-                    return <UpgradeDialog key={t}>{themeCard}</UpgradeDialog>;
-                  }
-
-                  return themeCard;
                 })}
               </div>
+              <UpgradeDialog
+                open={showUpgradeDialog}
+                onOpenChange={setShowUpgradeDialog}
+              />
             </div>
 
             <div className="space-y-3">
-              <Label>Appearance</Label>
-              <div className="inline-flex rounded-lg border bg-muted p-1 gap-1">
+              <Label id="dark-mode-label">Appearance</Label>
+              <div
+                role="radiogroup"
+                aria-labelledby="dark-mode-label"
+                className="inline-flex rounded-lg border bg-muted p-1 gap-1"
+              >
                 {darkModeOptions.map((option) => (
                   <button
                     key={option.value}
                     type="button"
-                    aria-pressed={darkMode === option.value}
+                    role="radio"
+                    aria-checked={darkMode === option.value}
                     onClick={() => {
                       setDarkMode(option.value);
                       toast("Appearance updated.");
                     }}
                     className={cn(
-                      "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all",
+                      "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all cursor-pointer",
                       darkMode === option.value
                         ? "bg-background text-foreground shadow-sm"
                         : "text-muted-foreground hover:text-foreground"

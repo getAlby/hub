@@ -6,7 +6,7 @@ export function ThemePreview({ theme }: { theme: Theme }) {
   const darkClass = isDarkMode ? "dark" : "";
 
   return (
-    <div className={cn("theme-default", darkClass)}>
+    <div aria-hidden="true" className={cn("theme-default", darkClass)}>
       <div
         className={cn(
           `theme-${theme}`,
