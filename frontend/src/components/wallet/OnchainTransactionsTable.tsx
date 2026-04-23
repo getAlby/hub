@@ -79,10 +79,7 @@ function OnchainTransactionRow({
     </div>
   );
 
-  const subtitle =
-    tx.txId.length > 22
-      ? `${tx.txId.slice(0, 10)}…${tx.txId.slice(-8)}`
-      : tx.txId;
+  const subtitle = `${tx.txId.slice(0, 10)}…${tx.txId.slice(-8)}`;
 
   return (
     <Dialog>
