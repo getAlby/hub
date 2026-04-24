@@ -254,7 +254,7 @@ require (
 )
 
 require (
-	github.com/BoltzExchange/boltz-client/v2 v2.11.2
+	github.com/BoltzExchange/boltz-client/v2 v2.11.3
 	github.com/btcsuite/btcd/btcec/v2 v2.3.6
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0
 	github.com/decred/dcrd/crypto/blake256 v1.1.0 // indirect
