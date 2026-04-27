@@ -48,6 +48,7 @@ type API interface {
 	SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}) (*SendPaymentResponse, error)
 	CreateInvoice(ctx context.Context, amountMsat uint64, description string) (*MakeInvoiceResponse, error)
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
+	SetTransactionUserLabels(ctx context.Context, paymentHash string, labels map[string]string) error
 	RequestMempoolApi(ctx context.Context, endpoint string) (interface{}, error)
 	GetInfo(ctx context.Context) (*InfoResponse, error)
 	GetMnemonic(unlockPassword string) (*MnemonicResponse, error)
@@ -380,6 +381,10 @@ type BalancesResponse = lnclient.BalancesResponse
 type SendPaymentResponse = Transaction
 type MakeInvoiceResponse = Transaction
 type LookupInvoiceResponse = Transaction
+
+type SetTransactionUserLabelsRequest struct {
+	Labels map[string]string `json:"labels"`
+}
 
 type ListTransactionsResponse struct {
 	TotalCount   uint64        `json:"totalCount"`

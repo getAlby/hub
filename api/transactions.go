@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -34,6 +35,56 @@ func (api *api) LookupInvoice(ctx context.Context, paymentHash string) (*LookupI
 		return nil, err
 	}
 	return toApiTransaction(transaction), nil
+}
+
+const (
+	userLabelKeyMaxLength   = 64
+	userLabelValueMaxLength = 1000
+)
+
+func (api *api) SetTransactionUserLabels(ctx context.Context, paymentHash string, labels map[string]string) error {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
+		return ErrLNClientNotStarted
+	}
+
+	cleaned := map[string]string{}
+	for key, value := range labels {
+		key = strings.TrimSpace(key)
+		value = strings.TrimSpace(value)
+		if key == "" || value == "" {
+			continue
+		}
+		if len(key) > userLabelKeyMaxLength {
+			return fmt.Errorf("label key too long (max %d): %q", userLabelKeyMaxLength, key)
+		}
+		if len(value) > userLabelValueMaxLength {
+			return fmt.Errorf("label value too long (max %d) for key %q", userLabelValueMaxLength, key)
+		}
+		cleaned[key] = value
+	}
+
+	transactionsService := api.svc.GetTransactionsService()
+
+	transaction, err := transactionsService.LookupTransaction(ctx, paymentHash, nil, lnClient, nil)
+	if err != nil {
+		return err
+	}
+
+	merged := map[string]interface{}{}
+	if transaction.Metadata != nil {
+		if jsonErr := json.Unmarshal(transaction.Metadata, &merged); jsonErr != nil {
+			return fmt.Errorf("failed to decode existing metadata: %w", jsonErr)
+		}
+	}
+
+	if len(cleaned) == 0 {
+		delete(merged, "user_label")
+	} else {
+		merged["user_label"] = cleaned
+	}
+
+	return transactionsService.SetTransactionMetadata(ctx, transaction.ID, merged)
 }
 
 func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error) {

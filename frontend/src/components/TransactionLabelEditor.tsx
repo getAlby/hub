@@ -20,7 +20,8 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialLabels: Record<string, string> | undefined;
-  onSave: (labels: Record<string, string>) => void;
+  saving?: boolean;
+  onSave: (labels: Record<string, string>) => void | Promise<void>;
 };
 
 type Row = { key: string; value: string };
@@ -48,6 +49,7 @@ function TransactionLabelEditor({
   open,
   onOpenChange,
   initialLabels,
+  saving,
   onSave,
 }: Props) {
   const [rows, setRows] = React.useState<Row[]>(() => toRows(initialLabels));
@@ -74,7 +76,6 @@ function TransactionLabelEditor({
 
   const handleSave = () => {
     onSave(rowsToLabels(rows));
-    onOpenChange(false);
   };
 
   return (
@@ -130,11 +131,12 @@ function TransactionLabelEditor({
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
+            disabled={saving}
           >
             Cancel
           </Button>
-          <Button type="button" onClick={handleSave}>
-            Save
+          <Button type="button" onClick={handleSave} disabled={saving}>
+            {saving ? "Saving..." : "Save"}
           </Button>
         </DialogFooter>
       </DialogContent>

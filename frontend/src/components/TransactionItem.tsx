@@ -15,6 +15,8 @@ import {
 import { nip19 } from "nostr-tools";
 import React from "react";
 import { Link } from "react-router";
+import { toast } from "sonner";
+import { useSWRConfig } from "swr";
 import AppAvatar from "src/components/AppAvatar";
 import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
@@ -37,6 +39,7 @@ import { useSwap } from "src/hooks/useSwaps";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn, getAppDisplayName } from "src/lib/utils";
 import { Transaction } from "src/types";
+import { request } from "src/utils/request";
 
 dayjs.extend(utc);
 
@@ -66,11 +69,11 @@ function TransactionItem({ tx }: Props) {
   const { data: app } = useApp(tx.appId);
   const swapId = tx.metadata?.swap_id;
   const { data: swap } = useSwap(swapId);
+  const { mutate } = useSWRConfig();
   const [showDetails, setShowDetails] = React.useState(false);
-  const [labels, setLabels] = React.useState<Record<string, string>>(
-    tx.metadata?.user_label ?? {}
-  );
   const [labelEditorOpen, setLabelEditorOpen] = React.useState(false);
+  const [savingLabels, setSavingLabels] = React.useState(false);
+  const labels = tx.metadata?.user_label ?? {};
   const labelEntries = Object.entries(labels);
   const type = tx.type;
 
@@ -521,10 +524,29 @@ function TransactionItem({ tx }: Props) {
         open={labelEditorOpen}
         onOpenChange={setLabelEditorOpen}
         initialLabels={labels}
-        onSave={(updated) => {
-          // TODO(#2058): persist via PATCH /api/transactions/:paymentHash/label
-          console.info("save labels", tx.paymentHash, updated);
-          setLabels(updated);
+        saving={savingLabels}
+        onSave={async (updated) => {
+          setSavingLabels(true);
+          try {
+            await request(`/api/transactions/${tx.paymentHash}/label`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ labels: updated }),
+            });
+            await mutate(
+              (key) =>
+                typeof key === "string" && key.startsWith("/api/transactions"),
+              undefined,
+              { revalidate: true }
+            );
+            toast("Labels saved");
+            setLabelEditorOpen(false);
+          } catch (error) {
+            console.error(error);
+            toast.error("Failed to save labels", { description: "" + error });
+          } finally {
+            setSavingLabels(false);
+          }
         }}
       />
     </Dialog>
