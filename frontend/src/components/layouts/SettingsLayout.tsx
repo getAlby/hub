@@ -5,9 +5,9 @@ import AppHeader from "src/components/AppHeader";
 import { useInfo } from "src/hooks/useInfo";
 
 import {
-  CloudBackupIcon,
   ArrowRightLeftIcon,
   BugIcon,
+  CloudBackupIcon,
   CodeIcon,
   FingerprintIcon,
   InfoIcon,
@@ -214,23 +214,14 @@ export const MenuItem = ({
     to={to}
     className={({ isActive }) =>
       cn(
-        "relative flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors",
-        isActive
-          ? "bg-muted text-foreground"
-          : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+        "relative flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm transition-colors text-foreground",
+        isActive ? "bg-muted font-medium" : "hover:bg-muted/50"
       )
     }
   >
-    {({ isActive }) => (
+    {() => (
       <>
-        {Icon && (
-          <Icon
-            className={cn(
-              "size-5 shrink-0",
-              isActive ? "text-primary" : "text-muted-foreground"
-            )}
-          />
-        )}
+        {Icon && <Icon className="size-4 shrink-0 text-foreground" />}
         {children}
       </>
     )}
