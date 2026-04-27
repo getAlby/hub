@@ -44,7 +44,7 @@ type CLNService struct {
 	cancel         context.CancelFunc
 }
 
-func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, address, lightningDir, addressHold string) (lnclient.LNClient, error) {
+func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, address, lightningDir, addressHold string) (lnclient lnclient.LNClient, err error) {
 	logger.Logger.WithFields(logrus.Fields{
 		"address":      address,
 		"lightningDir": lightningDir,
@@ -72,6 +72,7 @@ func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, ad
 	ctx, cancel := context.WithCancel(ctx)
 
 	var connHold *grpc.ClientConn
+	var tlsConfigHold *tls.Config
 
 	defer func() {
 		if err != nil {
@@ -96,7 +97,7 @@ func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, ad
 
 	// Cln hold plugin grpc client
 	if addressHold != "" {
-		tlsConfigHold, err := loadTLSCredentials(lightningDir, "hold")
+		tlsConfigHold, err = loadTLSCredentials(lightningDir, "hold")
 		if err != nil {
 			return nil, fmt.Errorf("failed to load hold pluginTLS credentials: %w", err)
 		}
@@ -113,9 +114,6 @@ func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, ad
 
 		clientHold := clngrpcHold.NewHoldClient(connHold)
 
-		svc.connHold = connHold
-		svc.clientHold = clientHold
-
 		logger.Logger.Info("Testing CLN hold plugin gRPC connection")
 		_, err = svc.clientHold.List(ctx, &clngrpcHold.ListRequest{Constraint: &clngrpcHold.ListRequest_Pagination_{
 			Pagination: &clngrpcHold.ListRequest_Pagination{
@@ -128,6 +126,9 @@ func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, ad
 			logger.Logger.WithError(err).Error("Failed to connect to CLN hold plugin")
 			return nil, fmt.Errorf("failed to connect to CLN hold plugin: %w", err)
 		}
+
+		svc.connHold = connHold
+		svc.clientHold = clientHold
 		svc.holdEnabled = true
 		logger.Logger.Info("Successfully connected to CLN hold plugin via gRPC")
 
