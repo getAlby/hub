@@ -10,11 +10,11 @@ import {
   DialogTitle,
 } from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
-
-const SUGGESTED_KEYS = ["description", "counterparty", "account", "type"];
+import { useLabelKeySuggestions } from "src/hooks/useLabelKeySuggestions";
 
 const KEY_MAX_LENGTH = 64;
 const VALUE_MAX_LENGTH = 1000;
+const KEY_SUGGESTIONS_LIST_ID = "transaction-label-key-suggestions";
 
 type Props = {
   open: boolean;
@@ -28,7 +28,7 @@ type Row = { key: string; value: string };
 
 function toRows(labels: Record<string, string> | undefined): Row[] {
   if (!labels || Object.keys(labels).length === 0) {
-    return SUGGESTED_KEYS.map((key) => ({ key, value: "" }));
+    return [{ key: "", value: "" }];
   }
   return Object.entries(labels).map(([key, value]) => ({ key, value }));
 }
@@ -53,6 +53,7 @@ function TransactionLabelEditor({
   onSave,
 }: Props) {
   const [rows, setRows] = React.useState<Row[]>(() => toRows(initialLabels));
+  const keySuggestions = useLabelKeySuggestions();
 
   React.useEffect(() => {
     if (open) {
@@ -88,6 +89,13 @@ function TransactionLabelEditor({
             or finding payments later.
           </DialogDescription>
         </DialogHeader>
+        {keySuggestions.length > 0 && (
+          <datalist id={KEY_SUGGESTIONS_LIST_ID}>
+            {keySuggestions.map((key) => (
+              <option key={key} value={key} />
+            ))}
+          </datalist>
+        )}
         <div className="flex flex-col gap-3">
           {rows.map((row, index) => (
             <div key={index} className="flex items-center gap-2">
@@ -95,6 +103,11 @@ function TransactionLabelEditor({
                 placeholder="key"
                 value={row.key}
                 maxLength={KEY_MAX_LENGTH}
+                list={
+                  keySuggestions.length > 0
+                    ? KEY_SUGGESTIONS_LIST_ID
+                    : undefined
+                }
                 onChange={(e) => updateRow(index, { key: e.target.value })}
                 className="w-1/3"
               />
