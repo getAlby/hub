@@ -1208,7 +1208,7 @@ func (c *CLNService) ListOnchainTransactions(ctx context.Context) ([]lnclient.On
 func (c *CLNService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
 	resp, err := c.client.ListPeers(ctx, &clngrpc.ListpeersRequest{})
 	if err != nil {
-		return nil, fmt.Errorf("listpeerchannels failed: %w", err)
+		return nil, fmt.Errorf("listpeers failed: %w", err)
 	}
 
 	peers := make([]lnclient.PeerDetails, 0, len(resp.Peers))
