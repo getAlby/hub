@@ -168,6 +168,8 @@ function NewChannelInternal({
   function onSubmit(e: FormEvent) {
     e.preventDefault();
     try {
+      const nextOrder: Partial<LightningOrder> = { ...order };
+
       if (!showAdvanced) {
         if (!channelPeerSuggestions) {
           throw new Error("Channel Peer suggestions not loaded");
@@ -187,18 +189,15 @@ function NewChannelInternal({
           });
           return;
         }
-        order.paymentMethod = "lightning";
-        if (
-          order.paymentMethod !== "lightning" ||
-          bestPartner.paymentMethod !== "lightning"
-        ) {
-          throw new Error("Unexpected order or partner payment method");
+        nextOrder.paymentMethod = "lightning";
+        if (bestPartner.paymentMethod !== "lightning") {
+          throw new Error("Unexpected partner payment method");
         }
-        order.lspType = bestPartner.type;
-        order.lspIdentifier = bestPartner.identifier;
+        nextOrder.lspType = bestPartner.type;
+        nextOrder.lspIdentifier = bestPartner.identifier;
       }
 
-      useChannelOrderStore.getState().setOrder(order as NewChannelOrder);
+      useChannelOrderStore.getState().setOrder(nextOrder as NewChannelOrder);
       navigate("/channels/order");
     } catch (error) {
       toast.error("Something went wrong", {
