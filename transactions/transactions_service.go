@@ -1370,7 +1370,9 @@ func (svc *transactionsService) SetTransactionMetadata(ctx context.Context, id u
 		return fmt.Errorf("encoded invoice metadata provided is too large. Limit: %d Received: %d", constants.INVOICE_METADATA_MAX_LENGTH, len(metadataBytes))
 	}
 
-	err = svc.db.Model(&db.Transaction{}).Where("id", id).Update("metadata", datatypes.JSON(metadataBytes)).Error
+	// UpdateColumn so we don't bump updated_at — metadata edits (e.g. user
+	// labels) shouldn't reorder the transaction in the list.
+	err = svc.db.Model(&db.Transaction{}).Where("id", id).UpdateColumn("metadata", datatypes.JSON(metadataBytes)).Error
 	if err != nil {
 		logger.Logger.WithError(err).WithField("metadata", metadata).Error("Failed to update transaction metadata")
 		return err

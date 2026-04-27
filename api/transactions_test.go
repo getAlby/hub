@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -138,6 +139,29 @@ func TestSetTransactionUserLabels_RejectsLongKey(t *testing.T) {
 	})
 	require.Error(t, err)
 	assert.Contains(t, err.Error(), "key too long")
+}
+
+func TestSetTransactionUserLabels_DoesNotBumpUpdatedAt(t *testing.T) {
+	a, svc, dbTx := setupAPIWithTransaction(t, nil)
+	defer svc.Remove()
+
+	// Force the transaction's updated_at to a known past time. Reload to
+	// capture exactly what the DB rounded the timestamp to.
+	pastTime := time.Now().Add(-24 * time.Hour)
+	require.NoError(t, svc.DB.Model(&db.Transaction{}).Where("id", dbTx.ID).UpdateColumn("updated_at", pastTime).Error)
+	var beforeRow db.Transaction
+	require.NoError(t, svc.DB.First(&beforeRow, dbTx.ID).Error)
+
+	err := a.SetTransactionUserLabels(context.TODO(), dbTx.PaymentHash, map[string]string{
+		"description": "late annotation",
+	})
+	require.NoError(t, err)
+
+	var afterRow db.Transaction
+	require.NoError(t, svc.DB.First(&afterRow, dbTx.ID).Error)
+	assert.True(t, beforeRow.UpdatedAt.Equal(afterRow.UpdatedAt),
+		"updated_at must not change when only metadata is edited (was %s, now %s)",
+		beforeRow.UpdatedAt, afterRow.UpdatedAt)
 }
 
 func TestSetTransactionUserLabels_RejectsLongValue(t *testing.T) {
