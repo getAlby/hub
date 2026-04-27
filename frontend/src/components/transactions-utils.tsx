@@ -3,32 +3,51 @@ import { LIST_TRANSACTIONS_LIMIT } from "src/constants";
 import { ListTransactionsResponse, Transaction } from "src/types";
 import { request } from "src/utils/request";
 
+const LABEL_COLUMN_PREFIX = "label_";
+
+const escapeCsvCell = (raw: string) => {
+  // prevent CSV injection: prefix cells starting with =, +, -, @ with a quote
+  const safe = /^[\t\r ]*[=+\-@]/.test(raw) ? `'${raw}` : raw;
+  return `"${safe.replaceAll('"', '""')}"`;
+};
+
+const stringifyCell = (value: unknown) => {
+  if (value === undefined || value === null) {
+    return "";
+  }
+  return typeof value === "object" ? JSON.stringify(value) : String(value);
+};
+
 export const convertToCSV = (transactions: Transaction[]) => {
   if (!transactions.length) {
     return "";
   }
 
-  // Get headers from all transactions
-  const headers = Object.keys(transactions[0]);
-  const csvHeaders = headers.join(",");
+  const baseHeaders = Object.keys(transactions[0]);
 
-  // Convert each transaction to CSV row
+  // Collect the union of all user_label keys across the export so each one
+  // becomes its own column. Sorted for stable output between exports.
+  const labelKeys = Array.from(
+    new Set(
+      transactions.flatMap((tx) =>
+        tx.metadata?.user_label ? Object.keys(tx.metadata.user_label) : []
+      )
+    )
+  ).sort();
+  const labelHeaders = labelKeys.map((key) => `${LABEL_COLUMN_PREFIX}${key}`);
+
+  const csvHeaders = [...baseHeaders, ...labelHeaders]
+    .map(escapeCsvCell)
+    .join(",");
+
   const csvRows = transactions.map((tx) => {
-    return headers
-      .map((header) => {
-        const value = tx[header as keyof typeof tx];
-        if (value === undefined || value === null) {
-          return "";
-        }
-        const stringValue =
-          typeof value === "object" ? JSON.stringify(value) : String(value);
-        const safeValue = /^[\t\r ]*[=+\-@]/.test(stringValue)
-          ? `'${stringValue}`
-          : stringValue;
-        // based on https://stackoverflow.com/a/68146412
-        return `"${safeValue.replaceAll('"', '""')}"`; // escape double quotes
-      })
-      .join(",");
+    const baseCells = baseHeaders.map((header) =>
+      escapeCsvCell(stringifyCell(tx[header as keyof typeof tx]))
+    );
+    const labelCells = labelKeys.map((key) =>
+      escapeCsvCell(stringifyCell(tx.metadata?.user_label?.[key]))
+    );
+    return [...baseCells, ...labelCells].join(",");
   });
 
   return [csvHeaders, ...csvRows].join("\n");
