@@ -1657,21 +1657,6 @@ func (api *api) GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesR
 	}, nil
 }
 
-func (api *api) SendPaymentProbes(ctx context.Context, sendPaymentProbesRequest *SendPaymentProbesRequest) (*SendPaymentProbesResponse, error) {
-	lnClient := api.svc.GetLNClient()
-	if lnClient == nil {
-		return nil, ErrLNClientNotStarted
-	}
-
-	var errMessage string
-	err := lnClient.SendPaymentProbes(ctx, sendPaymentProbesRequest.Invoice)
-	if err != nil {
-		errMessage = err.Error()
-	}
-
-	return &SendPaymentProbesResponse{Error: errMessage}, nil
-}
-
 func (api *api) MigrateNodeStorage(ctx context.Context, to string) error {
 	if api.svc.GetLNClient() == nil {
 		return ErrLNClientNotStarted
@@ -1696,27 +1681,6 @@ func (api *api) MigrateNodeStorage(ctx context.Context, to string) error {
 	api.cfg.SetUpdate("LdkVssEnabled", "true", "")
 	api.cfg.SetUpdate("LdkMigrateStorage", "VSS", "")
 	return api.Stop()
-}
-
-func (api *api) SendSpontaneousPaymentProbes(ctx context.Context, sendSpontaneousPaymentProbesRequest *SendSpontaneousPaymentProbesRequest) (*SendSpontaneousPaymentProbesResponse, error) {
-	amountMsat := uint64(0)
-	resolvedAmountMsat := ResolveToMsat(sendSpontaneousPaymentProbesRequest.AmountSat, sendSpontaneousPaymentProbesRequest.AmountMsat, nil, sendSpontaneousPaymentProbesRequest.Amount)
-	if resolvedAmountMsat != nil {
-		amountMsat = *resolvedAmountMsat
-	}
-
-	lnClient := api.svc.GetLNClient()
-	if lnClient == nil {
-		return nil, ErrLNClientNotStarted
-	}
-
-	var errMessage string
-	err := lnClient.SendSpontaneousPaymentProbes(ctx, amountMsat, sendSpontaneousPaymentProbesRequest.NodeId)
-	if err != nil {
-		errMessage = err.Error()
-	}
-
-	return &SendSpontaneousPaymentProbesResponse{Error: errMessage}, nil
 }
 
 func (api *api) GetNetworkGraph(ctx context.Context, nodeIds []string) (NetworkGraphResponse, error) {

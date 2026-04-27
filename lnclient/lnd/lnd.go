@@ -1326,14 +1326,6 @@ func (svc *LNDService) SignMessage(ctx context.Context, message string) (string,
 	return resp.Signature, nil
 }
 
-func (svc *LNDService) SendPaymentProbes(ctx context.Context, invoice string) error {
-	return nil
-}
-
-func (svc *LNDService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
-	return nil
-}
-
 func (svc *LNDService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
 	resp, err := svc.client.ListPeers(ctx, &lnrpc.ListPeersRequest{})
 	if err != nil {

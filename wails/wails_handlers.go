@@ -884,48 +884,6 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/send-payment-probes":
-		sendPaymentProbesRequest := &api.SendPaymentProbesRequest{}
-		err := json.Unmarshal([]byte(body), sendPaymentProbesRequest)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"route":  route,
-				"method": method,
-				"body":   body,
-			}).WithError(err).Error("Failed to decode request to wails router")
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-		}
-		sendPaymentProbesResponse, err := app.api.SendPaymentProbes(ctx, sendPaymentProbesRequest)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"route":  route,
-				"method": method,
-				"body":   body,
-			}).WithError(err).Error("Failed to send payment probes")
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-		}
-		return WailsRequestRouterResponse{Body: sendPaymentProbesResponse, Error: ""}
-	case "/api/send-spontaneous-payment-probes":
-		sendSpontaneousPaymentProbesRequest := &api.SendSpontaneousPaymentProbesRequest{}
-		err := json.Unmarshal([]byte(body), sendSpontaneousPaymentProbesRequest)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"route":  route,
-				"method": method,
-				"body":   body,
-			}).WithError(err).Error("Failed to decode request to wails router")
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-		}
-		sendSpontaneousPaymentProbesResponse, err := app.api.SendSpontaneousPaymentProbes(ctx, sendSpontaneousPaymentProbesRequest)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"route":  route,
-				"method": method,
-				"body":   body,
-			}).WithError(err).Error("Failed to send spontaneous payment probes")
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-		}
-		return WailsRequestRouterResponse{Body: sendSpontaneousPaymentProbesResponse, Error: ""}
 	case "/api/backup":
 		backupRequest := &api.BasicBackupRequest{}
 		err := json.Unmarshal([]byte(body), backupRequest)

@@ -186,8 +186,6 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	fullAccessApiGroup.POST("/offers", httpSvc.makeOfferHandler)
 	fullAccessApiGroup.POST("/reset-router", httpSvc.resetRouterHandler)
 	fullAccessApiGroup.POST("/stop", httpSvc.stopHandler)
-	fullAccessApiGroup.POST("/send-payment-probes", httpSvc.sendPaymentProbesHandler)
-	fullAccessApiGroup.POST("/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler)
 	fullAccessApiGroup.POST("/command", httpSvc.execCustomNodeCommandHandler)
 	fullAccessApiGroup.POST("/swaps/out", httpSvc.initiateSwapOutHandler)
 	fullAccessApiGroup.POST("/swaps/in", httpSvc.initiateSwapInHandler)
@@ -1268,42 +1266,6 @@ func (httpSvc *HttpService) setupHandler(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
-}
-
-func (httpSvc *HttpService) sendPaymentProbesHandler(c echo.Context) error {
-	var sendPaymentProbesRequest api.SendPaymentProbesRequest
-	if err := c.Bind(&sendPaymentProbesRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Message: fmt.Sprintf("Bad request: %s", err.Error()),
-		})
-	}
-
-	sendPaymentProbesResponse, err := httpSvc.api.SendPaymentProbes(c.Request().Context(), &sendPaymentProbesRequest)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to send payment probes: %v", err),
-		})
-	}
-
-	return c.JSON(http.StatusOK, sendPaymentProbesResponse)
-}
-
-func (httpSvc *HttpService) sendSpontaneousPaymentProbesHandler(c echo.Context) error {
-	var sendSpontaneousPaymentProbesRequest api.SendSpontaneousPaymentProbesRequest
-	if err := c.Bind(&sendSpontaneousPaymentProbesRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Message: fmt.Sprintf("Bad request: %s", err.Error()),
-		})
-	}
-
-	sendSpontaneousPaymentProbesResponse, err := httpSvc.api.SendSpontaneousPaymentProbes(c.Request().Context(), &sendSpontaneousPaymentProbesRequest)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to send spontaneous payment probes: %v", err),
-		})
-	}
-
-	return c.JSON(http.StatusOK, sendSpontaneousPaymentProbesResponse)
 }
 
 func (httpSvc *HttpService) getLogOutputHandler(c echo.Context) error {

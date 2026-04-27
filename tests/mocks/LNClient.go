@@ -1885,63 +1885,6 @@ func (_c *MockLNClient_SendKeysend_Call) RunAndReturn(run func(amountMsat uint64
 	return _c
 }
 
-// SendPaymentProbes provides a mock function for the type MockLNClient
-func (_mock *MockLNClient) SendPaymentProbes(ctx context.Context, invoice string) error {
-	ret := _mock.Called(ctx, invoice)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SendPaymentProbes")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = returnFunc(ctx, invoice)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockLNClient_SendPaymentProbes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SendPaymentProbes'
-type MockLNClient_SendPaymentProbes_Call struct {
-	*mock.Call
-}
-
-// SendPaymentProbes is a helper method to define mock.On call
-//   - ctx context.Context
-//   - invoice string
-func (_e *MockLNClient_Expecter) SendPaymentProbes(ctx interface{}, invoice interface{}) *MockLNClient_SendPaymentProbes_Call {
-	return &MockLNClient_SendPaymentProbes_Call{Call: _e.mock.On("SendPaymentProbes", ctx, invoice)}
-}
-
-func (_c *MockLNClient_SendPaymentProbes_Call) Run(run func(ctx context.Context, invoice string)) *MockLNClient_SendPaymentProbes_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		run(
-			arg0,
-			arg1,
-		)
-	})
-	return _c
-}
-
-func (_c *MockLNClient_SendPaymentProbes_Call) Return(err error) *MockLNClient_SendPaymentProbes_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *MockLNClient_SendPaymentProbes_Call) RunAndReturn(run func(ctx context.Context, invoice string) error) *MockLNClient_SendPaymentProbes_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // SendPaymentSync provides a mock function for the type MockLNClient
 func (_mock *MockLNClient) SendPaymentSync(payReq string, amountMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
 	ret := _mock.Called(payReq, amountMsat)
@@ -2006,69 +1949,6 @@ func (_c *MockLNClient_SendPaymentSync_Call) Return(payInvoiceResponse *lnclient
 }
 
 func (_c *MockLNClient_SendPaymentSync_Call) RunAndReturn(run func(payReq string, amountMsat *uint64) (*lnclient.PayInvoiceResponse, error)) *MockLNClient_SendPaymentSync_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// SendSpontaneousPaymentProbes provides a mock function for the type MockLNClient
-func (_mock *MockLNClient) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
-	ret := _mock.Called(ctx, amountMsat, nodeId)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SendSpontaneousPaymentProbes")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, string) error); ok {
-		r0 = returnFunc(ctx, amountMsat, nodeId)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockLNClient_SendSpontaneousPaymentProbes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SendSpontaneousPaymentProbes'
-type MockLNClient_SendSpontaneousPaymentProbes_Call struct {
-	*mock.Call
-}
-
-// SendSpontaneousPaymentProbes is a helper method to define mock.On call
-//   - ctx context.Context
-//   - amountMsat uint64
-//   - nodeId string
-func (_e *MockLNClient_Expecter) SendSpontaneousPaymentProbes(ctx interface{}, amountMsat interface{}, nodeId interface{}) *MockLNClient_SendSpontaneousPaymentProbes_Call {
-	return &MockLNClient_SendSpontaneousPaymentProbes_Call{Call: _e.mock.On("SendSpontaneousPaymentProbes", ctx, amountMsat, nodeId)}
-}
-
-func (_c *MockLNClient_SendSpontaneousPaymentProbes_Call) Run(run func(ctx context.Context, amountMsat uint64, nodeId string)) *MockLNClient_SendSpontaneousPaymentProbes_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 uint64
-		if args[1] != nil {
-			arg1 = args[1].(uint64)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-		)
-	})
-	return _c
-}
-
-func (_c *MockLNClient_SendSpontaneousPaymentProbes_Call) Return(err error) *MockLNClient_SendSpontaneousPaymentProbes_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *MockLNClient_SendSpontaneousPaymentProbes_Call) RunAndReturn(run func(ctx context.Context, amountMsat uint64, nodeId string) error) *MockLNClient_SendSpontaneousPaymentProbes_Call {
 	_c.Call.Return(run)
 	return _c
 }

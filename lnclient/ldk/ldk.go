@@ -1452,14 +1452,6 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 	}, nil
 }
 
-func (ls *LDKService) SendPaymentProbes(ctx context.Context, invoice string) error {
-	return errors.ErrUnsupported
-}
-
-func (ls *LDKService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
-	return errors.ErrUnsupported
-}
-
 func (ls *LDKService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
 	peers := ls.node.ListPeers()
 	ret := make([]lnclient.PeerDetails, 0, len(peers))

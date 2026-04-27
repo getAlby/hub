@@ -54,8 +54,6 @@ type API interface {
 	SetNextBackupReminder(backupReminderRequest *BackupReminderRequest) error
 	Start(startRequest *StartRequest)
 	Setup(ctx context.Context, setupRequest *SetupRequest) error
-	SendPaymentProbes(ctx context.Context, sendPaymentProbesRequest *SendPaymentProbesRequest) (*SendPaymentProbesResponse, error)
-	SendSpontaneousPaymentProbes(ctx context.Context, sendSpontaneousPaymentProbesRequest *SendSpontaneousPaymentProbesRequest) (*SendSpontaneousPaymentProbesResponse, error)
 	GetNetworkGraph(ctx context.Context, nodeIds []string) (NetworkGraphResponse, error)
 	SyncWallet() error
 	GetLogOutput(ctx context.Context, logType string, getLogRequest *GetLogOutputRequest) (*GetLogOutputResponse, error)
@@ -440,26 +438,6 @@ type Boostagram struct {
 	Action         string `json:"action"`
 	ValueSatTotal  int64  `json:"valueSatTotal"`
 	ValueMsatTotal int64  `json:"valueMsatTotal"`
-}
-
-// debug api
-type SendPaymentProbesRequest struct {
-	Invoice string `json:"invoice"`
-}
-
-type SendPaymentProbesResponse struct {
-	Error string `json:"error"`
-}
-
-type SendSpontaneousPaymentProbesRequest struct {
-	Amount     *uint64 `json:"amount"` // deprecated
-	AmountSat  *uint64 `json:"amountSat"`
-	AmountMsat *uint64 `json:"amountMsat"`
-	NodeId     string  `json:"nodeId"`
-}
-
-type SendSpontaneousPaymentProbesResponse struct {
-	Error string `json:"error"`
 }
 
 const (

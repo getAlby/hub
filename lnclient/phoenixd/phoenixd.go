@@ -412,14 +412,6 @@ func (svc *PhoenixService) SignMessage(ctx context.Context, message string) (str
 	return "", errors.New("not implemented")
 }
 
-func (svc *PhoenixService) SendPaymentProbes(ctx context.Context, invoice string) error {
-	return nil
-}
-
-func (svc *PhoenixService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
-	return nil
-}
-
 func (svc *PhoenixService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
 	return nil, nil
 }

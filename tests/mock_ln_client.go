@@ -199,12 +199,6 @@ func (mln *MockLn) RedeemOnchainFunds(ctx context.Context, toAddress string, amo
 func (mln *MockLn) ResetRouter(key string) error {
 	return nil
 }
-func (mln *MockLn) SendPaymentProbes(ctx context.Context, invoice string) error {
-	return nil
-}
-func (mln *MockLn) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
-	return nil
-}
 func (mln *MockLn) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
 	return nil, nil
 }
