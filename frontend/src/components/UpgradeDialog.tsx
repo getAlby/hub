@@ -86,10 +86,10 @@ export const UpgradeDialog = ({
           {children}
         </span>
       )}
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle className="sr-only">Upgrade to Pro</DialogTitle>
-          <DialogDescription className="sr-only">
+      <DialogContent className="md:max-w-md">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Upgrade to Pro</DialogTitle>
+          <DialogDescription>
             Upgrade to Alby Hub Pro to unlock advanced features and help fund
             Alby's open-source work.
           </DialogDescription>
