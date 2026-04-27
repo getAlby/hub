@@ -71,7 +71,7 @@ function TransactionItem({ tx }: Props) {
   const { data: swap } = useSwap(swapId);
   const { mutate } = useSWRConfig();
   const [showDetails, setShowDetails] = React.useState(false);
-  const [labelEditorOpen, setLabelEditorOpen] = React.useState(false);
+  const [editingLabels, setEditingLabels] = React.useState(false);
   const [savingLabels, setSavingLabels] = React.useState(false);
   const labels = tx.metadata?.user_label ?? {};
   const labelEntries = Object.entries(labels);
@@ -183,6 +183,7 @@ function TransactionItem({ tx }: Props) {
       onOpenChange={(open) => {
         if (!open) {
           setShowDetails(false);
+          setEditingLabels(false);
         }
       }}
     >
@@ -204,25 +205,16 @@ function TransactionItem({ tx }: Props) {
               <span className="text-xs md:text-base text-muted-foreground shrink-0">
                 {dayjs(tx.updatedAt).fromNow()}
               </span>
+              {labelEntries.length > 0 && (
+                <TagIcon
+                  className="size-3 text-muted-foreground shrink-0"
+                  aria-label={`${labelEntries.length} label${labelEntries.length === 1 ? "" : "s"}`}
+                />
+              )}
             </div>
             <p className="text-sm md:text-base text-muted-foreground break-all line-clamp-1">
               {description}
             </p>
-            {labelEntries.length > 0 && (
-              <div className="flex items-center gap-1 mt-1 flex-wrap">
-                {labelEntries.slice(0, 2).map(([key, value]) => (
-                  <Badge key={key} variant="secondary" className="font-normal">
-                    <span className="text-muted-foreground">{key}:</span>
-                    <span className="ml-1">{value}</span>
-                  </Badge>
-                ))}
-                {labelEntries.length > 2 && (
-                  <Badge variant="secondary" className="font-normal">
-                    +{labelEntries.length - 2}
-                  </Badge>
-                )}
-              </div>
-            )}
           </div>
           <div className="flex ml-auto space-x-3 shrink-0">
             <div className="flex flex-col items-end md:text-xl">
@@ -367,26 +359,63 @@ function TransactionItem({ tx }: Props) {
             <div className="mt-6">
               <div className="flex items-center justify-between">
                 <p>Labels</p>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setLabelEditorOpen(true)}
-                >
-                  {labelEntries.length > 0 ? (
-                    <>
-                      <PencilIcon className="size-3" />
-                      Edit
-                    </>
-                  ) : (
-                    <>
-                      <TagIcon className="size-3" />
-                      Add labels
-                    </>
-                  )}
-                </Button>
+                {!editingLabels && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setEditingLabels(true)}
+                  >
+                    {labelEntries.length > 0 ? (
+                      <>
+                        <PencilIcon className="size-3" />
+                        Edit
+                      </>
+                    ) : (
+                      <>
+                        <TagIcon className="size-3" />
+                        Add labels
+                      </>
+                    )}
+                  </Button>
+                )}
               </div>
-              {labelEntries.length > 0 ? (
+              {editingLabels ? (
+                <TransactionLabelEditor
+                  initialLabels={labels}
+                  saving={savingLabels}
+                  onCancel={() => setEditingLabels(false)}
+                  onSave={async (updated) => {
+                    setSavingLabels(true);
+                    try {
+                      await request(
+                        `/api/transactions/${tx.paymentHash}/label`,
+                        {
+                          method: "PATCH",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ labels: updated }),
+                        }
+                      );
+                      await mutate(
+                        (key) =>
+                          typeof key === "string" &&
+                          key.startsWith("/api/transactions"),
+                        undefined,
+                        { revalidate: true }
+                      );
+                      toast("Labels saved");
+                      setEditingLabels(false);
+                    } catch (error) {
+                      console.error(error);
+                      toast.error("Failed to save labels", {
+                        description: "" + error,
+                      });
+                    } finally {
+                      setSavingLabels(false);
+                    }
+                  }}
+                />
+              ) : labelEntries.length > 0 ? (
                 <div className="flex items-center gap-1 mt-2 flex-wrap">
                   {labelEntries.map(([key, value]) => (
                     <Badge
@@ -520,35 +549,6 @@ function TransactionItem({ tx }: Props) {
           </DialogDescription>
         </DialogHeader>
       </DialogContent>
-      <TransactionLabelEditor
-        open={labelEditorOpen}
-        onOpenChange={setLabelEditorOpen}
-        initialLabels={labels}
-        saving={savingLabels}
-        onSave={async (updated) => {
-          setSavingLabels(true);
-          try {
-            await request(`/api/transactions/${tx.paymentHash}/label`, {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ labels: updated }),
-            });
-            await mutate(
-              (key) =>
-                typeof key === "string" && key.startsWith("/api/transactions"),
-              undefined,
-              { revalidate: true }
-            );
-            toast("Labels saved");
-            setLabelEditorOpen(false);
-          } catch (error) {
-            console.error(error);
-            toast.error("Failed to save labels", { description: "" + error });
-          } finally {
-            setSavingLabels(false);
-          }
-        }}
-      />
     </Dialog>
   );
 }
