@@ -1,8 +1,16 @@
+import {
+  CheckIcon,
+  LockIcon,
+  MonitorIcon,
+  MoonIcon,
+  StarsIcon,
+  SunIcon,
+} from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
-import { StarsIcon } from "lucide-react";
+import { ThemePreview } from "src/components/ThemePreview";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { Badge } from "src/components/ui/badge";
 import { Label } from "src/components/ui/label";
@@ -13,12 +21,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "src/components/ui/select";
-import {
-  DarkMode,
-  Theme,
-  Themes,
-  useTheme,
-} from "src/components/ui/theme-provider";
+import { Separator } from "src/components/ui/separator";
+import { Tabs, TabsList, TabsTrigger } from "src/components/ui/tabs";
+import { DarkMode, Themes, useTheme } from "src/components/ui/theme-provider";
 import {
   BITCOIN_DISPLAY_FORMAT_BIP177,
   BITCOIN_DISPLAY_FORMAT_SATS,
@@ -26,6 +31,7 @@ import {
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useCurrencies } from "src/hooks/useCurrencies";
 import { useInfo } from "src/hooks/useInfo";
+import { cn } from "src/lib/utils";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
@@ -81,84 +87,137 @@ function Settings() {
   const paidThemes = ["matrix", "ghibli", "claymorphism"];
   const hasPlan = !!albyMe?.subscription.plan_code;
 
+  const darkModeOptions: {
+    value: DarkMode;
+    icon: React.ReactNode;
+    label: string;
+  }[] = [
+    { value: "light", icon: <SunIcon className="size-4" />, label: "Light" },
+    { value: "dark", icon: <MoonIcon className="size-4" />, label: "Dark" },
+    {
+      value: "system",
+      icon: <MonitorIcon className="size-4" />,
+      label: "System",
+    },
+  ];
+
   return (
     <>
       <SettingsHeader
-        title="General"
         pageTitle="Settings"
-        description="General Alby Hub settings."
+        title="General"
+        description="Customize how Alby Hub looks and feels."
       />
-      <form className="w-full flex flex-col gap-8">
-        {/* Theme & Appearance Section */}
-        <div className="space-y-4">
-          <h3 className="text-xl font-medium">Appearance</h3>
-          <div className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="theme">Theme</Label>
-              <Select
-                value={theme}
-                onValueChange={(value) => {
-                  if (paidThemes.includes(value) && !hasPlan) {
-                    setShowUpgradeDialog(true);
-                    return;
-                  }
-                  setTheme(value as Theme);
-                  toast("Theme updated.");
-                }}
+      <div className="flex flex-col gap-6 pb-10">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1 text-sm">
+            <h3 className="font-semibold">Appearance</h3>
+            <p className="text-muted-foreground">
+              Choose a theme and light/dark mode.
+            </p>
+          </div>
+          <div className="space-y-6">
+            <div className="space-y-3">
+              <Label id="theme-label">Theme</Label>
+              <div
+                role="radiogroup"
+                aria-labelledby="theme-label"
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"
               >
-                <SelectTrigger className="w-full md:w-60">
-                  <SelectValue placeholder="Theme" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Themes.map((theme) => {
-                    const isPaidTheme = paidThemes.includes(theme);
+                {Themes.map((t) => {
+                  const isPaidTheme = paidThemes.includes(t);
+                  const isDisabled = isPaidTheme && !hasPlan;
+                  const isSelected = theme === t;
 
-                    return (
-                      <SelectItem key={theme} value={theme}>
-                        <div className="flex items-center justify-between gap-2 w-full">
-                          <span className="capitalize">{theme}</span>
-                          {isPaidTheme && (
-                            <Badge variant="outline">
-                              <StarsIcon />
-                              Pro
-                            </Badge>
-                          )}
+                  return (
+                    <button
+                      key={t}
+                      type="button"
+                      role="radio"
+                      aria-checked={isSelected}
+                      onClick={() => {
+                        if (isDisabled) {
+                          setShowUpgradeDialog(true);
+                          return;
+                        }
+                        setTheme(t);
+                        toast("Theme updated.");
+                      }}
+                      className={cn(
+                        "group relative flex flex-col rounded-lg border-2 text-left transition-all w-full overflow-hidden hover:border-primary/50",
+                        isSelected
+                          ? "border-primary ring-2 ring-primary/20"
+                          : "border-border",
+                        isDisabled
+                          ? "cursor-not-allowed opacity-60 hover:border-border"
+                          : "cursor-pointer"
+                      )}
+                    >
+                      <ThemePreview theme={t} />
+                      <div className="flex items-center justify-center gap-1.5 py-1.5 px-1">
+                        <span className="text-xs font-medium capitalize truncate">
+                          {t}
+                        </span>
+                        {isPaidTheme && (
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] px-1 py-0"
+                          >
+                            <StarsIcon className="size-2.5" />
+                            Pro
+                          </Badge>
+                        )}
+                      </div>
+                      {isSelected && (
+                        <div className="absolute top-1.5 right-1.5 size-4 rounded-full bg-primary flex items-center justify-center">
+                          <CheckIcon className="size-2.5 text-primary-foreground" />
                         </div>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
+                      )}
+                      {isDisabled && (
+                        <div className="absolute top-1.5 right-1.5 size-4 rounded-full bg-background flex items-center justify-center">
+                          <LockIcon className="size-2.5 text-foreground" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
               <UpgradeDialog
                 open={showUpgradeDialog}
                 onOpenChange={setShowUpgradeDialog}
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="appearance">Appearance</Label>
-              <Select
-                value={darkMode}
-                onValueChange={(value) => {
-                  setDarkMode(value as DarkMode);
-                  toast("Appearance updated.");
-                }}
-              >
-                <SelectTrigger className="w-full md:w-60">
-                  <SelectValue placeholder="Appearance" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="system">System</SelectItem>
-                  <SelectItem value="light">Light</SelectItem>
-                  <SelectItem value="dark">Dark</SelectItem>
-                </SelectContent>
-              </Select>
+
+            <div className="space-y-3">
+              <Label id="dark-mode-label">Mode</Label>
+              <Tabs value={darkMode}>
+                <TabsList>
+                  {darkModeOptions.map((option) => (
+                    <TabsTrigger
+                      value={option.value}
+                      onClick={() => {
+                        setDarkMode(option.value);
+                        toast("Appearance updated.");
+                      }}
+                      className="px-3"
+                    >
+                      {option.icon}
+                      {option.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
             </div>
           </div>
         </div>
-
-        {/* Units & Currency Section */}
-        <div className="space-y-4">
-          <h3 className="text-xl font-medium">Units & Currency</h3>
+        <Separator />
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1 text-sm">
+            <h3 className="font-semibold">Units & Currency</h3>
+            <p className="text-muted-foreground">
+              Choose how amounts are displayed.
+            </p>
+          </div>
           <div className="space-y-4">
             <div className="grid gap-1.5">
               <Label htmlFor="bitcoinDisplayFormat">Display Unit</Label>
@@ -206,7 +265,7 @@ function Settings() {
             </div>
           </div>
         </div>
-      </form>
+      </div>
     </>
   );
 }
