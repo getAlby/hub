@@ -10,10 +10,10 @@ import React from "react";
 import { toast } from "sonner";
 import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
+import { ThemePreview } from "src/components/ThemePreview";
 import { UpgradeDialog } from "src/components/UpgradeDialog";
 import { Badge } from "src/components/ui/badge";
 import { Label } from "src/components/ui/label";
-import { Separator } from "src/components/ui/separator";
 import {
   Select,
   SelectContent,
@@ -21,6 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "src/components/ui/select";
+import { Separator } from "src/components/ui/separator";
+import { Tabs, TabsList, TabsTrigger } from "src/components/ui/tabs";
 import { DarkMode, Themes, useTheme } from "src/components/ui/theme-provider";
 import {
   BITCOIN_DISPLAY_FORMAT_BIP177,
@@ -30,7 +32,6 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useCurrencies } from "src/hooks/useCurrencies";
 import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";
-import { ThemePreview } from "src/components/ThemePreview";
 import { handleRequestError } from "src/utils/handleRequestError";
 import { request } from "src/utils/request";
 
@@ -79,7 +80,7 @@ function Settings() {
     );
   }
 
-  if (!info || (info.albyAccountConnected && !albyMe)) {
+  if (!info) {
     return <Loading />;
   }
 
@@ -107,7 +108,7 @@ function Settings() {
         title="General"
         description="Customize how Alby Hub looks and feels."
       />
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-6 pb-10">
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1 text-sm">
             <h3 className="font-semibold">Appearance</h3>
@@ -153,7 +154,6 @@ function Settings() {
                       )}
                     >
                       <ThemePreview theme={t} />
-                      {/* Label */}
                       <div className="flex items-center justify-center gap-1.5 py-1.5 px-1">
                         <span className="text-xs font-medium capitalize truncate">
                           {t}
@@ -168,16 +168,14 @@ function Settings() {
                           </Badge>
                         )}
                       </div>
-                      {/* Selected indicator */}
                       {isSelected && (
                         <div className="absolute top-1.5 right-1.5 size-4 rounded-full bg-primary flex items-center justify-center">
                           <CheckIcon className="size-2.5 text-primary-foreground" />
                         </div>
                       )}
-                      {/* Locked indicator */}
                       {isDisabled && (
-                        <div className="absolute inset-0 rounded-lg flex items-center justify-center bg-background/50">
-                          <LockIcon className="size-4 text-muted-foreground" />
+                        <div className="absolute top-1.5 right-1.5 size-4 rounded-full bg-background flex items-center justify-center">
+                          <LockIcon className="size-2.5 text-foreground" />
                         </div>
                       )}
                     </button>
@@ -191,34 +189,24 @@ function Settings() {
             </div>
 
             <div className="space-y-3">
-              <Label id="dark-mode-label">Appearance</Label>
-              <div
-                role="radiogroup"
-                aria-labelledby="dark-mode-label"
-                className="inline-flex rounded-lg border bg-muted p-1 gap-1"
-              >
-                {darkModeOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    role="radio"
-                    aria-checked={darkMode === option.value}
-                    onClick={() => {
-                      setDarkMode(option.value);
-                      toast("Appearance updated.");
-                    }}
-                    className={cn(
-                      "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all cursor-pointer",
-                      darkMode === option.value
-                        ? "bg-background text-foreground shadow-sm"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    {option.icon}
-                    {option.label}
-                  </button>
-                ))}
-              </div>
+              <Label id="dark-mode-label">Mode</Label>
+              <Tabs value={darkMode}>
+                <TabsList>
+                  {darkModeOptions.map((option) => (
+                    <TabsTrigger
+                      value={option.value}
+                      onClick={() => {
+                        setDarkMode(option.value);
+                        toast("Appearance updated.");
+                      }}
+                      className="px-3"
+                    >
+                      {option.icon}
+                      {option.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
             </div>
           </div>
         </div>
