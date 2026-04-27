@@ -8,6 +8,8 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   CopyIcon,
+  PencilIcon,
+  TagIcon,
   XIcon,
 } from "lucide-react";
 import { nip19 } from "nostr-tools";
@@ -19,6 +21,9 @@ import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import { PaymentFailedAlert } from "src/components/PaymentFailedAlert";
 import PodcastingInfo from "src/components/PodcastingInfo";
+import TransactionLabelEditor from "src/components/TransactionLabelEditor";
+import { Badge } from "src/components/ui/badge";
+import { Button } from "src/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -62,6 +67,11 @@ function TransactionItem({ tx }: Props) {
   const swapId = tx.metadata?.swap_id;
   const { data: swap } = useSwap(swapId);
   const [showDetails, setShowDetails] = React.useState(false);
+  const [labels, setLabels] = React.useState<Record<string, string>>(
+    tx.metadata?.user_label ?? {}
+  );
+  const [labelEditorOpen, setLabelEditorOpen] = React.useState(false);
+  const labelEntries = Object.entries(labels);
   const type = tx.type;
 
   const pubkey = tx.metadata?.nostr?.pubkey;
@@ -195,6 +205,21 @@ function TransactionItem({ tx }: Props) {
             <p className="text-sm md:text-base text-muted-foreground break-all line-clamp-1">
               {description}
             </p>
+            {labelEntries.length > 0 && (
+              <div className="flex items-center gap-1 mt-1 flex-wrap">
+                {labelEntries.slice(0, 2).map(([key, value]) => (
+                  <Badge key={key} variant="secondary" className="font-normal">
+                    <span className="text-muted-foreground">{key}:</span>
+                    <span className="ml-1">{value}</span>
+                  </Badge>
+                ))}
+                {labelEntries.length > 2 && (
+                  <Badge variant="secondary" className="font-normal">
+                    +{labelEntries.length - 2}
+                  </Badge>
+                )}
+              </div>
+            )}
           </div>
           <div className="flex ml-auto space-x-3 shrink-0">
             <div className="flex flex-col items-end md:text-xl">
@@ -336,6 +361,47 @@ function TransactionItem({ tx }: Props) {
                 />
               </div>
             )}
+            <div className="mt-6">
+              <div className="flex items-center justify-between">
+                <p>Labels</p>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLabelEditorOpen(true)}
+                >
+                  {labelEntries.length > 0 ? (
+                    <>
+                      <PencilIcon className="size-3" />
+                      Edit
+                    </>
+                  ) : (
+                    <>
+                      <TagIcon className="size-3" />
+                      Add labels
+                    </>
+                  )}
+                </Button>
+              </div>
+              {labelEntries.length > 0 ? (
+                <div className="flex items-center gap-1 mt-2 flex-wrap">
+                  {labelEntries.map(([key, value]) => (
+                    <Badge
+                      key={key}
+                      variant="secondary"
+                      className="font-normal"
+                    >
+                      <span className="text-muted-foreground">{key}:</span>
+                      <span className="ml-1">{value}</span>
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-sm mt-1">
+                  No labels yet.
+                </p>
+              )}
+            </div>
             <div className="mt-4 w-full">
               <div
                 className="flex items-center gap-2 cursor-pointer"
@@ -451,6 +517,16 @@ function TransactionItem({ tx }: Props) {
           </DialogDescription>
         </DialogHeader>
       </DialogContent>
+      <TransactionLabelEditor
+        open={labelEditorOpen}
+        onOpenChange={setLabelEditorOpen}
+        initialLabels={labels}
+        onSave={(updated) => {
+          // TODO(#2058): persist via PATCH /api/transactions/:paymentHash/label
+          console.info("save labels", tx.paymentHash, updated);
+          setLabels(updated);
+        }}
+      />
     </Dialog>
   );
 }
