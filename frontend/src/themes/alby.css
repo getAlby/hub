@@ -84,49 +84,44 @@
 }
 
 /*
- * Default (primary) buttons: light top → warm yellow bottom (Figma-style).
- * Darker overlays were stacking on the base fill; lighter base + softer stops
- * keep the same structure but read closer to design.
+ * Default (primary) buttons: subtle highlight overlay on top of `bg-primary`.
+ * Sets `background-image` only so Tailwind's `background-color: var(--primary)`
+ * remains the base. Keyed off `data-variant` only so it still matches when
+ * `asChild` lets a Radix wrapper (e.g. DialogTrigger) overwrite `data-slot`.
  */
-@layer components {
-  .theme-alby
-    :is(button, a, span)[data-slot="button"][data-variant="default"]:not(
-      :disabled,
-      [aria-disabled="true"]
-    ) {
-    background:
-      linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.58) 0%,
-        rgba(255, 236, 175, 0.22) 100%
-      ),
-      #fff0b8;
-    box-shadow: 0 0 0 1px #ffdf6f;
-  }
+.theme-alby
+  :is(button, a, span)[data-variant="default"]:not(
+    :disabled,
+    [aria-disabled="true"]
+  ) {
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.58) 0%,
+    rgba(255, 236, 175, 0.22) 100%
+  );
+  box-shadow: 0 0 0 1px #ffdf6f;
+}
 
-  .theme-alby
-    :is(button, a, span)[data-slot="button"][data-variant="default"]:hover:not(
-      :disabled,
-      [aria-disabled="true"]
-    ) {
-    background:
-      linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.45) 0%,
-        rgba(255, 224, 140, 0.28) 100%
-      ),
-      #ffe9a3;
-    box-shadow: 0 0 0 1px #ffdf6f;
-  }
+.theme-alby
+  :is(button, a, span)[data-variant="default"]:hover:not(
+    :disabled,
+    [aria-disabled="true"]
+  ) {
+  background-image: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.45) 0%,
+    rgba(255, 224, 140, 0.28) 100%
+  );
+  box-shadow: 0 0 0 1px #ffdf6f;
+}
 
-  /* Keep keyboard focus ring (Button uses ring via box-shadow); stack with brand stroke. */
-  .theme-alby
-    :is(button, a, span)[data-slot="button"][data-variant="default"]:focus-visible:not(
-      :disabled,
-      [aria-disabled="true"]
-    ) {
-    box-shadow:
-      0 0 0 1px #ffdf6f,
-      0 0 0 3px color-mix(in oklch, var(--ring), transparent 50%);
-  }
+/* Keep keyboard focus ring (Button uses ring via box-shadow); stack with brand stroke. */
+.theme-alby
+  :is(button, a, span)[data-variant="default"]:focus-visible:not(
+    :disabled,
+    [aria-disabled="true"]
+  ) {
+  box-shadow:
+    0 0 0 1px #ffdf6f,
+    0 0 0 3px color-mix(in oklch, var(--ring), transparent 50%);
 }
