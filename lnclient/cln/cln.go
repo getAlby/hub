@@ -1397,17 +1397,18 @@ func (c *CLNService) clnInvoiceToTransaction(ctx context.Context, invoice *clngr
 	return transaction, nil
 }
 
-func (c *CLNService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
+func (c *CLNService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (transaction *lnclient.Transaction, err error) {
 	if !c.holdEnabled {
 		return nil, errors.New("hold plugin not configured")
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
-		"amount":           amount,
-		"description":      description,
-		"description_hash": descriptionHash,
-		"expiry":           expiry,
-		"payment_hash":     paymentHash,
+		"amount":             amount,
+		"description":        description,
+		"description_hash":   descriptionHash,
+		"expiry":             expiry,
+		"payment_hash":       paymentHash,
+		"minCltvExpiryDelta": minCltvExpiryDelta,
 	}).Debug("Make Hold Invoice")
 
 	paymentHashBytes, err := hex.DecodeString(paymentHash)
@@ -1424,9 +1425,10 @@ func (c *CLNService) MakeHoldInvoice(ctx context.Context, amount int64, descript
 	expiryUint64 := uint64(expiry)
 
 	req := &clngrpcHold.InvoiceRequest{
-		PaymentHash: paymentHashBytes,
-		AmountMsat:  uint64(amount),
-		Expiry:      &expiryUint64,
+		PaymentHash:        paymentHashBytes,
+		AmountMsat:         uint64(amount),
+		Expiry:             &expiryUint64,
+		MinFinalCltvExpiry: minCltvExpiryDelta,
 	}
 
 	if descriptionHash != "" {
