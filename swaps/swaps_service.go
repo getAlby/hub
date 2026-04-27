@@ -93,11 +93,11 @@ type MempoolTx struct {
 }
 
 type SwapInfo struct {
-	AlbyServiceFee     float64 `json:"albyServiceFee"`
-	BoltzServiceFee    float64 `json:"boltzServiceFee"`
-	BoltzNetworkFeeSat uint64  `json:"boltzNetworkFeeSat"`
-	MinAmountSat       uint64  `json:"minAmountSat"`
-	MaxAmountSat       uint64  `json:"maxAmountSat"`
+	AlbyServiceFee     float64
+	BoltzServiceFee    float64
+	BoltzNetworkFeeSat uint64
+	MinAmountSat       uint64
+	MaxAmountSat       uint64
 }
 
 type SwapResponse struct {
