@@ -7,10 +7,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/transactions"
 	"github.com/sirupsen/logrus"
-
-	"github.com/getAlby/hub/logger"
 )
 
 func (api *api) CreateInvoice(ctx context.Context, amountMsat uint64, description string) (*MakeInvoiceResponse, error) {

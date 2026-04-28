@@ -279,7 +279,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	case len(transactionLabelMatch) > 1:
 		transactionID, err := strconv.ParseUint(transactionLabelMatch[1], 10, 64)
 		if err != nil {
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			return WailsRequestRouterResponse{Body: nil, Error: "Invalid transaction ID"}
 		}
 		switch method {
 		case "PATCH":

@@ -43,7 +43,7 @@ function TransactionLabels({
 }: Props) {
   const { mutate } = useSWRConfig();
   const [isEditing, setIsEditing] = React.useState(false);
-  const [saving, setSaving] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
   const [labels, setLabels] = React.useState<Record<string, string>>(
     initialLabels ?? {}
   );
@@ -84,7 +84,7 @@ function TransactionLabels({
 
   const saveLabels = async () => {
     const nextLabels = rowsToLabels(rows);
-    setSaving(true);
+    setLoading(true);
 
     try {
       await request(`/api/transactions/${id}/labels`, {
@@ -106,7 +106,7 @@ function TransactionLabels({
         description: String(error),
       });
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
 
@@ -177,11 +177,11 @@ function TransactionLabels({
               type="button"
               variant="outline"
               onClick={cancelEditing}
-              disabled={saving}
+              disabled={loading}
             >
               Cancel
             </Button>
-            <Button type="button" onClick={saveLabels} disabled={saving}>
+            <Button type="button" onClick={saveLabels} disabled={loading}>
               Save
             </Button>
           </div>

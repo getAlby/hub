@@ -61,7 +61,7 @@ function TransactionsList({
           {transactions?.map((tx, i) => {
             return (
               <TransactionItem
-                key={tx.paymentHash + tx.type + i}
+                key={tx.id}
                 tx={tx}
                 transactionListKey={transactionListKey}
               />
