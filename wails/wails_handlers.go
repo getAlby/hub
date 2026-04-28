@@ -344,7 +344,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
 		}
-		paymentResponse, err := app.api.SendPayment(ctx, invoice, payRequest.Amount, payRequest.Metadata)
+		paymentResponse, err := app.api.SendPayment(ctx, invoice, payRequest.Amount, payRequest.Metadata, payRequest.AppID)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}

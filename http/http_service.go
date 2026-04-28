@@ -641,7 +641,7 @@ func (httpSvc *HttpService) sendPaymentHandler(c echo.Context) error {
 		})
 	}
 
-	paymentResponse, err := httpSvc.api.SendPayment(ctx, c.Param("invoice"), payInvoiceRequest.Amount, payInvoiceRequest.Metadata)
+	paymentResponse, err := httpSvc.api.SendPayment(ctx, c.Param("invoice"), payInvoiceRequest.Amount, payInvoiceRequest.Metadata, payInvoiceRequest.AppID)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
