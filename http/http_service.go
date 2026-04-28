@@ -162,7 +162,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	fullAccessApiGroup.PATCH("/auto-unlock", httpSvc.autoUnlockHandler)
 	fullAccessApiGroup.PATCH("/settings", httpSvc.updateSettingsHandler)
 	fullAccessApiGroup.PATCH("/apps/:pubkey", httpSvc.appsUpdateHandler)
-	fullAccessApiGroup.PATCH("/transactions/:paymentHash/label", httpSvc.setTransactionUserLabelsHandler)
+	fullAccessApiGroup.PATCH("/transactions/:paymentHash/labels", httpSvc.setTransactionUserLabelsHandler)
 	fullAccessApiGroup.DELETE("/apps/:pubkey", httpSvc.appsDeleteHandler)
 	fullAccessApiGroup.POST("/transfers", httpSvc.transfersHandler)
 	fullAccessApiGroup.POST("/apps", httpSvc.appsCreateHandler)

@@ -45,6 +45,7 @@ type TransactionsService interface {
 	SettleHoldInvoice(ctx context.Context, preimage string, lnClient lnclient.LNClient) (*Transaction, error)
 	CancelHoldInvoice(ctx context.Context, paymentHash string, lnClient lnclient.LNClient) error
 	SetTransactionMetadata(ctx context.Context, id uint, metadata map[string]interface{}) error
+	SetTransactionUserLabels(ctx context.Context, paymentHash string, labels map[string]string, lnClient lnclient.LNClient) error
 }
 
 const (
@@ -1379,6 +1380,38 @@ func (svc *transactionsService) SetTransactionMetadata(ctx context.Context, id u
 	}
 
 	return nil
+}
+
+func (svc *transactionsService) SetTransactionUserLabels(ctx context.Context, paymentHash string, labels map[string]string, lnClient lnclient.LNClient) error {
+	transaction, err := svc.LookupTransaction(ctx, paymentHash, nil, lnClient, nil)
+	if err != nil {
+		return err
+	}
+
+	metadata := map[string]interface{}{}
+	if transaction.Metadata != nil {
+		if err := json.Unmarshal(transaction.Metadata, &metadata); err != nil {
+			return fmt.Errorf("failed to decode existing metadata: %w", err)
+		}
+	}
+
+	sanitizedLabels := map[string]string{}
+	for key, value := range labels {
+		normalizedKey := strings.TrimSpace(key)
+		normalizedValue := strings.TrimSpace(value)
+		if normalizedKey == "" || normalizedValue == "" {
+			continue
+		}
+		sanitizedLabels[normalizedKey] = normalizedValue
+	}
+
+	if len(sanitizedLabels) == 0 {
+		delete(metadata, "user_labels")
+	} else {
+		metadata["user_labels"] = sanitizedLabels
+	}
+
+	return svc.SetTransactionMetadata(ctx, transaction.ID, metadata)
 }
 
 func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransaction *db.Transaction, preimage string, fee uint64, selfPayment bool) (*db.Transaction, error) {

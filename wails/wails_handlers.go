@@ -271,7 +271,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	}
 
 	transactionLabelRegex := regexp.MustCompile(
-		`/api/transactions/([0-9a-fA-F]+)/label`,
+		`/api/transactions/([0-9a-fA-F]+)/labels`,
 	)
 	transactionLabelMatch := transactionLabelRegex.FindStringSubmatch(route)
 
