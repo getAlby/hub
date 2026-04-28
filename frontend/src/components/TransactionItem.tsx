@@ -73,7 +73,7 @@ function TransactionItem({ tx }: Props) {
   const [showDetails, setShowDetails] = React.useState(false);
   const [editingLabels, setEditingLabels] = React.useState(false);
   const [savingLabels, setSavingLabels] = React.useState(false);
-  const labels = tx.metadata?.user_label ?? {};
+  const labels = tx.metadata?.user_labels ?? {};
   const labelEntries = Object.entries(labels);
   const type = tx.type;
 
@@ -389,7 +389,7 @@ function TransactionItem({ tx }: Props) {
                     setSavingLabels(true);
                     try {
                       await request(
-                        `/api/transactions/${tx.paymentHash}/label`,
+                        `/api/transactions/${tx.paymentHash}/labels`,
                         {
                           method: "PATCH",
                           headers: { "Content-Type": "application/json" },

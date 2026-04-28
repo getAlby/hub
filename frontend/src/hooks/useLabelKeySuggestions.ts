@@ -26,11 +26,11 @@ export function useLabelKeySuggestions(): string[] {
         continue;
       }
       for (const tx of data.transactions) {
-        const userLabel = tx.metadata?.user_label;
-        if (!userLabel) {
+        const userLabels = tx.metadata?.user_labels;
+        if (!userLabels) {
           continue;
         }
-        for (const key of Object.keys(userLabel)) {
+        for (const key of Object.keys(userLabels)) {
           keys.add(key);
         }
       }

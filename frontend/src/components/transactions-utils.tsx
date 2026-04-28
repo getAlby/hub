@@ -25,12 +25,12 @@ export const convertToCSV = (transactions: Transaction[]) => {
 
   const baseHeaders = Object.keys(transactions[0]);
 
-  // Collect the union of all user_label keys across the export so each one
+  // Collect the union of all user_labels keys across the export so each one
   // becomes its own column. Sorted for stable output between exports.
   const labelKeys = Array.from(
     new Set(
       transactions.flatMap((tx) =>
-        tx.metadata?.user_label ? Object.keys(tx.metadata.user_label) : []
+        tx.metadata?.user_labels ? Object.keys(tx.metadata.user_labels) : []
       )
     )
   ).sort();
@@ -45,7 +45,7 @@ export const convertToCSV = (transactions: Transaction[]) => {
       escapeCsvCell(stringifyCell(tx[header as keyof typeof tx]))
     );
     const labelCells = labelKeys.map((key) =>
-      escapeCsvCell(stringifyCell(tx.metadata?.user_label?.[key]))
+      escapeCsvCell(stringifyCell(tx.metadata?.user_labels?.[key]))
     );
     return [...baseCells, ...labelCells].join(",");
   });
