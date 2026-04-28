@@ -1384,9 +1384,7 @@ func (svc *transactionsService) SetTransactionMetadata(ctx context.Context, id u
 
 func (svc *transactionsService) SetTransactionUserLabels(ctx context.Context, id uint, labels map[string]string) error {
 	transaction := db.Transaction{}
-	err := svc.db.First(&transaction, &db.Transaction{
-		ID: id,
-	}).Error
+	err := svc.db.WithContext(ctx).First(&transaction, id).Error
 
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
