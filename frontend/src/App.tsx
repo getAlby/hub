@@ -26,7 +26,7 @@ function App() {
     <>
       <TouchProvider>
         <ThemeProvider
-          defaultTheme="default"
+          defaultTheme="alby"
           defaultDarkMode="system"
           storageKey="vite-ui-theme"
         >

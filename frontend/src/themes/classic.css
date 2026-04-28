@@ -7,7 +7,7 @@
 /* Use generalized selector (:root, .dark) here because all themes
    should fall back to these values */
 :root,
-.theme-default {
+.theme-classic {
   --app-font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
@@ -86,12 +86,12 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
-.theme-default {
+.theme-classic {
   --logo-ink: #202020;
   --logo-accent: #ffc800;
 }
 
-.theme-default.dark {
+.theme-classic.dark {
   --logo-ink: #ffffff;
   --logo-accent: #ffe480;
 }

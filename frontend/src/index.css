@@ -12,7 +12,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-@import "./themes/default.css";
+@import "./themes/classic.css";
 @import "./themes/alby.css";
 @import "./themes/bitcoin.css";
 @import "./themes/nostr.css";
