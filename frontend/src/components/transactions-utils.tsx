@@ -5,17 +5,10 @@ import { request } from "src/utils/request";
 
 const LABEL_COLUMN_PREFIX = "label_";
 
+// based on https://stackoverflow.com/a/68146412
 const escapeCsvCell = (raw: string) => {
-  // prevent CSV injection: prefix cells starting with =, +, -, @ with a quote
   const safe = /^[\t\r ]*[=+\-@]/.test(raw) ? `'${raw}` : raw;
   return `"${safe.replaceAll('"', '""')}"`;
-};
-
-const stringifyCell = (value: unknown) => {
-  if (value === undefined || value === null) {
-    return "";
-  }
-  return typeof value === "object" ? JSON.stringify(value) : String(value);
 };
 
 export const convertToCSV = (transactions: Transaction[]) => {
@@ -23,31 +16,41 @@ export const convertToCSV = (transactions: Transaction[]) => {
     return "";
   }
 
-  const baseHeaders = Object.keys(transactions[0]);
-
-  // Collect the union of all user_labels keys across the export so each one
-  // becomes its own column. Sorted for stable output between exports.
-  const labelKeys = Array.from(
+  // Get headers from all transactions including the user_labels in metadata
+  const headers = Object.keys(transactions[0]);
+  const userLabelKeys = Array.from(
     new Set(
       transactions.flatMap((tx) =>
         tx.metadata?.user_labels ? Object.keys(tx.metadata.user_labels) : []
       )
     )
   ).sort();
-  const labelHeaders = labelKeys.map((key) => `${LABEL_COLUMN_PREFIX}${key}`);
+  const userLabelHeaders = userLabelKeys.map(
+    (key) => `${LABEL_COLUMN_PREFIX}${key}`
+  );
 
-  const csvHeaders = [...baseHeaders, ...labelHeaders]
-    .map(escapeCsvCell)
-    .join(",");
+  const csvHeaders = [...headers, ...userLabelHeaders].join(",");
 
+  // Convert each transaction to CSV row
   const csvRows = transactions.map((tx) => {
-    const baseCells = baseHeaders.map((header) =>
-      escapeCsvCell(stringifyCell(tx[header as keyof typeof tx]))
-    );
-    const labelCells = labelKeys.map((key) =>
-      escapeCsvCell(stringifyCell(tx.metadata?.user_labels?.[key]))
-    );
-    return [...baseCells, ...labelCells].join(",");
+    return [
+      ...headers.map((header) => {
+        const value = tx[header as keyof typeof tx];
+        if (value === undefined || value === null) {
+          return "";
+        }
+        const stringValue =
+          typeof value === "object" ? JSON.stringify(value) : String(value);
+        return escapeCsvCell(stringValue);
+      }),
+      ...userLabelKeys.map((key) => {
+        const value = tx.metadata?.user_labels?.[key];
+        if (value === undefined || value === null) {
+          return "";
+        }
+        return escapeCsvCell(value);
+      }),
+    ].join(",");
   });
 
   return [csvHeaders, ...csvRows].join("\n");
