@@ -352,7 +352,7 @@ function TransactionItem({ tx, transactionListKey }: Props) {
               </div>
             )}
             <TransactionLabels
-              paymentHash={tx.paymentHash}
+              id={tx.id}
               labels={labels}
               transactionListKey={transactionListKey}
             />

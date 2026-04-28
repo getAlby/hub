@@ -45,7 +45,7 @@ type TransactionsService interface {
 	SettleHoldInvoice(ctx context.Context, preimage string, lnClient lnclient.LNClient) (*Transaction, error)
 	CancelHoldInvoice(ctx context.Context, paymentHash string, lnClient lnclient.LNClient) error
 	SetTransactionMetadata(ctx context.Context, id uint, metadata map[string]interface{}) error
-	SetTransactionUserLabels(ctx context.Context, paymentHash string, labels map[string]string, lnClient lnclient.LNClient) error
+	SetTransactionUserLabels(ctx context.Context, id uint, labels map[string]string) error
 }
 
 const (
@@ -1382,9 +1382,16 @@ func (svc *transactionsService) SetTransactionMetadata(ctx context.Context, id u
 	return nil
 }
 
-func (svc *transactionsService) SetTransactionUserLabels(ctx context.Context, paymentHash string, labels map[string]string, lnClient lnclient.LNClient) error {
-	transaction, err := svc.LookupTransaction(ctx, paymentHash, nil, lnClient, nil)
+func (svc *transactionsService) SetTransactionUserLabels(ctx context.Context, id uint, labels map[string]string) error {
+	transaction := db.Transaction{}
+	err := svc.db.First(&transaction, &db.Transaction{
+		ID: id,
+	}).Error
+
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return NewNotFoundError()
+		}
 		return err
 	}
 
@@ -1411,7 +1418,7 @@ func (svc *transactionsService) SetTransactionUserLabels(ctx context.Context, pa
 		metadata["user_labels"] = sanitizedLabels
 	}
 
-	return svc.SetTransactionMetadata(ctx, transaction.ID, metadata)
+	return svc.SetTransactionMetadata(ctx, id, metadata)
 }
 
 func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransaction *db.Transaction, preimage string, fee uint64, selfPayment bool) (*db.Transaction, error) {

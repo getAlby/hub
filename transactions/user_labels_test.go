@@ -16,7 +16,7 @@ import (
 	"github.com/getAlby/hub/tests"
 )
 
-func setupTransactionForUserLabels(t *testing.T, initialMetadata map[string]interface{}) (*transactionsService, *tests.TestService, *db.Transaction) {
+func setupTransactionForUserLabels(t *testing.T, transactionType string, initialMetadata map[string]interface{}) (*transactionsService, *tests.TestService, *db.Transaction) {
 	t.Helper()
 
 	svc, err := tests.CreateTestService(t)
@@ -25,7 +25,7 @@ func setupTransactionForUserLabels(t *testing.T, initialMetadata map[string]inte
 	preimage := tests.MockLNClientTransaction.Preimage
 	dbTransaction := &db.Transaction{
 		State:          constants.TRANSACTION_STATE_SETTLED,
-		Type:           constants.TRANSACTION_TYPE_OUTGOING,
+		Type:           transactionType,
 		PaymentRequest: tests.MockLNClientTransaction.Invoice,
 		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
 		Preimage:       &preimage,
@@ -42,11 +42,11 @@ func setupTransactionForUserLabels(t *testing.T, initialMetadata map[string]inte
 	return NewTransactionsService(svc.DB, svc.EventPublisher), svc, dbTransaction
 }
 
-func loadTransactionMetadata(t *testing.T, svc *tests.TestService, paymentHash string) map[string]interface{} {
+func loadTransactionMetadata(t *testing.T, svc *tests.TestService, id uint) map[string]interface{} {
 	t.Helper()
 
 	var dbTransaction db.Transaction
-	require.NoError(t, svc.DB.Where(&db.Transaction{PaymentHash: paymentHash}).First(&dbTransaction).Error)
+	require.NoError(t, svc.DB.First(&dbTransaction, id).Error)
 	if dbTransaction.Metadata == nil {
 		return nil
 	}
@@ -57,35 +57,50 @@ func loadTransactionMetadata(t *testing.T, svc *tests.TestService, paymentHash s
 }
 
 func TestSetTransactionUserLabels_ValidLabels(t *testing.T) {
-	transactionsService, svc, dbTransaction := setupTransactionForUserLabels(t, nil)
+	transactionsService, svc, dbTransaction := setupTransactionForUserLabels(t, constants.TRANSACTION_TYPE_OUTGOING, nil)
 	defer svc.Remove()
 
-	err := transactionsService.SetTransactionUserLabels(context.TODO(), dbTransaction.PaymentHash, map[string]string{
+	err := transactionsService.SetTransactionUserLabels(context.TODO(), dbTransaction.ID, map[string]string{
 		"description":  "top up PPQ.AI",
 		"counterparty": "PPQ.AI",
-	}, svc.LNClient)
+	})
 	require.NoError(t, err)
 
-	metadata := loadTransactionMetadata(t, svc, dbTransaction.PaymentHash)
+	metadata := loadTransactionMetadata(t, svc, dbTransaction.ID)
 	labels, ok := metadata["user_labels"].(map[string]interface{})
 	require.True(t, ok)
 	assert.Equal(t, "top up PPQ.AI", labels["description"])
 	assert.Equal(t, "PPQ.AI", labels["counterparty"])
 }
 
+func TestSetTransactionUserLabels_IncomingTransaction(t *testing.T) {
+	transactionsService, svc, dbTransaction := setupTransactionForUserLabels(t, constants.TRANSACTION_TYPE_INCOMING, nil)
+	defer svc.Remove()
+
+	err := transactionsService.SetTransactionUserLabels(context.TODO(), dbTransaction.ID, map[string]string{
+		"source": "customer",
+	})
+	require.NoError(t, err)
+
+	metadata := loadTransactionMetadata(t, svc, dbTransaction.ID)
+	labels, ok := metadata["user_labels"].(map[string]interface{})
+	require.True(t, ok)
+	assert.Equal(t, "customer", labels["source"])
+}
+
 func TestSetTransactionUserLabels_PreservesExistingMetadata(t *testing.T) {
-	transactionsService, svc, dbTransaction := setupTransactionForUserLabels(t, map[string]interface{}{
+	transactionsService, svc, dbTransaction := setupTransactionForUserLabels(t, constants.TRANSACTION_TYPE_OUTGOING, map[string]interface{}{
 		"comment": "hello",
 		"nostr":   map[string]interface{}{"pubkey": "abcdef"},
 	})
 	defer svc.Remove()
 
-	err := transactionsService.SetTransactionUserLabels(context.TODO(), dbTransaction.PaymentHash, map[string]string{
+	err := transactionsService.SetTransactionUserLabels(context.TODO(), dbTransaction.ID, map[string]string{
 		"account": "sponsoring",
-	}, svc.LNClient)
+	})
 	require.NoError(t, err)
 
-	metadata := loadTransactionMetadata(t, svc, dbTransaction.PaymentHash)
+	metadata := loadTransactionMetadata(t, svc, dbTransaction.ID)
 	assert.Equal(t, "hello", metadata["comment"])
 	assert.NotNil(t, metadata["nostr"])
 	labels, ok := metadata["user_labels"].(map[string]interface{})
@@ -94,33 +109,33 @@ func TestSetTransactionUserLabels_PreservesExistingMetadata(t *testing.T) {
 }
 
 func TestSetTransactionUserLabels_ClearsLabels(t *testing.T) {
-	transactionsService, svc, dbTransaction := setupTransactionForUserLabels(t, map[string]interface{}{
+	transactionsService, svc, dbTransaction := setupTransactionForUserLabels(t, constants.TRANSACTION_TYPE_OUTGOING, map[string]interface{}{
 		"comment":     "hello",
 		"user_labels": map[string]interface{}{"description": "old"},
 	})
 	defer svc.Remove()
 
-	err := transactionsService.SetTransactionUserLabels(context.TODO(), dbTransaction.PaymentHash, map[string]string{}, svc.LNClient)
+	err := transactionsService.SetTransactionUserLabels(context.TODO(), dbTransaction.ID, map[string]string{})
 	require.NoError(t, err)
 
-	metadata := loadTransactionMetadata(t, svc, dbTransaction.PaymentHash)
+	metadata := loadTransactionMetadata(t, svc, dbTransaction.ID)
 	_, exists := metadata["user_labels"]
 	assert.False(t, exists)
 	assert.Equal(t, "hello", metadata["comment"])
 }
 
 func TestSetTransactionUserLabels_TrimsAndDropsBlankLabels(t *testing.T) {
-	transactionsService, svc, dbTransaction := setupTransactionForUserLabels(t, nil)
+	transactionsService, svc, dbTransaction := setupTransactionForUserLabels(t, constants.TRANSACTION_TYPE_OUTGOING, nil)
 	defer svc.Remove()
 
-	err := transactionsService.SetTransactionUserLabels(context.TODO(), dbTransaction.PaymentHash, map[string]string{
+	err := transactionsService.SetTransactionUserLabels(context.TODO(), dbTransaction.ID, map[string]string{
 		"  account  ": "  sponsoring  ",
 		"empty":       "",
 		"":            "orphan",
-	}, svc.LNClient)
+	})
 	require.NoError(t, err)
 
-	metadata := loadTransactionMetadata(t, svc, dbTransaction.PaymentHash)
+	metadata := loadTransactionMetadata(t, svc, dbTransaction.ID)
 	labels, ok := metadata["user_labels"].(map[string]interface{})
 	require.True(t, ok)
 	assert.Len(t, labels, 1)
@@ -128,13 +143,13 @@ func TestSetTransactionUserLabels_TrimsAndDropsBlankLabels(t *testing.T) {
 }
 
 func TestSetTransactionUserLabels_RejectsOversizedMetadata(t *testing.T) {
-	transactionsService, svc, dbTransaction := setupTransactionForUserLabels(t, nil)
+	transactionsService, svc, dbTransaction := setupTransactionForUserLabels(t, constants.TRANSACTION_TYPE_OUTGOING, nil)
 	defer svc.Remove()
 
 	labels := map[string]string{
 		"description": strings.Repeat("a", constants.INVOICE_METADATA_MAX_LENGTH),
 	}
-	err := transactionsService.SetTransactionUserLabels(context.TODO(), dbTransaction.PaymentHash, labels, svc.LNClient)
+	err := transactionsService.SetTransactionUserLabels(context.TODO(), dbTransaction.ID, labels)
 	require.Error(t, err)
 
 	encodedMetadata, marshalErr := json.Marshal(map[string]interface{}{

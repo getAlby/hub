@@ -8,7 +8,7 @@ import { request } from "src/utils/request";
 import { useSWRConfig } from "swr";
 
 type Props = {
-  paymentHash: string;
+  id: number;
   labels?: Record<string, string>;
   transactionListKey: string;
 };
@@ -37,7 +37,7 @@ function rowsToLabels(rows: Row[]): Record<string, string> {
 }
 
 function TransactionLabels({
-  paymentHash,
+  id,
   labels: initialLabels,
   transactionListKey,
 }: Props) {
@@ -87,7 +87,7 @@ function TransactionLabels({
     setSaving(true);
 
     try {
-      await request(`/api/transactions/${paymentHash}/labels`, {
+      await request(`/api/transactions/${id}/labels`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ labels: nextLabels }),

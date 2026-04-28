@@ -271,17 +271,20 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	}
 
 	transactionLabelRegex := regexp.MustCompile(
-		`/api/transactions/([0-9a-fA-F]+)/labels`,
+		`/api/transactions/([0-9]+)/labels`,
 	)
 	transactionLabelMatch := transactionLabelRegex.FindStringSubmatch(route)
 
 	switch {
 	case len(transactionLabelMatch) > 1:
-		paymentHash := transactionLabelMatch[1]
+		transactionID, err := strconv.ParseUint(transactionLabelMatch[1], 10, 64)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
 		switch method {
 		case "PATCH":
 			labelsRequest := &api.SetTransactionUserLabelsRequest{}
-			err := json.Unmarshal([]byte(body), labelsRequest)
+			err = json.Unmarshal([]byte(body), labelsRequest)
 			if err != nil {
 				logger.Logger.WithFields(logrus.Fields{
 					"route":  route,
@@ -290,7 +293,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				}).WithError(err).Error("Failed to decode request to wails router")
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
-			err = app.api.SetTransactionUserLabels(ctx, paymentHash, labelsRequest.Labels)
+			err = app.api.SetTransactionUserLabels(ctx, uint(transactionID), labelsRequest.Labels)
 			if err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}

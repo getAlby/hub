@@ -48,7 +48,7 @@ type API interface {
 	SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}) (*SendPaymentResponse, error)
 	CreateInvoice(ctx context.Context, amountMsat uint64, description string) (*MakeInvoiceResponse, error)
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
-	SetTransactionUserLabels(ctx context.Context, paymentHash string, labels map[string]string) error
+	SetTransactionUserLabels(ctx context.Context, id uint, labels map[string]string) error
 	RequestMempoolApi(ctx context.Context, endpoint string) (interface{}, error)
 	GetInfo(ctx context.Context) (*InfoResponse, error)
 	GetMnemonic(unlockPassword string) (*MnemonicResponse, error)
@@ -393,6 +393,7 @@ type ListTransactionsResponse struct {
 
 // TODO: camelCase
 type Transaction struct {
+	ID              uint        `json:"id"`
 	Type            string      `json:"type"`
 	State           string      `json:"state"`
 	Invoice         string      `json:"invoice"`
