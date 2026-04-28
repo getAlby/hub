@@ -58,7 +58,7 @@ function TransactionsList({
         />
       ) : (
         <>
-          {transactions?.map((tx, i) => {
+          {transactions?.map((tx) => {
             return (
               <TransactionItem
                 key={tx.id}
