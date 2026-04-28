@@ -1,4 +1,9 @@
-import { ExternalLinkIcon, HeartIcon, TrophyIcon } from "lucide-react";
+import {
+  ExternalLinkIcon,
+  HeartIcon,
+  LucideIcon,
+  TrophyIcon,
+} from "lucide-react";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
@@ -19,7 +24,7 @@ interface EarnOpportunity {
   logo: string;
   reward?: number;
   rewardText?: string;
-  rewardIcon?: "heart" | "trophy";
+  rewardIcon?: LucideIcon;
   platforms: Platform[];
 }
 
@@ -28,7 +33,7 @@ const earnOpportunities: EarnOpportunity[] = [
     title: "Alby Referral Program",
     logo: alby,
     rewardText: "10% of subscription revenue",
-    rewardIcon: "trophy",
+    rewardIcon: TrophyIcon,
     platforms: [
       {
         name: "getalby.com/referrals",
@@ -70,7 +75,7 @@ const earnOpportunities: EarnOpportunity[] = [
     title: "Alby",
     logo: alby,
     rewardText: "Our gratitude",
-    rewardIcon: "heart",
+    rewardIcon: HeartIcon,
     platforms: [
       {
         name: "Trustpilot",
@@ -90,8 +95,8 @@ function Reward({ opportunity }: { opportunity: EarnOpportunity }) {
     );
   }
 
-  if (opportunity.rewardText) {
-    const Icon = opportunity.rewardIcon === "heart" ? HeartIcon : TrophyIcon;
+  if (opportunity.rewardText && opportunity.rewardIcon) {
+    const Icon = opportunity.rewardIcon;
     return (
       <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
         <Icon className="size-4" />
