@@ -8,24 +8,20 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   CopyIcon,
-  PencilIcon,
   TagIcon,
   XIcon,
 } from "lucide-react";
 import { nip19 } from "nostr-tools";
 import React from "react";
 import { Link } from "react-router";
-import { toast } from "sonner";
-import { useSWRConfig } from "swr";
 import AppAvatar from "src/components/AppAvatar";
 import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import { PaymentFailedAlert } from "src/components/PaymentFailedAlert";
 import PodcastingInfo from "src/components/PodcastingInfo";
-import TransactionLabelEditor from "src/components/TransactionLabelEditor";
+import TransactionLabels from "src/components/TransactionLabels";
 import { Badge } from "src/components/ui/badge";
-import { Button } from "src/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -39,12 +35,12 @@ import { useSwap } from "src/hooks/useSwaps";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn, getAppDisplayName } from "src/lib/utils";
 import { Transaction } from "src/types";
-import { request } from "src/utils/request";
 
 dayjs.extend(utc);
 
 type Props = {
   tx: Transaction;
+  transactionListKey: string;
 };
 
 function safeNpubEncode(hex: string): string | undefined {
@@ -65,14 +61,11 @@ function safeNeventEncode(id: string): string | undefined {
   }
 }
 
-function TransactionItem({ tx }: Props) {
+function TransactionItem({ tx, transactionListKey }: Props) {
   const { data: app } = useApp(tx.appId);
   const swapId = tx.metadata?.swap_id;
   const { data: swap } = useSwap(swapId);
-  const { mutate } = useSWRConfig();
   const [showDetails, setShowDetails] = React.useState(false);
-  const [editingLabels, setEditingLabels] = React.useState(false);
-  const [savingLabels, setSavingLabels] = React.useState(false);
   const labels = tx.metadata?.user_labels ?? {};
   const labelEntries = Object.entries(labels);
   const type = tx.type;
@@ -170,7 +163,7 @@ function TransactionItem({ tx }: Props) {
           >
             <AppAvatar
               app={app}
-              className="border-none p-0 rounded-full w-[18px] h-[18px] md:w-6 md:h-6 shadow-xs"
+              className="border-none p-0 rounded-full w-4.5 h-4.5 md:w-6 md:h-6 shadow-xs"
             />
           </div>
         )}
@@ -183,7 +176,6 @@ function TransactionItem({ tx }: Props) {
       onOpenChange={(open) => {
         if (!open) {
           setShowDetails(false);
-          setEditingLabels(false);
         }
       }}
     >
@@ -206,10 +198,13 @@ function TransactionItem({ tx }: Props) {
                 {dayjs(tx.updatedAt).fromNow()}
               </span>
               {labelEntries.length > 0 && (
-                <TagIcon
-                  className="size-3 text-muted-foreground shrink-0"
-                  aria-label={`${labelEntries.length} label${labelEntries.length === 1 ? "" : "s"}`}
-                />
+                <Badge variant="secondary">
+                  <TagIcon
+                    className="size-3 shrink-0"
+                    aria-label={`${labelEntries.length} label${labelEntries.length === 1 ? "" : "s"}`}
+                  />
+                  {labelEntries.length}
+                </Badge>
               )}
             </div>
             <p className="text-sm md:text-base text-muted-foreground break-all line-clamp-1">
@@ -239,12 +234,12 @@ function TransactionItem({ tx }: Props) {
           </div>
         </div>
       </DialogTrigger>
-      <DialogContent className="slashed-zero">
+      <DialogContent className="slashed-zero max-h-[90vh]">
         <DialogHeader>
           <DialogTitle
             className={cn(tx.state === "pending" && "animate-pulse")}
           >{`${typeStateText} Bitcoin Payment`}</DialogTitle>
-          <DialogDescription className="text-start text-foreground max-h-[90vh] overflow-y-auto pr-2">
+          <DialogDescription className="text-start text-foreground">
             <div
               className={cn(
                 "flex items-center mt-6",
@@ -356,85 +351,12 @@ function TransactionItem({ tx }: Props) {
                 />
               </div>
             )}
-            <div className="mt-6">
-              <div className="flex items-center justify-between">
-                <p>Labels</p>
-                {!editingLabels && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setEditingLabels(true)}
-                  >
-                    {labelEntries.length > 0 ? (
-                      <>
-                        <PencilIcon className="size-3" />
-                        Edit
-                      </>
-                    ) : (
-                      <>
-                        <TagIcon className="size-3" />
-                        Add labels
-                      </>
-                    )}
-                  </Button>
-                )}
-              </div>
-              {editingLabels ? (
-                <TransactionLabelEditor
-                  initialLabels={labels}
-                  saving={savingLabels}
-                  onCancel={() => setEditingLabels(false)}
-                  onSave={async (updated) => {
-                    setSavingLabels(true);
-                    try {
-                      await request(
-                        `/api/transactions/${tx.paymentHash}/labels`,
-                        {
-                          method: "PATCH",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ labels: updated }),
-                        }
-                      );
-                      await mutate(
-                        (key) =>
-                          typeof key === "string" &&
-                          key.startsWith("/api/transactions"),
-                        undefined,
-                        { revalidate: true }
-                      );
-                      toast("Labels saved");
-                      setEditingLabels(false);
-                    } catch (error) {
-                      console.error(error);
-                      toast.error("Failed to save labels", {
-                        description: "" + error,
-                      });
-                    } finally {
-                      setSavingLabels(false);
-                    }
-                  }}
-                />
-              ) : labelEntries.length > 0 ? (
-                <div className="flex items-center gap-1 mt-2 flex-wrap">
-                  {labelEntries.map(([key, value]) => (
-                    <Badge
-                      key={key}
-                      variant="secondary"
-                      className="font-normal"
-                    >
-                      <span className="text-muted-foreground">{key}:</span>
-                      <span className="ml-1">{value}</span>
-                    </Badge>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-muted-foreground text-sm mt-1">
-                  No labels yet.
-                </p>
-              )}
-            </div>
-            <div className="mt-4 w-full">
+            <TransactionLabels
+              paymentHash={tx.paymentHash}
+              labels={labels}
+              transactionListKey={transactionListKey}
+            />
+            <div className="mt-6 w-full">
               <div
                 className="flex items-center gap-2 cursor-pointer"
                 onClick={() => setShowDetails(!showDetails)}
@@ -452,7 +374,7 @@ function TransactionItem({ tx }: Props) {
                   {bolt12Offer && (
                     <div className="mt-6">
                       <p>BOLT-12 Offer Id</p>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-between gap-4">
                         <p className="text-muted-foreground break-all">
                           {bolt12Offer.id}
                         </p>
@@ -468,7 +390,7 @@ function TransactionItem({ tx }: Props) {
                   {tx.preimage && (
                     <div className="mt-6">
                       <p>Preimage</p>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-between gap-4">
                         <p className="text-muted-foreground break-all">
                           {tx.preimage}
                         </p>
@@ -485,7 +407,7 @@ function TransactionItem({ tx }: Props) {
                   )}
                   <div className="mt-6">
                     <p>Hash</p>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center justify-between gap-4">
                       <p className="text-muted-foreground break-all">
                         {tx.paymentHash}
                       </p>
@@ -499,7 +421,7 @@ function TransactionItem({ tx }: Props) {
                   </div>
                   <div className="mt-6">
                     <p>Invoice</p>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center justify-between gap-4">
                       <p className="text-muted-foreground break-all">
                         {tx.invoice}
                       </p>
@@ -514,7 +436,7 @@ function TransactionItem({ tx }: Props) {
                   {!!tx.failureReason && (
                     <div className="mt-6">
                       <p>Failure Reason</p>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-between gap-4">
                         <p className="text-muted-foreground break-anywhere">
                           {tx.failureReason}
                         </p>
@@ -530,7 +452,7 @@ function TransactionItem({ tx }: Props) {
                   {tx.metadata && (
                     <div className="mt-6">
                       <p>Metadata</p>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-between gap-4">
                         <p className="text-muted-foreground break-all">
                           {JSON.stringify(tx.metadata)}
                         </p>
