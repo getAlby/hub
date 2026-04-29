@@ -76,7 +76,6 @@ export default function ReceiveOnchain() {
   useEffect(() => {
     const fromParam = tabFromSearchParam(searchParams.get("type"));
     if (fromParam) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTab(fromParam);
       setSearchParams({}, { replace: true });
     }
@@ -166,7 +165,6 @@ function ReceiveToOnchain() {
     if (txId) {
       const utxo = mempoolAddressUtxos.find((utxo) => utxo.txid === txId);
       if (utxo?.status.confirmed) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setConfirmedAmount(utxo.value);
         setPendingAmount(null);
       }

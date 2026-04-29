@@ -58,8 +58,8 @@ export function UnlinkAlbyAccount({
             <div>
               <p>Are you sure you want to disconnect your Alby Account?</p>
               <p className="text-destructive font-medium mt-4">
-                Your Alby Account will be disconnected and all Alby Account
-                features such as your lightning address will stop working.
+                Your lightning address, notifications, and subscription payments
+                will stop working.
               </p>
             </div>
           </AlertDialogDescription>

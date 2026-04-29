@@ -79,7 +79,6 @@ export function ThemeProvider({
       prefersDark = darkMode === "dark";
     }
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsDarkMode(prefersDark);
 
     if (prefersDark) {
