@@ -9,7 +9,6 @@ import {
 import { useState } from "react";
 import { Link } from "react-router";
 import AppHeader from "src/components/AppHeader";
-import { OnchainTransactionsTable } from "src/components/wallet/OnchainTransactionsTable";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
@@ -22,6 +21,7 @@ import {
 } from "src/components/ui/alert.tsx";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LinkButton } from "src/components/ui/custom/link-button";
+import { OnchainTransactionsTable } from "src/components/wallet/OnchainTransactionsTable";
 import { WalletActionsMenu } from "src/components/WalletActionsMenu";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
@@ -198,10 +198,7 @@ function Wallet() {
             <ArrowDownIcon />
             Receive
           </LinkButton>
-          <LinkButton
-            to={isOnchainMode ? "/wallet/send/onchain" : "/wallet/send"}
-            size="lg"
-          >
+          <LinkButton to="/wallet/send" size="lg">
             <ArrowUpIcon />
             Send
           </LinkButton>
