@@ -22,7 +22,7 @@ export function OnchainTransactionsList() {
           title="No on-chain transactions yet"
           description="Your most recent incoming and outgoing on-chain transactions will show up here."
           buttonText="Receive to On-chain Balance"
-          buttonLink="/wallet/receive/onchain?type=onchain"
+          buttonLink="/wallet/receive?type=onchain"
           showBorder={false}
         />
       </div>
