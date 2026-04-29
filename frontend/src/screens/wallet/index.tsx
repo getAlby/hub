@@ -13,6 +13,7 @@ import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
+import { OnchainTransactionsList } from "src/components/OnchainTransactionsList";
 import TransactionsList from "src/components/TransactionsList";
 import {
   Alert,
@@ -21,7 +22,6 @@ import {
 } from "src/components/ui/alert.tsx";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LinkButton } from "src/components/ui/custom/link-button";
-import { OnchainTransactionsTable } from "src/components/wallet/OnchainTransactionsTable";
 import { WalletActionsMenu } from "src/components/WalletActionsMenu";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
@@ -205,7 +205,7 @@ function Wallet() {
         </div>
       </div>
 
-      {isOnchainMode ? <OnchainTransactionsTable /> : <TransactionsList />}
+      {isOnchainMode ? <OnchainTransactionsList /> : <TransactionsList />}
     </>
   );
 }

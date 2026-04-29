@@ -1,13 +1,12 @@
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import utc from "dayjs/plugin/utc";
 import {
   ArrowDownIcon,
   ArrowUpIcon,
   CopyIcon,
   ExternalLinkIcon,
-  LinkIcon,
 } from "lucide-react";
-import EmptyState from "src/components/EmptyState";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import { Button } from "src/components/ui/button";
@@ -15,19 +14,22 @@ import { ExternalLinkButton } from "src/components/ui/custom/external-link-butto
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "src/components/ui/dialog";
-import { useInfo } from "src/hooks/useInfo";
-import { useOnchainTransactions } from "src/hooks/useOnchainTransactions";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
 import { OnchainTransaction } from "src/types";
 
 dayjs.extend(relativeTime);
+dayjs.extend(utc);
+
+type OnchainTransactionItemProps = {
+  tx: OnchainTransaction;
+  mempoolUrl?: string;
+};
 
 function typeStateLabel(tx: OnchainTransaction) {
   if (tx.type === "outgoing") {
@@ -36,13 +38,10 @@ function typeStateLabel(tx: OnchainTransaction) {
   return tx.state === "confirmed" ? "Received" : "Receiving";
 }
 
-function OnchainTransactionRow({
+function OnchainTransactionItem({
   tx,
   mempoolUrl,
-}: {
-  tx: OnchainTransaction;
-  mempoolUrl?: string;
-}) {
+}: OnchainTransactionItemProps) {
   const Icon = tx.type === "outgoing" ? ArrowUpIcon : ArrowDownIcon;
   const isPending = tx.state === "unconfirmed";
   const typeStateText = typeStateLabel(tx);
@@ -54,16 +53,13 @@ function OnchainTransactionRow({
     <div className="flex items-center">
       <div
         className={cn(
-          "relative flex h-10 w-10 items-center justify-center rounded-full md:h-14 md:w-14",
+          "flex items-center justify-center rounded-full h-10 w-10 md:h-14 md:w-14 relative",
           isPending
             ? "bg-blue-100 dark:bg-sky-950"
             : tx.type === "outgoing"
               ? "bg-orange-100 dark:bg-amber-950"
               : "bg-green-100 dark:bg-emerald-950"
         )}
-        title={`${tx.numConfirmations} ${
-          tx.numConfirmations === 1 ? "confirmation" : "confirmations"
-        }`}
       >
         <Icon
           strokeWidth={3}
@@ -82,72 +78,62 @@ function OnchainTransactionRow({
 
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <button
-          type="button"
-          className="transaction sensitive slashed-zero w-full cursor-pointer rounded-md p-3 text-left hover:bg-muted/50"
-        >
-          <div className={cn("flex gap-3", isPending && "animate-pulse")}>
-            {icon}
-            <div className="mr-3 flex max-w-full flex-col items-start justify-center overflow-hidden text-left">
-              <div className="flex items-center gap-2">
-                <span className="line-clamp-1 break-all font-semibold md:text-xl">
-                  {typeStateText}
-                </span>
-                <span
-                  className="shrink-0 text-xs text-muted-foreground md:text-base"
-                  title={createdAt.format("D MMMM YYYY, HH:mm")}
-                >
-                  {createdAt.fromNow()}
-                </span>
-              </div>
-              <p className="line-clamp-1 break-all font-mono text-sm text-muted-foreground md:text-base">
-                {subtitle}
-              </p>
+      <DialogTrigger className="p-3 hover:bg-muted/50 data-[state=open]:bg-muted cursor-pointer rounded-md slashed-zero transaction sensitive">
+        <div className={cn("flex gap-3", isPending && "animate-pulse")}>
+          {icon}
+          <div className="overflow-hidden mr-3 max-w-full text-left flex flex-col items-start justify-center">
+            <div className="flex items-center gap-2">
+              <span className="md:text-xl font-semibold break-all line-clamp-1">
+                {typeStateText}
+              </span>
+              <span
+                className="text-xs md:text-base text-muted-foreground shrink-0"
+                title={createdAt.format("D MMMM YYYY, HH:mm")}
+              >
+                {createdAt.fromNow()}
+              </span>
             </div>
-            <div className="ml-auto flex shrink-0 space-x-3">
-              <div className="flex flex-col items-end md:text-xl">
-                <div className="flex flex-row gap-1">
-                  <p
-                    className={cn(
-                      tx.type === "incoming" &&
-                        "text-green-600 dark:text-emerald-500"
-                    )}
-                  >
-                    {tx.type === "outgoing" ? "-" : "+"}
-                    <FormattedBitcoinAmount
-                      amount={tx.amountSat * 1000}
-                      className="font-medium"
-                    />
-                  </p>
-                </div>
-                <FormattedFiatAmount
-                  className="text-xs md:text-base"
-                  amount={tx.amountSat}
-                />
+            <p className="font-mono text-sm md:text-base text-muted-foreground break-all line-clamp-1">
+              {subtitle}
+            </p>
+          </div>
+          <div className="flex ml-auto space-x-3 shrink-0">
+            <div className="flex flex-col items-end md:text-xl">
+              <div className="flex flex-row gap-1">
+                <p
+                  className={cn(
+                    tx.type === "incoming" &&
+                      "text-green-600 dark:text-emerald-500"
+                  )}
+                >
+                  {tx.type === "outgoing" ? "-" : "+"}
+                  <FormattedBitcoinAmount
+                    amount={tx.amountSat * 1000}
+                    className="font-medium"
+                  />
+                </p>
               </div>
+              <FormattedFiatAmount
+                className="text-xs md:text-base"
+                amount={tx.amountSat}
+              />
             </div>
           </div>
-        </button>
+        </div>
       </DialogTrigger>
-      <DialogContent className="slashed-zero">
+      <DialogContent className="slashed-zero max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className={cn(isPending && "animate-pulse")}>
             {`${typeStateText} On-chain Transaction`}
           </DialogTitle>
-          <DialogDescription>
-            {isPending
-              ? "This transaction is pending confirmation."
-              : "This transaction has been confirmed on the blockchain."}
-          </DialogDescription>
         </DialogHeader>
-        <div className="space-y-6 text-sm">
+        <div className="space-y-6 text-sm mt-2">
           <div
             className={cn("flex items-center", isPending && "animate-pulse")}
           >
             {icon}
             <div className="ml-4">
-              <p className="sensitive text-xl font-semibold md:text-2xl">
+              <p className="text-xl md:text-2xl font-semibold sensitive">
                 {tx.type === "outgoing" ? "-" : "+"}
                 <FormattedBitcoinAmount amount={tx.amountSat * 1000} />
               </p>
@@ -174,10 +160,8 @@ function OnchainTransactionRow({
 
           <div>
             <p>Transaction ID</p>
-            <div className="mt-1 flex items-start gap-3">
-              <p className="break-all font-mono text-muted-foreground">
-                {tx.txId}
-              </p>
+            <div className="flex items-center gap-4">
+              <p className="text-muted-foreground break-all">{tx.txId}</p>
               <Button
                 type="button"
                 variant="ghost"
@@ -202,38 +186,4 @@ function OnchainTransactionRow({
   );
 }
 
-export function OnchainTransactionsTable() {
-  const { data: info } = useInfo();
-  const { data: transactions } = useOnchainTransactions();
-
-  if (!transactions) {
-    return null;
-  }
-
-  if (transactions.length === 0) {
-    return (
-      <div className="flex w-full flex-1 flex-col">
-        <EmptyState
-          icon={LinkIcon}
-          title="No on-chain transactions yet"
-          description="Your most recent incoming and outgoing on-chain transactions will show up here."
-          buttonText="Receive to On-chain Balance"
-          buttonLink="/wallet/receive/onchain?type=onchain"
-          showBorder={false}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex w-full flex-1 flex-col space-y-4">
-      {transactions.map((tx) => (
-        <OnchainTransactionRow
-          key={tx.txId}
-          tx={tx}
-          mempoolUrl={info?.mempoolUrl}
-        />
-      ))}
-    </div>
-  );
-}
+export default OnchainTransactionItem;

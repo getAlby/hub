@@ -24,8 +24,8 @@ import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
+import { PendingClosedChannelsAlert } from "src/components/PendingClosedChannelsAlert";
 import ResponsiveButton from "src/components/ResponsiveButton";
-import { PendingClosedChannelsAlert } from "src/components/wallet/PendingClosedChannelsAlert";
 import {
   Card,
   CardContent,

@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import utc from "dayjs/plugin/utc";
 import {
   ArrowDownIcon,
@@ -34,6 +35,7 @@ import { copyToClipboard } from "src/lib/clipboard";
 import { cn, getAppDisplayName } from "src/lib/utils";
 import { Transaction } from "src/types";
 
+dayjs.extend(relativeTime);
 dayjs.extend(utc);
 
 type Props = {
@@ -64,6 +66,7 @@ function TransactionItem({ tx }: Props) {
   const { data: swap } = useSwap(swapId);
   const [showDetails, setShowDetails] = React.useState(false);
   const type = tx.type;
+  const updatedAt = dayjs(tx.updatedAt).local();
 
   const pubkey = tx.metadata?.nostr?.pubkey;
   const npub = pubkey ? safeNpubEncode(pubkey) : undefined;
@@ -174,7 +177,7 @@ function TransactionItem({ tx }: Props) {
         }
       }}
     >
-      <DialogTrigger className="p-3 mb-4 hover:bg-muted/50 data-[state=selected]:bg-muted cursor-pointer rounded-md slashed-zero transaction sensitive">
+      <DialogTrigger className="p-3 mb-4 hover:bg-muted/50 data-[state=open]:bg-muted cursor-pointer rounded-md slashed-zero transaction sensitive">
         <div
           className={cn(
             "flex gap-3",
@@ -190,7 +193,7 @@ function TransactionItem({ tx }: Props) {
                 {to !== undefined && <>&nbsp;{to}</>}
               </span>
               <span className="text-xs md:text-base text-muted-foreground shrink-0">
-                {dayjs(tx.updatedAt).fromNow()}
+                {updatedAt.fromNow()}
               </span>
             </div>
             <p className="text-sm md:text-base text-muted-foreground break-all line-clamp-1">
@@ -235,6 +238,7 @@ function TransactionItem({ tx }: Props) {
               {typeStateIcon}
               <div className="ml-4">
                 <p className="text-xl md:text-2xl font-semibold sensitive">
+                  {tx.type === "outgoing" ? "-" : "+"}
                   <FormattedBitcoinAmount amount={tx.amount} />
                 </p>
                 <FormattedFiatAmount amount={Math.floor(tx.amount / 1000)} />
@@ -274,7 +278,7 @@ function TransactionItem({ tx }: Props) {
             <div className="mt-6">
               <p>Date & Time</p>
               <p className="text-muted-foreground">
-                {dayjs(tx.updatedAt).local().format("D MMMM YYYY, HH:mm")}
+                {updatedAt.format("D MMMM YYYY, HH:mm")}
               </p>
             </div>
             {tx.state != "failed" && type == "outgoing" && (
