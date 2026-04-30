@@ -1,10 +1,10 @@
 module github.com/getAlby/hub
 
-go 1.25.0
+go 1.25.5
 
 require (
 	github.com/adrg/xdg v0.5.3
-	github.com/btcsuite/btcd v0.24.3-0.20250318170759-4f4ea81776d6
+	github.com/btcsuite/btcd v0.25.1-0.20260310163610-1c55c7c18179
 	github.com/btcsuite/btcd/btcutil v1.1.6
 	github.com/elnosh/gonuts v0.4.2
 	github.com/getAlby/ldk-node-go v0.0.0-20260424111754-3690cdb3031c
@@ -42,8 +42,9 @@ require (
 	github.com/aead/siphash v1.0.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bep/debounce v1.2.1 // indirect
-	github.com/btcsuite/btcd/btcutil/psbt v1.1.9 // indirect
-	github.com/btcsuite/btclog v0.0.0-20241003133417-09c4e92e319c // indirect
+	github.com/btcsuite/btcd/btcutil/psbt v1.1.10 // indirect
+	github.com/btcsuite/btcd/v2transport v1.0.1 // indirect
+	github.com/btcsuite/btclog v1.0.0 // indirect
 	github.com/btcsuite/btclog/v2 v2.0.1-0.20250728225537-6090e87c6c5b // indirect
 	github.com/btcsuite/btcwallet v0.16.17 // indirect
 	github.com/btcsuite/btcwallet/wallet/txauthor v1.3.5 // indirect
@@ -131,9 +132,9 @@ require (
 	github.com/leaanthony/u v1.1.1 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/lightninglabs/gozmq v0.0.0-20191113021534-d20a764486bf // indirect
-	github.com/lightninglabs/neutrino v0.16.1 // indirect
-	github.com/lightninglabs/neutrino/cache v1.1.2 // indirect
-	github.com/lightningnetwork/lightning-onion v1.2.1-0.20240815225420-8b40adf04ab9 // indirect
+	github.com/lightninglabs/neutrino v0.16.2 // indirect
+	github.com/lightninglabs/neutrino/cache v1.1.3 // indirect
+	github.com/lightningnetwork/lightning-onion v1.3.0 // indirect
 	github.com/lightningnetwork/lnd/clock v1.1.1 // indirect
 	github.com/lightningnetwork/lnd/fn/v2 v2.0.9 // indirect
 	github.com/lightningnetwork/lnd/healthcheck v1.2.6 // indirect
@@ -264,10 +265,10 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/labstack/echo-jwt/v4 v4.4.0
-	github.com/lightningnetwork/lnd v0.20.0-beta.rc4
+	github.com/lightningnetwork/lnd v0.21.0-beta.rc1
 	github.com/sirupsen/logrus v1.9.4
 	github.com/tyler-smith/go-bip32 v1.0.0
-	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6 // indirect
+	golang.org/x/exp v0.0.0-20250811191247-51f88131bc50 // indirect
 	gorm.io/datatypes v1.2.7
 )
 
