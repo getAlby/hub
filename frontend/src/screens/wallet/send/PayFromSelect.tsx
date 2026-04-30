@@ -1,36 +1,43 @@
+"use client";
+
 import { WalletIcon } from "lucide-react";
 import React from "react";
 import AppAvatar from "src/components/AppAvatar";
-import { Label } from "src/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "src/components/ui/select";
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  useComboboxAnchor,
+} from "src/components/ui/combobox";
+import { InputGroupAddon } from "src/components/ui/input-group";
+import { Label } from "src/components/ui/label";
 import { useApps } from "src/hooks/useApps";
 import { getAppDisplayName } from "src/lib/utils";
 import { App } from "src/types";
 
-const MAIN_WALLET = "main-wallet";
+const SPENDING_BALANCE = "spending-balance";
+
+type PayFromOption = {
+  value: string;
+  label: string;
+  app?: App;
+};
 
 type Props = {
   appId?: number;
   onChange(appId: number | undefined): void;
 };
 
-function getOptionValue(appId?: number) {
-  return appId ? appId.toString() : MAIN_WALLET;
-}
-
-function MainWalletOption() {
+function SpendingOption() {
   return (
     <div className="flex items-center gap-3">
-      <div className="flex size-7 items-center justify-center rounded-lg bg-muted">
+      <div className="flex size-6 items-center justify-center rounded-lg bg-muted">
         <WalletIcon className="size-3 text-muted-foreground" />
       </div>
-      <div>Main wallet</div>
+      <div>Spending Balance</div>
     </div>
   );
 }
@@ -38,7 +45,7 @@ function MainWalletOption() {
 function AppOption({ app }: { app: App }) {
   return (
     <div className="flex items-center gap-3">
-      <AppAvatar app={app} className="size-7 rounded-lg" />
+      <AppAvatar app={app} className="size-6 rounded-lg" />
       <div className="min-w-0">
         <div>{getAppDisplayName(app.name)}</div>
       </div>
@@ -47,9 +54,8 @@ function AppOption({ app }: { app: App }) {
 }
 
 export default function PayFromSelect({ appId, onChange }: Props) {
-  const { data: appsData } = useApps(100, undefined, {
-    subWallets: false,
-  });
+  const anchorRef = useComboboxAnchor();
+  const { data: appsData } = useApps(100);
 
   const apps = React.useMemo(
     () =>
@@ -59,37 +65,68 @@ export default function PayFromSelect({ appId, onChange }: Props) {
     [appsData?.apps]
   );
 
-  const selectedApp = apps.find((app) => app.id === appId);
+  const options = React.useMemo<PayFromOption[]>(
+    () => [
+      { value: SPENDING_BALANCE, label: "Spending Balance" },
+      ...apps.map((app) => ({
+        value: app.id.toString(),
+        label: getAppDisplayName(app.name),
+        app,
+      })),
+    ],
+    [apps]
+  );
+
+  const selectedOption = options.find((opt) =>
+    appId ? opt.value === appId.toString() : opt.value === SPENDING_BALANCE
+  );
 
   return (
-    <div className="grid gap-1.5 w-full">
+    <div className="grid w-full gap-1.5">
       <Label>Pay from</Label>
-      <Select
-        value={getOptionValue(selectedApp?.id)}
-        onValueChange={(value) =>
-          onChange(value === MAIN_WALLET ? undefined : Number(value))
+      <Combobox
+        items={options}
+        value={selectedOption}
+        itemToStringValue={(option) => option.value}
+        onValueChange={(option) =>
+          onChange(
+            option?.value === SPENDING_BALANCE
+              ? undefined
+              : Number(option?.value)
+          )
         }
       >
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder="Select payment source">
-            {selectedApp ? (
-              <AppOption app={selectedApp} />
-            ) : (
-              <MainWalletOption />
+        <div ref={anchorRef} className="w-full">
+          <ComboboxInput placeholder="Search connections">
+            <InputGroupAddon>
+              {selectedOption?.app ? (
+                <AppAvatar
+                  app={selectedOption.app}
+                  className="size-6 rounded-full"
+                />
+              ) : (
+                <div className="flex size-6 items-center justify-center rounded-sm bg-muted">
+                  <WalletIcon className="size-3 text-muted-foreground" />
+                </div>
+              )}
+            </InputGroupAddon>
+          </ComboboxInput>
+        </div>
+        <ComboboxContent anchor={anchorRef}>
+          <ComboboxEmpty>No connections found.</ComboboxEmpty>
+          <ComboboxList>
+            {(option: PayFromOption) => (
+              <ComboboxItem key={option.value} value={option}>
+                {option.app ? (
+                  <AppOption app={option.app} />
+                ) : (
+                  <SpendingOption />
+                )}
+              </ComboboxItem>
             )}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value={MAIN_WALLET}>
-            <MainWalletOption />
-          </SelectItem>
-          {apps.map((app) => (
-            <SelectItem key={app.id} value={app.id.toString()}>
-              <AppOption app={app} />
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
     </div>
   );
 }
