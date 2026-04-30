@@ -153,8 +153,8 @@ function NewChannelInternal({
   // find the best channel partner
   const okPartners = channelPeerSuggestions?.filter(
     (partner) =>
-      parseInt(order.amount || "0") >= partner.minimumChannelSize &&
-      parseInt(order.amount || "0") <= partner.maximumChannelSize &&
+      parseInt(order.amount || "0") >= partner.minimumChannelSizeSat &&
+      parseInt(order.amount || "0") <= partner.maximumChannelSizeSat &&
       partner.network === network &&
       partner.paymentMethod === "lightning" &&
       partner.type === "LSPS1" &&
@@ -281,8 +281,8 @@ function NewChannelInternal({
             {order.amount && +order.amount < 200_000 && (
               <p className="text-muted-foreground text-xs">
                 For a smooth experience consider a opening a channel of{" "}
-                <FormattedBitcoinAmount amount={200_000 * 1000} /> in size or
-                more.{" "}
+                <FormattedBitcoinAmount amountMsat={200_000 * 1000} /> in size
+                or more.{" "}
                 <ExternalLink
                   to="https://guides.getalby.com/user-guide/alby-hub/node"
                   className="underline"
@@ -297,7 +297,7 @@ function NewChannelInternal({
               required
               min={
                 showAdvanced
-                  ? selectedPeer?.minimumChannelSize || 100000
+                  ? selectedPeer?.minimumChannelSizeSat || 100000
                   : undefined
               }
               value={order.amount}
@@ -316,9 +316,9 @@ function NewChannelInternal({
                   )}
                   onClick={() => setAmount(amount.toString())}
                 >
-                  <FormattedBitcoinAmount amount={amount * 1000} />
+                  <FormattedBitcoinAmount amountMsat={amount * 1000} />
                   <FormattedFiatAmount
-                    amount={amount}
+                    amountSat={amount}
                     showApprox
                     className="text-xs"
                   />
@@ -331,7 +331,7 @@ function NewChannelInternal({
                 Estimated channel price:{" "}
                 <span className="font-semibold">
                   <FormattedBitcoinAmount
-                    amount={estimatedChannelPrice * 1000}
+                    amountMsat={estimatedChannelPrice * 1000}
                   />
                 </span>
               </span>
@@ -400,12 +400,16 @@ function NewChannelInternal({
                                     <span className="ml-4 text-xs text-muted-foreground slashed-zero">
                                       Min.{" "}
                                       <FormattedBitcoinAmount
-                                        amount={peer.minimumChannelSize * 1000}
+                                        amountMsat={
+                                          peer.minimumChannelSizeSat * 1000
+                                        }
                                       />
                                       <span className="mr-5" />
                                       Max.{" "}
                                       <FormattedBitcoinAmount
-                                        amount={peer.maximumChannelSize * 1000}
+                                        amountMsat={
+                                          peer.maximumChannelSizeSat * 1000
+                                        }
                                       />
                                     </span>
                                   </div>

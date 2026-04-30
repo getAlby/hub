@@ -177,10 +177,12 @@ export default function SwapInStatus() {
                 <div className="flex flex-col gap-2 items-center">
                   <p className="text-xl font-bold slashed-zero text-center">
                     <FormattedBitcoinAmount
-                      amount={(swap.receiveAmount as number) * 1000}
+                      amountMsat={(swap.receiveAmount as number) * 1000}
                     />
                   </p>
-                  <FormattedFiatAmount amount={swap.receiveAmount as number} />
+                  <FormattedFiatAmount
+                    amountSat={swap.receiveAmount as number}
+                  />
                 </div>
                 <Button onClick={copyPaymentHash} variant="outline">
                   <CopyIcon />
@@ -203,7 +205,9 @@ export default function SwapInStatus() {
                 <div className="flex flex-col gap-2 items-center">
                   <div className="flex items-center gap-2">
                     <p className="text-xl font-bold slashed-zero text-center">
-                      <FormattedBitcoinAmount amount={swap.sendAmount * 1000} />
+                      <FormattedBitcoinAmount
+                        amountMsat={swap.sendAmount * 1000}
+                      />
                     </p>
                     {!swap.lockupTxId && !isInternalSwap && (
                       <CopyIcon
@@ -212,7 +216,7 @@ export default function SwapInStatus() {
                       />
                     )}
                   </div>
-                  <FormattedFiatAmount amount={swap.sendAmount} />
+                  <FormattedFiatAmount amountSat={swap.sendAmount} />
                 </div>
                 {!swap.lockupTxId && !isInternalSwap && (
                   <div className="flex justify-center gap-4 flex-wrap">

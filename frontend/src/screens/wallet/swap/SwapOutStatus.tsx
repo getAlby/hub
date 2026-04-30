@@ -80,10 +80,12 @@ export default function SwapOutStatus() {
                 <div className="flex flex-col gap-2 items-center">
                   <p className="text-xl font-bold slashed-zero text-center">
                     <FormattedBitcoinAmount
-                      amount={(swap.receiveAmount as number) * 1000}
+                      amountMsat={(swap.receiveAmount as number) * 1000}
                     />
                   </p>
-                  <FormattedFiatAmount amount={swap.receiveAmount as number} />
+                  <FormattedFiatAmount
+                    amountSat={swap.receiveAmount as number}
+                  />
                 </div>
                 <div className="flex justify-center gap-4 flex-wrap">
                   <Button onClick={copyTxId} variant="outline">
@@ -101,11 +103,13 @@ export default function SwapOutStatus() {
                 )}
                 <div className="flex flex-col gap-2 items-center">
                   <p className="text-xl font-bold slashed-zero text-center">
-                    <FormattedBitcoinAmount amount={swap.sendAmount * 1000} />
+                    <FormattedBitcoinAmount
+                      amountMsat={swap.sendAmount * 1000}
+                    />
                   </p>
                   <div className="flex items-center">
                     <span className="text-sm text-muted-foreground">~</span>
-                    <FormattedFiatAmount amount={swap.sendAmount} />
+                    <FormattedFiatAmount amountSat={swap.sendAmount} />
                   </div>
                 </div>
               </>

@@ -83,7 +83,8 @@ function Wallet() {
         !!channels?.length &&
         channels?.every(
           (channel) =>
-            channel.localBalance < channel.unspendablePunishmentReserve * 1000
+            channel.localBalanceMsat <
+            channel.unspendablePunishmentReserveSat * 1000
         ) && (
           <Alert>
             <AlertTriangleIcon className="h-4 w-4" />
@@ -99,8 +100,8 @@ function Wallet() {
         )}
       {hasChannelManagement &&
         !!channels?.length &&
-        balances.lightning.totalReceivable <
-          balances.lightning.totalSpendable * 0.1 && (
+        balances.lightning.totalReceivableMsat <
+          balances.lightning.totalSpendableMsat * 0.1 && (
           <LowReceivingCapacityAlert />
         )}
       {hasChannelManagement && !channels?.length && (
@@ -120,12 +121,12 @@ function Wallet() {
         <div className="flex flex-col items-center gap-2">
           <div className="text-5xl md:text-6xl font-medium balance sensitive slashed-zero">
             <FormattedBitcoinAmount
-              amount={balances.lightning.totalSpendable}
+              amountMsat={balances.lightning.totalSpendableMsat}
             />
           </div>
           <FormattedFiatAmount
             className="text-xl md:text-2xl"
-            amount={balances.lightning.totalSpendable / 1000}
+            amountSat={balances.lightning.totalSpendableSat}
           />
         </div>
         <div className="grid w-full max-w-md grid-cols-2 items-center gap-3">

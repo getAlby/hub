@@ -98,7 +98,7 @@ export const expiryOptions: Record<string, number> = {
   "1 year": 365,
 };
 
-export const budgetOptions: Record<string, number> = {
+export const budgetOptionsSat: Record<string, number> = {
   "10k": 10_000,
   "100k": 100_000,
   "1M": 1_000_000,
@@ -138,7 +138,7 @@ export interface App {
 
 export interface AppPermissions {
   scopes: Scope[];
-  maxAmount: number;
+  maxAmountSat: number;
   budgetRenewal: BudgetRenewalType;
   expiresAt?: Date;
   isolated: boolean;

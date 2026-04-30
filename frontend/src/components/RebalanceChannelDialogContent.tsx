@@ -114,7 +114,7 @@ export function RebalanceChannelDialogContent({
                         (channel) =>
                           channel.remotePubkey === receiveThroughNodePubkey
                       )
-                      .map((channel) => channel.localSpendableBalance / 1000)
+                      .map((channel) => channel.localSpendableBalanceSat)
                   ) + 1
                 )
               )}
@@ -125,7 +125,7 @@ export function RebalanceChannelDialogContent({
                       (channel) =>
                         channel.remotePubkey === receiveThroughNodePubkey
                     )
-                    .map((channel) => channel.remoteBalance / 1000)
+                    .map((channel) => channel.remoteBalanceSat)
                 )
               )}
               value={amount}
@@ -139,7 +139,9 @@ export function RebalanceChannelDialogContent({
                 <>
                   &nbsp;(
                   <FormattedBitcoinAmount
-                    amount={Math.floor(parseInt(amount || "0") * 0.003 * 1000)}
+                    amountMsat={Math.floor(
+                      parseInt(amount || "0") * 0.003 * 1000
+                    )}
                   />
                   )
                 </>
@@ -176,10 +178,10 @@ export function RebalanceChannelDialogContent({
             {channels.some(
               (channel) =>
                 channel.remotePubkey !== receiveThroughNodePubkey &&
-                channel.localSpendableBalance <
+                channel.localSpendableBalanceMsat <
                   (channels.find(
                     (other) => other.remotePubkey === receiveThroughNodePubkey
-                  )?.localSpendableBalance || 0)
+                  )?.localSpendableBalanceMsat || 0)
             ) && (
               <Alert className="mt-2">
                 <AlertTriangleIcon className="h-4 w-4" />

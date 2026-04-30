@@ -209,7 +209,7 @@ function NewChannelInternal({
   const openImmediately =
     order.amount &&
     order.paymentMethod === "onchain" &&
-    +order.amount < balances.onchain.spendable;
+    +order.amount < balances.onchain.spendableSat;
 
   return (
     <>
@@ -270,8 +270,8 @@ function NewChannelInternal({
             {order.amount && +order.amount < 200_000 && (
               <p className="text-muted-foreground text-xs">
                 For a smooth experience consider a opening a channel of{" "}
-                <FormattedBitcoinAmount amount={200_000 * 1000} /> in size or
-                more.{" "}
+                <FormattedBitcoinAmount amountMsat={200_000 * 1000} /> in size
+                or more.{" "}
                 <ExternalLink
                   to="https://guides.getalby.com/user-guide/alby-hub/node"
                   className="underline"
@@ -284,7 +284,7 @@ function NewChannelInternal({
               id="amount"
               type="number"
               required
-              min={selectedPeer?.minimumChannelSize || 100000}
+              min={selectedPeer?.minimumChannelSizeSat || 100000}
               value={order.amount}
               onChange={(e) => {
                 setAmount(e.target.value.trim());
@@ -293,7 +293,7 @@ function NewChannelInternal({
             <div className="text-muted-foreground text-sm sensitive slashed-zero">
               Current on-chain balance:{" "}
               <FormattedBitcoinAmount
-                amount={balances.onchain.spendable * 1000}
+                amountMsat={balances.onchain.spendableSat * 1000}
               />
             </div>
             <div className="grid grid-cols-3 gap-1.5 text-muted-foreground text-xs">
@@ -354,12 +354,12 @@ function NewChannelInternal({
                                   )}
                                   <div>
                                     {peer.name}
-                                    {peer.minimumChannelSize > 0 && (
+                                    {peer.minimumChannelSizeSat > 0 && (
                                       <span className="ml-4 text-xs text-muted-foreground slashed-zero">
                                         Min.{" "}
                                         <FormattedBitcoinAmount
-                                          amount={
-                                            peer.minimumChannelSize * 1000
+                                          amountMsat={
+                                            peer.minimumChannelSizeSat * 1000
                                           }
                                         />
                                       </span>
@@ -471,7 +471,7 @@ function NewChannelInternal({
                 <div className="font-medium text-muted-foreground">Amount</div>
                 <div>
                   <FormattedBitcoinAmount
-                    amount={parseInt(order.amount || "0") * 1000}
+                    amountMsat={parseInt(order.amount || "0") * 1000}
                   />
                 </div>
               </div>

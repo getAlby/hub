@@ -3,51 +3,56 @@ import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import { Input } from "src/components/ui/input";
 import { cn } from "src/lib/utils";
-import { budgetOptions as defaultBudgetOptions } from "src/types";
+import { budgetOptionsSat as defaultBudgetOptionsSat } from "src/types";
 
 function BudgetAmountSelect({
-  value,
+  valueSat,
   onChange,
-  minAmount,
-  budgetOptions = defaultBudgetOptions,
+  minAmountSat,
+  budgetOptionsSat = defaultBudgetOptionsSat,
 }: {
-  value: number;
+  valueSat: number;
   onChange: (value: number) => void;
-  minAmount?: number;
-  budgetOptions?: typeof defaultBudgetOptions;
+  minAmountSat?: number;
+  budgetOptionsSat?: typeof defaultBudgetOptionsSat;
 }) {
   const [inputValue, setInputValue] = React.useState(
-    value ? String(value) : ""
+    valueSat ? String(valueSat) : ""
   );
 
   React.useEffect(() => {
-    setInputValue(value ? String(value) : "");
-  }, [value]);
+    setInputValue(valueSat ? String(valueSat) : "");
+  }, [valueSat]);
 
   return (
     <>
       <div className="grid grid-cols-3 gap-3 text-xs mb-3">
-        {Object.keys(budgetOptions)
-          .filter((budget) => !minAmount || budgetOptions[budget] >= minAmount)
+        {Object.keys(budgetOptionsSat)
+          .filter(
+            (budget) =>
+              !minAmountSat || budgetOptionsSat[budget] >= minAmountSat
+          )
           .map((budget) => (
             <button
               type="button"
               key={budget}
               onClick={() => {
-                onChange(budgetOptions[budget]);
+                onChange(budgetOptionsSat[budget]);
               }}
               className={cn(
                 "cursor-pointer rounded text-nowrap border-2 text-center p-3 py-4 slashed-zero",
-                value === budgetOptions[budget]
+                valueSat === budgetOptionsSat[budget]
                   ? "border-primary"
                   : "border-muted"
               )}
             >
-              <FormattedBitcoinAmount amount={budgetOptions[budget] * 1000} />
+              <FormattedBitcoinAmount
+                amountMsat={budgetOptionsSat[budget] * 1000}
+              />
               <FormattedFiatAmount
                 className="text-xs"
                 showApprox
-                amount={budgetOptions[budget]}
+                amountSat={budgetOptionsSat[budget]}
               />
             </button>
           ))}

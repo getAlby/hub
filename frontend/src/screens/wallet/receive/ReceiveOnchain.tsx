@@ -51,6 +51,7 @@ import { useSwapInfo } from "src/hooks/useSwaps";
 import { copyToClipboard } from "src/lib/clipboard";
 import {
   CreateInvoiceRequest,
+  InitiateSwapRequest,
   MempoolUtxo,
   SwapResponse,
   Transaction,
@@ -116,8 +117,10 @@ function ReceiveToOnchain() {
   );
 
   const [txId, setTxId] = useState("");
-  const [confirmedAmount, setConfirmedAmount] = useState<number | null>(null);
-  const [pendingAmount, setPendingAmount] = useState<number | null>(null);
+  const [confirmedAmountSat, setConfirmedAmountSat] = useState<number | null>(
+    null
+  );
+  const [pendingAmountSat, setPendingAmountSat] = useState<number | null>(null);
   const startTimeRef = useRef(0);
 
   useEffect(() => {
@@ -139,8 +142,8 @@ function ReceiveToOnchain() {
       const utxo = mempoolAddressUtxos.find((utxo) => utxo.txid === txId);
       if (utxo?.status.confirmed) {
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setConfirmedAmount(utxo.value);
-        setPendingAmount(null);
+        setConfirmedAmountSat(utxo.value);
+        setPendingAmountSat(null);
       }
     } else {
       const unconfirmed = mempoolAddressUtxos.find(
@@ -148,7 +151,7 @@ function ReceiveToOnchain() {
       );
       if (unconfirmed) {
         setTxId(unconfirmed.txid);
-        setPendingAmount(unconfirmed.value);
+        setPendingAmountSat(unconfirmed.value);
         return;
       }
 
@@ -160,8 +163,8 @@ function ReceiveToOnchain() {
       );
       if (confirmed) {
         setTxId(confirmed.txid);
-        setConfirmedAmount(confirmed.value);
-        setPendingAmount(null);
+        setConfirmedAmountSat(confirmed.value);
+        setPendingAmountSat(null);
       }
     }
   }, [mempoolAddressUtxos, txId]);
@@ -172,10 +175,10 @@ function ReceiveToOnchain() {
 
   return (
     <>
-      {confirmedAmount ? (
-        <DepositSuccess amount={confirmedAmount} txId={txId} />
+      {confirmedAmountSat ? (
+        <DepositSuccess amountSat={confirmedAmountSat} txId={txId} />
       ) : txId ? (
-        <DepositPending amount={pendingAmount} txId={txId} />
+        <DepositPending amountSat={pendingAmountSat} txId={txId} />
       ) : (
         <Card>
           <CardHeader>
@@ -233,10 +236,10 @@ function ReceiveToOnchain() {
 }
 
 function DepositPending({
-  amount,
+  amountSat,
   txId,
 }: {
-  amount: number | null;
+  amountSat: number | null;
   txId: string;
 }) {
   const { data: info } = useInfo();
@@ -251,12 +254,12 @@ function DepositPending({
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-4">
         <LottieLoading size={288} />
-        {amount && (
+        {amountSat && (
           <div className="flex flex-col gap-1 items-center">
             <p className="text-2xl font-medium slashed-zero">
-              <FormattedBitcoinAmount amount={amount * 1000} />
+              <FormattedBitcoinAmount amountMsat={amountSat * 1000} />
             </p>
-            <FormattedFiatAmount amount={amount} className="text-xl" />
+            <FormattedFiatAmount amountSat={amountSat} className="text-xl" />
           </div>
         )}
       </CardContent>
@@ -274,7 +277,13 @@ function DepositPending({
   );
 }
 
-function DepositSuccess({ amount, txId }: { amount: number; txId: string }) {
+function DepositSuccess({
+  amountSat,
+  txId,
+}: {
+  amountSat: number;
+  txId: string;
+}) {
   const { data: info } = useInfo();
 
   return (
@@ -286,9 +295,9 @@ function DepositSuccess({ amount, txId }: { amount: number; txId: string }) {
         <img src={TickSVG} className="w-48" />
         <div className="flex flex-col gap-1 items-center">
           <p className="text-2xl font-medium slashed-zero">
-            <FormattedBitcoinAmount amount={amount * 1000} />
+            <FormattedBitcoinAmount amountMsat={amountSat * 1000} />
           </p>
-          <FormattedFiatAmount amount={amount} className="text-xl" />
+          <FormattedFiatAmount amountSat={amountSat} className="text-xl" />
         </div>
       </CardContent>
       <CardFooter className="flex flex-col gap-2 pt-2">
@@ -326,7 +335,7 @@ function ReceiveToSpending() {
   const navigate = useNavigate();
 
   const [swapFrom, setSwapFrom] = useState<"bitcoin" | "crypto">("bitcoin");
-  const [swapAmount, setSwapAmount] = useState("");
+  const [swapAmountSat, setSwapAmountSat] = useState("");
   const [loading, setLoading] = useState(false);
   const [feeRate, setFeeRate] = useState("");
   const [cryptoTransaction, setCryptoTransaction] =
@@ -350,7 +359,7 @@ function ReceiveToSpending() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            amount: (parseInt(swapAmount) || 0) * 1000,
+            amountMsat: (parseInt(swapAmountSat) || 0) * 1000,
             description: "Fixed Float swap",
           } as CreateInvoiceRequest),
         });
@@ -371,8 +380,8 @@ function ReceiveToSpending() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          swapAmount: parseInt(swapAmount),
-        }),
+          swapAmountSat: parseInt(swapAmountSat),
+        } as InitiateSwapRequest),
       });
       if (!swapInResponse) {
         throw new Error("Error swapping in");
@@ -400,8 +409,8 @@ function ReceiveToSpending() {
       {!isCryptoReceiveState && (
         <>
           {hasChannelManagement &&
-            parseInt(swapAmount || "0") * 1000 >=
-              0.8 * balances.lightning.totalReceivable && (
+            parseInt(swapAmountSat || "0") * 1000 >=
+              0.8 * balances.lightning.totalReceivableMsat && (
               <LowReceivingCapacityAlert />
             )}
           <div className="grid gap-1.5">
@@ -410,20 +419,23 @@ function ReceiveToSpending() {
               type="number"
               autoFocus
               placeholder="Amount in satoshis"
-              value={swapAmount}
-              min={swapFrom === "bitcoin" ? swapInfo.minAmount : undefined}
+              value={swapAmountSat}
+              min={swapFrom === "bitcoin" ? swapInfo.minAmountSat : undefined}
               max={
                 swapFrom === "bitcoin"
                   ? Math.min(
-                      swapInfo.maxAmount,
-                      (balances.lightning.totalReceivable / 1000) * 0.99
+                      swapInfo.maxAmountSat,
+                      balances.lightning.totalReceivableSat * 0.99
                     )
-                  : (balances.lightning.totalReceivable / 1000) * 0.99
+                  : balances.lightning.totalReceivableSat * 0.99
               }
-              onChange={(e) => setSwapAmount(e.target.value)}
+              onChange={(e) => setSwapAmountSat(e.target.value)}
               required
               endAdornment={
-                <FormattedFiatAmount amount={+swapAmount} className="mr-2" />
+                <FormattedFiatAmount
+                  amountSat={+swapAmountSat}
+                  className="mr-2"
+                />
               }
             />
             <div className="grid">
@@ -431,12 +443,12 @@ function ReceiveToSpending() {
                 <div>
                   Receiving Capacity:{" "}
                   <FormattedBitcoinAmount
-                    amount={balances.lightning.totalReceivable}
+                    amountMsat={balances.lightning.totalReceivableMsat}
                   />
                 </div>
                 <FormattedFiatAmount
                   className="text-xs"
-                  amount={balances.lightning.totalReceivable / 1000}
+                  amountSat={balances.lightning.totalReceivableSat}
                 />
               </div>
             </div>
@@ -489,7 +501,7 @@ function ReceiveToSpending() {
           resetLabel="Receive Another Payment"
           onReset={() => {
             setCryptoTransaction(null);
-            setSwapAmount("");
+            setSwapAmountSat("");
           }}
         />
       )}

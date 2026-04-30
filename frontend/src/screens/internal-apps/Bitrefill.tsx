@@ -112,12 +112,12 @@ export function Bitrefill() {
               <div className="flex flex-row gap-2 items-center">
                 <span className="font-medium slashed-zero">
                   <FormattedBitcoinAmount
-                    amount={(invoice?.satoshi || 0) * 1000}
+                    amountMsat={(invoice?.satoshi || 0) * 1000}
                   />
                 </span>
                 <FormattedFiatAmount
                   className="text-muted-foreground"
-                  amount={invoice?.satoshi || 0}
+                  amountSat={invoice?.satoshi || 0}
                 />
               </div>
             </div>

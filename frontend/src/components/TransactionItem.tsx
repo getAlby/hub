@@ -206,14 +206,14 @@ function TransactionItem({ tx }: Props) {
                 >
                   {type == "outgoing" ? "-" : "+"}
                   <FormattedBitcoinAmount
-                    amount={tx.amount}
+                    amountMsat={tx.amountMsat}
                     className="font-medium"
                   />
                 </p>
               </div>
               <FormattedFiatAmount
                 className="text-xs md:text-base"
-                amount={Math.floor(tx.amount / 1000)}
+                amountSat={tx.amountSat}
               />
             </div>
           </div>
@@ -234,9 +234,9 @@ function TransactionItem({ tx }: Props) {
               {typeStateIcon}
               <div className="ml-4">
                 <p className="text-xl md:text-2xl font-semibold sensitive">
-                  <FormattedBitcoinAmount amount={tx.amount} />
+                  <FormattedBitcoinAmount amountMsat={tx.amountMsat} />
                 </p>
-                <FormattedFiatAmount amount={Math.floor(tx.amount / 1000)} />
+                <FormattedFiatAmount amountSat={tx.amountSat} />
               </div>
             </div>
             {app && (
@@ -280,9 +280,12 @@ function TransactionItem({ tx }: Props) {
               <div className="mt-6">
                 <p>Fee</p>
                 <p className="text-muted-foreground">
-                  <FormattedBitcoinAmount amount={tx.feesPaid} />
-                  {tx.feesPaid > 0 && (
-                    <>&nbsp;({((tx.feesPaid / tx.amount) * 100).toFixed(2)}%)</>
+                  <FormattedBitcoinAmount amountMsat={tx.feesPaidMsat} />
+                  {tx.feesPaidMsat > 0 && (
+                    <>
+                      &nbsp;(
+                      {((tx.feesPaidMsat / tx.amountMsat) * 100).toFixed(2)}%)
+                    </>
                   )}
                 </p>
               </div>

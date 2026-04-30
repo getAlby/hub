@@ -37,7 +37,12 @@ import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { useSwapInfo } from "src/hooks/useSwaps";
-import { CreateInvoiceRequest, SwapResponse, Transaction } from "src/types";
+import {
+  CreateInvoiceRequest,
+  InitiateSwapRequest,
+  SwapResponse,
+  Transaction,
+} from "src/types";
 import { openLink } from "src/utils/openLink";
 import { request } from "src/utils/request";
 
@@ -100,7 +105,7 @@ function SwapInForm() {
   const { data: channels } = useChannels();
   const navigate = useNavigate();
 
-  const [swapAmount, setSwapAmount] = useState("");
+  const [swapAmountSat, setSwapAmountSat] = useState("");
   const [loading, setLoading] = useState(false);
   const [cryptoTransaction, setCryptoTransaction] =
     useState<Transaction | null>(null);
@@ -117,7 +122,7 @@ function SwapInForm() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            amount: (parseInt(swapAmount) || 0) * 1000,
+            amountMsat: (parseInt(swapAmountSat) || 0) * 1000,
             description: "Fixed Float swap",
           } as CreateInvoiceRequest),
         });
@@ -138,8 +143,8 @@ function SwapInForm() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          swapAmount: parseInt(swapAmount),
-        }),
+          swapAmountSat: parseInt(swapAmountSat),
+        } as InitiateSwapRequest),
       });
       if (!swapInResponse) {
         throw new Error("Error swapping in");
@@ -161,8 +166,8 @@ function SwapInForm() {
     return <Loading />;
   }
 
-  const spendableOnchainBalanceWithAnchorReserves = Math.max(
-    balances.onchain.spendable - (channels?.length || 0) * 25000,
+  const spendableOnchainBalanceSatWithAnchorReserves = Math.max(
+    balances.onchain.spendableSat - (channels?.length || 0) * 25000,
     0
   );
   const isInternalSwap = swapFrom === "internal";
@@ -183,8 +188,8 @@ function SwapInForm() {
           </div>
           <div className="grid gap-1.5">
             {hasChannelManagement &&
-              parseInt(swapAmount || "0") * 1000 >=
-                0.8 * balances.lightning.totalReceivable && (
+              parseInt(swapAmountSat || "0") * 1000 >=
+                0.8 * balances.lightning.totalReceivableMsat && (
                 <div className="mb-4">
                   <LowReceivingCapacityAlert />
                 </div>
@@ -195,20 +200,20 @@ function SwapInForm() {
               type="number"
               autoFocus
               placeholder="Amount in satoshis"
-              value={swapAmount}
-              min={swapFrom !== "crypto" ? swapInfo.minAmount : undefined}
+              value={swapAmountSat}
+              min={swapFrom !== "crypto" ? swapInfo.minAmountSat : undefined}
               max={
                 swapFrom === "crypto"
-                  ? (balances.lightning.totalReceivable / 1000) * 0.99
+                  ? balances.lightning.totalReceivableSat * 0.99
                   : Math.min(
-                      swapInfo.maxAmount,
+                      swapInfo.maxAmountSat,
                       ...(isInternalSwap
-                        ? [spendableOnchainBalanceWithAnchorReserves]
+                        ? [spendableOnchainBalanceSatWithAnchorReserves]
                         : []),
-                      (balances.lightning.totalReceivable / 1000) * 0.99
+                      balances.lightning.totalReceivableSat * 0.99
                     )
               }
-              onChange={(e) => setSwapAmount(e.target.value)}
+              onChange={(e) => setSwapAmountSat(e.target.value)}
               required
             />
 
@@ -218,15 +223,15 @@ function SwapInForm() {
                   <p className="text-xs text-muted-foreground">
                     Receiving Capacity:{" "}
                     <FormattedBitcoinAmount
-                      amount={balances.lightning.totalReceivable}
+                      amountMsat={balances.lightning.totalReceivableMsat}
                     />
                   </p>
                   {isInternalSwap && (
                     <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
                       Spendable On-Chain Balance:{" "}
                       <FormattedBitcoinAmount
-                        amount={
-                          spendableOnchainBalanceWithAnchorReserves * 1000
+                        amountMsat={
+                          spendableOnchainBalanceSatWithAnchorReserves * 1000
                         }
                       />
                       {!!channels?.length && (
@@ -241,11 +246,13 @@ function SwapInForm() {
                               To ensure you can close channels, you need to set
                               aside at least{" "}
                               <FormattedBitcoinAmount
-                                amount={channels.length * 25000 * 1000}
+                                amountMsat={channels.length * 25000 * 1000}
                               />{" "}
                               on-chain. Your total on-chain balance is{" "}
                               <FormattedBitcoinAmount
-                                amount={balances.onchain.spendable * 1000}
+                                amountMsat={
+                                  balances.onchain.spendableSat * 1000
+                                }
                               />
                             </TooltipContent>
                           </Tooltip>
@@ -309,7 +316,7 @@ function SwapInForm() {
           resetLabel="Swap Another Amount"
           onReset={() => {
             setCryptoTransaction(null);
-            setSwapAmount("");
+            setSwapAmountSat("");
           }}
         />
       ) : (
@@ -344,7 +351,7 @@ function SwapOutForm() {
   const { data: balances } = useBalances();
 
   const [isInternalSwap, setInternalSwap] = useState(true);
-  const [swapAmount, setSwapAmount] = useState("");
+  const [swapAmountSat, setSwapAmountSat] = useState("");
   const [destination, setDestination] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -359,9 +366,9 @@ function SwapOutForm() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          swapAmount: parseInt(swapAmount),
+          swapAmountSat: parseInt(swapAmountSat),
           destination,
-        }),
+        } as InitiateSwapRequest),
       });
       if (!swapOutResponse) {
         throw new Error("Error swapping out");
@@ -402,13 +409,13 @@ function SwapOutForm() {
           type="number"
           autoFocus
           placeholder="Amount in satoshis"
-          value={swapAmount}
-          min={swapInfo.minAmount}
+          value={swapAmountSat}
+          min={swapInfo.minAmountSat}
           max={Math.min(
-            swapInfo.maxAmount,
-            Math.floor(balances.lightning.totalSpendable / 1000)
+            swapInfo.maxAmountSat,
+            balances.lightning.totalSpendableSat
           )}
-          onChange={(e) => setSwapAmount(e.target.value)}
+          onChange={(e) => setSwapAmountSat(e.target.value)}
           required
         />
 
@@ -417,13 +424,13 @@ function SwapOutForm() {
             <p className="text-xs text-muted-foreground">
               Balance:{" "}
               <FormattedBitcoinAmount
-                amount={balances.lightning.totalSpendable}
+                amountMsat={balances.lightning.totalSpendableMsat}
               />
             </p>
           )}
           <p className="text-xs text-muted-foreground">
             Minimum:{" "}
-            <FormattedBitcoinAmount amount={swapInfo.minAmount * 1000} />
+            <FormattedBitcoinAmount amountMsat={swapInfo.minAmountSat * 1000} />
           </p>
         </div>
       </div>

@@ -570,7 +570,7 @@ function McpSetup({
           "pay_invoice",
           "sign_message",
         ],
-        maxAmount: DEFAULT_APP_BUDGET_SATS,
+        maxAmountSat: DEFAULT_APP_BUDGET_SATS,
         budgetRenewal: DEFAULT_APP_BUDGET_RENEWAL,
         metadata: {
           app_store_app_id: agentName.toLowerCase().replace(/\s+/g, "-"),

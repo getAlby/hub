@@ -19,7 +19,7 @@ export function useNotifyReceivedPayments() {
       if (prevTransaction && latestTx.type === "incoming") {
         toast("Payment received", {
           description: formatBitcoinAmount(
-            latestTx.amount,
+            latestTx.amountMsat,
             info.bitcoinDisplayFormat
           ),
         });

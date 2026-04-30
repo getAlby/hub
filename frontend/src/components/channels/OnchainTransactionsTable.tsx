@@ -98,14 +98,14 @@ export function OnchainTransactionsTable() {
                           {tx.type == "outgoing" ? "-" : "+"}
                           <span className="font-medium">
                             <FormattedBitcoinAmount
-                              amount={tx.amountSat * 1000}
+                              amountMsat={tx.amountSat * 1000}
                             />
                           </span>
                         </p>
                       </div>
                       <FormattedFiatAmount
                         className="text-xs"
-                        amount={tx.amountSat}
+                        amountSat={tx.amountSat}
                       />
                     </div>
                   </TableCell>

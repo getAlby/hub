@@ -117,7 +117,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const [name, setName] = React.useState(app.name);
   const [permissions, setPermissions] = React.useState<AppPermissions>({
     scopes: app.scopes,
-    maxAmount: app.maxAmount,
+    maxAmountSat: app.maxAmountSat,
     budgetRenewal: app.budgetRenewal,
     expiresAt: app.expiresAt ? new Date(app.expiresAt) : undefined,
     isolated: app.isolated,
@@ -133,7 +133,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
         budgetRenewal: permissions.budgetRenewal,
         expiresAt: permissions.expiresAt?.toISOString(),
         updateExpiresAt: true,
-        maxAmount: permissions.maxAmount,
+        maxAmountSat: permissions.maxAmountSat,
         isolated: permissions.isolated,
       };
 
@@ -363,7 +363,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                                     this if you know it is safe to do so,
                                     otherwise you could potentially lose all
                                     funds
-                                    {!!permissions.maxAmount &&
+                                    {!!permissions.maxAmountSat &&
                                       " up to the specified budget"}
                                     {permissions.isolated &&
                                       " that are deposited into this isolated app"}

@@ -218,7 +218,8 @@ export default function Channels() {
                         Deposit
                       </Link>
                     </DropdownMenuItem>
-                    {(balances?.onchain.spendable || 0) > ONCHAIN_DUST_SATS && (
+                    {(balances?.onchain.spendableSat || 0) >
+                      ONCHAIN_DUST_SATS && (
                       <DropdownMenuItem
                         onClick={() => navigate("/wallet/withdraw")}
                       >
@@ -330,8 +331,8 @@ export default function Channels() {
               {/* If all channels have less than 20% incoming capacity, show a warning */}
               {channels?.every(
                 (channel) =>
-                  channel.remoteBalance <
-                  (channel.localBalance + channel.remoteBalance) * 0.2
+                  channel.remoteBalanceMsat <
+                  (channel.localBalanceMsat + channel.remoteBalanceMsat) * 0.2
               ) && <LowReceivingCapacityAlert />}
             </>
           )}
@@ -366,20 +367,20 @@ export default function Channels() {
                             your channels, which you can use to make lightning
                             payments. Your total lightning balance is{" "}
                             <FormattedBitcoinAmount
-                              amount={
+                              amountMsat={
                                 channels
-                                  ?.map((channel) => channel.localBalance)
+                                  ?.map((channel) => channel.localBalanceMsat)
                                   .reduce((a, b) => a + b, 0) || 0
                               }
                             />{" "}
                             which includes{" "}
                             <FormattedBitcoinAmount
-                              amount={
+                              amountMsat={
                                 channels
                                   ?.map((channel) =>
                                     Math.min(
-                                      channel.localBalance,
-                                      channel.unspendablePunishmentReserve *
+                                      channel.localBalanceMsat,
+                                      channel.unspendablePunishmentReserveSat *
                                         1000
                                     )
                                   )
@@ -404,11 +405,11 @@ export default function Channels() {
                       <>
                         <div className="text-xl font-medium balance sensitive mb-1">
                           <FormattedBitcoinAmount
-                            amount={balances.lightning.totalSpendable}
+                            amountMsat={balances.lightning.totalSpendableMsat}
                           />
                         </div>
                         <FormattedFiatAmount
-                          amount={balances.lightning.totalSpendable / 1000}
+                          amountSat={balances.lightning.totalSpendableSat}
                         />
                       </>
                     )}
@@ -439,11 +440,11 @@ export default function Channels() {
                       <>
                         <div className="text-xl font-medium balance sensitive mb-1">
                           <FormattedBitcoinAmount
-                            amount={balances.lightning.totalReceivable}
+                            amountMsat={balances.lightning.totalReceivableMsat}
                           />
                         </div>
                         <FormattedFiatAmount
-                          amount={balances.lightning.totalReceivable / 1000}
+                          amountSat={balances.lightning.totalReceivableSat}
                         />
                       </>
                     )}
@@ -493,12 +494,12 @@ export default function Channels() {
                       <div className="mb-1">
                         <span className="text-xl font-medium balance sensitive mb-1 mr-1">
                           <FormattedBitcoinAmount
-                            amount={balances.onchain.spendable * 1000}
+                            amountMsat={balances.onchain.spendableSat * 1000}
                           />
                         </span>
                         {!!channels?.length &&
-                          balances.onchain.reserved +
-                            balances.onchain.spendable <
+                          balances.onchain.reservedSat +
+                            balances.onchain.spendableSat <
                             25_000 && (
                             <TooltipProvider>
                               <Tooltip>
@@ -511,7 +512,7 @@ export default function Channels() {
                                   and currently rely on the counterparty. It is
                                   recommended to deposit at least{" "}
                                   <FormattedBitcoinAmount
-                                    amount={25_000 * 1000}
+                                    amountMsat={25_000 * 1000}
                                   />{" "}
                                   to your on-chain balance.
                                 </TooltipContent>
@@ -520,18 +521,18 @@ export default function Channels() {
                           )}
                       </div>
                       <FormattedFiatAmount
-                        amount={balances.onchain.spendable}
+                        amountSat={balances.onchain.spendableSat}
                         className="mb-1"
                       />
                       {balances &&
-                        balances.onchain.spendable !==
-                          balances.onchain.total && (
+                        balances.onchain.spendableSat !==
+                          balances.onchain.totalSat && (
                           <p className="text-xs text-muted-foreground animate-pulse">
                             +
                             <FormattedBitcoinAmount
-                              amount={
-                                (balances.onchain.total -
-                                  balances.onchain.spendable) *
+                              amountMsat={
+                                (balances.onchain.totalSat -
+                                  balances.onchain.spendableSat) *
                                 1000
                               }
                             />{" "}
@@ -546,15 +547,16 @@ export default function Channels() {
           </div>
 
           {balances &&
-            balances.onchain.pendingBalancesFromChannelClosures > 0 && (
+            balances.onchain.pendingBalancesFromChannelClosuresSat > 0 && (
               <Alert>
                 <HourglassIcon />
                 <AlertTitle>Pending Closed Channels</AlertTitle>
                 <AlertDescription className="block">
                   You have{" "}
                   <FormattedBitcoinAmount
-                    amount={
-                      balances.onchain.pendingBalancesFromChannelClosures * 1000
+                    amountMsat={
+                      balances.onchain.pendingBalancesFromChannelClosuresSat *
+                      1000
                     }
                   />{" "}
                   pending from closed channels with
@@ -614,17 +616,20 @@ export default function Channels() {
 }
 
 function getNodeHealth(channels: Channel[]) {
-  const totalChannelCapacitySats = channels
-    .map((channel) => (channel.localBalance + channel.remoteBalance) / 1000)
+  const totalChannelCapacitySat = channels
+    .map(
+      (channel) => (channel.localBalanceMsat + channel.remoteBalanceMsat) / 1000
+    )
     .reduce((a, b) => a + b, 0);
   const averageChannelBalance =
     channels
       .map((channel) => {
-        const totalBalance = channel.localBalance + channel.remoteBalance;
-        const expectedBalance = totalBalance / 2;
+        const totalBalanceMsat =
+          channel.localBalanceMsat + channel.remoteBalanceMsat;
+        const expectedBalanceMsat = totalBalanceMsat / 2;
         const actualBalance =
-          Math.min(channel.localBalance, channel.remoteBalance) /
-          expectedBalance;
+          Math.min(channel.localBalanceMsat, channel.remoteBalanceMsat) /
+          expectedBalanceMsat;
         return actualBalance;
       })
       .reduce((a, b) => a + b, 0) / (channels.length || 1);
@@ -636,7 +641,7 @@ function getNodeHealth(channels: Channel[]) {
   const nodeHealth = Math.ceil(
     numUniqueChannelPartners *
       (100 / 2) * // 2 or more channels is great
-      (Math.min(totalChannelCapacitySats, 1_000_000) / 1_000_000) * // 1 million sats or more is great
+      (Math.min(totalChannelCapacitySat, 1_000_000) / 1_000_000) * // 1 million sats or more is great
       (0.9 + averageChannelBalance * 0.1) // +10% for perfectly balanced channels
   );
 
@@ -670,7 +675,7 @@ function PendingBalancesDetailsItem({
         {nodeDetails?.alias || "Unknown"}
         <ExternalLinkIcon className="ml-1 w-4 h-4 inline" />
       </ExternalLink>{" "}
-      (<FormattedBitcoinAmount amount={details.amount * 1000} />
+      (<FormattedBitcoinAmount amountMsat={details.amountSat * 1000} />
       )&nbsp;
       <ExternalLink
         to={`${info?.mempoolUrl}/tx/${details.fundingTxId}#flow=&vout=${details.fundingTxVout}`}

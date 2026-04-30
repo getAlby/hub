@@ -17,7 +17,7 @@ interface Platform {
 interface EarnOpportunity {
   title: string;
   logo: string;
-  reward?: number;
+  rewardSat?: number;
   rewardText?: string;
   platforms: Platform[];
 }
@@ -37,7 +37,7 @@ const earnOpportunities: EarnOpportunity[] = [
   {
     title: "Alby Go",
     logo: albyGo,
-    reward: 1000,
+    rewardSat: 1000,
     platforms: [
       {
         name: "Google Play",
@@ -52,7 +52,7 @@ const earnOpportunities: EarnOpportunity[] = [
   {
     title: "Alby Extension",
     logo: albyExtension,
-    reward: 1000,
+    rewardSat: 1000,
     platforms: [
       {
         name: "Chrome",
@@ -134,9 +134,9 @@ export function AlbyEarn() {
                       </div>
                     </div>
                     <div className="sm:text-right font-medium shrink-0">
-                      {opportunity.reward !== undefined ? (
+                      {opportunity.rewardSat !== undefined ? (
                         <FormattedBitcoinAmount
-                          amount={opportunity.reward * 1000}
+                          amountMsat={opportunity.rewardSat * 1000}
                         />
                       ) : opportunity.rewardText ? (
                         <span className="text-muted-foreground text-sm inline-flex items-start justify-end gap-1">

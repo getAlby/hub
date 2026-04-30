@@ -66,7 +66,7 @@ export function ChannelDropdownMenu({
         </Button>
         <DropdownMenuContent align="end" className="w-64">
           {channel.status == "online" &&
-            channel.remoteBalance > channel.localSpendableBalance &&
+            channel.remoteBalanceMsat > channel.localSpendableBalanceMsat &&
             hasMultipleChannels && (
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem onClick={() => setDialog("rebalance")}>

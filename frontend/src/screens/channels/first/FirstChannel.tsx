@@ -59,7 +59,7 @@ export function FirstChannel() {
 
   const navigate = useNavigate();
   const [invoice, setInvoice] = React.useState<string>();
-  const [channelSize, setChannelSize] = React.useState<number>();
+  const [channelSizeSat, setChannelSizeSat] = React.useState<number>();
   const [currentPaymentMethod, setCurrentPaymentMethod] =
     React.useState<LSPChannelOfferPaymentMethod>();
 
@@ -115,7 +115,7 @@ export function FirstChannel() {
       }
 
       setInvoice(autoChannelResponse.invoice);
-      setChannelSize(autoChannelResponse.channelSize);
+      setChannelSizeSat(autoChannelResponse.channelSizeSat);
     } catch (error) {
       setLoading(false);
       console.error(error);
@@ -131,7 +131,7 @@ export function FirstChannel() {
         description="Open a channel to another lightning network node to join the lightning network"
       />
       <MempoolAlert />
-      {invoice && channelSize && (
+      {invoice && channelSizeSat && (
         <div className="flex flex-col gap-4 items-center justify-center max-w-md">
           <p className="text-muted-foreground slashed-zero">
             Alby Hub works with selected service providers (LSPs) which provide
@@ -147,7 +147,9 @@ export function FirstChannel() {
                     Incoming Liquidity
                   </TableCell>
                   <TableCell className="text-right p-3">
-                    <FormattedBitcoinAmount amount={channelSize * 1000} />
+                    <FormattedBitcoinAmount
+                      amountMsat={channelSizeSat * 1000}
+                    />
                   </TableCell>
                 </TableRow>
                 {invoice && (
@@ -157,7 +159,7 @@ export function FirstChannel() {
                     </TableCell>
                     <TableCell className="font-semibold text-right p-3">
                       <FormattedBitcoinAmount
-                        amount={new Invoice({ pr: invoice }).satoshi * 1000}
+                        amountMsat={new Invoice({ pr: invoice }).satoshi * 1000}
                       />
                     </TableCell>
                   </TableRow>
@@ -339,11 +341,11 @@ export function FirstChannel() {
                   <TableCell className="px-3 flex flex-col gap-2 items-end justify-center align-top">
                     {/* <span>
                       <FormattedBitcoinAmount
-                        amount={lspChannelOffer.lspBalanceSat * 1000}
+                        amountMsat={lspChannelOffer.lspBalanceSat * 1000}
                       />
                     </span> */}
                     <FormattedFiatAmount
-                      amount={lspChannelOffer.lspBalanceSat}
+                      amountSat={lspChannelOffer.lspBalanceSat}
                       showApprox
                     />
                   </TableCell>
