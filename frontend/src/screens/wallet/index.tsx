@@ -6,8 +6,7 @@ import {
   CalendarSyncIcon,
   CreditCardIcon,
 } from "lucide-react";
-import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import AppHeader from "src/components/AppHeader";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
@@ -35,15 +34,16 @@ function Wallet() {
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances(true);
   const { data: channels } = useChannels();
-  const [activeBalanceMode, setActiveBalanceMode] =
-    useState<BalanceMode>("lightning");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeBalanceMode: BalanceMode =
+    searchParams.get("mode") === "onchain" ? "onchain" : "lightning";
 
   const isOnchainMode = activeBalanceMode === "onchain";
   const hasChannelsOpen = !!channels?.length;
 
   const toggleBalanceMode = () => {
-    setActiveBalanceMode((currentMode) =>
-      currentMode === "lightning" ? "onchain" : "lightning"
+    setSearchParams(
+      activeBalanceMode === "lightning" ? { mode: "onchain" } : {}
     );
   };
 
