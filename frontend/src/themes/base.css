@@ -1,13 +1,8 @@
-@import "tailwindcss";
-@import "tw-animate-css";
 @import "@fontsource-variable/inter/wght.css";
 
-@custom-variant dark (&:is(.dark *));
-
-/* Use generalized selector (:root, .dark) here because all themes
-   should fall back to these values */
-:root,
-.theme-classic {
+/* Neutral base values applied to every theme. Per-theme overrides go in
+   their own files (e.g. `alby.css`, `bitcoin.css`). */
+:root {
   --app-font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
@@ -84,14 +79,4 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.439 0 0);
-}
-
-.theme-classic {
-  --logo-ink: #202020;
-  --logo-accent: #ffc800;
-}
-
-.theme-classic.dark {
-  --logo-ink: #ffffff;
-  --logo-accent: #ffe480;
 }
