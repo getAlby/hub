@@ -14,6 +14,7 @@ import {
 } from "src/components/ui/combobox";
 import { InputGroupAddon } from "src/components/ui/input-group";
 import { Label } from "src/components/ui/label";
+import { PAY_FROM_SELECT_APPS_LIMIT } from "src/constants";
 import { useApps } from "src/hooks/useApps";
 import { getAppDisplayName } from "src/lib/utils";
 import { App } from "src/types";
@@ -55,13 +56,15 @@ function AppOption({ app }: { app: App }) {
 
 export default function PayFromSelect({ appId, onChange }: Props) {
   const anchorRef = useComboboxAnchor();
-  const { data: appsData } = useApps(100);
+  const { data: appsData } = useApps(PAY_FROM_SELECT_APPS_LIMIT);
 
   const apps = React.useMemo(
     () =>
-      (appsData?.apps || []).filter((app) =>
-        app.scopes.includes("pay_invoice")
-      ),
+      [...(appsData?.apps || [])]
+        .filter((app) => app.scopes.includes("pay_invoice"))
+        .sort((a, b) =>
+          getAppDisplayName(a.name).localeCompare(getAppDisplayName(b.name))
+        ),
     [appsData?.apps]
   );
 
