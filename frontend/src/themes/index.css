@@ -8,7 +8,7 @@
 }
 
 @theme inline {
-  /* Bound to per-theme `--app-font-sans` (see `default.css`, `alby.css`, …). */
+  /* Bound to per-theme `--app-font-sans` (default in `base.css`, overridden in `alby.css`). */
   --font-sans: var(--app-font-sans);
 
   --radius-sm: calc(var(--radius) - 4px);

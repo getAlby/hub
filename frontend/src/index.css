@@ -1,5 +1,8 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 @import "sonner/dist/styles.css";
+
+@custom-variant dark (&:is(.dark *));
 
 html,
 body {
@@ -12,7 +15,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-@import "./themes/default.css";
+@import "./themes/base.css";
 @import "./themes/alby.css";
 @import "./themes/bitcoin.css";
 @import "./themes/nostr.css";
