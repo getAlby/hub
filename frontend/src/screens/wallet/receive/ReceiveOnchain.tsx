@@ -58,15 +58,26 @@ import {
 import { openLink } from "src/utils/openLink";
 import { request } from "src/utils/request";
 
+type ReceiveOnchainTab = "spending" | "onchain";
+
+function tabFromSearchParam(value: string | null): ReceiveOnchainTab | null {
+  if (value === "spending" || value === "onchain") {
+    return value;
+  }
+  return null;
+}
+
 export default function ReceiveOnchain() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [tab, setTab] = useState(searchParams.get("type") || "spending");
+  const [tab, setTab] = useState<ReceiveOnchainTab>(() => {
+    return tabFromSearchParam(searchParams.get("type")) ?? "spending";
+  });
 
   useEffect(() => {
-    const newTabValue = searchParams.get("type");
-    if (newTabValue) {
-      setTab(newTabValue);
-      setSearchParams({});
+    const fromParam = tabFromSearchParam(searchParams.get("type"));
+    if (fromParam) {
+      setTab(fromParam);
+      setSearchParams({}, { replace: true });
     }
   }, [searchParams, setSearchParams]);
 
@@ -78,7 +89,16 @@ export default function ReceiveOnchain() {
       />
       <div className="w-full max-w-lg grid gap-5">
         <MempoolAlert />
-        <Tabs value={tab} onValueChange={setTab} className="w-full">
+        <Tabs
+          value={tab}
+          onValueChange={(value) => {
+            const next = tabFromSearchParam(value);
+            if (next) {
+              setTab(next);
+            }
+          }}
+          className="w-full"
+        >
           <TabsList className="w-full mb-2">
             <TabsTrigger
               value="spending"
@@ -124,6 +144,14 @@ function ReceiveToOnchain() {
       startTimeRef.current = Math.floor(Date.now() / 1000);
     }
   }, []);
+
+  const receiveAnother = async () => {
+    setTxId("");
+    setConfirmedAmount(null);
+    setPendingAmount(null);
+    startTimeRef.current = Math.floor(Date.now() / 1000);
+    await getNewAddress();
+  };
 
   useEffect(() => {
     if (
@@ -171,7 +199,11 @@ function ReceiveToOnchain() {
   return (
     <>
       {confirmedAmount ? (
-        <DepositSuccess amount={confirmedAmount} txId={txId} />
+        <DepositSuccess
+          amount={confirmedAmount}
+          txId={txId}
+          onReceiveAnother={receiveAnother}
+        />
       ) : txId ? (
         <DepositPending amount={pendingAmount} txId={txId} />
       ) : (
@@ -272,7 +304,15 @@ function DepositPending({
   );
 }
 
-function DepositSuccess({ amount, txId }: { amount: number; txId: string }) {
+function DepositSuccess({
+  amount,
+  txId,
+  onReceiveAnother,
+}: {
+  amount: number;
+  txId: string;
+  onReceiveAnother: () => void;
+}) {
   const { data: info } = useInfo();
 
   return (
@@ -298,10 +338,15 @@ function DepositSuccess({ amount, txId }: { amount: number; txId: string }) {
           <ExternalLinkIcon className="w-4 h-4 mr-2" />
           View on Mempool
         </ExternalLinkButton>
-        <LinkButton to="/wallet/send" variant="outline" className="w-full">
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={onReceiveAnother}
+        >
           <HandCoinsIcon className="w-4 h-4 mr-2" />
           Receive Another Payment
-        </LinkButton>
+        </Button>
         <LinkButton to="/wallet" variant="link" className="w-full">
           <ArrowLeftIcon className="w-4 h-4 mr-2" />
           Back to Wallet
