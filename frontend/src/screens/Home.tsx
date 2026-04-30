@@ -1,7 +1,12 @@
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
-import { useAlbyMe } from "src/hooks/useAlbyMe";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "src/components/ui/card";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import OnboardingChecklist from "src/screens/wallet/OnboardingChecklist";
@@ -20,33 +25,11 @@ import { NodeStatusWidget } from "src/components/home/widgets/NodeStatusWidget";
 import { OnchainFeesWidget } from "src/components/home/widgets/OnchainFeesWidget";
 import { SupportAlbyWidget } from "src/components/home/widgets/SupportAlbyWidget";
 import { WhatsNewWidget } from "src/components/home/widgets/WhatsNewWidget";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "src/components/ui/card";
 import { SearchInput } from "src/components/ui/search-input";
-
-function getGreeting(name: string | undefined) {
-  const hours = new Date().getHours();
-  let greeting;
-
-  if (hours < 11) {
-    greeting = "Good Morning";
-  } else if (hours < 16) {
-    greeting = "Good Afternoon";
-  } else {
-    greeting = "Good Evening";
-  }
-
-  return `${greeting}${name ? `, ${name}` : ""}!`;
-}
 
 function Home() {
   const { data: info } = useInfo();
   const { data: balances } = useBalances();
-  const { data: albyMe } = useAlbyMe();
   const [isNerd, setNerd] = React.useState(false);
 
   if (!info || !balances) {
@@ -56,8 +39,7 @@ function Home() {
   return (
     <>
       <AppHeader
-        title={getGreeting(albyMe?.name)}
-        pageTitle="Home"
+        title="Home"
         contentRight={<SearchInput placeholder="Search" />}
       />
       <div className="columns-1 lg:columns-2 gap-3 *:mb-3 *:break-inside-avoid">

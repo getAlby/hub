@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import utc from "dayjs/plugin/utc";
 import {
   ArrowDownIcon,
@@ -8,6 +9,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   CopyIcon,
+  TagIcon,
   XIcon,
 } from "lucide-react";
 import { nip19 } from "nostr-tools";
@@ -19,6 +21,8 @@ import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import { PaymentFailedAlert } from "src/components/PaymentFailedAlert";
 import PodcastingInfo from "src/components/PodcastingInfo";
+import TransactionLabels from "src/components/TransactionLabels";
+import { Button } from "src/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -33,10 +37,12 @@ import { copyToClipboard } from "src/lib/clipboard";
 import { cn, getAppDisplayName } from "src/lib/utils";
 import { Transaction } from "src/types";
 
+dayjs.extend(relativeTime);
 dayjs.extend(utc);
 
 type Props = {
   tx: Transaction;
+  transactionListKey: string;
 };
 
 function safeNpubEncode(hex: string): string | undefined {
@@ -57,12 +63,15 @@ function safeNeventEncode(id: string): string | undefined {
   }
 }
 
-function TransactionItem({ tx }: Props) {
+function TransactionItem({ tx, transactionListKey }: Props) {
   const { data: app } = useApp(tx.appId);
   const swapId = tx.metadata?.swap_id;
   const { data: swap } = useSwap(swapId);
   const [showDetails, setShowDetails] = React.useState(false);
+  const labels = tx.metadata?.user_labels ?? {};
+  const labelEntries = Object.entries(labels);
   const type = tx.type;
+  const updatedAt = dayjs(tx.updatedAt).local();
 
   const pubkey = tx.metadata?.nostr?.pubkey;
   const npub = pubkey ? safeNpubEncode(pubkey) : undefined;
@@ -157,7 +166,7 @@ function TransactionItem({ tx }: Props) {
           >
             <AppAvatar
               app={app}
-              className="border-none p-0 rounded-full w-[18px] h-[18px] md:w-6 md:h-6 shadow-xs"
+              className="border-none p-0 rounded-full w-4.5 h-4.5 md:w-6 md:h-6 shadow-xs"
             />
           </div>
         )}
@@ -173,7 +182,7 @@ function TransactionItem({ tx }: Props) {
         }
       }}
     >
-      <DialogTrigger className="p-3 mb-4 hover:bg-muted/50 data-[state=selected]:bg-muted cursor-pointer rounded-md slashed-zero transaction sensitive">
+      <DialogTrigger className="p-3 mb-4 hover:bg-muted/50 data-[state=open]:bg-muted cursor-pointer rounded-md slashed-zero transaction sensitive">
         <div
           className={cn(
             "flex gap-3",
@@ -189,8 +198,14 @@ function TransactionItem({ tx }: Props) {
                 {to !== undefined && <>&nbsp;{to}</>}
               </span>
               <span className="text-xs md:text-base text-muted-foreground shrink-0">
-                {dayjs(tx.updatedAt).fromNow()}
+                {updatedAt.fromNow()}
               </span>
+              {labelEntries.length > 0 && (
+                <TagIcon
+                  className="size-3 text-muted-foreground shrink-0"
+                  aria-label={`${labelEntries.length} label${labelEntries.length === 1 ? "" : "s"}`}
+                />
+              )}
             </div>
             <p className="text-sm md:text-base text-muted-foreground break-all line-clamp-1">
               {description}
@@ -219,12 +234,12 @@ function TransactionItem({ tx }: Props) {
           </div>
         </div>
       </DialogTrigger>
-      <DialogContent className="slashed-zero">
+      <DialogContent className="slashed-zero max-h-[90vh]">
         <DialogHeader>
           <DialogTitle
             className={cn(tx.state === "pending" && "animate-pulse")}
           >{`${typeStateText} Bitcoin Payment`}</DialogTitle>
-          <DialogDescription className="text-start text-foreground max-h-[90vh] overflow-y-auto pr-2">
+          <DialogDescription className="text-start text-foreground">
             <div
               className={cn(
                 "flex items-center mt-6",
@@ -234,6 +249,7 @@ function TransactionItem({ tx }: Props) {
               {typeStateIcon}
               <div className="ml-4">
                 <p className="text-xl md:text-2xl font-semibold sensitive">
+                  {tx.type === "outgoing" ? "-" : "+"}
                   <FormattedBitcoinAmount amount={tx.amount} />
                 </p>
                 <FormattedFiatAmount amount={Math.floor(tx.amount / 1000)} />
@@ -273,7 +289,7 @@ function TransactionItem({ tx }: Props) {
             <div className="mt-6">
               <p>Date & Time</p>
               <p className="text-muted-foreground">
-                {dayjs(tx.updatedAt).local().format("D MMMM YYYY, HH:mm")}
+                {updatedAt.format("D MMMM YYYY, HH:mm")}
               </p>
             </div>
             {tx.state != "failed" && type == "outgoing" && (
@@ -336,7 +352,12 @@ function TransactionItem({ tx }: Props) {
                 />
               </div>
             )}
-            <div className="mt-4 w-full">
+            <TransactionLabels
+              id={tx.id}
+              labels={labels}
+              transactionListKey={transactionListKey}
+            />
+            <div className="mt-6 w-full">
               <div
                 className="flex items-center gap-2 cursor-pointer"
                 onClick={() => setShowDetails(!showDetails)}
@@ -354,94 +375,130 @@ function TransactionItem({ tx }: Props) {
                   {bolt12Offer && (
                     <div className="mt-6">
                       <p>BOLT-12 Offer Id</p>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-between gap-4">
                         <p className="text-muted-foreground break-all">
                           {bolt12Offer.id}
                         </p>
-                        <CopyIcon
-                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          className="text-muted-foreground"
                           onClick={() => {
                             copy(bolt12Offer.id as string);
                           }}
-                        />
+                          aria-label="Copy BOLT-12 offer id"
+                        >
+                          <CopyIcon />
+                        </Button>
                       </div>
                     </div>
                   )}
                   {tx.preimage && (
                     <div className="mt-6">
                       <p>Preimage</p>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-between gap-4">
                         <p className="text-muted-foreground break-all">
                           {tx.preimage}
                         </p>
-                        <CopyIcon
-                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          className="text-muted-foreground"
                           onClick={() => {
                             if (tx.preimage) {
                               copy(tx.preimage);
                             }
                           }}
-                        />
+                          aria-label="Copy preimage"
+                        >
+                          <CopyIcon />
+                        </Button>
                       </div>
                     </div>
                   )}
                   <div className="mt-6">
                     <p>Hash</p>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center justify-between gap-4">
                       <p className="text-muted-foreground break-all">
                         {tx.paymentHash}
                       </p>
-                      <CopyIcon
-                        className="cursor-pointer text-muted-foreground size-4 shrink-0"
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        className="text-muted-foreground"
                         onClick={() => {
                           copy(tx.paymentHash);
                         }}
-                      />
+                        aria-label="Copy hash"
+                      >
+                        <CopyIcon />
+                      </Button>
                     </div>
                   </div>
                   <div className="mt-6">
                     <p>Invoice</p>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center justify-between gap-4">
                       <p className="text-muted-foreground break-all">
                         {tx.invoice}
                       </p>
-                      <CopyIcon
-                        className="cursor-pointer text-muted-foreground size-4 shrink-0"
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-sm"
+                        className="text-muted-foreground"
                         onClick={() => {
                           copy(tx.invoice);
                         }}
-                      />
+                        aria-label="Copy invoice"
+                      >
+                        <CopyIcon />
+                      </Button>
                     </div>
                   </div>
                   {!!tx.failureReason && (
                     <div className="mt-6">
                       <p>Failure Reason</p>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-between gap-4">
                         <p className="text-muted-foreground break-anywhere">
                           {tx.failureReason}
                         </p>
-                        <CopyIcon
-                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          className="text-muted-foreground"
                           onClick={() => {
                             copy(tx.failureReason);
                           }}
-                        />
+                          aria-label="Copy failure reason"
+                        >
+                          <CopyIcon />
+                        </Button>
                       </div>
                     </div>
                   )}
                   {tx.metadata && (
                     <div className="mt-6">
                       <p>Metadata</p>
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-between gap-4">
                         <p className="text-muted-foreground break-all">
                           {JSON.stringify(tx.metadata)}
                         </p>
-                        <CopyIcon
-                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon-sm"
+                          className="text-muted-foreground"
                           onClick={() => {
                             copy(JSON.stringify(tx.metadata));
                           }}
-                        />
+                          aria-label="Copy metadata"
+                        >
+                          <CopyIcon />
+                        </Button>
                       </div>
                     </div>
                   )}

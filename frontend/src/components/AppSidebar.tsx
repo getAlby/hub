@@ -53,6 +53,10 @@ import { useInfo } from "src/hooks/useInfo";
 import { deleteAuthToken } from "src/lib/auth";
 import { isHttpMode } from "src/utils/isHttpMode";
 
+function isPathActive(pathname: string, url: string) {
+  return pathname === url || pathname.startsWith(`${url}/`);
+}
+
 export function AppSidebar() {
   const { data: albyMe } = useAlbyMe();
 
@@ -150,7 +154,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    isActive={location.pathname === item.url}
+                    isActive={isPathActive(location.pathname, item.url)}
                   >
                     <Link
                       to={item.url}
@@ -313,7 +317,7 @@ export function NavSecondary({
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
                 asChild
-                isActive={location.pathname === item.url}
+                isActive={isPathActive(location.pathname, item.url)}
               >
                 <NavLink
                   to={item.url}

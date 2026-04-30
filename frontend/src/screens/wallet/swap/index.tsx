@@ -48,7 +48,6 @@ export default function Swap() {
   useEffect(() => {
     const newTabValue = searchParams.get("type");
     if (newTabValue) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTab(newTabValue);
       setSearchParams({});
     }
