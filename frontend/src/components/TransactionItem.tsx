@@ -203,7 +203,6 @@ function TransactionItem({ tx, transactionListKey }: Props) {
                     className="size-3 shrink-0"
                     aria-label={`${labelEntries.length} label${labelEntries.length === 1 ? "" : "s"}`}
                   />
-                  {labelEntries.length}
                 </Badge>
               )}
             </div>
