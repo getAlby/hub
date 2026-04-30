@@ -14,8 +14,6 @@ export default function Onchain() {
     return null;
   }
 
-  const hasIncoming = balances.onchain.total > balances.onchain.spendable;
-
   return (
     <>
       <div className="flex w-full flex-col items-center gap-8 pt-12 pb-16 text-center">
@@ -39,17 +37,6 @@ export default function Onchain() {
               className="text-3xl font-normal leading-9 text-muted-foreground"
               amount={balances.onchain.spendable}
             />
-            {hasIncoming && (
-              <p className="text-sm md:text-base text-muted-foreground animate-pulse">
-                +
-                <FormattedBitcoinAmount
-                  amount={
-                    (balances.onchain.total - balances.onchain.spendable) * 1000
-                  }
-                />{" "}
-                incoming
-              </p>
-            )}
           </div>
         </div>
         <div className="grid w-full max-w-100 grid-cols-2 items-center gap-3">
