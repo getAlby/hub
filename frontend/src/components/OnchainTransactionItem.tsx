@@ -1,15 +1,10 @@
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import utc from "dayjs/plugin/utc";
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  CopyIcon,
-  ExternalLinkIcon,
-} from "lucide-react";
+import { ArrowDownIcon, ArrowUpIcon, ExternalLinkIcon } from "lucide-react";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
-import { Button } from "src/components/ui/button";
+import { TransactionDetailRow } from "src/components/TransactionDetailRow";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import {
   Dialog,
@@ -19,7 +14,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "src/components/ui/dialog";
-import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
 import { OnchainTransaction } from "src/types";
 
@@ -141,39 +135,18 @@ function OnchainTransactionItem({
             </div>
           </div>
 
-          <div>
-            <p>Status</p>
-            <p className="text-muted-foreground">{statusText}</p>
-          </div>
-
-          <div>
-            <p>Confirmations</p>
-            <p className="text-muted-foreground">{tx.numConfirmations}</p>
-          </div>
-
-          <div>
-            <p>Date & Time</p>
-            <p className="text-muted-foreground">
-              {createdAt.format("D MMMM YYYY, HH:mm")}
-            </p>
-          </div>
-
-          <div>
-            <p>Transaction ID</p>
-            <div className="flex items-center gap-4">
-              <p className="text-muted-foreground break-all">{tx.txId}</p>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                className="text-muted-foreground"
-                onClick={() => copyToClipboard(tx.txId)}
-                aria-label="Copy transaction ID"
-              >
-                <CopyIcon />
-              </Button>
-            </div>
-          </div>
+          <TransactionDetailRow label="Status">
+            {statusText}
+          </TransactionDetailRow>
+          <TransactionDetailRow label="Confirmations">
+            {tx.numConfirmations}
+          </TransactionDetailRow>
+          <TransactionDetailRow label="Date & Time">
+            {createdAt.format("D MMMM YYYY, HH:mm")}
+          </TransactionDetailRow>
+          <TransactionDetailRow label="Transaction ID" copyable={tx.txId}>
+            {tx.txId}
+          </TransactionDetailRow>
         </div>
         <DialogFooter>
           <ExternalLinkButton to={`${mempoolUrl}/tx/${tx.txId}`}>

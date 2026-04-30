@@ -111,7 +111,7 @@ function TransactionLabels({
   };
 
   return (
-    <div className="mt-6">
+    <div>
       <div className="flex items-center justify-between">
         <p>Labels</p>
         {!isEditing && (
