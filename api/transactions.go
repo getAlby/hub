@@ -36,6 +36,10 @@ func (api *api) LookupInvoice(ctx context.Context, paymentHash string) (*LookupI
 	return toApiTransaction(transaction), nil
 }
 
+func (api *api) SetTransactionUserLabels(ctx context.Context, id uint, labels map[string]string) error {
+	return api.svc.GetTransactionsService().SetTransactionUserLabels(ctx, id, labels)
+}
+
 func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
@@ -113,6 +117,7 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 	}
 
 	return &Transaction{
+		ID:              transaction.ID,
 		Type:            transaction.Type,
 		State:           strings.ToLower(transaction.State),
 		Invoice:         transaction.PaymentRequest,

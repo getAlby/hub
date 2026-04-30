@@ -5,7 +5,7 @@ import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
 import TransactionItem from "src/components/TransactionItem";
 import { LIST_TRANSACTIONS_LIMIT } from "src/constants";
-import { useTransactions } from "src/hooks/useTransactions";
+import { getTransactionsUrl, useTransactions } from "src/hooks/useTransactions";
 
 type TransactionsListProps = {
   appId?: number;
@@ -18,6 +18,11 @@ function TransactionsList({
 }: TransactionsListProps) {
   const [page, setPage] = useState(1);
   const transactionListRef = useRef<HTMLDivElement>(null);
+  const transactionListKey = getTransactionsUrl(
+    appId,
+    LIST_TRANSACTIONS_LIMIT,
+    page
+  );
   const { data: transactionData, isLoading } = useTransactions(
     appId,
     false,
@@ -53,9 +58,13 @@ function TransactionsList({
         />
       ) : (
         <>
-          {transactions?.map((tx, i) => {
+          {transactions?.map((tx) => {
             return (
-              <TransactionItem key={tx.paymentHash + tx.type + i} tx={tx} />
+              <TransactionItem
+                key={tx.id}
+                tx={tx}
+                transactionListKey={transactionListKey}
+              />
             );
           })}
           <CustomPagination
