@@ -21,7 +21,6 @@ import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import { PaymentFailedAlert } from "src/components/PaymentFailedAlert";
 import PodcastingInfo from "src/components/PodcastingInfo";
 import TransactionLabels from "src/components/TransactionLabels";
-import { Badge } from "src/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -198,12 +197,10 @@ function TransactionItem({ tx, transactionListKey }: Props) {
                 {dayjs(tx.updatedAt).fromNow()}
               </span>
               {labelEntries.length > 0 && (
-                <Badge variant="secondary">
-                  <TagIcon
-                    className="size-3 shrink-0"
-                    aria-label={`${labelEntries.length} label${labelEntries.length === 1 ? "" : "s"}`}
-                  />
-                </Badge>
+                <TagIcon
+                  className="size-3 text-muted-foreground shrink-0"
+                  aria-label={`${labelEntries.length} label${labelEntries.length === 1 ? "" : "s"}`}
+                />
               )}
             </div>
             <p className="text-sm md:text-base text-muted-foreground break-all line-clamp-1">
