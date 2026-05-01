@@ -617,8 +617,8 @@ func ResolveToSat(satValue *uint64, msatValue *uint64, legacyValueSat *uint64, l
 	}
 
 	if legacyValueMsat != nil {
-		satValue := *legacyValueMsat / 1000
-		resolvedSatValue = &satValue
+		tmpSat := *legacyValueMsat / 1000
+		resolvedSatValue = &tmpSat
 	}
 
 	if satValue != nil {
@@ -626,8 +626,8 @@ func ResolveToSat(satValue *uint64, msatValue *uint64, legacyValueSat *uint64, l
 	}
 
 	if msatValue != nil {
-		satValue := *msatValue / 1000
-		resolvedSatValue = &satValue
+		tmpSat := *msatValue / 1000
+		resolvedSatValue = &tmpSat
 	}
 
 	return resolvedSatValue
@@ -635,8 +635,8 @@ func ResolveToSat(satValue *uint64, msatValue *uint64, legacyValueSat *uint64, l
 
 func ResolveToMsat(satValue *uint64, msatValue *uint64, legacyValueSat *uint64, legacyValueMsat *uint64) (resolvedMsatValue *uint64) {
 	if legacyValueSat != nil {
-		msatValue := *legacyValueSat * 1000
-		resolvedMsatValue = &msatValue
+		tmpMsat := *legacyValueSat * 1000
+		resolvedMsatValue = &tmpMsat
 	}
 
 	if legacyValueMsat != nil {
@@ -644,8 +644,8 @@ func ResolveToMsat(satValue *uint64, msatValue *uint64, legacyValueSat *uint64, 
 	}
 
 	if satValue != nil {
-		msatValue := *satValue * 1000
-		resolvedMsatValue = &msatValue
+		tmpMsat := *satValue * 1000
+		resolvedMsatValue = &tmpMsat
 	}
 
 	if msatValue != nil {
