@@ -352,10 +352,7 @@ export type SignMessageResponse = {
   signature: string;
 };
 
-export type PayInvoiceResponse = {
-  preimage: string;
-  fee: number;
-};
+export type PayInvoiceResponse = Transaction;
 
 export type CreateOfferRequest = {
   description: string;
@@ -707,7 +704,7 @@ export type ListTransactionsResponse = {
 export type NewChannelOrderStatus = "pay" | "paid" | "success" | "opening";
 
 type NewChannelOrderCommon = {
-  amount: string;
+  amountSat: string;
   isPublic: boolean;
   status: NewChannelOrderStatus;
   fundingTxId?: string;

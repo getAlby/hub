@@ -29,7 +29,7 @@ export function RebalanceChannelDialogContent({
   receiveThroughNodePubkey,
   closeDialog,
 }: Props) {
-  const [amount, setAmount] = React.useState("");
+  const [amountSat, setAmountSat] = React.useState("");
   const { data: channels, mutate: reloadChannels } = useChannels();
   const { mutate: reloadBalances } = useBalances();
   const [isRebalancing, setRebalancing] = React.useState(false);
@@ -64,7 +64,7 @@ export function RebalanceChannelDialogContent({
           },
           body: JSON.stringify({
             receiveThroughNodePubkey,
-            amountSat: parseInt(amount),
+            amountSat: parseInt(amountSat),
           }),
         }
       );
@@ -128,19 +128,19 @@ export function RebalanceChannelDialogContent({
                     .map((channel) => channel.remoteBalanceSat)
                 )
               )}
-              value={amount}
+              value={amountSat}
               onChange={(e) => {
-                setAmount(e.target.value.trim());
+                setAmountSat(e.target.value.trim());
               }}
             />
             <p className="mt-2 text-xs text-muted-foreground">
               Fee: 0.3%
-              {!!amount && (
+              {!!amountSat && (
                 <>
                   &nbsp;(
                   <FormattedBitcoinAmount
                     amountMsat={Math.floor(
-                      parseInt(amount || "0") * 0.003 * 1000
+                      parseInt(amountSat || "0") * 0.003 * 1000
                     )}
                   />
                   )

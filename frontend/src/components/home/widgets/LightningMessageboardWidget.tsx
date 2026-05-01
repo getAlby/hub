@@ -66,7 +66,7 @@ function getSortedMessages(messages: Message[], tab: TabType): Message[] {
 export function LightningMessageboardWidget() {
   const [messageText, setMessageText] = React.useState("");
   const [senderName, setSenderName] = React.useState("");
-  const [amount, setAmount] = React.useState("");
+  const [amountSat, setAmountSat] = React.useState("");
   const [messages, setMessages] = React.useState<Message[]>();
   const [isLoading, setLoading] = React.useState(false);
   const [isSubmitting, setSubmitting] = React.useState(false);
@@ -138,14 +138,14 @@ export function LightningMessageboardWidget() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (+amount < 1000) {
+    if (+amountSat < 1000) {
       toast.error("Amount too low", {
         description: "Minimum payment is 1000 sats",
       });
       return;
     }
 
-    const amountMsat = +amount * 1000;
+    const amountMsat = +amountSat * 1000;
     setSubmitting(true);
     try {
       const transaction = await getNWCClient().makeInvoice({
@@ -300,14 +300,14 @@ export function LightningMessageboardWidget() {
                   <Input
                     id="amount"
                     required
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
+                    value={amountSat}
+                    onChange={(e) => setAmountSat(e.target.value)}
                   />
                 </div>
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={() => setAmount("" + topPlaceSat)}
+                  onClick={() => setAmountSat("" + topPlaceSat)}
                 >
                   <ChevronUpIcon />
                   Top

@@ -190,10 +190,10 @@ function PayBitcoinChannelOrder({ order }: { order: NewChannelOrder }) {
   }
 
   // expect at least the user to have more funds than the channel size, hopefully enough to cover mempool fees.
-  if (balances.onchain.spendableSat > +order.amount) {
+  if (balances.onchain.spendableSat > +order.amountSat) {
     return <PayBitcoinChannelOrderWithSpendableFunds order={order} />;
   }
-  if (balances.onchain.totalSat > +order.amount) {
+  if (balances.onchain.totalSat > +order.amountSat) {
     return <PayBitcoinChannelOrderWaitingDepositConfirmation />;
   }
   return <PayBitcoinChannelOrderTopup order={order} />;
@@ -254,7 +254,7 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
     mempoolAddressUtxos?.map((utxo) => utxo.value).reduce((a, b) => a + b, 0) ||
     0;
 
-  if (unspentAmountSat > +order.amount) {
+  if (unspentAmountSat > +order.amountSat) {
     return <PayBitcoinChannelOrderWaitingDepositConfirmation />;
   }
 
@@ -267,7 +267,7 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
   );
 
   const missingAmountSat =
-    +order.amount +
+    +order.amountSat +
     estimatedTransactionFeeSat +
     estimatedAnchorReserveSat -
     balances.onchain.totalSat;
@@ -454,7 +454,7 @@ function PayBitcoinChannelOrderWithSpendableFunds({
 
       const openChannelRequest: OpenChannelRequest = {
         pubkey,
-        amountSats: +order.amount,
+        amountSats: +order.amountSat,
         public: order.isPublic,
       };
       const openChannelResponse = await request<OpenChannelResponse>(
@@ -488,7 +488,7 @@ function PayBitcoinChannelOrderWithSpendableFunds({
     }
   }, [
     connectPeer,
-    order.amount,
+    order.amountSat,
     order.isPublic,
     order.paymentMethod,
     peers,
@@ -502,7 +502,7 @@ function PayBitcoinChannelOrderWithSpendableFunds({
 
     hasStartedOpenedChannel = true;
     openChannel();
-  }, [openChannel, order.amount, peers, pubkey]);
+  }, [openChannel, order.amountSat, peers, pubkey]);
 
   return (
     <div className="flex flex-col gap-5">
@@ -582,7 +582,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
             const newLSPOrderRequest: LSPOrderRequest = {
               lspType: order.lspType,
               lspIdentifier: order.lspIdentifier,
-              amountSat: parseInt(order.amount),
+              amountSat: parseInt(order.amountSat),
               public: order.isPublic,
             };
             const response = await request<LSPOrderResponse>(
@@ -618,7 +618,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
     });
   }, [
     channels,
-    order.amount,
+    order.amountSat,
     order.isPublic,
     order.lspType,
     order.lspIdentifier,

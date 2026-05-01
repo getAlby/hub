@@ -90,7 +90,7 @@ function NewChannelInternal({
   const [order, setOrder] = React.useState<Partial<OnchainOrder>>({
     paymentMethod: "onchain",
     status: "pay",
-    amount: presetAmounts[0].toString(),
+    amountSat: presetAmounts[0].toString(),
     isPublic: !!channels.length && channels.every((channel) => channel.public),
   });
 
@@ -131,10 +131,10 @@ function NewChannelInternal({
     }));
   }
 
-  const setAmount = React.useCallback((amount: string) => {
+  const setAmountSat = React.useCallback((amountSat: string) => {
     setOrder((current) => ({
       ...current,
-      amount,
+      amountSat,
     }));
   }, []);
 
@@ -205,9 +205,9 @@ function NewChannelInternal({
   }
 
   const openImmediately =
-    order.amount &&
+    order.amountSat &&
     order.paymentMethod === "onchain" &&
-    +order.amount < balances.onchain.spendableSat;
+    +order.amountSat < balances.onchain.spendableSat;
 
   return (
     <>
@@ -265,7 +265,7 @@ function NewChannelInternal({
               </Tooltip>
             </TooltipProvider>
 
-            {order.amount && +order.amount < 200_000 && (
+            {order.amountSat && +order.amountSat < 200_000 && (
               <p className="text-muted-foreground text-xs">
                 For a smooth experience consider a opening a channel of{" "}
                 <FormattedBitcoinAmount amountMsat={200_000 * 1000} /> in size
@@ -283,9 +283,9 @@ function NewChannelInternal({
               type="number"
               required
               min={selectedPeer?.minimumChannelSizeSat || 100000}
-              value={order.amount}
+              value={order.amountSat}
               onChange={(e) => {
-                setAmount(e.target.value.trim());
+                setAmountSat(e.target.value.trim());
               }}
             />
             <div className="text-muted-foreground text-sm sensitive slashed-zero">
@@ -295,17 +295,17 @@ function NewChannelInternal({
               />
             </div>
             <div className="grid grid-cols-3 gap-1.5 text-muted-foreground text-xs">
-              {presetAmounts.map((amount) => (
+              {presetAmounts.map((presetAmountSat) => (
                 <div
-                  key={amount}
+                  key={presetAmountSat}
                   className={cn(
                     "text-center border rounded p-2 cursor-pointer hover:border-muted-foreground",
-                    +(order.amount || "0") === amount &&
+                    +(order.amountSat || "0") === presetAmountSat &&
                       "border-primary hover:border-primary"
                   )}
-                  onClick={() => setAmount(amount.toString())}
+                  onClick={() => setAmountSat(presetAmountSat.toString())}
                 >
-                  {formatAmount(amount * 1000, 0)}
+                  {formatAmount(presetAmountSat * 1000, 0)}
                 </div>
               ))}
             </div>
@@ -469,7 +469,7 @@ function NewChannelInternal({
                 <div className="font-medium text-muted-foreground">Amount</div>
                 <div>
                   <FormattedBitcoinAmount
-                    amountMsat={parseInt(order.amount || "0") * 1000}
+                    amountMsat={parseInt(order.amountSat || "0") * 1000}
                   />
                 </div>
               </div>
