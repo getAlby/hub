@@ -61,12 +61,12 @@ function SupportAlby() {
 
     setSubmitting(true);
     try {
-      const parsedAmountSat = parseInt(amountSat);
-      if (isNaN(parsedAmountSat) || parsedAmountSat < 1) {
+      const parsedAmountSat = Number(amountSat);
+      if (!Number.isInteger(parsedAmountSat) || parsedAmountSat < 1) {
         throw new Error("Invalid amount");
       }
 
-      if (+amountSat < 1000) {
+      if (parsedAmountSat < 1000) {
         toast.error("Amount too low", {
           description: `Minimum payment is ${formatBitcoinAmount(
             1_000 * 1000,
