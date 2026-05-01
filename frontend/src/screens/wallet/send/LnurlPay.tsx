@@ -17,7 +17,11 @@ import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { useBalances } from "src/hooks/useBalances";
-import { PayInvoiceResponse, TransactionMetadata } from "src/types";
+import {
+  PayInvoiceRequest,
+  PayInvoiceResponse,
+  TransactionMetadata,
+} from "src/types";
 import { request } from "src/utils/request";
 
 export default function LnurlPay() {
@@ -50,13 +54,14 @@ export default function LnurlPay() {
         ...(comment && { comment }),
         ...(identifier && { recipient_data: { identifier } }),
       };
+      const payload: PayInvoiceRequest = {
+        metadata,
+      };
       const payInvoiceResponse = await request<PayInvoiceResponse>(
         `/api/payments/${invoice.paymentRequest}`,
         {
           method: "POST",
-          body: JSON.stringify({
-            metadata,
-          }),
+          body: JSON.stringify(payload),
           headers: {
             "Content-Type": "application/json",
           },

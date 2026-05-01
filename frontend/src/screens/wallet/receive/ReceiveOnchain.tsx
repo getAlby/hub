@@ -77,14 +77,15 @@ export default function ReceiveOnchain() {
         return;
       }
 
+      const payload: InitiateSwapRequest = {
+        swapAmountSat: parseInt(swapAmountSat),
+      };
       const swapInResponse = await request<SwapResponse>("/api/swaps/in", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          swapAmountSat: parseInt(swapAmountSat),
-        } as InitiateSwapRequest),
+        body: JSON.stringify(payload),
       });
       if (!swapInResponse) {
         throw new Error("Error swapping in");

@@ -148,6 +148,11 @@ function OnchainForm({
         );
       }
       setLoading(true);
+      const payload: RedeemOnchainFundsRequest = {
+        toAddress: address,
+        amountSat: +amountSat,
+        feeRate: +feeRate,
+      };
       const response = await request<RedeemOnchainFundsResponse>(
         "/api/wallet/redeem-onchain-funds",
         {
@@ -155,11 +160,7 @@ function OnchainForm({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            toAddress: address,
-            amountSat: +amountSat,
-            feeRate: +feeRate,
-          } as RedeemOnchainFundsRequest),
+          body: JSON.stringify(payload),
         }
       );
       if (!response?.txId) {
@@ -342,15 +343,16 @@ function SwapForm({
     event.preventDefault();
     try {
       setLoading(true);
+      const payload: InitiateSwapRequest = {
+        swapAmountSat: +amountSat,
+        destination: address,
+      };
       const swapOutResponse = await request<SwapResponse>("/api/swaps/out", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          swapAmountSat: +amountSat,
-          destination: address,
-        } as InitiateSwapRequest),
+        body: JSON.stringify(payload),
       });
       if (!swapOutResponse) {
         throw new Error("Error swapping out");

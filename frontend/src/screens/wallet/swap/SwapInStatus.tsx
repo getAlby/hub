@@ -36,7 +36,11 @@ import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useSwap } from "src/hooks/useSwaps";
 import { useSyncWallet } from "src/hooks/useSyncWallet";
 import { copyToClipboard } from "src/lib/clipboard";
-import { RedeemOnchainFundsResponse, SwapIn } from "src/types";
+import {
+  RedeemOnchainFundsRequest,
+  RedeemOnchainFundsResponse,
+  SwapIn,
+} from "src/types";
 import { request } from "src/utils/request";
 
 export default function SwapInStatus() {
@@ -80,6 +84,11 @@ export default function SwapInStatus() {
         if (!feeRate) {
           throw new Error("No fee rate set");
         }
+        const payload: RedeemOnchainFundsRequest = {
+          toAddress: swap.lockupAddress,
+          amountSat: swap.sendAmountSat,
+          feeRate: +feeRate,
+        };
         const response = await request<RedeemOnchainFundsResponse>(
           "/api/wallet/redeem-onchain-funds",
           {
@@ -87,11 +96,7 @@ export default function SwapInStatus() {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-              toAddress: swap.lockupAddress,
-              amount: swap.sendAmount,
-              feeRate: +feeRate,
-            }),
+            body: JSON.stringify(payload),
           }
         );
         if (!response?.txId) {

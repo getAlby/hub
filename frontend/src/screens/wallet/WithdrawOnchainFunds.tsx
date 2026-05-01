@@ -95,6 +95,12 @@ export default function WithdrawOnchainFunds() {
     }
 
     try {
+      const payload: RedeemOnchainFundsRequest = {
+        toAddress: onchainAddress,
+        amountSat: +amountSat,
+        sendAll,
+        feeRate: +feeRate,
+      };
       const response = await request<RedeemOnchainFundsResponse>(
         "/api/wallet/redeem-onchain-funds",
         {
@@ -102,12 +108,7 @@ export default function WithdrawOnchainFunds() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            toAddress: onchainAddress,
-            amountSat: +amountSat,
-            sendAll,
-            feeRate: +feeRate,
-          } as RedeemOnchainFundsRequest),
+          body: JSON.stringify(payload),
         }
       );
       console.info("Redeemed onchain funds", response);

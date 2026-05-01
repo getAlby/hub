@@ -21,7 +21,11 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { useBalances } from "src/hooks/useBalances";
-import { PayInvoiceResponse, TransactionMetadata } from "src/types";
+import {
+  PayInvoiceRequest,
+  PayInvoiceResponse,
+  TransactionMetadata,
+} from "src/types";
 import { request } from "src/utils/request";
 
 export default function ConfirmPayment() {
@@ -38,13 +42,14 @@ export default function ConfirmPayment() {
     setErrorMessage("");
     try {
       setLoading(true);
+      const payload: PayInvoiceRequest = {
+        metadata,
+      };
       const payInvoiceResponse = await request<PayInvoiceResponse>(
         `/api/payments/${invoice.paymentRequest}`,
         {
           method: "POST",
-          body: JSON.stringify({
-            metadata,
-          }),
+          body: JSON.stringify(payload),
           headers: {
             "Content-Type": "application/json",
           },

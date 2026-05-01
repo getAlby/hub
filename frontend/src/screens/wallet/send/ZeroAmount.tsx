@@ -37,6 +37,9 @@ export default function ZeroAmount() {
         throw new Error("no invoice set");
       }
       setLoading(true);
+      const payload: PayInvoiceRequest = {
+        amountMsat: +amountSat * 1000,
+      };
       const payInvoiceResponse = await request<PayInvoiceResponse>(
         `/api/payments/${invoice.paymentRequest}`,
         {
@@ -44,9 +47,7 @@ export default function ZeroAmount() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            amountMsat: +amountSat * 1000,
-          } as PayInvoiceRequest),
+          body: JSON.stringify(payload),
         }
       );
       if (!payInvoiceResponse?.preimage) {

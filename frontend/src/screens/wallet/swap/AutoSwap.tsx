@@ -107,18 +107,19 @@ function AutoSwapOutForm() {
   const submitAutoSwap = async (password?: string) => {
     try {
       setLoading(true);
+      const payload: AutoSwapRequest = {
+        swapAmountSat: parseInt(swapAmountSat),
+        balanceThresholdSat: parseInt(balanceThresholdSat),
+        destination,
+        destinationType: !isInternalSwap ? externalType : undefined,
+        unlockPassword: password,
+      };
       await request("/api/autoswap", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          swapAmountSat: parseInt(swapAmountSat),
-          balanceThresholdSat: parseInt(balanceThresholdSat),
-          destination,
-          destinationType: !isInternalSwap ? externalType : undefined,
-          unlockPassword: password,
-        } as AutoSwapRequest),
+        body: JSON.stringify(payload),
       });
       setUnlockPassword("");
       setShowUnlockPasswordDialog(false);

@@ -136,14 +136,15 @@ function SwapInForm() {
         return;
       }
 
+      const payload: InitiateSwapRequest = {
+        swapAmountSat: parseInt(swapAmountSat),
+      };
       const swapInResponse = await request<SwapResponse>("/api/swaps/in", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          swapAmountSat: parseInt(swapAmountSat),
-        } as InitiateSwapRequest),
+        body: JSON.stringify(payload),
       });
       if (!swapInResponse) {
         throw new Error("Error swapping in");
@@ -359,15 +360,16 @@ function SwapOutForm() {
 
     try {
       setLoading(true);
+      const payload: InitiateSwapRequest = {
+        swapAmountSat: parseInt(swapAmountSat),
+        destination,
+      };
       const swapOutResponse = await request<SwapResponse>("/api/swaps/out", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          swapAmountSat: parseInt(swapAmountSat),
-          destination,
-        } as InitiateSwapRequest),
+        body: JSON.stringify(payload),
       });
       if (!swapOutResponse) {
         throw new Error("Error swapping out");
