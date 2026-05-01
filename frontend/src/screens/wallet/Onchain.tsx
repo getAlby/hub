@@ -40,7 +40,7 @@ export default function Onchain() {
           </div>
         </div>
         <div className="grid w-full max-w-100 grid-cols-2 items-center gap-3">
-          <LinkButton to="/wallet/receive/onchain?type=onchain" size="lg">
+          <LinkButton to="/wallet/receive?type=onchain" size="lg">
             <ArrowDownIcon />
             Receive
           </LinkButton>
