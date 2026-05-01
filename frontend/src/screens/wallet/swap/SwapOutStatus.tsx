@@ -80,11 +80,11 @@ export default function SwapOutStatus() {
                 <div className="flex flex-col gap-2 items-center">
                   <p className="text-xl font-bold slashed-zero text-center">
                     <FormattedBitcoinAmount
-                      amountMsat={(swap.receiveAmount as number) * 1000}
+                      amountMsat={(swap.receiveAmountSat as number) * 1000}
                     />
                   </p>
                   <FormattedFiatAmount
-                    amountSat={swap.receiveAmount as number}
+                    amountSat={swap.receiveAmountSat as number}
                   />
                 </div>
                 <div className="flex justify-center gap-4 flex-wrap">
@@ -104,12 +104,12 @@ export default function SwapOutStatus() {
                 <div className="flex flex-col gap-2 items-center">
                   <p className="text-xl font-bold slashed-zero text-center">
                     <FormattedBitcoinAmount
-                      amountMsat={swap.sendAmount * 1000}
+                      amountMsat={swap.sendAmountSat * 1000}
                     />
                   </p>
                   <div className="flex items-center">
                     <span className="text-sm text-muted-foreground">~</span>
-                    <FormattedFiatAmount amountSat={swap.sendAmount} />
+                    <FormattedFiatAmount amountSat={swap.sendAmountSat} />
                   </div>
                 </div>
               </>
@@ -206,5 +206,5 @@ export default function SwapOutStatus() {
 }
 
 const Divider = ({ color }: { color: string }) => (
-  <div className={`ml-[9px] py-1 border-l ${color}`}></div>
+  <div className={`ml-2.25 py-1 border-l ${color}`}></div>
 );

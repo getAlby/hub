@@ -439,7 +439,6 @@ function SwapForm({
         <div className="flex items-center justify-between">
           <p className="text-muted-foreground">On-chain Fee Rate</p>
           <p>
-            {/* ~{new Intl.NumberFormat().format(swapInfo.boltzNetworkFee)} sats */}
             {recommendedFees?.fastestFee ? (
               <p>{recommendedFees?.fastestFee} sat/vB</p>
             ) : (

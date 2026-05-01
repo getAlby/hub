@@ -515,13 +515,14 @@ export default function Channels() {
                         amountSat={balances.onchain.spendableSat}
                         className="mb-1"
                       />
-                      {balances.onchain.total > balances.onchain.spendable && (
+                      {balances.onchain.totalSat >
+                        balances.onchain.spendableSat && (
                         <p className="text-xs text-muted-foreground animate-pulse">
                           +
                           <FormattedBitcoinAmount
                             amountMsat={
-                              (balances.onchain.total -
-                                balances.onchain.spendable) *
+                              (balances.onchain.totalSat -
+                                balances.onchain.spendableSat) *
                               1000
                             }
                           />{" "}
