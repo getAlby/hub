@@ -2,11 +2,13 @@ package ldk
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/big"
 	"math"
 	"net"
 	"net/http"
@@ -54,6 +56,8 @@ type LDKService struct {
 	lastWalletSyncRequest              time.Time
 	redeemedOnchainFundsWithinThisSync bool
 	pubkey                             string
+	lsps2Pubkey                        string
+	lsps2Address                       string
 	shuttingDown                       bool
 }
 
@@ -142,6 +146,11 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	builder.SetCustomLogger(ldkLogger)
 	builder.SetNodeAlias(alias)
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
+	lsps2Sources := parseLiquiditySourceLsps2(cfg.GetEnv().LDKLiquiditySourceLsps2)
+	lsps2Pubkey, lsps2Address := getRandomLiquiditySourceLsps2(lsps2Sources)
+	if lsps2Pubkey != "" {
+		builder.SetLiquiditySourceLsps2(lsps2Pubkey, lsps2Address, nil)
+	}
 
 	network := cfg.GetNetwork()
 	switch network {
@@ -251,6 +260,8 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		eventPublisher:      eventPublisher,
 		cfg:                 cfg,
 		pubkey:              nodeId,
+		lsps2Pubkey:         lsps2Pubkey,
+		lsps2Address:        lsps2Address,
 		ctx:                 ldkCtx,
 	}
 
@@ -736,9 +747,23 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, descrip
 		}
 	}
 
-	invoiceObj, err := ls.node.Bolt11Payment().Receive(uint64(amountMsat),
-		descriptionType,
-		uint32(expiry))
+	var invoiceObj *ldk_node.Bolt11Invoice
+	if amountMsat > maxReceivable && ls.lsps2Pubkey != "" {
+		// Prefer standard receive whenever possible and only use JIT when
+		// inbound liquidity is insufficient for the requested amount.
+		invoiceObj, err = ls.node.Bolt11Payment().ReceiveViaJitChannel(
+			uint64(amountMsat),
+			descriptionType,
+			uint32(expiry),
+			nil,
+		)
+	} else {
+		invoiceObj, err = ls.node.Bolt11Payment().Receive(
+			uint64(amountMsat),
+			descriptionType,
+			uint32(expiry),
+		)
+	}
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("MakeInvoice failed")
@@ -746,7 +771,7 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, descrip
 	}
 
 	payment := ls.node.Payment(invoiceObj.PaymentHash())
-	invoice := *payment.Kind.(ldk_node.PaymentKindBolt11).Bolt11Invoice
+	invoice := invoiceObj.String()
 	paymentRequest, err := decodepay.Decodepay(invoice)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -757,11 +782,25 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, descrip
 	}
 	expiresAtUnix := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
 
+	preimage := ""
+	if payment != nil {
+		switch kind := payment.Kind.(type) {
+		case ldk_node.PaymentKindBolt11:
+			if kind.Preimage != nil {
+				preimage = *kind.Preimage
+			}
+		case ldk_node.PaymentKindBolt11Jit:
+			if kind.Preimage != nil {
+				preimage = *kind.Preimage
+			}
+		}
+	}
+
 	transaction = &lnclient.Transaction{
 		Type:            "incoming",
 		Invoice:         invoice,
 		PaymentHash:     paymentRequest.PaymentHash,
-		Preimage:        *payment.Kind.(ldk_node.PaymentKindBolt11).Preimage,
+		Preimage:        preimage,
 		AmountMsat:      amountMsat,
 		CreatedAt:       int64(paymentRequest.CreatedAt),
 		ExpiresAt:       &expiresAtUnix,
@@ -1370,6 +1409,20 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 		paymentHash = bolt11PaymentKind.Hash
 	}
 
+	bolt11JitPaymentKind, isBolt11JitPaymentKind := payment.Kind.(ldk_node.PaymentKindBolt11Jit)
+	if isBolt11JitPaymentKind {
+		createdAt = int64(payment.CreatedAt)
+		if payment.CreatedAt == 0 {
+			createdAt = int64(payment.LatestUpdateTimestamp)
+		}
+		if payment.Status == ldk_node.PaymentStatusSucceeded && bolt11JitPaymentKind.Preimage != nil {
+			preimage = *bolt11JitPaymentKind.Preimage
+			lastUpdate := int64(payment.LatestUpdateTimestamp)
+			settledAt = &lastUpdate
+		}
+		paymentHash = bolt11JitPaymentKind.Hash
+	}
+
 	bolt12PaymentKind, isBolt12PaymentKind := payment.Kind.(ldk_node.PaymentKindBolt12Offer)
 
 	if isBolt12PaymentKind {
@@ -1908,6 +1961,8 @@ func (ls *LDKService) deleteOldLDKPayments() {
 		deletablePaymentKind := false
 		switch (payment.Kind).(type) {
 		case ldk_node.PaymentKindBolt11:
+			deletablePaymentKind = true
+		case ldk_node.PaymentKindBolt11Jit:
 			deletablePaymentKind = true
 		case ldk_node.PaymentKindSpontaneous:
 			deletablePaymentKind = true
@@ -2508,6 +2563,13 @@ func (ls *LDKService) GetChainDataSource() (string, string) {
 	return "esplora", sanitizeChainEndpoint(endpoint, "")
 }
 
+func (ls *LDKService) GetLiquiditySourceLsps2() string {
+	if ls.lsps2Pubkey == "" || ls.lsps2Address == "" {
+		return ""
+	}
+	return fmt.Sprintf("%s@%s", ls.lsps2Pubkey, ls.lsps2Address)
+}
+
 func sanitizeChainEndpoint(endpoint string, port string) string {
 	u, err := url.Parse(endpoint)
 	if err != nil || u.Host == "" {
@@ -2540,4 +2602,57 @@ func sanitizeChainEndpoint(endpoint string, port string) string {
 	}
 
 	return sanitized
+}
+
+type liquiditySourceLsps2 struct {
+	pubkey  string
+	address string
+}
+
+func parseLiquiditySourceLsps2(lsps2Addresses string) []liquiditySourceLsps2 {
+	sources := []liquiditySourceLsps2{}
+
+	for _, entry := range strings.Split(lsps2Addresses, ",") {
+		entry = strings.TrimSpace(entry)
+		if entry == "" {
+			continue
+		}
+
+		pubkey, address, hasSeparator := strings.Cut(entry, "@")
+		if !hasSeparator || pubkey == "" || address == "" {
+            logger.Logger.WithField("entry", entry).Warn("Invalid LDK_LSPS2_ADDRESSES entry, expected <pubkey>@<host>:<port>")
+			continue
+		}
+
+		if _, _, err := net.SplitHostPort(address); err != nil {
+            logger.Logger.WithField("entry", entry).WithError(err).Warn("Invalid LDK_LSPS2_ADDRESSES host:port")
+			continue
+		}
+
+		sources = append(sources, liquiditySourceLsps2{
+			pubkey:  pubkey,
+			address: address,
+		})
+	}
+    logger.Logger.WithField("sources",sources).Debug("LDK_LSPS2_ADDRESSES:")
+
+	return sources
+}
+
+func getRandomLiquiditySourceLsps2(sources []liquiditySourceLsps2) (pubkey string, address string) {
+	if len(sources) == 0 {
+		return "", ""
+	}
+	if len(sources) == 1 {
+		return sources[0].pubkey, sources[0].address
+	}
+
+	randomIndex, err := rand.Int(rand.Reader, big.NewInt(int64(len(sources))))
+	if err != nil {
+		logger.Logger.WithError(err).Warn("Failed to select random LDK LSPS2 source, defaulting to first")
+		return sources[0].pubkey, sources[0].address
+	}
+
+	selected := sources[int(randomIndex.Int64())]
+	return selected.pubkey, selected.address
 }

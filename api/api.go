@@ -1425,9 +1425,15 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 			type chainSourceProvider interface {
 				GetChainDataSource() (string, string)
 			}
+			type lsps2SourceProvider interface {
+				GetLiquiditySourceLsps2() string
+			}
 
 			if ldkService, ok := api.svc.GetLNClient().(chainSourceProvider); ok {
 				info.ChainDataSourceType, info.ChainDataSourceAddress = ldkService.GetChainDataSource()
+			}
+			if ldkService, ok := api.svc.GetLNClient().(lsps2SourceProvider); ok {
+				info.JitChannelsLiquiditySource = ldkService.GetLiquiditySourceLsps2()
 			}
 		}
 	}
