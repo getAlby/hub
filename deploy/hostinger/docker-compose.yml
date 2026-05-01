@@ -1,0 +1,46 @@
+services:
+  albyhub:
+    image: ghcr.io/getalby/hub:latest
+    container_name: albyhub
+    restart: unless-stopped
+    environment:
+      WORK_DIR: /data/albyhub
+      BASE_URL: ${BASE_URL:-http://localhost:8080}
+      LDK_ESPLORA_SERVER: https://electrs.getalbypro.com
+      LDK_LISTENING_ADDRESSES: "[::]:9735"
+    volumes:
+      - albyhub-data:/data
+    ports:
+      - "8080:8080"
+      - "9735:9735"
+    networks:
+      - albyhub
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: albyhub-caddy
+    restart: unless-stopped
+    depends_on:
+      - albyhub
+    environment:
+      DOMAIN: ${DOMAIN:-}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - albyhub
+    profiles:
+      - tls
+
+volumes:
+  albyhub-data:
+  caddy-data:
+  caddy-config:
+
+networks:
+  albyhub:
+    driver: bridge
