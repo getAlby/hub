@@ -52,14 +52,14 @@ export function AppUsage({ app }: { app: App }) {
     }
   }, [transactionsResponse?.transactions]);
 
-  const totalSpent = allTransactions
+  const totalSpentSat = allTransactions
     .filter((tx) => tx.type === "outgoing" && tx.state === "settled")
-    .map((tx) => Math.floor((tx.amount + tx.feesPaid) / 1000))
+    .map((tx) => Math.floor((tx.amountMsat + tx.feesPaidMsat) / 1000))
     .reduce((a, b) => a + b, 0);
 
-  const totalReceived = allTransactions
+  const totalReceivedSat = allTransactions
     .filter((tx) => tx.type === "incoming")
-    .map((tx) => Math.floor(tx.amount / 1000))
+    .map((tx) => tx.amountSat)
     .reduce((a, b) => a + b, 0);
 
   const { data: albyMe } = useAlbyMe();
@@ -90,14 +90,14 @@ export function AppUsage({ app }: { app: App }) {
               <div className="flex justify-between items-end">
                 <div>
                   <p className="font-medium text-2xl">
-                    <FormattedBitcoinAmount amount={app.balance} />
+                    <FormattedBitcoinAmount amountMsat={app.balanceMsat} />
                   </p>
                   <FormattedFiatAmount
-                    amount={Math.floor(app.balance / 1000)}
+                    amountSat={Math.floor(app.balanceMsat / 1000)}
                   />
                 </div>
                 <div className="flex gap-2 items-center">
-                  {app.balance > 0 && (
+                  {app.balanceMsat > 0 && (
                     <IsolatedAppDrawDownDialog appId={app.id}>
                       <Button size="sm" variant="outline">
                         <CircleMinusIcon />
@@ -208,9 +208,9 @@ export function AppUsage({ app }: { app: App }) {
           </CardHeader>
           <CardContent>
             <p className="font-medium text-2xl">
-              <FormattedBitcoinAmount amount={totalSpent * 1000} />
+              <FormattedBitcoinAmount amountMsat={totalSpentSat * 1000} />
             </p>
-            <FormattedFiatAmount amount={totalSpent} />
+            <FormattedFiatAmount amountSat={totalSpentSat} />
           </CardContent>
         </Card>
         <Card>
@@ -219,14 +219,14 @@ export function AppUsage({ app }: { app: App }) {
           </CardHeader>
           <CardContent>
             <p className="font-medium text-2xl">
-              <FormattedBitcoinAmount amount={totalReceived * 1000} />
+              <FormattedBitcoinAmount amountMsat={totalReceivedSat * 1000} />
             </p>
-            <FormattedFiatAmount amount={totalReceived} />
+            <FormattedFiatAmount amountSat={totalReceivedSat} />
           </CardContent>
         </Card>
       </div>
 
-      {app.maxAmount > 0 && (
+      {app.maxAmountSat > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Budget</CardTitle>
@@ -239,27 +239,29 @@ export function AppUsage({ app }: { app: App }) {
                 </p>
                 <p className="text-xl font-medium">
                   <FormattedBitcoinAmount
-                    amount={(app.maxAmount - app.budgetUsage) * 1000}
+                    amountMsat={app.maxAmountMsat - app.budgetUsageMsat}
                   />
                 </p>
-                <FormattedFiatAmount amount={app.maxAmount - app.budgetUsage} />
+                <FormattedFiatAmount
+                  amountSat={app.maxAmountSat - app.budgetUsageSat}
+                />
               </div>
               <div>
                 <p className="text-xs text-secondary-foreground font-medium">
                   Budget renewal
                 </p>
                 <p className="text-xl font-medium">
-                  <FormattedBitcoinAmount amount={app.maxAmount * 1000} />
+                  <FormattedBitcoinAmount amountMsat={app.maxAmountMsat} />
                   {app.budgetRenewal !== "never" && (
                     <> / {getBudgetRenewalLabel(app.budgetRenewal)}</>
                   )}
                 </p>
-                <FormattedFiatAmount amount={app.maxAmount} />
+                <FormattedFiatAmount amountSat={app.maxAmountSat} />
               </div>
             </div>
             <Progress
               className="h-4"
-              value={100 - (app.budgetUsage * 100) / app.maxAmount}
+              value={100 - (app.budgetUsageSat * 100) / app.maxAmountSat}
             />
           </CardContent>
         </Card>

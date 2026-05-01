@@ -7,10 +7,10 @@ import { useInfo } from "src/hooks/useInfo";
 
 export function SpendingAlert({
   className,
-  amount,
+  amountSat,
 }: {
   className?: string;
-  amount: number;
+  amountSat: number;
 }) {
   const { hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
@@ -19,16 +19,17 @@ export function SpendingAlert({
     return null;
   }
 
-  const maxSpendable = Math.max(
-    balances.lightning.nextMaxSpendableMPP -
+  const maxSpendableMsat = Math.max(
+    balances.lightning.nextMaxSpendableMPPMsat -
       Math.max(
-        0.01 * balances.lightning.nextMaxSpendableMPP,
+        0.01 * balances.lightning.nextMaxSpendableMPPMsat,
         10000 /* fee reserve */
       ),
     0
   );
 
-  const exceedsBalance = hasChannelManagement && amount * 1000 > maxSpendable;
+  const exceedsBalance =
+    hasChannelManagement && amountSat * 1000 > maxSpendableMsat;
 
   if (!exceedsBalance) {
     return null;
@@ -42,7 +43,7 @@ export function SpendingAlert({
         <p>
           Your payment will likely fail because your maximum spendable balance
           for the next payment is currently{" "}
-          <FormattedBitcoinAmount amount={maxSpendable} />.
+          <FormattedBitcoinAmount amountMsat={maxSpendableMsat} />.
         </p>
         <div className="flex gap-2 mt-2">
           <LinkButton

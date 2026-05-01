@@ -13,7 +13,7 @@ type PendingClosedChannelsAlertProps = {
 export function PendingClosedChannelsAlert({
   balance,
 }: PendingClosedChannelsAlertProps) {
-  if (balance.pendingBalancesFromChannelClosures <= 0) {
+  if (balance.pendingBalancesFromChannelClosuresSat <= 0) {
     return null;
   }
 
@@ -29,7 +29,7 @@ export function PendingClosedChannelsAlert({
       <AlertDescription className="block">
         You have{" "}
         <FormattedBitcoinAmount
-          amount={balance.pendingBalancesFromChannelClosures * 1000}
+          amountMsat={balance.pendingBalancesFromChannelClosuresSat * 1000}
         />{" "}
         pending from closed channels
         {pendingDetails.length > 0 && (
@@ -81,7 +81,7 @@ function PendingBalancesDetailsItem({
         {nodeDetails?.alias || "Unknown"}
         <ExternalLinkIcon className="ml-1 inline h-4 w-4" />
       </ExternalLink>{" "}
-      (<FormattedBitcoinAmount amount={details.amount * 1000} />
+      (<FormattedBitcoinAmount amountMsat={details.amountSat * 1000} />
       )&nbsp;
       <ExternalLink
         to={`${info?.mempoolUrl}/tx/${details.fundingTxId}#flow=&vout=${details.fundingTxVout}`}

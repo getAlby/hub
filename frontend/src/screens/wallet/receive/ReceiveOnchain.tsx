@@ -16,7 +16,12 @@ import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useSwapInfo } from "src/hooks/useSwaps";
-import { CreateInvoiceRequest, SwapResponse, Transaction } from "src/types";
+import {
+  CreateInvoiceRequest,
+  InitiateSwapRequest,
+  SwapResponse,
+  Transaction,
+} from "src/types";
 import { openLink } from "src/utils/openLink";
 import { request } from "src/utils/request";
 
@@ -33,7 +38,7 @@ export default function ReceiveOnchain() {
   const navigate = useNavigate();
 
   const [swapFrom, setSwapFrom] = useState<"bitcoin" | "crypto">("bitcoin");
-  const [swapAmount, setSwapAmount] = useState("");
+  const [swapAmountSat, setSwapAmountSat] = useState("");
   const [loading, setLoading] = useState(false);
   const [feeRate, setFeeRate] = useState("");
   const [cryptoTransaction, setCryptoTransaction] =
@@ -57,7 +62,7 @@ export default function ReceiveOnchain() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            amount: (parseInt(swapAmount) || 0) * 1000,
+            amountMsat: (parseInt(swapAmountSat) || 0) * 1000,
             description: "Fixed Float swap",
           } as CreateInvoiceRequest),
         });
@@ -72,14 +77,15 @@ export default function ReceiveOnchain() {
         return;
       }
 
+      const payload: InitiateSwapRequest = {
+        swapAmountSat: parseInt(swapAmountSat),
+      };
       const swapInResponse = await request<SwapResponse>("/api/swaps/in", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          swapAmount: parseInt(swapAmount),
-        }),
+        body: JSON.stringify(payload),
       });
       if (!swapInResponse) {
         throw new Error("Error swapping in");
@@ -114,8 +120,8 @@ export default function ReceiveOnchain() {
           {!isCryptoReceiveState && (
             <>
               {hasChannelManagement &&
-                parseInt(swapAmount || "0") * 1000 >=
-                  0.8 * balances.lightning.totalReceivable && (
+                parseInt(swapAmountSat || "0") * 1000 >=
+                  0.8 * balances.lightning.totalReceivableMsat && (
                   <LowReceivingCapacityAlert />
                 )}
               <div className="grid gap-1.5">
@@ -124,21 +130,23 @@ export default function ReceiveOnchain() {
                   type="number"
                   autoFocus
                   placeholder="Amount in satoshis"
-                  value={swapAmount}
-                  min={swapFrom === "bitcoin" ? swapInfo.minAmount : undefined}
+                  value={swapAmountSat}
+                  min={
+                    swapFrom === "bitcoin" ? swapInfo.minAmountSat : undefined
+                  }
                   max={
                     swapFrom === "bitcoin"
                       ? Math.min(
-                          swapInfo.maxAmount,
-                          (balances.lightning.totalReceivable / 1000) * 0.99
+                          swapInfo.maxAmountSat,
+                          balances.lightning.totalReceivableSat * 0.99
                         )
-                      : (balances.lightning.totalReceivable / 1000) * 0.99
+                      : balances.lightning.totalReceivableSat * 0.99
                   }
-                  onChange={(e) => setSwapAmount(e.target.value)}
+                  onChange={(e) => setSwapAmountSat(e.target.value)}
                   required
                   endAdornment={
                     <FormattedFiatAmount
-                      amount={+swapAmount}
+                      amountSat={+swapAmountSat}
                       className="mr-2"
                     />
                   }
@@ -148,12 +156,12 @@ export default function ReceiveOnchain() {
                     <div>
                       Receiving Capacity:{" "}
                       <FormattedBitcoinAmount
-                        amount={balances.lightning.totalReceivable}
+                        amountMsat={balances.lightning.totalReceivableMsat}
                       />
                     </div>
                     <FormattedFiatAmount
                       className="text-xs"
-                      amount={balances.lightning.totalReceivable / 1000}
+                      amountSat={balances.lightning.totalReceivableSat}
                     />
                   </div>
                 </div>
@@ -206,7 +214,7 @@ export default function ReceiveOnchain() {
               resetLabel="Receive Another Payment"
               onReset={() => {
                 setCryptoTransaction(null);
-                setSwapAmount("");
+                setSwapAmountSat("");
               }}
             />
           )}

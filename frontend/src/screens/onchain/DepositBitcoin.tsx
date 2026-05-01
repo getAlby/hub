@@ -46,8 +46,10 @@ export default function DepositBitcoin() {
     3000
   );
   const [txId, setTxId] = useState("");
-  const [confirmedAmount, setConfirmedAmount] = useState<number | null>(null);
-  const [pendingAmount, setPendingAmount] = useState<number | null>(null);
+  const [confirmedAmountSat, setConfirmedAmountSat] = useState<number | null>(
+    null
+  );
+  const [pendingAmountSat, setPendingAmountSat] = useState<number | null>(null);
   const startTimeRef = useRef(0);
 
   useEffect(() => {
@@ -68,8 +70,8 @@ export default function DepositBitcoin() {
     if (txId) {
       const utxo = mempoolAddressUtxos.find((utxo) => utxo.txid === txId);
       if (utxo?.status.confirmed) {
-        setConfirmedAmount(utxo.value);
-        setPendingAmount(null);
+        setConfirmedAmountSat(utxo.value);
+        setPendingAmountSat(null);
       }
     } else {
       const unconfirmed = mempoolAddressUtxos.find(
@@ -77,7 +79,7 @@ export default function DepositBitcoin() {
       );
       if (unconfirmed) {
         setTxId(unconfirmed.txid);
-        setPendingAmount(unconfirmed.value);
+        setPendingAmountSat(unconfirmed.value);
         return;
       }
 
@@ -89,8 +91,8 @@ export default function DepositBitcoin() {
       );
       if (confirmed) {
         setTxId(confirmed.txid);
-        setConfirmedAmount(confirmed.value);
-        setPendingAmount(null);
+        setConfirmedAmountSat(confirmed.value);
+        setPendingAmountSat(null);
       }
     }
   }, [mempoolAddressUtxos, txId]);
@@ -115,10 +117,10 @@ export default function DepositBitcoin() {
       />
       <MempoolAlert />
       <div className="w-80">
-        {confirmedAmount ? (
-          <DepositSuccess amount={confirmedAmount} txId={txId} />
+        {confirmedAmountSat ? (
+          <DepositSuccess amountSat={confirmedAmountSat} txId={txId} />
         ) : txId ? (
-          <DepositPending amount={pendingAmount} txId={txId} />
+          <DepositPending amountSat={pendingAmountSat} txId={txId} />
         ) : (
           <Card>
             <CardContent className="grid gap-6 justify-center">
@@ -176,10 +178,10 @@ export default function DepositBitcoin() {
 }
 
 function DepositPending({
-  amount,
+  amountSat,
   txId,
 }: {
-  amount: number | null;
+  amountSat: number | null;
   txId: string;
 }) {
   const { data: info } = useInfo();
@@ -191,12 +193,12 @@ function DepositPending({
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-4">
         <LottieLoading size={288} />
-        {amount && (
+        {amountSat && (
           <div className="flex flex-col gap-2 items-center">
             <p className="text-xl font-semibold slashed-zero">
-              <FormattedBitcoinAmount amount={amount * 1000} />
+              <FormattedBitcoinAmount amountMsat={amountSat * 1000} />
             </p>
-            <FormattedFiatAmount amount={amount} />
+            <FormattedFiatAmount amountSat={amountSat} />
           </div>
         )}
         <div>
@@ -214,7 +216,13 @@ function DepositPending({
   );
 }
 
-function DepositSuccess({ amount, txId }: { amount: number; txId: string }) {
+function DepositSuccess({
+  amountSat,
+  txId,
+}: {
+  amountSat: number;
+  txId: string;
+}) {
   const { data: info } = useInfo();
 
   return (
@@ -227,9 +235,9 @@ function DepositSuccess({ amount, txId }: { amount: number; txId: string }) {
           <CircleCheckIcon className="w-72 h-72 p-2" />
           <div className="flex flex-col gap-2 items-center">
             <p className="text-xl font-semibold slashed-zero">
-              <FormattedBitcoinAmount amount={amount * 1000} />
+              <FormattedBitcoinAmount amountMsat={amountSat * 1000} />
             </p>
-            <FormattedFiatAmount amount={amount} />
+            <FormattedFiatAmount amountSat={amountSat} />
           </div>
           <div>
             <ExternalLinkButton

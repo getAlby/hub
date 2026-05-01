@@ -21,7 +21,11 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { useBalances } from "src/hooks/useBalances";
-import { PayInvoiceResponse, TransactionMetadata } from "src/types";
+import {
+  PayInvoiceRequest,
+  PayInvoiceResponse,
+  TransactionMetadata,
+} from "src/types";
 import { request } from "src/utils/request";
 
 export default function ConfirmPayment() {
@@ -38,13 +42,14 @@ export default function ConfirmPayment() {
     setErrorMessage("");
     try {
       setLoading(true);
+      const payload: PayInvoiceRequest = {
+        metadata,
+      };
       const payInvoiceResponse = await request<PayInvoiceResponse>(
         `/api/payments/${invoice.paymentRequest}`,
         {
           method: "POST",
-          body: JSON.stringify({
-            metadata,
-          }),
+          body: JSON.stringify(payload),
           headers: {
             "Content-Type": "application/json",
           },
@@ -103,10 +108,10 @@ export default function ConfirmPayment() {
           <CardContent className="flex flex-col items-center gap-6 pt-2">
             <div className="flex flex-col gap-1 items-center">
               <p className="text-2xl font-medium slashed-zero">
-                <FormattedBitcoinAmount amount={invoice.satoshi * 1000} />
+                <FormattedBitcoinAmount amountMsat={invoice.satoshi * 1000} />
               </p>
               <FormattedFiatAmount
-                amount={invoice.satoshi}
+                amountSat={invoice.satoshi}
                 className="text-xl"
               />
             </div>
@@ -117,7 +122,7 @@ export default function ConfirmPayment() {
             )}
           </CardContent>
           <CardFooter className="flex flex-col gap-2 pt-2">
-            <SpendingAlert className="mb-2" amount={invoice.satoshi} />
+            <SpendingAlert className="mb-2" amountSat={invoice.satoshi} />
             <LoadingButton
               onClick={confirmPayment}
               loading={isLoading}
@@ -130,7 +135,7 @@ export default function ConfirmPayment() {
             <div className="flex items-center justify-between gap-2 text-muted-foreground text-xs sensitive slashed-zero">
               Spending Balance:{" "}
               <FormattedBitcoinAmount
-                amount={balances.lightning.totalSpendable}
+                amountMsat={balances.lightning.totalSpendableMsat}
               />
             </div>
             <LinkButton to="/wallet/send" variant="link" className="w-full">

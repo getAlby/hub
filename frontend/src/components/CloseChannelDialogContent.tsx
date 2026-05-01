@@ -118,10 +118,15 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                 <AlertDescription>
                   <div>
                     Closing this channel will move{" "}
-                    <FormattedBitcoinAmount amount={channel.localBalance} /> in
-                    this channel to your on-chain balance and reduce your
+                    <FormattedBitcoinAmount
+                      amountMsat={channel.localBalanceMsat}
+                    />{" "}
+                    in this channel to your on-chain balance and reduce your
                     receive limit by{" "}
-                    <FormattedBitcoinAmount amount={channel.remoteBalance} />.
+                    <FormattedBitcoinAmount
+                      amountMsat={channel.remoteBalanceMsat}
+                    />
+                    .
                   </div>
                 </AlertDescription>
               </Alert>

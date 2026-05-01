@@ -36,7 +36,10 @@ import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 
 import { copyToClipboard } from "src/lib/clipboard";
-import { RedeemOnchainFundsResponse } from "src/types";
+import {
+  RedeemOnchainFundsRequest,
+  RedeemOnchainFundsResponse,
+} from "src/types";
 import { request } from "src/utils/request";
 
 export default function WithdrawOnchainFunds() {
@@ -50,7 +53,7 @@ export default function WithdrawOnchainFunds() {
   }>("/v1/fees/recommended");
   const [isLoading, setLoading] = React.useState(false);
   const [onchainAddress, setOnchainAddress] = React.useState("");
-  const [amount, setAmount] = React.useState("");
+  const [amountSat, setAmountSat] = React.useState("");
   const [feeRate, setFeeRate] = React.useState("");
   const [sendAll, setSendAll] = React.useState(false);
   const [showAdvanced, setShowAdvanced] = React.useState(false);
@@ -92,6 +95,12 @@ export default function WithdrawOnchainFunds() {
     }
 
     try {
+      const payload: RedeemOnchainFundsRequest = {
+        toAddress: onchainAddress,
+        amountSat: +amountSat,
+        sendAll,
+        feeRate: +feeRate,
+      };
       const response = await request<RedeemOnchainFundsResponse>(
         "/api/wallet/redeem-onchain-funds",
         {
@@ -99,12 +108,7 @@ export default function WithdrawOnchainFunds() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            toAddress: onchainAddress,
-            amount: +amount,
-            sendAll,
-            feeRate: +feeRate,
-          }),
+          body: JSON.stringify(payload),
         }
       );
       console.info("Redeemed onchain funds", response);
@@ -119,7 +123,7 @@ export default function WithdrawOnchainFunds() {
       });
     }
     setLoading(false);
-  }, [amount, feeRate, onchainAddress, sendAll]);
+  }, [amountSat, feeRate, onchainAddress, sendAll]);
 
   if (transactionId) {
     return (
@@ -157,7 +161,7 @@ export default function WithdrawOnchainFunds() {
     return <Loading />;
   }
 
-  if (balances.onchain.spendable <= ONCHAIN_DUST_SATS) {
+  if (balances.onchain.spendableSat <= ONCHAIN_DUST_SATS) {
     return (
       <p>
         You currently don't have enough sats to pay for an onchain transaction.
@@ -192,7 +196,7 @@ export default function WithdrawOnchainFunds() {
                 <p className="text-sm text-muted-foreground sensitive slashed-zero">
                   Current onchain balance:{" "}
                   <FormattedBitcoinAmount
-                    amount={balances.onchain.spendable * 1000}
+                    amountMsat={balances.onchain.spendableSat * 1000}
                   />
                 </p>
                 <div className="flex items-center gap-1">
@@ -209,10 +213,10 @@ export default function WithdrawOnchainFunds() {
                 <Input
                   id="amount"
                   type="number"
-                  value={amount}
+                  value={amountSat}
                   required
                   onChange={(e) => {
-                    setAmount(e.target.value);
+                    setAmountSat(e.target.value);
                   }}
                 />
               )}
@@ -230,7 +234,7 @@ export default function WithdrawOnchainFunds() {
               </Alert>
             )}
             <AnchorReserveAlert
-              amount={sendAll ? balances.onchain.spendable : +amount}
+              amountSat={sendAll ? balances.onchain.spendableSat : +amountSat}
               className="mt-4"
             />
           </div>
@@ -351,7 +355,9 @@ export default function WithdrawOnchainFunds() {
                             "entire on-chain balance"
                           ) : (
                             <>
-                              <FormattedBitcoinAmount amount={+amount * 1000} />
+                              <FormattedBitcoinAmount
+                                amountMsat={+amountSat * 1000}
+                              />
                             </>
                           )}
                         </span>

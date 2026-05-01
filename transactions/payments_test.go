@@ -444,8 +444,8 @@ func TestConsumeEvent_FailedMarkedAsSuccessful(t *testing.T) {
 			DescriptionHash: tests.MockLNClientTransaction.DescriptionHash,
 			Preimage:        tests.MockLNClientTransaction.Preimage,
 			PaymentHash:     tests.MockLNClientTransaction.PaymentHash,
-			Amount:          tests.MockLNClientTransaction.Amount,
-			FeesPaid:        tests.MockLNClientTransaction.FeesPaid,
+			AmountMsat:      tests.MockLNClientTransaction.AmountMsat,
+			FeesPaidMsat:    tests.MockLNClientTransaction.FeesPaidMsat,
 		},
 	}, nil)
 

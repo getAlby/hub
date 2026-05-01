@@ -27,7 +27,8 @@ export function SwapAlert({
 
   const isSwapOut = swapType
     ? swapType === "out"
-    : balances.lightning.totalSpendable > balances.lightning.totalReceivable;
+    : balances.lightning.totalSpendableMsat >
+      balances.lightning.totalReceivableMsat;
   const directionText = isSwapOut ? "out from" : "into";
 
   return (

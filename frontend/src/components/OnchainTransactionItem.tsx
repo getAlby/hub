@@ -102,14 +102,14 @@ function OnchainTransactionItem({
                 >
                   {tx.type === "outgoing" ? "-" : "+"}
                   <FormattedBitcoinAmount
-                    amount={tx.amountSat * 1000}
+                    amountMsat={tx.amountSat * 1000}
                     className="font-medium"
                   />
                 </p>
               </div>
               <FormattedFiatAmount
                 className="text-xs md:text-base"
-                amount={tx.amountSat}
+                amountSat={tx.amountSat}
               />
             </div>
           </div>
@@ -129,9 +129,9 @@ function OnchainTransactionItem({
             <div className="ml-4">
               <p className="text-xl md:text-2xl font-semibold sensitive">
                 {tx.type === "outgoing" ? "-" : "+"}
-                <FormattedBitcoinAmount amount={tx.amountSat * 1000} />
+                <FormattedBitcoinAmount amountMsat={tx.amountSat * 1000} />
               </p>
-              <FormattedFiatAmount amount={tx.amountSat} />
+              <FormattedFiatAmount amountSat={tx.amountSat} />
             </div>
           </div>
 

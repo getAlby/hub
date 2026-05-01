@@ -30,7 +30,7 @@ import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
 import { useAutoSwapsConfig, useSwapInfo } from "src/hooks/useSwaps";
 import { copyToClipboard } from "src/lib/clipboard";
-import { AutoSwapConfig } from "src/types";
+import { AutoSwapConfig, AutoSwapRequest } from "src/types";
 import { request } from "src/utils/request";
 
 export default function AutoSwap() {
@@ -70,8 +70,8 @@ function AutoSwapOutForm() {
   const { data: swapInfo } = useSwapInfo("out");
 
   const [isInternalSwap, setInternalSwap] = useState(true);
-  const [balanceThreshold, setBalanceThreshold] = useState("");
-  const [swapAmount, setSwapAmount] = useState("");
+  const [balanceThresholdSat, setBalanceThresholdSat] = useState("");
+  const [swapAmountSat, setSwapAmountSat] = useState("");
   const [destination, setDestination] = useState("");
   const [externalType, setExternalType] = useState<"address" | "xpub">(
     "address"
@@ -84,7 +84,7 @@ function AutoSwapOutForm() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (Number(swapAmount) > Number(balanceThreshold)) {
+    if (Number(swapAmountSat) > Number(balanceThresholdSat)) {
       toast.info(
         "Balance threshold must be greater than or equal to swap amount"
       );
@@ -107,18 +107,19 @@ function AutoSwapOutForm() {
   const submitAutoSwap = async (password?: string) => {
     try {
       setLoading(true);
+      const payload: AutoSwapRequest = {
+        swapAmountSat: parseInt(swapAmountSat),
+        balanceThresholdSat: parseInt(balanceThresholdSat),
+        destination,
+        destinationType: !isInternalSwap ? externalType : undefined,
+        unlockPassword: password,
+      };
       await request("/api/autoswap", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          swapAmount: parseInt(swapAmount),
-          balanceThreshold: parseInt(balanceThreshold),
-          destination,
-          destinationType: !isInternalSwap ? externalType : undefined,
-          unlockPassword: password,
-        }),
+        body: JSON.stringify(payload),
       });
       setUnlockPassword("");
       setShowUnlockPasswordDialog(false);
@@ -164,9 +165,9 @@ function AutoSwapOutForm() {
           <Input
             type="number"
             placeholder="Amount in satoshis"
-            value={balanceThreshold}
-            min={swapAmount}
-            onChange={(e) => setBalanceThreshold(e.target.value)}
+            value={balanceThresholdSat}
+            min={swapAmountSat}
+            onChange={(e) => setBalanceThresholdSat(e.target.value)}
             required
           />
           <p className="text-xs text-muted-foreground">
@@ -179,15 +180,15 @@ function AutoSwapOutForm() {
           <Input
             type="number"
             placeholder="Amount in satoshis"
-            value={swapAmount}
-            min={swapInfo.minAmount}
-            max={swapInfo.maxAmount}
-            onChange={(e) => setSwapAmount(e.target.value)}
+            value={swapAmountSat}
+            min={swapInfo.minAmountSat}
+            max={swapInfo.maxAmountSat}
+            onChange={(e) => setSwapAmountSat(e.target.value)}
             required
           />
           <p className="text-xs text-muted-foreground">
             Minimum{" "}
-            <FormattedBitcoinAmount amount={swapInfo.minAmount * 1000} />
+            <FormattedBitcoinAmount amountMsat={swapInfo.minAmountSat * 1000} />
           </p>
         </div>
         <div className="flex flex-col gap-4">
@@ -428,14 +429,16 @@ function ActiveSwapOutConfig({ swapConfig }: { swapConfig: AutoSwapConfig }) {
           </span>
           <span className="shrink-0 text-muted-foreground text-right">
             <FormattedBitcoinAmount
-              amount={swapConfig.balanceThreshold * 1000}
+              amountMsat={swapConfig.balanceThresholdSat * 1000}
             />
           </span>
         </div>
         <div className="flex justify-between items-center gap-2">
           <span className="font-medium truncate">Swap amount</span>
           <span className="shrink-0 text-muted-foreground text-right">
-            <FormattedBitcoinAmount amount={swapConfig.swapAmount * 1000} />
+            <FormattedBitcoinAmount
+              amountMsat={swapConfig.swapAmountSat * 1000}
+            />
           </span>
         </div>
         <div className="flex justify-between items-center gap-2">

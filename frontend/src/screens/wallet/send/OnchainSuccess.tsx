@@ -24,7 +24,7 @@ export default function OnchainSuccess() {
   const { state } = useLocation();
   const { data: info } = useInfo();
 
-  const amount = state?.amount as number;
+  const amountSat = state?.amountSat as number;
   const txId = state?.txId as string;
 
   const { data: mempoolTx } = useMempoolApi<MempoolTransaction>(
@@ -56,9 +56,9 @@ export default function OnchainSuccess() {
             )}
             <div className="flex flex-col gap-1 items-center">
               <p className="text-2xl font-medium slashed-zero">
-                <FormattedBitcoinAmount amount={amount * 1000} />
+                <FormattedBitcoinAmount amountMsat={amountSat * 1000} />
               </p>
-              <FormattedFiatAmount amount={amount} className="text-xl" />
+              <FormattedFiatAmount amountSat={amountSat} className="text-xl" />
             </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-2 pt-2">

@@ -30,12 +30,12 @@ export default function Onchain() {
           <div className="flex flex-col items-center gap-3">
             <div className="text-5xl md:text-6xl font-medium balance sensitive slashed-zero leading-none">
               <FormattedBitcoinAmount
-                amount={balances.onchain.spendable * 1000}
+                amountMsat={balances.onchain.spendableSat * 1000}
               />
             </div>
             <FormattedFiatAmount
               className="text-3xl font-normal leading-9 text-muted-foreground"
-              amount={balances.onchain.spendable}
+              amountSat={balances.onchain.spendableSat}
             />
           </div>
         </div>

@@ -44,7 +44,7 @@ export default function ReceiveInvoice() {
   const { data: balances } = useBalances();
 
   const [isLoading, setLoading] = React.useState(false);
-  const [amount, setAmount] = React.useState<string>("");
+  const [amountSat, setAmountSat] = React.useState<string>("");
   const [description, setDescription] = React.useState<string>("");
   const [transaction, setTransaction] = React.useState<Transaction | null>(
     null
@@ -76,14 +76,14 @@ export default function ReceiveInvoice() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          amount: (parseInt(amount) || 0) * 1000,
+          amountMsat: (parseInt(amountSat) || 0) * 1000,
           description,
         } as CreateInvoiceRequest),
       });
 
       if (invoice) {
         setTransaction(invoice);
-        setAmount("");
+        setAmountSat("");
         setDescription("");
         toast("Successfully created invoice");
       }
@@ -110,8 +110,8 @@ export default function ReceiveInvoice() {
       <div className="flex flex-col md:flex-row gap-12">
         <div className="w-full md:max-w-lg grid gap-6">
           {hasChannelManagement &&
-            (+amount * 1000 || transaction?.amount || 0) >=
-              0.8 * balances.lightning.totalReceivable && (
+            (+amountSat * 1000 || transaction?.amountMsat || 0) >=
+              0.8 * balances.lightning.totalReceivableMsat && (
               <LowReceivingCapacityAlert />
             )}
           <div>
@@ -129,10 +129,12 @@ export default function ReceiveInvoice() {
                       <QRCode value={transaction.invoice} />
                       <div className="flex flex-col gap-1 items-center">
                         <p className="text-2xl font-medium slashed-zero">
-                          <FormattedBitcoinAmount amount={transaction.amount} />
+                          <FormattedBitcoinAmount
+                            amountMsat={transaction.amountMsat}
+                          />
                         </p>
                         <FormattedFiatAmount
-                          amount={Math.floor(transaction.amount / 1000)}
+                          amountSat={transaction.amountSat}
                           className="text-xl"
                         />
                       </div>
@@ -159,10 +161,12 @@ export default function ReceiveInvoice() {
                       <img src={TickSVG} className="w-48" />
                       <div className="flex flex-col gap-1 items-center">
                         <p className="text-2xl font-medium slashed-zero">
-                          <FormattedBitcoinAmount amount={transaction.amount} />
+                          <FormattedBitcoinAmount
+                            amountMsat={transaction.amountMsat}
+                          />
                         </p>
                         <FormattedFiatAmount
-                          amount={Math.floor(transaction.amount / 1000)}
+                          amountSat={transaction.amountSat}
                           className="text-xl"
                         />
                       </div>
@@ -198,15 +202,18 @@ export default function ReceiveInvoice() {
                   <InputWithAdornment
                     id="amount"
                     type="number"
-                    value={amount?.toString()}
+                    value={amountSat?.toString()}
                     placeholder="Amount in Satoshi..."
                     onChange={(e) => {
-                      setAmount(e.target.value.trim());
+                      setAmountSat(e.target.value.trim());
                     }}
                     min={1}
                     autoFocus
                     endAdornment={
-                      <FormattedFiatAmount amount={+amount} className="mr-2" />
+                      <FormattedFiatAmount
+                        amountSat={+amountSat}
+                        className="mr-2"
+                      />
                     }
                   />
                 </div>
@@ -231,7 +238,7 @@ export default function ReceiveInvoice() {
                   )}
                   loading={isLoading}
                   type="submit"
-                  disabled={!amount}
+                  disabled={!amountSat}
                 >
                   Create Invoice
                 </LoadingButton>

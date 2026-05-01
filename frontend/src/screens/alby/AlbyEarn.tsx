@@ -22,7 +22,7 @@ interface Platform {
 interface EarnOpportunity {
   title: string;
   logo: string;
-  reward?: number;
+  rewardSat?: number;
   rewardText?: string;
   rewardIcon?: LucideIcon;
   platforms: Platform[];
@@ -44,7 +44,7 @@ const earnOpportunities: EarnOpportunity[] = [
   {
     title: "Alby Go",
     logo: albyGo,
-    reward: 1000,
+    rewardSat: 1000,
     platforms: [
       {
         name: "Google Play",
@@ -59,7 +59,7 @@ const earnOpportunities: EarnOpportunity[] = [
   {
     title: "Alby Extension",
     logo: albyExtension,
-    reward: 1000,
+    rewardSat: 1000,
     platforms: [
       {
         name: "Chrome",
@@ -86,10 +86,10 @@ const earnOpportunities: EarnOpportunity[] = [
 ];
 
 function Reward({ opportunity }: { opportunity: EarnOpportunity }) {
-  if (opportunity.reward !== undefined) {
+  if (opportunity.rewardSat !== undefined) {
     return (
       <FormattedBitcoinAmount
-        amount={opportunity.reward * 1000}
+        amountMsat={opportunity.rewardSat * 1000}
         className="text-lg font-semibold tabular-nums"
       />
     );

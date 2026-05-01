@@ -39,8 +39,10 @@ export function ReceiveToOnchain() {
   );
 
   const [txId, setTxId] = useState("");
-  const [confirmedAmount, setConfirmedAmount] = useState<number | null>(null);
-  const [pendingAmount, setPendingAmount] = useState<number | null>(null);
+  const [confirmedAmountSat, setConfirmedAmountSat] = useState<number | null>(
+    null
+  );
+  const [pendingAmountSat, setPendingAmountSat] = useState<number | null>(null);
   const startTimeRef = useRef(0);
 
   useEffect(() => {
@@ -51,8 +53,8 @@ export function ReceiveToOnchain() {
 
   const receiveAnother = async () => {
     setTxId("");
-    setConfirmedAmount(null);
-    setPendingAmount(null);
+    setConfirmedAmountSat(null);
+    setPendingAmountSat(null);
     startTimeRef.current = Math.floor(Date.now() / 1000);
     await getNewAddress();
   };
@@ -69,8 +71,8 @@ export function ReceiveToOnchain() {
     if (txId) {
       const utxo = mempoolAddressUtxos.find((utxo) => utxo.txid === txId);
       if (utxo?.status.confirmed) {
-        setConfirmedAmount(utxo.value);
-        setPendingAmount(null);
+        setConfirmedAmountSat(utxo.value);
+        setPendingAmountSat(null);
       }
     } else {
       const unconfirmed = mempoolAddressUtxos.find(
@@ -78,7 +80,7 @@ export function ReceiveToOnchain() {
       );
       if (unconfirmed) {
         setTxId(unconfirmed.txid);
-        setPendingAmount(unconfirmed.value);
+        setPendingAmountSat(unconfirmed.value);
         return;
       }
 
@@ -90,8 +92,8 @@ export function ReceiveToOnchain() {
       );
       if (confirmed) {
         setTxId(confirmed.txid);
-        setConfirmedAmount(confirmed.value);
-        setPendingAmount(null);
+        setConfirmedAmountSat(confirmed.value);
+        setPendingAmountSat(null);
       }
     }
   }, [mempoolAddressUtxos, txId]);
@@ -102,14 +104,14 @@ export function ReceiveToOnchain() {
 
   return (
     <>
-      {confirmedAmount ? (
+      {confirmedAmountSat ? (
         <DepositSuccess
-          amount={confirmedAmount}
+          amountSat={confirmedAmountSat}
           txId={txId}
           onReceiveAnother={receiveAnother}
         />
       ) : txId ? (
-        <DepositPending amount={pendingAmount} txId={txId} />
+        <DepositPending amountSat={pendingAmountSat} txId={txId} />
       ) : (
         <Card>
           <CardContent className="flex flex-col items-center gap-6">
@@ -161,10 +163,10 @@ export function ReceiveToOnchain() {
 }
 
 function DepositPending({
-  amount,
+  amountSat,
   txId,
 }: {
-  amount: number | null;
+  amountSat: number | null;
   txId: string;
 }) {
   const { data: info } = useInfo();
@@ -179,12 +181,12 @@ function DepositPending({
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-4">
         <LottieLoading size={288} />
-        {amount && (
+        {amountSat && (
           <div className="flex flex-col gap-1 items-center">
             <p className="text-2xl font-medium slashed-zero">
-              <FormattedBitcoinAmount amount={amount * 1000} />
+              <FormattedBitcoinAmount amountMsat={amountSat * 1000} />
             </p>
-            <FormattedFiatAmount amount={amount} className="text-xl" />
+            <FormattedFiatAmount amountSat={amountSat} className="text-xl" />
           </div>
         )}
       </CardContent>
@@ -203,11 +205,11 @@ function DepositPending({
 }
 
 function DepositSuccess({
-  amount,
+  amountSat,
   txId,
   onReceiveAnother,
 }: {
-  amount: number;
+  amountSat: number;
   txId: string;
   onReceiveAnother: () => void;
 }) {
@@ -222,9 +224,9 @@ function DepositSuccess({
         <img src={TickSVG} className="w-48" />
         <div className="flex flex-col gap-1 items-center">
           <p className="text-2xl font-medium slashed-zero">
-            <FormattedBitcoinAmount amount={amount * 1000} />
+            <FormattedBitcoinAmount amountMsat={amountSat * 1000} />
           </p>
-          <FormattedFiatAmount amount={amount} className="text-xl" />
+          <FormattedFiatAmount amountSat={amountSat} className="text-xl" />
         </div>
       </CardContent>
       <CardFooter className="flex flex-col gap-2 pt-2">

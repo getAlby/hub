@@ -187,8 +187,6 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	fullAccessApiGroup.POST("/offers", httpSvc.makeOfferHandler)
 	fullAccessApiGroup.POST("/reset-router", httpSvc.resetRouterHandler)
 	fullAccessApiGroup.POST("/stop", httpSvc.stopHandler)
-	fullAccessApiGroup.POST("/send-payment-probes", httpSvc.sendPaymentProbesHandler)
-	fullAccessApiGroup.POST("/send-spontaneous-payment-probes", httpSvc.sendSpontaneousPaymentProbesHandler)
 	fullAccessApiGroup.POST("/command", httpSvc.execCustomNodeCommandHandler)
 	fullAccessApiGroup.POST("/swaps/out", httpSvc.initiateSwapOutHandler)
 	fullAccessApiGroup.POST("/swaps/in", httpSvc.initiateSwapInHandler)
@@ -641,8 +639,9 @@ func (httpSvc *HttpService) sendPaymentHandler(c echo.Context) error {
 			Message: fmt.Sprintf("Bad request: %s", err.Error()),
 		})
 	}
+	amountMsat := api.ResolveToMsat(payInvoiceRequest.AmountSat, payInvoiceRequest.AmountMsat, nil, payInvoiceRequest.Amount)
 
-	paymentResponse, err := httpSvc.api.SendPayment(ctx, c.Param("invoice"), payInvoiceRequest.Amount, payInvoiceRequest.Metadata)
+	paymentResponse, err := httpSvc.api.SendPayment(ctx, c.Param("invoice"), amountMsat, payInvoiceRequest.Metadata)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -682,7 +681,13 @@ func (httpSvc *HttpService) makeInvoiceHandler(c echo.Context) error {
 		})
 	}
 
-	invoice, err := httpSvc.api.CreateInvoice(c.Request().Context(), makeInvoiceRequest.Amount, makeInvoiceRequest.Description)
+	amountMsat := uint64(0)
+	resolvedAmountMsat := api.ResolveToMsat(makeInvoiceRequest.AmountSat, makeInvoiceRequest.AmountMsat, nil, makeInvoiceRequest.Amount)
+	if resolvedAmountMsat != nil {
+		amountMsat = *resolvedAmountMsat
+	}
+
+	invoice, err := httpSvc.api.CreateInvoice(c.Request().Context(), amountMsat, makeInvoiceRequest.Description)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -1007,7 +1012,13 @@ func (httpSvc *HttpService) redeemOnchainFundsHandler(c echo.Context) error {
 		})
 	}
 
-	redeemOnchainFundsResponse, err := httpSvc.api.RedeemOnchainFunds(ctx, redeemOnchainFundsRequest.ToAddress, redeemOnchainFundsRequest.Amount, redeemOnchainFundsRequest.FeeRate, redeemOnchainFundsRequest.SendAll)
+	amountSat := uint64(0)
+	resolvedAmountSat := api.ResolveToSat(redeemOnchainFundsRequest.AmountSat, nil, redeemOnchainFundsRequest.Amount, nil)
+	if resolvedAmountSat != nil {
+		amountSat = *resolvedAmountSat
+	}
+
+	redeemOnchainFundsResponse, err := httpSvc.api.RedeemOnchainFunds(ctx, redeemOnchainFundsRequest.ToAddress, amountSat, redeemOnchainFundsRequest.FeeRate, redeemOnchainFundsRequest.SendAll)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -1167,7 +1178,13 @@ func (httpSvc *HttpService) transfersHandler(c echo.Context) error {
 		})
 	}
 
-	err := httpSvc.api.Transfer(c.Request().Context(), requestData.FromAppId, requestData.ToAppId, requestData.AmountSat*1000, requestData.Description)
+	amountMsat := uint64(0)
+	resolvedAmountMsat := api.ResolveToMsat(requestData.AmountSat, requestData.AmountMsat, nil, nil)
+	if resolvedAmountMsat != nil {
+		amountMsat = *resolvedAmountMsat
+	}
+
+	err := httpSvc.api.Transfer(c.Request().Context(), requestData.FromAppId, requestData.ToAppId, amountMsat, requestData.Description)
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to transfer funds")
@@ -1277,42 +1294,6 @@ func (httpSvc *HttpService) setupHandler(c echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
-}
-
-func (httpSvc *HttpService) sendPaymentProbesHandler(c echo.Context) error {
-	var sendPaymentProbesRequest api.SendPaymentProbesRequest
-	if err := c.Bind(&sendPaymentProbesRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Message: fmt.Sprintf("Bad request: %s", err.Error()),
-		})
-	}
-
-	sendPaymentProbesResponse, err := httpSvc.api.SendPaymentProbes(c.Request().Context(), &sendPaymentProbesRequest)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to send payment probes: %v", err),
-		})
-	}
-
-	return c.JSON(http.StatusOK, sendPaymentProbesResponse)
-}
-
-func (httpSvc *HttpService) sendSpontaneousPaymentProbesHandler(c echo.Context) error {
-	var sendSpontaneousPaymentProbesRequest api.SendSpontaneousPaymentProbesRequest
-	if err := c.Bind(&sendSpontaneousPaymentProbesRequest); err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{
-			Message: fmt.Sprintf("Bad request: %s", err.Error()),
-		})
-	}
-
-	sendSpontaneousPaymentProbesResponse, err := httpSvc.api.SendSpontaneousPaymentProbes(c.Request().Context(), &sendSpontaneousPaymentProbesRequest)
-	if err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: fmt.Sprintf("Failed to send spontaneous payment probes: %v", err),
-		})
-	}
-
-	return c.JSON(http.StatusOK, sendSpontaneousPaymentProbesResponse)
 }
 
 func (httpSvc *HttpService) getLogOutputHandler(c echo.Context) error {

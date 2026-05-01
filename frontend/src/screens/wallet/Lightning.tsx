@@ -34,12 +34,13 @@ export default function Lightning() {
     hasChannelsOpen &&
     channels?.every(
       (channel) =>
-        channel.localBalance < channel.unspendablePunishmentReserve * 1000
+        channel.localBalanceMsat <
+        channel.unspendablePunishmentReserveSat * 1000
     );
   const lowReceivingCapacity =
     hasChannelsOpen &&
-    balances.lightning.totalReceivable <
-      balances.lightning.totalSpendable * 0.1;
+    balances.lightning.totalReceivableMsat <
+      balances.lightning.totalSpendableMsat * 0.1;
   const showOpenFirstChannel =
     hasChannelManagement && channels && !hasChannelsOpen;
 
@@ -94,12 +95,12 @@ export default function Lightning() {
           <div className="flex flex-col items-center gap-3">
             <div className="text-5xl md:text-6xl font-medium balance sensitive slashed-zero leading-none">
               <FormattedBitcoinAmount
-                amount={balances.lightning.totalSpendable}
+                amountMsat={balances.lightning.totalSpendableMsat}
               />
             </div>
             <FormattedFiatAmount
               className="text-3xl font-normal leading-9 text-muted-foreground"
-              amount={balances.lightning.totalSpendable / 1000}
+              amountSat={balances.lightning.totalSpendableSat}
             />
           </div>
         </div>

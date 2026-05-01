@@ -83,10 +83,10 @@ export function FixedFloatSwapInFlow({
           <LottieLoading size={288} />
           <div className="flex flex-col gap-1 items-center">
             <p className="text-2xl font-medium slashed-zero">
-              <FormattedBitcoinAmount amount={transaction.amount} />
+              <FormattedBitcoinAmount amountMsat={transaction.amountMsat} />
             </p>
             <FormattedFiatAmount
-              amount={Math.floor(transaction.amount / 1000)}
+              amountSat={transaction.amountSat}
               className="text-xl"
             />
           </div>
@@ -126,10 +126,10 @@ export function FixedFloatSwapInFlow({
         <img src={TickSVG} className="w-48" />
         <div className="flex flex-col gap-1 items-center">
           <p className="text-2xl font-medium slashed-zero">
-            <FormattedBitcoinAmount amount={transaction.amount} />
+            <FormattedBitcoinAmount amountMsat={transaction.amountMsat} />
           </p>
           <FormattedFiatAmount
-            amount={Math.floor(transaction.amount / 1000)}
+            amountSat={transaction.amountSat}
             className="text-xl"
           />
         </div>
