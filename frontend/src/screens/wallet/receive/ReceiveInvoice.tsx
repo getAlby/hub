@@ -1,6 +1,8 @@
 import {
+  AlertTriangleIcon,
   ArrowLeftIcon,
   CopyIcon,
+  ExternalLinkIcon,
   LinkIcon,
   PlusIcon,
   ReceiptTextIcon,
@@ -9,11 +11,13 @@ import TickSVG from "public/images/illustrations/tick.svg";
 import React from "react";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
+import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import QRCode from "src/components/QRCode";
+import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -30,6 +34,7 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useBalances } from "src/hooks/useBalances";
+import { useNodeDetails } from "src/hooks/useNodeDetails";
 
 import { useInfo } from "src/hooks/useInfo";
 import { useTransaction } from "src/hooks/useTransaction";
@@ -54,6 +59,21 @@ export default function ReceiveInvoice() {
     transaction ? transaction.paymentHash : "",
     true
   );
+  const lsps2Source = info?.jitChannelsLiquiditySource;
+  const lsps2Pubkey =
+    lsps2Source && lsps2Source.includes("@")
+      ? lsps2Source.split("@")[0]
+      : undefined;
+  const { data: lsps2NodeDetails } = useNodeDetails(lsps2Pubkey);
+  const totalReceivableMsat = balances?.lightning.totalReceivableMsat ?? 0;
+  const requestedAmountMsat = +amountSat * 1000 || transaction?.amountMsat || 0;
+  const isNearReceivingCapacity =
+    !!hasChannelManagement && requestedAmountMsat >= 0.8 * totalReceivableMsat;
+  const isJitReceiveLikely =
+    !!hasChannelManagement &&
+    !!lsps2Source &&
+    !!amountSat &&
+    +amountSat * 1000 > totalReceivableMsat;
 
   React.useEffect(() => {
     if (invoiceData?.settledAt) {
@@ -109,11 +129,31 @@ export default function ReceiveInvoice() {
       />
       <div className="flex flex-col md:flex-row gap-12">
         <div className="w-full md:max-w-lg grid gap-6">
-          {hasChannelManagement &&
-            (+amountSat * 1000 || transaction?.amountMsat || 0) >=
-              0.8 * balances.lightning.totalReceivableMsat && (
-              <LowReceivingCapacityAlert />
-            )}
+          {isJitReceiveLikely ? (
+            <Alert variant="warning">
+              <AlertTriangleIcon className="h-4 w-4" />
+              <AlertTitle>LSP Receive Required</AlertTitle>
+              <AlertDescription className="inline">
+                This amount exceeds your inbound capacity, so invoice settlement
+                may use a Just-in-Time channel. Liquidity Source:{" "}
+                {lsps2Pubkey ? (
+                  <ExternalLink
+                    to={`${info.mempoolUrl}/lightning/node/${lsps2Pubkey}`}
+                    className="inline-flex items-center gap-1 underline"
+                  >
+                    {lsps2NodeDetails?.alias || lsps2Pubkey}
+                    <ExternalLinkIcon className="size-4" />
+                  </ExternalLink>
+                ) : (
+                  lsps2Source
+                )}
+                . Additional fees might be deducted from the received amount by
+                the LSP.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            isNearReceivingCapacity && <LowReceivingCapacityAlert />
+          )}
           <div>
             {transaction ? (
               <Card>

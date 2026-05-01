@@ -168,6 +168,7 @@ export interface InfoResponse {
   bitcoinDisplayFormat: BitcoinDisplayFormat;
   chainDataSourceType?: string;
   chainDataSourceAddress?: string;
+  jitChannelsLiquiditySource?: string;
   hideUpdateBanner: boolean;
 }
 

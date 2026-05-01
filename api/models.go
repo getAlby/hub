@@ -327,6 +327,7 @@ type InfoResponse struct {
 	MempoolUrl                  string              `json:"mempoolUrl"`
 	ChainDataSourceType         string              `json:"chainDataSourceType,omitempty"`
 	ChainDataSourceAddress      string              `json:"chainDataSourceAddress,omitempty"`
+	JitChannelsLiquiditySource  string              `json:"jitChannelsLiquiditySource,omitempty"`
 	HideUpdateBanner            bool                `json:"hideUpdateBanner"`
 }
 

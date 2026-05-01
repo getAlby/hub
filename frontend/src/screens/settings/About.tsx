@@ -1,13 +1,24 @@
+import { ExternalLinkIcon } from "lucide-react";
+import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Badge } from "src/components/ui/badge";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
+import { useNodeDetails } from "src/hooks/useNodeDetails";
 
 import { useInfo } from "src/hooks/useInfo";
 
 export function About() {
   const { data: info } = useInfo();
   const { data: albyMe, error: albyMeError } = useAlbyMe();
+  const lsps2Source = info?.jitChannelsLiquiditySource;
+  const lsps2Pubkey = lsps2Source?.includes("@")
+    ? lsps2Source.split("@")[0]
+    : undefined;
+  const { data: lsps2NodeDetails } = useNodeDetails(lsps2Pubkey);
+  const lsps2Label =
+    lsps2NodeDetails?.alias ||
+    (lsps2Pubkey ? lsps2Pubkey.slice(0, 8) + "..." : lsps2Source);
 
   if (!info || (info.albyAccountConnected && !albyMe && !albyMeError)) {
     return <Loading />;
@@ -53,6 +64,27 @@ export function About() {
               {info.chainDataSourceAddress && (
                 <p className="break-all">{info.chainDataSourceAddress}</p>
               )}
+            </div>
+          </div>
+        )}
+        {info.jitChannelsLiquiditySource && (
+          <div className="grid gap-2">
+            <p className="font-medium text-sm">
+              Just-in-Time channels Liquidity Source LSP2
+            </p>
+            <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+              {lsps2Pubkey ? (
+                <ExternalLink
+                  to={`${info.mempoolUrl}/lightning/node/${lsps2Pubkey}`}
+                  className="inline-flex items-center gap-1 underline w-fit"
+                >
+                  {lsps2Label}
+                  <ExternalLinkIcon className="size-4" />
+                </ExternalLink>
+              ) : (
+                <p>{lsps2Label}</p>
+              )}
+              <p className="break-all">{info.jitChannelsLiquiditySource}</p>
             </div>
           </div>
         )}
