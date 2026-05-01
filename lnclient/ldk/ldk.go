@@ -1137,20 +1137,20 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 
 	pendingBalancesDetails := make([]lnclient.PendingBalanceDetails, 0)
 
-	pendingBalancesFromChannelClosures := uint64(0)
+	pendingBalancesFromChannelClosuresSat := uint64(0)
 	// increase pending balance from any lightning balances for channels that are pending closure
 	// (they do not exist in our list of open channels)
 	for _, balance := range balances.LightningBalances {
-		increasePendingBalance := func(nodeId, channelId string, amount uint64, fundingTxId ldk_node.Txid, fundingTxIndex uint16) {
+		increasePendingBalance := func(nodeId, channelId string, amountSat uint64, fundingTxId ldk_node.Txid, fundingTxIndex uint16) {
 			if !slices.ContainsFunc(channels, func(channel ldk_node.ChannelDetails) bool {
 				return channel.ChannelId == channelId
 			}) {
-				pendingBalancesFromChannelClosures += amount
+				pendingBalancesFromChannelClosuresSat += amountSat
 				pendingBalancesDetails = append(pendingBalancesDetails, lnclient.PendingBalanceDetails{
 					NodeId:        nodeId,
 					ChannelId:     channelId,
-					Amount:        amount,
-					AmountSat:     amount,
+					Amount:        amountSat,
+					AmountSat:     amountSat,
 					FundingTxId:   fundingTxId,
 					FundingTxVout: uint32(fundingTxIndex),
 				})
@@ -1179,15 +1179,15 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 	}
 
 	pendingSweepBalanceDetails := make([]lnclient.PendingBalanceDetails, 0)
-	increasePendingBalanceFromClosure := func(nodeId, channelId *string, amount uint64, fundingTxId *ldk_node.Txid, fundingTxIndex *uint16) {
-		pendingBalancesFromChannelClosures += amount
+	increasePendingBalanceFromClosure := func(nodeId, channelId *string, amountSat uint64, fundingTxId *ldk_node.Txid, fundingTxIndex *uint16) {
+		pendingBalancesFromChannelClosuresSat += amountSat
 
 		if nodeId != nil && channelId != nil && fundingTxId != nil && fundingTxIndex != nil {
 			pendingSweepBalanceDetails = append(pendingSweepBalanceDetails, lnclient.PendingBalanceDetails{
 				NodeId:        *nodeId,
 				ChannelId:     *channelId,
-				Amount:        amount,
-				AmountSat:     amount,
+				Amount:        amountSat,
+				AmountSat:     amountSat,
 				FundingTxId:   *fundingTxId,
 				FundingTxVout: uint32(*fundingTxIndex),
 			})
@@ -1218,8 +1218,8 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 		TotalSat:                              int64(balances.TotalOnchainBalanceSats - balances.TotalAnchorChannelsReserveSats),
 		Reserved:                              int64(balances.TotalAnchorChannelsReserveSats),
 		ReservedSat:                           int64(balances.TotalAnchorChannelsReserveSats),
-		PendingBalancesFromChannelClosures:    pendingBalancesFromChannelClosures,
-		PendingBalancesFromChannelClosuresSat: pendingBalancesFromChannelClosures,
+		PendingBalancesFromChannelClosures:    pendingBalancesFromChannelClosuresSat,
+		PendingBalancesFromChannelClosuresSat: pendingBalancesFromChannelClosuresSat,
 		PendingBalancesDetails:                pendingBalancesDetails,
 		PendingSweepBalancesDetails:           pendingSweepBalanceDetails,
 		InternalBalances: map[string]interface{}{

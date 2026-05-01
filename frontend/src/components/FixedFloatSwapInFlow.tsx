@@ -45,7 +45,6 @@ export function FixedFloatSwapInFlow({
 
   useEffect(() => {
     if (invoiceData?.settledAt) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPaymentDone(true);
     }
   }, [invoiceData]);

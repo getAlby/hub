@@ -162,6 +162,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	fullAccessApiGroup.PATCH("/auto-unlock", httpSvc.autoUnlockHandler)
 	fullAccessApiGroup.PATCH("/settings", httpSvc.updateSettingsHandler)
 	fullAccessApiGroup.PATCH("/apps/:pubkey", httpSvc.appsUpdateHandler)
+	fullAccessApiGroup.PATCH("/transactions/:id/labels", httpSvc.setTransactionUserLabelsHandler)
 	fullAccessApiGroup.DELETE("/apps/:pubkey", httpSvc.appsDeleteHandler)
 	fullAccessApiGroup.POST("/transfers", httpSvc.transfersHandler)
 	fullAccessApiGroup.POST("/apps", httpSvc.appsCreateHandler)
@@ -709,6 +710,33 @@ func (httpSvc *HttpService) lookupTransactionHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, transaction)
+}
+
+func (httpSvc *HttpService) setTransactionUserLabelsHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	var requestData api.SetTransactionUserLabelsRequest
+	if err := c.Bind(&requestData); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	transactionID, err := strconv.ParseUint(c.Param("id"), 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "Invalid transaction ID",
+		})
+	}
+
+	err = httpSvc.api.SetTransactionUserLabels(ctx, uint(transactionID), requestData.Labels)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }
 
 func (httpSvc *HttpService) listTransactionsHandler(c echo.Context) error {

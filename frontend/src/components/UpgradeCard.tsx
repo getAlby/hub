@@ -18,7 +18,7 @@ const UpgradeCard: React.FC<Props> = ({
         <h3 className="mt-4 text-lg font-semibold">{message}</h3>
         <p className="text-sm text-muted-foreground mb-5">{subMessage}</p>
         <UpgradeDialog>
-          <Button variant="premium">Upgrade</Button>
+          <Button>Upgrade</Button>
         </UpgradeDialog>
       </div>
     </div>

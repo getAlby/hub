@@ -48,6 +48,7 @@ type API interface {
 	SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}) (*SendPaymentResponse, error)
 	CreateInvoice(ctx context.Context, amountMsat uint64, description string) (*MakeInvoiceResponse, error)
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
+	SetTransactionUserLabels(ctx context.Context, id uint, labels map[string]string) error
 	RequestMempoolApi(ctx context.Context, endpoint string) (interface{}, error)
 	GetInfo(ctx context.Context) (*InfoResponse, error)
 	GetMnemonic(unlockPassword string) (*MnemonicResponse, error)
@@ -269,8 +270,6 @@ type SetupRequest struct {
 	LNDAddress      string `json:"lndAddress"`
 	LNDCertFile     string `json:"lndCertFile"`
 	LNDMacaroonFile string `json:"lndMacaroonFile"`
-	LNDCertHex      string `json:"lndCertHex"`
-	LNDMacaroonHex  string `json:"lndMacaroonHex"`
 
 	// Phoenixd fields
 	PhoenixdAddress       string `json:"phoenixdAddress"`
@@ -391,6 +390,10 @@ type SendPaymentResponse = Transaction
 type MakeInvoiceResponse = Transaction
 type LookupInvoiceResponse = Transaction
 
+type SetTransactionUserLabelsRequest struct {
+	Labels map[string]string `json:"labels"`
+}
+
 type ListTransactionsResponse struct {
 	TotalCount   uint64        `json:"totalCount"`
 	Transactions []Transaction `json:"transactions"`
@@ -398,6 +401,7 @@ type ListTransactionsResponse struct {
 
 // TODO: camelCase
 type Transaction struct {
+	ID              uint        `json:"id"`
 	Type            string      `json:"type"`
 	State           string      `json:"state"`
 	Invoice         string      `json:"invoice"`

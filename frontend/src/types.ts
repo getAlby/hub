@@ -478,8 +478,8 @@ export type SetupNodeInfo = Partial<{
   nextBackupReminder?: string;
 
   lndAddress?: string;
-  lndCertHex?: string;
-  lndMacaroonHex?: string;
+  lndCertFile?: string;
+  lndMacaroonFile?: string;
 
   phoenixdAddress?: string;
   phoenixdAuthorization?: string;
@@ -664,6 +664,7 @@ export type BalancesResponse = {
 };
 
 export type Transaction = {
+  id: number;
   type: "incoming" | "outgoing";
   state: "settled" | "pending" | "failed";
   appId: number | undefined;
@@ -705,6 +706,7 @@ export type TransactionMetadata = {
     payer_note: string;
   }; // BOLT-12
   swap_id?: string;
+  user_labels?: Record<string, string>;
 } & Record<string, unknown>;
 
 export type Boostagram = {

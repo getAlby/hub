@@ -154,7 +154,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
           </CommandItem>
           <CommandItem
             onSelect={() =>
-              runCommand(() => navigate("/wallet/receive/onchain"))
+              runCommand(() => navigate("/wallet/receive?type=onchain"))
             }
           >
             <LinkIcon />

@@ -103,6 +103,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   const reqMethodsParam = queryParams.get("request_methods") ?? "";
   const notificationTypesParam = queryParams.get("notification_types") ?? "";
 
+  /* eslint-disable react-hooks/preserve-manual-memoization */
   const initialScopes: Scope[] = React.useMemo(() => {
     const methods = reqMethodsParam
       ? reqMethodsParam.split(" ")
@@ -115,6 +116,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
       (method) => capabilities.methods.indexOf(method) < 0
     );
     if (unsupportedMethods.length) {
+      // eslint-disable-next-line react-hooks/set-state-in-render
       setUnsupportedError(
         "This app requests methods not supported by your wallet: " +
           unsupportedMethods
@@ -137,6 +139,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         capabilities.notificationTypes.indexOf(notificationType) < 0
     );
     if (unsupportedNotificationTypes.length) {
+      // eslint-disable-next-line react-hooks/set-state-in-render
       setUnsupportedError(
         "This app requests notification types not supported by your wallet: " +
           unsupportedNotificationTypes
@@ -188,6 +191,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
     notificationTypesParam,
     reqMethodsParam,
   ]);
+  /* eslint-enable react-hooks/preserve-manual-memoization */
 
   const parseExpiresParam = (expiresParam: string): Date | undefined => {
     const expiresParamTimestamp = parseInt(expiresParam);

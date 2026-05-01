@@ -1,6 +1,7 @@
 import { Navigate, RouteObject } from "react-router";
 import AppLayout from "src/components/layouts/AppLayout";
 import SettingsLayout from "src/components/layouts/SettingsLayout";
+import WalletLayout from "src/components/layouts/WalletLayout";
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
 import { DefaultRedirect } from "src/components/redirects/DefaultRedirect";
 import { HomeRedirect } from "src/components/redirects/HomeRedirect";
@@ -69,7 +70,8 @@ import { PresetNodeForm } from "src/screens/setup/node/PresetNodeForm";
 import { NewSubwallet } from "src/screens/subwallets/NewSubwallet";
 import { SubwalletCreated } from "src/screens/subwallets/SubwalletCreated";
 import { SubwalletList } from "src/screens/subwallets/SubwalletList";
-import Wallet from "src/screens/wallet";
+import Lightning from "src/screens/wallet/Lightning";
+import Onchain from "src/screens/wallet/Onchain";
 import NodeAlias from "src/screens/wallet/NodeAlias";
 import Receive from "src/screens/wallet/Receive";
 import Send from "src/screens/wallet/Send";
@@ -80,7 +82,7 @@ import ReceiveOffer from "src/screens/wallet/receive/ReceiveOffer";
 import ReceiveOnchain from "src/screens/wallet/receive/ReceiveOnchain";
 import ConfirmPayment from "src/screens/wallet/send/ConfirmPayment";
 import LnurlPay from "src/screens/wallet/send/LnurlPay";
-import Onchain from "src/screens/wallet/send/Onchain";
+import OnchainSend from "src/screens/wallet/send/Onchain";
 import OnchainSuccess from "src/screens/wallet/send/OnchainSuccess";
 import PaymentSuccess from "src/screens/wallet/send/PaymentSuccess";
 import ZeroAmount from "src/screens/wallet/send/ZeroAmount";
@@ -116,8 +118,17 @@ const routes: RouteObject[] = [
         handle: { crumb: () => "Wallet" },
         children: [
           {
-            index: true,
-            element: <Wallet />,
+            element: <WalletLayout />,
+            children: [
+              {
+                index: true,
+                element: <Lightning />,
+              },
+              {
+                path: "onchain",
+                element: <Onchain />,
+              },
+            ],
           },
           {
             path: "swap",
@@ -176,7 +187,7 @@ const routes: RouteObject[] = [
               },
               {
                 path: "onchain",
-                element: <Onchain />,
+                element: <OnchainSend />,
               },
               {
                 path: "lnurl-pay",

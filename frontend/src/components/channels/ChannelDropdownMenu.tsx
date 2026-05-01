@@ -102,8 +102,11 @@ export function ChannelDropdownMenu({
             </AlertDialogTrigger>
           )}
           <AlertDialogTrigger asChild>
-            <DropdownMenuItem onClick={() => setDialog("closeChannel")}>
-              <Trash2Icon className="text-destructive" />
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => setDialog("closeChannel")}
+            >
+              <Trash2Icon />
               Close Channel
             </DropdownMenuItem>
           </AlertDialogTrigger>
