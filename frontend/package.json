@@ -25,7 +25,7 @@
     "@fontsource-variable/inter": "^5.2.8",
     "@getalby/lightning-tools": "^8.1.0",
     "@getalby/sdk": "^7.0.0",
-    "@scure/bip39": "^2.0.1",
+    "@scure/bip39": "^2.2.0",
     "@stepperize/react": "^6.1.0",
     "argon2-wasm-esm": "^1.0.3",
     "bitcoin-address-validation": "^3.0.0",
