@@ -405,10 +405,10 @@ func clnHoldInvoiceToTransaction(invoice *clngrpcHold.Invoice, decodedInvoice *c
 		DescriptionHash: descriptionHash,
 		Preimage:        hex.EncodeToString(invoice.Preimage),
 		PaymentHash:     hex.EncodeToString(invoice.PaymentHash),
-		Amount:          amountMsat,
+		AmountMsat:      amountMsat,
 		CreatedAt:       int64(invoice.CreatedAt),
 		SettledAt:       nil,
-		FeesPaid:        0,
+		FeesPaidMsat:    0,
 		Metadata:        lnclient.Metadata{},
 		SettleDeadline:  minExpiry,
 	}
@@ -1105,24 +1105,24 @@ func (c *CLNService) ListChannels(ctx context.Context) (channels []lnclient.Chan
 		}
 
 		channels = append(channels, lnclient.Channel{
-			LocalBalance:                             LocalBalance,
-			LocalSpendableBalance:                    msatInt64(channel.SpendableMsat),
-			RemoteBalance:                            RemoteBalance,
-			Id:                                       hex.EncodeToString(channel.ChannelId),
-			RemotePubkey:                             hex.EncodeToString(channel.PeerId),
-			FundingTxId:                              hex.EncodeToString(channel.FundingTxid),
-			FundingTxVout:                            channel.GetFundingOutnum(),
-			Active:                                   isActive,
-			Public:                                   !channel.GetPrivate(),
-			InternalChannel:                          channel,
-			Confirmations:                            &Confirmations,
-			ConfirmationsRequired:                    &ConfirmationsRequired,
-			ForwardingFeeBaseMsat:                    localFeeBaseMsat(channel),
-			ForwardingFeeProportionalMillionths:      localFeePPM(channel),
-			UnspendablePunishmentReserve:             sat(channel.OurReserveMsat),
-			CounterpartyUnspendablePunishmentReserve: sat(channel.TheirReserveMsat),
-			Error:                                    Error,
-			IsOutbound:                               channel.GetOpener() == clngrpc.ChannelSide_LOCAL,
+			LocalBalanceMsat:                    LocalBalance,
+			LocalSpendableBalanceMsat:           msatInt64(channel.SpendableMsat),
+			RemoteBalanceMsat:                   RemoteBalance,
+			Id:                                  hex.EncodeToString(channel.ChannelId),
+			RemotePubkey:                        hex.EncodeToString(channel.PeerId),
+			FundingTxId:                         hex.EncodeToString(channel.FundingTxid),
+			FundingTxVout:                       channel.GetFundingOutnum(),
+			Active:                              isActive,
+			Public:                              !channel.GetPrivate(),
+			InternalChannel:                     channel,
+			Confirmations:                       &Confirmations,
+			ConfirmationsRequired:               &ConfirmationsRequired,
+			ForwardingFeeBaseMsat:               localFeeBaseMsat(channel),
+			ForwardingFeeProportionalMillionths: localFeePPM(channel),
+			UnspendablePunishmentReserveSat:     sat(channel.OurReserveMsat),
+			CounterpartyUnspendablePunishmentReserveSat: sat(channel.TheirReserveMsat),
+			Error:      Error,
+			IsOutbound: channel.GetOpener() == clngrpc.ChannelSide_LOCAL,
 		})
 	}
 	return channels, nil
@@ -1330,13 +1330,13 @@ func (c *CLNService) clnInvoiceToTransaction(ctx context.Context, invoice *clngr
 		invoiceStr = ""
 	}
 
-	var amount int64
+	var amountMsat int64
 	if invoice.Status == clngrpc.ListinvoicesInvoices_PAID && invoice.AmountReceivedMsat != nil {
-		amount = int64(invoice.AmountReceivedMsat.Msat)
+		amountMsat = int64(invoice.AmountReceivedMsat.Msat)
 	} else if invoice.AmountMsat != nil {
-		amount = int64(invoice.AmountMsat.Msat)
+		amountMsat = int64(invoice.AmountMsat.Msat)
 	} else {
-		amount = 0
+		amountMsat = 0
 	}
 
 	expires_at := int64(invoice.ExpiresAt)
@@ -1387,8 +1387,8 @@ func (c *CLNService) clnInvoiceToTransaction(ctx context.Context, invoice *clngr
 		DescriptionHash: "",
 		Preimage:        hex.EncodeToString(invoice.PaymentPreimage),
 		PaymentHash:     hex.EncodeToString(invoice.PaymentHash),
-		Amount:          amount,
-		FeesPaid:        0,
+		AmountMsat:      amountMsat,
+		FeesPaidMsat:    0,
 		CreatedAt:       created_at,
 		ExpiresAt:       &expires_at,
 		SettledAt:       paid_at,
@@ -1398,13 +1398,13 @@ func (c *CLNService) clnInvoiceToTransaction(ctx context.Context, invoice *clngr
 	return transaction, nil
 }
 
-func (c *CLNService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (transaction *lnclient.Transaction, err error) {
+func (c *CLNService) MakeHoldInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (transaction *lnclient.Transaction, err error) {
 	if !c.holdEnabled {
 		return nil, errors.New("hold plugin not configured")
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
-		"amount":             amount,
+		"amount":             amountMsat,
 		"description":        description,
 		"description_hash":   descriptionHash,
 		"expiry":             expiry,
@@ -1427,7 +1427,7 @@ func (c *CLNService) MakeHoldInvoice(ctx context.Context, amount int64, descript
 
 	req := &clngrpcHold.InvoiceRequest{
 		PaymentHash:        paymentHashBytes,
-		AmountMsat:         uint64(amount),
+		AmountMsat:         uint64(amountMsat),
 		Expiry:             &expiryUint64,
 		MinFinalCltvExpiry: minCltvExpiryDelta,
 	}
@@ -1469,8 +1469,8 @@ func (c *CLNService) MakeHoldInvoice(ctx context.Context, amount int64, descript
 		DescriptionHash: descriptionHash,
 		Preimage:        "",
 		PaymentHash:     paymentHash,
-		Amount:          amount,
-		FeesPaid:        0,
+		AmountMsat:      amountMsat,
+		FeesPaidMsat:    0,
 		CreatedAt:       time.Now().Unix(),
 		ExpiresAt:       &expiresAt,
 		SettledAt:       nil,
@@ -1540,9 +1540,9 @@ func (c *CLNService) CancelHoldInvoice(ctx context.Context, paymentHash string) 
 	return nil
 }
 
-func (c *CLNService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
+func (c *CLNService) MakeInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
 	logger.Logger.WithFields(logrus.Fields{
-		"amount":              amount,
+		"amount":              amountMsat,
 		"description":         description,
 		"description_hash":    descriptionHash,
 		"expiry":              expiry,
@@ -1569,9 +1569,9 @@ func (c *CLNService) MakeInvoice(ctx context.Context, amount int64, description 
 	myExpiry := uint64(expiry)
 
 	Amount := clngrpc.AmountOrAny{
-		Value: &clngrpc.AmountOrAny_Amount{Amount: &clngrpc.Amount{Msat: uint64(amount)}}}
+		Value: &clngrpc.AmountOrAny_Amount{Amount: &clngrpc.Amount{Msat: uint64(amountMsat)}}}
 	// amount 0 is often used for "any" amount but CLN doesn't support 0 directly
-	if amount == 0 {
+	if amountMsat == 0 {
 		Amount = clngrpc.AmountOrAny{
 			Value: &clngrpc.AmountOrAny_Any{Any: true}}
 	}
@@ -1631,8 +1631,8 @@ func (c *CLNService) MakeInvoice(ctx context.Context, amount int64, description 
 		DescriptionHash: descriptionHash,
 		Preimage:        "",
 		PaymentHash:     hex.EncodeToString(resp.PaymentHash),
-		Amount:          amount,
-		FeesPaid:        0,
+		AmountMsat:      amountMsat,
+		FeesPaidMsat:    0,
 		CreatedAt:       time.Now().Unix(),
 		ExpiresAt:       &expiresAt,
 		SettledAt:       nil,
@@ -1802,12 +1802,12 @@ func (c *CLNService) SendKeysend(amount uint64, destination string, customRecord
 		return nil, fmt.Errorf("empty keysend response")
 	}
 
-	Fee := uint64(0)
+	feeMsat := uint64(0)
 
 	if resp.AmountSentMsat != nil && resp.AmountMsat != nil {
-		Fee = resp.AmountSentMsat.Msat - resp.AmountMsat.Msat
+		feeMsat = resp.AmountSentMsat.Msat - resp.AmountMsat.Msat
 	}
-	return &lnclient.PayKeysendResponse{Fee: Fee}, nil
+	return &lnclient.PayKeysendResponse{FeeMsat: feeMsat}, nil
 }
 
 func (c *CLNService) SendPaymentProbes(ctx context.Context, invoice string) error {
@@ -1854,16 +1854,16 @@ func (c *CLNService) SendPaymentSync(payReq string, amount *uint64) (*lnclient.P
 		return nil, fmt.Errorf("xpay failed: %w", err)
 	}
 
-	feePaid := uint64(0)
+	feePaidMsat := uint64(0)
 	if resp.AmountSentMsat != nil {
 		if resp.AmountMsat != nil {
-			feePaid = resp.AmountSentMsat.Msat - resp.AmountMsat.Msat
+			feePaidMsat = resp.AmountSentMsat.Msat - resp.AmountMsat.Msat
 		}
 	}
 
 	return &lnclient.PayInvoiceResponse{
 		Preimage: hex.EncodeToString(resp.PaymentPreimage),
-		Fee:      feePaid,
+		FeeMsat:  feePaidMsat,
 	}, err
 }
 
