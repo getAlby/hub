@@ -20,6 +20,7 @@ import { getAppDisplayName } from "src/lib/utils";
 import { App } from "src/types";
 
 const SPENDING_BALANCE = "spending-balance";
+const SPENDING_BALANCE_LABEL = "Spending Balance";
 
 type PayFromOption = {
   value: string;
@@ -38,7 +39,7 @@ function SpendingOption() {
       <div className="flex size-6 items-center justify-center rounded-lg bg-muted">
         <WalletIcon className="size-3 text-muted-foreground" />
       </div>
-      <div>Spending Balance</div>
+      <div>{SPENDING_BALANCE_LABEL}</div>
     </div>
   );
 }
@@ -56,7 +57,10 @@ function AppOption({ app }: { app: App }) {
 
 export default function PayFromSelect({ appId, onChange }: Props) {
   const anchorRef = useComboboxAnchor();
-  const { data: appsData } = useApps(PAY_FROM_SELECT_APPS_LIMIT);
+  const [search, setSearch] = React.useState("");
+  const { data: appsData } = useApps(PAY_FROM_SELECT_APPS_LIMIT, undefined, {
+    name: search,
+  });
 
   const apps = React.useMemo(
     () =>
@@ -70,7 +74,7 @@ export default function PayFromSelect({ appId, onChange }: Props) {
 
   const options = React.useMemo<PayFromOption[]>(
     () => [
-      { value: SPENDING_BALANCE, label: "Spending Balance" },
+      { value: SPENDING_BALANCE, label: SPENDING_BALANCE_LABEL },
       ...apps.map((app) => ({
         value: app.id.toString(),
         label: getAppDisplayName(app.name),
@@ -80,8 +84,8 @@ export default function PayFromSelect({ appId, onChange }: Props) {
     [apps]
   );
 
-  const selectedOption = options.find((opt) =>
-    appId ? opt.value === appId.toString() : opt.value === SPENDING_BALANCE
+  const selectedOption = options.find(
+    (opt) => (appId ? opt.value === appId.toString() : undefined) // : opt.value === SPENDING_BALANCE
   );
 
   return (
@@ -91,6 +95,7 @@ export default function PayFromSelect({ appId, onChange }: Props) {
         items={options}
         value={selectedOption}
         itemToStringValue={(option) => option.value}
+        onInputValueChange={setSearch}
         onValueChange={(option) =>
           onChange(
             option?.value === SPENDING_BALANCE
@@ -100,7 +105,7 @@ export default function PayFromSelect({ appId, onChange }: Props) {
         }
       >
         <div ref={anchorRef} className="w-full">
-          <ComboboxInput placeholder="Search connections">
+          <ComboboxInput placeholder={SPENDING_BALANCE_LABEL}>
             <InputGroupAddon>
               {selectedOption?.app ? (
                 <AppAvatar
