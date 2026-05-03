@@ -38,7 +38,7 @@ function PodcastingInfo({ boost }: { boost: Boostagram }) {
         <div className="mt-6">
           <p>Total amount</p>
           <p className="text-muted-foreground break-all sensitive">
-            <FormattedBitcoinAmount amount={boost.valueMsatTotal} />
+            <FormattedBitcoinAmount amountMsat={boost.valueMsatTotal} />
           </p>
         </div>
       )}

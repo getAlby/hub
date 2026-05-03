@@ -3,32 +3,54 @@ import { LIST_TRANSACTIONS_LIMIT } from "src/constants";
 import { ListTransactionsResponse, Transaction } from "src/types";
 import { request } from "src/utils/request";
 
+const LABEL_COLUMN_PREFIX = "label_";
+
+// based on https://stackoverflow.com/a/68146412
+const escapeCsvCell = (raw: string) => {
+  const safe = /^[\t\r ]*[=+\-@]/.test(raw) ? `'${raw}` : raw;
+  return `"${safe.replaceAll('"', '""')}"`;
+};
+
 export const convertToCSV = (transactions: Transaction[]) => {
   if (!transactions.length) {
     return "";
   }
 
-  // Get headers from all transactions
+  // Get headers from all transactions including the user_labels in metadata
   const headers = Object.keys(transactions[0]);
-  const csvHeaders = headers.join(",");
+  const userLabelKeys = Array.from(
+    new Set(
+      transactions.flatMap((tx) =>
+        tx.metadata?.user_labels ? Object.keys(tx.metadata.user_labels) : []
+      )
+    )
+  ).sort();
+  const userLabelHeaders = userLabelKeys.map(
+    (key) => `${LABEL_COLUMN_PREFIX}${key}`
+  );
+
+  const csvHeaders = [...headers, ...userLabelHeaders].join(",");
 
   // Convert each transaction to CSV row
   const csvRows = transactions.map((tx) => {
-    return headers
-      .map((header) => {
+    return [
+      ...headers.map((header) => {
         const value = tx[header as keyof typeof tx];
         if (value === undefined || value === null) {
           return "";
         }
         const stringValue =
           typeof value === "object" ? JSON.stringify(value) : String(value);
-        const safeValue = /^[\t\r ]*[=+\-@]/.test(stringValue)
-          ? `'${stringValue}`
-          : stringValue;
-        // based on https://stackoverflow.com/a/68146412
-        return `"${safeValue.replaceAll('"', '""')}"`; // escape double quotes
-      })
-      .join(",");
+        return escapeCsvCell(stringValue);
+      }),
+      ...userLabelKeys.map((key) => {
+        const value = tx.metadata?.user_labels?.[key];
+        if (value === undefined || value === null) {
+          return "";
+        }
+        return escapeCsvCell(value);
+      }),
+    ].join(",");
   });
 
   return [csvHeaders, ...csvRows].join("\n");

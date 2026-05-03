@@ -1,24 +1,20 @@
-import { ExternalLinkIcon } from "lucide-react";
-import { Link } from "react-router";
 import AppHeader from "src/components/AppHeader";
-import ExternalLink from "src/components/ExternalLink";
-import { AlbyHead } from "src/components/images/AlbyHead";
 import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import OnboardingChecklist from "src/screens/wallet/OnboardingChecklist";
 
 import React from "react";
-import albyGo from "src/assets/suggested-apps/alby-go.png";
+import { AlbyAccountWidget } from "src/components/home/widgets/AlbyAccountWidget";
+import { AlbyExtensionWidget } from "src/components/home/widgets/AlbyExtensionWidget";
+import { AlbyGoWidget } from "src/components/home/widgets/AlbyGoWidget";
 import { AppOfTheDayWidget } from "src/components/home/widgets/AppOfTheDayWidget";
 import { BlockHeightWidget } from "src/components/home/widgets/BlockHeightWidget";
 import { ForwardsWidget } from "src/components/home/widgets/ForwardsWidget";
@@ -31,28 +27,10 @@ import { SupportAlbyWidget } from "src/components/home/widgets/SupportAlbyWidget
 import { WhatsNewWidget } from "src/components/home/widgets/WhatsNewWidget";
 import { SearchInput } from "src/components/ui/search-input";
 
-function getGreeting(name: string | undefined) {
-  const hours = new Date().getHours();
-  let greeting;
-
-  if (hours < 11) {
-    greeting = "Good Morning";
-  } else if (hours < 16) {
-    greeting = "Good Afternoon";
-  } else {
-    greeting = "Good Evening";
-  }
-
-  return `${greeting}${name ? `, ${name}` : ""}!`;
-}
-
 function Home() {
   const { data: info } = useInfo();
   const { data: balances } = useBalances();
-  const { data: albyMe } = useAlbyMe();
   const [isNerd, setNerd] = React.useState(false);
-  /* eslint-disable  @typescript-eslint/no-explicit-any */
-  const extensionInstalled = (window as any).alby !== undefined;
 
   if (!info || !balances) {
     return <Loading />;
@@ -61,132 +39,42 @@ function Home() {
   return (
     <>
       <AppHeader
-        title={getGreeting(albyMe?.name)}
-        pageTitle="Home"
+        title="Home"
         contentRight={<SearchInput placeholder="Search" />}
       />
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start justify-start">
-        {/* LEFT */}
-        <div className="grid gap-3">
-          <OnboardingChecklist />
-          <WhatsNewWidget />
-          <SupportAlbyWidget />
-          <LatestUsedAppsWidget />
-          <NewArrivalsWidget />
-          <AppOfTheDayWidget />
-          {info.albyAccountConnected && (
-            <ExternalLink to="https://www.getalby.com/dashboard">
-              <Card>
-                <CardHeader>
-                  <div className="flex flex-row items-center">
-                    <div className="shrink-0">
-                      <AlbyHead className="w-12 h-12 rounded-xl p-1 border" />
-                    </div>
-                    <div>
-                      <CardTitle>
-                        <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
-                          Alby Account
-                        </div>
-                      </CardTitle>
-                      <CardDescription className="ml-4">
-                        Get an Alby Account with a web wallet interface,
-                        lightning address and other features.
-                      </CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="text-right">
-                  <Button variant="outline">
-                    Open Alby Account
-                    <ExternalLinkIcon className="size-4 ml-2" />
-                  </Button>
-                </CardContent>
-              </Card>
-            </ExternalLink>
-          )}
-
-          <Link to="/appstore/alby-go">
-            <Card>
-              <CardHeader>
-                <div className="flex flex-row items-center">
-                  <div className="shrink-0">
-                    <img src={albyGo} className="w-12 h-12 rounded-xl border" />
-                  </div>
-                  <div>
-                    <CardTitle>
-                      <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
-                        Alby Go
-                      </div>
-                    </CardTitle>
-                    <CardDescription className="ml-4">
-                      The easiest Bitcoin mobile app that works great with Alby
-                      Hub.
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="text-right">
-                <Button variant="outline">Open</Button>
-              </CardContent>
-            </Card>
-          </Link>
-          {!extensionInstalled && (
-            <ExternalLink to="https://getalby.com/products/browser-extension">
-              <Card>
-                <CardHeader>
-                  <div className="flex flex-row items-center">
-                    <div className="shrink-0">
-                      <AlbyHead className="w-12 h-12 rounded-xl p-1 border bg-[#FFDF6F]" />
-                    </div>
-                    <div>
-                      <CardTitle>
-                        <div className="flex-1 leading-5 font-semibold text-xl whitespace-nowrap text-ellipsis overflow-hidden ml-4">
-                          Alby Browser Extension
-                        </div>
-                      </CardTitle>
-                      <CardDescription className="ml-4">
-                        Seamless bitcoin payments in your favorite internet
-                        browser.
-                      </CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="text-right">
-                  <Button variant="outline">
-                    Install Alby Extension
-                    <ExternalLinkIcon className="size-4 ml-2" />
-                  </Button>
-                </CardContent>
-              </Card>
-            </ExternalLink>
-          )}
+      <div className="columns-1 lg:columns-2 gap-3 *:mb-3 *:break-inside-avoid">
+        <OnboardingChecklist />
+        <WhatsNewWidget />
+        <LatestUsedAppsWidget />
+        <NewArrivalsWidget />
+        <AppOfTheDayWidget />
+        <SupportAlbyWidget />
+        <div className="flex flex-col gap-3">
+          <AlbyAccountWidget />
+          <AlbyGoWidget />
+          <AlbyExtensionWidget />
         </div>
-
-        {/* RIGHT */}
-        <div className="grid gap-3">
-          <LightningMessageboardWidget />
-
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>Stats for nerds</CardTitle>
-                <Button variant="secondary" onClick={() => setNerd(!isNerd)}>
-                  {isNerd ? "Hide" : "Show"}
-                </Button>
+        <LightningMessageboardWidget />
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle>Stats for nerds</CardTitle>
+              <Button variant="secondary" onClick={() => setNerd(!isNerd)}>
+                {isNerd ? "Hide" : "Show"}
+              </Button>
+            </div>
+          </CardHeader>
+          {isNerd && (
+            <CardContent>
+              <div className="grid gap-3">
+                <NodeStatusWidget />
+                <BlockHeightWidget />
+                <OnchainFeesWidget />
+                <ForwardsWidget />
               </div>
-            </CardHeader>
-            {isNerd && (
-              <CardContent>
-                <div className="grid gap-3">
-                  <NodeStatusWidget />
-                  <BlockHeightWidget />
-                  <OnchainFeesWidget />
-                  <ForwardsWidget />
-                </div>
-              </CardContent>
-            )}
-          </Card>
-        </div>
+            </CardContent>
+          )}
+        </Card>
       </div>
     </>
   );

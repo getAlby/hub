@@ -49,7 +49,7 @@ export function Tictactoe() {
         const createAppResponse = await createApp({
           name: appStoreApp.title,
           scopes: ["get_info", "lookup_invoice", "make_invoice", "pay_invoice"],
-          maxAmount: DEFAULT_APP_BUDGET_SATS,
+          maxAmountSat: DEFAULT_APP_BUDGET_SATS,
           budgetRenewal: DEFAULT_APP_BUDGET_RENEWAL,
           metadata: {
             app_store_app_id: appId,

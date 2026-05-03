@@ -36,7 +36,11 @@ import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useSwap } from "src/hooks/useSwaps";
 import { useSyncWallet } from "src/hooks/useSyncWallet";
 import { copyToClipboard } from "src/lib/clipboard";
-import { RedeemOnchainFundsResponse, SwapIn } from "src/types";
+import {
+  RedeemOnchainFundsRequest,
+  RedeemOnchainFundsResponse,
+  SwapIn,
+} from "src/types";
 import { request } from "src/utils/request";
 
 export default function SwapInStatus() {
@@ -80,6 +84,11 @@ export default function SwapInStatus() {
         if (!feeRate) {
           throw new Error("No fee rate set");
         }
+        const payload: RedeemOnchainFundsRequest = {
+          toAddress: swap.lockupAddress,
+          amountSat: swap.sendAmountSat,
+          feeRate: +feeRate,
+        };
         const response = await request<RedeemOnchainFundsResponse>(
           "/api/wallet/redeem-onchain-funds",
           {
@@ -87,11 +96,7 @@ export default function SwapInStatus() {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({
-              toAddress: swap.lockupAddress,
-              amount: swap.sendAmount,
-              feeRate: +feeRate,
-            }),
+            body: JSON.stringify(payload),
           }
         );
         if (!response?.txId) {
@@ -135,7 +140,7 @@ export default function SwapInStatus() {
   };
 
   const copyAmount = () => {
-    copyToClipboard(swap.sendAmount.toString());
+    copyToClipboard(swap.sendAmountSat.toString());
   };
 
   const swapStatus = swap.state;
@@ -177,10 +182,12 @@ export default function SwapInStatus() {
                 <div className="flex flex-col gap-2 items-center">
                   <p className="text-xl font-bold slashed-zero text-center">
                     <FormattedBitcoinAmount
-                      amount={(swap.receiveAmount as number) * 1000}
+                      amountMsat={(swap.receiveAmountSat as number) * 1000}
                     />
                   </p>
-                  <FormattedFiatAmount amount={swap.receiveAmount as number} />
+                  <FormattedFiatAmount
+                    amountSat={swap.receiveAmountSat as number}
+                  />
                 </div>
                 <Button onClick={copyPaymentHash} variant="outline">
                   <CopyIcon />
@@ -197,13 +204,15 @@ export default function SwapInStatus() {
                     <LottieLoading />
                   ) : (
                     <QRCode
-                      value={`bitcoin:${swap.lockupAddress}?amount=${swap.sendAmount / 100_000_000}`}
+                      value={`bitcoin:${swap.lockupAddress}?amount=${swap.sendAmountSat / 100_000_000}`}
                     />
                   ))}
                 <div className="flex flex-col gap-2 items-center">
                   <div className="flex items-center gap-2">
                     <p className="text-xl font-bold slashed-zero text-center">
-                      <FormattedBitcoinAmount amount={swap.sendAmount * 1000} />
+                      <FormattedBitcoinAmount
+                        amountMsat={swap.sendAmountSat * 1000}
+                      />
                     </p>
                     {!swap.lockupTxId && !isInternalSwap && (
                       <CopyIcon
@@ -212,7 +221,7 @@ export default function SwapInStatus() {
                       />
                     )}
                   </div>
-                  <FormattedFiatAmount amount={swap.sendAmount} />
+                  <FormattedFiatAmount amountSat={swap.sendAmountSat} />
                 </div>
                 {!swap.lockupTxId && !isInternalSwap && (
                   <div className="flex justify-center gap-4 flex-wrap">
@@ -224,7 +233,7 @@ export default function SwapInStatus() {
                     )}
                     {swap.state === "PENDING" && (
                       <ExternalLinkButton
-                        to={`bitcoin:${swap.lockupAddress}?amount=${swap.sendAmount / 100_000_000}`}
+                        to={`bitcoin:${swap.lockupAddress}?amount=${swap.sendAmountSat / 100_000_000}`}
                         variant="secondary"
                       >
                         Open in External Wallet
@@ -367,5 +376,5 @@ export default function SwapInStatus() {
 }
 
 const Divider = ({ color }: { color: string }) => (
-  <div className={`ml-[9px] py-1 border-l ${color}`}></div>
+  <div className={`ml-2.25 py-1 border-l ${color}`}></div>
 );

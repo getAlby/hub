@@ -66,7 +66,7 @@ export function ChannelDropdownMenu({
         </Button>
         <DropdownMenuContent align="end" className="w-64">
           {channel.status == "online" &&
-            channel.remoteBalance > channel.localSpendableBalance &&
+            channel.remoteBalanceMsat > channel.localSpendableBalanceMsat &&
             hasMultipleChannels && (
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem onClick={() => setDialog("rebalance")}>
@@ -102,8 +102,11 @@ export function ChannelDropdownMenu({
             </AlertDialogTrigger>
           )}
           <AlertDialogTrigger asChild>
-            <DropdownMenuItem onClick={() => setDialog("closeChannel")}>
-              <Trash2Icon className="text-destructive" />
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => setDialog("closeChannel")}
+            >
+              <Trash2Icon />
               Close Channel
             </DropdownMenuItem>
           </AlertDialogTrigger>

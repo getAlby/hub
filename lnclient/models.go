@@ -32,8 +32,8 @@ type Transaction struct {
 	DescriptionHash string
 	Preimage        string
 	PaymentHash     string
-	Amount          int64
-	FeesPaid        int64
+	AmountMsat      int64
+	FeesPaidMsat    int64
 	CreatedAt       int64
 	ExpiresAt       *int64
 	SettledAt       *int64
@@ -57,12 +57,12 @@ type NodeConnectionInfo struct {
 }
 
 type LNClient interface {
-	SendPaymentSync(payReq string, amount *uint64) (*PayInvoiceResponse, error)
-	SendKeysend(amount uint64, destination string, customRecords []TLVRecord, preimage string) (*PayKeysendResponse, error)
+	SendPaymentSync(payReq string, amountMsat *uint64) (*PayInvoiceResponse, error)
+	SendKeysend(amountMsat uint64, destination string, customRecords []TLVRecord, preimage string) (*PayKeysendResponse, error)
 	GetPubkey() string
 	GetInfo(ctx context.Context) (info *NodeInfo, err error)
-	MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *Transaction, err error)
-	MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (transaction *Transaction, err error)
+	MakeInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *Transaction, err error)
+	MakeHoldInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (transaction *Transaction, err error)
 	SettleHoldInvoice(ctx context.Context, preimage string) (err error)
 	CancelHoldInvoice(ctx context.Context, paymentHash string) (err error)
 	LookupInvoice(ctx context.Context, paymentHash string) (transaction *Transaction, err error)
@@ -81,9 +81,7 @@ type LNClient interface {
 	ResetRouter(key string) error
 	GetOnchainBalance(ctx context.Context) (*OnchainBalanceResponse, error)
 	GetBalances(ctx context.Context, includeInactiveChannels bool) (*BalancesResponse, error)
-	RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (txId string, err error)
-	SendPaymentProbes(ctx context.Context, invoice string) error
-	SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error
+	RedeemOnchainFunds(ctx context.Context, toAddress string, amountSat uint64, feeRate *uint64, sendAll bool) (txId string, err error)
 	ListPeers(ctx context.Context) ([]PeerDetails, error)
 	GetLogOutput(ctx context.Context, maxLen int) ([]byte, error)
 	SignMessage(ctx context.Context, message string) (string, error)
@@ -97,24 +95,24 @@ type LNClient interface {
 }
 
 type Channel struct {
-	LocalBalance                             int64
-	LocalSpendableBalance                    int64
-	RemoteBalance                            int64
-	Id                                       string
-	RemotePubkey                             string
-	FundingTxId                              string
-	FundingTxVout                            uint32
-	Active                                   bool
-	Public                                   bool
-	InternalChannel                          interface{}
-	Confirmations                            *uint32
-	ConfirmationsRequired                    *uint32
-	ForwardingFeeBaseMsat                    uint32
-	ForwardingFeeProportionalMillionths      uint32
-	UnspendablePunishmentReserve             uint64
-	CounterpartyUnspendablePunishmentReserve uint64
-	Error                                    *string
-	IsOutbound                               bool
+	LocalBalanceMsat                            int64
+	LocalSpendableBalanceMsat                   int64
+	RemoteBalanceMsat                           int64
+	Id                                          string
+	RemotePubkey                                string
+	FundingTxId                                 string
+	FundingTxVout                               uint32
+	Active                                      bool
+	Public                                      bool
+	InternalChannel                             interface{}
+	Confirmations                               *uint32
+	ConfirmationsRequired                       *uint32
+	ForwardingFeeBaseMsat                       uint32
+	ForwardingFeeProportionalMillionths         uint32
+	UnspendablePunishmentReserveSat             uint64
+	CounterpartyUnspendablePunishmentReserveSat uint64
+	Error                                       *string
+	IsOutbound                                  bool
 }
 
 type NodeStatus struct {
@@ -207,17 +205,17 @@ type LightningBalanceResponse struct {
 
 type PayInvoiceResponse struct {
 	Preimage string `json:"preimage"`
-	Fee      uint64 `json:"fee"`
+	FeeMsat  uint64 `json:"feeMsat"`
 }
 
 type PayOfferResponse = struct {
 	Preimage    string `json:"preimage"`
-	Fee         uint64 `json:"fee"`
-	PaymentHash string `json:"payment_hash"`
+	FeeMsat     uint64 `json:"feeMsat"`
+	PaymentHash string `json:"paymentHash"`
 }
 
 type PayKeysendResponse struct {
-	Fee uint64 `json:"fee"`
+	FeeMsat uint64 `json:"feeMsat"`
 }
 
 type BalancesResponse struct {

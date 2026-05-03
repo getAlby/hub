@@ -3,16 +3,16 @@ import { BitcoinDisplayFormat } from "src/types";
 
 /**
  * Utility function to format Bitcoin amounts as a string
- * @param amount - Amount in millisatoshis
+ * @param amountMsat - Amount in millisatoshis
  * @param displayFormat - Display format (required)
  * @param showSymbol - Whether to show the symbol/unit
  */
 export function formatBitcoinAmount(
-  amount: number,
+  amountMsat: number,
   displayFormat: BitcoinDisplayFormat,
   showSymbol: boolean = true
 ): string {
-  const sats = Math.floor(amount / 1000);
+  const sats = Math.floor(amountMsat / 1000);
   const formattedNumber = new Intl.NumberFormat().format(sats);
 
   if (!showSymbol) {

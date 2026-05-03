@@ -97,8 +97,8 @@ type Swap struct {
 	Type               string
 	State              string
 	Invoice            string
-	SendAmount         uint64
-	ReceiveAmount      uint64
+	SendAmountSat      uint64 `gorm:"column:send_amount"`
+	ReceiveAmountSat   uint64 `gorm:"column:receive_amount"`
 	Preimage           string
 	PaymentHash        string
 	DestinationAddress string

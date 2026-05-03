@@ -1,4 +1,9 @@
-import { ExternalLinkIcon, HeartIcon, TrophyIcon } from "lucide-react";
+import {
+  ExternalLinkIcon,
+  HeartIcon,
+  LucideIcon,
+  TrophyIcon,
+} from "lucide-react";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
@@ -17,8 +22,9 @@ interface Platform {
 interface EarnOpportunity {
   title: string;
   logo: string;
-  reward?: number;
+  rewardSat?: number;
   rewardText?: string;
+  rewardIcon?: LucideIcon;
   platforms: Platform[];
 }
 
@@ -27,6 +33,7 @@ const earnOpportunities: EarnOpportunity[] = [
     title: "Alby Referral Program",
     logo: alby,
     rewardText: "10% of subscription revenue",
+    rewardIcon: TrophyIcon,
     platforms: [
       {
         name: "getalby.com/referrals",
@@ -37,7 +44,7 @@ const earnOpportunities: EarnOpportunity[] = [
   {
     title: "Alby Go",
     logo: albyGo,
-    reward: 1000,
+    rewardSat: 1000,
     platforms: [
       {
         name: "Google Play",
@@ -52,7 +59,7 @@ const earnOpportunities: EarnOpportunity[] = [
   {
     title: "Alby Extension",
     logo: albyExtension,
-    reward: 1000,
+    rewardSat: 1000,
     platforms: [
       {
         name: "Chrome",
@@ -68,6 +75,7 @@ const earnOpportunities: EarnOpportunity[] = [
     title: "Alby",
     logo: alby,
     rewardText: "Our gratitude",
+    rewardIcon: HeartIcon,
     platforms: [
       {
         name: "Trustpilot",
@@ -76,6 +84,29 @@ const earnOpportunities: EarnOpportunity[] = [
     ],
   },
 ];
+
+function Reward({ opportunity }: { opportunity: EarnOpportunity }) {
+  if (opportunity.rewardSat !== undefined) {
+    return (
+      <FormattedBitcoinAmount
+        amountMsat={opportunity.rewardSat * 1000}
+        className="text-lg font-semibold tabular-nums"
+      />
+    );
+  }
+
+  if (opportunity.rewardText && opportunity.rewardIcon) {
+    const Icon = opportunity.rewardIcon;
+    return (
+      <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+        <Icon className="size-4" />
+        {opportunity.rewardText}
+      </span>
+    );
+  }
+
+  return null;
+}
 
 export function AlbyEarn() {
   return (
@@ -94,7 +125,7 @@ export function AlbyEarn() {
             to{" "}
             <ExternalLink
               to="mailto:support@getalby.com"
-              className="text-primary hover:underline font-medium"
+              className="underline font-medium"
             >
               support@getalby.com
             </ExternalLink>{" "}
@@ -104,46 +135,40 @@ export function AlbyEarn() {
 
         <Card>
           <CardContent>
-            <div className="space-y-6">
+            <div className="divide-y">
               {earnOpportunities.map((opportunity) => (
                 <div
                   key={opportunity.title}
-                  className="flex items-center gap-4 pb-6 last:pb-0 border-b last:border-b-0"
+                  className="flex items-center gap-4 py-5 first:pt-0 last:pb-0"
                 >
                   <img
                     src={opportunity.logo}
-                    className="size-8 md:size-10 rounded-lg shrink-0"
+                    className="size-10 md:size-12 rounded-lg shrink-0"
                     alt={opportunity.title}
                   />
-                  <div className="flex flex-1 flex-col sm:flex-row sm:items-center gap-1">
-                    <div className="flex-1">
+                  <div className="flex flex-1 flex-col sm:flex-row sm:items-center gap-2 min-w-0">
+                    <div className="flex-1 min-w-0">
                       <div className="font-medium">{opportunity.title}</div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-sm text-muted-foreground flex flex-wrap items-center gap-x-2">
                         {opportunity.platforms.map((platform, index) => (
-                          <span key={index}>
-                            {index > 0 && " • "}
+                          <span
+                            key={index}
+                            className="inline-flex items-center"
+                          >
+                            {index > 0 && <span className="mr-2">•</span>}
                             <ExternalLink
                               to={platform.url}
-                              className="text-primary hover:underline"
+                              className="underline text-foreground inline-flex items-center hover:text-muted-foreground"
                             >
                               {platform.name}
-                              <ExternalLinkIcon className="w-3 h-3 ml-1 inline" />
+                              <ExternalLinkIcon className="size-3 ml-1" />
                             </ExternalLink>
                           </span>
                         ))}
                       </div>
                     </div>
-                    <div className="sm:text-right font-medium shrink-0">
-                      {opportunity.reward !== undefined ? (
-                        <FormattedBitcoinAmount
-                          amount={opportunity.reward * 1000}
-                        />
-                      ) : opportunity.rewardText ? (
-                        <span className="text-muted-foreground text-sm inline-flex items-start justify-end gap-1">
-                          <HeartIcon className="w-4 h-4 mt-0.5" />
-                          {opportunity.rewardText}
-                        </span>
-                      ) : null}
+                    <div className="sm:text-right shrink-0">
+                      <Reward opportunity={opportunity} />
                     </div>
                   </div>
                 </div>

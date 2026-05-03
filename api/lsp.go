@@ -59,7 +59,11 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 
 	invoice, feeSat, err := api.requestLSPS1Invoice(ctx, lnClient, request, nodeInfo.Network, nodeInfo.Pubkey, lspInfo.MaxChannelExpiryBlocks, lspInfo.MinRequiredChannelConfirmations, lspInfo.MinFundingConfirmsWithinBlocks)
 	invoiceAmountSat := uint64(0)
-	incomingLiquiditySat := request.Amount
+	incomingLiquiditySat := uint64(0)
+	resolvedAmountSat := ResolveToSat(request.AmountSat, nil, request.Amount, nil)
+	if resolvedAmountSat != nil {
+		incomingLiquiditySat = *resolvedAmountSat
+	}
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to request invoice")
@@ -140,9 +144,16 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, lnClient lnclient.LNCli
 		token = "AlbyHub/" + version.Tag
 	}
 
+	amountSat := uint64(0)
+	resolvedAmountSat := ResolveToSat(request.AmountSat, nil, request.Amount, nil)
+	if resolvedAmountSat != nil {
+		amountSat = *resolvedAmountSat
+	}
+	lspBalanceSat := strconv.FormatUint(amountSat, 10)
+
 	lsps1ChannelRequest := &alby.LSPChannelRequest{
 		PublicKey:                    pubkey,
-		LSPBalanceSat:                strconv.FormatUint(request.Amount, 10),
+		LSPBalanceSat:                lspBalanceSat,
 		ClientBalanceSat:             "0",
 		RequiredChannelConfirmations: requiredChannelConfirmations,
 		FundingConfirmsWithinBlocks:  minFundingConfirmsWithinBlocks,

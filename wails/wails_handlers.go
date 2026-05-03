@@ -270,6 +270,37 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		return WailsRequestRouterResponse{Body: node, Error: ""}
 	}
 
+	transactionLabelRegex := regexp.MustCompile(
+		`/api/transactions/([0-9]+)/labels`,
+	)
+	transactionLabelMatch := transactionLabelRegex.FindStringSubmatch(route)
+
+	switch {
+	case len(transactionLabelMatch) > 1:
+		transactionID, err := strconv.ParseUint(transactionLabelMatch[1], 10, 64)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: "Invalid transaction ID"}
+		}
+		switch method {
+		case "PATCH":
+			labelsRequest := &api.SetTransactionUserLabelsRequest{}
+			err = json.Unmarshal([]byte(body), labelsRequest)
+			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"route":  route,
+					"method": method,
+					"body":   body,
+				}).WithError(err).Error("Failed to decode request to wails router")
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			err = app.api.SetTransactionUserLabels(ctx, uint(transactionID), labelsRequest.Labels)
+			if err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			return WailsRequestRouterResponse{Body: nil, Error: ""}
+		}
+	}
+
 	transactionRegex := regexp.MustCompile(
 		`/api/transactions/([0-9a-fA-F]+)`,
 	)
@@ -344,7 +375,8 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
 		}
-		paymentResponse, err := app.api.SendPayment(ctx, invoice, payRequest.Amount, payRequest.Metadata)
+		amountMsat := api.ResolveToMsat(payRequest.AmountSat, payRequest.AmountMsat, nil, payRequest.Amount)
+		paymentResponse, err := app.api.SendPayment(ctx, invoice, amountMsat, payRequest.Metadata)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
@@ -383,8 +415,13 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}).WithError(err).Error("Failed to decode request to wails router")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
+		amountMsat := uint64(0)
+		resolvedAmountMsat := api.ResolveToMsat(transferRequest.AmountSat, transferRequest.AmountMsat, nil, nil)
+		if resolvedAmountMsat != nil {
+			amountMsat = *resolvedAmountMsat
+		}
 
-		err = app.api.Transfer(ctx, transferRequest.FromAppId, transferRequest.ToAppId, transferRequest.AmountSat*1000, transferRequest.Description)
+		err = app.api.Transfer(ctx, transferRequest.FromAppId, transferRequest.ToAppId, amountMsat, transferRequest.Description)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
@@ -547,7 +584,12 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}).WithError(err).Error("Failed to decode request to wails router")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		invoice, err := app.api.CreateInvoice(ctx, makeInvoiceRequest.Amount, makeInvoiceRequest.Description)
+		amountMsat := uint64(0)
+		resolvedAmountMsat := api.ResolveToMsat(makeInvoiceRequest.AmountSat, makeInvoiceRequest.AmountMsat, nil, makeInvoiceRequest.Amount)
+		if resolvedAmountMsat != nil {
+			amountMsat = *resolvedAmountMsat
+		}
+		invoice, err := app.api.CreateInvoice(ctx, amountMsat, makeInvoiceRequest.Description)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
@@ -580,7 +622,13 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 
-		redeemOnchainFundsResponse, err := app.api.RedeemOnchainFunds(ctx, redeemOnchainFundsRequest.ToAddress, redeemOnchainFundsRequest.Amount, redeemOnchainFundsRequest.FeeRate, redeemOnchainFundsRequest.SendAll)
+		amountSat := uint64(0)
+		resolvedAmountSat := api.ResolveToSat(redeemOnchainFundsRequest.AmountSat, nil, redeemOnchainFundsRequest.Amount, nil)
+		if resolvedAmountSat != nil {
+			amountSat = *resolvedAmountSat
+		}
+
+		redeemOnchainFundsResponse, err := app.api.RedeemOnchainFunds(ctx, redeemOnchainFundsRequest.ToAddress, amountSat, redeemOnchainFundsRequest.FeeRate, redeemOnchainFundsRequest.SendAll)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
@@ -867,48 +915,6 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/send-payment-probes":
-		sendPaymentProbesRequest := &api.SendPaymentProbesRequest{}
-		err := json.Unmarshal([]byte(body), sendPaymentProbesRequest)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"route":  route,
-				"method": method,
-				"body":   body,
-			}).WithError(err).Error("Failed to decode request to wails router")
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-		}
-		sendPaymentProbesResponse, err := app.api.SendPaymentProbes(ctx, sendPaymentProbesRequest)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"route":  route,
-				"method": method,
-				"body":   body,
-			}).WithError(err).Error("Failed to send payment probes")
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-		}
-		return WailsRequestRouterResponse{Body: sendPaymentProbesResponse, Error: ""}
-	case "/api/send-spontaneous-payment-probes":
-		sendSpontaneousPaymentProbesRequest := &api.SendSpontaneousPaymentProbesRequest{}
-		err := json.Unmarshal([]byte(body), sendSpontaneousPaymentProbesRequest)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"route":  route,
-				"method": method,
-				"body":   body,
-			}).WithError(err).Error("Failed to decode request to wails router")
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-		}
-		sendSpontaneousPaymentProbesResponse, err := app.api.SendSpontaneousPaymentProbes(ctx, sendSpontaneousPaymentProbesRequest)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"route":  route,
-				"method": method,
-				"body":   body,
-			}).WithError(err).Error("Failed to send spontaneous payment probes")
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-		}
-		return WailsRequestRouterResponse{Body: sendSpontaneousPaymentProbesResponse, Error: ""}
 	case "/api/backup":
 		backupRequest := &api.BasicBackupRequest{}
 		err := json.Unmarshal([]byte(body), backupRequest)

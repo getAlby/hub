@@ -46,8 +46,8 @@ var MockLNClientTransactions = []lnclient.Transaction{
 		DescriptionHash: "hash1",
 		Preimage:        "preimage1",
 		PaymentHash:     MockPaymentHash,
-		Amount:          1000,
-		FeesPaid:        50,
+		AmountMsat:      1000,
+		FeesPaidMsat:    50,
 		SettledAt:       &MockTimeUnix,
 		Metadata: map[string]interface{}{
 			"key1": "value1",
@@ -61,8 +61,8 @@ var MockLNClientTransactions = []lnclient.Transaction{
 		DescriptionHash: "hash2",
 		Preimage:        "preimage2",
 		PaymentHash:     MockPaymentHash,
-		Amount:          2000,
-		FeesPaid:        75,
+		AmountMsat:      2000,
+		FeesPaidMsat:    75,
 		SettledAt:       &MockTimeUnix,
 	},
 }
@@ -75,7 +75,7 @@ var MockLNClientHoldTransaction = &lnclient.Transaction{
 	DescriptionHash: "",
 	Preimage:        "4aa083cad11038359b4f614f3a3d6a8298ae17d5275412bc3eca4f5f4d27f2d4",
 	PaymentHash:     "2779f32f463c795e3cca0e2d40911e4b4d7941baa60bfdf15d28df405df847f5",
-	Amount:          2000,
+	AmountMsat:      2000,
 }
 
 type MockLn struct {
@@ -94,7 +94,7 @@ func NewMockLn() (*MockLn, error) {
 	return &MockLn{}, nil
 }
 
-func (mln *MockLn) SendPaymentSync(payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (mln *MockLn) SendPaymentSync(payReq string, amountMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
 	if len(mln.PayInvoiceResponses) > 0 {
 		response := mln.PayInvoiceResponses[0]
 		err := mln.PayInvoiceErrors[0]
@@ -111,9 +111,9 @@ func (mln *MockLn) SendPaymentSync(payReq string, amount *uint64) (*lnclient.Pay
 	}, nil
 }
 
-func (mln *MockLn) SendKeysend(amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+func (mln *MockLn) SendKeysend(amountMsat uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	return &lnclient.PayKeysendResponse{
-		Fee: 1,
+		FeeMsat: 1,
 	}, nil
 }
 
@@ -121,7 +121,7 @@ func (mln *MockLn) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err er
 	return &MockNodeInfo, nil
 }
 
-func (mln *MockLn) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
+func (mln *MockLn) MakeInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
 	if len(mln.MakeInvoiceResponses) > 0 {
 		response := mln.MakeInvoiceResponses[0]
 		err := mln.MakeInvoiceErrors[0]
@@ -132,7 +132,7 @@ func (mln *MockLn) MakeInvoice(ctx context.Context, amount int64, description st
 	return MockLNClientTransaction, nil
 }
 
-func (mln *MockLn) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (transaction *lnclient.Transaction, err error) {
+func (mln *MockLn) MakeHoldInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (transaction *lnclient.Transaction, err error) {
 	if minCltvExpiryDelta == nil {
 		mln.LastMinCltvExpiryDelta = nil
 	} else {
@@ -193,16 +193,10 @@ func (mln *MockLn) GetBalances(ctx context.Context, includeInactiveChannels bool
 func (mln *MockLn) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
 	return nil, nil
 }
-func (mln *MockLn) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (txId string, err error) {
+func (mln *MockLn) RedeemOnchainFunds(ctx context.Context, toAddress string, amountSat uint64, feeRate *uint64, sendAll bool) (txId string, err error) {
 	return "", nil
 }
 func (mln *MockLn) ResetRouter(key string) error {
-	return nil
-}
-func (mln *MockLn) SendPaymentProbes(ctx context.Context, invoice string) error {
-	return nil
-}
-func (mln *MockLn) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
 	return nil
 }
 func (mln *MockLn) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {

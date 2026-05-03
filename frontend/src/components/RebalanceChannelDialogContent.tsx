@@ -29,7 +29,7 @@ export function RebalanceChannelDialogContent({
   receiveThroughNodePubkey,
   closeDialog,
 }: Props) {
-  const [amount, setAmount] = React.useState("");
+  const [amountSat, setAmountSat] = React.useState("");
   const { data: channels, mutate: reloadChannels } = useChannels();
   const { mutate: reloadBalances } = useBalances();
   const [isRebalancing, setRebalancing] = React.useState(false);
@@ -64,7 +64,7 @@ export function RebalanceChannelDialogContent({
           },
           body: JSON.stringify({
             receiveThroughNodePubkey,
-            amountSat: parseInt(amount),
+            amountSat: parseInt(amountSat),
           }),
         }
       );
@@ -114,7 +114,7 @@ export function RebalanceChannelDialogContent({
                         (channel) =>
                           channel.remotePubkey === receiveThroughNodePubkey
                       )
-                      .map((channel) => channel.localSpendableBalance / 1000)
+                      .map((channel) => channel.localSpendableBalanceSat)
                   ) + 1
                 )
               )}
@@ -125,21 +125,23 @@ export function RebalanceChannelDialogContent({
                       (channel) =>
                         channel.remotePubkey === receiveThroughNodePubkey
                     )
-                    .map((channel) => channel.remoteBalance / 1000)
+                    .map((channel) => channel.remoteBalanceSat)
                 )
               )}
-              value={amount}
+              value={amountSat}
               onChange={(e) => {
-                setAmount(e.target.value.trim());
+                setAmountSat(e.target.value.trim());
               }}
             />
             <p className="mt-2 text-xs text-muted-foreground">
               Fee: 0.3%
-              {!!amount && (
+              {!!amountSat && (
                 <>
                   &nbsp;(
                   <FormattedBitcoinAmount
-                    amount={Math.floor(parseInt(amount || "0") * 0.003 * 1000)}
+                    amountMsat={Math.floor(
+                      parseInt(amountSat || "0") * 0.003 * 1000
+                    )}
                   />
                   )
                 </>
@@ -176,10 +178,10 @@ export function RebalanceChannelDialogContent({
             {channels.some(
               (channel) =>
                 channel.remotePubkey !== receiveThroughNodePubkey &&
-                channel.localSpendableBalance <
+                channel.localSpendableBalanceMsat <
                   (channels.find(
                     (other) => other.remotePubkey === receiveThroughNodePubkey
-                  )?.localSpendableBalance || 0)
+                  )?.localSpendableBalanceMsat || 0)
             ) && (
               <Alert className="mt-2">
                 <AlertTriangleIcon className="h-4 w-4" />

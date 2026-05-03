@@ -17,7 +17,11 @@ import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { useBalances } from "src/hooks/useBalances";
-import { PayInvoiceResponse, TransactionMetadata } from "src/types";
+import {
+  PayInvoiceRequest,
+  PayInvoiceResponse,
+  TransactionMetadata,
+} from "src/types";
 import { request } from "src/utils/request";
 
 export default function LnurlPay() {
@@ -27,7 +31,7 @@ export default function LnurlPay() {
 
   const lnAddress = state?.args?.lnAddress as LightningAddress;
   const identifier = lnAddress.lnurlpData?.identifier;
-  const [amount, setAmount] = React.useState("");
+  const [amountSat, setAmountSat] = React.useState("");
   const [comment, setComment] = React.useState("");
   const [isLoading, setLoading] = React.useState(false);
   const [invoice, setInvoice] = React.useState<Invoice>();
@@ -42,7 +46,7 @@ export default function LnurlPay() {
       }
       setLoading(true);
       const invoice = await lnAddress.requestInvoice({
-        satoshi: parseInt(amount),
+        satoshi: parseInt(amountSat),
         comment,
       });
       setInvoice(invoice);
@@ -50,13 +54,14 @@ export default function LnurlPay() {
         ...(comment && { comment }),
         ...(identifier && { recipient_data: { identifier } }),
       };
+      const payload: PayInvoiceRequest = {
+        metadata,
+      };
       const payInvoiceResponse = await request<PayInvoiceResponse>(
         `/api/payments/${invoice.paymentRequest}`,
         {
           method: "POST",
-          body: JSON.stringify({
-            metadata,
-          }),
+          body: JSON.stringify(payload),
           headers: {
             "Content-Type": "application/json",
           },
@@ -133,17 +138,20 @@ export default function LnurlPay() {
           <InputWithAdornment
             id="amount"
             type="number"
-            value={amount}
+            value={amountSat}
             placeholder="Amount in Satoshi..."
             onChange={(e) => {
-              setAmount(e.target.value.trim());
+              setAmountSat(e.target.value.trim());
             }}
             min={1}
-            max={Math.floor(balances.lightning.totalSpendable / 1000)}
+            max={balances.lightning.totalSpendableSat}
             required
             autoFocus
             endAdornment={
-              <FormattedFiatAmount amount={Number(amount)} className="mr-2" />
+              <FormattedFiatAmount
+                amountSat={Number(amountSat)}
+                className="mr-2"
+              />
             }
           />
           <div className="grid gap-2">
@@ -151,12 +159,12 @@ export default function LnurlPay() {
               <div>
                 Spending Balance:{" "}
                 <FormattedBitcoinAmount
-                  amount={balances.lightning.totalSpendable}
+                  amountMsat={balances.lightning.totalSpendableMsat}
                 />
               </div>
               <FormattedFiatAmount
                 className="text-xs"
-                amount={Math.floor(balances.lightning.totalSpendable / 1000)}
+                amountSat={balances.lightning.totalSpendableSat}
               />
             </div>
           </div>
@@ -175,7 +183,7 @@ export default function LnurlPay() {
             />
           </div>
         )}
-        <SpendingAlert amount={+amount} />
+        <SpendingAlert amountSat={+amountSat} />
         <div className="flex gap-2">
           <LinkButton to="/wallet/send" variant="outline">
             Back
