@@ -16,6 +16,7 @@ import { InputWithAdornment } from "src/components/ui/custom/input-with-adornmen
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { useBalances } from "src/hooks/useBalances";
+import PayFromSelect from "src/screens/wallet/send/PayFromSelect";
 import { PayInvoiceRequest, PayInvoiceResponse } from "src/types";
 import { request } from "src/utils/request";
 
@@ -25,6 +26,7 @@ export default function ZeroAmount() {
   const { data: balances } = useBalances();
 
   const invoice = state?.args?.paymentRequest as Invoice;
+  const [appId, setAppId] = React.useState<number>();
   const [amountSat, setAmountSat] = React.useState("");
   const [isLoading, setLoading] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
@@ -39,6 +41,7 @@ export default function ZeroAmount() {
       setLoading(true);
       const payload: PayInvoiceRequest = {
         amountMsat: +amountSat * 1000,
+        fromAppId: appId,
       };
       const payInvoiceResponse = await request<PayInvoiceResponse>(
         `/api/payments/${invoice.paymentRequest}`,
@@ -151,6 +154,7 @@ export default function ZeroAmount() {
             </div>
           </div>
         </div>
+        <PayFromSelect appId={appId} onChange={setAppId} />
         <SpendingAlert amountSat={+amountSat} />
         <div className="flex gap-2">
           <LinkButton to="/wallet/send" variant="outline">

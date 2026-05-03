@@ -376,7 +376,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}
 		}
 		amountMsat := api.ResolveToMsat(payRequest.AmountSat, payRequest.AmountMsat, nil, payRequest.Amount)
-		paymentResponse, err := app.api.SendPayment(ctx, invoice, amountMsat, payRequest.Metadata)
+		paymentResponse, err := app.api.SendPayment(ctx, invoice, amountMsat, payRequest.Metadata, payRequest.FromAppID)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}

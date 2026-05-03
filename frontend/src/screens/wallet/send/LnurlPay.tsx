@@ -17,6 +17,7 @@ import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { useBalances } from "src/hooks/useBalances";
+import PayFromSelect from "src/screens/wallet/send/PayFromSelect";
 import {
   PayInvoiceRequest,
   PayInvoiceResponse,
@@ -31,6 +32,7 @@ export default function LnurlPay() {
 
   const lnAddress = state?.args?.lnAddress as LightningAddress;
   const identifier = lnAddress.lnurlpData?.identifier;
+  const [appId, setAppId] = React.useState<number>();
   const [amountSat, setAmountSat] = React.useState("");
   const [comment, setComment] = React.useState("");
   const [isLoading, setLoading] = React.useState(false);
@@ -56,6 +58,7 @@ export default function LnurlPay() {
       };
       const payload: PayInvoiceRequest = {
         metadata,
+        fromAppId: appId,
       };
       const payInvoiceResponse = await request<PayInvoiceResponse>(
         `/api/payments/${invoice.paymentRequest}`,
@@ -183,6 +186,7 @@ export default function LnurlPay() {
             />
           </div>
         )}
+        <PayFromSelect appId={appId} onChange={setAppId} />
         <SpendingAlert amountSat={+amountSat} />
         <div className="flex gap-2">
           <LinkButton to="/wallet/send" variant="outline">

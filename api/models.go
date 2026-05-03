@@ -45,7 +45,7 @@ type API interface {
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
 	ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error)
 	ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error)
-	SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}) (*SendPaymentResponse, error)
+	SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}, fromAppId *uint) (*SendPaymentResponse, error)
 	CreateInvoice(ctx context.Context, amountMsat uint64, description string) (*MakeInvoiceResponse, error)
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
 	SetTransactionUserLabels(ctx context.Context, id uint, labels map[string]string) error
@@ -471,6 +471,7 @@ type PayInvoiceRequest struct {
 	AmountSat  *uint64  `json:"amountSat"`
 	AmountMsat *uint64  `json:"amountMsat"`
 	Metadata   Metadata `json:"metadata"`
+	FromAppID  *uint    `json:"fromAppId"`
 }
 
 type MakeOfferRequest struct {
