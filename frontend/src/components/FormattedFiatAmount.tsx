@@ -4,13 +4,13 @@ import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";
 
 type FormattedFiatAmountProps = {
-  amount: number;
+  amountSat: number;
   className?: string;
   showApprox?: boolean;
 };
 
 export default function FormattedFiatAmount({
-  amount,
+  amountSat,
   className,
   showApprox,
 }: FormattedFiatAmountProps) {
@@ -32,7 +32,7 @@ export default function FormattedFiatAmount({
         new Intl.NumberFormat("en-US", {
           style: "currency",
           currency: info?.currency || "usd",
-        }).format((amount / 100_000_000) * bitcoinRate.rate_float)
+        }).format((amountSat / 100_000_000) * bitcoinRate.rate_float)
       )}
     </div>
   );

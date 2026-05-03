@@ -74,6 +74,12 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 		}
 	}
 
+	maxAmountSat := uint64(0)
+	resolvedMaxAmountSat := ResolveToSat(createAppRequest.MaxAmountSat, createAppRequest.MaxAmountMsat, createAppRequest.MaxAmount, nil)
+	if resolvedMaxAmountSat != nil {
+		maxAmountSat = *resolvedMaxAmountSat
+	}
+
 	if createAppRequest.Name == alby.ALBY_ACCOUNT_APP_NAME {
 		return nil, fmt.Errorf("Reserved app name: %s", alby.ALBY_ACCOUNT_APP_NAME)
 	}
@@ -92,7 +98,7 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 	app, pairingSecretKey, err := api.appsSvc.CreateApp(
 		createAppRequest.Name,
 		createAppRequest.Pubkey,
-		createAppRequest.MaxAmountSat,
+		maxAmountSat,
 		createAppRequest.BudgetRenewal,
 		expiresAt,
 		createAppRequest.Scopes,
@@ -146,6 +152,8 @@ func (api *api) CreateApp(createAppRequest *CreateAppRequest) (*CreateAppRespons
 }
 
 func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) error {
+	resolvedMaxAmountSat := ResolveToSat(updateAppRequest.MaxAmountSat, updateAppRequest.MaxAmountMsat, updateAppRequest.MaxAmount, nil)
+
 	err := api.db.Transaction(func(tx *gorm.DB) error {
 		// Initialize name with current app name, update if provided
 		name := userApp.Name
@@ -208,7 +216,7 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 		}
 
 		// Handle permissions updates only if any permission-related field is provided
-		if updateAppRequest.Scopes != nil || updateAppRequest.MaxAmountSat != nil ||
+		if updateAppRequest.Scopes != nil || resolvedMaxAmountSat != nil ||
 			updateAppRequest.BudgetRenewal != nil || updateAppRequest.ExpiresAt != nil || updateAppRequest.UpdateExpiresAt {
 
 			// Get current values or use provided ones
@@ -236,8 +244,8 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 			}
 
 			// Override with provided values
-			if updateAppRequest.MaxAmountSat != nil {
-				maxAmountSat = *updateAppRequest.MaxAmountSat
+			if resolvedMaxAmountSat != nil {
+				maxAmountSat = *resolvedMaxAmountSat
 			}
 			if updateAppRequest.BudgetRenewal != nil {
 				budgetRenewal = *updateAppRequest.BudgetRenewal
@@ -694,15 +702,15 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 		}
 
 		apiChannels = append(apiChannels, Channel{
-			LocalBalance:                             channel.LocalBalance,
-			LocalBalanceSat:                          channel.LocalBalance / 1000,
-			LocalBalanceMsat:                         channel.LocalBalance,
-			LocalSpendableBalance:                    channel.LocalSpendableBalance,
-			LocalSpendableBalanceSat:                 channel.LocalSpendableBalance / 1000,
-			LocalSpendableBalanceMsat:                channel.LocalSpendableBalance,
-			RemoteBalance:                            channel.RemoteBalance,
-			RemoteBalanceSat:                         channel.RemoteBalance / 1000,
-			RemoteBalanceMsat:                        channel.RemoteBalance,
+			LocalBalance:                             channel.LocalBalanceMsat,
+			LocalBalanceSat:                          channel.LocalBalanceMsat / 1000,
+			LocalBalanceMsat:                         channel.LocalBalanceMsat,
+			LocalSpendableBalance:                    channel.LocalSpendableBalanceMsat,
+			LocalSpendableBalanceSat:                 channel.LocalSpendableBalanceMsat / 1000,
+			LocalSpendableBalanceMsat:                channel.LocalSpendableBalanceMsat,
+			RemoteBalance:                            channel.RemoteBalanceMsat,
+			RemoteBalanceSat:                         channel.RemoteBalanceMsat / 1000,
+			RemoteBalanceMsat:                        channel.RemoteBalanceMsat,
 			Id:                                       channel.Id,
 			RemotePubkey:                             channel.RemotePubkey,
 			FundingTxId:                              channel.FundingTxId,
@@ -714,10 +722,10 @@ func (api *api) ListChannels(ctx context.Context) ([]Channel, error) {
 			ConfirmationsRequired:                    channel.ConfirmationsRequired,
 			ForwardingFeeBaseMsat:                    channel.ForwardingFeeBaseMsat,
 			ForwardingFeeProportionalMillionths:      channel.ForwardingFeeProportionalMillionths,
-			UnspendablePunishmentReserve:             channel.UnspendablePunishmentReserve,
-			UnspendablePunishmentReserveSat:          channel.UnspendablePunishmentReserve,
-			CounterpartyUnspendablePunishmentReserve: channel.CounterpartyUnspendablePunishmentReserve,
-			CounterpartyUnspendablePunishmentReserveSat: channel.CounterpartyUnspendablePunishmentReserve,
+			UnspendablePunishmentReserve:             channel.UnspendablePunishmentReserveSat,
+			UnspendablePunishmentReserveSat:          channel.UnspendablePunishmentReserveSat,
+			CounterpartyUnspendablePunishmentReserve: channel.CounterpartyUnspendablePunishmentReserveSat,
+			CounterpartyUnspendablePunishmentReserveSat: channel.CounterpartyUnspendablePunishmentReserveSat,
 			Error:      channel.Error,
 			IsOutbound: channel.IsOutbound,
 			Status:     status,
@@ -915,10 +923,10 @@ func toApiSwap(swap *swaps.Swap) *Swap {
 		Type:               swap.Type,
 		State:              swap.State,
 		Invoice:            swap.Invoice,
-		SendAmount:         swap.SendAmount,
-		SendAmountSat:      swap.SendAmount,
-		ReceiveAmount:      swap.ReceiveAmount,
-		ReceiveAmountSat:   swap.ReceiveAmount,
+		SendAmount:         swap.SendAmountSat,
+		SendAmountSat:      swap.SendAmountSat,
+		ReceiveAmount:      swap.ReceiveAmountSat,
+		ReceiveAmountSat:   swap.ReceiveAmountSat,
 		PaymentHash:        swap.PaymentHash,
 		DestinationAddress: swap.DestinationAddress,
 		RefundAddress:      swap.RefundAddress,
@@ -946,12 +954,12 @@ func (api *api) GetSwapInInfo() (*SwapInfoResponse, error) {
 	return &SwapInfoResponse{
 		AlbyServiceFee:     swapInInfo.AlbyServiceFee,
 		BoltzServiceFee:    swapInInfo.BoltzServiceFee,
-		BoltzNetworkFee:    swapInInfo.BoltzNetworkFee,
-		BoltzNetworkFeeSat: swapInInfo.BoltzNetworkFee,
-		MinAmount:          swapInInfo.MinAmount,
-		MinAmountSat:       swapInInfo.MinAmount,
-		MaxAmount:          swapInInfo.MaxAmount,
-		MaxAmountSat:       swapInInfo.MaxAmount,
+		BoltzNetworkFee:    swapInInfo.BoltzNetworkFeeSat,
+		BoltzNetworkFeeSat: swapInInfo.BoltzNetworkFeeSat,
+		MinAmount:          swapInInfo.MinAmountSat,
+		MinAmountSat:       swapInInfo.MinAmountSat,
+		MaxAmount:          swapInInfo.MaxAmountSat,
+		MaxAmountSat:       swapInInfo.MaxAmountSat,
 	}, nil
 }
 
@@ -968,12 +976,12 @@ func (api *api) GetSwapOutInfo() (*SwapInfoResponse, error) {
 	return &SwapInfoResponse{
 		AlbyServiceFee:     swapOutInfo.AlbyServiceFee,
 		BoltzServiceFee:    swapOutInfo.BoltzServiceFee,
-		BoltzNetworkFee:    swapOutInfo.BoltzNetworkFee,
-		BoltzNetworkFeeSat: swapOutInfo.BoltzNetworkFee,
-		MinAmount:          swapOutInfo.MinAmount,
-		MinAmountSat:       swapOutInfo.MinAmount,
-		MaxAmount:          swapOutInfo.MaxAmount,
-		MaxAmountSat:       swapOutInfo.MaxAmount,
+		BoltzNetworkFee:    swapOutInfo.BoltzNetworkFeeSat,
+		BoltzNetworkFeeSat: swapOutInfo.BoltzNetworkFeeSat,
+		MinAmount:          swapOutInfo.MinAmountSat,
+		MinAmountSat:       swapOutInfo.MinAmountSat,
+		MaxAmount:          swapOutInfo.MaxAmountSat,
+		MaxAmountSat:       swapOutInfo.MaxAmountSat,
 	}, nil
 }
 
@@ -987,17 +995,21 @@ func (api *api) InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *Ini
 		return nil, errors.New("SwapsService not started")
 	}
 
-	amount := initiateSwapOutRequest.SwapAmount
+	amountSat := uint64(0)
+	resolvedAmountSat := ResolveToSat(initiateSwapOutRequest.SwapAmountSat, nil, initiateSwapOutRequest.SwapAmount, nil)
+	if resolvedAmountSat != nil {
+		amountSat = *resolvedAmountSat
+	}
 	destination := initiateSwapOutRequest.Destination
 
-	if amount == 0 {
+	if amountSat == 0 {
 		return nil, errors.New("invalid swap amount")
 	}
 
-	swapOutResponse, err := api.svc.GetSwapsService().SwapOut(amount, destination, false, false)
+	swapOutResponse, err := api.svc.GetSwapsService().SwapOut(amountSat, destination, false, false)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
-			"amount":      amount,
+			"amount_sat":  amountSat,
 			"destination": destination,
 		}).WithError(err).Error("Failed to initiate swap out")
 		return nil, err
@@ -1016,16 +1028,20 @@ func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *Initi
 		return nil, errors.New("SwapsService not started")
 	}
 
-	amount := initiateSwapInRequest.SwapAmount
+	amountSat := uint64(0)
+	resolvedAmountSat := ResolveToSat(initiateSwapInRequest.SwapAmountSat, nil, initiateSwapInRequest.SwapAmount, nil)
+	if resolvedAmountSat != nil {
+		amountSat = *resolvedAmountSat
+	}
 
-	if amount == 0 {
+	if amountSat == 0 {
 		return nil, errors.New("invalid swap amount")
 	}
 
-	swapInResponse, err := api.svc.GetSwapsService().SwapIn(amount, false)
+	swapInResponse, err := api.svc.GetSwapsService().SwapIn(amountSat, false)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
-			"amount": amount,
+			"amount_sat": amountSat,
 		}).WithError(err).Error("Failed to initiate swap in")
 		return nil, err
 	}
@@ -1058,13 +1074,25 @@ func (api *api) EnableAutoSwapOut(ctx context.Context, enableAutoSwapsRequest *E
 		}
 	}
 
-	err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, strconv.FormatUint(enableAutoSwapsRequest.BalanceThreshold, 10), "")
+	balanceThresholdSat := uint64(0)
+	resolvedBalanceThresholdSat := ResolveToSat(enableAutoSwapsRequest.BalanceThresholdSat, nil, enableAutoSwapsRequest.BalanceThreshold, nil)
+	if resolvedBalanceThresholdSat != nil {
+		balanceThresholdSat = *resolvedBalanceThresholdSat
+	}
+
+	err := api.cfg.SetUpdate(config.AutoSwapBalanceThresholdKey, strconv.FormatUint(balanceThresholdSat, 10), "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save autoswap balance threshold to config")
 		return err
 	}
 
-	err = api.cfg.SetUpdate(config.AutoSwapAmountKey, strconv.FormatUint(enableAutoSwapsRequest.SwapAmount, 10), "")
+	swapAmountSat := uint64(0)
+	resolvedSwapAmountSat := ResolveToSat(enableAutoSwapsRequest.SwapAmountSat, nil, enableAutoSwapsRequest.SwapAmount, nil)
+	if resolvedSwapAmountSat != nil {
+		swapAmountSat = *resolvedSwapAmountSat
+	}
+
+	err = api.cfg.SetUpdate(config.AutoSwapAmountKey, strconv.FormatUint(swapAmountSat, 10), "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to save autoswap amount to config")
 		return err
@@ -1643,21 +1671,6 @@ func (api *api) GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesR
 	}, nil
 }
 
-func (api *api) SendPaymentProbes(ctx context.Context, sendPaymentProbesRequest *SendPaymentProbesRequest) (*SendPaymentProbesResponse, error) {
-	lnClient := api.svc.GetLNClient()
-	if lnClient == nil {
-		return nil, ErrLNClientNotStarted
-	}
-
-	var errMessage string
-	err := lnClient.SendPaymentProbes(ctx, sendPaymentProbesRequest.Invoice)
-	if err != nil {
-		errMessage = err.Error()
-	}
-
-	return &SendPaymentProbesResponse{Error: errMessage}, nil
-}
-
 func (api *api) MigrateNodeStorage(ctx context.Context, to string) error {
 	if api.svc.GetLNClient() == nil {
 		return ErrLNClientNotStarted
@@ -1682,21 +1695,6 @@ func (api *api) MigrateNodeStorage(ctx context.Context, to string) error {
 	api.cfg.SetUpdate("LdkVssEnabled", "true", "")
 	api.cfg.SetUpdate("LdkMigrateStorage", "VSS", "")
 	return api.Stop()
-}
-
-func (api *api) SendSpontaneousPaymentProbes(ctx context.Context, sendSpontaneousPaymentProbesRequest *SendSpontaneousPaymentProbesRequest) (*SendSpontaneousPaymentProbesResponse, error) {
-	lnClient := api.svc.GetLNClient()
-	if lnClient == nil {
-		return nil, ErrLNClientNotStarted
-	}
-
-	var errMessage string
-	err := lnClient.SendSpontaneousPaymentProbes(ctx, sendSpontaneousPaymentProbesRequest.Amount, sendSpontaneousPaymentProbesRequest.NodeId)
-	if err != nil {
-		errMessage = err.Error()
-	}
-
-	return &SendSpontaneousPaymentProbesResponse{Error: errMessage}, nil
 }
 
 func (api *api) GetNetworkGraph(ctx context.Context, nodeIds []string) (NetworkGraphResponse, error) {

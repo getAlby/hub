@@ -154,7 +154,7 @@ function Settings() {
                       )}
                     >
                       <ThemePreview theme={t} />
-                      <div className="flex items-center justify-center gap-1.5 py-1.5 px-1">
+                      <div className="flex items-center justify-center gap-1.5 py-1.5 px-1 w-full">
                         <span className="text-xs font-medium capitalize truncate">
                           {t}
                         </span>

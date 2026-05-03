@@ -41,7 +41,7 @@ export default function PaymentSuccess() {
   const to = state?.to as string;
   const pageTitle = state?.pageTitle as string;
   const invoice = state?.invoice as Invoice;
-  const amount = state?.amount as number;
+  const amountSat = state?.amountSat as number;
 
   const copy = () => {
     copyToClipboard(state.preimage as string);
@@ -60,11 +60,11 @@ export default function PaymentSuccess() {
             <div className="flex flex-col gap-1 items-center">
               <p className="text-2xl font-medium slashed-zero">
                 <FormattedBitcoinAmount
-                  amount={(invoice.satoshi || amount) * 1000}
+                  amountMsat={(invoice.satoshi || amountSat) * 1000}
                 />
               </p>
               <FormattedFiatAmount
-                amount={invoice.satoshi || amount}
+                amountSat={invoice.satoshi || amountSat}
                 className="text-xl"
               />
             </div>

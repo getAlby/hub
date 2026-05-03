@@ -79,7 +79,7 @@ function NewChannelInternal({
   const [order, setOrder] = React.useState<Partial<LightningOrder>>({
     paymentMethod: "lightning",
     status: "pay",
-    amount: presetAmounts[0].toString(),
+    amountSat: presetAmounts[0].toString(),
     prevChannelIds: channels.map((channel) => channel.id),
     isPublic: !!channels.length && channels.every((channel) => channel.public),
   });
@@ -115,10 +115,10 @@ function NewChannelInternal({
     }));
   }
 
-  const setAmount = React.useCallback((amount: string) => {
+  const setAmountSat = React.useCallback((amountSat: string) => {
     setOrder((current) => ({
       ...current,
-      amount,
+      amountSat,
     }));
   }, []);
 
@@ -153,8 +153,8 @@ function NewChannelInternal({
   // find the best channel partner
   const okPartners = channelPeerSuggestions?.filter(
     (partner) =>
-      parseInt(order.amount || "0") >= partner.minimumChannelSize &&
-      parseInt(order.amount || "0") <= partner.maximumChannelSize &&
+      parseInt(order.amountSat || "0") >= partner.minimumChannelSizeSat &&
+      parseInt(order.amountSat || "0") <= partner.maximumChannelSizeSat &&
       partner.network === network &&
       partner.paymentMethod === "lightning" &&
       partner.type === "LSPS1" &&
@@ -177,8 +177,8 @@ function NewChannelInternal({
         if (!channels) {
           throw new Error("Channels not loaded");
         }
-        const amount = parseInt(order.amount || "0");
-        if (!amount) {
+        const amountSat = parseInt(order.amountSat || "0");
+        if (!amountSat) {
           throw new Error("No amount set");
         }
 
@@ -215,11 +215,11 @@ function NewChannelInternal({
 
   const estimatedChannelPrice =
     selectedPartner?.paymentMethod === "lightning"
-      ? order.amount === "1000000"
+      ? order.amountSat === "1000000"
         ? selectedPartner["feeTotalSat1m"]
-        : order.amount === "2000000"
+        : order.amountSat === "2000000"
           ? selectedPartner["feeTotalSat2m"]
-          : order.amount === "3000000"
+          : order.amountSat === "3000000"
             ? selectedPartner["feeTotalSat3m"]
             : undefined
       : undefined;
@@ -277,11 +277,11 @@ function NewChannelInternal({
               </Tooltip>
             </TooltipProvider>
 
-            {order.amount && +order.amount < 200_000 && (
+            {order.amountSat && +order.amountSat < 200_000 && (
               <p className="text-muted-foreground text-xs">
                 For a smooth experience consider a opening a channel of{" "}
-                <FormattedBitcoinAmount amount={200_000 * 1000} /> in size or
-                more.{" "}
+                <FormattedBitcoinAmount amountMsat={200_000 * 1000} /> in size
+                or more.{" "}
                 <ExternalLink
                   to="https://guides.getalby.com/user-guide/alby-hub/node"
                   className="underline"
@@ -296,28 +296,28 @@ function NewChannelInternal({
               required
               min={
                 showAdvanced
-                  ? selectedPeer?.minimumChannelSize || 100000
+                  ? selectedPeer?.minimumChannelSizeSat || 100000
                   : undefined
               }
-              value={order.amount}
+              value={order.amountSat}
               onChange={(e) => {
-                setAmount(e.target.value.trim());
+                setAmountSat(e.target.value.trim());
               }}
             />
             <div className="grid grid-cols-3 gap-1.5 text-xs">
-              {presetAmounts.map((amount) => (
+              {presetAmounts.map((presetAmountSat) => (
                 <div
-                  key={amount}
+                  key={presetAmountSat}
                   className={cn(
                     "text-center border rounded p-2 cursor-pointer hover:border-muted-foreground",
-                    +(order.amount || "0") === amount &&
+                    +(order.amountSat || "0") === presetAmountSat &&
                       "border-primary hover:border-primary"
                   )}
-                  onClick={() => setAmount(amount.toString())}
+                  onClick={() => setAmountSat(presetAmountSat.toString())}
                 >
-                  <FormattedBitcoinAmount amount={amount * 1000} />
+                  <FormattedBitcoinAmount amountMsat={presetAmountSat * 1000} />
                   <FormattedFiatAmount
-                    amount={amount}
+                    amountSat={presetAmountSat}
                     showApprox
                     className="text-xs"
                   />
@@ -330,7 +330,7 @@ function NewChannelInternal({
                 Estimated channel price:{" "}
                 <span className="font-semibold">
                   <FormattedBitcoinAmount
-                    amount={estimatedChannelPrice * 1000}
+                    amountMsat={estimatedChannelPrice * 1000}
                   />
                 </span>
               </span>
@@ -399,12 +399,16 @@ function NewChannelInternal({
                                     <span className="ml-4 text-xs text-muted-foreground slashed-zero">
                                       Min.{" "}
                                       <FormattedBitcoinAmount
-                                        amount={peer.minimumChannelSize * 1000}
+                                        amountMsat={
+                                          peer.minimumChannelSizeSat * 1000
+                                        }
                                       />
                                       <span className="mr-5" />
                                       Max.{" "}
                                       <FormattedBitcoinAmount
-                                        amount={peer.maximumChannelSize * 1000}
+                                        amountMsat={
+                                          peer.maximumChannelSizeSat * 1000
+                                        }
                                       />
                                     </span>
                                   </div>

@@ -56,7 +56,7 @@ export default function Send() {
           state: {
             args: {
               address: bip21.address,
-              amount: bip21.amount ? String(bip21.amount) : undefined,
+              amountSat: bip21.amountSat ? String(bip21.amountSat) : undefined,
             },
           },
           replace: true,

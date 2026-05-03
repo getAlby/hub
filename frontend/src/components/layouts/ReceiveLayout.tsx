@@ -26,7 +26,7 @@ export default function ReceiveLayout() {
               <span className="text-muted-foreground">Receive Limit:</span>
               <div className="balance sensitive slashed-zero">
                 <FormattedBitcoinAmount
-                  amount={balances.lightning.totalReceivable}
+                  amountMsat={balances.lightning.totalReceivableMsat}
                 />
               </div>
             </div>

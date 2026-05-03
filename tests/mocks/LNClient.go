@@ -1347,8 +1347,8 @@ func (_c *MockLNClient_LookupInvoice_Call) RunAndReturn(run func(ctx context.Con
 }
 
 // MakeHoldInvoice provides a mock function for the type MockLNClient
-func (_mock *MockLNClient) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (*lnclient.Transaction, error) {
-	ret := _mock.Called(ctx, amount, description, descriptionHash, expiry, paymentHash, minCltvExpiryDelta)
+func (_mock *MockLNClient) MakeHoldInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (*lnclient.Transaction, error) {
+	ret := _mock.Called(ctx, amountMsat, description, descriptionHash, expiry, paymentHash, minCltvExpiryDelta)
 
 	if len(ret) == 0 {
 		panic("no return value specified for MakeHoldInvoice")
@@ -1357,17 +1357,17 @@ func (_mock *MockLNClient) MakeHoldInvoice(ctx context.Context, amount int64, de
 	var r0 *lnclient.Transaction
 	var r1 error
 	if returnFunc, ok := ret.Get(0).(func(context.Context, int64, string, string, int64, string, *uint64) (*lnclient.Transaction, error)); ok {
-		return returnFunc(ctx, amount, description, descriptionHash, expiry, paymentHash, minCltvExpiryDelta)
+		return returnFunc(ctx, amountMsat, description, descriptionHash, expiry, paymentHash, minCltvExpiryDelta)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, int64, string, string, int64, string, *uint64) *lnclient.Transaction); ok {
-		r0 = returnFunc(ctx, amount, description, descriptionHash, expiry, paymentHash, minCltvExpiryDelta)
+		r0 = returnFunc(ctx, amountMsat, description, descriptionHash, expiry, paymentHash, minCltvExpiryDelta)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*lnclient.Transaction)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, int64, string, string, int64, string, *uint64) error); ok {
-		r1 = returnFunc(ctx, amount, description, descriptionHash, expiry, paymentHash, minCltvExpiryDelta)
+		r1 = returnFunc(ctx, amountMsat, description, descriptionHash, expiry, paymentHash, minCltvExpiryDelta)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1381,17 +1381,17 @@ type MockLNClient_MakeHoldInvoice_Call struct {
 
 // MakeHoldInvoice is a helper method to define mock.On call
 //   - ctx context.Context
-//   - amount int64
+//   - amountMsat int64
 //   - description string
 //   - descriptionHash string
 //   - expiry int64
 //   - paymentHash string
 //   - minCltvExpiryDelta *uint64
-func (_e *MockLNClient_Expecter) MakeHoldInvoice(ctx interface{}, amount interface{}, description interface{}, descriptionHash interface{}, expiry interface{}, paymentHash interface{}, minCltvExpiryDelta interface{}) *MockLNClient_MakeHoldInvoice_Call {
-	return &MockLNClient_MakeHoldInvoice_Call{Call: _e.mock.On("MakeHoldInvoice", ctx, amount, description, descriptionHash, expiry, paymentHash, minCltvExpiryDelta)}
+func (_e *MockLNClient_Expecter) MakeHoldInvoice(ctx interface{}, amountMsat interface{}, description interface{}, descriptionHash interface{}, expiry interface{}, paymentHash interface{}, minCltvExpiryDelta interface{}) *MockLNClient_MakeHoldInvoice_Call {
+	return &MockLNClient_MakeHoldInvoice_Call{Call: _e.mock.On("MakeHoldInvoice", ctx, amountMsat, description, descriptionHash, expiry, paymentHash, minCltvExpiryDelta)}
 }
 
-func (_c *MockLNClient_MakeHoldInvoice_Call) Run(run func(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64)) *MockLNClient_MakeHoldInvoice_Call {
+func (_c *MockLNClient_MakeHoldInvoice_Call) Run(run func(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64)) *MockLNClient_MakeHoldInvoice_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -1439,14 +1439,14 @@ func (_c *MockLNClient_MakeHoldInvoice_Call) Return(transaction *lnclient.Transa
 	return _c
 }
 
-func (_c *MockLNClient_MakeHoldInvoice_Call) RunAndReturn(run func(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (*lnclient.Transaction, error)) *MockLNClient_MakeHoldInvoice_Call {
+func (_c *MockLNClient_MakeHoldInvoice_Call) RunAndReturn(run func(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (*lnclient.Transaction, error)) *MockLNClient_MakeHoldInvoice_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // MakeInvoice provides a mock function for the type MockLNClient
-func (_mock *MockLNClient) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (*lnclient.Transaction, error) {
-	ret := _mock.Called(ctx, amount, description, descriptionHash, expiry, throughNodePubkey)
+func (_mock *MockLNClient) MakeInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (*lnclient.Transaction, error) {
+	ret := _mock.Called(ctx, amountMsat, description, descriptionHash, expiry, throughNodePubkey)
 
 	if len(ret) == 0 {
 		panic("no return value specified for MakeInvoice")
@@ -1455,17 +1455,17 @@ func (_mock *MockLNClient) MakeInvoice(ctx context.Context, amount int64, descri
 	var r0 *lnclient.Transaction
 	var r1 error
 	if returnFunc, ok := ret.Get(0).(func(context.Context, int64, string, string, int64, *string) (*lnclient.Transaction, error)); ok {
-		return returnFunc(ctx, amount, description, descriptionHash, expiry, throughNodePubkey)
+		return returnFunc(ctx, amountMsat, description, descriptionHash, expiry, throughNodePubkey)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, int64, string, string, int64, *string) *lnclient.Transaction); ok {
-		r0 = returnFunc(ctx, amount, description, descriptionHash, expiry, throughNodePubkey)
+		r0 = returnFunc(ctx, amountMsat, description, descriptionHash, expiry, throughNodePubkey)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*lnclient.Transaction)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, int64, string, string, int64, *string) error); ok {
-		r1 = returnFunc(ctx, amount, description, descriptionHash, expiry, throughNodePubkey)
+		r1 = returnFunc(ctx, amountMsat, description, descriptionHash, expiry, throughNodePubkey)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1479,16 +1479,16 @@ type MockLNClient_MakeInvoice_Call struct {
 
 // MakeInvoice is a helper method to define mock.On call
 //   - ctx context.Context
-//   - amount int64
+//   - amountMsat int64
 //   - description string
 //   - descriptionHash string
 //   - expiry int64
 //   - throughNodePubkey *string
-func (_e *MockLNClient_Expecter) MakeInvoice(ctx interface{}, amount interface{}, description interface{}, descriptionHash interface{}, expiry interface{}, throughNodePubkey interface{}) *MockLNClient_MakeInvoice_Call {
-	return &MockLNClient_MakeInvoice_Call{Call: _e.mock.On("MakeInvoice", ctx, amount, description, descriptionHash, expiry, throughNodePubkey)}
+func (_e *MockLNClient_Expecter) MakeInvoice(ctx interface{}, amountMsat interface{}, description interface{}, descriptionHash interface{}, expiry interface{}, throughNodePubkey interface{}) *MockLNClient_MakeInvoice_Call {
+	return &MockLNClient_MakeInvoice_Call{Call: _e.mock.On("MakeInvoice", ctx, amountMsat, description, descriptionHash, expiry, throughNodePubkey)}
 }
 
-func (_c *MockLNClient_MakeInvoice_Call) Run(run func(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string)) *MockLNClient_MakeInvoice_Call {
+func (_c *MockLNClient_MakeInvoice_Call) Run(run func(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string)) *MockLNClient_MakeInvoice_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -1531,7 +1531,7 @@ func (_c *MockLNClient_MakeInvoice_Call) Return(transaction *lnclient.Transactio
 	return _c
 }
 
-func (_c *MockLNClient_MakeInvoice_Call) RunAndReturn(run func(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (*lnclient.Transaction, error)) *MockLNClient_MakeInvoice_Call {
+func (_c *MockLNClient_MakeInvoice_Call) RunAndReturn(run func(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (*lnclient.Transaction, error)) *MockLNClient_MakeInvoice_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1671,8 +1671,8 @@ func (_c *MockLNClient_OpenChannel_Call) RunAndReturn(run func(ctx context.Conte
 }
 
 // RedeemOnchainFunds provides a mock function for the type MockLNClient
-func (_mock *MockLNClient) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (string, error) {
-	ret := _mock.Called(ctx, toAddress, amount, feeRate, sendAll)
+func (_mock *MockLNClient) RedeemOnchainFunds(ctx context.Context, toAddress string, amountSat uint64, feeRate *uint64, sendAll bool) (string, error) {
+	ret := _mock.Called(ctx, toAddress, amountSat, feeRate, sendAll)
 
 	if len(ret) == 0 {
 		panic("no return value specified for RedeemOnchainFunds")
@@ -1681,15 +1681,15 @@ func (_mock *MockLNClient) RedeemOnchainFunds(ctx context.Context, toAddress str
 	var r0 string
 	var r1 error
 	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint64, *uint64, bool) (string, error)); ok {
-		return returnFunc(ctx, toAddress, amount, feeRate, sendAll)
+		return returnFunc(ctx, toAddress, amountSat, feeRate, sendAll)
 	}
 	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint64, *uint64, bool) string); ok {
-		r0 = returnFunc(ctx, toAddress, amount, feeRate, sendAll)
+		r0 = returnFunc(ctx, toAddress, amountSat, feeRate, sendAll)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint64, *uint64, bool) error); ok {
-		r1 = returnFunc(ctx, toAddress, amount, feeRate, sendAll)
+		r1 = returnFunc(ctx, toAddress, amountSat, feeRate, sendAll)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1704,14 +1704,14 @@ type MockLNClient_RedeemOnchainFunds_Call struct {
 // RedeemOnchainFunds is a helper method to define mock.On call
 //   - ctx context.Context
 //   - toAddress string
-//   - amount uint64
+//   - amountSat uint64
 //   - feeRate *uint64
 //   - sendAll bool
-func (_e *MockLNClient_Expecter) RedeemOnchainFunds(ctx interface{}, toAddress interface{}, amount interface{}, feeRate interface{}, sendAll interface{}) *MockLNClient_RedeemOnchainFunds_Call {
-	return &MockLNClient_RedeemOnchainFunds_Call{Call: _e.mock.On("RedeemOnchainFunds", ctx, toAddress, amount, feeRate, sendAll)}
+func (_e *MockLNClient_Expecter) RedeemOnchainFunds(ctx interface{}, toAddress interface{}, amountSat interface{}, feeRate interface{}, sendAll interface{}) *MockLNClient_RedeemOnchainFunds_Call {
+	return &MockLNClient_RedeemOnchainFunds_Call{Call: _e.mock.On("RedeemOnchainFunds", ctx, toAddress, amountSat, feeRate, sendAll)}
 }
 
-func (_c *MockLNClient_RedeemOnchainFunds_Call) Run(run func(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool)) *MockLNClient_RedeemOnchainFunds_Call {
+func (_c *MockLNClient_RedeemOnchainFunds_Call) Run(run func(ctx context.Context, toAddress string, amountSat uint64, feeRate *uint64, sendAll bool)) *MockLNClient_RedeemOnchainFunds_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
@@ -1749,7 +1749,7 @@ func (_c *MockLNClient_RedeemOnchainFunds_Call) Return(txId string, err error) *
 	return _c
 }
 
-func (_c *MockLNClient_RedeemOnchainFunds_Call) RunAndReturn(run func(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (string, error)) *MockLNClient_RedeemOnchainFunds_Call {
+func (_c *MockLNClient_RedeemOnchainFunds_Call) RunAndReturn(run func(ctx context.Context, toAddress string, amountSat uint64, feeRate *uint64, sendAll bool) (string, error)) *MockLNClient_RedeemOnchainFunds_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -1806,8 +1806,8 @@ func (_c *MockLNClient_ResetRouter_Call) RunAndReturn(run func(key string) error
 }
 
 // SendKeysend provides a mock function for the type MockLNClient
-func (_mock *MockLNClient) SendKeysend(amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
-	ret := _mock.Called(amount, destination, customRecords, preimage)
+func (_mock *MockLNClient) SendKeysend(amountMsat uint64, destination string, customRecords []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+	ret := _mock.Called(amountMsat, destination, customRecords, preimage)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SendKeysend")
@@ -1816,17 +1816,17 @@ func (_mock *MockLNClient) SendKeysend(amount uint64, destination string, custom
 	var r0 *lnclient.PayKeysendResponse
 	var r1 error
 	if returnFunc, ok := ret.Get(0).(func(uint64, string, []lnclient.TLVRecord, string) (*lnclient.PayKeysendResponse, error)); ok {
-		return returnFunc(amount, destination, customRecords, preimage)
+		return returnFunc(amountMsat, destination, customRecords, preimage)
 	}
 	if returnFunc, ok := ret.Get(0).(func(uint64, string, []lnclient.TLVRecord, string) *lnclient.PayKeysendResponse); ok {
-		r0 = returnFunc(amount, destination, customRecords, preimage)
+		r0 = returnFunc(amountMsat, destination, customRecords, preimage)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*lnclient.PayKeysendResponse)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(uint64, string, []lnclient.TLVRecord, string) error); ok {
-		r1 = returnFunc(amount, destination, customRecords, preimage)
+		r1 = returnFunc(amountMsat, destination, customRecords, preimage)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1839,15 +1839,15 @@ type MockLNClient_SendKeysend_Call struct {
 }
 
 // SendKeysend is a helper method to define mock.On call
-//   - amount uint64
+//   - amountMsat uint64
 //   - destination string
 //   - customRecords []lnclient.TLVRecord
 //   - preimage string
-func (_e *MockLNClient_Expecter) SendKeysend(amount interface{}, destination interface{}, customRecords interface{}, preimage interface{}) *MockLNClient_SendKeysend_Call {
-	return &MockLNClient_SendKeysend_Call{Call: _e.mock.On("SendKeysend", amount, destination, customRecords, preimage)}
+func (_e *MockLNClient_Expecter) SendKeysend(amountMsat interface{}, destination interface{}, customRecords interface{}, preimage interface{}) *MockLNClient_SendKeysend_Call {
+	return &MockLNClient_SendKeysend_Call{Call: _e.mock.On("SendKeysend", amountMsat, destination, customRecords, preimage)}
 }
 
-func (_c *MockLNClient_SendKeysend_Call) Run(run func(amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string)) *MockLNClient_SendKeysend_Call {
+func (_c *MockLNClient_SendKeysend_Call) Run(run func(amountMsat uint64, destination string, customRecords []lnclient.TLVRecord, preimage string)) *MockLNClient_SendKeysend_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 uint64
 		if args[0] != nil {
@@ -1880,71 +1880,14 @@ func (_c *MockLNClient_SendKeysend_Call) Return(payKeysendResponse *lnclient.Pay
 	return _c
 }
 
-func (_c *MockLNClient_SendKeysend_Call) RunAndReturn(run func(amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error)) *MockLNClient_SendKeysend_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// SendPaymentProbes provides a mock function for the type MockLNClient
-func (_mock *MockLNClient) SendPaymentProbes(ctx context.Context, invoice string) error {
-	ret := _mock.Called(ctx, invoice)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SendPaymentProbes")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, string) error); ok {
-		r0 = returnFunc(ctx, invoice)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockLNClient_SendPaymentProbes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SendPaymentProbes'
-type MockLNClient_SendPaymentProbes_Call struct {
-	*mock.Call
-}
-
-// SendPaymentProbes is a helper method to define mock.On call
-//   - ctx context.Context
-//   - invoice string
-func (_e *MockLNClient_Expecter) SendPaymentProbes(ctx interface{}, invoice interface{}) *MockLNClient_SendPaymentProbes_Call {
-	return &MockLNClient_SendPaymentProbes_Call{Call: _e.mock.On("SendPaymentProbes", ctx, invoice)}
-}
-
-func (_c *MockLNClient_SendPaymentProbes_Call) Run(run func(ctx context.Context, invoice string)) *MockLNClient_SendPaymentProbes_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 string
-		if args[1] != nil {
-			arg1 = args[1].(string)
-		}
-		run(
-			arg0,
-			arg1,
-		)
-	})
-	return _c
-}
-
-func (_c *MockLNClient_SendPaymentProbes_Call) Return(err error) *MockLNClient_SendPaymentProbes_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *MockLNClient_SendPaymentProbes_Call) RunAndReturn(run func(ctx context.Context, invoice string) error) *MockLNClient_SendPaymentProbes_Call {
+func (_c *MockLNClient_SendKeysend_Call) RunAndReturn(run func(amountMsat uint64, destination string, customRecords []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error)) *MockLNClient_SendKeysend_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // SendPaymentSync provides a mock function for the type MockLNClient
-func (_mock *MockLNClient) SendPaymentSync(payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
-	ret := _mock.Called(payReq, amount)
+func (_mock *MockLNClient) SendPaymentSync(payReq string, amountMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
+	ret := _mock.Called(payReq, amountMsat)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SendPaymentSync")
@@ -1953,17 +1896,17 @@ func (_mock *MockLNClient) SendPaymentSync(payReq string, amount *uint64) (*lncl
 	var r0 *lnclient.PayInvoiceResponse
 	var r1 error
 	if returnFunc, ok := ret.Get(0).(func(string, *uint64) (*lnclient.PayInvoiceResponse, error)); ok {
-		return returnFunc(payReq, amount)
+		return returnFunc(payReq, amountMsat)
 	}
 	if returnFunc, ok := ret.Get(0).(func(string, *uint64) *lnclient.PayInvoiceResponse); ok {
-		r0 = returnFunc(payReq, amount)
+		r0 = returnFunc(payReq, amountMsat)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*lnclient.PayInvoiceResponse)
 		}
 	}
 	if returnFunc, ok := ret.Get(1).(func(string, *uint64) error); ok {
-		r1 = returnFunc(payReq, amount)
+		r1 = returnFunc(payReq, amountMsat)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1977,12 +1920,12 @@ type MockLNClient_SendPaymentSync_Call struct {
 
 // SendPaymentSync is a helper method to define mock.On call
 //   - payReq string
-//   - amount *uint64
-func (_e *MockLNClient_Expecter) SendPaymentSync(payReq interface{}, amount interface{}) *MockLNClient_SendPaymentSync_Call {
-	return &MockLNClient_SendPaymentSync_Call{Call: _e.mock.On("SendPaymentSync", payReq, amount)}
+//   - amountMsat *uint64
+func (_e *MockLNClient_Expecter) SendPaymentSync(payReq interface{}, amountMsat interface{}) *MockLNClient_SendPaymentSync_Call {
+	return &MockLNClient_SendPaymentSync_Call{Call: _e.mock.On("SendPaymentSync", payReq, amountMsat)}
 }
 
-func (_c *MockLNClient_SendPaymentSync_Call) Run(run func(payReq string, amount *uint64)) *MockLNClient_SendPaymentSync_Call {
+func (_c *MockLNClient_SendPaymentSync_Call) Run(run func(payReq string, amountMsat *uint64)) *MockLNClient_SendPaymentSync_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 string
 		if args[0] != nil {
@@ -2005,70 +1948,7 @@ func (_c *MockLNClient_SendPaymentSync_Call) Return(payInvoiceResponse *lnclient
 	return _c
 }
 
-func (_c *MockLNClient_SendPaymentSync_Call) RunAndReturn(run func(payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error)) *MockLNClient_SendPaymentSync_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
-// SendSpontaneousPaymentProbes provides a mock function for the type MockLNClient
-func (_mock *MockLNClient) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
-	ret := _mock.Called(ctx, amountMsat, nodeId)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SendSpontaneousPaymentProbes")
-	}
-
-	var r0 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, uint64, string) error); ok {
-		r0 = returnFunc(ctx, amountMsat, nodeId)
-	} else {
-		r0 = ret.Error(0)
-	}
-	return r0
-}
-
-// MockLNClient_SendSpontaneousPaymentProbes_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'SendSpontaneousPaymentProbes'
-type MockLNClient_SendSpontaneousPaymentProbes_Call struct {
-	*mock.Call
-}
-
-// SendSpontaneousPaymentProbes is a helper method to define mock.On call
-//   - ctx context.Context
-//   - amountMsat uint64
-//   - nodeId string
-func (_e *MockLNClient_Expecter) SendSpontaneousPaymentProbes(ctx interface{}, amountMsat interface{}, nodeId interface{}) *MockLNClient_SendSpontaneousPaymentProbes_Call {
-	return &MockLNClient_SendSpontaneousPaymentProbes_Call{Call: _e.mock.On("SendSpontaneousPaymentProbes", ctx, amountMsat, nodeId)}
-}
-
-func (_c *MockLNClient_SendSpontaneousPaymentProbes_Call) Run(run func(ctx context.Context, amountMsat uint64, nodeId string)) *MockLNClient_SendSpontaneousPaymentProbes_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		var arg1 uint64
-		if args[1] != nil {
-			arg1 = args[1].(uint64)
-		}
-		var arg2 string
-		if args[2] != nil {
-			arg2 = args[2].(string)
-		}
-		run(
-			arg0,
-			arg1,
-			arg2,
-		)
-	})
-	return _c
-}
-
-func (_c *MockLNClient_SendSpontaneousPaymentProbes_Call) Return(err error) *MockLNClient_SendSpontaneousPaymentProbes_Call {
-	_c.Call.Return(err)
-	return _c
-}
-
-func (_c *MockLNClient_SendSpontaneousPaymentProbes_Call) RunAndReturn(run func(ctx context.Context, amountMsat uint64, nodeId string) error) *MockLNClient_SendSpontaneousPaymentProbes_Call {
+func (_c *MockLNClient_SendPaymentSync_Call) RunAndReturn(run func(payReq string, amountMsat *uint64) (*lnclient.PayInvoiceResponse, error)) *MockLNClient_SendPaymentSync_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -189,7 +189,8 @@ export function SubwalletCreated() {
                   <CardHeader>
                     <CardTitle>{name}</CardTitle>
                     <CardDescription>
-                      Balance: <FormattedBitcoinAmount amount={app.balance} />
+                      Balance:{" "}
+                      <FormattedBitcoinAmount amountMsat={app.balanceMsat} />
                     </CardDescription>
                   </CardHeader>
                   <CardFooter className="flex flex-row justify-end">

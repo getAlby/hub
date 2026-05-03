@@ -1,6 +1,6 @@
 export type Bip21Data = {
   address: string;
-  amount?: number; // in satoshis
+  amountSat?: number;
   label?: string;
   message?: string;
   lightning?: string; // BOLT11 invoice
@@ -24,9 +24,9 @@ export function parseBip21(uri: string): Bip21Data {
   if (separatorIndex >= 0) {
     const params = new URLSearchParams(withoutScheme.slice(separatorIndex + 1));
 
-    const amount = params.get("amount");
-    if (amount) {
-      result.amount = Math.round(parseFloat(amount) * 100_000_000);
+    const amountBtc = params.get("amount");
+    if (amountBtc) {
+      result.amountSat = Math.round(parseFloat(amountBtc) * 100_000_000);
     }
 
     const label = params.get("label");

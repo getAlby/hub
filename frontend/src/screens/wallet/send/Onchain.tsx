@@ -29,16 +29,21 @@ import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useSwapInfo } from "src/hooks/useSwaps";
-import { RedeemOnchainFundsResponse, SwapResponse } from "src/types";
+import {
+  InitiateSwapRequest,
+  RedeemOnchainFundsRequest,
+  RedeemOnchainFundsResponse,
+  SwapResponse,
+} from "src/types";
 import { request } from "src/utils/request";
 
 export default function Onchain() {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const [isSwap, setSwap] = React.useState(true);
+  const [isSwap, setSwap] = React.useState(false);
   const address = state?.args?.address as string;
-  const initialAmount = (state?.args?.amount as string | undefined) ?? "";
-  const [amount, setAmount] = React.useState(initialAmount);
+  const initialAmountSat = (state?.args?.amountSat as string | undefined) ?? "";
+  const [amountSat, setAmountSat] = React.useState(initialAmountSat);
 
   React.useEffect(() => {
     if (!address) {
@@ -84,15 +89,15 @@ export default function Onchain() {
           <SwapForm
             address={address}
             setSwap={setSwap}
-            amount={amount}
-            setAmount={setAmount}
+            amountSat={amountSat}
+            setAmountSat={setAmountSat}
           />
         ) : (
           <OnchainForm
             address={address}
             setSwap={setSwap}
-            amount={amount}
-            setAmount={setAmount}
+            amountSat={amountSat}
+            setAmountSat={setAmountSat}
           />
         )}
       </div>
@@ -103,12 +108,12 @@ export default function Onchain() {
 function OnchainForm({
   address,
   setSwap,
-  amount,
-  setAmount,
+  amountSat,
+  setAmountSat,
 }: {
   address: string;
-  amount: string;
-  setAmount: React.Dispatch<React.SetStateAction<string>>;
+  amountSat: string;
+  setAmountSat: React.Dispatch<React.SetStateAction<string>>;
   setSwap: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const navigate = useNavigate();
@@ -137,12 +142,17 @@ function OnchainForm({
       if (!balances) {
         return;
       }
-      if (balances.onchain.spendable <= ONCHAIN_DUST_SATS) {
+      if (balances.onchain.spendableSat <= ONCHAIN_DUST_SATS) {
         throw new Error(
           "You currently don't have enough sats to pay for an on-chain transaction. Consider swapping from Spending Balance."
         );
       }
       setLoading(true);
+      const payload: RedeemOnchainFundsRequest = {
+        toAddress: address,
+        amountSat: +amountSat,
+        feeRate: +feeRate,
+      };
       const response = await request<RedeemOnchainFundsResponse>(
         "/api/wallet/redeem-onchain-funds",
         {
@@ -150,11 +160,7 @@ function OnchainForm({
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            toAddress: address,
-            amount: +amount,
-            feeRate: +feeRate,
-          }),
+          body: JSON.stringify(payload),
         }
       );
       if (!response?.txId) {
@@ -162,7 +168,7 @@ function OnchainForm({
       }
       navigate(`/wallet/send/onchain-success`, {
         state: {
-          amount: +amount,
+          amountSat: +amountSat,
           txId: response.txId,
         },
       });
@@ -188,29 +194,32 @@ function OnchainForm({
         <InputWithAdornment
           id="amount"
           type="number"
-          value={amount}
+          value={amountSat}
           placeholder="Amount in Satoshi..."
           onChange={(e) => {
-            setAmount(e.target.value.trim());
+            setAmountSat(e.target.value.trim());
           }}
           min={ONCHAIN_DUST_SATS}
-          max={balances.onchain.spendable}
+          max={balances.onchain.spendableSat}
           required
           autoFocus
           endAdornment={
-            <FormattedFiatAmount amount={Number(amount)} className="mr-2" />
+            <FormattedFiatAmount
+              amountSat={Number(amountSat)}
+              className="mr-2"
+            />
           }
         />
         <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
           <div>
             On-chain Balance:{" "}
             <FormattedBitcoinAmount
-              amount={balances.onchain.spendable * 1000}
+              amountMsat={balances.onchain.spendableSat * 1000}
             />
           </div>
           <FormattedFiatAmount
             className="text-xs"
-            amount={balances.onchain.spendable}
+            amountSat={balances.onchain.spendableSat}
           />
         </div>
       </div>
@@ -290,7 +299,7 @@ function OnchainForm({
           </div>
         )}
       </div>
-      {amount && +amount < 10_000 && (
+      {amountSat && +amountSat < 10_000 && (
         <Alert>
           <InfoIcon className="h-4 w-4" />
           <AlertTitle>Amount not ideal for On-chain transaction</AlertTitle>
@@ -300,7 +309,7 @@ function OnchainForm({
           </AlertDescription>
         </Alert>
       )}
-      <AnchorReserveAlert amount={+amount} />
+      <AnchorReserveAlert amountSat={+amountSat} />
       <div className="flex gap-2">
         <LinkButton to="/wallet/send" variant="outline">
           Back
@@ -316,12 +325,12 @@ function OnchainForm({
 function SwapForm({
   address,
   setSwap,
-  amount,
-  setAmount,
+  amountSat,
+  setAmountSat,
 }: {
   address: string;
-  amount: string;
-  setAmount: React.Dispatch<React.SetStateAction<string>>;
+  amountSat: string;
+  setAmountSat: React.Dispatch<React.SetStateAction<string>>;
   setSwap: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const navigate = useNavigate();
@@ -334,15 +343,16 @@ function SwapForm({
     event.preventDefault();
     try {
       setLoading(true);
+      const payload: InitiateSwapRequest = {
+        swapAmountSat: +amountSat,
+        destination: address,
+      };
       const swapOutResponse = await request<SwapResponse>("/api/swaps/out", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          swapAmount: +amount,
-          destination: address,
-        }),
+        body: JSON.stringify(payload),
       });
       if (!swapOutResponse) {
         throw new Error("Error swapping out");
@@ -373,20 +383,23 @@ function SwapForm({
         <InputWithAdornment
           id="amount"
           type="number"
-          value={amount}
+          value={amountSat}
           placeholder="Amount in Satoshi..."
           onChange={(e) => {
-            setAmount(e.target.value.trim());
+            setAmountSat(e.target.value.trim());
           }}
-          min={swapInfo.minAmount}
+          min={swapInfo.minAmountSat}
           max={Math.min(
-            swapInfo.maxAmount,
-            Math.floor(balances.lightning.totalSpendable / 1000)
+            swapInfo.maxAmountSat,
+            balances.lightning.totalSpendableSat
           )}
           required
           autoFocus
           endAdornment={
-            <FormattedFiatAmount amount={Number(amount)} className="mr-2" />
+            <FormattedFiatAmount
+              amountSat={Number(amountSat)}
+              className="mr-2"
+            />
           }
         />
         <div className="grid gap-1">
@@ -394,22 +407,24 @@ function SwapForm({
             <div>
               Spending Balance:{" "}
               <FormattedBitcoinAmount
-                amount={balances.lightning.totalSpendable}
+                amountMsat={balances.lightning.totalSpendableMsat}
               />
             </div>
             <FormattedFiatAmount
               className="text-xs"
-              amount={Math.floor(balances.lightning.totalSpendable / 1000)}
+              amountSat={balances.lightning.totalSpendableSat}
             />
           </div>
           <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
             <div>
               Minimum:{" "}
-              <FormattedBitcoinAmount amount={swapInfo.minAmount * 1000} />
+              <FormattedBitcoinAmount
+                amountMsat={swapInfo.minAmountSat * 1000}
+              />
             </div>
             <FormattedFiatAmount
               className="text-xs"
-              amount={swapInfo.minAmount}
+              amountSat={swapInfo.minAmountSat}
             />
           </div>
         </div>
@@ -424,7 +439,6 @@ function SwapForm({
         <div className="flex items-center justify-between">
           <p className="text-muted-foreground">On-chain Fee Rate</p>
           <p>
-            {/* ~{new Intl.NumberFormat().format(swapInfo.boltzNetworkFee)} sats */}
             {recommendedFees?.fastestFee ? (
               <p>{recommendedFees?.fastestFee} sat/vB</p>
             ) : (
@@ -437,7 +451,7 @@ function SwapForm({
           <p>{swapInfo.albyServiceFee + swapInfo.boltzServiceFee}%</p>
         </div>
       </div>
-      <SpendingAlert amount={+amount} />
+      <SpendingAlert amountSat={+amountSat} />
       <div className="flex gap-2">
         <LinkButton to="/wallet/send" variant="outline">
           Back

@@ -212,7 +212,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
 
   const [permissions, setPermissions] = useState<AppPermissions>({
     scopes: initialScopes,
-    maxAmount: budgetMaxAmountMsatParam
+    maxAmountSat: budgetMaxAmountMsatParam
       ? Math.floor(parseInt(budgetMaxAmountMsatParam) / 1000)
       : DEFAULT_APP_BUDGET_SATS,
     budgetRenewal: validBudgetRenewals.includes(budgetRenewalParam)
@@ -256,7 +256,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
         name: appName,
         pubkey,
         budgetRenewal: permissions.budgetRenewal,
-        maxAmount: permissions.maxAmount || 0,
+        maxAmountSat: permissions.maxAmountSat || 0,
         scopes: [
           ...permissions.scopes,
           ...(superuser ? ["superuser" satisfies Scope] : []),
@@ -555,7 +555,7 @@ function FinalizeConnection({
         {app?.isolated && (
           <li>
             Optional: Top up sub-wallet balance (
-            <FormattedBitcoinAmount amount={app.balance} />){" "}
+            <FormattedBitcoinAmount amountMsat={app.balanceMsat} />){" "}
             <IsolatedAppTopupDialog appId={app.id}>
               <Button size="sm" variant="secondary">
                 Top Up

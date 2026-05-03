@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import utc from "dayjs/plugin/utc";
 import {
   ArrowDownIcon,
@@ -7,7 +8,7 @@ import {
   ArrowUpIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  CopyIcon,
+  TagIcon,
   XIcon,
 } from "lucide-react";
 import { nip19 } from "nostr-tools";
@@ -19,24 +20,26 @@ import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import { PaymentFailedAlert } from "src/components/PaymentFailedAlert";
 import PodcastingInfo from "src/components/PodcastingInfo";
+import { TransactionDetailRow } from "src/components/TransactionDetailRow";
+import TransactionLabels from "src/components/TransactionLabels";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "src/components/ui/dialog";
 import { useApp } from "src/hooks/useApp";
 import { useSwap } from "src/hooks/useSwaps";
-import { copyToClipboard } from "src/lib/clipboard";
 import { cn, getAppDisplayName } from "src/lib/utils";
 import { Transaction } from "src/types";
 
+dayjs.extend(relativeTime);
 dayjs.extend(utc);
 
 type Props = {
   tx: Transaction;
+  transactionListKey: string;
 };
 
 function safeNpubEncode(hex: string): string | undefined {
@@ -57,12 +60,15 @@ function safeNeventEncode(id: string): string | undefined {
   }
 }
 
-function TransactionItem({ tx }: Props) {
+function TransactionItem({ tx, transactionListKey }: Props) {
   const { data: app } = useApp(tx.appId);
   const swapId = tx.metadata?.swap_id;
   const { data: swap } = useSwap(swapId);
   const [showDetails, setShowDetails] = React.useState(false);
+  const labels = tx.metadata?.user_labels ?? {};
+  const labelEntries = Object.entries(labels);
   const type = tx.type;
+  const updatedAt = dayjs(tx.updatedAt).local();
 
   const pubkey = tx.metadata?.nostr?.pubkey;
   const npub = pubkey ? safeNpubEncode(pubkey) : undefined;
@@ -119,10 +125,6 @@ function TransactionItem({ tx }: Props) {
           ? ArrowDownUpIcon
           : ArrowDownIcon;
 
-  const copy = (text: string) => {
-    copyToClipboard(text);
-  };
-
   const typeStateIcon = (
     <div className="flex items-center">
       <div
@@ -157,7 +159,7 @@ function TransactionItem({ tx }: Props) {
           >
             <AppAvatar
               app={app}
-              className="border-none p-0 rounded-full w-[18px] h-[18px] md:w-6 md:h-6 shadow-xs"
+              className="border-none p-0 rounded-full w-4.5 h-4.5 md:w-6 md:h-6 shadow-xs"
             />
           </div>
         )}
@@ -173,7 +175,7 @@ function TransactionItem({ tx }: Props) {
         }
       }}
     >
-      <DialogTrigger className="p-3 mb-4 hover:bg-muted/50 data-[state=selected]:bg-muted cursor-pointer rounded-md slashed-zero transaction sensitive">
+      <DialogTrigger className="p-3 mb-4 hover:bg-muted/50 data-[state=open]:bg-muted cursor-pointer rounded-md slashed-zero transaction sensitive">
         <div
           className={cn(
             "flex gap-3",
@@ -189,8 +191,14 @@ function TransactionItem({ tx }: Props) {
                 {to !== undefined && <>&nbsp;{to}</>}
               </span>
               <span className="text-xs md:text-base text-muted-foreground shrink-0">
-                {dayjs(tx.updatedAt).fromNow()}
+                {updatedAt.fromNow()}
               </span>
+              {labelEntries.length > 0 && (
+                <TagIcon
+                  className="size-3 text-muted-foreground shrink-0"
+                  aria-label={`${labelEntries.length} label${labelEntries.length === 1 ? "" : "s"}`}
+                />
+              )}
             </div>
             <p className="text-sm md:text-base text-muted-foreground break-all line-clamp-1">
               {description}
@@ -206,250 +214,178 @@ function TransactionItem({ tx }: Props) {
                 >
                   {type == "outgoing" ? "-" : "+"}
                   <FormattedBitcoinAmount
-                    amount={tx.amount}
+                    amountMsat={tx.amountMsat}
                     className="font-medium"
                   />
                 </p>
               </div>
               <FormattedFiatAmount
                 className="text-xs md:text-base"
-                amount={Math.floor(tx.amount / 1000)}
+                amountSat={tx.amountSat}
               />
             </div>
           </div>
         </div>
       </DialogTrigger>
-      <DialogContent className="slashed-zero">
+      <DialogContent className="slashed-zero max-h-[90vh]">
         <DialogHeader>
           <DialogTitle
             className={cn(tx.state === "pending" && "animate-pulse")}
           >{`${typeStateText} Bitcoin Payment`}</DialogTitle>
-          <DialogDescription className="text-start text-foreground max-h-[90vh] overflow-y-auto pr-2">
-            <div
-              className={cn(
-                "flex items-center mt-6",
-                tx.state === "pending" && "animate-pulse"
-              )}
-            >
-              {typeStateIcon}
-              <div className="ml-4">
-                <p className="text-xl md:text-2xl font-semibold sensitive">
-                  <FormattedBitcoinAmount amount={tx.amount} />
-                </p>
-                <FormattedFiatAmount amount={Math.floor(tx.amount / 1000)} />
-              </div>
-            </div>
-            {app && (
-              <div className="mt-8">
-                <p>App</p>
-                <Link to={`/apps/${app.id}`}>
-                  <p className="font-semibold">{getAppDisplayName(app.name)}</p>
-                </Link>
-              </div>
+        </DialogHeader>
+        <div className="space-y-6 text-sm mt-2">
+          <div
+            className={cn(
+              "flex items-center",
+              tx.state === "pending" && "animate-pulse"
             )}
-            {swapId && (
-              <div className="mt-8">
-                <p>Swap Id</p>
-                <Link
-                  to={`/wallet/swap/${type === "incoming" ? "in" : "out"}/status/${swapId}`}
-                  className="flex items-center gap-1"
-                >
-                  <p className="underline">{swapId}</p>
-                </Link>
-              </div>
-            )}
-            {to && (
-              <div className="mt-6">
-                <p>To</p>
-                <p className="text-muted-foreground">{to}</p>
-              </div>
-            )}
-            {payerName && (
-              <div className="mt-6">
-                <p>From</p>
-                <p className="text-muted-foreground">{payerName}</p>
-              </div>
-            )}
-            <div className="mt-6">
-              <p>Date & Time</p>
-              <p className="text-muted-foreground">
-                {dayjs(tx.updatedAt).local().format("D MMMM YYYY, HH:mm")}
+          >
+            {typeStateIcon}
+            <div className="ml-4">
+              <p className="text-xl md:text-2xl font-semibold sensitive">
+                {tx.type === "outgoing" ? "-" : "+"}
+                <FormattedBitcoinAmount amountMsat={tx.amountMsat} />
               </p>
+              <FormattedFiatAmount amountSat={tx.amountSat} />
             </div>
-            {tx.state != "failed" && type == "outgoing" && (
-              <div className="mt-6">
-                <p>Fee</p>
-                <p className="text-muted-foreground">
-                  <FormattedBitcoinAmount amount={tx.feesPaid} />
-                  {tx.feesPaid > 0 && (
-                    <>&nbsp;({((tx.feesPaid / tx.amount) * 100).toFixed(2)}%)</>
-                  )}
+          </div>
+          {app && (
+            <TransactionDetailRow label="App">
+              <Link to={`/apps/${app.id}`}>
+                <p className="font-semibold text-foreground">
+                  {getAppDisplayName(app.name)}
                 </p>
-              </div>
-            )}
-            {tx.description && (
-              <div className="mt-6">
-                <p>Description</p>
-                <p className="text-muted-foreground break-all">
-                  {tx.description}
-                </p>
-              </div>
-            )}
-            {tx.metadata?.comment && (
-              <div className="mt-6">
-                <p>Comment</p>
-                <p className="text-muted-foreground break-all">
-                  {tx.metadata.comment}
-                </p>
-              </div>
-            )}
-            {bolt12Offer?.payer_note && (
-              <div className="mt-6">
-                <p>Payer Note</p>
-                <p className="text-muted-foreground break-all">
-                  {bolt12Offer.payer_note}
-                </p>
-              </div>
-            )}
-            {/* for Alby lightning addresses the content of the zap request is
-            automatically extracted and already displayed above as description */}
-            {tx.metadata?.nostr && nevent && npub && (
-              <div className="mt-6">
-                <p>
-                  <ExternalLink
-                    to={`https://njump.me/${nevent}`}
-                    className="underline"
-                  >
-                    Nostr Zap
-                  </ExternalLink>{" "}
-                  <span className="text-muted-foreground break-all">
-                    from {npub}
-                  </span>
-                </p>
-              </div>
-            )}
-            {tx.state === "failed" && (
-              <div className="mt-6">
-                <PaymentFailedAlert
-                  errorMessage={tx.failureReason}
-                  invoice={tx.invoice}
-                />
-              </div>
-            )}
-            <div className="mt-4 w-full">
-              <div
-                className="flex items-center gap-2 cursor-pointer"
-                onClick={() => setShowDetails(!showDetails)}
+              </Link>
+            </TransactionDetailRow>
+          )}
+          {swapId && (
+            <TransactionDetailRow label="Swap Id">
+              <Link
+                to={`/wallet/swap/${type === "incoming" ? "in" : "out"}/status/${swapId}`}
+                className="flex items-center gap-1"
               >
-                Details
-                {showDetails ? (
-                  <ChevronUpIcon className="size-4" />
-                ) : (
-                  <ChevronDownIcon className="size-4" />
-                )}
-              </div>
-              {showDetails && (
+                <p className="underline">{swapId}</p>
+              </Link>
+            </TransactionDetailRow>
+          )}
+          {to && <TransactionDetailRow label="To">{to}</TransactionDetailRow>}
+          {payerName && (
+            <TransactionDetailRow label="From">
+              {payerName}
+            </TransactionDetailRow>
+          )}
+          <TransactionDetailRow label="Date & Time">
+            {updatedAt.format("D MMMM YYYY, HH:mm")}
+          </TransactionDetailRow>
+          {tx.state != "failed" && type == "outgoing" && (
+            <TransactionDetailRow label="Fee">
+              <FormattedBitcoinAmount amountMsat={tx.feesPaidMsat} />
+              {tx.feesPaidMsat > 0 && (
                 <>
-                  {tx.boostagram && <PodcastingInfo boost={tx.boostagram} />}
-                  {bolt12Offer && (
-                    <div className="mt-6">
-                      <p>BOLT-12 Offer Id</p>
-                      <div className="flex items-center gap-4">
-                        <p className="text-muted-foreground break-all">
-                          {bolt12Offer.id}
-                        </p>
-                        <CopyIcon
-                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
-                          onClick={() => {
-                            copy(bolt12Offer.id as string);
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                  {tx.preimage && (
-                    <div className="mt-6">
-                      <p>Preimage</p>
-                      <div className="flex items-center gap-4">
-                        <p className="text-muted-foreground break-all">
-                          {tx.preimage}
-                        </p>
-                        <CopyIcon
-                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
-                          onClick={() => {
-                            if (tx.preimage) {
-                              copy(tx.preimage);
-                            }
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                  <div className="mt-6">
-                    <p>Hash</p>
-                    <div className="flex items-center gap-4">
-                      <p className="text-muted-foreground break-all">
-                        {tx.paymentHash}
-                      </p>
-                      <CopyIcon
-                        className="cursor-pointer text-muted-foreground size-4 shrink-0"
-                        onClick={() => {
-                          copy(tx.paymentHash);
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <div className="mt-6">
-                    <p>Invoice</p>
-                    <div className="flex items-center gap-4">
-                      <p className="text-muted-foreground break-all">
-                        {tx.invoice}
-                      </p>
-                      <CopyIcon
-                        className="cursor-pointer text-muted-foreground size-4 shrink-0"
-                        onClick={() => {
-                          copy(tx.invoice);
-                        }}
-                      />
-                    </div>
-                  </div>
-                  {!!tx.failureReason && (
-                    <div className="mt-6">
-                      <p>Failure Reason</p>
-                      <div className="flex items-center gap-4">
-                        <p className="text-muted-foreground break-anywhere">
-                          {tx.failureReason}
-                        </p>
-                        <CopyIcon
-                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
-                          onClick={() => {
-                            copy(tx.failureReason);
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                  {tx.metadata && (
-                    <div className="mt-6">
-                      <p>Metadata</p>
-                      <div className="flex items-center gap-4">
-                        <p className="text-muted-foreground break-all">
-                          {JSON.stringify(tx.metadata)}
-                        </p>
-                        <CopyIcon
-                          className="cursor-pointer text-muted-foreground size-4 shrink-0"
-                          onClick={() => {
-                            copy(JSON.stringify(tx.metadata));
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
+                  &nbsp;(
+                  {((tx.feesPaidMsat / tx.amountMsat) * 100).toFixed(2)}%)
                 </>
               )}
+            </TransactionDetailRow>
+          )}
+          {tx.description && (
+            <TransactionDetailRow label="Description">
+              {tx.description}
+            </TransactionDetailRow>
+          )}
+          {tx.metadata?.comment && (
+            <TransactionDetailRow label="Comment">
+              {tx.metadata.comment}
+            </TransactionDetailRow>
+          )}
+          {bolt12Offer?.payer_note && (
+            <TransactionDetailRow label="Payer Note">
+              {bolt12Offer.payer_note}
+            </TransactionDetailRow>
+          )}
+          {/* for Alby lightning addresses the content of the zap request is
+            automatically extracted and already displayed above as description */}
+          {tx.metadata?.nostr && nevent && npub && (
+            <TransactionDetailRow
+              label={
+                <ExternalLink
+                  to={`https://njump.me/${nevent}`}
+                  className="underline"
+                >
+                  Nostr Zap
+                </ExternalLink>
+              }
+            >
+              from {npub}
+            </TransactionDetailRow>
+          )}
+          {tx.state === "failed" && (
+            <div>
+              <PaymentFailedAlert
+                errorMessage={tx.failureReason}
+                invoice={tx.invoice}
+              />
             </div>
-          </DialogDescription>
-        </DialogHeader>
+          )}
+          <TransactionLabels
+            id={tx.id}
+            labels={labels}
+            transactionListKey={transactionListKey}
+          />
+          <div className="w-full">
+            <div
+              className="flex items-center gap-2 cursor-pointer"
+              onClick={() => setShowDetails(!showDetails)}
+            >
+              Details
+              {showDetails ? (
+                <ChevronUpIcon className="size-4" />
+              ) : (
+                <ChevronDownIcon className="size-4" />
+              )}
+            </div>
+            {showDetails && (
+              <div className="flex flex-col gap-6 mt-6">
+                {tx.boostagram && <PodcastingInfo boost={tx.boostagram} />}
+                {bolt12Offer && (
+                  <TransactionDetailRow
+                    label="BOLT-12 Offer Id"
+                    copyable={bolt12Offer.id}
+                  >
+                    {bolt12Offer.id}
+                  </TransactionDetailRow>
+                )}
+                {tx.preimage && (
+                  <TransactionDetailRow label="Preimage" copyable={tx.preimage}>
+                    {tx.preimage}
+                  </TransactionDetailRow>
+                )}
+                <TransactionDetailRow label="Hash" copyable={tx.paymentHash}>
+                  {tx.paymentHash}
+                </TransactionDetailRow>
+                <TransactionDetailRow label="Invoice" copyable={tx.invoice}>
+                  {tx.invoice}
+                </TransactionDetailRow>
+                {!!tx.failureReason && (
+                  <TransactionDetailRow
+                    label="Failure Reason"
+                    copyable={tx.failureReason}
+                  >
+                    {tx.failureReason}
+                  </TransactionDetailRow>
+                )}
+                {tx.metadata && (
+                  <TransactionDetailRow
+                    label="Metadata"
+                    copyable={JSON.stringify(tx.metadata)}
+                  >
+                    {JSON.stringify(tx.metadata)}
+                  </TransactionDetailRow>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

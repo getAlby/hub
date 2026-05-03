@@ -76,9 +76,9 @@ export function SubwalletList() {
     return <SubwalletIntro />;
   }
 
-  const subwalletTotalAmount = subwalletAppsData.totalBalance || 0;
+  const subwalletTotalAmountMsat = subwalletAppsData.totalBalanceMsat || 0;
   const isSufficientlyBacked =
-    subwalletTotalAmount <= balances.lightning.totalSpendable;
+    subwalletTotalAmountMsat <= balances.lightning.totalSpendableMsat;
 
   return (
     <div className="grid gap-3">
@@ -158,10 +158,10 @@ export function SubwalletList() {
           <CardContent className="grow">
             <div className="mb-1">
               <span className="text-2xl font-medium balance sensitive">
-                <FormattedBitcoinAmount amount={subwalletTotalAmount} />
+                <FormattedBitcoinAmount amountMsat={subwalletTotalAmountMsat} />
               </span>
             </div>
-            <FormattedFiatAmount amount={subwalletTotalAmount / 1000} />
+            <FormattedFiatAmount amountSat={subwalletTotalAmountMsat / 1000} />
           </CardContent>
         </Card>
         <Card className="flex flex-1 flex-col">

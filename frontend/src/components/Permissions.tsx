@@ -34,7 +34,7 @@ const Permissions: React.FC<PermissionsProps> = ({
   readOnly,
 }) => {
   const [showBudgetOptions, setShowBudgetOptions] = React.useState(
-    permissions.scopes.includes("pay_invoice") && permissions.maxAmount > 0
+    permissions.scopes.includes("pay_invoice") && permissions.maxAmountSat > 0
   );
   const [showExpiryOptions, setShowExpiryOptions] = React.useState(
     !!permissions.expiresAt
@@ -57,9 +57,9 @@ const Permissions: React.FC<PermissionsProps> = ({
     [handlePermissionsChange]
   );
 
-  const handleBudgetMaxAmountChange = React.useCallback(
-    (amount: number) => {
-      handlePermissionsChange({ maxAmount: amount });
+  const handleBudgetMaxAmountSatChange = React.useCallback(
+    (amountSat: number) => {
+      handlePermissionsChange({ maxAmountSat: amountSat });
     },
     [handlePermissionsChange]
   );
@@ -132,10 +132,10 @@ const Permissions: React.FC<PermissionsProps> = ({
               onCheckedChange={(checked) => {
                 if (checked) {
                   handleBudgetRenewalChange(DEFAULT_APP_BUDGET_RENEWAL);
-                  handleBudgetMaxAmountChange(DEFAULT_APP_BUDGET_SATS);
+                  handleBudgetMaxAmountSatChange(DEFAULT_APP_BUDGET_SATS);
                 } else {
                   handleBudgetRenewalChange("never");
-                  handleBudgetMaxAmountChange(0);
+                  handleBudgetMaxAmountSatChange(0);
                 }
                 setShowBudgetOptions(checked);
               }}
@@ -148,8 +148,8 @@ const Permissions: React.FC<PermissionsProps> = ({
                 onChange={handleBudgetRenewalChange}
               />
               <BudgetAmountSelect
-                value={permissions.maxAmount}
-                onChange={handleBudgetMaxAmountChange}
+                valueSat={permissions.maxAmountSat}
+                onChange={handleBudgetMaxAmountSatChange}
               />
             </div>
           )}

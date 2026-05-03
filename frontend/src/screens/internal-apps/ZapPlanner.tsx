@@ -234,7 +234,7 @@ export function ZapPlanner() {
       const rawSpend = satoshiAmount * periodsPerMonth;
 
       // with fee reserve of max(1% or 10 sats) + 30% to avoid nwc_budget_warning (see transactions service)
-      const maxAmount = Math.ceil((rawSpend * 1.01 + 10) * 1.3);
+      const maxAmountSat = Math.ceil((rawSpend * 1.01 + 10) * 1.3);
       const isolated = false;
 
       const budgetRenewal = "monthly";
@@ -243,7 +243,7 @@ export function ZapPlanner() {
         name: `ZapPlanner - ${recipientName}`,
         scopes: ["pay_invoice"],
         budgetRenewal,
-        maxAmount,
+        maxAmountSat,
         isolated,
         metadata: {
           app_store_app_id: "zapplanner",
