@@ -46,7 +46,7 @@ export default function ConfirmPayment() {
       setLoading(true);
       const payload: PayInvoiceRequest = {
         metadata,
-        appId,
+        fromAppId: appId,
       };
       const payInvoiceResponse = await request<PayInvoiceResponse>(
         `/api/payments/${invoice.paymentRequest}`,

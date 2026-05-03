@@ -368,7 +368,7 @@ export type PayInvoiceRequest = {
   amountSat?: number;
   amountMsat?: number;
   metadata?: Record<string, unknown>;
-  appId?: number;
+  fromAppId?: number;
 };
 
 export type OpenChannelRequest = {

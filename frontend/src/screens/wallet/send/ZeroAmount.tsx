@@ -41,7 +41,7 @@ export default function ZeroAmount() {
       setLoading(true);
       const payload: PayInvoiceRequest = {
         amountMsat: +amountSat * 1000,
-        appId,
+        fromAppId: appId,
       };
       const payInvoiceResponse = await request<PayInvoiceResponse>(
         `/api/payments/${invoice.paymentRequest}`,
