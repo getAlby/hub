@@ -22,9 +22,9 @@ import ExternalLink from "src/components/ExternalLink";
 import { AlbyIcon } from "src/components/icons/Alby";
 import { AlbyHubIcon } from "src/components/icons/AlbyHubIcon";
 import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
-import { Badge } from "src/components/ui/badge";
 import { ProBadge } from "src/components/ProBadge";
 import SidebarHint from "src/components/SidebarHint";
+import { Badge } from "src/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -248,24 +248,16 @@ export function AppSidebar() {
                   </>
                 )}
                 {!info?.albyAccountConnected ? (
-                  <DropdownMenuItem asChild>
-                    <Link
-                      to="/alby/account"
-                      className="w-full flex flex-row items-center gap-2"
-                    >
-                      <PlugZapIcon />
-                      Connect Alby Account
-                    </Link>
+                  <DropdownMenuItem onClick={() => navigate("/alby/account")}>
+                    <PlugZapIcon />
+                    Connect Alby Account
                   </DropdownMenuItem>
                 ) : (
-                  <DropdownMenuItem asChild>
-                    <Link
-                      to="/settings/alby-account"
-                      className="w-full flex flex-row items-center gap-2"
-                    >
-                      <AlbyIcon className="size-4" />
-                      Alby Account Settings
-                    </Link>
+                  <DropdownMenuItem
+                    onClick={() => navigate("/settings/alby-account")}
+                  >
+                    <AlbyIcon className="size-4" />
+                    Alby Account Settings
                   </DropdownMenuItem>
                 )}
                 {!albyMe?.subscription.plan_code && (
