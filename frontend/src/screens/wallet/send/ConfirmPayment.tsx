@@ -137,7 +137,7 @@ export default function ConfirmPayment() {
               Confirm Payment
             </LoadingButton>
             <div className="flex items-center justify-between gap-2 text-muted-foreground text-xs sensitive slashed-zero">
-              Spending Balance:{" "}
+              Lightning Balance:{" "}
               <FormattedBitcoinAmount
                 amountMsat={balances.lightning.totalSpendableMsat}
               />

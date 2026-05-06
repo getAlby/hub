@@ -142,7 +142,7 @@ export default function ZeroAmount() {
           <div className="grid gap-2">
             <div className="flex justify-between text-xs text-muted-foreground sensitive slashed-zero">
               <div>
-                Spending Balance:{" "}
+                Lightning Balance:{" "}
                 <FormattedBitcoinAmount
                   amountMsat={balances.lightning.totalSpendableMsat}
                 />

@@ -66,7 +66,7 @@ export default function Receive() {
               className="flex gap-2 items-center w-full"
             >
               <ZapIcon className="size-4" />
-              To Spending Balance
+              To Lightning Balance
             </TabsTrigger>
             <TabsTrigger
               value="onchain"

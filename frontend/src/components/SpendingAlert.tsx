@@ -52,7 +52,7 @@ export function SpendingAlert({
             variant="secondary"
             className="w-full"
           >
-            Increase Spending Balance
+            Increase Lightning Balance
           </LinkButton>
         </div>
       </AlertDescription>
