@@ -18,7 +18,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 
+	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	clngrpc "github.com/getAlby/hub/lnclient/cln/clngrpc"
@@ -33,15 +35,16 @@ import (
 )
 
 type CLNService struct {
-	ctx            context.Context
-	client         clngrpc.NodeClient
-	clientHold     clngrpcHold.HoldClient
-	holdEnabled    bool
-	conn           *grpc.ClientConn
-	connHold       *grpc.ClientConn
-	eventPublisher events.EventPublisher
-	pubkey         string
-	cancel         context.CancelFunc
+	ctx                 context.Context
+	client              clngrpc.NodeClient
+	clientHold          clngrpcHold.HoldClient
+	holdEnabled         bool
+	conn                *grpc.ClientConn
+	connHold            *grpc.ClientConn
+	eventPublisher      events.EventPublisher
+	pubkey              string
+	enableNotifications bool
+	cancel              context.CancelFunc
 }
 
 func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, address, lightningDir, addressHold string) (lnclient lnclient.LNClient, err error) {
@@ -146,6 +149,25 @@ func NewCLNService(ctx context.Context, eventPublisher events.EventPublisher, ad
 
 	svc.pubkey = resp.Pubkey
 
+	getinfo, err := svc.client.Getinfo(ctx, &clngrpc.GetinfoRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("getinfo failed: %w", err)
+	}
+
+	svc.enableNotifications, err = atOrAboveVersion(getinfo.Version, "26.04")
+	if err != nil {
+		logger.Logger.Errorf("Failed to check CLN version %s: %v", getinfo.Version, err)
+	}
+
+	if svc.enableNotifications {
+		logger.Logger.Info("Enabling notifications")
+		go svc.subscribeSuccessfulPayments(ctx)
+		go svc.subscribeFailedPayments(ctx)
+		go svc.subscribeInvoices(ctx)
+		go svc.trackForwardedPayments(ctx)
+		go svc.subscribeChannelEvents(ctx)
+	}
+
 	logger.Logger.Info("Successfully connected to CLN via gRPC")
 	return svc, nil
 }
@@ -178,6 +200,445 @@ func loadTLSCredentials(lightningDir string, serverName string) (*tls.Config, er
 		ServerName:   serverName, // CLN uses "cln" as default ServerName, hold plugin uses "hold"
 		MinVersion:   tls.VersionTLS12,
 	}, nil
+}
+
+func (svc *CLNService) subscribeSuccessfulPayments(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			paymentStream, err := svc.client.SubscribeSendPaySuccess(ctx, &clngrpc.StreamSendPaySuccessRequest{})
+			if err != nil {
+				logger.Logger.WithError(err).Error("Error subscribing to successful payments")
+				select {
+				case <-ctx.Done():
+					return
+				case <-time.After(10 * time.Second):
+					continue
+				}
+			}
+		paymentsLoop:
+			for {
+				payment, err := paymentStream.Recv()
+				if err != nil {
+					logger.Logger.WithError(err).Error("Failed to receive sendpay_success notification")
+					select {
+					case <-ctx.Done():
+						return
+					case <-time.After(2 * time.Second):
+						break paymentsLoop
+					}
+				}
+
+				transaction, err := svc.clnSendpaySuccessToTransaction(ctx, payment)
+				if err != nil {
+					logger.Logger.WithError(err).Error("Failed to convert notification to transaction")
+					continue
+				}
+				svc.eventPublisher.Publish(&events.Event{
+					Event:      "nwc_lnclient_payment_sent",
+					Properties: transaction,
+				})
+
+			}
+		}
+	}
+}
+
+func (svc *CLNService) clnSendpaySuccessToTransaction(ctx context.Context, payment *clngrpc.SendPaySuccessNotification) (*lnclient.Transaction, error) {
+	var invstring string
+	if payment.Bolt11 != nil {
+		invstring = *payment.Bolt11
+	} else if payment.Bolt12 != nil {
+		invstring = *payment.Bolt12
+	}
+
+	var amountMsat int64
+	if payment.AmountMsat != nil {
+		amountMsat = int64(payment.AmountMsat.Msat)
+	}
+
+	var feesPaidMsat int64
+	if payment.AmountSentMsat != nil {
+		feesPaidMsat = int64(payment.AmountSentMsat.Msat) - amountMsat
+	}
+
+	var settledAt *int64
+	if payment.CompletedAt != nil {
+		SettledAtUint64 := int64(*payment.CompletedAt)
+		settledAt = &SettledAtUint64
+	}
+
+	var descriptionHash string
+	var expiresAt *int64
+
+	if invstring != "" {
+		decodedInvoice, err := svc.client.Decode(ctx, &clngrpc.DecodeRequest{String_: invstring})
+		if err != nil {
+			return nil, fmt.Errorf("decode failed: %w", err)
+		}
+
+		switch decodedInvoice.ItemType {
+		case clngrpc.DecodeResponse_BOLT12_INVOICE:
+			if decodedInvoice.OfferAbsoluteExpiry != nil {
+				expiresAtint64 := int64(*decodedInvoice.OfferAbsoluteExpiry)
+				expiresAt = &expiresAtint64
+			}
+		case clngrpc.DecodeResponse_BOLT11_INVOICE:
+			if decodedInvoice.CreatedAt != nil && decodedInvoice.Expiry != nil {
+				expiresAtint64 := int64(*decodedInvoice.CreatedAt) + int64(*decodedInvoice.Expiry)
+				expiresAt = &expiresAtint64
+			}
+			if decodedInvoice.DescriptionHash != nil {
+				descriptionHash = hex.EncodeToString(decodedInvoice.DescriptionHash)
+			}
+		default:
+			return nil, fmt.Errorf("invstring `%s` is not a bolt11 or bolt12 invoice", invstring)
+		}
+	}
+
+	return &lnclient.Transaction{
+		Type:            "outgoing",
+		Invoice:         invstring,
+		Description:     payment.GetDescription(),
+		DescriptionHash: descriptionHash,
+		Preimage:        hex.EncodeToString(payment.GetPaymentPreimage()),
+		PaymentHash:     hex.EncodeToString(payment.GetPaymentHash()),
+		AmountMsat:      amountMsat,
+		FeesPaidMsat:    feesPaidMsat,
+		CreatedAt:       int64(payment.CreatedAt),
+		ExpiresAt:       expiresAt,
+		SettledAt:       settledAt,
+	}, nil
+}
+
+func (svc *CLNService) subscribeFailedPayments(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			paymentStream, err := svc.client.SubscribeSendPayFailure(ctx, &clngrpc.StreamSendPayFailureRequest{})
+			if err != nil {
+				logger.Logger.WithError(err).Error("Error subscribing to failed payments")
+				select {
+				case <-ctx.Done():
+					return
+				case <-time.After(10 * time.Second):
+					continue
+				}
+			}
+		paymentsLoop:
+			for {
+				payment, err := paymentStream.Recv()
+				if err != nil {
+					logger.Logger.WithError(err).Error("Failed to receive sendpay_failure notification")
+					select {
+					case <-ctx.Done():
+						return
+					case <-time.After(2 * time.Second):
+						break paymentsLoop
+					}
+				}
+
+				transaction, err := svc.clnSendpayFailureToTransaction(ctx, payment)
+				if err != nil {
+					logger.Logger.WithError(err).Error("Failed to convert notification to transaction")
+					continue
+				}
+				svc.eventPublisher.Publish(&events.Event{
+					Event:      "nwc_lnclient_payment_failed",
+					Properties: transaction,
+				})
+
+			}
+		}
+	}
+}
+
+func (svc *CLNService) clnSendpayFailureToTransaction(ctx context.Context, payment *clngrpc.SendPayFailureNotification) (*lnclient.Transaction, error) {
+	if payment.Data == nil {
+		return nil, fmt.Errorf("sendpay_failure data is nil")
+	}
+	var invstring string
+	if payment.Data.Bolt11 != nil {
+		invstring = *payment.Data.Bolt11
+	} else if payment.Data.Bolt12 != nil {
+		invstring = *payment.Data.Bolt12
+	}
+
+	var amountMsat int64
+	if payment.Data.AmountMsat != nil {
+		amountMsat = int64(payment.Data.AmountMsat.Msat)
+	}
+
+	var feesPaidMsat int64
+	if payment.Data.AmountSentMsat != nil {
+		feesPaidMsat = int64(payment.Data.AmountSentMsat.Msat) - amountMsat
+	}
+
+	var settledAt int64
+	if payment.Data.CompletedAt != nil {
+		SettledAtUint64 := *payment.Data.CompletedAt
+		settledAt = int64(SettledAtUint64)
+	}
+
+	var descriptionHash string
+	var expiresAt int64
+
+	if invstring != "" {
+		decodedInvoice, err := svc.client.Decode(ctx, &clngrpc.DecodeRequest{String_: invstring})
+		if err != nil {
+			return nil, fmt.Errorf("decode failed: %w", err)
+		}
+
+		switch decodedInvoice.ItemType {
+		case clngrpc.DecodeResponse_BOLT12_INVOICE:
+			if decodedInvoice.OfferAbsoluteExpiry != nil {
+				expiresAt = int64(*decodedInvoice.OfferAbsoluteExpiry)
+			}
+		case clngrpc.DecodeResponse_BOLT11_INVOICE:
+			if decodedInvoice.CreatedAt != nil && decodedInvoice.Expiry != nil {
+				expiresAt = int64(*decodedInvoice.CreatedAt) + int64(*decodedInvoice.Expiry)
+			}
+			if decodedInvoice.DescriptionHash != nil {
+				descriptionHash = hex.EncodeToString(decodedInvoice.DescriptionHash)
+			}
+		default:
+			return nil, fmt.Errorf("invstring `%s` is not a bolt11 or bolt12 invoice", invstring)
+		}
+	}
+
+	return &lnclient.Transaction{
+		Type:            "outgoing",
+		Invoice:         invstring,
+		Description:     payment.Data.GetDescription(),
+		DescriptionHash: descriptionHash,
+		Preimage:        hex.EncodeToString(payment.Data.GetPaymentPreimage()),
+		PaymentHash:     hex.EncodeToString(payment.Data.GetPaymentHash()),
+		AmountMsat:      amountMsat,
+		FeesPaidMsat:    feesPaidMsat,
+		CreatedAt:       int64(payment.Data.GetCreatedAt()),
+		ExpiresAt:       &expiresAt,
+		SettledAt:       &settledAt,
+	}, nil
+}
+
+func (svc *CLNService) subscribeInvoices(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			invoiceStream, err := svc.client.SubscribeInvoicePayment(ctx, &clngrpc.StreamInvoicePaymentRequest{})
+			if err != nil {
+				logger.Logger.WithError(err).Error("Error subscribing to invoices")
+				select {
+				case <-ctx.Done():
+					return
+				case <-time.After(10 * time.Second):
+					continue
+				}
+			}
+		invoicesLoop:
+			for {
+				invoice_notif, err := invoiceStream.Recv()
+				if err != nil {
+					logger.Logger.WithError(err).Error("Failed to receive invoice")
+					select {
+					case <-ctx.Done():
+						return
+					case <-time.After(2 * time.Second):
+						break invoicesLoop
+					}
+				}
+
+				listinvoice, err := svc.client.ListInvoices(ctx, &clngrpc.ListinvoicesRequest{
+					Label: &invoice_notif.Label,
+				})
+				if err != nil {
+					logger.Logger.WithFields(logrus.Fields{
+						"label": invoice_notif.Label,
+					}).WithError(err).Error("Failed to list invoice")
+					continue
+				}
+				if len(listinvoice.Invoices) != 1 {
+					logger.Logger.WithFields(logrus.Fields{
+						"label": invoice_notif.Label,
+						"count": len(listinvoice.Invoices),
+					}).Error("Failed to list invoice")
+					continue
+				}
+
+				invoice := listinvoice.Invoices[0]
+
+				transaction, err := svc.clnInvoiceToTransaction(ctx, invoice)
+				if err != nil {
+					logger.Logger.WithError(err).Error("Failed to convert invoice to transaction")
+					continue
+				}
+
+				svc.eventPublisher.Publish(&events.Event{
+					Event:      "nwc_lnclient_payment_received",
+					Properties: transaction,
+				})
+			}
+		}
+	}
+}
+
+func (svc *CLNService) trackForwardedPayments(ctx context.Context) {
+	// NOTE: this only tracks payments when hub is online and attached
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			forwardsStream, err := svc.client.SubscribeForwardEvent(ctx, &clngrpc.StreamForwardEventRequest{})
+			if err != nil {
+				logger.Logger.WithError(err).Error("failed to read forwarding history")
+				select {
+				case <-ctx.Done():
+					return
+				case <-time.After(10 * time.Second):
+					continue
+				}
+			}
+		forwardsLoop:
+			for {
+				forwardNotif, err := forwardsStream.Recv()
+				if err != nil {
+					logger.Logger.WithError(err).Error("Failed to receive invoice")
+					select {
+					case <-ctx.Done():
+						return
+					case <-time.After(2 * time.Second):
+						break forwardsLoop
+					}
+				}
+
+				if forwardNotif.Status != clngrpc.ForwardEventNotification_SETTLED {
+					continue
+				}
+
+				if forwardNotif.FeeMsat == nil || forwardNotif.OutMsat == nil {
+					logger.Logger.WithFields(logrus.Fields{
+						"earned_msat":                    forwardNotif.FeeMsat,
+						"outbound_amount_forwarded_msat": forwardNotif.OutMsat,
+					}).Error("forwarded payment has missing required fields")
+					continue
+				}
+
+				svc.eventPublisher.Publish(&events.Event{
+					Event: "nwc_payment_forwarded",
+					Properties: &lnclient.PaymentForwardedEventProperties{
+						TotalFeeEarnedMsat:          forwardNotif.FeeMsat.Msat,
+						OutboundAmountForwardedMsat: forwardNotif.OutMsat.Msat,
+					},
+				})
+			}
+		}
+	}
+}
+
+func (svc *CLNService) subscribeChannelEvents(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			channelEvents, err := svc.client.SubscribeChannelStateChanged(ctx, &clngrpc.StreamChannelStateChangedRequest{})
+			if err != nil {
+				logger.Logger.WithError(err).Error("Error subscribing to channel events")
+				select {
+				case <-ctx.Done():
+					return
+				case <-time.After(10 * time.Second):
+					continue
+				}
+			}
+		channelEventsLoop:
+			for {
+				event, err := channelEvents.Recv()
+				if err != nil {
+					logger.Logger.WithError(err).Error("Failed to receive channel event")
+					select {
+					case <-ctx.Done():
+						return
+					case <-time.After(2 * time.Second):
+						break channelEventsLoop
+					}
+				}
+
+				if event.NewState != clngrpc.ChannelState_ChanneldNormal && event.NewState != clngrpc.ChannelState_Onchain {
+					continue
+				}
+
+				if event.ShortChannelId == nil {
+					logger.Logger.Warn("Received CHANNELD_NORMAL channel event with no short channel id")
+					continue
+				}
+
+				channels, err := svc.client.ListPeerChannels(ctx, &clngrpc.ListpeerchannelsRequest{ShortChannelId: event.ShortChannelId})
+				if err != nil {
+					logger.Logger.WithError(err).Error("Failed to ListPeerChannels")
+					continue
+				}
+				if len(channels.Channels) != 1 {
+					logger.Logger.WithFields(logrus.Fields{
+						"short_channel_id": event.ShortChannelId,
+						"count":            len(channels.Channels),
+					}).Error("Expected one channel in ListPeerChannels response")
+					continue
+				}
+				channel := channels.Channels[0]
+				peerId := hex.EncodeToString(event.PeerId)
+				var capacity uint64
+				if channel.TotalMsat != nil {
+					capacity = channel.TotalMsat.Msat / 1000
+				}
+				isOutbound := channel.Opener == clngrpc.ChannelSide_LOCAL
+				public := !channel.GetPrivate()
+
+				switch event.NewState {
+				case clngrpc.ChannelState_ChanneldNormal:
+					logger.Logger.WithFields(logrus.Fields{
+						"counterparty_node_id": peerId,
+						"public":               public,
+						"capacity":             capacity,
+						"is_outbound":          isOutbound,
+					}).Info("Channel opened")
+
+					svc.eventPublisher.Publish(&events.Event{
+						Event: "nwc_channel_ready",
+						Properties: map[string]interface{}{
+							"counterparty_node_id": peerId,
+							"node_type":            config.CLNBackendType,
+							"public":               public,
+							"capacity":             capacity,
+							"is_outbound":          isOutbound,
+						},
+					})
+				case clngrpc.ChannelState_Onchain:
+					logger.Logger.WithFields(logrus.Fields{
+						"counterparty_node_id": peerId,
+						"reason":               channel.Status,
+					}).Info("Channel closed")
+
+					svc.eventPublisher.Publish(&events.Event{
+						Event: "nwc_channel_closed",
+						Properties: map[string]interface{}{
+							"counterparty_node_id":  peerId,
+							"counterparty_node_url": "https://amboss.space/node/" + peerId,
+							"reason":                channel.Status,
+							"node_type":             config.CLNBackendType,
+						},
+					})
+				}
+			}
+		}
+	}
 }
 
 func (c *CLNService) subscribeOpenHoldInvoices(ctx context.Context) {
@@ -1016,6 +1477,11 @@ func (c *CLNService) GetSupportedNIP47NotificationTypes() []string {
 		result = append(result,
 			notifications.HOLD_INVOICE_ACCEPTED_NOTIFICATION)
 	}
+	if c.enableNotifications {
+		result = append(result,
+			notifications.PAYMENT_RECEIVED_NOTIFICATION,
+			notifications.PAYMENT_SENT_NOTIFICATION)
+	}
 	return result
 }
 
@@ -1321,13 +1787,15 @@ func (c *CLNService) LookupInvoice(ctx context.Context, paymentHash string) (tra
 }
 
 func (c *CLNService) clnInvoiceToTransaction(ctx context.Context, invoice *clngrpc.ListinvoicesInvoices) (*lnclient.Transaction, error) {
-	var invoiceStr string
+	var invstring string
+	var bolt11Invoice string
 	if invoice.Bolt11 != nil {
-		invoiceStr = *invoice.Bolt11
+		invstring = *invoice.Bolt11
+		bolt11Invoice = *invoice.Bolt11
 	} else if invoice.Bolt12 != nil {
-		invoiceStr = *invoice.Bolt12
+		invstring = *invoice.Bolt12
 	} else {
-		invoiceStr = ""
+		return nil, fmt.Errorf("bolt11 and bolt12 missing from invoice")
 	}
 
 	var amountMsat int64
@@ -1350,27 +1818,39 @@ func (c *CLNService) clnInvoiceToTransaction(ctx context.Context, invoice *clngr
 		paid_at = &paid_at_int64
 	}
 
-	decoded_invoice, err := c.client.Decode(ctx, &clngrpc.DecodeRequest{String_: invoiceStr})
+	decoded_invoice, err := c.client.Decode(ctx, &clngrpc.DecodeRequest{String_: invstring})
 	if err != nil {
-		logger.Logger.WithError(err).Error("decode failed")
 		return nil, fmt.Errorf("decode failed: %w", err)
 	}
 
 	var created_at int64
+	metadata := map[string]interface{}{}
+	var description_hash string
 	switch decoded_invoice.ItemType {
 	case clngrpc.DecodeResponse_BOLT12_INVOICE:
 		if decoded_invoice.InvoiceCreatedAt == nil {
 			return nil, fmt.Errorf("invoice_created_at missing from bolt12 invoice")
 		}
 		created_at = int64(*decoded_invoice.InvoiceCreatedAt)
+
+		offer := map[string]interface{}{}
+		offer["id"] = hex.EncodeToString(decoded_invoice.OfferId)
+		if invoice.InvreqPayerNote != nil {
+			offer["payer_note"] = *invoice.InvreqPayerNote
+		}
+		metadata["offer"] = offer
 	case clngrpc.DecodeResponse_BOLT11_INVOICE:
 		if decoded_invoice.CreatedAt == nil {
 			return nil, fmt.Errorf("created_at missing from bolt11 invoice")
 		}
 		created_at = int64(*decoded_invoice.CreatedAt)
 
+		if decoded_invoice.DescriptionHash != nil {
+			description_hash = hex.EncodeToString(decoded_invoice.DescriptionHash)
+		}
+
 	default:
-		return nil, fmt.Errorf("created_at missing from invoice")
+		return nil, fmt.Errorf("invoice is not a bolt11 or bolt12 invoice")
 	}
 
 	var description string
@@ -1382,9 +1862,9 @@ func (c *CLNService) clnInvoiceToTransaction(ctx context.Context, invoice *clngr
 
 	transaction := &lnclient.Transaction{
 		Type:            "incoming",
-		Invoice:         invoiceStr,
+		Invoice:         bolt11Invoice,
 		Description:     description,
-		DescriptionHash: "",
+		DescriptionHash: description_hash,
 		Preimage:        hex.EncodeToString(invoice.PaymentPreimage),
 		PaymentHash:     hex.EncodeToString(invoice.PaymentHash),
 		AmountMsat:      amountMsat,
@@ -1392,8 +1872,7 @@ func (c *CLNService) clnInvoiceToTransaction(ctx context.Context, invoice *clngr
 		CreatedAt:       created_at,
 		ExpiresAt:       &expires_at,
 		SettledAt:       paid_at,
-		Metadata:        lnclient.Metadata{},
-		SettleDeadline:  nil,
+		Metadata:        metadata,
 	}
 	return transaction, nil
 }
@@ -1936,4 +2415,46 @@ func (c *CLNService) UpdateChannel(ctx context.Context, updateChannelRequest *ln
 }
 
 func (c *CLNService) UpdateLastWalletSyncRequest() {
+}
+
+func atOrAboveVersion(myVersion string, minVersion string) (bool, error) {
+	idx := strings.IndexRune(myVersion, 'v')
+	if idx == -1 {
+		return false, fmt.Errorf("could not find v in version string")
+	}
+	cleanStartMyVersion := myVersion[idx+1:]
+
+	var builder strings.Builder
+	for _, r := range cleanStartMyVersion {
+		if unicode.IsDigit(r) || r == '.' {
+			builder.WriteRune(r)
+		} else {
+			break
+		}
+	}
+	fullCleanMyVersion := builder.String()
+
+	myVersionParts := strings.Split(fullCleanMyVersion, ".")
+	minVersionParts := strings.Split(minVersion, ".")
+
+	if len(myVersionParts) <= 1 || len(myVersionParts) > 3 {
+		return false, fmt.Errorf("version string parse error: %s", myVersion)
+	}
+
+	for i := 0; i < len(myVersionParts) && i < len(minVersionParts); i++ {
+		myNum, err := strconv.ParseUint(myVersionParts[i], 10, 32)
+		if err != nil {
+			return false, err
+		}
+		minNum, err := strconv.ParseUint(minVersionParts[i], 10, 32)
+		if err != nil {
+			return false, err
+		}
+
+		if myNum != minNum {
+			return myNum > minNum, nil
+		}
+	}
+
+	return len(myVersionParts) >= len(minVersionParts), nil
 }

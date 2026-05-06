@@ -57,6 +57,8 @@ protoc \
   --go_opt=Mnode.proto=github.com/getAlby/hub/lnclient/cln/clngrpc \
   --go-grpc_out=./lnclient/cln/clngrpc \
   --go-grpc_opt=paths=source_relative \
+  --go-grpc_opt=Mprimitives.proto=github.com/getAlby/hub/lnclient/cln/clngrpc \
+  --go-grpc_opt=Mnode.proto=github.com/getAlby/hub/lnclient/cln/clngrpc \
   ../lightning/cln-grpc/proto/node.proto \
   ../lightning/cln-grpc/proto/primitives.proto
 ```
@@ -71,5 +73,6 @@ protoc \
   --go_opt=Mhold.proto=github.com/getAlby/hub/lnclient/cln/clngrpc_hold \
   --go-grpc_out=./lnclient/cln/clngrpc_hold \
   --go-grpc_opt=paths=source_relative \
+  --go-grpc_opt=Mhold.proto=github.com/getAlby/hub/lnclient/cln/clngrpc_hold \
   ../hold/protos/hold.proto
 ```

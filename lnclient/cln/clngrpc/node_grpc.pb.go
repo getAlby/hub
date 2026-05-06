@@ -19,154 +19,178 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	Node_Getinfo_FullMethodName                        = "/cln.Node/Getinfo"
-	Node_ListPeers_FullMethodName                      = "/cln.Node/ListPeers"
-	Node_ListFunds_FullMethodName                      = "/cln.Node/ListFunds"
-	Node_SendPay_FullMethodName                        = "/cln.Node/SendPay"
-	Node_ListChannels_FullMethodName                   = "/cln.Node/ListChannels"
-	Node_AddGossip_FullMethodName                      = "/cln.Node/AddGossip"
-	Node_AddPsbtOutput_FullMethodName                  = "/cln.Node/AddPsbtOutput"
-	Node_AutoCleanOnce_FullMethodName                  = "/cln.Node/AutoCleanOnce"
-	Node_AutoCleanStatus_FullMethodName                = "/cln.Node/AutoCleanStatus"
-	Node_CheckMessage_FullMethodName                   = "/cln.Node/CheckMessage"
-	Node_Close_FullMethodName                          = "/cln.Node/Close"
-	Node_ConnectPeer_FullMethodName                    = "/cln.Node/ConnectPeer"
-	Node_CreateInvoice_FullMethodName                  = "/cln.Node/CreateInvoice"
-	Node_Datastore_FullMethodName                      = "/cln.Node/Datastore"
-	Node_DatastoreUsage_FullMethodName                 = "/cln.Node/DatastoreUsage"
-	Node_CreateOnion_FullMethodName                    = "/cln.Node/CreateOnion"
-	Node_DelDatastore_FullMethodName                   = "/cln.Node/DelDatastore"
-	Node_DelInvoice_FullMethodName                     = "/cln.Node/DelInvoice"
-	Node_DevForgetChannel_FullMethodName               = "/cln.Node/DevForgetChannel"
-	Node_EmergencyRecover_FullMethodName               = "/cln.Node/EmergencyRecover"
-	Node_GetEmergencyRecoverData_FullMethodName        = "/cln.Node/GetEmergencyRecoverData"
-	Node_ExposeSecret_FullMethodName                   = "/cln.Node/ExposeSecret"
-	Node_Recover_FullMethodName                        = "/cln.Node/Recover"
-	Node_RecoverChannel_FullMethodName                 = "/cln.Node/RecoverChannel"
-	Node_Invoice_FullMethodName                        = "/cln.Node/Invoice"
-	Node_CreateInvoiceRequest_FullMethodName           = "/cln.Node/CreateInvoiceRequest"
-	Node_DisableInvoiceRequest_FullMethodName          = "/cln.Node/DisableInvoiceRequest"
-	Node_ListInvoiceRequests_FullMethodName            = "/cln.Node/ListInvoiceRequests"
-	Node_ListDatastore_FullMethodName                  = "/cln.Node/ListDatastore"
-	Node_ListInvoices_FullMethodName                   = "/cln.Node/ListInvoices"
-	Node_SendOnion_FullMethodName                      = "/cln.Node/SendOnion"
-	Node_ListSendPays_FullMethodName                   = "/cln.Node/ListSendPays"
-	Node_ListTransactions_FullMethodName               = "/cln.Node/ListTransactions"
-	Node_MakeSecret_FullMethodName                     = "/cln.Node/MakeSecret"
-	Node_Pay_FullMethodName                            = "/cln.Node/Pay"
-	Node_ListNodes_FullMethodName                      = "/cln.Node/ListNodes"
-	Node_WaitAnyInvoice_FullMethodName                 = "/cln.Node/WaitAnyInvoice"
-	Node_WaitInvoice_FullMethodName                    = "/cln.Node/WaitInvoice"
-	Node_WaitSendPay_FullMethodName                    = "/cln.Node/WaitSendPay"
-	Node_NewAddr_FullMethodName                        = "/cln.Node/NewAddr"
-	Node_Withdraw_FullMethodName                       = "/cln.Node/Withdraw"
-	Node_KeySend_FullMethodName                        = "/cln.Node/KeySend"
-	Node_FundPsbt_FullMethodName                       = "/cln.Node/FundPsbt"
-	Node_SendPsbt_FullMethodName                       = "/cln.Node/SendPsbt"
-	Node_SignPsbt_FullMethodName                       = "/cln.Node/SignPsbt"
-	Node_UtxoPsbt_FullMethodName                       = "/cln.Node/UtxoPsbt"
-	Node_TxDiscard_FullMethodName                      = "/cln.Node/TxDiscard"
-	Node_TxPrepare_FullMethodName                      = "/cln.Node/TxPrepare"
-	Node_TxSend_FullMethodName                         = "/cln.Node/TxSend"
-	Node_ListPeerChannels_FullMethodName               = "/cln.Node/ListPeerChannels"
-	Node_ListClosedChannels_FullMethodName             = "/cln.Node/ListClosedChannels"
-	Node_Decode_FullMethodName                         = "/cln.Node/Decode"
-	Node_DelPay_FullMethodName                         = "/cln.Node/DelPay"
-	Node_DelForward_FullMethodName                     = "/cln.Node/DelForward"
-	Node_DisableOffer_FullMethodName                   = "/cln.Node/DisableOffer"
-	Node_EnableOffer_FullMethodName                    = "/cln.Node/EnableOffer"
-	Node_Disconnect_FullMethodName                     = "/cln.Node/Disconnect"
-	Node_Feerates_FullMethodName                       = "/cln.Node/Feerates"
-	Node_FetchBip353_FullMethodName                    = "/cln.Node/FetchBip353"
-	Node_FetchInvoice_FullMethodName                   = "/cln.Node/FetchInvoice"
-	Node_CancelRecurringInvoice_FullMethodName         = "/cln.Node/CancelRecurringInvoice"
-	Node_FundChannelCancel_FullMethodName              = "/cln.Node/FundChannelCancel"
-	Node_FundChannelComplete_FullMethodName            = "/cln.Node/FundChannelComplete"
-	Node_FundChannel_FullMethodName                    = "/cln.Node/FundChannel"
-	Node_FundChannelStart_FullMethodName               = "/cln.Node/FundChannelStart"
-	Node_GetLog_FullMethodName                         = "/cln.Node/GetLog"
-	Node_FunderUpdate_FullMethodName                   = "/cln.Node/FunderUpdate"
-	Node_GetRoute_FullMethodName                       = "/cln.Node/GetRoute"
-	Node_ListAddresses_FullMethodName                  = "/cln.Node/ListAddresses"
-	Node_ListForwards_FullMethodName                   = "/cln.Node/ListForwards"
-	Node_ListOffers_FullMethodName                     = "/cln.Node/ListOffers"
-	Node_ListPays_FullMethodName                       = "/cln.Node/ListPays"
-	Node_ListHtlcs_FullMethodName                      = "/cln.Node/ListHtlcs"
-	Node_MultiFundChannel_FullMethodName               = "/cln.Node/MultiFundChannel"
-	Node_MultiWithdraw_FullMethodName                  = "/cln.Node/MultiWithdraw"
-	Node_Offer_FullMethodName                          = "/cln.Node/Offer"
-	Node_OpenChannelAbort_FullMethodName               = "/cln.Node/OpenChannelAbort"
-	Node_OpenChannelBump_FullMethodName                = "/cln.Node/OpenChannelBump"
-	Node_OpenChannelInit_FullMethodName                = "/cln.Node/OpenChannelInit"
-	Node_OpenChannelSigned_FullMethodName              = "/cln.Node/OpenChannelSigned"
-	Node_OpenChannelUpdate_FullMethodName              = "/cln.Node/OpenChannelUpdate"
-	Node_Ping_FullMethodName                           = "/cln.Node/Ping"
-	Node_Plugin_FullMethodName                         = "/cln.Node/Plugin"
-	Node_RenePayStatus_FullMethodName                  = "/cln.Node/RenePayStatus"
-	Node_RenePay_FullMethodName                        = "/cln.Node/RenePay"
-	Node_ReserveInputs_FullMethodName                  = "/cln.Node/ReserveInputs"
-	Node_SendCustomMsg_FullMethodName                  = "/cln.Node/SendCustomMsg"
-	Node_SendInvoice_FullMethodName                    = "/cln.Node/SendInvoice"
-	Node_SetChannel_FullMethodName                     = "/cln.Node/SetChannel"
-	Node_SetConfig_FullMethodName                      = "/cln.Node/SetConfig"
-	Node_SetPsbtVersion_FullMethodName                 = "/cln.Node/SetPsbtVersion"
-	Node_SignInvoice_FullMethodName                    = "/cln.Node/SignInvoice"
-	Node_SignMessage_FullMethodName                    = "/cln.Node/SignMessage"
-	Node_SpliceInit_FullMethodName                     = "/cln.Node/SpliceInit"
-	Node_SpliceSigned_FullMethodName                   = "/cln.Node/SpliceSigned"
-	Node_SpliceUpdate_FullMethodName                   = "/cln.Node/SpliceUpdate"
-	Node_DevSplice_FullMethodName                      = "/cln.Node/DevSplice"
-	Node_UnreserveInputs_FullMethodName                = "/cln.Node/UnreserveInputs"
-	Node_UpgradeWallet_FullMethodName                  = "/cln.Node/UpgradeWallet"
-	Node_WaitBlockHeight_FullMethodName                = "/cln.Node/WaitBlockHeight"
-	Node_Wait_FullMethodName                           = "/cln.Node/Wait"
-	Node_ListConfigs_FullMethodName                    = "/cln.Node/ListConfigs"
-	Node_Stop_FullMethodName                           = "/cln.Node/Stop"
-	Node_Help_FullMethodName                           = "/cln.Node/Help"
-	Node_PreApproveKeysend_FullMethodName              = "/cln.Node/PreApproveKeysend"
-	Node_PreApproveInvoice_FullMethodName              = "/cln.Node/PreApproveInvoice"
-	Node_StaticBackup_FullMethodName                   = "/cln.Node/StaticBackup"
-	Node_BkprChannelsApy_FullMethodName                = "/cln.Node/BkprChannelsApy"
-	Node_BkprDumpIncomeCsv_FullMethodName              = "/cln.Node/BkprDumpIncomeCsv"
-	Node_BkprInspect_FullMethodName                    = "/cln.Node/BkprInspect"
-	Node_BkprListAccountEvents_FullMethodName          = "/cln.Node/BkprListAccountEvents"
-	Node_BkprListBalances_FullMethodName               = "/cln.Node/BkprListBalances"
-	Node_BkprListIncome_FullMethodName                 = "/cln.Node/BkprListIncome"
-	Node_BkprEditDescriptionByPaymentId_FullMethodName = "/cln.Node/BkprEditDescriptionByPaymentId"
-	Node_BkprEditDescriptionByOutpoint_FullMethodName  = "/cln.Node/BkprEditDescriptionByOutpoint"
-	Node_BlacklistRune_FullMethodName                  = "/cln.Node/BlacklistRune"
-	Node_CheckRune_FullMethodName                      = "/cln.Node/CheckRune"
-	Node_CreateRune_FullMethodName                     = "/cln.Node/CreateRune"
-	Node_ShowRunes_FullMethodName                      = "/cln.Node/ShowRunes"
-	Node_AskReneUnreserve_FullMethodName               = "/cln.Node/AskReneUnreserve"
-	Node_AskReneListLayers_FullMethodName              = "/cln.Node/AskReneListLayers"
-	Node_AskReneCreateLayer_FullMethodName             = "/cln.Node/AskReneCreateLayer"
-	Node_AskReneRemoveLayer_FullMethodName             = "/cln.Node/AskReneRemoveLayer"
-	Node_AskReneReserve_FullMethodName                 = "/cln.Node/AskReneReserve"
-	Node_AskReneAge_FullMethodName                     = "/cln.Node/AskReneAge"
-	Node_GetRoutes_FullMethodName                      = "/cln.Node/GetRoutes"
-	Node_AskReneDisableNode_FullMethodName             = "/cln.Node/AskReneDisableNode"
-	Node_AskReneInformChannel_FullMethodName           = "/cln.Node/AskReneInformChannel"
-	Node_AskReneCreateChannel_FullMethodName           = "/cln.Node/AskReneCreateChannel"
-	Node_AskReneUpdateChannel_FullMethodName           = "/cln.Node/AskReneUpdateChannel"
-	Node_AskReneBiasChannel_FullMethodName             = "/cln.Node/AskReneBiasChannel"
-	Node_AskreneBiasNode_FullMethodName                = "/cln.Node/AskreneBiasNode"
-	Node_AskReneListReservations_FullMethodName        = "/cln.Node/AskReneListReservations"
-	Node_InjectPaymentOnion_FullMethodName             = "/cln.Node/InjectPaymentOnion"
-	Node_InjectOnionMessage_FullMethodName             = "/cln.Node/InjectOnionMessage"
-	Node_Xpay_FullMethodName                           = "/cln.Node/Xpay"
-	Node_SignMessageWithKey_FullMethodName             = "/cln.Node/SignMessageWithKey"
-	Node_ListChannelMoves_FullMethodName               = "/cln.Node/ListChannelMoves"
-	Node_ListChainMoves_FullMethodName                 = "/cln.Node/ListChainMoves"
-	Node_ListNetworkEvents_FullMethodName              = "/cln.Node/ListNetworkEvents"
-	Node_DelNetworkEvent_FullMethodName                = "/cln.Node/DelNetworkEvent"
-	Node_ClnrestRegisterPath_FullMethodName            = "/cln.Node/ClnrestRegisterPath"
-	Node_SubscribeBlockAdded_FullMethodName            = "/cln.Node/SubscribeBlockAdded"
-	Node_SubscribeChannelOpenFailed_FullMethodName     = "/cln.Node/SubscribeChannelOpenFailed"
-	Node_SubscribeChannelOpened_FullMethodName         = "/cln.Node/SubscribeChannelOpened"
-	Node_SubscribeConnect_FullMethodName               = "/cln.Node/SubscribeConnect"
-	Node_SubscribeCustomMsg_FullMethodName             = "/cln.Node/SubscribeCustomMsg"
-	Node_SubscribeChannelStateChanged_FullMethodName   = "/cln.Node/SubscribeChannelStateChanged"
+	Node_Getinfo_FullMethodName                          = "/cln.Node/Getinfo"
+	Node_ListPeers_FullMethodName                        = "/cln.Node/ListPeers"
+	Node_ListFunds_FullMethodName                        = "/cln.Node/ListFunds"
+	Node_SendPay_FullMethodName                          = "/cln.Node/SendPay"
+	Node_ListChannels_FullMethodName                     = "/cln.Node/ListChannels"
+	Node_AddGossip_FullMethodName                        = "/cln.Node/AddGossip"
+	Node_AddPsbtOutput_FullMethodName                    = "/cln.Node/AddPsbtOutput"
+	Node_AutoCleanOnce_FullMethodName                    = "/cln.Node/AutoCleanOnce"
+	Node_AutoCleanStatus_FullMethodName                  = "/cln.Node/AutoCleanStatus"
+	Node_CheckMessage_FullMethodName                     = "/cln.Node/CheckMessage"
+	Node_Close_FullMethodName                            = "/cln.Node/Close"
+	Node_ConnectPeer_FullMethodName                      = "/cln.Node/ConnectPeer"
+	Node_CreateInvoice_FullMethodName                    = "/cln.Node/CreateInvoice"
+	Node_Datastore_FullMethodName                        = "/cln.Node/Datastore"
+	Node_DatastoreUsage_FullMethodName                   = "/cln.Node/DatastoreUsage"
+	Node_CreateOnion_FullMethodName                      = "/cln.Node/CreateOnion"
+	Node_DelDatastore_FullMethodName                     = "/cln.Node/DelDatastore"
+	Node_DelInvoice_FullMethodName                       = "/cln.Node/DelInvoice"
+	Node_DevForgetChannel_FullMethodName                 = "/cln.Node/DevForgetChannel"
+	Node_EmergencyRecover_FullMethodName                 = "/cln.Node/EmergencyRecover"
+	Node_GetEmergencyRecoverData_FullMethodName          = "/cln.Node/GetEmergencyRecoverData"
+	Node_ExposeSecret_FullMethodName                     = "/cln.Node/ExposeSecret"
+	Node_Recover_FullMethodName                          = "/cln.Node/Recover"
+	Node_RecoverChannel_FullMethodName                   = "/cln.Node/RecoverChannel"
+	Node_Invoice_FullMethodName                          = "/cln.Node/Invoice"
+	Node_CreateInvoiceRequest_FullMethodName             = "/cln.Node/CreateInvoiceRequest"
+	Node_DisableInvoiceRequest_FullMethodName            = "/cln.Node/DisableInvoiceRequest"
+	Node_ListInvoiceRequests_FullMethodName              = "/cln.Node/ListInvoiceRequests"
+	Node_ListDatastore_FullMethodName                    = "/cln.Node/ListDatastore"
+	Node_ListInvoices_FullMethodName                     = "/cln.Node/ListInvoices"
+	Node_SendOnion_FullMethodName                        = "/cln.Node/SendOnion"
+	Node_ListSendPays_FullMethodName                     = "/cln.Node/ListSendPays"
+	Node_ListTransactions_FullMethodName                 = "/cln.Node/ListTransactions"
+	Node_MakeSecret_FullMethodName                       = "/cln.Node/MakeSecret"
+	Node_Pay_FullMethodName                              = "/cln.Node/Pay"
+	Node_ListNodes_FullMethodName                        = "/cln.Node/ListNodes"
+	Node_WaitAnyInvoice_FullMethodName                   = "/cln.Node/WaitAnyInvoice"
+	Node_WaitInvoice_FullMethodName                      = "/cln.Node/WaitInvoice"
+	Node_WaitSendPay_FullMethodName                      = "/cln.Node/WaitSendPay"
+	Node_NewAddr_FullMethodName                          = "/cln.Node/NewAddr"
+	Node_Withdraw_FullMethodName                         = "/cln.Node/Withdraw"
+	Node_KeySend_FullMethodName                          = "/cln.Node/KeySend"
+	Node_FundPsbt_FullMethodName                         = "/cln.Node/FundPsbt"
+	Node_SendPsbt_FullMethodName                         = "/cln.Node/SendPsbt"
+	Node_SignPsbt_FullMethodName                         = "/cln.Node/SignPsbt"
+	Node_UtxoPsbt_FullMethodName                         = "/cln.Node/UtxoPsbt"
+	Node_TxDiscard_FullMethodName                        = "/cln.Node/TxDiscard"
+	Node_TxPrepare_FullMethodName                        = "/cln.Node/TxPrepare"
+	Node_TxSend_FullMethodName                           = "/cln.Node/TxSend"
+	Node_ListPeerChannels_FullMethodName                 = "/cln.Node/ListPeerChannels"
+	Node_ListClosedChannels_FullMethodName               = "/cln.Node/ListClosedChannels"
+	Node_Decode_FullMethodName                           = "/cln.Node/Decode"
+	Node_DelPay_FullMethodName                           = "/cln.Node/DelPay"
+	Node_DelForward_FullMethodName                       = "/cln.Node/DelForward"
+	Node_DisableOffer_FullMethodName                     = "/cln.Node/DisableOffer"
+	Node_EnableOffer_FullMethodName                      = "/cln.Node/EnableOffer"
+	Node_Disconnect_FullMethodName                       = "/cln.Node/Disconnect"
+	Node_Feerates_FullMethodName                         = "/cln.Node/Feerates"
+	Node_FetchBip353_FullMethodName                      = "/cln.Node/FetchBip353"
+	Node_FetchInvoice_FullMethodName                     = "/cln.Node/FetchInvoice"
+	Node_CancelRecurringInvoice_FullMethodName           = "/cln.Node/CancelRecurringInvoice"
+	Node_FundChannelCancel_FullMethodName                = "/cln.Node/FundChannelCancel"
+	Node_FundChannelComplete_FullMethodName              = "/cln.Node/FundChannelComplete"
+	Node_FundChannel_FullMethodName                      = "/cln.Node/FundChannel"
+	Node_FundChannelStart_FullMethodName                 = "/cln.Node/FundChannelStart"
+	Node_GetLog_FullMethodName                           = "/cln.Node/GetLog"
+	Node_FunderUpdate_FullMethodName                     = "/cln.Node/FunderUpdate"
+	Node_GetRoute_FullMethodName                         = "/cln.Node/GetRoute"
+	Node_ListAddresses_FullMethodName                    = "/cln.Node/ListAddresses"
+	Node_ListForwards_FullMethodName                     = "/cln.Node/ListForwards"
+	Node_ListOffers_FullMethodName                       = "/cln.Node/ListOffers"
+	Node_ListPays_FullMethodName                         = "/cln.Node/ListPays"
+	Node_ListHtlcs_FullMethodName                        = "/cln.Node/ListHtlcs"
+	Node_MultiFundChannel_FullMethodName                 = "/cln.Node/MultiFundChannel"
+	Node_MultiWithdraw_FullMethodName                    = "/cln.Node/MultiWithdraw"
+	Node_Offer_FullMethodName                            = "/cln.Node/Offer"
+	Node_OpenChannelAbort_FullMethodName                 = "/cln.Node/OpenChannelAbort"
+	Node_OpenChannelBump_FullMethodName                  = "/cln.Node/OpenChannelBump"
+	Node_OpenChannelInit_FullMethodName                  = "/cln.Node/OpenChannelInit"
+	Node_OpenChannelSigned_FullMethodName                = "/cln.Node/OpenChannelSigned"
+	Node_OpenChannelUpdate_FullMethodName                = "/cln.Node/OpenChannelUpdate"
+	Node_Ping_FullMethodName                             = "/cln.Node/Ping"
+	Node_Plugin_FullMethodName                           = "/cln.Node/Plugin"
+	Node_RenePayStatus_FullMethodName                    = "/cln.Node/RenePayStatus"
+	Node_RenePay_FullMethodName                          = "/cln.Node/RenePay"
+	Node_ReserveInputs_FullMethodName                    = "/cln.Node/ReserveInputs"
+	Node_SendCustomMsg_FullMethodName                    = "/cln.Node/SendCustomMsg"
+	Node_SendInvoice_FullMethodName                      = "/cln.Node/SendInvoice"
+	Node_SetChannel_FullMethodName                       = "/cln.Node/SetChannel"
+	Node_SetConfig_FullMethodName                        = "/cln.Node/SetConfig"
+	Node_SetPsbtVersion_FullMethodName                   = "/cln.Node/SetPsbtVersion"
+	Node_SignInvoice_FullMethodName                      = "/cln.Node/SignInvoice"
+	Node_SignMessage_FullMethodName                      = "/cln.Node/SignMessage"
+	Node_SpliceInit_FullMethodName                       = "/cln.Node/SpliceInit"
+	Node_SpliceSigned_FullMethodName                     = "/cln.Node/SpliceSigned"
+	Node_SpliceUpdate_FullMethodName                     = "/cln.Node/SpliceUpdate"
+	Node_SpliceIn_FullMethodName                         = "/cln.Node/SpliceIn"
+	Node_SpliceOut_FullMethodName                        = "/cln.Node/SpliceOut"
+	Node_DevSplice_FullMethodName                        = "/cln.Node/DevSplice"
+	Node_UnreserveInputs_FullMethodName                  = "/cln.Node/UnreserveInputs"
+	Node_UpgradeWallet_FullMethodName                    = "/cln.Node/UpgradeWallet"
+	Node_WaitBlockHeight_FullMethodName                  = "/cln.Node/WaitBlockHeight"
+	Node_Wait_FullMethodName                             = "/cln.Node/Wait"
+	Node_ListConfigs_FullMethodName                      = "/cln.Node/ListConfigs"
+	Node_Stop_FullMethodName                             = "/cln.Node/Stop"
+	Node_Help_FullMethodName                             = "/cln.Node/Help"
+	Node_PreApproveKeysend_FullMethodName                = "/cln.Node/PreApproveKeysend"
+	Node_PreApproveInvoice_FullMethodName                = "/cln.Node/PreApproveInvoice"
+	Node_StaticBackup_FullMethodName                     = "/cln.Node/StaticBackup"
+	Node_BkprChannelsApy_FullMethodName                  = "/cln.Node/BkprChannelsApy"
+	Node_BkprDumpIncomeCsv_FullMethodName                = "/cln.Node/BkprDumpIncomeCsv"
+	Node_BkprInspect_FullMethodName                      = "/cln.Node/BkprInspect"
+	Node_BkprListAccountEvents_FullMethodName            = "/cln.Node/BkprListAccountEvents"
+	Node_BkprListBalances_FullMethodName                 = "/cln.Node/BkprListBalances"
+	Node_BkprListIncome_FullMethodName                   = "/cln.Node/BkprListIncome"
+	Node_BkprEditDescriptionByPaymentId_FullMethodName   = "/cln.Node/BkprEditDescriptionByPaymentId"
+	Node_BkprEditDescriptionByOutpoint_FullMethodName    = "/cln.Node/BkprEditDescriptionByOutpoint"
+	Node_BkprReport_FullMethodName                       = "/cln.Node/BkprReport"
+	Node_BlacklistRune_FullMethodName                    = "/cln.Node/BlacklistRune"
+	Node_CheckRune_FullMethodName                        = "/cln.Node/CheckRune"
+	Node_CreateRune_FullMethodName                       = "/cln.Node/CreateRune"
+	Node_ShowRunes_FullMethodName                        = "/cln.Node/ShowRunes"
+	Node_AskReneUnreserve_FullMethodName                 = "/cln.Node/AskReneUnreserve"
+	Node_AskReneListLayers_FullMethodName                = "/cln.Node/AskReneListLayers"
+	Node_AskReneCreateLayer_FullMethodName               = "/cln.Node/AskReneCreateLayer"
+	Node_AskReneRemoveLayer_FullMethodName               = "/cln.Node/AskReneRemoveLayer"
+	Node_AskReneReserve_FullMethodName                   = "/cln.Node/AskReneReserve"
+	Node_AskReneAge_FullMethodName                       = "/cln.Node/AskReneAge"
+	Node_GetRoutes_FullMethodName                        = "/cln.Node/GetRoutes"
+	Node_AskReneDisableNode_FullMethodName               = "/cln.Node/AskReneDisableNode"
+	Node_AskReneInformChannel_FullMethodName             = "/cln.Node/AskReneInformChannel"
+	Node_AskReneCreateChannel_FullMethodName             = "/cln.Node/AskReneCreateChannel"
+	Node_AskReneUpdateChannel_FullMethodName             = "/cln.Node/AskReneUpdateChannel"
+	Node_AskReneBiasChannel_FullMethodName               = "/cln.Node/AskReneBiasChannel"
+	Node_AskreneBiasNode_FullMethodName                  = "/cln.Node/AskreneBiasNode"
+	Node_AskReneListReservations_FullMethodName          = "/cln.Node/AskReneListReservations"
+	Node_InjectPaymentOnion_FullMethodName               = "/cln.Node/InjectPaymentOnion"
+	Node_InjectOnionMessage_FullMethodName               = "/cln.Node/InjectOnionMessage"
+	Node_Xpay_FullMethodName                             = "/cln.Node/Xpay"
+	Node_SignMessageWithKey_FullMethodName               = "/cln.Node/SignMessageWithKey"
+	Node_ListChannelMoves_FullMethodName                 = "/cln.Node/ListChannelMoves"
+	Node_ListChainMoves_FullMethodName                   = "/cln.Node/ListChainMoves"
+	Node_ListNetworkEvents_FullMethodName                = "/cln.Node/ListNetworkEvents"
+	Node_DelNetworkEvent_FullMethodName                  = "/cln.Node/DelNetworkEvent"
+	Node_ClnrestRegisterPath_FullMethodName              = "/cln.Node/ClnrestRegisterPath"
+	Node_ListCurrencyRates_FullMethodName                = "/cln.Node/ListCurrencyRates"
+	Node_CurrencyConvert_FullMethodName                  = "/cln.Node/CurrencyConvert"
+	Node_CurrencyRate_FullMethodName                     = "/cln.Node/CurrencyRate"
+	Node_SubscribeBalanceSnapshot_FullMethodName         = "/cln.Node/SubscribeBalanceSnapshot"
+	Node_SubscribeBlockAdded_FullMethodName              = "/cln.Node/SubscribeBlockAdded"
+	Node_SubscribeChannelOpenFailed_FullMethodName       = "/cln.Node/SubscribeChannelOpenFailed"
+	Node_SubscribeChannelOpened_FullMethodName           = "/cln.Node/SubscribeChannelOpened"
+	Node_SubscribeChannelStateChanged_FullMethodName     = "/cln.Node/SubscribeChannelStateChanged"
+	Node_SubscribeConnect_FullMethodName                 = "/cln.Node/SubscribeConnect"
+	Node_SubscribeCoinMovement_FullMethodName            = "/cln.Node/SubscribeCoinMovement"
+	Node_SubscribeCustomMsg_FullMethodName               = "/cln.Node/SubscribeCustomMsg"
+	Node_SubscribeDeprecatedOneshot_FullMethodName       = "/cln.Node/SubscribeDeprecatedOneshot"
+	Node_SubscribeDisconnect_FullMethodName              = "/cln.Node/SubscribeDisconnect"
+	Node_SubscribeForwardEvent_FullMethodName            = "/cln.Node/SubscribeForwardEvent"
+	Node_SubscribeInvoiceCreation_FullMethodName         = "/cln.Node/SubscribeInvoiceCreation"
+	Node_SubscribeInvoicePayment_FullMethodName          = "/cln.Node/SubscribeInvoicePayment"
+	Node_SubscribeLog_FullMethodName                     = "/cln.Node/SubscribeLog"
+	Node_SubscribeOnionMessageForwardFail_FullMethodName = "/cln.Node/SubscribeOnionMessageForwardFail"
+	Node_SubscribeOpenChannelPeerSigs_FullMethodName     = "/cln.Node/SubscribeOpenChannelPeerSigs"
+	Node_SubscribePluginStarted_FullMethodName           = "/cln.Node/SubscribePluginStarted"
+	Node_SubscribePluginStopped_FullMethodName           = "/cln.Node/SubscribePluginStopped"
+	Node_SubscribeSendPayFailure_FullMethodName          = "/cln.Node/SubscribeSendPayFailure"
+	Node_SubscribeSendPaySuccess_FullMethodName          = "/cln.Node/SubscribeSendPaySuccess"
+	Node_SubscribeShutdown_FullMethodName                = "/cln.Node/SubscribeShutdown"
+	Node_SubscribeWarning_FullMethodName                 = "/cln.Node/SubscribeWarning"
+	Node_SubscribePayPartEnd_FullMethodName              = "/cln.Node/SubscribePayPartEnd"
+	Node_SubscribePayPartStart_FullMethodName            = "/cln.Node/SubscribePayPartStart"
 )
 
 // NodeClient is the client API for Node service.
@@ -269,6 +293,8 @@ type NodeClient interface {
 	SpliceInit(ctx context.Context, in *SpliceInitRequest, opts ...grpc.CallOption) (*SpliceInitResponse, error)
 	SpliceSigned(ctx context.Context, in *SpliceSignedRequest, opts ...grpc.CallOption) (*SpliceSignedResponse, error)
 	SpliceUpdate(ctx context.Context, in *SpliceUpdateRequest, opts ...grpc.CallOption) (*SpliceUpdateResponse, error)
+	SpliceIn(ctx context.Context, in *SpliceinRequest, opts ...grpc.CallOption) (*SpliceinResponse, error)
+	SpliceOut(ctx context.Context, in *SpliceoutRequest, opts ...grpc.CallOption) (*SpliceoutResponse, error)
 	DevSplice(ctx context.Context, in *DevspliceRequest, opts ...grpc.CallOption) (*DevspliceResponse, error)
 	UnreserveInputs(ctx context.Context, in *UnreserveinputsRequest, opts ...grpc.CallOption) (*UnreserveinputsResponse, error)
 	UpgradeWallet(ctx context.Context, in *UpgradewalletRequest, opts ...grpc.CallOption) (*UpgradewalletResponse, error)
@@ -288,6 +314,7 @@ type NodeClient interface {
 	BkprListIncome(ctx context.Context, in *BkprlistincomeRequest, opts ...grpc.CallOption) (*BkprlistincomeResponse, error)
 	BkprEditDescriptionByPaymentId(ctx context.Context, in *BkpreditdescriptionbypaymentidRequest, opts ...grpc.CallOption) (*BkpreditdescriptionbypaymentidResponse, error)
 	BkprEditDescriptionByOutpoint(ctx context.Context, in *BkpreditdescriptionbyoutpointRequest, opts ...grpc.CallOption) (*BkpreditdescriptionbyoutpointResponse, error)
+	BkprReport(ctx context.Context, in *BkprreportRequest, opts ...grpc.CallOption) (*BkprreportResponse, error)
 	BlacklistRune(ctx context.Context, in *BlacklistruneRequest, opts ...grpc.CallOption) (*BlacklistruneResponse, error)
 	CheckRune(ctx context.Context, in *CheckruneRequest, opts ...grpc.CallOption) (*CheckruneResponse, error)
 	CreateRune(ctx context.Context, in *CreateruneRequest, opts ...grpc.CallOption) (*CreateruneResponse, error)
@@ -315,12 +342,33 @@ type NodeClient interface {
 	ListNetworkEvents(ctx context.Context, in *ListnetworkeventsRequest, opts ...grpc.CallOption) (*ListnetworkeventsResponse, error)
 	DelNetworkEvent(ctx context.Context, in *DelnetworkeventRequest, opts ...grpc.CallOption) (*DelnetworkeventResponse, error)
 	ClnrestRegisterPath(ctx context.Context, in *ClnrestregisterpathRequest, opts ...grpc.CallOption) (*ClnrestregisterpathResponse, error)
+	ListCurrencyRates(ctx context.Context, in *ListcurrencyratesRequest, opts ...grpc.CallOption) (*ListcurrencyratesResponse, error)
+	CurrencyConvert(ctx context.Context, in *CurrencyconvertRequest, opts ...grpc.CallOption) (*CurrencyconvertResponse, error)
+	CurrencyRate(ctx context.Context, in *CurrencyrateRequest, opts ...grpc.CallOption) (*CurrencyrateResponse, error)
+	SubscribeBalanceSnapshot(ctx context.Context, in *StreamBalanceSnapshotRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[BalanceSnapshotNotification], error)
 	SubscribeBlockAdded(ctx context.Context, in *StreamBlockAddedRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[BlockAddedNotification], error)
 	SubscribeChannelOpenFailed(ctx context.Context, in *StreamChannelOpenFailedRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ChannelOpenFailedNotification], error)
 	SubscribeChannelOpened(ctx context.Context, in *StreamChannelOpenedRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ChannelOpenedNotification], error)
-	SubscribeConnect(ctx context.Context, in *StreamConnectRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[PeerConnectNotification], error)
-	SubscribeCustomMsg(ctx context.Context, in *StreamCustomMsgRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[CustomMsgNotification], error)
 	SubscribeChannelStateChanged(ctx context.Context, in *StreamChannelStateChangedRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ChannelStateChangedNotification], error)
+	SubscribeConnect(ctx context.Context, in *StreamConnectRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[PeerConnectNotification], error)
+	SubscribeCoinMovement(ctx context.Context, in *StreamCoinMovementRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[CoinMovementNotification], error)
+	SubscribeCustomMsg(ctx context.Context, in *StreamCustomMsgRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[CustomMsgNotification], error)
+	SubscribeDeprecatedOneshot(ctx context.Context, in *StreamDeprecatedOneshotRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[DeprecatedOneshotNotification], error)
+	SubscribeDisconnect(ctx context.Context, in *StreamDisconnectRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[DisconnectNotification], error)
+	SubscribeForwardEvent(ctx context.Context, in *StreamForwardEventRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ForwardEventNotification], error)
+	SubscribeInvoiceCreation(ctx context.Context, in *StreamInvoiceCreationRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[InvoiceCreationNotification], error)
+	SubscribeInvoicePayment(ctx context.Context, in *StreamInvoicePaymentRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[InvoicePaymentNotification], error)
+	SubscribeLog(ctx context.Context, in *StreamLogRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[LogNotification], error)
+	SubscribeOnionMessageForwardFail(ctx context.Context, in *StreamOnionMessageForwardFailRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[OnionMessageForwardFailNotification], error)
+	SubscribeOpenChannelPeerSigs(ctx context.Context, in *StreamOpenChannelPeerSigsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[OpenChannelPeerSigsNotification], error)
+	SubscribePluginStarted(ctx context.Context, in *StreamPluginStartedRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[PluginStartedNotification], error)
+	SubscribePluginStopped(ctx context.Context, in *StreamPluginStoppedRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[PluginStoppedNotification], error)
+	SubscribeSendPayFailure(ctx context.Context, in *StreamSendPayFailureRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SendPayFailureNotification], error)
+	SubscribeSendPaySuccess(ctx context.Context, in *StreamSendPaySuccessRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SendPaySuccessNotification], error)
+	SubscribeShutdown(ctx context.Context, in *StreamShutdownRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ShutdownNotification], error)
+	SubscribeWarning(ctx context.Context, in *StreamWarningRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[WarningNotification], error)
+	SubscribePayPartEnd(ctx context.Context, in *StreamPayPartEndRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[PayPartEndNotification], error)
+	SubscribePayPartStart(ctx context.Context, in *StreamPayPartStartRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[PayPartStartNotification], error)
 }
 
 type nodeClient struct {
@@ -1291,6 +1339,26 @@ func (c *nodeClient) SpliceUpdate(ctx context.Context, in *SpliceUpdateRequest, 
 	return out, nil
 }
 
+func (c *nodeClient) SpliceIn(ctx context.Context, in *SpliceinRequest, opts ...grpc.CallOption) (*SpliceinResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SpliceinResponse)
+	err := c.cc.Invoke(ctx, Node_SpliceIn_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeClient) SpliceOut(ctx context.Context, in *SpliceoutRequest, opts ...grpc.CallOption) (*SpliceoutResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SpliceoutResponse)
+	err := c.cc.Invoke(ctx, Node_SpliceOut_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *nodeClient) DevSplice(ctx context.Context, in *DevspliceRequest, opts ...grpc.CallOption) (*DevspliceResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(DevspliceResponse)
@@ -1475,6 +1543,16 @@ func (c *nodeClient) BkprEditDescriptionByOutpoint(ctx context.Context, in *Bkpr
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(BkpreditdescriptionbyoutpointResponse)
 	err := c.cc.Invoke(ctx, Node_BkprEditDescriptionByOutpoint_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeClient) BkprReport(ctx context.Context, in *BkprreportRequest, opts ...grpc.CallOption) (*BkprreportResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(BkprreportResponse)
+	err := c.cc.Invoke(ctx, Node_BkprReport_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1751,9 +1829,58 @@ func (c *nodeClient) ClnrestRegisterPath(ctx context.Context, in *Clnrestregiste
 	return out, nil
 }
 
+func (c *nodeClient) ListCurrencyRates(ctx context.Context, in *ListcurrencyratesRequest, opts ...grpc.CallOption) (*ListcurrencyratesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ListcurrencyratesResponse)
+	err := c.cc.Invoke(ctx, Node_ListCurrencyRates_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeClient) CurrencyConvert(ctx context.Context, in *CurrencyconvertRequest, opts ...grpc.CallOption) (*CurrencyconvertResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CurrencyconvertResponse)
+	err := c.cc.Invoke(ctx, Node_CurrencyConvert_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeClient) CurrencyRate(ctx context.Context, in *CurrencyrateRequest, opts ...grpc.CallOption) (*CurrencyrateResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CurrencyrateResponse)
+	err := c.cc.Invoke(ctx, Node_CurrencyRate_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeClient) SubscribeBalanceSnapshot(ctx context.Context, in *StreamBalanceSnapshotRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[BalanceSnapshotNotification], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[0], Node_SubscribeBalanceSnapshot_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamBalanceSnapshotRequest, BalanceSnapshotNotification]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeBalanceSnapshotClient = grpc.ServerStreamingClient[BalanceSnapshotNotification]
+
 func (c *nodeClient) SubscribeBlockAdded(ctx context.Context, in *StreamBlockAddedRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[BlockAddedNotification], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[0], Node_SubscribeBlockAdded_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[1], Node_SubscribeBlockAdded_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1772,7 +1899,7 @@ type Node_SubscribeBlockAddedClient = grpc.ServerStreamingClient[BlockAddedNotif
 
 func (c *nodeClient) SubscribeChannelOpenFailed(ctx context.Context, in *StreamChannelOpenFailedRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ChannelOpenFailedNotification], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[1], Node_SubscribeChannelOpenFailed_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[2], Node_SubscribeChannelOpenFailed_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1791,7 +1918,7 @@ type Node_SubscribeChannelOpenFailedClient = grpc.ServerStreamingClient[ChannelO
 
 func (c *nodeClient) SubscribeChannelOpened(ctx context.Context, in *StreamChannelOpenedRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ChannelOpenedNotification], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[2], Node_SubscribeChannelOpened_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[3], Node_SubscribeChannelOpened_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1808,9 +1935,28 @@ func (c *nodeClient) SubscribeChannelOpened(ctx context.Context, in *StreamChann
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Node_SubscribeChannelOpenedClient = grpc.ServerStreamingClient[ChannelOpenedNotification]
 
+func (c *nodeClient) SubscribeChannelStateChanged(ctx context.Context, in *StreamChannelStateChangedRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ChannelStateChangedNotification], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[4], Node_SubscribeChannelStateChanged_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamChannelStateChangedRequest, ChannelStateChangedNotification]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeChannelStateChangedClient = grpc.ServerStreamingClient[ChannelStateChangedNotification]
+
 func (c *nodeClient) SubscribeConnect(ctx context.Context, in *StreamConnectRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[PeerConnectNotification], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[3], Node_SubscribeConnect_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[5], Node_SubscribeConnect_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1827,9 +1973,28 @@ func (c *nodeClient) SubscribeConnect(ctx context.Context, in *StreamConnectRequ
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Node_SubscribeConnectClient = grpc.ServerStreamingClient[PeerConnectNotification]
 
+func (c *nodeClient) SubscribeCoinMovement(ctx context.Context, in *StreamCoinMovementRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[CoinMovementNotification], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[6], Node_SubscribeCoinMovement_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamCoinMovementRequest, CoinMovementNotification]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeCoinMovementClient = grpc.ServerStreamingClient[CoinMovementNotification]
+
 func (c *nodeClient) SubscribeCustomMsg(ctx context.Context, in *StreamCustomMsgRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[CustomMsgNotification], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[4], Node_SubscribeCustomMsg_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[7], Node_SubscribeCustomMsg_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1846,13 +2011,13 @@ func (c *nodeClient) SubscribeCustomMsg(ctx context.Context, in *StreamCustomMsg
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Node_SubscribeCustomMsgClient = grpc.ServerStreamingClient[CustomMsgNotification]
 
-func (c *nodeClient) SubscribeChannelStateChanged(ctx context.Context, in *StreamChannelStateChangedRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ChannelStateChangedNotification], error) {
+func (c *nodeClient) SubscribeDeprecatedOneshot(ctx context.Context, in *StreamDeprecatedOneshotRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[DeprecatedOneshotNotification], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[5], Node_SubscribeChannelStateChanged_FullMethodName, cOpts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[8], Node_SubscribeDeprecatedOneshot_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &grpc.GenericClientStream[StreamChannelStateChangedRequest, ChannelStateChangedNotification]{ClientStream: stream}
+	x := &grpc.GenericClientStream[StreamDeprecatedOneshotRequest, DeprecatedOneshotNotification]{ClientStream: stream}
 	if err := x.ClientStream.SendMsg(in); err != nil {
 		return nil, err
 	}
@@ -1863,7 +2028,292 @@ func (c *nodeClient) SubscribeChannelStateChanged(ctx context.Context, in *Strea
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Node_SubscribeChannelStateChangedClient = grpc.ServerStreamingClient[ChannelStateChangedNotification]
+type Node_SubscribeDeprecatedOneshotClient = grpc.ServerStreamingClient[DeprecatedOneshotNotification]
+
+func (c *nodeClient) SubscribeDisconnect(ctx context.Context, in *StreamDisconnectRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[DisconnectNotification], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[9], Node_SubscribeDisconnect_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamDisconnectRequest, DisconnectNotification]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeDisconnectClient = grpc.ServerStreamingClient[DisconnectNotification]
+
+func (c *nodeClient) SubscribeForwardEvent(ctx context.Context, in *StreamForwardEventRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ForwardEventNotification], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[10], Node_SubscribeForwardEvent_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamForwardEventRequest, ForwardEventNotification]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeForwardEventClient = grpc.ServerStreamingClient[ForwardEventNotification]
+
+func (c *nodeClient) SubscribeInvoiceCreation(ctx context.Context, in *StreamInvoiceCreationRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[InvoiceCreationNotification], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[11], Node_SubscribeInvoiceCreation_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamInvoiceCreationRequest, InvoiceCreationNotification]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeInvoiceCreationClient = grpc.ServerStreamingClient[InvoiceCreationNotification]
+
+func (c *nodeClient) SubscribeInvoicePayment(ctx context.Context, in *StreamInvoicePaymentRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[InvoicePaymentNotification], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[12], Node_SubscribeInvoicePayment_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamInvoicePaymentRequest, InvoicePaymentNotification]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeInvoicePaymentClient = grpc.ServerStreamingClient[InvoicePaymentNotification]
+
+func (c *nodeClient) SubscribeLog(ctx context.Context, in *StreamLogRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[LogNotification], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[13], Node_SubscribeLog_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamLogRequest, LogNotification]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeLogClient = grpc.ServerStreamingClient[LogNotification]
+
+func (c *nodeClient) SubscribeOnionMessageForwardFail(ctx context.Context, in *StreamOnionMessageForwardFailRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[OnionMessageForwardFailNotification], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[14], Node_SubscribeOnionMessageForwardFail_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamOnionMessageForwardFailRequest, OnionMessageForwardFailNotification]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeOnionMessageForwardFailClient = grpc.ServerStreamingClient[OnionMessageForwardFailNotification]
+
+func (c *nodeClient) SubscribeOpenChannelPeerSigs(ctx context.Context, in *StreamOpenChannelPeerSigsRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[OpenChannelPeerSigsNotification], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[15], Node_SubscribeOpenChannelPeerSigs_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamOpenChannelPeerSigsRequest, OpenChannelPeerSigsNotification]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeOpenChannelPeerSigsClient = grpc.ServerStreamingClient[OpenChannelPeerSigsNotification]
+
+func (c *nodeClient) SubscribePluginStarted(ctx context.Context, in *StreamPluginStartedRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[PluginStartedNotification], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[16], Node_SubscribePluginStarted_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamPluginStartedRequest, PluginStartedNotification]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribePluginStartedClient = grpc.ServerStreamingClient[PluginStartedNotification]
+
+func (c *nodeClient) SubscribePluginStopped(ctx context.Context, in *StreamPluginStoppedRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[PluginStoppedNotification], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[17], Node_SubscribePluginStopped_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamPluginStoppedRequest, PluginStoppedNotification]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribePluginStoppedClient = grpc.ServerStreamingClient[PluginStoppedNotification]
+
+func (c *nodeClient) SubscribeSendPayFailure(ctx context.Context, in *StreamSendPayFailureRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SendPayFailureNotification], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[18], Node_SubscribeSendPayFailure_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamSendPayFailureRequest, SendPayFailureNotification]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeSendPayFailureClient = grpc.ServerStreamingClient[SendPayFailureNotification]
+
+func (c *nodeClient) SubscribeSendPaySuccess(ctx context.Context, in *StreamSendPaySuccessRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SendPaySuccessNotification], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[19], Node_SubscribeSendPaySuccess_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamSendPaySuccessRequest, SendPaySuccessNotification]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeSendPaySuccessClient = grpc.ServerStreamingClient[SendPaySuccessNotification]
+
+func (c *nodeClient) SubscribeShutdown(ctx context.Context, in *StreamShutdownRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[ShutdownNotification], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[20], Node_SubscribeShutdown_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamShutdownRequest, ShutdownNotification]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeShutdownClient = grpc.ServerStreamingClient[ShutdownNotification]
+
+func (c *nodeClient) SubscribeWarning(ctx context.Context, in *StreamWarningRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[WarningNotification], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[21], Node_SubscribeWarning_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamWarningRequest, WarningNotification]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeWarningClient = grpc.ServerStreamingClient[WarningNotification]
+
+func (c *nodeClient) SubscribePayPartEnd(ctx context.Context, in *StreamPayPartEndRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[PayPartEndNotification], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[22], Node_SubscribePayPartEnd_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamPayPartEndRequest, PayPartEndNotification]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribePayPartEndClient = grpc.ServerStreamingClient[PayPartEndNotification]
+
+func (c *nodeClient) SubscribePayPartStart(ctx context.Context, in *StreamPayPartStartRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[PayPartStartNotification], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &Node_ServiceDesc.Streams[23], Node_SubscribePayPartStart_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[StreamPayPartStartRequest, PayPartStartNotification]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribePayPartStartClient = grpc.ServerStreamingClient[PayPartStartNotification]
 
 // NodeServer is the server API for Node service.
 // All implementations must embed UnimplementedNodeServer
@@ -1965,6 +2415,8 @@ type NodeServer interface {
 	SpliceInit(context.Context, *SpliceInitRequest) (*SpliceInitResponse, error)
 	SpliceSigned(context.Context, *SpliceSignedRequest) (*SpliceSignedResponse, error)
 	SpliceUpdate(context.Context, *SpliceUpdateRequest) (*SpliceUpdateResponse, error)
+	SpliceIn(context.Context, *SpliceinRequest) (*SpliceinResponse, error)
+	SpliceOut(context.Context, *SpliceoutRequest) (*SpliceoutResponse, error)
 	DevSplice(context.Context, *DevspliceRequest) (*DevspliceResponse, error)
 	UnreserveInputs(context.Context, *UnreserveinputsRequest) (*UnreserveinputsResponse, error)
 	UpgradeWallet(context.Context, *UpgradewalletRequest) (*UpgradewalletResponse, error)
@@ -1984,6 +2436,7 @@ type NodeServer interface {
 	BkprListIncome(context.Context, *BkprlistincomeRequest) (*BkprlistincomeResponse, error)
 	BkprEditDescriptionByPaymentId(context.Context, *BkpreditdescriptionbypaymentidRequest) (*BkpreditdescriptionbypaymentidResponse, error)
 	BkprEditDescriptionByOutpoint(context.Context, *BkpreditdescriptionbyoutpointRequest) (*BkpreditdescriptionbyoutpointResponse, error)
+	BkprReport(context.Context, *BkprreportRequest) (*BkprreportResponse, error)
 	BlacklistRune(context.Context, *BlacklistruneRequest) (*BlacklistruneResponse, error)
 	CheckRune(context.Context, *CheckruneRequest) (*CheckruneResponse, error)
 	CreateRune(context.Context, *CreateruneRequest) (*CreateruneResponse, error)
@@ -2011,12 +2464,33 @@ type NodeServer interface {
 	ListNetworkEvents(context.Context, *ListnetworkeventsRequest) (*ListnetworkeventsResponse, error)
 	DelNetworkEvent(context.Context, *DelnetworkeventRequest) (*DelnetworkeventResponse, error)
 	ClnrestRegisterPath(context.Context, *ClnrestregisterpathRequest) (*ClnrestregisterpathResponse, error)
+	ListCurrencyRates(context.Context, *ListcurrencyratesRequest) (*ListcurrencyratesResponse, error)
+	CurrencyConvert(context.Context, *CurrencyconvertRequest) (*CurrencyconvertResponse, error)
+	CurrencyRate(context.Context, *CurrencyrateRequest) (*CurrencyrateResponse, error)
+	SubscribeBalanceSnapshot(*StreamBalanceSnapshotRequest, grpc.ServerStreamingServer[BalanceSnapshotNotification]) error
 	SubscribeBlockAdded(*StreamBlockAddedRequest, grpc.ServerStreamingServer[BlockAddedNotification]) error
 	SubscribeChannelOpenFailed(*StreamChannelOpenFailedRequest, grpc.ServerStreamingServer[ChannelOpenFailedNotification]) error
 	SubscribeChannelOpened(*StreamChannelOpenedRequest, grpc.ServerStreamingServer[ChannelOpenedNotification]) error
-	SubscribeConnect(*StreamConnectRequest, grpc.ServerStreamingServer[PeerConnectNotification]) error
-	SubscribeCustomMsg(*StreamCustomMsgRequest, grpc.ServerStreamingServer[CustomMsgNotification]) error
 	SubscribeChannelStateChanged(*StreamChannelStateChangedRequest, grpc.ServerStreamingServer[ChannelStateChangedNotification]) error
+	SubscribeConnect(*StreamConnectRequest, grpc.ServerStreamingServer[PeerConnectNotification]) error
+	SubscribeCoinMovement(*StreamCoinMovementRequest, grpc.ServerStreamingServer[CoinMovementNotification]) error
+	SubscribeCustomMsg(*StreamCustomMsgRequest, grpc.ServerStreamingServer[CustomMsgNotification]) error
+	SubscribeDeprecatedOneshot(*StreamDeprecatedOneshotRequest, grpc.ServerStreamingServer[DeprecatedOneshotNotification]) error
+	SubscribeDisconnect(*StreamDisconnectRequest, grpc.ServerStreamingServer[DisconnectNotification]) error
+	SubscribeForwardEvent(*StreamForwardEventRequest, grpc.ServerStreamingServer[ForwardEventNotification]) error
+	SubscribeInvoiceCreation(*StreamInvoiceCreationRequest, grpc.ServerStreamingServer[InvoiceCreationNotification]) error
+	SubscribeInvoicePayment(*StreamInvoicePaymentRequest, grpc.ServerStreamingServer[InvoicePaymentNotification]) error
+	SubscribeLog(*StreamLogRequest, grpc.ServerStreamingServer[LogNotification]) error
+	SubscribeOnionMessageForwardFail(*StreamOnionMessageForwardFailRequest, grpc.ServerStreamingServer[OnionMessageForwardFailNotification]) error
+	SubscribeOpenChannelPeerSigs(*StreamOpenChannelPeerSigsRequest, grpc.ServerStreamingServer[OpenChannelPeerSigsNotification]) error
+	SubscribePluginStarted(*StreamPluginStartedRequest, grpc.ServerStreamingServer[PluginStartedNotification]) error
+	SubscribePluginStopped(*StreamPluginStoppedRequest, grpc.ServerStreamingServer[PluginStoppedNotification]) error
+	SubscribeSendPayFailure(*StreamSendPayFailureRequest, grpc.ServerStreamingServer[SendPayFailureNotification]) error
+	SubscribeSendPaySuccess(*StreamSendPaySuccessRequest, grpc.ServerStreamingServer[SendPaySuccessNotification]) error
+	SubscribeShutdown(*StreamShutdownRequest, grpc.ServerStreamingServer[ShutdownNotification]) error
+	SubscribeWarning(*StreamWarningRequest, grpc.ServerStreamingServer[WarningNotification]) error
+	SubscribePayPartEnd(*StreamPayPartEndRequest, grpc.ServerStreamingServer[PayPartEndNotification]) error
+	SubscribePayPartStart(*StreamPayPartStartRequest, grpc.ServerStreamingServer[PayPartStartNotification]) error
 	mustEmbedUnimplementedNodeServer()
 }
 
@@ -2315,6 +2789,12 @@ func (UnimplementedNodeServer) SpliceSigned(context.Context, *SpliceSignedReques
 func (UnimplementedNodeServer) SpliceUpdate(context.Context, *SpliceUpdateRequest) (*SpliceUpdateResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method SpliceUpdate not implemented")
 }
+func (UnimplementedNodeServer) SpliceIn(context.Context, *SpliceinRequest) (*SpliceinResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SpliceIn not implemented")
+}
+func (UnimplementedNodeServer) SpliceOut(context.Context, *SpliceoutRequest) (*SpliceoutResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SpliceOut not implemented")
+}
 func (UnimplementedNodeServer) DevSplice(context.Context, *DevspliceRequest) (*DevspliceResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method DevSplice not implemented")
 }
@@ -2371,6 +2851,9 @@ func (UnimplementedNodeServer) BkprEditDescriptionByPaymentId(context.Context, *
 }
 func (UnimplementedNodeServer) BkprEditDescriptionByOutpoint(context.Context, *BkpreditdescriptionbyoutpointRequest) (*BkpreditdescriptionbyoutpointResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BkprEditDescriptionByOutpoint not implemented")
+}
+func (UnimplementedNodeServer) BkprReport(context.Context, *BkprreportRequest) (*BkprreportResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method BkprReport not implemented")
 }
 func (UnimplementedNodeServer) BlacklistRune(context.Context, *BlacklistruneRequest) (*BlacklistruneResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method BlacklistRune not implemented")
@@ -2453,6 +2936,18 @@ func (UnimplementedNodeServer) DelNetworkEvent(context.Context, *Delnetworkevent
 func (UnimplementedNodeServer) ClnrestRegisterPath(context.Context, *ClnrestregisterpathRequest) (*ClnrestregisterpathResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ClnrestRegisterPath not implemented")
 }
+func (UnimplementedNodeServer) ListCurrencyRates(context.Context, *ListcurrencyratesRequest) (*ListcurrencyratesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method ListCurrencyRates not implemented")
+}
+func (UnimplementedNodeServer) CurrencyConvert(context.Context, *CurrencyconvertRequest) (*CurrencyconvertResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CurrencyConvert not implemented")
+}
+func (UnimplementedNodeServer) CurrencyRate(context.Context, *CurrencyrateRequest) (*CurrencyrateResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CurrencyRate not implemented")
+}
+func (UnimplementedNodeServer) SubscribeBalanceSnapshot(*StreamBalanceSnapshotRequest, grpc.ServerStreamingServer[BalanceSnapshotNotification]) error {
+	return status.Error(codes.Unimplemented, "method SubscribeBalanceSnapshot not implemented")
+}
 func (UnimplementedNodeServer) SubscribeBlockAdded(*StreamBlockAddedRequest, grpc.ServerStreamingServer[BlockAddedNotification]) error {
 	return status.Error(codes.Unimplemented, "method SubscribeBlockAdded not implemented")
 }
@@ -2462,14 +2957,65 @@ func (UnimplementedNodeServer) SubscribeChannelOpenFailed(*StreamChannelOpenFail
 func (UnimplementedNodeServer) SubscribeChannelOpened(*StreamChannelOpenedRequest, grpc.ServerStreamingServer[ChannelOpenedNotification]) error {
 	return status.Error(codes.Unimplemented, "method SubscribeChannelOpened not implemented")
 }
+func (UnimplementedNodeServer) SubscribeChannelStateChanged(*StreamChannelStateChangedRequest, grpc.ServerStreamingServer[ChannelStateChangedNotification]) error {
+	return status.Error(codes.Unimplemented, "method SubscribeChannelStateChanged not implemented")
+}
 func (UnimplementedNodeServer) SubscribeConnect(*StreamConnectRequest, grpc.ServerStreamingServer[PeerConnectNotification]) error {
 	return status.Error(codes.Unimplemented, "method SubscribeConnect not implemented")
+}
+func (UnimplementedNodeServer) SubscribeCoinMovement(*StreamCoinMovementRequest, grpc.ServerStreamingServer[CoinMovementNotification]) error {
+	return status.Error(codes.Unimplemented, "method SubscribeCoinMovement not implemented")
 }
 func (UnimplementedNodeServer) SubscribeCustomMsg(*StreamCustomMsgRequest, grpc.ServerStreamingServer[CustomMsgNotification]) error {
 	return status.Error(codes.Unimplemented, "method SubscribeCustomMsg not implemented")
 }
-func (UnimplementedNodeServer) SubscribeChannelStateChanged(*StreamChannelStateChangedRequest, grpc.ServerStreamingServer[ChannelStateChangedNotification]) error {
-	return status.Error(codes.Unimplemented, "method SubscribeChannelStateChanged not implemented")
+func (UnimplementedNodeServer) SubscribeDeprecatedOneshot(*StreamDeprecatedOneshotRequest, grpc.ServerStreamingServer[DeprecatedOneshotNotification]) error {
+	return status.Error(codes.Unimplemented, "method SubscribeDeprecatedOneshot not implemented")
+}
+func (UnimplementedNodeServer) SubscribeDisconnect(*StreamDisconnectRequest, grpc.ServerStreamingServer[DisconnectNotification]) error {
+	return status.Error(codes.Unimplemented, "method SubscribeDisconnect not implemented")
+}
+func (UnimplementedNodeServer) SubscribeForwardEvent(*StreamForwardEventRequest, grpc.ServerStreamingServer[ForwardEventNotification]) error {
+	return status.Error(codes.Unimplemented, "method SubscribeForwardEvent not implemented")
+}
+func (UnimplementedNodeServer) SubscribeInvoiceCreation(*StreamInvoiceCreationRequest, grpc.ServerStreamingServer[InvoiceCreationNotification]) error {
+	return status.Error(codes.Unimplemented, "method SubscribeInvoiceCreation not implemented")
+}
+func (UnimplementedNodeServer) SubscribeInvoicePayment(*StreamInvoicePaymentRequest, grpc.ServerStreamingServer[InvoicePaymentNotification]) error {
+	return status.Error(codes.Unimplemented, "method SubscribeInvoicePayment not implemented")
+}
+func (UnimplementedNodeServer) SubscribeLog(*StreamLogRequest, grpc.ServerStreamingServer[LogNotification]) error {
+	return status.Error(codes.Unimplemented, "method SubscribeLog not implemented")
+}
+func (UnimplementedNodeServer) SubscribeOnionMessageForwardFail(*StreamOnionMessageForwardFailRequest, grpc.ServerStreamingServer[OnionMessageForwardFailNotification]) error {
+	return status.Error(codes.Unimplemented, "method SubscribeOnionMessageForwardFail not implemented")
+}
+func (UnimplementedNodeServer) SubscribeOpenChannelPeerSigs(*StreamOpenChannelPeerSigsRequest, grpc.ServerStreamingServer[OpenChannelPeerSigsNotification]) error {
+	return status.Error(codes.Unimplemented, "method SubscribeOpenChannelPeerSigs not implemented")
+}
+func (UnimplementedNodeServer) SubscribePluginStarted(*StreamPluginStartedRequest, grpc.ServerStreamingServer[PluginStartedNotification]) error {
+	return status.Error(codes.Unimplemented, "method SubscribePluginStarted not implemented")
+}
+func (UnimplementedNodeServer) SubscribePluginStopped(*StreamPluginStoppedRequest, grpc.ServerStreamingServer[PluginStoppedNotification]) error {
+	return status.Error(codes.Unimplemented, "method SubscribePluginStopped not implemented")
+}
+func (UnimplementedNodeServer) SubscribeSendPayFailure(*StreamSendPayFailureRequest, grpc.ServerStreamingServer[SendPayFailureNotification]) error {
+	return status.Error(codes.Unimplemented, "method SubscribeSendPayFailure not implemented")
+}
+func (UnimplementedNodeServer) SubscribeSendPaySuccess(*StreamSendPaySuccessRequest, grpc.ServerStreamingServer[SendPaySuccessNotification]) error {
+	return status.Error(codes.Unimplemented, "method SubscribeSendPaySuccess not implemented")
+}
+func (UnimplementedNodeServer) SubscribeShutdown(*StreamShutdownRequest, grpc.ServerStreamingServer[ShutdownNotification]) error {
+	return status.Error(codes.Unimplemented, "method SubscribeShutdown not implemented")
+}
+func (UnimplementedNodeServer) SubscribeWarning(*StreamWarningRequest, grpc.ServerStreamingServer[WarningNotification]) error {
+	return status.Error(codes.Unimplemented, "method SubscribeWarning not implemented")
+}
+func (UnimplementedNodeServer) SubscribePayPartEnd(*StreamPayPartEndRequest, grpc.ServerStreamingServer[PayPartEndNotification]) error {
+	return status.Error(codes.Unimplemented, "method SubscribePayPartEnd not implemented")
+}
+func (UnimplementedNodeServer) SubscribePayPartStart(*StreamPayPartStartRequest, grpc.ServerStreamingServer[PayPartStartNotification]) error {
+	return status.Error(codes.Unimplemented, "method SubscribePayPartStart not implemented")
 }
 func (UnimplementedNodeServer) mustEmbedUnimplementedNodeServer() {}
 func (UnimplementedNodeServer) testEmbeddedByValue()              {}
@@ -4220,6 +4766,42 @@ func _Node_SpliceUpdate_Handler(srv interface{}, ctx context.Context, dec func(i
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Node_SpliceIn_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SpliceinRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServer).SpliceIn(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Node_SpliceIn_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServer).SpliceIn(ctx, req.(*SpliceinRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Node_SpliceOut_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SpliceoutRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServer).SpliceOut(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Node_SpliceOut_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServer).SpliceOut(ctx, req.(*SpliceoutRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Node_DevSplice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DevspliceRequest)
 	if err := dec(in); err != nil {
@@ -4558,6 +5140,24 @@ func _Node_BkprEditDescriptionByOutpoint_Handler(srv interface{}, ctx context.Co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(NodeServer).BkprEditDescriptionByOutpoint(ctx, req.(*BkpreditdescriptionbyoutpointRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Node_BkprReport_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(BkprreportRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServer).BkprReport(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Node_BkprReport_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServer).BkprReport(ctx, req.(*BkprreportRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -5048,6 +5648,71 @@ func _Node_ClnrestRegisterPath_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Node_ListCurrencyRates_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListcurrencyratesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServer).ListCurrencyRates(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Node_ListCurrencyRates_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServer).ListCurrencyRates(ctx, req.(*ListcurrencyratesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Node_CurrencyConvert_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CurrencyconvertRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServer).CurrencyConvert(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Node_CurrencyConvert_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServer).CurrencyConvert(ctx, req.(*CurrencyconvertRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Node_CurrencyRate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CurrencyrateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServer).CurrencyRate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Node_CurrencyRate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServer).CurrencyRate(ctx, req.(*CurrencyrateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Node_SubscribeBalanceSnapshot_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamBalanceSnapshotRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NodeServer).SubscribeBalanceSnapshot(m, &grpc.GenericServerStream[StreamBalanceSnapshotRequest, BalanceSnapshotNotification]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeBalanceSnapshotServer = grpc.ServerStreamingServer[BalanceSnapshotNotification]
+
 func _Node_SubscribeBlockAdded_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(StreamBlockAddedRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -5081,6 +5746,17 @@ func _Node_SubscribeChannelOpened_Handler(srv interface{}, stream grpc.ServerStr
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Node_SubscribeChannelOpenedServer = grpc.ServerStreamingServer[ChannelOpenedNotification]
 
+func _Node_SubscribeChannelStateChanged_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamChannelStateChangedRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NodeServer).SubscribeChannelStateChanged(m, &grpc.GenericServerStream[StreamChannelStateChangedRequest, ChannelStateChangedNotification]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeChannelStateChangedServer = grpc.ServerStreamingServer[ChannelStateChangedNotification]
+
 func _Node_SubscribeConnect_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(StreamConnectRequest)
 	if err := stream.RecvMsg(m); err != nil {
@@ -5091,6 +5767,17 @@ func _Node_SubscribeConnect_Handler(srv interface{}, stream grpc.ServerStream) e
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Node_SubscribeConnectServer = grpc.ServerStreamingServer[PeerConnectNotification]
+
+func _Node_SubscribeCoinMovement_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamCoinMovementRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NodeServer).SubscribeCoinMovement(m, &grpc.GenericServerStream[StreamCoinMovementRequest, CoinMovementNotification]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeCoinMovementServer = grpc.ServerStreamingServer[CoinMovementNotification]
 
 func _Node_SubscribeCustomMsg_Handler(srv interface{}, stream grpc.ServerStream) error {
 	m := new(StreamCustomMsgRequest)
@@ -5103,16 +5790,181 @@ func _Node_SubscribeCustomMsg_Handler(srv interface{}, stream grpc.ServerStream)
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Node_SubscribeCustomMsgServer = grpc.ServerStreamingServer[CustomMsgNotification]
 
-func _Node_SubscribeChannelStateChanged_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(StreamChannelStateChangedRequest)
+func _Node_SubscribeDeprecatedOneshot_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamDeprecatedOneshotRequest)
 	if err := stream.RecvMsg(m); err != nil {
 		return err
 	}
-	return srv.(NodeServer).SubscribeChannelStateChanged(m, &grpc.GenericServerStream[StreamChannelStateChangedRequest, ChannelStateChangedNotification]{ServerStream: stream})
+	return srv.(NodeServer).SubscribeDeprecatedOneshot(m, &grpc.GenericServerStream[StreamDeprecatedOneshotRequest, DeprecatedOneshotNotification]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type Node_SubscribeChannelStateChangedServer = grpc.ServerStreamingServer[ChannelStateChangedNotification]
+type Node_SubscribeDeprecatedOneshotServer = grpc.ServerStreamingServer[DeprecatedOneshotNotification]
+
+func _Node_SubscribeDisconnect_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamDisconnectRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NodeServer).SubscribeDisconnect(m, &grpc.GenericServerStream[StreamDisconnectRequest, DisconnectNotification]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeDisconnectServer = grpc.ServerStreamingServer[DisconnectNotification]
+
+func _Node_SubscribeForwardEvent_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamForwardEventRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NodeServer).SubscribeForwardEvent(m, &grpc.GenericServerStream[StreamForwardEventRequest, ForwardEventNotification]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeForwardEventServer = grpc.ServerStreamingServer[ForwardEventNotification]
+
+func _Node_SubscribeInvoiceCreation_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamInvoiceCreationRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NodeServer).SubscribeInvoiceCreation(m, &grpc.GenericServerStream[StreamInvoiceCreationRequest, InvoiceCreationNotification]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeInvoiceCreationServer = grpc.ServerStreamingServer[InvoiceCreationNotification]
+
+func _Node_SubscribeInvoicePayment_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamInvoicePaymentRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NodeServer).SubscribeInvoicePayment(m, &grpc.GenericServerStream[StreamInvoicePaymentRequest, InvoicePaymentNotification]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeInvoicePaymentServer = grpc.ServerStreamingServer[InvoicePaymentNotification]
+
+func _Node_SubscribeLog_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamLogRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NodeServer).SubscribeLog(m, &grpc.GenericServerStream[StreamLogRequest, LogNotification]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeLogServer = grpc.ServerStreamingServer[LogNotification]
+
+func _Node_SubscribeOnionMessageForwardFail_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamOnionMessageForwardFailRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NodeServer).SubscribeOnionMessageForwardFail(m, &grpc.GenericServerStream[StreamOnionMessageForwardFailRequest, OnionMessageForwardFailNotification]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeOnionMessageForwardFailServer = grpc.ServerStreamingServer[OnionMessageForwardFailNotification]
+
+func _Node_SubscribeOpenChannelPeerSigs_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamOpenChannelPeerSigsRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NodeServer).SubscribeOpenChannelPeerSigs(m, &grpc.GenericServerStream[StreamOpenChannelPeerSigsRequest, OpenChannelPeerSigsNotification]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeOpenChannelPeerSigsServer = grpc.ServerStreamingServer[OpenChannelPeerSigsNotification]
+
+func _Node_SubscribePluginStarted_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamPluginStartedRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NodeServer).SubscribePluginStarted(m, &grpc.GenericServerStream[StreamPluginStartedRequest, PluginStartedNotification]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribePluginStartedServer = grpc.ServerStreamingServer[PluginStartedNotification]
+
+func _Node_SubscribePluginStopped_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamPluginStoppedRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NodeServer).SubscribePluginStopped(m, &grpc.GenericServerStream[StreamPluginStoppedRequest, PluginStoppedNotification]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribePluginStoppedServer = grpc.ServerStreamingServer[PluginStoppedNotification]
+
+func _Node_SubscribeSendPayFailure_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamSendPayFailureRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NodeServer).SubscribeSendPayFailure(m, &grpc.GenericServerStream[StreamSendPayFailureRequest, SendPayFailureNotification]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeSendPayFailureServer = grpc.ServerStreamingServer[SendPayFailureNotification]
+
+func _Node_SubscribeSendPaySuccess_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamSendPaySuccessRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NodeServer).SubscribeSendPaySuccess(m, &grpc.GenericServerStream[StreamSendPaySuccessRequest, SendPaySuccessNotification]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeSendPaySuccessServer = grpc.ServerStreamingServer[SendPaySuccessNotification]
+
+func _Node_SubscribeShutdown_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamShutdownRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NodeServer).SubscribeShutdown(m, &grpc.GenericServerStream[StreamShutdownRequest, ShutdownNotification]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeShutdownServer = grpc.ServerStreamingServer[ShutdownNotification]
+
+func _Node_SubscribeWarning_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamWarningRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NodeServer).SubscribeWarning(m, &grpc.GenericServerStream[StreamWarningRequest, WarningNotification]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribeWarningServer = grpc.ServerStreamingServer[WarningNotification]
+
+func _Node_SubscribePayPartEnd_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamPayPartEndRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NodeServer).SubscribePayPartEnd(m, &grpc.GenericServerStream[StreamPayPartEndRequest, PayPartEndNotification]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribePayPartEndServer = grpc.ServerStreamingServer[PayPartEndNotification]
+
+func _Node_SubscribePayPartStart_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(StreamPayPartStartRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(NodeServer).SubscribePayPartStart(m, &grpc.GenericServerStream[StreamPayPartStartRequest, PayPartStartNotification]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type Node_SubscribePayPartStartServer = grpc.ServerStreamingServer[PayPartStartNotification]
 
 // Node_ServiceDesc is the grpc.ServiceDesc for Node service.
 // It's only intended for direct use with grpc.RegisterService,
@@ -5506,6 +6358,14 @@ var Node_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Node_SpliceUpdate_Handler,
 		},
 		{
+			MethodName: "SpliceIn",
+			Handler:    _Node_SpliceIn_Handler,
+		},
+		{
+			MethodName: "SpliceOut",
+			Handler:    _Node_SpliceOut_Handler,
+		},
+		{
 			MethodName: "DevSplice",
 			Handler:    _Node_DevSplice_Handler,
 		},
@@ -5580,6 +6440,10 @@ var Node_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BkprEditDescriptionByOutpoint",
 			Handler:    _Node_BkprEditDescriptionByOutpoint_Handler,
+		},
+		{
+			MethodName: "BkprReport",
+			Handler:    _Node_BkprReport_Handler,
 		},
 		{
 			MethodName: "BlacklistRune",
@@ -5689,8 +6553,25 @@ var Node_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "ClnrestRegisterPath",
 			Handler:    _Node_ClnrestRegisterPath_Handler,
 		},
+		{
+			MethodName: "ListCurrencyRates",
+			Handler:    _Node_ListCurrencyRates_Handler,
+		},
+		{
+			MethodName: "CurrencyConvert",
+			Handler:    _Node_CurrencyConvert_Handler,
+		},
+		{
+			MethodName: "CurrencyRate",
+			Handler:    _Node_CurrencyRate_Handler,
+		},
 	},
 	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "SubscribeBalanceSnapshot",
+			Handler:       _Node_SubscribeBalanceSnapshot_Handler,
+			ServerStreams: true,
+		},
 		{
 			StreamName:    "SubscribeBlockAdded",
 			Handler:       _Node_SubscribeBlockAdded_Handler,
@@ -5707,8 +6588,18 @@ var Node_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
+			StreamName:    "SubscribeChannelStateChanged",
+			Handler:       _Node_SubscribeChannelStateChanged_Handler,
+			ServerStreams: true,
+		},
+		{
 			StreamName:    "SubscribeConnect",
 			Handler:       _Node_SubscribeConnect_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeCoinMovement",
+			Handler:       _Node_SubscribeCoinMovement_Handler,
 			ServerStreams: true,
 		},
 		{
@@ -5717,8 +6608,83 @@ var Node_ServiceDesc = grpc.ServiceDesc{
 			ServerStreams: true,
 		},
 		{
-			StreamName:    "SubscribeChannelStateChanged",
-			Handler:       _Node_SubscribeChannelStateChanged_Handler,
+			StreamName:    "SubscribeDeprecatedOneshot",
+			Handler:       _Node_SubscribeDeprecatedOneshot_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeDisconnect",
+			Handler:       _Node_SubscribeDisconnect_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeForwardEvent",
+			Handler:       _Node_SubscribeForwardEvent_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeInvoiceCreation",
+			Handler:       _Node_SubscribeInvoiceCreation_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeInvoicePayment",
+			Handler:       _Node_SubscribeInvoicePayment_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeLog",
+			Handler:       _Node_SubscribeLog_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeOnionMessageForwardFail",
+			Handler:       _Node_SubscribeOnionMessageForwardFail_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeOpenChannelPeerSigs",
+			Handler:       _Node_SubscribeOpenChannelPeerSigs_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribePluginStarted",
+			Handler:       _Node_SubscribePluginStarted_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribePluginStopped",
+			Handler:       _Node_SubscribePluginStopped_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeSendPayFailure",
+			Handler:       _Node_SubscribeSendPayFailure_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeSendPaySuccess",
+			Handler:       _Node_SubscribeSendPaySuccess_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeShutdown",
+			Handler:       _Node_SubscribeShutdown_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribeWarning",
+			Handler:       _Node_SubscribeWarning_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribePayPartEnd",
+			Handler:       _Node_SubscribePayPartEnd_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "SubscribePayPartStart",
+			Handler:       _Node_SubscribePayPartStart_Handler,
 			ServerStreams: true,
 		},
 	},

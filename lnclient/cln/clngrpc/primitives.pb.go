@@ -84,6 +84,7 @@ const (
 	ChannelState_ChanneldAwaitingSplice    ChannelState = 11
 	ChannelState_DualopendOpenCommitted    ChannelState = 12
 	ChannelState_DualopendOpenCommittReady ChannelState = 13
+	ChannelState_Closed                    ChannelState = 14
 )
 
 // Enum value maps for ChannelState.
@@ -103,6 +104,7 @@ var (
 		11: "ChanneldAwaitingSplice",
 		12: "DualopendOpenCommitted",
 		13: "DualopendOpenCommittReady",
+		14: "Closed",
 	}
 	ChannelState_value = map[string]int32{
 		"Openingd":                  0,
@@ -119,6 +121,7 @@ var (
 		"ChanneldAwaitingSplice":    11,
 		"DualopendOpenCommitted":    12,
 		"DualopendOpenCommittReady": 13,
+		"Closed":                    14,
 	}
 )
 
@@ -1286,6 +1289,468 @@ func (x *TlvStream) GetEntries() []*TlvEntry {
 	return nil
 }
 
+type JsonObjectOrArray struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Structure:
+	//
+	//	*JsonObjectOrArray_Object
+	//	*JsonObjectOrArray_Array
+	Structure     isJsonObjectOrArray_Structure `protobuf_oneof:"structure"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *JsonObjectOrArray) Reset() {
+	*x = JsonObjectOrArray{}
+	mi := &file_primitives_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *JsonObjectOrArray) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*JsonObjectOrArray) ProtoMessage() {}
+
+func (x *JsonObjectOrArray) ProtoReflect() protoreflect.Message {
+	mi := &file_primitives_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use JsonObjectOrArray.ProtoReflect.Descriptor instead.
+func (*JsonObjectOrArray) Descriptor() ([]byte, []int) {
+	return file_primitives_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *JsonObjectOrArray) GetStructure() isJsonObjectOrArray_Structure {
+	if x != nil {
+		return x.Structure
+	}
+	return nil
+}
+
+func (x *JsonObjectOrArray) GetObject() *JsonObject {
+	if x != nil {
+		if x, ok := x.Structure.(*JsonObjectOrArray_Object); ok {
+			return x.Object
+		}
+	}
+	return nil
+}
+
+func (x *JsonObjectOrArray) GetArray() *JsonArray {
+	if x != nil {
+		if x, ok := x.Structure.(*JsonObjectOrArray_Array); ok {
+			return x.Array
+		}
+	}
+	return nil
+}
+
+type isJsonObjectOrArray_Structure interface {
+	isJsonObjectOrArray_Structure()
+}
+
+type JsonObjectOrArray_Object struct {
+	Object *JsonObject `protobuf:"bytes,1,opt,name=object,proto3,oneof"`
+}
+
+type JsonObjectOrArray_Array struct {
+	Array *JsonArray `protobuf:"bytes,2,opt,name=array,proto3,oneof"`
+}
+
+func (*JsonObjectOrArray_Object) isJsonObjectOrArray_Structure() {}
+
+func (*JsonObjectOrArray_Array) isJsonObjectOrArray_Structure() {}
+
+type JsonObject struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Fields        map[string]*JsonValue  `protobuf:"bytes,1,rep,name=fields,proto3" json:"fields,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *JsonObject) Reset() {
+	*x = JsonObject{}
+	mi := &file_primitives_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *JsonObject) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*JsonObject) ProtoMessage() {}
+
+func (x *JsonObject) ProtoReflect() protoreflect.Message {
+	mi := &file_primitives_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use JsonObject.ProtoReflect.Descriptor instead.
+func (*JsonObject) Descriptor() ([]byte, []int) {
+	return file_primitives_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *JsonObject) GetFields() map[string]*JsonValue {
+	if x != nil {
+		return x.Fields
+	}
+	return nil
+}
+
+type JsonArray struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Values        []*JsonValue           `protobuf:"bytes,1,rep,name=values,proto3" json:"values,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *JsonArray) Reset() {
+	*x = JsonArray{}
+	mi := &file_primitives_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *JsonArray) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*JsonArray) ProtoMessage() {}
+
+func (x *JsonArray) ProtoReflect() protoreflect.Message {
+	mi := &file_primitives_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use JsonArray.ProtoReflect.Descriptor instead.
+func (*JsonArray) Descriptor() ([]byte, []int) {
+	return file_primitives_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *JsonArray) GetValues() []*JsonValue {
+	if x != nil {
+		return x.Values
+	}
+	return nil
+}
+
+type JsonValue struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Kind:
+	//
+	//	*JsonValue_BoolValue
+	//	*JsonValue_IntValue
+	//	*JsonValue_UintValue
+	//	*JsonValue_DoubleValue
+	//	*JsonValue_StringValue
+	//	*JsonValue_Array
+	//	*JsonValue_Object
+	Kind          isJsonValue_Kind `protobuf_oneof:"kind"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *JsonValue) Reset() {
+	*x = JsonValue{}
+	mi := &file_primitives_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *JsonValue) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*JsonValue) ProtoMessage() {}
+
+func (x *JsonValue) ProtoReflect() protoreflect.Message {
+	mi := &file_primitives_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use JsonValue.ProtoReflect.Descriptor instead.
+func (*JsonValue) Descriptor() ([]byte, []int) {
+	return file_primitives_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *JsonValue) GetKind() isJsonValue_Kind {
+	if x != nil {
+		return x.Kind
+	}
+	return nil
+}
+
+func (x *JsonValue) GetBoolValue() bool {
+	if x != nil {
+		if x, ok := x.Kind.(*JsonValue_BoolValue); ok {
+			return x.BoolValue
+		}
+	}
+	return false
+}
+
+func (x *JsonValue) GetIntValue() int64 {
+	if x != nil {
+		if x, ok := x.Kind.(*JsonValue_IntValue); ok {
+			return x.IntValue
+		}
+	}
+	return 0
+}
+
+func (x *JsonValue) GetUintValue() uint64 {
+	if x != nil {
+		if x, ok := x.Kind.(*JsonValue_UintValue); ok {
+			return x.UintValue
+		}
+	}
+	return 0
+}
+
+func (x *JsonValue) GetDoubleValue() float64 {
+	if x != nil {
+		if x, ok := x.Kind.(*JsonValue_DoubleValue); ok {
+			return x.DoubleValue
+		}
+	}
+	return 0
+}
+
+func (x *JsonValue) GetStringValue() string {
+	if x != nil {
+		if x, ok := x.Kind.(*JsonValue_StringValue); ok {
+			return x.StringValue
+		}
+	}
+	return ""
+}
+
+func (x *JsonValue) GetArray() *JsonArray {
+	if x != nil {
+		if x, ok := x.Kind.(*JsonValue_Array); ok {
+			return x.Array
+		}
+	}
+	return nil
+}
+
+func (x *JsonValue) GetObject() *JsonObject {
+	if x != nil {
+		if x, ok := x.Kind.(*JsonValue_Object); ok {
+			return x.Object
+		}
+	}
+	return nil
+}
+
+type isJsonValue_Kind interface {
+	isJsonValue_Kind()
+}
+
+type JsonValue_BoolValue struct {
+	BoolValue bool `protobuf:"varint,1,opt,name=bool_value,json=boolValue,proto3,oneof"`
+}
+
+type JsonValue_IntValue struct {
+	IntValue int64 `protobuf:"varint,2,opt,name=int_value,json=intValue,proto3,oneof"`
+}
+
+type JsonValue_UintValue struct {
+	UintValue uint64 `protobuf:"varint,3,opt,name=uint_value,json=uintValue,proto3,oneof"`
+}
+
+type JsonValue_DoubleValue struct {
+	DoubleValue float64 `protobuf:"fixed64,4,opt,name=double_value,json=doubleValue,proto3,oneof"`
+}
+
+type JsonValue_StringValue struct {
+	StringValue string `protobuf:"bytes,5,opt,name=string_value,json=stringValue,proto3,oneof"`
+}
+
+type JsonValue_Array struct {
+	Array *JsonArray `protobuf:"bytes,6,opt,name=array,proto3,oneof"`
+}
+
+type JsonValue_Object struct {
+	Object *JsonObject `protobuf:"bytes,7,opt,name=object,proto3,oneof"`
+}
+
+func (*JsonValue_BoolValue) isJsonValue_Kind() {}
+
+func (*JsonValue_IntValue) isJsonValue_Kind() {}
+
+func (*JsonValue_UintValue) isJsonValue_Kind() {}
+
+func (*JsonValue_DoubleValue) isJsonValue_Kind() {}
+
+func (*JsonValue_StringValue) isJsonValue_Kind() {}
+
+func (*JsonValue_Array) isJsonValue_Kind() {}
+
+func (*JsonValue_Object) isJsonValue_Kind() {}
+
+type JsonScalar struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Scalar:
+	//
+	//	*JsonScalar_BoolValue
+	//	*JsonScalar_IntValue
+	//	*JsonScalar_UintValue
+	//	*JsonScalar_DoubleValue
+	//	*JsonScalar_StringValue
+	Scalar        isJsonScalar_Scalar `protobuf_oneof:"scalar"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *JsonScalar) Reset() {
+	*x = JsonScalar{}
+	mi := &file_primitives_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *JsonScalar) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*JsonScalar) ProtoMessage() {}
+
+func (x *JsonScalar) ProtoReflect() protoreflect.Message {
+	mi := &file_primitives_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use JsonScalar.ProtoReflect.Descriptor instead.
+func (*JsonScalar) Descriptor() ([]byte, []int) {
+	return file_primitives_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *JsonScalar) GetScalar() isJsonScalar_Scalar {
+	if x != nil {
+		return x.Scalar
+	}
+	return nil
+}
+
+func (x *JsonScalar) GetBoolValue() bool {
+	if x != nil {
+		if x, ok := x.Scalar.(*JsonScalar_BoolValue); ok {
+			return x.BoolValue
+		}
+	}
+	return false
+}
+
+func (x *JsonScalar) GetIntValue() int64 {
+	if x != nil {
+		if x, ok := x.Scalar.(*JsonScalar_IntValue); ok {
+			return x.IntValue
+		}
+	}
+	return 0
+}
+
+func (x *JsonScalar) GetUintValue() uint64 {
+	if x != nil {
+		if x, ok := x.Scalar.(*JsonScalar_UintValue); ok {
+			return x.UintValue
+		}
+	}
+	return 0
+}
+
+func (x *JsonScalar) GetDoubleValue() float64 {
+	if x != nil {
+		if x, ok := x.Scalar.(*JsonScalar_DoubleValue); ok {
+			return x.DoubleValue
+		}
+	}
+	return 0
+}
+
+func (x *JsonScalar) GetStringValue() string {
+	if x != nil {
+		if x, ok := x.Scalar.(*JsonScalar_StringValue); ok {
+			return x.StringValue
+		}
+	}
+	return ""
+}
+
+type isJsonScalar_Scalar interface {
+	isJsonScalar_Scalar()
+}
+
+type JsonScalar_BoolValue struct {
+	BoolValue bool `protobuf:"varint,1,opt,name=bool_value,json=boolValue,proto3,oneof"`
+}
+
+type JsonScalar_IntValue struct {
+	IntValue int64 `protobuf:"varint,2,opt,name=int_value,json=intValue,proto3,oneof"`
+}
+
+type JsonScalar_UintValue struct {
+	UintValue uint64 `protobuf:"varint,3,opt,name=uint_value,json=uintValue,proto3,oneof"`
+}
+
+type JsonScalar_DoubleValue struct {
+	DoubleValue float64 `protobuf:"fixed64,4,opt,name=double_value,json=doubleValue,proto3,oneof"`
+}
+
+type JsonScalar_StringValue struct {
+	StringValue string `protobuf:"bytes,5,opt,name=string_value,json=stringValue,proto3,oneof"`
+}
+
+func (*JsonScalar_BoolValue) isJsonScalar_Scalar() {}
+
+func (*JsonScalar_IntValue) isJsonScalar_Scalar() {}
+
+func (*JsonScalar_UintValue) isJsonScalar_Scalar() {}
+
+func (*JsonScalar_DoubleValue) isJsonScalar_Scalar() {}
+
+func (*JsonScalar_StringValue) isJsonScalar_Scalar() {}
+
 var File_primitives_proto protoreflect.FileDescriptor
 
 const file_primitives_proto_rawDesc = "" +
@@ -1339,11 +1804,44 @@ const file_primitives_proto_rawDesc = "" +
 	"\x04type\x18\x01 \x01(\x04R\x04type\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\fR\x05value\"4\n" +
 	"\tTlvStream\x12'\n" +
-	"\aentries\x18\x01 \x03(\v2\r.cln.TlvEntryR\aentries*$\n" +
+	"\aentries\x18\x01 \x03(\v2\r.cln.TlvEntryR\aentries\"s\n" +
+	"\x11JsonObjectOrArray\x12)\n" +
+	"\x06object\x18\x01 \x01(\v2\x0f.cln.JsonObjectH\x00R\x06object\x12&\n" +
+	"\x05array\x18\x02 \x01(\v2\x0e.cln.JsonArrayH\x00R\x05arrayB\v\n" +
+	"\tstructure\"\x8c\x01\n" +
+	"\n" +
+	"JsonObject\x123\n" +
+	"\x06fields\x18\x01 \x03(\v2\x1b.cln.JsonObject.FieldsEntryR\x06fields\x1aI\n" +
+	"\vFieldsEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12$\n" +
+	"\x05value\x18\x02 \x01(\v2\x0e.cln.JsonValueR\x05value:\x028\x01\"3\n" +
+	"\tJsonArray\x12&\n" +
+	"\x06values\x18\x01 \x03(\v2\x0e.cln.JsonValueR\x06values\"\x91\x02\n" +
+	"\tJsonValue\x12\x1f\n" +
+	"\n" +
+	"bool_value\x18\x01 \x01(\bH\x00R\tboolValue\x12\x1d\n" +
+	"\tint_value\x18\x02 \x01(\x03H\x00R\bintValue\x12\x1f\n" +
+	"\n" +
+	"uint_value\x18\x03 \x01(\x04H\x00R\tuintValue\x12#\n" +
+	"\fdouble_value\x18\x04 \x01(\x01H\x00R\vdoubleValue\x12#\n" +
+	"\fstring_value\x18\x05 \x01(\tH\x00R\vstringValue\x12&\n" +
+	"\x05array\x18\x06 \x01(\v2\x0e.cln.JsonArrayH\x00R\x05array\x12)\n" +
+	"\x06object\x18\a \x01(\v2\x0f.cln.JsonObjectH\x00R\x06objectB\x06\n" +
+	"\x04kind\"\xc1\x01\n" +
+	"\n" +
+	"JsonScalar\x12\x1f\n" +
+	"\n" +
+	"bool_value\x18\x01 \x01(\bH\x00R\tboolValue\x12\x1d\n" +
+	"\tint_value\x18\x02 \x01(\x03H\x00R\bintValue\x12\x1f\n" +
+	"\n" +
+	"uint_value\x18\x03 \x01(\x04H\x00R\tuintValue\x12#\n" +
+	"\fdouble_value\x18\x04 \x01(\x01H\x00R\vdoubleValue\x12#\n" +
+	"\fstring_value\x18\x05 \x01(\tH\x00R\vstringValueB\b\n" +
+	"\x06scalar*$\n" +
 	"\vChannelSide\x12\t\n" +
 	"\x05LOCAL\x10\x00\x12\n" +
 	"\n" +
-	"\x06REMOTE\x10\x01*\xdb\x02\n" +
+	"\x06REMOTE\x10\x01*\xe7\x02\n" +
 	"\fChannelState\x12\f\n" +
 	"\bOpeningd\x10\x00\x12\x1a\n" +
 	"\x16ChanneldAwaitingLockin\x10\x01\x12\x12\n" +
@@ -1359,7 +1857,9 @@ const file_primitives_proto_rawDesc = "" +
 	"\x12\x1a\n" +
 	"\x16ChanneldAwaitingSplice\x10\v\x12\x1a\n" +
 	"\x16DualopendOpenCommitted\x10\f\x12\x1d\n" +
-	"\x19DualopendOpenCommittReady\x10\r*\xd5\x03\n" +
+	"\x19DualopendOpenCommittReady\x10\r\x12\n" +
+	"\n" +
+	"\x06Closed\x10\x0e*\xd5\x03\n" +
 	"\tHtlcState\x12\x0f\n" +
 	"\vSentAddHtlc\x10\x00\x12\x11\n" +
 	"\rSentAddCommit\x10\x01\x12\x15\n" +
@@ -1418,7 +1918,7 @@ func file_primitives_proto_rawDescGZIP() []byte {
 }
 
 var file_primitives_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_primitives_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_primitives_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_primitives_proto_goTypes = []any{
 	(ChannelSide)(0),            // 0: cln.ChannelSide
 	(ChannelState)(0),           // 1: cln.ChannelState
@@ -1440,6 +1940,12 @@ var file_primitives_proto_goTypes = []any{
 	(*DecodeRoutehintList)(nil), // 17: cln.DecodeRoutehintList
 	(*TlvEntry)(nil),            // 18: cln.TlvEntry
 	(*TlvStream)(nil),           // 19: cln.TlvStream
+	(*JsonObjectOrArray)(nil),   // 20: cln.JsonObjectOrArray
+	(*JsonObject)(nil),          // 21: cln.JsonObject
+	(*JsonArray)(nil),           // 22: cln.JsonArray
+	(*JsonValue)(nil),           // 23: cln.JsonValue
+	(*JsonScalar)(nil),          // 24: cln.JsonScalar
+	nil,                         // 25: cln.JsonObject.FieldsEntry
 }
 var file_primitives_proto_depIdxs = []int32{
 	6,  // 0: cln.AmountOrAll.amount:type_name -> cln.Amount
@@ -1452,11 +1958,18 @@ var file_primitives_proto_depIdxs = []int32{
 	15, // 7: cln.DecodeRoutehint.hops:type_name -> cln.DecodeRouteHop
 	16, // 8: cln.DecodeRoutehintList.hints:type_name -> cln.DecodeRoutehint
 	18, // 9: cln.TlvStream.entries:type_name -> cln.TlvEntry
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	21, // 10: cln.JsonObjectOrArray.object:type_name -> cln.JsonObject
+	22, // 11: cln.JsonObjectOrArray.array:type_name -> cln.JsonArray
+	25, // 12: cln.JsonObject.fields:type_name -> cln.JsonObject.FieldsEntry
+	23, // 13: cln.JsonArray.values:type_name -> cln.JsonValue
+	22, // 14: cln.JsonValue.array:type_name -> cln.JsonArray
+	21, // 15: cln.JsonValue.object:type_name -> cln.JsonObject
+	23, // 16: cln.JsonObject.FieldsEntry.value:type_name -> cln.JsonValue
+	17, // [17:17] is the sub-list for method output_type
+	17, // [17:17] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_primitives_proto_init() }
@@ -1479,13 +1992,33 @@ func file_primitives_proto_init() {
 		(*Feerate_Perkb)(nil),
 		(*Feerate_Perkw)(nil),
 	}
+	file_primitives_proto_msgTypes[14].OneofWrappers = []any{
+		(*JsonObjectOrArray_Object)(nil),
+		(*JsonObjectOrArray_Array)(nil),
+	}
+	file_primitives_proto_msgTypes[17].OneofWrappers = []any{
+		(*JsonValue_BoolValue)(nil),
+		(*JsonValue_IntValue)(nil),
+		(*JsonValue_UintValue)(nil),
+		(*JsonValue_DoubleValue)(nil),
+		(*JsonValue_StringValue)(nil),
+		(*JsonValue_Array)(nil),
+		(*JsonValue_Object)(nil),
+	}
+	file_primitives_proto_msgTypes[18].OneofWrappers = []any{
+		(*JsonScalar_BoolValue)(nil),
+		(*JsonScalar_IntValue)(nil),
+		(*JsonScalar_UintValue)(nil),
+		(*JsonScalar_DoubleValue)(nil),
+		(*JsonScalar_StringValue)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_primitives_proto_rawDesc), len(file_primitives_proto_rawDesc)),
 			NumEnums:      6,
-			NumMessages:   14,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

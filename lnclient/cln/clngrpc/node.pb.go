@@ -2775,7 +2775,7 @@ func (x WaitRequest_WaitSubsystem) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use WaitRequest_WaitSubsystem.Descriptor instead.
 func (WaitRequest_WaitSubsystem) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{298, 0}
+	return file_node_proto_rawDescGZIP(), []int{302, 0}
 }
 
 // Wait.indexname
@@ -2825,7 +2825,7 @@ func (x WaitRequest_WaitIndexname) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use WaitRequest_WaitIndexname.Descriptor instead.
 func (WaitRequest_WaitIndexname) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{298, 1}
+	return file_node_proto_rawDescGZIP(), []int{302, 1}
 }
 
 // Wait.subsystem
@@ -2887,7 +2887,7 @@ func (x WaitResponse_WaitSubsystem) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use WaitResponse_WaitSubsystem.Descriptor instead.
 func (WaitResponse_WaitSubsystem) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{299, 0}
+	return file_node_proto_rawDescGZIP(), []int{303, 0}
 }
 
 // Wait.forwards.status
@@ -2940,7 +2940,7 @@ func (x WaitForwards_WaitForwardsStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use WaitForwards_WaitForwardsStatus.Descriptor instead.
 func (WaitForwards_WaitForwardsStatus) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{300, 0}
+	return file_node_proto_rawDescGZIP(), []int{304, 0}
 }
 
 // Wait.invoices.status
@@ -2990,7 +2990,7 @@ func (x WaitInvoices_WaitInvoicesStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use WaitInvoices_WaitInvoicesStatus.Descriptor instead.
 func (WaitInvoices_WaitInvoicesStatus) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{301, 0}
+	return file_node_proto_rawDescGZIP(), []int{305, 0}
 }
 
 // Wait.sendpays.status
@@ -3040,7 +3040,7 @@ func (x WaitSendpays_WaitSendpaysStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use WaitSendpays_WaitSendpaysStatus.Descriptor instead.
 func (WaitSendpays_WaitSendpaysStatus) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{302, 0}
+	return file_node_proto_rawDescGZIP(), []int{306, 0}
 }
 
 // Wait.htlcs.direction
@@ -3087,7 +3087,7 @@ func (x WaitHtlcs_WaitHtlcsDirection) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use WaitHtlcs_WaitHtlcsDirection.Descriptor instead.
 func (WaitHtlcs_WaitHtlcsDirection) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{303, 0}
+	return file_node_proto_rawDescGZIP(), []int{307, 0}
 }
 
 // Wait.networkevents.type
@@ -3140,7 +3140,7 @@ func (x WaitNetworkevents_WaitNetworkeventsType) Number() protoreflect.EnumNumbe
 
 // Deprecated: Use WaitNetworkevents_WaitNetworkeventsType.Descriptor instead.
 func (WaitNetworkevents_WaitNetworkeventsType) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{306, 0}
+	return file_node_proto_rawDescGZIP(), []int{310, 0}
 }
 
 // Wait.details.status
@@ -3208,7 +3208,7 @@ func (x WaitDetails_WaitDetailsStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use WaitDetails_WaitDetailsStatus.Descriptor instead.
 func (WaitDetails_WaitDetailsStatus) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{307, 0}
+	return file_node_proto_rawDescGZIP(), []int{311, 0}
 }
 
 // ListConfigs.configs.conf.source
@@ -3252,7 +3252,7 @@ func (x ListconfigsConfigsConf_ListconfigsConfigsConfSource) Number() protorefle
 
 // Deprecated: Use ListconfigsConfigsConf_ListconfigsConfigsConfSource.Descriptor instead.
 func (ListconfigsConfigsConf_ListconfigsConfigsConfSource) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{311, 0}
+	return file_node_proto_rawDescGZIP(), []int{315, 0}
 }
 
 // ListConfigs.configs.announce-addr-discovered.value_str
@@ -3302,7 +3302,7 @@ func (x ListconfigsConfigsAnnounceaddrdiscovered_ListconfigsConfigsAnnounceaddrd
 
 // Deprecated: Use ListconfigsConfigsAnnounceaddrdiscovered_ListconfigsConfigsAnnounceaddrdiscoveredValueStr.Descriptor instead.
 func (ListconfigsConfigsAnnounceaddrdiscovered_ListconfigsConfigsAnnounceaddrdiscoveredValueStr) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{364, 0}
+	return file_node_proto_rawDescGZIP(), []int{368, 0}
 }
 
 // Stop.result
@@ -3346,7 +3346,7 @@ func (x StopResponse_StopResult) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use StopResponse_StopResult.Descriptor instead.
 func (StopResponse_StopResult) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{382, 0}
+	return file_node_proto_rawDescGZIP(), []int{388, 0}
 }
 
 // Help.format-hint
@@ -3390,7 +3390,7 @@ func (x HelpResponse_HelpFormathint) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use HelpResponse_HelpFormathint.Descriptor instead.
 func (HelpResponse_HelpFormathint) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{384, 0}
+	return file_node_proto_rawDescGZIP(), []int{390, 0}
 }
 
 // Bkpr-DumpIncomeCsv.csv_format
@@ -3443,7 +3443,7 @@ func (x BkprdumpincomecsvResponse_BkprdumpincomecsvCsvFormat) Number() protorefl
 
 // Deprecated: Use BkprdumpincomecsvResponse_BkprdumpincomecsvCsvFormat.Descriptor instead.
 func (BkprdumpincomecsvResponse_BkprdumpincomecsvCsvFormat) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{396, 0}
+	return file_node_proto_rawDescGZIP(), []int{402, 0}
 }
 
 // Bkpr-ListAccountEvents.events[].type
@@ -3493,7 +3493,7 @@ func (x BkprlistaccounteventsEvents_BkprlistaccounteventsEventsType) Number() pr
 
 // Deprecated: Use BkprlistaccounteventsEvents_BkprlistaccounteventsEventsType.Descriptor instead.
 func (BkprlistaccounteventsEvents_BkprlistaccounteventsEventsType) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{403, 0}
+	return file_node_proto_rawDescGZIP(), []int{409, 0}
 }
 
 // Bkpr-EditDescriptionByPaymentId.updated[].type
@@ -3540,7 +3540,7 @@ func (x BkpreditdescriptionbypaymentidUpdated_BkpreditdescriptionbypaymentidUpda
 
 // Deprecated: Use BkpreditdescriptionbypaymentidUpdated_BkpreditdescriptionbypaymentidUpdatedType.Descriptor instead.
 func (BkpreditdescriptionbypaymentidUpdated_BkpreditdescriptionbypaymentidUpdatedType) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{413, 0}
+	return file_node_proto_rawDescGZIP(), []int{419, 0}
 }
 
 // Bkpr-EditDescriptionByOutpoint.updated[].type
@@ -3587,7 +3587,7 @@ func (x BkpreditdescriptionbyoutpointUpdated_BkpreditdescriptionbyoutpointUpdate
 
 // Deprecated: Use BkpreditdescriptionbyoutpointUpdated_BkpreditdescriptionbyoutpointUpdatedType.Descriptor instead.
 func (BkpreditdescriptionbyoutpointUpdated_BkpreditdescriptionbyoutpointUpdatedType) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{416, 0}
+	return file_node_proto_rawDescGZIP(), []int{422, 0}
 }
 
 // AskRene-Inform-Channel.inform
@@ -3637,7 +3637,7 @@ func (x AskreneinformchannelRequest_AskreneinformchannelInform) Number() protore
 
 // Deprecated: Use AskreneinformchannelRequest_AskreneinformchannelInform.Descriptor instead.
 func (AskreneinformchannelRequest_AskreneinformchannelInform) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{461, 0}
+	return file_node_proto_rawDescGZIP(), []int{469, 0}
 }
 
 // ListChannelMoves.index
@@ -3681,7 +3681,7 @@ func (x ListchannelmovesRequest_ListchannelmovesIndex) Number() protoreflect.Enu
 
 // Deprecated: Use ListchannelmovesRequest_ListchannelmovesIndex.Descriptor instead.
 func (ListchannelmovesRequest_ListchannelmovesIndex) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{485, 0}
+	return file_node_proto_rawDescGZIP(), []int{493, 0}
 }
 
 // ListChannelMoves.channelmoves[].primary_tag
@@ -3743,7 +3743,7 @@ func (x ListchannelmovesChannelmoves_ListchannelmovesChannelmovesPrimaryTag) Num
 
 // Deprecated: Use ListchannelmovesChannelmoves_ListchannelmovesChannelmovesPrimaryTag.Descriptor instead.
 func (ListchannelmovesChannelmoves_ListchannelmovesChannelmovesPrimaryTag) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{487, 0}
+	return file_node_proto_rawDescGZIP(), []int{495, 0}
 }
 
 // ListChainMoves.index
@@ -3787,7 +3787,7 @@ func (x ListchainmovesRequest_ListchainmovesIndex) Number() protoreflect.EnumNum
 
 // Deprecated: Use ListchainmovesRequest_ListchainmovesIndex.Descriptor instead.
 func (ListchainmovesRequest_ListchainmovesIndex) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{488, 0}
+	return file_node_proto_rawDescGZIP(), []int{496, 0}
 }
 
 // ListChainMoves.chainmoves[].primary_tag
@@ -3876,7 +3876,7 @@ func (x ListchainmovesChainmoves_ListchainmovesChainmovesPrimaryTag) Number() pr
 
 // Deprecated: Use ListchainmovesChainmoves_ListchainmovesChainmovesPrimaryTag.Descriptor instead.
 func (ListchainmovesChainmoves_ListchainmovesChainmovesPrimaryTag) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{490, 0}
+	return file_node_proto_rawDescGZIP(), []int{498, 0}
 }
 
 // ListNetworkEvents.index
@@ -3920,113 +3920,7 @@ func (x ListnetworkeventsRequest_ListnetworkeventsIndex) Number() protoreflect.E
 
 // Deprecated: Use ListnetworkeventsRequest_ListnetworkeventsIndex.Descriptor instead.
 func (ListnetworkeventsRequest_ListnetworkeventsIndex) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{491, 0}
-}
-
-// connect.direction
-type PeerConnectNotification_PeerConnectDirection int32
-
-const (
-	PeerConnectNotification_IN  PeerConnectNotification_PeerConnectDirection = 0
-	PeerConnectNotification_OUT PeerConnectNotification_PeerConnectDirection = 1
-)
-
-// Enum value maps for PeerConnectNotification_PeerConnectDirection.
-var (
-	PeerConnectNotification_PeerConnectDirection_name = map[int32]string{
-		0: "IN",
-		1: "OUT",
-	}
-	PeerConnectNotification_PeerConnectDirection_value = map[string]int32{
-		"IN":  0,
-		"OUT": 1,
-	}
-)
-
-func (x PeerConnectNotification_PeerConnectDirection) Enum() *PeerConnectNotification_PeerConnectDirection {
-	p := new(PeerConnectNotification_PeerConnectDirection)
-	*p = x
-	return p
-}
-
-func (x PeerConnectNotification_PeerConnectDirection) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (PeerConnectNotification_PeerConnectDirection) Descriptor() protoreflect.EnumDescriptor {
-	return file_node_proto_enumTypes[76].Descriptor()
-}
-
-func (PeerConnectNotification_PeerConnectDirection) Type() protoreflect.EnumType {
-	return &file_node_proto_enumTypes[76]
-}
-
-func (x PeerConnectNotification_PeerConnectDirection) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use PeerConnectNotification_PeerConnectDirection.Descriptor instead.
-func (PeerConnectNotification_PeerConnectDirection) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{506, 0}
-}
-
-// connect.address.type
-type PeerConnectAddress_PeerConnectAddressType int32
-
-const (
-	PeerConnectAddress_LOCAL_SOCKET PeerConnectAddress_PeerConnectAddressType = 0
-	PeerConnectAddress_IPV4         PeerConnectAddress_PeerConnectAddressType = 1
-	PeerConnectAddress_IPV6         PeerConnectAddress_PeerConnectAddressType = 2
-	PeerConnectAddress_TORV2        PeerConnectAddress_PeerConnectAddressType = 3
-	PeerConnectAddress_TORV3        PeerConnectAddress_PeerConnectAddressType = 4
-	PeerConnectAddress_WEBSOCKET    PeerConnectAddress_PeerConnectAddressType = 5
-)
-
-// Enum value maps for PeerConnectAddress_PeerConnectAddressType.
-var (
-	PeerConnectAddress_PeerConnectAddressType_name = map[int32]string{
-		0: "LOCAL_SOCKET",
-		1: "IPV4",
-		2: "IPV6",
-		3: "TORV2",
-		4: "TORV3",
-		5: "WEBSOCKET",
-	}
-	PeerConnectAddress_PeerConnectAddressType_value = map[string]int32{
-		"LOCAL_SOCKET": 0,
-		"IPV4":         1,
-		"IPV6":         2,
-		"TORV2":        3,
-		"TORV3":        4,
-		"WEBSOCKET":    5,
-	}
-)
-
-func (x PeerConnectAddress_PeerConnectAddressType) Enum() *PeerConnectAddress_PeerConnectAddressType {
-	p := new(PeerConnectAddress_PeerConnectAddressType)
-	*p = x
-	return p
-}
-
-func (x PeerConnectAddress_PeerConnectAddressType) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (PeerConnectAddress_PeerConnectAddressType) Descriptor() protoreflect.EnumDescriptor {
-	return file_node_proto_enumTypes[77].Descriptor()
-}
-
-func (PeerConnectAddress_PeerConnectAddressType) Type() protoreflect.EnumType {
-	return &file_node_proto_enumTypes[77]
-}
-
-func (x PeerConnectAddress_PeerConnectAddressType) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use PeerConnectAddress_PeerConnectAddressType.Descriptor instead.
-func (PeerConnectAddress_PeerConnectAddressType) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{507, 0}
+	return file_node_proto_rawDescGZIP(), []int{499, 0}
 }
 
 // channel_state_changed.cause
@@ -4072,11 +3966,11 @@ func (x ChannelStateChangedNotification_ChannelStateChangedCause) String() strin
 }
 
 func (ChannelStateChangedNotification_ChannelStateChangedCause) Descriptor() protoreflect.EnumDescriptor {
-	return file_node_proto_enumTypes[78].Descriptor()
+	return file_node_proto_enumTypes[76].Descriptor()
 }
 
 func (ChannelStateChangedNotification_ChannelStateChangedCause) Type() protoreflect.EnumType {
-	return &file_node_proto_enumTypes[78]
+	return &file_node_proto_enumTypes[76]
 }
 
 func (x ChannelStateChangedNotification_ChannelStateChangedCause) Number() protoreflect.EnumNumber {
@@ -4085,7 +3979,617 @@ func (x ChannelStateChangedNotification_ChannelStateChangedCause) Number() proto
 
 // Deprecated: Use ChannelStateChangedNotification_ChannelStateChangedCause.Descriptor instead.
 func (ChannelStateChangedNotification_ChannelStateChangedCause) EnumDescriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{511, 0}
+	return file_node_proto_rawDescGZIP(), []int{524, 0}
+}
+
+// connect.direction
+type PeerConnectNotification_PeerConnectDirection int32
+
+const (
+	PeerConnectNotification_IN  PeerConnectNotification_PeerConnectDirection = 0
+	PeerConnectNotification_OUT PeerConnectNotification_PeerConnectDirection = 1
+)
+
+// Enum value maps for PeerConnectNotification_PeerConnectDirection.
+var (
+	PeerConnectNotification_PeerConnectDirection_name = map[int32]string{
+		0: "IN",
+		1: "OUT",
+	}
+	PeerConnectNotification_PeerConnectDirection_value = map[string]int32{
+		"IN":  0,
+		"OUT": 1,
+	}
+)
+
+func (x PeerConnectNotification_PeerConnectDirection) Enum() *PeerConnectNotification_PeerConnectDirection {
+	p := new(PeerConnectNotification_PeerConnectDirection)
+	*p = x
+	return p
+}
+
+func (x PeerConnectNotification_PeerConnectDirection) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (PeerConnectNotification_PeerConnectDirection) Descriptor() protoreflect.EnumDescriptor {
+	return file_node_proto_enumTypes[77].Descriptor()
+}
+
+func (PeerConnectNotification_PeerConnectDirection) Type() protoreflect.EnumType {
+	return &file_node_proto_enumTypes[77]
+}
+
+func (x PeerConnectNotification_PeerConnectDirection) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use PeerConnectNotification_PeerConnectDirection.Descriptor instead.
+func (PeerConnectNotification_PeerConnectDirection) EnumDescriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{526, 0}
+}
+
+// connect.address.type
+type PeerConnectAddress_PeerConnectAddressType int32
+
+const (
+	PeerConnectAddress_LOCAL_SOCKET PeerConnectAddress_PeerConnectAddressType = 0
+	PeerConnectAddress_IPV4         PeerConnectAddress_PeerConnectAddressType = 1
+	PeerConnectAddress_IPV6         PeerConnectAddress_PeerConnectAddressType = 2
+	PeerConnectAddress_TORV2        PeerConnectAddress_PeerConnectAddressType = 3
+	PeerConnectAddress_TORV3        PeerConnectAddress_PeerConnectAddressType = 4
+	PeerConnectAddress_WEBSOCKET    PeerConnectAddress_PeerConnectAddressType = 5
+)
+
+// Enum value maps for PeerConnectAddress_PeerConnectAddressType.
+var (
+	PeerConnectAddress_PeerConnectAddressType_name = map[int32]string{
+		0: "LOCAL_SOCKET",
+		1: "IPV4",
+		2: "IPV6",
+		3: "TORV2",
+		4: "TORV3",
+		5: "WEBSOCKET",
+	}
+	PeerConnectAddress_PeerConnectAddressType_value = map[string]int32{
+		"LOCAL_SOCKET": 0,
+		"IPV4":         1,
+		"IPV6":         2,
+		"TORV2":        3,
+		"TORV3":        4,
+		"WEBSOCKET":    5,
+	}
+)
+
+func (x PeerConnectAddress_PeerConnectAddressType) Enum() *PeerConnectAddress_PeerConnectAddressType {
+	p := new(PeerConnectAddress_PeerConnectAddressType)
+	*p = x
+	return p
+}
+
+func (x PeerConnectAddress_PeerConnectAddressType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (PeerConnectAddress_PeerConnectAddressType) Descriptor() protoreflect.EnumDescriptor {
+	return file_node_proto_enumTypes[78].Descriptor()
+}
+
+func (PeerConnectAddress_PeerConnectAddressType) Type() protoreflect.EnumType {
+	return &file_node_proto_enumTypes[78]
+}
+
+func (x PeerConnectAddress_PeerConnectAddressType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use PeerConnectAddress_PeerConnectAddressType.Descriptor instead.
+func (PeerConnectAddress_PeerConnectAddressType) EnumDescriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{527, 0}
+}
+
+// coin_movement.type
+type CoinMovementNotification_CoinMovementType int32
+
+const (
+	CoinMovementNotification_CHANNEL_MVT CoinMovementNotification_CoinMovementType = 0
+	CoinMovementNotification_CHAIN_MVT   CoinMovementNotification_CoinMovementType = 1
+)
+
+// Enum value maps for CoinMovementNotification_CoinMovementType.
+var (
+	CoinMovementNotification_CoinMovementType_name = map[int32]string{
+		0: "CHANNEL_MVT",
+		1: "CHAIN_MVT",
+	}
+	CoinMovementNotification_CoinMovementType_value = map[string]int32{
+		"CHANNEL_MVT": 0,
+		"CHAIN_MVT":   1,
+	}
+)
+
+func (x CoinMovementNotification_CoinMovementType) Enum() *CoinMovementNotification_CoinMovementType {
+	p := new(CoinMovementNotification_CoinMovementType)
+	*p = x
+	return p
+}
+
+func (x CoinMovementNotification_CoinMovementType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (CoinMovementNotification_CoinMovementType) Descriptor() protoreflect.EnumDescriptor {
+	return file_node_proto_enumTypes[79].Descriptor()
+}
+
+func (CoinMovementNotification_CoinMovementType) Type() protoreflect.EnumType {
+	return &file_node_proto_enumTypes[79]
+}
+
+func (x CoinMovementNotification_CoinMovementType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use CoinMovementNotification_CoinMovementType.Descriptor instead.
+func (CoinMovementNotification_CoinMovementType) EnumDescriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{529, 0}
+}
+
+// coin_movement.primary_tag
+type CoinMovementNotification_CoinMovementPrimaryTag int32
+
+const (
+	CoinMovementNotification_DEPOSIT          CoinMovementNotification_CoinMovementPrimaryTag = 0
+	CoinMovementNotification_WITHDRAWAL       CoinMovementNotification_CoinMovementPrimaryTag = 1
+	CoinMovementNotification_PENALTY          CoinMovementNotification_CoinMovementPrimaryTag = 2
+	CoinMovementNotification_CHANNEL_OPEN     CoinMovementNotification_CoinMovementPrimaryTag = 3
+	CoinMovementNotification_CHANNEL_CLOSE    CoinMovementNotification_CoinMovementPrimaryTag = 4
+	CoinMovementNotification_DELAYED_TO_US    CoinMovementNotification_CoinMovementPrimaryTag = 5
+	CoinMovementNotification_HTLC_TX          CoinMovementNotification_CoinMovementPrimaryTag = 6
+	CoinMovementNotification_HTLC_TIMEOUT     CoinMovementNotification_CoinMovementPrimaryTag = 7
+	CoinMovementNotification_HTLC_FULFILL     CoinMovementNotification_CoinMovementPrimaryTag = 8
+	CoinMovementNotification_TO_WALLET        CoinMovementNotification_CoinMovementPrimaryTag = 9
+	CoinMovementNotification_ANCHOR           CoinMovementNotification_CoinMovementPrimaryTag = 10
+	CoinMovementNotification_TO_THEM          CoinMovementNotification_CoinMovementPrimaryTag = 11
+	CoinMovementNotification_PENALIZED        CoinMovementNotification_CoinMovementPrimaryTag = 12
+	CoinMovementNotification_STOLEN           CoinMovementNotification_CoinMovementPrimaryTag = 13
+	CoinMovementNotification_IGNORED          CoinMovementNotification_CoinMovementPrimaryTag = 14
+	CoinMovementNotification_TO_MINER         CoinMovementNotification_CoinMovementPrimaryTag = 15
+	CoinMovementNotification_INVOICE          CoinMovementNotification_CoinMovementPrimaryTag = 16
+	CoinMovementNotification_ROUTED           CoinMovementNotification_CoinMovementPrimaryTag = 17
+	CoinMovementNotification_PUSHED           CoinMovementNotification_CoinMovementPrimaryTag = 18
+	CoinMovementNotification_LEASE_FEE        CoinMovementNotification_CoinMovementPrimaryTag = 19
+	CoinMovementNotification_CHANNEL_PROPOSED CoinMovementNotification_CoinMovementPrimaryTag = 20
+	CoinMovementNotification_PENALTY_ADJ      CoinMovementNotification_CoinMovementPrimaryTag = 21
+	CoinMovementNotification_JOURNAL_ENTRY    CoinMovementNotification_CoinMovementPrimaryTag = 22
+)
+
+// Enum value maps for CoinMovementNotification_CoinMovementPrimaryTag.
+var (
+	CoinMovementNotification_CoinMovementPrimaryTag_name = map[int32]string{
+		0:  "DEPOSIT",
+		1:  "WITHDRAWAL",
+		2:  "PENALTY",
+		3:  "CHANNEL_OPEN",
+		4:  "CHANNEL_CLOSE",
+		5:  "DELAYED_TO_US",
+		6:  "HTLC_TX",
+		7:  "HTLC_TIMEOUT",
+		8:  "HTLC_FULFILL",
+		9:  "TO_WALLET",
+		10: "ANCHOR",
+		11: "TO_THEM",
+		12: "PENALIZED",
+		13: "STOLEN",
+		14: "IGNORED",
+		15: "TO_MINER",
+		16: "INVOICE",
+		17: "ROUTED",
+		18: "PUSHED",
+		19: "LEASE_FEE",
+		20: "CHANNEL_PROPOSED",
+		21: "PENALTY_ADJ",
+		22: "JOURNAL_ENTRY",
+	}
+	CoinMovementNotification_CoinMovementPrimaryTag_value = map[string]int32{
+		"DEPOSIT":          0,
+		"WITHDRAWAL":       1,
+		"PENALTY":          2,
+		"CHANNEL_OPEN":     3,
+		"CHANNEL_CLOSE":    4,
+		"DELAYED_TO_US":    5,
+		"HTLC_TX":          6,
+		"HTLC_TIMEOUT":     7,
+		"HTLC_FULFILL":     8,
+		"TO_WALLET":        9,
+		"ANCHOR":           10,
+		"TO_THEM":          11,
+		"PENALIZED":        12,
+		"STOLEN":           13,
+		"IGNORED":          14,
+		"TO_MINER":         15,
+		"INVOICE":          16,
+		"ROUTED":           17,
+		"PUSHED":           18,
+		"LEASE_FEE":        19,
+		"CHANNEL_PROPOSED": 20,
+		"PENALTY_ADJ":      21,
+		"JOURNAL_ENTRY":    22,
+	}
+)
+
+func (x CoinMovementNotification_CoinMovementPrimaryTag) Enum() *CoinMovementNotification_CoinMovementPrimaryTag {
+	p := new(CoinMovementNotification_CoinMovementPrimaryTag)
+	*p = x
+	return p
+}
+
+func (x CoinMovementNotification_CoinMovementPrimaryTag) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (CoinMovementNotification_CoinMovementPrimaryTag) Descriptor() protoreflect.EnumDescriptor {
+	return file_node_proto_enumTypes[80].Descriptor()
+}
+
+func (CoinMovementNotification_CoinMovementPrimaryTag) Type() protoreflect.EnumType {
+	return &file_node_proto_enumTypes[80]
+}
+
+func (x CoinMovementNotification_CoinMovementPrimaryTag) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use CoinMovementNotification_CoinMovementPrimaryTag.Descriptor instead.
+func (CoinMovementNotification_CoinMovementPrimaryTag) EnumDescriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{529, 1}
+}
+
+// forward_event.status
+type ForwardEventNotification_ForwardEventStatus int32
+
+const (
+	ForwardEventNotification_OFFERED      ForwardEventNotification_ForwardEventStatus = 0
+	ForwardEventNotification_SETTLED      ForwardEventNotification_ForwardEventStatus = 1
+	ForwardEventNotification_LOCAL_FAILED ForwardEventNotification_ForwardEventStatus = 2
+	ForwardEventNotification_FAILED       ForwardEventNotification_ForwardEventStatus = 3
+)
+
+// Enum value maps for ForwardEventNotification_ForwardEventStatus.
+var (
+	ForwardEventNotification_ForwardEventStatus_name = map[int32]string{
+		0: "OFFERED",
+		1: "SETTLED",
+		2: "LOCAL_FAILED",
+		3: "FAILED",
+	}
+	ForwardEventNotification_ForwardEventStatus_value = map[string]int32{
+		"OFFERED":      0,
+		"SETTLED":      1,
+		"LOCAL_FAILED": 2,
+		"FAILED":       3,
+	}
+)
+
+func (x ForwardEventNotification_ForwardEventStatus) Enum() *ForwardEventNotification_ForwardEventStatus {
+	p := new(ForwardEventNotification_ForwardEventStatus)
+	*p = x
+	return p
+}
+
+func (x ForwardEventNotification_ForwardEventStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ForwardEventNotification_ForwardEventStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_node_proto_enumTypes[81].Descriptor()
+}
+
+func (ForwardEventNotification_ForwardEventStatus) Type() protoreflect.EnumType {
+	return &file_node_proto_enumTypes[81]
+}
+
+func (x ForwardEventNotification_ForwardEventStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ForwardEventNotification_ForwardEventStatus.Descriptor instead.
+func (ForwardEventNotification_ForwardEventStatus) EnumDescriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{537, 0}
+}
+
+// forward_event.style
+type ForwardEventNotification_ForwardEventStyle int32
+
+const (
+	ForwardEventNotification_LEGACY ForwardEventNotification_ForwardEventStyle = 0
+	ForwardEventNotification_TLV    ForwardEventNotification_ForwardEventStyle = 1
+)
+
+// Enum value maps for ForwardEventNotification_ForwardEventStyle.
+var (
+	ForwardEventNotification_ForwardEventStyle_name = map[int32]string{
+		0: "LEGACY",
+		1: "TLV",
+	}
+	ForwardEventNotification_ForwardEventStyle_value = map[string]int32{
+		"LEGACY": 0,
+		"TLV":    1,
+	}
+)
+
+func (x ForwardEventNotification_ForwardEventStyle) Enum() *ForwardEventNotification_ForwardEventStyle {
+	p := new(ForwardEventNotification_ForwardEventStyle)
+	*p = x
+	return p
+}
+
+func (x ForwardEventNotification_ForwardEventStyle) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ForwardEventNotification_ForwardEventStyle) Descriptor() protoreflect.EnumDescriptor {
+	return file_node_proto_enumTypes[82].Descriptor()
+}
+
+func (ForwardEventNotification_ForwardEventStyle) Type() protoreflect.EnumType {
+	return &file_node_proto_enumTypes[82]
+}
+
+func (x ForwardEventNotification_ForwardEventStyle) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ForwardEventNotification_ForwardEventStyle.Descriptor instead.
+func (ForwardEventNotification_ForwardEventStyle) EnumDescriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{537, 1}
+}
+
+// log.level
+type LogNotification_LogLevel int32
+
+const (
+	LogNotification_IO      LogNotification_LogLevel = 0
+	LogNotification_TRACE   LogNotification_LogLevel = 1
+	LogNotification_DEBUG   LogNotification_LogLevel = 2
+	LogNotification_INFO    LogNotification_LogLevel = 3
+	LogNotification_UNUSUAL LogNotification_LogLevel = 4
+	LogNotification_BROKEN  LogNotification_LogLevel = 5
+)
+
+// Enum value maps for LogNotification_LogLevel.
+var (
+	LogNotification_LogLevel_name = map[int32]string{
+		0: "IO",
+		1: "TRACE",
+		2: "DEBUG",
+		3: "INFO",
+		4: "UNUSUAL",
+		5: "BROKEN",
+	}
+	LogNotification_LogLevel_value = map[string]int32{
+		"IO":      0,
+		"TRACE":   1,
+		"DEBUG":   2,
+		"INFO":    3,
+		"UNUSUAL": 4,
+		"BROKEN":  5,
+	}
+)
+
+func (x LogNotification_LogLevel) Enum() *LogNotification_LogLevel {
+	p := new(LogNotification_LogLevel)
+	*p = x
+	return p
+}
+
+func (x LogNotification_LogLevel) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (LogNotification_LogLevel) Descriptor() protoreflect.EnumDescriptor {
+	return file_node_proto_enumTypes[83].Descriptor()
+}
+
+func (LogNotification_LogLevel) Type() protoreflect.EnumType {
+	return &file_node_proto_enumTypes[83]
+}
+
+func (x LogNotification_LogLevel) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use LogNotification_LogLevel.Descriptor instead.
+func (LogNotification_LogLevel) EnumDescriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{543, 0}
+}
+
+// sendpay_failure.data.status
+type SendpayFailureData_SendpayFailureDataStatus int32
+
+const (
+	SendpayFailureData_FAILED   SendpayFailureData_SendpayFailureDataStatus = 0
+	SendpayFailureData_PENDING  SendpayFailureData_SendpayFailureDataStatus = 1
+	SendpayFailureData_COMPLETE SendpayFailureData_SendpayFailureDataStatus = 2
+)
+
+// Enum value maps for SendpayFailureData_SendpayFailureDataStatus.
+var (
+	SendpayFailureData_SendpayFailureDataStatus_name = map[int32]string{
+		0: "FAILED",
+		1: "PENDING",
+		2: "COMPLETE",
+	}
+	SendpayFailureData_SendpayFailureDataStatus_value = map[string]int32{
+		"FAILED":   0,
+		"PENDING":  1,
+		"COMPLETE": 2,
+	}
+)
+
+func (x SendpayFailureData_SendpayFailureDataStatus) Enum() *SendpayFailureData_SendpayFailureDataStatus {
+	p := new(SendpayFailureData_SendpayFailureDataStatus)
+	*p = x
+	return p
+}
+
+func (x SendpayFailureData_SendpayFailureDataStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SendpayFailureData_SendpayFailureDataStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_node_proto_enumTypes[84].Descriptor()
+}
+
+func (SendpayFailureData_SendpayFailureDataStatus) Type() protoreflect.EnumType {
+	return &file_node_proto_enumTypes[84]
+}
+
+func (x SendpayFailureData_SendpayFailureDataStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SendpayFailureData_SendpayFailureDataStatus.Descriptor instead.
+func (SendpayFailureData_SendpayFailureDataStatus) EnumDescriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{554, 0}
+}
+
+// sendpay_success.status
+type SendPaySuccessNotification_SendpaySuccessStatus int32
+
+const (
+	SendPaySuccessNotification_COMPLETE SendPaySuccessNotification_SendpaySuccessStatus = 0
+)
+
+// Enum value maps for SendPaySuccessNotification_SendpaySuccessStatus.
+var (
+	SendPaySuccessNotification_SendpaySuccessStatus_name = map[int32]string{
+		0: "COMPLETE",
+	}
+	SendPaySuccessNotification_SendpaySuccessStatus_value = map[string]int32{
+		"COMPLETE": 0,
+	}
+)
+
+func (x SendPaySuccessNotification_SendpaySuccessStatus) Enum() *SendPaySuccessNotification_SendpaySuccessStatus {
+	p := new(SendPaySuccessNotification_SendpaySuccessStatus)
+	*p = x
+	return p
+}
+
+func (x SendPaySuccessNotification_SendpaySuccessStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (SendPaySuccessNotification_SendpaySuccessStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_node_proto_enumTypes[85].Descriptor()
+}
+
+func (SendPaySuccessNotification_SendpaySuccessStatus) Type() protoreflect.EnumType {
+	return &file_node_proto_enumTypes[85]
+}
+
+func (x SendPaySuccessNotification_SendpaySuccessStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use SendPaySuccessNotification_SendpaySuccessStatus.Descriptor instead.
+func (SendPaySuccessNotification_SendpaySuccessStatus) EnumDescriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{556, 0}
+}
+
+// warning.level
+type WarningNotification_WarningLevel int32
+
+const (
+	WarningNotification_WARN  WarningNotification_WarningLevel = 0
+	WarningNotification_ERROR WarningNotification_WarningLevel = 1
+)
+
+// Enum value maps for WarningNotification_WarningLevel.
+var (
+	WarningNotification_WarningLevel_name = map[int32]string{
+		0: "WARN",
+		1: "ERROR",
+	}
+	WarningNotification_WarningLevel_value = map[string]int32{
+		"WARN":  0,
+		"ERROR": 1,
+	}
+)
+
+func (x WarningNotification_WarningLevel) Enum() *WarningNotification_WarningLevel {
+	p := new(WarningNotification_WarningLevel)
+	*p = x
+	return p
+}
+
+func (x WarningNotification_WarningLevel) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (WarningNotification_WarningLevel) Descriptor() protoreflect.EnumDescriptor {
+	return file_node_proto_enumTypes[86].Descriptor()
+}
+
+func (WarningNotification_WarningLevel) Type() protoreflect.EnumType {
+	return &file_node_proto_enumTypes[86]
+}
+
+func (x WarningNotification_WarningLevel) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use WarningNotification_WarningLevel.Descriptor instead.
+func (WarningNotification_WarningLevel) EnumDescriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{560, 0}
+}
+
+// pay_part_end.status
+type PayPartEndNotification_PayPartEndStatus int32
+
+const (
+	PayPartEndNotification_SUCCESS PayPartEndNotification_PayPartEndStatus = 0
+	PayPartEndNotification_FAILURE PayPartEndNotification_PayPartEndStatus = 1
+)
+
+// Enum value maps for PayPartEndNotification_PayPartEndStatus.
+var (
+	PayPartEndNotification_PayPartEndStatus_name = map[int32]string{
+		0: "SUCCESS",
+		1: "FAILURE",
+	}
+	PayPartEndNotification_PayPartEndStatus_value = map[string]int32{
+		"SUCCESS": 0,
+		"FAILURE": 1,
+	}
+)
+
+func (x PayPartEndNotification_PayPartEndStatus) Enum() *PayPartEndNotification_PayPartEndStatus {
+	p := new(PayPartEndNotification_PayPartEndStatus)
+	*p = x
+	return p
+}
+
+func (x PayPartEndNotification_PayPartEndStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (PayPartEndNotification_PayPartEndStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_node_proto_enumTypes[87].Descriptor()
+}
+
+func (PayPartEndNotification_PayPartEndStatus) Type() protoreflect.EnumType {
+	return &file_node_proto_enumTypes[87]
+}
+
+func (x PayPartEndNotification_PayPartEndStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use PayPartEndNotification_PayPartEndStatus.Descriptor instead.
+func (PayPartEndNotification_PayPartEndStatus) EnumDescriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{562, 0}
 }
 
 type GetinfoRequest struct {
@@ -4127,7 +4631,7 @@ func (*GetinfoRequest) Descriptor() ([]byte, []int) {
 type GetinfoResponse struct {
 	state                 protoimpl.MessageState `protogen:"open.v1"`
 	Id                    []byte                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Alias                 *string                `protobuf:"bytes,2,opt,name=alias,proto3,oneof" json:"alias,omitempty"`
+	Alias                 string                 `protobuf:"bytes,2,opt,name=alias,proto3" json:"alias,omitempty"`
 	Color                 []byte                 `protobuf:"bytes,3,opt,name=color,proto3" json:"color,omitempty"`
 	NumPeers              uint32                 `protobuf:"varint,4,opt,name=num_peers,json=numPeers,proto3" json:"num_peers,omitempty"`
 	NumPendingChannels    uint32                 `protobuf:"varint,5,opt,name=num_pending_channels,json=numPendingChannels,proto3" json:"num_pending_channels,omitempty"`
@@ -4185,8 +4689,8 @@ func (x *GetinfoResponse) GetId() []byte {
 }
 
 func (x *GetinfoResponse) GetAlias() string {
-	if x != nil && x.Alias != nil {
-		return *x.Alias
+	if x != nil {
+		return x.Alias
 	}
 	return ""
 }
@@ -4604,7 +5108,7 @@ type ListpeersPeers struct {
 	Netaddr       []string               `protobuf:"bytes,5,rep,name=netaddr,proto3" json:"netaddr,omitempty"`
 	Features      []byte                 `protobuf:"bytes,6,opt,name=features,proto3,oneof" json:"features,omitempty"`
 	RemoteAddr    *string                `protobuf:"bytes,7,opt,name=remote_addr,json=remoteAddr,proto3,oneof" json:"remote_addr,omitempty"`
-	NumChannels   *uint32                `protobuf:"varint,8,opt,name=num_channels,json=numChannels,proto3,oneof" json:"num_channels,omitempty"`
+	NumChannels   uint32                 `protobuf:"varint,8,opt,name=num_channels,json=numChannels,proto3" json:"num_channels,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -4682,8 +5186,8 @@ func (x *ListpeersPeers) GetRemoteAddr() string {
 }
 
 func (x *ListpeersPeers) GetNumChannels() uint32 {
-	if x != nil && x.NumChannels != nil {
-		return *x.NumChannels
+	if x != nil {
+		return x.NumChannels
 	}
 	return 0
 }
@@ -5002,7 +5506,7 @@ type ListfundsChannels struct {
 	Connected      bool                   `protobuf:"varint,6,opt,name=connected,proto3" json:"connected,omitempty"`
 	State          ChannelState           `protobuf:"varint,7,opt,name=state,proto3,enum=cln.ChannelState" json:"state,omitempty"`
 	ShortChannelId *string                `protobuf:"bytes,8,opt,name=short_channel_id,json=shortChannelId,proto3,oneof" json:"short_channel_id,omitempty"`
-	ChannelId      []byte                 `protobuf:"bytes,9,opt,name=channel_id,json=channelId,proto3,oneof" json:"channel_id,omitempty"`
+	ChannelId      []byte                 `protobuf:"bytes,9,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -5241,7 +5745,7 @@ type SendpayResponse struct {
 	PaymentPreimage []byte                        `protobuf:"bytes,13,opt,name=payment_preimage,json=paymentPreimage,proto3,oneof" json:"payment_preimage,omitempty"`
 	Message         *string                       `protobuf:"bytes,14,opt,name=message,proto3,oneof" json:"message,omitempty"`
 	CompletedAt     *uint64                       `protobuf:"varint,15,opt,name=completed_at,json=completedAt,proto3,oneof" json:"completed_at,omitempty"`
-	CreatedIndex    *uint64                       `protobuf:"varint,16,opt,name=created_index,json=createdIndex,proto3,oneof" json:"created_index,omitempty"`
+	CreatedIndex    uint64                        `protobuf:"varint,16,opt,name=created_index,json=createdIndex,proto3" json:"created_index,omitempty"`
 	UpdatedIndex    *uint64                       `protobuf:"varint,17,opt,name=updated_index,json=updatedIndex,proto3,oneof" json:"updated_index,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
@@ -5383,8 +5887,8 @@ func (x *SendpayResponse) GetCompletedAt() uint64 {
 }
 
 func (x *SendpayResponse) GetCreatedIndex() uint64 {
-	if x != nil && x.CreatedIndex != nil {
-		return *x.CreatedIndex
+	if x != nil {
+		return x.CreatedIndex
 	}
 	return 0
 }
@@ -7628,7 +8132,7 @@ type CreateinvoiceResponse struct {
 	PaymentPreimage    []byte                                    `protobuf:"bytes,12,opt,name=payment_preimage,json=paymentPreimage,proto3,oneof" json:"payment_preimage,omitempty"`
 	LocalOfferId       []byte                                    `protobuf:"bytes,13,opt,name=local_offer_id,json=localOfferId,proto3,oneof" json:"local_offer_id,omitempty"`
 	InvreqPayerNote    *string                                   `protobuf:"bytes,15,opt,name=invreq_payer_note,json=invreqPayerNote,proto3,oneof" json:"invreq_payer_note,omitempty"`
-	CreatedIndex       *uint64                                   `protobuf:"varint,16,opt,name=created_index,json=createdIndex,proto3,oneof" json:"created_index,omitempty"`
+	CreatedIndex       uint64                                    `protobuf:"varint,16,opt,name=created_index,json=createdIndex,proto3" json:"created_index,omitempty"`
 	PaidOutpoint       *CreateinvoicePaidOutpoint                `protobuf:"bytes,17,opt,name=paid_outpoint,json=paidOutpoint,proto3,oneof" json:"paid_outpoint,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
@@ -7763,8 +8267,8 @@ func (x *CreateinvoiceResponse) GetInvreqPayerNote() string {
 }
 
 func (x *CreateinvoiceResponse) GetCreatedIndex() uint64 {
-	if x != nil && x.CreatedIndex != nil {
-		return *x.CreatedIndex
+	if x != nil {
+		return x.CreatedIndex
 	}
 	return 0
 }
@@ -8476,7 +8980,7 @@ type DelinvoiceResponse struct {
 	ExpiresAt          uint64                              `protobuf:"varint,8,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
 	LocalOfferId       []byte                              `protobuf:"bytes,9,opt,name=local_offer_id,json=localOfferId,proto3,oneof" json:"local_offer_id,omitempty"`
 	InvreqPayerNote    *string                             `protobuf:"bytes,11,opt,name=invreq_payer_note,json=invreqPayerNote,proto3,oneof" json:"invreq_payer_note,omitempty"`
-	CreatedIndex       *uint64                             `protobuf:"varint,12,opt,name=created_index,json=createdIndex,proto3,oneof" json:"created_index,omitempty"`
+	CreatedIndex       uint64                              `protobuf:"varint,12,opt,name=created_index,json=createdIndex,proto3" json:"created_index,omitempty"`
 	UpdatedIndex       *uint64                             `protobuf:"varint,13,opt,name=updated_index,json=updatedIndex,proto3,oneof" json:"updated_index,omitempty"`
 	PayIndex           *uint64                             `protobuf:"varint,14,opt,name=pay_index,json=payIndex,proto3,oneof" json:"pay_index,omitempty"`
 	AmountReceivedMsat *Amount                             `protobuf:"bytes,15,opt,name=amount_received_msat,json=amountReceivedMsat,proto3,oneof" json:"amount_received_msat,omitempty"`
@@ -8587,8 +9091,8 @@ func (x *DelinvoiceResponse) GetInvreqPayerNote() string {
 }
 
 func (x *DelinvoiceResponse) GetCreatedIndex() uint64 {
-	if x != nil && x.CreatedIndex != nil {
-		return *x.CreatedIndex
+	if x != nil {
+		return x.CreatedIndex
 	}
 	return 0
 }
@@ -9073,8 +9577,8 @@ func (x *RecoverRequest) GetHsmsecret() string {
 }
 
 type RecoverResponse struct {
-	state         protoimpl.MessageState         `protogen:"open.v1"`
-	Result        *RecoverResponse_RecoverResult `protobuf:"varint,1,opt,name=result,proto3,enum=cln.RecoverResponse_RecoverResult,oneof" json:"result,omitempty"`
+	state         protoimpl.MessageState        `protogen:"open.v1"`
+	Result        RecoverResponse_RecoverResult `protobuf:"varint,1,opt,name=result,proto3,enum=cln.RecoverResponse_RecoverResult" json:"result,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -9110,8 +9614,8 @@ func (*RecoverResponse) Descriptor() ([]byte, []int) {
 }
 
 func (x *RecoverResponse) GetResult() RecoverResponse_RecoverResult {
-	if x != nil && x.Result != nil {
-		return *x.Result
+	if x != nil {
+		return x.Result
 	}
 	return RecoverResponse_RECOVERY_RESTART_IN_PROGRESS
 }
@@ -9323,7 +9827,7 @@ type InvoiceResponse struct {
 	WarningDeadends      *string                `protobuf:"bytes,7,opt,name=warning_deadends,json=warningDeadends,proto3,oneof" json:"warning_deadends,omitempty"`
 	WarningPrivateUnused *string                `protobuf:"bytes,8,opt,name=warning_private_unused,json=warningPrivateUnused,proto3,oneof" json:"warning_private_unused,omitempty"`
 	WarningMpp           *string                `protobuf:"bytes,9,opt,name=warning_mpp,json=warningMpp,proto3,oneof" json:"warning_mpp,omitempty"`
-	CreatedIndex         *uint64                `protobuf:"varint,10,opt,name=created_index,json=createdIndex,proto3,oneof" json:"created_index,omitempty"`
+	CreatedIndex         uint64                 `protobuf:"varint,10,opt,name=created_index,json=createdIndex,proto3" json:"created_index,omitempty"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
@@ -9422,8 +9926,8 @@ func (x *InvoiceResponse) GetWarningMpp() string {
 }
 
 func (x *InvoiceResponse) GetCreatedIndex() uint64 {
-	if x != nil && x.CreatedIndex != nil {
-		return *x.CreatedIndex
+	if x != nil {
+		return x.CreatedIndex
 	}
 	return 0
 }
@@ -10212,7 +10716,7 @@ type ListinvoicesInvoices struct {
 	PaidAt             *uint64                                         `protobuf:"varint,13,opt,name=paid_at,json=paidAt,proto3,oneof" json:"paid_at,omitempty"`
 	PaymentPreimage    []byte                                          `protobuf:"bytes,14,opt,name=payment_preimage,json=paymentPreimage,proto3,oneof" json:"payment_preimage,omitempty"`
 	InvreqPayerNote    *string                                         `protobuf:"bytes,15,opt,name=invreq_payer_note,json=invreqPayerNote,proto3,oneof" json:"invreq_payer_note,omitempty"`
-	CreatedIndex       *uint64                                         `protobuf:"varint,16,opt,name=created_index,json=createdIndex,proto3,oneof" json:"created_index,omitempty"`
+	CreatedIndex       uint64                                          `protobuf:"varint,16,opt,name=created_index,json=createdIndex,proto3" json:"created_index,omitempty"`
 	UpdatedIndex       *uint64                                         `protobuf:"varint,17,opt,name=updated_index,json=updatedIndex,proto3,oneof" json:"updated_index,omitempty"`
 	PaidOutpoint       *ListinvoicesInvoicesPaidOutpoint               `protobuf:"bytes,18,opt,name=paid_outpoint,json=paidOutpoint,proto3,oneof" json:"paid_outpoint,omitempty"`
 	unknownFields      protoimpl.UnknownFields
@@ -10348,8 +10852,8 @@ func (x *ListinvoicesInvoices) GetInvreqPayerNote() string {
 }
 
 func (x *ListinvoicesInvoices) GetCreatedIndex() uint64 {
-	if x != nil && x.CreatedIndex != nil {
-		return *x.CreatedIndex
+	if x != nil {
+		return x.CreatedIndex
 	}
 	return 0
 }
@@ -10575,7 +11079,7 @@ type SendonionResponse struct {
 	PaymentPreimage []byte                            `protobuf:"bytes,11,opt,name=payment_preimage,json=paymentPreimage,proto3,oneof" json:"payment_preimage,omitempty"`
 	Message         *string                           `protobuf:"bytes,12,opt,name=message,proto3,oneof" json:"message,omitempty"`
 	Partid          *uint64                           `protobuf:"varint,13,opt,name=partid,proto3,oneof" json:"partid,omitempty"`
-	CreatedIndex    *uint64                           `protobuf:"varint,14,opt,name=created_index,json=createdIndex,proto3,oneof" json:"created_index,omitempty"`
+	CreatedIndex    uint64                            `protobuf:"varint,14,opt,name=created_index,json=createdIndex,proto3" json:"created_index,omitempty"`
 	UpdatedIndex    *uint64                           `protobuf:"varint,15,opt,name=updated_index,json=updatedIndex,proto3,oneof" json:"updated_index,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
@@ -10703,8 +11207,8 @@ func (x *SendonionResponse) GetPartid() uint64 {
 }
 
 func (x *SendonionResponse) GetCreatedIndex() uint64 {
-	if x != nil && x.CreatedIndex != nil {
-		return *x.CreatedIndex
+	if x != nil {
+		return x.CreatedIndex
 	}
 	return 0
 }
@@ -10921,7 +11425,7 @@ type ListsendpaysPayments struct {
 	Erroronion      []byte                                          `protobuf:"bytes,13,opt,name=erroronion,proto3,oneof" json:"erroronion,omitempty"`
 	Description     *string                                         `protobuf:"bytes,14,opt,name=description,proto3,oneof" json:"description,omitempty"`
 	Partid          *uint64                                         `protobuf:"varint,15,opt,name=partid,proto3,oneof" json:"partid,omitempty"`
-	CreatedIndex    *uint64                                         `protobuf:"varint,16,opt,name=created_index,json=createdIndex,proto3,oneof" json:"created_index,omitempty"`
+	CreatedIndex    uint64                                          `protobuf:"varint,16,opt,name=created_index,json=createdIndex,proto3" json:"created_index,omitempty"`
 	UpdatedIndex    *uint64                                         `protobuf:"varint,17,opt,name=updated_index,json=updatedIndex,proto3,oneof" json:"updated_index,omitempty"`
 	CompletedAt     *uint64                                         `protobuf:"varint,18,opt,name=completed_at,json=completedAt,proto3,oneof" json:"completed_at,omitempty"`
 	unknownFields   protoimpl.UnknownFields
@@ -11064,8 +11568,8 @@ func (x *ListsendpaysPayments) GetPartid() uint64 {
 }
 
 func (x *ListsendpaysPayments) GetCreatedIndex() uint64 {
-	if x != nil && x.CreatedIndex != nil {
-		return *x.CreatedIndex
+	if x != nil {
+		return x.CreatedIndex
 	}
 	return 0
 }
@@ -12118,7 +12622,7 @@ type WaitanyinvoiceResponse struct {
 	AmountReceivedMsat *Amount                                     `protobuf:"bytes,10,opt,name=amount_received_msat,json=amountReceivedMsat,proto3,oneof" json:"amount_received_msat,omitempty"`
 	PaidAt             *uint64                                     `protobuf:"varint,11,opt,name=paid_at,json=paidAt,proto3,oneof" json:"paid_at,omitempty"`
 	PaymentPreimage    []byte                                      `protobuf:"bytes,12,opt,name=payment_preimage,json=paymentPreimage,proto3,oneof" json:"payment_preimage,omitempty"`
-	CreatedIndex       *uint64                                     `protobuf:"varint,13,opt,name=created_index,json=createdIndex,proto3,oneof" json:"created_index,omitempty"`
+	CreatedIndex       uint64                                      `protobuf:"varint,13,opt,name=created_index,json=createdIndex,proto3" json:"created_index,omitempty"`
 	UpdatedIndex       *uint64                                     `protobuf:"varint,14,opt,name=updated_index,json=updatedIndex,proto3,oneof" json:"updated_index,omitempty"`
 	PaidOutpoint       *WaitanyinvoicePaidOutpoint                 `protobuf:"bytes,15,opt,name=paid_outpoint,json=paidOutpoint,proto3,oneof" json:"paid_outpoint,omitempty"`
 	unknownFields      protoimpl.UnknownFields
@@ -12240,8 +12744,8 @@ func (x *WaitanyinvoiceResponse) GetPaymentPreimage() []byte {
 }
 
 func (x *WaitanyinvoiceResponse) GetCreatedIndex() uint64 {
-	if x != nil && x.CreatedIndex != nil {
-		return *x.CreatedIndex
+	if x != nil {
+		return x.CreatedIndex
 	}
 	return 0
 }
@@ -12370,7 +12874,7 @@ type WaitinvoiceResponse struct {
 	AmountReceivedMsat *Amount                               `protobuf:"bytes,10,opt,name=amount_received_msat,json=amountReceivedMsat,proto3,oneof" json:"amount_received_msat,omitempty"`
 	PaidAt             *uint64                               `protobuf:"varint,11,opt,name=paid_at,json=paidAt,proto3,oneof" json:"paid_at,omitempty"`
 	PaymentPreimage    []byte                                `protobuf:"bytes,12,opt,name=payment_preimage,json=paymentPreimage,proto3,oneof" json:"payment_preimage,omitempty"`
-	CreatedIndex       *uint64                               `protobuf:"varint,13,opt,name=created_index,json=createdIndex,proto3,oneof" json:"created_index,omitempty"`
+	CreatedIndex       uint64                                `protobuf:"varint,13,opt,name=created_index,json=createdIndex,proto3" json:"created_index,omitempty"`
 	UpdatedIndex       *uint64                               `protobuf:"varint,14,opt,name=updated_index,json=updatedIndex,proto3,oneof" json:"updated_index,omitempty"`
 	PaidOutpoint       *WaitinvoicePaidOutpoint              `protobuf:"bytes,15,opt,name=paid_outpoint,json=paidOutpoint,proto3,oneof" json:"paid_outpoint,omitempty"`
 	unknownFields      protoimpl.UnknownFields
@@ -12492,8 +12996,8 @@ func (x *WaitinvoiceResponse) GetPaymentPreimage() []byte {
 }
 
 func (x *WaitinvoiceResponse) GetCreatedIndex() uint64 {
-	if x != nil && x.CreatedIndex != nil {
-		return *x.CreatedIndex
+	if x != nil {
+		return x.CreatedIndex
 	}
 	return 0
 }
@@ -12648,7 +13152,7 @@ type WaitsendpayResponse struct {
 	Bolt12          *string                               `protobuf:"bytes,12,opt,name=bolt12,proto3,oneof" json:"bolt12,omitempty"`
 	PaymentPreimage []byte                                `protobuf:"bytes,13,opt,name=payment_preimage,json=paymentPreimage,proto3,oneof" json:"payment_preimage,omitempty"`
 	CompletedAt     *float64                              `protobuf:"fixed64,14,opt,name=completed_at,json=completedAt,proto3,oneof" json:"completed_at,omitempty"`
-	CreatedIndex    *uint64                               `protobuf:"varint,15,opt,name=created_index,json=createdIndex,proto3,oneof" json:"created_index,omitempty"`
+	CreatedIndex    uint64                                `protobuf:"varint,15,opt,name=created_index,json=createdIndex,proto3" json:"created_index,omitempty"`
 	UpdatedIndex    *uint64                               `protobuf:"varint,16,opt,name=updated_index,json=updatedIndex,proto3,oneof" json:"updated_index,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
@@ -12783,8 +13287,8 @@ func (x *WaitsendpayResponse) GetCompletedAt() float64 {
 }
 
 func (x *WaitsendpayResponse) GetCreatedIndex() uint64 {
-	if x != nil && x.CreatedIndex != nil {
-		return *x.CreatedIndex
+	if x != nil {
+		return x.CreatedIndex
 	}
 	return 0
 }
@@ -14336,6 +14840,7 @@ type ListpeerchannelsRequest struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Id             []byte                 `protobuf:"bytes,1,opt,name=id,proto3,oneof" json:"id,omitempty"`
 	ShortChannelId *string                `protobuf:"bytes,2,opt,name=short_channel_id,json=shortChannelId,proto3,oneof" json:"short_channel_id,omitempty"`
+	ChannelId      []byte                 `protobuf:"bytes,3,opt,name=channel_id,json=channelId,proto3,oneof" json:"channel_id,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -14382,6 +14887,13 @@ func (x *ListpeerchannelsRequest) GetShortChannelId() string {
 		return *x.ShortChannelId
 	}
 	return ""
+}
+
+func (x *ListpeerchannelsRequest) GetChannelId() []byte {
+	if x != nil {
+		return x.ChannelId
+	}
+	return nil
 }
 
 type ListpeerchannelsResponse struct {
@@ -14486,7 +14998,7 @@ type ListpeerchannelsChannels struct {
 	LostState                     *bool                               `protobuf:"varint,57,opt,name=lost_state,json=lostState,proto3,oneof" json:"lost_state,omitempty"`
 	Reestablished                 *bool                               `protobuf:"varint,58,opt,name=reestablished,proto3,oneof" json:"reestablished,omitempty"`
 	LastTxFeeMsat                 *Amount                             `protobuf:"bytes,59,opt,name=last_tx_fee_msat,json=lastTxFeeMsat,proto3,oneof" json:"last_tx_fee_msat,omitempty"`
-	Direction                     *int64                              `protobuf:"zigzag64,60,opt,name=direction,proto3,oneof" json:"direction,omitempty"`
+	Direction                     *uint32                             `protobuf:"varint,60,opt,name=direction,proto3,oneof" json:"direction,omitempty"`
 	TheirMaxHtlcValueInFlightMsat *Amount                             `protobuf:"bytes,61,opt,name=their_max_htlc_value_in_flight_msat,json=theirMaxHtlcValueInFlightMsat,proto3,oneof" json:"their_max_htlc_value_in_flight_msat,omitempty"`
 	OurMaxHtlcValueInFlightMsat   *Amount                             `protobuf:"bytes,62,opt,name=our_max_htlc_value_in_flight_msat,json=ourMaxHtlcValueInFlightMsat,proto3,oneof" json:"our_max_htlc_value_in_flight_msat,omitempty"`
 	unknownFields                 protoimpl.UnknownFields
@@ -14915,7 +15427,7 @@ func (x *ListpeerchannelsChannels) GetLastTxFeeMsat() *Amount {
 	return nil
 }
 
-func (x *ListpeerchannelsChannels) GetDirection() int64 {
+func (x *ListpeerchannelsChannels) GetDirection() uint32 {
 	if x != nil && x.Direction != nil {
 		return *x.Direction
 	}
@@ -15200,7 +15712,7 @@ type ListpeerchannelsChannelsInflight struct {
 	TotalFundingMsat *Amount                `protobuf:"bytes,4,opt,name=total_funding_msat,json=totalFundingMsat,proto3" json:"total_funding_msat,omitempty"`
 	OurFundingMsat   *Amount                `protobuf:"bytes,5,opt,name=our_funding_msat,json=ourFundingMsat,proto3" json:"our_funding_msat,omitempty"`
 	ScratchTxid      []byte                 `protobuf:"bytes,6,opt,name=scratch_txid,json=scratchTxid,proto3,oneof" json:"scratch_txid,omitempty"`
-	SpliceAmount     *int64                 `protobuf:"zigzag64,7,opt,name=splice_amount,json=spliceAmount,proto3,oneof" json:"splice_amount,omitempty"`
+	SpliceAmount     int64                  `protobuf:"zigzag64,7,opt,name=splice_amount,json=spliceAmount,proto3" json:"splice_amount,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -15278,8 +15790,8 @@ func (x *ListpeerchannelsChannelsInflight) GetScratchTxid() []byte {
 }
 
 func (x *ListpeerchannelsChannelsInflight) GetSpliceAmount() int64 {
-	if x != nil && x.SpliceAmount != nil {
-		return *x.SpliceAmount
+	if x != nil {
+		return x.SpliceAmount
 	}
 	return 0
 }
@@ -17378,7 +17890,7 @@ func (x *DelpayResponse) GetPayments() []*DelpayPayments {
 
 type DelpayPayments struct {
 	state           protoimpl.MessageState              `protogen:"open.v1"`
-	CreatedIndex    *uint64                             `protobuf:"varint,1,opt,name=created_index,json=createdIndex,proto3,oneof" json:"created_index,omitempty"`
+	CreatedIndex    uint64                              `protobuf:"varint,1,opt,name=created_index,json=createdIndex,proto3" json:"created_index,omitempty"`
 	Id              uint64                              `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
 	PaymentHash     []byte                              `protobuf:"bytes,3,opt,name=payment_hash,json=paymentHash,proto3" json:"payment_hash,omitempty"`
 	Status          DelpayPayments_DelpayPaymentsStatus `protobuf:"varint,4,opt,name=status,proto3,enum=cln.DelpayPayments_DelpayPaymentsStatus" json:"status,omitempty"`
@@ -17430,8 +17942,8 @@ func (*DelpayPayments) Descriptor() ([]byte, []int) {
 }
 
 func (x *DelpayPayments) GetCreatedIndex() uint64 {
-	if x != nil && x.CreatedIndex != nil {
-		return *x.CreatedIndex
+	if x != nil {
+		return x.CreatedIndex
 	}
 	return 0
 }
@@ -17697,6 +18209,7 @@ type DisableofferResponse struct {
 	Used          bool                   `protobuf:"varint,5,opt,name=used,proto3" json:"used,omitempty"`
 	Label         *string                `protobuf:"bytes,6,opt,name=label,proto3,oneof" json:"label,omitempty"`
 	Description   *string                `protobuf:"bytes,7,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	ForcePaths    *bool                  `protobuf:"varint,8,opt,name=force_paths,json=forcePaths,proto3,oneof" json:"force_paths,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -17780,6 +18293,13 @@ func (x *DisableofferResponse) GetDescription() string {
 	return ""
 }
 
+func (x *DisableofferResponse) GetForcePaths() bool {
+	if x != nil && x.ForcePaths != nil {
+		return *x.ForcePaths
+	}
+	return false
+}
+
 type EnableofferRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	OfferId       []byte                 `protobuf:"bytes,1,opt,name=offer_id,json=offerId,proto3" json:"offer_id,omitempty"`
@@ -17833,6 +18353,7 @@ type EnableofferResponse struct {
 	Used          bool                   `protobuf:"varint,5,opt,name=used,proto3" json:"used,omitempty"`
 	Label         *string                `protobuf:"bytes,6,opt,name=label,proto3,oneof" json:"label,omitempty"`
 	Description   *string                `protobuf:"bytes,7,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	ForcePaths    *bool                  `protobuf:"varint,8,opt,name=force_paths,json=forcePaths,proto3,oneof" json:"force_paths,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -17914,6 +18435,13 @@ func (x *EnableofferResponse) GetDescription() string {
 		return *x.Description
 	}
 	return ""
+}
+
+func (x *EnableofferResponse) GetForcePaths() bool {
+	if x != nil && x.ForcePaths != nil {
+		return *x.ForcePaths
+	}
+	return false
 }
 
 type DisconnectRequest struct {
@@ -18127,8 +18655,9 @@ type FeeratesPerkb struct {
 	HtlcResolution        *uint32                   `protobuf:"varint,7,opt,name=htlc_resolution,json=htlcResolution,proto3,oneof" json:"htlc_resolution,omitempty"`
 	Penalty               *uint32                   `protobuf:"varint,8,opt,name=penalty,proto3,oneof" json:"penalty,omitempty"`
 	Estimates             []*FeeratesPerkbEstimates `protobuf:"bytes,9,rep,name=estimates,proto3" json:"estimates,omitempty"`
-	Floor                 *uint32                   `protobuf:"varint,10,opt,name=floor,proto3,oneof" json:"floor,omitempty"`
+	Floor                 uint32                    `protobuf:"varint,10,opt,name=floor,proto3" json:"floor,omitempty"`
 	UnilateralAnchorClose *uint32                   `protobuf:"varint,11,opt,name=unilateral_anchor_close,json=unilateralAnchorClose,proto3,oneof" json:"unilateral_anchor_close,omitempty"`
+	Splice                *uint32                   `protobuf:"varint,12,opt,name=splice,proto3,oneof" json:"splice,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -18227,8 +18756,8 @@ func (x *FeeratesPerkb) GetEstimates() []*FeeratesPerkbEstimates {
 }
 
 func (x *FeeratesPerkb) GetFloor() uint32 {
-	if x != nil && x.Floor != nil {
-		return *x.Floor
+	if x != nil {
+		return x.Floor
 	}
 	return 0
 }
@@ -18236,6 +18765,13 @@ func (x *FeeratesPerkb) GetFloor() uint32 {
 func (x *FeeratesPerkb) GetUnilateralAnchorClose() uint32 {
 	if x != nil && x.UnilateralAnchorClose != nil {
 		return *x.UnilateralAnchorClose
+	}
+	return 0
+}
+
+func (x *FeeratesPerkb) GetSplice() uint32 {
+	if x != nil && x.Splice != nil {
+		return *x.Splice
 	}
 	return 0
 }
@@ -18311,8 +18847,9 @@ type FeeratesPerkw struct {
 	HtlcResolution        *uint32                   `protobuf:"varint,7,opt,name=htlc_resolution,json=htlcResolution,proto3,oneof" json:"htlc_resolution,omitempty"`
 	Penalty               *uint32                   `protobuf:"varint,8,opt,name=penalty,proto3,oneof" json:"penalty,omitempty"`
 	Estimates             []*FeeratesPerkwEstimates `protobuf:"bytes,9,rep,name=estimates,proto3" json:"estimates,omitempty"`
-	Floor                 *uint32                   `protobuf:"varint,10,opt,name=floor,proto3,oneof" json:"floor,omitempty"`
+	Floor                 uint32                    `protobuf:"varint,10,opt,name=floor,proto3" json:"floor,omitempty"`
 	UnilateralAnchorClose *uint32                   `protobuf:"varint,11,opt,name=unilateral_anchor_close,json=unilateralAnchorClose,proto3,oneof" json:"unilateral_anchor_close,omitempty"`
+	Splice                *uint32                   `protobuf:"varint,12,opt,name=splice,proto3,oneof" json:"splice,omitempty"`
 	unknownFields         protoimpl.UnknownFields
 	sizeCache             protoimpl.SizeCache
 }
@@ -18411,8 +18948,8 @@ func (x *FeeratesPerkw) GetEstimates() []*FeeratesPerkwEstimates {
 }
 
 func (x *FeeratesPerkw) GetFloor() uint32 {
-	if x != nil && x.Floor != nil {
-		return *x.Floor
+	if x != nil {
+		return x.Floor
 	}
 	return 0
 }
@@ -18420,6 +18957,13 @@ func (x *FeeratesPerkw) GetFloor() uint32 {
 func (x *FeeratesPerkw) GetUnilateralAnchorClose() uint32 {
 	if x != nil && x.UnilateralAnchorClose != nil {
 		return *x.UnilateralAnchorClose
+	}
+	return 0
+}
+
+func (x *FeeratesPerkw) GetSplice() uint32 {
+	if x != nil && x.Splice != nil {
+		return *x.Splice
 	}
 	return 0
 }
@@ -19544,7 +20088,7 @@ type FundchannelResponse struct {
 	ChannelId     []byte                  `protobuf:"bytes,4,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
 	CloseTo       []byte                  `protobuf:"bytes,5,opt,name=close_to,json=closeTo,proto3,oneof" json:"close_to,omitempty"`
 	Mindepth      *uint32                 `protobuf:"varint,6,opt,name=mindepth,proto3,oneof" json:"mindepth,omitempty"`
-	ChannelType   *FundchannelChannelType `protobuf:"bytes,7,opt,name=channel_type,json=channelType,proto3,oneof" json:"channel_type,omitempty"`
+	ChannelType   *FundchannelChannelType `protobuf:"bytes,7,opt,name=channel_type,json=channelType,proto3" json:"channel_type,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -20996,7 +21540,7 @@ type ListforwardsForwards struct {
 	Style         *ListforwardsForwards_ListforwardsForwardsStyle `protobuf:"varint,9,opt,name=style,proto3,enum=cln.ListforwardsForwards_ListforwardsForwardsStyle,oneof" json:"style,omitempty"`
 	InHtlcId      *uint64                                         `protobuf:"varint,10,opt,name=in_htlc_id,json=inHtlcId,proto3,oneof" json:"in_htlc_id,omitempty"`
 	OutHtlcId     *uint64                                         `protobuf:"varint,11,opt,name=out_htlc_id,json=outHtlcId,proto3,oneof" json:"out_htlc_id,omitempty"`
-	CreatedIndex  *uint64                                         `protobuf:"varint,12,opt,name=created_index,json=createdIndex,proto3,oneof" json:"created_index,omitempty"`
+	CreatedIndex  uint64                                          `protobuf:"varint,12,opt,name=created_index,json=createdIndex,proto3" json:"created_index,omitempty"`
 	UpdatedIndex  *uint64                                         `protobuf:"varint,13,opt,name=updated_index,json=updatedIndex,proto3,oneof" json:"updated_index,omitempty"`
 	ResolvedTime  *float64                                        `protobuf:"fixed64,14,opt,name=resolved_time,json=resolvedTime,proto3,oneof" json:"resolved_time,omitempty"`
 	Failcode      *uint32                                         `protobuf:"varint,15,opt,name=failcode,proto3,oneof" json:"failcode,omitempty"`
@@ -21106,8 +21650,8 @@ func (x *ListforwardsForwards) GetOutHtlcId() uint64 {
 }
 
 func (x *ListforwardsForwards) GetCreatedIndex() uint64 {
-	if x != nil && x.CreatedIndex != nil {
-		return *x.CreatedIndex
+	if x != nil {
+		return x.CreatedIndex
 	}
 	return 0
 }
@@ -21245,6 +21789,7 @@ type ListoffersOffers struct {
 	Used          bool                   `protobuf:"varint,5,opt,name=used,proto3" json:"used,omitempty"`
 	Label         *string                `protobuf:"bytes,6,opt,name=label,proto3,oneof" json:"label,omitempty"`
 	Description   *string                `protobuf:"bytes,7,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	ForcePaths    *bool                  `protobuf:"varint,8,opt,name=force_paths,json=forcePaths,proto3,oneof" json:"force_paths,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -21326,6 +21871,13 @@ func (x *ListoffersOffers) GetDescription() string {
 		return *x.Description
 	}
 	return ""
+}
+
+func (x *ListoffersOffers) GetForcePaths() bool {
+	if x != nil && x.ForcePaths != nil {
+		return *x.ForcePaths
+	}
+	return false
 }
 
 type ListpaysRequest struct {
@@ -22105,7 +22657,7 @@ type MultifundchannelChannelIds struct {
 	Id            []byte                                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Outnum        uint32                                 `protobuf:"varint,2,opt,name=outnum,proto3" json:"outnum,omitempty"`
 	ChannelId     []byte                                 `protobuf:"bytes,3,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
-	ChannelType   *MultifundchannelChannelIdsChannelType `protobuf:"bytes,4,opt,name=channel_type,json=channelType,proto3,oneof" json:"channel_type,omitempty"`
+	ChannelType   *MultifundchannelChannelIdsChannelType `protobuf:"bytes,4,opt,name=channel_type,json=channelType,proto3" json:"channel_type,omitempty"`
 	CloseTo       []byte                                 `protobuf:"bytes,5,opt,name=close_to,json=closeTo,proto3,oneof" json:"close_to,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -22475,6 +23027,7 @@ type OfferRequest struct {
 	SingleUse           *bool                  `protobuf:"varint,11,opt,name=single_use,json=singleUse,proto3,oneof" json:"single_use,omitempty"`
 	ProportionalAmount  *bool                  `protobuf:"varint,13,opt,name=proportional_amount,json=proportionalAmount,proto3,oneof" json:"proportional_amount,omitempty"`
 	OptionalRecurrence  *bool                  `protobuf:"varint,14,opt,name=optional_recurrence,json=optionalRecurrence,proto3,oneof" json:"optional_recurrence,omitempty"`
+	FrontingNodes       [][]byte               `protobuf:"bytes,15,rep,name=fronting_nodes,json=frontingNodes,proto3" json:"fronting_nodes,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -22600,6 +23153,13 @@ func (x *OfferRequest) GetOptionalRecurrence() bool {
 	return false
 }
 
+func (x *OfferRequest) GetFrontingNodes() [][]byte {
+	if x != nil {
+		return x.FrontingNodes
+	}
+	return nil
+}
+
 type OfferResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	OfferId       []byte                 `protobuf:"bytes,1,opt,name=offer_id,json=offerId,proto3" json:"offer_id,omitempty"`
@@ -22609,6 +23169,7 @@ type OfferResponse struct {
 	Used          bool                   `protobuf:"varint,5,opt,name=used,proto3" json:"used,omitempty"`
 	Created       bool                   `protobuf:"varint,6,opt,name=created,proto3" json:"created,omitempty"`
 	Label         *string                `protobuf:"bytes,7,opt,name=label,proto3,oneof" json:"label,omitempty"`
+	ForcePaths    *bool                  `protobuf:"varint,8,opt,name=force_paths,json=forcePaths,proto3,oneof" json:"force_paths,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -22690,6 +23251,13 @@ func (x *OfferResponse) GetLabel() string {
 		return *x.Label
 	}
 	return ""
+}
+
+func (x *OfferResponse) GetForcePaths() bool {
+	if x != nil && x.ForcePaths != nil {
+		return *x.ForcePaths
+	}
+	return false
 }
 
 type OpenchannelAbortRequest struct {
@@ -22867,7 +23435,7 @@ func (x *OpenchannelBumpRequest) GetAmount() *Amount {
 type OpenchannelBumpResponse struct {
 	state                   protoimpl.MessageState      `protogen:"open.v1"`
 	ChannelId               []byte                      `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
-	ChannelType             *OpenchannelBumpChannelType `protobuf:"bytes,2,opt,name=channel_type,json=channelType,proto3,oneof" json:"channel_type,omitempty"`
+	ChannelType             *OpenchannelBumpChannelType `protobuf:"bytes,2,opt,name=channel_type,json=channelType,proto3" json:"channel_type,omitempty"`
 	Psbt                    string                      `protobuf:"bytes,3,opt,name=psbt,proto3" json:"psbt,omitempty"`
 	CommitmentsSecured      bool                        `protobuf:"varint,4,opt,name=commitments_secured,json=commitmentsSecured,proto3" json:"commitments_secured,omitempty"`
 	FundingSerial           uint64                      `protobuf:"varint,5,opt,name=funding_serial,json=fundingSerial,proto3" json:"funding_serial,omitempty"`
@@ -23120,7 +23688,7 @@ type OpenchannelInitResponse struct {
 	state                   protoimpl.MessageState      `protogen:"open.v1"`
 	ChannelId               []byte                      `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
 	Psbt                    string                      `protobuf:"bytes,2,opt,name=psbt,proto3" json:"psbt,omitempty"`
-	ChannelType             *OpenchannelInitChannelType `protobuf:"bytes,3,opt,name=channel_type,json=channelType,proto3,oneof" json:"channel_type,omitempty"`
+	ChannelType             *OpenchannelInitChannelType `protobuf:"bytes,3,opt,name=channel_type,json=channelType,proto3" json:"channel_type,omitempty"`
 	CommitmentsSecured      bool                        `protobuf:"varint,4,opt,name=commitments_secured,json=commitmentsSecured,proto3" json:"commitments_secured,omitempty"`
 	FundingSerial           uint64                      `protobuf:"varint,5,opt,name=funding_serial,json=fundingSerial,proto3" json:"funding_serial,omitempty"`
 	RequiresConfirmedInputs *bool                       `protobuf:"varint,6,opt,name=requires_confirmed_inputs,json=requiresConfirmedInputs,proto3,oneof" json:"requires_confirmed_inputs,omitempty"`
@@ -23419,7 +23987,7 @@ func (x *OpenchannelUpdateRequest) GetPsbt() string {
 type OpenchannelUpdateResponse struct {
 	state                   protoimpl.MessageState        `protogen:"open.v1"`
 	ChannelId               []byte                        `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
-	ChannelType             *OpenchannelUpdateChannelType `protobuf:"bytes,2,opt,name=channel_type,json=channelType,proto3,oneof" json:"channel_type,omitempty"`
+	ChannelType             *OpenchannelUpdateChannelType `protobuf:"bytes,2,opt,name=channel_type,json=channelType,proto3" json:"channel_type,omitempty"`
 	Psbt                    string                        `protobuf:"bytes,3,opt,name=psbt,proto3" json:"psbt,omitempty"`
 	CommitmentsSecured      bool                          `protobuf:"varint,4,opt,name=commitments_secured,json=commitmentsSecured,proto3" json:"commitments_secured,omitempty"`
 	FundingOutnum           uint32                        `protobuf:"varint,5,opt,name=funding_outnum,json=fundingOutnum,proto3" json:"funding_outnum,omitempty"`
@@ -24657,7 +25225,7 @@ type SendinvoiceResponse struct {
 	ExpiresAt          uint64                                `protobuf:"varint,5,opt,name=expires_at,json=expiresAt,proto3" json:"expires_at,omitempty"`
 	AmountMsat         *Amount                               `protobuf:"bytes,6,opt,name=amount_msat,json=amountMsat,proto3,oneof" json:"amount_msat,omitempty"`
 	Bolt12             *string                               `protobuf:"bytes,7,opt,name=bolt12,proto3,oneof" json:"bolt12,omitempty"`
-	CreatedIndex       *uint64                               `protobuf:"varint,8,opt,name=created_index,json=createdIndex,proto3,oneof" json:"created_index,omitempty"`
+	CreatedIndex       uint64                                `protobuf:"varint,8,opt,name=created_index,json=createdIndex,proto3" json:"created_index,omitempty"`
 	UpdatedIndex       *uint64                               `protobuf:"varint,9,opt,name=updated_index,json=updatedIndex,proto3,oneof" json:"updated_index,omitempty"`
 	PayIndex           *uint64                               `protobuf:"varint,10,opt,name=pay_index,json=payIndex,proto3,oneof" json:"pay_index,omitempty"`
 	AmountReceivedMsat *Amount                               `protobuf:"bytes,11,opt,name=amount_received_msat,json=amountReceivedMsat,proto3,oneof" json:"amount_received_msat,omitempty"`
@@ -24747,8 +25315,8 @@ func (x *SendinvoiceResponse) GetBolt12() string {
 }
 
 func (x *SendinvoiceResponse) GetCreatedIndex() uint64 {
-	if x != nil && x.CreatedIndex != nil {
-		return *x.CreatedIndex
+	if x != nil {
+		return x.CreatedIndex
 	}
 	return 0
 }
@@ -24935,7 +25503,7 @@ type SetchannelChannels struct {
 	WarningHtlcminTooLow      *string                `protobuf:"bytes,7,opt,name=warning_htlcmin_too_low,json=warningHtlcminTooLow,proto3,oneof" json:"warning_htlcmin_too_low,omitempty"`
 	MaximumHtlcOutMsat        *Amount                `protobuf:"bytes,8,opt,name=maximum_htlc_out_msat,json=maximumHtlcOutMsat,proto3" json:"maximum_htlc_out_msat,omitempty"`
 	WarningHtlcmaxTooHigh     *string                `protobuf:"bytes,9,opt,name=warning_htlcmax_too_high,json=warningHtlcmaxTooHigh,proto3,oneof" json:"warning_htlcmax_too_high,omitempty"`
-	IgnoreFeeLimits           *bool                  `protobuf:"varint,10,opt,name=ignore_fee_limits,json=ignoreFeeLimits,proto3,oneof" json:"ignore_fee_limits,omitempty"`
+	IgnoreFeeLimits           bool                   `protobuf:"varint,10,opt,name=ignore_fee_limits,json=ignoreFeeLimits,proto3" json:"ignore_fee_limits,omitempty"`
 	unknownFields             protoimpl.UnknownFields
 	sizeCache                 protoimpl.SizeCache
 }
@@ -25034,8 +25602,8 @@ func (x *SetchannelChannels) GetWarningHtlcmaxTooHigh() string {
 }
 
 func (x *SetchannelChannels) GetIgnoreFeeLimits() bool {
-	if x != nil && x.IgnoreFeeLimits != nil {
-		return *x.IgnoreFeeLimits
+	if x != nil {
+		return x.IgnoreFeeLimits
 	}
 	return false
 }
@@ -25900,6 +26468,246 @@ func (x *SpliceUpdateResponse) GetSignaturesSecured() bool {
 	return false
 }
 
+type SpliceinRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Channel       string                 `protobuf:"bytes,1,opt,name=channel,proto3" json:"channel,omitempty"`
+	Amount        string                 `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SpliceinRequest) Reset() {
+	*x = SpliceinRequest{}
+	mi := &file_node_proto_msgTypes[289]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SpliceinRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SpliceinRequest) ProtoMessage() {}
+
+func (x *SpliceinRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[289]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SpliceinRequest.ProtoReflect.Descriptor instead.
+func (*SpliceinRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{289}
+}
+
+func (x *SpliceinRequest) GetChannel() string {
+	if x != nil {
+		return x.Channel
+	}
+	return ""
+}
+
+func (x *SpliceinRequest) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+type SpliceinResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Psbt          *string                `protobuf:"bytes,1,opt,name=psbt,proto3,oneof" json:"psbt,omitempty"`
+	Tx            *string                `protobuf:"bytes,2,opt,name=tx,proto3,oneof" json:"tx,omitempty"`
+	Txid          *string                `protobuf:"bytes,3,opt,name=txid,proto3,oneof" json:"txid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SpliceinResponse) Reset() {
+	*x = SpliceinResponse{}
+	mi := &file_node_proto_msgTypes[290]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SpliceinResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SpliceinResponse) ProtoMessage() {}
+
+func (x *SpliceinResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[290]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SpliceinResponse.ProtoReflect.Descriptor instead.
+func (*SpliceinResponse) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{290}
+}
+
+func (x *SpliceinResponse) GetPsbt() string {
+	if x != nil && x.Psbt != nil {
+		return *x.Psbt
+	}
+	return ""
+}
+
+func (x *SpliceinResponse) GetTx() string {
+	if x != nil && x.Tx != nil {
+		return *x.Tx
+	}
+	return ""
+}
+
+func (x *SpliceinResponse) GetTxid() string {
+	if x != nil && x.Txid != nil {
+		return *x.Txid
+	}
+	return ""
+}
+
+type SpliceoutRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Channel       string                 `protobuf:"bytes,1,opt,name=channel,proto3" json:"channel,omitempty"`
+	Amount        string                 `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
+	Destination   *string                `protobuf:"bytes,3,opt,name=destination,proto3,oneof" json:"destination,omitempty"`
+	ForceFeerate  *bool                  `protobuf:"varint,4,opt,name=force_feerate,json=forceFeerate,proto3,oneof" json:"force_feerate,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SpliceoutRequest) Reset() {
+	*x = SpliceoutRequest{}
+	mi := &file_node_proto_msgTypes[291]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SpliceoutRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SpliceoutRequest) ProtoMessage() {}
+
+func (x *SpliceoutRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[291]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SpliceoutRequest.ProtoReflect.Descriptor instead.
+func (*SpliceoutRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{291}
+}
+
+func (x *SpliceoutRequest) GetChannel() string {
+	if x != nil {
+		return x.Channel
+	}
+	return ""
+}
+
+func (x *SpliceoutRequest) GetAmount() string {
+	if x != nil {
+		return x.Amount
+	}
+	return ""
+}
+
+func (x *SpliceoutRequest) GetDestination() string {
+	if x != nil && x.Destination != nil {
+		return *x.Destination
+	}
+	return ""
+}
+
+func (x *SpliceoutRequest) GetForceFeerate() bool {
+	if x != nil && x.ForceFeerate != nil {
+		return *x.ForceFeerate
+	}
+	return false
+}
+
+type SpliceoutResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Psbt          *string                `protobuf:"bytes,1,opt,name=psbt,proto3,oneof" json:"psbt,omitempty"`
+	Tx            *string                `protobuf:"bytes,2,opt,name=tx,proto3,oneof" json:"tx,omitempty"`
+	Txid          *string                `protobuf:"bytes,3,opt,name=txid,proto3,oneof" json:"txid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SpliceoutResponse) Reset() {
+	*x = SpliceoutResponse{}
+	mi := &file_node_proto_msgTypes[292]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SpliceoutResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SpliceoutResponse) ProtoMessage() {}
+
+func (x *SpliceoutResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[292]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SpliceoutResponse.ProtoReflect.Descriptor instead.
+func (*SpliceoutResponse) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{292}
+}
+
+func (x *SpliceoutResponse) GetPsbt() string {
+	if x != nil && x.Psbt != nil {
+		return *x.Psbt
+	}
+	return ""
+}
+
+func (x *SpliceoutResponse) GetTx() string {
+	if x != nil && x.Tx != nil {
+		return *x.Tx
+	}
+	return ""
+}
+
+func (x *SpliceoutResponse) GetTxid() string {
+	if x != nil && x.Txid != nil {
+		return *x.Txid
+	}
+	return ""
+}
+
 type DevspliceRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ScriptOrJson  string                 `protobuf:"bytes,1,opt,name=script_or_json,json=scriptOrJson,proto3" json:"script_or_json,omitempty"`
@@ -25913,7 +26721,7 @@ type DevspliceRequest struct {
 
 func (x *DevspliceRequest) Reset() {
 	*x = DevspliceRequest{}
-	mi := &file_node_proto_msgTypes[289]
+	mi := &file_node_proto_msgTypes[293]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -25925,7 +26733,7 @@ func (x *DevspliceRequest) String() string {
 func (*DevspliceRequest) ProtoMessage() {}
 
 func (x *DevspliceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[289]
+	mi := &file_node_proto_msgTypes[293]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -25938,7 +26746,7 @@ func (x *DevspliceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DevspliceRequest.ProtoReflect.Descriptor instead.
 func (*DevspliceRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{289}
+	return file_node_proto_rawDescGZIP(), []int{293}
 }
 
 func (x *DevspliceRequest) GetScriptOrJson() string {
@@ -25989,7 +26797,7 @@ type DevspliceResponse struct {
 
 func (x *DevspliceResponse) Reset() {
 	*x = DevspliceResponse{}
-	mi := &file_node_proto_msgTypes[290]
+	mi := &file_node_proto_msgTypes[294]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -26001,7 +26809,7 @@ func (x *DevspliceResponse) String() string {
 func (*DevspliceResponse) ProtoMessage() {}
 
 func (x *DevspliceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[290]
+	mi := &file_node_proto_msgTypes[294]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -26014,7 +26822,7 @@ func (x *DevspliceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DevspliceResponse.ProtoReflect.Descriptor instead.
 func (*DevspliceResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{290}
+	return file_node_proto_rawDescGZIP(), []int{294}
 }
 
 func (x *DevspliceResponse) GetDryrun() []string {
@@ -26062,7 +26870,7 @@ type UnreserveinputsRequest struct {
 
 func (x *UnreserveinputsRequest) Reset() {
 	*x = UnreserveinputsRequest{}
-	mi := &file_node_proto_msgTypes[291]
+	mi := &file_node_proto_msgTypes[295]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -26074,7 +26882,7 @@ func (x *UnreserveinputsRequest) String() string {
 func (*UnreserveinputsRequest) ProtoMessage() {}
 
 func (x *UnreserveinputsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[291]
+	mi := &file_node_proto_msgTypes[295]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -26087,7 +26895,7 @@ func (x *UnreserveinputsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnreserveinputsRequest.ProtoReflect.Descriptor instead.
 func (*UnreserveinputsRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{291}
+	return file_node_proto_rawDescGZIP(), []int{295}
 }
 
 func (x *UnreserveinputsRequest) GetPsbt() string {
@@ -26113,7 +26921,7 @@ type UnreserveinputsResponse struct {
 
 func (x *UnreserveinputsResponse) Reset() {
 	*x = UnreserveinputsResponse{}
-	mi := &file_node_proto_msgTypes[292]
+	mi := &file_node_proto_msgTypes[296]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -26125,7 +26933,7 @@ func (x *UnreserveinputsResponse) String() string {
 func (*UnreserveinputsResponse) ProtoMessage() {}
 
 func (x *UnreserveinputsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[292]
+	mi := &file_node_proto_msgTypes[296]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -26138,7 +26946,7 @@ func (x *UnreserveinputsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnreserveinputsResponse.ProtoReflect.Descriptor instead.
 func (*UnreserveinputsResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{292}
+	return file_node_proto_rawDescGZIP(), []int{296}
 }
 
 func (x *UnreserveinputsResponse) GetReservations() []*UnreserveinputsReservations {
@@ -26161,7 +26969,7 @@ type UnreserveinputsReservations struct {
 
 func (x *UnreserveinputsReservations) Reset() {
 	*x = UnreserveinputsReservations{}
-	mi := &file_node_proto_msgTypes[293]
+	mi := &file_node_proto_msgTypes[297]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -26173,7 +26981,7 @@ func (x *UnreserveinputsReservations) String() string {
 func (*UnreserveinputsReservations) ProtoMessage() {}
 
 func (x *UnreserveinputsReservations) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[293]
+	mi := &file_node_proto_msgTypes[297]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -26186,7 +26994,7 @@ func (x *UnreserveinputsReservations) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UnreserveinputsReservations.ProtoReflect.Descriptor instead.
 func (*UnreserveinputsReservations) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{293}
+	return file_node_proto_rawDescGZIP(), []int{297}
 }
 
 func (x *UnreserveinputsReservations) GetTxid() []byte {
@@ -26234,7 +27042,7 @@ type UpgradewalletRequest struct {
 
 func (x *UpgradewalletRequest) Reset() {
 	*x = UpgradewalletRequest{}
-	mi := &file_node_proto_msgTypes[294]
+	mi := &file_node_proto_msgTypes[298]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -26246,7 +27054,7 @@ func (x *UpgradewalletRequest) String() string {
 func (*UpgradewalletRequest) ProtoMessage() {}
 
 func (x *UpgradewalletRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[294]
+	mi := &file_node_proto_msgTypes[298]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -26259,7 +27067,7 @@ func (x *UpgradewalletRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpgradewalletRequest.ProtoReflect.Descriptor instead.
 func (*UpgradewalletRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{294}
+	return file_node_proto_rawDescGZIP(), []int{298}
 }
 
 func (x *UpgradewalletRequest) GetFeerate() *Feerate {
@@ -26278,7 +27086,7 @@ func (x *UpgradewalletRequest) GetReservedok() bool {
 
 type UpgradewalletResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UpgradedOuts  *uint64                `protobuf:"varint,1,opt,name=upgraded_outs,json=upgradedOuts,proto3,oneof" json:"upgraded_outs,omitempty"`
+	UpgradedOuts  uint64                 `protobuf:"varint,1,opt,name=upgraded_outs,json=upgradedOuts,proto3" json:"upgraded_outs,omitempty"`
 	Psbt          *string                `protobuf:"bytes,2,opt,name=psbt,proto3,oneof" json:"psbt,omitempty"`
 	Tx            []byte                 `protobuf:"bytes,3,opt,name=tx,proto3,oneof" json:"tx,omitempty"`
 	Txid          []byte                 `protobuf:"bytes,4,opt,name=txid,proto3,oneof" json:"txid,omitempty"`
@@ -26288,7 +27096,7 @@ type UpgradewalletResponse struct {
 
 func (x *UpgradewalletResponse) Reset() {
 	*x = UpgradewalletResponse{}
-	mi := &file_node_proto_msgTypes[295]
+	mi := &file_node_proto_msgTypes[299]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -26300,7 +27108,7 @@ func (x *UpgradewalletResponse) String() string {
 func (*UpgradewalletResponse) ProtoMessage() {}
 
 func (x *UpgradewalletResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[295]
+	mi := &file_node_proto_msgTypes[299]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -26313,12 +27121,12 @@ func (x *UpgradewalletResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpgradewalletResponse.ProtoReflect.Descriptor instead.
 func (*UpgradewalletResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{295}
+	return file_node_proto_rawDescGZIP(), []int{299}
 }
 
 func (x *UpgradewalletResponse) GetUpgradedOuts() uint64 {
-	if x != nil && x.UpgradedOuts != nil {
-		return *x.UpgradedOuts
+	if x != nil {
+		return x.UpgradedOuts
 	}
 	return 0
 }
@@ -26354,7 +27162,7 @@ type WaitblockheightRequest struct {
 
 func (x *WaitblockheightRequest) Reset() {
 	*x = WaitblockheightRequest{}
-	mi := &file_node_proto_msgTypes[296]
+	mi := &file_node_proto_msgTypes[300]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -26366,7 +27174,7 @@ func (x *WaitblockheightRequest) String() string {
 func (*WaitblockheightRequest) ProtoMessage() {}
 
 func (x *WaitblockheightRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[296]
+	mi := &file_node_proto_msgTypes[300]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -26379,7 +27187,7 @@ func (x *WaitblockheightRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WaitblockheightRequest.ProtoReflect.Descriptor instead.
 func (*WaitblockheightRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{296}
+	return file_node_proto_rawDescGZIP(), []int{300}
 }
 
 func (x *WaitblockheightRequest) GetBlockheight() uint32 {
@@ -26405,7 +27213,7 @@ type WaitblockheightResponse struct {
 
 func (x *WaitblockheightResponse) Reset() {
 	*x = WaitblockheightResponse{}
-	mi := &file_node_proto_msgTypes[297]
+	mi := &file_node_proto_msgTypes[301]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -26417,7 +27225,7 @@ func (x *WaitblockheightResponse) String() string {
 func (*WaitblockheightResponse) ProtoMessage() {}
 
 func (x *WaitblockheightResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[297]
+	mi := &file_node_proto_msgTypes[301]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -26430,7 +27238,7 @@ func (x *WaitblockheightResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WaitblockheightResponse.ProtoReflect.Descriptor instead.
 func (*WaitblockheightResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{297}
+	return file_node_proto_rawDescGZIP(), []int{301}
 }
 
 func (x *WaitblockheightResponse) GetBlockheight() uint32 {
@@ -26451,7 +27259,7 @@ type WaitRequest struct {
 
 func (x *WaitRequest) Reset() {
 	*x = WaitRequest{}
-	mi := &file_node_proto_msgTypes[298]
+	mi := &file_node_proto_msgTypes[302]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -26463,7 +27271,7 @@ func (x *WaitRequest) String() string {
 func (*WaitRequest) ProtoMessage() {}
 
 func (x *WaitRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[298]
+	mi := &file_node_proto_msgTypes[302]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -26476,7 +27284,7 @@ func (x *WaitRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WaitRequest.ProtoReflect.Descriptor instead.
 func (*WaitRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{298}
+	return file_node_proto_rawDescGZIP(), []int{302}
 }
 
 func (x *WaitRequest) GetSubsystem() WaitRequest_WaitSubsystem {
@@ -26520,7 +27328,7 @@ type WaitResponse struct {
 
 func (x *WaitResponse) Reset() {
 	*x = WaitResponse{}
-	mi := &file_node_proto_msgTypes[299]
+	mi := &file_node_proto_msgTypes[303]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -26532,7 +27340,7 @@ func (x *WaitResponse) String() string {
 func (*WaitResponse) ProtoMessage() {}
 
 func (x *WaitResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[299]
+	mi := &file_node_proto_msgTypes[303]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -26545,7 +27353,7 @@ func (x *WaitResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WaitResponse.ProtoReflect.Descriptor instead.
 func (*WaitResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{299}
+	return file_node_proto_rawDescGZIP(), []int{303}
 }
 
 func (x *WaitResponse) GetSubsystem() WaitResponse_WaitSubsystem {
@@ -26645,7 +27453,7 @@ type WaitForwards struct {
 
 func (x *WaitForwards) Reset() {
 	*x = WaitForwards{}
-	mi := &file_node_proto_msgTypes[300]
+	mi := &file_node_proto_msgTypes[304]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -26657,7 +27465,7 @@ func (x *WaitForwards) String() string {
 func (*WaitForwards) ProtoMessage() {}
 
 func (x *WaitForwards) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[300]
+	mi := &file_node_proto_msgTypes[304]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -26670,7 +27478,7 @@ func (x *WaitForwards) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WaitForwards.ProtoReflect.Descriptor instead.
 func (*WaitForwards) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{300}
+	return file_node_proto_rawDescGZIP(), []int{304}
 }
 
 func (x *WaitForwards) GetStatus() WaitForwards_WaitForwardsStatus {
@@ -26721,7 +27529,7 @@ type WaitInvoices struct {
 
 func (x *WaitInvoices) Reset() {
 	*x = WaitInvoices{}
-	mi := &file_node_proto_msgTypes[301]
+	mi := &file_node_proto_msgTypes[305]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -26733,7 +27541,7 @@ func (x *WaitInvoices) String() string {
 func (*WaitInvoices) ProtoMessage() {}
 
 func (x *WaitInvoices) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[301]
+	mi := &file_node_proto_msgTypes[305]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -26746,7 +27554,7 @@ func (x *WaitInvoices) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WaitInvoices.ProtoReflect.Descriptor instead.
 func (*WaitInvoices) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{301}
+	return file_node_proto_rawDescGZIP(), []int{305}
 }
 
 func (x *WaitInvoices) GetStatus() WaitInvoices_WaitInvoicesStatus {
@@ -26796,7 +27604,7 @@ type WaitSendpays struct {
 
 func (x *WaitSendpays) Reset() {
 	*x = WaitSendpays{}
-	mi := &file_node_proto_msgTypes[302]
+	mi := &file_node_proto_msgTypes[306]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -26808,7 +27616,7 @@ func (x *WaitSendpays) String() string {
 func (*WaitSendpays) ProtoMessage() {}
 
 func (x *WaitSendpays) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[302]
+	mi := &file_node_proto_msgTypes[306]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -26821,7 +27629,7 @@ func (x *WaitSendpays) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WaitSendpays.ProtoReflect.Descriptor instead.
 func (*WaitSendpays) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{302}
+	return file_node_proto_rawDescGZIP(), []int{306}
 }
 
 func (x *WaitSendpays) GetStatus() WaitSendpays_WaitSendpaysStatus {
@@ -26867,7 +27675,7 @@ type WaitHtlcs struct {
 
 func (x *WaitHtlcs) Reset() {
 	*x = WaitHtlcs{}
-	mi := &file_node_proto_msgTypes[303]
+	mi := &file_node_proto_msgTypes[307]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -26879,7 +27687,7 @@ func (x *WaitHtlcs) String() string {
 func (*WaitHtlcs) ProtoMessage() {}
 
 func (x *WaitHtlcs) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[303]
+	mi := &file_node_proto_msgTypes[307]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -26892,7 +27700,7 @@ func (x *WaitHtlcs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WaitHtlcs.ProtoReflect.Descriptor instead.
 func (*WaitHtlcs) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{303}
+	return file_node_proto_rawDescGZIP(), []int{307}
 }
 
 func (x *WaitHtlcs) GetState() HtlcState {
@@ -26955,7 +27763,7 @@ type WaitChainmoves struct {
 
 func (x *WaitChainmoves) Reset() {
 	*x = WaitChainmoves{}
-	mi := &file_node_proto_msgTypes[304]
+	mi := &file_node_proto_msgTypes[308]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -26967,7 +27775,7 @@ func (x *WaitChainmoves) String() string {
 func (*WaitChainmoves) ProtoMessage() {}
 
 func (x *WaitChainmoves) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[304]
+	mi := &file_node_proto_msgTypes[308]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -26980,7 +27788,7 @@ func (x *WaitChainmoves) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WaitChainmoves.ProtoReflect.Descriptor instead.
 func (*WaitChainmoves) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{304}
+	return file_node_proto_rawDescGZIP(), []int{308}
 }
 
 func (x *WaitChainmoves) GetAccount() string {
@@ -27015,7 +27823,7 @@ type WaitChannelmoves struct {
 
 func (x *WaitChannelmoves) Reset() {
 	*x = WaitChannelmoves{}
-	mi := &file_node_proto_msgTypes[305]
+	mi := &file_node_proto_msgTypes[309]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -27027,7 +27835,7 @@ func (x *WaitChannelmoves) String() string {
 func (*WaitChannelmoves) ProtoMessage() {}
 
 func (x *WaitChannelmoves) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[305]
+	mi := &file_node_proto_msgTypes[309]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -27040,7 +27848,7 @@ func (x *WaitChannelmoves) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WaitChannelmoves.ProtoReflect.Descriptor instead.
 func (*WaitChannelmoves) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{305}
+	return file_node_proto_rawDescGZIP(), []int{309}
 }
 
 func (x *WaitChannelmoves) GetAccount() string {
@@ -27075,7 +27883,7 @@ type WaitNetworkevents struct {
 
 func (x *WaitNetworkevents) Reset() {
 	*x = WaitNetworkevents{}
-	mi := &file_node_proto_msgTypes[306]
+	mi := &file_node_proto_msgTypes[310]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -27087,7 +27895,7 @@ func (x *WaitNetworkevents) String() string {
 func (*WaitNetworkevents) ProtoMessage() {}
 
 func (x *WaitNetworkevents) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[306]
+	mi := &file_node_proto_msgTypes[310]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -27100,7 +27908,7 @@ func (x *WaitNetworkevents) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WaitNetworkevents.ProtoReflect.Descriptor instead.
 func (*WaitNetworkevents) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{306}
+	return file_node_proto_rawDescGZIP(), []int{310}
 }
 
 func (x *WaitNetworkevents) GetCreatedIndex() uint64 {
@@ -27144,7 +27952,7 @@ type WaitDetails struct {
 
 func (x *WaitDetails) Reset() {
 	*x = WaitDetails{}
-	mi := &file_node_proto_msgTypes[307]
+	mi := &file_node_proto_msgTypes[311]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -27156,7 +27964,7 @@ func (x *WaitDetails) String() string {
 func (*WaitDetails) ProtoMessage() {}
 
 func (x *WaitDetails) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[307]
+	mi := &file_node_proto_msgTypes[311]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -27169,7 +27977,7 @@ func (x *WaitDetails) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use WaitDetails.ProtoReflect.Descriptor instead.
 func (*WaitDetails) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{307}
+	return file_node_proto_rawDescGZIP(), []int{311}
 }
 
 func (x *WaitDetails) GetStatus() WaitDetails_WaitDetailsStatus {
@@ -27265,7 +28073,7 @@ type ListconfigsRequest struct {
 
 func (x *ListconfigsRequest) Reset() {
 	*x = ListconfigsRequest{}
-	mi := &file_node_proto_msgTypes[308]
+	mi := &file_node_proto_msgTypes[312]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -27277,7 +28085,7 @@ func (x *ListconfigsRequest) String() string {
 func (*ListconfigsRequest) ProtoMessage() {}
 
 func (x *ListconfigsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[308]
+	mi := &file_node_proto_msgTypes[312]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -27290,7 +28098,7 @@ func (x *ListconfigsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsRequest.ProtoReflect.Descriptor instead.
 func (*ListconfigsRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{308}
+	return file_node_proto_rawDescGZIP(), []int{312}
 }
 
 func (x *ListconfigsRequest) GetConfig() string {
@@ -27309,7 +28117,7 @@ type ListconfigsResponse struct {
 
 func (x *ListconfigsResponse) Reset() {
 	*x = ListconfigsResponse{}
-	mi := &file_node_proto_msgTypes[309]
+	mi := &file_node_proto_msgTypes[313]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -27321,7 +28129,7 @@ func (x *ListconfigsResponse) String() string {
 func (*ListconfigsResponse) ProtoMessage() {}
 
 func (x *ListconfigsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[309]
+	mi := &file_node_proto_msgTypes[313]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -27334,7 +28142,7 @@ func (x *ListconfigsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsResponse.ProtoReflect.Descriptor instead.
 func (*ListconfigsResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{309}
+	return file_node_proto_rawDescGZIP(), []int{313}
 }
 
 func (x *ListconfigsResponse) GetConfigs() *ListconfigsConfigs {
@@ -27416,13 +28224,15 @@ type ListconfigsConfigs struct {
 	CommitFee                        *ListconfigsConfigsCommitfee                        `protobuf:"bytes,69,opt,name=commit_fee,json=commitFee,proto3,oneof" json:"commit_fee,omitempty"`
 	CommitFeerateOffset              *ListconfigsConfigsCommitfeerateoffset              `protobuf:"bytes,70,opt,name=commit_feerate_offset,json=commitFeerateOffset,proto3,oneof" json:"commit_feerate_offset,omitempty"`
 	AutoconnectSeekerPeers           *ListconfigsConfigsAutoconnectseekerpeers           `protobuf:"bytes,71,opt,name=autoconnect_seeker_peers,json=autoconnectSeekerPeers,proto3,oneof" json:"autoconnect_seeker_peers,omitempty"`
+	CurrencyrateAddSource            *ListconfigsConfigsCurrencyrateaddsource            `protobuf:"bytes,74,opt,name=currencyrate_add_source,json=currencyrateAddSource,proto3,oneof" json:"currencyrate_add_source,omitempty"`
+	CurrencyrateDisableSource        *ListconfigsConfigsCurrencyratedisablesource        `protobuf:"bytes,75,opt,name=currencyrate_disable_source,json=currencyrateDisableSource,proto3,oneof" json:"currencyrate_disable_source,omitempty"`
 	unknownFields                    protoimpl.UnknownFields
 	sizeCache                        protoimpl.SizeCache
 }
 
 func (x *ListconfigsConfigs) Reset() {
 	*x = ListconfigsConfigs{}
-	mi := &file_node_proto_msgTypes[310]
+	mi := &file_node_proto_msgTypes[314]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -27434,7 +28244,7 @@ func (x *ListconfigsConfigs) String() string {
 func (*ListconfigsConfigs) ProtoMessage() {}
 
 func (x *ListconfigsConfigs) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[310]
+	mi := &file_node_proto_msgTypes[314]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -27447,7 +28257,7 @@ func (x *ListconfigsConfigs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigs.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigs) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{310}
+	return file_node_proto_rawDescGZIP(), []int{314}
 }
 
 func (x *ListconfigsConfigs) GetConf() *ListconfigsConfigsConf {
@@ -27940,6 +28750,20 @@ func (x *ListconfigsConfigs) GetAutoconnectSeekerPeers() *ListconfigsConfigsAuto
 	return nil
 }
 
+func (x *ListconfigsConfigs) GetCurrencyrateAddSource() *ListconfigsConfigsCurrencyrateaddsource {
+	if x != nil {
+		return x.CurrencyrateAddSource
+	}
+	return nil
+}
+
+func (x *ListconfigsConfigs) GetCurrencyrateDisableSource() *ListconfigsConfigsCurrencyratedisablesource {
+	if x != nil {
+		return x.CurrencyrateDisableSource
+	}
+	return nil
+}
+
 type ListconfigsConfigsConf struct {
 	state         protoimpl.MessageState                              `protogen:"open.v1"`
 	ValueStr      string                                              `protobuf:"bytes,1,opt,name=value_str,json=valueStr,proto3" json:"value_str,omitempty"`
@@ -27950,7 +28774,7 @@ type ListconfigsConfigsConf struct {
 
 func (x *ListconfigsConfigsConf) Reset() {
 	*x = ListconfigsConfigsConf{}
-	mi := &file_node_proto_msgTypes[311]
+	mi := &file_node_proto_msgTypes[315]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -27962,7 +28786,7 @@ func (x *ListconfigsConfigsConf) String() string {
 func (*ListconfigsConfigsConf) ProtoMessage() {}
 
 func (x *ListconfigsConfigsConf) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[311]
+	mi := &file_node_proto_msgTypes[315]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -27975,7 +28799,7 @@ func (x *ListconfigsConfigsConf) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsConf.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsConf) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{311}
+	return file_node_proto_rawDescGZIP(), []int{315}
 }
 
 func (x *ListconfigsConfigsConf) GetValueStr() string {
@@ -28002,7 +28826,7 @@ type ListconfigsConfigsDeveloper struct {
 
 func (x *ListconfigsConfigsDeveloper) Reset() {
 	*x = ListconfigsConfigsDeveloper{}
-	mi := &file_node_proto_msgTypes[312]
+	mi := &file_node_proto_msgTypes[316]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -28014,7 +28838,7 @@ func (x *ListconfigsConfigsDeveloper) String() string {
 func (*ListconfigsConfigsDeveloper) ProtoMessage() {}
 
 func (x *ListconfigsConfigsDeveloper) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[312]
+	mi := &file_node_proto_msgTypes[316]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -28027,7 +28851,7 @@ func (x *ListconfigsConfigsDeveloper) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsDeveloper.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsDeveloper) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{312}
+	return file_node_proto_rawDescGZIP(), []int{316}
 }
 
 func (x *ListconfigsConfigsDeveloper) GetSet() bool {
@@ -28054,7 +28878,7 @@ type ListconfigsConfigsClearplugins struct {
 
 func (x *ListconfigsConfigsClearplugins) Reset() {
 	*x = ListconfigsConfigsClearplugins{}
-	mi := &file_node_proto_msgTypes[313]
+	mi := &file_node_proto_msgTypes[317]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -28066,7 +28890,7 @@ func (x *ListconfigsConfigsClearplugins) String() string {
 func (*ListconfigsConfigsClearplugins) ProtoMessage() {}
 
 func (x *ListconfigsConfigsClearplugins) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[313]
+	mi := &file_node_proto_msgTypes[317]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -28079,7 +28903,7 @@ func (x *ListconfigsConfigsClearplugins) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsClearplugins.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsClearplugins) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{313}
+	return file_node_proto_rawDescGZIP(), []int{317}
 }
 
 func (x *ListconfigsConfigsClearplugins) GetSet() bool {
@@ -28107,7 +28931,7 @@ type ListconfigsConfigsDisablempp struct {
 
 func (x *ListconfigsConfigsDisablempp) Reset() {
 	*x = ListconfigsConfigsDisablempp{}
-	mi := &file_node_proto_msgTypes[314]
+	mi := &file_node_proto_msgTypes[318]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -28119,7 +28943,7 @@ func (x *ListconfigsConfigsDisablempp) String() string {
 func (*ListconfigsConfigsDisablempp) ProtoMessage() {}
 
 func (x *ListconfigsConfigsDisablempp) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[314]
+	mi := &file_node_proto_msgTypes[318]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -28132,7 +28956,7 @@ func (x *ListconfigsConfigsDisablempp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsDisablempp.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsDisablempp) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{314}
+	return file_node_proto_rawDescGZIP(), []int{318}
 }
 
 func (x *ListconfigsConfigsDisablempp) GetSet() bool {
@@ -28166,7 +28990,7 @@ type ListconfigsConfigsMainnet struct {
 
 func (x *ListconfigsConfigsMainnet) Reset() {
 	*x = ListconfigsConfigsMainnet{}
-	mi := &file_node_proto_msgTypes[315]
+	mi := &file_node_proto_msgTypes[319]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -28178,7 +29002,7 @@ func (x *ListconfigsConfigsMainnet) String() string {
 func (*ListconfigsConfigsMainnet) ProtoMessage() {}
 
 func (x *ListconfigsConfigsMainnet) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[315]
+	mi := &file_node_proto_msgTypes[319]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -28191,7 +29015,7 @@ func (x *ListconfigsConfigsMainnet) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsMainnet.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsMainnet) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{315}
+	return file_node_proto_rawDescGZIP(), []int{319}
 }
 
 func (x *ListconfigsConfigsMainnet) GetSet() bool {
@@ -28218,7 +29042,7 @@ type ListconfigsConfigsRegtest struct {
 
 func (x *ListconfigsConfigsRegtest) Reset() {
 	*x = ListconfigsConfigsRegtest{}
-	mi := &file_node_proto_msgTypes[316]
+	mi := &file_node_proto_msgTypes[320]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -28230,7 +29054,7 @@ func (x *ListconfigsConfigsRegtest) String() string {
 func (*ListconfigsConfigsRegtest) ProtoMessage() {}
 
 func (x *ListconfigsConfigsRegtest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[316]
+	mi := &file_node_proto_msgTypes[320]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -28243,7 +29067,7 @@ func (x *ListconfigsConfigsRegtest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsRegtest.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsRegtest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{316}
+	return file_node_proto_rawDescGZIP(), []int{320}
 }
 
 func (x *ListconfigsConfigsRegtest) GetSet() bool {
@@ -28270,7 +29094,7 @@ type ListconfigsConfigsSignet struct {
 
 func (x *ListconfigsConfigsSignet) Reset() {
 	*x = ListconfigsConfigsSignet{}
-	mi := &file_node_proto_msgTypes[317]
+	mi := &file_node_proto_msgTypes[321]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -28282,7 +29106,7 @@ func (x *ListconfigsConfigsSignet) String() string {
 func (*ListconfigsConfigsSignet) ProtoMessage() {}
 
 func (x *ListconfigsConfigsSignet) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[317]
+	mi := &file_node_proto_msgTypes[321]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -28295,7 +29119,7 @@ func (x *ListconfigsConfigsSignet) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsSignet.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsSignet) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{317}
+	return file_node_proto_rawDescGZIP(), []int{321}
 }
 
 func (x *ListconfigsConfigsSignet) GetSet() bool {
@@ -28322,7 +29146,7 @@ type ListconfigsConfigsTestnet struct {
 
 func (x *ListconfigsConfigsTestnet) Reset() {
 	*x = ListconfigsConfigsTestnet{}
-	mi := &file_node_proto_msgTypes[318]
+	mi := &file_node_proto_msgTypes[322]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -28334,7 +29158,7 @@ func (x *ListconfigsConfigsTestnet) String() string {
 func (*ListconfigsConfigsTestnet) ProtoMessage() {}
 
 func (x *ListconfigsConfigsTestnet) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[318]
+	mi := &file_node_proto_msgTypes[322]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -28347,7 +29171,7 @@ func (x *ListconfigsConfigsTestnet) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsTestnet.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsTestnet) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{318}
+	return file_node_proto_rawDescGZIP(), []int{322}
 }
 
 func (x *ListconfigsConfigsTestnet) GetSet() bool {
@@ -28374,7 +29198,7 @@ type ListconfigsConfigsImportantplugin struct {
 
 func (x *ListconfigsConfigsImportantplugin) Reset() {
 	*x = ListconfigsConfigsImportantplugin{}
-	mi := &file_node_proto_msgTypes[319]
+	mi := &file_node_proto_msgTypes[323]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -28386,7 +29210,7 @@ func (x *ListconfigsConfigsImportantplugin) String() string {
 func (*ListconfigsConfigsImportantplugin) ProtoMessage() {}
 
 func (x *ListconfigsConfigsImportantplugin) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[319]
+	mi := &file_node_proto_msgTypes[323]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -28399,7 +29223,7 @@ func (x *ListconfigsConfigsImportantplugin) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListconfigsConfigsImportantplugin.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsImportantplugin) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{319}
+	return file_node_proto_rawDescGZIP(), []int{323}
 }
 
 func (x *ListconfigsConfigsImportantplugin) GetValuesStr() []string {
@@ -28426,7 +29250,7 @@ type ListconfigsConfigsPlugin struct {
 
 func (x *ListconfigsConfigsPlugin) Reset() {
 	*x = ListconfigsConfigsPlugin{}
-	mi := &file_node_proto_msgTypes[320]
+	mi := &file_node_proto_msgTypes[324]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -28438,7 +29262,7 @@ func (x *ListconfigsConfigsPlugin) String() string {
 func (*ListconfigsConfigsPlugin) ProtoMessage() {}
 
 func (x *ListconfigsConfigsPlugin) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[320]
+	mi := &file_node_proto_msgTypes[324]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -28451,7 +29275,7 @@ func (x *ListconfigsConfigsPlugin) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsPlugin.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsPlugin) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{320}
+	return file_node_proto_rawDescGZIP(), []int{324}
 }
 
 func (x *ListconfigsConfigsPlugin) GetValuesStr() []string {
@@ -28478,7 +29302,7 @@ type ListconfigsConfigsPlugindir struct {
 
 func (x *ListconfigsConfigsPlugindir) Reset() {
 	*x = ListconfigsConfigsPlugindir{}
-	mi := &file_node_proto_msgTypes[321]
+	mi := &file_node_proto_msgTypes[325]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -28490,7 +29314,7 @@ func (x *ListconfigsConfigsPlugindir) String() string {
 func (*ListconfigsConfigsPlugindir) ProtoMessage() {}
 
 func (x *ListconfigsConfigsPlugindir) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[321]
+	mi := &file_node_proto_msgTypes[325]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -28503,7 +29327,7 @@ func (x *ListconfigsConfigsPlugindir) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsPlugindir.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsPlugindir) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{321}
+	return file_node_proto_rawDescGZIP(), []int{325}
 }
 
 func (x *ListconfigsConfigsPlugindir) GetValuesStr() []string {
@@ -28530,7 +29354,7 @@ type ListconfigsConfigsLightningdir struct {
 
 func (x *ListconfigsConfigsLightningdir) Reset() {
 	*x = ListconfigsConfigsLightningdir{}
-	mi := &file_node_proto_msgTypes[322]
+	mi := &file_node_proto_msgTypes[326]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -28542,7 +29366,7 @@ func (x *ListconfigsConfigsLightningdir) String() string {
 func (*ListconfigsConfigsLightningdir) ProtoMessage() {}
 
 func (x *ListconfigsConfigsLightningdir) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[322]
+	mi := &file_node_proto_msgTypes[326]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -28555,7 +29379,7 @@ func (x *ListconfigsConfigsLightningdir) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsLightningdir.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsLightningdir) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{322}
+	return file_node_proto_rawDescGZIP(), []int{326}
 }
 
 func (x *ListconfigsConfigsLightningdir) GetValueStr() string {
@@ -28582,7 +29406,7 @@ type ListconfigsConfigsNetwork struct {
 
 func (x *ListconfigsConfigsNetwork) Reset() {
 	*x = ListconfigsConfigsNetwork{}
-	mi := &file_node_proto_msgTypes[323]
+	mi := &file_node_proto_msgTypes[327]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -28594,7 +29418,7 @@ func (x *ListconfigsConfigsNetwork) String() string {
 func (*ListconfigsConfigsNetwork) ProtoMessage() {}
 
 func (x *ListconfigsConfigsNetwork) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[323]
+	mi := &file_node_proto_msgTypes[327]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -28607,7 +29431,7 @@ func (x *ListconfigsConfigsNetwork) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsNetwork.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsNetwork) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{323}
+	return file_node_proto_rawDescGZIP(), []int{327}
 }
 
 func (x *ListconfigsConfigsNetwork) GetValueStr() string {
@@ -28634,7 +29458,7 @@ type ListconfigsConfigsAllowdeprecatedapis struct {
 
 func (x *ListconfigsConfigsAllowdeprecatedapis) Reset() {
 	*x = ListconfigsConfigsAllowdeprecatedapis{}
-	mi := &file_node_proto_msgTypes[324]
+	mi := &file_node_proto_msgTypes[328]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -28646,7 +29470,7 @@ func (x *ListconfigsConfigsAllowdeprecatedapis) String() string {
 func (*ListconfigsConfigsAllowdeprecatedapis) ProtoMessage() {}
 
 func (x *ListconfigsConfigsAllowdeprecatedapis) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[324]
+	mi := &file_node_proto_msgTypes[328]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -28659,7 +29483,7 @@ func (x *ListconfigsConfigsAllowdeprecatedapis) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use ListconfigsConfigsAllowdeprecatedapis.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsAllowdeprecatedapis) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{324}
+	return file_node_proto_rawDescGZIP(), []int{328}
 }
 
 func (x *ListconfigsConfigsAllowdeprecatedapis) GetValueBool() bool {
@@ -28686,7 +29510,7 @@ type ListconfigsConfigsRpcfile struct {
 
 func (x *ListconfigsConfigsRpcfile) Reset() {
 	*x = ListconfigsConfigsRpcfile{}
-	mi := &file_node_proto_msgTypes[325]
+	mi := &file_node_proto_msgTypes[329]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -28698,7 +29522,7 @@ func (x *ListconfigsConfigsRpcfile) String() string {
 func (*ListconfigsConfigsRpcfile) ProtoMessage() {}
 
 func (x *ListconfigsConfigsRpcfile) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[325]
+	mi := &file_node_proto_msgTypes[329]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -28711,7 +29535,7 @@ func (x *ListconfigsConfigsRpcfile) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsRpcfile.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsRpcfile) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{325}
+	return file_node_proto_rawDescGZIP(), []int{329}
 }
 
 func (x *ListconfigsConfigsRpcfile) GetValueStr() string {
@@ -28738,7 +29562,7 @@ type ListconfigsConfigsDisableplugin struct {
 
 func (x *ListconfigsConfigsDisableplugin) Reset() {
 	*x = ListconfigsConfigsDisableplugin{}
-	mi := &file_node_proto_msgTypes[326]
+	mi := &file_node_proto_msgTypes[330]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -28750,7 +29574,7 @@ func (x *ListconfigsConfigsDisableplugin) String() string {
 func (*ListconfigsConfigsDisableplugin) ProtoMessage() {}
 
 func (x *ListconfigsConfigsDisableplugin) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[326]
+	mi := &file_node_proto_msgTypes[330]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -28763,7 +29587,7 @@ func (x *ListconfigsConfigsDisableplugin) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsDisableplugin.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsDisableplugin) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{326}
+	return file_node_proto_rawDescGZIP(), []int{330}
 }
 
 func (x *ListconfigsConfigsDisableplugin) GetValuesStr() []string {
@@ -28790,7 +29614,7 @@ type ListconfigsConfigsAlwaysuseproxy struct {
 
 func (x *ListconfigsConfigsAlwaysuseproxy) Reset() {
 	*x = ListconfigsConfigsAlwaysuseproxy{}
-	mi := &file_node_proto_msgTypes[327]
+	mi := &file_node_proto_msgTypes[331]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -28802,7 +29626,7 @@ func (x *ListconfigsConfigsAlwaysuseproxy) String() string {
 func (*ListconfigsConfigsAlwaysuseproxy) ProtoMessage() {}
 
 func (x *ListconfigsConfigsAlwaysuseproxy) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[327]
+	mi := &file_node_proto_msgTypes[331]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -28815,7 +29639,7 @@ func (x *ListconfigsConfigsAlwaysuseproxy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsAlwaysuseproxy.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsAlwaysuseproxy) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{327}
+	return file_node_proto_rawDescGZIP(), []int{331}
 }
 
 func (x *ListconfigsConfigsAlwaysuseproxy) GetValueBool() bool {
@@ -28842,7 +29666,7 @@ type ListconfigsConfigsDaemon struct {
 
 func (x *ListconfigsConfigsDaemon) Reset() {
 	*x = ListconfigsConfigsDaemon{}
-	mi := &file_node_proto_msgTypes[328]
+	mi := &file_node_proto_msgTypes[332]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -28854,7 +29678,7 @@ func (x *ListconfigsConfigsDaemon) String() string {
 func (*ListconfigsConfigsDaemon) ProtoMessage() {}
 
 func (x *ListconfigsConfigsDaemon) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[328]
+	mi := &file_node_proto_msgTypes[332]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -28867,7 +29691,7 @@ func (x *ListconfigsConfigsDaemon) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsDaemon.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsDaemon) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{328}
+	return file_node_proto_rawDescGZIP(), []int{332}
 }
 
 func (x *ListconfigsConfigsDaemon) GetSet() bool {
@@ -28894,7 +29718,7 @@ type ListconfigsConfigsWallet struct {
 
 func (x *ListconfigsConfigsWallet) Reset() {
 	*x = ListconfigsConfigsWallet{}
-	mi := &file_node_proto_msgTypes[329]
+	mi := &file_node_proto_msgTypes[333]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -28906,7 +29730,7 @@ func (x *ListconfigsConfigsWallet) String() string {
 func (*ListconfigsConfigsWallet) ProtoMessage() {}
 
 func (x *ListconfigsConfigsWallet) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[329]
+	mi := &file_node_proto_msgTypes[333]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -28919,7 +29743,7 @@ func (x *ListconfigsConfigsWallet) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsWallet.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsWallet) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{329}
+	return file_node_proto_rawDescGZIP(), []int{333}
 }
 
 func (x *ListconfigsConfigsWallet) GetValueStr() string {
@@ -28946,7 +29770,7 @@ type ListconfigsConfigsLargechannels struct {
 
 func (x *ListconfigsConfigsLargechannels) Reset() {
 	*x = ListconfigsConfigsLargechannels{}
-	mi := &file_node_proto_msgTypes[330]
+	mi := &file_node_proto_msgTypes[334]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -28958,7 +29782,7 @@ func (x *ListconfigsConfigsLargechannels) String() string {
 func (*ListconfigsConfigsLargechannels) ProtoMessage() {}
 
 func (x *ListconfigsConfigsLargechannels) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[330]
+	mi := &file_node_proto_msgTypes[334]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -28971,7 +29795,7 @@ func (x *ListconfigsConfigsLargechannels) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsLargechannels.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsLargechannels) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{330}
+	return file_node_proto_rawDescGZIP(), []int{334}
 }
 
 func (x *ListconfigsConfigsLargechannels) GetSet() bool {
@@ -28998,7 +29822,7 @@ type ListconfigsConfigsExperimentaldualfund struct {
 
 func (x *ListconfigsConfigsExperimentaldualfund) Reset() {
 	*x = ListconfigsConfigsExperimentaldualfund{}
-	mi := &file_node_proto_msgTypes[331]
+	mi := &file_node_proto_msgTypes[335]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -29010,7 +29834,7 @@ func (x *ListconfigsConfigsExperimentaldualfund) String() string {
 func (*ListconfigsConfigsExperimentaldualfund) ProtoMessage() {}
 
 func (x *ListconfigsConfigsExperimentaldualfund) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[331]
+	mi := &file_node_proto_msgTypes[335]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -29023,7 +29847,7 @@ func (x *ListconfigsConfigsExperimentaldualfund) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use ListconfigsConfigsExperimentaldualfund.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsExperimentaldualfund) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{331}
+	return file_node_proto_rawDescGZIP(), []int{335}
 }
 
 func (x *ListconfigsConfigsExperimentaldualfund) GetSet() bool {
@@ -29050,7 +29874,7 @@ type ListconfigsConfigsExperimentalsplicing struct {
 
 func (x *ListconfigsConfigsExperimentalsplicing) Reset() {
 	*x = ListconfigsConfigsExperimentalsplicing{}
-	mi := &file_node_proto_msgTypes[332]
+	mi := &file_node_proto_msgTypes[336]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -29062,7 +29886,7 @@ func (x *ListconfigsConfigsExperimentalsplicing) String() string {
 func (*ListconfigsConfigsExperimentalsplicing) ProtoMessage() {}
 
 func (x *ListconfigsConfigsExperimentalsplicing) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[332]
+	mi := &file_node_proto_msgTypes[336]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -29075,7 +29899,7 @@ func (x *ListconfigsConfigsExperimentalsplicing) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use ListconfigsConfigsExperimentalsplicing.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsExperimentalsplicing) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{332}
+	return file_node_proto_rawDescGZIP(), []int{336}
 }
 
 func (x *ListconfigsConfigsExperimentalsplicing) GetSet() bool {
@@ -29102,7 +29926,7 @@ type ListconfigsConfigsExperimentalonionmessages struct {
 
 func (x *ListconfigsConfigsExperimentalonionmessages) Reset() {
 	*x = ListconfigsConfigsExperimentalonionmessages{}
-	mi := &file_node_proto_msgTypes[333]
+	mi := &file_node_proto_msgTypes[337]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -29114,7 +29938,7 @@ func (x *ListconfigsConfigsExperimentalonionmessages) String() string {
 func (*ListconfigsConfigsExperimentalonionmessages) ProtoMessage() {}
 
 func (x *ListconfigsConfigsExperimentalonionmessages) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[333]
+	mi := &file_node_proto_msgTypes[337]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -29127,7 +29951,7 @@ func (x *ListconfigsConfigsExperimentalonionmessages) ProtoReflect() protoreflec
 
 // Deprecated: Use ListconfigsConfigsExperimentalonionmessages.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsExperimentalonionmessages) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{333}
+	return file_node_proto_rawDescGZIP(), []int{337}
 }
 
 func (x *ListconfigsConfigsExperimentalonionmessages) GetSet() bool {
@@ -29154,7 +29978,7 @@ type ListconfigsConfigsExperimentaloffers struct {
 
 func (x *ListconfigsConfigsExperimentaloffers) Reset() {
 	*x = ListconfigsConfigsExperimentaloffers{}
-	mi := &file_node_proto_msgTypes[334]
+	mi := &file_node_proto_msgTypes[338]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -29166,7 +29990,7 @@ func (x *ListconfigsConfigsExperimentaloffers) String() string {
 func (*ListconfigsConfigsExperimentaloffers) ProtoMessage() {}
 
 func (x *ListconfigsConfigsExperimentaloffers) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[334]
+	mi := &file_node_proto_msgTypes[338]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -29179,7 +30003,7 @@ func (x *ListconfigsConfigsExperimentaloffers) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use ListconfigsConfigsExperimentaloffers.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsExperimentaloffers) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{334}
+	return file_node_proto_rawDescGZIP(), []int{338}
 }
 
 func (x *ListconfigsConfigsExperimentaloffers) GetSet() bool {
@@ -29206,7 +30030,7 @@ type ListconfigsConfigsExperimentalshutdownwrongfunding struct {
 
 func (x *ListconfigsConfigsExperimentalshutdownwrongfunding) Reset() {
 	*x = ListconfigsConfigsExperimentalshutdownwrongfunding{}
-	mi := &file_node_proto_msgTypes[335]
+	mi := &file_node_proto_msgTypes[339]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -29218,7 +30042,7 @@ func (x *ListconfigsConfigsExperimentalshutdownwrongfunding) String() string {
 func (*ListconfigsConfigsExperimentalshutdownwrongfunding) ProtoMessage() {}
 
 func (x *ListconfigsConfigsExperimentalshutdownwrongfunding) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[335]
+	mi := &file_node_proto_msgTypes[339]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -29231,7 +30055,7 @@ func (x *ListconfigsConfigsExperimentalshutdownwrongfunding) ProtoReflect() prot
 
 // Deprecated: Use ListconfigsConfigsExperimentalshutdownwrongfunding.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsExperimentalshutdownwrongfunding) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{335}
+	return file_node_proto_rawDescGZIP(), []int{339}
 }
 
 func (x *ListconfigsConfigsExperimentalshutdownwrongfunding) GetSet() bool {
@@ -29258,7 +30082,7 @@ type ListconfigsConfigsExperimentalpeerstorage struct {
 
 func (x *ListconfigsConfigsExperimentalpeerstorage) Reset() {
 	*x = ListconfigsConfigsExperimentalpeerstorage{}
-	mi := &file_node_proto_msgTypes[336]
+	mi := &file_node_proto_msgTypes[340]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -29270,7 +30094,7 @@ func (x *ListconfigsConfigsExperimentalpeerstorage) String() string {
 func (*ListconfigsConfigsExperimentalpeerstorage) ProtoMessage() {}
 
 func (x *ListconfigsConfigsExperimentalpeerstorage) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[336]
+	mi := &file_node_proto_msgTypes[340]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -29283,7 +30107,7 @@ func (x *ListconfigsConfigsExperimentalpeerstorage) ProtoReflect() protoreflect.
 
 // Deprecated: Use ListconfigsConfigsExperimentalpeerstorage.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsExperimentalpeerstorage) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{336}
+	return file_node_proto_rawDescGZIP(), []int{340}
 }
 
 func (x *ListconfigsConfigsExperimentalpeerstorage) GetSet() bool {
@@ -29310,7 +30134,7 @@ type ListconfigsConfigsExperimentalanchors struct {
 
 func (x *ListconfigsConfigsExperimentalanchors) Reset() {
 	*x = ListconfigsConfigsExperimentalanchors{}
-	mi := &file_node_proto_msgTypes[337]
+	mi := &file_node_proto_msgTypes[341]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -29322,7 +30146,7 @@ func (x *ListconfigsConfigsExperimentalanchors) String() string {
 func (*ListconfigsConfigsExperimentalanchors) ProtoMessage() {}
 
 func (x *ListconfigsConfigsExperimentalanchors) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[337]
+	mi := &file_node_proto_msgTypes[341]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -29335,7 +30159,7 @@ func (x *ListconfigsConfigsExperimentalanchors) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use ListconfigsConfigsExperimentalanchors.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsExperimentalanchors) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{337}
+	return file_node_proto_rawDescGZIP(), []int{341}
 }
 
 func (x *ListconfigsConfigsExperimentalanchors) GetSet() bool {
@@ -29362,7 +30186,7 @@ type ListconfigsConfigsDatabaseupgrade struct {
 
 func (x *ListconfigsConfigsDatabaseupgrade) Reset() {
 	*x = ListconfigsConfigsDatabaseupgrade{}
-	mi := &file_node_proto_msgTypes[338]
+	mi := &file_node_proto_msgTypes[342]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -29374,7 +30198,7 @@ func (x *ListconfigsConfigsDatabaseupgrade) String() string {
 func (*ListconfigsConfigsDatabaseupgrade) ProtoMessage() {}
 
 func (x *ListconfigsConfigsDatabaseupgrade) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[338]
+	mi := &file_node_proto_msgTypes[342]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -29387,7 +30211,7 @@ func (x *ListconfigsConfigsDatabaseupgrade) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListconfigsConfigsDatabaseupgrade.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsDatabaseupgrade) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{338}
+	return file_node_proto_rawDescGZIP(), []int{342}
 }
 
 func (x *ListconfigsConfigsDatabaseupgrade) GetValueBool() bool {
@@ -29414,7 +30238,7 @@ type ListconfigsConfigsRgb struct {
 
 func (x *ListconfigsConfigsRgb) Reset() {
 	*x = ListconfigsConfigsRgb{}
-	mi := &file_node_proto_msgTypes[339]
+	mi := &file_node_proto_msgTypes[343]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -29426,7 +30250,7 @@ func (x *ListconfigsConfigsRgb) String() string {
 func (*ListconfigsConfigsRgb) ProtoMessage() {}
 
 func (x *ListconfigsConfigsRgb) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[339]
+	mi := &file_node_proto_msgTypes[343]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -29439,7 +30263,7 @@ func (x *ListconfigsConfigsRgb) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsRgb.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsRgb) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{339}
+	return file_node_proto_rawDescGZIP(), []int{343}
 }
 
 func (x *ListconfigsConfigsRgb) GetValueStr() []byte {
@@ -29466,7 +30290,7 @@ type ListconfigsConfigsAlias struct {
 
 func (x *ListconfigsConfigsAlias) Reset() {
 	*x = ListconfigsConfigsAlias{}
-	mi := &file_node_proto_msgTypes[340]
+	mi := &file_node_proto_msgTypes[344]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -29478,7 +30302,7 @@ func (x *ListconfigsConfigsAlias) String() string {
 func (*ListconfigsConfigsAlias) ProtoMessage() {}
 
 func (x *ListconfigsConfigsAlias) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[340]
+	mi := &file_node_proto_msgTypes[344]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -29491,7 +30315,7 @@ func (x *ListconfigsConfigsAlias) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsAlias.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsAlias) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{340}
+	return file_node_proto_rawDescGZIP(), []int{344}
 }
 
 func (x *ListconfigsConfigsAlias) GetValueStr() string {
@@ -29518,7 +30342,7 @@ type ListconfigsConfigsPidfile struct {
 
 func (x *ListconfigsConfigsPidfile) Reset() {
 	*x = ListconfigsConfigsPidfile{}
-	mi := &file_node_proto_msgTypes[341]
+	mi := &file_node_proto_msgTypes[345]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -29530,7 +30354,7 @@ func (x *ListconfigsConfigsPidfile) String() string {
 func (*ListconfigsConfigsPidfile) ProtoMessage() {}
 
 func (x *ListconfigsConfigsPidfile) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[341]
+	mi := &file_node_proto_msgTypes[345]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -29543,7 +30367,7 @@ func (x *ListconfigsConfigsPidfile) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsPidfile.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsPidfile) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{341}
+	return file_node_proto_rawDescGZIP(), []int{345}
 }
 
 func (x *ListconfigsConfigsPidfile) GetValueStr() string {
@@ -29570,7 +30394,7 @@ type ListconfigsConfigsIgnorefeelimits struct {
 
 func (x *ListconfigsConfigsIgnorefeelimits) Reset() {
 	*x = ListconfigsConfigsIgnorefeelimits{}
-	mi := &file_node_proto_msgTypes[342]
+	mi := &file_node_proto_msgTypes[346]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -29582,7 +30406,7 @@ func (x *ListconfigsConfigsIgnorefeelimits) String() string {
 func (*ListconfigsConfigsIgnorefeelimits) ProtoMessage() {}
 
 func (x *ListconfigsConfigsIgnorefeelimits) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[342]
+	mi := &file_node_proto_msgTypes[346]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -29595,7 +30419,7 @@ func (x *ListconfigsConfigsIgnorefeelimits) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListconfigsConfigsIgnorefeelimits.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsIgnorefeelimits) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{342}
+	return file_node_proto_rawDescGZIP(), []int{346}
 }
 
 func (x *ListconfigsConfigsIgnorefeelimits) GetValueBool() bool {
@@ -29622,7 +30446,7 @@ type ListconfigsConfigsWatchtimeblocks struct {
 
 func (x *ListconfigsConfigsWatchtimeblocks) Reset() {
 	*x = ListconfigsConfigsWatchtimeblocks{}
-	mi := &file_node_proto_msgTypes[343]
+	mi := &file_node_proto_msgTypes[347]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -29634,7 +30458,7 @@ func (x *ListconfigsConfigsWatchtimeblocks) String() string {
 func (*ListconfigsConfigsWatchtimeblocks) ProtoMessage() {}
 
 func (x *ListconfigsConfigsWatchtimeblocks) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[343]
+	mi := &file_node_proto_msgTypes[347]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -29647,7 +30471,7 @@ func (x *ListconfigsConfigsWatchtimeblocks) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListconfigsConfigsWatchtimeblocks.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsWatchtimeblocks) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{343}
+	return file_node_proto_rawDescGZIP(), []int{347}
 }
 
 func (x *ListconfigsConfigsWatchtimeblocks) GetValueInt() uint32 {
@@ -29674,7 +30498,7 @@ type ListconfigsConfigsMaxlocktimeblocks struct {
 
 func (x *ListconfigsConfigsMaxlocktimeblocks) Reset() {
 	*x = ListconfigsConfigsMaxlocktimeblocks{}
-	mi := &file_node_proto_msgTypes[344]
+	mi := &file_node_proto_msgTypes[348]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -29686,7 +30510,7 @@ func (x *ListconfigsConfigsMaxlocktimeblocks) String() string {
 func (*ListconfigsConfigsMaxlocktimeblocks) ProtoMessage() {}
 
 func (x *ListconfigsConfigsMaxlocktimeblocks) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[344]
+	mi := &file_node_proto_msgTypes[348]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -29699,7 +30523,7 @@ func (x *ListconfigsConfigsMaxlocktimeblocks) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use ListconfigsConfigsMaxlocktimeblocks.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsMaxlocktimeblocks) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{344}
+	return file_node_proto_rawDescGZIP(), []int{348}
 }
 
 func (x *ListconfigsConfigsMaxlocktimeblocks) GetValueInt() uint32 {
@@ -29726,7 +30550,7 @@ type ListconfigsConfigsFundingconfirms struct {
 
 func (x *ListconfigsConfigsFundingconfirms) Reset() {
 	*x = ListconfigsConfigsFundingconfirms{}
-	mi := &file_node_proto_msgTypes[345]
+	mi := &file_node_proto_msgTypes[349]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -29738,7 +30562,7 @@ func (x *ListconfigsConfigsFundingconfirms) String() string {
 func (*ListconfigsConfigsFundingconfirms) ProtoMessage() {}
 
 func (x *ListconfigsConfigsFundingconfirms) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[345]
+	mi := &file_node_proto_msgTypes[349]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -29751,7 +30575,7 @@ func (x *ListconfigsConfigsFundingconfirms) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListconfigsConfigsFundingconfirms.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsFundingconfirms) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{345}
+	return file_node_proto_rawDescGZIP(), []int{349}
 }
 
 func (x *ListconfigsConfigsFundingconfirms) GetValueInt() uint32 {
@@ -29778,7 +30602,7 @@ type ListconfigsConfigsCltvdelta struct {
 
 func (x *ListconfigsConfigsCltvdelta) Reset() {
 	*x = ListconfigsConfigsCltvdelta{}
-	mi := &file_node_proto_msgTypes[346]
+	mi := &file_node_proto_msgTypes[350]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -29790,7 +30614,7 @@ func (x *ListconfigsConfigsCltvdelta) String() string {
 func (*ListconfigsConfigsCltvdelta) ProtoMessage() {}
 
 func (x *ListconfigsConfigsCltvdelta) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[346]
+	mi := &file_node_proto_msgTypes[350]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -29803,7 +30627,7 @@ func (x *ListconfigsConfigsCltvdelta) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsCltvdelta.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsCltvdelta) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{346}
+	return file_node_proto_rawDescGZIP(), []int{350}
 }
 
 func (x *ListconfigsConfigsCltvdelta) GetValueInt() uint32 {
@@ -29830,7 +30654,7 @@ type ListconfigsConfigsCltvfinal struct {
 
 func (x *ListconfigsConfigsCltvfinal) Reset() {
 	*x = ListconfigsConfigsCltvfinal{}
-	mi := &file_node_proto_msgTypes[347]
+	mi := &file_node_proto_msgTypes[351]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -29842,7 +30666,7 @@ func (x *ListconfigsConfigsCltvfinal) String() string {
 func (*ListconfigsConfigsCltvfinal) ProtoMessage() {}
 
 func (x *ListconfigsConfigsCltvfinal) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[347]
+	mi := &file_node_proto_msgTypes[351]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -29855,7 +30679,7 @@ func (x *ListconfigsConfigsCltvfinal) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsCltvfinal.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsCltvfinal) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{347}
+	return file_node_proto_rawDescGZIP(), []int{351}
 }
 
 func (x *ListconfigsConfigsCltvfinal) GetValueInt() uint32 {
@@ -29882,7 +30706,7 @@ type ListconfigsConfigsCommittime struct {
 
 func (x *ListconfigsConfigsCommittime) Reset() {
 	*x = ListconfigsConfigsCommittime{}
-	mi := &file_node_proto_msgTypes[348]
+	mi := &file_node_proto_msgTypes[352]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -29894,7 +30718,7 @@ func (x *ListconfigsConfigsCommittime) String() string {
 func (*ListconfigsConfigsCommittime) ProtoMessage() {}
 
 func (x *ListconfigsConfigsCommittime) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[348]
+	mi := &file_node_proto_msgTypes[352]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -29907,7 +30731,7 @@ func (x *ListconfigsConfigsCommittime) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsCommittime.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsCommittime) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{348}
+	return file_node_proto_rawDescGZIP(), []int{352}
 }
 
 func (x *ListconfigsConfigsCommittime) GetValueInt() uint32 {
@@ -29934,7 +30758,7 @@ type ListconfigsConfigsFeebase struct {
 
 func (x *ListconfigsConfigsFeebase) Reset() {
 	*x = ListconfigsConfigsFeebase{}
-	mi := &file_node_proto_msgTypes[349]
+	mi := &file_node_proto_msgTypes[353]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -29946,7 +30770,7 @@ func (x *ListconfigsConfigsFeebase) String() string {
 func (*ListconfigsConfigsFeebase) ProtoMessage() {}
 
 func (x *ListconfigsConfigsFeebase) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[349]
+	mi := &file_node_proto_msgTypes[353]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -29959,7 +30783,7 @@ func (x *ListconfigsConfigsFeebase) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsFeebase.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsFeebase) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{349}
+	return file_node_proto_rawDescGZIP(), []int{353}
 }
 
 func (x *ListconfigsConfigsFeebase) GetValueInt() uint32 {
@@ -29986,7 +30810,7 @@ type ListconfigsConfigsRescan struct {
 
 func (x *ListconfigsConfigsRescan) Reset() {
 	*x = ListconfigsConfigsRescan{}
-	mi := &file_node_proto_msgTypes[350]
+	mi := &file_node_proto_msgTypes[354]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -29998,7 +30822,7 @@ func (x *ListconfigsConfigsRescan) String() string {
 func (*ListconfigsConfigsRescan) ProtoMessage() {}
 
 func (x *ListconfigsConfigsRescan) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[350]
+	mi := &file_node_proto_msgTypes[354]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -30011,7 +30835,7 @@ func (x *ListconfigsConfigsRescan) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsRescan.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsRescan) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{350}
+	return file_node_proto_rawDescGZIP(), []int{354}
 }
 
 func (x *ListconfigsConfigsRescan) GetValueInt() int64 {
@@ -30038,7 +30862,7 @@ type ListconfigsConfigsFeepersatoshi struct {
 
 func (x *ListconfigsConfigsFeepersatoshi) Reset() {
 	*x = ListconfigsConfigsFeepersatoshi{}
-	mi := &file_node_proto_msgTypes[351]
+	mi := &file_node_proto_msgTypes[355]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -30050,7 +30874,7 @@ func (x *ListconfigsConfigsFeepersatoshi) String() string {
 func (*ListconfigsConfigsFeepersatoshi) ProtoMessage() {}
 
 func (x *ListconfigsConfigsFeepersatoshi) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[351]
+	mi := &file_node_proto_msgTypes[355]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -30063,7 +30887,7 @@ func (x *ListconfigsConfigsFeepersatoshi) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsFeepersatoshi.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsFeepersatoshi) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{351}
+	return file_node_proto_rawDescGZIP(), []int{355}
 }
 
 func (x *ListconfigsConfigsFeepersatoshi) GetValueInt() uint32 {
@@ -30090,7 +30914,7 @@ type ListconfigsConfigsMaxconcurrenthtlcs struct {
 
 func (x *ListconfigsConfigsMaxconcurrenthtlcs) Reset() {
 	*x = ListconfigsConfigsMaxconcurrenthtlcs{}
-	mi := &file_node_proto_msgTypes[352]
+	mi := &file_node_proto_msgTypes[356]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -30102,7 +30926,7 @@ func (x *ListconfigsConfigsMaxconcurrenthtlcs) String() string {
 func (*ListconfigsConfigsMaxconcurrenthtlcs) ProtoMessage() {}
 
 func (x *ListconfigsConfigsMaxconcurrenthtlcs) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[352]
+	mi := &file_node_proto_msgTypes[356]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -30115,7 +30939,7 @@ func (x *ListconfigsConfigsMaxconcurrenthtlcs) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use ListconfigsConfigsMaxconcurrenthtlcs.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsMaxconcurrenthtlcs) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{352}
+	return file_node_proto_rawDescGZIP(), []int{356}
 }
 
 func (x *ListconfigsConfigsMaxconcurrenthtlcs) GetValueInt() uint32 {
@@ -30142,7 +30966,7 @@ type ListconfigsConfigsHtlcminimummsat struct {
 
 func (x *ListconfigsConfigsHtlcminimummsat) Reset() {
 	*x = ListconfigsConfigsHtlcminimummsat{}
-	mi := &file_node_proto_msgTypes[353]
+	mi := &file_node_proto_msgTypes[357]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -30154,7 +30978,7 @@ func (x *ListconfigsConfigsHtlcminimummsat) String() string {
 func (*ListconfigsConfigsHtlcminimummsat) ProtoMessage() {}
 
 func (x *ListconfigsConfigsHtlcminimummsat) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[353]
+	mi := &file_node_proto_msgTypes[357]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -30167,7 +30991,7 @@ func (x *ListconfigsConfigsHtlcminimummsat) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListconfigsConfigsHtlcminimummsat.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsHtlcminimummsat) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{353}
+	return file_node_proto_rawDescGZIP(), []int{357}
 }
 
 func (x *ListconfigsConfigsHtlcminimummsat) GetValueMsat() *Amount {
@@ -30194,7 +31018,7 @@ type ListconfigsConfigsHtlcmaximummsat struct {
 
 func (x *ListconfigsConfigsHtlcmaximummsat) Reset() {
 	*x = ListconfigsConfigsHtlcmaximummsat{}
-	mi := &file_node_proto_msgTypes[354]
+	mi := &file_node_proto_msgTypes[358]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -30206,7 +31030,7 @@ func (x *ListconfigsConfigsHtlcmaximummsat) String() string {
 func (*ListconfigsConfigsHtlcmaximummsat) ProtoMessage() {}
 
 func (x *ListconfigsConfigsHtlcmaximummsat) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[354]
+	mi := &file_node_proto_msgTypes[358]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -30219,7 +31043,7 @@ func (x *ListconfigsConfigsHtlcmaximummsat) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListconfigsConfigsHtlcmaximummsat.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsHtlcmaximummsat) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{354}
+	return file_node_proto_rawDescGZIP(), []int{358}
 }
 
 func (x *ListconfigsConfigsHtlcmaximummsat) GetValueMsat() *Amount {
@@ -30246,7 +31070,7 @@ type ListconfigsConfigsMaxdusthtlcexposuremsat struct {
 
 func (x *ListconfigsConfigsMaxdusthtlcexposuremsat) Reset() {
 	*x = ListconfigsConfigsMaxdusthtlcexposuremsat{}
-	mi := &file_node_proto_msgTypes[355]
+	mi := &file_node_proto_msgTypes[359]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -30258,7 +31082,7 @@ func (x *ListconfigsConfigsMaxdusthtlcexposuremsat) String() string {
 func (*ListconfigsConfigsMaxdusthtlcexposuremsat) ProtoMessage() {}
 
 func (x *ListconfigsConfigsMaxdusthtlcexposuremsat) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[355]
+	mi := &file_node_proto_msgTypes[359]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -30271,7 +31095,7 @@ func (x *ListconfigsConfigsMaxdusthtlcexposuremsat) ProtoReflect() protoreflect.
 
 // Deprecated: Use ListconfigsConfigsMaxdusthtlcexposuremsat.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsMaxdusthtlcexposuremsat) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{355}
+	return file_node_proto_rawDescGZIP(), []int{359}
 }
 
 func (x *ListconfigsConfigsMaxdusthtlcexposuremsat) GetValueMsat() *Amount {
@@ -30299,7 +31123,7 @@ type ListconfigsConfigsMincapacitysat struct {
 
 func (x *ListconfigsConfigsMincapacitysat) Reset() {
 	*x = ListconfigsConfigsMincapacitysat{}
-	mi := &file_node_proto_msgTypes[356]
+	mi := &file_node_proto_msgTypes[360]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -30311,7 +31135,7 @@ func (x *ListconfigsConfigsMincapacitysat) String() string {
 func (*ListconfigsConfigsMincapacitysat) ProtoMessage() {}
 
 func (x *ListconfigsConfigsMincapacitysat) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[356]
+	mi := &file_node_proto_msgTypes[360]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -30324,7 +31148,7 @@ func (x *ListconfigsConfigsMincapacitysat) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsMincapacitysat.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsMincapacitysat) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{356}
+	return file_node_proto_rawDescGZIP(), []int{360}
 }
 
 func (x *ListconfigsConfigsMincapacitysat) GetValueInt() uint64 {
@@ -30358,7 +31182,7 @@ type ListconfigsConfigsAddr struct {
 
 func (x *ListconfigsConfigsAddr) Reset() {
 	*x = ListconfigsConfigsAddr{}
-	mi := &file_node_proto_msgTypes[357]
+	mi := &file_node_proto_msgTypes[361]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -30370,7 +31194,7 @@ func (x *ListconfigsConfigsAddr) String() string {
 func (*ListconfigsConfigsAddr) ProtoMessage() {}
 
 func (x *ListconfigsConfigsAddr) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[357]
+	mi := &file_node_proto_msgTypes[361]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -30383,7 +31207,7 @@ func (x *ListconfigsConfigsAddr) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsAddr.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsAddr) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{357}
+	return file_node_proto_rawDescGZIP(), []int{361}
 }
 
 func (x *ListconfigsConfigsAddr) GetValuesStr() []string {
@@ -30410,7 +31234,7 @@ type ListconfigsConfigsAnnounceaddr struct {
 
 func (x *ListconfigsConfigsAnnounceaddr) Reset() {
 	*x = ListconfigsConfigsAnnounceaddr{}
-	mi := &file_node_proto_msgTypes[358]
+	mi := &file_node_proto_msgTypes[362]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -30422,7 +31246,7 @@ func (x *ListconfigsConfigsAnnounceaddr) String() string {
 func (*ListconfigsConfigsAnnounceaddr) ProtoMessage() {}
 
 func (x *ListconfigsConfigsAnnounceaddr) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[358]
+	mi := &file_node_proto_msgTypes[362]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -30435,7 +31259,7 @@ func (x *ListconfigsConfigsAnnounceaddr) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsAnnounceaddr.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsAnnounceaddr) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{358}
+	return file_node_proto_rawDescGZIP(), []int{362}
 }
 
 func (x *ListconfigsConfigsAnnounceaddr) GetValuesStr() []string {
@@ -30462,7 +31286,7 @@ type ListconfigsConfigsBindaddr struct {
 
 func (x *ListconfigsConfigsBindaddr) Reset() {
 	*x = ListconfigsConfigsBindaddr{}
-	mi := &file_node_proto_msgTypes[359]
+	mi := &file_node_proto_msgTypes[363]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -30474,7 +31298,7 @@ func (x *ListconfigsConfigsBindaddr) String() string {
 func (*ListconfigsConfigsBindaddr) ProtoMessage() {}
 
 func (x *ListconfigsConfigsBindaddr) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[359]
+	mi := &file_node_proto_msgTypes[363]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -30487,7 +31311,7 @@ func (x *ListconfigsConfigsBindaddr) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsBindaddr.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsBindaddr) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{359}
+	return file_node_proto_rawDescGZIP(), []int{363}
 }
 
 func (x *ListconfigsConfigsBindaddr) GetValuesStr() []string {
@@ -30514,7 +31338,7 @@ type ListconfigsConfigsOffline struct {
 
 func (x *ListconfigsConfigsOffline) Reset() {
 	*x = ListconfigsConfigsOffline{}
-	mi := &file_node_proto_msgTypes[360]
+	mi := &file_node_proto_msgTypes[364]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -30526,7 +31350,7 @@ func (x *ListconfigsConfigsOffline) String() string {
 func (*ListconfigsConfigsOffline) ProtoMessage() {}
 
 func (x *ListconfigsConfigsOffline) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[360]
+	mi := &file_node_proto_msgTypes[364]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -30539,7 +31363,7 @@ func (x *ListconfigsConfigsOffline) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsOffline.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsOffline) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{360}
+	return file_node_proto_rawDescGZIP(), []int{364}
 }
 
 func (x *ListconfigsConfigsOffline) GetSet() bool {
@@ -30566,7 +31390,7 @@ type ListconfigsConfigsAutolisten struct {
 
 func (x *ListconfigsConfigsAutolisten) Reset() {
 	*x = ListconfigsConfigsAutolisten{}
-	mi := &file_node_proto_msgTypes[361]
+	mi := &file_node_proto_msgTypes[365]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -30578,7 +31402,7 @@ func (x *ListconfigsConfigsAutolisten) String() string {
 func (*ListconfigsConfigsAutolisten) ProtoMessage() {}
 
 func (x *ListconfigsConfigsAutolisten) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[361]
+	mi := &file_node_proto_msgTypes[365]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -30591,7 +31415,7 @@ func (x *ListconfigsConfigsAutolisten) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsAutolisten.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsAutolisten) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{361}
+	return file_node_proto_rawDescGZIP(), []int{365}
 }
 
 func (x *ListconfigsConfigsAutolisten) GetValueBool() bool {
@@ -30618,7 +31442,7 @@ type ListconfigsConfigsProxy struct {
 
 func (x *ListconfigsConfigsProxy) Reset() {
 	*x = ListconfigsConfigsProxy{}
-	mi := &file_node_proto_msgTypes[362]
+	mi := &file_node_proto_msgTypes[366]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -30630,7 +31454,7 @@ func (x *ListconfigsConfigsProxy) String() string {
 func (*ListconfigsConfigsProxy) ProtoMessage() {}
 
 func (x *ListconfigsConfigsProxy) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[362]
+	mi := &file_node_proto_msgTypes[366]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -30643,7 +31467,7 @@ func (x *ListconfigsConfigsProxy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsProxy.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsProxy) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{362}
+	return file_node_proto_rawDescGZIP(), []int{366}
 }
 
 func (x *ListconfigsConfigsProxy) GetValueStr() string {
@@ -30670,7 +31494,7 @@ type ListconfigsConfigsDisabledns struct {
 
 func (x *ListconfigsConfigsDisabledns) Reset() {
 	*x = ListconfigsConfigsDisabledns{}
-	mi := &file_node_proto_msgTypes[363]
+	mi := &file_node_proto_msgTypes[367]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -30682,7 +31506,7 @@ func (x *ListconfigsConfigsDisabledns) String() string {
 func (*ListconfigsConfigsDisabledns) ProtoMessage() {}
 
 func (x *ListconfigsConfigsDisabledns) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[363]
+	mi := &file_node_proto_msgTypes[367]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -30695,7 +31519,7 @@ func (x *ListconfigsConfigsDisabledns) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsDisabledns.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsDisabledns) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{363}
+	return file_node_proto_rawDescGZIP(), []int{367}
 }
 
 func (x *ListconfigsConfigsDisabledns) GetSet() bool {
@@ -30722,7 +31546,7 @@ type ListconfigsConfigsAnnounceaddrdiscovered struct {
 
 func (x *ListconfigsConfigsAnnounceaddrdiscovered) Reset() {
 	*x = ListconfigsConfigsAnnounceaddrdiscovered{}
-	mi := &file_node_proto_msgTypes[364]
+	mi := &file_node_proto_msgTypes[368]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -30734,7 +31558,7 @@ func (x *ListconfigsConfigsAnnounceaddrdiscovered) String() string {
 func (*ListconfigsConfigsAnnounceaddrdiscovered) ProtoMessage() {}
 
 func (x *ListconfigsConfigsAnnounceaddrdiscovered) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[364]
+	mi := &file_node_proto_msgTypes[368]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -30747,7 +31571,7 @@ func (x *ListconfigsConfigsAnnounceaddrdiscovered) ProtoReflect() protoreflect.M
 
 // Deprecated: Use ListconfigsConfigsAnnounceaddrdiscovered.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsAnnounceaddrdiscovered) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{364}
+	return file_node_proto_rawDescGZIP(), []int{368}
 }
 
 func (x *ListconfigsConfigsAnnounceaddrdiscovered) GetValueStr() ListconfigsConfigsAnnounceaddrdiscovered_ListconfigsConfigsAnnounceaddrdiscoveredValueStr {
@@ -30774,7 +31598,7 @@ type ListconfigsConfigsAnnounceaddrdiscoveredport struct {
 
 func (x *ListconfigsConfigsAnnounceaddrdiscoveredport) Reset() {
 	*x = ListconfigsConfigsAnnounceaddrdiscoveredport{}
-	mi := &file_node_proto_msgTypes[365]
+	mi := &file_node_proto_msgTypes[369]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -30786,7 +31610,7 @@ func (x *ListconfigsConfigsAnnounceaddrdiscoveredport) String() string {
 func (*ListconfigsConfigsAnnounceaddrdiscoveredport) ProtoMessage() {}
 
 func (x *ListconfigsConfigsAnnounceaddrdiscoveredport) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[365]
+	mi := &file_node_proto_msgTypes[369]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -30799,7 +31623,7 @@ func (x *ListconfigsConfigsAnnounceaddrdiscoveredport) ProtoReflect() protorefle
 
 // Deprecated: Use ListconfigsConfigsAnnounceaddrdiscoveredport.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsAnnounceaddrdiscoveredport) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{365}
+	return file_node_proto_rawDescGZIP(), []int{369}
 }
 
 func (x *ListconfigsConfigsAnnounceaddrdiscoveredport) GetValueInt() uint32 {
@@ -30826,7 +31650,7 @@ type ListconfigsConfigsEncryptedhsm struct {
 
 func (x *ListconfigsConfigsEncryptedhsm) Reset() {
 	*x = ListconfigsConfigsEncryptedhsm{}
-	mi := &file_node_proto_msgTypes[366]
+	mi := &file_node_proto_msgTypes[370]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -30838,7 +31662,7 @@ func (x *ListconfigsConfigsEncryptedhsm) String() string {
 func (*ListconfigsConfigsEncryptedhsm) ProtoMessage() {}
 
 func (x *ListconfigsConfigsEncryptedhsm) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[366]
+	mi := &file_node_proto_msgTypes[370]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -30851,7 +31675,7 @@ func (x *ListconfigsConfigsEncryptedhsm) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsEncryptedhsm.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsEncryptedhsm) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{366}
+	return file_node_proto_rawDescGZIP(), []int{370}
 }
 
 func (x *ListconfigsConfigsEncryptedhsm) GetSet() bool {
@@ -30878,7 +31702,7 @@ type ListconfigsConfigsRpcfilemode struct {
 
 func (x *ListconfigsConfigsRpcfilemode) Reset() {
 	*x = ListconfigsConfigsRpcfilemode{}
-	mi := &file_node_proto_msgTypes[367]
+	mi := &file_node_proto_msgTypes[371]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -30890,7 +31714,7 @@ func (x *ListconfigsConfigsRpcfilemode) String() string {
 func (*ListconfigsConfigsRpcfilemode) ProtoMessage() {}
 
 func (x *ListconfigsConfigsRpcfilemode) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[367]
+	mi := &file_node_proto_msgTypes[371]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -30903,7 +31727,7 @@ func (x *ListconfigsConfigsRpcfilemode) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsRpcfilemode.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsRpcfilemode) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{367}
+	return file_node_proto_rawDescGZIP(), []int{371}
 }
 
 func (x *ListconfigsConfigsRpcfilemode) GetValueStr() string {
@@ -30930,7 +31754,7 @@ type ListconfigsConfigsLoglevel struct {
 
 func (x *ListconfigsConfigsLoglevel) Reset() {
 	*x = ListconfigsConfigsLoglevel{}
-	mi := &file_node_proto_msgTypes[368]
+	mi := &file_node_proto_msgTypes[372]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -30942,7 +31766,7 @@ func (x *ListconfigsConfigsLoglevel) String() string {
 func (*ListconfigsConfigsLoglevel) ProtoMessage() {}
 
 func (x *ListconfigsConfigsLoglevel) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[368]
+	mi := &file_node_proto_msgTypes[372]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -30955,7 +31779,7 @@ func (x *ListconfigsConfigsLoglevel) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsLoglevel.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsLoglevel) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{368}
+	return file_node_proto_rawDescGZIP(), []int{372}
 }
 
 func (x *ListconfigsConfigsLoglevel) GetValueStr() string {
@@ -30982,7 +31806,7 @@ type ListconfigsConfigsLogprefix struct {
 
 func (x *ListconfigsConfigsLogprefix) Reset() {
 	*x = ListconfigsConfigsLogprefix{}
-	mi := &file_node_proto_msgTypes[369]
+	mi := &file_node_proto_msgTypes[373]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -30994,7 +31818,7 @@ func (x *ListconfigsConfigsLogprefix) String() string {
 func (*ListconfigsConfigsLogprefix) ProtoMessage() {}
 
 func (x *ListconfigsConfigsLogprefix) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[369]
+	mi := &file_node_proto_msgTypes[373]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -31007,7 +31831,7 @@ func (x *ListconfigsConfigsLogprefix) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsLogprefix.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsLogprefix) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{369}
+	return file_node_proto_rawDescGZIP(), []int{373}
 }
 
 func (x *ListconfigsConfigsLogprefix) GetValueStr() string {
@@ -31034,7 +31858,7 @@ type ListconfigsConfigsLogfile struct {
 
 func (x *ListconfigsConfigsLogfile) Reset() {
 	*x = ListconfigsConfigsLogfile{}
-	mi := &file_node_proto_msgTypes[370]
+	mi := &file_node_proto_msgTypes[374]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -31046,7 +31870,7 @@ func (x *ListconfigsConfigsLogfile) String() string {
 func (*ListconfigsConfigsLogfile) ProtoMessage() {}
 
 func (x *ListconfigsConfigsLogfile) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[370]
+	mi := &file_node_proto_msgTypes[374]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -31059,7 +31883,7 @@ func (x *ListconfigsConfigsLogfile) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsLogfile.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsLogfile) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{370}
+	return file_node_proto_rawDescGZIP(), []int{374}
 }
 
 func (x *ListconfigsConfigsLogfile) GetValuesStr() []string {
@@ -31086,7 +31910,7 @@ type ListconfigsConfigsLogtimestamps struct {
 
 func (x *ListconfigsConfigsLogtimestamps) Reset() {
 	*x = ListconfigsConfigsLogtimestamps{}
-	mi := &file_node_proto_msgTypes[371]
+	mi := &file_node_proto_msgTypes[375]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -31098,7 +31922,7 @@ func (x *ListconfigsConfigsLogtimestamps) String() string {
 func (*ListconfigsConfigsLogtimestamps) ProtoMessage() {}
 
 func (x *ListconfigsConfigsLogtimestamps) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[371]
+	mi := &file_node_proto_msgTypes[375]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -31111,7 +31935,7 @@ func (x *ListconfigsConfigsLogtimestamps) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsLogtimestamps.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsLogtimestamps) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{371}
+	return file_node_proto_rawDescGZIP(), []int{375}
 }
 
 func (x *ListconfigsConfigsLogtimestamps) GetValueBool() bool {
@@ -31138,7 +31962,7 @@ type ListconfigsConfigsForcefeerates struct {
 
 func (x *ListconfigsConfigsForcefeerates) Reset() {
 	*x = ListconfigsConfigsForcefeerates{}
-	mi := &file_node_proto_msgTypes[372]
+	mi := &file_node_proto_msgTypes[376]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -31150,7 +31974,7 @@ func (x *ListconfigsConfigsForcefeerates) String() string {
 func (*ListconfigsConfigsForcefeerates) ProtoMessage() {}
 
 func (x *ListconfigsConfigsForcefeerates) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[372]
+	mi := &file_node_proto_msgTypes[376]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -31163,7 +31987,7 @@ func (x *ListconfigsConfigsForcefeerates) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsForcefeerates.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsForcefeerates) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{372}
+	return file_node_proto_rawDescGZIP(), []int{376}
 }
 
 func (x *ListconfigsConfigsForcefeerates) GetValueStr() string {
@@ -31190,7 +32014,7 @@ type ListconfigsConfigsSubdaemon struct {
 
 func (x *ListconfigsConfigsSubdaemon) Reset() {
 	*x = ListconfigsConfigsSubdaemon{}
-	mi := &file_node_proto_msgTypes[373]
+	mi := &file_node_proto_msgTypes[377]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -31202,7 +32026,7 @@ func (x *ListconfigsConfigsSubdaemon) String() string {
 func (*ListconfigsConfigsSubdaemon) ProtoMessage() {}
 
 func (x *ListconfigsConfigsSubdaemon) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[373]
+	mi := &file_node_proto_msgTypes[377]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -31215,7 +32039,7 @@ func (x *ListconfigsConfigsSubdaemon) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsSubdaemon.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsSubdaemon) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{373}
+	return file_node_proto_rawDescGZIP(), []int{377}
 }
 
 func (x *ListconfigsConfigsSubdaemon) GetValuesStr() []string {
@@ -31243,7 +32067,7 @@ type ListconfigsConfigsFetchinvoicenoconnect struct {
 
 func (x *ListconfigsConfigsFetchinvoicenoconnect) Reset() {
 	*x = ListconfigsConfigsFetchinvoicenoconnect{}
-	mi := &file_node_proto_msgTypes[374]
+	mi := &file_node_proto_msgTypes[378]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -31255,7 +32079,7 @@ func (x *ListconfigsConfigsFetchinvoicenoconnect) String() string {
 func (*ListconfigsConfigsFetchinvoicenoconnect) ProtoMessage() {}
 
 func (x *ListconfigsConfigsFetchinvoicenoconnect) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[374]
+	mi := &file_node_proto_msgTypes[378]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -31268,7 +32092,7 @@ func (x *ListconfigsConfigsFetchinvoicenoconnect) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use ListconfigsConfigsFetchinvoicenoconnect.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsFetchinvoicenoconnect) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{374}
+	return file_node_proto_rawDescGZIP(), []int{378}
 }
 
 func (x *ListconfigsConfigsFetchinvoicenoconnect) GetSet() bool {
@@ -31302,7 +32126,7 @@ type ListconfigsConfigsTorservicepassword struct {
 
 func (x *ListconfigsConfigsTorservicepassword) Reset() {
 	*x = ListconfigsConfigsTorservicepassword{}
-	mi := &file_node_proto_msgTypes[375]
+	mi := &file_node_proto_msgTypes[379]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -31314,7 +32138,7 @@ func (x *ListconfigsConfigsTorservicepassword) String() string {
 func (*ListconfigsConfigsTorservicepassword) ProtoMessage() {}
 
 func (x *ListconfigsConfigsTorservicepassword) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[375]
+	mi := &file_node_proto_msgTypes[379]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -31327,7 +32151,7 @@ func (x *ListconfigsConfigsTorservicepassword) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use ListconfigsConfigsTorservicepassword.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsTorservicepassword) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{375}
+	return file_node_proto_rawDescGZIP(), []int{379}
 }
 
 func (x *ListconfigsConfigsTorservicepassword) GetValueStr() string {
@@ -31354,7 +32178,7 @@ type ListconfigsConfigsAnnounceaddrdns struct {
 
 func (x *ListconfigsConfigsAnnounceaddrdns) Reset() {
 	*x = ListconfigsConfigsAnnounceaddrdns{}
-	mi := &file_node_proto_msgTypes[376]
+	mi := &file_node_proto_msgTypes[380]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -31366,7 +32190,7 @@ func (x *ListconfigsConfigsAnnounceaddrdns) String() string {
 func (*ListconfigsConfigsAnnounceaddrdns) ProtoMessage() {}
 
 func (x *ListconfigsConfigsAnnounceaddrdns) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[376]
+	mi := &file_node_proto_msgTypes[380]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -31379,7 +32203,7 @@ func (x *ListconfigsConfigsAnnounceaddrdns) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use ListconfigsConfigsAnnounceaddrdns.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsAnnounceaddrdns) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{376}
+	return file_node_proto_rawDescGZIP(), []int{380}
 }
 
 func (x *ListconfigsConfigsAnnounceaddrdns) GetValueBool() bool {
@@ -31406,7 +32230,7 @@ type ListconfigsConfigsRequireconfirmedinputs struct {
 
 func (x *ListconfigsConfigsRequireconfirmedinputs) Reset() {
 	*x = ListconfigsConfigsRequireconfirmedinputs{}
-	mi := &file_node_proto_msgTypes[377]
+	mi := &file_node_proto_msgTypes[381]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -31418,7 +32242,7 @@ func (x *ListconfigsConfigsRequireconfirmedinputs) String() string {
 func (*ListconfigsConfigsRequireconfirmedinputs) ProtoMessage() {}
 
 func (x *ListconfigsConfigsRequireconfirmedinputs) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[377]
+	mi := &file_node_proto_msgTypes[381]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -31431,7 +32255,7 @@ func (x *ListconfigsConfigsRequireconfirmedinputs) ProtoReflect() protoreflect.M
 
 // Deprecated: Use ListconfigsConfigsRequireconfirmedinputs.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsRequireconfirmedinputs) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{377}
+	return file_node_proto_rawDescGZIP(), []int{381}
 }
 
 func (x *ListconfigsConfigsRequireconfirmedinputs) GetValueBool() bool {
@@ -31458,7 +32282,7 @@ type ListconfigsConfigsCommitfee struct {
 
 func (x *ListconfigsConfigsCommitfee) Reset() {
 	*x = ListconfigsConfigsCommitfee{}
-	mi := &file_node_proto_msgTypes[378]
+	mi := &file_node_proto_msgTypes[382]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -31470,7 +32294,7 @@ func (x *ListconfigsConfigsCommitfee) String() string {
 func (*ListconfigsConfigsCommitfee) ProtoMessage() {}
 
 func (x *ListconfigsConfigsCommitfee) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[378]
+	mi := &file_node_proto_msgTypes[382]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -31483,7 +32307,7 @@ func (x *ListconfigsConfigsCommitfee) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListconfigsConfigsCommitfee.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsCommitfee) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{378}
+	return file_node_proto_rawDescGZIP(), []int{382}
 }
 
 func (x *ListconfigsConfigsCommitfee) GetValueInt() uint64 {
@@ -31510,7 +32334,7 @@ type ListconfigsConfigsCommitfeerateoffset struct {
 
 func (x *ListconfigsConfigsCommitfeerateoffset) Reset() {
 	*x = ListconfigsConfigsCommitfeerateoffset{}
-	mi := &file_node_proto_msgTypes[379]
+	mi := &file_node_proto_msgTypes[383]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -31522,7 +32346,7 @@ func (x *ListconfigsConfigsCommitfeerateoffset) String() string {
 func (*ListconfigsConfigsCommitfeerateoffset) ProtoMessage() {}
 
 func (x *ListconfigsConfigsCommitfeerateoffset) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[379]
+	mi := &file_node_proto_msgTypes[383]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -31535,7 +32359,7 @@ func (x *ListconfigsConfigsCommitfeerateoffset) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use ListconfigsConfigsCommitfeerateoffset.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsCommitfeerateoffset) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{379}
+	return file_node_proto_rawDescGZIP(), []int{383}
 }
 
 func (x *ListconfigsConfigsCommitfeerateoffset) GetValueInt() uint32 {
@@ -31562,7 +32386,7 @@ type ListconfigsConfigsAutoconnectseekerpeers struct {
 
 func (x *ListconfigsConfigsAutoconnectseekerpeers) Reset() {
 	*x = ListconfigsConfigsAutoconnectseekerpeers{}
-	mi := &file_node_proto_msgTypes[380]
+	mi := &file_node_proto_msgTypes[384]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -31574,7 +32398,7 @@ func (x *ListconfigsConfigsAutoconnectseekerpeers) String() string {
 func (*ListconfigsConfigsAutoconnectseekerpeers) ProtoMessage() {}
 
 func (x *ListconfigsConfigsAutoconnectseekerpeers) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[380]
+	mi := &file_node_proto_msgTypes[384]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -31587,7 +32411,7 @@ func (x *ListconfigsConfigsAutoconnectseekerpeers) ProtoReflect() protoreflect.M
 
 // Deprecated: Use ListconfigsConfigsAutoconnectseekerpeers.ProtoReflect.Descriptor instead.
 func (*ListconfigsConfigsAutoconnectseekerpeers) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{380}
+	return file_node_proto_rawDescGZIP(), []int{384}
 }
 
 func (x *ListconfigsConfigsAutoconnectseekerpeers) GetValueInt() uint32 {
@@ -31604,6 +32428,126 @@ func (x *ListconfigsConfigsAutoconnectseekerpeers) GetSource() string {
 	return ""
 }
 
+type ListconfigsConfigsCurrencyrateaddsource struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ValuesStr     []string               `protobuf:"bytes,1,rep,name=values_str,json=valuesStr,proto3" json:"values_str,omitempty"`
+	Sources       []string               `protobuf:"bytes,2,rep,name=sources,proto3" json:"sources,omitempty"`
+	Plugin        *string                `protobuf:"bytes,3,opt,name=plugin,proto3,oneof" json:"plugin,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListconfigsConfigsCurrencyrateaddsource) Reset() {
+	*x = ListconfigsConfigsCurrencyrateaddsource{}
+	mi := &file_node_proto_msgTypes[385]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListconfigsConfigsCurrencyrateaddsource) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListconfigsConfigsCurrencyrateaddsource) ProtoMessage() {}
+
+func (x *ListconfigsConfigsCurrencyrateaddsource) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[385]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListconfigsConfigsCurrencyrateaddsource.ProtoReflect.Descriptor instead.
+func (*ListconfigsConfigsCurrencyrateaddsource) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{385}
+}
+
+func (x *ListconfigsConfigsCurrencyrateaddsource) GetValuesStr() []string {
+	if x != nil {
+		return x.ValuesStr
+	}
+	return nil
+}
+
+func (x *ListconfigsConfigsCurrencyrateaddsource) GetSources() []string {
+	if x != nil {
+		return x.Sources
+	}
+	return nil
+}
+
+func (x *ListconfigsConfigsCurrencyrateaddsource) GetPlugin() string {
+	if x != nil && x.Plugin != nil {
+		return *x.Plugin
+	}
+	return ""
+}
+
+type ListconfigsConfigsCurrencyratedisablesource struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ValuesStr     []string               `protobuf:"bytes,1,rep,name=values_str,json=valuesStr,proto3" json:"values_str,omitempty"`
+	Sources       []string               `protobuf:"bytes,2,rep,name=sources,proto3" json:"sources,omitempty"`
+	Plugin        *string                `protobuf:"bytes,3,opt,name=plugin,proto3,oneof" json:"plugin,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListconfigsConfigsCurrencyratedisablesource) Reset() {
+	*x = ListconfigsConfigsCurrencyratedisablesource{}
+	mi := &file_node_proto_msgTypes[386]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListconfigsConfigsCurrencyratedisablesource) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListconfigsConfigsCurrencyratedisablesource) ProtoMessage() {}
+
+func (x *ListconfigsConfigsCurrencyratedisablesource) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[386]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListconfigsConfigsCurrencyratedisablesource.ProtoReflect.Descriptor instead.
+func (*ListconfigsConfigsCurrencyratedisablesource) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{386}
+}
+
+func (x *ListconfigsConfigsCurrencyratedisablesource) GetValuesStr() []string {
+	if x != nil {
+		return x.ValuesStr
+	}
+	return nil
+}
+
+func (x *ListconfigsConfigsCurrencyratedisablesource) GetSources() []string {
+	if x != nil {
+		return x.Sources
+	}
+	return nil
+}
+
+func (x *ListconfigsConfigsCurrencyratedisablesource) GetPlugin() string {
+	if x != nil && x.Plugin != nil {
+		return *x.Plugin
+	}
+	return ""
+}
+
 type StopRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -31612,7 +32556,7 @@ type StopRequest struct {
 
 func (x *StopRequest) Reset() {
 	*x = StopRequest{}
-	mi := &file_node_proto_msgTypes[381]
+	mi := &file_node_proto_msgTypes[387]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -31624,7 +32568,7 @@ func (x *StopRequest) String() string {
 func (*StopRequest) ProtoMessage() {}
 
 func (x *StopRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[381]
+	mi := &file_node_proto_msgTypes[387]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -31637,19 +32581,19 @@ func (x *StopRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopRequest.ProtoReflect.Descriptor instead.
 func (*StopRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{381}
+	return file_node_proto_rawDescGZIP(), []int{387}
 }
 
 type StopResponse struct {
-	state         protoimpl.MessageState   `protogen:"open.v1"`
-	Result        *StopResponse_StopResult `protobuf:"varint,1,opt,name=result,proto3,enum=cln.StopResponse_StopResult,oneof" json:"result,omitempty"`
+	state         protoimpl.MessageState  `protogen:"open.v1"`
+	Result        StopResponse_StopResult `protobuf:"varint,1,opt,name=result,proto3,enum=cln.StopResponse_StopResult" json:"result,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *StopResponse) Reset() {
 	*x = StopResponse{}
-	mi := &file_node_proto_msgTypes[382]
+	mi := &file_node_proto_msgTypes[388]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -31661,7 +32605,7 @@ func (x *StopResponse) String() string {
 func (*StopResponse) ProtoMessage() {}
 
 func (x *StopResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[382]
+	mi := &file_node_proto_msgTypes[388]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -31674,12 +32618,12 @@ func (x *StopResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopResponse.ProtoReflect.Descriptor instead.
 func (*StopResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{382}
+	return file_node_proto_rawDescGZIP(), []int{388}
 }
 
 func (x *StopResponse) GetResult() StopResponse_StopResult {
-	if x != nil && x.Result != nil {
-		return *x.Result
+	if x != nil {
+		return x.Result
 	}
 	return StopResponse_SHUTDOWN_COMPLETE
 }
@@ -31693,7 +32637,7 @@ type HelpRequest struct {
 
 func (x *HelpRequest) Reset() {
 	*x = HelpRequest{}
-	mi := &file_node_proto_msgTypes[383]
+	mi := &file_node_proto_msgTypes[389]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -31705,7 +32649,7 @@ func (x *HelpRequest) String() string {
 func (*HelpRequest) ProtoMessage() {}
 
 func (x *HelpRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[383]
+	mi := &file_node_proto_msgTypes[389]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -31718,7 +32662,7 @@ func (x *HelpRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HelpRequest.ProtoReflect.Descriptor instead.
 func (*HelpRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{383}
+	return file_node_proto_rawDescGZIP(), []int{389}
 }
 
 func (x *HelpRequest) GetCommand() string {
@@ -31738,7 +32682,7 @@ type HelpResponse struct {
 
 func (x *HelpResponse) Reset() {
 	*x = HelpResponse{}
-	mi := &file_node_proto_msgTypes[384]
+	mi := &file_node_proto_msgTypes[390]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -31750,7 +32694,7 @@ func (x *HelpResponse) String() string {
 func (*HelpResponse) ProtoMessage() {}
 
 func (x *HelpResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[384]
+	mi := &file_node_proto_msgTypes[390]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -31763,7 +32707,7 @@ func (x *HelpResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HelpResponse.ProtoReflect.Descriptor instead.
 func (*HelpResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{384}
+	return file_node_proto_rawDescGZIP(), []int{390}
 }
 
 func (x *HelpResponse) GetHelp() []*HelpHelp {
@@ -31789,7 +32733,7 @@ type HelpHelp struct {
 
 func (x *HelpHelp) Reset() {
 	*x = HelpHelp{}
-	mi := &file_node_proto_msgTypes[385]
+	mi := &file_node_proto_msgTypes[391]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -31801,7 +32745,7 @@ func (x *HelpHelp) String() string {
 func (*HelpHelp) ProtoMessage() {}
 
 func (x *HelpHelp) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[385]
+	mi := &file_node_proto_msgTypes[391]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -31814,7 +32758,7 @@ func (x *HelpHelp) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HelpHelp.ProtoReflect.Descriptor instead.
 func (*HelpHelp) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{385}
+	return file_node_proto_rawDescGZIP(), []int{391}
 }
 
 func (x *HelpHelp) GetCommand() string {
@@ -31835,7 +32779,7 @@ type PreapprovekeysendRequest struct {
 
 func (x *PreapprovekeysendRequest) Reset() {
 	*x = PreapprovekeysendRequest{}
-	mi := &file_node_proto_msgTypes[386]
+	mi := &file_node_proto_msgTypes[392]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -31847,7 +32791,7 @@ func (x *PreapprovekeysendRequest) String() string {
 func (*PreapprovekeysendRequest) ProtoMessage() {}
 
 func (x *PreapprovekeysendRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[386]
+	mi := &file_node_proto_msgTypes[392]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -31860,7 +32804,7 @@ func (x *PreapprovekeysendRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreapprovekeysendRequest.ProtoReflect.Descriptor instead.
 func (*PreapprovekeysendRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{386}
+	return file_node_proto_rawDescGZIP(), []int{392}
 }
 
 func (x *PreapprovekeysendRequest) GetDestination() []byte {
@@ -31892,7 +32836,7 @@ type PreapprovekeysendResponse struct {
 
 func (x *PreapprovekeysendResponse) Reset() {
 	*x = PreapprovekeysendResponse{}
-	mi := &file_node_proto_msgTypes[387]
+	mi := &file_node_proto_msgTypes[393]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -31904,7 +32848,7 @@ func (x *PreapprovekeysendResponse) String() string {
 func (*PreapprovekeysendResponse) ProtoMessage() {}
 
 func (x *PreapprovekeysendResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[387]
+	mi := &file_node_proto_msgTypes[393]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -31917,7 +32861,7 @@ func (x *PreapprovekeysendResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreapprovekeysendResponse.ProtoReflect.Descriptor instead.
 func (*PreapprovekeysendResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{387}
+	return file_node_proto_rawDescGZIP(), []int{393}
 }
 
 type PreapproveinvoiceRequest struct {
@@ -31929,7 +32873,7 @@ type PreapproveinvoiceRequest struct {
 
 func (x *PreapproveinvoiceRequest) Reset() {
 	*x = PreapproveinvoiceRequest{}
-	mi := &file_node_proto_msgTypes[388]
+	mi := &file_node_proto_msgTypes[394]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -31941,7 +32885,7 @@ func (x *PreapproveinvoiceRequest) String() string {
 func (*PreapproveinvoiceRequest) ProtoMessage() {}
 
 func (x *PreapproveinvoiceRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[388]
+	mi := &file_node_proto_msgTypes[394]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -31954,7 +32898,7 @@ func (x *PreapproveinvoiceRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreapproveinvoiceRequest.ProtoReflect.Descriptor instead.
 func (*PreapproveinvoiceRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{388}
+	return file_node_proto_rawDescGZIP(), []int{394}
 }
 
 func (x *PreapproveinvoiceRequest) GetBolt11() string {
@@ -31972,7 +32916,7 @@ type PreapproveinvoiceResponse struct {
 
 func (x *PreapproveinvoiceResponse) Reset() {
 	*x = PreapproveinvoiceResponse{}
-	mi := &file_node_proto_msgTypes[389]
+	mi := &file_node_proto_msgTypes[395]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -31984,7 +32928,7 @@ func (x *PreapproveinvoiceResponse) String() string {
 func (*PreapproveinvoiceResponse) ProtoMessage() {}
 
 func (x *PreapproveinvoiceResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[389]
+	mi := &file_node_proto_msgTypes[395]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -31997,7 +32941,7 @@ func (x *PreapproveinvoiceResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PreapproveinvoiceResponse.ProtoReflect.Descriptor instead.
 func (*PreapproveinvoiceResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{389}
+	return file_node_proto_rawDescGZIP(), []int{395}
 }
 
 type StaticbackupRequest struct {
@@ -32008,7 +32952,7 @@ type StaticbackupRequest struct {
 
 func (x *StaticbackupRequest) Reset() {
 	*x = StaticbackupRequest{}
-	mi := &file_node_proto_msgTypes[390]
+	mi := &file_node_proto_msgTypes[396]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -32020,7 +32964,7 @@ func (x *StaticbackupRequest) String() string {
 func (*StaticbackupRequest) ProtoMessage() {}
 
 func (x *StaticbackupRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[390]
+	mi := &file_node_proto_msgTypes[396]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -32033,7 +32977,7 @@ func (x *StaticbackupRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StaticbackupRequest.ProtoReflect.Descriptor instead.
 func (*StaticbackupRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{390}
+	return file_node_proto_rawDescGZIP(), []int{396}
 }
 
 type StaticbackupResponse struct {
@@ -32045,7 +32989,7 @@ type StaticbackupResponse struct {
 
 func (x *StaticbackupResponse) Reset() {
 	*x = StaticbackupResponse{}
-	mi := &file_node_proto_msgTypes[391]
+	mi := &file_node_proto_msgTypes[397]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -32057,7 +33001,7 @@ func (x *StaticbackupResponse) String() string {
 func (*StaticbackupResponse) ProtoMessage() {}
 
 func (x *StaticbackupResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[391]
+	mi := &file_node_proto_msgTypes[397]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -32070,7 +33014,7 @@ func (x *StaticbackupResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StaticbackupResponse.ProtoReflect.Descriptor instead.
 func (*StaticbackupResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{391}
+	return file_node_proto_rawDescGZIP(), []int{397}
 }
 
 func (x *StaticbackupResponse) GetScb() [][]byte {
@@ -32090,7 +33034,7 @@ type BkprchannelsapyRequest struct {
 
 func (x *BkprchannelsapyRequest) Reset() {
 	*x = BkprchannelsapyRequest{}
-	mi := &file_node_proto_msgTypes[392]
+	mi := &file_node_proto_msgTypes[398]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -32102,7 +33046,7 @@ func (x *BkprchannelsapyRequest) String() string {
 func (*BkprchannelsapyRequest) ProtoMessage() {}
 
 func (x *BkprchannelsapyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[392]
+	mi := &file_node_proto_msgTypes[398]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -32115,7 +33059,7 @@ func (x *BkprchannelsapyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BkprchannelsapyRequest.ProtoReflect.Descriptor instead.
 func (*BkprchannelsapyRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{392}
+	return file_node_proto_rawDescGZIP(), []int{398}
 }
 
 func (x *BkprchannelsapyRequest) GetStartTime() uint64 {
@@ -32141,7 +33085,7 @@ type BkprchannelsapyResponse struct {
 
 func (x *BkprchannelsapyResponse) Reset() {
 	*x = BkprchannelsapyResponse{}
-	mi := &file_node_proto_msgTypes[393]
+	mi := &file_node_proto_msgTypes[399]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -32153,7 +33097,7 @@ func (x *BkprchannelsapyResponse) String() string {
 func (*BkprchannelsapyResponse) ProtoMessage() {}
 
 func (x *BkprchannelsapyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[393]
+	mi := &file_node_proto_msgTypes[399]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -32166,7 +33110,7 @@ func (x *BkprchannelsapyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BkprchannelsapyResponse.ProtoReflect.Descriptor instead.
 func (*BkprchannelsapyResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{393}
+	return file_node_proto_rawDescGZIP(), []int{399}
 }
 
 func (x *BkprchannelsapyResponse) GetChannelsApy() []*BkprchannelsapyChannelsApy {
@@ -32206,7 +33150,7 @@ type BkprchannelsapyChannelsApy struct {
 
 func (x *BkprchannelsapyChannelsApy) Reset() {
 	*x = BkprchannelsapyChannelsApy{}
-	mi := &file_node_proto_msgTypes[394]
+	mi := &file_node_proto_msgTypes[400]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -32218,7 +33162,7 @@ func (x *BkprchannelsapyChannelsApy) String() string {
 func (*BkprchannelsapyChannelsApy) ProtoMessage() {}
 
 func (x *BkprchannelsapyChannelsApy) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[394]
+	mi := &file_node_proto_msgTypes[400]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -32231,7 +33175,7 @@ func (x *BkprchannelsapyChannelsApy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BkprchannelsapyChannelsApy.ProtoReflect.Descriptor instead.
 func (*BkprchannelsapyChannelsApy) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{394}
+	return file_node_proto_rawDescGZIP(), []int{400}
 }
 
 func (x *BkprchannelsapyChannelsApy) GetAccount() string {
@@ -32401,7 +33345,7 @@ type BkprdumpincomecsvRequest struct {
 
 func (x *BkprdumpincomecsvRequest) Reset() {
 	*x = BkprdumpincomecsvRequest{}
-	mi := &file_node_proto_msgTypes[395]
+	mi := &file_node_proto_msgTypes[401]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -32413,7 +33357,7 @@ func (x *BkprdumpincomecsvRequest) String() string {
 func (*BkprdumpincomecsvRequest) ProtoMessage() {}
 
 func (x *BkprdumpincomecsvRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[395]
+	mi := &file_node_proto_msgTypes[401]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -32426,7 +33370,7 @@ func (x *BkprdumpincomecsvRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BkprdumpincomecsvRequest.ProtoReflect.Descriptor instead.
 func (*BkprdumpincomecsvRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{395}
+	return file_node_proto_rawDescGZIP(), []int{401}
 }
 
 func (x *BkprdumpincomecsvRequest) GetCsvFormat() string {
@@ -32474,7 +33418,7 @@ type BkprdumpincomecsvResponse struct {
 
 func (x *BkprdumpincomecsvResponse) Reset() {
 	*x = BkprdumpincomecsvResponse{}
-	mi := &file_node_proto_msgTypes[396]
+	mi := &file_node_proto_msgTypes[402]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -32486,7 +33430,7 @@ func (x *BkprdumpincomecsvResponse) String() string {
 func (*BkprdumpincomecsvResponse) ProtoMessage() {}
 
 func (x *BkprdumpincomecsvResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[396]
+	mi := &file_node_proto_msgTypes[402]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -32499,7 +33443,7 @@ func (x *BkprdumpincomecsvResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BkprdumpincomecsvResponse.ProtoReflect.Descriptor instead.
 func (*BkprdumpincomecsvResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{396}
+	return file_node_proto_rawDescGZIP(), []int{402}
 }
 
 func (x *BkprdumpincomecsvResponse) GetCsvFile() string {
@@ -32525,7 +33469,7 @@ type BkprinspectRequest struct {
 
 func (x *BkprinspectRequest) Reset() {
 	*x = BkprinspectRequest{}
-	mi := &file_node_proto_msgTypes[397]
+	mi := &file_node_proto_msgTypes[403]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -32537,7 +33481,7 @@ func (x *BkprinspectRequest) String() string {
 func (*BkprinspectRequest) ProtoMessage() {}
 
 func (x *BkprinspectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[397]
+	mi := &file_node_proto_msgTypes[403]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -32550,7 +33494,7 @@ func (x *BkprinspectRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BkprinspectRequest.ProtoReflect.Descriptor instead.
 func (*BkprinspectRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{397}
+	return file_node_proto_rawDescGZIP(), []int{403}
 }
 
 func (x *BkprinspectRequest) GetAccount() string {
@@ -32569,7 +33513,7 @@ type BkprinspectResponse struct {
 
 func (x *BkprinspectResponse) Reset() {
 	*x = BkprinspectResponse{}
-	mi := &file_node_proto_msgTypes[398]
+	mi := &file_node_proto_msgTypes[404]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -32581,7 +33525,7 @@ func (x *BkprinspectResponse) String() string {
 func (*BkprinspectResponse) ProtoMessage() {}
 
 func (x *BkprinspectResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[398]
+	mi := &file_node_proto_msgTypes[404]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -32594,7 +33538,7 @@ func (x *BkprinspectResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BkprinspectResponse.ProtoReflect.Descriptor instead.
 func (*BkprinspectResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{398}
+	return file_node_proto_rawDescGZIP(), []int{404}
 }
 
 func (x *BkprinspectResponse) GetTxs() []*BkprinspectTxs {
@@ -32616,7 +33560,7 @@ type BkprinspectTxs struct {
 
 func (x *BkprinspectTxs) Reset() {
 	*x = BkprinspectTxs{}
-	mi := &file_node_proto_msgTypes[399]
+	mi := &file_node_proto_msgTypes[405]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -32628,7 +33572,7 @@ func (x *BkprinspectTxs) String() string {
 func (*BkprinspectTxs) ProtoMessage() {}
 
 func (x *BkprinspectTxs) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[399]
+	mi := &file_node_proto_msgTypes[405]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -32641,7 +33585,7 @@ func (x *BkprinspectTxs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BkprinspectTxs.ProtoReflect.Descriptor instead.
 func (*BkprinspectTxs) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{399}
+	return file_node_proto_rawDescGZIP(), []int{405}
 }
 
 func (x *BkprinspectTxs) GetTxid() []byte {
@@ -32691,7 +33635,7 @@ type BkprinspectTxsOutputs struct {
 
 func (x *BkprinspectTxsOutputs) Reset() {
 	*x = BkprinspectTxsOutputs{}
-	mi := &file_node_proto_msgTypes[400]
+	mi := &file_node_proto_msgTypes[406]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -32703,7 +33647,7 @@ func (x *BkprinspectTxsOutputs) String() string {
 func (*BkprinspectTxsOutputs) ProtoMessage() {}
 
 func (x *BkprinspectTxsOutputs) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[400]
+	mi := &file_node_proto_msgTypes[406]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -32716,7 +33660,7 @@ func (x *BkprinspectTxsOutputs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BkprinspectTxsOutputs.ProtoReflect.Descriptor instead.
 func (*BkprinspectTxsOutputs) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{400}
+	return file_node_proto_rawDescGZIP(), []int{406}
 }
 
 func (x *BkprinspectTxsOutputs) GetAccount() string {
@@ -32806,7 +33750,7 @@ type BkprlistaccounteventsRequest struct {
 
 func (x *BkprlistaccounteventsRequest) Reset() {
 	*x = BkprlistaccounteventsRequest{}
-	mi := &file_node_proto_msgTypes[401]
+	mi := &file_node_proto_msgTypes[407]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -32818,7 +33762,7 @@ func (x *BkprlistaccounteventsRequest) String() string {
 func (*BkprlistaccounteventsRequest) ProtoMessage() {}
 
 func (x *BkprlistaccounteventsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[401]
+	mi := &file_node_proto_msgTypes[407]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -32831,7 +33775,7 @@ func (x *BkprlistaccounteventsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BkprlistaccounteventsRequest.ProtoReflect.Descriptor instead.
 func (*BkprlistaccounteventsRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{401}
+	return file_node_proto_rawDescGZIP(), []int{407}
 }
 
 func (x *BkprlistaccounteventsRequest) GetAccount() string {
@@ -32857,7 +33801,7 @@ type BkprlistaccounteventsResponse struct {
 
 func (x *BkprlistaccounteventsResponse) Reset() {
 	*x = BkprlistaccounteventsResponse{}
-	mi := &file_node_proto_msgTypes[402]
+	mi := &file_node_proto_msgTypes[408]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -32869,7 +33813,7 @@ func (x *BkprlistaccounteventsResponse) String() string {
 func (*BkprlistaccounteventsResponse) ProtoMessage() {}
 
 func (x *BkprlistaccounteventsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[402]
+	mi := &file_node_proto_msgTypes[408]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -32882,7 +33826,7 @@ func (x *BkprlistaccounteventsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BkprlistaccounteventsResponse.ProtoReflect.Descriptor instead.
 func (*BkprlistaccounteventsResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{402}
+	return file_node_proto_rawDescGZIP(), []int{408}
 }
 
 func (x *BkprlistaccounteventsResponse) GetEvents() []*BkprlistaccounteventsEvents {
@@ -32910,13 +33854,14 @@ type BkprlistaccounteventsEvents struct {
 	FeesMsat      *Amount                                                     `protobuf:"bytes,14,opt,name=fees_msat,json=feesMsat,proto3,oneof" json:"fees_msat,omitempty"`
 	IsRebalance   *bool                                                       `protobuf:"varint,15,opt,name=is_rebalance,json=isRebalance,proto3,oneof" json:"is_rebalance,omitempty"`
 	PartId        *uint32                                                     `protobuf:"varint,16,opt,name=part_id,json=partId,proto3,oneof" json:"part_id,omitempty"`
+	Currencyrate  *float64                                                    `protobuf:"fixed64,17,opt,name=currencyrate,proto3,oneof" json:"currencyrate,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *BkprlistaccounteventsEvents) Reset() {
 	*x = BkprlistaccounteventsEvents{}
-	mi := &file_node_proto_msgTypes[403]
+	mi := &file_node_proto_msgTypes[409]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -32928,7 +33873,7 @@ func (x *BkprlistaccounteventsEvents) String() string {
 func (*BkprlistaccounteventsEvents) ProtoMessage() {}
 
 func (x *BkprlistaccounteventsEvents) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[403]
+	mi := &file_node_proto_msgTypes[409]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -32941,7 +33886,7 @@ func (x *BkprlistaccounteventsEvents) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BkprlistaccounteventsEvents.ProtoReflect.Descriptor instead.
 func (*BkprlistaccounteventsEvents) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{403}
+	return file_node_proto_rawDescGZIP(), []int{409}
 }
 
 func (x *BkprlistaccounteventsEvents) GetAccount() string {
@@ -33056,6 +34001,13 @@ func (x *BkprlistaccounteventsEvents) GetPartId() uint32 {
 	return 0
 }
 
+func (x *BkprlistaccounteventsEvents) GetCurrencyrate() float64 {
+	if x != nil && x.Currencyrate != nil {
+		return *x.Currencyrate
+	}
+	return 0
+}
+
 type BkprlistbalancesRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -33064,7 +34016,7 @@ type BkprlistbalancesRequest struct {
 
 func (x *BkprlistbalancesRequest) Reset() {
 	*x = BkprlistbalancesRequest{}
-	mi := &file_node_proto_msgTypes[404]
+	mi := &file_node_proto_msgTypes[410]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -33076,7 +34028,7 @@ func (x *BkprlistbalancesRequest) String() string {
 func (*BkprlistbalancesRequest) ProtoMessage() {}
 
 func (x *BkprlistbalancesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[404]
+	mi := &file_node_proto_msgTypes[410]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -33089,7 +34041,7 @@ func (x *BkprlistbalancesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BkprlistbalancesRequest.ProtoReflect.Descriptor instead.
 func (*BkprlistbalancesRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{404}
+	return file_node_proto_rawDescGZIP(), []int{410}
 }
 
 type BkprlistbalancesResponse struct {
@@ -33101,7 +34053,7 @@ type BkprlistbalancesResponse struct {
 
 func (x *BkprlistbalancesResponse) Reset() {
 	*x = BkprlistbalancesResponse{}
-	mi := &file_node_proto_msgTypes[405]
+	mi := &file_node_proto_msgTypes[411]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -33113,7 +34065,7 @@ func (x *BkprlistbalancesResponse) String() string {
 func (*BkprlistbalancesResponse) ProtoMessage() {}
 
 func (x *BkprlistbalancesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[405]
+	mi := &file_node_proto_msgTypes[411]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -33126,7 +34078,7 @@ func (x *BkprlistbalancesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BkprlistbalancesResponse.ProtoReflect.Descriptor instead.
 func (*BkprlistbalancesResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{405}
+	return file_node_proto_rawDescGZIP(), []int{411}
 }
 
 func (x *BkprlistbalancesResponse) GetAccounts() []*BkprlistbalancesAccounts {
@@ -33151,7 +34103,7 @@ type BkprlistbalancesAccounts struct {
 
 func (x *BkprlistbalancesAccounts) Reset() {
 	*x = BkprlistbalancesAccounts{}
-	mi := &file_node_proto_msgTypes[406]
+	mi := &file_node_proto_msgTypes[412]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -33163,7 +34115,7 @@ func (x *BkprlistbalancesAccounts) String() string {
 func (*BkprlistbalancesAccounts) ProtoMessage() {}
 
 func (x *BkprlistbalancesAccounts) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[406]
+	mi := &file_node_proto_msgTypes[412]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -33176,7 +34128,7 @@ func (x *BkprlistbalancesAccounts) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BkprlistbalancesAccounts.ProtoReflect.Descriptor instead.
 func (*BkprlistbalancesAccounts) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{406}
+	return file_node_proto_rawDescGZIP(), []int{412}
 }
 
 func (x *BkprlistbalancesAccounts) GetAccount() string {
@@ -33238,7 +34190,7 @@ type BkprlistbalancesAccountsBalances struct {
 
 func (x *BkprlistbalancesAccountsBalances) Reset() {
 	*x = BkprlistbalancesAccountsBalances{}
-	mi := &file_node_proto_msgTypes[407]
+	mi := &file_node_proto_msgTypes[413]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -33250,7 +34202,7 @@ func (x *BkprlistbalancesAccountsBalances) String() string {
 func (*BkprlistbalancesAccountsBalances) ProtoMessage() {}
 
 func (x *BkprlistbalancesAccountsBalances) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[407]
+	mi := &file_node_proto_msgTypes[413]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -33263,7 +34215,7 @@ func (x *BkprlistbalancesAccountsBalances) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BkprlistbalancesAccountsBalances.ProtoReflect.Descriptor instead.
 func (*BkprlistbalancesAccountsBalances) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{407}
+	return file_node_proto_rawDescGZIP(), []int{413}
 }
 
 func (x *BkprlistbalancesAccountsBalances) GetBalanceMsat() *Amount {
@@ -33291,7 +34243,7 @@ type BkprlistincomeRequest struct {
 
 func (x *BkprlistincomeRequest) Reset() {
 	*x = BkprlistincomeRequest{}
-	mi := &file_node_proto_msgTypes[408]
+	mi := &file_node_proto_msgTypes[414]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -33303,7 +34255,7 @@ func (x *BkprlistincomeRequest) String() string {
 func (*BkprlistincomeRequest) ProtoMessage() {}
 
 func (x *BkprlistincomeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[408]
+	mi := &file_node_proto_msgTypes[414]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -33316,7 +34268,7 @@ func (x *BkprlistincomeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BkprlistincomeRequest.ProtoReflect.Descriptor instead.
 func (*BkprlistincomeRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{408}
+	return file_node_proto_rawDescGZIP(), []int{414}
 }
 
 func (x *BkprlistincomeRequest) GetConsolidateFees() bool {
@@ -33349,7 +34301,7 @@ type BkprlistincomeResponse struct {
 
 func (x *BkprlistincomeResponse) Reset() {
 	*x = BkprlistincomeResponse{}
-	mi := &file_node_proto_msgTypes[409]
+	mi := &file_node_proto_msgTypes[415]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -33361,7 +34313,7 @@ func (x *BkprlistincomeResponse) String() string {
 func (*BkprlistincomeResponse) ProtoMessage() {}
 
 func (x *BkprlistincomeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[409]
+	mi := &file_node_proto_msgTypes[415]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -33374,7 +34326,7 @@ func (x *BkprlistincomeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BkprlistincomeResponse.ProtoReflect.Descriptor instead.
 func (*BkprlistincomeResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{409}
+	return file_node_proto_rawDescGZIP(), []int{415}
 }
 
 func (x *BkprlistincomeResponse) GetIncomeEvents() []*BkprlistincomeIncomeEvents {
@@ -33402,7 +34354,7 @@ type BkprlistincomeIncomeEvents struct {
 
 func (x *BkprlistincomeIncomeEvents) Reset() {
 	*x = BkprlistincomeIncomeEvents{}
-	mi := &file_node_proto_msgTypes[410]
+	mi := &file_node_proto_msgTypes[416]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -33414,7 +34366,7 @@ func (x *BkprlistincomeIncomeEvents) String() string {
 func (*BkprlistincomeIncomeEvents) ProtoMessage() {}
 
 func (x *BkprlistincomeIncomeEvents) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[410]
+	mi := &file_node_proto_msgTypes[416]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -33427,7 +34379,7 @@ func (x *BkprlistincomeIncomeEvents) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BkprlistincomeIncomeEvents.ProtoReflect.Descriptor instead.
 func (*BkprlistincomeIncomeEvents) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{410}
+	return file_node_proto_rawDescGZIP(), []int{416}
 }
 
 func (x *BkprlistincomeIncomeEvents) GetAccount() string {
@@ -33510,7 +34462,7 @@ type BkpreditdescriptionbypaymentidRequest struct {
 
 func (x *BkpreditdescriptionbypaymentidRequest) Reset() {
 	*x = BkpreditdescriptionbypaymentidRequest{}
-	mi := &file_node_proto_msgTypes[411]
+	mi := &file_node_proto_msgTypes[417]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -33522,7 +34474,7 @@ func (x *BkpreditdescriptionbypaymentidRequest) String() string {
 func (*BkpreditdescriptionbypaymentidRequest) ProtoMessage() {}
 
 func (x *BkpreditdescriptionbypaymentidRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[411]
+	mi := &file_node_proto_msgTypes[417]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -33535,7 +34487,7 @@ func (x *BkpreditdescriptionbypaymentidRequest) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use BkpreditdescriptionbypaymentidRequest.ProtoReflect.Descriptor instead.
 func (*BkpreditdescriptionbypaymentidRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{411}
+	return file_node_proto_rawDescGZIP(), []int{417}
 }
 
 func (x *BkpreditdescriptionbypaymentidRequest) GetPaymentId() string {
@@ -33561,7 +34513,7 @@ type BkpreditdescriptionbypaymentidResponse struct {
 
 func (x *BkpreditdescriptionbypaymentidResponse) Reset() {
 	*x = BkpreditdescriptionbypaymentidResponse{}
-	mi := &file_node_proto_msgTypes[412]
+	mi := &file_node_proto_msgTypes[418]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -33573,7 +34525,7 @@ func (x *BkpreditdescriptionbypaymentidResponse) String() string {
 func (*BkpreditdescriptionbypaymentidResponse) ProtoMessage() {}
 
 func (x *BkpreditdescriptionbypaymentidResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[412]
+	mi := &file_node_proto_msgTypes[418]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -33586,7 +34538,7 @@ func (x *BkpreditdescriptionbypaymentidResponse) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use BkpreditdescriptionbypaymentidResponse.ProtoReflect.Descriptor instead.
 func (*BkpreditdescriptionbypaymentidResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{412}
+	return file_node_proto_rawDescGZIP(), []int{418}
 }
 
 func (x *BkpreditdescriptionbypaymentidResponse) GetUpdated() []*BkpreditdescriptionbypaymentidUpdated {
@@ -33620,7 +34572,7 @@ type BkpreditdescriptionbypaymentidUpdated struct {
 
 func (x *BkpreditdescriptionbypaymentidUpdated) Reset() {
 	*x = BkpreditdescriptionbypaymentidUpdated{}
-	mi := &file_node_proto_msgTypes[413]
+	mi := &file_node_proto_msgTypes[419]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -33632,7 +34584,7 @@ func (x *BkpreditdescriptionbypaymentidUpdated) String() string {
 func (*BkpreditdescriptionbypaymentidUpdated) ProtoMessage() {}
 
 func (x *BkpreditdescriptionbypaymentidUpdated) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[413]
+	mi := &file_node_proto_msgTypes[419]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -33645,7 +34597,7 @@ func (x *BkpreditdescriptionbypaymentidUpdated) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use BkpreditdescriptionbypaymentidUpdated.ProtoReflect.Descriptor instead.
 func (*BkpreditdescriptionbypaymentidUpdated) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{413}
+	return file_node_proto_rawDescGZIP(), []int{419}
 }
 
 func (x *BkpreditdescriptionbypaymentidUpdated) GetAccount() string {
@@ -33770,7 +34722,7 @@ type BkpreditdescriptionbyoutpointRequest struct {
 
 func (x *BkpreditdescriptionbyoutpointRequest) Reset() {
 	*x = BkpreditdescriptionbyoutpointRequest{}
-	mi := &file_node_proto_msgTypes[414]
+	mi := &file_node_proto_msgTypes[420]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -33782,7 +34734,7 @@ func (x *BkpreditdescriptionbyoutpointRequest) String() string {
 func (*BkpreditdescriptionbyoutpointRequest) ProtoMessage() {}
 
 func (x *BkpreditdescriptionbyoutpointRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[414]
+	mi := &file_node_proto_msgTypes[420]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -33795,7 +34747,7 @@ func (x *BkpreditdescriptionbyoutpointRequest) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use BkpreditdescriptionbyoutpointRequest.ProtoReflect.Descriptor instead.
 func (*BkpreditdescriptionbyoutpointRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{414}
+	return file_node_proto_rawDescGZIP(), []int{420}
 }
 
 func (x *BkpreditdescriptionbyoutpointRequest) GetOutpoint() string {
@@ -33821,7 +34773,7 @@ type BkpreditdescriptionbyoutpointResponse struct {
 
 func (x *BkpreditdescriptionbyoutpointResponse) Reset() {
 	*x = BkpreditdescriptionbyoutpointResponse{}
-	mi := &file_node_proto_msgTypes[415]
+	mi := &file_node_proto_msgTypes[421]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -33833,7 +34785,7 @@ func (x *BkpreditdescriptionbyoutpointResponse) String() string {
 func (*BkpreditdescriptionbyoutpointResponse) ProtoMessage() {}
 
 func (x *BkpreditdescriptionbyoutpointResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[415]
+	mi := &file_node_proto_msgTypes[421]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -33846,7 +34798,7 @@ func (x *BkpreditdescriptionbyoutpointResponse) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use BkpreditdescriptionbyoutpointResponse.ProtoReflect.Descriptor instead.
 func (*BkpreditdescriptionbyoutpointResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{415}
+	return file_node_proto_rawDescGZIP(), []int{421}
 }
 
 func (x *BkpreditdescriptionbyoutpointResponse) GetUpdated() []*BkpreditdescriptionbyoutpointUpdated {
@@ -33880,7 +34832,7 @@ type BkpreditdescriptionbyoutpointUpdated struct {
 
 func (x *BkpreditdescriptionbyoutpointUpdated) Reset() {
 	*x = BkpreditdescriptionbyoutpointUpdated{}
-	mi := &file_node_proto_msgTypes[416]
+	mi := &file_node_proto_msgTypes[422]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -33892,7 +34844,7 @@ func (x *BkpreditdescriptionbyoutpointUpdated) String() string {
 func (*BkpreditdescriptionbyoutpointUpdated) ProtoMessage() {}
 
 func (x *BkpreditdescriptionbyoutpointUpdated) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[416]
+	mi := &file_node_proto_msgTypes[422]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -33905,7 +34857,7 @@ func (x *BkpreditdescriptionbyoutpointUpdated) ProtoReflect() protoreflect.Messa
 
 // Deprecated: Use BkpreditdescriptionbyoutpointUpdated.ProtoReflect.Descriptor instead.
 func (*BkpreditdescriptionbyoutpointUpdated) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{416}
+	return file_node_proto_rawDescGZIP(), []int{422}
 }
 
 func (x *BkpreditdescriptionbyoutpointUpdated) GetAccount() string {
@@ -34020,6 +34972,126 @@ func (x *BkpreditdescriptionbyoutpointUpdated) GetPartId() uint32 {
 	return 0
 }
 
+type BkprreportRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Format        *string                `protobuf:"bytes,1,opt,name=format,proto3,oneof" json:"format,omitempty"`
+	Headers       []string               `protobuf:"bytes,2,rep,name=headers,proto3" json:"headers,omitempty"`
+	Escape        *string                `protobuf:"bytes,3,opt,name=escape,proto3,oneof" json:"escape,omitempty"`
+	StartTime     *uint32                `protobuf:"varint,4,opt,name=start_time,json=startTime,proto3,oneof" json:"start_time,omitempty"`
+	EndTime       *uint32                `protobuf:"varint,5,opt,name=end_time,json=endTime,proto3,oneof" json:"end_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BkprreportRequest) Reset() {
+	*x = BkprreportRequest{}
+	mi := &file_node_proto_msgTypes[423]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BkprreportRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BkprreportRequest) ProtoMessage() {}
+
+func (x *BkprreportRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[423]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BkprreportRequest.ProtoReflect.Descriptor instead.
+func (*BkprreportRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{423}
+}
+
+func (x *BkprreportRequest) GetFormat() string {
+	if x != nil && x.Format != nil {
+		return *x.Format
+	}
+	return ""
+}
+
+func (x *BkprreportRequest) GetHeaders() []string {
+	if x != nil {
+		return x.Headers
+	}
+	return nil
+}
+
+func (x *BkprreportRequest) GetEscape() string {
+	if x != nil && x.Escape != nil {
+		return *x.Escape
+	}
+	return ""
+}
+
+func (x *BkprreportRequest) GetStartTime() uint32 {
+	if x != nil && x.StartTime != nil {
+		return *x.StartTime
+	}
+	return 0
+}
+
+func (x *BkprreportRequest) GetEndTime() uint32 {
+	if x != nil && x.EndTime != nil {
+		return *x.EndTime
+	}
+	return 0
+}
+
+type BkprreportResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Report        []string               `protobuf:"bytes,1,rep,name=report,proto3" json:"report,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BkprreportResponse) Reset() {
+	*x = BkprreportResponse{}
+	mi := &file_node_proto_msgTypes[424]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BkprreportResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BkprreportResponse) ProtoMessage() {}
+
+func (x *BkprreportResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[424]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BkprreportResponse.ProtoReflect.Descriptor instead.
+func (*BkprreportResponse) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{424}
+}
+
+func (x *BkprreportResponse) GetReport() []string {
+	if x != nil {
+		return x.Report
+	}
+	return nil
+}
+
 type BlacklistruneRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Start         *uint64                `protobuf:"varint,1,opt,name=start,proto3,oneof" json:"start,omitempty"`
@@ -34031,7 +35103,7 @@ type BlacklistruneRequest struct {
 
 func (x *BlacklistruneRequest) Reset() {
 	*x = BlacklistruneRequest{}
-	mi := &file_node_proto_msgTypes[417]
+	mi := &file_node_proto_msgTypes[425]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -34043,7 +35115,7 @@ func (x *BlacklistruneRequest) String() string {
 func (*BlacklistruneRequest) ProtoMessage() {}
 
 func (x *BlacklistruneRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[417]
+	mi := &file_node_proto_msgTypes[425]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -34056,7 +35128,7 @@ func (x *BlacklistruneRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BlacklistruneRequest.ProtoReflect.Descriptor instead.
 func (*BlacklistruneRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{417}
+	return file_node_proto_rawDescGZIP(), []int{425}
 }
 
 func (x *BlacklistruneRequest) GetStart() uint64 {
@@ -34089,7 +35161,7 @@ type BlacklistruneResponse struct {
 
 func (x *BlacklistruneResponse) Reset() {
 	*x = BlacklistruneResponse{}
-	mi := &file_node_proto_msgTypes[418]
+	mi := &file_node_proto_msgTypes[426]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -34101,7 +35173,7 @@ func (x *BlacklistruneResponse) String() string {
 func (*BlacklistruneResponse) ProtoMessage() {}
 
 func (x *BlacklistruneResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[418]
+	mi := &file_node_proto_msgTypes[426]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -34114,7 +35186,7 @@ func (x *BlacklistruneResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BlacklistruneResponse.ProtoReflect.Descriptor instead.
 func (*BlacklistruneResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{418}
+	return file_node_proto_rawDescGZIP(), []int{426}
 }
 
 func (x *BlacklistruneResponse) GetBlacklist() []*BlacklistruneBlacklist {
@@ -34134,7 +35206,7 @@ type BlacklistruneBlacklist struct {
 
 func (x *BlacklistruneBlacklist) Reset() {
 	*x = BlacklistruneBlacklist{}
-	mi := &file_node_proto_msgTypes[419]
+	mi := &file_node_proto_msgTypes[427]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -34146,7 +35218,7 @@ func (x *BlacklistruneBlacklist) String() string {
 func (*BlacklistruneBlacklist) ProtoMessage() {}
 
 func (x *BlacklistruneBlacklist) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[419]
+	mi := &file_node_proto_msgTypes[427]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -34159,7 +35231,7 @@ func (x *BlacklistruneBlacklist) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BlacklistruneBlacklist.ProtoReflect.Descriptor instead.
 func (*BlacklistruneBlacklist) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{419}
+	return file_node_proto_rawDescGZIP(), []int{427}
 }
 
 func (x *BlacklistruneBlacklist) GetStart() uint64 {
@@ -34188,7 +35260,7 @@ type CheckruneRequest struct {
 
 func (x *CheckruneRequest) Reset() {
 	*x = CheckruneRequest{}
-	mi := &file_node_proto_msgTypes[420]
+	mi := &file_node_proto_msgTypes[428]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -34200,7 +35272,7 @@ func (x *CheckruneRequest) String() string {
 func (*CheckruneRequest) ProtoMessage() {}
 
 func (x *CheckruneRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[420]
+	mi := &file_node_proto_msgTypes[428]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -34213,7 +35285,7 @@ func (x *CheckruneRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckruneRequest.ProtoReflect.Descriptor instead.
 func (*CheckruneRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{420}
+	return file_node_proto_rawDescGZIP(), []int{428}
 }
 
 func (x *CheckruneRequest) GetRune() string {
@@ -34253,7 +35325,7 @@ type CheckruneResponse struct {
 
 func (x *CheckruneResponse) Reset() {
 	*x = CheckruneResponse{}
-	mi := &file_node_proto_msgTypes[421]
+	mi := &file_node_proto_msgTypes[429]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -34265,7 +35337,7 @@ func (x *CheckruneResponse) String() string {
 func (*CheckruneResponse) ProtoMessage() {}
 
 func (x *CheckruneResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[421]
+	mi := &file_node_proto_msgTypes[429]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -34278,7 +35350,7 @@ func (x *CheckruneResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CheckruneResponse.ProtoReflect.Descriptor instead.
 func (*CheckruneResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{421}
+	return file_node_proto_rawDescGZIP(), []int{429}
 }
 
 func (x *CheckruneResponse) GetValid() bool {
@@ -34298,7 +35370,7 @@ type CreateruneRequest struct {
 
 func (x *CreateruneRequest) Reset() {
 	*x = CreateruneRequest{}
-	mi := &file_node_proto_msgTypes[422]
+	mi := &file_node_proto_msgTypes[430]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -34310,7 +35382,7 @@ func (x *CreateruneRequest) String() string {
 func (*CreateruneRequest) ProtoMessage() {}
 
 func (x *CreateruneRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[422]
+	mi := &file_node_proto_msgTypes[430]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -34323,7 +35395,7 @@ func (x *CreateruneRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateruneRequest.ProtoReflect.Descriptor instead.
 func (*CreateruneRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{422}
+	return file_node_proto_rawDescGZIP(), []int{430}
 }
 
 func (x *CreateruneRequest) GetRune() string {
@@ -34351,7 +35423,7 @@ type CreateruneResponse struct {
 
 func (x *CreateruneResponse) Reset() {
 	*x = CreateruneResponse{}
-	mi := &file_node_proto_msgTypes[423]
+	mi := &file_node_proto_msgTypes[431]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -34363,7 +35435,7 @@ func (x *CreateruneResponse) String() string {
 func (*CreateruneResponse) ProtoMessage() {}
 
 func (x *CreateruneResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[423]
+	mi := &file_node_proto_msgTypes[431]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -34376,7 +35448,7 @@ func (x *CreateruneResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateruneResponse.ProtoReflect.Descriptor instead.
 func (*CreateruneResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{423}
+	return file_node_proto_rawDescGZIP(), []int{431}
 }
 
 func (x *CreateruneResponse) GetRune() string {
@@ -34409,7 +35481,7 @@ type ShowrunesRequest struct {
 
 func (x *ShowrunesRequest) Reset() {
 	*x = ShowrunesRequest{}
-	mi := &file_node_proto_msgTypes[424]
+	mi := &file_node_proto_msgTypes[432]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -34421,7 +35493,7 @@ func (x *ShowrunesRequest) String() string {
 func (*ShowrunesRequest) ProtoMessage() {}
 
 func (x *ShowrunesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[424]
+	mi := &file_node_proto_msgTypes[432]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -34434,7 +35506,7 @@ func (x *ShowrunesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShowrunesRequest.ProtoReflect.Descriptor instead.
 func (*ShowrunesRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{424}
+	return file_node_proto_rawDescGZIP(), []int{432}
 }
 
 func (x *ShowrunesRequest) GetRune() string {
@@ -34453,7 +35525,7 @@ type ShowrunesResponse struct {
 
 func (x *ShowrunesResponse) Reset() {
 	*x = ShowrunesResponse{}
-	mi := &file_node_proto_msgTypes[425]
+	mi := &file_node_proto_msgTypes[433]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -34465,7 +35537,7 @@ func (x *ShowrunesResponse) String() string {
 func (*ShowrunesResponse) ProtoMessage() {}
 
 func (x *ShowrunesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[425]
+	mi := &file_node_proto_msgTypes[433]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -34478,7 +35550,7 @@ func (x *ShowrunesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShowrunesResponse.ProtoReflect.Descriptor instead.
 func (*ShowrunesResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{425}
+	return file_node_proto_rawDescGZIP(), []int{433}
 }
 
 func (x *ShowrunesResponse) GetRunes() []*ShowrunesRunes {
@@ -34504,7 +35576,7 @@ type ShowrunesRunes struct {
 
 func (x *ShowrunesRunes) Reset() {
 	*x = ShowrunesRunes{}
-	mi := &file_node_proto_msgTypes[426]
+	mi := &file_node_proto_msgTypes[434]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -34516,7 +35588,7 @@ func (x *ShowrunesRunes) String() string {
 func (*ShowrunesRunes) ProtoMessage() {}
 
 func (x *ShowrunesRunes) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[426]
+	mi := &file_node_proto_msgTypes[434]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -34529,7 +35601,7 @@ func (x *ShowrunesRunes) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShowrunesRunes.ProtoReflect.Descriptor instead.
 func (*ShowrunesRunes) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{426}
+	return file_node_proto_rawDescGZIP(), []int{434}
 }
 
 func (x *ShowrunesRunes) GetRune() string {
@@ -34598,7 +35670,7 @@ type ShowrunesRunesRestrictions struct {
 
 func (x *ShowrunesRunesRestrictions) Reset() {
 	*x = ShowrunesRunesRestrictions{}
-	mi := &file_node_proto_msgTypes[427]
+	mi := &file_node_proto_msgTypes[435]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -34610,7 +35682,7 @@ func (x *ShowrunesRunesRestrictions) String() string {
 func (*ShowrunesRunesRestrictions) ProtoMessage() {}
 
 func (x *ShowrunesRunesRestrictions) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[427]
+	mi := &file_node_proto_msgTypes[435]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -34623,7 +35695,7 @@ func (x *ShowrunesRunesRestrictions) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ShowrunesRunesRestrictions.ProtoReflect.Descriptor instead.
 func (*ShowrunesRunesRestrictions) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{427}
+	return file_node_proto_rawDescGZIP(), []int{435}
 }
 
 func (x *ShowrunesRunesRestrictions) GetAlternatives() []*ShowrunesRunesRestrictionsAlternatives {
@@ -34652,7 +35724,7 @@ type ShowrunesRunesRestrictionsAlternatives struct {
 
 func (x *ShowrunesRunesRestrictionsAlternatives) Reset() {
 	*x = ShowrunesRunesRestrictionsAlternatives{}
-	mi := &file_node_proto_msgTypes[428]
+	mi := &file_node_proto_msgTypes[436]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -34664,7 +35736,7 @@ func (x *ShowrunesRunesRestrictionsAlternatives) String() string {
 func (*ShowrunesRunesRestrictionsAlternatives) ProtoMessage() {}
 
 func (x *ShowrunesRunesRestrictionsAlternatives) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[428]
+	mi := &file_node_proto_msgTypes[436]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -34677,7 +35749,7 @@ func (x *ShowrunesRunesRestrictionsAlternatives) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use ShowrunesRunesRestrictionsAlternatives.ProtoReflect.Descriptor instead.
 func (*ShowrunesRunesRestrictionsAlternatives) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{428}
+	return file_node_proto_rawDescGZIP(), []int{436}
 }
 
 func (x *ShowrunesRunesRestrictionsAlternatives) GetFieldname() string {
@@ -34711,13 +35783,14 @@ func (x *ShowrunesRunesRestrictionsAlternatives) GetEnglish() string {
 type AskreneunreserveRequest struct {
 	state         protoimpl.MessageState  `protogen:"open.v1"`
 	Path          []*AskreneunreservePath `protobuf:"bytes,1,rep,name=path,proto3" json:"path,omitempty"`
+	DevRemoveAll  *bool                   `protobuf:"varint,2,opt,name=dev_remove_all,json=devRemoveAll,proto3,oneof" json:"dev_remove_all,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *AskreneunreserveRequest) Reset() {
 	*x = AskreneunreserveRequest{}
-	mi := &file_node_proto_msgTypes[429]
+	mi := &file_node_proto_msgTypes[437]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -34729,7 +35802,7 @@ func (x *AskreneunreserveRequest) String() string {
 func (*AskreneunreserveRequest) ProtoMessage() {}
 
 func (x *AskreneunreserveRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[429]
+	mi := &file_node_proto_msgTypes[437]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -34742,7 +35815,7 @@ func (x *AskreneunreserveRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskreneunreserveRequest.ProtoReflect.Descriptor instead.
 func (*AskreneunreserveRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{429}
+	return file_node_proto_rawDescGZIP(), []int{437}
 }
 
 func (x *AskreneunreserveRequest) GetPath() []*AskreneunreservePath {
@@ -34750,6 +35823,13 @@ func (x *AskreneunreserveRequest) GetPath() []*AskreneunreservePath {
 		return x.Path
 	}
 	return nil
+}
+
+func (x *AskreneunreserveRequest) GetDevRemoveAll() bool {
+	if x != nil && x.DevRemoveAll != nil {
+		return *x.DevRemoveAll
+	}
+	return false
 }
 
 type AskreneunreserveResponse struct {
@@ -34760,7 +35840,7 @@ type AskreneunreserveResponse struct {
 
 func (x *AskreneunreserveResponse) Reset() {
 	*x = AskreneunreserveResponse{}
-	mi := &file_node_proto_msgTypes[430]
+	mi := &file_node_proto_msgTypes[438]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -34772,7 +35852,7 @@ func (x *AskreneunreserveResponse) String() string {
 func (*AskreneunreserveResponse) ProtoMessage() {}
 
 func (x *AskreneunreserveResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[430]
+	mi := &file_node_proto_msgTypes[438]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -34785,13 +35865,13 @@ func (x *AskreneunreserveResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskreneunreserveResponse.ProtoReflect.Descriptor instead.
 func (*AskreneunreserveResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{430}
+	return file_node_proto_rawDescGZIP(), []int{438}
 }
 
 type AskreneunreservePath struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	AmountMsat        *Amount                `protobuf:"bytes,3,opt,name=amount_msat,json=amountMsat,proto3" json:"amount_msat,omitempty"`
-	ShortChannelIdDir *string                `protobuf:"bytes,4,opt,name=short_channel_id_dir,json=shortChannelIdDir,proto3,oneof" json:"short_channel_id_dir,omitempty"`
+	ShortChannelIdDir string                 `protobuf:"bytes,4,opt,name=short_channel_id_dir,json=shortChannelIdDir,proto3" json:"short_channel_id_dir,omitempty"`
 	Layer             *string                `protobuf:"bytes,5,opt,name=layer,proto3,oneof" json:"layer,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
@@ -34799,7 +35879,7 @@ type AskreneunreservePath struct {
 
 func (x *AskreneunreservePath) Reset() {
 	*x = AskreneunreservePath{}
-	mi := &file_node_proto_msgTypes[431]
+	mi := &file_node_proto_msgTypes[439]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -34811,7 +35891,7 @@ func (x *AskreneunreservePath) String() string {
 func (*AskreneunreservePath) ProtoMessage() {}
 
 func (x *AskreneunreservePath) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[431]
+	mi := &file_node_proto_msgTypes[439]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -34824,7 +35904,7 @@ func (x *AskreneunreservePath) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskreneunreservePath.ProtoReflect.Descriptor instead.
 func (*AskreneunreservePath) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{431}
+	return file_node_proto_rawDescGZIP(), []int{439}
 }
 
 func (x *AskreneunreservePath) GetAmountMsat() *Amount {
@@ -34835,8 +35915,8 @@ func (x *AskreneunreservePath) GetAmountMsat() *Amount {
 }
 
 func (x *AskreneunreservePath) GetShortChannelIdDir() string {
-	if x != nil && x.ShortChannelIdDir != nil {
-		return *x.ShortChannelIdDir
+	if x != nil {
+		return x.ShortChannelIdDir
 	}
 	return ""
 }
@@ -34857,7 +35937,7 @@ type AskrenelistlayersRequest struct {
 
 func (x *AskrenelistlayersRequest) Reset() {
 	*x = AskrenelistlayersRequest{}
-	mi := &file_node_proto_msgTypes[432]
+	mi := &file_node_proto_msgTypes[440]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -34869,7 +35949,7 @@ func (x *AskrenelistlayersRequest) String() string {
 func (*AskrenelistlayersRequest) ProtoMessage() {}
 
 func (x *AskrenelistlayersRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[432]
+	mi := &file_node_proto_msgTypes[440]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -34882,7 +35962,7 @@ func (x *AskrenelistlayersRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenelistlayersRequest.ProtoReflect.Descriptor instead.
 func (*AskrenelistlayersRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{432}
+	return file_node_proto_rawDescGZIP(), []int{440}
 }
 
 func (x *AskrenelistlayersRequest) GetLayer() string {
@@ -34901,7 +35981,7 @@ type AskrenelistlayersResponse struct {
 
 func (x *AskrenelistlayersResponse) Reset() {
 	*x = AskrenelistlayersResponse{}
-	mi := &file_node_proto_msgTypes[433]
+	mi := &file_node_proto_msgTypes[441]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -34913,7 +35993,7 @@ func (x *AskrenelistlayersResponse) String() string {
 func (*AskrenelistlayersResponse) ProtoMessage() {}
 
 func (x *AskrenelistlayersResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[433]
+	mi := &file_node_proto_msgTypes[441]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -34926,7 +36006,7 @@ func (x *AskrenelistlayersResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenelistlayersResponse.ProtoReflect.Descriptor instead.
 func (*AskrenelistlayersResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{433}
+	return file_node_proto_rawDescGZIP(), []int{441}
 }
 
 func (x *AskrenelistlayersResponse) GetLayers() []*AskrenelistlayersLayers {
@@ -34942,7 +36022,7 @@ type AskrenelistlayersLayers struct {
 	DisabledNodes    [][]byte                                  `protobuf:"bytes,2,rep,name=disabled_nodes,json=disabledNodes,proto3" json:"disabled_nodes,omitempty"`
 	CreatedChannels  []*AskrenelistlayersLayersCreatedChannels `protobuf:"bytes,3,rep,name=created_channels,json=createdChannels,proto3" json:"created_channels,omitempty"`
 	Constraints      []*AskrenelistlayersLayersConstraints     `protobuf:"bytes,4,rep,name=constraints,proto3" json:"constraints,omitempty"`
-	Persistent       *bool                                     `protobuf:"varint,5,opt,name=persistent,proto3,oneof" json:"persistent,omitempty"`
+	Persistent       bool                                      `protobuf:"varint,5,opt,name=persistent,proto3" json:"persistent,omitempty"`
 	DisabledChannels []string                                  `protobuf:"bytes,6,rep,name=disabled_channels,json=disabledChannels,proto3" json:"disabled_channels,omitempty"`
 	ChannelUpdates   []*AskrenelistlayersLayersChannelUpdates  `protobuf:"bytes,7,rep,name=channel_updates,json=channelUpdates,proto3" json:"channel_updates,omitempty"`
 	Biases           []*AskrenelistlayersLayersBiases          `protobuf:"bytes,8,rep,name=biases,proto3" json:"biases,omitempty"`
@@ -34953,7 +36033,7 @@ type AskrenelistlayersLayers struct {
 
 func (x *AskrenelistlayersLayers) Reset() {
 	*x = AskrenelistlayersLayers{}
-	mi := &file_node_proto_msgTypes[434]
+	mi := &file_node_proto_msgTypes[442]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -34965,7 +36045,7 @@ func (x *AskrenelistlayersLayers) String() string {
 func (*AskrenelistlayersLayers) ProtoMessage() {}
 
 func (x *AskrenelistlayersLayers) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[434]
+	mi := &file_node_proto_msgTypes[442]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -34978,7 +36058,7 @@ func (x *AskrenelistlayersLayers) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenelistlayersLayers.ProtoReflect.Descriptor instead.
 func (*AskrenelistlayersLayers) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{434}
+	return file_node_proto_rawDescGZIP(), []int{442}
 }
 
 func (x *AskrenelistlayersLayers) GetLayer() string {
@@ -35010,8 +36090,8 @@ func (x *AskrenelistlayersLayers) GetConstraints() []*AskrenelistlayersLayersCon
 }
 
 func (x *AskrenelistlayersLayers) GetPersistent() bool {
-	if x != nil && x.Persistent != nil {
-		return *x.Persistent
+	if x != nil {
+		return x.Persistent
 	}
 	return false
 }
@@ -35056,7 +36136,7 @@ type AskrenelistlayersLayersCreatedChannels struct {
 
 func (x *AskrenelistlayersLayersCreatedChannels) Reset() {
 	*x = AskrenelistlayersLayersCreatedChannels{}
-	mi := &file_node_proto_msgTypes[435]
+	mi := &file_node_proto_msgTypes[443]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -35068,7 +36148,7 @@ func (x *AskrenelistlayersLayersCreatedChannels) String() string {
 func (*AskrenelistlayersLayersCreatedChannels) ProtoMessage() {}
 
 func (x *AskrenelistlayersLayersCreatedChannels) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[435]
+	mi := &file_node_proto_msgTypes[443]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -35081,7 +36161,7 @@ func (x *AskrenelistlayersLayersCreatedChannels) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use AskrenelistlayersLayersCreatedChannels.ProtoReflect.Descriptor instead.
 func (*AskrenelistlayersLayersCreatedChannels) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{435}
+	return file_node_proto_rawDescGZIP(), []int{443}
 }
 
 func (x *AskrenelistlayersLayersCreatedChannels) GetSource() []byte {
@@ -35127,7 +36207,7 @@ type AskrenelistlayersLayersChannelUpdates struct {
 
 func (x *AskrenelistlayersLayersChannelUpdates) Reset() {
 	*x = AskrenelistlayersLayersChannelUpdates{}
-	mi := &file_node_proto_msgTypes[436]
+	mi := &file_node_proto_msgTypes[444]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -35139,7 +36219,7 @@ func (x *AskrenelistlayersLayersChannelUpdates) String() string {
 func (*AskrenelistlayersLayersChannelUpdates) ProtoMessage() {}
 
 func (x *AskrenelistlayersLayersChannelUpdates) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[436]
+	mi := &file_node_proto_msgTypes[444]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -35152,7 +36232,7 @@ func (x *AskrenelistlayersLayersChannelUpdates) ProtoReflect() protoreflect.Mess
 
 // Deprecated: Use AskrenelistlayersLayersChannelUpdates.ProtoReflect.Descriptor instead.
 func (*AskrenelistlayersLayersChannelUpdates) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{436}
+	return file_node_proto_rawDescGZIP(), []int{444}
 }
 
 func (x *AskrenelistlayersLayersChannelUpdates) GetShortChannelIdDir() string {
@@ -35208,7 +36288,7 @@ type AskrenelistlayersLayersConstraints struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	MaximumMsat       *Amount                `protobuf:"bytes,3,opt,name=maximum_msat,json=maximumMsat,proto3,oneof" json:"maximum_msat,omitempty"`
 	MinimumMsat       *Amount                `protobuf:"bytes,4,opt,name=minimum_msat,json=minimumMsat,proto3,oneof" json:"minimum_msat,omitempty"`
-	ShortChannelIdDir *string                `protobuf:"bytes,5,opt,name=short_channel_id_dir,json=shortChannelIdDir,proto3,oneof" json:"short_channel_id_dir,omitempty"`
+	ShortChannelIdDir string                 `protobuf:"bytes,5,opt,name=short_channel_id_dir,json=shortChannelIdDir,proto3" json:"short_channel_id_dir,omitempty"`
 	Timestamp         *uint64                `protobuf:"varint,6,opt,name=timestamp,proto3,oneof" json:"timestamp,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
@@ -35216,7 +36296,7 @@ type AskrenelistlayersLayersConstraints struct {
 
 func (x *AskrenelistlayersLayersConstraints) Reset() {
 	*x = AskrenelistlayersLayersConstraints{}
-	mi := &file_node_proto_msgTypes[437]
+	mi := &file_node_proto_msgTypes[445]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -35228,7 +36308,7 @@ func (x *AskrenelistlayersLayersConstraints) String() string {
 func (*AskrenelistlayersLayersConstraints) ProtoMessage() {}
 
 func (x *AskrenelistlayersLayersConstraints) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[437]
+	mi := &file_node_proto_msgTypes[445]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -35241,7 +36321,7 @@ func (x *AskrenelistlayersLayersConstraints) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use AskrenelistlayersLayersConstraints.ProtoReflect.Descriptor instead.
 func (*AskrenelistlayersLayersConstraints) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{437}
+	return file_node_proto_rawDescGZIP(), []int{445}
 }
 
 func (x *AskrenelistlayersLayersConstraints) GetMaximumMsat() *Amount {
@@ -35259,8 +36339,8 @@ func (x *AskrenelistlayersLayersConstraints) GetMinimumMsat() *Amount {
 }
 
 func (x *AskrenelistlayersLayersConstraints) GetShortChannelIdDir() string {
-	if x != nil && x.ShortChannelIdDir != nil {
-		return *x.ShortChannelIdDir
+	if x != nil {
+		return x.ShortChannelIdDir
 	}
 	return ""
 }
@@ -35284,7 +36364,7 @@ type AskrenelistlayersLayersBiases struct {
 
 func (x *AskrenelistlayersLayersBiases) Reset() {
 	*x = AskrenelistlayersLayersBiases{}
-	mi := &file_node_proto_msgTypes[438]
+	mi := &file_node_proto_msgTypes[446]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -35296,7 +36376,7 @@ func (x *AskrenelistlayersLayersBiases) String() string {
 func (*AskrenelistlayersLayersBiases) ProtoMessage() {}
 
 func (x *AskrenelistlayersLayersBiases) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[438]
+	mi := &file_node_proto_msgTypes[446]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -35309,7 +36389,7 @@ func (x *AskrenelistlayersLayersBiases) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenelistlayersLayersBiases.ProtoReflect.Descriptor instead.
 func (*AskrenelistlayersLayersBiases) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{438}
+	return file_node_proto_rawDescGZIP(), []int{446}
 }
 
 func (x *AskrenelistlayersLayersBiases) GetShortChannelIdDir() string {
@@ -35353,7 +36433,7 @@ type AskrenelistlayersLayersNodeBiases struct {
 
 func (x *AskrenelistlayersLayersNodeBiases) Reset() {
 	*x = AskrenelistlayersLayersNodeBiases{}
-	mi := &file_node_proto_msgTypes[439]
+	mi := &file_node_proto_msgTypes[447]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -35365,7 +36445,7 @@ func (x *AskrenelistlayersLayersNodeBiases) String() string {
 func (*AskrenelistlayersLayersNodeBiases) ProtoMessage() {}
 
 func (x *AskrenelistlayersLayersNodeBiases) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[439]
+	mi := &file_node_proto_msgTypes[447]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -35378,7 +36458,7 @@ func (x *AskrenelistlayersLayersNodeBiases) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use AskrenelistlayersLayersNodeBiases.ProtoReflect.Descriptor instead.
 func (*AskrenelistlayersLayersNodeBiases) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{439}
+	return file_node_proto_rawDescGZIP(), []int{447}
 }
 
 func (x *AskrenelistlayersLayersNodeBiases) GetNode() []byte {
@@ -35426,7 +36506,7 @@ type AskrenecreatelayerRequest struct {
 
 func (x *AskrenecreatelayerRequest) Reset() {
 	*x = AskrenecreatelayerRequest{}
-	mi := &file_node_proto_msgTypes[440]
+	mi := &file_node_proto_msgTypes[448]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -35438,7 +36518,7 @@ func (x *AskrenecreatelayerRequest) String() string {
 func (*AskrenecreatelayerRequest) ProtoMessage() {}
 
 func (x *AskrenecreatelayerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[440]
+	mi := &file_node_proto_msgTypes[448]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -35451,7 +36531,7 @@ func (x *AskrenecreatelayerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenecreatelayerRequest.ProtoReflect.Descriptor instead.
 func (*AskrenecreatelayerRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{440}
+	return file_node_proto_rawDescGZIP(), []int{448}
 }
 
 func (x *AskrenecreatelayerRequest) GetLayer() string {
@@ -35477,7 +36557,7 @@ type AskrenecreatelayerResponse struct {
 
 func (x *AskrenecreatelayerResponse) Reset() {
 	*x = AskrenecreatelayerResponse{}
-	mi := &file_node_proto_msgTypes[441]
+	mi := &file_node_proto_msgTypes[449]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -35489,7 +36569,7 @@ func (x *AskrenecreatelayerResponse) String() string {
 func (*AskrenecreatelayerResponse) ProtoMessage() {}
 
 func (x *AskrenecreatelayerResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[441]
+	mi := &file_node_proto_msgTypes[449]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -35502,7 +36582,7 @@ func (x *AskrenecreatelayerResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenecreatelayerResponse.ProtoReflect.Descriptor instead.
 func (*AskrenecreatelayerResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{441}
+	return file_node_proto_rawDescGZIP(), []int{449}
 }
 
 func (x *AskrenecreatelayerResponse) GetLayers() []*AskrenecreatelayerLayers {
@@ -35529,7 +36609,7 @@ type AskrenecreatelayerLayers struct {
 
 func (x *AskrenecreatelayerLayers) Reset() {
 	*x = AskrenecreatelayerLayers{}
-	mi := &file_node_proto_msgTypes[442]
+	mi := &file_node_proto_msgTypes[450]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -35541,7 +36621,7 @@ func (x *AskrenecreatelayerLayers) String() string {
 func (*AskrenecreatelayerLayers) ProtoMessage() {}
 
 func (x *AskrenecreatelayerLayers) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[442]
+	mi := &file_node_proto_msgTypes[450]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -35554,7 +36634,7 @@ func (x *AskrenecreatelayerLayers) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenecreatelayerLayers.ProtoReflect.Descriptor instead.
 func (*AskrenecreatelayerLayers) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{442}
+	return file_node_proto_rawDescGZIP(), []int{450}
 }
 
 func (x *AskrenecreatelayerLayers) GetLayer() string {
@@ -35632,7 +36712,7 @@ type AskrenecreatelayerLayersCreatedChannels struct {
 
 func (x *AskrenecreatelayerLayersCreatedChannels) Reset() {
 	*x = AskrenecreatelayerLayersCreatedChannels{}
-	mi := &file_node_proto_msgTypes[443]
+	mi := &file_node_proto_msgTypes[451]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -35644,7 +36724,7 @@ func (x *AskrenecreatelayerLayersCreatedChannels) String() string {
 func (*AskrenecreatelayerLayersCreatedChannels) ProtoMessage() {}
 
 func (x *AskrenecreatelayerLayersCreatedChannels) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[443]
+	mi := &file_node_proto_msgTypes[451]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -35657,7 +36737,7 @@ func (x *AskrenecreatelayerLayersCreatedChannels) ProtoReflect() protoreflect.Me
 
 // Deprecated: Use AskrenecreatelayerLayersCreatedChannels.ProtoReflect.Descriptor instead.
 func (*AskrenecreatelayerLayersCreatedChannels) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{443}
+	return file_node_proto_rawDescGZIP(), []int{451}
 }
 
 func (x *AskrenecreatelayerLayersCreatedChannels) GetSource() []byte {
@@ -35701,7 +36781,7 @@ type AskrenecreatelayerLayersChannelUpdates struct {
 
 func (x *AskrenecreatelayerLayersChannelUpdates) Reset() {
 	*x = AskrenecreatelayerLayersChannelUpdates{}
-	mi := &file_node_proto_msgTypes[444]
+	mi := &file_node_proto_msgTypes[452]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -35713,7 +36793,7 @@ func (x *AskrenecreatelayerLayersChannelUpdates) String() string {
 func (*AskrenecreatelayerLayersChannelUpdates) ProtoMessage() {}
 
 func (x *AskrenecreatelayerLayersChannelUpdates) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[444]
+	mi := &file_node_proto_msgTypes[452]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -35726,7 +36806,7 @@ func (x *AskrenecreatelayerLayersChannelUpdates) ProtoReflect() protoreflect.Mes
 
 // Deprecated: Use AskrenecreatelayerLayersChannelUpdates.ProtoReflect.Descriptor instead.
 func (*AskrenecreatelayerLayersChannelUpdates) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{444}
+	return file_node_proto_rawDescGZIP(), []int{452}
 }
 
 func (x *AskrenecreatelayerLayersChannelUpdates) GetHtlcMinimumMsat() *Amount {
@@ -35776,7 +36856,7 @@ type AskrenecreatelayerLayersConstraints struct {
 
 func (x *AskrenecreatelayerLayersConstraints) Reset() {
 	*x = AskrenecreatelayerLayersConstraints{}
-	mi := &file_node_proto_msgTypes[445]
+	mi := &file_node_proto_msgTypes[453]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -35788,7 +36868,7 @@ func (x *AskrenecreatelayerLayersConstraints) String() string {
 func (*AskrenecreatelayerLayersConstraints) ProtoMessage() {}
 
 func (x *AskrenecreatelayerLayersConstraints) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[445]
+	mi := &file_node_proto_msgTypes[453]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -35801,7 +36881,7 @@ func (x *AskrenecreatelayerLayersConstraints) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use AskrenecreatelayerLayersConstraints.ProtoReflect.Descriptor instead.
 func (*AskrenecreatelayerLayersConstraints) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{445}
+	return file_node_proto_rawDescGZIP(), []int{453}
 }
 
 func (x *AskrenecreatelayerLayersConstraints) GetShortChannelId() string {
@@ -35844,7 +36924,7 @@ type AskrenecreatelayerLayersBiases struct {
 
 func (x *AskrenecreatelayerLayersBiases) Reset() {
 	*x = AskrenecreatelayerLayersBiases{}
-	mi := &file_node_proto_msgTypes[446]
+	mi := &file_node_proto_msgTypes[454]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -35856,7 +36936,7 @@ func (x *AskrenecreatelayerLayersBiases) String() string {
 func (*AskrenecreatelayerLayersBiases) ProtoMessage() {}
 
 func (x *AskrenecreatelayerLayersBiases) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[446]
+	mi := &file_node_proto_msgTypes[454]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -35869,7 +36949,7 @@ func (x *AskrenecreatelayerLayersBiases) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenecreatelayerLayersBiases.ProtoReflect.Descriptor instead.
 func (*AskrenecreatelayerLayersBiases) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{446}
+	return file_node_proto_rawDescGZIP(), []int{454}
 }
 
 func (x *AskrenecreatelayerLayersBiases) GetShortChannelIdDir() string {
@@ -35913,7 +36993,7 @@ type AskrenecreatelayerLayersNodeBiases struct {
 
 func (x *AskrenecreatelayerLayersNodeBiases) Reset() {
 	*x = AskrenecreatelayerLayersNodeBiases{}
-	mi := &file_node_proto_msgTypes[447]
+	mi := &file_node_proto_msgTypes[455]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -35925,7 +37005,7 @@ func (x *AskrenecreatelayerLayersNodeBiases) String() string {
 func (*AskrenecreatelayerLayersNodeBiases) ProtoMessage() {}
 
 func (x *AskrenecreatelayerLayersNodeBiases) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[447]
+	mi := &file_node_proto_msgTypes[455]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -35938,7 +37018,7 @@ func (x *AskrenecreatelayerLayersNodeBiases) ProtoReflect() protoreflect.Message
 
 // Deprecated: Use AskrenecreatelayerLayersNodeBiases.ProtoReflect.Descriptor instead.
 func (*AskrenecreatelayerLayersNodeBiases) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{447}
+	return file_node_proto_rawDescGZIP(), []int{455}
 }
 
 func (x *AskrenecreatelayerLayersNodeBiases) GetNode() []byte {
@@ -35985,7 +37065,7 @@ type AskreneremovelayerRequest struct {
 
 func (x *AskreneremovelayerRequest) Reset() {
 	*x = AskreneremovelayerRequest{}
-	mi := &file_node_proto_msgTypes[448]
+	mi := &file_node_proto_msgTypes[456]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -35997,7 +37077,7 @@ func (x *AskreneremovelayerRequest) String() string {
 func (*AskreneremovelayerRequest) ProtoMessage() {}
 
 func (x *AskreneremovelayerRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[448]
+	mi := &file_node_proto_msgTypes[456]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -36010,7 +37090,7 @@ func (x *AskreneremovelayerRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskreneremovelayerRequest.ProtoReflect.Descriptor instead.
 func (*AskreneremovelayerRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{448}
+	return file_node_proto_rawDescGZIP(), []int{456}
 }
 
 func (x *AskreneremovelayerRequest) GetLayer() string {
@@ -36028,7 +37108,7 @@ type AskreneremovelayerResponse struct {
 
 func (x *AskreneremovelayerResponse) Reset() {
 	*x = AskreneremovelayerResponse{}
-	mi := &file_node_proto_msgTypes[449]
+	mi := &file_node_proto_msgTypes[457]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -36040,7 +37120,7 @@ func (x *AskreneremovelayerResponse) String() string {
 func (*AskreneremovelayerResponse) ProtoMessage() {}
 
 func (x *AskreneremovelayerResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[449]
+	mi := &file_node_proto_msgTypes[457]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -36053,7 +37133,7 @@ func (x *AskreneremovelayerResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskreneremovelayerResponse.ProtoReflect.Descriptor instead.
 func (*AskreneremovelayerResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{449}
+	return file_node_proto_rawDescGZIP(), []int{457}
 }
 
 type AskrenereserveRequest struct {
@@ -36065,7 +37145,7 @@ type AskrenereserveRequest struct {
 
 func (x *AskrenereserveRequest) Reset() {
 	*x = AskrenereserveRequest{}
-	mi := &file_node_proto_msgTypes[450]
+	mi := &file_node_proto_msgTypes[458]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -36077,7 +37157,7 @@ func (x *AskrenereserveRequest) String() string {
 func (*AskrenereserveRequest) ProtoMessage() {}
 
 func (x *AskrenereserveRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[450]
+	mi := &file_node_proto_msgTypes[458]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -36090,7 +37170,7 @@ func (x *AskrenereserveRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenereserveRequest.ProtoReflect.Descriptor instead.
 func (*AskrenereserveRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{450}
+	return file_node_proto_rawDescGZIP(), []int{458}
 }
 
 func (x *AskrenereserveRequest) GetPath() []*AskrenereservePath {
@@ -36108,7 +37188,7 @@ type AskrenereserveResponse struct {
 
 func (x *AskrenereserveResponse) Reset() {
 	*x = AskrenereserveResponse{}
-	mi := &file_node_proto_msgTypes[451]
+	mi := &file_node_proto_msgTypes[459]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -36120,7 +37200,7 @@ func (x *AskrenereserveResponse) String() string {
 func (*AskrenereserveResponse) ProtoMessage() {}
 
 func (x *AskrenereserveResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[451]
+	mi := &file_node_proto_msgTypes[459]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -36133,13 +37213,13 @@ func (x *AskrenereserveResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenereserveResponse.ProtoReflect.Descriptor instead.
 func (*AskrenereserveResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{451}
+	return file_node_proto_rawDescGZIP(), []int{459}
 }
 
 type AskrenereservePath struct {
 	state             protoimpl.MessageState `protogen:"open.v1"`
 	AmountMsat        *Amount                `protobuf:"bytes,3,opt,name=amount_msat,json=amountMsat,proto3" json:"amount_msat,omitempty"`
-	ShortChannelIdDir *string                `protobuf:"bytes,4,opt,name=short_channel_id_dir,json=shortChannelIdDir,proto3,oneof" json:"short_channel_id_dir,omitempty"`
+	ShortChannelIdDir string                 `protobuf:"bytes,4,opt,name=short_channel_id_dir,json=shortChannelIdDir,proto3" json:"short_channel_id_dir,omitempty"`
 	Layer             *string                `protobuf:"bytes,5,opt,name=layer,proto3,oneof" json:"layer,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
@@ -36147,7 +37227,7 @@ type AskrenereservePath struct {
 
 func (x *AskrenereservePath) Reset() {
 	*x = AskrenereservePath{}
-	mi := &file_node_proto_msgTypes[452]
+	mi := &file_node_proto_msgTypes[460]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -36159,7 +37239,7 @@ func (x *AskrenereservePath) String() string {
 func (*AskrenereservePath) ProtoMessage() {}
 
 func (x *AskrenereservePath) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[452]
+	mi := &file_node_proto_msgTypes[460]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -36172,7 +37252,7 @@ func (x *AskrenereservePath) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenereservePath.ProtoReflect.Descriptor instead.
 func (*AskrenereservePath) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{452}
+	return file_node_proto_rawDescGZIP(), []int{460}
 }
 
 func (x *AskrenereservePath) GetAmountMsat() *Amount {
@@ -36183,8 +37263,8 @@ func (x *AskrenereservePath) GetAmountMsat() *Amount {
 }
 
 func (x *AskrenereservePath) GetShortChannelIdDir() string {
-	if x != nil && x.ShortChannelIdDir != nil {
-		return *x.ShortChannelIdDir
+	if x != nil {
+		return x.ShortChannelIdDir
 	}
 	return ""
 }
@@ -36206,7 +37286,7 @@ type AskreneageRequest struct {
 
 func (x *AskreneageRequest) Reset() {
 	*x = AskreneageRequest{}
-	mi := &file_node_proto_msgTypes[453]
+	mi := &file_node_proto_msgTypes[461]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -36218,7 +37298,7 @@ func (x *AskreneageRequest) String() string {
 func (*AskreneageRequest) ProtoMessage() {}
 
 func (x *AskreneageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[453]
+	mi := &file_node_proto_msgTypes[461]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -36231,7 +37311,7 @@ func (x *AskreneageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskreneageRequest.ProtoReflect.Descriptor instead.
 func (*AskreneageRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{453}
+	return file_node_proto_rawDescGZIP(), []int{461}
 }
 
 func (x *AskreneageRequest) GetLayer() string {
@@ -36258,7 +37338,7 @@ type AskreneageResponse struct {
 
 func (x *AskreneageResponse) Reset() {
 	*x = AskreneageResponse{}
-	mi := &file_node_proto_msgTypes[454]
+	mi := &file_node_proto_msgTypes[462]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -36270,7 +37350,7 @@ func (x *AskreneageResponse) String() string {
 func (*AskreneageResponse) ProtoMessage() {}
 
 func (x *AskreneageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[454]
+	mi := &file_node_proto_msgTypes[462]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -36283,7 +37363,7 @@ func (x *AskreneageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskreneageResponse.ProtoReflect.Descriptor instead.
 func (*AskreneageResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{454}
+	return file_node_proto_rawDescGZIP(), []int{462}
 }
 
 func (x *AskreneageResponse) GetLayer() string {
@@ -36307,7 +37387,7 @@ type GetroutesRequest struct {
 	AmountMsat    *Amount                `protobuf:"bytes,3,opt,name=amount_msat,json=amountMsat,proto3" json:"amount_msat,omitempty"`
 	Layers        []string               `protobuf:"bytes,4,rep,name=layers,proto3" json:"layers,omitempty"`
 	MaxfeeMsat    *Amount                `protobuf:"bytes,5,opt,name=maxfee_msat,json=maxfeeMsat,proto3" json:"maxfee_msat,omitempty"`
-	FinalCltv     *uint32                `protobuf:"varint,7,opt,name=final_cltv,json=finalCltv,proto3,oneof" json:"final_cltv,omitempty"`
+	FinalCltv     uint32                 `protobuf:"varint,7,opt,name=final_cltv,json=finalCltv,proto3" json:"final_cltv,omitempty"`
 	Maxdelay      *uint32                `protobuf:"varint,8,opt,name=maxdelay,proto3,oneof" json:"maxdelay,omitempty"`
 	Maxparts      *uint32                `protobuf:"varint,9,opt,name=maxparts,proto3,oneof" json:"maxparts,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -36316,7 +37396,7 @@ type GetroutesRequest struct {
 
 func (x *GetroutesRequest) Reset() {
 	*x = GetroutesRequest{}
-	mi := &file_node_proto_msgTypes[455]
+	mi := &file_node_proto_msgTypes[463]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -36328,7 +37408,7 @@ func (x *GetroutesRequest) String() string {
 func (*GetroutesRequest) ProtoMessage() {}
 
 func (x *GetroutesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[455]
+	mi := &file_node_proto_msgTypes[463]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -36341,7 +37421,7 @@ func (x *GetroutesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetroutesRequest.ProtoReflect.Descriptor instead.
 func (*GetroutesRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{455}
+	return file_node_proto_rawDescGZIP(), []int{463}
 }
 
 func (x *GetroutesRequest) GetSource() []byte {
@@ -36380,8 +37460,8 @@ func (x *GetroutesRequest) GetMaxfeeMsat() *Amount {
 }
 
 func (x *GetroutesRequest) GetFinalCltv() uint32 {
-	if x != nil && x.FinalCltv != nil {
-		return *x.FinalCltv
+	if x != nil {
+		return x.FinalCltv
 	}
 	return 0
 }
@@ -36410,7 +37490,7 @@ type GetroutesResponse struct {
 
 func (x *GetroutesResponse) Reset() {
 	*x = GetroutesResponse{}
-	mi := &file_node_proto_msgTypes[456]
+	mi := &file_node_proto_msgTypes[464]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -36422,7 +37502,7 @@ func (x *GetroutesResponse) String() string {
 func (*GetroutesResponse) ProtoMessage() {}
 
 func (x *GetroutesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[456]
+	mi := &file_node_proto_msgTypes[464]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -36435,7 +37515,7 @@ func (x *GetroutesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetroutesResponse.ProtoReflect.Descriptor instead.
 func (*GetroutesResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{456}
+	return file_node_proto_rawDescGZIP(), []int{464}
 }
 
 func (x *GetroutesResponse) GetProbabilityPpm() uint64 {
@@ -36457,14 +37537,14 @@ type GetroutesRoutes struct {
 	ProbabilityPpm uint64                 `protobuf:"varint,1,opt,name=probability_ppm,json=probabilityPpm,proto3" json:"probability_ppm,omitempty"`
 	AmountMsat     *Amount                `protobuf:"bytes,2,opt,name=amount_msat,json=amountMsat,proto3" json:"amount_msat,omitempty"`
 	Path           []*GetroutesRoutesPath `protobuf:"bytes,3,rep,name=path,proto3" json:"path,omitempty"`
-	FinalCltv      *uint32                `protobuf:"varint,4,opt,name=final_cltv,json=finalCltv,proto3,oneof" json:"final_cltv,omitempty"`
+	FinalCltv      uint32                 `protobuf:"varint,4,opt,name=final_cltv,json=finalCltv,proto3" json:"final_cltv,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
 
 func (x *GetroutesRoutes) Reset() {
 	*x = GetroutesRoutes{}
-	mi := &file_node_proto_msgTypes[457]
+	mi := &file_node_proto_msgTypes[465]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -36476,7 +37556,7 @@ func (x *GetroutesRoutes) String() string {
 func (*GetroutesRoutes) ProtoMessage() {}
 
 func (x *GetroutesRoutes) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[457]
+	mi := &file_node_proto_msgTypes[465]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -36489,7 +37569,7 @@ func (x *GetroutesRoutes) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetroutesRoutes.ProtoReflect.Descriptor instead.
 func (*GetroutesRoutes) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{457}
+	return file_node_proto_rawDescGZIP(), []int{465}
 }
 
 func (x *GetroutesRoutes) GetProbabilityPpm() uint64 {
@@ -36514,8 +37594,8 @@ func (x *GetroutesRoutes) GetPath() []*GetroutesRoutesPath {
 }
 
 func (x *GetroutesRoutes) GetFinalCltv() uint32 {
-	if x != nil && x.FinalCltv != nil {
-		return *x.FinalCltv
+	if x != nil {
+		return x.FinalCltv
 	}
 	return 0
 }
@@ -36525,14 +37605,14 @@ type GetroutesRoutesPath struct {
 	AmountMsat        *Amount                `protobuf:"bytes,3,opt,name=amount_msat,json=amountMsat,proto3" json:"amount_msat,omitempty"`
 	NextNodeId        []byte                 `protobuf:"bytes,4,opt,name=next_node_id,json=nextNodeId,proto3" json:"next_node_id,omitempty"`
 	Delay             uint32                 `protobuf:"varint,5,opt,name=delay,proto3" json:"delay,omitempty"`
-	ShortChannelIdDir *string                `protobuf:"bytes,6,opt,name=short_channel_id_dir,json=shortChannelIdDir,proto3,oneof" json:"short_channel_id_dir,omitempty"`
+	ShortChannelIdDir string                 `protobuf:"bytes,6,opt,name=short_channel_id_dir,json=shortChannelIdDir,proto3" json:"short_channel_id_dir,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
 
 func (x *GetroutesRoutesPath) Reset() {
 	*x = GetroutesRoutesPath{}
-	mi := &file_node_proto_msgTypes[458]
+	mi := &file_node_proto_msgTypes[466]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -36544,7 +37624,7 @@ func (x *GetroutesRoutesPath) String() string {
 func (*GetroutesRoutesPath) ProtoMessage() {}
 
 func (x *GetroutesRoutesPath) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[458]
+	mi := &file_node_proto_msgTypes[466]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -36557,7 +37637,7 @@ func (x *GetroutesRoutesPath) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetroutesRoutesPath.ProtoReflect.Descriptor instead.
 func (*GetroutesRoutesPath) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{458}
+	return file_node_proto_rawDescGZIP(), []int{466}
 }
 
 func (x *GetroutesRoutesPath) GetAmountMsat() *Amount {
@@ -36582,8 +37662,8 @@ func (x *GetroutesRoutesPath) GetDelay() uint32 {
 }
 
 func (x *GetroutesRoutesPath) GetShortChannelIdDir() string {
-	if x != nil && x.ShortChannelIdDir != nil {
-		return *x.ShortChannelIdDir
+	if x != nil {
+		return x.ShortChannelIdDir
 	}
 	return ""
 }
@@ -36598,7 +37678,7 @@ type AskrenedisablenodeRequest struct {
 
 func (x *AskrenedisablenodeRequest) Reset() {
 	*x = AskrenedisablenodeRequest{}
-	mi := &file_node_proto_msgTypes[459]
+	mi := &file_node_proto_msgTypes[467]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -36610,7 +37690,7 @@ func (x *AskrenedisablenodeRequest) String() string {
 func (*AskrenedisablenodeRequest) ProtoMessage() {}
 
 func (x *AskrenedisablenodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[459]
+	mi := &file_node_proto_msgTypes[467]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -36623,7 +37703,7 @@ func (x *AskrenedisablenodeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenedisablenodeRequest.ProtoReflect.Descriptor instead.
 func (*AskrenedisablenodeRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{459}
+	return file_node_proto_rawDescGZIP(), []int{467}
 }
 
 func (x *AskrenedisablenodeRequest) GetLayer() string {
@@ -36648,7 +37728,7 @@ type AskrenedisablenodeResponse struct {
 
 func (x *AskrenedisablenodeResponse) Reset() {
 	*x = AskrenedisablenodeResponse{}
-	mi := &file_node_proto_msgTypes[460]
+	mi := &file_node_proto_msgTypes[468]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -36660,7 +37740,7 @@ func (x *AskrenedisablenodeResponse) String() string {
 func (*AskrenedisablenodeResponse) ProtoMessage() {}
 
 func (x *AskrenedisablenodeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[460]
+	mi := &file_node_proto_msgTypes[468]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -36673,22 +37753,22 @@ func (x *AskrenedisablenodeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenedisablenodeResponse.ProtoReflect.Descriptor instead.
 func (*AskrenedisablenodeResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{460}
+	return file_node_proto_rawDescGZIP(), []int{468}
 }
 
 type AskreneinformchannelRequest struct {
-	state             protoimpl.MessageState                                  `protogen:"open.v1"`
-	Layer             string                                                  `protobuf:"bytes,1,opt,name=layer,proto3" json:"layer,omitempty"`
-	ShortChannelIdDir *string                                                 `protobuf:"bytes,6,opt,name=short_channel_id_dir,json=shortChannelIdDir,proto3,oneof" json:"short_channel_id_dir,omitempty"`
-	AmountMsat        *Amount                                                 `protobuf:"bytes,7,opt,name=amount_msat,json=amountMsat,proto3,oneof" json:"amount_msat,omitempty"`
-	Inform            *AskreneinformchannelRequest_AskreneinformchannelInform `protobuf:"varint,8,opt,name=inform,proto3,enum=cln.AskreneinformchannelRequest_AskreneinformchannelInform,oneof" json:"inform,omitempty"`
+	state             protoimpl.MessageState                                 `protogen:"open.v1"`
+	Layer             string                                                 `protobuf:"bytes,1,opt,name=layer,proto3" json:"layer,omitempty"`
+	ShortChannelIdDir string                                                 `protobuf:"bytes,6,opt,name=short_channel_id_dir,json=shortChannelIdDir,proto3" json:"short_channel_id_dir,omitempty"`
+	AmountMsat        *Amount                                                `protobuf:"bytes,7,opt,name=amount_msat,json=amountMsat,proto3" json:"amount_msat,omitempty"`
+	Inform            AskreneinformchannelRequest_AskreneinformchannelInform `protobuf:"varint,8,opt,name=inform,proto3,enum=cln.AskreneinformchannelRequest_AskreneinformchannelInform" json:"inform,omitempty"`
 	unknownFields     protoimpl.UnknownFields
 	sizeCache         protoimpl.SizeCache
 }
 
 func (x *AskreneinformchannelRequest) Reset() {
 	*x = AskreneinformchannelRequest{}
-	mi := &file_node_proto_msgTypes[461]
+	mi := &file_node_proto_msgTypes[469]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -36700,7 +37780,7 @@ func (x *AskreneinformchannelRequest) String() string {
 func (*AskreneinformchannelRequest) ProtoMessage() {}
 
 func (x *AskreneinformchannelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[461]
+	mi := &file_node_proto_msgTypes[469]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -36713,7 +37793,7 @@ func (x *AskreneinformchannelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskreneinformchannelRequest.ProtoReflect.Descriptor instead.
 func (*AskreneinformchannelRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{461}
+	return file_node_proto_rawDescGZIP(), []int{469}
 }
 
 func (x *AskreneinformchannelRequest) GetLayer() string {
@@ -36724,8 +37804,8 @@ func (x *AskreneinformchannelRequest) GetLayer() string {
 }
 
 func (x *AskreneinformchannelRequest) GetShortChannelIdDir() string {
-	if x != nil && x.ShortChannelIdDir != nil {
-		return *x.ShortChannelIdDir
+	if x != nil {
+		return x.ShortChannelIdDir
 	}
 	return ""
 }
@@ -36738,8 +37818,8 @@ func (x *AskreneinformchannelRequest) GetAmountMsat() *Amount {
 }
 
 func (x *AskreneinformchannelRequest) GetInform() AskreneinformchannelRequest_AskreneinformchannelInform {
-	if x != nil && x.Inform != nil {
-		return *x.Inform
+	if x != nil {
+		return x.Inform
 	}
 	return AskreneinformchannelRequest_CONSTRAINED
 }
@@ -36753,7 +37833,7 @@ type AskreneinformchannelResponse struct {
 
 func (x *AskreneinformchannelResponse) Reset() {
 	*x = AskreneinformchannelResponse{}
-	mi := &file_node_proto_msgTypes[462]
+	mi := &file_node_proto_msgTypes[470]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -36765,7 +37845,7 @@ func (x *AskreneinformchannelResponse) String() string {
 func (*AskreneinformchannelResponse) ProtoMessage() {}
 
 func (x *AskreneinformchannelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[462]
+	mi := &file_node_proto_msgTypes[470]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -36778,7 +37858,7 @@ func (x *AskreneinformchannelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskreneinformchannelResponse.ProtoReflect.Descriptor instead.
 func (*AskreneinformchannelResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{462}
+	return file_node_proto_rawDescGZIP(), []int{470}
 }
 
 func (x *AskreneinformchannelResponse) GetConstraints() []*AskreneinformchannelConstraints {
@@ -36801,7 +37881,7 @@ type AskreneinformchannelConstraints struct {
 
 func (x *AskreneinformchannelConstraints) Reset() {
 	*x = AskreneinformchannelConstraints{}
-	mi := &file_node_proto_msgTypes[463]
+	mi := &file_node_proto_msgTypes[471]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -36813,7 +37893,7 @@ func (x *AskreneinformchannelConstraints) String() string {
 func (*AskreneinformchannelConstraints) ProtoMessage() {}
 
 func (x *AskreneinformchannelConstraints) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[463]
+	mi := &file_node_proto_msgTypes[471]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -36826,7 +37906,7 @@ func (x *AskreneinformchannelConstraints) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskreneinformchannelConstraints.ProtoReflect.Descriptor instead.
 func (*AskreneinformchannelConstraints) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{463}
+	return file_node_proto_rawDescGZIP(), []int{471}
 }
 
 func (x *AskreneinformchannelConstraints) GetShortChannelIdDir() string {
@@ -36877,7 +37957,7 @@ type AskrenecreatechannelRequest struct {
 
 func (x *AskrenecreatechannelRequest) Reset() {
 	*x = AskrenecreatechannelRequest{}
-	mi := &file_node_proto_msgTypes[464]
+	mi := &file_node_proto_msgTypes[472]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -36889,7 +37969,7 @@ func (x *AskrenecreatechannelRequest) String() string {
 func (*AskrenecreatechannelRequest) ProtoMessage() {}
 
 func (x *AskrenecreatechannelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[464]
+	mi := &file_node_proto_msgTypes[472]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -36902,7 +37982,7 @@ func (x *AskrenecreatechannelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenecreatechannelRequest.ProtoReflect.Descriptor instead.
 func (*AskrenecreatechannelRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{464}
+	return file_node_proto_rawDescGZIP(), []int{472}
 }
 
 func (x *AskrenecreatechannelRequest) GetLayer() string {
@@ -36948,7 +38028,7 @@ type AskrenecreatechannelResponse struct {
 
 func (x *AskrenecreatechannelResponse) Reset() {
 	*x = AskrenecreatechannelResponse{}
-	mi := &file_node_proto_msgTypes[465]
+	mi := &file_node_proto_msgTypes[473]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -36960,7 +38040,7 @@ func (x *AskrenecreatechannelResponse) String() string {
 func (*AskrenecreatechannelResponse) ProtoMessage() {}
 
 func (x *AskrenecreatechannelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[465]
+	mi := &file_node_proto_msgTypes[473]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -36973,7 +38053,7 @@ func (x *AskrenecreatechannelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenecreatechannelResponse.ProtoReflect.Descriptor instead.
 func (*AskrenecreatechannelResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{465}
+	return file_node_proto_rawDescGZIP(), []int{473}
 }
 
 type AskreneupdatechannelRequest struct {
@@ -36992,7 +38072,7 @@ type AskreneupdatechannelRequest struct {
 
 func (x *AskreneupdatechannelRequest) Reset() {
 	*x = AskreneupdatechannelRequest{}
-	mi := &file_node_proto_msgTypes[466]
+	mi := &file_node_proto_msgTypes[474]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -37004,7 +38084,7 @@ func (x *AskreneupdatechannelRequest) String() string {
 func (*AskreneupdatechannelRequest) ProtoMessage() {}
 
 func (x *AskreneupdatechannelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[466]
+	mi := &file_node_proto_msgTypes[474]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -37017,7 +38097,7 @@ func (x *AskreneupdatechannelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskreneupdatechannelRequest.ProtoReflect.Descriptor instead.
 func (*AskreneupdatechannelRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{466}
+	return file_node_proto_rawDescGZIP(), []int{474}
 }
 
 func (x *AskreneupdatechannelRequest) GetLayer() string {
@@ -37084,7 +38164,7 @@ type AskreneupdatechannelResponse struct {
 
 func (x *AskreneupdatechannelResponse) Reset() {
 	*x = AskreneupdatechannelResponse{}
-	mi := &file_node_proto_msgTypes[467]
+	mi := &file_node_proto_msgTypes[475]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -37096,7 +38176,7 @@ func (x *AskreneupdatechannelResponse) String() string {
 func (*AskreneupdatechannelResponse) ProtoMessage() {}
 
 func (x *AskreneupdatechannelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[467]
+	mi := &file_node_proto_msgTypes[475]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -37109,7 +38189,7 @@ func (x *AskreneupdatechannelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskreneupdatechannelResponse.ProtoReflect.Descriptor instead.
 func (*AskreneupdatechannelResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{467}
+	return file_node_proto_rawDescGZIP(), []int{475}
 }
 
 type AskrenebiaschannelRequest struct {
@@ -37125,7 +38205,7 @@ type AskrenebiaschannelRequest struct {
 
 func (x *AskrenebiaschannelRequest) Reset() {
 	*x = AskrenebiaschannelRequest{}
-	mi := &file_node_proto_msgTypes[468]
+	mi := &file_node_proto_msgTypes[476]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -37137,7 +38217,7 @@ func (x *AskrenebiaschannelRequest) String() string {
 func (*AskrenebiaschannelRequest) ProtoMessage() {}
 
 func (x *AskrenebiaschannelRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[468]
+	mi := &file_node_proto_msgTypes[476]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -37150,7 +38230,7 @@ func (x *AskrenebiaschannelRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenebiaschannelRequest.ProtoReflect.Descriptor instead.
 func (*AskrenebiaschannelRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{468}
+	return file_node_proto_rawDescGZIP(), []int{476}
 }
 
 func (x *AskrenebiaschannelRequest) GetLayer() string {
@@ -37197,7 +38277,7 @@ type AskrenebiaschannelResponse struct {
 
 func (x *AskrenebiaschannelResponse) Reset() {
 	*x = AskrenebiaschannelResponse{}
-	mi := &file_node_proto_msgTypes[469]
+	mi := &file_node_proto_msgTypes[477]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -37209,7 +38289,7 @@ func (x *AskrenebiaschannelResponse) String() string {
 func (*AskrenebiaschannelResponse) ProtoMessage() {}
 
 func (x *AskrenebiaschannelResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[469]
+	mi := &file_node_proto_msgTypes[477]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -37222,7 +38302,7 @@ func (x *AskrenebiaschannelResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenebiaschannelResponse.ProtoReflect.Descriptor instead.
 func (*AskrenebiaschannelResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{469}
+	return file_node_proto_rawDescGZIP(), []int{477}
 }
 
 func (x *AskrenebiaschannelResponse) GetBiases() []*AskrenebiaschannelBiases {
@@ -37245,7 +38325,7 @@ type AskrenebiaschannelBiases struct {
 
 func (x *AskrenebiaschannelBiases) Reset() {
 	*x = AskrenebiaschannelBiases{}
-	mi := &file_node_proto_msgTypes[470]
+	mi := &file_node_proto_msgTypes[478]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -37257,7 +38337,7 @@ func (x *AskrenebiaschannelBiases) String() string {
 func (*AskrenebiaschannelBiases) ProtoMessage() {}
 
 func (x *AskrenebiaschannelBiases) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[470]
+	mi := &file_node_proto_msgTypes[478]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -37270,7 +38350,7 @@ func (x *AskrenebiaschannelBiases) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenebiaschannelBiases.ProtoReflect.Descriptor instead.
 func (*AskrenebiaschannelBiases) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{470}
+	return file_node_proto_rawDescGZIP(), []int{478}
 }
 
 func (x *AskrenebiaschannelBiases) GetLayer() string {
@@ -37322,7 +38402,7 @@ type AskrenebiasnodeRequest struct {
 
 func (x *AskrenebiasnodeRequest) Reset() {
 	*x = AskrenebiasnodeRequest{}
-	mi := &file_node_proto_msgTypes[471]
+	mi := &file_node_proto_msgTypes[479]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -37334,7 +38414,7 @@ func (x *AskrenebiasnodeRequest) String() string {
 func (*AskrenebiasnodeRequest) ProtoMessage() {}
 
 func (x *AskrenebiasnodeRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[471]
+	mi := &file_node_proto_msgTypes[479]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -37347,7 +38427,7 @@ func (x *AskrenebiasnodeRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenebiasnodeRequest.ProtoReflect.Descriptor instead.
 func (*AskrenebiasnodeRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{471}
+	return file_node_proto_rawDescGZIP(), []int{479}
 }
 
 func (x *AskrenebiasnodeRequest) GetLayer() string {
@@ -37401,7 +38481,7 @@ type AskrenebiasnodeResponse struct {
 
 func (x *AskrenebiasnodeResponse) Reset() {
 	*x = AskrenebiasnodeResponse{}
-	mi := &file_node_proto_msgTypes[472]
+	mi := &file_node_proto_msgTypes[480]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -37413,7 +38493,7 @@ func (x *AskrenebiasnodeResponse) String() string {
 func (*AskrenebiasnodeResponse) ProtoMessage() {}
 
 func (x *AskrenebiasnodeResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[472]
+	mi := &file_node_proto_msgTypes[480]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -37426,7 +38506,7 @@ func (x *AskrenebiasnodeResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenebiasnodeResponse.ProtoReflect.Descriptor instead.
 func (*AskrenebiasnodeResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{472}
+	return file_node_proto_rawDescGZIP(), []int{480}
 }
 
 func (x *AskrenebiasnodeResponse) GetNodeBiases() []*AskrenebiasnodeNodeBiases {
@@ -37450,7 +38530,7 @@ type AskrenebiasnodeNodeBiases struct {
 
 func (x *AskrenebiasnodeNodeBiases) Reset() {
 	*x = AskrenebiasnodeNodeBiases{}
-	mi := &file_node_proto_msgTypes[473]
+	mi := &file_node_proto_msgTypes[481]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -37462,7 +38542,7 @@ func (x *AskrenebiasnodeNodeBiases) String() string {
 func (*AskrenebiasnodeNodeBiases) ProtoMessage() {}
 
 func (x *AskrenebiasnodeNodeBiases) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[473]
+	mi := &file_node_proto_msgTypes[481]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -37475,7 +38555,7 @@ func (x *AskrenebiasnodeNodeBiases) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenebiasnodeNodeBiases.ProtoReflect.Descriptor instead.
 func (*AskrenebiasnodeNodeBiases) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{473}
+	return file_node_proto_rawDescGZIP(), []int{481}
 }
 
 func (x *AskrenebiasnodeNodeBiases) GetLayer() string {
@@ -37528,7 +38608,7 @@ type AskrenelistreservationsRequest struct {
 
 func (x *AskrenelistreservationsRequest) Reset() {
 	*x = AskrenelistreservationsRequest{}
-	mi := &file_node_proto_msgTypes[474]
+	mi := &file_node_proto_msgTypes[482]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -37540,7 +38620,7 @@ func (x *AskrenelistreservationsRequest) String() string {
 func (*AskrenelistreservationsRequest) ProtoMessage() {}
 
 func (x *AskrenelistreservationsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[474]
+	mi := &file_node_proto_msgTypes[482]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -37553,7 +38633,7 @@ func (x *AskrenelistreservationsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenelistreservationsRequest.ProtoReflect.Descriptor instead.
 func (*AskrenelistreservationsRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{474}
+	return file_node_proto_rawDescGZIP(), []int{482}
 }
 
 type AskrenelistreservationsResponse struct {
@@ -37565,7 +38645,7 @@ type AskrenelistreservationsResponse struct {
 
 func (x *AskrenelistreservationsResponse) Reset() {
 	*x = AskrenelistreservationsResponse{}
-	mi := &file_node_proto_msgTypes[475]
+	mi := &file_node_proto_msgTypes[483]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -37577,7 +38657,7 @@ func (x *AskrenelistreservationsResponse) String() string {
 func (*AskrenelistreservationsResponse) ProtoMessage() {}
 
 func (x *AskrenelistreservationsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[475]
+	mi := &file_node_proto_msgTypes[483]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -37590,7 +38670,7 @@ func (x *AskrenelistreservationsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AskrenelistreservationsResponse.ProtoReflect.Descriptor instead.
 func (*AskrenelistreservationsResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{475}
+	return file_node_proto_rawDescGZIP(), []int{483}
 }
 
 func (x *AskrenelistreservationsResponse) GetReservations() []*AskrenelistreservationsReservations {
@@ -37612,7 +38692,7 @@ type AskrenelistreservationsReservations struct {
 
 func (x *AskrenelistreservationsReservations) Reset() {
 	*x = AskrenelistreservationsReservations{}
-	mi := &file_node_proto_msgTypes[476]
+	mi := &file_node_proto_msgTypes[484]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -37624,7 +38704,7 @@ func (x *AskrenelistreservationsReservations) String() string {
 func (*AskrenelistreservationsReservations) ProtoMessage() {}
 
 func (x *AskrenelistreservationsReservations) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[476]
+	mi := &file_node_proto_msgTypes[484]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -37637,7 +38717,7 @@ func (x *AskrenelistreservationsReservations) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use AskrenelistreservationsReservations.ProtoReflect.Descriptor instead.
 func (*AskrenelistreservationsReservations) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{476}
+	return file_node_proto_rawDescGZIP(), []int{484}
 }
 
 func (x *AskrenelistreservationsReservations) GetShortChannelIdDir() string {
@@ -37686,7 +38766,7 @@ type InjectpaymentonionRequest struct {
 
 func (x *InjectpaymentonionRequest) Reset() {
 	*x = InjectpaymentonionRequest{}
-	mi := &file_node_proto_msgTypes[477]
+	mi := &file_node_proto_msgTypes[485]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -37698,7 +38778,7 @@ func (x *InjectpaymentonionRequest) String() string {
 func (*InjectpaymentonionRequest) ProtoMessage() {}
 
 func (x *InjectpaymentonionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[477]
+	mi := &file_node_proto_msgTypes[485]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -37711,7 +38791,7 @@ func (x *InjectpaymentonionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InjectpaymentonionRequest.ProtoReflect.Descriptor instead.
 func (*InjectpaymentonionRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{477}
+	return file_node_proto_rawDescGZIP(), []int{485}
 }
 
 func (x *InjectpaymentonionRequest) GetOnion() []byte {
@@ -37796,7 +38876,7 @@ type InjectpaymentonionResponse struct {
 
 func (x *InjectpaymentonionResponse) Reset() {
 	*x = InjectpaymentonionResponse{}
-	mi := &file_node_proto_msgTypes[478]
+	mi := &file_node_proto_msgTypes[486]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -37808,7 +38888,7 @@ func (x *InjectpaymentonionResponse) String() string {
 func (*InjectpaymentonionResponse) ProtoMessage() {}
 
 func (x *InjectpaymentonionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[478]
+	mi := &file_node_proto_msgTypes[486]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -37821,7 +38901,7 @@ func (x *InjectpaymentonionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InjectpaymentonionResponse.ProtoReflect.Descriptor instead.
 func (*InjectpaymentonionResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{478}
+	return file_node_proto_rawDescGZIP(), []int{486}
 }
 
 func (x *InjectpaymentonionResponse) GetCreatedAt() uint64 {
@@ -37862,7 +38942,7 @@ type InjectonionmessageRequest struct {
 
 func (x *InjectonionmessageRequest) Reset() {
 	*x = InjectonionmessageRequest{}
-	mi := &file_node_proto_msgTypes[479]
+	mi := &file_node_proto_msgTypes[487]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -37874,7 +38954,7 @@ func (x *InjectonionmessageRequest) String() string {
 func (*InjectonionmessageRequest) ProtoMessage() {}
 
 func (x *InjectonionmessageRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[479]
+	mi := &file_node_proto_msgTypes[487]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -37887,7 +38967,7 @@ func (x *InjectonionmessageRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InjectonionmessageRequest.ProtoReflect.Descriptor instead.
 func (*InjectonionmessageRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{479}
+	return file_node_proto_rawDescGZIP(), []int{487}
 }
 
 func (x *InjectonionmessageRequest) GetPathKey() []byte {
@@ -37912,7 +38992,7 @@ type InjectonionmessageResponse struct {
 
 func (x *InjectonionmessageResponse) Reset() {
 	*x = InjectonionmessageResponse{}
-	mi := &file_node_proto_msgTypes[480]
+	mi := &file_node_proto_msgTypes[488]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -37924,7 +39004,7 @@ func (x *InjectonionmessageResponse) String() string {
 func (*InjectonionmessageResponse) ProtoMessage() {}
 
 func (x *InjectonionmessageResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[480]
+	mi := &file_node_proto_msgTypes[488]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -37937,7 +39017,7 @@ func (x *InjectonionmessageResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InjectonionmessageResponse.ProtoReflect.Descriptor instead.
 func (*InjectonionmessageResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{480}
+	return file_node_proto_rawDescGZIP(), []int{488}
 }
 
 type XpayRequest struct {
@@ -37956,7 +39036,7 @@ type XpayRequest struct {
 
 func (x *XpayRequest) Reset() {
 	*x = XpayRequest{}
-	mi := &file_node_proto_msgTypes[481]
+	mi := &file_node_proto_msgTypes[489]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -37968,7 +39048,7 @@ func (x *XpayRequest) String() string {
 func (*XpayRequest) ProtoMessage() {}
 
 func (x *XpayRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[481]
+	mi := &file_node_proto_msgTypes[489]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -37981,7 +39061,7 @@ func (x *XpayRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use XpayRequest.ProtoReflect.Descriptor instead.
 func (*XpayRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{481}
+	return file_node_proto_rawDescGZIP(), []int{489}
 }
 
 func (x *XpayRequest) GetInvstring() string {
@@ -38053,7 +39133,7 @@ type XpayResponse struct {
 
 func (x *XpayResponse) Reset() {
 	*x = XpayResponse{}
-	mi := &file_node_proto_msgTypes[482]
+	mi := &file_node_proto_msgTypes[490]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -38065,7 +39145,7 @@ func (x *XpayResponse) String() string {
 func (*XpayResponse) ProtoMessage() {}
 
 func (x *XpayResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[482]
+	mi := &file_node_proto_msgTypes[490]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -38078,7 +39158,7 @@ func (x *XpayResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use XpayResponse.ProtoReflect.Descriptor instead.
 func (*XpayResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{482}
+	return file_node_proto_rawDescGZIP(), []int{490}
 }
 
 func (x *XpayResponse) GetPaymentPreimage() []byte {
@@ -38126,7 +39206,7 @@ type SignmessagewithkeyRequest struct {
 
 func (x *SignmessagewithkeyRequest) Reset() {
 	*x = SignmessagewithkeyRequest{}
-	mi := &file_node_proto_msgTypes[483]
+	mi := &file_node_proto_msgTypes[491]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -38138,7 +39218,7 @@ func (x *SignmessagewithkeyRequest) String() string {
 func (*SignmessagewithkeyRequest) ProtoMessage() {}
 
 func (x *SignmessagewithkeyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[483]
+	mi := &file_node_proto_msgTypes[491]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -38151,7 +39231,7 @@ func (x *SignmessagewithkeyRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SignmessagewithkeyRequest.ProtoReflect.Descriptor instead.
 func (*SignmessagewithkeyRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{483}
+	return file_node_proto_rawDescGZIP(), []int{491}
 }
 
 func (x *SignmessagewithkeyRequest) GetMessage() string {
@@ -38180,7 +39260,7 @@ type SignmessagewithkeyResponse struct {
 
 func (x *SignmessagewithkeyResponse) Reset() {
 	*x = SignmessagewithkeyResponse{}
-	mi := &file_node_proto_msgTypes[484]
+	mi := &file_node_proto_msgTypes[492]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -38192,7 +39272,7 @@ func (x *SignmessagewithkeyResponse) String() string {
 func (*SignmessagewithkeyResponse) ProtoMessage() {}
 
 func (x *SignmessagewithkeyResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[484]
+	mi := &file_node_proto_msgTypes[492]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -38205,7 +39285,7 @@ func (x *SignmessagewithkeyResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SignmessagewithkeyResponse.ProtoReflect.Descriptor instead.
 func (*SignmessagewithkeyResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{484}
+	return file_node_proto_rawDescGZIP(), []int{492}
 }
 
 func (x *SignmessagewithkeyResponse) GetAddress() string {
@@ -38247,7 +39327,7 @@ type ListchannelmovesRequest struct {
 
 func (x *ListchannelmovesRequest) Reset() {
 	*x = ListchannelmovesRequest{}
-	mi := &file_node_proto_msgTypes[485]
+	mi := &file_node_proto_msgTypes[493]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -38259,7 +39339,7 @@ func (x *ListchannelmovesRequest) String() string {
 func (*ListchannelmovesRequest) ProtoMessage() {}
 
 func (x *ListchannelmovesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[485]
+	mi := &file_node_proto_msgTypes[493]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -38272,7 +39352,7 @@ func (x *ListchannelmovesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListchannelmovesRequest.ProtoReflect.Descriptor instead.
 func (*ListchannelmovesRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{485}
+	return file_node_proto_rawDescGZIP(), []int{493}
 }
 
 func (x *ListchannelmovesRequest) GetIndex() ListchannelmovesRequest_ListchannelmovesIndex {
@@ -38305,7 +39385,7 @@ type ListchannelmovesResponse struct {
 
 func (x *ListchannelmovesResponse) Reset() {
 	*x = ListchannelmovesResponse{}
-	mi := &file_node_proto_msgTypes[486]
+	mi := &file_node_proto_msgTypes[494]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -38317,7 +39397,7 @@ func (x *ListchannelmovesResponse) String() string {
 func (*ListchannelmovesResponse) ProtoMessage() {}
 
 func (x *ListchannelmovesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[486]
+	mi := &file_node_proto_msgTypes[494]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -38330,7 +39410,7 @@ func (x *ListchannelmovesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListchannelmovesResponse.ProtoReflect.Descriptor instead.
 func (*ListchannelmovesResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{486}
+	return file_node_proto_rawDescGZIP(), []int{494}
 }
 
 func (x *ListchannelmovesResponse) GetChannelmoves() []*ListchannelmovesChannelmoves {
@@ -38358,7 +39438,7 @@ type ListchannelmovesChannelmoves struct {
 
 func (x *ListchannelmovesChannelmoves) Reset() {
 	*x = ListchannelmovesChannelmoves{}
-	mi := &file_node_proto_msgTypes[487]
+	mi := &file_node_proto_msgTypes[495]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -38370,7 +39450,7 @@ func (x *ListchannelmovesChannelmoves) String() string {
 func (*ListchannelmovesChannelmoves) ProtoMessage() {}
 
 func (x *ListchannelmovesChannelmoves) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[487]
+	mi := &file_node_proto_msgTypes[495]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -38383,7 +39463,7 @@ func (x *ListchannelmovesChannelmoves) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListchannelmovesChannelmoves.ProtoReflect.Descriptor instead.
 func (*ListchannelmovesChannelmoves) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{487}
+	return file_node_proto_rawDescGZIP(), []int{495}
 }
 
 func (x *ListchannelmovesChannelmoves) GetCreatedIndex() uint64 {
@@ -38467,7 +39547,7 @@ type ListchainmovesRequest struct {
 
 func (x *ListchainmovesRequest) Reset() {
 	*x = ListchainmovesRequest{}
-	mi := &file_node_proto_msgTypes[488]
+	mi := &file_node_proto_msgTypes[496]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -38479,7 +39559,7 @@ func (x *ListchainmovesRequest) String() string {
 func (*ListchainmovesRequest) ProtoMessage() {}
 
 func (x *ListchainmovesRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[488]
+	mi := &file_node_proto_msgTypes[496]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -38492,7 +39572,7 @@ func (x *ListchainmovesRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListchainmovesRequest.ProtoReflect.Descriptor instead.
 func (*ListchainmovesRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{488}
+	return file_node_proto_rawDescGZIP(), []int{496}
 }
 
 func (x *ListchainmovesRequest) GetIndex() ListchainmovesRequest_ListchainmovesIndex {
@@ -38525,7 +39605,7 @@ type ListchainmovesResponse struct {
 
 func (x *ListchainmovesResponse) Reset() {
 	*x = ListchainmovesResponse{}
-	mi := &file_node_proto_msgTypes[489]
+	mi := &file_node_proto_msgTypes[497]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -38537,7 +39617,7 @@ func (x *ListchainmovesResponse) String() string {
 func (*ListchainmovesResponse) ProtoMessage() {}
 
 func (x *ListchainmovesResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[489]
+	mi := &file_node_proto_msgTypes[497]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -38550,7 +39630,7 @@ func (x *ListchainmovesResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListchainmovesResponse.ProtoReflect.Descriptor instead.
 func (*ListchainmovesResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{489}
+	return file_node_proto_rawDescGZIP(), []int{497}
 }
 
 func (x *ListchainmovesResponse) GetChainmoves() []*ListchainmovesChainmoves {
@@ -38583,7 +39663,7 @@ type ListchainmovesChainmoves struct {
 
 func (x *ListchainmovesChainmoves) Reset() {
 	*x = ListchainmovesChainmoves{}
-	mi := &file_node_proto_msgTypes[490]
+	mi := &file_node_proto_msgTypes[498]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -38595,7 +39675,7 @@ func (x *ListchainmovesChainmoves) String() string {
 func (*ListchainmovesChainmoves) ProtoMessage() {}
 
 func (x *ListchainmovesChainmoves) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[490]
+	mi := &file_node_proto_msgTypes[498]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -38608,7 +39688,7 @@ func (x *ListchainmovesChainmoves) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListchainmovesChainmoves.ProtoReflect.Descriptor instead.
 func (*ListchainmovesChainmoves) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{490}
+	return file_node_proto_rawDescGZIP(), []int{498}
 }
 
 func (x *ListchainmovesChainmoves) GetCreatedIndex() uint64 {
@@ -38728,7 +39808,7 @@ type ListnetworkeventsRequest struct {
 
 func (x *ListnetworkeventsRequest) Reset() {
 	*x = ListnetworkeventsRequest{}
-	mi := &file_node_proto_msgTypes[491]
+	mi := &file_node_proto_msgTypes[499]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -38740,7 +39820,7 @@ func (x *ListnetworkeventsRequest) String() string {
 func (*ListnetworkeventsRequest) ProtoMessage() {}
 
 func (x *ListnetworkeventsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[491]
+	mi := &file_node_proto_msgTypes[499]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -38753,7 +39833,7 @@ func (x *ListnetworkeventsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListnetworkeventsRequest.ProtoReflect.Descriptor instead.
 func (*ListnetworkeventsRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{491}
+	return file_node_proto_rawDescGZIP(), []int{499}
 }
 
 func (x *ListnetworkeventsRequest) GetId() string {
@@ -38793,7 +39873,7 @@ type ListnetworkeventsResponse struct {
 
 func (x *ListnetworkeventsResponse) Reset() {
 	*x = ListnetworkeventsResponse{}
-	mi := &file_node_proto_msgTypes[492]
+	mi := &file_node_proto_msgTypes[500]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -38805,7 +39885,7 @@ func (x *ListnetworkeventsResponse) String() string {
 func (*ListnetworkeventsResponse) ProtoMessage() {}
 
 func (x *ListnetworkeventsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[492]
+	mi := &file_node_proto_msgTypes[500]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -38818,7 +39898,7 @@ func (x *ListnetworkeventsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListnetworkeventsResponse.ProtoReflect.Descriptor instead.
 func (*ListnetworkeventsResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{492}
+	return file_node_proto_rawDescGZIP(), []int{500}
 }
 
 func (x *ListnetworkeventsResponse) GetNetworkevents() []*ListnetworkeventsNetworkevents {
@@ -38843,7 +39923,7 @@ type ListnetworkeventsNetworkevents struct {
 
 func (x *ListnetworkeventsNetworkevents) Reset() {
 	*x = ListnetworkeventsNetworkevents{}
-	mi := &file_node_proto_msgTypes[493]
+	mi := &file_node_proto_msgTypes[501]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -38855,7 +39935,7 @@ func (x *ListnetworkeventsNetworkevents) String() string {
 func (*ListnetworkeventsNetworkevents) ProtoMessage() {}
 
 func (x *ListnetworkeventsNetworkevents) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[493]
+	mi := &file_node_proto_msgTypes[501]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -38868,7 +39948,7 @@ func (x *ListnetworkeventsNetworkevents) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListnetworkeventsNetworkevents.ProtoReflect.Descriptor instead.
 func (*ListnetworkeventsNetworkevents) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{493}
+	return file_node_proto_rawDescGZIP(), []int{501}
 }
 
 func (x *ListnetworkeventsNetworkevents) GetCreatedIndex() uint64 {
@@ -38929,7 +40009,7 @@ type DelnetworkeventRequest struct {
 
 func (x *DelnetworkeventRequest) Reset() {
 	*x = DelnetworkeventRequest{}
-	mi := &file_node_proto_msgTypes[494]
+	mi := &file_node_proto_msgTypes[502]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -38941,7 +40021,7 @@ func (x *DelnetworkeventRequest) String() string {
 func (*DelnetworkeventRequest) ProtoMessage() {}
 
 func (x *DelnetworkeventRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[494]
+	mi := &file_node_proto_msgTypes[502]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -38954,7 +40034,7 @@ func (x *DelnetworkeventRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelnetworkeventRequest.ProtoReflect.Descriptor instead.
 func (*DelnetworkeventRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{494}
+	return file_node_proto_rawDescGZIP(), []int{502}
 }
 
 func (x *DelnetworkeventRequest) GetCreatedIndex() uint64 {
@@ -38972,7 +40052,7 @@ type DelnetworkeventResponse struct {
 
 func (x *DelnetworkeventResponse) Reset() {
 	*x = DelnetworkeventResponse{}
-	mi := &file_node_proto_msgTypes[495]
+	mi := &file_node_proto_msgTypes[503]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -38984,7 +40064,7 @@ func (x *DelnetworkeventResponse) String() string {
 func (*DelnetworkeventResponse) ProtoMessage() {}
 
 func (x *DelnetworkeventResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[495]
+	mi := &file_node_proto_msgTypes[503]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -38997,7 +40077,7 @@ func (x *DelnetworkeventResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DelnetworkeventResponse.ProtoReflect.Descriptor instead.
 func (*DelnetworkeventResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{495}
+	return file_node_proto_rawDescGZIP(), []int{503}
 }
 
 type ClnrestregisterpathRequest struct {
@@ -39013,7 +40093,7 @@ type ClnrestregisterpathRequest struct {
 
 func (x *ClnrestregisterpathRequest) Reset() {
 	*x = ClnrestregisterpathRequest{}
-	mi := &file_node_proto_msgTypes[496]
+	mi := &file_node_proto_msgTypes[504]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -39025,7 +40105,7 @@ func (x *ClnrestregisterpathRequest) String() string {
 func (*ClnrestregisterpathRequest) ProtoMessage() {}
 
 func (x *ClnrestregisterpathRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[496]
+	mi := &file_node_proto_msgTypes[504]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -39038,7 +40118,7 @@ func (x *ClnrestregisterpathRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClnrestregisterpathRequest.ProtoReflect.Descriptor instead.
 func (*ClnrestregisterpathRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{496}
+	return file_node_proto_rawDescGZIP(), []int{504}
 }
 
 func (x *ClnrestregisterpathRequest) GetPath() string {
@@ -39084,7 +40164,7 @@ type ClnrestregisterpathResponse struct {
 
 func (x *ClnrestregisterpathResponse) Reset() {
 	*x = ClnrestregisterpathResponse{}
-	mi := &file_node_proto_msgTypes[497]
+	mi := &file_node_proto_msgTypes[505]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -39096,7 +40176,7 @@ func (x *ClnrestregisterpathResponse) String() string {
 func (*ClnrestregisterpathResponse) ProtoMessage() {}
 
 func (x *ClnrestregisterpathResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[497]
+	mi := &file_node_proto_msgTypes[505]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -39109,7 +40189,7 @@ func (x *ClnrestregisterpathResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClnrestregisterpathResponse.ProtoReflect.Descriptor instead.
 func (*ClnrestregisterpathResponse) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{497}
+	return file_node_proto_rawDescGZIP(), []int{505}
 }
 
 type ClnrestregisterpathRuneRestrictions struct {
@@ -39123,7 +40203,7 @@ type ClnrestregisterpathRuneRestrictions struct {
 
 func (x *ClnrestregisterpathRuneRestrictions) Reset() {
 	*x = ClnrestregisterpathRuneRestrictions{}
-	mi := &file_node_proto_msgTypes[498]
+	mi := &file_node_proto_msgTypes[506]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -39135,7 +40215,7 @@ func (x *ClnrestregisterpathRuneRestrictions) String() string {
 func (*ClnrestregisterpathRuneRestrictions) ProtoMessage() {}
 
 func (x *ClnrestregisterpathRuneRestrictions) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[498]
+	mi := &file_node_proto_msgTypes[506]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -39148,7 +40228,7 @@ func (x *ClnrestregisterpathRuneRestrictions) ProtoReflect() protoreflect.Messag
 
 // Deprecated: Use ClnrestregisterpathRuneRestrictions.ProtoReflect.Descriptor instead.
 func (*ClnrestregisterpathRuneRestrictions) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{498}
+	return file_node_proto_rawDescGZIP(), []int{506}
 }
 
 func (x *ClnrestregisterpathRuneRestrictions) GetNodeid() string {
@@ -39172,6 +40252,494 @@ func (x *ClnrestregisterpathRuneRestrictions) GetParams() map[string]string {
 	return nil
 }
 
+type ListcurrencyratesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Currency      string                 `protobuf:"bytes,1,opt,name=currency,proto3" json:"currency,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListcurrencyratesRequest) Reset() {
+	*x = ListcurrencyratesRequest{}
+	mi := &file_node_proto_msgTypes[507]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListcurrencyratesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListcurrencyratesRequest) ProtoMessage() {}
+
+func (x *ListcurrencyratesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[507]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListcurrencyratesRequest.ProtoReflect.Descriptor instead.
+func (*ListcurrencyratesRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{507}
+}
+
+func (x *ListcurrencyratesRequest) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+type ListcurrencyratesResponse struct {
+	state         protoimpl.MessageState            `protogen:"open.v1"`
+	Currencyrates []*ListcurrencyratesCurrencyrates `protobuf:"bytes,1,rep,name=currencyrates,proto3" json:"currencyrates,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListcurrencyratesResponse) Reset() {
+	*x = ListcurrencyratesResponse{}
+	mi := &file_node_proto_msgTypes[508]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListcurrencyratesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListcurrencyratesResponse) ProtoMessage() {}
+
+func (x *ListcurrencyratesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[508]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListcurrencyratesResponse.ProtoReflect.Descriptor instead.
+func (*ListcurrencyratesResponse) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{508}
+}
+
+func (x *ListcurrencyratesResponse) GetCurrencyrates() []*ListcurrencyratesCurrencyrates {
+	if x != nil {
+		return x.Currencyrates
+	}
+	return nil
+}
+
+type ListcurrencyratesCurrencyrates struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Source        string                 `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
+	Amount        float64                `protobuf:"fixed64,2,opt,name=amount,proto3" json:"amount,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ListcurrencyratesCurrencyrates) Reset() {
+	*x = ListcurrencyratesCurrencyrates{}
+	mi := &file_node_proto_msgTypes[509]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ListcurrencyratesCurrencyrates) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ListcurrencyratesCurrencyrates) ProtoMessage() {}
+
+func (x *ListcurrencyratesCurrencyrates) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[509]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ListcurrencyratesCurrencyrates.ProtoReflect.Descriptor instead.
+func (*ListcurrencyratesCurrencyrates) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{509}
+}
+
+func (x *ListcurrencyratesCurrencyrates) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *ListcurrencyratesCurrencyrates) GetAmount() float64 {
+	if x != nil {
+		return x.Amount
+	}
+	return 0
+}
+
+type CurrencyconvertRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Amount        float64                `protobuf:"fixed64,1,opt,name=amount,proto3" json:"amount,omitempty"`
+	Currency      string                 `protobuf:"bytes,2,opt,name=currency,proto3" json:"currency,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CurrencyconvertRequest) Reset() {
+	*x = CurrencyconvertRequest{}
+	mi := &file_node_proto_msgTypes[510]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CurrencyconvertRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CurrencyconvertRequest) ProtoMessage() {}
+
+func (x *CurrencyconvertRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[510]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CurrencyconvertRequest.ProtoReflect.Descriptor instead.
+func (*CurrencyconvertRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{510}
+}
+
+func (x *CurrencyconvertRequest) GetAmount() float64 {
+	if x != nil {
+		return x.Amount
+	}
+	return 0
+}
+
+func (x *CurrencyconvertRequest) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+type CurrencyconvertResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Msat          *Amount                `protobuf:"bytes,1,opt,name=msat,proto3" json:"msat,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CurrencyconvertResponse) Reset() {
+	*x = CurrencyconvertResponse{}
+	mi := &file_node_proto_msgTypes[511]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CurrencyconvertResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CurrencyconvertResponse) ProtoMessage() {}
+
+func (x *CurrencyconvertResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[511]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CurrencyconvertResponse.ProtoReflect.Descriptor instead.
+func (*CurrencyconvertResponse) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{511}
+}
+
+func (x *CurrencyconvertResponse) GetMsat() *Amount {
+	if x != nil {
+		return x.Msat
+	}
+	return nil
+}
+
+type CurrencyrateRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Currency      string                 `protobuf:"bytes,1,opt,name=currency,proto3" json:"currency,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CurrencyrateRequest) Reset() {
+	*x = CurrencyrateRequest{}
+	mi := &file_node_proto_msgTypes[512]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CurrencyrateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CurrencyrateRequest) ProtoMessage() {}
+
+func (x *CurrencyrateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[512]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CurrencyrateRequest.ProtoReflect.Descriptor instead.
+func (*CurrencyrateRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{512}
+}
+
+func (x *CurrencyrateRequest) GetCurrency() string {
+	if x != nil {
+		return x.Currency
+	}
+	return ""
+}
+
+type CurrencyrateResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Rate          float64                `protobuf:"fixed64,1,opt,name=rate,proto3" json:"rate,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CurrencyrateResponse) Reset() {
+	*x = CurrencyrateResponse{}
+	mi := &file_node_proto_msgTypes[513]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CurrencyrateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CurrencyrateResponse) ProtoMessage() {}
+
+func (x *CurrencyrateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[513]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CurrencyrateResponse.ProtoReflect.Descriptor instead.
+func (*CurrencyrateResponse) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{513}
+}
+
+func (x *CurrencyrateResponse) GetRate() float64 {
+	if x != nil {
+		return x.Rate
+	}
+	return 0
+}
+
+type StreamBalanceSnapshotRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamBalanceSnapshotRequest) Reset() {
+	*x = StreamBalanceSnapshotRequest{}
+	mi := &file_node_proto_msgTypes[514]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamBalanceSnapshotRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamBalanceSnapshotRequest) ProtoMessage() {}
+
+func (x *StreamBalanceSnapshotRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[514]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamBalanceSnapshotRequest.ProtoReflect.Descriptor instead.
+func (*StreamBalanceSnapshotRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{514}
+}
+
+type BalanceSnapshotNotification struct {
+	state         protoimpl.MessageState     `protogen:"open.v1"`
+	NodeId        []byte                     `protobuf:"bytes,1,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	Blockheight   uint32                     `protobuf:"varint,2,opt,name=blockheight,proto3" json:"blockheight,omitempty"`
+	Timestamp     uint32                     `protobuf:"varint,3,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	Accounts      []*BalanceSnapshotAccounts `protobuf:"bytes,4,rep,name=accounts,proto3" json:"accounts,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BalanceSnapshotNotification) Reset() {
+	*x = BalanceSnapshotNotification{}
+	mi := &file_node_proto_msgTypes[515]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BalanceSnapshotNotification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BalanceSnapshotNotification) ProtoMessage() {}
+
+func (x *BalanceSnapshotNotification) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[515]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BalanceSnapshotNotification.ProtoReflect.Descriptor instead.
+func (*BalanceSnapshotNotification) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{515}
+}
+
+func (x *BalanceSnapshotNotification) GetNodeId() []byte {
+	if x != nil {
+		return x.NodeId
+	}
+	return nil
+}
+
+func (x *BalanceSnapshotNotification) GetBlockheight() uint32 {
+	if x != nil {
+		return x.Blockheight
+	}
+	return 0
+}
+
+func (x *BalanceSnapshotNotification) GetTimestamp() uint32 {
+	if x != nil {
+		return x.Timestamp
+	}
+	return 0
+}
+
+func (x *BalanceSnapshotNotification) GetAccounts() []*BalanceSnapshotAccounts {
+	if x != nil {
+		return x.Accounts
+	}
+	return nil
+}
+
+type BalanceSnapshotAccounts struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccountId     string                 `protobuf:"bytes,1,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
+	BalanceMsat   *Amount                `protobuf:"bytes,2,opt,name=balance_msat,json=balanceMsat,proto3" json:"balance_msat,omitempty"`
+	CoinType      string                 `protobuf:"bytes,3,opt,name=coin_type,json=coinType,proto3" json:"coin_type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BalanceSnapshotAccounts) Reset() {
+	*x = BalanceSnapshotAccounts{}
+	mi := &file_node_proto_msgTypes[516]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BalanceSnapshotAccounts) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BalanceSnapshotAccounts) ProtoMessage() {}
+
+func (x *BalanceSnapshotAccounts) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[516]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BalanceSnapshotAccounts.ProtoReflect.Descriptor instead.
+func (*BalanceSnapshotAccounts) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{516}
+}
+
+func (x *BalanceSnapshotAccounts) GetAccountId() string {
+	if x != nil {
+		return x.AccountId
+	}
+	return ""
+}
+
+func (x *BalanceSnapshotAccounts) GetBalanceMsat() *Amount {
+	if x != nil {
+		return x.BalanceMsat
+	}
+	return nil
+}
+
+func (x *BalanceSnapshotAccounts) GetCoinType() string {
+	if x != nil {
+		return x.CoinType
+	}
+	return ""
+}
+
 type StreamBlockAddedRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -39180,7 +40748,7 @@ type StreamBlockAddedRequest struct {
 
 func (x *StreamBlockAddedRequest) Reset() {
 	*x = StreamBlockAddedRequest{}
-	mi := &file_node_proto_msgTypes[499]
+	mi := &file_node_proto_msgTypes[517]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -39192,7 +40760,7 @@ func (x *StreamBlockAddedRequest) String() string {
 func (*StreamBlockAddedRequest) ProtoMessage() {}
 
 func (x *StreamBlockAddedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[499]
+	mi := &file_node_proto_msgTypes[517]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -39205,7 +40773,7 @@ func (x *StreamBlockAddedRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamBlockAddedRequest.ProtoReflect.Descriptor instead.
 func (*StreamBlockAddedRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{499}
+	return file_node_proto_rawDescGZIP(), []int{517}
 }
 
 type BlockAddedNotification struct {
@@ -39218,7 +40786,7 @@ type BlockAddedNotification struct {
 
 func (x *BlockAddedNotification) Reset() {
 	*x = BlockAddedNotification{}
-	mi := &file_node_proto_msgTypes[500]
+	mi := &file_node_proto_msgTypes[518]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -39230,7 +40798,7 @@ func (x *BlockAddedNotification) String() string {
 func (*BlockAddedNotification) ProtoMessage() {}
 
 func (x *BlockAddedNotification) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[500]
+	mi := &file_node_proto_msgTypes[518]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -39243,7 +40811,7 @@ func (x *BlockAddedNotification) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BlockAddedNotification.ProtoReflect.Descriptor instead.
 func (*BlockAddedNotification) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{500}
+	return file_node_proto_rawDescGZIP(), []int{518}
 }
 
 func (x *BlockAddedNotification) GetHash() []byte {
@@ -39268,7 +40836,7 @@ type StreamChannelOpenFailedRequest struct {
 
 func (x *StreamChannelOpenFailedRequest) Reset() {
 	*x = StreamChannelOpenFailedRequest{}
-	mi := &file_node_proto_msgTypes[501]
+	mi := &file_node_proto_msgTypes[519]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -39280,7 +40848,7 @@ func (x *StreamChannelOpenFailedRequest) String() string {
 func (*StreamChannelOpenFailedRequest) ProtoMessage() {}
 
 func (x *StreamChannelOpenFailedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[501]
+	mi := &file_node_proto_msgTypes[519]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -39293,7 +40861,7 @@ func (x *StreamChannelOpenFailedRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamChannelOpenFailedRequest.ProtoReflect.Descriptor instead.
 func (*StreamChannelOpenFailedRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{501}
+	return file_node_proto_rawDescGZIP(), []int{519}
 }
 
 type ChannelOpenFailedNotification struct {
@@ -39305,7 +40873,7 @@ type ChannelOpenFailedNotification struct {
 
 func (x *ChannelOpenFailedNotification) Reset() {
 	*x = ChannelOpenFailedNotification{}
-	mi := &file_node_proto_msgTypes[502]
+	mi := &file_node_proto_msgTypes[520]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -39317,7 +40885,7 @@ func (x *ChannelOpenFailedNotification) String() string {
 func (*ChannelOpenFailedNotification) ProtoMessage() {}
 
 func (x *ChannelOpenFailedNotification) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[502]
+	mi := &file_node_proto_msgTypes[520]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -39330,7 +40898,7 @@ func (x *ChannelOpenFailedNotification) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelOpenFailedNotification.ProtoReflect.Descriptor instead.
 func (*ChannelOpenFailedNotification) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{502}
+	return file_node_proto_rawDescGZIP(), []int{520}
 }
 
 func (x *ChannelOpenFailedNotification) GetChannelId() []byte {
@@ -39348,7 +40916,7 @@ type StreamChannelOpenedRequest struct {
 
 func (x *StreamChannelOpenedRequest) Reset() {
 	*x = StreamChannelOpenedRequest{}
-	mi := &file_node_proto_msgTypes[503]
+	mi := &file_node_proto_msgTypes[521]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -39360,7 +40928,7 @@ func (x *StreamChannelOpenedRequest) String() string {
 func (*StreamChannelOpenedRequest) ProtoMessage() {}
 
 func (x *StreamChannelOpenedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[503]
+	mi := &file_node_proto_msgTypes[521]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -39373,7 +40941,7 @@ func (x *StreamChannelOpenedRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamChannelOpenedRequest.ProtoReflect.Descriptor instead.
 func (*StreamChannelOpenedRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{503}
+	return file_node_proto_rawDescGZIP(), []int{521}
 }
 
 type ChannelOpenedNotification struct {
@@ -39388,7 +40956,7 @@ type ChannelOpenedNotification struct {
 
 func (x *ChannelOpenedNotification) Reset() {
 	*x = ChannelOpenedNotification{}
-	mi := &file_node_proto_msgTypes[504]
+	mi := &file_node_proto_msgTypes[522]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -39400,7 +40968,7 @@ func (x *ChannelOpenedNotification) String() string {
 func (*ChannelOpenedNotification) ProtoMessage() {}
 
 func (x *ChannelOpenedNotification) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[504]
+	mi := &file_node_proto_msgTypes[522]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -39413,7 +40981,7 @@ func (x *ChannelOpenedNotification) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelOpenedNotification.ProtoReflect.Descriptor instead.
 func (*ChannelOpenedNotification) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{504}
+	return file_node_proto_rawDescGZIP(), []int{522}
 }
 
 func (x *ChannelOpenedNotification) GetId() []byte {
@@ -39444,258 +41012,6 @@ func (x *ChannelOpenedNotification) GetChannelReady() bool {
 	return false
 }
 
-type StreamConnectRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *StreamConnectRequest) Reset() {
-	*x = StreamConnectRequest{}
-	mi := &file_node_proto_msgTypes[505]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *StreamConnectRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*StreamConnectRequest) ProtoMessage() {}
-
-func (x *StreamConnectRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[505]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use StreamConnectRequest.ProtoReflect.Descriptor instead.
-func (*StreamConnectRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{505}
-}
-
-type PeerConnectNotification struct {
-	state         protoimpl.MessageState                       `protogen:"open.v1"`
-	Id            []byte                                       `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Direction     PeerConnectNotification_PeerConnectDirection `protobuf:"varint,2,opt,name=direction,proto3,enum=cln.PeerConnectNotification_PeerConnectDirection" json:"direction,omitempty"`
-	Address       *PeerConnectAddress                          `protobuf:"bytes,3,opt,name=address,proto3" json:"address,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *PeerConnectNotification) Reset() {
-	*x = PeerConnectNotification{}
-	mi := &file_node_proto_msgTypes[506]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PeerConnectNotification) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PeerConnectNotification) ProtoMessage() {}
-
-func (x *PeerConnectNotification) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[506]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PeerConnectNotification.ProtoReflect.Descriptor instead.
-func (*PeerConnectNotification) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{506}
-}
-
-func (x *PeerConnectNotification) GetId() []byte {
-	if x != nil {
-		return x.Id
-	}
-	return nil
-}
-
-func (x *PeerConnectNotification) GetDirection() PeerConnectNotification_PeerConnectDirection {
-	if x != nil {
-		return x.Direction
-	}
-	return PeerConnectNotification_IN
-}
-
-func (x *PeerConnectNotification) GetAddress() *PeerConnectAddress {
-	if x != nil {
-		return x.Address
-	}
-	return nil
-}
-
-type PeerConnectAddress struct {
-	state         protoimpl.MessageState                    `protogen:"open.v1"`
-	ItemType      PeerConnectAddress_PeerConnectAddressType `protobuf:"varint,1,opt,name=item_type,json=itemType,proto3,enum=cln.PeerConnectAddress_PeerConnectAddressType" json:"item_type,omitempty"`
-	Socket        *string                                   `protobuf:"bytes,2,opt,name=socket,proto3,oneof" json:"socket,omitempty"`
-	Address       *string                                   `protobuf:"bytes,3,opt,name=address,proto3,oneof" json:"address,omitempty"`
-	Port          *uint32                                   `protobuf:"varint,4,opt,name=port,proto3,oneof" json:"port,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *PeerConnectAddress) Reset() {
-	*x = PeerConnectAddress{}
-	mi := &file_node_proto_msgTypes[507]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *PeerConnectAddress) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*PeerConnectAddress) ProtoMessage() {}
-
-func (x *PeerConnectAddress) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[507]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use PeerConnectAddress.ProtoReflect.Descriptor instead.
-func (*PeerConnectAddress) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{507}
-}
-
-func (x *PeerConnectAddress) GetItemType() PeerConnectAddress_PeerConnectAddressType {
-	if x != nil {
-		return x.ItemType
-	}
-	return PeerConnectAddress_LOCAL_SOCKET
-}
-
-func (x *PeerConnectAddress) GetSocket() string {
-	if x != nil && x.Socket != nil {
-		return *x.Socket
-	}
-	return ""
-}
-
-func (x *PeerConnectAddress) GetAddress() string {
-	if x != nil && x.Address != nil {
-		return *x.Address
-	}
-	return ""
-}
-
-func (x *PeerConnectAddress) GetPort() uint32 {
-	if x != nil && x.Port != nil {
-		return *x.Port
-	}
-	return 0
-}
-
-type StreamCustomMsgRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *StreamCustomMsgRequest) Reset() {
-	*x = StreamCustomMsgRequest{}
-	mi := &file_node_proto_msgTypes[508]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *StreamCustomMsgRequest) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*StreamCustomMsgRequest) ProtoMessage() {}
-
-func (x *StreamCustomMsgRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[508]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use StreamCustomMsgRequest.ProtoReflect.Descriptor instead.
-func (*StreamCustomMsgRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{508}
-}
-
-type CustomMsgNotification struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	PeerId        []byte                 `protobuf:"bytes,1,opt,name=peer_id,json=peerId,proto3" json:"peer_id,omitempty"`
-	Payload       []byte                 `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *CustomMsgNotification) Reset() {
-	*x = CustomMsgNotification{}
-	mi := &file_node_proto_msgTypes[509]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *CustomMsgNotification) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*CustomMsgNotification) ProtoMessage() {}
-
-func (x *CustomMsgNotification) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[509]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use CustomMsgNotification.ProtoReflect.Descriptor instead.
-func (*CustomMsgNotification) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{509}
-}
-
-func (x *CustomMsgNotification) GetPeerId() []byte {
-	if x != nil {
-		return x.PeerId
-	}
-	return nil
-}
-
-func (x *CustomMsgNotification) GetPayload() []byte {
-	if x != nil {
-		return x.Payload
-	}
-	return nil
-}
-
 type StreamChannelStateChangedRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -39704,7 +41020,7 @@ type StreamChannelStateChangedRequest struct {
 
 func (x *StreamChannelStateChangedRequest) Reset() {
 	*x = StreamChannelStateChangedRequest{}
-	mi := &file_node_proto_msgTypes[510]
+	mi := &file_node_proto_msgTypes[523]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -39716,7 +41032,7 @@ func (x *StreamChannelStateChangedRequest) String() string {
 func (*StreamChannelStateChangedRequest) ProtoMessage() {}
 
 func (x *StreamChannelStateChangedRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[510]
+	mi := &file_node_proto_msgTypes[523]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -39729,7 +41045,7 @@ func (x *StreamChannelStateChangedRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StreamChannelStateChangedRequest.ProtoReflect.Descriptor instead.
 func (*StreamChannelStateChangedRequest) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{510}
+	return file_node_proto_rawDescGZIP(), []int{523}
 }
 
 type ChannelStateChangedNotification struct {
@@ -39748,7 +41064,7 @@ type ChannelStateChangedNotification struct {
 
 func (x *ChannelStateChangedNotification) Reset() {
 	*x = ChannelStateChangedNotification{}
-	mi := &file_node_proto_msgTypes[511]
+	mi := &file_node_proto_msgTypes[524]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -39760,7 +41076,7 @@ func (x *ChannelStateChangedNotification) String() string {
 func (*ChannelStateChangedNotification) ProtoMessage() {}
 
 func (x *ChannelStateChangedNotification) ProtoReflect() protoreflect.Message {
-	mi := &file_node_proto_msgTypes[511]
+	mi := &file_node_proto_msgTypes[524]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -39773,7 +41089,7 @@ func (x *ChannelStateChangedNotification) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChannelStateChangedNotification.ProtoReflect.Descriptor instead.
 func (*ChannelStateChangedNotification) Descriptor() ([]byte, []int) {
-	return file_node_proto_rawDescGZIP(), []int{511}
+	return file_node_proto_rawDescGZIP(), []int{524}
 }
 
 func (x *ChannelStateChangedNotification) GetPeerId() []byte {
@@ -39832,16 +41148,2684 @@ func (x *ChannelStateChangedNotification) GetMessage() string {
 	return ""
 }
 
+type StreamConnectRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamConnectRequest) Reset() {
+	*x = StreamConnectRequest{}
+	mi := &file_node_proto_msgTypes[525]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamConnectRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamConnectRequest) ProtoMessage() {}
+
+func (x *StreamConnectRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[525]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamConnectRequest.ProtoReflect.Descriptor instead.
+func (*StreamConnectRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{525}
+}
+
+type PeerConnectNotification struct {
+	state         protoimpl.MessageState                       `protogen:"open.v1"`
+	Id            []byte                                       `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Direction     PeerConnectNotification_PeerConnectDirection `protobuf:"varint,2,opt,name=direction,proto3,enum=cln.PeerConnectNotification_PeerConnectDirection" json:"direction,omitempty"`
+	Address       *PeerConnectAddress                          `protobuf:"bytes,3,opt,name=address,proto3" json:"address,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PeerConnectNotification) Reset() {
+	*x = PeerConnectNotification{}
+	mi := &file_node_proto_msgTypes[526]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PeerConnectNotification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PeerConnectNotification) ProtoMessage() {}
+
+func (x *PeerConnectNotification) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[526]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PeerConnectNotification.ProtoReflect.Descriptor instead.
+func (*PeerConnectNotification) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{526}
+}
+
+func (x *PeerConnectNotification) GetId() []byte {
+	if x != nil {
+		return x.Id
+	}
+	return nil
+}
+
+func (x *PeerConnectNotification) GetDirection() PeerConnectNotification_PeerConnectDirection {
+	if x != nil {
+		return x.Direction
+	}
+	return PeerConnectNotification_IN
+}
+
+func (x *PeerConnectNotification) GetAddress() *PeerConnectAddress {
+	if x != nil {
+		return x.Address
+	}
+	return nil
+}
+
+type PeerConnectAddress struct {
+	state         protoimpl.MessageState                    `protogen:"open.v1"`
+	ItemType      PeerConnectAddress_PeerConnectAddressType `protobuf:"varint,1,opt,name=item_type,json=itemType,proto3,enum=cln.PeerConnectAddress_PeerConnectAddressType" json:"item_type,omitempty"`
+	Socket        *string                                   `protobuf:"bytes,2,opt,name=socket,proto3,oneof" json:"socket,omitempty"`
+	Address       *string                                   `protobuf:"bytes,3,opt,name=address,proto3,oneof" json:"address,omitempty"`
+	Port          *uint32                                   `protobuf:"varint,4,opt,name=port,proto3,oneof" json:"port,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PeerConnectAddress) Reset() {
+	*x = PeerConnectAddress{}
+	mi := &file_node_proto_msgTypes[527]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PeerConnectAddress) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PeerConnectAddress) ProtoMessage() {}
+
+func (x *PeerConnectAddress) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[527]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PeerConnectAddress.ProtoReflect.Descriptor instead.
+func (*PeerConnectAddress) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{527}
+}
+
+func (x *PeerConnectAddress) GetItemType() PeerConnectAddress_PeerConnectAddressType {
+	if x != nil {
+		return x.ItemType
+	}
+	return PeerConnectAddress_LOCAL_SOCKET
+}
+
+func (x *PeerConnectAddress) GetSocket() string {
+	if x != nil && x.Socket != nil {
+		return *x.Socket
+	}
+	return ""
+}
+
+func (x *PeerConnectAddress) GetAddress() string {
+	if x != nil && x.Address != nil {
+		return *x.Address
+	}
+	return ""
+}
+
+func (x *PeerConnectAddress) GetPort() uint32 {
+	if x != nil && x.Port != nil {
+		return *x.Port
+	}
+	return 0
+}
+
+type StreamCoinMovementRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamCoinMovementRequest) Reset() {
+	*x = StreamCoinMovementRequest{}
+	mi := &file_node_proto_msgTypes[528]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamCoinMovementRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamCoinMovementRequest) ProtoMessage() {}
+
+func (x *StreamCoinMovementRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[528]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamCoinMovementRequest.ProtoReflect.Descriptor instead.
+func (*StreamCoinMovementRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{528}
+}
+
+type CoinMovementNotification struct {
+	state              protoimpl.MessageState                           `protogen:"open.v1"`
+	Version            uint32                                           `protobuf:"varint,1,opt,name=version,proto3" json:"version,omitempty"`
+	CoinType           string                                           `protobuf:"bytes,2,opt,name=coin_type,json=coinType,proto3" json:"coin_type,omitempty"`
+	NodeId             []byte                                           `protobuf:"bytes,3,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	ItemType           CoinMovementNotification_CoinMovementType        `protobuf:"varint,4,opt,name=item_type,json=itemType,proto3,enum=cln.CoinMovementNotification_CoinMovementType" json:"item_type,omitempty"`
+	CreatedIndex       *uint64                                          `protobuf:"varint,5,opt,name=created_index,json=createdIndex,proto3,oneof" json:"created_index,omitempty"`
+	AccountId          string                                           `protobuf:"bytes,6,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
+	CreditMsat         *Amount                                          `protobuf:"bytes,7,opt,name=credit_msat,json=creditMsat,proto3" json:"credit_msat,omitempty"`
+	DebitMsat          *Amount                                          `protobuf:"bytes,8,opt,name=debit_msat,json=debitMsat,proto3" json:"debit_msat,omitempty"`
+	Timestamp          uint64                                           `protobuf:"varint,9,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	Tags               []string                                         `protobuf:"bytes,10,rep,name=tags,proto3" json:"tags,omitempty"`
+	PrimaryTag         *CoinMovementNotification_CoinMovementPrimaryTag `protobuf:"varint,11,opt,name=primary_tag,json=primaryTag,proto3,enum=cln.CoinMovementNotification_CoinMovementPrimaryTag,oneof" json:"primary_tag,omitempty"`
+	ExtraTags          []string                                         `protobuf:"bytes,12,rep,name=extra_tags,json=extraTags,proto3" json:"extra_tags,omitempty"`
+	PaymentHash        []byte                                           `protobuf:"bytes,13,opt,name=payment_hash,json=paymentHash,proto3,oneof" json:"payment_hash,omitempty"`
+	PartId             *uint64                                          `protobuf:"varint,14,opt,name=part_id,json=partId,proto3,oneof" json:"part_id,omitempty"`
+	GroupId            *uint64                                          `protobuf:"varint,15,opt,name=group_id,json=groupId,proto3,oneof" json:"group_id,omitempty"`
+	FeesMsat           *Amount                                          `protobuf:"bytes,16,opt,name=fees_msat,json=feesMsat,proto3,oneof" json:"fees_msat,omitempty"`
+	Utxo               *Outpoint                                        `protobuf:"bytes,17,opt,name=utxo,proto3,oneof" json:"utxo,omitempty"`
+	PeerId             []byte                                           `protobuf:"bytes,18,opt,name=peer_id,json=peerId,proto3,oneof" json:"peer_id,omitempty"`
+	OriginatingAccount *string                                          `protobuf:"bytes,19,opt,name=originating_account,json=originatingAccount,proto3,oneof" json:"originating_account,omitempty"`
+	Txid               []byte                                           `protobuf:"bytes,20,opt,name=txid,proto3,oneof" json:"txid,omitempty"`
+	SpendingTxid       []byte                                           `protobuf:"bytes,21,opt,name=spending_txid,json=spendingTxid,proto3,oneof" json:"spending_txid,omitempty"`
+	UtxoTxid           []byte                                           `protobuf:"bytes,22,opt,name=utxo_txid,json=utxoTxid,proto3,oneof" json:"utxo_txid,omitempty"`
+	Vout               *uint32                                          `protobuf:"varint,23,opt,name=vout,proto3,oneof" json:"vout,omitempty"`
+	OutputMsat         *Amount                                          `protobuf:"bytes,24,opt,name=output_msat,json=outputMsat,proto3,oneof" json:"output_msat,omitempty"`
+	OutputCount        *uint32                                          `protobuf:"varint,25,opt,name=output_count,json=outputCount,proto3,oneof" json:"output_count,omitempty"`
+	Blockheight        *uint32                                          `protobuf:"varint,26,opt,name=blockheight,proto3,oneof" json:"blockheight,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
+func (x *CoinMovementNotification) Reset() {
+	*x = CoinMovementNotification{}
+	mi := &file_node_proto_msgTypes[529]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CoinMovementNotification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CoinMovementNotification) ProtoMessage() {}
+
+func (x *CoinMovementNotification) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[529]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CoinMovementNotification.ProtoReflect.Descriptor instead.
+func (*CoinMovementNotification) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{529}
+}
+
+func (x *CoinMovementNotification) GetVersion() uint32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *CoinMovementNotification) GetCoinType() string {
+	if x != nil {
+		return x.CoinType
+	}
+	return ""
+}
+
+func (x *CoinMovementNotification) GetNodeId() []byte {
+	if x != nil {
+		return x.NodeId
+	}
+	return nil
+}
+
+func (x *CoinMovementNotification) GetItemType() CoinMovementNotification_CoinMovementType {
+	if x != nil {
+		return x.ItemType
+	}
+	return CoinMovementNotification_CHANNEL_MVT
+}
+
+func (x *CoinMovementNotification) GetCreatedIndex() uint64 {
+	if x != nil && x.CreatedIndex != nil {
+		return *x.CreatedIndex
+	}
+	return 0
+}
+
+func (x *CoinMovementNotification) GetAccountId() string {
+	if x != nil {
+		return x.AccountId
+	}
+	return ""
+}
+
+func (x *CoinMovementNotification) GetCreditMsat() *Amount {
+	if x != nil {
+		return x.CreditMsat
+	}
+	return nil
+}
+
+func (x *CoinMovementNotification) GetDebitMsat() *Amount {
+	if x != nil {
+		return x.DebitMsat
+	}
+	return nil
+}
+
+func (x *CoinMovementNotification) GetTimestamp() uint64 {
+	if x != nil {
+		return x.Timestamp
+	}
+	return 0
+}
+
+func (x *CoinMovementNotification) GetTags() []string {
+	if x != nil {
+		return x.Tags
+	}
+	return nil
+}
+
+func (x *CoinMovementNotification) GetPrimaryTag() CoinMovementNotification_CoinMovementPrimaryTag {
+	if x != nil && x.PrimaryTag != nil {
+		return *x.PrimaryTag
+	}
+	return CoinMovementNotification_DEPOSIT
+}
+
+func (x *CoinMovementNotification) GetExtraTags() []string {
+	if x != nil {
+		return x.ExtraTags
+	}
+	return nil
+}
+
+func (x *CoinMovementNotification) GetPaymentHash() []byte {
+	if x != nil {
+		return x.PaymentHash
+	}
+	return nil
+}
+
+func (x *CoinMovementNotification) GetPartId() uint64 {
+	if x != nil && x.PartId != nil {
+		return *x.PartId
+	}
+	return 0
+}
+
+func (x *CoinMovementNotification) GetGroupId() uint64 {
+	if x != nil && x.GroupId != nil {
+		return *x.GroupId
+	}
+	return 0
+}
+
+func (x *CoinMovementNotification) GetFeesMsat() *Amount {
+	if x != nil {
+		return x.FeesMsat
+	}
+	return nil
+}
+
+func (x *CoinMovementNotification) GetUtxo() *Outpoint {
+	if x != nil {
+		return x.Utxo
+	}
+	return nil
+}
+
+func (x *CoinMovementNotification) GetPeerId() []byte {
+	if x != nil {
+		return x.PeerId
+	}
+	return nil
+}
+
+func (x *CoinMovementNotification) GetOriginatingAccount() string {
+	if x != nil && x.OriginatingAccount != nil {
+		return *x.OriginatingAccount
+	}
+	return ""
+}
+
+func (x *CoinMovementNotification) GetTxid() []byte {
+	if x != nil {
+		return x.Txid
+	}
+	return nil
+}
+
+func (x *CoinMovementNotification) GetSpendingTxid() []byte {
+	if x != nil {
+		return x.SpendingTxid
+	}
+	return nil
+}
+
+func (x *CoinMovementNotification) GetUtxoTxid() []byte {
+	if x != nil {
+		return x.UtxoTxid
+	}
+	return nil
+}
+
+func (x *CoinMovementNotification) GetVout() uint32 {
+	if x != nil && x.Vout != nil {
+		return *x.Vout
+	}
+	return 0
+}
+
+func (x *CoinMovementNotification) GetOutputMsat() *Amount {
+	if x != nil {
+		return x.OutputMsat
+	}
+	return nil
+}
+
+func (x *CoinMovementNotification) GetOutputCount() uint32 {
+	if x != nil && x.OutputCount != nil {
+		return *x.OutputCount
+	}
+	return 0
+}
+
+func (x *CoinMovementNotification) GetBlockheight() uint32 {
+	if x != nil && x.Blockheight != nil {
+		return *x.Blockheight
+	}
+	return 0
+}
+
+type StreamCustomMsgRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamCustomMsgRequest) Reset() {
+	*x = StreamCustomMsgRequest{}
+	mi := &file_node_proto_msgTypes[530]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamCustomMsgRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamCustomMsgRequest) ProtoMessage() {}
+
+func (x *StreamCustomMsgRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[530]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamCustomMsgRequest.ProtoReflect.Descriptor instead.
+func (*StreamCustomMsgRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{530}
+}
+
+type CustomMsgNotification struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PeerId        []byte                 `protobuf:"bytes,1,opt,name=peer_id,json=peerId,proto3" json:"peer_id,omitempty"`
+	Payload       []byte                 `protobuf:"bytes,2,opt,name=payload,proto3" json:"payload,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CustomMsgNotification) Reset() {
+	*x = CustomMsgNotification{}
+	mi := &file_node_proto_msgTypes[531]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CustomMsgNotification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CustomMsgNotification) ProtoMessage() {}
+
+func (x *CustomMsgNotification) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[531]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CustomMsgNotification.ProtoReflect.Descriptor instead.
+func (*CustomMsgNotification) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{531}
+}
+
+func (x *CustomMsgNotification) GetPeerId() []byte {
+	if x != nil {
+		return x.PeerId
+	}
+	return nil
+}
+
+func (x *CustomMsgNotification) GetPayload() []byte {
+	if x != nil {
+		return x.Payload
+	}
+	return nil
+}
+
+type StreamDeprecatedOneshotRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamDeprecatedOneshotRequest) Reset() {
+	*x = StreamDeprecatedOneshotRequest{}
+	mi := &file_node_proto_msgTypes[532]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamDeprecatedOneshotRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamDeprecatedOneshotRequest) ProtoMessage() {}
+
+func (x *StreamDeprecatedOneshotRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[532]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamDeprecatedOneshotRequest.ProtoReflect.Descriptor instead.
+func (*StreamDeprecatedOneshotRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{532}
+}
+
+type DeprecatedOneshotNotification struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DeprecatedOk  bool                   `protobuf:"varint,1,opt,name=deprecated_ok,json=deprecatedOk,proto3" json:"deprecated_ok,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DeprecatedOneshotNotification) Reset() {
+	*x = DeprecatedOneshotNotification{}
+	mi := &file_node_proto_msgTypes[533]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DeprecatedOneshotNotification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DeprecatedOneshotNotification) ProtoMessage() {}
+
+func (x *DeprecatedOneshotNotification) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[533]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DeprecatedOneshotNotification.ProtoReflect.Descriptor instead.
+func (*DeprecatedOneshotNotification) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{533}
+}
+
+func (x *DeprecatedOneshotNotification) GetDeprecatedOk() bool {
+	if x != nil {
+		return x.DeprecatedOk
+	}
+	return false
+}
+
+type StreamDisconnectRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamDisconnectRequest) Reset() {
+	*x = StreamDisconnectRequest{}
+	mi := &file_node_proto_msgTypes[534]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamDisconnectRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamDisconnectRequest) ProtoMessage() {}
+
+func (x *StreamDisconnectRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[534]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamDisconnectRequest.ProtoReflect.Descriptor instead.
+func (*StreamDisconnectRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{534}
+}
+
+type DisconnectNotification struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            []byte                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DisconnectNotification) Reset() {
+	*x = DisconnectNotification{}
+	mi := &file_node_proto_msgTypes[535]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DisconnectNotification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DisconnectNotification) ProtoMessage() {}
+
+func (x *DisconnectNotification) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[535]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DisconnectNotification.ProtoReflect.Descriptor instead.
+func (*DisconnectNotification) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{535}
+}
+
+func (x *DisconnectNotification) GetId() []byte {
+	if x != nil {
+		return x.Id
+	}
+	return nil
+}
+
+type StreamForwardEventRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamForwardEventRequest) Reset() {
+	*x = StreamForwardEventRequest{}
+	mi := &file_node_proto_msgTypes[536]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamForwardEventRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamForwardEventRequest) ProtoMessage() {}
+
+func (x *StreamForwardEventRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[536]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamForwardEventRequest.ProtoReflect.Descriptor instead.
+func (*StreamForwardEventRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{536}
+}
+
+type ForwardEventNotification struct {
+	state         protoimpl.MessageState                      `protogen:"open.v1"`
+	PaymentHash   []byte                                      `protobuf:"bytes,1,opt,name=payment_hash,json=paymentHash,proto3" json:"payment_hash,omitempty"`
+	InChannel     string                                      `protobuf:"bytes,2,opt,name=in_channel,json=inChannel,proto3" json:"in_channel,omitempty"`
+	OutChannel    *string                                     `protobuf:"bytes,3,opt,name=out_channel,json=outChannel,proto3,oneof" json:"out_channel,omitempty"`
+	InMsat        *Amount                                     `protobuf:"bytes,4,opt,name=in_msat,json=inMsat,proto3" json:"in_msat,omitempty"`
+	OutMsat       *Amount                                     `protobuf:"bytes,5,opt,name=out_msat,json=outMsat,proto3,oneof" json:"out_msat,omitempty"`
+	FeeMsat       *Amount                                     `protobuf:"bytes,6,opt,name=fee_msat,json=feeMsat,proto3,oneof" json:"fee_msat,omitempty"`
+	Status        ForwardEventNotification_ForwardEventStatus `protobuf:"varint,7,opt,name=status,proto3,enum=cln.ForwardEventNotification_ForwardEventStatus" json:"status,omitempty"`
+	Failcode      *uint32                                     `protobuf:"varint,8,opt,name=failcode,proto3,oneof" json:"failcode,omitempty"`
+	Failreason    *string                                     `protobuf:"bytes,9,opt,name=failreason,proto3,oneof" json:"failreason,omitempty"`
+	Style         *ForwardEventNotification_ForwardEventStyle `protobuf:"varint,10,opt,name=style,proto3,enum=cln.ForwardEventNotification_ForwardEventStyle,oneof" json:"style,omitempty"`
+	ReceivedTime  float64                                     `protobuf:"fixed64,11,opt,name=received_time,json=receivedTime,proto3" json:"received_time,omitempty"`
+	ResolvedTime  *float64                                    `protobuf:"fixed64,12,opt,name=resolved_time,json=resolvedTime,proto3,oneof" json:"resolved_time,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ForwardEventNotification) Reset() {
+	*x = ForwardEventNotification{}
+	mi := &file_node_proto_msgTypes[537]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ForwardEventNotification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ForwardEventNotification) ProtoMessage() {}
+
+func (x *ForwardEventNotification) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[537]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ForwardEventNotification.ProtoReflect.Descriptor instead.
+func (*ForwardEventNotification) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{537}
+}
+
+func (x *ForwardEventNotification) GetPaymentHash() []byte {
+	if x != nil {
+		return x.PaymentHash
+	}
+	return nil
+}
+
+func (x *ForwardEventNotification) GetInChannel() string {
+	if x != nil {
+		return x.InChannel
+	}
+	return ""
+}
+
+func (x *ForwardEventNotification) GetOutChannel() string {
+	if x != nil && x.OutChannel != nil {
+		return *x.OutChannel
+	}
+	return ""
+}
+
+func (x *ForwardEventNotification) GetInMsat() *Amount {
+	if x != nil {
+		return x.InMsat
+	}
+	return nil
+}
+
+func (x *ForwardEventNotification) GetOutMsat() *Amount {
+	if x != nil {
+		return x.OutMsat
+	}
+	return nil
+}
+
+func (x *ForwardEventNotification) GetFeeMsat() *Amount {
+	if x != nil {
+		return x.FeeMsat
+	}
+	return nil
+}
+
+func (x *ForwardEventNotification) GetStatus() ForwardEventNotification_ForwardEventStatus {
+	if x != nil {
+		return x.Status
+	}
+	return ForwardEventNotification_OFFERED
+}
+
+func (x *ForwardEventNotification) GetFailcode() uint32 {
+	if x != nil && x.Failcode != nil {
+		return *x.Failcode
+	}
+	return 0
+}
+
+func (x *ForwardEventNotification) GetFailreason() string {
+	if x != nil && x.Failreason != nil {
+		return *x.Failreason
+	}
+	return ""
+}
+
+func (x *ForwardEventNotification) GetStyle() ForwardEventNotification_ForwardEventStyle {
+	if x != nil && x.Style != nil {
+		return *x.Style
+	}
+	return ForwardEventNotification_LEGACY
+}
+
+func (x *ForwardEventNotification) GetReceivedTime() float64 {
+	if x != nil {
+		return x.ReceivedTime
+	}
+	return 0
+}
+
+func (x *ForwardEventNotification) GetResolvedTime() float64 {
+	if x != nil && x.ResolvedTime != nil {
+		return *x.ResolvedTime
+	}
+	return 0
+}
+
+type StreamInvoiceCreationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamInvoiceCreationRequest) Reset() {
+	*x = StreamInvoiceCreationRequest{}
+	mi := &file_node_proto_msgTypes[538]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamInvoiceCreationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamInvoiceCreationRequest) ProtoMessage() {}
+
+func (x *StreamInvoiceCreationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[538]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamInvoiceCreationRequest.ProtoReflect.Descriptor instead.
+func (*StreamInvoiceCreationRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{538}
+}
+
+type InvoiceCreationNotification struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Msat          *Amount                `protobuf:"bytes,1,opt,name=msat,proto3,oneof" json:"msat,omitempty"`
+	Preimage      []byte                 `protobuf:"bytes,2,opt,name=preimage,proto3" json:"preimage,omitempty"`
+	Label         string                 `protobuf:"bytes,3,opt,name=label,proto3" json:"label,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InvoiceCreationNotification) Reset() {
+	*x = InvoiceCreationNotification{}
+	mi := &file_node_proto_msgTypes[539]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InvoiceCreationNotification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InvoiceCreationNotification) ProtoMessage() {}
+
+func (x *InvoiceCreationNotification) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[539]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InvoiceCreationNotification.ProtoReflect.Descriptor instead.
+func (*InvoiceCreationNotification) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{539}
+}
+
+func (x *InvoiceCreationNotification) GetMsat() *Amount {
+	if x != nil {
+		return x.Msat
+	}
+	return nil
+}
+
+func (x *InvoiceCreationNotification) GetPreimage() []byte {
+	if x != nil {
+		return x.Preimage
+	}
+	return nil
+}
+
+func (x *InvoiceCreationNotification) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
+type StreamInvoicePaymentRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamInvoicePaymentRequest) Reset() {
+	*x = StreamInvoicePaymentRequest{}
+	mi := &file_node_proto_msgTypes[540]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamInvoicePaymentRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamInvoicePaymentRequest) ProtoMessage() {}
+
+func (x *StreamInvoicePaymentRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[540]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamInvoicePaymentRequest.ProtoReflect.Descriptor instead.
+func (*StreamInvoicePaymentRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{540}
+}
+
+type InvoicePaymentNotification struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Msat          *Amount                `protobuf:"bytes,1,opt,name=msat,proto3" json:"msat,omitempty"`
+	Preimage      []byte                 `protobuf:"bytes,2,opt,name=preimage,proto3" json:"preimage,omitempty"`
+	Outpoint      *Outpoint              `protobuf:"bytes,3,opt,name=outpoint,proto3,oneof" json:"outpoint,omitempty"`
+	Label         string                 `protobuf:"bytes,4,opt,name=label,proto3" json:"label,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InvoicePaymentNotification) Reset() {
+	*x = InvoicePaymentNotification{}
+	mi := &file_node_proto_msgTypes[541]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InvoicePaymentNotification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InvoicePaymentNotification) ProtoMessage() {}
+
+func (x *InvoicePaymentNotification) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[541]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InvoicePaymentNotification.ProtoReflect.Descriptor instead.
+func (*InvoicePaymentNotification) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{541}
+}
+
+func (x *InvoicePaymentNotification) GetMsat() *Amount {
+	if x != nil {
+		return x.Msat
+	}
+	return nil
+}
+
+func (x *InvoicePaymentNotification) GetPreimage() []byte {
+	if x != nil {
+		return x.Preimage
+	}
+	return nil
+}
+
+func (x *InvoicePaymentNotification) GetOutpoint() *Outpoint {
+	if x != nil {
+		return x.Outpoint
+	}
+	return nil
+}
+
+func (x *InvoicePaymentNotification) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
+type StreamLogRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamLogRequest) Reset() {
+	*x = StreamLogRequest{}
+	mi := &file_node_proto_msgTypes[542]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamLogRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamLogRequest) ProtoMessage() {}
+
+func (x *StreamLogRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[542]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamLogRequest.ProtoReflect.Descriptor instead.
+func (*StreamLogRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{542}
+}
+
+type LogNotification struct {
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	Level         LogNotification_LogLevel `protobuf:"varint,1,opt,name=level,proto3,enum=cln.LogNotification_LogLevel" json:"level,omitempty"`
+	Time          string                   `protobuf:"bytes,2,opt,name=time,proto3" json:"time,omitempty"`
+	Timestamp     string                   `protobuf:"bytes,3,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	Source        string                   `protobuf:"bytes,4,opt,name=source,proto3" json:"source,omitempty"`
+	Log           string                   `protobuf:"bytes,5,opt,name=log,proto3" json:"log,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *LogNotification) Reset() {
+	*x = LogNotification{}
+	mi := &file_node_proto_msgTypes[543]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *LogNotification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*LogNotification) ProtoMessage() {}
+
+func (x *LogNotification) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[543]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use LogNotification.ProtoReflect.Descriptor instead.
+func (*LogNotification) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{543}
+}
+
+func (x *LogNotification) GetLevel() LogNotification_LogLevel {
+	if x != nil {
+		return x.Level
+	}
+	return LogNotification_IO
+}
+
+func (x *LogNotification) GetTime() string {
+	if x != nil {
+		return x.Time
+	}
+	return ""
+}
+
+func (x *LogNotification) GetTimestamp() string {
+	if x != nil {
+		return x.Timestamp
+	}
+	return ""
+}
+
+func (x *LogNotification) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *LogNotification) GetLog() string {
+	if x != nil {
+		return x.Log
+	}
+	return ""
+}
+
+type StreamOnionMessageForwardFailRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamOnionMessageForwardFailRequest) Reset() {
+	*x = StreamOnionMessageForwardFailRequest{}
+	mi := &file_node_proto_msgTypes[544]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamOnionMessageForwardFailRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamOnionMessageForwardFailRequest) ProtoMessage() {}
+
+func (x *StreamOnionMessageForwardFailRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[544]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamOnionMessageForwardFailRequest.ProtoReflect.Descriptor instead.
+func (*StreamOnionMessageForwardFailRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{544}
+}
+
+type OnionMessageForwardFailNotification struct {
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Source                []byte                 `protobuf:"bytes,1,opt,name=source,proto3" json:"source,omitempty"`
+	Incoming              []byte                 `protobuf:"bytes,2,opt,name=incoming,proto3" json:"incoming,omitempty"`
+	PathKey               []byte                 `protobuf:"bytes,3,opt,name=path_key,json=pathKey,proto3" json:"path_key,omitempty"`
+	Outgoing              []byte                 `protobuf:"bytes,4,opt,name=outgoing,proto3,oneof" json:"outgoing,omitempty"`
+	NextNodeId            []byte                 `protobuf:"bytes,5,opt,name=next_node_id,json=nextNodeId,proto3,oneof" json:"next_node_id,omitempty"`
+	NextShortChannelIdDir *string                `protobuf:"bytes,6,opt,name=next_short_channel_id_dir,json=nextShortChannelIdDir,proto3,oneof" json:"next_short_channel_id_dir,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *OnionMessageForwardFailNotification) Reset() {
+	*x = OnionMessageForwardFailNotification{}
+	mi := &file_node_proto_msgTypes[545]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OnionMessageForwardFailNotification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OnionMessageForwardFailNotification) ProtoMessage() {}
+
+func (x *OnionMessageForwardFailNotification) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[545]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OnionMessageForwardFailNotification.ProtoReflect.Descriptor instead.
+func (*OnionMessageForwardFailNotification) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{545}
+}
+
+func (x *OnionMessageForwardFailNotification) GetSource() []byte {
+	if x != nil {
+		return x.Source
+	}
+	return nil
+}
+
+func (x *OnionMessageForwardFailNotification) GetIncoming() []byte {
+	if x != nil {
+		return x.Incoming
+	}
+	return nil
+}
+
+func (x *OnionMessageForwardFailNotification) GetPathKey() []byte {
+	if x != nil {
+		return x.PathKey
+	}
+	return nil
+}
+
+func (x *OnionMessageForwardFailNotification) GetOutgoing() []byte {
+	if x != nil {
+		return x.Outgoing
+	}
+	return nil
+}
+
+func (x *OnionMessageForwardFailNotification) GetNextNodeId() []byte {
+	if x != nil {
+		return x.NextNodeId
+	}
+	return nil
+}
+
+func (x *OnionMessageForwardFailNotification) GetNextShortChannelIdDir() string {
+	if x != nil && x.NextShortChannelIdDir != nil {
+		return *x.NextShortChannelIdDir
+	}
+	return ""
+}
+
+type StreamOpenChannelPeerSigsRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamOpenChannelPeerSigsRequest) Reset() {
+	*x = StreamOpenChannelPeerSigsRequest{}
+	mi := &file_node_proto_msgTypes[546]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamOpenChannelPeerSigsRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamOpenChannelPeerSigsRequest) ProtoMessage() {}
+
+func (x *StreamOpenChannelPeerSigsRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[546]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamOpenChannelPeerSigsRequest.ProtoReflect.Descriptor instead.
+func (*StreamOpenChannelPeerSigsRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{546}
+}
+
+type OpenChannelPeerSigsNotification struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ChannelId     []byte                 `protobuf:"bytes,1,opt,name=channel_id,json=channelId,proto3" json:"channel_id,omitempty"`
+	SignedPsbt    string                 `protobuf:"bytes,2,opt,name=signed_psbt,json=signedPsbt,proto3" json:"signed_psbt,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OpenChannelPeerSigsNotification) Reset() {
+	*x = OpenChannelPeerSigsNotification{}
+	mi := &file_node_proto_msgTypes[547]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OpenChannelPeerSigsNotification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OpenChannelPeerSigsNotification) ProtoMessage() {}
+
+func (x *OpenChannelPeerSigsNotification) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[547]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OpenChannelPeerSigsNotification.ProtoReflect.Descriptor instead.
+func (*OpenChannelPeerSigsNotification) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{547}
+}
+
+func (x *OpenChannelPeerSigsNotification) GetChannelId() []byte {
+	if x != nil {
+		return x.ChannelId
+	}
+	return nil
+}
+
+func (x *OpenChannelPeerSigsNotification) GetSignedPsbt() string {
+	if x != nil {
+		return x.SignedPsbt
+	}
+	return ""
+}
+
+type StreamPluginStartedRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamPluginStartedRequest) Reset() {
+	*x = StreamPluginStartedRequest{}
+	mi := &file_node_proto_msgTypes[548]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamPluginStartedRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamPluginStartedRequest) ProtoMessage() {}
+
+func (x *StreamPluginStartedRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[548]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamPluginStartedRequest.ProtoReflect.Descriptor instead.
+func (*StreamPluginStartedRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{548}
+}
+
+type PluginStartedNotification struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PluginName    string                 `protobuf:"bytes,1,opt,name=plugin_name,json=pluginName,proto3" json:"plugin_name,omitempty"`
+	PluginPath    string                 `protobuf:"bytes,2,opt,name=plugin_path,json=pluginPath,proto3" json:"plugin_path,omitempty"`
+	Methods       []string               `protobuf:"bytes,3,rep,name=methods,proto3" json:"methods,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PluginStartedNotification) Reset() {
+	*x = PluginStartedNotification{}
+	mi := &file_node_proto_msgTypes[549]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PluginStartedNotification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PluginStartedNotification) ProtoMessage() {}
+
+func (x *PluginStartedNotification) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[549]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PluginStartedNotification.ProtoReflect.Descriptor instead.
+func (*PluginStartedNotification) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{549}
+}
+
+func (x *PluginStartedNotification) GetPluginName() string {
+	if x != nil {
+		return x.PluginName
+	}
+	return ""
+}
+
+func (x *PluginStartedNotification) GetPluginPath() string {
+	if x != nil {
+		return x.PluginPath
+	}
+	return ""
+}
+
+func (x *PluginStartedNotification) GetMethods() []string {
+	if x != nil {
+		return x.Methods
+	}
+	return nil
+}
+
+type StreamPluginStoppedRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamPluginStoppedRequest) Reset() {
+	*x = StreamPluginStoppedRequest{}
+	mi := &file_node_proto_msgTypes[550]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamPluginStoppedRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamPluginStoppedRequest) ProtoMessage() {}
+
+func (x *StreamPluginStoppedRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[550]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamPluginStoppedRequest.ProtoReflect.Descriptor instead.
+func (*StreamPluginStoppedRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{550}
+}
+
+type PluginStoppedNotification struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	PluginName    string                 `protobuf:"bytes,1,opt,name=plugin_name,json=pluginName,proto3" json:"plugin_name,omitempty"`
+	PluginPath    string                 `protobuf:"bytes,2,opt,name=plugin_path,json=pluginPath,proto3" json:"plugin_path,omitempty"`
+	Methods       []string               `protobuf:"bytes,3,rep,name=methods,proto3" json:"methods,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *PluginStoppedNotification) Reset() {
+	*x = PluginStoppedNotification{}
+	mi := &file_node_proto_msgTypes[551]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PluginStoppedNotification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PluginStoppedNotification) ProtoMessage() {}
+
+func (x *PluginStoppedNotification) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[551]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PluginStoppedNotification.ProtoReflect.Descriptor instead.
+func (*PluginStoppedNotification) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{551}
+}
+
+func (x *PluginStoppedNotification) GetPluginName() string {
+	if x != nil {
+		return x.PluginName
+	}
+	return ""
+}
+
+func (x *PluginStoppedNotification) GetPluginPath() string {
+	if x != nil {
+		return x.PluginPath
+	}
+	return ""
+}
+
+func (x *PluginStoppedNotification) GetMethods() []string {
+	if x != nil {
+		return x.Methods
+	}
+	return nil
+}
+
+type StreamSendPayFailureRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamSendPayFailureRequest) Reset() {
+	*x = StreamSendPayFailureRequest{}
+	mi := &file_node_proto_msgTypes[552]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamSendPayFailureRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamSendPayFailureRequest) ProtoMessage() {}
+
+func (x *StreamSendPayFailureRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[552]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamSendPayFailureRequest.ProtoReflect.Descriptor instead.
+func (*StreamSendPayFailureRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{552}
+}
+
+type SendPayFailureNotification struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          int64                  `protobuf:"zigzag64,1,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Data          *SendpayFailureData    `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SendPayFailureNotification) Reset() {
+	*x = SendPayFailureNotification{}
+	mi := &file_node_proto_msgTypes[553]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendPayFailureNotification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendPayFailureNotification) ProtoMessage() {}
+
+func (x *SendPayFailureNotification) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[553]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendPayFailureNotification.ProtoReflect.Descriptor instead.
+func (*SendPayFailureNotification) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{553}
+}
+
+func (x *SendPayFailureNotification) GetCode() int64 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *SendPayFailureNotification) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
+}
+
+func (x *SendPayFailureNotification) GetData() *SendpayFailureData {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+type SendpayFailureData struct {
+	state           protoimpl.MessageState                       `protogen:"open.v1"`
+	CreatedIndex    *uint64                                      `protobuf:"varint,1,opt,name=created_index,json=createdIndex,proto3,oneof" json:"created_index,omitempty"`
+	Id              *uint64                                      `protobuf:"varint,2,opt,name=id,proto3,oneof" json:"id,omitempty"`
+	PaymentHash     []byte                                       `protobuf:"bytes,3,opt,name=payment_hash,json=paymentHash,proto3,oneof" json:"payment_hash,omitempty"`
+	Groupid         *uint64                                      `protobuf:"varint,4,opt,name=groupid,proto3,oneof" json:"groupid,omitempty"`
+	UpdatedIndex    *uint64                                      `protobuf:"varint,5,opt,name=updated_index,json=updatedIndex,proto3,oneof" json:"updated_index,omitempty"`
+	Partid          *uint64                                      `protobuf:"varint,6,opt,name=partid,proto3,oneof" json:"partid,omitempty"`
+	Destination     []byte                                       `protobuf:"bytes,7,opt,name=destination,proto3,oneof" json:"destination,omitempty"`
+	AmountMsat      *Amount                                      `protobuf:"bytes,8,opt,name=amount_msat,json=amountMsat,proto3,oneof" json:"amount_msat,omitempty"`
+	AmountSentMsat  *Amount                                      `protobuf:"bytes,9,opt,name=amount_sent_msat,json=amountSentMsat,proto3,oneof" json:"amount_sent_msat,omitempty"`
+	CreatedAt       *uint64                                      `protobuf:"varint,10,opt,name=created_at,json=createdAt,proto3,oneof" json:"created_at,omitempty"`
+	CompletedAt     *uint64                                      `protobuf:"varint,11,opt,name=completed_at,json=completedAt,proto3,oneof" json:"completed_at,omitempty"`
+	Status          *SendpayFailureData_SendpayFailureDataStatus `protobuf:"varint,12,opt,name=status,proto3,enum=cln.SendpayFailureData_SendpayFailureDataStatus,oneof" json:"status,omitempty"`
+	PaymentPreimage []byte                                       `protobuf:"bytes,13,opt,name=payment_preimage,json=paymentPreimage,proto3,oneof" json:"payment_preimage,omitempty"`
+	Label           *string                                      `protobuf:"bytes,14,opt,name=label,proto3,oneof" json:"label,omitempty"`
+	Bolt11          *string                                      `protobuf:"bytes,15,opt,name=bolt11,proto3,oneof" json:"bolt11,omitempty"`
+	Bolt12          *string                                      `protobuf:"bytes,16,opt,name=bolt12,proto3,oneof" json:"bolt12,omitempty"`
+	Description     *string                                      `protobuf:"bytes,17,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	Erroronion      []byte                                       `protobuf:"bytes,18,opt,name=erroronion,proto3,oneof" json:"erroronion,omitempty"`
+	Onionreply      []byte                                       `protobuf:"bytes,19,opt,name=onionreply,proto3,oneof" json:"onionreply,omitempty"`
+	ErringIndex     *uint32                                      `protobuf:"varint,20,opt,name=erring_index,json=erringIndex,proto3,oneof" json:"erring_index,omitempty"`
+	Failcode        *uint32                                      `protobuf:"varint,21,opt,name=failcode,proto3,oneof" json:"failcode,omitempty"`
+	Failcodename    *string                                      `protobuf:"bytes,22,opt,name=failcodename,proto3,oneof" json:"failcodename,omitempty"`
+	ErringNode      []byte                                       `protobuf:"bytes,23,opt,name=erring_node,json=erringNode,proto3,oneof" json:"erring_node,omitempty"`
+	ErringChannel   *string                                      `protobuf:"bytes,24,opt,name=erring_channel,json=erringChannel,proto3,oneof" json:"erring_channel,omitempty"`
+	ErringDirection *uint32                                      `protobuf:"varint,25,opt,name=erring_direction,json=erringDirection,proto3,oneof" json:"erring_direction,omitempty"`
+	RawMessage      []byte                                       `protobuf:"bytes,26,opt,name=raw_message,json=rawMessage,proto3,oneof" json:"raw_message,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *SendpayFailureData) Reset() {
+	*x = SendpayFailureData{}
+	mi := &file_node_proto_msgTypes[554]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendpayFailureData) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendpayFailureData) ProtoMessage() {}
+
+func (x *SendpayFailureData) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[554]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendpayFailureData.ProtoReflect.Descriptor instead.
+func (*SendpayFailureData) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{554}
+}
+
+func (x *SendpayFailureData) GetCreatedIndex() uint64 {
+	if x != nil && x.CreatedIndex != nil {
+		return *x.CreatedIndex
+	}
+	return 0
+}
+
+func (x *SendpayFailureData) GetId() uint64 {
+	if x != nil && x.Id != nil {
+		return *x.Id
+	}
+	return 0
+}
+
+func (x *SendpayFailureData) GetPaymentHash() []byte {
+	if x != nil {
+		return x.PaymentHash
+	}
+	return nil
+}
+
+func (x *SendpayFailureData) GetGroupid() uint64 {
+	if x != nil && x.Groupid != nil {
+		return *x.Groupid
+	}
+	return 0
+}
+
+func (x *SendpayFailureData) GetUpdatedIndex() uint64 {
+	if x != nil && x.UpdatedIndex != nil {
+		return *x.UpdatedIndex
+	}
+	return 0
+}
+
+func (x *SendpayFailureData) GetPartid() uint64 {
+	if x != nil && x.Partid != nil {
+		return *x.Partid
+	}
+	return 0
+}
+
+func (x *SendpayFailureData) GetDestination() []byte {
+	if x != nil {
+		return x.Destination
+	}
+	return nil
+}
+
+func (x *SendpayFailureData) GetAmountMsat() *Amount {
+	if x != nil {
+		return x.AmountMsat
+	}
+	return nil
+}
+
+func (x *SendpayFailureData) GetAmountSentMsat() *Amount {
+	if x != nil {
+		return x.AmountSentMsat
+	}
+	return nil
+}
+
+func (x *SendpayFailureData) GetCreatedAt() uint64 {
+	if x != nil && x.CreatedAt != nil {
+		return *x.CreatedAt
+	}
+	return 0
+}
+
+func (x *SendpayFailureData) GetCompletedAt() uint64 {
+	if x != nil && x.CompletedAt != nil {
+		return *x.CompletedAt
+	}
+	return 0
+}
+
+func (x *SendpayFailureData) GetStatus() SendpayFailureData_SendpayFailureDataStatus {
+	if x != nil && x.Status != nil {
+		return *x.Status
+	}
+	return SendpayFailureData_FAILED
+}
+
+func (x *SendpayFailureData) GetPaymentPreimage() []byte {
+	if x != nil {
+		return x.PaymentPreimage
+	}
+	return nil
+}
+
+func (x *SendpayFailureData) GetLabel() string {
+	if x != nil && x.Label != nil {
+		return *x.Label
+	}
+	return ""
+}
+
+func (x *SendpayFailureData) GetBolt11() string {
+	if x != nil && x.Bolt11 != nil {
+		return *x.Bolt11
+	}
+	return ""
+}
+
+func (x *SendpayFailureData) GetBolt12() string {
+	if x != nil && x.Bolt12 != nil {
+		return *x.Bolt12
+	}
+	return ""
+}
+
+func (x *SendpayFailureData) GetDescription() string {
+	if x != nil && x.Description != nil {
+		return *x.Description
+	}
+	return ""
+}
+
+func (x *SendpayFailureData) GetErroronion() []byte {
+	if x != nil {
+		return x.Erroronion
+	}
+	return nil
+}
+
+func (x *SendpayFailureData) GetOnionreply() []byte {
+	if x != nil {
+		return x.Onionreply
+	}
+	return nil
+}
+
+func (x *SendpayFailureData) GetErringIndex() uint32 {
+	if x != nil && x.ErringIndex != nil {
+		return *x.ErringIndex
+	}
+	return 0
+}
+
+func (x *SendpayFailureData) GetFailcode() uint32 {
+	if x != nil && x.Failcode != nil {
+		return *x.Failcode
+	}
+	return 0
+}
+
+func (x *SendpayFailureData) GetFailcodename() string {
+	if x != nil && x.Failcodename != nil {
+		return *x.Failcodename
+	}
+	return ""
+}
+
+func (x *SendpayFailureData) GetErringNode() []byte {
+	if x != nil {
+		return x.ErringNode
+	}
+	return nil
+}
+
+func (x *SendpayFailureData) GetErringChannel() string {
+	if x != nil && x.ErringChannel != nil {
+		return *x.ErringChannel
+	}
+	return ""
+}
+
+func (x *SendpayFailureData) GetErringDirection() uint32 {
+	if x != nil && x.ErringDirection != nil {
+		return *x.ErringDirection
+	}
+	return 0
+}
+
+func (x *SendpayFailureData) GetRawMessage() []byte {
+	if x != nil {
+		return x.RawMessage
+	}
+	return nil
+}
+
+type StreamSendPaySuccessRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamSendPaySuccessRequest) Reset() {
+	*x = StreamSendPaySuccessRequest{}
+	mi := &file_node_proto_msgTypes[555]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamSendPaySuccessRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamSendPaySuccessRequest) ProtoMessage() {}
+
+func (x *StreamSendPaySuccessRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[555]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamSendPaySuccessRequest.ProtoReflect.Descriptor instead.
+func (*StreamSendPaySuccessRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{555}
+}
+
+type SendPaySuccessNotification struct {
+	state           protoimpl.MessageState                          `protogen:"open.v1"`
+	CreatedIndex    uint64                                          `protobuf:"varint,1,opt,name=created_index,json=createdIndex,proto3" json:"created_index,omitempty"`
+	Id              uint64                                          `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	PaymentHash     []byte                                          `protobuf:"bytes,3,opt,name=payment_hash,json=paymentHash,proto3" json:"payment_hash,omitempty"`
+	Groupid         uint64                                          `protobuf:"varint,4,opt,name=groupid,proto3" json:"groupid,omitempty"`
+	UpdatedIndex    *uint64                                         `protobuf:"varint,5,opt,name=updated_index,json=updatedIndex,proto3,oneof" json:"updated_index,omitempty"`
+	Partid          *uint64                                         `protobuf:"varint,6,opt,name=partid,proto3,oneof" json:"partid,omitempty"`
+	Destination     []byte                                          `protobuf:"bytes,7,opt,name=destination,proto3,oneof" json:"destination,omitempty"`
+	AmountMsat      *Amount                                         `protobuf:"bytes,8,opt,name=amount_msat,json=amountMsat,proto3,oneof" json:"amount_msat,omitempty"`
+	AmountSentMsat  *Amount                                         `protobuf:"bytes,9,opt,name=amount_sent_msat,json=amountSentMsat,proto3" json:"amount_sent_msat,omitempty"`
+	CreatedAt       uint64                                          `protobuf:"varint,10,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	CompletedAt     *uint64                                         `protobuf:"varint,11,opt,name=completed_at,json=completedAt,proto3,oneof" json:"completed_at,omitempty"`
+	Status          SendPaySuccessNotification_SendpaySuccessStatus `protobuf:"varint,12,opt,name=status,proto3,enum=cln.SendPaySuccessNotification_SendpaySuccessStatus" json:"status,omitempty"`
+	PaymentPreimage []byte                                          `protobuf:"bytes,13,opt,name=payment_preimage,json=paymentPreimage,proto3,oneof" json:"payment_preimage,omitempty"`
+	Label           *string                                         `protobuf:"bytes,14,opt,name=label,proto3,oneof" json:"label,omitempty"`
+	Bolt11          *string                                         `protobuf:"bytes,15,opt,name=bolt11,proto3,oneof" json:"bolt11,omitempty"`
+	Bolt12          *string                                         `protobuf:"bytes,16,opt,name=bolt12,proto3,oneof" json:"bolt12,omitempty"`
+	Description     *string                                         `protobuf:"bytes,17,opt,name=description,proto3,oneof" json:"description,omitempty"`
+	Erroronion      []byte                                          `protobuf:"bytes,18,opt,name=erroronion,proto3,oneof" json:"erroronion,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *SendPaySuccessNotification) Reset() {
+	*x = SendPaySuccessNotification{}
+	mi := &file_node_proto_msgTypes[556]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SendPaySuccessNotification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SendPaySuccessNotification) ProtoMessage() {}
+
+func (x *SendPaySuccessNotification) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[556]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SendPaySuccessNotification.ProtoReflect.Descriptor instead.
+func (*SendPaySuccessNotification) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{556}
+}
+
+func (x *SendPaySuccessNotification) GetCreatedIndex() uint64 {
+	if x != nil {
+		return x.CreatedIndex
+	}
+	return 0
+}
+
+func (x *SendPaySuccessNotification) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *SendPaySuccessNotification) GetPaymentHash() []byte {
+	if x != nil {
+		return x.PaymentHash
+	}
+	return nil
+}
+
+func (x *SendPaySuccessNotification) GetGroupid() uint64 {
+	if x != nil {
+		return x.Groupid
+	}
+	return 0
+}
+
+func (x *SendPaySuccessNotification) GetUpdatedIndex() uint64 {
+	if x != nil && x.UpdatedIndex != nil {
+		return *x.UpdatedIndex
+	}
+	return 0
+}
+
+func (x *SendPaySuccessNotification) GetPartid() uint64 {
+	if x != nil && x.Partid != nil {
+		return *x.Partid
+	}
+	return 0
+}
+
+func (x *SendPaySuccessNotification) GetDestination() []byte {
+	if x != nil {
+		return x.Destination
+	}
+	return nil
+}
+
+func (x *SendPaySuccessNotification) GetAmountMsat() *Amount {
+	if x != nil {
+		return x.AmountMsat
+	}
+	return nil
+}
+
+func (x *SendPaySuccessNotification) GetAmountSentMsat() *Amount {
+	if x != nil {
+		return x.AmountSentMsat
+	}
+	return nil
+}
+
+func (x *SendPaySuccessNotification) GetCreatedAt() uint64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
+func (x *SendPaySuccessNotification) GetCompletedAt() uint64 {
+	if x != nil && x.CompletedAt != nil {
+		return *x.CompletedAt
+	}
+	return 0
+}
+
+func (x *SendPaySuccessNotification) GetStatus() SendPaySuccessNotification_SendpaySuccessStatus {
+	if x != nil {
+		return x.Status
+	}
+	return SendPaySuccessNotification_COMPLETE
+}
+
+func (x *SendPaySuccessNotification) GetPaymentPreimage() []byte {
+	if x != nil {
+		return x.PaymentPreimage
+	}
+	return nil
+}
+
+func (x *SendPaySuccessNotification) GetLabel() string {
+	if x != nil && x.Label != nil {
+		return *x.Label
+	}
+	return ""
+}
+
+func (x *SendPaySuccessNotification) GetBolt11() string {
+	if x != nil && x.Bolt11 != nil {
+		return *x.Bolt11
+	}
+	return ""
+}
+
+func (x *SendPaySuccessNotification) GetBolt12() string {
+	if x != nil && x.Bolt12 != nil {
+		return *x.Bolt12
+	}
+	return ""
+}
+
+func (x *SendPaySuccessNotification) GetDescription() string {
+	if x != nil && x.Description != nil {
+		return *x.Description
+	}
+	return ""
+}
+
+func (x *SendPaySuccessNotification) GetErroronion() []byte {
+	if x != nil {
+		return x.Erroronion
+	}
+	return nil
+}
+
+type StreamShutdownRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamShutdownRequest) Reset() {
+	*x = StreamShutdownRequest{}
+	mi := &file_node_proto_msgTypes[557]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamShutdownRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamShutdownRequest) ProtoMessage() {}
+
+func (x *StreamShutdownRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[557]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamShutdownRequest.ProtoReflect.Descriptor instead.
+func (*StreamShutdownRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{557}
+}
+
+type ShutdownNotification struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ShutdownNotification) Reset() {
+	*x = ShutdownNotification{}
+	mi := &file_node_proto_msgTypes[558]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ShutdownNotification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ShutdownNotification) ProtoMessage() {}
+
+func (x *ShutdownNotification) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[558]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ShutdownNotification.ProtoReflect.Descriptor instead.
+func (*ShutdownNotification) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{558}
+}
+
+type StreamWarningRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamWarningRequest) Reset() {
+	*x = StreamWarningRequest{}
+	mi := &file_node_proto_msgTypes[559]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamWarningRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamWarningRequest) ProtoMessage() {}
+
+func (x *StreamWarningRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[559]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamWarningRequest.ProtoReflect.Descriptor instead.
+func (*StreamWarningRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{559}
+}
+
+type WarningNotification struct {
+	state         protoimpl.MessageState           `protogen:"open.v1"`
+	Level         WarningNotification_WarningLevel `protobuf:"varint,1,opt,name=level,proto3,enum=cln.WarningNotification_WarningLevel" json:"level,omitempty"`
+	Time          string                           `protobuf:"bytes,2,opt,name=time,proto3" json:"time,omitempty"`
+	Timestamp     string                           `protobuf:"bytes,3,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	Source        string                           `protobuf:"bytes,4,opt,name=source,proto3" json:"source,omitempty"`
+	Log           string                           `protobuf:"bytes,5,opt,name=log,proto3" json:"log,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *WarningNotification) Reset() {
+	*x = WarningNotification{}
+	mi := &file_node_proto_msgTypes[560]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *WarningNotification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*WarningNotification) ProtoMessage() {}
+
+func (x *WarningNotification) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[560]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use WarningNotification.ProtoReflect.Descriptor instead.
+func (*WarningNotification) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{560}
+}
+
+func (x *WarningNotification) GetLevel() WarningNotification_WarningLevel {
+	if x != nil {
+		return x.Level
+	}
+	return WarningNotification_WARN
+}
+
+func (x *WarningNotification) GetTime() string {
+	if x != nil {
+		return x.Time
+	}
+	return ""
+}
+
+func (x *WarningNotification) GetTimestamp() string {
+	if x != nil {
+		return x.Timestamp
+	}
+	return ""
+}
+
+func (x *WarningNotification) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *WarningNotification) GetLog() string {
+	if x != nil {
+		return x.Log
+	}
+	return ""
+}
+
+type StreamPayPartEndRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamPayPartEndRequest) Reset() {
+	*x = StreamPayPartEndRequest{}
+	mi := &file_node_proto_msgTypes[561]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamPayPartEndRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamPayPartEndRequest) ProtoMessage() {}
+
+func (x *StreamPayPartEndRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[561]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamPayPartEndRequest.ProtoReflect.Descriptor instead.
+func (*StreamPayPartEndRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{561}
+}
+
+type PayPartEndNotification struct {
+	state                protoimpl.MessageState                  `protogen:"open.v1"`
+	Status               PayPartEndNotification_PayPartEndStatus `protobuf:"varint,1,opt,name=status,proto3,enum=cln.PayPartEndNotification_PayPartEndStatus" json:"status,omitempty"`
+	Duration             float64                                 `protobuf:"fixed64,2,opt,name=duration,proto3" json:"duration,omitempty"`
+	PaymentHash          []byte                                  `protobuf:"bytes,3,opt,name=payment_hash,json=paymentHash,proto3" json:"payment_hash,omitempty"`
+	Groupid              uint64                                  `protobuf:"varint,4,opt,name=groupid,proto3" json:"groupid,omitempty"`
+	Partid               uint64                                  `protobuf:"varint,5,opt,name=partid,proto3" json:"partid,omitempty"`
+	FailedMsg            []byte                                  `protobuf:"bytes,6,opt,name=failed_msg,json=failedMsg,proto3,oneof" json:"failed_msg,omitempty"`
+	FailedNodeId         []byte                                  `protobuf:"bytes,7,opt,name=failed_node_id,json=failedNodeId,proto3,oneof" json:"failed_node_id,omitempty"`
+	FailedShortChannelId *string                                 `protobuf:"bytes,8,opt,name=failed_short_channel_id,json=failedShortChannelId,proto3,oneof" json:"failed_short_channel_id,omitempty"`
+	FailedDirection      *uint32                                 `protobuf:"varint,9,opt,name=failed_direction,json=failedDirection,proto3,oneof" json:"failed_direction,omitempty"`
+	ErrorCode            *uint32                                 `protobuf:"varint,10,opt,name=error_code,json=errorCode,proto3,oneof" json:"error_code,omitempty"`
+	ErrorMessage         *string                                 `protobuf:"bytes,11,opt,name=error_message,json=errorMessage,proto3,oneof" json:"error_message,omitempty"`
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
+}
+
+func (x *PayPartEndNotification) Reset() {
+	*x = PayPartEndNotification{}
+	mi := &file_node_proto_msgTypes[562]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PayPartEndNotification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PayPartEndNotification) ProtoMessage() {}
+
+func (x *PayPartEndNotification) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[562]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PayPartEndNotification.ProtoReflect.Descriptor instead.
+func (*PayPartEndNotification) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{562}
+}
+
+func (x *PayPartEndNotification) GetStatus() PayPartEndNotification_PayPartEndStatus {
+	if x != nil {
+		return x.Status
+	}
+	return PayPartEndNotification_SUCCESS
+}
+
+func (x *PayPartEndNotification) GetDuration() float64 {
+	if x != nil {
+		return x.Duration
+	}
+	return 0
+}
+
+func (x *PayPartEndNotification) GetPaymentHash() []byte {
+	if x != nil {
+		return x.PaymentHash
+	}
+	return nil
+}
+
+func (x *PayPartEndNotification) GetGroupid() uint64 {
+	if x != nil {
+		return x.Groupid
+	}
+	return 0
+}
+
+func (x *PayPartEndNotification) GetPartid() uint64 {
+	if x != nil {
+		return x.Partid
+	}
+	return 0
+}
+
+func (x *PayPartEndNotification) GetFailedMsg() []byte {
+	if x != nil {
+		return x.FailedMsg
+	}
+	return nil
+}
+
+func (x *PayPartEndNotification) GetFailedNodeId() []byte {
+	if x != nil {
+		return x.FailedNodeId
+	}
+	return nil
+}
+
+func (x *PayPartEndNotification) GetFailedShortChannelId() string {
+	if x != nil && x.FailedShortChannelId != nil {
+		return *x.FailedShortChannelId
+	}
+	return ""
+}
+
+func (x *PayPartEndNotification) GetFailedDirection() uint32 {
+	if x != nil && x.FailedDirection != nil {
+		return *x.FailedDirection
+	}
+	return 0
+}
+
+func (x *PayPartEndNotification) GetErrorCode() uint32 {
+	if x != nil && x.ErrorCode != nil {
+		return *x.ErrorCode
+	}
+	return 0
+}
+
+func (x *PayPartEndNotification) GetErrorMessage() string {
+	if x != nil && x.ErrorMessage != nil {
+		return *x.ErrorMessage
+	}
+	return ""
+}
+
+type StreamPayPartStartRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StreamPayPartStartRequest) Reset() {
+	*x = StreamPayPartStartRequest{}
+	mi := &file_node_proto_msgTypes[563]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StreamPayPartStartRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StreamPayPartStartRequest) ProtoMessage() {}
+
+func (x *StreamPayPartStartRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[563]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StreamPayPartStartRequest.ProtoReflect.Descriptor instead.
+func (*StreamPayPartStartRequest) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{563}
+}
+
+type PayPartStartNotification struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	PaymentHash      []byte                 `protobuf:"bytes,1,opt,name=payment_hash,json=paymentHash,proto3" json:"payment_hash,omitempty"`
+	Groupid          uint64                 `protobuf:"varint,2,opt,name=groupid,proto3" json:"groupid,omitempty"`
+	Partid           uint64                 `protobuf:"varint,3,opt,name=partid,proto3" json:"partid,omitempty"`
+	TotalPaymentMsat *Amount                `protobuf:"bytes,4,opt,name=total_payment_msat,json=totalPaymentMsat,proto3" json:"total_payment_msat,omitempty"`
+	AttemptMsat      *Amount                `protobuf:"bytes,5,opt,name=attempt_msat,json=attemptMsat,proto3" json:"attempt_msat,omitempty"`
+	Hops             []*PayPartStartHops    `protobuf:"bytes,6,rep,name=hops,proto3" json:"hops,omitempty"`
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *PayPartStartNotification) Reset() {
+	*x = PayPartStartNotification{}
+	mi := &file_node_proto_msgTypes[564]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PayPartStartNotification) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PayPartStartNotification) ProtoMessage() {}
+
+func (x *PayPartStartNotification) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[564]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PayPartStartNotification.ProtoReflect.Descriptor instead.
+func (*PayPartStartNotification) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{564}
+}
+
+func (x *PayPartStartNotification) GetPaymentHash() []byte {
+	if x != nil {
+		return x.PaymentHash
+	}
+	return nil
+}
+
+func (x *PayPartStartNotification) GetGroupid() uint64 {
+	if x != nil {
+		return x.Groupid
+	}
+	return 0
+}
+
+func (x *PayPartStartNotification) GetPartid() uint64 {
+	if x != nil {
+		return x.Partid
+	}
+	return 0
+}
+
+func (x *PayPartStartNotification) GetTotalPaymentMsat() *Amount {
+	if x != nil {
+		return x.TotalPaymentMsat
+	}
+	return nil
+}
+
+func (x *PayPartStartNotification) GetAttemptMsat() *Amount {
+	if x != nil {
+		return x.AttemptMsat
+	}
+	return nil
+}
+
+func (x *PayPartStartNotification) GetHops() []*PayPartStartHops {
+	if x != nil {
+		return x.Hops
+	}
+	return nil
+}
+
+type PayPartStartHops struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	NextNode       []byte                 `protobuf:"bytes,1,opt,name=next_node,json=nextNode,proto3" json:"next_node,omitempty"`
+	ShortChannelId string                 `protobuf:"bytes,2,opt,name=short_channel_id,json=shortChannelId,proto3" json:"short_channel_id,omitempty"`
+	Direction      uint32                 `protobuf:"varint,3,opt,name=direction,proto3" json:"direction,omitempty"`
+	ChannelInMsat  *Amount                `protobuf:"bytes,4,opt,name=channel_in_msat,json=channelInMsat,proto3" json:"channel_in_msat,omitempty"`
+	ChannelOutMsat *Amount                `protobuf:"bytes,5,opt,name=channel_out_msat,json=channelOutMsat,proto3" json:"channel_out_msat,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *PayPartStartHops) Reset() {
+	*x = PayPartStartHops{}
+	mi := &file_node_proto_msgTypes[565]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PayPartStartHops) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PayPartStartHops) ProtoMessage() {}
+
+func (x *PayPartStartHops) ProtoReflect() protoreflect.Message {
+	mi := &file_node_proto_msgTypes[565]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PayPartStartHops.ProtoReflect.Descriptor instead.
+func (*PayPartStartHops) Descriptor() ([]byte, []int) {
+	return file_node_proto_rawDescGZIP(), []int{565}
+}
+
+func (x *PayPartStartHops) GetNextNode() []byte {
+	if x != nil {
+		return x.NextNode
+	}
+	return nil
+}
+
+func (x *PayPartStartHops) GetShortChannelId() string {
+	if x != nil {
+		return x.ShortChannelId
+	}
+	return ""
+}
+
+func (x *PayPartStartHops) GetDirection() uint32 {
+	if x != nil {
+		return x.Direction
+	}
+	return 0
+}
+
+func (x *PayPartStartHops) GetChannelInMsat() *Amount {
+	if x != nil {
+		return x.ChannelInMsat
+	}
+	return nil
+}
+
+func (x *PayPartStartHops) GetChannelOutMsat() *Amount {
+	if x != nil {
+		return x.ChannelOutMsat
+	}
+	return nil
+}
+
 var File_node_proto protoreflect.FileDescriptor
 
 const file_node_proto_rawDesc = "" +
 	"\n" +
 	"\n" +
 	"node.proto\x12\x03cln\x1a\x10primitives.proto\"\x10\n" +
-	"\x0eGetinfoRequest\"\xa3\x06\n" +
+	"\x0eGetinfoRequest\"\x94\x06\n" +
 	"\x0fGetinfoResponse\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\fR\x02id\x12\x19\n" +
-	"\x05alias\x18\x02 \x01(\tH\x00R\x05alias\x88\x01\x01\x12\x14\n" +
+	"\x02id\x18\x01 \x01(\fR\x02id\x12\x14\n" +
+	"\x05alias\x18\x02 \x01(\tR\x05alias\x12\x14\n" +
 	"\x05color\x18\x03 \x01(\fR\x05color\x12\x1b\n" +
 	"\tnum_peers\x18\x04 \x01(\rR\bnumPeers\x120\n" +
 	"\x14num_pending_channels\x18\x05 \x01(\rR\x12numPendingChannels\x12.\n" +
@@ -39850,15 +43834,14 @@ const file_node_proto_rawDesc = "" +
 	"\aversion\x18\b \x01(\tR\aversion\x12#\n" +
 	"\rlightning_dir\x18\t \x01(\tR\flightningDir\x12?\n" +
 	"\four_features\x18\n" +
-	" \x01(\v2\x17.cln.GetinfoOurFeaturesH\x01R\vourFeatures\x88\x01\x01\x12 \n" +
+	" \x01(\v2\x17.cln.GetinfoOurFeaturesH\x00R\vourFeatures\x88\x01\x01\x12 \n" +
 	"\vblockheight\x18\v \x01(\rR\vblockheight\x12\x18\n" +
 	"\anetwork\x18\f \x01(\tR\anetwork\x12;\n" +
 	"\x13fees_collected_msat\x18\r \x01(\v2\v.cln.AmountR\x11feesCollectedMsat\x12-\n" +
 	"\aaddress\x18\x0e \x03(\v2\x13.cln.GetinfoAddressR\aaddress\x12-\n" +
 	"\abinding\x18\x0f \x03(\v2\x13.cln.GetinfoBindingR\abinding\x127\n" +
-	"\x15warning_bitcoind_sync\x18\x10 \x01(\tH\x02R\x13warningBitcoindSync\x88\x01\x01\x12;\n" +
-	"\x17warning_lightningd_sync\x18\x11 \x01(\tH\x03R\x15warningLightningdSync\x88\x01\x01B\b\n" +
-	"\x06_aliasB\x0f\n" +
+	"\x15warning_bitcoind_sync\x18\x10 \x01(\tH\x01R\x13warningBitcoindSync\x88\x01\x01\x12;\n" +
+	"\x17warning_lightningd_sync\x18\x11 \x01(\tH\x02R\x15warningLightningdSync\x88\x01\x01B\x0f\n" +
 	"\r_our_featuresB\x18\n" +
 	"\x16_warning_bitcoind_syncB\x1a\n" +
 	"\x18_warning_lightningd_sync\"p\n" +
@@ -39910,7 +43893,7 @@ const file_node_proto_rawDesc = "" +
 	"\x03_idB\b\n" +
 	"\x06_level\">\n" +
 	"\x11ListpeersResponse\x12)\n" +
-	"\x05peers\x18\x01 \x03(\v2\x13.cln.ListpeersPeersR\x05peers\"\x9f\x02\n" +
+	"\x05peers\x18\x01 \x03(\v2\x13.cln.ListpeersPeersR\x05peers\"\x89\x02\n" +
 	"\x0eListpeersPeers\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\fR\x02id\x12\x1c\n" +
 	"\tconnected\x18\x02 \x01(\bR\tconnected\x12(\n" +
@@ -39918,11 +43901,10 @@ const file_node_proto_rawDesc = "" +
 	"\anetaddr\x18\x05 \x03(\tR\anetaddr\x12\x1f\n" +
 	"\bfeatures\x18\x06 \x01(\fH\x00R\bfeatures\x88\x01\x01\x12$\n" +
 	"\vremote_addr\x18\a \x01(\tH\x01R\n" +
-	"remoteAddr\x88\x01\x01\x12&\n" +
-	"\fnum_channels\x18\b \x01(\rH\x02R\vnumChannels\x88\x01\x01B\v\n" +
+	"remoteAddr\x88\x01\x01\x12!\n" +
+	"\fnum_channels\x18\b \x01(\rR\vnumChannelsB\v\n" +
 	"\t_featuresB\x0e\n" +
-	"\f_remote_addrB\x0f\n" +
-	"\r_num_channels\"\xbf\x03\n" +
+	"\f_remote_addr\"\xbf\x03\n" +
 	"\x11ListpeersPeersLog\x12I\n" +
 	"\titem_type\x18\x01 \x01(\x0e2,.cln.ListpeersPeersLog.ListpeersPeersLogTypeR\bitemType\x12$\n" +
 	"\vnum_skipped\x18\x02 \x01(\rH\x00R\n" +
@@ -39978,7 +43960,7 @@ const file_node_proto_rawDesc = "" +
 	"\b_addressB\x0f\n" +
 	"\r_redeemscriptB\x0e\n" +
 	"\f_blockheightB\x14\n" +
-	"\x12_reserved_to_block\"\x97\x03\n" +
+	"\x12_reserved_to_block\"\x83\x03\n" +
 	"\x11ListfundsChannels\x12\x17\n" +
 	"\apeer_id\x18\x01 \x01(\fR\x06peerId\x123\n" +
 	"\x0four_amount_msat\x18\x02 \x01(\v2\v.cln.AmountR\rourAmountMsat\x12,\n" +
@@ -39988,11 +43970,10 @@ const file_node_proto_rawDesc = "" +
 	"\x0efunding_output\x18\x05 \x01(\rR\rfundingOutput\x12\x1c\n" +
 	"\tconnected\x18\x06 \x01(\bR\tconnected\x12'\n" +
 	"\x05state\x18\a \x01(\x0e2\x11.cln.ChannelStateR\x05state\x12-\n" +
-	"\x10short_channel_id\x18\b \x01(\tH\x00R\x0eshortChannelId\x88\x01\x01\x12\"\n" +
+	"\x10short_channel_id\x18\b \x01(\tH\x00R\x0eshortChannelId\x88\x01\x01\x12\x1d\n" +
 	"\n" +
-	"channel_id\x18\t \x01(\fH\x01R\tchannelId\x88\x01\x01B\x13\n" +
-	"\x11_short_channel_idB\r\n" +
-	"\v_channel_id\"\xb7\x04\n" +
+	"channel_id\x18\t \x01(\fR\tchannelIdB\x13\n" +
+	"\x11_short_channel_id\"\xb7\x04\n" +
 	"\x0eSendpayRequest\x12'\n" +
 	"\x05route\x18\x01 \x03(\v2\x11.cln.SendpayRouteR\x05route\x12!\n" +
 	"\fpayment_hash\x18\x02 \x01(\fR\vpaymentHash\x12\x19\n" +
@@ -40016,7 +43997,7 @@ const file_node_proto_rawDesc = "" +
 	"\f_amount_msatB\x10\n" +
 	"\x0e_localinvreqidB\x13\n" +
 	"\x11_payment_metadataB\x0e\n" +
-	"\f_description\"\xe5\x06\n" +
+	"\f_description\"\xce\x06\n" +
 	"\x0fSendpayResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1d\n" +
 	"\agroupid\x18\x02 \x01(\x04H\x00R\agroupid\x88\x01\x01\x12!\n" +
@@ -40035,10 +44016,10 @@ const file_node_proto_rawDesc = "" +
 	"\x06bolt12\x18\f \x01(\tH\x06R\x06bolt12\x88\x01\x01\x12.\n" +
 	"\x10payment_preimage\x18\r \x01(\fH\aR\x0fpaymentPreimage\x88\x01\x01\x12\x1d\n" +
 	"\amessage\x18\x0e \x01(\tH\bR\amessage\x88\x01\x01\x12&\n" +
-	"\fcompleted_at\x18\x0f \x01(\x04H\tR\vcompletedAt\x88\x01\x01\x12(\n" +
-	"\rcreated_index\x18\x10 \x01(\x04H\n" +
-	"R\fcreatedIndex\x88\x01\x01\x12(\n" +
-	"\rupdated_index\x18\x11 \x01(\x04H\vR\fupdatedIndex\x88\x01\x01\"*\n" +
+	"\fcompleted_at\x18\x0f \x01(\x04H\tR\vcompletedAt\x88\x01\x01\x12#\n" +
+	"\rcreated_index\x18\x10 \x01(\x04R\fcreatedIndex\x12(\n" +
+	"\rupdated_index\x18\x11 \x01(\x04H\n" +
+	"R\fupdatedIndex\x88\x01\x01\"*\n" +
 	"\rSendpayStatus\x12\v\n" +
 	"\aPENDING\x10\x00\x12\f\n" +
 	"\bCOMPLETE\x10\x01B\n" +
@@ -40054,7 +44035,6 @@ const file_node_proto_rawDesc = "" +
 	"\n" +
 	"\b_messageB\x0f\n" +
 	"\r_completed_atB\x10\n" +
-	"\x0e_created_indexB\x10\n" +
 	"\x0e_updated_index\"|\n" +
 	"\fSendpayRoute\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\fR\x02id\x12\x14\n" +
@@ -40271,7 +44251,7 @@ const file_node_proto_rawDesc = "" +
 	"\x14CreateinvoiceRequest\x12\x1c\n" +
 	"\tinvstring\x18\x01 \x01(\tR\tinvstring\x12\x14\n" +
 	"\x05label\x18\x02 \x01(\tR\x05label\x12\x1a\n" +
-	"\bpreimage\x18\x03 \x01(\fR\bpreimage\"\xbf\a\n" +
+	"\bpreimage\x18\x03 \x01(\fR\bpreimage\"\xa8\a\n" +
 	"\x15CreateinvoiceResponse\x12\x14\n" +
 	"\x05label\x18\x01 \x01(\tR\x05label\x12\x1b\n" +
 	"\x06bolt11\x18\x02 \x01(\tH\x00R\x06bolt11\x88\x01\x01\x12\x1b\n" +
@@ -40289,10 +44269,9 @@ const file_node_proto_rawDesc = "" +
 	"\apaid_at\x18\v \x01(\x04H\x05R\x06paidAt\x88\x01\x01\x12.\n" +
 	"\x10payment_preimage\x18\f \x01(\fH\x06R\x0fpaymentPreimage\x88\x01\x01\x12)\n" +
 	"\x0elocal_offer_id\x18\r \x01(\fH\aR\flocalOfferId\x88\x01\x01\x12/\n" +
-	"\x11invreq_payer_note\x18\x0f \x01(\tH\bR\x0finvreqPayerNote\x88\x01\x01\x12(\n" +
-	"\rcreated_index\x18\x10 \x01(\x04H\tR\fcreatedIndex\x88\x01\x01\x12H\n" +
-	"\rpaid_outpoint\x18\x11 \x01(\v2\x1e.cln.CreateinvoicePaidOutpointH\n" +
-	"R\fpaidOutpoint\x88\x01\x01\"8\n" +
+	"\x11invreq_payer_note\x18\x0f \x01(\tH\bR\x0finvreqPayerNote\x88\x01\x01\x12#\n" +
+	"\rcreated_index\x18\x10 \x01(\x04R\fcreatedIndex\x12H\n" +
+	"\rpaid_outpoint\x18\x11 \x01(\v2\x1e.cln.CreateinvoicePaidOutpointH\tR\fpaidOutpoint\x88\x01\x01\"8\n" +
 	"\x13CreateinvoiceStatus\x12\b\n" +
 	"\x04PAID\x10\x00\x12\v\n" +
 	"\aEXPIRED\x10\x01\x12\n" +
@@ -40309,7 +44288,6 @@ const file_node_proto_rawDesc = "" +
 	"\x11_payment_preimageB\x11\n" +
 	"\x0f_local_offer_idB\x14\n" +
 	"\x12_invreq_payer_noteB\x10\n" +
-	"\x0e_created_indexB\x10\n" +
 	"\x0e_paid_outpoint\"G\n" +
 	"\x19CreateinvoicePaidOutpoint\x12\x12\n" +
 	"\x04txid\x18\x01 \x01(\fR\x04txid\x12\x16\n" +
@@ -40390,7 +44368,7 @@ const file_node_proto_rawDesc = "" +
 	"\aEXPIRED\x10\x01\x12\n" +
 	"\n" +
 	"\x06UNPAID\x10\x02B\v\n" +
-	"\t_desconly\"\xa8\a\n" +
+	"\t_desconly\"\x91\a\n" +
 	"\x12DelinvoiceResponse\x12\x14\n" +
 	"\x05label\x18\x01 \x01(\tR\x05label\x12\x1b\n" +
 	"\x06bolt11\x18\x02 \x01(\tH\x00R\x06bolt11\x88\x01\x01\x12\x1b\n" +
@@ -40403,14 +44381,14 @@ const file_node_proto_rawDesc = "" +
 	"\n" +
 	"expires_at\x18\b \x01(\x04R\texpiresAt\x12)\n" +
 	"\x0elocal_offer_id\x18\t \x01(\fH\x04R\flocalOfferId\x88\x01\x01\x12/\n" +
-	"\x11invreq_payer_note\x18\v \x01(\tH\x05R\x0finvreqPayerNote\x88\x01\x01\x12(\n" +
-	"\rcreated_index\x18\f \x01(\x04H\x06R\fcreatedIndex\x88\x01\x01\x12(\n" +
-	"\rupdated_index\x18\r \x01(\x04H\aR\fupdatedIndex\x88\x01\x01\x12 \n" +
-	"\tpay_index\x18\x0e \x01(\x04H\bR\bpayIndex\x88\x01\x01\x12B\n" +
-	"\x14amount_received_msat\x18\x0f \x01(\v2\v.cln.AmountH\tR\x12amountReceivedMsat\x88\x01\x01\x12\x1c\n" +
-	"\apaid_at\x18\x10 \x01(\x04H\n" +
-	"R\x06paidAt\x88\x01\x01\x12.\n" +
-	"\x10payment_preimage\x18\x11 \x01(\fH\vR\x0fpaymentPreimage\x88\x01\x01\"5\n" +
+	"\x11invreq_payer_note\x18\v \x01(\tH\x05R\x0finvreqPayerNote\x88\x01\x01\x12#\n" +
+	"\rcreated_index\x18\f \x01(\x04R\fcreatedIndex\x12(\n" +
+	"\rupdated_index\x18\r \x01(\x04H\x06R\fupdatedIndex\x88\x01\x01\x12 \n" +
+	"\tpay_index\x18\x0e \x01(\x04H\aR\bpayIndex\x88\x01\x01\x12B\n" +
+	"\x14amount_received_msat\x18\x0f \x01(\v2\v.cln.AmountH\bR\x12amountReceivedMsat\x88\x01\x01\x12\x1c\n" +
+	"\apaid_at\x18\x10 \x01(\x04H\tR\x06paidAt\x88\x01\x01\x12.\n" +
+	"\x10payment_preimage\x18\x11 \x01(\fH\n" +
+	"R\x0fpaymentPreimage\x88\x01\x01\"5\n" +
 	"\x10DelinvoiceStatus\x12\b\n" +
 	"\x04PAID\x10\x00\x12\v\n" +
 	"\aEXPIRED\x10\x01\x12\n" +
@@ -40422,7 +44400,6 @@ const file_node_proto_rawDesc = "" +
 	"\f_descriptionB\x11\n" +
 	"\x0f_local_offer_idB\x14\n" +
 	"\x12_invreq_payer_noteB\x10\n" +
-	"\x0e_created_indexB\x10\n" +
 	"\x0e_updated_indexB\f\n" +
 	"\n" +
 	"_pay_indexB\x17\n" +
@@ -40465,12 +44442,11 @@ const file_node_proto_rawDesc = "" +
 	"\bmnemonic\x18\x03 \x01(\tH\x00R\bmnemonic\x88\x01\x01B\v\n" +
 	"\t_mnemonic\".\n" +
 	"\x0eRecoverRequest\x12\x1c\n" +
-	"\thsmsecret\x18\x01 \x01(\tR\thsmsecret\"\x90\x01\n" +
-	"\x0fRecoverResponse\x12?\n" +
-	"\x06result\x18\x01 \x01(\x0e2\".cln.RecoverResponse.RecoverResultH\x00R\x06result\x88\x01\x01\"1\n" +
+	"\thsmsecret\x18\x01 \x01(\tR\thsmsecret\"\x80\x01\n" +
+	"\x0fRecoverResponse\x12:\n" +
+	"\x06result\x18\x01 \x01(\x0e2\".cln.RecoverResponse.RecoverResultR\x06result\"1\n" +
 	"\rRecoverResult\x12 \n" +
-	"\x1cRECOVERY_RESTART_IN_PROGRESS\x10\x00B\t\n" +
-	"\a_result\")\n" +
+	"\x1cRECOVERY_RESTART_IN_PROGRESS\x10\x00\")\n" +
 	"\x15RecoverchannelRequest\x12\x10\n" +
 	"\x03scb\x18\x01 \x03(\fR\x03scb\".\n" +
 	"\x16RecoverchannelResponse\x12\x14\n" +
@@ -40490,7 +44466,7 @@ const file_node_proto_rawDesc = "" +
 	"\t_preimageB\a\n" +
 	"\x05_cltvB\t\n" +
 	"\a_expiryB\x0f\n" +
-	"\r_deschashonly\"\xa6\x04\n" +
+	"\r_deschashonly\"\x8f\x04\n" +
 	"\x0fInvoiceResponse\x12\x16\n" +
 	"\x06bolt11\x18\x01 \x01(\tR\x06bolt11\x12!\n" +
 	"\fpayment_hash\x18\x02 \x01(\fR\vpaymentHash\x12%\n" +
@@ -40502,15 +44478,14 @@ const file_node_proto_rawDesc = "" +
 	"\x10warning_deadends\x18\a \x01(\tH\x02R\x0fwarningDeadends\x88\x01\x01\x129\n" +
 	"\x16warning_private_unused\x18\b \x01(\tH\x03R\x14warningPrivateUnused\x88\x01\x01\x12$\n" +
 	"\vwarning_mpp\x18\t \x01(\tH\x04R\n" +
-	"warningMpp\x88\x01\x01\x12(\n" +
+	"warningMpp\x88\x01\x01\x12#\n" +
 	"\rcreated_index\x18\n" +
-	" \x01(\x04H\x05R\fcreatedIndex\x88\x01\x01B\x13\n" +
+	" \x01(\x04R\fcreatedIndexB\x13\n" +
 	"\x11_warning_capacityB\x12\n" +
 	"\x10_warning_offlineB\x13\n" +
 	"\x11_warning_deadendsB\x19\n" +
 	"\x17_warning_private_unusedB\x0e\n" +
-	"\f_warning_mppB\x10\n" +
-	"\x0e_created_index\"\xa0\x02\n" +
+	"\f_warning_mpp\"\xa0\x02\n" +
 	"\x15InvoicerequestRequest\x12#\n" +
 	"\x06amount\x18\x01 \x01(\v2\v.cln.AmountR\x06amount\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12\x1b\n" +
@@ -40595,7 +44570,7 @@ const file_node_proto_rawDesc = "" +
 	"\x06_startB\b\n" +
 	"\x06_limit\"M\n" +
 	"\x14ListinvoicesResponse\x125\n" +
-	"\binvoices\x18\x01 \x03(\v2\x19.cln.ListinvoicesInvoicesR\binvoices\"\xa3\b\n" +
+	"\binvoices\x18\x01 \x03(\v2\x19.cln.ListinvoicesInvoicesR\binvoices\"\x8c\b\n" +
 	"\x14ListinvoicesInvoices\x12\x14\n" +
 	"\x05label\x18\x01 \x01(\tR\x05label\x12%\n" +
 	"\vdescription\x18\x02 \x01(\tH\x00R\vdescription\x88\x01\x01\x12!\n" +
@@ -40612,11 +44587,11 @@ const file_node_proto_rawDesc = "" +
 	"\x14amount_received_msat\x18\f \x01(\v2\v.cln.AmountH\x06R\x12amountReceivedMsat\x88\x01\x01\x12\x1c\n" +
 	"\apaid_at\x18\r \x01(\x04H\aR\x06paidAt\x88\x01\x01\x12.\n" +
 	"\x10payment_preimage\x18\x0e \x01(\fH\bR\x0fpaymentPreimage\x88\x01\x01\x12/\n" +
-	"\x11invreq_payer_note\x18\x0f \x01(\tH\tR\x0finvreqPayerNote\x88\x01\x01\x12(\n" +
-	"\rcreated_index\x18\x10 \x01(\x04H\n" +
-	"R\fcreatedIndex\x88\x01\x01\x12(\n" +
-	"\rupdated_index\x18\x11 \x01(\x04H\vR\fupdatedIndex\x88\x01\x01\x12O\n" +
-	"\rpaid_outpoint\x18\x12 \x01(\v2%.cln.ListinvoicesInvoicesPaidOutpointH\fR\fpaidOutpoint\x88\x01\x01\"?\n" +
+	"\x11invreq_payer_note\x18\x0f \x01(\tH\tR\x0finvreqPayerNote\x88\x01\x01\x12#\n" +
+	"\rcreated_index\x18\x10 \x01(\x04R\fcreatedIndex\x12(\n" +
+	"\rupdated_index\x18\x11 \x01(\x04H\n" +
+	"R\fupdatedIndex\x88\x01\x01\x12O\n" +
+	"\rpaid_outpoint\x18\x12 \x01(\v2%.cln.ListinvoicesInvoicesPaidOutpointH\vR\fpaidOutpoint\x88\x01\x01\"?\n" +
 	"\x1aListinvoicesInvoicesStatus\x12\n" +
 	"\n" +
 	"\x06UNPAID\x10\x00\x12\b\n" +
@@ -40634,7 +44609,6 @@ const file_node_proto_rawDesc = "" +
 	"\b_paid_atB\x13\n" +
 	"\x11_payment_preimageB\x14\n" +
 	"\x12_invreq_payer_noteB\x10\n" +
-	"\x0e_created_indexB\x10\n" +
 	"\x0e_updated_indexB\x10\n" +
 	"\x0e_paid_outpoint\"N\n" +
 	" ListinvoicesInvoicesPaidOutpoint\x12\x12\n" +
@@ -40664,7 +44638,7 @@ const file_node_proto_rawDesc = "" +
 	"\f_amount_msatB\x10\n" +
 	"\x0e_localinvreqidB\x0e\n" +
 	"\f_descriptionB\x14\n" +
-	"\x12_total_amount_msat\"\x89\x06\n" +
+	"\x12_total_amount_msat\"\xf2\x05\n" +
 	"\x11SendonionResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12!\n" +
 	"\fpayment_hash\x18\x02 \x01(\fR\vpaymentHash\x12>\n" +
@@ -40681,9 +44655,9 @@ const file_node_proto_rawDesc = "" +
 	" \x01(\tH\x04R\x06bolt12\x88\x01\x01\x12.\n" +
 	"\x10payment_preimage\x18\v \x01(\fH\x05R\x0fpaymentPreimage\x88\x01\x01\x12\x1d\n" +
 	"\amessage\x18\f \x01(\tH\x06R\amessage\x88\x01\x01\x12\x1b\n" +
-	"\x06partid\x18\r \x01(\x04H\aR\x06partid\x88\x01\x01\x12(\n" +
-	"\rcreated_index\x18\x0e \x01(\x04H\bR\fcreatedIndex\x88\x01\x01\x12(\n" +
-	"\rupdated_index\x18\x0f \x01(\x04H\tR\fupdatedIndex\x88\x01\x01\",\n" +
+	"\x06partid\x18\r \x01(\x04H\aR\x06partid\x88\x01\x01\x12#\n" +
+	"\rcreated_index\x18\x0e \x01(\x04R\fcreatedIndex\x12(\n" +
+	"\rupdated_index\x18\x0f \x01(\x04H\bR\fupdatedIndex\x88\x01\x01\",\n" +
 	"\x0fSendonionStatus\x12\v\n" +
 	"\aPENDING\x10\x00\x12\f\n" +
 	"\bCOMPLETE\x10\x01B\x0e\n" +
@@ -40696,7 +44670,6 @@ const file_node_proto_rawDesc = "" +
 	"\n" +
 	"\b_messageB\t\n" +
 	"\a_partidB\x10\n" +
-	"\x0e_created_indexB\x10\n" +
 	"\x0e_updated_index\"g\n" +
 	"\x11SendonionFirstHop\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\fR\x02id\x12,\n" +
@@ -40725,7 +44698,7 @@ const file_node_proto_rawDesc = "" +
 	"\x06_startB\b\n" +
 	"\x06_limit\"M\n" +
 	"\x14ListsendpaysResponse\x125\n" +
-	"\bpayments\x18\x01 \x03(\v2\x19.cln.ListsendpaysPaymentsR\bpayments\"\xc4\a\n" +
+	"\bpayments\x18\x01 \x03(\v2\x19.cln.ListsendpaysPaymentsR\bpayments\"\xad\a\n" +
 	"\x14ListsendpaysPayments\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x18\n" +
 	"\agroupid\x18\x02 \x01(\x04R\agroupid\x12!\n" +
@@ -40746,11 +44719,11 @@ const file_node_proto_rawDesc = "" +
 	"erroronion\x18\r \x01(\fH\x06R\n" +
 	"erroronion\x88\x01\x01\x12%\n" +
 	"\vdescription\x18\x0e \x01(\tH\aR\vdescription\x88\x01\x01\x12\x1b\n" +
-	"\x06partid\x18\x0f \x01(\x04H\bR\x06partid\x88\x01\x01\x12(\n" +
-	"\rcreated_index\x18\x10 \x01(\x04H\tR\fcreatedIndex\x88\x01\x01\x12(\n" +
-	"\rupdated_index\x18\x11 \x01(\x04H\n" +
-	"R\fupdatedIndex\x88\x01\x01\x12&\n" +
-	"\fcompleted_at\x18\x12 \x01(\x04H\vR\vcompletedAt\x88\x01\x01\"C\n" +
+	"\x06partid\x18\x0f \x01(\x04H\bR\x06partid\x88\x01\x01\x12#\n" +
+	"\rcreated_index\x18\x10 \x01(\x04R\fcreatedIndex\x12(\n" +
+	"\rupdated_index\x18\x11 \x01(\x04H\tR\fupdatedIndex\x88\x01\x01\x12&\n" +
+	"\fcompleted_at\x18\x12 \x01(\x04H\n" +
+	"R\vcompletedAt\x88\x01\x01\"C\n" +
 	"\x1aListsendpaysPaymentsStatus\x12\v\n" +
 	"\aPENDING\x10\x00\x12\n" +
 	"\n" +
@@ -40765,7 +44738,6 @@ const file_node_proto_rawDesc = "" +
 	"\v_erroronionB\x0e\n" +
 	"\f_descriptionB\t\n" +
 	"\a_partidB\x10\n" +
-	"\x0e_created_indexB\x10\n" +
 	"\x0e_updated_indexB\x0f\n" +
 	"\r_completed_at\"\x19\n" +
 	"\x17ListtransactionsRequest\"a\n" +
@@ -40891,7 +44863,7 @@ const file_node_proto_rawDesc = "" +
 	"\atimeout\x18\x02 \x01(\x04H\x01R\atimeout\x88\x01\x01B\x10\n" +
 	"\x0e_lastpay_indexB\n" +
 	"\n" +
-	"\b_timeout\"\x84\a\n" +
+	"\b_timeout\"\xed\x06\n" +
 	"\x16WaitanyinvoiceResponse\x12\x14\n" +
 	"\x05label\x18\x01 \x01(\tR\x05label\x12%\n" +
 	"\vdescription\x18\x02 \x01(\tH\x00R\vdescription\x88\x01\x01\x12!\n" +
@@ -40907,11 +44879,10 @@ const file_node_proto_rawDesc = "" +
 	"\x14amount_received_msat\x18\n" +
 	" \x01(\v2\v.cln.AmountH\x05R\x12amountReceivedMsat\x88\x01\x01\x12\x1c\n" +
 	"\apaid_at\x18\v \x01(\x04H\x06R\x06paidAt\x88\x01\x01\x12.\n" +
-	"\x10payment_preimage\x18\f \x01(\fH\aR\x0fpaymentPreimage\x88\x01\x01\x12(\n" +
-	"\rcreated_index\x18\r \x01(\x04H\bR\fcreatedIndex\x88\x01\x01\x12(\n" +
-	"\rupdated_index\x18\x0e \x01(\x04H\tR\fupdatedIndex\x88\x01\x01\x12I\n" +
-	"\rpaid_outpoint\x18\x0f \x01(\v2\x1f.cln.WaitanyinvoicePaidOutpointH\n" +
-	"R\fpaidOutpoint\x88\x01\x01\"-\n" +
+	"\x10payment_preimage\x18\f \x01(\fH\aR\x0fpaymentPreimage\x88\x01\x01\x12#\n" +
+	"\rcreated_index\x18\r \x01(\x04R\fcreatedIndex\x12(\n" +
+	"\rupdated_index\x18\x0e \x01(\x04H\bR\fupdatedIndex\x88\x01\x01\x12I\n" +
+	"\rpaid_outpoint\x18\x0f \x01(\v2\x1f.cln.WaitanyinvoicePaidOutpointH\tR\fpaidOutpoint\x88\x01\x01\"-\n" +
 	"\x14WaitanyinvoiceStatus\x12\b\n" +
 	"\x04PAID\x10\x00\x12\v\n" +
 	"\aEXPIRED\x10\x01B\x0e\n" +
@@ -40925,14 +44896,13 @@ const file_node_proto_rawDesc = "" +
 	"\n" +
 	"\b_paid_atB\x13\n" +
 	"\x11_payment_preimageB\x10\n" +
-	"\x0e_created_indexB\x10\n" +
 	"\x0e_updated_indexB\x10\n" +
 	"\x0e_paid_outpoint\"H\n" +
 	"\x1aWaitanyinvoicePaidOutpoint\x12\x12\n" +
 	"\x04txid\x18\x01 \x01(\fR\x04txid\x12\x16\n" +
 	"\x06outnum\x18\x02 \x01(\rR\x06outnum\"*\n" +
 	"\x12WaitinvoiceRequest\x12\x14\n" +
-	"\x05label\x18\x01 \x01(\tR\x05label\"\xf5\x06\n" +
+	"\x05label\x18\x01 \x01(\tR\x05label\"\xde\x06\n" +
 	"\x13WaitinvoiceResponse\x12\x14\n" +
 	"\x05label\x18\x01 \x01(\tR\x05label\x12%\n" +
 	"\vdescription\x18\x02 \x01(\tH\x00R\vdescription\x88\x01\x01\x12!\n" +
@@ -40948,11 +44918,10 @@ const file_node_proto_rawDesc = "" +
 	"\x14amount_received_msat\x18\n" +
 	" \x01(\v2\v.cln.AmountH\x05R\x12amountReceivedMsat\x88\x01\x01\x12\x1c\n" +
 	"\apaid_at\x18\v \x01(\x04H\x06R\x06paidAt\x88\x01\x01\x12.\n" +
-	"\x10payment_preimage\x18\f \x01(\fH\aR\x0fpaymentPreimage\x88\x01\x01\x12(\n" +
-	"\rcreated_index\x18\r \x01(\x04H\bR\fcreatedIndex\x88\x01\x01\x12(\n" +
-	"\rupdated_index\x18\x0e \x01(\x04H\tR\fupdatedIndex\x88\x01\x01\x12F\n" +
-	"\rpaid_outpoint\x18\x0f \x01(\v2\x1c.cln.WaitinvoicePaidOutpointH\n" +
-	"R\fpaidOutpoint\x88\x01\x01\"*\n" +
+	"\x10payment_preimage\x18\f \x01(\fH\aR\x0fpaymentPreimage\x88\x01\x01\x12#\n" +
+	"\rcreated_index\x18\r \x01(\x04R\fcreatedIndex\x12(\n" +
+	"\rupdated_index\x18\x0e \x01(\x04H\bR\fupdatedIndex\x88\x01\x01\x12F\n" +
+	"\rpaid_outpoint\x18\x0f \x01(\v2\x1c.cln.WaitinvoicePaidOutpointH\tR\fpaidOutpoint\x88\x01\x01\"*\n" +
 	"\x11WaitinvoiceStatus\x12\b\n" +
 	"\x04PAID\x10\x00\x12\v\n" +
 	"\aEXPIRED\x10\x01B\x0e\n" +
@@ -40966,7 +44935,6 @@ const file_node_proto_rawDesc = "" +
 	"\n" +
 	"\b_paid_atB\x13\n" +
 	"\x11_payment_preimageB\x10\n" +
-	"\x0e_created_indexB\x10\n" +
 	"\x0e_updated_indexB\x10\n" +
 	"\x0e_paid_outpoint\"E\n" +
 	"\x17WaitinvoicePaidOutpoint\x12\x12\n" +
@@ -40981,7 +44949,7 @@ const file_node_proto_rawDesc = "" +
 	"\n" +
 	"\b_timeoutB\n" +
 	"\n" +
-	"\b_groupid\"\xbd\x06\n" +
+	"\b_groupid\"\xa6\x06\n" +
 	"\x13WaitsendpayResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x1d\n" +
 	"\agroupid\x18\x02 \x01(\x04H\x00R\agroupid\x88\x01\x01\x12!\n" +
@@ -40999,10 +44967,9 @@ const file_node_proto_rawDesc = "" +
 	"\x06bolt11\x18\v \x01(\tH\x05R\x06bolt11\x88\x01\x01\x12\x1b\n" +
 	"\x06bolt12\x18\f \x01(\tH\x06R\x06bolt12\x88\x01\x01\x12.\n" +
 	"\x10payment_preimage\x18\r \x01(\fH\aR\x0fpaymentPreimage\x88\x01\x01\x12&\n" +
-	"\fcompleted_at\x18\x0e \x01(\x01H\bR\vcompletedAt\x88\x01\x01\x12(\n" +
-	"\rcreated_index\x18\x0f \x01(\x04H\tR\fcreatedIndex\x88\x01\x01\x12(\n" +
-	"\rupdated_index\x18\x10 \x01(\x04H\n" +
-	"R\fupdatedIndex\x88\x01\x01\"!\n" +
+	"\fcompleted_at\x18\x0e \x01(\x01H\bR\vcompletedAt\x88\x01\x01\x12#\n" +
+	"\rcreated_index\x18\x0f \x01(\x04R\fcreatedIndex\x12(\n" +
+	"\rupdated_index\x18\x10 \x01(\x04H\tR\fupdatedIndex\x88\x01\x01\"!\n" +
 	"\x11WaitsendpayStatus\x12\f\n" +
 	"\bCOMPLETE\x10\x00B\n" +
 	"\n" +
@@ -41015,7 +44982,6 @@ const file_node_proto_rawDesc = "" +
 	"\a_bolt12B\x13\n" +
 	"\x11_payment_preimageB\x0f\n" +
 	"\r_completed_atB\x10\n" +
-	"\x0e_created_indexB\x10\n" +
 	"\x0e_updated_index\"\xa4\x01\n" +
 	"\x0eNewaddrRequest\x12M\n" +
 	"\vaddresstype\x18\x01 \x01(\x0e2&.cln.NewaddrRequest.NewaddrAddresstypeH\x00R\vaddresstype\x88\x01\x01\"3\n" +
@@ -41199,12 +45165,15 @@ const file_node_proto_rawDesc = "" +
 	"\x0eTxsendResponse\x12\x12\n" +
 	"\x04psbt\x18\x01 \x01(\tR\x04psbt\x12\x0e\n" +
 	"\x02tx\x18\x02 \x01(\fR\x02tx\x12\x12\n" +
-	"\x04txid\x18\x03 \x01(\fR\x04txid\"y\n" +
+	"\x04txid\x18\x03 \x01(\fR\x04txid\"\xac\x01\n" +
 	"\x17ListpeerchannelsRequest\x12\x13\n" +
 	"\x02id\x18\x01 \x01(\fH\x00R\x02id\x88\x01\x01\x12-\n" +
-	"\x10short_channel_id\x18\x02 \x01(\tH\x01R\x0eshortChannelId\x88\x01\x01B\x05\n" +
+	"\x10short_channel_id\x18\x02 \x01(\tH\x01R\x0eshortChannelId\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"channel_id\x18\x03 \x01(\fH\x02R\tchannelId\x88\x01\x01B\x05\n" +
 	"\x03_idB\x13\n" +
-	"\x11_short_channel_id\"U\n" +
+	"\x11_short_channel_idB\r\n" +
+	"\v_channel_id\"U\n" +
 	"\x18ListpeerchannelsResponse\x129\n" +
 	"\bchannels\x18\x01 \x03(\v2\x1d.cln.ListpeerchannelsChannelsR\bchannels\"\xd3 \n" +
 	"\x18ListpeerchannelsChannels\x12\x17\n" +
@@ -41270,7 +45239,7 @@ const file_node_proto_rawDesc = "" +
 	"lost_state\x189 \x01(\bH.R\tlostState\x88\x01\x01\x12)\n" +
 	"\rreestablished\x18: \x01(\bH/R\rreestablished\x88\x01\x01\x129\n" +
 	"\x10last_tx_fee_msat\x18; \x01(\v2\v.cln.AmountH0R\rlastTxFeeMsat\x88\x01\x01\x12!\n" +
-	"\tdirection\x18< \x01(\x12H1R\tdirection\x88\x01\x01\x12\\\n" +
+	"\tdirection\x18< \x01(\rH1R\tdirection\x88\x01\x01\x12\\\n" +
 	"#their_max_htlc_value_in_flight_msat\x18= \x01(\v2\v.cln.AmountH2R\x1dtheirMaxHtlcValueInFlightMsat\x88\x01\x01\x12X\n" +
 	"!our_max_htlc_value_in_flight_msat\x18> \x01(\v2\v.cln.AmountH3R\x1bourMaxHtlcValueInFlightMsat\x88\x01\x01B\x0f\n" +
 	"\r_scratch_txidB\n" +
@@ -41348,17 +45317,16 @@ const file_node_proto_rawDesc = "" +
 	"\x1bfee_proportional_millionths\x18\x05 \x01(\rR\x19feeProportionalMillionths\"M\n" +
 	"\x1fListpeerchannelsChannelsFeerate\x12\x14\n" +
 	"\x05perkw\x18\x01 \x01(\rR\x05perkw\x12\x14\n" +
-	"\x05perkb\x18\x02 \x01(\rR\x05perkb\"\xed\x02\n" +
+	"\x05perkb\x18\x02 \x01(\rR\x05perkb\"\xd6\x02\n" +
 	" ListpeerchannelsChannelsInflight\x12!\n" +
 	"\ffunding_txid\x18\x01 \x01(\fR\vfundingTxid\x12%\n" +
 	"\x0efunding_outnum\x18\x02 \x01(\rR\rfundingOutnum\x12\x18\n" +
 	"\afeerate\x18\x03 \x01(\tR\afeerate\x129\n" +
 	"\x12total_funding_msat\x18\x04 \x01(\v2\v.cln.AmountR\x10totalFundingMsat\x125\n" +
 	"\x10our_funding_msat\x18\x05 \x01(\v2\v.cln.AmountR\x0eourFundingMsat\x12&\n" +
-	"\fscratch_txid\x18\x06 \x01(\fH\x00R\vscratchTxid\x88\x01\x01\x12(\n" +
-	"\rsplice_amount\x18\a \x01(\x12H\x01R\fspliceAmount\x88\x01\x01B\x0f\n" +
-	"\r_scratch_txidB\x10\n" +
-	"\x0e_splice_amount\"\xb4\x03\n" +
+	"\fscratch_txid\x18\x06 \x01(\fH\x00R\vscratchTxid\x88\x01\x01\x12#\n" +
+	"\rsplice_amount\x18\a \x01(\x12R\fspliceAmountB\x0f\n" +
+	"\r_scratch_txid\"\xb4\x03\n" +
 	"\x1fListpeerchannelsChannelsFunding\x121\n" +
 	"\vpushed_msat\x18\x01 \x01(\v2\v.cln.AmountH\x00R\n" +
 	"pushedMsat\x88\x01\x01\x125\n" +
@@ -41713,37 +45681,36 @@ const file_node_proto_rawDesc = "" +
 	"\n" +
 	"\b_groupid\"A\n" +
 	"\x0eDelpayResponse\x12/\n" +
-	"\bpayments\x18\x01 \x03(\v2\x13.cln.DelpayPaymentsR\bpayments\"\x86\a\n" +
-	"\x0eDelpayPayments\x12(\n" +
-	"\rcreated_index\x18\x01 \x01(\x04H\x00R\fcreatedIndex\x88\x01\x01\x12\x0e\n" +
+	"\bpayments\x18\x01 \x03(\v2\x13.cln.DelpayPaymentsR\bpayments\"\xef\x06\n" +
+	"\x0eDelpayPayments\x12#\n" +
+	"\rcreated_index\x18\x01 \x01(\x04R\fcreatedIndex\x12\x0e\n" +
 	"\x02id\x18\x02 \x01(\x04R\x02id\x12!\n" +
 	"\fpayment_hash\x18\x03 \x01(\fR\vpaymentHash\x12@\n" +
 	"\x06status\x18\x04 \x01(\x0e2(.cln.DelpayPayments.DelpayPaymentsStatusR\x06status\x125\n" +
 	"\x10amount_sent_msat\x18\x05 \x01(\v2\v.cln.AmountR\x0eamountSentMsat\x12\x1b\n" +
-	"\x06partid\x18\x06 \x01(\x04H\x01R\x06partid\x88\x01\x01\x12%\n" +
-	"\vdestination\x18\a \x01(\fH\x02R\vdestination\x88\x01\x01\x121\n" +
-	"\vamount_msat\x18\b \x01(\v2\v.cln.AmountH\x03R\n" +
+	"\x06partid\x18\x06 \x01(\x04H\x00R\x06partid\x88\x01\x01\x12%\n" +
+	"\vdestination\x18\a \x01(\fH\x01R\vdestination\x88\x01\x01\x121\n" +
+	"\vamount_msat\x18\b \x01(\v2\v.cln.AmountH\x02R\n" +
 	"amountMsat\x88\x01\x01\x12\x1d\n" +
 	"\n" +
 	"created_at\x18\t \x01(\x04R\tcreatedAt\x12(\n" +
 	"\rupdated_index\x18\n" +
-	" \x01(\x04H\x04R\fupdatedIndex\x88\x01\x01\x12&\n" +
-	"\fcompleted_at\x18\v \x01(\x04H\x05R\vcompletedAt\x88\x01\x01\x12\x1d\n" +
-	"\agroupid\x18\f \x01(\x04H\x06R\agroupid\x88\x01\x01\x12.\n" +
-	"\x10payment_preimage\x18\r \x01(\fH\aR\x0fpaymentPreimage\x88\x01\x01\x12\x19\n" +
-	"\x05label\x18\x0e \x01(\tH\bR\x05label\x88\x01\x01\x12\x1b\n" +
-	"\x06bolt11\x18\x0f \x01(\tH\tR\x06bolt11\x88\x01\x01\x12\x1b\n" +
-	"\x06bolt12\x18\x10 \x01(\tH\n" +
-	"R\x06bolt12\x88\x01\x01\x12#\n" +
+	" \x01(\x04H\x03R\fupdatedIndex\x88\x01\x01\x12&\n" +
+	"\fcompleted_at\x18\v \x01(\x04H\x04R\vcompletedAt\x88\x01\x01\x12\x1d\n" +
+	"\agroupid\x18\f \x01(\x04H\x05R\agroupid\x88\x01\x01\x12.\n" +
+	"\x10payment_preimage\x18\r \x01(\fH\x06R\x0fpaymentPreimage\x88\x01\x01\x12\x19\n" +
+	"\x05label\x18\x0e \x01(\tH\aR\x05label\x88\x01\x01\x12\x1b\n" +
+	"\x06bolt11\x18\x0f \x01(\tH\bR\x06bolt11\x88\x01\x01\x12\x1b\n" +
+	"\x06bolt12\x18\x10 \x01(\tH\tR\x06bolt12\x88\x01\x01\x12#\n" +
 	"\n" +
-	"erroronion\x18\x11 \x01(\fH\vR\n" +
+	"erroronion\x18\x11 \x01(\fH\n" +
+	"R\n" +
 	"erroronion\x88\x01\x01\"=\n" +
 	"\x14DelpayPaymentsStatus\x12\v\n" +
 	"\aPENDING\x10\x00\x12\n" +
 	"\n" +
 	"\x06FAILED\x10\x01\x12\f\n" +
-	"\bCOMPLETE\x10\x02B\x10\n" +
-	"\x0e_created_indexB\t\n" +
+	"\bCOMPLETE\x10\x02B\t\n" +
 	"\a_partidB\x0e\n" +
 	"\f_destinationB\x0e\n" +
 	"\f_amount_msatB\x10\n" +
@@ -41769,7 +45736,7 @@ const file_node_proto_rawDesc = "" +
 	"\x06FAILED\x10\x02\"\x14\n" +
 	"\x12DelforwardResponse\"0\n" +
 	"\x13DisableofferRequest\x12\x19\n" +
-	"\boffer_id\x18\x01 \x01(\fR\aofferId\"\xf0\x01\n" +
+	"\boffer_id\x18\x01 \x01(\fR\aofferId\"\xa6\x02\n" +
 	"\x14DisableofferResponse\x12\x19\n" +
 	"\boffer_id\x18\x01 \x01(\fR\aofferId\x12\x16\n" +
 	"\x06active\x18\x02 \x01(\bR\x06active\x12\x1d\n" +
@@ -41778,11 +45745,14 @@ const file_node_proto_rawDesc = "" +
 	"\x06bolt12\x18\x04 \x01(\tR\x06bolt12\x12\x12\n" +
 	"\x04used\x18\x05 \x01(\bR\x04used\x12\x19\n" +
 	"\x05label\x18\x06 \x01(\tH\x00R\x05label\x88\x01\x01\x12%\n" +
-	"\vdescription\x18\a \x01(\tH\x01R\vdescription\x88\x01\x01B\b\n" +
+	"\vdescription\x18\a \x01(\tH\x01R\vdescription\x88\x01\x01\x12$\n" +
+	"\vforce_paths\x18\b \x01(\bH\x02R\n" +
+	"forcePaths\x88\x01\x01B\b\n" +
 	"\x06_labelB\x0e\n" +
-	"\f_description\"/\n" +
+	"\f_descriptionB\x0e\n" +
+	"\f_force_paths\"/\n" +
 	"\x12EnableofferRequest\x12\x19\n" +
-	"\boffer_id\x18\x01 \x01(\fR\aofferId\"\xef\x01\n" +
+	"\boffer_id\x18\x01 \x01(\fR\aofferId\"\xa5\x02\n" +
 	"\x13EnableofferResponse\x12\x19\n" +
 	"\boffer_id\x18\x01 \x01(\fR\aofferId\x12\x16\n" +
 	"\x06active\x18\x02 \x01(\bR\x06active\x12\x1d\n" +
@@ -41791,9 +45761,12 @@ const file_node_proto_rawDesc = "" +
 	"\x06bolt12\x18\x04 \x01(\tR\x06bolt12\x12\x12\n" +
 	"\x04used\x18\x05 \x01(\bR\x04used\x12\x19\n" +
 	"\x05label\x18\x06 \x01(\tH\x00R\x05label\x88\x01\x01\x12%\n" +
-	"\vdescription\x18\a \x01(\tH\x01R\vdescription\x88\x01\x01B\b\n" +
+	"\vdescription\x18\a \x01(\tH\x01R\vdescription\x88\x01\x01\x12$\n" +
+	"\vforce_paths\x18\b \x01(\bH\x02R\n" +
+	"forcePaths\x88\x01\x01B\b\n" +
 	"\x06_labelB\x0e\n" +
-	"\f_description\"H\n" +
+	"\f_descriptionB\x0e\n" +
+	"\f_force_paths\"H\n" +
 	"\x11DisconnectRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\fR\x02id\x12\x19\n" +
 	"\x05force\x18\x02 \x01(\bH\x00R\x05force\x88\x01\x01B\b\n" +
@@ -41812,7 +45785,7 @@ const file_node_proto_rawDesc = "" +
 	"\x19_warning_missing_feeratesB\b\n" +
 	"\x06_perkbB\b\n" +
 	"\x06_perkwB\x18\n" +
-	"\x16_onchain_fee_estimates\"\xe7\x04\n" +
+	"\x16_onchain_fee_estimates\"\x80\x05\n" +
 	"\rFeeratesPerkb\x12%\n" +
 	"\x0emin_acceptable\x18\x01 \x01(\rR\rminAcceptable\x12%\n" +
 	"\x0emax_acceptable\x18\x02 \x01(\rR\rmaxAcceptable\x12\x1d\n" +
@@ -41822,10 +45795,11 @@ const file_node_proto_rawDesc = "" +
 	"\rdelayed_to_us\x18\x06 \x01(\rH\x03R\vdelayedToUs\x88\x01\x01\x12,\n" +
 	"\x0fhtlc_resolution\x18\a \x01(\rH\x04R\x0ehtlcResolution\x88\x01\x01\x12\x1d\n" +
 	"\apenalty\x18\b \x01(\rH\x05R\apenalty\x88\x01\x01\x129\n" +
-	"\testimates\x18\t \x03(\v2\x1b.cln.FeeratesPerkbEstimatesR\testimates\x12\x19\n" +
+	"\testimates\x18\t \x03(\v2\x1b.cln.FeeratesPerkbEstimatesR\testimates\x12\x14\n" +
 	"\x05floor\x18\n" +
-	" \x01(\rH\x06R\x05floor\x88\x01\x01\x12;\n" +
-	"\x17unilateral_anchor_close\x18\v \x01(\rH\aR\x15unilateralAnchorClose\x88\x01\x01B\n" +
+	" \x01(\rR\x05floor\x12;\n" +
+	"\x17unilateral_anchor_close\x18\v \x01(\rH\x06R\x15unilateralAnchorClose\x88\x01\x01\x12\x1b\n" +
+	"\x06splice\x18\f \x01(\rH\aR\x06splice\x88\x01\x01B\n" +
 	"\n" +
 	"\b_openingB\x0f\n" +
 	"\r_mutual_closeB\x13\n" +
@@ -41833,15 +45807,15 @@ const file_node_proto_rawDesc = "" +
 	"\x0e_delayed_to_usB\x12\n" +
 	"\x10_htlc_resolutionB\n" +
 	"\n" +
-	"\b_penaltyB\b\n" +
-	"\x06_floorB\x1a\n" +
-	"\x18_unilateral_anchor_close\"}\n" +
+	"\b_penaltyB\x1a\n" +
+	"\x18_unilateral_anchor_closeB\t\n" +
+	"\a_splice\"}\n" +
 	"\x16FeeratesPerkbEstimates\x12\x1e\n" +
 	"\n" +
 	"blockcount\x18\x01 \x01(\rR\n" +
 	"blockcount\x12\x18\n" +
 	"\afeerate\x18\x02 \x01(\rR\afeerate\x12)\n" +
-	"\x10smoothed_feerate\x18\x03 \x01(\rR\x0fsmoothedFeerate\"\xe7\x04\n" +
+	"\x10smoothed_feerate\x18\x03 \x01(\rR\x0fsmoothedFeerate\"\x80\x05\n" +
 	"\rFeeratesPerkw\x12%\n" +
 	"\x0emin_acceptable\x18\x01 \x01(\rR\rminAcceptable\x12%\n" +
 	"\x0emax_acceptable\x18\x02 \x01(\rR\rmaxAcceptable\x12\x1d\n" +
@@ -41851,10 +45825,11 @@ const file_node_proto_rawDesc = "" +
 	"\rdelayed_to_us\x18\x06 \x01(\rH\x03R\vdelayedToUs\x88\x01\x01\x12,\n" +
 	"\x0fhtlc_resolution\x18\a \x01(\rH\x04R\x0ehtlcResolution\x88\x01\x01\x12\x1d\n" +
 	"\apenalty\x18\b \x01(\rH\x05R\apenalty\x88\x01\x01\x129\n" +
-	"\testimates\x18\t \x03(\v2\x1b.cln.FeeratesPerkwEstimatesR\testimates\x12\x19\n" +
+	"\testimates\x18\t \x03(\v2\x1b.cln.FeeratesPerkwEstimatesR\testimates\x12\x14\n" +
 	"\x05floor\x18\n" +
-	" \x01(\rH\x06R\x05floor\x88\x01\x01\x12;\n" +
-	"\x17unilateral_anchor_close\x18\v \x01(\rH\aR\x15unilateralAnchorClose\x88\x01\x01B\n" +
+	" \x01(\rR\x05floor\x12;\n" +
+	"\x17unilateral_anchor_close\x18\v \x01(\rH\x06R\x15unilateralAnchorClose\x88\x01\x01\x12\x1b\n" +
+	"\x06splice\x18\f \x01(\rH\aR\x06splice\x88\x01\x01B\n" +
 	"\n" +
 	"\b_openingB\x0f\n" +
 	"\r_mutual_closeB\x13\n" +
@@ -41862,9 +45837,9 @@ const file_node_proto_rawDesc = "" +
 	"\x0e_delayed_to_usB\x12\n" +
 	"\x10_htlc_resolutionB\n" +
 	"\n" +
-	"\b_penaltyB\b\n" +
-	"\x06_floorB\x1a\n" +
-	"\x18_unilateral_anchor_close\"}\n" +
+	"\b_penaltyB\x1a\n" +
+	"\x18_unilateral_anchor_closeB\t\n" +
+	"\a_splice\"}\n" +
 	"\x16FeeratesPerkwEstimates\x12\x1e\n" +
 	"\n" +
 	"blockcount\x18\x01 \x01(\rR\n" +
@@ -41998,7 +45973,7 @@ const file_node_proto_rawDesc = "" +
 	"\b_minconfB\v\n" +
 	"\t_mindepthB\n" +
 	"\n" +
-	"\b_reserve\"\xa1\x02\n" +
+	"\b_reserve\"\x8b\x02\n" +
 	"\x13FundchannelResponse\x12\x0e\n" +
 	"\x02tx\x18\x01 \x01(\fR\x02tx\x12\x12\n" +
 	"\x04txid\x18\x02 \x01(\fR\x04txid\x12\x16\n" +
@@ -42006,11 +45981,10 @@ const file_node_proto_rawDesc = "" +
 	"\n" +
 	"channel_id\x18\x04 \x01(\fR\tchannelId\x12\x1e\n" +
 	"\bclose_to\x18\x05 \x01(\fH\x00R\acloseTo\x88\x01\x01\x12\x1f\n" +
-	"\bmindepth\x18\x06 \x01(\rH\x01R\bmindepth\x88\x01\x01\x12C\n" +
-	"\fchannel_type\x18\a \x01(\v2\x1b.cln.FundchannelChannelTypeH\x02R\vchannelType\x88\x01\x01B\v\n" +
+	"\bmindepth\x18\x06 \x01(\rH\x01R\bmindepth\x88\x01\x01\x12>\n" +
+	"\fchannel_type\x18\a \x01(\v2\x1b.cln.FundchannelChannelTypeR\vchannelTypeB\v\n" +
 	"\t_close_toB\v\n" +
-	"\t_mindepthB\x0f\n" +
-	"\r_channel_type\"X\n" +
+	"\t_mindepth\"X\n" +
 	"\x16FundchannelChannelType\x12\x12\n" +
 	"\x04bits\x18\x01 \x03(\rR\x04bits\x12*\n" +
 	"\x05names\x18\x02 \x03(\x0e2\x14.cln.ChannelTypeNameR\x05names\"\xa8\x03\n" +
@@ -42234,7 +46208,7 @@ const file_node_proto_rawDesc = "" +
 	"\x06_startB\b\n" +
 	"\x06_limit\"M\n" +
 	"\x14ListforwardsResponse\x125\n" +
-	"\bforwards\x18\x01 \x03(\v2\x19.cln.ListforwardsForwardsR\bforwards\"\xd7\a\n" +
+	"\bforwards\x18\x01 \x03(\v2\x19.cln.ListforwardsForwardsR\bforwards\"\xc0\a\n" +
 	"\x14ListforwardsForwards\x12\x1d\n" +
 	"\n" +
 	"in_channel\x18\x01 \x01(\tR\tinChannel\x12$\n" +
@@ -42249,14 +46223,13 @@ const file_node_proto_rawDesc = "" +
 	"\n" +
 	"in_htlc_id\x18\n" +
 	" \x01(\x04H\x04R\binHtlcId\x88\x01\x01\x12#\n" +
-	"\vout_htlc_id\x18\v \x01(\x04H\x05R\toutHtlcId\x88\x01\x01\x12(\n" +
-	"\rcreated_index\x18\f \x01(\x04H\x06R\fcreatedIndex\x88\x01\x01\x12(\n" +
-	"\rupdated_index\x18\r \x01(\x04H\aR\fupdatedIndex\x88\x01\x01\x12(\n" +
-	"\rresolved_time\x18\x0e \x01(\x01H\bR\fresolvedTime\x88\x01\x01\x12\x1f\n" +
-	"\bfailcode\x18\x0f \x01(\rH\tR\bfailcode\x88\x01\x01\x12#\n" +
+	"\vout_htlc_id\x18\v \x01(\x04H\x05R\toutHtlcId\x88\x01\x01\x12#\n" +
+	"\rcreated_index\x18\f \x01(\x04R\fcreatedIndex\x12(\n" +
+	"\rupdated_index\x18\r \x01(\x04H\x06R\fupdatedIndex\x88\x01\x01\x12(\n" +
+	"\rresolved_time\x18\x0e \x01(\x01H\aR\fresolvedTime\x88\x01\x01\x12\x1f\n" +
+	"\bfailcode\x18\x0f \x01(\rH\bR\bfailcode\x88\x01\x01\x12#\n" +
 	"\n" +
-	"failreason\x18\x10 \x01(\tH\n" +
-	"R\n" +
+	"failreason\x18\x10 \x01(\tH\tR\n" +
 	"failreason\x88\x01\x01\"T\n" +
 	"\x1aListforwardsForwardsStatus\x12\v\n" +
 	"\aOFFERED\x10\x00\x12\v\n" +
@@ -42274,7 +46247,6 @@ const file_node_proto_rawDesc = "" +
 	"\x06_styleB\r\n" +
 	"\v_in_htlc_idB\x0e\n" +
 	"\f_out_htlc_idB\x10\n" +
-	"\x0e_created_indexB\x10\n" +
 	"\x0e_updated_indexB\x10\n" +
 	"\x0e_resolved_timeB\v\n" +
 	"\t_failcodeB\r\n" +
@@ -42286,7 +46258,7 @@ const file_node_proto_rawDesc = "" +
 	"\t_offer_idB\x0e\n" +
 	"\f_active_only\"C\n" +
 	"\x12ListoffersResponse\x12-\n" +
-	"\x06offers\x18\x01 \x03(\v2\x15.cln.ListoffersOffersR\x06offers\"\xec\x01\n" +
+	"\x06offers\x18\x01 \x03(\v2\x15.cln.ListoffersOffersR\x06offers\"\xa2\x02\n" +
 	"\x10ListoffersOffers\x12\x19\n" +
 	"\boffer_id\x18\x01 \x01(\fR\aofferId\x12\x16\n" +
 	"\x06active\x18\x02 \x01(\bR\x06active\x12\x1d\n" +
@@ -42295,9 +46267,12 @@ const file_node_proto_rawDesc = "" +
 	"\x06bolt12\x18\x04 \x01(\tR\x06bolt12\x12\x12\n" +
 	"\x04used\x18\x05 \x01(\bR\x04used\x12\x19\n" +
 	"\x05label\x18\x06 \x01(\tH\x00R\x05label\x88\x01\x01\x12%\n" +
-	"\vdescription\x18\a \x01(\tH\x01R\vdescription\x88\x01\x01B\b\n" +
+	"\vdescription\x18\a \x01(\tH\x01R\vdescription\x88\x01\x01\x12$\n" +
+	"\vforce_paths\x18\b \x01(\bH\x02R\n" +
+	"forcePaths\x88\x01\x01B\b\n" +
 	"\x06_labelB\x0e\n" +
-	"\f_description\"\xb6\x03\n" +
+	"\f_descriptionB\x0e\n" +
+	"\f_force_paths\"\xb6\x03\n" +
 	"\x0fListpaysRequest\x12\x1b\n" +
 	"\x06bolt11\x18\x01 \x01(\tH\x00R\x06bolt11\x88\x01\x01\x12&\n" +
 	"\fpayment_hash\x18\x02 \x01(\fH\x01R\vpaymentHash\x88\x01\x01\x12@\n" +
@@ -42430,15 +46405,14 @@ const file_node_proto_rawDesc = "" +
 	"\x0e_compact_leaseB\v\n" +
 	"\t_mindepthB\n" +
 	"\n" +
-	"\b_reserve\"\xf5\x01\n" +
+	"\b_reserve\"\xdf\x01\n" +
 	"\x1aMultifundchannelChannelIds\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\fR\x02id\x12\x16\n" +
 	"\x06outnum\x18\x02 \x01(\rR\x06outnum\x12\x1d\n" +
 	"\n" +
-	"channel_id\x18\x03 \x01(\fR\tchannelId\x12R\n" +
-	"\fchannel_type\x18\x04 \x01(\v2*.cln.MultifundchannelChannelIdsChannelTypeH\x00R\vchannelType\x88\x01\x01\x12\x1e\n" +
-	"\bclose_to\x18\x05 \x01(\fH\x01R\acloseTo\x88\x01\x01B\x0f\n" +
-	"\r_channel_typeB\v\n" +
+	"channel_id\x18\x03 \x01(\fR\tchannelId\x12M\n" +
+	"\fchannel_type\x18\x04 \x01(\v2*.cln.MultifundchannelChannelIdsChannelTypeR\vchannelType\x12\x1e\n" +
+	"\bclose_to\x18\x05 \x01(\fH\x00R\acloseTo\x88\x01\x01B\v\n" +
 	"\t_close_to\"g\n" +
 	"%MultifundchannelChannelIdsChannelType\x12\x12\n" +
 	"\x04bits\x18\x01 \x03(\rR\x04bits\x12*\n" +
@@ -42466,7 +46440,7 @@ const file_node_proto_rawDesc = "" +
 	"\b_minconf\";\n" +
 	"\x15MultiwithdrawResponse\x12\x0e\n" +
 	"\x02tx\x18\x01 \x01(\fR\x02tx\x12\x12\n" +
-	"\x04txid\x18\x02 \x01(\fR\x04txid\"\x80\x06\n" +
+	"\x04txid\x18\x02 \x01(\fR\x04txid\"\xa7\x06\n" +
 	"\fOfferRequest\x12\x16\n" +
 	"\x06amount\x18\x01 \x01(\tR\x06amount\x12%\n" +
 	"\vdescription\x18\x02 \x01(\tH\x00R\vdescription\x88\x01\x01\x12\x1b\n" +
@@ -42485,7 +46459,8 @@ const file_node_proto_rawDesc = "" +
 	"single_use\x18\v \x01(\bH\tR\tsingleUse\x88\x01\x01\x124\n" +
 	"\x13proportional_amount\x18\r \x01(\bH\n" +
 	"R\x12proportionalAmount\x88\x01\x01\x124\n" +
-	"\x13optional_recurrence\x18\x0e \x01(\bH\vR\x12optionalRecurrence\x88\x01\x01B\x0e\n" +
+	"\x13optional_recurrence\x18\x0e \x01(\bH\vR\x12optionalRecurrence\x88\x01\x01\x12%\n" +
+	"\x0efronting_nodes\x18\x0f \x03(\fR\rfrontingNodesB\x0e\n" +
 	"\f_descriptionB\t\n" +
 	"\a_issuerB\b\n" +
 	"\x06_labelB\x0f\n" +
@@ -42497,7 +46472,7 @@ const file_node_proto_rawDesc = "" +
 	"\x11_recurrence_limitB\r\n" +
 	"\v_single_useB\x16\n" +
 	"\x14_proportional_amountB\x16\n" +
-	"\x14_optional_recurrence\"\xcc\x01\n" +
+	"\x14_optional_recurrence\"\x82\x02\n" +
 	"\rOfferResponse\x12\x19\n" +
 	"\boffer_id\x18\x01 \x01(\fR\aofferId\x12\x16\n" +
 	"\x06active\x18\x02 \x01(\bR\x06active\x12\x1d\n" +
@@ -42506,8 +46481,11 @@ const file_node_proto_rawDesc = "" +
 	"\x06bolt12\x18\x04 \x01(\tR\x06bolt12\x12\x12\n" +
 	"\x04used\x18\x05 \x01(\bR\x04used\x12\x18\n" +
 	"\acreated\x18\x06 \x01(\bR\acreated\x12\x19\n" +
-	"\x05label\x18\a \x01(\tH\x00R\x05label\x88\x01\x01B\b\n" +
-	"\x06_label\"8\n" +
+	"\x05label\x18\a \x01(\tH\x00R\x05label\x88\x01\x01\x12$\n" +
+	"\vforce_paths\x18\b \x01(\bH\x01R\n" +
+	"forcePaths\x88\x01\x01B\b\n" +
+	"\x06_labelB\x0e\n" +
+	"\f_force_paths\"8\n" +
 	"\x17OpenchannelAbortRequest\x12\x1d\n" +
 	"\n" +
 	"channel_id\x18\x01 \x01(\fR\tchannelId\"|\n" +
@@ -42522,16 +46500,15 @@ const file_node_proto_rawDesc = "" +
 	"\vinitialpsbt\x18\x02 \x01(\tR\vinitialpsbt\x12:\n" +
 	"\x0ffunding_feerate\x18\x03 \x01(\v2\f.cln.FeerateH\x00R\x0efundingFeerate\x88\x01\x01\x12#\n" +
 	"\x06amount\x18\x04 \x01(\v2\v.cln.AmountR\x06amountB\x12\n" +
-	"\x10_funding_feerate\"\xdd\x02\n" +
+	"\x10_funding_feerate\"\xc7\x02\n" +
 	"\x17OpenchannelBumpResponse\x12\x1d\n" +
 	"\n" +
-	"channel_id\x18\x01 \x01(\fR\tchannelId\x12G\n" +
-	"\fchannel_type\x18\x02 \x01(\v2\x1f.cln.OpenchannelBumpChannelTypeH\x00R\vchannelType\x88\x01\x01\x12\x12\n" +
+	"channel_id\x18\x01 \x01(\fR\tchannelId\x12B\n" +
+	"\fchannel_type\x18\x02 \x01(\v2\x1f.cln.OpenchannelBumpChannelTypeR\vchannelType\x12\x12\n" +
 	"\x04psbt\x18\x03 \x01(\tR\x04psbt\x12/\n" +
 	"\x13commitments_secured\x18\x04 \x01(\bR\x12commitmentsSecured\x12%\n" +
 	"\x0efunding_serial\x18\x05 \x01(\x04R\rfundingSerial\x12?\n" +
-	"\x19requires_confirmed_inputs\x18\x06 \x01(\bH\x01R\x17requiresConfirmedInputs\x88\x01\x01B\x0f\n" +
-	"\r_channel_typeB\x1c\n" +
+	"\x19requires_confirmed_inputs\x18\x06 \x01(\bH\x00R\x17requiresConfirmedInputs\x88\x01\x01B\x1c\n" +
 	"\x1a_requires_confirmed_inputs\"\\\n" +
 	"\x1aOpenchannelBumpChannelType\x12\x12\n" +
 	"\x04bits\x18\x01 \x03(\rR\x04bits\x12*\n" +
@@ -42554,16 +46531,15 @@ const file_node_proto_rawDesc = "" +
 	"\t_announceB\v\n" +
 	"\t_close_toB\x0e\n" +
 	"\f_request_amtB\x10\n" +
-	"\x0e_compact_lease\"\xdd\x02\n" +
+	"\x0e_compact_lease\"\xc7\x02\n" +
 	"\x17OpenchannelInitResponse\x12\x1d\n" +
 	"\n" +
 	"channel_id\x18\x01 \x01(\fR\tchannelId\x12\x12\n" +
-	"\x04psbt\x18\x02 \x01(\tR\x04psbt\x12G\n" +
-	"\fchannel_type\x18\x03 \x01(\v2\x1f.cln.OpenchannelInitChannelTypeH\x00R\vchannelType\x88\x01\x01\x12/\n" +
+	"\x04psbt\x18\x02 \x01(\tR\x04psbt\x12B\n" +
+	"\fchannel_type\x18\x03 \x01(\v2\x1f.cln.OpenchannelInitChannelTypeR\vchannelType\x12/\n" +
 	"\x13commitments_secured\x18\x04 \x01(\bR\x12commitmentsSecured\x12%\n" +
 	"\x0efunding_serial\x18\x05 \x01(\x04R\rfundingSerial\x12?\n" +
-	"\x19requires_confirmed_inputs\x18\x06 \x01(\bH\x01R\x17requiresConfirmedInputs\x88\x01\x01B\x0f\n" +
-	"\r_channel_typeB\x1c\n" +
+	"\x19requires_confirmed_inputs\x18\x06 \x01(\bH\x00R\x17requiresConfirmedInputs\x88\x01\x01B\x1c\n" +
 	"\x1a_requires_confirmed_inputs\"\\\n" +
 	"\x1aOpenchannelInitChannelType\x12\x12\n" +
 	"\x04bits\x18\x01 \x03(\rR\x04bits\x12*\n" +
@@ -42581,17 +46557,16 @@ const file_node_proto_rawDesc = "" +
 	"\x18OpenchannelUpdateRequest\x12\x1d\n" +
 	"\n" +
 	"channel_id\x18\x01 \x01(\fR\tchannelId\x12\x12\n" +
-	"\x04psbt\x18\x02 \x01(\tR\x04psbt\"\x8e\x03\n" +
+	"\x04psbt\x18\x02 \x01(\tR\x04psbt\"\xf8\x02\n" +
 	"\x19OpenchannelUpdateResponse\x12\x1d\n" +
 	"\n" +
-	"channel_id\x18\x01 \x01(\fR\tchannelId\x12I\n" +
-	"\fchannel_type\x18\x02 \x01(\v2!.cln.OpenchannelUpdateChannelTypeH\x00R\vchannelType\x88\x01\x01\x12\x12\n" +
+	"channel_id\x18\x01 \x01(\fR\tchannelId\x12D\n" +
+	"\fchannel_type\x18\x02 \x01(\v2!.cln.OpenchannelUpdateChannelTypeR\vchannelType\x12\x12\n" +
 	"\x04psbt\x18\x03 \x01(\tR\x04psbt\x12/\n" +
 	"\x13commitments_secured\x18\x04 \x01(\bR\x12commitmentsSecured\x12%\n" +
 	"\x0efunding_outnum\x18\x05 \x01(\rR\rfundingOutnum\x12\x1e\n" +
-	"\bclose_to\x18\x06 \x01(\fH\x01R\acloseTo\x88\x01\x01\x12?\n" +
-	"\x19requires_confirmed_inputs\x18\a \x01(\bH\x02R\x17requiresConfirmedInputs\x88\x01\x01B\x0f\n" +
-	"\r_channel_typeB\v\n" +
+	"\bclose_to\x18\x06 \x01(\fH\x00R\acloseTo\x88\x01\x01\x12?\n" +
+	"\x19requires_confirmed_inputs\x18\a \x01(\bH\x01R\x17requiresConfirmedInputs\x88\x01\x01B\v\n" +
 	"\t_close_toB\x1c\n" +
 	"\x1a_requires_confirmed_inputs\"^\n" +
 	"\x1cOpenchannelUpdateChannelType\x12\x12\n" +
@@ -42730,7 +46705,7 @@ const file_node_proto_rawDesc = "" +
 	"\f_amount_msatB\n" +
 	"\n" +
 	"\b_timeoutB\v\n" +
-	"\t_quantity\"\xea\x05\n" +
+	"\t_quantity\"\xd3\x05\n" +
 	"\x13SendinvoiceResponse\x12\x14\n" +
 	"\x05label\x18\x01 \x01(\tR\x05label\x12 \n" +
 	"\vdescription\x18\x02 \x01(\tR\vdescription\x12!\n" +
@@ -42740,14 +46715,14 @@ const file_node_proto_rawDesc = "" +
 	"expires_at\x18\x05 \x01(\x04R\texpiresAt\x121\n" +
 	"\vamount_msat\x18\x06 \x01(\v2\v.cln.AmountH\x00R\n" +
 	"amountMsat\x88\x01\x01\x12\x1b\n" +
-	"\x06bolt12\x18\a \x01(\tH\x01R\x06bolt12\x88\x01\x01\x12(\n" +
-	"\rcreated_index\x18\b \x01(\x04H\x02R\fcreatedIndex\x88\x01\x01\x12(\n" +
-	"\rupdated_index\x18\t \x01(\x04H\x03R\fupdatedIndex\x88\x01\x01\x12 \n" +
+	"\x06bolt12\x18\a \x01(\tH\x01R\x06bolt12\x88\x01\x01\x12#\n" +
+	"\rcreated_index\x18\b \x01(\x04R\fcreatedIndex\x12(\n" +
+	"\rupdated_index\x18\t \x01(\x04H\x02R\fupdatedIndex\x88\x01\x01\x12 \n" +
 	"\tpay_index\x18\n" +
-	" \x01(\x04H\x04R\bpayIndex\x88\x01\x01\x12B\n" +
-	"\x14amount_received_msat\x18\v \x01(\v2\v.cln.AmountH\x05R\x12amountReceivedMsat\x88\x01\x01\x12\x1c\n" +
-	"\apaid_at\x18\f \x01(\x04H\x06R\x06paidAt\x88\x01\x01\x12.\n" +
-	"\x10payment_preimage\x18\r \x01(\fH\aR\x0fpaymentPreimage\x88\x01\x01\"6\n" +
+	" \x01(\x04H\x03R\bpayIndex\x88\x01\x01\x12B\n" +
+	"\x14amount_received_msat\x18\v \x01(\v2\v.cln.AmountH\x04R\x12amountReceivedMsat\x88\x01\x01\x12\x1c\n" +
+	"\apaid_at\x18\f \x01(\x04H\x05R\x06paidAt\x88\x01\x01\x12.\n" +
+	"\x10payment_preimage\x18\r \x01(\fH\x06R\x0fpaymentPreimage\x88\x01\x01\"6\n" +
 	"\x11SendinvoiceStatus\x12\n" +
 	"\n" +
 	"\x06UNPAID\x10\x00\x12\b\n" +
@@ -42755,7 +46730,6 @@ const file_node_proto_rawDesc = "" +
 	"\aEXPIRED\x10\x02B\x0e\n" +
 	"\f_amount_msatB\t\n" +
 	"\a_bolt12B\x10\n" +
-	"\x0e_created_indexB\x10\n" +
 	"\x0e_updated_indexB\f\n" +
 	"\n" +
 	"_pay_indexB\x17\n" +
@@ -42781,7 +46755,7 @@ const file_node_proto_rawDesc = "" +
 	"\r_enforcedelayB\x12\n" +
 	"\x10_ignorefeelimits\"I\n" +
 	"\x12SetchannelResponse\x123\n" +
-	"\bchannels\x18\x01 \x03(\v2\x17.cln.SetchannelChannelsR\bchannels\"\xfb\x04\n" +
+	"\bchannels\x18\x01 \x03(\v2\x17.cln.SetchannelChannelsR\bchannels\"\xe0\x04\n" +
 	"\x12SetchannelChannels\x12\x17\n" +
 	"\apeer_id\x18\x01 \x01(\fR\x06peerId\x12\x1d\n" +
 	"\n" +
@@ -42792,13 +46766,12 @@ const file_node_proto_rawDesc = "" +
 	"\x15minimum_htlc_out_msat\x18\x06 \x01(\v2\v.cln.AmountR\x12minimumHtlcOutMsat\x12:\n" +
 	"\x17warning_htlcmin_too_low\x18\a \x01(\tH\x01R\x14warningHtlcminTooLow\x88\x01\x01\x12>\n" +
 	"\x15maximum_htlc_out_msat\x18\b \x01(\v2\v.cln.AmountR\x12maximumHtlcOutMsat\x12<\n" +
-	"\x18warning_htlcmax_too_high\x18\t \x01(\tH\x02R\x15warningHtlcmaxTooHigh\x88\x01\x01\x12/\n" +
+	"\x18warning_htlcmax_too_high\x18\t \x01(\tH\x02R\x15warningHtlcmaxTooHigh\x88\x01\x01\x12*\n" +
 	"\x11ignore_fee_limits\x18\n" +
-	" \x01(\bH\x03R\x0fignoreFeeLimits\x88\x01\x01B\x13\n" +
+	" \x01(\bR\x0fignoreFeeLimitsB\x13\n" +
 	"\x11_short_channel_idB\x1a\n" +
 	"\x18_warning_htlcmin_too_lowB\x1b\n" +
-	"\x19_warning_htlcmax_too_highB\x14\n" +
-	"\x12_ignore_fee_limits\"z\n" +
+	"\x19_warning_htlcmax_too_high\"z\n" +
 	"\x10SetconfigRequest\x12\x16\n" +
 	"\x06config\x18\x01 \x01(\tR\x06config\x12\x15\n" +
 	"\x03val\x18\x02 \x01(\tH\x00R\x03val\x88\x01\x01\x12!\n" +
@@ -42876,7 +46849,31 @@ const file_node_proto_rawDesc = "" +
 	"\x04psbt\x18\x01 \x01(\tR\x04psbt\x12/\n" +
 	"\x13commitments_secured\x18\x02 \x01(\bR\x12commitmentsSecured\x122\n" +
 	"\x12signatures_secured\x18\x03 \x01(\bH\x00R\x11signaturesSecured\x88\x01\x01B\x15\n" +
-	"\x13_signatures_secured\"\xff\x01\n" +
+	"\x13_signatures_secured\"C\n" +
+	"\x0fSpliceinRequest\x12\x18\n" +
+	"\achannel\x18\x01 \x01(\tR\achannel\x12\x16\n" +
+	"\x06amount\x18\x02 \x01(\tR\x06amount\"r\n" +
+	"\x10SpliceinResponse\x12\x17\n" +
+	"\x04psbt\x18\x01 \x01(\tH\x00R\x04psbt\x88\x01\x01\x12\x13\n" +
+	"\x02tx\x18\x02 \x01(\tH\x01R\x02tx\x88\x01\x01\x12\x17\n" +
+	"\x04txid\x18\x03 \x01(\tH\x02R\x04txid\x88\x01\x01B\a\n" +
+	"\x05_psbtB\x05\n" +
+	"\x03_txB\a\n" +
+	"\x05_txid\"\xb7\x01\n" +
+	"\x10SpliceoutRequest\x12\x18\n" +
+	"\achannel\x18\x01 \x01(\tR\achannel\x12\x16\n" +
+	"\x06amount\x18\x02 \x01(\tR\x06amount\x12%\n" +
+	"\vdestination\x18\x03 \x01(\tH\x00R\vdestination\x88\x01\x01\x12(\n" +
+	"\rforce_feerate\x18\x04 \x01(\bH\x01R\fforceFeerate\x88\x01\x01B\x0e\n" +
+	"\f_destinationB\x10\n" +
+	"\x0e_force_feerate\"s\n" +
+	"\x11SpliceoutResponse\x12\x17\n" +
+	"\x04psbt\x18\x01 \x01(\tH\x00R\x04psbt\x88\x01\x01\x12\x13\n" +
+	"\x02tx\x18\x02 \x01(\tH\x01R\x02tx\x88\x01\x01\x12\x17\n" +
+	"\x04txid\x18\x03 \x01(\tH\x02R\x04txid\x88\x01\x01B\a\n" +
+	"\x05_psbtB\x05\n" +
+	"\x03_txB\a\n" +
+	"\x05_txid\"\xff\x01\n" +
 	"\x10DevspliceRequest\x12$\n" +
 	"\x0escript_or_json\x18\x01 \x01(\tR\fscriptOrJson\x12\x1b\n" +
 	"\x06dryrun\x18\x02 \x01(\bH\x00R\x06dryrun\x88\x01\x01\x12(\n" +
@@ -42919,13 +46916,12 @@ const file_node_proto_rawDesc = "" +
 	"reservedok\x88\x01\x01B\n" +
 	"\n" +
 	"\b_feerateB\r\n" +
-	"\v_reservedok\"\xb3\x01\n" +
-	"\x15UpgradewalletResponse\x12(\n" +
-	"\rupgraded_outs\x18\x01 \x01(\x04H\x00R\fupgradedOuts\x88\x01\x01\x12\x17\n" +
-	"\x04psbt\x18\x02 \x01(\tH\x01R\x04psbt\x88\x01\x01\x12\x13\n" +
-	"\x02tx\x18\x03 \x01(\fH\x02R\x02tx\x88\x01\x01\x12\x17\n" +
-	"\x04txid\x18\x04 \x01(\fH\x03R\x04txid\x88\x01\x01B\x10\n" +
-	"\x0e_upgraded_outsB\a\n" +
+	"\v_reservedok\"\x9c\x01\n" +
+	"\x15UpgradewalletResponse\x12#\n" +
+	"\rupgraded_outs\x18\x01 \x01(\x04R\fupgradedOuts\x12\x17\n" +
+	"\x04psbt\x18\x02 \x01(\tH\x00R\x04psbt\x88\x01\x01\x12\x13\n" +
+	"\x02tx\x18\x03 \x01(\fH\x01R\x02tx\x88\x01\x01\x12\x17\n" +
+	"\x04txid\x18\x04 \x01(\fH\x02R\x04txid\x88\x01\x01B\a\n" +
 	"\x05_psbtB\x05\n" +
 	"\x03_txB\a\n" +
 	"\x05_txid\"e\n" +
@@ -43145,7 +47141,7 @@ const file_node_proto_rawDesc = "" +
 	"\x13ListconfigsResponse\x126\n" +
 	"\aconfigs\x18\x01 \x01(\v2\x17.cln.ListconfigsConfigsH\x00R\aconfigs\x88\x01\x01B\n" +
 	"\n" +
-	"\b_configs\"\xef6\n" +
+	"\b_configs\"\x8d9\n" +
 	"\x12ListconfigsConfigs\x124\n" +
 	"\x04conf\x18\x01 \x01(\v2\x1b.cln.ListconfigsConfigsConfH\x00R\x04conf\x88\x01\x01\x12C\n" +
 	"\tdeveloper\x18\x02 \x01(\v2 .cln.ListconfigsConfigsDeveloperH\x01R\tdeveloper\x88\x01\x01\x12M\n" +
@@ -43228,7 +47224,9 @@ const file_node_proto_rawDesc = "" +
 	"\n" +
 	"commit_fee\x18E \x01(\v2 .cln.ListconfigsConfigsCommitfeeHCR\tcommitFee\x88\x01\x01\x12c\n" +
 	"\x15commit_feerate_offset\x18F \x01(\v2*.cln.ListconfigsConfigsCommitfeerateoffsetHDR\x13commitFeerateOffset\x88\x01\x01\x12l\n" +
-	"\x18autoconnect_seeker_peers\x18G \x01(\v2-.cln.ListconfigsConfigsAutoconnectseekerpeersHER\x16autoconnectSeekerPeers\x88\x01\x01B\a\n" +
+	"\x18autoconnect_seeker_peers\x18G \x01(\v2-.cln.ListconfigsConfigsAutoconnectseekerpeersHER\x16autoconnectSeekerPeers\x88\x01\x01\x12i\n" +
+	"\x17currencyrate_add_source\x18J \x01(\v2,.cln.ListconfigsConfigsCurrencyrateaddsourceHFR\x15currencyrateAddSource\x88\x01\x01\x12u\n" +
+	"\x1bcurrencyrate_disable_source\x18K \x01(\v20.cln.ListconfigsConfigsCurrencyratedisablesourceHGR\x19currencyrateDisableSource\x88\x01\x01B\a\n" +
 	"\x05_confB\f\n" +
 	"\n" +
 	"_developerB\x10\n" +
@@ -43307,7 +47305,9 @@ const file_node_proto_rawDesc = "" +
 	"\x19_require_confirmed_inputsB\r\n" +
 	"\v_commit_feeB\x18\n" +
 	"\x16_commit_feerate_offsetB\x1b\n" +
-	"\x19_autoconnect_seeker_peers\"\xb4\x01\n" +
+	"\x19_autoconnect_seeker_peersB\x1a\n" +
+	"\x18_currencyrate_add_sourceB\x1e\n" +
+	"\x1c_currencyrate_disable_source\"\xb4\x01\n" +
 	"\x16ListconfigsConfigsConf\x12\x1b\n" +
 	"\tvalue_str\x18\x01 \x01(\tR\bvalueStr\x12P\n" +
 	"\x06source\x18\x02 \x01(\x0e28.cln.ListconfigsConfigsConf.ListconfigsConfigsConfSourceR\x06source\"+\n" +
@@ -43550,14 +47550,25 @@ const file_node_proto_rawDesc = "" +
 	"\x06source\x18\x02 \x01(\tR\x06source\"_\n" +
 	"(ListconfigsConfigsAutoconnectseekerpeers\x12\x1b\n" +
 	"\tvalue_int\x18\x01 \x01(\rR\bvalueInt\x12\x16\n" +
-	"\x06source\x18\x02 \x01(\tR\x06source\"\r\n" +
-	"\vStopRequest\"y\n" +
-	"\fStopResponse\x129\n" +
-	"\x06result\x18\x01 \x01(\x0e2\x1c.cln.StopResponse.StopResultH\x00R\x06result\x88\x01\x01\"#\n" +
+	"\x06source\x18\x02 \x01(\tR\x06source\"\x8a\x01\n" +
+	"'ListconfigsConfigsCurrencyrateaddsource\x12\x1d\n" +
+	"\n" +
+	"values_str\x18\x01 \x03(\tR\tvaluesStr\x12\x18\n" +
+	"\asources\x18\x02 \x03(\tR\asources\x12\x1b\n" +
+	"\x06plugin\x18\x03 \x01(\tH\x00R\x06plugin\x88\x01\x01B\t\n" +
+	"\a_plugin\"\x8e\x01\n" +
+	"+ListconfigsConfigsCurrencyratedisablesource\x12\x1d\n" +
+	"\n" +
+	"values_str\x18\x01 \x03(\tR\tvaluesStr\x12\x18\n" +
+	"\asources\x18\x02 \x03(\tR\asources\x12\x1b\n" +
+	"\x06plugin\x18\x03 \x01(\tH\x00R\x06plugin\x88\x01\x01B\t\n" +
+	"\a_plugin\"\r\n" +
+	"\vStopRequest\"i\n" +
+	"\fStopResponse\x124\n" +
+	"\x06result\x18\x01 \x01(\x0e2\x1c.cln.StopResponse.StopResultR\x06result\"#\n" +
 	"\n" +
 	"StopResult\x12\x15\n" +
-	"\x11SHUTDOWN_COMPLETE\x10\x00B\t\n" +
-	"\a_result\"8\n" +
+	"\x11SHUTDOWN_COMPLETE\x10\x00\"8\n" +
 	"\vHelpRequest\x12\x1d\n" +
 	"\acommand\x18\x01 \x01(\tH\x00R\acommand\x88\x01\x01B\n" +
 	"\n" +
@@ -43691,7 +47702,7 @@ const file_node_proto_rawDesc = "" +
 	"\b_accountB\r\n" +
 	"\v_payment_id\"Y\n" +
 	"\x1dBkprlistaccounteventsResponse\x128\n" +
-	"\x06events\x18\x01 \x03(\v2 .cln.BkprlistaccounteventsEventsR\x06events\"\xc1\x06\n" +
+	"\x06events\x18\x01 \x03(\v2 .cln.BkprlistaccounteventsEventsR\x06events\"\xfb\x06\n" +
 	"\x1bBkprlistaccounteventsEvents\x12\x18\n" +
 	"\aaccount\x18\x01 \x01(\tR\aaccount\x12]\n" +
 	"\titem_type\x18\x02 \x01(\x0e2@.cln.BkprlistaccounteventsEvents.BkprlistaccounteventsEventsTypeR\bitemType\x12\x10\n" +
@@ -43712,7 +47723,8 @@ const file_node_proto_rawDesc = "" +
 	"\vdescription\x18\r \x01(\tH\x05R\vdescription\x88\x01\x01\x12-\n" +
 	"\tfees_msat\x18\x0e \x01(\v2\v.cln.AmountH\x06R\bfeesMsat\x88\x01\x01\x12&\n" +
 	"\fis_rebalance\x18\x0f \x01(\bH\aR\visRebalance\x88\x01\x01\x12\x1c\n" +
-	"\apart_id\x18\x10 \x01(\rH\bR\x06partId\x88\x01\x01\"J\n" +
+	"\apart_id\x18\x10 \x01(\rH\bR\x06partId\x88\x01\x01\x12'\n" +
+	"\fcurrencyrate\x18\x11 \x01(\x01H\tR\fcurrencyrate\x88\x01\x01\"J\n" +
 	"\x1fBkprlistaccounteventsEventsType\x12\x0f\n" +
 	"\vONCHAIN_FEE\x10\x00\x12\t\n" +
 	"\x05CHAIN\x10\x01\x12\v\n" +
@@ -43727,7 +47739,8 @@ const file_node_proto_rawDesc = "" +
 	"_fees_msatB\x0f\n" +
 	"\r_is_rebalanceB\n" +
 	"\n" +
-	"\b_part_id\"\x19\n" +
+	"\b_part_idB\x0f\n" +
+	"\r_currencyrate\"\x19\n" +
 	"\x17BkprlistbalancesRequest\"U\n" +
 	"\x18BkprlistbalancesResponse\x129\n" +
 	"\baccounts\x18\x01 \x03(\v2\x1d.cln.BkprlistbalancesAccountsR\baccounts\"\x9c\x03\n" +
@@ -43856,7 +47869,20 @@ const file_node_proto_rawDesc = "" +
 	"_fees_msatB\x0f\n" +
 	"\r_is_rebalanceB\n" +
 	"\n" +
-	"\b_part_id\"\x82\x01\n" +
+	"\b_part_id\"\xdd\x01\n" +
+	"\x11BkprreportRequest\x12\x1b\n" +
+	"\x06format\x18\x01 \x01(\tH\x00R\x06format\x88\x01\x01\x12\x18\n" +
+	"\aheaders\x18\x02 \x03(\tR\aheaders\x12\x1b\n" +
+	"\x06escape\x18\x03 \x01(\tH\x01R\x06escape\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"start_time\x18\x04 \x01(\rH\x02R\tstartTime\x88\x01\x01\x12\x1e\n" +
+	"\bend_time\x18\x05 \x01(\rH\x03R\aendTime\x88\x01\x01B\t\n" +
+	"\a_formatB\t\n" +
+	"\a_escapeB\r\n" +
+	"\v_start_timeB\v\n" +
+	"\t_end_time\",\n" +
+	"\x12BkprreportResponse\x12\x16\n" +
+	"\x06report\x18\x01 \x03(\tR\x06report\"\x82\x01\n" +
 	"\x14BlacklistruneRequest\x12\x19\n" +
 	"\x05start\x18\x01 \x01(\x04H\x00R\x05start\x88\x01\x01\x12\x15\n" +
 	"\x03end\x18\x02 \x01(\x04H\x01R\x03end\x88\x01\x01\x12\x1b\n" +
@@ -43913,36 +47939,36 @@ const file_node_proto_rawDesc = "" +
 	"\tfieldname\x18\x01 \x01(\tR\tfieldname\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value\x12\x1c\n" +
 	"\tcondition\x18\x03 \x01(\tR\tcondition\x12\x18\n" +
-	"\aenglish\x18\x04 \x01(\tR\aenglish\"H\n" +
+	"\aenglish\x18\x04 \x01(\tR\aenglish\"\x86\x01\n" +
 	"\x17AskreneunreserveRequest\x12-\n" +
-	"\x04path\x18\x01 \x03(\v2\x19.cln.AskreneunreservePathR\x04path\"\x1a\n" +
-	"\x18AskreneunreserveResponse\"\xb8\x01\n" +
+	"\x04path\x18\x01 \x03(\v2\x19.cln.AskreneunreservePathR\x04path\x12)\n" +
+	"\x0edev_remove_all\x18\x02 \x01(\bH\x00R\fdevRemoveAll\x88\x01\x01B\x11\n" +
+	"\x0f_dev_remove_all\"\x1a\n" +
+	"\x18AskreneunreserveResponse\"\x9a\x01\n" +
 	"\x14AskreneunreservePath\x12,\n" +
 	"\vamount_msat\x18\x03 \x01(\v2\v.cln.AmountR\n" +
-	"amountMsat\x124\n" +
-	"\x14short_channel_id_dir\x18\x04 \x01(\tH\x00R\x11shortChannelIdDir\x88\x01\x01\x12\x19\n" +
-	"\x05layer\x18\x05 \x01(\tH\x01R\x05layer\x88\x01\x01B\x17\n" +
-	"\x15_short_channel_id_dirB\b\n" +
+	"amountMsat\x12/\n" +
+	"\x14short_channel_id_dir\x18\x04 \x01(\tR\x11shortChannelIdDir\x12\x19\n" +
+	"\x05layer\x18\x05 \x01(\tH\x00R\x05layer\x88\x01\x01B\b\n" +
 	"\x06_layer\"?\n" +
 	"\x18AskrenelistlayersRequest\x12\x19\n" +
 	"\x05layer\x18\x01 \x01(\tH\x00R\x05layer\x88\x01\x01B\b\n" +
 	"\x06_layer\"Q\n" +
 	"\x19AskrenelistlayersResponse\x124\n" +
-	"\x06layers\x18\x01 \x03(\v2\x1c.cln.AskrenelistlayersLayersR\x06layers\"\xb4\x04\n" +
+	"\x06layers\x18\x01 \x03(\v2\x1c.cln.AskrenelistlayersLayersR\x06layers\"\xa0\x04\n" +
 	"\x17AskrenelistlayersLayers\x12\x14\n" +
 	"\x05layer\x18\x01 \x01(\tR\x05layer\x12%\n" +
 	"\x0edisabled_nodes\x18\x02 \x03(\fR\rdisabledNodes\x12V\n" +
 	"\x10created_channels\x18\x03 \x03(\v2+.cln.AskrenelistlayersLayersCreatedChannelsR\x0fcreatedChannels\x12I\n" +
-	"\vconstraints\x18\x04 \x03(\v2'.cln.AskrenelistlayersLayersConstraintsR\vconstraints\x12#\n" +
+	"\vconstraints\x18\x04 \x03(\v2'.cln.AskrenelistlayersLayersConstraintsR\vconstraints\x12\x1e\n" +
 	"\n" +
-	"persistent\x18\x05 \x01(\bH\x00R\n" +
-	"persistent\x88\x01\x01\x12+\n" +
+	"persistent\x18\x05 \x01(\bR\n" +
+	"persistent\x12+\n" +
 	"\x11disabled_channels\x18\x06 \x03(\tR\x10disabledChannels\x12S\n" +
 	"\x0fchannel_updates\x18\a \x03(\v2*.cln.AskrenelistlayersLayersChannelUpdatesR\x0echannelUpdates\x12:\n" +
 	"\x06biases\x18\b \x03(\v2\".cln.AskrenelistlayersLayersBiasesR\x06biases\x12G\n" +
 	"\vnode_biases\x18\t \x03(\v2&.cln.AskrenelistlayersLayersNodeBiasesR\n" +
-	"nodeBiasesB\r\n" +
-	"\v_persistent\"\xbe\x01\n" +
+	"nodeBiases\"\xbe\x01\n" +
 	"&AskrenelistlayersLayersCreatedChannels\x12\x16\n" +
 	"\x06source\x18\x01 \x01(\fR\x06source\x12 \n" +
 	"\vdestination\x18\x02 \x01(\fR\vdestination\x12(\n" +
@@ -43962,15 +47988,14 @@ const file_node_proto_rawDesc = "" +
 	"\x12_htlc_maximum_msatB\x10\n" +
 	"\x0e_fee_base_msatB\x1e\n" +
 	"\x1c_fee_proportional_millionthsB\x14\n" +
-	"\x12_cltv_expiry_delta\"\xb0\x02\n" +
+	"\x12_cltv_expiry_delta\"\x92\x02\n" +
 	"\"AskrenelistlayersLayersConstraints\x123\n" +
 	"\fmaximum_msat\x18\x03 \x01(\v2\v.cln.AmountH\x00R\vmaximumMsat\x88\x01\x01\x123\n" +
-	"\fminimum_msat\x18\x04 \x01(\v2\v.cln.AmountH\x01R\vminimumMsat\x88\x01\x01\x124\n" +
-	"\x14short_channel_id_dir\x18\x05 \x01(\tH\x02R\x11shortChannelIdDir\x88\x01\x01\x12!\n" +
-	"\ttimestamp\x18\x06 \x01(\x04H\x03R\ttimestamp\x88\x01\x01B\x0f\n" +
+	"\fminimum_msat\x18\x04 \x01(\v2\v.cln.AmountH\x01R\vminimumMsat\x88\x01\x01\x12/\n" +
+	"\x14short_channel_id_dir\x18\x05 \x01(\tR\x11shortChannelIdDir\x12!\n" +
+	"\ttimestamp\x18\x06 \x01(\x04H\x02R\ttimestamp\x88\x01\x01B\x0f\n" +
 	"\r_maximum_msatB\x0f\n" +
-	"\r_minimum_msatB\x17\n" +
-	"\x15_short_channel_id_dirB\f\n" +
+	"\r_minimum_msatB\f\n" +
 	"\n" +
 	"_timestamp\"\xcc\x01\n" +
 	"\x1dAskrenelistlayersLayersBiases\x12/\n" +
@@ -44052,13 +48077,12 @@ const file_node_proto_rawDesc = "" +
 	"\x1aAskreneremovelayerResponse\"D\n" +
 	"\x15AskrenereserveRequest\x12+\n" +
 	"\x04path\x18\x01 \x03(\v2\x17.cln.AskrenereservePathR\x04path\"\x18\n" +
-	"\x16AskrenereserveResponse\"\xb6\x01\n" +
+	"\x16AskrenereserveResponse\"\x98\x01\n" +
 	"\x12AskrenereservePath\x12,\n" +
 	"\vamount_msat\x18\x03 \x01(\v2\v.cln.AmountR\n" +
-	"amountMsat\x124\n" +
-	"\x14short_channel_id_dir\x18\x04 \x01(\tH\x00R\x11shortChannelIdDir\x88\x01\x01\x12\x19\n" +
-	"\x05layer\x18\x05 \x01(\tH\x01R\x05layer\x88\x01\x01B\x17\n" +
-	"\x15_short_channel_id_dirB\b\n" +
+	"amountMsat\x12/\n" +
+	"\x14short_channel_id_dir\x18\x04 \x01(\tR\x11shortChannelIdDir\x12\x19\n" +
+	"\x05layer\x18\x05 \x01(\tH\x00R\x05layer\x88\x01\x01B\b\n" +
 	"\x06_layer\"A\n" +
 	"\x11AskreneageRequest\x12\x14\n" +
 	"\x05layer\x18\x01 \x01(\tR\x05layer\x12\x16\n" +
@@ -44066,7 +48090,7 @@ const file_node_proto_rawDesc = "" +
 	"\x12AskreneageResponse\x12\x14\n" +
 	"\x05layer\x18\x01 \x01(\tR\x05layer\x12\x1f\n" +
 	"\vnum_removed\x18\x02 \x01(\x04R\n" +
-	"numRemoved\"\xcf\x02\n" +
+	"numRemoved\"\xbb\x02\n" +
 	"\x10GetroutesRequest\x12\x16\n" +
 	"\x06source\x18\x01 \x01(\fR\x06source\x12 \n" +
 	"\vdestination\x18\x02 \x01(\fR\vdestination\x12,\n" +
@@ -44074,50 +48098,44 @@ const file_node_proto_rawDesc = "" +
 	"amountMsat\x12\x16\n" +
 	"\x06layers\x18\x04 \x03(\tR\x06layers\x12,\n" +
 	"\vmaxfee_msat\x18\x05 \x01(\v2\v.cln.AmountR\n" +
-	"maxfeeMsat\x12\"\n" +
+	"maxfeeMsat\x12\x1d\n" +
 	"\n" +
-	"final_cltv\x18\a \x01(\rH\x00R\tfinalCltv\x88\x01\x01\x12\x1f\n" +
-	"\bmaxdelay\x18\b \x01(\rH\x01R\bmaxdelay\x88\x01\x01\x12\x1f\n" +
-	"\bmaxparts\x18\t \x01(\rH\x02R\bmaxparts\x88\x01\x01B\r\n" +
-	"\v_final_cltvB\v\n" +
+	"final_cltv\x18\a \x01(\rR\tfinalCltv\x12\x1f\n" +
+	"\bmaxdelay\x18\b \x01(\rH\x00R\bmaxdelay\x88\x01\x01\x12\x1f\n" +
+	"\bmaxparts\x18\t \x01(\rH\x01R\bmaxparts\x88\x01\x01B\v\n" +
 	"\t_maxdelayB\v\n" +
 	"\t_maxparts\"j\n" +
 	"\x11GetroutesResponse\x12'\n" +
 	"\x0fprobability_ppm\x18\x01 \x01(\x04R\x0eprobabilityPpm\x12,\n" +
-	"\x06routes\x18\x02 \x03(\v2\x14.cln.GetroutesRoutesR\x06routes\"\xc9\x01\n" +
+	"\x06routes\x18\x02 \x03(\v2\x14.cln.GetroutesRoutesR\x06routes\"\xb5\x01\n" +
 	"\x0fGetroutesRoutes\x12'\n" +
 	"\x0fprobability_ppm\x18\x01 \x01(\x04R\x0eprobabilityPpm\x12,\n" +
 	"\vamount_msat\x18\x02 \x01(\v2\v.cln.AmountR\n" +
 	"amountMsat\x12,\n" +
-	"\x04path\x18\x03 \x03(\v2\x18.cln.GetroutesRoutesPathR\x04path\x12\"\n" +
+	"\x04path\x18\x03 \x03(\v2\x18.cln.GetroutesRoutesPathR\x04path\x12\x1d\n" +
 	"\n" +
-	"final_cltv\x18\x04 \x01(\rH\x00R\tfinalCltv\x88\x01\x01B\r\n" +
-	"\v_final_cltv\"\xca\x01\n" +
+	"final_cltv\x18\x04 \x01(\rR\tfinalCltv\"\xac\x01\n" +
 	"\x13GetroutesRoutesPath\x12,\n" +
 	"\vamount_msat\x18\x03 \x01(\v2\v.cln.AmountR\n" +
 	"amountMsat\x12 \n" +
 	"\fnext_node_id\x18\x04 \x01(\fR\n" +
 	"nextNodeId\x12\x14\n" +
-	"\x05delay\x18\x05 \x01(\rR\x05delay\x124\n" +
-	"\x14short_channel_id_dir\x18\x06 \x01(\tH\x00R\x11shortChannelIdDir\x88\x01\x01B\x17\n" +
-	"\x15_short_channel_id_dir\"E\n" +
+	"\x05delay\x18\x05 \x01(\rR\x05delay\x12/\n" +
+	"\x14short_channel_id_dir\x18\x06 \x01(\tR\x11shortChannelIdDir\"E\n" +
 	"\x19AskrenedisablenodeRequest\x12\x14\n" +
 	"\x05layer\x18\x01 \x01(\tR\x05layer\x12\x12\n" +
 	"\x04node\x18\x02 \x01(\fR\x04node\"\x1c\n" +
-	"\x1aAskrenedisablenodeResponse\"\xfb\x02\n" +
+	"\x1aAskrenedisablenodeResponse\"\xb8\x02\n" +
 	"\x1bAskreneinformchannelRequest\x12\x14\n" +
-	"\x05layer\x18\x01 \x01(\tR\x05layer\x124\n" +
-	"\x14short_channel_id_dir\x18\x06 \x01(\tH\x00R\x11shortChannelIdDir\x88\x01\x01\x121\n" +
-	"\vamount_msat\x18\a \x01(\v2\v.cln.AmountH\x01R\n" +
-	"amountMsat\x88\x01\x01\x12X\n" +
-	"\x06inform\x18\b \x01(\x0e2;.cln.AskreneinformchannelRequest.AskreneinformchannelInformH\x02R\x06inform\x88\x01\x01\"O\n" +
+	"\x05layer\x18\x01 \x01(\tR\x05layer\x12/\n" +
+	"\x14short_channel_id_dir\x18\x06 \x01(\tR\x11shortChannelIdDir\x12,\n" +
+	"\vamount_msat\x18\a \x01(\v2\v.cln.AmountR\n" +
+	"amountMsat\x12S\n" +
+	"\x06inform\x18\b \x01(\x0e2;.cln.AskreneinformchannelRequest.AskreneinformchannelInformR\x06inform\"O\n" +
 	"\x1aAskreneinformchannelInform\x12\x0f\n" +
 	"\vCONSTRAINED\x10\x00\x12\x11\n" +
 	"\rUNCONSTRAINED\x10\x01\x12\r\n" +
-	"\tSUCCEEDED\x10\x02B\x17\n" +
-	"\x15_short_channel_id_dirB\x0e\n" +
-	"\f_amount_msatB\t\n" +
-	"\a_inform\"f\n" +
+	"\tSUCCEEDED\x10\x02\"f\n" +
 	"\x1cAskreneinformchannelResponse\x12F\n" +
 	"\vconstraints\x18\x02 \x03(\v2$.cln.AskreneinformchannelConstraintsR\vconstraints\"\x92\x02\n" +
 	"\x1fAskreneinformchannelConstraints\x12/\n" +
@@ -44414,7 +48432,34 @@ const file_node_proto_rawDesc = "" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01B\t\n" +
 	"\a_nodeidB\t\n" +
-	"\a_method\"\x19\n" +
+	"\a_method\"6\n" +
+	"\x18ListcurrencyratesRequest\x12\x1a\n" +
+	"\bcurrency\x18\x01 \x01(\tR\bcurrency\"f\n" +
+	"\x19ListcurrencyratesResponse\x12I\n" +
+	"\rcurrencyrates\x18\x01 \x03(\v2#.cln.ListcurrencyratesCurrencyratesR\rcurrencyrates\"P\n" +
+	"\x1eListcurrencyratesCurrencyrates\x12\x16\n" +
+	"\x06source\x18\x01 \x01(\tR\x06source\x12\x16\n" +
+	"\x06amount\x18\x02 \x01(\x01R\x06amount\"L\n" +
+	"\x16CurrencyconvertRequest\x12\x16\n" +
+	"\x06amount\x18\x01 \x01(\x01R\x06amount\x12\x1a\n" +
+	"\bcurrency\x18\x02 \x01(\tR\bcurrency\":\n" +
+	"\x17CurrencyconvertResponse\x12\x1f\n" +
+	"\x04msat\x18\x01 \x01(\v2\v.cln.AmountR\x04msat\"1\n" +
+	"\x13CurrencyrateRequest\x12\x1a\n" +
+	"\bcurrency\x18\x01 \x01(\tR\bcurrency\"*\n" +
+	"\x14CurrencyrateResponse\x12\x12\n" +
+	"\x04rate\x18\x01 \x01(\x01R\x04rate\"\x1e\n" +
+	"\x1cStreamBalanceSnapshotRequest\"\xb0\x01\n" +
+	"\x1bBalanceSnapshotNotification\x12\x17\n" +
+	"\anode_id\x18\x01 \x01(\fR\x06nodeId\x12 \n" +
+	"\vblockheight\x18\x02 \x01(\rR\vblockheight\x12\x1c\n" +
+	"\ttimestamp\x18\x03 \x01(\rR\ttimestamp\x128\n" +
+	"\baccounts\x18\x04 \x03(\v2\x1c.cln.BalanceSnapshotAccountsR\baccounts\"\x85\x01\n" +
+	"\x17BalanceSnapshotAccounts\x12\x1d\n" +
+	"\n" +
+	"account_id\x18\x01 \x01(\tR\taccountId\x12.\n" +
+	"\fbalance_msat\x18\x02 \x01(\v2\v.cln.AmountR\vbalanceMsat\x12\x1b\n" +
+	"\tcoin_type\x18\x03 \x01(\tR\bcoinType\"\x19\n" +
 	"\x17StreamBlockAddedRequest\"D\n" +
 	"\x16BlockAddedNotification\x12\x12\n" +
 	"\x04hash\x18\x01 \x01(\fR\x04hash\x12\x16\n" +
@@ -44428,35 +48473,7 @@ const file_node_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\fR\x02id\x12.\n" +
 	"\ffunding_msat\x18\x02 \x01(\v2\v.cln.AmountR\vfundingMsat\x12!\n" +
 	"\ffunding_txid\x18\x03 \x01(\fR\vfundingTxid\x12#\n" +
-	"\rchannel_ready\x18\x04 \x01(\bR\fchannelReady\"\x16\n" +
-	"\x14StreamConnectRequest\"\xd6\x01\n" +
-	"\x17PeerConnectNotification\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\fR\x02id\x12O\n" +
-	"\tdirection\x18\x02 \x01(\x0e21.cln.PeerConnectNotification.PeerConnectDirectionR\tdirection\x121\n" +
-	"\aaddress\x18\x03 \x01(\v2\x17.cln.PeerConnectAddressR\aaddress\"'\n" +
-	"\x14PeerConnectDirection\x12\x06\n" +
-	"\x02IN\x10\x00\x12\a\n" +
-	"\x03OUT\x10\x01\"\xbb\x02\n" +
-	"\x12PeerConnectAddress\x12K\n" +
-	"\titem_type\x18\x01 \x01(\x0e2..cln.PeerConnectAddress.PeerConnectAddressTypeR\bitemType\x12\x1b\n" +
-	"\x06socket\x18\x02 \x01(\tH\x00R\x06socket\x88\x01\x01\x12\x1d\n" +
-	"\aaddress\x18\x03 \x01(\tH\x01R\aaddress\x88\x01\x01\x12\x17\n" +
-	"\x04port\x18\x04 \x01(\rH\x02R\x04port\x88\x01\x01\"c\n" +
-	"\x16PeerConnectAddressType\x12\x10\n" +
-	"\fLOCAL_SOCKET\x10\x00\x12\b\n" +
-	"\x04IPV4\x10\x01\x12\b\n" +
-	"\x04IPV6\x10\x02\x12\t\n" +
-	"\x05TORV2\x10\x03\x12\t\n" +
-	"\x05TORV3\x10\x04\x12\r\n" +
-	"\tWEBSOCKET\x10\x05B\t\n" +
-	"\a_socketB\n" +
-	"\n" +
-	"\b_addressB\a\n" +
-	"\x05_port\"\x18\n" +
-	"\x16StreamCustomMsgRequest\"J\n" +
-	"\x15CustomMsgNotification\x12\x17\n" +
-	"\apeer_id\x18\x01 \x01(\fR\x06peerId\x12\x18\n" +
-	"\apayload\x18\x02 \x01(\fR\apayload\"\"\n" +
+	"\rchannel_ready\x18\x04 \x01(\bR\fchannelReady\"\"\n" +
 	" StreamChannelStateChangedRequest\"\x93\x04\n" +
 	"\x1fChannelStateChangedNotification\x12\x17\n" +
 	"\apeer_id\x18\x01 \x01(\fR\x06peerId\x12\x1d\n" +
@@ -44480,7 +48497,390 @@ const file_node_proto_rawDesc = "" +
 	"\n" +
 	"_old_stateB\n" +
 	"\n" +
-	"\b_message2\x82U\n" +
+	"\b_message\"\x16\n" +
+	"\x14StreamConnectRequest\"\xd6\x01\n" +
+	"\x17PeerConnectNotification\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\fR\x02id\x12O\n" +
+	"\tdirection\x18\x02 \x01(\x0e21.cln.PeerConnectNotification.PeerConnectDirectionR\tdirection\x121\n" +
+	"\aaddress\x18\x03 \x01(\v2\x17.cln.PeerConnectAddressR\aaddress\"'\n" +
+	"\x14PeerConnectDirection\x12\x06\n" +
+	"\x02IN\x10\x00\x12\a\n" +
+	"\x03OUT\x10\x01\"\xbb\x02\n" +
+	"\x12PeerConnectAddress\x12K\n" +
+	"\titem_type\x18\x01 \x01(\x0e2..cln.PeerConnectAddress.PeerConnectAddressTypeR\bitemType\x12\x1b\n" +
+	"\x06socket\x18\x02 \x01(\tH\x00R\x06socket\x88\x01\x01\x12\x1d\n" +
+	"\aaddress\x18\x03 \x01(\tH\x01R\aaddress\x88\x01\x01\x12\x17\n" +
+	"\x04port\x18\x04 \x01(\rH\x02R\x04port\x88\x01\x01\"c\n" +
+	"\x16PeerConnectAddressType\x12\x10\n" +
+	"\fLOCAL_SOCKET\x10\x00\x12\b\n" +
+	"\x04IPV4\x10\x01\x12\b\n" +
+	"\x04IPV6\x10\x02\x12\t\n" +
+	"\x05TORV2\x10\x03\x12\t\n" +
+	"\x05TORV3\x10\x04\x12\r\n" +
+	"\tWEBSOCKET\x10\x05B\t\n" +
+	"\a_socketB\n" +
+	"\n" +
+	"\b_addressB\a\n" +
+	"\x05_port\"\x1b\n" +
+	"\x19StreamCoinMovementRequest\"\xb0\r\n" +
+	"\x18CoinMovementNotification\x12\x18\n" +
+	"\aversion\x18\x01 \x01(\rR\aversion\x12\x1b\n" +
+	"\tcoin_type\x18\x02 \x01(\tR\bcoinType\x12\x17\n" +
+	"\anode_id\x18\x03 \x01(\fR\x06nodeId\x12K\n" +
+	"\titem_type\x18\x04 \x01(\x0e2..cln.CoinMovementNotification.CoinMovementTypeR\bitemType\x12(\n" +
+	"\rcreated_index\x18\x05 \x01(\x04H\x00R\fcreatedIndex\x88\x01\x01\x12\x1d\n" +
+	"\n" +
+	"account_id\x18\x06 \x01(\tR\taccountId\x12,\n" +
+	"\vcredit_msat\x18\a \x01(\v2\v.cln.AmountR\n" +
+	"creditMsat\x12*\n" +
+	"\n" +
+	"debit_msat\x18\b \x01(\v2\v.cln.AmountR\tdebitMsat\x12\x1c\n" +
+	"\ttimestamp\x18\t \x01(\x04R\ttimestamp\x12\x12\n" +
+	"\x04tags\x18\n" +
+	" \x03(\tR\x04tags\x12Z\n" +
+	"\vprimary_tag\x18\v \x01(\x0e24.cln.CoinMovementNotification.CoinMovementPrimaryTagH\x01R\n" +
+	"primaryTag\x88\x01\x01\x12\x1d\n" +
+	"\n" +
+	"extra_tags\x18\f \x03(\tR\textraTags\x12&\n" +
+	"\fpayment_hash\x18\r \x01(\fH\x02R\vpaymentHash\x88\x01\x01\x12\x1c\n" +
+	"\apart_id\x18\x0e \x01(\x04H\x03R\x06partId\x88\x01\x01\x12\x1e\n" +
+	"\bgroup_id\x18\x0f \x01(\x04H\x04R\agroupId\x88\x01\x01\x12-\n" +
+	"\tfees_msat\x18\x10 \x01(\v2\v.cln.AmountH\x05R\bfeesMsat\x88\x01\x01\x12&\n" +
+	"\x04utxo\x18\x11 \x01(\v2\r.cln.OutpointH\x06R\x04utxo\x88\x01\x01\x12\x1c\n" +
+	"\apeer_id\x18\x12 \x01(\fH\aR\x06peerId\x88\x01\x01\x124\n" +
+	"\x13originating_account\x18\x13 \x01(\tH\bR\x12originatingAccount\x88\x01\x01\x12\x17\n" +
+	"\x04txid\x18\x14 \x01(\fH\tR\x04txid\x88\x01\x01\x12(\n" +
+	"\rspending_txid\x18\x15 \x01(\fH\n" +
+	"R\fspendingTxid\x88\x01\x01\x12 \n" +
+	"\tutxo_txid\x18\x16 \x01(\fH\vR\butxoTxid\x88\x01\x01\x12\x17\n" +
+	"\x04vout\x18\x17 \x01(\rH\fR\x04vout\x88\x01\x01\x121\n" +
+	"\voutput_msat\x18\x18 \x01(\v2\v.cln.AmountH\rR\n" +
+	"outputMsat\x88\x01\x01\x12&\n" +
+	"\foutput_count\x18\x19 \x01(\rH\x0eR\voutputCount\x88\x01\x01\x12%\n" +
+	"\vblockheight\x18\x1a \x01(\rH\x0fR\vblockheight\x88\x01\x01\"2\n" +
+	"\x10CoinMovementType\x12\x0f\n" +
+	"\vCHANNEL_MVT\x10\x00\x12\r\n" +
+	"\tCHAIN_MVT\x10\x01\"\xf7\x02\n" +
+	"\x16CoinMovementPrimaryTag\x12\v\n" +
+	"\aDEPOSIT\x10\x00\x12\x0e\n" +
+	"\n" +
+	"WITHDRAWAL\x10\x01\x12\v\n" +
+	"\aPENALTY\x10\x02\x12\x10\n" +
+	"\fCHANNEL_OPEN\x10\x03\x12\x11\n" +
+	"\rCHANNEL_CLOSE\x10\x04\x12\x11\n" +
+	"\rDELAYED_TO_US\x10\x05\x12\v\n" +
+	"\aHTLC_TX\x10\x06\x12\x10\n" +
+	"\fHTLC_TIMEOUT\x10\a\x12\x10\n" +
+	"\fHTLC_FULFILL\x10\b\x12\r\n" +
+	"\tTO_WALLET\x10\t\x12\n" +
+	"\n" +
+	"\x06ANCHOR\x10\n" +
+	"\x12\v\n" +
+	"\aTO_THEM\x10\v\x12\r\n" +
+	"\tPENALIZED\x10\f\x12\n" +
+	"\n" +
+	"\x06STOLEN\x10\r\x12\v\n" +
+	"\aIGNORED\x10\x0e\x12\f\n" +
+	"\bTO_MINER\x10\x0f\x12\v\n" +
+	"\aINVOICE\x10\x10\x12\n" +
+	"\n" +
+	"\x06ROUTED\x10\x11\x12\n" +
+	"\n" +
+	"\x06PUSHED\x10\x12\x12\r\n" +
+	"\tLEASE_FEE\x10\x13\x12\x14\n" +
+	"\x10CHANNEL_PROPOSED\x10\x14\x12\x0f\n" +
+	"\vPENALTY_ADJ\x10\x15\x12\x11\n" +
+	"\rJOURNAL_ENTRY\x10\x16B\x10\n" +
+	"\x0e_created_indexB\x0e\n" +
+	"\f_primary_tagB\x0f\n" +
+	"\r_payment_hashB\n" +
+	"\n" +
+	"\b_part_idB\v\n" +
+	"\t_group_idB\f\n" +
+	"\n" +
+	"_fees_msatB\a\n" +
+	"\x05_utxoB\n" +
+	"\n" +
+	"\b_peer_idB\x16\n" +
+	"\x14_originating_accountB\a\n" +
+	"\x05_txidB\x10\n" +
+	"\x0e_spending_txidB\f\n" +
+	"\n" +
+	"_utxo_txidB\a\n" +
+	"\x05_voutB\x0e\n" +
+	"\f_output_msatB\x0f\n" +
+	"\r_output_countB\x0e\n" +
+	"\f_blockheight\"\x18\n" +
+	"\x16StreamCustomMsgRequest\"J\n" +
+	"\x15CustomMsgNotification\x12\x17\n" +
+	"\apeer_id\x18\x01 \x01(\fR\x06peerId\x12\x18\n" +
+	"\apayload\x18\x02 \x01(\fR\apayload\" \n" +
+	"\x1eStreamDeprecatedOneshotRequest\"D\n" +
+	"\x1dDeprecatedOneshotNotification\x12#\n" +
+	"\rdeprecated_ok\x18\x01 \x01(\bR\fdeprecatedOk\"\x19\n" +
+	"\x17StreamDisconnectRequest\"(\n" +
+	"\x16DisconnectNotification\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\fR\x02id\"\x1b\n" +
+	"\x19StreamForwardEventRequest\"\x87\x06\n" +
+	"\x18ForwardEventNotification\x12!\n" +
+	"\fpayment_hash\x18\x01 \x01(\fR\vpaymentHash\x12\x1d\n" +
+	"\n" +
+	"in_channel\x18\x02 \x01(\tR\tinChannel\x12$\n" +
+	"\vout_channel\x18\x03 \x01(\tH\x00R\n" +
+	"outChannel\x88\x01\x01\x12$\n" +
+	"\ain_msat\x18\x04 \x01(\v2\v.cln.AmountR\x06inMsat\x12+\n" +
+	"\bout_msat\x18\x05 \x01(\v2\v.cln.AmountH\x01R\aoutMsat\x88\x01\x01\x12+\n" +
+	"\bfee_msat\x18\x06 \x01(\v2\v.cln.AmountH\x02R\afeeMsat\x88\x01\x01\x12H\n" +
+	"\x06status\x18\a \x01(\x0e20.cln.ForwardEventNotification.ForwardEventStatusR\x06status\x12\x1f\n" +
+	"\bfailcode\x18\b \x01(\rH\x03R\bfailcode\x88\x01\x01\x12#\n" +
+	"\n" +
+	"failreason\x18\t \x01(\tH\x04R\n" +
+	"failreason\x88\x01\x01\x12J\n" +
+	"\x05style\x18\n" +
+	" \x01(\x0e2/.cln.ForwardEventNotification.ForwardEventStyleH\x05R\x05style\x88\x01\x01\x12#\n" +
+	"\rreceived_time\x18\v \x01(\x01R\freceivedTime\x12(\n" +
+	"\rresolved_time\x18\f \x01(\x01H\x06R\fresolvedTime\x88\x01\x01\"L\n" +
+	"\x12ForwardEventStatus\x12\v\n" +
+	"\aOFFERED\x10\x00\x12\v\n" +
+	"\aSETTLED\x10\x01\x12\x10\n" +
+	"\fLOCAL_FAILED\x10\x02\x12\n" +
+	"\n" +
+	"\x06FAILED\x10\x03\"(\n" +
+	"\x11ForwardEventStyle\x12\n" +
+	"\n" +
+	"\x06LEGACY\x10\x00\x12\a\n" +
+	"\x03TLV\x10\x01B\x0e\n" +
+	"\f_out_channelB\v\n" +
+	"\t_out_msatB\v\n" +
+	"\t_fee_msatB\v\n" +
+	"\t_failcodeB\r\n" +
+	"\v_failreasonB\b\n" +
+	"\x06_styleB\x10\n" +
+	"\x0e_resolved_time\"\x1e\n" +
+	"\x1cStreamInvoiceCreationRequest\"~\n" +
+	"\x1bInvoiceCreationNotification\x12$\n" +
+	"\x04msat\x18\x01 \x01(\v2\v.cln.AmountH\x00R\x04msat\x88\x01\x01\x12\x1a\n" +
+	"\bpreimage\x18\x02 \x01(\fR\bpreimage\x12\x14\n" +
+	"\x05label\x18\x03 \x01(\tR\x05labelB\a\n" +
+	"\x05_msat\"\x1d\n" +
+	"\x1bStreamInvoicePaymentRequest\"\xac\x01\n" +
+	"\x1aInvoicePaymentNotification\x12\x1f\n" +
+	"\x04msat\x18\x01 \x01(\v2\v.cln.AmountR\x04msat\x12\x1a\n" +
+	"\bpreimage\x18\x02 \x01(\fR\bpreimage\x12.\n" +
+	"\boutpoint\x18\x03 \x01(\v2\r.cln.OutpointH\x00R\boutpoint\x88\x01\x01\x12\x14\n" +
+	"\x05label\x18\x04 \x01(\tR\x05labelB\v\n" +
+	"\t_outpoint\"\x12\n" +
+	"\x10StreamLogRequest\"\xef\x01\n" +
+	"\x0fLogNotification\x123\n" +
+	"\x05level\x18\x01 \x01(\x0e2\x1d.cln.LogNotification.LogLevelR\x05level\x12\x12\n" +
+	"\x04time\x18\x02 \x01(\tR\x04time\x12\x1c\n" +
+	"\ttimestamp\x18\x03 \x01(\tR\ttimestamp\x12\x16\n" +
+	"\x06source\x18\x04 \x01(\tR\x06source\x12\x10\n" +
+	"\x03log\x18\x05 \x01(\tR\x03log\"K\n" +
+	"\bLogLevel\x12\x06\n" +
+	"\x02IO\x10\x00\x12\t\n" +
+	"\x05TRACE\x10\x01\x12\t\n" +
+	"\x05DEBUG\x10\x02\x12\b\n" +
+	"\x04INFO\x10\x03\x12\v\n" +
+	"\aUNUSUAL\x10\x04\x12\n" +
+	"\n" +
+	"\x06BROKEN\x10\x05\"&\n" +
+	"$StreamOnionMessageForwardFailRequest\"\xb7\x02\n" +
+	"#OnionMessageForwardFailNotification\x12\x16\n" +
+	"\x06source\x18\x01 \x01(\fR\x06source\x12\x1a\n" +
+	"\bincoming\x18\x02 \x01(\fR\bincoming\x12\x19\n" +
+	"\bpath_key\x18\x03 \x01(\fR\apathKey\x12\x1f\n" +
+	"\boutgoing\x18\x04 \x01(\fH\x00R\boutgoing\x88\x01\x01\x12%\n" +
+	"\fnext_node_id\x18\x05 \x01(\fH\x01R\n" +
+	"nextNodeId\x88\x01\x01\x12=\n" +
+	"\x19next_short_channel_id_dir\x18\x06 \x01(\tH\x02R\x15nextShortChannelIdDir\x88\x01\x01B\v\n" +
+	"\t_outgoingB\x0f\n" +
+	"\r_next_node_idB\x1c\n" +
+	"\x1a_next_short_channel_id_dir\"\"\n" +
+	" StreamOpenChannelPeerSigsRequest\"a\n" +
+	"\x1fOpenChannelPeerSigsNotification\x12\x1d\n" +
+	"\n" +
+	"channel_id\x18\x01 \x01(\fR\tchannelId\x12\x1f\n" +
+	"\vsigned_psbt\x18\x02 \x01(\tR\n" +
+	"signedPsbt\"\x1c\n" +
+	"\x1aStreamPluginStartedRequest\"w\n" +
+	"\x19PluginStartedNotification\x12\x1f\n" +
+	"\vplugin_name\x18\x01 \x01(\tR\n" +
+	"pluginName\x12\x1f\n" +
+	"\vplugin_path\x18\x02 \x01(\tR\n" +
+	"pluginPath\x12\x18\n" +
+	"\amethods\x18\x03 \x03(\tR\amethods\"\x1c\n" +
+	"\x1aStreamPluginStoppedRequest\"w\n" +
+	"\x19PluginStoppedNotification\x12\x1f\n" +
+	"\vplugin_name\x18\x01 \x01(\tR\n" +
+	"pluginName\x12\x1f\n" +
+	"\vplugin_path\x18\x02 \x01(\tR\n" +
+	"pluginPath\x12\x18\n" +
+	"\amethods\x18\x03 \x03(\tR\amethods\"\x1d\n" +
+	"\x1bStreamSendPayFailureRequest\"w\n" +
+	"\x1aSendPayFailureNotification\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\x12R\x04code\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x12+\n" +
+	"\x04data\x18\x03 \x01(\v2\x17.cln.SendpayFailureDataR\x04data\"\xf2\v\n" +
+	"\x12SendpayFailureData\x12(\n" +
+	"\rcreated_index\x18\x01 \x01(\x04H\x00R\fcreatedIndex\x88\x01\x01\x12\x13\n" +
+	"\x02id\x18\x02 \x01(\x04H\x01R\x02id\x88\x01\x01\x12&\n" +
+	"\fpayment_hash\x18\x03 \x01(\fH\x02R\vpaymentHash\x88\x01\x01\x12\x1d\n" +
+	"\agroupid\x18\x04 \x01(\x04H\x03R\agroupid\x88\x01\x01\x12(\n" +
+	"\rupdated_index\x18\x05 \x01(\x04H\x04R\fupdatedIndex\x88\x01\x01\x12\x1b\n" +
+	"\x06partid\x18\x06 \x01(\x04H\x05R\x06partid\x88\x01\x01\x12%\n" +
+	"\vdestination\x18\a \x01(\fH\x06R\vdestination\x88\x01\x01\x121\n" +
+	"\vamount_msat\x18\b \x01(\v2\v.cln.AmountH\aR\n" +
+	"amountMsat\x88\x01\x01\x12:\n" +
+	"\x10amount_sent_msat\x18\t \x01(\v2\v.cln.AmountH\bR\x0eamountSentMsat\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"created_at\x18\n" +
+	" \x01(\x04H\tR\tcreatedAt\x88\x01\x01\x12&\n" +
+	"\fcompleted_at\x18\v \x01(\x04H\n" +
+	"R\vcompletedAt\x88\x01\x01\x12M\n" +
+	"\x06status\x18\f \x01(\x0e20.cln.SendpayFailureData.SendpayFailureDataStatusH\vR\x06status\x88\x01\x01\x12.\n" +
+	"\x10payment_preimage\x18\r \x01(\fH\fR\x0fpaymentPreimage\x88\x01\x01\x12\x19\n" +
+	"\x05label\x18\x0e \x01(\tH\rR\x05label\x88\x01\x01\x12\x1b\n" +
+	"\x06bolt11\x18\x0f \x01(\tH\x0eR\x06bolt11\x88\x01\x01\x12\x1b\n" +
+	"\x06bolt12\x18\x10 \x01(\tH\x0fR\x06bolt12\x88\x01\x01\x12%\n" +
+	"\vdescription\x18\x11 \x01(\tH\x10R\vdescription\x88\x01\x01\x12#\n" +
+	"\n" +
+	"erroronion\x18\x12 \x01(\fH\x11R\n" +
+	"erroronion\x88\x01\x01\x12#\n" +
+	"\n" +
+	"onionreply\x18\x13 \x01(\fH\x12R\n" +
+	"onionreply\x88\x01\x01\x12&\n" +
+	"\ferring_index\x18\x14 \x01(\rH\x13R\verringIndex\x88\x01\x01\x12\x1f\n" +
+	"\bfailcode\x18\x15 \x01(\rH\x14R\bfailcode\x88\x01\x01\x12'\n" +
+	"\ffailcodename\x18\x16 \x01(\tH\x15R\ffailcodename\x88\x01\x01\x12$\n" +
+	"\verring_node\x18\x17 \x01(\fH\x16R\n" +
+	"erringNode\x88\x01\x01\x12*\n" +
+	"\x0eerring_channel\x18\x18 \x01(\tH\x17R\rerringChannel\x88\x01\x01\x12.\n" +
+	"\x10erring_direction\x18\x19 \x01(\rH\x18R\x0ferringDirection\x88\x01\x01\x12$\n" +
+	"\vraw_message\x18\x1a \x01(\fH\x19R\n" +
+	"rawMessage\x88\x01\x01\"A\n" +
+	"\x18SendpayFailureDataStatus\x12\n" +
+	"\n" +
+	"\x06FAILED\x10\x00\x12\v\n" +
+	"\aPENDING\x10\x01\x12\f\n" +
+	"\bCOMPLETE\x10\x02B\x10\n" +
+	"\x0e_created_indexB\x05\n" +
+	"\x03_idB\x0f\n" +
+	"\r_payment_hashB\n" +
+	"\n" +
+	"\b_groupidB\x10\n" +
+	"\x0e_updated_indexB\t\n" +
+	"\a_partidB\x0e\n" +
+	"\f_destinationB\x0e\n" +
+	"\f_amount_msatB\x13\n" +
+	"\x11_amount_sent_msatB\r\n" +
+	"\v_created_atB\x0f\n" +
+	"\r_completed_atB\t\n" +
+	"\a_statusB\x13\n" +
+	"\x11_payment_preimageB\b\n" +
+	"\x06_labelB\t\n" +
+	"\a_bolt11B\t\n" +
+	"\a_bolt12B\x0e\n" +
+	"\f_descriptionB\r\n" +
+	"\v_erroronionB\r\n" +
+	"\v_onionreplyB\x0f\n" +
+	"\r_erring_indexB\v\n" +
+	"\t_failcodeB\x0f\n" +
+	"\r_failcodenameB\x0e\n" +
+	"\f_erring_nodeB\x11\n" +
+	"\x0f_erring_channelB\x13\n" +
+	"\x11_erring_directionB\x0e\n" +
+	"\f_raw_message\"\x1d\n" +
+	"\x1bStreamSendPaySuccessRequest\"\x94\a\n" +
+	"\x1aSendPaySuccessNotification\x12#\n" +
+	"\rcreated_index\x18\x01 \x01(\x04R\fcreatedIndex\x12\x0e\n" +
+	"\x02id\x18\x02 \x01(\x04R\x02id\x12!\n" +
+	"\fpayment_hash\x18\x03 \x01(\fR\vpaymentHash\x12\x18\n" +
+	"\agroupid\x18\x04 \x01(\x04R\agroupid\x12(\n" +
+	"\rupdated_index\x18\x05 \x01(\x04H\x00R\fupdatedIndex\x88\x01\x01\x12\x1b\n" +
+	"\x06partid\x18\x06 \x01(\x04H\x01R\x06partid\x88\x01\x01\x12%\n" +
+	"\vdestination\x18\a \x01(\fH\x02R\vdestination\x88\x01\x01\x121\n" +
+	"\vamount_msat\x18\b \x01(\v2\v.cln.AmountH\x03R\n" +
+	"amountMsat\x88\x01\x01\x125\n" +
+	"\x10amount_sent_msat\x18\t \x01(\v2\v.cln.AmountR\x0eamountSentMsat\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\n" +
+	" \x01(\x04R\tcreatedAt\x12&\n" +
+	"\fcompleted_at\x18\v \x01(\x04H\x04R\vcompletedAt\x88\x01\x01\x12L\n" +
+	"\x06status\x18\f \x01(\x0e24.cln.SendPaySuccessNotification.SendpaySuccessStatusR\x06status\x12.\n" +
+	"\x10payment_preimage\x18\r \x01(\fH\x05R\x0fpaymentPreimage\x88\x01\x01\x12\x19\n" +
+	"\x05label\x18\x0e \x01(\tH\x06R\x05label\x88\x01\x01\x12\x1b\n" +
+	"\x06bolt11\x18\x0f \x01(\tH\aR\x06bolt11\x88\x01\x01\x12\x1b\n" +
+	"\x06bolt12\x18\x10 \x01(\tH\bR\x06bolt12\x88\x01\x01\x12%\n" +
+	"\vdescription\x18\x11 \x01(\tH\tR\vdescription\x88\x01\x01\x12#\n" +
+	"\n" +
+	"erroronion\x18\x12 \x01(\fH\n" +
+	"R\n" +
+	"erroronion\x88\x01\x01\"$\n" +
+	"\x14SendpaySuccessStatus\x12\f\n" +
+	"\bCOMPLETE\x10\x00B\x10\n" +
+	"\x0e_updated_indexB\t\n" +
+	"\a_partidB\x0e\n" +
+	"\f_destinationB\x0e\n" +
+	"\f_amount_msatB\x0f\n" +
+	"\r_completed_atB\x13\n" +
+	"\x11_payment_preimageB\b\n" +
+	"\x06_labelB\t\n" +
+	"\a_bolt11B\t\n" +
+	"\a_bolt12B\x0e\n" +
+	"\f_descriptionB\r\n" +
+	"\v_erroronion\"\x17\n" +
+	"\x15StreamShutdownRequest\"\x16\n" +
+	"\x14ShutdownNotification\"\x16\n" +
+	"\x14StreamWarningRequest\"\xd3\x01\n" +
+	"\x13WarningNotification\x12;\n" +
+	"\x05level\x18\x01 \x01(\x0e2%.cln.WarningNotification.WarningLevelR\x05level\x12\x12\n" +
+	"\x04time\x18\x02 \x01(\tR\x04time\x12\x1c\n" +
+	"\ttimestamp\x18\x03 \x01(\tR\ttimestamp\x12\x16\n" +
+	"\x06source\x18\x04 \x01(\tR\x06source\x12\x10\n" +
+	"\x03log\x18\x05 \x01(\tR\x03log\"#\n" +
+	"\fWarningLevel\x12\b\n" +
+	"\x04WARN\x10\x00\x12\t\n" +
+	"\x05ERROR\x10\x01\"\x19\n" +
+	"\x17StreamPayPartEndRequest\"\xfa\x04\n" +
+	"\x16PayPartEndNotification\x12D\n" +
+	"\x06status\x18\x01 \x01(\x0e2,.cln.PayPartEndNotification.PayPartEndStatusR\x06status\x12\x1a\n" +
+	"\bduration\x18\x02 \x01(\x01R\bduration\x12!\n" +
+	"\fpayment_hash\x18\x03 \x01(\fR\vpaymentHash\x12\x18\n" +
+	"\agroupid\x18\x04 \x01(\x04R\agroupid\x12\x16\n" +
+	"\x06partid\x18\x05 \x01(\x04R\x06partid\x12\"\n" +
+	"\n" +
+	"failed_msg\x18\x06 \x01(\fH\x00R\tfailedMsg\x88\x01\x01\x12)\n" +
+	"\x0efailed_node_id\x18\a \x01(\fH\x01R\ffailedNodeId\x88\x01\x01\x12:\n" +
+	"\x17failed_short_channel_id\x18\b \x01(\tH\x02R\x14failedShortChannelId\x88\x01\x01\x12.\n" +
+	"\x10failed_direction\x18\t \x01(\rH\x03R\x0ffailedDirection\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"error_code\x18\n" +
+	" \x01(\rH\x04R\terrorCode\x88\x01\x01\x12(\n" +
+	"\rerror_message\x18\v \x01(\tH\x05R\ferrorMessage\x88\x01\x01\",\n" +
+	"\x10PayPartEndStatus\x12\v\n" +
+	"\aSUCCESS\x10\x00\x12\v\n" +
+	"\aFAILURE\x10\x01B\r\n" +
+	"\v_failed_msgB\x11\n" +
+	"\x0f_failed_node_idB\x1a\n" +
+	"\x18_failed_short_channel_idB\x13\n" +
+	"\x11_failed_directionB\r\n" +
+	"\v_error_codeB\x10\n" +
+	"\x0e_error_message\"\x1b\n" +
+	"\x19StreamPayPartStartRequest\"\x85\x02\n" +
+	"\x18PayPartStartNotification\x12!\n" +
+	"\fpayment_hash\x18\x01 \x01(\fR\vpaymentHash\x12\x18\n" +
+	"\agroupid\x18\x02 \x01(\x04R\agroupid\x12\x16\n" +
+	"\x06partid\x18\x03 \x01(\x04R\x06partid\x129\n" +
+	"\x12total_payment_msat\x18\x04 \x01(\v2\v.cln.AmountR\x10totalPaymentMsat\x12.\n" +
+	"\fattempt_msat\x18\x05 \x01(\v2\v.cln.AmountR\vattemptMsat\x12)\n" +
+	"\x04hops\x18\x06 \x03(\v2\x15.cln.PayPartStartHopsR\x04hops\"\xe3\x01\n" +
+	"\x10PayPartStartHops\x12\x1b\n" +
+	"\tnext_node\x18\x01 \x01(\fR\bnextNode\x12(\n" +
+	"\x10short_channel_id\x18\x02 \x01(\tR\x0eshortChannelId\x12\x1c\n" +
+	"\tdirection\x18\x03 \x01(\rR\tdirection\x123\n" +
+	"\x0fchannel_in_msat\x18\x04 \x01(\v2\v.cln.AmountR\rchannelInMsat\x125\n" +
+	"\x10channel_out_msat\x18\x05 \x01(\v2\v.cln.AmountR\x0echannelOutMsat2\xcee\n" +
 	"\x04Node\x126\n" +
 	"\aGetinfo\x12\x13.cln.GetinfoRequest\x1a\x14.cln.GetinfoResponse\"\x00\x12<\n" +
 	"\tListPeers\x12\x15.cln.ListpeersRequest\x1a\x16.cln.ListpeersResponse\"\x00\x12<\n" +
@@ -44584,7 +48984,9 @@ const file_node_proto_rawDesc = "" +
 	"\n" +
 	"SpliceInit\x12\x16.cln.SpliceInitRequest\x1a\x17.cln.SpliceInitResponse\"\x00\x12E\n" +
 	"\fSpliceSigned\x12\x18.cln.SpliceSignedRequest\x1a\x19.cln.SpliceSignedResponse\"\x00\x12E\n" +
-	"\fSpliceUpdate\x12\x18.cln.SpliceUpdateRequest\x1a\x19.cln.SpliceUpdateResponse\"\x00\x12<\n" +
+	"\fSpliceUpdate\x12\x18.cln.SpliceUpdateRequest\x1a\x19.cln.SpliceUpdateResponse\"\x00\x129\n" +
+	"\bSpliceIn\x12\x14.cln.SpliceinRequest\x1a\x15.cln.SpliceinResponse\"\x00\x12<\n" +
+	"\tSpliceOut\x12\x15.cln.SpliceoutRequest\x1a\x16.cln.SpliceoutResponse\"\x00\x12<\n" +
 	"\tDevSplice\x12\x15.cln.DevspliceRequest\x1a\x16.cln.DevspliceResponse\"\x00\x12N\n" +
 	"\x0fUnreserveInputs\x12\x1b.cln.UnreserveinputsRequest\x1a\x1c.cln.UnreserveinputsResponse\"\x00\x12H\n" +
 	"\rUpgradeWallet\x12\x19.cln.UpgradewalletRequest\x1a\x1a.cln.UpgradewalletResponse\"\x00\x12N\n" +
@@ -44603,7 +49005,9 @@ const file_node_proto_rawDesc = "" +
 	"\x10BkprListBalances\x12\x1c.cln.BkprlistbalancesRequest\x1a\x1d.cln.BkprlistbalancesResponse\"\x00\x12K\n" +
 	"\x0eBkprListIncome\x12\x1a.cln.BkprlistincomeRequest\x1a\x1b.cln.BkprlistincomeResponse\"\x00\x12{\n" +
 	"\x1eBkprEditDescriptionByPaymentId\x12*.cln.BkpreditdescriptionbypaymentidRequest\x1a+.cln.BkpreditdescriptionbypaymentidResponse\"\x00\x12x\n" +
-	"\x1dBkprEditDescriptionByOutpoint\x12).cln.BkpreditdescriptionbyoutpointRequest\x1a*.cln.BkpreditdescriptionbyoutpointResponse\"\x00\x12H\n" +
+	"\x1dBkprEditDescriptionByOutpoint\x12).cln.BkpreditdescriptionbyoutpointRequest\x1a*.cln.BkpreditdescriptionbyoutpointResponse\"\x00\x12?\n" +
+	"\n" +
+	"BkprReport\x12\x16.cln.BkprreportRequest\x1a\x17.cln.BkprreportResponse\"\x00\x12H\n" +
 	"\rBlacklistRune\x12\x19.cln.BlacklistruneRequest\x1a\x1a.cln.BlacklistruneResponse\"\x00\x12<\n" +
 	"\tCheckRune\x12\x15.cln.CheckruneRequest\x1a\x16.cln.CheckruneResponse\"\x00\x12?\n" +
 	"\n" +
@@ -44633,12 +49037,33 @@ const file_node_proto_rawDesc = "" +
 	"\x11ListNetworkEvents\x12\x1d.cln.ListnetworkeventsRequest\x1a\x1e.cln.ListnetworkeventsResponse\"\x00\x12N\n" +
 	"\x0fDelNetworkEvent\x12\x1b.cln.DelnetworkeventRequest\x1a\x1c.cln.DelnetworkeventResponse\"\x00\x12Z\n" +
 	"\x13ClnrestRegisterPath\x12\x1f.cln.ClnrestregisterpathRequest\x1a .cln.ClnrestregisterpathResponse\"\x00\x12T\n" +
+	"\x11ListCurrencyRates\x12\x1d.cln.ListcurrencyratesRequest\x1a\x1e.cln.ListcurrencyratesResponse\"\x00\x12N\n" +
+	"\x0fCurrencyConvert\x12\x1b.cln.CurrencyconvertRequest\x1a\x1c.cln.CurrencyconvertResponse\"\x00\x12E\n" +
+	"\fCurrencyRate\x12\x18.cln.CurrencyrateRequest\x1a\x19.cln.CurrencyrateResponse\"\x00\x12c\n" +
+	"\x18SubscribeBalanceSnapshot\x12!.cln.StreamBalanceSnapshotRequest\x1a .cln.BalanceSnapshotNotification\"\x000\x01\x12T\n" +
 	"\x13SubscribeBlockAdded\x12\x1c.cln.StreamBlockAddedRequest\x1a\x1b.cln.BlockAddedNotification\"\x000\x01\x12i\n" +
 	"\x1aSubscribeChannelOpenFailed\x12#.cln.StreamChannelOpenFailedRequest\x1a\".cln.ChannelOpenFailedNotification\"\x000\x01\x12]\n" +
-	"\x16SubscribeChannelOpened\x12\x1f.cln.StreamChannelOpenedRequest\x1a\x1e.cln.ChannelOpenedNotification\"\x000\x01\x12O\n" +
-	"\x10SubscribeConnect\x12\x19.cln.StreamConnectRequest\x1a\x1c.cln.PeerConnectNotification\"\x000\x01\x12Q\n" +
-	"\x12SubscribeCustomMsg\x12\x1b.cln.StreamCustomMsgRequest\x1a\x1a.cln.CustomMsgNotification\"\x000\x01\x12o\n" +
-	"\x1cSubscribeChannelStateChanged\x12%.cln.StreamChannelStateChangedRequest\x1a$.cln.ChannelStateChangedNotification\"\x000\x01b\x06proto3"
+	"\x16SubscribeChannelOpened\x12\x1f.cln.StreamChannelOpenedRequest\x1a\x1e.cln.ChannelOpenedNotification\"\x000\x01\x12o\n" +
+	"\x1cSubscribeChannelStateChanged\x12%.cln.StreamChannelStateChangedRequest\x1a$.cln.ChannelStateChangedNotification\"\x000\x01\x12O\n" +
+	"\x10SubscribeConnect\x12\x19.cln.StreamConnectRequest\x1a\x1c.cln.PeerConnectNotification\"\x000\x01\x12Z\n" +
+	"\x15SubscribeCoinMovement\x12\x1e.cln.StreamCoinMovementRequest\x1a\x1d.cln.CoinMovementNotification\"\x000\x01\x12Q\n" +
+	"\x12SubscribeCustomMsg\x12\x1b.cln.StreamCustomMsgRequest\x1a\x1a.cln.CustomMsgNotification\"\x000\x01\x12i\n" +
+	"\x1aSubscribeDeprecatedOneshot\x12#.cln.StreamDeprecatedOneshotRequest\x1a\".cln.DeprecatedOneshotNotification\"\x000\x01\x12T\n" +
+	"\x13SubscribeDisconnect\x12\x1c.cln.StreamDisconnectRequest\x1a\x1b.cln.DisconnectNotification\"\x000\x01\x12Z\n" +
+	"\x15SubscribeForwardEvent\x12\x1e.cln.StreamForwardEventRequest\x1a\x1d.cln.ForwardEventNotification\"\x000\x01\x12c\n" +
+	"\x18SubscribeInvoiceCreation\x12!.cln.StreamInvoiceCreationRequest\x1a .cln.InvoiceCreationNotification\"\x000\x01\x12`\n" +
+	"\x17SubscribeInvoicePayment\x12 .cln.StreamInvoicePaymentRequest\x1a\x1f.cln.InvoicePaymentNotification\"\x000\x01\x12?\n" +
+	"\fSubscribeLog\x12\x15.cln.StreamLogRequest\x1a\x14.cln.LogNotification\"\x000\x01\x12{\n" +
+	" SubscribeOnionMessageForwardFail\x12).cln.StreamOnionMessageForwardFailRequest\x1a(.cln.OnionMessageForwardFailNotification\"\x000\x01\x12o\n" +
+	"\x1cSubscribeOpenChannelPeerSigs\x12%.cln.StreamOpenChannelPeerSigsRequest\x1a$.cln.OpenChannelPeerSigsNotification\"\x000\x01\x12]\n" +
+	"\x16SubscribePluginStarted\x12\x1f.cln.StreamPluginStartedRequest\x1a\x1e.cln.PluginStartedNotification\"\x000\x01\x12]\n" +
+	"\x16SubscribePluginStopped\x12\x1f.cln.StreamPluginStoppedRequest\x1a\x1e.cln.PluginStoppedNotification\"\x000\x01\x12`\n" +
+	"\x17SubscribeSendPayFailure\x12 .cln.StreamSendPayFailureRequest\x1a\x1f.cln.SendPayFailureNotification\"\x000\x01\x12`\n" +
+	"\x17SubscribeSendPaySuccess\x12 .cln.StreamSendPaySuccessRequest\x1a\x1f.cln.SendPaySuccessNotification\"\x000\x01\x12N\n" +
+	"\x11SubscribeShutdown\x12\x1a.cln.StreamShutdownRequest\x1a\x19.cln.ShutdownNotification\"\x000\x01\x12K\n" +
+	"\x10SubscribeWarning\x12\x19.cln.StreamWarningRequest\x1a\x18.cln.WarningNotification\"\x000\x01\x12T\n" +
+	"\x13SubscribePayPartEnd\x12\x1c.cln.StreamPayPartEndRequest\x1a\x1b.cln.PayPartEndNotification\"\x000\x01\x12Z\n" +
+	"\x15SubscribePayPartStart\x12\x1e.cln.StreamPayPartStartRequest\x1a\x1d.cln.PayPartStartNotification\"\x000\x01b\x06proto3"
 
 var (
 	file_node_proto_rawDescOnce sync.Once
@@ -44652,8 +49077,8 @@ func file_node_proto_rawDescGZIP() []byte {
 	return file_node_proto_rawDescData
 }
 
-var file_node_proto_enumTypes = make([]protoimpl.EnumInfo, 79)
-var file_node_proto_msgTypes = make([]protoimpl.MessageInfo, 513)
+var file_node_proto_enumTypes = make([]protoimpl.EnumInfo, 88)
+var file_node_proto_msgTypes = make([]protoimpl.MessageInfo, 567)
 var file_node_proto_goTypes = []any{
 	(GetinfoAddress_GetinfoAddressType)(0),                                                         // 0: cln.GetinfoAddress.GetinfoAddressType
 	(GetinfoBinding_GetinfoBindingType)(0),                                                         // 1: cln.GetinfoBinding.GetinfoBindingType
@@ -44731,1415 +49156,1562 @@ var file_node_proto_goTypes = []any{
 	(ListchainmovesRequest_ListchainmovesIndex)(0),                                                 // 73: cln.ListchainmovesRequest.ListchainmovesIndex
 	(ListchainmovesChainmoves_ListchainmovesChainmovesPrimaryTag)(0),                               // 74: cln.ListchainmovesChainmoves.ListchainmovesChainmovesPrimaryTag
 	(ListnetworkeventsRequest_ListnetworkeventsIndex)(0),                                           // 75: cln.ListnetworkeventsRequest.ListnetworkeventsIndex
-	(PeerConnectNotification_PeerConnectDirection)(0),                                              // 76: cln.PeerConnectNotification.PeerConnectDirection
-	(PeerConnectAddress_PeerConnectAddressType)(0),                                                 // 77: cln.PeerConnectAddress.PeerConnectAddressType
-	(ChannelStateChangedNotification_ChannelStateChangedCause)(0),                                  // 78: cln.ChannelStateChangedNotification.ChannelStateChangedCause
-	(*GetinfoRequest)(nil),                                                                         // 79: cln.GetinfoRequest
-	(*GetinfoResponse)(nil),                                                                        // 80: cln.GetinfoResponse
-	(*GetinfoOurFeatures)(nil),                                                                     // 81: cln.GetinfoOurFeatures
-	(*GetinfoAddress)(nil),                                                                         // 82: cln.GetinfoAddress
-	(*GetinfoBinding)(nil),                                                                         // 83: cln.GetinfoBinding
-	(*ListpeersRequest)(nil),                                                                       // 84: cln.ListpeersRequest
-	(*ListpeersResponse)(nil),                                                                      // 85: cln.ListpeersResponse
-	(*ListpeersPeers)(nil),                                                                         // 86: cln.ListpeersPeers
-	(*ListpeersPeersLog)(nil),                                                                      // 87: cln.ListpeersPeersLog
-	(*ListfundsRequest)(nil),                                                                       // 88: cln.ListfundsRequest
-	(*ListfundsResponse)(nil),                                                                      // 89: cln.ListfundsResponse
-	(*ListfundsOutputs)(nil),                                                                       // 90: cln.ListfundsOutputs
-	(*ListfundsChannels)(nil),                                                                      // 91: cln.ListfundsChannels
-	(*SendpayRequest)(nil),                                                                         // 92: cln.SendpayRequest
-	(*SendpayResponse)(nil),                                                                        // 93: cln.SendpayResponse
-	(*SendpayRoute)(nil),                                                                           // 94: cln.SendpayRoute
-	(*ListchannelsRequest)(nil),                                                                    // 95: cln.ListchannelsRequest
-	(*ListchannelsResponse)(nil),                                                                   // 96: cln.ListchannelsResponse
-	(*ListchannelsChannels)(nil),                                                                   // 97: cln.ListchannelsChannels
-	(*AddgossipRequest)(nil),                                                                       // 98: cln.AddgossipRequest
-	(*AddgossipResponse)(nil),                                                                      // 99: cln.AddgossipResponse
-	(*AddpsbtoutputRequest)(nil),                                                                   // 100: cln.AddpsbtoutputRequest
-	(*AddpsbtoutputResponse)(nil),                                                                  // 101: cln.AddpsbtoutputResponse
-	(*AutocleanonceRequest)(nil),                                                                   // 102: cln.AutocleanonceRequest
-	(*AutocleanonceResponse)(nil),                                                                  // 103: cln.AutocleanonceResponse
-	(*AutocleanonceAutoclean)(nil),                                                                 // 104: cln.AutocleanonceAutoclean
-	(*AutocleanonceAutocleanSucceededforwards)(nil),                                                // 105: cln.AutocleanonceAutocleanSucceededforwards
-	(*AutocleanonceAutocleanFailedforwards)(nil),                                                   // 106: cln.AutocleanonceAutocleanFailedforwards
-	(*AutocleanonceAutocleanSucceededpays)(nil),                                                    // 107: cln.AutocleanonceAutocleanSucceededpays
-	(*AutocleanonceAutocleanFailedpays)(nil),                                                       // 108: cln.AutocleanonceAutocleanFailedpays
-	(*AutocleanonceAutocleanPaidinvoices)(nil),                                                     // 109: cln.AutocleanonceAutocleanPaidinvoices
-	(*AutocleanonceAutocleanExpiredinvoices)(nil),                                                  // 110: cln.AutocleanonceAutocleanExpiredinvoices
-	(*AutocleanonceAutocleanNetworkevents)(nil),                                                    // 111: cln.AutocleanonceAutocleanNetworkevents
-	(*AutocleanstatusRequest)(nil),                                                                 // 112: cln.AutocleanstatusRequest
-	(*AutocleanstatusResponse)(nil),                                                                // 113: cln.AutocleanstatusResponse
-	(*AutocleanstatusAutoclean)(nil),                                                               // 114: cln.AutocleanstatusAutoclean
-	(*AutocleanstatusAutocleanSucceededforwards)(nil),                                              // 115: cln.AutocleanstatusAutocleanSucceededforwards
-	(*AutocleanstatusAutocleanFailedforwards)(nil),                                                 // 116: cln.AutocleanstatusAutocleanFailedforwards
-	(*AutocleanstatusAutocleanSucceededpays)(nil),                                                  // 117: cln.AutocleanstatusAutocleanSucceededpays
-	(*AutocleanstatusAutocleanFailedpays)(nil),                                                     // 118: cln.AutocleanstatusAutocleanFailedpays
-	(*AutocleanstatusAutocleanPaidinvoices)(nil),                                                   // 119: cln.AutocleanstatusAutocleanPaidinvoices
-	(*AutocleanstatusAutocleanExpiredinvoices)(nil),                                                // 120: cln.AutocleanstatusAutocleanExpiredinvoices
-	(*AutocleanstatusAutocleanNetworkevents)(nil),                                                  // 121: cln.AutocleanstatusAutocleanNetworkevents
-	(*CheckmessageRequest)(nil),                                                                    // 122: cln.CheckmessageRequest
-	(*CheckmessageResponse)(nil),                                                                   // 123: cln.CheckmessageResponse
-	(*CloseRequest)(nil),                                                                           // 124: cln.CloseRequest
-	(*CloseResponse)(nil),                                                                          // 125: cln.CloseResponse
-	(*ConnectRequest)(nil),                                                                         // 126: cln.ConnectRequest
-	(*ConnectResponse)(nil),                                                                        // 127: cln.ConnectResponse
-	(*ConnectAddress)(nil),                                                                         // 128: cln.ConnectAddress
-	(*CreateinvoiceRequest)(nil),                                                                   // 129: cln.CreateinvoiceRequest
-	(*CreateinvoiceResponse)(nil),                                                                  // 130: cln.CreateinvoiceResponse
-	(*CreateinvoicePaidOutpoint)(nil),                                                              // 131: cln.CreateinvoicePaidOutpoint
-	(*DatastoreRequest)(nil),                                                                       // 132: cln.DatastoreRequest
-	(*DatastoreResponse)(nil),                                                                      // 133: cln.DatastoreResponse
-	(*DatastoreusageRequest)(nil),                                                                  // 134: cln.DatastoreusageRequest
-	(*DatastoreusageResponse)(nil),                                                                 // 135: cln.DatastoreusageResponse
-	(*DatastoreusageDatastoreusage)(nil),                                                           // 136: cln.DatastoreusageDatastoreusage
-	(*CreateonionRequest)(nil),                                                                     // 137: cln.CreateonionRequest
-	(*CreateonionResponse)(nil),                                                                    // 138: cln.CreateonionResponse
-	(*CreateonionHops)(nil),                                                                        // 139: cln.CreateonionHops
-	(*DeldatastoreRequest)(nil),                                                                    // 140: cln.DeldatastoreRequest
-	(*DeldatastoreResponse)(nil),                                                                   // 141: cln.DeldatastoreResponse
-	(*DelinvoiceRequest)(nil),                                                                      // 142: cln.DelinvoiceRequest
-	(*DelinvoiceResponse)(nil),                                                                     // 143: cln.DelinvoiceResponse
-	(*DevforgetchannelRequest)(nil),                                                                // 144: cln.DevforgetchannelRequest
-	(*DevforgetchannelResponse)(nil),                                                               // 145: cln.DevforgetchannelResponse
-	(*EmergencyrecoverRequest)(nil),                                                                // 146: cln.EmergencyrecoverRequest
-	(*EmergencyrecoverResponse)(nil),                                                               // 147: cln.EmergencyrecoverResponse
-	(*GetemergencyrecoverdataRequest)(nil),                                                         // 148: cln.GetemergencyrecoverdataRequest
-	(*GetemergencyrecoverdataResponse)(nil),                                                        // 149: cln.GetemergencyrecoverdataResponse
-	(*ExposesecretRequest)(nil),                                                                    // 150: cln.ExposesecretRequest
-	(*ExposesecretResponse)(nil),                                                                   // 151: cln.ExposesecretResponse
-	(*RecoverRequest)(nil),                                                                         // 152: cln.RecoverRequest
-	(*RecoverResponse)(nil),                                                                        // 153: cln.RecoverResponse
-	(*RecoverchannelRequest)(nil),                                                                  // 154: cln.RecoverchannelRequest
-	(*RecoverchannelResponse)(nil),                                                                 // 155: cln.RecoverchannelResponse
-	(*InvoiceRequest)(nil),                                                                         // 156: cln.InvoiceRequest
-	(*InvoiceResponse)(nil),                                                                        // 157: cln.InvoiceResponse
-	(*InvoicerequestRequest)(nil),                                                                  // 158: cln.InvoicerequestRequest
-	(*InvoicerequestResponse)(nil),                                                                 // 159: cln.InvoicerequestResponse
-	(*DisableinvoicerequestRequest)(nil),                                                           // 160: cln.DisableinvoicerequestRequest
-	(*DisableinvoicerequestResponse)(nil),                                                          // 161: cln.DisableinvoicerequestResponse
-	(*ListinvoicerequestsRequest)(nil),                                                             // 162: cln.ListinvoicerequestsRequest
-	(*ListinvoicerequestsResponse)(nil),                                                            // 163: cln.ListinvoicerequestsResponse
-	(*ListinvoicerequestsInvoicerequests)(nil),                                                     // 164: cln.ListinvoicerequestsInvoicerequests
-	(*ListdatastoreRequest)(nil),                                                                   // 165: cln.ListdatastoreRequest
-	(*ListdatastoreResponse)(nil),                                                                  // 166: cln.ListdatastoreResponse
-	(*ListdatastoreDatastore)(nil),                                                                 // 167: cln.ListdatastoreDatastore
-	(*ListinvoicesRequest)(nil),                                                                    // 168: cln.ListinvoicesRequest
-	(*ListinvoicesResponse)(nil),                                                                   // 169: cln.ListinvoicesResponse
-	(*ListinvoicesInvoices)(nil),                                                                   // 170: cln.ListinvoicesInvoices
-	(*ListinvoicesInvoicesPaidOutpoint)(nil),                                                       // 171: cln.ListinvoicesInvoicesPaidOutpoint
-	(*SendonionRequest)(nil),                                                                       // 172: cln.SendonionRequest
-	(*SendonionResponse)(nil),                                                                      // 173: cln.SendonionResponse
-	(*SendonionFirstHop)(nil),                                                                      // 174: cln.SendonionFirstHop
-	(*ListsendpaysRequest)(nil),                                                                    // 175: cln.ListsendpaysRequest
-	(*ListsendpaysResponse)(nil),                                                                   // 176: cln.ListsendpaysResponse
-	(*ListsendpaysPayments)(nil),                                                                   // 177: cln.ListsendpaysPayments
-	(*ListtransactionsRequest)(nil),                                                                // 178: cln.ListtransactionsRequest
-	(*ListtransactionsResponse)(nil),                                                               // 179: cln.ListtransactionsResponse
-	(*ListtransactionsTransactions)(nil),                                                           // 180: cln.ListtransactionsTransactions
-	(*ListtransactionsTransactionsInputs)(nil),                                                     // 181: cln.ListtransactionsTransactionsInputs
-	(*ListtransactionsTransactionsOutputs)(nil),                                                    // 182: cln.ListtransactionsTransactionsOutputs
-	(*MakesecretRequest)(nil),                                                                      // 183: cln.MakesecretRequest
-	(*MakesecretResponse)(nil),                                                                     // 184: cln.MakesecretResponse
-	(*PayRequest)(nil),                                                                             // 185: cln.PayRequest
-	(*PayResponse)(nil),                                                                            // 186: cln.PayResponse
-	(*ListnodesRequest)(nil),                                                                       // 187: cln.ListnodesRequest
-	(*ListnodesResponse)(nil),                                                                      // 188: cln.ListnodesResponse
-	(*ListnodesNodes)(nil),                                                                         // 189: cln.ListnodesNodes
-	(*ListnodesNodesOptionWillFund)(nil),                                                           // 190: cln.ListnodesNodesOptionWillFund
-	(*ListnodesNodesAddresses)(nil),                                                                // 191: cln.ListnodesNodesAddresses
-	(*WaitanyinvoiceRequest)(nil),                                                                  // 192: cln.WaitanyinvoiceRequest
-	(*WaitanyinvoiceResponse)(nil),                                                                 // 193: cln.WaitanyinvoiceResponse
-	(*WaitanyinvoicePaidOutpoint)(nil),                                                             // 194: cln.WaitanyinvoicePaidOutpoint
-	(*WaitinvoiceRequest)(nil),                                                                     // 195: cln.WaitinvoiceRequest
-	(*WaitinvoiceResponse)(nil),                                                                    // 196: cln.WaitinvoiceResponse
-	(*WaitinvoicePaidOutpoint)(nil),                                                                // 197: cln.WaitinvoicePaidOutpoint
-	(*WaitsendpayRequest)(nil),                                                                     // 198: cln.WaitsendpayRequest
-	(*WaitsendpayResponse)(nil),                                                                    // 199: cln.WaitsendpayResponse
-	(*NewaddrRequest)(nil),                                                                         // 200: cln.NewaddrRequest
-	(*NewaddrResponse)(nil),                                                                        // 201: cln.NewaddrResponse
-	(*WithdrawRequest)(nil),                                                                        // 202: cln.WithdrawRequest
-	(*WithdrawResponse)(nil),                                                                       // 203: cln.WithdrawResponse
-	(*KeysendRequest)(nil),                                                                         // 204: cln.KeysendRequest
-	(*KeysendResponse)(nil),                                                                        // 205: cln.KeysendResponse
-	(*FundpsbtRequest)(nil),                                                                        // 206: cln.FundpsbtRequest
-	(*FundpsbtResponse)(nil),                                                                       // 207: cln.FundpsbtResponse
-	(*FundpsbtReservations)(nil),                                                                   // 208: cln.FundpsbtReservations
-	(*SendpsbtRequest)(nil),                                                                        // 209: cln.SendpsbtRequest
-	(*SendpsbtResponse)(nil),                                                                       // 210: cln.SendpsbtResponse
-	(*SignpsbtRequest)(nil),                                                                        // 211: cln.SignpsbtRequest
-	(*SignpsbtResponse)(nil),                                                                       // 212: cln.SignpsbtResponse
-	(*UtxopsbtRequest)(nil),                                                                        // 213: cln.UtxopsbtRequest
-	(*UtxopsbtResponse)(nil),                                                                       // 214: cln.UtxopsbtResponse
-	(*UtxopsbtReservations)(nil),                                                                   // 215: cln.UtxopsbtReservations
-	(*TxdiscardRequest)(nil),                                                                       // 216: cln.TxdiscardRequest
-	(*TxdiscardResponse)(nil),                                                                      // 217: cln.TxdiscardResponse
-	(*TxprepareRequest)(nil),                                                                       // 218: cln.TxprepareRequest
-	(*TxprepareResponse)(nil),                                                                      // 219: cln.TxprepareResponse
-	(*TxsendRequest)(nil),                                                                          // 220: cln.TxsendRequest
-	(*TxsendResponse)(nil),                                                                         // 221: cln.TxsendResponse
-	(*ListpeerchannelsRequest)(nil),                                                                // 222: cln.ListpeerchannelsRequest
-	(*ListpeerchannelsResponse)(nil),                                                               // 223: cln.ListpeerchannelsResponse
-	(*ListpeerchannelsChannels)(nil),                                                               // 224: cln.ListpeerchannelsChannels
-	(*ListpeerchannelsChannelsUpdates)(nil),                                                        // 225: cln.ListpeerchannelsChannelsUpdates
-	(*ListpeerchannelsChannelsUpdatesLocal)(nil),                                                   // 226: cln.ListpeerchannelsChannelsUpdatesLocal
-	(*ListpeerchannelsChannelsUpdatesRemote)(nil),                                                  // 227: cln.ListpeerchannelsChannelsUpdatesRemote
-	(*ListpeerchannelsChannelsFeerate)(nil),                                                        // 228: cln.ListpeerchannelsChannelsFeerate
-	(*ListpeerchannelsChannelsInflight)(nil),                                                       // 229: cln.ListpeerchannelsChannelsInflight
-	(*ListpeerchannelsChannelsFunding)(nil),                                                        // 230: cln.ListpeerchannelsChannelsFunding
-	(*ListpeerchannelsChannelsAlias)(nil),                                                          // 231: cln.ListpeerchannelsChannelsAlias
-	(*ListpeerchannelsChannelsHtlcs)(nil),                                                          // 232: cln.ListpeerchannelsChannelsHtlcs
-	(*ListclosedchannelsRequest)(nil),                                                              // 233: cln.ListclosedchannelsRequest
-	(*ListclosedchannelsResponse)(nil),                                                             // 234: cln.ListclosedchannelsResponse
-	(*ListclosedchannelsClosedchannels)(nil),                                                       // 235: cln.ListclosedchannelsClosedchannels
-	(*ListclosedchannelsClosedchannelsAlias)(nil),                                                  // 236: cln.ListclosedchannelsClosedchannelsAlias
-	(*DecodeRequest)(nil),                                                                          // 237: cln.DecodeRequest
-	(*DecodeResponse)(nil),                                                                         // 238: cln.DecodeResponse
-	(*DecodeOfferPaths)(nil),                                                                       // 239: cln.DecodeOfferPaths
-	(*DecodeOfferRecurrencePaywindow)(nil),                                                         // 240: cln.DecodeOfferRecurrencePaywindow
-	(*DecodeInvreqPaths)(nil),                                                                      // 241: cln.DecodeInvreqPaths
-	(*DecodeInvreqPathsPath)(nil),                                                                  // 242: cln.DecodeInvreqPathsPath
-	(*DecodeInvreqBip353Name)(nil),                                                                 // 243: cln.DecodeInvreqBip353Name
-	(*DecodeInvoicePathsPath)(nil),                                                                 // 244: cln.DecodeInvoicePathsPath
-	(*DecodeInvoiceFallbacks)(nil),                                                                 // 245: cln.DecodeInvoiceFallbacks
-	(*DecodeFallbacks)(nil),                                                                        // 246: cln.DecodeFallbacks
-	(*DecodeExtra)(nil),                                                                            // 247: cln.DecodeExtra
-	(*DecodeRestrictions)(nil),                                                                     // 248: cln.DecodeRestrictions
-	(*DelpayRequest)(nil),                                                                          // 249: cln.DelpayRequest
-	(*DelpayResponse)(nil),                                                                         // 250: cln.DelpayResponse
-	(*DelpayPayments)(nil),                                                                         // 251: cln.DelpayPayments
-	(*DelforwardRequest)(nil),                                                                      // 252: cln.DelforwardRequest
-	(*DelforwardResponse)(nil),                                                                     // 253: cln.DelforwardResponse
-	(*DisableofferRequest)(nil),                                                                    // 254: cln.DisableofferRequest
-	(*DisableofferResponse)(nil),                                                                   // 255: cln.DisableofferResponse
-	(*EnableofferRequest)(nil),                                                                     // 256: cln.EnableofferRequest
-	(*EnableofferResponse)(nil),                                                                    // 257: cln.EnableofferResponse
-	(*DisconnectRequest)(nil),                                                                      // 258: cln.DisconnectRequest
-	(*DisconnectResponse)(nil),                                                                     // 259: cln.DisconnectResponse
-	(*FeeratesRequest)(nil),                                                                        // 260: cln.FeeratesRequest
-	(*FeeratesResponse)(nil),                                                                       // 261: cln.FeeratesResponse
-	(*FeeratesPerkb)(nil),                                                                          // 262: cln.FeeratesPerkb
-	(*FeeratesPerkbEstimates)(nil),                                                                 // 263: cln.FeeratesPerkbEstimates
-	(*FeeratesPerkw)(nil),                                                                          // 264: cln.FeeratesPerkw
-	(*FeeratesPerkwEstimates)(nil),                                                                 // 265: cln.FeeratesPerkwEstimates
-	(*FeeratesOnchainFeeEstimates)(nil),                                                            // 266: cln.FeeratesOnchainFeeEstimates
-	(*Fetchbip353Request)(nil),                                                                     // 267: cln.Fetchbip353Request
-	(*Fetchbip353Response)(nil),                                                                    // 268: cln.Fetchbip353Response
-	(*Fetchbip353Instructions)(nil),                                                                // 269: cln.Fetchbip353Instructions
-	(*FetchinvoiceRequest)(nil),                                                                    // 270: cln.FetchinvoiceRequest
-	(*FetchinvoiceResponse)(nil),                                                                   // 271: cln.FetchinvoiceResponse
-	(*FetchinvoiceChanges)(nil),                                                                    // 272: cln.FetchinvoiceChanges
-	(*FetchinvoiceNextPeriod)(nil),                                                                 // 273: cln.FetchinvoiceNextPeriod
-	(*CancelrecurringinvoiceRequest)(nil),                                                          // 274: cln.CancelrecurringinvoiceRequest
-	(*CancelrecurringinvoiceResponse)(nil),                                                         // 275: cln.CancelrecurringinvoiceResponse
-	(*FundchannelCancelRequest)(nil),                                                               // 276: cln.FundchannelCancelRequest
-	(*FundchannelCancelResponse)(nil),                                                              // 277: cln.FundchannelCancelResponse
-	(*FundchannelCompleteRequest)(nil),                                                             // 278: cln.FundchannelCompleteRequest
-	(*FundchannelCompleteResponse)(nil),                                                            // 279: cln.FundchannelCompleteResponse
-	(*FundchannelRequest)(nil),                                                                     // 280: cln.FundchannelRequest
-	(*FundchannelResponse)(nil),                                                                    // 281: cln.FundchannelResponse
-	(*FundchannelChannelType)(nil),                                                                 // 282: cln.FundchannelChannelType
-	(*FundchannelStartRequest)(nil),                                                                // 283: cln.FundchannelStartRequest
-	(*FundchannelStartResponse)(nil),                                                               // 284: cln.FundchannelStartResponse
-	(*FundchannelStartChannelType)(nil),                                                            // 285: cln.FundchannelStartChannelType
-	(*GetlogRequest)(nil),                                                                          // 286: cln.GetlogRequest
-	(*GetlogResponse)(nil),                                                                         // 287: cln.GetlogResponse
-	(*GetlogLog)(nil),                                                                              // 288: cln.GetlogLog
-	(*FunderupdateRequest)(nil),                                                                    // 289: cln.FunderupdateRequest
-	(*FunderupdateResponse)(nil),                                                                   // 290: cln.FunderupdateResponse
-	(*GetrouteRequest)(nil),                                                                        // 291: cln.GetrouteRequest
-	(*GetrouteResponse)(nil),                                                                       // 292: cln.GetrouteResponse
-	(*GetrouteRoute)(nil),                                                                          // 293: cln.GetrouteRoute
-	(*ListaddressesRequest)(nil),                                                                   // 294: cln.ListaddressesRequest
-	(*ListaddressesResponse)(nil),                                                                  // 295: cln.ListaddressesResponse
-	(*ListaddressesAddresses)(nil),                                                                 // 296: cln.ListaddressesAddresses
-	(*ListforwardsRequest)(nil),                                                                    // 297: cln.ListforwardsRequest
-	(*ListforwardsResponse)(nil),                                                                   // 298: cln.ListforwardsResponse
-	(*ListforwardsForwards)(nil),                                                                   // 299: cln.ListforwardsForwards
-	(*ListoffersRequest)(nil),                                                                      // 300: cln.ListoffersRequest
-	(*ListoffersResponse)(nil),                                                                     // 301: cln.ListoffersResponse
-	(*ListoffersOffers)(nil),                                                                       // 302: cln.ListoffersOffers
-	(*ListpaysRequest)(nil),                                                                        // 303: cln.ListpaysRequest
-	(*ListpaysResponse)(nil),                                                                       // 304: cln.ListpaysResponse
-	(*ListpaysPays)(nil),                                                                           // 305: cln.ListpaysPays
-	(*ListhtlcsRequest)(nil),                                                                       // 306: cln.ListhtlcsRequest
-	(*ListhtlcsResponse)(nil),                                                                      // 307: cln.ListhtlcsResponse
-	(*ListhtlcsHtlcs)(nil),                                                                         // 308: cln.ListhtlcsHtlcs
-	(*MultifundchannelRequest)(nil),                                                                // 309: cln.MultifundchannelRequest
-	(*MultifundchannelResponse)(nil),                                                               // 310: cln.MultifundchannelResponse
-	(*MultifundchannelDestinations)(nil),                                                           // 311: cln.MultifundchannelDestinations
-	(*MultifundchannelChannelIds)(nil),                                                             // 312: cln.MultifundchannelChannelIds
-	(*MultifundchannelChannelIdsChannelType)(nil),                                                  // 313: cln.MultifundchannelChannelIdsChannelType
-	(*MultifundchannelFailed)(nil),                                                                 // 314: cln.MultifundchannelFailed
-	(*MultifundchannelFailedError)(nil),                                                            // 315: cln.MultifundchannelFailedError
-	(*MultiwithdrawRequest)(nil),                                                                   // 316: cln.MultiwithdrawRequest
-	(*MultiwithdrawResponse)(nil),                                                                  // 317: cln.MultiwithdrawResponse
-	(*OfferRequest)(nil),                                                                           // 318: cln.OfferRequest
-	(*OfferResponse)(nil),                                                                          // 319: cln.OfferResponse
-	(*OpenchannelAbortRequest)(nil),                                                                // 320: cln.OpenchannelAbortRequest
-	(*OpenchannelAbortResponse)(nil),                                                               // 321: cln.OpenchannelAbortResponse
-	(*OpenchannelBumpRequest)(nil),                                                                 // 322: cln.OpenchannelBumpRequest
-	(*OpenchannelBumpResponse)(nil),                                                                // 323: cln.OpenchannelBumpResponse
-	(*OpenchannelBumpChannelType)(nil),                                                             // 324: cln.OpenchannelBumpChannelType
-	(*OpenchannelInitRequest)(nil),                                                                 // 325: cln.OpenchannelInitRequest
-	(*OpenchannelInitResponse)(nil),                                                                // 326: cln.OpenchannelInitResponse
-	(*OpenchannelInitChannelType)(nil),                                                             // 327: cln.OpenchannelInitChannelType
-	(*OpenchannelSignedRequest)(nil),                                                               // 328: cln.OpenchannelSignedRequest
-	(*OpenchannelSignedResponse)(nil),                                                              // 329: cln.OpenchannelSignedResponse
-	(*OpenchannelUpdateRequest)(nil),                                                               // 330: cln.OpenchannelUpdateRequest
-	(*OpenchannelUpdateResponse)(nil),                                                              // 331: cln.OpenchannelUpdateResponse
-	(*OpenchannelUpdateChannelType)(nil),                                                           // 332: cln.OpenchannelUpdateChannelType
-	(*PingRequest)(nil),                                                                            // 333: cln.PingRequest
-	(*PingResponse)(nil),                                                                           // 334: cln.PingResponse
-	(*PluginRequest)(nil),                                                                          // 335: cln.PluginRequest
-	(*PluginResponse)(nil),                                                                         // 336: cln.PluginResponse
-	(*PluginPlugins)(nil),                                                                          // 337: cln.PluginPlugins
-	(*RenepaystatusRequest)(nil),                                                                   // 338: cln.RenepaystatusRequest
-	(*RenepaystatusResponse)(nil),                                                                  // 339: cln.RenepaystatusResponse
-	(*RenepaystatusPaystatus)(nil),                                                                 // 340: cln.RenepaystatusPaystatus
-	(*RenepayRequest)(nil),                                                                         // 341: cln.RenepayRequest
-	(*RenepayResponse)(nil),                                                                        // 342: cln.RenepayResponse
-	(*ReserveinputsRequest)(nil),                                                                   // 343: cln.ReserveinputsRequest
-	(*ReserveinputsResponse)(nil),                                                                  // 344: cln.ReserveinputsResponse
-	(*ReserveinputsReservations)(nil),                                                              // 345: cln.ReserveinputsReservations
-	(*SendcustommsgRequest)(nil),                                                                   // 346: cln.SendcustommsgRequest
-	(*SendcustommsgResponse)(nil),                                                                  // 347: cln.SendcustommsgResponse
-	(*SendinvoiceRequest)(nil),                                                                     // 348: cln.SendinvoiceRequest
-	(*SendinvoiceResponse)(nil),                                                                    // 349: cln.SendinvoiceResponse
-	(*SetchannelRequest)(nil),                                                                      // 350: cln.SetchannelRequest
-	(*SetchannelResponse)(nil),                                                                     // 351: cln.SetchannelResponse
-	(*SetchannelChannels)(nil),                                                                     // 352: cln.SetchannelChannels
-	(*SetconfigRequest)(nil),                                                                       // 353: cln.SetconfigRequest
-	(*SetconfigResponse)(nil),                                                                      // 354: cln.SetconfigResponse
-	(*SetconfigConfig)(nil),                                                                        // 355: cln.SetconfigConfig
-	(*SetpsbtversionRequest)(nil),                                                                  // 356: cln.SetpsbtversionRequest
-	(*SetpsbtversionResponse)(nil),                                                                 // 357: cln.SetpsbtversionResponse
-	(*SigninvoiceRequest)(nil),                                                                     // 358: cln.SigninvoiceRequest
-	(*SigninvoiceResponse)(nil),                                                                    // 359: cln.SigninvoiceResponse
-	(*SignmessageRequest)(nil),                                                                     // 360: cln.SignmessageRequest
-	(*SignmessageResponse)(nil),                                                                    // 361: cln.SignmessageResponse
-	(*SpliceInitRequest)(nil),                                                                      // 362: cln.SpliceInitRequest
-	(*SpliceInitResponse)(nil),                                                                     // 363: cln.SpliceInitResponse
-	(*SpliceSignedRequest)(nil),                                                                    // 364: cln.SpliceSignedRequest
-	(*SpliceSignedResponse)(nil),                                                                   // 365: cln.SpliceSignedResponse
-	(*SpliceUpdateRequest)(nil),                                                                    // 366: cln.SpliceUpdateRequest
-	(*SpliceUpdateResponse)(nil),                                                                   // 367: cln.SpliceUpdateResponse
-	(*DevspliceRequest)(nil),                                                                       // 368: cln.DevspliceRequest
-	(*DevspliceResponse)(nil),                                                                      // 369: cln.DevspliceResponse
-	(*UnreserveinputsRequest)(nil),                                                                 // 370: cln.UnreserveinputsRequest
-	(*UnreserveinputsResponse)(nil),                                                                // 371: cln.UnreserveinputsResponse
-	(*UnreserveinputsReservations)(nil),                                                            // 372: cln.UnreserveinputsReservations
-	(*UpgradewalletRequest)(nil),                                                                   // 373: cln.UpgradewalletRequest
-	(*UpgradewalletResponse)(nil),                                                                  // 374: cln.UpgradewalletResponse
-	(*WaitblockheightRequest)(nil),                                                                 // 375: cln.WaitblockheightRequest
-	(*WaitblockheightResponse)(nil),                                                                // 376: cln.WaitblockheightResponse
-	(*WaitRequest)(nil),                                                                            // 377: cln.WaitRequest
-	(*WaitResponse)(nil),                                                                           // 378: cln.WaitResponse
-	(*WaitForwards)(nil),                                                                           // 379: cln.WaitForwards
-	(*WaitInvoices)(nil),                                                                           // 380: cln.WaitInvoices
-	(*WaitSendpays)(nil),                                                                           // 381: cln.WaitSendpays
-	(*WaitHtlcs)(nil),                                                                              // 382: cln.WaitHtlcs
-	(*WaitChainmoves)(nil),                                                                         // 383: cln.WaitChainmoves
-	(*WaitChannelmoves)(nil),                                                                       // 384: cln.WaitChannelmoves
-	(*WaitNetworkevents)(nil),                                                                      // 385: cln.WaitNetworkevents
-	(*WaitDetails)(nil),                                                                            // 386: cln.WaitDetails
-	(*ListconfigsRequest)(nil),                                                                     // 387: cln.ListconfigsRequest
-	(*ListconfigsResponse)(nil),                                                                    // 388: cln.ListconfigsResponse
-	(*ListconfigsConfigs)(nil),                                                                     // 389: cln.ListconfigsConfigs
-	(*ListconfigsConfigsConf)(nil),                                                                 // 390: cln.ListconfigsConfigsConf
-	(*ListconfigsConfigsDeveloper)(nil),                                                            // 391: cln.ListconfigsConfigsDeveloper
-	(*ListconfigsConfigsClearplugins)(nil),                                                         // 392: cln.ListconfigsConfigsClearplugins
-	(*ListconfigsConfigsDisablempp)(nil),                                                           // 393: cln.ListconfigsConfigsDisablempp
-	(*ListconfigsConfigsMainnet)(nil),                                                              // 394: cln.ListconfigsConfigsMainnet
-	(*ListconfigsConfigsRegtest)(nil),                                                              // 395: cln.ListconfigsConfigsRegtest
-	(*ListconfigsConfigsSignet)(nil),                                                               // 396: cln.ListconfigsConfigsSignet
-	(*ListconfigsConfigsTestnet)(nil),                                                              // 397: cln.ListconfigsConfigsTestnet
-	(*ListconfigsConfigsImportantplugin)(nil),                                                      // 398: cln.ListconfigsConfigsImportantplugin
-	(*ListconfigsConfigsPlugin)(nil),                                                               // 399: cln.ListconfigsConfigsPlugin
-	(*ListconfigsConfigsPlugindir)(nil),                                                            // 400: cln.ListconfigsConfigsPlugindir
-	(*ListconfigsConfigsLightningdir)(nil),                                                         // 401: cln.ListconfigsConfigsLightningdir
-	(*ListconfigsConfigsNetwork)(nil),                                                              // 402: cln.ListconfigsConfigsNetwork
-	(*ListconfigsConfigsAllowdeprecatedapis)(nil),                                                  // 403: cln.ListconfigsConfigsAllowdeprecatedapis
-	(*ListconfigsConfigsRpcfile)(nil),                                                              // 404: cln.ListconfigsConfigsRpcfile
-	(*ListconfigsConfigsDisableplugin)(nil),                                                        // 405: cln.ListconfigsConfigsDisableplugin
-	(*ListconfigsConfigsAlwaysuseproxy)(nil),                                                       // 406: cln.ListconfigsConfigsAlwaysuseproxy
-	(*ListconfigsConfigsDaemon)(nil),                                                               // 407: cln.ListconfigsConfigsDaemon
-	(*ListconfigsConfigsWallet)(nil),                                                               // 408: cln.ListconfigsConfigsWallet
-	(*ListconfigsConfigsLargechannels)(nil),                                                        // 409: cln.ListconfigsConfigsLargechannels
-	(*ListconfigsConfigsExperimentaldualfund)(nil),                                                 // 410: cln.ListconfigsConfigsExperimentaldualfund
-	(*ListconfigsConfigsExperimentalsplicing)(nil),                                                 // 411: cln.ListconfigsConfigsExperimentalsplicing
-	(*ListconfigsConfigsExperimentalonionmessages)(nil),                                            // 412: cln.ListconfigsConfigsExperimentalonionmessages
-	(*ListconfigsConfigsExperimentaloffers)(nil),                                                   // 413: cln.ListconfigsConfigsExperimentaloffers
-	(*ListconfigsConfigsExperimentalshutdownwrongfunding)(nil),                                     // 414: cln.ListconfigsConfigsExperimentalshutdownwrongfunding
-	(*ListconfigsConfigsExperimentalpeerstorage)(nil),                                              // 415: cln.ListconfigsConfigsExperimentalpeerstorage
-	(*ListconfigsConfigsExperimentalanchors)(nil),                                                  // 416: cln.ListconfigsConfigsExperimentalanchors
-	(*ListconfigsConfigsDatabaseupgrade)(nil),                                                      // 417: cln.ListconfigsConfigsDatabaseupgrade
-	(*ListconfigsConfigsRgb)(nil),                                                                  // 418: cln.ListconfigsConfigsRgb
-	(*ListconfigsConfigsAlias)(nil),                                                                // 419: cln.ListconfigsConfigsAlias
-	(*ListconfigsConfigsPidfile)(nil),                                                              // 420: cln.ListconfigsConfigsPidfile
-	(*ListconfigsConfigsIgnorefeelimits)(nil),                                                      // 421: cln.ListconfigsConfigsIgnorefeelimits
-	(*ListconfigsConfigsWatchtimeblocks)(nil),                                                      // 422: cln.ListconfigsConfigsWatchtimeblocks
-	(*ListconfigsConfigsMaxlocktimeblocks)(nil),                                                    // 423: cln.ListconfigsConfigsMaxlocktimeblocks
-	(*ListconfigsConfigsFundingconfirms)(nil),                                                      // 424: cln.ListconfigsConfigsFundingconfirms
-	(*ListconfigsConfigsCltvdelta)(nil),                                                            // 425: cln.ListconfigsConfigsCltvdelta
-	(*ListconfigsConfigsCltvfinal)(nil),                                                            // 426: cln.ListconfigsConfigsCltvfinal
-	(*ListconfigsConfigsCommittime)(nil),                                                           // 427: cln.ListconfigsConfigsCommittime
-	(*ListconfigsConfigsFeebase)(nil),                                                              // 428: cln.ListconfigsConfigsFeebase
-	(*ListconfigsConfigsRescan)(nil),                                                               // 429: cln.ListconfigsConfigsRescan
-	(*ListconfigsConfigsFeepersatoshi)(nil),                                                        // 430: cln.ListconfigsConfigsFeepersatoshi
-	(*ListconfigsConfigsMaxconcurrenthtlcs)(nil),                                                   // 431: cln.ListconfigsConfigsMaxconcurrenthtlcs
-	(*ListconfigsConfigsHtlcminimummsat)(nil),                                                      // 432: cln.ListconfigsConfigsHtlcminimummsat
-	(*ListconfigsConfigsHtlcmaximummsat)(nil),                                                      // 433: cln.ListconfigsConfigsHtlcmaximummsat
-	(*ListconfigsConfigsMaxdusthtlcexposuremsat)(nil),                                              // 434: cln.ListconfigsConfigsMaxdusthtlcexposuremsat
-	(*ListconfigsConfigsMincapacitysat)(nil),                                                       // 435: cln.ListconfigsConfigsMincapacitysat
-	(*ListconfigsConfigsAddr)(nil),                                                                 // 436: cln.ListconfigsConfigsAddr
-	(*ListconfigsConfigsAnnounceaddr)(nil),                                                         // 437: cln.ListconfigsConfigsAnnounceaddr
-	(*ListconfigsConfigsBindaddr)(nil),                                                             // 438: cln.ListconfigsConfigsBindaddr
-	(*ListconfigsConfigsOffline)(nil),                                                              // 439: cln.ListconfigsConfigsOffline
-	(*ListconfigsConfigsAutolisten)(nil),                                                           // 440: cln.ListconfigsConfigsAutolisten
-	(*ListconfigsConfigsProxy)(nil),                                                                // 441: cln.ListconfigsConfigsProxy
-	(*ListconfigsConfigsDisabledns)(nil),                                                           // 442: cln.ListconfigsConfigsDisabledns
-	(*ListconfigsConfigsAnnounceaddrdiscovered)(nil),                                               // 443: cln.ListconfigsConfigsAnnounceaddrdiscovered
-	(*ListconfigsConfigsAnnounceaddrdiscoveredport)(nil),                                           // 444: cln.ListconfigsConfigsAnnounceaddrdiscoveredport
-	(*ListconfigsConfigsEncryptedhsm)(nil),                                                         // 445: cln.ListconfigsConfigsEncryptedhsm
-	(*ListconfigsConfigsRpcfilemode)(nil),                                                          // 446: cln.ListconfigsConfigsRpcfilemode
-	(*ListconfigsConfigsLoglevel)(nil),                                                             // 447: cln.ListconfigsConfigsLoglevel
-	(*ListconfigsConfigsLogprefix)(nil),                                                            // 448: cln.ListconfigsConfigsLogprefix
-	(*ListconfigsConfigsLogfile)(nil),                                                              // 449: cln.ListconfigsConfigsLogfile
-	(*ListconfigsConfigsLogtimestamps)(nil),                                                        // 450: cln.ListconfigsConfigsLogtimestamps
-	(*ListconfigsConfigsForcefeerates)(nil),                                                        // 451: cln.ListconfigsConfigsForcefeerates
-	(*ListconfigsConfigsSubdaemon)(nil),                                                            // 452: cln.ListconfigsConfigsSubdaemon
-	(*ListconfigsConfigsFetchinvoicenoconnect)(nil),                                                // 453: cln.ListconfigsConfigsFetchinvoicenoconnect
-	(*ListconfigsConfigsTorservicepassword)(nil),                                                   // 454: cln.ListconfigsConfigsTorservicepassword
-	(*ListconfigsConfigsAnnounceaddrdns)(nil),                                                      // 455: cln.ListconfigsConfigsAnnounceaddrdns
-	(*ListconfigsConfigsRequireconfirmedinputs)(nil),                                               // 456: cln.ListconfigsConfigsRequireconfirmedinputs
-	(*ListconfigsConfigsCommitfee)(nil),                                                            // 457: cln.ListconfigsConfigsCommitfee
-	(*ListconfigsConfigsCommitfeerateoffset)(nil),                                                  // 458: cln.ListconfigsConfigsCommitfeerateoffset
-	(*ListconfigsConfigsAutoconnectseekerpeers)(nil),                                               // 459: cln.ListconfigsConfigsAutoconnectseekerpeers
-	(*StopRequest)(nil),                                                                            // 460: cln.StopRequest
-	(*StopResponse)(nil),                                                                           // 461: cln.StopResponse
-	(*HelpRequest)(nil),                                                                            // 462: cln.HelpRequest
-	(*HelpResponse)(nil),                                                                           // 463: cln.HelpResponse
-	(*HelpHelp)(nil),                                                                               // 464: cln.HelpHelp
-	(*PreapprovekeysendRequest)(nil),                                                               // 465: cln.PreapprovekeysendRequest
-	(*PreapprovekeysendResponse)(nil),                                                              // 466: cln.PreapprovekeysendResponse
-	(*PreapproveinvoiceRequest)(nil),                                                               // 467: cln.PreapproveinvoiceRequest
-	(*PreapproveinvoiceResponse)(nil),                                                              // 468: cln.PreapproveinvoiceResponse
-	(*StaticbackupRequest)(nil),                                                                    // 469: cln.StaticbackupRequest
-	(*StaticbackupResponse)(nil),                                                                   // 470: cln.StaticbackupResponse
-	(*BkprchannelsapyRequest)(nil),                                                                 // 471: cln.BkprchannelsapyRequest
-	(*BkprchannelsapyResponse)(nil),                                                                // 472: cln.BkprchannelsapyResponse
-	(*BkprchannelsapyChannelsApy)(nil),                                                             // 473: cln.BkprchannelsapyChannelsApy
-	(*BkprdumpincomecsvRequest)(nil),                                                               // 474: cln.BkprdumpincomecsvRequest
-	(*BkprdumpincomecsvResponse)(nil),                                                              // 475: cln.BkprdumpincomecsvResponse
-	(*BkprinspectRequest)(nil),                                                                     // 476: cln.BkprinspectRequest
-	(*BkprinspectResponse)(nil),                                                                    // 477: cln.BkprinspectResponse
-	(*BkprinspectTxs)(nil),                                                                         // 478: cln.BkprinspectTxs
-	(*BkprinspectTxsOutputs)(nil),                                                                  // 479: cln.BkprinspectTxsOutputs
-	(*BkprlistaccounteventsRequest)(nil),                                                           // 480: cln.BkprlistaccounteventsRequest
-	(*BkprlistaccounteventsResponse)(nil),                                                          // 481: cln.BkprlistaccounteventsResponse
-	(*BkprlistaccounteventsEvents)(nil),                                                            // 482: cln.BkprlistaccounteventsEvents
-	(*BkprlistbalancesRequest)(nil),                                                                // 483: cln.BkprlistbalancesRequest
-	(*BkprlistbalancesResponse)(nil),                                                               // 484: cln.BkprlistbalancesResponse
-	(*BkprlistbalancesAccounts)(nil),                                                               // 485: cln.BkprlistbalancesAccounts
-	(*BkprlistbalancesAccountsBalances)(nil),                                                       // 486: cln.BkprlistbalancesAccountsBalances
-	(*BkprlistincomeRequest)(nil),                                                                  // 487: cln.BkprlistincomeRequest
-	(*BkprlistincomeResponse)(nil),                                                                 // 488: cln.BkprlistincomeResponse
-	(*BkprlistincomeIncomeEvents)(nil),                                                             // 489: cln.BkprlistincomeIncomeEvents
-	(*BkpreditdescriptionbypaymentidRequest)(nil),                                                  // 490: cln.BkpreditdescriptionbypaymentidRequest
-	(*BkpreditdescriptionbypaymentidResponse)(nil),                                                 // 491: cln.BkpreditdescriptionbypaymentidResponse
-	(*BkpreditdescriptionbypaymentidUpdated)(nil),                                                  // 492: cln.BkpreditdescriptionbypaymentidUpdated
-	(*BkpreditdescriptionbyoutpointRequest)(nil),                                                   // 493: cln.BkpreditdescriptionbyoutpointRequest
-	(*BkpreditdescriptionbyoutpointResponse)(nil),                                                  // 494: cln.BkpreditdescriptionbyoutpointResponse
-	(*BkpreditdescriptionbyoutpointUpdated)(nil),                                                   // 495: cln.BkpreditdescriptionbyoutpointUpdated
-	(*BlacklistruneRequest)(nil),                                                                   // 496: cln.BlacklistruneRequest
-	(*BlacklistruneResponse)(nil),                                                                  // 497: cln.BlacklistruneResponse
-	(*BlacklistruneBlacklist)(nil),                                                                 // 498: cln.BlacklistruneBlacklist
-	(*CheckruneRequest)(nil),                                                                       // 499: cln.CheckruneRequest
-	(*CheckruneResponse)(nil),                                                                      // 500: cln.CheckruneResponse
-	(*CreateruneRequest)(nil),                                                                      // 501: cln.CreateruneRequest
-	(*CreateruneResponse)(nil),                                                                     // 502: cln.CreateruneResponse
-	(*ShowrunesRequest)(nil),                                                                       // 503: cln.ShowrunesRequest
-	(*ShowrunesResponse)(nil),                                                                      // 504: cln.ShowrunesResponse
-	(*ShowrunesRunes)(nil),                                                                         // 505: cln.ShowrunesRunes
-	(*ShowrunesRunesRestrictions)(nil),                                                             // 506: cln.ShowrunesRunesRestrictions
-	(*ShowrunesRunesRestrictionsAlternatives)(nil),                                                 // 507: cln.ShowrunesRunesRestrictionsAlternatives
-	(*AskreneunreserveRequest)(nil),                                                                // 508: cln.AskreneunreserveRequest
-	(*AskreneunreserveResponse)(nil),                                                               // 509: cln.AskreneunreserveResponse
-	(*AskreneunreservePath)(nil),                                                                   // 510: cln.AskreneunreservePath
-	(*AskrenelistlayersRequest)(nil),                                                               // 511: cln.AskrenelistlayersRequest
-	(*AskrenelistlayersResponse)(nil),                                                              // 512: cln.AskrenelistlayersResponse
-	(*AskrenelistlayersLayers)(nil),                                                                // 513: cln.AskrenelistlayersLayers
-	(*AskrenelistlayersLayersCreatedChannels)(nil),                                                 // 514: cln.AskrenelistlayersLayersCreatedChannels
-	(*AskrenelistlayersLayersChannelUpdates)(nil),                                                  // 515: cln.AskrenelistlayersLayersChannelUpdates
-	(*AskrenelistlayersLayersConstraints)(nil),                                                     // 516: cln.AskrenelistlayersLayersConstraints
-	(*AskrenelistlayersLayersBiases)(nil),                                                          // 517: cln.AskrenelistlayersLayersBiases
-	(*AskrenelistlayersLayersNodeBiases)(nil),                                                      // 518: cln.AskrenelistlayersLayersNodeBiases
-	(*AskrenecreatelayerRequest)(nil),                                                              // 519: cln.AskrenecreatelayerRequest
-	(*AskrenecreatelayerResponse)(nil),                                                             // 520: cln.AskrenecreatelayerResponse
-	(*AskrenecreatelayerLayers)(nil),                                                               // 521: cln.AskrenecreatelayerLayers
-	(*AskrenecreatelayerLayersCreatedChannels)(nil),                                                // 522: cln.AskrenecreatelayerLayersCreatedChannels
-	(*AskrenecreatelayerLayersChannelUpdates)(nil),                                                 // 523: cln.AskrenecreatelayerLayersChannelUpdates
-	(*AskrenecreatelayerLayersConstraints)(nil),                                                    // 524: cln.AskrenecreatelayerLayersConstraints
-	(*AskrenecreatelayerLayersBiases)(nil),                                                         // 525: cln.AskrenecreatelayerLayersBiases
-	(*AskrenecreatelayerLayersNodeBiases)(nil),                                                     // 526: cln.AskrenecreatelayerLayersNodeBiases
-	(*AskreneremovelayerRequest)(nil),                                                              // 527: cln.AskreneremovelayerRequest
-	(*AskreneremovelayerResponse)(nil),                                                             // 528: cln.AskreneremovelayerResponse
-	(*AskrenereserveRequest)(nil),                                                                  // 529: cln.AskrenereserveRequest
-	(*AskrenereserveResponse)(nil),                                                                 // 530: cln.AskrenereserveResponse
-	(*AskrenereservePath)(nil),                                                                     // 531: cln.AskrenereservePath
-	(*AskreneageRequest)(nil),                                                                      // 532: cln.AskreneageRequest
-	(*AskreneageResponse)(nil),                                                                     // 533: cln.AskreneageResponse
-	(*GetroutesRequest)(nil),                                                                       // 534: cln.GetroutesRequest
-	(*GetroutesResponse)(nil),                                                                      // 535: cln.GetroutesResponse
-	(*GetroutesRoutes)(nil),                                                                        // 536: cln.GetroutesRoutes
-	(*GetroutesRoutesPath)(nil),                                                                    // 537: cln.GetroutesRoutesPath
-	(*AskrenedisablenodeRequest)(nil),                                                              // 538: cln.AskrenedisablenodeRequest
-	(*AskrenedisablenodeResponse)(nil),                                                             // 539: cln.AskrenedisablenodeResponse
-	(*AskreneinformchannelRequest)(nil),                                                            // 540: cln.AskreneinformchannelRequest
-	(*AskreneinformchannelResponse)(nil),                                                           // 541: cln.AskreneinformchannelResponse
-	(*AskreneinformchannelConstraints)(nil),                                                        // 542: cln.AskreneinformchannelConstraints
-	(*AskrenecreatechannelRequest)(nil),                                                            // 543: cln.AskrenecreatechannelRequest
-	(*AskrenecreatechannelResponse)(nil),                                                           // 544: cln.AskrenecreatechannelResponse
-	(*AskreneupdatechannelRequest)(nil),                                                            // 545: cln.AskreneupdatechannelRequest
-	(*AskreneupdatechannelResponse)(nil),                                                           // 546: cln.AskreneupdatechannelResponse
-	(*AskrenebiaschannelRequest)(nil),                                                              // 547: cln.AskrenebiaschannelRequest
-	(*AskrenebiaschannelResponse)(nil),                                                             // 548: cln.AskrenebiaschannelResponse
-	(*AskrenebiaschannelBiases)(nil),                                                               // 549: cln.AskrenebiaschannelBiases
-	(*AskrenebiasnodeRequest)(nil),                                                                 // 550: cln.AskrenebiasnodeRequest
-	(*AskrenebiasnodeResponse)(nil),                                                                // 551: cln.AskrenebiasnodeResponse
-	(*AskrenebiasnodeNodeBiases)(nil),                                                              // 552: cln.AskrenebiasnodeNodeBiases
-	(*AskrenelistreservationsRequest)(nil),                                                         // 553: cln.AskrenelistreservationsRequest
-	(*AskrenelistreservationsResponse)(nil),                                                        // 554: cln.AskrenelistreservationsResponse
-	(*AskrenelistreservationsReservations)(nil),                                                    // 555: cln.AskrenelistreservationsReservations
-	(*InjectpaymentonionRequest)(nil),                                                              // 556: cln.InjectpaymentonionRequest
-	(*InjectpaymentonionResponse)(nil),                                                             // 557: cln.InjectpaymentonionResponse
-	(*InjectonionmessageRequest)(nil),                                                              // 558: cln.InjectonionmessageRequest
-	(*InjectonionmessageResponse)(nil),                                                             // 559: cln.InjectonionmessageResponse
-	(*XpayRequest)(nil),                                                                            // 560: cln.XpayRequest
-	(*XpayResponse)(nil),                                                                           // 561: cln.XpayResponse
-	(*SignmessagewithkeyRequest)(nil),                                                              // 562: cln.SignmessagewithkeyRequest
-	(*SignmessagewithkeyResponse)(nil),                                                             // 563: cln.SignmessagewithkeyResponse
-	(*ListchannelmovesRequest)(nil),                                                                // 564: cln.ListchannelmovesRequest
-	(*ListchannelmovesResponse)(nil),                                                               // 565: cln.ListchannelmovesResponse
-	(*ListchannelmovesChannelmoves)(nil),                                                           // 566: cln.ListchannelmovesChannelmoves
-	(*ListchainmovesRequest)(nil),                                                                  // 567: cln.ListchainmovesRequest
-	(*ListchainmovesResponse)(nil),                                                                 // 568: cln.ListchainmovesResponse
-	(*ListchainmovesChainmoves)(nil),                                                               // 569: cln.ListchainmovesChainmoves
-	(*ListnetworkeventsRequest)(nil),                                                               // 570: cln.ListnetworkeventsRequest
-	(*ListnetworkeventsResponse)(nil),                                                              // 571: cln.ListnetworkeventsResponse
-	(*ListnetworkeventsNetworkevents)(nil),                                                         // 572: cln.ListnetworkeventsNetworkevents
-	(*DelnetworkeventRequest)(nil),                                                                 // 573: cln.DelnetworkeventRequest
-	(*DelnetworkeventResponse)(nil),                                                                // 574: cln.DelnetworkeventResponse
-	(*ClnrestregisterpathRequest)(nil),                                                             // 575: cln.ClnrestregisterpathRequest
-	(*ClnrestregisterpathResponse)(nil),                                                            // 576: cln.ClnrestregisterpathResponse
-	(*ClnrestregisterpathRuneRestrictions)(nil),                                                    // 577: cln.ClnrestregisterpathRuneRestrictions
-	(*StreamBlockAddedRequest)(nil),                                                                // 578: cln.StreamBlockAddedRequest
-	(*BlockAddedNotification)(nil),                                                                 // 579: cln.BlockAddedNotification
-	(*StreamChannelOpenFailedRequest)(nil),                                                         // 580: cln.StreamChannelOpenFailedRequest
-	(*ChannelOpenFailedNotification)(nil),                                                          // 581: cln.ChannelOpenFailedNotification
-	(*StreamChannelOpenedRequest)(nil),                                                             // 582: cln.StreamChannelOpenedRequest
-	(*ChannelOpenedNotification)(nil),                                                              // 583: cln.ChannelOpenedNotification
-	(*StreamConnectRequest)(nil),                                                                   // 584: cln.StreamConnectRequest
-	(*PeerConnectNotification)(nil),                                                                // 585: cln.PeerConnectNotification
-	(*PeerConnectAddress)(nil),                                                                     // 586: cln.PeerConnectAddress
-	(*StreamCustomMsgRequest)(nil),                                                                 // 587: cln.StreamCustomMsgRequest
-	(*CustomMsgNotification)(nil),                                                                  // 588: cln.CustomMsgNotification
-	(*StreamChannelStateChangedRequest)(nil),                                                       // 589: cln.StreamChannelStateChangedRequest
-	(*ChannelStateChangedNotification)(nil),                                                        // 590: cln.ChannelStateChangedNotification
-	nil,                                                                                            // 591: cln.ClnrestregisterpathRuneRestrictions.ParamsEntry
-	(*Amount)(nil),                                                                                 // 592: cln.Amount
-	(ChannelState)(0),                                                                              // 593: cln.ChannelState
-	(AutocleanSubsystem)(0),                                                                        // 594: cln.AutocleanSubsystem
-	(*Outpoint)(nil),                                                                               // 595: cln.Outpoint
-	(*Feerate)(nil),                                                                                // 596: cln.Feerate
-	(*AmountOrAny)(nil),                                                                            // 597: cln.AmountOrAny
-	(*AmountOrAll)(nil),                                                                            // 598: cln.AmountOrAll
-	(*RoutehintList)(nil),                                                                          // 599: cln.RoutehintList
-	(*TlvStream)(nil),                                                                              // 600: cln.TlvStream
-	(*OutputDesc)(nil),                                                                             // 601: cln.OutputDesc
-	(ChannelSide)(0),                                                                               // 602: cln.ChannelSide
-	(HtlcState)(0),                                                                                 // 603: cln.HtlcState
-	(*DecodeRoutehintList)(nil),                                                                    // 604: cln.DecodeRoutehintList
-	(ChannelTypeName)(0),                                                                           // 605: cln.ChannelTypeName
-	(PluginSubcommand)(0),                                                                          // 606: cln.PluginSubcommand
+	(ChannelStateChangedNotification_ChannelStateChangedCause)(0),                                  // 76: cln.ChannelStateChangedNotification.ChannelStateChangedCause
+	(PeerConnectNotification_PeerConnectDirection)(0),                                              // 77: cln.PeerConnectNotification.PeerConnectDirection
+	(PeerConnectAddress_PeerConnectAddressType)(0),                                                 // 78: cln.PeerConnectAddress.PeerConnectAddressType
+	(CoinMovementNotification_CoinMovementType)(0),                                                 // 79: cln.CoinMovementNotification.CoinMovementType
+	(CoinMovementNotification_CoinMovementPrimaryTag)(0),                                           // 80: cln.CoinMovementNotification.CoinMovementPrimaryTag
+	(ForwardEventNotification_ForwardEventStatus)(0),                                               // 81: cln.ForwardEventNotification.ForwardEventStatus
+	(ForwardEventNotification_ForwardEventStyle)(0),                                                // 82: cln.ForwardEventNotification.ForwardEventStyle
+	(LogNotification_LogLevel)(0),                                                                  // 83: cln.LogNotification.LogLevel
+	(SendpayFailureData_SendpayFailureDataStatus)(0),                                               // 84: cln.SendpayFailureData.SendpayFailureDataStatus
+	(SendPaySuccessNotification_SendpaySuccessStatus)(0),                                           // 85: cln.SendPaySuccessNotification.SendpaySuccessStatus
+	(WarningNotification_WarningLevel)(0),                                                          // 86: cln.WarningNotification.WarningLevel
+	(PayPartEndNotification_PayPartEndStatus)(0),                                                   // 87: cln.PayPartEndNotification.PayPartEndStatus
+	(*GetinfoRequest)(nil),                                                                         // 88: cln.GetinfoRequest
+	(*GetinfoResponse)(nil),                                                                        // 89: cln.GetinfoResponse
+	(*GetinfoOurFeatures)(nil),                                                                     // 90: cln.GetinfoOurFeatures
+	(*GetinfoAddress)(nil),                                                                         // 91: cln.GetinfoAddress
+	(*GetinfoBinding)(nil),                                                                         // 92: cln.GetinfoBinding
+	(*ListpeersRequest)(nil),                                                                       // 93: cln.ListpeersRequest
+	(*ListpeersResponse)(nil),                                                                      // 94: cln.ListpeersResponse
+	(*ListpeersPeers)(nil),                                                                         // 95: cln.ListpeersPeers
+	(*ListpeersPeersLog)(nil),                                                                      // 96: cln.ListpeersPeersLog
+	(*ListfundsRequest)(nil),                                                                       // 97: cln.ListfundsRequest
+	(*ListfundsResponse)(nil),                                                                      // 98: cln.ListfundsResponse
+	(*ListfundsOutputs)(nil),                                                                       // 99: cln.ListfundsOutputs
+	(*ListfundsChannels)(nil),                                                                      // 100: cln.ListfundsChannels
+	(*SendpayRequest)(nil),                                                                         // 101: cln.SendpayRequest
+	(*SendpayResponse)(nil),                                                                        // 102: cln.SendpayResponse
+	(*SendpayRoute)(nil),                                                                           // 103: cln.SendpayRoute
+	(*ListchannelsRequest)(nil),                                                                    // 104: cln.ListchannelsRequest
+	(*ListchannelsResponse)(nil),                                                                   // 105: cln.ListchannelsResponse
+	(*ListchannelsChannels)(nil),                                                                   // 106: cln.ListchannelsChannels
+	(*AddgossipRequest)(nil),                                                                       // 107: cln.AddgossipRequest
+	(*AddgossipResponse)(nil),                                                                      // 108: cln.AddgossipResponse
+	(*AddpsbtoutputRequest)(nil),                                                                   // 109: cln.AddpsbtoutputRequest
+	(*AddpsbtoutputResponse)(nil),                                                                  // 110: cln.AddpsbtoutputResponse
+	(*AutocleanonceRequest)(nil),                                                                   // 111: cln.AutocleanonceRequest
+	(*AutocleanonceResponse)(nil),                                                                  // 112: cln.AutocleanonceResponse
+	(*AutocleanonceAutoclean)(nil),                                                                 // 113: cln.AutocleanonceAutoclean
+	(*AutocleanonceAutocleanSucceededforwards)(nil),                                                // 114: cln.AutocleanonceAutocleanSucceededforwards
+	(*AutocleanonceAutocleanFailedforwards)(nil),                                                   // 115: cln.AutocleanonceAutocleanFailedforwards
+	(*AutocleanonceAutocleanSucceededpays)(nil),                                                    // 116: cln.AutocleanonceAutocleanSucceededpays
+	(*AutocleanonceAutocleanFailedpays)(nil),                                                       // 117: cln.AutocleanonceAutocleanFailedpays
+	(*AutocleanonceAutocleanPaidinvoices)(nil),                                                     // 118: cln.AutocleanonceAutocleanPaidinvoices
+	(*AutocleanonceAutocleanExpiredinvoices)(nil),                                                  // 119: cln.AutocleanonceAutocleanExpiredinvoices
+	(*AutocleanonceAutocleanNetworkevents)(nil),                                                    // 120: cln.AutocleanonceAutocleanNetworkevents
+	(*AutocleanstatusRequest)(nil),                                                                 // 121: cln.AutocleanstatusRequest
+	(*AutocleanstatusResponse)(nil),                                                                // 122: cln.AutocleanstatusResponse
+	(*AutocleanstatusAutoclean)(nil),                                                               // 123: cln.AutocleanstatusAutoclean
+	(*AutocleanstatusAutocleanSucceededforwards)(nil),                                              // 124: cln.AutocleanstatusAutocleanSucceededforwards
+	(*AutocleanstatusAutocleanFailedforwards)(nil),                                                 // 125: cln.AutocleanstatusAutocleanFailedforwards
+	(*AutocleanstatusAutocleanSucceededpays)(nil),                                                  // 126: cln.AutocleanstatusAutocleanSucceededpays
+	(*AutocleanstatusAutocleanFailedpays)(nil),                                                     // 127: cln.AutocleanstatusAutocleanFailedpays
+	(*AutocleanstatusAutocleanPaidinvoices)(nil),                                                   // 128: cln.AutocleanstatusAutocleanPaidinvoices
+	(*AutocleanstatusAutocleanExpiredinvoices)(nil),                                                // 129: cln.AutocleanstatusAutocleanExpiredinvoices
+	(*AutocleanstatusAutocleanNetworkevents)(nil),                                                  // 130: cln.AutocleanstatusAutocleanNetworkevents
+	(*CheckmessageRequest)(nil),                                                                    // 131: cln.CheckmessageRequest
+	(*CheckmessageResponse)(nil),                                                                   // 132: cln.CheckmessageResponse
+	(*CloseRequest)(nil),                                                                           // 133: cln.CloseRequest
+	(*CloseResponse)(nil),                                                                          // 134: cln.CloseResponse
+	(*ConnectRequest)(nil),                                                                         // 135: cln.ConnectRequest
+	(*ConnectResponse)(nil),                                                                        // 136: cln.ConnectResponse
+	(*ConnectAddress)(nil),                                                                         // 137: cln.ConnectAddress
+	(*CreateinvoiceRequest)(nil),                                                                   // 138: cln.CreateinvoiceRequest
+	(*CreateinvoiceResponse)(nil),                                                                  // 139: cln.CreateinvoiceResponse
+	(*CreateinvoicePaidOutpoint)(nil),                                                              // 140: cln.CreateinvoicePaidOutpoint
+	(*DatastoreRequest)(nil),                                                                       // 141: cln.DatastoreRequest
+	(*DatastoreResponse)(nil),                                                                      // 142: cln.DatastoreResponse
+	(*DatastoreusageRequest)(nil),                                                                  // 143: cln.DatastoreusageRequest
+	(*DatastoreusageResponse)(nil),                                                                 // 144: cln.DatastoreusageResponse
+	(*DatastoreusageDatastoreusage)(nil),                                                           // 145: cln.DatastoreusageDatastoreusage
+	(*CreateonionRequest)(nil),                                                                     // 146: cln.CreateonionRequest
+	(*CreateonionResponse)(nil),                                                                    // 147: cln.CreateonionResponse
+	(*CreateonionHops)(nil),                                                                        // 148: cln.CreateonionHops
+	(*DeldatastoreRequest)(nil),                                                                    // 149: cln.DeldatastoreRequest
+	(*DeldatastoreResponse)(nil),                                                                   // 150: cln.DeldatastoreResponse
+	(*DelinvoiceRequest)(nil),                                                                      // 151: cln.DelinvoiceRequest
+	(*DelinvoiceResponse)(nil),                                                                     // 152: cln.DelinvoiceResponse
+	(*DevforgetchannelRequest)(nil),                                                                // 153: cln.DevforgetchannelRequest
+	(*DevforgetchannelResponse)(nil),                                                               // 154: cln.DevforgetchannelResponse
+	(*EmergencyrecoverRequest)(nil),                                                                // 155: cln.EmergencyrecoverRequest
+	(*EmergencyrecoverResponse)(nil),                                                               // 156: cln.EmergencyrecoverResponse
+	(*GetemergencyrecoverdataRequest)(nil),                                                         // 157: cln.GetemergencyrecoverdataRequest
+	(*GetemergencyrecoverdataResponse)(nil),                                                        // 158: cln.GetemergencyrecoverdataResponse
+	(*ExposesecretRequest)(nil),                                                                    // 159: cln.ExposesecretRequest
+	(*ExposesecretResponse)(nil),                                                                   // 160: cln.ExposesecretResponse
+	(*RecoverRequest)(nil),                                                                         // 161: cln.RecoverRequest
+	(*RecoverResponse)(nil),                                                                        // 162: cln.RecoverResponse
+	(*RecoverchannelRequest)(nil),                                                                  // 163: cln.RecoverchannelRequest
+	(*RecoverchannelResponse)(nil),                                                                 // 164: cln.RecoverchannelResponse
+	(*InvoiceRequest)(nil),                                                                         // 165: cln.InvoiceRequest
+	(*InvoiceResponse)(nil),                                                                        // 166: cln.InvoiceResponse
+	(*InvoicerequestRequest)(nil),                                                                  // 167: cln.InvoicerequestRequest
+	(*InvoicerequestResponse)(nil),                                                                 // 168: cln.InvoicerequestResponse
+	(*DisableinvoicerequestRequest)(nil),                                                           // 169: cln.DisableinvoicerequestRequest
+	(*DisableinvoicerequestResponse)(nil),                                                          // 170: cln.DisableinvoicerequestResponse
+	(*ListinvoicerequestsRequest)(nil),                                                             // 171: cln.ListinvoicerequestsRequest
+	(*ListinvoicerequestsResponse)(nil),                                                            // 172: cln.ListinvoicerequestsResponse
+	(*ListinvoicerequestsInvoicerequests)(nil),                                                     // 173: cln.ListinvoicerequestsInvoicerequests
+	(*ListdatastoreRequest)(nil),                                                                   // 174: cln.ListdatastoreRequest
+	(*ListdatastoreResponse)(nil),                                                                  // 175: cln.ListdatastoreResponse
+	(*ListdatastoreDatastore)(nil),                                                                 // 176: cln.ListdatastoreDatastore
+	(*ListinvoicesRequest)(nil),                                                                    // 177: cln.ListinvoicesRequest
+	(*ListinvoicesResponse)(nil),                                                                   // 178: cln.ListinvoicesResponse
+	(*ListinvoicesInvoices)(nil),                                                                   // 179: cln.ListinvoicesInvoices
+	(*ListinvoicesInvoicesPaidOutpoint)(nil),                                                       // 180: cln.ListinvoicesInvoicesPaidOutpoint
+	(*SendonionRequest)(nil),                                                                       // 181: cln.SendonionRequest
+	(*SendonionResponse)(nil),                                                                      // 182: cln.SendonionResponse
+	(*SendonionFirstHop)(nil),                                                                      // 183: cln.SendonionFirstHop
+	(*ListsendpaysRequest)(nil),                                                                    // 184: cln.ListsendpaysRequest
+	(*ListsendpaysResponse)(nil),                                                                   // 185: cln.ListsendpaysResponse
+	(*ListsendpaysPayments)(nil),                                                                   // 186: cln.ListsendpaysPayments
+	(*ListtransactionsRequest)(nil),                                                                // 187: cln.ListtransactionsRequest
+	(*ListtransactionsResponse)(nil),                                                               // 188: cln.ListtransactionsResponse
+	(*ListtransactionsTransactions)(nil),                                                           // 189: cln.ListtransactionsTransactions
+	(*ListtransactionsTransactionsInputs)(nil),                                                     // 190: cln.ListtransactionsTransactionsInputs
+	(*ListtransactionsTransactionsOutputs)(nil),                                                    // 191: cln.ListtransactionsTransactionsOutputs
+	(*MakesecretRequest)(nil),                                                                      // 192: cln.MakesecretRequest
+	(*MakesecretResponse)(nil),                                                                     // 193: cln.MakesecretResponse
+	(*PayRequest)(nil),                                                                             // 194: cln.PayRequest
+	(*PayResponse)(nil),                                                                            // 195: cln.PayResponse
+	(*ListnodesRequest)(nil),                                                                       // 196: cln.ListnodesRequest
+	(*ListnodesResponse)(nil),                                                                      // 197: cln.ListnodesResponse
+	(*ListnodesNodes)(nil),                                                                         // 198: cln.ListnodesNodes
+	(*ListnodesNodesOptionWillFund)(nil),                                                           // 199: cln.ListnodesNodesOptionWillFund
+	(*ListnodesNodesAddresses)(nil),                                                                // 200: cln.ListnodesNodesAddresses
+	(*WaitanyinvoiceRequest)(nil),                                                                  // 201: cln.WaitanyinvoiceRequest
+	(*WaitanyinvoiceResponse)(nil),                                                                 // 202: cln.WaitanyinvoiceResponse
+	(*WaitanyinvoicePaidOutpoint)(nil),                                                             // 203: cln.WaitanyinvoicePaidOutpoint
+	(*WaitinvoiceRequest)(nil),                                                                     // 204: cln.WaitinvoiceRequest
+	(*WaitinvoiceResponse)(nil),                                                                    // 205: cln.WaitinvoiceResponse
+	(*WaitinvoicePaidOutpoint)(nil),                                                                // 206: cln.WaitinvoicePaidOutpoint
+	(*WaitsendpayRequest)(nil),                                                                     // 207: cln.WaitsendpayRequest
+	(*WaitsendpayResponse)(nil),                                                                    // 208: cln.WaitsendpayResponse
+	(*NewaddrRequest)(nil),                                                                         // 209: cln.NewaddrRequest
+	(*NewaddrResponse)(nil),                                                                        // 210: cln.NewaddrResponse
+	(*WithdrawRequest)(nil),                                                                        // 211: cln.WithdrawRequest
+	(*WithdrawResponse)(nil),                                                                       // 212: cln.WithdrawResponse
+	(*KeysendRequest)(nil),                                                                         // 213: cln.KeysendRequest
+	(*KeysendResponse)(nil),                                                                        // 214: cln.KeysendResponse
+	(*FundpsbtRequest)(nil),                                                                        // 215: cln.FundpsbtRequest
+	(*FundpsbtResponse)(nil),                                                                       // 216: cln.FundpsbtResponse
+	(*FundpsbtReservations)(nil),                                                                   // 217: cln.FundpsbtReservations
+	(*SendpsbtRequest)(nil),                                                                        // 218: cln.SendpsbtRequest
+	(*SendpsbtResponse)(nil),                                                                       // 219: cln.SendpsbtResponse
+	(*SignpsbtRequest)(nil),                                                                        // 220: cln.SignpsbtRequest
+	(*SignpsbtResponse)(nil),                                                                       // 221: cln.SignpsbtResponse
+	(*UtxopsbtRequest)(nil),                                                                        // 222: cln.UtxopsbtRequest
+	(*UtxopsbtResponse)(nil),                                                                       // 223: cln.UtxopsbtResponse
+	(*UtxopsbtReservations)(nil),                                                                   // 224: cln.UtxopsbtReservations
+	(*TxdiscardRequest)(nil),                                                                       // 225: cln.TxdiscardRequest
+	(*TxdiscardResponse)(nil),                                                                      // 226: cln.TxdiscardResponse
+	(*TxprepareRequest)(nil),                                                                       // 227: cln.TxprepareRequest
+	(*TxprepareResponse)(nil),                                                                      // 228: cln.TxprepareResponse
+	(*TxsendRequest)(nil),                                                                          // 229: cln.TxsendRequest
+	(*TxsendResponse)(nil),                                                                         // 230: cln.TxsendResponse
+	(*ListpeerchannelsRequest)(nil),                                                                // 231: cln.ListpeerchannelsRequest
+	(*ListpeerchannelsResponse)(nil),                                                               // 232: cln.ListpeerchannelsResponse
+	(*ListpeerchannelsChannels)(nil),                                                               // 233: cln.ListpeerchannelsChannels
+	(*ListpeerchannelsChannelsUpdates)(nil),                                                        // 234: cln.ListpeerchannelsChannelsUpdates
+	(*ListpeerchannelsChannelsUpdatesLocal)(nil),                                                   // 235: cln.ListpeerchannelsChannelsUpdatesLocal
+	(*ListpeerchannelsChannelsUpdatesRemote)(nil),                                                  // 236: cln.ListpeerchannelsChannelsUpdatesRemote
+	(*ListpeerchannelsChannelsFeerate)(nil),                                                        // 237: cln.ListpeerchannelsChannelsFeerate
+	(*ListpeerchannelsChannelsInflight)(nil),                                                       // 238: cln.ListpeerchannelsChannelsInflight
+	(*ListpeerchannelsChannelsFunding)(nil),                                                        // 239: cln.ListpeerchannelsChannelsFunding
+	(*ListpeerchannelsChannelsAlias)(nil),                                                          // 240: cln.ListpeerchannelsChannelsAlias
+	(*ListpeerchannelsChannelsHtlcs)(nil),                                                          // 241: cln.ListpeerchannelsChannelsHtlcs
+	(*ListclosedchannelsRequest)(nil),                                                              // 242: cln.ListclosedchannelsRequest
+	(*ListclosedchannelsResponse)(nil),                                                             // 243: cln.ListclosedchannelsResponse
+	(*ListclosedchannelsClosedchannels)(nil),                                                       // 244: cln.ListclosedchannelsClosedchannels
+	(*ListclosedchannelsClosedchannelsAlias)(nil),                                                  // 245: cln.ListclosedchannelsClosedchannelsAlias
+	(*DecodeRequest)(nil),                                                                          // 246: cln.DecodeRequest
+	(*DecodeResponse)(nil),                                                                         // 247: cln.DecodeResponse
+	(*DecodeOfferPaths)(nil),                                                                       // 248: cln.DecodeOfferPaths
+	(*DecodeOfferRecurrencePaywindow)(nil),                                                         // 249: cln.DecodeOfferRecurrencePaywindow
+	(*DecodeInvreqPaths)(nil),                                                                      // 250: cln.DecodeInvreqPaths
+	(*DecodeInvreqPathsPath)(nil),                                                                  // 251: cln.DecodeInvreqPathsPath
+	(*DecodeInvreqBip353Name)(nil),                                                                 // 252: cln.DecodeInvreqBip353Name
+	(*DecodeInvoicePathsPath)(nil),                                                                 // 253: cln.DecodeInvoicePathsPath
+	(*DecodeInvoiceFallbacks)(nil),                                                                 // 254: cln.DecodeInvoiceFallbacks
+	(*DecodeFallbacks)(nil),                                                                        // 255: cln.DecodeFallbacks
+	(*DecodeExtra)(nil),                                                                            // 256: cln.DecodeExtra
+	(*DecodeRestrictions)(nil),                                                                     // 257: cln.DecodeRestrictions
+	(*DelpayRequest)(nil),                                                                          // 258: cln.DelpayRequest
+	(*DelpayResponse)(nil),                                                                         // 259: cln.DelpayResponse
+	(*DelpayPayments)(nil),                                                                         // 260: cln.DelpayPayments
+	(*DelforwardRequest)(nil),                                                                      // 261: cln.DelforwardRequest
+	(*DelforwardResponse)(nil),                                                                     // 262: cln.DelforwardResponse
+	(*DisableofferRequest)(nil),                                                                    // 263: cln.DisableofferRequest
+	(*DisableofferResponse)(nil),                                                                   // 264: cln.DisableofferResponse
+	(*EnableofferRequest)(nil),                                                                     // 265: cln.EnableofferRequest
+	(*EnableofferResponse)(nil),                                                                    // 266: cln.EnableofferResponse
+	(*DisconnectRequest)(nil),                                                                      // 267: cln.DisconnectRequest
+	(*DisconnectResponse)(nil),                                                                     // 268: cln.DisconnectResponse
+	(*FeeratesRequest)(nil),                                                                        // 269: cln.FeeratesRequest
+	(*FeeratesResponse)(nil),                                                                       // 270: cln.FeeratesResponse
+	(*FeeratesPerkb)(nil),                                                                          // 271: cln.FeeratesPerkb
+	(*FeeratesPerkbEstimates)(nil),                                                                 // 272: cln.FeeratesPerkbEstimates
+	(*FeeratesPerkw)(nil),                                                                          // 273: cln.FeeratesPerkw
+	(*FeeratesPerkwEstimates)(nil),                                                                 // 274: cln.FeeratesPerkwEstimates
+	(*FeeratesOnchainFeeEstimates)(nil),                                                            // 275: cln.FeeratesOnchainFeeEstimates
+	(*Fetchbip353Request)(nil),                                                                     // 276: cln.Fetchbip353Request
+	(*Fetchbip353Response)(nil),                                                                    // 277: cln.Fetchbip353Response
+	(*Fetchbip353Instructions)(nil),                                                                // 278: cln.Fetchbip353Instructions
+	(*FetchinvoiceRequest)(nil),                                                                    // 279: cln.FetchinvoiceRequest
+	(*FetchinvoiceResponse)(nil),                                                                   // 280: cln.FetchinvoiceResponse
+	(*FetchinvoiceChanges)(nil),                                                                    // 281: cln.FetchinvoiceChanges
+	(*FetchinvoiceNextPeriod)(nil),                                                                 // 282: cln.FetchinvoiceNextPeriod
+	(*CancelrecurringinvoiceRequest)(nil),                                                          // 283: cln.CancelrecurringinvoiceRequest
+	(*CancelrecurringinvoiceResponse)(nil),                                                         // 284: cln.CancelrecurringinvoiceResponse
+	(*FundchannelCancelRequest)(nil),                                                               // 285: cln.FundchannelCancelRequest
+	(*FundchannelCancelResponse)(nil),                                                              // 286: cln.FundchannelCancelResponse
+	(*FundchannelCompleteRequest)(nil),                                                             // 287: cln.FundchannelCompleteRequest
+	(*FundchannelCompleteResponse)(nil),                                                            // 288: cln.FundchannelCompleteResponse
+	(*FundchannelRequest)(nil),                                                                     // 289: cln.FundchannelRequest
+	(*FundchannelResponse)(nil),                                                                    // 290: cln.FundchannelResponse
+	(*FundchannelChannelType)(nil),                                                                 // 291: cln.FundchannelChannelType
+	(*FundchannelStartRequest)(nil),                                                                // 292: cln.FundchannelStartRequest
+	(*FundchannelStartResponse)(nil),                                                               // 293: cln.FundchannelStartResponse
+	(*FundchannelStartChannelType)(nil),                                                            // 294: cln.FundchannelStartChannelType
+	(*GetlogRequest)(nil),                                                                          // 295: cln.GetlogRequest
+	(*GetlogResponse)(nil),                                                                         // 296: cln.GetlogResponse
+	(*GetlogLog)(nil),                                                                              // 297: cln.GetlogLog
+	(*FunderupdateRequest)(nil),                                                                    // 298: cln.FunderupdateRequest
+	(*FunderupdateResponse)(nil),                                                                   // 299: cln.FunderupdateResponse
+	(*GetrouteRequest)(nil),                                                                        // 300: cln.GetrouteRequest
+	(*GetrouteResponse)(nil),                                                                       // 301: cln.GetrouteResponse
+	(*GetrouteRoute)(nil),                                                                          // 302: cln.GetrouteRoute
+	(*ListaddressesRequest)(nil),                                                                   // 303: cln.ListaddressesRequest
+	(*ListaddressesResponse)(nil),                                                                  // 304: cln.ListaddressesResponse
+	(*ListaddressesAddresses)(nil),                                                                 // 305: cln.ListaddressesAddresses
+	(*ListforwardsRequest)(nil),                                                                    // 306: cln.ListforwardsRequest
+	(*ListforwardsResponse)(nil),                                                                   // 307: cln.ListforwardsResponse
+	(*ListforwardsForwards)(nil),                                                                   // 308: cln.ListforwardsForwards
+	(*ListoffersRequest)(nil),                                                                      // 309: cln.ListoffersRequest
+	(*ListoffersResponse)(nil),                                                                     // 310: cln.ListoffersResponse
+	(*ListoffersOffers)(nil),                                                                       // 311: cln.ListoffersOffers
+	(*ListpaysRequest)(nil),                                                                        // 312: cln.ListpaysRequest
+	(*ListpaysResponse)(nil),                                                                       // 313: cln.ListpaysResponse
+	(*ListpaysPays)(nil),                                                                           // 314: cln.ListpaysPays
+	(*ListhtlcsRequest)(nil),                                                                       // 315: cln.ListhtlcsRequest
+	(*ListhtlcsResponse)(nil),                                                                      // 316: cln.ListhtlcsResponse
+	(*ListhtlcsHtlcs)(nil),                                                                         // 317: cln.ListhtlcsHtlcs
+	(*MultifundchannelRequest)(nil),                                                                // 318: cln.MultifundchannelRequest
+	(*MultifundchannelResponse)(nil),                                                               // 319: cln.MultifundchannelResponse
+	(*MultifundchannelDestinations)(nil),                                                           // 320: cln.MultifundchannelDestinations
+	(*MultifundchannelChannelIds)(nil),                                                             // 321: cln.MultifundchannelChannelIds
+	(*MultifundchannelChannelIdsChannelType)(nil),                                                  // 322: cln.MultifundchannelChannelIdsChannelType
+	(*MultifundchannelFailed)(nil),                                                                 // 323: cln.MultifundchannelFailed
+	(*MultifundchannelFailedError)(nil),                                                            // 324: cln.MultifundchannelFailedError
+	(*MultiwithdrawRequest)(nil),                                                                   // 325: cln.MultiwithdrawRequest
+	(*MultiwithdrawResponse)(nil),                                                                  // 326: cln.MultiwithdrawResponse
+	(*OfferRequest)(nil),                                                                           // 327: cln.OfferRequest
+	(*OfferResponse)(nil),                                                                          // 328: cln.OfferResponse
+	(*OpenchannelAbortRequest)(nil),                                                                // 329: cln.OpenchannelAbortRequest
+	(*OpenchannelAbortResponse)(nil),                                                               // 330: cln.OpenchannelAbortResponse
+	(*OpenchannelBumpRequest)(nil),                                                                 // 331: cln.OpenchannelBumpRequest
+	(*OpenchannelBumpResponse)(nil),                                                                // 332: cln.OpenchannelBumpResponse
+	(*OpenchannelBumpChannelType)(nil),                                                             // 333: cln.OpenchannelBumpChannelType
+	(*OpenchannelInitRequest)(nil),                                                                 // 334: cln.OpenchannelInitRequest
+	(*OpenchannelInitResponse)(nil),                                                                // 335: cln.OpenchannelInitResponse
+	(*OpenchannelInitChannelType)(nil),                                                             // 336: cln.OpenchannelInitChannelType
+	(*OpenchannelSignedRequest)(nil),                                                               // 337: cln.OpenchannelSignedRequest
+	(*OpenchannelSignedResponse)(nil),                                                              // 338: cln.OpenchannelSignedResponse
+	(*OpenchannelUpdateRequest)(nil),                                                               // 339: cln.OpenchannelUpdateRequest
+	(*OpenchannelUpdateResponse)(nil),                                                              // 340: cln.OpenchannelUpdateResponse
+	(*OpenchannelUpdateChannelType)(nil),                                                           // 341: cln.OpenchannelUpdateChannelType
+	(*PingRequest)(nil),                                                                            // 342: cln.PingRequest
+	(*PingResponse)(nil),                                                                           // 343: cln.PingResponse
+	(*PluginRequest)(nil),                                                                          // 344: cln.PluginRequest
+	(*PluginResponse)(nil),                                                                         // 345: cln.PluginResponse
+	(*PluginPlugins)(nil),                                                                          // 346: cln.PluginPlugins
+	(*RenepaystatusRequest)(nil),                                                                   // 347: cln.RenepaystatusRequest
+	(*RenepaystatusResponse)(nil),                                                                  // 348: cln.RenepaystatusResponse
+	(*RenepaystatusPaystatus)(nil),                                                                 // 349: cln.RenepaystatusPaystatus
+	(*RenepayRequest)(nil),                                                                         // 350: cln.RenepayRequest
+	(*RenepayResponse)(nil),                                                                        // 351: cln.RenepayResponse
+	(*ReserveinputsRequest)(nil),                                                                   // 352: cln.ReserveinputsRequest
+	(*ReserveinputsResponse)(nil),                                                                  // 353: cln.ReserveinputsResponse
+	(*ReserveinputsReservations)(nil),                                                              // 354: cln.ReserveinputsReservations
+	(*SendcustommsgRequest)(nil),                                                                   // 355: cln.SendcustommsgRequest
+	(*SendcustommsgResponse)(nil),                                                                  // 356: cln.SendcustommsgResponse
+	(*SendinvoiceRequest)(nil),                                                                     // 357: cln.SendinvoiceRequest
+	(*SendinvoiceResponse)(nil),                                                                    // 358: cln.SendinvoiceResponse
+	(*SetchannelRequest)(nil),                                                                      // 359: cln.SetchannelRequest
+	(*SetchannelResponse)(nil),                                                                     // 360: cln.SetchannelResponse
+	(*SetchannelChannels)(nil),                                                                     // 361: cln.SetchannelChannels
+	(*SetconfigRequest)(nil),                                                                       // 362: cln.SetconfigRequest
+	(*SetconfigResponse)(nil),                                                                      // 363: cln.SetconfigResponse
+	(*SetconfigConfig)(nil),                                                                        // 364: cln.SetconfigConfig
+	(*SetpsbtversionRequest)(nil),                                                                  // 365: cln.SetpsbtversionRequest
+	(*SetpsbtversionResponse)(nil),                                                                 // 366: cln.SetpsbtversionResponse
+	(*SigninvoiceRequest)(nil),                                                                     // 367: cln.SigninvoiceRequest
+	(*SigninvoiceResponse)(nil),                                                                    // 368: cln.SigninvoiceResponse
+	(*SignmessageRequest)(nil),                                                                     // 369: cln.SignmessageRequest
+	(*SignmessageResponse)(nil),                                                                    // 370: cln.SignmessageResponse
+	(*SpliceInitRequest)(nil),                                                                      // 371: cln.SpliceInitRequest
+	(*SpliceInitResponse)(nil),                                                                     // 372: cln.SpliceInitResponse
+	(*SpliceSignedRequest)(nil),                                                                    // 373: cln.SpliceSignedRequest
+	(*SpliceSignedResponse)(nil),                                                                   // 374: cln.SpliceSignedResponse
+	(*SpliceUpdateRequest)(nil),                                                                    // 375: cln.SpliceUpdateRequest
+	(*SpliceUpdateResponse)(nil),                                                                   // 376: cln.SpliceUpdateResponse
+	(*SpliceinRequest)(nil),                                                                        // 377: cln.SpliceinRequest
+	(*SpliceinResponse)(nil),                                                                       // 378: cln.SpliceinResponse
+	(*SpliceoutRequest)(nil),                                                                       // 379: cln.SpliceoutRequest
+	(*SpliceoutResponse)(nil),                                                                      // 380: cln.SpliceoutResponse
+	(*DevspliceRequest)(nil),                                                                       // 381: cln.DevspliceRequest
+	(*DevspliceResponse)(nil),                                                                      // 382: cln.DevspliceResponse
+	(*UnreserveinputsRequest)(nil),                                                                 // 383: cln.UnreserveinputsRequest
+	(*UnreserveinputsResponse)(nil),                                                                // 384: cln.UnreserveinputsResponse
+	(*UnreserveinputsReservations)(nil),                                                            // 385: cln.UnreserveinputsReservations
+	(*UpgradewalletRequest)(nil),                                                                   // 386: cln.UpgradewalletRequest
+	(*UpgradewalletResponse)(nil),                                                                  // 387: cln.UpgradewalletResponse
+	(*WaitblockheightRequest)(nil),                                                                 // 388: cln.WaitblockheightRequest
+	(*WaitblockheightResponse)(nil),                                                                // 389: cln.WaitblockheightResponse
+	(*WaitRequest)(nil),                                                                            // 390: cln.WaitRequest
+	(*WaitResponse)(nil),                                                                           // 391: cln.WaitResponse
+	(*WaitForwards)(nil),                                                                           // 392: cln.WaitForwards
+	(*WaitInvoices)(nil),                                                                           // 393: cln.WaitInvoices
+	(*WaitSendpays)(nil),                                                                           // 394: cln.WaitSendpays
+	(*WaitHtlcs)(nil),                                                                              // 395: cln.WaitHtlcs
+	(*WaitChainmoves)(nil),                                                                         // 396: cln.WaitChainmoves
+	(*WaitChannelmoves)(nil),                                                                       // 397: cln.WaitChannelmoves
+	(*WaitNetworkevents)(nil),                                                                      // 398: cln.WaitNetworkevents
+	(*WaitDetails)(nil),                                                                            // 399: cln.WaitDetails
+	(*ListconfigsRequest)(nil),                                                                     // 400: cln.ListconfigsRequest
+	(*ListconfigsResponse)(nil),                                                                    // 401: cln.ListconfigsResponse
+	(*ListconfigsConfigs)(nil),                                                                     // 402: cln.ListconfigsConfigs
+	(*ListconfigsConfigsConf)(nil),                                                                 // 403: cln.ListconfigsConfigsConf
+	(*ListconfigsConfigsDeveloper)(nil),                                                            // 404: cln.ListconfigsConfigsDeveloper
+	(*ListconfigsConfigsClearplugins)(nil),                                                         // 405: cln.ListconfigsConfigsClearplugins
+	(*ListconfigsConfigsDisablempp)(nil),                                                           // 406: cln.ListconfigsConfigsDisablempp
+	(*ListconfigsConfigsMainnet)(nil),                                                              // 407: cln.ListconfigsConfigsMainnet
+	(*ListconfigsConfigsRegtest)(nil),                                                              // 408: cln.ListconfigsConfigsRegtest
+	(*ListconfigsConfigsSignet)(nil),                                                               // 409: cln.ListconfigsConfigsSignet
+	(*ListconfigsConfigsTestnet)(nil),                                                              // 410: cln.ListconfigsConfigsTestnet
+	(*ListconfigsConfigsImportantplugin)(nil),                                                      // 411: cln.ListconfigsConfigsImportantplugin
+	(*ListconfigsConfigsPlugin)(nil),                                                               // 412: cln.ListconfigsConfigsPlugin
+	(*ListconfigsConfigsPlugindir)(nil),                                                            // 413: cln.ListconfigsConfigsPlugindir
+	(*ListconfigsConfigsLightningdir)(nil),                                                         // 414: cln.ListconfigsConfigsLightningdir
+	(*ListconfigsConfigsNetwork)(nil),                                                              // 415: cln.ListconfigsConfigsNetwork
+	(*ListconfigsConfigsAllowdeprecatedapis)(nil),                                                  // 416: cln.ListconfigsConfigsAllowdeprecatedapis
+	(*ListconfigsConfigsRpcfile)(nil),                                                              // 417: cln.ListconfigsConfigsRpcfile
+	(*ListconfigsConfigsDisableplugin)(nil),                                                        // 418: cln.ListconfigsConfigsDisableplugin
+	(*ListconfigsConfigsAlwaysuseproxy)(nil),                                                       // 419: cln.ListconfigsConfigsAlwaysuseproxy
+	(*ListconfigsConfigsDaemon)(nil),                                                               // 420: cln.ListconfigsConfigsDaemon
+	(*ListconfigsConfigsWallet)(nil),                                                               // 421: cln.ListconfigsConfigsWallet
+	(*ListconfigsConfigsLargechannels)(nil),                                                        // 422: cln.ListconfigsConfigsLargechannels
+	(*ListconfigsConfigsExperimentaldualfund)(nil),                                                 // 423: cln.ListconfigsConfigsExperimentaldualfund
+	(*ListconfigsConfigsExperimentalsplicing)(nil),                                                 // 424: cln.ListconfigsConfigsExperimentalsplicing
+	(*ListconfigsConfigsExperimentalonionmessages)(nil),                                            // 425: cln.ListconfigsConfigsExperimentalonionmessages
+	(*ListconfigsConfigsExperimentaloffers)(nil),                                                   // 426: cln.ListconfigsConfigsExperimentaloffers
+	(*ListconfigsConfigsExperimentalshutdownwrongfunding)(nil),                                     // 427: cln.ListconfigsConfigsExperimentalshutdownwrongfunding
+	(*ListconfigsConfigsExperimentalpeerstorage)(nil),                                              // 428: cln.ListconfigsConfigsExperimentalpeerstorage
+	(*ListconfigsConfigsExperimentalanchors)(nil),                                                  // 429: cln.ListconfigsConfigsExperimentalanchors
+	(*ListconfigsConfigsDatabaseupgrade)(nil),                                                      // 430: cln.ListconfigsConfigsDatabaseupgrade
+	(*ListconfigsConfigsRgb)(nil),                                                                  // 431: cln.ListconfigsConfigsRgb
+	(*ListconfigsConfigsAlias)(nil),                                                                // 432: cln.ListconfigsConfigsAlias
+	(*ListconfigsConfigsPidfile)(nil),                                                              // 433: cln.ListconfigsConfigsPidfile
+	(*ListconfigsConfigsIgnorefeelimits)(nil),                                                      // 434: cln.ListconfigsConfigsIgnorefeelimits
+	(*ListconfigsConfigsWatchtimeblocks)(nil),                                                      // 435: cln.ListconfigsConfigsWatchtimeblocks
+	(*ListconfigsConfigsMaxlocktimeblocks)(nil),                                                    // 436: cln.ListconfigsConfigsMaxlocktimeblocks
+	(*ListconfigsConfigsFundingconfirms)(nil),                                                      // 437: cln.ListconfigsConfigsFundingconfirms
+	(*ListconfigsConfigsCltvdelta)(nil),                                                            // 438: cln.ListconfigsConfigsCltvdelta
+	(*ListconfigsConfigsCltvfinal)(nil),                                                            // 439: cln.ListconfigsConfigsCltvfinal
+	(*ListconfigsConfigsCommittime)(nil),                                                           // 440: cln.ListconfigsConfigsCommittime
+	(*ListconfigsConfigsFeebase)(nil),                                                              // 441: cln.ListconfigsConfigsFeebase
+	(*ListconfigsConfigsRescan)(nil),                                                               // 442: cln.ListconfigsConfigsRescan
+	(*ListconfigsConfigsFeepersatoshi)(nil),                                                        // 443: cln.ListconfigsConfigsFeepersatoshi
+	(*ListconfigsConfigsMaxconcurrenthtlcs)(nil),                                                   // 444: cln.ListconfigsConfigsMaxconcurrenthtlcs
+	(*ListconfigsConfigsHtlcminimummsat)(nil),                                                      // 445: cln.ListconfigsConfigsHtlcminimummsat
+	(*ListconfigsConfigsHtlcmaximummsat)(nil),                                                      // 446: cln.ListconfigsConfigsHtlcmaximummsat
+	(*ListconfigsConfigsMaxdusthtlcexposuremsat)(nil),                                              // 447: cln.ListconfigsConfigsMaxdusthtlcexposuremsat
+	(*ListconfigsConfigsMincapacitysat)(nil),                                                       // 448: cln.ListconfigsConfigsMincapacitysat
+	(*ListconfigsConfigsAddr)(nil),                                                                 // 449: cln.ListconfigsConfigsAddr
+	(*ListconfigsConfigsAnnounceaddr)(nil),                                                         // 450: cln.ListconfigsConfigsAnnounceaddr
+	(*ListconfigsConfigsBindaddr)(nil),                                                             // 451: cln.ListconfigsConfigsBindaddr
+	(*ListconfigsConfigsOffline)(nil),                                                              // 452: cln.ListconfigsConfigsOffline
+	(*ListconfigsConfigsAutolisten)(nil),                                                           // 453: cln.ListconfigsConfigsAutolisten
+	(*ListconfigsConfigsProxy)(nil),                                                                // 454: cln.ListconfigsConfigsProxy
+	(*ListconfigsConfigsDisabledns)(nil),                                                           // 455: cln.ListconfigsConfigsDisabledns
+	(*ListconfigsConfigsAnnounceaddrdiscovered)(nil),                                               // 456: cln.ListconfigsConfigsAnnounceaddrdiscovered
+	(*ListconfigsConfigsAnnounceaddrdiscoveredport)(nil),                                           // 457: cln.ListconfigsConfigsAnnounceaddrdiscoveredport
+	(*ListconfigsConfigsEncryptedhsm)(nil),                                                         // 458: cln.ListconfigsConfigsEncryptedhsm
+	(*ListconfigsConfigsRpcfilemode)(nil),                                                          // 459: cln.ListconfigsConfigsRpcfilemode
+	(*ListconfigsConfigsLoglevel)(nil),                                                             // 460: cln.ListconfigsConfigsLoglevel
+	(*ListconfigsConfigsLogprefix)(nil),                                                            // 461: cln.ListconfigsConfigsLogprefix
+	(*ListconfigsConfigsLogfile)(nil),                                                              // 462: cln.ListconfigsConfigsLogfile
+	(*ListconfigsConfigsLogtimestamps)(nil),                                                        // 463: cln.ListconfigsConfigsLogtimestamps
+	(*ListconfigsConfigsForcefeerates)(nil),                                                        // 464: cln.ListconfigsConfigsForcefeerates
+	(*ListconfigsConfigsSubdaemon)(nil),                                                            // 465: cln.ListconfigsConfigsSubdaemon
+	(*ListconfigsConfigsFetchinvoicenoconnect)(nil),                                                // 466: cln.ListconfigsConfigsFetchinvoicenoconnect
+	(*ListconfigsConfigsTorservicepassword)(nil),                                                   // 467: cln.ListconfigsConfigsTorservicepassword
+	(*ListconfigsConfigsAnnounceaddrdns)(nil),                                                      // 468: cln.ListconfigsConfigsAnnounceaddrdns
+	(*ListconfigsConfigsRequireconfirmedinputs)(nil),                                               // 469: cln.ListconfigsConfigsRequireconfirmedinputs
+	(*ListconfigsConfigsCommitfee)(nil),                                                            // 470: cln.ListconfigsConfigsCommitfee
+	(*ListconfigsConfigsCommitfeerateoffset)(nil),                                                  // 471: cln.ListconfigsConfigsCommitfeerateoffset
+	(*ListconfigsConfigsAutoconnectseekerpeers)(nil),                                               // 472: cln.ListconfigsConfigsAutoconnectseekerpeers
+	(*ListconfigsConfigsCurrencyrateaddsource)(nil),                                                // 473: cln.ListconfigsConfigsCurrencyrateaddsource
+	(*ListconfigsConfigsCurrencyratedisablesource)(nil),                                            // 474: cln.ListconfigsConfigsCurrencyratedisablesource
+	(*StopRequest)(nil),                                                                            // 475: cln.StopRequest
+	(*StopResponse)(nil),                                                                           // 476: cln.StopResponse
+	(*HelpRequest)(nil),                                                                            // 477: cln.HelpRequest
+	(*HelpResponse)(nil),                                                                           // 478: cln.HelpResponse
+	(*HelpHelp)(nil),                                                                               // 479: cln.HelpHelp
+	(*PreapprovekeysendRequest)(nil),                                                               // 480: cln.PreapprovekeysendRequest
+	(*PreapprovekeysendResponse)(nil),                                                              // 481: cln.PreapprovekeysendResponse
+	(*PreapproveinvoiceRequest)(nil),                                                               // 482: cln.PreapproveinvoiceRequest
+	(*PreapproveinvoiceResponse)(nil),                                                              // 483: cln.PreapproveinvoiceResponse
+	(*StaticbackupRequest)(nil),                                                                    // 484: cln.StaticbackupRequest
+	(*StaticbackupResponse)(nil),                                                                   // 485: cln.StaticbackupResponse
+	(*BkprchannelsapyRequest)(nil),                                                                 // 486: cln.BkprchannelsapyRequest
+	(*BkprchannelsapyResponse)(nil),                                                                // 487: cln.BkprchannelsapyResponse
+	(*BkprchannelsapyChannelsApy)(nil),                                                             // 488: cln.BkprchannelsapyChannelsApy
+	(*BkprdumpincomecsvRequest)(nil),                                                               // 489: cln.BkprdumpincomecsvRequest
+	(*BkprdumpincomecsvResponse)(nil),                                                              // 490: cln.BkprdumpincomecsvResponse
+	(*BkprinspectRequest)(nil),                                                                     // 491: cln.BkprinspectRequest
+	(*BkprinspectResponse)(nil),                                                                    // 492: cln.BkprinspectResponse
+	(*BkprinspectTxs)(nil),                                                                         // 493: cln.BkprinspectTxs
+	(*BkprinspectTxsOutputs)(nil),                                                                  // 494: cln.BkprinspectTxsOutputs
+	(*BkprlistaccounteventsRequest)(nil),                                                           // 495: cln.BkprlistaccounteventsRequest
+	(*BkprlistaccounteventsResponse)(nil),                                                          // 496: cln.BkprlistaccounteventsResponse
+	(*BkprlistaccounteventsEvents)(nil),                                                            // 497: cln.BkprlistaccounteventsEvents
+	(*BkprlistbalancesRequest)(nil),                                                                // 498: cln.BkprlistbalancesRequest
+	(*BkprlistbalancesResponse)(nil),                                                               // 499: cln.BkprlistbalancesResponse
+	(*BkprlistbalancesAccounts)(nil),                                                               // 500: cln.BkprlistbalancesAccounts
+	(*BkprlistbalancesAccountsBalances)(nil),                                                       // 501: cln.BkprlistbalancesAccountsBalances
+	(*BkprlistincomeRequest)(nil),                                                                  // 502: cln.BkprlistincomeRequest
+	(*BkprlistincomeResponse)(nil),                                                                 // 503: cln.BkprlistincomeResponse
+	(*BkprlistincomeIncomeEvents)(nil),                                                             // 504: cln.BkprlistincomeIncomeEvents
+	(*BkpreditdescriptionbypaymentidRequest)(nil),                                                  // 505: cln.BkpreditdescriptionbypaymentidRequest
+	(*BkpreditdescriptionbypaymentidResponse)(nil),                                                 // 506: cln.BkpreditdescriptionbypaymentidResponse
+	(*BkpreditdescriptionbypaymentidUpdated)(nil),                                                  // 507: cln.BkpreditdescriptionbypaymentidUpdated
+	(*BkpreditdescriptionbyoutpointRequest)(nil),                                                   // 508: cln.BkpreditdescriptionbyoutpointRequest
+	(*BkpreditdescriptionbyoutpointResponse)(nil),                                                  // 509: cln.BkpreditdescriptionbyoutpointResponse
+	(*BkpreditdescriptionbyoutpointUpdated)(nil),                                                   // 510: cln.BkpreditdescriptionbyoutpointUpdated
+	(*BkprreportRequest)(nil),                                                                      // 511: cln.BkprreportRequest
+	(*BkprreportResponse)(nil),                                                                     // 512: cln.BkprreportResponse
+	(*BlacklistruneRequest)(nil),                                                                   // 513: cln.BlacklistruneRequest
+	(*BlacklistruneResponse)(nil),                                                                  // 514: cln.BlacklistruneResponse
+	(*BlacklistruneBlacklist)(nil),                                                                 // 515: cln.BlacklistruneBlacklist
+	(*CheckruneRequest)(nil),                                                                       // 516: cln.CheckruneRequest
+	(*CheckruneResponse)(nil),                                                                      // 517: cln.CheckruneResponse
+	(*CreateruneRequest)(nil),                                                                      // 518: cln.CreateruneRequest
+	(*CreateruneResponse)(nil),                                                                     // 519: cln.CreateruneResponse
+	(*ShowrunesRequest)(nil),                                                                       // 520: cln.ShowrunesRequest
+	(*ShowrunesResponse)(nil),                                                                      // 521: cln.ShowrunesResponse
+	(*ShowrunesRunes)(nil),                                                                         // 522: cln.ShowrunesRunes
+	(*ShowrunesRunesRestrictions)(nil),                                                             // 523: cln.ShowrunesRunesRestrictions
+	(*ShowrunesRunesRestrictionsAlternatives)(nil),                                                 // 524: cln.ShowrunesRunesRestrictionsAlternatives
+	(*AskreneunreserveRequest)(nil),                                                                // 525: cln.AskreneunreserveRequest
+	(*AskreneunreserveResponse)(nil),                                                               // 526: cln.AskreneunreserveResponse
+	(*AskreneunreservePath)(nil),                                                                   // 527: cln.AskreneunreservePath
+	(*AskrenelistlayersRequest)(nil),                                                               // 528: cln.AskrenelistlayersRequest
+	(*AskrenelistlayersResponse)(nil),                                                              // 529: cln.AskrenelistlayersResponse
+	(*AskrenelistlayersLayers)(nil),                                                                // 530: cln.AskrenelistlayersLayers
+	(*AskrenelistlayersLayersCreatedChannels)(nil),                                                 // 531: cln.AskrenelistlayersLayersCreatedChannels
+	(*AskrenelistlayersLayersChannelUpdates)(nil),                                                  // 532: cln.AskrenelistlayersLayersChannelUpdates
+	(*AskrenelistlayersLayersConstraints)(nil),                                                     // 533: cln.AskrenelistlayersLayersConstraints
+	(*AskrenelistlayersLayersBiases)(nil),                                                          // 534: cln.AskrenelistlayersLayersBiases
+	(*AskrenelistlayersLayersNodeBiases)(nil),                                                      // 535: cln.AskrenelistlayersLayersNodeBiases
+	(*AskrenecreatelayerRequest)(nil),                                                              // 536: cln.AskrenecreatelayerRequest
+	(*AskrenecreatelayerResponse)(nil),                                                             // 537: cln.AskrenecreatelayerResponse
+	(*AskrenecreatelayerLayers)(nil),                                                               // 538: cln.AskrenecreatelayerLayers
+	(*AskrenecreatelayerLayersCreatedChannels)(nil),                                                // 539: cln.AskrenecreatelayerLayersCreatedChannels
+	(*AskrenecreatelayerLayersChannelUpdates)(nil),                                                 // 540: cln.AskrenecreatelayerLayersChannelUpdates
+	(*AskrenecreatelayerLayersConstraints)(nil),                                                    // 541: cln.AskrenecreatelayerLayersConstraints
+	(*AskrenecreatelayerLayersBiases)(nil),                                                         // 542: cln.AskrenecreatelayerLayersBiases
+	(*AskrenecreatelayerLayersNodeBiases)(nil),                                                     // 543: cln.AskrenecreatelayerLayersNodeBiases
+	(*AskreneremovelayerRequest)(nil),                                                              // 544: cln.AskreneremovelayerRequest
+	(*AskreneremovelayerResponse)(nil),                                                             // 545: cln.AskreneremovelayerResponse
+	(*AskrenereserveRequest)(nil),                                                                  // 546: cln.AskrenereserveRequest
+	(*AskrenereserveResponse)(nil),                                                                 // 547: cln.AskrenereserveResponse
+	(*AskrenereservePath)(nil),                                                                     // 548: cln.AskrenereservePath
+	(*AskreneageRequest)(nil),                                                                      // 549: cln.AskreneageRequest
+	(*AskreneageResponse)(nil),                                                                     // 550: cln.AskreneageResponse
+	(*GetroutesRequest)(nil),                                                                       // 551: cln.GetroutesRequest
+	(*GetroutesResponse)(nil),                                                                      // 552: cln.GetroutesResponse
+	(*GetroutesRoutes)(nil),                                                                        // 553: cln.GetroutesRoutes
+	(*GetroutesRoutesPath)(nil),                                                                    // 554: cln.GetroutesRoutesPath
+	(*AskrenedisablenodeRequest)(nil),                                                              // 555: cln.AskrenedisablenodeRequest
+	(*AskrenedisablenodeResponse)(nil),                                                             // 556: cln.AskrenedisablenodeResponse
+	(*AskreneinformchannelRequest)(nil),                                                            // 557: cln.AskreneinformchannelRequest
+	(*AskreneinformchannelResponse)(nil),                                                           // 558: cln.AskreneinformchannelResponse
+	(*AskreneinformchannelConstraints)(nil),                                                        // 559: cln.AskreneinformchannelConstraints
+	(*AskrenecreatechannelRequest)(nil),                                                            // 560: cln.AskrenecreatechannelRequest
+	(*AskrenecreatechannelResponse)(nil),                                                           // 561: cln.AskrenecreatechannelResponse
+	(*AskreneupdatechannelRequest)(nil),                                                            // 562: cln.AskreneupdatechannelRequest
+	(*AskreneupdatechannelResponse)(nil),                                                           // 563: cln.AskreneupdatechannelResponse
+	(*AskrenebiaschannelRequest)(nil),                                                              // 564: cln.AskrenebiaschannelRequest
+	(*AskrenebiaschannelResponse)(nil),                                                             // 565: cln.AskrenebiaschannelResponse
+	(*AskrenebiaschannelBiases)(nil),                                                               // 566: cln.AskrenebiaschannelBiases
+	(*AskrenebiasnodeRequest)(nil),                                                                 // 567: cln.AskrenebiasnodeRequest
+	(*AskrenebiasnodeResponse)(nil),                                                                // 568: cln.AskrenebiasnodeResponse
+	(*AskrenebiasnodeNodeBiases)(nil),                                                              // 569: cln.AskrenebiasnodeNodeBiases
+	(*AskrenelistreservationsRequest)(nil),                                                         // 570: cln.AskrenelistreservationsRequest
+	(*AskrenelistreservationsResponse)(nil),                                                        // 571: cln.AskrenelistreservationsResponse
+	(*AskrenelistreservationsReservations)(nil),                                                    // 572: cln.AskrenelistreservationsReservations
+	(*InjectpaymentonionRequest)(nil),                                                              // 573: cln.InjectpaymentonionRequest
+	(*InjectpaymentonionResponse)(nil),                                                             // 574: cln.InjectpaymentonionResponse
+	(*InjectonionmessageRequest)(nil),                                                              // 575: cln.InjectonionmessageRequest
+	(*InjectonionmessageResponse)(nil),                                                             // 576: cln.InjectonionmessageResponse
+	(*XpayRequest)(nil),                                                                            // 577: cln.XpayRequest
+	(*XpayResponse)(nil),                                                                           // 578: cln.XpayResponse
+	(*SignmessagewithkeyRequest)(nil),                                                              // 579: cln.SignmessagewithkeyRequest
+	(*SignmessagewithkeyResponse)(nil),                                                             // 580: cln.SignmessagewithkeyResponse
+	(*ListchannelmovesRequest)(nil),                                                                // 581: cln.ListchannelmovesRequest
+	(*ListchannelmovesResponse)(nil),                                                               // 582: cln.ListchannelmovesResponse
+	(*ListchannelmovesChannelmoves)(nil),                                                           // 583: cln.ListchannelmovesChannelmoves
+	(*ListchainmovesRequest)(nil),                                                                  // 584: cln.ListchainmovesRequest
+	(*ListchainmovesResponse)(nil),                                                                 // 585: cln.ListchainmovesResponse
+	(*ListchainmovesChainmoves)(nil),                                                               // 586: cln.ListchainmovesChainmoves
+	(*ListnetworkeventsRequest)(nil),                                                               // 587: cln.ListnetworkeventsRequest
+	(*ListnetworkeventsResponse)(nil),                                                              // 588: cln.ListnetworkeventsResponse
+	(*ListnetworkeventsNetworkevents)(nil),                                                         // 589: cln.ListnetworkeventsNetworkevents
+	(*DelnetworkeventRequest)(nil),                                                                 // 590: cln.DelnetworkeventRequest
+	(*DelnetworkeventResponse)(nil),                                                                // 591: cln.DelnetworkeventResponse
+	(*ClnrestregisterpathRequest)(nil),                                                             // 592: cln.ClnrestregisterpathRequest
+	(*ClnrestregisterpathResponse)(nil),                                                            // 593: cln.ClnrestregisterpathResponse
+	(*ClnrestregisterpathRuneRestrictions)(nil),                                                    // 594: cln.ClnrestregisterpathRuneRestrictions
+	(*ListcurrencyratesRequest)(nil),                                                               // 595: cln.ListcurrencyratesRequest
+	(*ListcurrencyratesResponse)(nil),                                                              // 596: cln.ListcurrencyratesResponse
+	(*ListcurrencyratesCurrencyrates)(nil),                                                         // 597: cln.ListcurrencyratesCurrencyrates
+	(*CurrencyconvertRequest)(nil),                                                                 // 598: cln.CurrencyconvertRequest
+	(*CurrencyconvertResponse)(nil),                                                                // 599: cln.CurrencyconvertResponse
+	(*CurrencyrateRequest)(nil),                                                                    // 600: cln.CurrencyrateRequest
+	(*CurrencyrateResponse)(nil),                                                                   // 601: cln.CurrencyrateResponse
+	(*StreamBalanceSnapshotRequest)(nil),                                                           // 602: cln.StreamBalanceSnapshotRequest
+	(*BalanceSnapshotNotification)(nil),                                                            // 603: cln.BalanceSnapshotNotification
+	(*BalanceSnapshotAccounts)(nil),                                                                // 604: cln.BalanceSnapshotAccounts
+	(*StreamBlockAddedRequest)(nil),                                                                // 605: cln.StreamBlockAddedRequest
+	(*BlockAddedNotification)(nil),                                                                 // 606: cln.BlockAddedNotification
+	(*StreamChannelOpenFailedRequest)(nil),                                                         // 607: cln.StreamChannelOpenFailedRequest
+	(*ChannelOpenFailedNotification)(nil),                                                          // 608: cln.ChannelOpenFailedNotification
+	(*StreamChannelOpenedRequest)(nil),                                                             // 609: cln.StreamChannelOpenedRequest
+	(*ChannelOpenedNotification)(nil),                                                              // 610: cln.ChannelOpenedNotification
+	(*StreamChannelStateChangedRequest)(nil),                                                       // 611: cln.StreamChannelStateChangedRequest
+	(*ChannelStateChangedNotification)(nil),                                                        // 612: cln.ChannelStateChangedNotification
+	(*StreamConnectRequest)(nil),                                                                   // 613: cln.StreamConnectRequest
+	(*PeerConnectNotification)(nil),                                                                // 614: cln.PeerConnectNotification
+	(*PeerConnectAddress)(nil),                                                                     // 615: cln.PeerConnectAddress
+	(*StreamCoinMovementRequest)(nil),                                                              // 616: cln.StreamCoinMovementRequest
+	(*CoinMovementNotification)(nil),                                                               // 617: cln.CoinMovementNotification
+	(*StreamCustomMsgRequest)(nil),                                                                 // 618: cln.StreamCustomMsgRequest
+	(*CustomMsgNotification)(nil),                                                                  // 619: cln.CustomMsgNotification
+	(*StreamDeprecatedOneshotRequest)(nil),                                                         // 620: cln.StreamDeprecatedOneshotRequest
+	(*DeprecatedOneshotNotification)(nil),                                                          // 621: cln.DeprecatedOneshotNotification
+	(*StreamDisconnectRequest)(nil),                                                                // 622: cln.StreamDisconnectRequest
+	(*DisconnectNotification)(nil),                                                                 // 623: cln.DisconnectNotification
+	(*StreamForwardEventRequest)(nil),                                                              // 624: cln.StreamForwardEventRequest
+	(*ForwardEventNotification)(nil),                                                               // 625: cln.ForwardEventNotification
+	(*StreamInvoiceCreationRequest)(nil),                                                           // 626: cln.StreamInvoiceCreationRequest
+	(*InvoiceCreationNotification)(nil),                                                            // 627: cln.InvoiceCreationNotification
+	(*StreamInvoicePaymentRequest)(nil),                                                            // 628: cln.StreamInvoicePaymentRequest
+	(*InvoicePaymentNotification)(nil),                                                             // 629: cln.InvoicePaymentNotification
+	(*StreamLogRequest)(nil),                                                                       // 630: cln.StreamLogRequest
+	(*LogNotification)(nil),                                                                        // 631: cln.LogNotification
+	(*StreamOnionMessageForwardFailRequest)(nil),                                                   // 632: cln.StreamOnionMessageForwardFailRequest
+	(*OnionMessageForwardFailNotification)(nil),                                                    // 633: cln.OnionMessageForwardFailNotification
+	(*StreamOpenChannelPeerSigsRequest)(nil),                                                       // 634: cln.StreamOpenChannelPeerSigsRequest
+	(*OpenChannelPeerSigsNotification)(nil),                                                        // 635: cln.OpenChannelPeerSigsNotification
+	(*StreamPluginStartedRequest)(nil),                                                             // 636: cln.StreamPluginStartedRequest
+	(*PluginStartedNotification)(nil),                                                              // 637: cln.PluginStartedNotification
+	(*StreamPluginStoppedRequest)(nil),                                                             // 638: cln.StreamPluginStoppedRequest
+	(*PluginStoppedNotification)(nil),                                                              // 639: cln.PluginStoppedNotification
+	(*StreamSendPayFailureRequest)(nil),                                                            // 640: cln.StreamSendPayFailureRequest
+	(*SendPayFailureNotification)(nil),                                                             // 641: cln.SendPayFailureNotification
+	(*SendpayFailureData)(nil),                                                                     // 642: cln.SendpayFailureData
+	(*StreamSendPaySuccessRequest)(nil),                                                            // 643: cln.StreamSendPaySuccessRequest
+	(*SendPaySuccessNotification)(nil),                                                             // 644: cln.SendPaySuccessNotification
+	(*StreamShutdownRequest)(nil),                                                                  // 645: cln.StreamShutdownRequest
+	(*ShutdownNotification)(nil),                                                                   // 646: cln.ShutdownNotification
+	(*StreamWarningRequest)(nil),                                                                   // 647: cln.StreamWarningRequest
+	(*WarningNotification)(nil),                                                                    // 648: cln.WarningNotification
+	(*StreamPayPartEndRequest)(nil),                                                                // 649: cln.StreamPayPartEndRequest
+	(*PayPartEndNotification)(nil),                                                                 // 650: cln.PayPartEndNotification
+	(*StreamPayPartStartRequest)(nil),                                                              // 651: cln.StreamPayPartStartRequest
+	(*PayPartStartNotification)(nil),                                                               // 652: cln.PayPartStartNotification
+	(*PayPartStartHops)(nil),                                                                       // 653: cln.PayPartStartHops
+	nil,                                                                                            // 654: cln.ClnrestregisterpathRuneRestrictions.ParamsEntry
+	(*Amount)(nil),                                                                                 // 655: cln.Amount
+	(ChannelState)(0),                                                                              // 656: cln.ChannelState
+	(AutocleanSubsystem)(0),                                                                        // 657: cln.AutocleanSubsystem
+	(*Outpoint)(nil),                                                                               // 658: cln.Outpoint
+	(*Feerate)(nil),                                                                                // 659: cln.Feerate
+	(*AmountOrAny)(nil),                                                                            // 660: cln.AmountOrAny
+	(*AmountOrAll)(nil),                                                                            // 661: cln.AmountOrAll
+	(*RoutehintList)(nil),                                                                          // 662: cln.RoutehintList
+	(*TlvStream)(nil),                                                                              // 663: cln.TlvStream
+	(*OutputDesc)(nil),                                                                             // 664: cln.OutputDesc
+	(ChannelSide)(0),                                                                               // 665: cln.ChannelSide
+	(HtlcState)(0),                                                                                 // 666: cln.HtlcState
+	(*DecodeRoutehintList)(nil),                                                                    // 667: cln.DecodeRoutehintList
+	(ChannelTypeName)(0),                                                                           // 668: cln.ChannelTypeName
+	(PluginSubcommand)(0),                                                                          // 669: cln.PluginSubcommand
 }
 var file_node_proto_depIdxs = []int32{
-	81,  // 0: cln.GetinfoResponse.our_features:type_name -> cln.GetinfoOurFeatures
-	592, // 1: cln.GetinfoResponse.fees_collected_msat:type_name -> cln.Amount
-	82,  // 2: cln.GetinfoResponse.address:type_name -> cln.GetinfoAddress
-	83,  // 3: cln.GetinfoResponse.binding:type_name -> cln.GetinfoBinding
+	90,  // 0: cln.GetinfoResponse.our_features:type_name -> cln.GetinfoOurFeatures
+	655, // 1: cln.GetinfoResponse.fees_collected_msat:type_name -> cln.Amount
+	91,  // 2: cln.GetinfoResponse.address:type_name -> cln.GetinfoAddress
+	92,  // 3: cln.GetinfoResponse.binding:type_name -> cln.GetinfoBinding
 	0,   // 4: cln.GetinfoAddress.item_type:type_name -> cln.GetinfoAddress.GetinfoAddressType
 	1,   // 5: cln.GetinfoBinding.item_type:type_name -> cln.GetinfoBinding.GetinfoBindingType
 	2,   // 6: cln.ListpeersRequest.level:type_name -> cln.ListpeersRequest.ListpeersLevel
-	86,  // 7: cln.ListpeersResponse.peers:type_name -> cln.ListpeersPeers
-	87,  // 8: cln.ListpeersPeers.log:type_name -> cln.ListpeersPeersLog
+	95,  // 7: cln.ListpeersResponse.peers:type_name -> cln.ListpeersPeers
+	96,  // 8: cln.ListpeersPeers.log:type_name -> cln.ListpeersPeersLog
 	3,   // 9: cln.ListpeersPeersLog.item_type:type_name -> cln.ListpeersPeersLog.ListpeersPeersLogType
-	90,  // 10: cln.ListfundsResponse.outputs:type_name -> cln.ListfundsOutputs
-	91,  // 11: cln.ListfundsResponse.channels:type_name -> cln.ListfundsChannels
-	592, // 12: cln.ListfundsOutputs.amount_msat:type_name -> cln.Amount
+	99,  // 10: cln.ListfundsResponse.outputs:type_name -> cln.ListfundsOutputs
+	100, // 11: cln.ListfundsResponse.channels:type_name -> cln.ListfundsChannels
+	655, // 12: cln.ListfundsOutputs.amount_msat:type_name -> cln.Amount
 	4,   // 13: cln.ListfundsOutputs.status:type_name -> cln.ListfundsOutputs.ListfundsOutputsStatus
-	592, // 14: cln.ListfundsChannels.our_amount_msat:type_name -> cln.Amount
-	592, // 15: cln.ListfundsChannels.amount_msat:type_name -> cln.Amount
-	593, // 16: cln.ListfundsChannels.state:type_name -> cln.ChannelState
-	94,  // 17: cln.SendpayRequest.route:type_name -> cln.SendpayRoute
-	592, // 18: cln.SendpayRequest.amount_msat:type_name -> cln.Amount
+	655, // 14: cln.ListfundsChannels.our_amount_msat:type_name -> cln.Amount
+	655, // 15: cln.ListfundsChannels.amount_msat:type_name -> cln.Amount
+	656, // 16: cln.ListfundsChannels.state:type_name -> cln.ChannelState
+	103, // 17: cln.SendpayRequest.route:type_name -> cln.SendpayRoute
+	655, // 18: cln.SendpayRequest.amount_msat:type_name -> cln.Amount
 	5,   // 19: cln.SendpayResponse.status:type_name -> cln.SendpayResponse.SendpayStatus
-	592, // 20: cln.SendpayResponse.amount_msat:type_name -> cln.Amount
-	592, // 21: cln.SendpayResponse.amount_sent_msat:type_name -> cln.Amount
-	592, // 22: cln.SendpayRoute.amount_msat:type_name -> cln.Amount
-	97,  // 23: cln.ListchannelsResponse.channels:type_name -> cln.ListchannelsChannels
-	592, // 24: cln.ListchannelsChannels.amount_msat:type_name -> cln.Amount
-	592, // 25: cln.ListchannelsChannels.htlc_minimum_msat:type_name -> cln.Amount
-	592, // 26: cln.ListchannelsChannels.htlc_maximum_msat:type_name -> cln.Amount
-	592, // 27: cln.AddpsbtoutputRequest.satoshi:type_name -> cln.Amount
-	594, // 28: cln.AutocleanonceRequest.subsystem:type_name -> cln.AutocleanSubsystem
-	104, // 29: cln.AutocleanonceResponse.autoclean:type_name -> cln.AutocleanonceAutoclean
-	105, // 30: cln.AutocleanonceAutoclean.succeededforwards:type_name -> cln.AutocleanonceAutocleanSucceededforwards
-	106, // 31: cln.AutocleanonceAutoclean.failedforwards:type_name -> cln.AutocleanonceAutocleanFailedforwards
-	107, // 32: cln.AutocleanonceAutoclean.succeededpays:type_name -> cln.AutocleanonceAutocleanSucceededpays
-	108, // 33: cln.AutocleanonceAutoclean.failedpays:type_name -> cln.AutocleanonceAutocleanFailedpays
-	109, // 34: cln.AutocleanonceAutoclean.paidinvoices:type_name -> cln.AutocleanonceAutocleanPaidinvoices
-	110, // 35: cln.AutocleanonceAutoclean.expiredinvoices:type_name -> cln.AutocleanonceAutocleanExpiredinvoices
-	111, // 36: cln.AutocleanonceAutoclean.networkevents:type_name -> cln.AutocleanonceAutocleanNetworkevents
-	594, // 37: cln.AutocleanstatusRequest.subsystem:type_name -> cln.AutocleanSubsystem
-	114, // 38: cln.AutocleanstatusResponse.autoclean:type_name -> cln.AutocleanstatusAutoclean
-	115, // 39: cln.AutocleanstatusAutoclean.succeededforwards:type_name -> cln.AutocleanstatusAutocleanSucceededforwards
-	116, // 40: cln.AutocleanstatusAutoclean.failedforwards:type_name -> cln.AutocleanstatusAutocleanFailedforwards
-	117, // 41: cln.AutocleanstatusAutoclean.succeededpays:type_name -> cln.AutocleanstatusAutocleanSucceededpays
-	118, // 42: cln.AutocleanstatusAutoclean.failedpays:type_name -> cln.AutocleanstatusAutocleanFailedpays
-	119, // 43: cln.AutocleanstatusAutoclean.paidinvoices:type_name -> cln.AutocleanstatusAutocleanPaidinvoices
-	120, // 44: cln.AutocleanstatusAutoclean.expiredinvoices:type_name -> cln.AutocleanstatusAutocleanExpiredinvoices
-	121, // 45: cln.AutocleanstatusAutoclean.networkevents:type_name -> cln.AutocleanstatusAutocleanNetworkevents
-	595, // 46: cln.CloseRequest.wrong_funding:type_name -> cln.Outpoint
-	596, // 47: cln.CloseRequest.feerange:type_name -> cln.Feerate
+	655, // 20: cln.SendpayResponse.amount_msat:type_name -> cln.Amount
+	655, // 21: cln.SendpayResponse.amount_sent_msat:type_name -> cln.Amount
+	655, // 22: cln.SendpayRoute.amount_msat:type_name -> cln.Amount
+	106, // 23: cln.ListchannelsResponse.channels:type_name -> cln.ListchannelsChannels
+	655, // 24: cln.ListchannelsChannels.amount_msat:type_name -> cln.Amount
+	655, // 25: cln.ListchannelsChannels.htlc_minimum_msat:type_name -> cln.Amount
+	655, // 26: cln.ListchannelsChannels.htlc_maximum_msat:type_name -> cln.Amount
+	655, // 27: cln.AddpsbtoutputRequest.satoshi:type_name -> cln.Amount
+	657, // 28: cln.AutocleanonceRequest.subsystem:type_name -> cln.AutocleanSubsystem
+	113, // 29: cln.AutocleanonceResponse.autoclean:type_name -> cln.AutocleanonceAutoclean
+	114, // 30: cln.AutocleanonceAutoclean.succeededforwards:type_name -> cln.AutocleanonceAutocleanSucceededforwards
+	115, // 31: cln.AutocleanonceAutoclean.failedforwards:type_name -> cln.AutocleanonceAutocleanFailedforwards
+	116, // 32: cln.AutocleanonceAutoclean.succeededpays:type_name -> cln.AutocleanonceAutocleanSucceededpays
+	117, // 33: cln.AutocleanonceAutoclean.failedpays:type_name -> cln.AutocleanonceAutocleanFailedpays
+	118, // 34: cln.AutocleanonceAutoclean.paidinvoices:type_name -> cln.AutocleanonceAutocleanPaidinvoices
+	119, // 35: cln.AutocleanonceAutoclean.expiredinvoices:type_name -> cln.AutocleanonceAutocleanExpiredinvoices
+	120, // 36: cln.AutocleanonceAutoclean.networkevents:type_name -> cln.AutocleanonceAutocleanNetworkevents
+	657, // 37: cln.AutocleanstatusRequest.subsystem:type_name -> cln.AutocleanSubsystem
+	123, // 38: cln.AutocleanstatusResponse.autoclean:type_name -> cln.AutocleanstatusAutoclean
+	124, // 39: cln.AutocleanstatusAutoclean.succeededforwards:type_name -> cln.AutocleanstatusAutocleanSucceededforwards
+	125, // 40: cln.AutocleanstatusAutoclean.failedforwards:type_name -> cln.AutocleanstatusAutocleanFailedforwards
+	126, // 41: cln.AutocleanstatusAutoclean.succeededpays:type_name -> cln.AutocleanstatusAutocleanSucceededpays
+	127, // 42: cln.AutocleanstatusAutoclean.failedpays:type_name -> cln.AutocleanstatusAutocleanFailedpays
+	128, // 43: cln.AutocleanstatusAutoclean.paidinvoices:type_name -> cln.AutocleanstatusAutocleanPaidinvoices
+	129, // 44: cln.AutocleanstatusAutoclean.expiredinvoices:type_name -> cln.AutocleanstatusAutocleanExpiredinvoices
+	130, // 45: cln.AutocleanstatusAutoclean.networkevents:type_name -> cln.AutocleanstatusAutocleanNetworkevents
+	658, // 46: cln.CloseRequest.wrong_funding:type_name -> cln.Outpoint
+	659, // 47: cln.CloseRequest.feerange:type_name -> cln.Feerate
 	6,   // 48: cln.CloseResponse.item_type:type_name -> cln.CloseResponse.CloseType
 	7,   // 49: cln.ConnectResponse.direction:type_name -> cln.ConnectResponse.ConnectDirection
-	128, // 50: cln.ConnectResponse.address:type_name -> cln.ConnectAddress
+	137, // 50: cln.ConnectResponse.address:type_name -> cln.ConnectAddress
 	8,   // 51: cln.ConnectAddress.item_type:type_name -> cln.ConnectAddress.ConnectAddressType
-	592, // 52: cln.CreateinvoiceResponse.amount_msat:type_name -> cln.Amount
+	655, // 52: cln.CreateinvoiceResponse.amount_msat:type_name -> cln.Amount
 	9,   // 53: cln.CreateinvoiceResponse.status:type_name -> cln.CreateinvoiceResponse.CreateinvoiceStatus
-	592, // 54: cln.CreateinvoiceResponse.amount_received_msat:type_name -> cln.Amount
-	131, // 55: cln.CreateinvoiceResponse.paid_outpoint:type_name -> cln.CreateinvoicePaidOutpoint
+	655, // 54: cln.CreateinvoiceResponse.amount_received_msat:type_name -> cln.Amount
+	140, // 55: cln.CreateinvoiceResponse.paid_outpoint:type_name -> cln.CreateinvoicePaidOutpoint
 	10,  // 56: cln.DatastoreRequest.mode:type_name -> cln.DatastoreRequest.DatastoreMode
-	136, // 57: cln.DatastoreusageResponse.datastoreusage:type_name -> cln.DatastoreusageDatastoreusage
-	139, // 58: cln.CreateonionRequest.hops:type_name -> cln.CreateonionHops
+	145, // 57: cln.DatastoreusageResponse.datastoreusage:type_name -> cln.DatastoreusageDatastoreusage
+	148, // 58: cln.CreateonionRequest.hops:type_name -> cln.CreateonionHops
 	11,  // 59: cln.DelinvoiceRequest.status:type_name -> cln.DelinvoiceRequest.DelinvoiceStatus
-	592, // 60: cln.DelinvoiceResponse.amount_msat:type_name -> cln.Amount
+	655, // 60: cln.DelinvoiceResponse.amount_msat:type_name -> cln.Amount
 	12,  // 61: cln.DelinvoiceResponse.status:type_name -> cln.DelinvoiceResponse.DelinvoiceStatus
-	592, // 62: cln.DelinvoiceResponse.amount_received_msat:type_name -> cln.Amount
+	655, // 62: cln.DelinvoiceResponse.amount_received_msat:type_name -> cln.Amount
 	13,  // 63: cln.RecoverResponse.result:type_name -> cln.RecoverResponse.RecoverResult
-	597, // 64: cln.InvoiceRequest.amount_msat:type_name -> cln.AmountOrAny
-	592, // 65: cln.InvoicerequestRequest.amount:type_name -> cln.Amount
-	164, // 66: cln.ListinvoicerequestsResponse.invoicerequests:type_name -> cln.ListinvoicerequestsInvoicerequests
-	167, // 67: cln.ListdatastoreResponse.datastore:type_name -> cln.ListdatastoreDatastore
+	660, // 64: cln.InvoiceRequest.amount_msat:type_name -> cln.AmountOrAny
+	655, // 65: cln.InvoicerequestRequest.amount:type_name -> cln.Amount
+	173, // 66: cln.ListinvoicerequestsResponse.invoicerequests:type_name -> cln.ListinvoicerequestsInvoicerequests
+	176, // 67: cln.ListdatastoreResponse.datastore:type_name -> cln.ListdatastoreDatastore
 	14,  // 68: cln.ListinvoicesRequest.index:type_name -> cln.ListinvoicesRequest.ListinvoicesIndex
-	170, // 69: cln.ListinvoicesResponse.invoices:type_name -> cln.ListinvoicesInvoices
+	179, // 69: cln.ListinvoicesResponse.invoices:type_name -> cln.ListinvoicesInvoices
 	15,  // 70: cln.ListinvoicesInvoices.status:type_name -> cln.ListinvoicesInvoices.ListinvoicesInvoicesStatus
-	592, // 71: cln.ListinvoicesInvoices.amount_msat:type_name -> cln.Amount
-	592, // 72: cln.ListinvoicesInvoices.amount_received_msat:type_name -> cln.Amount
-	171, // 73: cln.ListinvoicesInvoices.paid_outpoint:type_name -> cln.ListinvoicesInvoicesPaidOutpoint
-	174, // 74: cln.SendonionRequest.first_hop:type_name -> cln.SendonionFirstHop
-	592, // 75: cln.SendonionRequest.amount_msat:type_name -> cln.Amount
-	592, // 76: cln.SendonionRequest.total_amount_msat:type_name -> cln.Amount
+	655, // 71: cln.ListinvoicesInvoices.amount_msat:type_name -> cln.Amount
+	655, // 72: cln.ListinvoicesInvoices.amount_received_msat:type_name -> cln.Amount
+	180, // 73: cln.ListinvoicesInvoices.paid_outpoint:type_name -> cln.ListinvoicesInvoicesPaidOutpoint
+	183, // 74: cln.SendonionRequest.first_hop:type_name -> cln.SendonionFirstHop
+	655, // 75: cln.SendonionRequest.amount_msat:type_name -> cln.Amount
+	655, // 76: cln.SendonionRequest.total_amount_msat:type_name -> cln.Amount
 	16,  // 77: cln.SendonionResponse.status:type_name -> cln.SendonionResponse.SendonionStatus
-	592, // 78: cln.SendonionResponse.amount_msat:type_name -> cln.Amount
-	592, // 79: cln.SendonionResponse.amount_sent_msat:type_name -> cln.Amount
-	592, // 80: cln.SendonionFirstHop.amount_msat:type_name -> cln.Amount
+	655, // 78: cln.SendonionResponse.amount_msat:type_name -> cln.Amount
+	655, // 79: cln.SendonionResponse.amount_sent_msat:type_name -> cln.Amount
+	655, // 80: cln.SendonionFirstHop.amount_msat:type_name -> cln.Amount
 	17,  // 81: cln.ListsendpaysRequest.status:type_name -> cln.ListsendpaysRequest.ListsendpaysStatus
 	18,  // 82: cln.ListsendpaysRequest.index:type_name -> cln.ListsendpaysRequest.ListsendpaysIndex
-	177, // 83: cln.ListsendpaysResponse.payments:type_name -> cln.ListsendpaysPayments
+	186, // 83: cln.ListsendpaysResponse.payments:type_name -> cln.ListsendpaysPayments
 	19,  // 84: cln.ListsendpaysPayments.status:type_name -> cln.ListsendpaysPayments.ListsendpaysPaymentsStatus
-	592, // 85: cln.ListsendpaysPayments.amount_msat:type_name -> cln.Amount
-	592, // 86: cln.ListsendpaysPayments.amount_sent_msat:type_name -> cln.Amount
-	180, // 87: cln.ListtransactionsResponse.transactions:type_name -> cln.ListtransactionsTransactions
-	181, // 88: cln.ListtransactionsTransactions.inputs:type_name -> cln.ListtransactionsTransactionsInputs
-	182, // 89: cln.ListtransactionsTransactions.outputs:type_name -> cln.ListtransactionsTransactionsOutputs
-	592, // 90: cln.ListtransactionsTransactionsOutputs.amount_msat:type_name -> cln.Amount
-	592, // 91: cln.PayRequest.exemptfee:type_name -> cln.Amount
-	592, // 92: cln.PayRequest.maxfee:type_name -> cln.Amount
-	592, // 93: cln.PayRequest.amount_msat:type_name -> cln.Amount
-	592, // 94: cln.PayRequest.partial_msat:type_name -> cln.Amount
-	592, // 95: cln.PayResponse.amount_msat:type_name -> cln.Amount
-	592, // 96: cln.PayResponse.amount_sent_msat:type_name -> cln.Amount
+	655, // 85: cln.ListsendpaysPayments.amount_msat:type_name -> cln.Amount
+	655, // 86: cln.ListsendpaysPayments.amount_sent_msat:type_name -> cln.Amount
+	189, // 87: cln.ListtransactionsResponse.transactions:type_name -> cln.ListtransactionsTransactions
+	190, // 88: cln.ListtransactionsTransactions.inputs:type_name -> cln.ListtransactionsTransactionsInputs
+	191, // 89: cln.ListtransactionsTransactions.outputs:type_name -> cln.ListtransactionsTransactionsOutputs
+	655, // 90: cln.ListtransactionsTransactionsOutputs.amount_msat:type_name -> cln.Amount
+	655, // 91: cln.PayRequest.exemptfee:type_name -> cln.Amount
+	655, // 92: cln.PayRequest.maxfee:type_name -> cln.Amount
+	655, // 93: cln.PayRequest.amount_msat:type_name -> cln.Amount
+	655, // 94: cln.PayRequest.partial_msat:type_name -> cln.Amount
+	655, // 95: cln.PayResponse.amount_msat:type_name -> cln.Amount
+	655, // 96: cln.PayResponse.amount_sent_msat:type_name -> cln.Amount
 	20,  // 97: cln.PayResponse.status:type_name -> cln.PayResponse.PayStatus
-	189, // 98: cln.ListnodesResponse.nodes:type_name -> cln.ListnodesNodes
-	191, // 99: cln.ListnodesNodes.addresses:type_name -> cln.ListnodesNodesAddresses
-	190, // 100: cln.ListnodesNodes.option_will_fund:type_name -> cln.ListnodesNodesOptionWillFund
-	592, // 101: cln.ListnodesNodesOptionWillFund.lease_fee_base_msat:type_name -> cln.Amount
-	592, // 102: cln.ListnodesNodesOptionWillFund.channel_fee_max_base_msat:type_name -> cln.Amount
+	198, // 98: cln.ListnodesResponse.nodes:type_name -> cln.ListnodesNodes
+	200, // 99: cln.ListnodesNodes.addresses:type_name -> cln.ListnodesNodesAddresses
+	199, // 100: cln.ListnodesNodes.option_will_fund:type_name -> cln.ListnodesNodesOptionWillFund
+	655, // 101: cln.ListnodesNodesOptionWillFund.lease_fee_base_msat:type_name -> cln.Amount
+	655, // 102: cln.ListnodesNodesOptionWillFund.channel_fee_max_base_msat:type_name -> cln.Amount
 	21,  // 103: cln.ListnodesNodesAddresses.item_type:type_name -> cln.ListnodesNodesAddresses.ListnodesNodesAddressesType
 	22,  // 104: cln.WaitanyinvoiceResponse.status:type_name -> cln.WaitanyinvoiceResponse.WaitanyinvoiceStatus
-	592, // 105: cln.WaitanyinvoiceResponse.amount_msat:type_name -> cln.Amount
-	592, // 106: cln.WaitanyinvoiceResponse.amount_received_msat:type_name -> cln.Amount
-	194, // 107: cln.WaitanyinvoiceResponse.paid_outpoint:type_name -> cln.WaitanyinvoicePaidOutpoint
+	655, // 105: cln.WaitanyinvoiceResponse.amount_msat:type_name -> cln.Amount
+	655, // 106: cln.WaitanyinvoiceResponse.amount_received_msat:type_name -> cln.Amount
+	203, // 107: cln.WaitanyinvoiceResponse.paid_outpoint:type_name -> cln.WaitanyinvoicePaidOutpoint
 	23,  // 108: cln.WaitinvoiceResponse.status:type_name -> cln.WaitinvoiceResponse.WaitinvoiceStatus
-	592, // 109: cln.WaitinvoiceResponse.amount_msat:type_name -> cln.Amount
-	592, // 110: cln.WaitinvoiceResponse.amount_received_msat:type_name -> cln.Amount
-	197, // 111: cln.WaitinvoiceResponse.paid_outpoint:type_name -> cln.WaitinvoicePaidOutpoint
+	655, // 109: cln.WaitinvoiceResponse.amount_msat:type_name -> cln.Amount
+	655, // 110: cln.WaitinvoiceResponse.amount_received_msat:type_name -> cln.Amount
+	206, // 111: cln.WaitinvoiceResponse.paid_outpoint:type_name -> cln.WaitinvoicePaidOutpoint
 	24,  // 112: cln.WaitsendpayResponse.status:type_name -> cln.WaitsendpayResponse.WaitsendpayStatus
-	592, // 113: cln.WaitsendpayResponse.amount_msat:type_name -> cln.Amount
-	592, // 114: cln.WaitsendpayResponse.amount_sent_msat:type_name -> cln.Amount
+	655, // 113: cln.WaitsendpayResponse.amount_msat:type_name -> cln.Amount
+	655, // 114: cln.WaitsendpayResponse.amount_sent_msat:type_name -> cln.Amount
 	25,  // 115: cln.NewaddrRequest.addresstype:type_name -> cln.NewaddrRequest.NewaddrAddresstype
-	598, // 116: cln.WithdrawRequest.satoshi:type_name -> cln.AmountOrAll
-	595, // 117: cln.WithdrawRequest.utxos:type_name -> cln.Outpoint
-	596, // 118: cln.WithdrawRequest.feerate:type_name -> cln.Feerate
-	592, // 119: cln.KeysendRequest.exemptfee:type_name -> cln.Amount
-	599, // 120: cln.KeysendRequest.routehints:type_name -> cln.RoutehintList
-	600, // 121: cln.KeysendRequest.extratlvs:type_name -> cln.TlvStream
-	592, // 122: cln.KeysendRequest.amount_msat:type_name -> cln.Amount
-	592, // 123: cln.KeysendRequest.maxfee:type_name -> cln.Amount
-	592, // 124: cln.KeysendResponse.amount_msat:type_name -> cln.Amount
-	592, // 125: cln.KeysendResponse.amount_sent_msat:type_name -> cln.Amount
+	661, // 116: cln.WithdrawRequest.satoshi:type_name -> cln.AmountOrAll
+	658, // 117: cln.WithdrawRequest.utxos:type_name -> cln.Outpoint
+	659, // 118: cln.WithdrawRequest.feerate:type_name -> cln.Feerate
+	655, // 119: cln.KeysendRequest.exemptfee:type_name -> cln.Amount
+	662, // 120: cln.KeysendRequest.routehints:type_name -> cln.RoutehintList
+	663, // 121: cln.KeysendRequest.extratlvs:type_name -> cln.TlvStream
+	655, // 122: cln.KeysendRequest.amount_msat:type_name -> cln.Amount
+	655, // 123: cln.KeysendRequest.maxfee:type_name -> cln.Amount
+	655, // 124: cln.KeysendResponse.amount_msat:type_name -> cln.Amount
+	655, // 125: cln.KeysendResponse.amount_sent_msat:type_name -> cln.Amount
 	26,  // 126: cln.KeysendResponse.status:type_name -> cln.KeysendResponse.KeysendStatus
-	598, // 127: cln.FundpsbtRequest.satoshi:type_name -> cln.AmountOrAll
-	596, // 128: cln.FundpsbtRequest.feerate:type_name -> cln.Feerate
-	592, // 129: cln.FundpsbtResponse.excess_msat:type_name -> cln.Amount
-	208, // 130: cln.FundpsbtResponse.reservations:type_name -> cln.FundpsbtReservations
-	598, // 131: cln.UtxopsbtRequest.satoshi:type_name -> cln.AmountOrAll
-	596, // 132: cln.UtxopsbtRequest.feerate:type_name -> cln.Feerate
-	595, // 133: cln.UtxopsbtRequest.utxos:type_name -> cln.Outpoint
-	592, // 134: cln.UtxopsbtResponse.excess_msat:type_name -> cln.Amount
-	215, // 135: cln.UtxopsbtResponse.reservations:type_name -> cln.UtxopsbtReservations
-	596, // 136: cln.TxprepareRequest.feerate:type_name -> cln.Feerate
-	595, // 137: cln.TxprepareRequest.utxos:type_name -> cln.Outpoint
-	601, // 138: cln.TxprepareRequest.outputs:type_name -> cln.OutputDesc
-	224, // 139: cln.ListpeerchannelsResponse.channels:type_name -> cln.ListpeerchannelsChannels
-	593, // 140: cln.ListpeerchannelsChannels.state:type_name -> cln.ChannelState
-	228, // 141: cln.ListpeerchannelsChannels.feerate:type_name -> cln.ListpeerchannelsChannelsFeerate
-	229, // 142: cln.ListpeerchannelsChannels.inflight:type_name -> cln.ListpeerchannelsChannelsInflight
-	602, // 143: cln.ListpeerchannelsChannels.opener:type_name -> cln.ChannelSide
-	602, // 144: cln.ListpeerchannelsChannels.closer:type_name -> cln.ChannelSide
-	230, // 145: cln.ListpeerchannelsChannels.funding:type_name -> cln.ListpeerchannelsChannelsFunding
-	592, // 146: cln.ListpeerchannelsChannels.to_us_msat:type_name -> cln.Amount
-	592, // 147: cln.ListpeerchannelsChannels.min_to_us_msat:type_name -> cln.Amount
-	592, // 148: cln.ListpeerchannelsChannels.max_to_us_msat:type_name -> cln.Amount
-	592, // 149: cln.ListpeerchannelsChannels.total_msat:type_name -> cln.Amount
-	592, // 150: cln.ListpeerchannelsChannels.fee_base_msat:type_name -> cln.Amount
-	592, // 151: cln.ListpeerchannelsChannels.dust_limit_msat:type_name -> cln.Amount
-	592, // 152: cln.ListpeerchannelsChannels.max_total_htlc_in_msat:type_name -> cln.Amount
-	592, // 153: cln.ListpeerchannelsChannels.their_reserve_msat:type_name -> cln.Amount
-	592, // 154: cln.ListpeerchannelsChannels.our_reserve_msat:type_name -> cln.Amount
-	592, // 155: cln.ListpeerchannelsChannels.spendable_msat:type_name -> cln.Amount
-	592, // 156: cln.ListpeerchannelsChannels.receivable_msat:type_name -> cln.Amount
-	592, // 157: cln.ListpeerchannelsChannels.minimum_htlc_in_msat:type_name -> cln.Amount
-	592, // 158: cln.ListpeerchannelsChannels.minimum_htlc_out_msat:type_name -> cln.Amount
-	592, // 159: cln.ListpeerchannelsChannels.maximum_htlc_out_msat:type_name -> cln.Amount
-	231, // 160: cln.ListpeerchannelsChannels.alias:type_name -> cln.ListpeerchannelsChannelsAlias
-	592, // 161: cln.ListpeerchannelsChannels.in_offered_msat:type_name -> cln.Amount
-	592, // 162: cln.ListpeerchannelsChannels.in_fulfilled_msat:type_name -> cln.Amount
-	592, // 163: cln.ListpeerchannelsChannels.out_offered_msat:type_name -> cln.Amount
-	592, // 164: cln.ListpeerchannelsChannels.out_fulfilled_msat:type_name -> cln.Amount
-	232, // 165: cln.ListpeerchannelsChannels.htlcs:type_name -> cln.ListpeerchannelsChannelsHtlcs
-	225, // 166: cln.ListpeerchannelsChannels.updates:type_name -> cln.ListpeerchannelsChannelsUpdates
-	592, // 167: cln.ListpeerchannelsChannels.last_tx_fee_msat:type_name -> cln.Amount
-	592, // 168: cln.ListpeerchannelsChannels.their_max_htlc_value_in_flight_msat:type_name -> cln.Amount
-	592, // 169: cln.ListpeerchannelsChannels.our_max_htlc_value_in_flight_msat:type_name -> cln.Amount
-	226, // 170: cln.ListpeerchannelsChannelsUpdates.local:type_name -> cln.ListpeerchannelsChannelsUpdatesLocal
-	227, // 171: cln.ListpeerchannelsChannelsUpdates.remote:type_name -> cln.ListpeerchannelsChannelsUpdatesRemote
-	592, // 172: cln.ListpeerchannelsChannelsUpdatesLocal.htlc_minimum_msat:type_name -> cln.Amount
-	592, // 173: cln.ListpeerchannelsChannelsUpdatesLocal.htlc_maximum_msat:type_name -> cln.Amount
-	592, // 174: cln.ListpeerchannelsChannelsUpdatesLocal.fee_base_msat:type_name -> cln.Amount
-	592, // 175: cln.ListpeerchannelsChannelsUpdatesRemote.htlc_minimum_msat:type_name -> cln.Amount
-	592, // 176: cln.ListpeerchannelsChannelsUpdatesRemote.htlc_maximum_msat:type_name -> cln.Amount
-	592, // 177: cln.ListpeerchannelsChannelsUpdatesRemote.fee_base_msat:type_name -> cln.Amount
-	592, // 178: cln.ListpeerchannelsChannelsInflight.total_funding_msat:type_name -> cln.Amount
-	592, // 179: cln.ListpeerchannelsChannelsInflight.our_funding_msat:type_name -> cln.Amount
-	592, // 180: cln.ListpeerchannelsChannelsFunding.pushed_msat:type_name -> cln.Amount
-	592, // 181: cln.ListpeerchannelsChannelsFunding.local_funds_msat:type_name -> cln.Amount
-	592, // 182: cln.ListpeerchannelsChannelsFunding.remote_funds_msat:type_name -> cln.Amount
-	592, // 183: cln.ListpeerchannelsChannelsFunding.fee_paid_msat:type_name -> cln.Amount
-	592, // 184: cln.ListpeerchannelsChannelsFunding.fee_rcvd_msat:type_name -> cln.Amount
+	661, // 127: cln.FundpsbtRequest.satoshi:type_name -> cln.AmountOrAll
+	659, // 128: cln.FundpsbtRequest.feerate:type_name -> cln.Feerate
+	655, // 129: cln.FundpsbtResponse.excess_msat:type_name -> cln.Amount
+	217, // 130: cln.FundpsbtResponse.reservations:type_name -> cln.FundpsbtReservations
+	661, // 131: cln.UtxopsbtRequest.satoshi:type_name -> cln.AmountOrAll
+	659, // 132: cln.UtxopsbtRequest.feerate:type_name -> cln.Feerate
+	658, // 133: cln.UtxopsbtRequest.utxos:type_name -> cln.Outpoint
+	655, // 134: cln.UtxopsbtResponse.excess_msat:type_name -> cln.Amount
+	224, // 135: cln.UtxopsbtResponse.reservations:type_name -> cln.UtxopsbtReservations
+	659, // 136: cln.TxprepareRequest.feerate:type_name -> cln.Feerate
+	658, // 137: cln.TxprepareRequest.utxos:type_name -> cln.Outpoint
+	664, // 138: cln.TxprepareRequest.outputs:type_name -> cln.OutputDesc
+	233, // 139: cln.ListpeerchannelsResponse.channels:type_name -> cln.ListpeerchannelsChannels
+	656, // 140: cln.ListpeerchannelsChannels.state:type_name -> cln.ChannelState
+	237, // 141: cln.ListpeerchannelsChannels.feerate:type_name -> cln.ListpeerchannelsChannelsFeerate
+	238, // 142: cln.ListpeerchannelsChannels.inflight:type_name -> cln.ListpeerchannelsChannelsInflight
+	665, // 143: cln.ListpeerchannelsChannels.opener:type_name -> cln.ChannelSide
+	665, // 144: cln.ListpeerchannelsChannels.closer:type_name -> cln.ChannelSide
+	239, // 145: cln.ListpeerchannelsChannels.funding:type_name -> cln.ListpeerchannelsChannelsFunding
+	655, // 146: cln.ListpeerchannelsChannels.to_us_msat:type_name -> cln.Amount
+	655, // 147: cln.ListpeerchannelsChannels.min_to_us_msat:type_name -> cln.Amount
+	655, // 148: cln.ListpeerchannelsChannels.max_to_us_msat:type_name -> cln.Amount
+	655, // 149: cln.ListpeerchannelsChannels.total_msat:type_name -> cln.Amount
+	655, // 150: cln.ListpeerchannelsChannels.fee_base_msat:type_name -> cln.Amount
+	655, // 151: cln.ListpeerchannelsChannels.dust_limit_msat:type_name -> cln.Amount
+	655, // 152: cln.ListpeerchannelsChannels.max_total_htlc_in_msat:type_name -> cln.Amount
+	655, // 153: cln.ListpeerchannelsChannels.their_reserve_msat:type_name -> cln.Amount
+	655, // 154: cln.ListpeerchannelsChannels.our_reserve_msat:type_name -> cln.Amount
+	655, // 155: cln.ListpeerchannelsChannels.spendable_msat:type_name -> cln.Amount
+	655, // 156: cln.ListpeerchannelsChannels.receivable_msat:type_name -> cln.Amount
+	655, // 157: cln.ListpeerchannelsChannels.minimum_htlc_in_msat:type_name -> cln.Amount
+	655, // 158: cln.ListpeerchannelsChannels.minimum_htlc_out_msat:type_name -> cln.Amount
+	655, // 159: cln.ListpeerchannelsChannels.maximum_htlc_out_msat:type_name -> cln.Amount
+	240, // 160: cln.ListpeerchannelsChannels.alias:type_name -> cln.ListpeerchannelsChannelsAlias
+	655, // 161: cln.ListpeerchannelsChannels.in_offered_msat:type_name -> cln.Amount
+	655, // 162: cln.ListpeerchannelsChannels.in_fulfilled_msat:type_name -> cln.Amount
+	655, // 163: cln.ListpeerchannelsChannels.out_offered_msat:type_name -> cln.Amount
+	655, // 164: cln.ListpeerchannelsChannels.out_fulfilled_msat:type_name -> cln.Amount
+	241, // 165: cln.ListpeerchannelsChannels.htlcs:type_name -> cln.ListpeerchannelsChannelsHtlcs
+	234, // 166: cln.ListpeerchannelsChannels.updates:type_name -> cln.ListpeerchannelsChannelsUpdates
+	655, // 167: cln.ListpeerchannelsChannels.last_tx_fee_msat:type_name -> cln.Amount
+	655, // 168: cln.ListpeerchannelsChannels.their_max_htlc_value_in_flight_msat:type_name -> cln.Amount
+	655, // 169: cln.ListpeerchannelsChannels.our_max_htlc_value_in_flight_msat:type_name -> cln.Amount
+	235, // 170: cln.ListpeerchannelsChannelsUpdates.local:type_name -> cln.ListpeerchannelsChannelsUpdatesLocal
+	236, // 171: cln.ListpeerchannelsChannelsUpdates.remote:type_name -> cln.ListpeerchannelsChannelsUpdatesRemote
+	655, // 172: cln.ListpeerchannelsChannelsUpdatesLocal.htlc_minimum_msat:type_name -> cln.Amount
+	655, // 173: cln.ListpeerchannelsChannelsUpdatesLocal.htlc_maximum_msat:type_name -> cln.Amount
+	655, // 174: cln.ListpeerchannelsChannelsUpdatesLocal.fee_base_msat:type_name -> cln.Amount
+	655, // 175: cln.ListpeerchannelsChannelsUpdatesRemote.htlc_minimum_msat:type_name -> cln.Amount
+	655, // 176: cln.ListpeerchannelsChannelsUpdatesRemote.htlc_maximum_msat:type_name -> cln.Amount
+	655, // 177: cln.ListpeerchannelsChannelsUpdatesRemote.fee_base_msat:type_name -> cln.Amount
+	655, // 178: cln.ListpeerchannelsChannelsInflight.total_funding_msat:type_name -> cln.Amount
+	655, // 179: cln.ListpeerchannelsChannelsInflight.our_funding_msat:type_name -> cln.Amount
+	655, // 180: cln.ListpeerchannelsChannelsFunding.pushed_msat:type_name -> cln.Amount
+	655, // 181: cln.ListpeerchannelsChannelsFunding.local_funds_msat:type_name -> cln.Amount
+	655, // 182: cln.ListpeerchannelsChannelsFunding.remote_funds_msat:type_name -> cln.Amount
+	655, // 183: cln.ListpeerchannelsChannelsFunding.fee_paid_msat:type_name -> cln.Amount
+	655, // 184: cln.ListpeerchannelsChannelsFunding.fee_rcvd_msat:type_name -> cln.Amount
 	27,  // 185: cln.ListpeerchannelsChannelsHtlcs.direction:type_name -> cln.ListpeerchannelsChannelsHtlcs.ListpeerchannelsChannelsHtlcsDirection
-	592, // 186: cln.ListpeerchannelsChannelsHtlcs.amount_msat:type_name -> cln.Amount
-	603, // 187: cln.ListpeerchannelsChannelsHtlcs.state:type_name -> cln.HtlcState
-	235, // 188: cln.ListclosedchannelsResponse.closedchannels:type_name -> cln.ListclosedchannelsClosedchannels
-	236, // 189: cln.ListclosedchannelsClosedchannels.alias:type_name -> cln.ListclosedchannelsClosedchannelsAlias
-	602, // 190: cln.ListclosedchannelsClosedchannels.opener:type_name -> cln.ChannelSide
-	602, // 191: cln.ListclosedchannelsClosedchannels.closer:type_name -> cln.ChannelSide
-	592, // 192: cln.ListclosedchannelsClosedchannels.funding_fee_paid_msat:type_name -> cln.Amount
-	592, // 193: cln.ListclosedchannelsClosedchannels.funding_fee_rcvd_msat:type_name -> cln.Amount
-	592, // 194: cln.ListclosedchannelsClosedchannels.funding_pushed_msat:type_name -> cln.Amount
-	592, // 195: cln.ListclosedchannelsClosedchannels.total_msat:type_name -> cln.Amount
-	592, // 196: cln.ListclosedchannelsClosedchannels.final_to_us_msat:type_name -> cln.Amount
-	592, // 197: cln.ListclosedchannelsClosedchannels.min_to_us_msat:type_name -> cln.Amount
-	592, // 198: cln.ListclosedchannelsClosedchannels.max_to_us_msat:type_name -> cln.Amount
-	592, // 199: cln.ListclosedchannelsClosedchannels.last_commitment_fee_msat:type_name -> cln.Amount
+	655, // 186: cln.ListpeerchannelsChannelsHtlcs.amount_msat:type_name -> cln.Amount
+	666, // 187: cln.ListpeerchannelsChannelsHtlcs.state:type_name -> cln.HtlcState
+	244, // 188: cln.ListclosedchannelsResponse.closedchannels:type_name -> cln.ListclosedchannelsClosedchannels
+	245, // 189: cln.ListclosedchannelsClosedchannels.alias:type_name -> cln.ListclosedchannelsClosedchannelsAlias
+	665, // 190: cln.ListclosedchannelsClosedchannels.opener:type_name -> cln.ChannelSide
+	665, // 191: cln.ListclosedchannelsClosedchannels.closer:type_name -> cln.ChannelSide
+	655, // 192: cln.ListclosedchannelsClosedchannels.funding_fee_paid_msat:type_name -> cln.Amount
+	655, // 193: cln.ListclosedchannelsClosedchannels.funding_fee_rcvd_msat:type_name -> cln.Amount
+	655, // 194: cln.ListclosedchannelsClosedchannels.funding_pushed_msat:type_name -> cln.Amount
+	655, // 195: cln.ListclosedchannelsClosedchannels.total_msat:type_name -> cln.Amount
+	655, // 196: cln.ListclosedchannelsClosedchannels.final_to_us_msat:type_name -> cln.Amount
+	655, // 197: cln.ListclosedchannelsClosedchannels.min_to_us_msat:type_name -> cln.Amount
+	655, // 198: cln.ListclosedchannelsClosedchannels.max_to_us_msat:type_name -> cln.Amount
+	655, // 199: cln.ListclosedchannelsClosedchannels.last_commitment_fee_msat:type_name -> cln.Amount
 	28,  // 200: cln.ListclosedchannelsClosedchannels.close_cause:type_name -> cln.ListclosedchannelsClosedchannels.ListclosedchannelsClosedchannelsCloseCause
 	29,  // 201: cln.DecodeResponse.item_type:type_name -> cln.DecodeResponse.DecodeType
-	592, // 202: cln.DecodeResponse.offer_amount_msat:type_name -> cln.Amount
-	239, // 203: cln.DecodeResponse.offer_paths:type_name -> cln.DecodeOfferPaths
-	592, // 204: cln.DecodeResponse.invreq_amount_msat:type_name -> cln.Amount
-	592, // 205: cln.DecodeResponse.invoice_amount_msat:type_name -> cln.Amount
-	245, // 206: cln.DecodeResponse.invoice_fallbacks:type_name -> cln.DecodeInvoiceFallbacks
-	246, // 207: cln.DecodeResponse.fallbacks:type_name -> cln.DecodeFallbacks
-	247, // 208: cln.DecodeResponse.extra:type_name -> cln.DecodeExtra
-	248, // 209: cln.DecodeResponse.restrictions:type_name -> cln.DecodeRestrictions
-	592, // 210: cln.DecodeResponse.amount_msat:type_name -> cln.Amount
-	604, // 211: cln.DecodeResponse.routes:type_name -> cln.DecodeRoutehintList
-	241, // 212: cln.DecodeResponse.invreq_paths:type_name -> cln.DecodeInvreqPaths
-	243, // 213: cln.DecodeResponse.invreq_bip_353_name:type_name -> cln.DecodeInvreqBip353Name
-	242, // 214: cln.DecodeInvreqPaths.path:type_name -> cln.DecodeInvreqPathsPath
+	655, // 202: cln.DecodeResponse.offer_amount_msat:type_name -> cln.Amount
+	248, // 203: cln.DecodeResponse.offer_paths:type_name -> cln.DecodeOfferPaths
+	655, // 204: cln.DecodeResponse.invreq_amount_msat:type_name -> cln.Amount
+	655, // 205: cln.DecodeResponse.invoice_amount_msat:type_name -> cln.Amount
+	254, // 206: cln.DecodeResponse.invoice_fallbacks:type_name -> cln.DecodeInvoiceFallbacks
+	255, // 207: cln.DecodeResponse.fallbacks:type_name -> cln.DecodeFallbacks
+	256, // 208: cln.DecodeResponse.extra:type_name -> cln.DecodeExtra
+	257, // 209: cln.DecodeResponse.restrictions:type_name -> cln.DecodeRestrictions
+	655, // 210: cln.DecodeResponse.amount_msat:type_name -> cln.Amount
+	667, // 211: cln.DecodeResponse.routes:type_name -> cln.DecodeRoutehintList
+	250, // 212: cln.DecodeResponse.invreq_paths:type_name -> cln.DecodeInvreqPaths
+	252, // 213: cln.DecodeResponse.invreq_bip_353_name:type_name -> cln.DecodeInvreqBip353Name
+	251, // 214: cln.DecodeInvreqPaths.path:type_name -> cln.DecodeInvreqPathsPath
 	30,  // 215: cln.DecodeFallbacks.item_type:type_name -> cln.DecodeFallbacks.DecodeFallbacksType
 	31,  // 216: cln.DelpayRequest.status:type_name -> cln.DelpayRequest.DelpayStatus
-	251, // 217: cln.DelpayResponse.payments:type_name -> cln.DelpayPayments
+	260, // 217: cln.DelpayResponse.payments:type_name -> cln.DelpayPayments
 	32,  // 218: cln.DelpayPayments.status:type_name -> cln.DelpayPayments.DelpayPaymentsStatus
-	592, // 219: cln.DelpayPayments.amount_sent_msat:type_name -> cln.Amount
-	592, // 220: cln.DelpayPayments.amount_msat:type_name -> cln.Amount
+	655, // 219: cln.DelpayPayments.amount_sent_msat:type_name -> cln.Amount
+	655, // 220: cln.DelpayPayments.amount_msat:type_name -> cln.Amount
 	33,  // 221: cln.DelforwardRequest.status:type_name -> cln.DelforwardRequest.DelforwardStatus
 	34,  // 222: cln.FeeratesRequest.style:type_name -> cln.FeeratesRequest.FeeratesStyle
-	262, // 223: cln.FeeratesResponse.perkb:type_name -> cln.FeeratesPerkb
-	264, // 224: cln.FeeratesResponse.perkw:type_name -> cln.FeeratesPerkw
-	266, // 225: cln.FeeratesResponse.onchain_fee_estimates:type_name -> cln.FeeratesOnchainFeeEstimates
-	263, // 226: cln.FeeratesPerkb.estimates:type_name -> cln.FeeratesPerkbEstimates
-	265, // 227: cln.FeeratesPerkw.estimates:type_name -> cln.FeeratesPerkwEstimates
-	269, // 228: cln.Fetchbip353Response.instructions:type_name -> cln.Fetchbip353Instructions
-	592, // 229: cln.FetchinvoiceRequest.amount_msat:type_name -> cln.Amount
-	272, // 230: cln.FetchinvoiceResponse.changes:type_name -> cln.FetchinvoiceChanges
-	273, // 231: cln.FetchinvoiceResponse.next_period:type_name -> cln.FetchinvoiceNextPeriod
-	592, // 232: cln.FetchinvoiceChanges.amount_msat:type_name -> cln.Amount
-	598, // 233: cln.FundchannelRequest.amount:type_name -> cln.AmountOrAll
-	596, // 234: cln.FundchannelRequest.feerate:type_name -> cln.Feerate
-	592, // 235: cln.FundchannelRequest.push_msat:type_name -> cln.Amount
-	592, // 236: cln.FundchannelRequest.request_amt:type_name -> cln.Amount
-	595, // 237: cln.FundchannelRequest.utxos:type_name -> cln.Outpoint
-	592, // 238: cln.FundchannelRequest.reserve:type_name -> cln.Amount
-	282, // 239: cln.FundchannelResponse.channel_type:type_name -> cln.FundchannelChannelType
-	605, // 240: cln.FundchannelChannelType.names:type_name -> cln.ChannelTypeName
-	592, // 241: cln.FundchannelStartRequest.amount:type_name -> cln.Amount
-	596, // 242: cln.FundchannelStartRequest.feerate:type_name -> cln.Feerate
-	592, // 243: cln.FundchannelStartRequest.push_msat:type_name -> cln.Amount
-	592, // 244: cln.FundchannelStartRequest.reserve:type_name -> cln.Amount
-	285, // 245: cln.FundchannelStartResponse.channel_type:type_name -> cln.FundchannelStartChannelType
-	605, // 246: cln.FundchannelStartChannelType.names:type_name -> cln.ChannelTypeName
+	271, // 223: cln.FeeratesResponse.perkb:type_name -> cln.FeeratesPerkb
+	273, // 224: cln.FeeratesResponse.perkw:type_name -> cln.FeeratesPerkw
+	275, // 225: cln.FeeratesResponse.onchain_fee_estimates:type_name -> cln.FeeratesOnchainFeeEstimates
+	272, // 226: cln.FeeratesPerkb.estimates:type_name -> cln.FeeratesPerkbEstimates
+	274, // 227: cln.FeeratesPerkw.estimates:type_name -> cln.FeeratesPerkwEstimates
+	278, // 228: cln.Fetchbip353Response.instructions:type_name -> cln.Fetchbip353Instructions
+	655, // 229: cln.FetchinvoiceRequest.amount_msat:type_name -> cln.Amount
+	281, // 230: cln.FetchinvoiceResponse.changes:type_name -> cln.FetchinvoiceChanges
+	282, // 231: cln.FetchinvoiceResponse.next_period:type_name -> cln.FetchinvoiceNextPeriod
+	655, // 232: cln.FetchinvoiceChanges.amount_msat:type_name -> cln.Amount
+	661, // 233: cln.FundchannelRequest.amount:type_name -> cln.AmountOrAll
+	659, // 234: cln.FundchannelRequest.feerate:type_name -> cln.Feerate
+	655, // 235: cln.FundchannelRequest.push_msat:type_name -> cln.Amount
+	655, // 236: cln.FundchannelRequest.request_amt:type_name -> cln.Amount
+	658, // 237: cln.FundchannelRequest.utxos:type_name -> cln.Outpoint
+	655, // 238: cln.FundchannelRequest.reserve:type_name -> cln.Amount
+	291, // 239: cln.FundchannelResponse.channel_type:type_name -> cln.FundchannelChannelType
+	668, // 240: cln.FundchannelChannelType.names:type_name -> cln.ChannelTypeName
+	655, // 241: cln.FundchannelStartRequest.amount:type_name -> cln.Amount
+	659, // 242: cln.FundchannelStartRequest.feerate:type_name -> cln.Feerate
+	655, // 243: cln.FundchannelStartRequest.push_msat:type_name -> cln.Amount
+	655, // 244: cln.FundchannelStartRequest.reserve:type_name -> cln.Amount
+	294, // 245: cln.FundchannelStartResponse.channel_type:type_name -> cln.FundchannelStartChannelType
+	668, // 246: cln.FundchannelStartChannelType.names:type_name -> cln.ChannelTypeName
 	35,  // 247: cln.GetlogRequest.level:type_name -> cln.GetlogRequest.GetlogLevel
-	288, // 248: cln.GetlogResponse.log:type_name -> cln.GetlogLog
+	297, // 248: cln.GetlogResponse.log:type_name -> cln.GetlogLog
 	36,  // 249: cln.GetlogLog.item_type:type_name -> cln.GetlogLog.GetlogLogType
 	37,  // 250: cln.FunderupdateRequest.policy:type_name -> cln.FunderupdateRequest.FunderupdatePolicy
-	592, // 251: cln.FunderupdateRequest.policy_mod:type_name -> cln.Amount
-	592, // 252: cln.FunderupdateRequest.min_their_funding_msat:type_name -> cln.Amount
-	592, // 253: cln.FunderupdateRequest.max_their_funding_msat:type_name -> cln.Amount
-	592, // 254: cln.FunderupdateRequest.per_channel_min_msat:type_name -> cln.Amount
-	592, // 255: cln.FunderupdateRequest.per_channel_max_msat:type_name -> cln.Amount
-	592, // 256: cln.FunderupdateRequest.reserve_tank_msat:type_name -> cln.Amount
-	592, // 257: cln.FunderupdateRequest.lease_fee_base_msat:type_name -> cln.Amount
-	592, // 258: cln.FunderupdateRequest.channel_fee_max_base_msat:type_name -> cln.Amount
+	655, // 251: cln.FunderupdateRequest.policy_mod:type_name -> cln.Amount
+	655, // 252: cln.FunderupdateRequest.min_their_funding_msat:type_name -> cln.Amount
+	655, // 253: cln.FunderupdateRequest.max_their_funding_msat:type_name -> cln.Amount
+	655, // 254: cln.FunderupdateRequest.per_channel_min_msat:type_name -> cln.Amount
+	655, // 255: cln.FunderupdateRequest.per_channel_max_msat:type_name -> cln.Amount
+	655, // 256: cln.FunderupdateRequest.reserve_tank_msat:type_name -> cln.Amount
+	655, // 257: cln.FunderupdateRequest.lease_fee_base_msat:type_name -> cln.Amount
+	655, // 258: cln.FunderupdateRequest.channel_fee_max_base_msat:type_name -> cln.Amount
 	38,  // 259: cln.FunderupdateResponse.policy:type_name -> cln.FunderupdateResponse.FunderupdatePolicy
-	592, // 260: cln.FunderupdateResponse.min_their_funding_msat:type_name -> cln.Amount
-	592, // 261: cln.FunderupdateResponse.max_their_funding_msat:type_name -> cln.Amount
-	592, // 262: cln.FunderupdateResponse.per_channel_min_msat:type_name -> cln.Amount
-	592, // 263: cln.FunderupdateResponse.per_channel_max_msat:type_name -> cln.Amount
-	592, // 264: cln.FunderupdateResponse.reserve_tank_msat:type_name -> cln.Amount
-	592, // 265: cln.FunderupdateResponse.lease_fee_base_msat:type_name -> cln.Amount
-	592, // 266: cln.FunderupdateResponse.channel_fee_max_base_msat:type_name -> cln.Amount
-	592, // 267: cln.GetrouteRequest.amount_msat:type_name -> cln.Amount
-	293, // 268: cln.GetrouteResponse.route:type_name -> cln.GetrouteRoute
-	592, // 269: cln.GetrouteRoute.amount_msat:type_name -> cln.Amount
+	655, // 260: cln.FunderupdateResponse.min_their_funding_msat:type_name -> cln.Amount
+	655, // 261: cln.FunderupdateResponse.max_their_funding_msat:type_name -> cln.Amount
+	655, // 262: cln.FunderupdateResponse.per_channel_min_msat:type_name -> cln.Amount
+	655, // 263: cln.FunderupdateResponse.per_channel_max_msat:type_name -> cln.Amount
+	655, // 264: cln.FunderupdateResponse.reserve_tank_msat:type_name -> cln.Amount
+	655, // 265: cln.FunderupdateResponse.lease_fee_base_msat:type_name -> cln.Amount
+	655, // 266: cln.FunderupdateResponse.channel_fee_max_base_msat:type_name -> cln.Amount
+	655, // 267: cln.GetrouteRequest.amount_msat:type_name -> cln.Amount
+	302, // 268: cln.GetrouteResponse.route:type_name -> cln.GetrouteRoute
+	655, // 269: cln.GetrouteRoute.amount_msat:type_name -> cln.Amount
 	39,  // 270: cln.GetrouteRoute.style:type_name -> cln.GetrouteRoute.GetrouteRouteStyle
-	296, // 271: cln.ListaddressesResponse.addresses:type_name -> cln.ListaddressesAddresses
+	305, // 271: cln.ListaddressesResponse.addresses:type_name -> cln.ListaddressesAddresses
 	40,  // 272: cln.ListforwardsRequest.status:type_name -> cln.ListforwardsRequest.ListforwardsStatus
 	41,  // 273: cln.ListforwardsRequest.index:type_name -> cln.ListforwardsRequest.ListforwardsIndex
-	299, // 274: cln.ListforwardsResponse.forwards:type_name -> cln.ListforwardsForwards
-	592, // 275: cln.ListforwardsForwards.in_msat:type_name -> cln.Amount
+	308, // 274: cln.ListforwardsResponse.forwards:type_name -> cln.ListforwardsForwards
+	655, // 275: cln.ListforwardsForwards.in_msat:type_name -> cln.Amount
 	42,  // 276: cln.ListforwardsForwards.status:type_name -> cln.ListforwardsForwards.ListforwardsForwardsStatus
-	592, // 277: cln.ListforwardsForwards.fee_msat:type_name -> cln.Amount
-	592, // 278: cln.ListforwardsForwards.out_msat:type_name -> cln.Amount
+	655, // 277: cln.ListforwardsForwards.fee_msat:type_name -> cln.Amount
+	655, // 278: cln.ListforwardsForwards.out_msat:type_name -> cln.Amount
 	43,  // 279: cln.ListforwardsForwards.style:type_name -> cln.ListforwardsForwards.ListforwardsForwardsStyle
-	302, // 280: cln.ListoffersResponse.offers:type_name -> cln.ListoffersOffers
+	311, // 280: cln.ListoffersResponse.offers:type_name -> cln.ListoffersOffers
 	44,  // 281: cln.ListpaysRequest.status:type_name -> cln.ListpaysRequest.ListpaysStatus
 	45,  // 282: cln.ListpaysRequest.index:type_name -> cln.ListpaysRequest.ListpaysIndex
-	305, // 283: cln.ListpaysResponse.pays:type_name -> cln.ListpaysPays
+	314, // 283: cln.ListpaysResponse.pays:type_name -> cln.ListpaysPays
 	46,  // 284: cln.ListpaysPays.status:type_name -> cln.ListpaysPays.ListpaysPaysStatus
-	592, // 285: cln.ListpaysPays.amount_msat:type_name -> cln.Amount
-	592, // 286: cln.ListpaysPays.amount_sent_msat:type_name -> cln.Amount
+	655, // 285: cln.ListpaysPays.amount_msat:type_name -> cln.Amount
+	655, // 286: cln.ListpaysPays.amount_sent_msat:type_name -> cln.Amount
 	47,  // 287: cln.ListhtlcsRequest.index:type_name -> cln.ListhtlcsRequest.ListhtlcsIndex
-	308, // 288: cln.ListhtlcsResponse.htlcs:type_name -> cln.ListhtlcsHtlcs
-	592, // 289: cln.ListhtlcsHtlcs.amount_msat:type_name -> cln.Amount
+	317, // 288: cln.ListhtlcsResponse.htlcs:type_name -> cln.ListhtlcsHtlcs
+	655, // 289: cln.ListhtlcsHtlcs.amount_msat:type_name -> cln.Amount
 	48,  // 290: cln.ListhtlcsHtlcs.direction:type_name -> cln.ListhtlcsHtlcs.ListhtlcsHtlcsDirection
-	603, // 291: cln.ListhtlcsHtlcs.state:type_name -> cln.HtlcState
-	311, // 292: cln.MultifundchannelRequest.destinations:type_name -> cln.MultifundchannelDestinations
-	596, // 293: cln.MultifundchannelRequest.feerate:type_name -> cln.Feerate
-	595, // 294: cln.MultifundchannelRequest.utxos:type_name -> cln.Outpoint
-	596, // 295: cln.MultifundchannelRequest.commitment_feerate:type_name -> cln.Feerate
-	312, // 296: cln.MultifundchannelResponse.channel_ids:type_name -> cln.MultifundchannelChannelIds
-	314, // 297: cln.MultifundchannelResponse.failed:type_name -> cln.MultifundchannelFailed
-	598, // 298: cln.MultifundchannelDestinations.amount:type_name -> cln.AmountOrAll
-	592, // 299: cln.MultifundchannelDestinations.push_msat:type_name -> cln.Amount
-	592, // 300: cln.MultifundchannelDestinations.request_amt:type_name -> cln.Amount
-	592, // 301: cln.MultifundchannelDestinations.reserve:type_name -> cln.Amount
-	313, // 302: cln.MultifundchannelChannelIds.channel_type:type_name -> cln.MultifundchannelChannelIdsChannelType
-	605, // 303: cln.MultifundchannelChannelIdsChannelType.names:type_name -> cln.ChannelTypeName
+	666, // 291: cln.ListhtlcsHtlcs.state:type_name -> cln.HtlcState
+	320, // 292: cln.MultifundchannelRequest.destinations:type_name -> cln.MultifundchannelDestinations
+	659, // 293: cln.MultifundchannelRequest.feerate:type_name -> cln.Feerate
+	658, // 294: cln.MultifundchannelRequest.utxos:type_name -> cln.Outpoint
+	659, // 295: cln.MultifundchannelRequest.commitment_feerate:type_name -> cln.Feerate
+	321, // 296: cln.MultifundchannelResponse.channel_ids:type_name -> cln.MultifundchannelChannelIds
+	323, // 297: cln.MultifundchannelResponse.failed:type_name -> cln.MultifundchannelFailed
+	661, // 298: cln.MultifundchannelDestinations.amount:type_name -> cln.AmountOrAll
+	655, // 299: cln.MultifundchannelDestinations.push_msat:type_name -> cln.Amount
+	655, // 300: cln.MultifundchannelDestinations.request_amt:type_name -> cln.Amount
+	655, // 301: cln.MultifundchannelDestinations.reserve:type_name -> cln.Amount
+	322, // 302: cln.MultifundchannelChannelIds.channel_type:type_name -> cln.MultifundchannelChannelIdsChannelType
+	668, // 303: cln.MultifundchannelChannelIdsChannelType.names:type_name -> cln.ChannelTypeName
 	49,  // 304: cln.MultifundchannelFailed.method:type_name -> cln.MultifundchannelFailed.MultifundchannelFailedMethod
-	315, // 305: cln.MultifundchannelFailed.error:type_name -> cln.MultifundchannelFailedError
-	601, // 306: cln.MultiwithdrawRequest.outputs:type_name -> cln.OutputDesc
-	596, // 307: cln.MultiwithdrawRequest.feerate:type_name -> cln.Feerate
-	595, // 308: cln.MultiwithdrawRequest.utxos:type_name -> cln.Outpoint
-	596, // 309: cln.OpenchannelBumpRequest.funding_feerate:type_name -> cln.Feerate
-	592, // 310: cln.OpenchannelBumpRequest.amount:type_name -> cln.Amount
-	324, // 311: cln.OpenchannelBumpResponse.channel_type:type_name -> cln.OpenchannelBumpChannelType
-	605, // 312: cln.OpenchannelBumpChannelType.names:type_name -> cln.ChannelTypeName
-	596, // 313: cln.OpenchannelInitRequest.commitment_feerate:type_name -> cln.Feerate
-	596, // 314: cln.OpenchannelInitRequest.funding_feerate:type_name -> cln.Feerate
-	592, // 315: cln.OpenchannelInitRequest.request_amt:type_name -> cln.Amount
-	592, // 316: cln.OpenchannelInitRequest.amount:type_name -> cln.Amount
-	327, // 317: cln.OpenchannelInitResponse.channel_type:type_name -> cln.OpenchannelInitChannelType
-	605, // 318: cln.OpenchannelInitChannelType.names:type_name -> cln.ChannelTypeName
-	332, // 319: cln.OpenchannelUpdateResponse.channel_type:type_name -> cln.OpenchannelUpdateChannelType
-	605, // 320: cln.OpenchannelUpdateChannelType.names:type_name -> cln.ChannelTypeName
-	606, // 321: cln.PluginRequest.subcommand:type_name -> cln.PluginSubcommand
-	606, // 322: cln.PluginResponse.command:type_name -> cln.PluginSubcommand
-	337, // 323: cln.PluginResponse.plugins:type_name -> cln.PluginPlugins
-	340, // 324: cln.RenepaystatusResponse.paystatus:type_name -> cln.RenepaystatusPaystatus
-	592, // 325: cln.RenepaystatusPaystatus.amount_msat:type_name -> cln.Amount
-	592, // 326: cln.RenepaystatusPaystatus.amount_sent_msat:type_name -> cln.Amount
+	324, // 305: cln.MultifundchannelFailed.error:type_name -> cln.MultifundchannelFailedError
+	664, // 306: cln.MultiwithdrawRequest.outputs:type_name -> cln.OutputDesc
+	659, // 307: cln.MultiwithdrawRequest.feerate:type_name -> cln.Feerate
+	658, // 308: cln.MultiwithdrawRequest.utxos:type_name -> cln.Outpoint
+	659, // 309: cln.OpenchannelBumpRequest.funding_feerate:type_name -> cln.Feerate
+	655, // 310: cln.OpenchannelBumpRequest.amount:type_name -> cln.Amount
+	333, // 311: cln.OpenchannelBumpResponse.channel_type:type_name -> cln.OpenchannelBumpChannelType
+	668, // 312: cln.OpenchannelBumpChannelType.names:type_name -> cln.ChannelTypeName
+	659, // 313: cln.OpenchannelInitRequest.commitment_feerate:type_name -> cln.Feerate
+	659, // 314: cln.OpenchannelInitRequest.funding_feerate:type_name -> cln.Feerate
+	655, // 315: cln.OpenchannelInitRequest.request_amt:type_name -> cln.Amount
+	655, // 316: cln.OpenchannelInitRequest.amount:type_name -> cln.Amount
+	336, // 317: cln.OpenchannelInitResponse.channel_type:type_name -> cln.OpenchannelInitChannelType
+	668, // 318: cln.OpenchannelInitChannelType.names:type_name -> cln.ChannelTypeName
+	341, // 319: cln.OpenchannelUpdateResponse.channel_type:type_name -> cln.OpenchannelUpdateChannelType
+	668, // 320: cln.OpenchannelUpdateChannelType.names:type_name -> cln.ChannelTypeName
+	669, // 321: cln.PluginRequest.subcommand:type_name -> cln.PluginSubcommand
+	669, // 322: cln.PluginResponse.command:type_name -> cln.PluginSubcommand
+	346, // 323: cln.PluginResponse.plugins:type_name -> cln.PluginPlugins
+	349, // 324: cln.RenepaystatusResponse.paystatus:type_name -> cln.RenepaystatusPaystatus
+	655, // 325: cln.RenepaystatusPaystatus.amount_msat:type_name -> cln.Amount
+	655, // 326: cln.RenepaystatusPaystatus.amount_sent_msat:type_name -> cln.Amount
 	50,  // 327: cln.RenepaystatusPaystatus.status:type_name -> cln.RenepaystatusPaystatus.RenepaystatusPaystatusStatus
-	592, // 328: cln.RenepayRequest.amount_msat:type_name -> cln.Amount
-	592, // 329: cln.RenepayRequest.maxfee:type_name -> cln.Amount
-	592, // 330: cln.RenepayResponse.amount_msat:type_name -> cln.Amount
-	592, // 331: cln.RenepayResponse.amount_sent_msat:type_name -> cln.Amount
+	655, // 328: cln.RenepayRequest.amount_msat:type_name -> cln.Amount
+	655, // 329: cln.RenepayRequest.maxfee:type_name -> cln.Amount
+	655, // 330: cln.RenepayResponse.amount_msat:type_name -> cln.Amount
+	655, // 331: cln.RenepayResponse.amount_sent_msat:type_name -> cln.Amount
 	51,  // 332: cln.RenepayResponse.status:type_name -> cln.RenepayResponse.RenepayStatus
-	345, // 333: cln.ReserveinputsResponse.reservations:type_name -> cln.ReserveinputsReservations
-	592, // 334: cln.SendinvoiceRequest.amount_msat:type_name -> cln.Amount
+	354, // 333: cln.ReserveinputsResponse.reservations:type_name -> cln.ReserveinputsReservations
+	655, // 334: cln.SendinvoiceRequest.amount_msat:type_name -> cln.Amount
 	52,  // 335: cln.SendinvoiceResponse.status:type_name -> cln.SendinvoiceResponse.SendinvoiceStatus
-	592, // 336: cln.SendinvoiceResponse.amount_msat:type_name -> cln.Amount
-	592, // 337: cln.SendinvoiceResponse.amount_received_msat:type_name -> cln.Amount
-	592, // 338: cln.SetchannelRequest.feebase:type_name -> cln.Amount
-	592, // 339: cln.SetchannelRequest.htlcmin:type_name -> cln.Amount
-	592, // 340: cln.SetchannelRequest.htlcmax:type_name -> cln.Amount
-	352, // 341: cln.SetchannelResponse.channels:type_name -> cln.SetchannelChannels
-	592, // 342: cln.SetchannelChannels.fee_base_msat:type_name -> cln.Amount
-	592, // 343: cln.SetchannelChannels.minimum_htlc_out_msat:type_name -> cln.Amount
-	592, // 344: cln.SetchannelChannels.maximum_htlc_out_msat:type_name -> cln.Amount
-	355, // 345: cln.SetconfigResponse.config:type_name -> cln.SetconfigConfig
-	592, // 346: cln.SetconfigConfig.value_msat:type_name -> cln.Amount
-	372, // 347: cln.UnreserveinputsResponse.reservations:type_name -> cln.UnreserveinputsReservations
-	596, // 348: cln.UpgradewalletRequest.feerate:type_name -> cln.Feerate
+	655, // 336: cln.SendinvoiceResponse.amount_msat:type_name -> cln.Amount
+	655, // 337: cln.SendinvoiceResponse.amount_received_msat:type_name -> cln.Amount
+	655, // 338: cln.SetchannelRequest.feebase:type_name -> cln.Amount
+	655, // 339: cln.SetchannelRequest.htlcmin:type_name -> cln.Amount
+	655, // 340: cln.SetchannelRequest.htlcmax:type_name -> cln.Amount
+	361, // 341: cln.SetchannelResponse.channels:type_name -> cln.SetchannelChannels
+	655, // 342: cln.SetchannelChannels.fee_base_msat:type_name -> cln.Amount
+	655, // 343: cln.SetchannelChannels.minimum_htlc_out_msat:type_name -> cln.Amount
+	655, // 344: cln.SetchannelChannels.maximum_htlc_out_msat:type_name -> cln.Amount
+	364, // 345: cln.SetconfigResponse.config:type_name -> cln.SetconfigConfig
+	655, // 346: cln.SetconfigConfig.value_msat:type_name -> cln.Amount
+	385, // 347: cln.UnreserveinputsResponse.reservations:type_name -> cln.UnreserveinputsReservations
+	659, // 348: cln.UpgradewalletRequest.feerate:type_name -> cln.Feerate
 	53,  // 349: cln.WaitRequest.subsystem:type_name -> cln.WaitRequest.WaitSubsystem
 	54,  // 350: cln.WaitRequest.indexname:type_name -> cln.WaitRequest.WaitIndexname
 	55,  // 351: cln.WaitResponse.subsystem:type_name -> cln.WaitResponse.WaitSubsystem
-	386, // 352: cln.WaitResponse.details:type_name -> cln.WaitDetails
-	379, // 353: cln.WaitResponse.forwards:type_name -> cln.WaitForwards
-	380, // 354: cln.WaitResponse.invoices:type_name -> cln.WaitInvoices
-	381, // 355: cln.WaitResponse.sendpays:type_name -> cln.WaitSendpays
-	382, // 356: cln.WaitResponse.htlcs:type_name -> cln.WaitHtlcs
-	383, // 357: cln.WaitResponse.chainmoves:type_name -> cln.WaitChainmoves
-	384, // 358: cln.WaitResponse.channelmoves:type_name -> cln.WaitChannelmoves
-	385, // 359: cln.WaitResponse.networkevents:type_name -> cln.WaitNetworkevents
+	399, // 352: cln.WaitResponse.details:type_name -> cln.WaitDetails
+	392, // 353: cln.WaitResponse.forwards:type_name -> cln.WaitForwards
+	393, // 354: cln.WaitResponse.invoices:type_name -> cln.WaitInvoices
+	394, // 355: cln.WaitResponse.sendpays:type_name -> cln.WaitSendpays
+	395, // 356: cln.WaitResponse.htlcs:type_name -> cln.WaitHtlcs
+	396, // 357: cln.WaitResponse.chainmoves:type_name -> cln.WaitChainmoves
+	397, // 358: cln.WaitResponse.channelmoves:type_name -> cln.WaitChannelmoves
+	398, // 359: cln.WaitResponse.networkevents:type_name -> cln.WaitNetworkevents
 	56,  // 360: cln.WaitForwards.status:type_name -> cln.WaitForwards.WaitForwardsStatus
-	592, // 361: cln.WaitForwards.in_msat:type_name -> cln.Amount
+	655, // 361: cln.WaitForwards.in_msat:type_name -> cln.Amount
 	57,  // 362: cln.WaitInvoices.status:type_name -> cln.WaitInvoices.WaitInvoicesStatus
 	58,  // 363: cln.WaitSendpays.status:type_name -> cln.WaitSendpays.WaitSendpaysStatus
-	603, // 364: cln.WaitHtlcs.state:type_name -> cln.HtlcState
-	592, // 365: cln.WaitHtlcs.amount_msat:type_name -> cln.Amount
+	666, // 364: cln.WaitHtlcs.state:type_name -> cln.HtlcState
+	655, // 365: cln.WaitHtlcs.amount_msat:type_name -> cln.Amount
 	59,  // 366: cln.WaitHtlcs.direction:type_name -> cln.WaitHtlcs.WaitHtlcsDirection
-	592, // 367: cln.WaitChainmoves.credit_msat:type_name -> cln.Amount
-	592, // 368: cln.WaitChainmoves.debit_msat:type_name -> cln.Amount
-	592, // 369: cln.WaitChannelmoves.credit_msat:type_name -> cln.Amount
-	592, // 370: cln.WaitChannelmoves.debit_msat:type_name -> cln.Amount
+	655, // 367: cln.WaitChainmoves.credit_msat:type_name -> cln.Amount
+	655, // 368: cln.WaitChainmoves.debit_msat:type_name -> cln.Amount
+	655, // 369: cln.WaitChannelmoves.credit_msat:type_name -> cln.Amount
+	655, // 370: cln.WaitChannelmoves.debit_msat:type_name -> cln.Amount
 	60,  // 371: cln.WaitNetworkevents.item_type:type_name -> cln.WaitNetworkevents.WaitNetworkeventsType
 	61,  // 372: cln.WaitDetails.status:type_name -> cln.WaitDetails.WaitDetailsStatus
-	592, // 373: cln.WaitDetails.in_msat:type_name -> cln.Amount
-	389, // 374: cln.ListconfigsResponse.configs:type_name -> cln.ListconfigsConfigs
-	390, // 375: cln.ListconfigsConfigs.conf:type_name -> cln.ListconfigsConfigsConf
-	391, // 376: cln.ListconfigsConfigs.developer:type_name -> cln.ListconfigsConfigsDeveloper
-	392, // 377: cln.ListconfigsConfigs.clear_plugins:type_name -> cln.ListconfigsConfigsClearplugins
-	393, // 378: cln.ListconfigsConfigs.disable_mpp:type_name -> cln.ListconfigsConfigsDisablempp
-	394, // 379: cln.ListconfigsConfigs.mainnet:type_name -> cln.ListconfigsConfigsMainnet
-	395, // 380: cln.ListconfigsConfigs.regtest:type_name -> cln.ListconfigsConfigsRegtest
-	396, // 381: cln.ListconfigsConfigs.signet:type_name -> cln.ListconfigsConfigsSignet
-	397, // 382: cln.ListconfigsConfigs.testnet:type_name -> cln.ListconfigsConfigsTestnet
-	398, // 383: cln.ListconfigsConfigs.important_plugin:type_name -> cln.ListconfigsConfigsImportantplugin
-	399, // 384: cln.ListconfigsConfigs.plugin:type_name -> cln.ListconfigsConfigsPlugin
-	400, // 385: cln.ListconfigsConfigs.plugin_dir:type_name -> cln.ListconfigsConfigsPlugindir
-	401, // 386: cln.ListconfigsConfigs.lightning_dir:type_name -> cln.ListconfigsConfigsLightningdir
-	402, // 387: cln.ListconfigsConfigs.network:type_name -> cln.ListconfigsConfigsNetwork
-	403, // 388: cln.ListconfigsConfigs.allow_deprecated_apis:type_name -> cln.ListconfigsConfigsAllowdeprecatedapis
-	404, // 389: cln.ListconfigsConfigs.rpc_file:type_name -> cln.ListconfigsConfigsRpcfile
-	405, // 390: cln.ListconfigsConfigs.disable_plugin:type_name -> cln.ListconfigsConfigsDisableplugin
-	406, // 391: cln.ListconfigsConfigs.always_use_proxy:type_name -> cln.ListconfigsConfigsAlwaysuseproxy
-	407, // 392: cln.ListconfigsConfigs.daemon:type_name -> cln.ListconfigsConfigsDaemon
-	408, // 393: cln.ListconfigsConfigs.wallet:type_name -> cln.ListconfigsConfigsWallet
-	409, // 394: cln.ListconfigsConfigs.large_channels:type_name -> cln.ListconfigsConfigsLargechannels
-	410, // 395: cln.ListconfigsConfigs.experimental_dual_fund:type_name -> cln.ListconfigsConfigsExperimentaldualfund
-	411, // 396: cln.ListconfigsConfigs.experimental_splicing:type_name -> cln.ListconfigsConfigsExperimentalsplicing
-	412, // 397: cln.ListconfigsConfigs.experimental_onion_messages:type_name -> cln.ListconfigsConfigsExperimentalonionmessages
-	413, // 398: cln.ListconfigsConfigs.experimental_offers:type_name -> cln.ListconfigsConfigsExperimentaloffers
-	414, // 399: cln.ListconfigsConfigs.experimental_shutdown_wrong_funding:type_name -> cln.ListconfigsConfigsExperimentalshutdownwrongfunding
-	415, // 400: cln.ListconfigsConfigs.experimental_peer_storage:type_name -> cln.ListconfigsConfigsExperimentalpeerstorage
-	416, // 401: cln.ListconfigsConfigs.experimental_anchors:type_name -> cln.ListconfigsConfigsExperimentalanchors
-	417, // 402: cln.ListconfigsConfigs.database_upgrade:type_name -> cln.ListconfigsConfigsDatabaseupgrade
-	418, // 403: cln.ListconfigsConfigs.rgb:type_name -> cln.ListconfigsConfigsRgb
-	419, // 404: cln.ListconfigsConfigs.alias:type_name -> cln.ListconfigsConfigsAlias
-	420, // 405: cln.ListconfigsConfigs.pid_file:type_name -> cln.ListconfigsConfigsPidfile
-	421, // 406: cln.ListconfigsConfigs.ignore_fee_limits:type_name -> cln.ListconfigsConfigsIgnorefeelimits
-	422, // 407: cln.ListconfigsConfigs.watchtime_blocks:type_name -> cln.ListconfigsConfigsWatchtimeblocks
-	423, // 408: cln.ListconfigsConfigs.max_locktime_blocks:type_name -> cln.ListconfigsConfigsMaxlocktimeblocks
-	424, // 409: cln.ListconfigsConfigs.funding_confirms:type_name -> cln.ListconfigsConfigsFundingconfirms
-	425, // 410: cln.ListconfigsConfigs.cltv_delta:type_name -> cln.ListconfigsConfigsCltvdelta
-	426, // 411: cln.ListconfigsConfigs.cltv_final:type_name -> cln.ListconfigsConfigsCltvfinal
-	427, // 412: cln.ListconfigsConfigs.commit_time:type_name -> cln.ListconfigsConfigsCommittime
-	428, // 413: cln.ListconfigsConfigs.fee_base:type_name -> cln.ListconfigsConfigsFeebase
-	429, // 414: cln.ListconfigsConfigs.rescan:type_name -> cln.ListconfigsConfigsRescan
-	430, // 415: cln.ListconfigsConfigs.fee_per_satoshi:type_name -> cln.ListconfigsConfigsFeepersatoshi
-	431, // 416: cln.ListconfigsConfigs.max_concurrent_htlcs:type_name -> cln.ListconfigsConfigsMaxconcurrenthtlcs
-	432, // 417: cln.ListconfigsConfigs.htlc_minimum_msat:type_name -> cln.ListconfigsConfigsHtlcminimummsat
-	433, // 418: cln.ListconfigsConfigs.htlc_maximum_msat:type_name -> cln.ListconfigsConfigsHtlcmaximummsat
-	434, // 419: cln.ListconfigsConfigs.max_dust_htlc_exposure_msat:type_name -> cln.ListconfigsConfigsMaxdusthtlcexposuremsat
-	435, // 420: cln.ListconfigsConfigs.min_capacity_sat:type_name -> cln.ListconfigsConfigsMincapacitysat
-	436, // 421: cln.ListconfigsConfigs.addr:type_name -> cln.ListconfigsConfigsAddr
-	437, // 422: cln.ListconfigsConfigs.announce_addr:type_name -> cln.ListconfigsConfigsAnnounceaddr
-	438, // 423: cln.ListconfigsConfigs.bind_addr:type_name -> cln.ListconfigsConfigsBindaddr
-	439, // 424: cln.ListconfigsConfigs.offline:type_name -> cln.ListconfigsConfigsOffline
-	440, // 425: cln.ListconfigsConfigs.autolisten:type_name -> cln.ListconfigsConfigsAutolisten
-	441, // 426: cln.ListconfigsConfigs.proxy:type_name -> cln.ListconfigsConfigsProxy
-	442, // 427: cln.ListconfigsConfigs.disable_dns:type_name -> cln.ListconfigsConfigsDisabledns
-	443, // 428: cln.ListconfigsConfigs.announce_addr_discovered:type_name -> cln.ListconfigsConfigsAnnounceaddrdiscovered
-	444, // 429: cln.ListconfigsConfigs.announce_addr_discovered_port:type_name -> cln.ListconfigsConfigsAnnounceaddrdiscoveredport
-	445, // 430: cln.ListconfigsConfigs.encrypted_hsm:type_name -> cln.ListconfigsConfigsEncryptedhsm
-	446, // 431: cln.ListconfigsConfigs.rpc_file_mode:type_name -> cln.ListconfigsConfigsRpcfilemode
-	447, // 432: cln.ListconfigsConfigs.log_level:type_name -> cln.ListconfigsConfigsLoglevel
-	448, // 433: cln.ListconfigsConfigs.log_prefix:type_name -> cln.ListconfigsConfigsLogprefix
-	449, // 434: cln.ListconfigsConfigs.log_file:type_name -> cln.ListconfigsConfigsLogfile
-	450, // 435: cln.ListconfigsConfigs.log_timestamps:type_name -> cln.ListconfigsConfigsLogtimestamps
-	451, // 436: cln.ListconfigsConfigs.force_feerates:type_name -> cln.ListconfigsConfigsForcefeerates
-	452, // 437: cln.ListconfigsConfigs.subdaemon:type_name -> cln.ListconfigsConfigsSubdaemon
-	453, // 438: cln.ListconfigsConfigs.fetchinvoice_noconnect:type_name -> cln.ListconfigsConfigsFetchinvoicenoconnect
-	454, // 439: cln.ListconfigsConfigs.tor_service_password:type_name -> cln.ListconfigsConfigsTorservicepassword
-	455, // 440: cln.ListconfigsConfigs.announce_addr_dns:type_name -> cln.ListconfigsConfigsAnnounceaddrdns
-	456, // 441: cln.ListconfigsConfigs.require_confirmed_inputs:type_name -> cln.ListconfigsConfigsRequireconfirmedinputs
-	457, // 442: cln.ListconfigsConfigs.commit_fee:type_name -> cln.ListconfigsConfigsCommitfee
-	458, // 443: cln.ListconfigsConfigs.commit_feerate_offset:type_name -> cln.ListconfigsConfigsCommitfeerateoffset
-	459, // 444: cln.ListconfigsConfigs.autoconnect_seeker_peers:type_name -> cln.ListconfigsConfigsAutoconnectseekerpeers
-	62,  // 445: cln.ListconfigsConfigsConf.source:type_name -> cln.ListconfigsConfigsConf.ListconfigsConfigsConfSource
-	592, // 446: cln.ListconfigsConfigsHtlcminimummsat.value_msat:type_name -> cln.Amount
-	592, // 447: cln.ListconfigsConfigsHtlcmaximummsat.value_msat:type_name -> cln.Amount
-	592, // 448: cln.ListconfigsConfigsMaxdusthtlcexposuremsat.value_msat:type_name -> cln.Amount
-	63,  // 449: cln.ListconfigsConfigsAnnounceaddrdiscovered.value_str:type_name -> cln.ListconfigsConfigsAnnounceaddrdiscovered.ListconfigsConfigsAnnounceaddrdiscoveredValueStr
-	64,  // 450: cln.StopResponse.result:type_name -> cln.StopResponse.StopResult
-	464, // 451: cln.HelpResponse.help:type_name -> cln.HelpHelp
-	65,  // 452: cln.HelpResponse.format_hint:type_name -> cln.HelpResponse.HelpFormathint
-	592, // 453: cln.PreapprovekeysendRequest.amount_msat:type_name -> cln.Amount
-	473, // 454: cln.BkprchannelsapyResponse.channels_apy:type_name -> cln.BkprchannelsapyChannelsApy
-	592, // 455: cln.BkprchannelsapyChannelsApy.routed_out_msat:type_name -> cln.Amount
-	592, // 456: cln.BkprchannelsapyChannelsApy.routed_in_msat:type_name -> cln.Amount
-	592, // 457: cln.BkprchannelsapyChannelsApy.lease_fee_paid_msat:type_name -> cln.Amount
-	592, // 458: cln.BkprchannelsapyChannelsApy.lease_fee_earned_msat:type_name -> cln.Amount
-	592, // 459: cln.BkprchannelsapyChannelsApy.pushed_out_msat:type_name -> cln.Amount
-	592, // 460: cln.BkprchannelsapyChannelsApy.pushed_in_msat:type_name -> cln.Amount
-	592, // 461: cln.BkprchannelsapyChannelsApy.our_start_balance_msat:type_name -> cln.Amount
-	592, // 462: cln.BkprchannelsapyChannelsApy.channel_start_balance_msat:type_name -> cln.Amount
-	592, // 463: cln.BkprchannelsapyChannelsApy.fees_out_msat:type_name -> cln.Amount
-	592, // 464: cln.BkprchannelsapyChannelsApy.fees_in_msat:type_name -> cln.Amount
-	66,  // 465: cln.BkprdumpincomecsvResponse.csv_format:type_name -> cln.BkprdumpincomecsvResponse.BkprdumpincomecsvCsvFormat
-	478, // 466: cln.BkprinspectResponse.txs:type_name -> cln.BkprinspectTxs
-	592, // 467: cln.BkprinspectTxs.fees_paid_msat:type_name -> cln.Amount
-	479, // 468: cln.BkprinspectTxs.outputs:type_name -> cln.BkprinspectTxsOutputs
-	592, // 469: cln.BkprinspectTxsOutputs.output_value_msat:type_name -> cln.Amount
-	592, // 470: cln.BkprinspectTxsOutputs.credit_msat:type_name -> cln.Amount
-	592, // 471: cln.BkprinspectTxsOutputs.debit_msat:type_name -> cln.Amount
-	482, // 472: cln.BkprlistaccounteventsResponse.events:type_name -> cln.BkprlistaccounteventsEvents
-	67,  // 473: cln.BkprlistaccounteventsEvents.item_type:type_name -> cln.BkprlistaccounteventsEvents.BkprlistaccounteventsEventsType
-	592, // 474: cln.BkprlistaccounteventsEvents.credit_msat:type_name -> cln.Amount
-	592, // 475: cln.BkprlistaccounteventsEvents.debit_msat:type_name -> cln.Amount
-	592, // 476: cln.BkprlistaccounteventsEvents.fees_msat:type_name -> cln.Amount
-	485, // 477: cln.BkprlistbalancesResponse.accounts:type_name -> cln.BkprlistbalancesAccounts
-	486, // 478: cln.BkprlistbalancesAccounts.balances:type_name -> cln.BkprlistbalancesAccountsBalances
-	592, // 479: cln.BkprlistbalancesAccountsBalances.balance_msat:type_name -> cln.Amount
-	489, // 480: cln.BkprlistincomeResponse.income_events:type_name -> cln.BkprlistincomeIncomeEvents
-	592, // 481: cln.BkprlistincomeIncomeEvents.credit_msat:type_name -> cln.Amount
-	592, // 482: cln.BkprlistincomeIncomeEvents.debit_msat:type_name -> cln.Amount
-	492, // 483: cln.BkpreditdescriptionbypaymentidResponse.updated:type_name -> cln.BkpreditdescriptionbypaymentidUpdated
-	68,  // 484: cln.BkpreditdescriptionbypaymentidUpdated.item_type:type_name -> cln.BkpreditdescriptionbypaymentidUpdated.BkpreditdescriptionbypaymentidUpdatedType
-	592, // 485: cln.BkpreditdescriptionbypaymentidUpdated.credit_msat:type_name -> cln.Amount
-	592, // 486: cln.BkpreditdescriptionbypaymentidUpdated.debit_msat:type_name -> cln.Amount
-	592, // 487: cln.BkpreditdescriptionbypaymentidUpdated.fees_msat:type_name -> cln.Amount
-	495, // 488: cln.BkpreditdescriptionbyoutpointResponse.updated:type_name -> cln.BkpreditdescriptionbyoutpointUpdated
-	69,  // 489: cln.BkpreditdescriptionbyoutpointUpdated.item_type:type_name -> cln.BkpreditdescriptionbyoutpointUpdated.BkpreditdescriptionbyoutpointUpdatedType
-	592, // 490: cln.BkpreditdescriptionbyoutpointUpdated.credit_msat:type_name -> cln.Amount
-	592, // 491: cln.BkpreditdescriptionbyoutpointUpdated.debit_msat:type_name -> cln.Amount
-	592, // 492: cln.BkpreditdescriptionbyoutpointUpdated.fees_msat:type_name -> cln.Amount
-	498, // 493: cln.BlacklistruneResponse.blacklist:type_name -> cln.BlacklistruneBlacklist
-	505, // 494: cln.ShowrunesResponse.runes:type_name -> cln.ShowrunesRunes
-	506, // 495: cln.ShowrunesRunes.restrictions:type_name -> cln.ShowrunesRunesRestrictions
-	507, // 496: cln.ShowrunesRunesRestrictions.alternatives:type_name -> cln.ShowrunesRunesRestrictionsAlternatives
-	510, // 497: cln.AskreneunreserveRequest.path:type_name -> cln.AskreneunreservePath
-	592, // 498: cln.AskreneunreservePath.amount_msat:type_name -> cln.Amount
-	513, // 499: cln.AskrenelistlayersResponse.layers:type_name -> cln.AskrenelistlayersLayers
-	514, // 500: cln.AskrenelistlayersLayers.created_channels:type_name -> cln.AskrenelistlayersLayersCreatedChannels
-	516, // 501: cln.AskrenelistlayersLayers.constraints:type_name -> cln.AskrenelistlayersLayersConstraints
-	515, // 502: cln.AskrenelistlayersLayers.channel_updates:type_name -> cln.AskrenelistlayersLayersChannelUpdates
-	517, // 503: cln.AskrenelistlayersLayers.biases:type_name -> cln.AskrenelistlayersLayersBiases
-	518, // 504: cln.AskrenelistlayersLayers.node_biases:type_name -> cln.AskrenelistlayersLayersNodeBiases
-	592, // 505: cln.AskrenelistlayersLayersCreatedChannels.capacity_msat:type_name -> cln.Amount
-	592, // 506: cln.AskrenelistlayersLayersChannelUpdates.htlc_minimum_msat:type_name -> cln.Amount
-	592, // 507: cln.AskrenelistlayersLayersChannelUpdates.htlc_maximum_msat:type_name -> cln.Amount
-	592, // 508: cln.AskrenelistlayersLayersChannelUpdates.fee_base_msat:type_name -> cln.Amount
-	592, // 509: cln.AskrenelistlayersLayersConstraints.maximum_msat:type_name -> cln.Amount
-	592, // 510: cln.AskrenelistlayersLayersConstraints.minimum_msat:type_name -> cln.Amount
-	521, // 511: cln.AskrenecreatelayerResponse.layers:type_name -> cln.AskrenecreatelayerLayers
-	522, // 512: cln.AskrenecreatelayerLayers.created_channels:type_name -> cln.AskrenecreatelayerLayersCreatedChannels
-	523, // 513: cln.AskrenecreatelayerLayers.channel_updates:type_name -> cln.AskrenecreatelayerLayersChannelUpdates
-	524, // 514: cln.AskrenecreatelayerLayers.constraints:type_name -> cln.AskrenecreatelayerLayersConstraints
-	525, // 515: cln.AskrenecreatelayerLayers.biases:type_name -> cln.AskrenecreatelayerLayersBiases
-	526, // 516: cln.AskrenecreatelayerLayers.node_biases:type_name -> cln.AskrenecreatelayerLayersNodeBiases
-	592, // 517: cln.AskrenecreatelayerLayersCreatedChannels.capacity_msat:type_name -> cln.Amount
-	592, // 518: cln.AskrenecreatelayerLayersChannelUpdates.htlc_minimum_msat:type_name -> cln.Amount
-	592, // 519: cln.AskrenecreatelayerLayersChannelUpdates.htlc_maximum_msat:type_name -> cln.Amount
-	592, // 520: cln.AskrenecreatelayerLayersChannelUpdates.fee_base_msat:type_name -> cln.Amount
-	592, // 521: cln.AskrenecreatelayerLayersConstraints.maximum_msat:type_name -> cln.Amount
-	592, // 522: cln.AskrenecreatelayerLayersConstraints.minimum_msat:type_name -> cln.Amount
-	531, // 523: cln.AskrenereserveRequest.path:type_name -> cln.AskrenereservePath
-	592, // 524: cln.AskrenereservePath.amount_msat:type_name -> cln.Amount
-	592, // 525: cln.GetroutesRequest.amount_msat:type_name -> cln.Amount
-	592, // 526: cln.GetroutesRequest.maxfee_msat:type_name -> cln.Amount
-	536, // 527: cln.GetroutesResponse.routes:type_name -> cln.GetroutesRoutes
-	592, // 528: cln.GetroutesRoutes.amount_msat:type_name -> cln.Amount
-	537, // 529: cln.GetroutesRoutes.path:type_name -> cln.GetroutesRoutesPath
-	592, // 530: cln.GetroutesRoutesPath.amount_msat:type_name -> cln.Amount
-	592, // 531: cln.AskreneinformchannelRequest.amount_msat:type_name -> cln.Amount
-	70,  // 532: cln.AskreneinformchannelRequest.inform:type_name -> cln.AskreneinformchannelRequest.AskreneinformchannelInform
-	542, // 533: cln.AskreneinformchannelResponse.constraints:type_name -> cln.AskreneinformchannelConstraints
-	592, // 534: cln.AskreneinformchannelConstraints.maximum_msat:type_name -> cln.Amount
-	592, // 535: cln.AskreneinformchannelConstraints.minimum_msat:type_name -> cln.Amount
-	592, // 536: cln.AskrenecreatechannelRequest.capacity_msat:type_name -> cln.Amount
-	592, // 537: cln.AskreneupdatechannelRequest.htlc_minimum_msat:type_name -> cln.Amount
-	592, // 538: cln.AskreneupdatechannelRequest.htlc_maximum_msat:type_name -> cln.Amount
-	592, // 539: cln.AskreneupdatechannelRequest.fee_base_msat:type_name -> cln.Amount
-	549, // 540: cln.AskrenebiaschannelResponse.biases:type_name -> cln.AskrenebiaschannelBiases
-	552, // 541: cln.AskrenebiasnodeResponse.node_biases:type_name -> cln.AskrenebiasnodeNodeBiases
-	555, // 542: cln.AskrenelistreservationsResponse.reservations:type_name -> cln.AskrenelistreservationsReservations
-	592, // 543: cln.AskrenelistreservationsReservations.amount_msat:type_name -> cln.Amount
-	592, // 544: cln.InjectpaymentonionRequest.amount_msat:type_name -> cln.Amount
-	592, // 545: cln.InjectpaymentonionRequest.destination_msat:type_name -> cln.Amount
-	592, // 546: cln.XpayRequest.amount_msat:type_name -> cln.Amount
-	592, // 547: cln.XpayRequest.maxfee:type_name -> cln.Amount
-	592, // 548: cln.XpayRequest.partial_msat:type_name -> cln.Amount
-	592, // 549: cln.XpayResponse.amount_msat:type_name -> cln.Amount
-	592, // 550: cln.XpayResponse.amount_sent_msat:type_name -> cln.Amount
-	71,  // 551: cln.ListchannelmovesRequest.index:type_name -> cln.ListchannelmovesRequest.ListchannelmovesIndex
-	566, // 552: cln.ListchannelmovesResponse.channelmoves:type_name -> cln.ListchannelmovesChannelmoves
-	592, // 553: cln.ListchannelmovesChannelmoves.credit_msat:type_name -> cln.Amount
-	592, // 554: cln.ListchannelmovesChannelmoves.debit_msat:type_name -> cln.Amount
-	72,  // 555: cln.ListchannelmovesChannelmoves.primary_tag:type_name -> cln.ListchannelmovesChannelmoves.ListchannelmovesChannelmovesPrimaryTag
-	592, // 556: cln.ListchannelmovesChannelmoves.fees_msat:type_name -> cln.Amount
-	73,  // 557: cln.ListchainmovesRequest.index:type_name -> cln.ListchainmovesRequest.ListchainmovesIndex
-	569, // 558: cln.ListchainmovesResponse.chainmoves:type_name -> cln.ListchainmovesChainmoves
-	592, // 559: cln.ListchainmovesChainmoves.credit_msat:type_name -> cln.Amount
-	592, // 560: cln.ListchainmovesChainmoves.debit_msat:type_name -> cln.Amount
-	74,  // 561: cln.ListchainmovesChainmoves.primary_tag:type_name -> cln.ListchainmovesChainmoves.ListchainmovesChainmovesPrimaryTag
-	595, // 562: cln.ListchainmovesChainmoves.utxo:type_name -> cln.Outpoint
-	592, // 563: cln.ListchainmovesChainmoves.output_msat:type_name -> cln.Amount
-	75,  // 564: cln.ListnetworkeventsRequest.index:type_name -> cln.ListnetworkeventsRequest.ListnetworkeventsIndex
-	572, // 565: cln.ListnetworkeventsResponse.networkevents:type_name -> cln.ListnetworkeventsNetworkevents
-	577, // 566: cln.ClnrestregisterpathRequest.rune_restrictions:type_name -> cln.ClnrestregisterpathRuneRestrictions
-	591, // 567: cln.ClnrestregisterpathRuneRestrictions.params:type_name -> cln.ClnrestregisterpathRuneRestrictions.ParamsEntry
-	592, // 568: cln.ChannelOpenedNotification.funding_msat:type_name -> cln.Amount
-	76,  // 569: cln.PeerConnectNotification.direction:type_name -> cln.PeerConnectNotification.PeerConnectDirection
-	586, // 570: cln.PeerConnectNotification.address:type_name -> cln.PeerConnectAddress
-	77,  // 571: cln.PeerConnectAddress.item_type:type_name -> cln.PeerConnectAddress.PeerConnectAddressType
-	593, // 572: cln.ChannelStateChangedNotification.old_state:type_name -> cln.ChannelState
-	593, // 573: cln.ChannelStateChangedNotification.new_state:type_name -> cln.ChannelState
-	78,  // 574: cln.ChannelStateChangedNotification.cause:type_name -> cln.ChannelStateChangedNotification.ChannelStateChangedCause
-	79,  // 575: cln.Node.Getinfo:input_type -> cln.GetinfoRequest
-	84,  // 576: cln.Node.ListPeers:input_type -> cln.ListpeersRequest
-	88,  // 577: cln.Node.ListFunds:input_type -> cln.ListfundsRequest
-	92,  // 578: cln.Node.SendPay:input_type -> cln.SendpayRequest
-	95,  // 579: cln.Node.ListChannels:input_type -> cln.ListchannelsRequest
-	98,  // 580: cln.Node.AddGossip:input_type -> cln.AddgossipRequest
-	100, // 581: cln.Node.AddPsbtOutput:input_type -> cln.AddpsbtoutputRequest
-	102, // 582: cln.Node.AutoCleanOnce:input_type -> cln.AutocleanonceRequest
-	112, // 583: cln.Node.AutoCleanStatus:input_type -> cln.AutocleanstatusRequest
-	122, // 584: cln.Node.CheckMessage:input_type -> cln.CheckmessageRequest
-	124, // 585: cln.Node.Close:input_type -> cln.CloseRequest
-	126, // 586: cln.Node.ConnectPeer:input_type -> cln.ConnectRequest
-	129, // 587: cln.Node.CreateInvoice:input_type -> cln.CreateinvoiceRequest
-	132, // 588: cln.Node.Datastore:input_type -> cln.DatastoreRequest
-	134, // 589: cln.Node.DatastoreUsage:input_type -> cln.DatastoreusageRequest
-	137, // 590: cln.Node.CreateOnion:input_type -> cln.CreateonionRequest
-	140, // 591: cln.Node.DelDatastore:input_type -> cln.DeldatastoreRequest
-	142, // 592: cln.Node.DelInvoice:input_type -> cln.DelinvoiceRequest
-	144, // 593: cln.Node.DevForgetChannel:input_type -> cln.DevforgetchannelRequest
-	146, // 594: cln.Node.EmergencyRecover:input_type -> cln.EmergencyrecoverRequest
-	148, // 595: cln.Node.GetEmergencyRecoverData:input_type -> cln.GetemergencyrecoverdataRequest
-	150, // 596: cln.Node.ExposeSecret:input_type -> cln.ExposesecretRequest
-	152, // 597: cln.Node.Recover:input_type -> cln.RecoverRequest
-	154, // 598: cln.Node.RecoverChannel:input_type -> cln.RecoverchannelRequest
-	156, // 599: cln.Node.Invoice:input_type -> cln.InvoiceRequest
-	158, // 600: cln.Node.CreateInvoiceRequest:input_type -> cln.InvoicerequestRequest
-	160, // 601: cln.Node.DisableInvoiceRequest:input_type -> cln.DisableinvoicerequestRequest
-	162, // 602: cln.Node.ListInvoiceRequests:input_type -> cln.ListinvoicerequestsRequest
-	165, // 603: cln.Node.ListDatastore:input_type -> cln.ListdatastoreRequest
-	168, // 604: cln.Node.ListInvoices:input_type -> cln.ListinvoicesRequest
-	172, // 605: cln.Node.SendOnion:input_type -> cln.SendonionRequest
-	175, // 606: cln.Node.ListSendPays:input_type -> cln.ListsendpaysRequest
-	178, // 607: cln.Node.ListTransactions:input_type -> cln.ListtransactionsRequest
-	183, // 608: cln.Node.MakeSecret:input_type -> cln.MakesecretRequest
-	185, // 609: cln.Node.Pay:input_type -> cln.PayRequest
-	187, // 610: cln.Node.ListNodes:input_type -> cln.ListnodesRequest
-	192, // 611: cln.Node.WaitAnyInvoice:input_type -> cln.WaitanyinvoiceRequest
-	195, // 612: cln.Node.WaitInvoice:input_type -> cln.WaitinvoiceRequest
-	198, // 613: cln.Node.WaitSendPay:input_type -> cln.WaitsendpayRequest
-	200, // 614: cln.Node.NewAddr:input_type -> cln.NewaddrRequest
-	202, // 615: cln.Node.Withdraw:input_type -> cln.WithdrawRequest
-	204, // 616: cln.Node.KeySend:input_type -> cln.KeysendRequest
-	206, // 617: cln.Node.FundPsbt:input_type -> cln.FundpsbtRequest
-	209, // 618: cln.Node.SendPsbt:input_type -> cln.SendpsbtRequest
-	211, // 619: cln.Node.SignPsbt:input_type -> cln.SignpsbtRequest
-	213, // 620: cln.Node.UtxoPsbt:input_type -> cln.UtxopsbtRequest
-	216, // 621: cln.Node.TxDiscard:input_type -> cln.TxdiscardRequest
-	218, // 622: cln.Node.TxPrepare:input_type -> cln.TxprepareRequest
-	220, // 623: cln.Node.TxSend:input_type -> cln.TxsendRequest
-	222, // 624: cln.Node.ListPeerChannels:input_type -> cln.ListpeerchannelsRequest
-	233, // 625: cln.Node.ListClosedChannels:input_type -> cln.ListclosedchannelsRequest
-	237, // 626: cln.Node.Decode:input_type -> cln.DecodeRequest
-	249, // 627: cln.Node.DelPay:input_type -> cln.DelpayRequest
-	252, // 628: cln.Node.DelForward:input_type -> cln.DelforwardRequest
-	254, // 629: cln.Node.DisableOffer:input_type -> cln.DisableofferRequest
-	256, // 630: cln.Node.EnableOffer:input_type -> cln.EnableofferRequest
-	258, // 631: cln.Node.Disconnect:input_type -> cln.DisconnectRequest
-	260, // 632: cln.Node.Feerates:input_type -> cln.FeeratesRequest
-	267, // 633: cln.Node.FetchBip353:input_type -> cln.Fetchbip353Request
-	270, // 634: cln.Node.FetchInvoice:input_type -> cln.FetchinvoiceRequest
-	274, // 635: cln.Node.CancelRecurringInvoice:input_type -> cln.CancelrecurringinvoiceRequest
-	276, // 636: cln.Node.FundChannelCancel:input_type -> cln.FundchannelCancelRequest
-	278, // 637: cln.Node.FundChannelComplete:input_type -> cln.FundchannelCompleteRequest
-	280, // 638: cln.Node.FundChannel:input_type -> cln.FundchannelRequest
-	283, // 639: cln.Node.FundChannelStart:input_type -> cln.FundchannelStartRequest
-	286, // 640: cln.Node.GetLog:input_type -> cln.GetlogRequest
-	289, // 641: cln.Node.FunderUpdate:input_type -> cln.FunderupdateRequest
-	291, // 642: cln.Node.GetRoute:input_type -> cln.GetrouteRequest
-	294, // 643: cln.Node.ListAddresses:input_type -> cln.ListaddressesRequest
-	297, // 644: cln.Node.ListForwards:input_type -> cln.ListforwardsRequest
-	300, // 645: cln.Node.ListOffers:input_type -> cln.ListoffersRequest
-	303, // 646: cln.Node.ListPays:input_type -> cln.ListpaysRequest
-	306, // 647: cln.Node.ListHtlcs:input_type -> cln.ListhtlcsRequest
-	309, // 648: cln.Node.MultiFundChannel:input_type -> cln.MultifundchannelRequest
-	316, // 649: cln.Node.MultiWithdraw:input_type -> cln.MultiwithdrawRequest
-	318, // 650: cln.Node.Offer:input_type -> cln.OfferRequest
-	320, // 651: cln.Node.OpenChannelAbort:input_type -> cln.OpenchannelAbortRequest
-	322, // 652: cln.Node.OpenChannelBump:input_type -> cln.OpenchannelBumpRequest
-	325, // 653: cln.Node.OpenChannelInit:input_type -> cln.OpenchannelInitRequest
-	328, // 654: cln.Node.OpenChannelSigned:input_type -> cln.OpenchannelSignedRequest
-	330, // 655: cln.Node.OpenChannelUpdate:input_type -> cln.OpenchannelUpdateRequest
-	333, // 656: cln.Node.Ping:input_type -> cln.PingRequest
-	335, // 657: cln.Node.Plugin:input_type -> cln.PluginRequest
-	338, // 658: cln.Node.RenePayStatus:input_type -> cln.RenepaystatusRequest
-	341, // 659: cln.Node.RenePay:input_type -> cln.RenepayRequest
-	343, // 660: cln.Node.ReserveInputs:input_type -> cln.ReserveinputsRequest
-	346, // 661: cln.Node.SendCustomMsg:input_type -> cln.SendcustommsgRequest
-	348, // 662: cln.Node.SendInvoice:input_type -> cln.SendinvoiceRequest
-	350, // 663: cln.Node.SetChannel:input_type -> cln.SetchannelRequest
-	353, // 664: cln.Node.SetConfig:input_type -> cln.SetconfigRequest
-	356, // 665: cln.Node.SetPsbtVersion:input_type -> cln.SetpsbtversionRequest
-	358, // 666: cln.Node.SignInvoice:input_type -> cln.SigninvoiceRequest
-	360, // 667: cln.Node.SignMessage:input_type -> cln.SignmessageRequest
-	362, // 668: cln.Node.SpliceInit:input_type -> cln.SpliceInitRequest
-	364, // 669: cln.Node.SpliceSigned:input_type -> cln.SpliceSignedRequest
-	366, // 670: cln.Node.SpliceUpdate:input_type -> cln.SpliceUpdateRequest
-	368, // 671: cln.Node.DevSplice:input_type -> cln.DevspliceRequest
-	370, // 672: cln.Node.UnreserveInputs:input_type -> cln.UnreserveinputsRequest
-	373, // 673: cln.Node.UpgradeWallet:input_type -> cln.UpgradewalletRequest
-	375, // 674: cln.Node.WaitBlockHeight:input_type -> cln.WaitblockheightRequest
-	377, // 675: cln.Node.Wait:input_type -> cln.WaitRequest
-	387, // 676: cln.Node.ListConfigs:input_type -> cln.ListconfigsRequest
-	460, // 677: cln.Node.Stop:input_type -> cln.StopRequest
-	462, // 678: cln.Node.Help:input_type -> cln.HelpRequest
-	465, // 679: cln.Node.PreApproveKeysend:input_type -> cln.PreapprovekeysendRequest
-	467, // 680: cln.Node.PreApproveInvoice:input_type -> cln.PreapproveinvoiceRequest
-	469, // 681: cln.Node.StaticBackup:input_type -> cln.StaticbackupRequest
-	471, // 682: cln.Node.BkprChannelsApy:input_type -> cln.BkprchannelsapyRequest
-	474, // 683: cln.Node.BkprDumpIncomeCsv:input_type -> cln.BkprdumpincomecsvRequest
-	476, // 684: cln.Node.BkprInspect:input_type -> cln.BkprinspectRequest
-	480, // 685: cln.Node.BkprListAccountEvents:input_type -> cln.BkprlistaccounteventsRequest
-	483, // 686: cln.Node.BkprListBalances:input_type -> cln.BkprlistbalancesRequest
-	487, // 687: cln.Node.BkprListIncome:input_type -> cln.BkprlistincomeRequest
-	490, // 688: cln.Node.BkprEditDescriptionByPaymentId:input_type -> cln.BkpreditdescriptionbypaymentidRequest
-	493, // 689: cln.Node.BkprEditDescriptionByOutpoint:input_type -> cln.BkpreditdescriptionbyoutpointRequest
-	496, // 690: cln.Node.BlacklistRune:input_type -> cln.BlacklistruneRequest
-	499, // 691: cln.Node.CheckRune:input_type -> cln.CheckruneRequest
-	501, // 692: cln.Node.CreateRune:input_type -> cln.CreateruneRequest
-	503, // 693: cln.Node.ShowRunes:input_type -> cln.ShowrunesRequest
-	508, // 694: cln.Node.AskReneUnreserve:input_type -> cln.AskreneunreserveRequest
-	511, // 695: cln.Node.AskReneListLayers:input_type -> cln.AskrenelistlayersRequest
-	519, // 696: cln.Node.AskReneCreateLayer:input_type -> cln.AskrenecreatelayerRequest
-	527, // 697: cln.Node.AskReneRemoveLayer:input_type -> cln.AskreneremovelayerRequest
-	529, // 698: cln.Node.AskReneReserve:input_type -> cln.AskrenereserveRequest
-	532, // 699: cln.Node.AskReneAge:input_type -> cln.AskreneageRequest
-	534, // 700: cln.Node.GetRoutes:input_type -> cln.GetroutesRequest
-	538, // 701: cln.Node.AskReneDisableNode:input_type -> cln.AskrenedisablenodeRequest
-	540, // 702: cln.Node.AskReneInformChannel:input_type -> cln.AskreneinformchannelRequest
-	543, // 703: cln.Node.AskReneCreateChannel:input_type -> cln.AskrenecreatechannelRequest
-	545, // 704: cln.Node.AskReneUpdateChannel:input_type -> cln.AskreneupdatechannelRequest
-	547, // 705: cln.Node.AskReneBiasChannel:input_type -> cln.AskrenebiaschannelRequest
-	550, // 706: cln.Node.AskreneBiasNode:input_type -> cln.AskrenebiasnodeRequest
-	553, // 707: cln.Node.AskReneListReservations:input_type -> cln.AskrenelistreservationsRequest
-	556, // 708: cln.Node.InjectPaymentOnion:input_type -> cln.InjectpaymentonionRequest
-	558, // 709: cln.Node.InjectOnionMessage:input_type -> cln.InjectonionmessageRequest
-	560, // 710: cln.Node.Xpay:input_type -> cln.XpayRequest
-	562, // 711: cln.Node.SignMessageWithKey:input_type -> cln.SignmessagewithkeyRequest
-	564, // 712: cln.Node.ListChannelMoves:input_type -> cln.ListchannelmovesRequest
-	567, // 713: cln.Node.ListChainMoves:input_type -> cln.ListchainmovesRequest
-	570, // 714: cln.Node.ListNetworkEvents:input_type -> cln.ListnetworkeventsRequest
-	573, // 715: cln.Node.DelNetworkEvent:input_type -> cln.DelnetworkeventRequest
-	575, // 716: cln.Node.ClnrestRegisterPath:input_type -> cln.ClnrestregisterpathRequest
-	578, // 717: cln.Node.SubscribeBlockAdded:input_type -> cln.StreamBlockAddedRequest
-	580, // 718: cln.Node.SubscribeChannelOpenFailed:input_type -> cln.StreamChannelOpenFailedRequest
-	582, // 719: cln.Node.SubscribeChannelOpened:input_type -> cln.StreamChannelOpenedRequest
-	584, // 720: cln.Node.SubscribeConnect:input_type -> cln.StreamConnectRequest
-	587, // 721: cln.Node.SubscribeCustomMsg:input_type -> cln.StreamCustomMsgRequest
-	589, // 722: cln.Node.SubscribeChannelStateChanged:input_type -> cln.StreamChannelStateChangedRequest
-	80,  // 723: cln.Node.Getinfo:output_type -> cln.GetinfoResponse
-	85,  // 724: cln.Node.ListPeers:output_type -> cln.ListpeersResponse
-	89,  // 725: cln.Node.ListFunds:output_type -> cln.ListfundsResponse
-	93,  // 726: cln.Node.SendPay:output_type -> cln.SendpayResponse
-	96,  // 727: cln.Node.ListChannels:output_type -> cln.ListchannelsResponse
-	99,  // 728: cln.Node.AddGossip:output_type -> cln.AddgossipResponse
-	101, // 729: cln.Node.AddPsbtOutput:output_type -> cln.AddpsbtoutputResponse
-	103, // 730: cln.Node.AutoCleanOnce:output_type -> cln.AutocleanonceResponse
-	113, // 731: cln.Node.AutoCleanStatus:output_type -> cln.AutocleanstatusResponse
-	123, // 732: cln.Node.CheckMessage:output_type -> cln.CheckmessageResponse
-	125, // 733: cln.Node.Close:output_type -> cln.CloseResponse
-	127, // 734: cln.Node.ConnectPeer:output_type -> cln.ConnectResponse
-	130, // 735: cln.Node.CreateInvoice:output_type -> cln.CreateinvoiceResponse
-	133, // 736: cln.Node.Datastore:output_type -> cln.DatastoreResponse
-	135, // 737: cln.Node.DatastoreUsage:output_type -> cln.DatastoreusageResponse
-	138, // 738: cln.Node.CreateOnion:output_type -> cln.CreateonionResponse
-	141, // 739: cln.Node.DelDatastore:output_type -> cln.DeldatastoreResponse
-	143, // 740: cln.Node.DelInvoice:output_type -> cln.DelinvoiceResponse
-	145, // 741: cln.Node.DevForgetChannel:output_type -> cln.DevforgetchannelResponse
-	147, // 742: cln.Node.EmergencyRecover:output_type -> cln.EmergencyrecoverResponse
-	149, // 743: cln.Node.GetEmergencyRecoverData:output_type -> cln.GetemergencyrecoverdataResponse
-	151, // 744: cln.Node.ExposeSecret:output_type -> cln.ExposesecretResponse
-	153, // 745: cln.Node.Recover:output_type -> cln.RecoverResponse
-	155, // 746: cln.Node.RecoverChannel:output_type -> cln.RecoverchannelResponse
-	157, // 747: cln.Node.Invoice:output_type -> cln.InvoiceResponse
-	159, // 748: cln.Node.CreateInvoiceRequest:output_type -> cln.InvoicerequestResponse
-	161, // 749: cln.Node.DisableInvoiceRequest:output_type -> cln.DisableinvoicerequestResponse
-	163, // 750: cln.Node.ListInvoiceRequests:output_type -> cln.ListinvoicerequestsResponse
-	166, // 751: cln.Node.ListDatastore:output_type -> cln.ListdatastoreResponse
-	169, // 752: cln.Node.ListInvoices:output_type -> cln.ListinvoicesResponse
-	173, // 753: cln.Node.SendOnion:output_type -> cln.SendonionResponse
-	176, // 754: cln.Node.ListSendPays:output_type -> cln.ListsendpaysResponse
-	179, // 755: cln.Node.ListTransactions:output_type -> cln.ListtransactionsResponse
-	184, // 756: cln.Node.MakeSecret:output_type -> cln.MakesecretResponse
-	186, // 757: cln.Node.Pay:output_type -> cln.PayResponse
-	188, // 758: cln.Node.ListNodes:output_type -> cln.ListnodesResponse
-	193, // 759: cln.Node.WaitAnyInvoice:output_type -> cln.WaitanyinvoiceResponse
-	196, // 760: cln.Node.WaitInvoice:output_type -> cln.WaitinvoiceResponse
-	199, // 761: cln.Node.WaitSendPay:output_type -> cln.WaitsendpayResponse
-	201, // 762: cln.Node.NewAddr:output_type -> cln.NewaddrResponse
-	203, // 763: cln.Node.Withdraw:output_type -> cln.WithdrawResponse
-	205, // 764: cln.Node.KeySend:output_type -> cln.KeysendResponse
-	207, // 765: cln.Node.FundPsbt:output_type -> cln.FundpsbtResponse
-	210, // 766: cln.Node.SendPsbt:output_type -> cln.SendpsbtResponse
-	212, // 767: cln.Node.SignPsbt:output_type -> cln.SignpsbtResponse
-	214, // 768: cln.Node.UtxoPsbt:output_type -> cln.UtxopsbtResponse
-	217, // 769: cln.Node.TxDiscard:output_type -> cln.TxdiscardResponse
-	219, // 770: cln.Node.TxPrepare:output_type -> cln.TxprepareResponse
-	221, // 771: cln.Node.TxSend:output_type -> cln.TxsendResponse
-	223, // 772: cln.Node.ListPeerChannels:output_type -> cln.ListpeerchannelsResponse
-	234, // 773: cln.Node.ListClosedChannels:output_type -> cln.ListclosedchannelsResponse
-	238, // 774: cln.Node.Decode:output_type -> cln.DecodeResponse
-	250, // 775: cln.Node.DelPay:output_type -> cln.DelpayResponse
-	253, // 776: cln.Node.DelForward:output_type -> cln.DelforwardResponse
-	255, // 777: cln.Node.DisableOffer:output_type -> cln.DisableofferResponse
-	257, // 778: cln.Node.EnableOffer:output_type -> cln.EnableofferResponse
-	259, // 779: cln.Node.Disconnect:output_type -> cln.DisconnectResponse
-	261, // 780: cln.Node.Feerates:output_type -> cln.FeeratesResponse
-	268, // 781: cln.Node.FetchBip353:output_type -> cln.Fetchbip353Response
-	271, // 782: cln.Node.FetchInvoice:output_type -> cln.FetchinvoiceResponse
-	275, // 783: cln.Node.CancelRecurringInvoice:output_type -> cln.CancelrecurringinvoiceResponse
-	277, // 784: cln.Node.FundChannelCancel:output_type -> cln.FundchannelCancelResponse
-	279, // 785: cln.Node.FundChannelComplete:output_type -> cln.FundchannelCompleteResponse
-	281, // 786: cln.Node.FundChannel:output_type -> cln.FundchannelResponse
-	284, // 787: cln.Node.FundChannelStart:output_type -> cln.FundchannelStartResponse
-	287, // 788: cln.Node.GetLog:output_type -> cln.GetlogResponse
-	290, // 789: cln.Node.FunderUpdate:output_type -> cln.FunderupdateResponse
-	292, // 790: cln.Node.GetRoute:output_type -> cln.GetrouteResponse
-	295, // 791: cln.Node.ListAddresses:output_type -> cln.ListaddressesResponse
-	298, // 792: cln.Node.ListForwards:output_type -> cln.ListforwardsResponse
-	301, // 793: cln.Node.ListOffers:output_type -> cln.ListoffersResponse
-	304, // 794: cln.Node.ListPays:output_type -> cln.ListpaysResponse
-	307, // 795: cln.Node.ListHtlcs:output_type -> cln.ListhtlcsResponse
-	310, // 796: cln.Node.MultiFundChannel:output_type -> cln.MultifundchannelResponse
-	317, // 797: cln.Node.MultiWithdraw:output_type -> cln.MultiwithdrawResponse
-	319, // 798: cln.Node.Offer:output_type -> cln.OfferResponse
-	321, // 799: cln.Node.OpenChannelAbort:output_type -> cln.OpenchannelAbortResponse
-	323, // 800: cln.Node.OpenChannelBump:output_type -> cln.OpenchannelBumpResponse
-	326, // 801: cln.Node.OpenChannelInit:output_type -> cln.OpenchannelInitResponse
-	329, // 802: cln.Node.OpenChannelSigned:output_type -> cln.OpenchannelSignedResponse
-	331, // 803: cln.Node.OpenChannelUpdate:output_type -> cln.OpenchannelUpdateResponse
-	334, // 804: cln.Node.Ping:output_type -> cln.PingResponse
-	336, // 805: cln.Node.Plugin:output_type -> cln.PluginResponse
-	339, // 806: cln.Node.RenePayStatus:output_type -> cln.RenepaystatusResponse
-	342, // 807: cln.Node.RenePay:output_type -> cln.RenepayResponse
-	344, // 808: cln.Node.ReserveInputs:output_type -> cln.ReserveinputsResponse
-	347, // 809: cln.Node.SendCustomMsg:output_type -> cln.SendcustommsgResponse
-	349, // 810: cln.Node.SendInvoice:output_type -> cln.SendinvoiceResponse
-	351, // 811: cln.Node.SetChannel:output_type -> cln.SetchannelResponse
-	354, // 812: cln.Node.SetConfig:output_type -> cln.SetconfigResponse
-	357, // 813: cln.Node.SetPsbtVersion:output_type -> cln.SetpsbtversionResponse
-	359, // 814: cln.Node.SignInvoice:output_type -> cln.SigninvoiceResponse
-	361, // 815: cln.Node.SignMessage:output_type -> cln.SignmessageResponse
-	363, // 816: cln.Node.SpliceInit:output_type -> cln.SpliceInitResponse
-	365, // 817: cln.Node.SpliceSigned:output_type -> cln.SpliceSignedResponse
-	367, // 818: cln.Node.SpliceUpdate:output_type -> cln.SpliceUpdateResponse
-	369, // 819: cln.Node.DevSplice:output_type -> cln.DevspliceResponse
-	371, // 820: cln.Node.UnreserveInputs:output_type -> cln.UnreserveinputsResponse
-	374, // 821: cln.Node.UpgradeWallet:output_type -> cln.UpgradewalletResponse
-	376, // 822: cln.Node.WaitBlockHeight:output_type -> cln.WaitblockheightResponse
-	378, // 823: cln.Node.Wait:output_type -> cln.WaitResponse
-	388, // 824: cln.Node.ListConfigs:output_type -> cln.ListconfigsResponse
-	461, // 825: cln.Node.Stop:output_type -> cln.StopResponse
-	463, // 826: cln.Node.Help:output_type -> cln.HelpResponse
-	466, // 827: cln.Node.PreApproveKeysend:output_type -> cln.PreapprovekeysendResponse
-	468, // 828: cln.Node.PreApproveInvoice:output_type -> cln.PreapproveinvoiceResponse
-	470, // 829: cln.Node.StaticBackup:output_type -> cln.StaticbackupResponse
-	472, // 830: cln.Node.BkprChannelsApy:output_type -> cln.BkprchannelsapyResponse
-	475, // 831: cln.Node.BkprDumpIncomeCsv:output_type -> cln.BkprdumpincomecsvResponse
-	477, // 832: cln.Node.BkprInspect:output_type -> cln.BkprinspectResponse
-	481, // 833: cln.Node.BkprListAccountEvents:output_type -> cln.BkprlistaccounteventsResponse
-	484, // 834: cln.Node.BkprListBalances:output_type -> cln.BkprlistbalancesResponse
-	488, // 835: cln.Node.BkprListIncome:output_type -> cln.BkprlistincomeResponse
-	491, // 836: cln.Node.BkprEditDescriptionByPaymentId:output_type -> cln.BkpreditdescriptionbypaymentidResponse
-	494, // 837: cln.Node.BkprEditDescriptionByOutpoint:output_type -> cln.BkpreditdescriptionbyoutpointResponse
-	497, // 838: cln.Node.BlacklistRune:output_type -> cln.BlacklistruneResponse
-	500, // 839: cln.Node.CheckRune:output_type -> cln.CheckruneResponse
-	502, // 840: cln.Node.CreateRune:output_type -> cln.CreateruneResponse
-	504, // 841: cln.Node.ShowRunes:output_type -> cln.ShowrunesResponse
-	509, // 842: cln.Node.AskReneUnreserve:output_type -> cln.AskreneunreserveResponse
-	512, // 843: cln.Node.AskReneListLayers:output_type -> cln.AskrenelistlayersResponse
-	520, // 844: cln.Node.AskReneCreateLayer:output_type -> cln.AskrenecreatelayerResponse
-	528, // 845: cln.Node.AskReneRemoveLayer:output_type -> cln.AskreneremovelayerResponse
-	530, // 846: cln.Node.AskReneReserve:output_type -> cln.AskrenereserveResponse
-	533, // 847: cln.Node.AskReneAge:output_type -> cln.AskreneageResponse
-	535, // 848: cln.Node.GetRoutes:output_type -> cln.GetroutesResponse
-	539, // 849: cln.Node.AskReneDisableNode:output_type -> cln.AskrenedisablenodeResponse
-	541, // 850: cln.Node.AskReneInformChannel:output_type -> cln.AskreneinformchannelResponse
-	544, // 851: cln.Node.AskReneCreateChannel:output_type -> cln.AskrenecreatechannelResponse
-	546, // 852: cln.Node.AskReneUpdateChannel:output_type -> cln.AskreneupdatechannelResponse
-	548, // 853: cln.Node.AskReneBiasChannel:output_type -> cln.AskrenebiaschannelResponse
-	551, // 854: cln.Node.AskreneBiasNode:output_type -> cln.AskrenebiasnodeResponse
-	554, // 855: cln.Node.AskReneListReservations:output_type -> cln.AskrenelistreservationsResponse
-	557, // 856: cln.Node.InjectPaymentOnion:output_type -> cln.InjectpaymentonionResponse
-	559, // 857: cln.Node.InjectOnionMessage:output_type -> cln.InjectonionmessageResponse
-	561, // 858: cln.Node.Xpay:output_type -> cln.XpayResponse
-	563, // 859: cln.Node.SignMessageWithKey:output_type -> cln.SignmessagewithkeyResponse
-	565, // 860: cln.Node.ListChannelMoves:output_type -> cln.ListchannelmovesResponse
-	568, // 861: cln.Node.ListChainMoves:output_type -> cln.ListchainmovesResponse
-	571, // 862: cln.Node.ListNetworkEvents:output_type -> cln.ListnetworkeventsResponse
-	574, // 863: cln.Node.DelNetworkEvent:output_type -> cln.DelnetworkeventResponse
-	576, // 864: cln.Node.ClnrestRegisterPath:output_type -> cln.ClnrestregisterpathResponse
-	579, // 865: cln.Node.SubscribeBlockAdded:output_type -> cln.BlockAddedNotification
-	581, // 866: cln.Node.SubscribeChannelOpenFailed:output_type -> cln.ChannelOpenFailedNotification
-	583, // 867: cln.Node.SubscribeChannelOpened:output_type -> cln.ChannelOpenedNotification
-	585, // 868: cln.Node.SubscribeConnect:output_type -> cln.PeerConnectNotification
-	588, // 869: cln.Node.SubscribeCustomMsg:output_type -> cln.CustomMsgNotification
-	590, // 870: cln.Node.SubscribeChannelStateChanged:output_type -> cln.ChannelStateChangedNotification
-	723, // [723:871] is the sub-list for method output_type
-	575, // [575:723] is the sub-list for method input_type
-	575, // [575:575] is the sub-list for extension type_name
-	575, // [575:575] is the sub-list for extension extendee
-	0,   // [0:575] is the sub-list for field type_name
+	655, // 373: cln.WaitDetails.in_msat:type_name -> cln.Amount
+	402, // 374: cln.ListconfigsResponse.configs:type_name -> cln.ListconfigsConfigs
+	403, // 375: cln.ListconfigsConfigs.conf:type_name -> cln.ListconfigsConfigsConf
+	404, // 376: cln.ListconfigsConfigs.developer:type_name -> cln.ListconfigsConfigsDeveloper
+	405, // 377: cln.ListconfigsConfigs.clear_plugins:type_name -> cln.ListconfigsConfigsClearplugins
+	406, // 378: cln.ListconfigsConfigs.disable_mpp:type_name -> cln.ListconfigsConfigsDisablempp
+	407, // 379: cln.ListconfigsConfigs.mainnet:type_name -> cln.ListconfigsConfigsMainnet
+	408, // 380: cln.ListconfigsConfigs.regtest:type_name -> cln.ListconfigsConfigsRegtest
+	409, // 381: cln.ListconfigsConfigs.signet:type_name -> cln.ListconfigsConfigsSignet
+	410, // 382: cln.ListconfigsConfigs.testnet:type_name -> cln.ListconfigsConfigsTestnet
+	411, // 383: cln.ListconfigsConfigs.important_plugin:type_name -> cln.ListconfigsConfigsImportantplugin
+	412, // 384: cln.ListconfigsConfigs.plugin:type_name -> cln.ListconfigsConfigsPlugin
+	413, // 385: cln.ListconfigsConfigs.plugin_dir:type_name -> cln.ListconfigsConfigsPlugindir
+	414, // 386: cln.ListconfigsConfigs.lightning_dir:type_name -> cln.ListconfigsConfigsLightningdir
+	415, // 387: cln.ListconfigsConfigs.network:type_name -> cln.ListconfigsConfigsNetwork
+	416, // 388: cln.ListconfigsConfigs.allow_deprecated_apis:type_name -> cln.ListconfigsConfigsAllowdeprecatedapis
+	417, // 389: cln.ListconfigsConfigs.rpc_file:type_name -> cln.ListconfigsConfigsRpcfile
+	418, // 390: cln.ListconfigsConfigs.disable_plugin:type_name -> cln.ListconfigsConfigsDisableplugin
+	419, // 391: cln.ListconfigsConfigs.always_use_proxy:type_name -> cln.ListconfigsConfigsAlwaysuseproxy
+	420, // 392: cln.ListconfigsConfigs.daemon:type_name -> cln.ListconfigsConfigsDaemon
+	421, // 393: cln.ListconfigsConfigs.wallet:type_name -> cln.ListconfigsConfigsWallet
+	422, // 394: cln.ListconfigsConfigs.large_channels:type_name -> cln.ListconfigsConfigsLargechannels
+	423, // 395: cln.ListconfigsConfigs.experimental_dual_fund:type_name -> cln.ListconfigsConfigsExperimentaldualfund
+	424, // 396: cln.ListconfigsConfigs.experimental_splicing:type_name -> cln.ListconfigsConfigsExperimentalsplicing
+	425, // 397: cln.ListconfigsConfigs.experimental_onion_messages:type_name -> cln.ListconfigsConfigsExperimentalonionmessages
+	426, // 398: cln.ListconfigsConfigs.experimental_offers:type_name -> cln.ListconfigsConfigsExperimentaloffers
+	427, // 399: cln.ListconfigsConfigs.experimental_shutdown_wrong_funding:type_name -> cln.ListconfigsConfigsExperimentalshutdownwrongfunding
+	428, // 400: cln.ListconfigsConfigs.experimental_peer_storage:type_name -> cln.ListconfigsConfigsExperimentalpeerstorage
+	429, // 401: cln.ListconfigsConfigs.experimental_anchors:type_name -> cln.ListconfigsConfigsExperimentalanchors
+	430, // 402: cln.ListconfigsConfigs.database_upgrade:type_name -> cln.ListconfigsConfigsDatabaseupgrade
+	431, // 403: cln.ListconfigsConfigs.rgb:type_name -> cln.ListconfigsConfigsRgb
+	432, // 404: cln.ListconfigsConfigs.alias:type_name -> cln.ListconfigsConfigsAlias
+	433, // 405: cln.ListconfigsConfigs.pid_file:type_name -> cln.ListconfigsConfigsPidfile
+	434, // 406: cln.ListconfigsConfigs.ignore_fee_limits:type_name -> cln.ListconfigsConfigsIgnorefeelimits
+	435, // 407: cln.ListconfigsConfigs.watchtime_blocks:type_name -> cln.ListconfigsConfigsWatchtimeblocks
+	436, // 408: cln.ListconfigsConfigs.max_locktime_blocks:type_name -> cln.ListconfigsConfigsMaxlocktimeblocks
+	437, // 409: cln.ListconfigsConfigs.funding_confirms:type_name -> cln.ListconfigsConfigsFundingconfirms
+	438, // 410: cln.ListconfigsConfigs.cltv_delta:type_name -> cln.ListconfigsConfigsCltvdelta
+	439, // 411: cln.ListconfigsConfigs.cltv_final:type_name -> cln.ListconfigsConfigsCltvfinal
+	440, // 412: cln.ListconfigsConfigs.commit_time:type_name -> cln.ListconfigsConfigsCommittime
+	441, // 413: cln.ListconfigsConfigs.fee_base:type_name -> cln.ListconfigsConfigsFeebase
+	442, // 414: cln.ListconfigsConfigs.rescan:type_name -> cln.ListconfigsConfigsRescan
+	443, // 415: cln.ListconfigsConfigs.fee_per_satoshi:type_name -> cln.ListconfigsConfigsFeepersatoshi
+	444, // 416: cln.ListconfigsConfigs.max_concurrent_htlcs:type_name -> cln.ListconfigsConfigsMaxconcurrenthtlcs
+	445, // 417: cln.ListconfigsConfigs.htlc_minimum_msat:type_name -> cln.ListconfigsConfigsHtlcminimummsat
+	446, // 418: cln.ListconfigsConfigs.htlc_maximum_msat:type_name -> cln.ListconfigsConfigsHtlcmaximummsat
+	447, // 419: cln.ListconfigsConfigs.max_dust_htlc_exposure_msat:type_name -> cln.ListconfigsConfigsMaxdusthtlcexposuremsat
+	448, // 420: cln.ListconfigsConfigs.min_capacity_sat:type_name -> cln.ListconfigsConfigsMincapacitysat
+	449, // 421: cln.ListconfigsConfigs.addr:type_name -> cln.ListconfigsConfigsAddr
+	450, // 422: cln.ListconfigsConfigs.announce_addr:type_name -> cln.ListconfigsConfigsAnnounceaddr
+	451, // 423: cln.ListconfigsConfigs.bind_addr:type_name -> cln.ListconfigsConfigsBindaddr
+	452, // 424: cln.ListconfigsConfigs.offline:type_name -> cln.ListconfigsConfigsOffline
+	453, // 425: cln.ListconfigsConfigs.autolisten:type_name -> cln.ListconfigsConfigsAutolisten
+	454, // 426: cln.ListconfigsConfigs.proxy:type_name -> cln.ListconfigsConfigsProxy
+	455, // 427: cln.ListconfigsConfigs.disable_dns:type_name -> cln.ListconfigsConfigsDisabledns
+	456, // 428: cln.ListconfigsConfigs.announce_addr_discovered:type_name -> cln.ListconfigsConfigsAnnounceaddrdiscovered
+	457, // 429: cln.ListconfigsConfigs.announce_addr_discovered_port:type_name -> cln.ListconfigsConfigsAnnounceaddrdiscoveredport
+	458, // 430: cln.ListconfigsConfigs.encrypted_hsm:type_name -> cln.ListconfigsConfigsEncryptedhsm
+	459, // 431: cln.ListconfigsConfigs.rpc_file_mode:type_name -> cln.ListconfigsConfigsRpcfilemode
+	460, // 432: cln.ListconfigsConfigs.log_level:type_name -> cln.ListconfigsConfigsLoglevel
+	461, // 433: cln.ListconfigsConfigs.log_prefix:type_name -> cln.ListconfigsConfigsLogprefix
+	462, // 434: cln.ListconfigsConfigs.log_file:type_name -> cln.ListconfigsConfigsLogfile
+	463, // 435: cln.ListconfigsConfigs.log_timestamps:type_name -> cln.ListconfigsConfigsLogtimestamps
+	464, // 436: cln.ListconfigsConfigs.force_feerates:type_name -> cln.ListconfigsConfigsForcefeerates
+	465, // 437: cln.ListconfigsConfigs.subdaemon:type_name -> cln.ListconfigsConfigsSubdaemon
+	466, // 438: cln.ListconfigsConfigs.fetchinvoice_noconnect:type_name -> cln.ListconfigsConfigsFetchinvoicenoconnect
+	467, // 439: cln.ListconfigsConfigs.tor_service_password:type_name -> cln.ListconfigsConfigsTorservicepassword
+	468, // 440: cln.ListconfigsConfigs.announce_addr_dns:type_name -> cln.ListconfigsConfigsAnnounceaddrdns
+	469, // 441: cln.ListconfigsConfigs.require_confirmed_inputs:type_name -> cln.ListconfigsConfigsRequireconfirmedinputs
+	470, // 442: cln.ListconfigsConfigs.commit_fee:type_name -> cln.ListconfigsConfigsCommitfee
+	471, // 443: cln.ListconfigsConfigs.commit_feerate_offset:type_name -> cln.ListconfigsConfigsCommitfeerateoffset
+	472, // 444: cln.ListconfigsConfigs.autoconnect_seeker_peers:type_name -> cln.ListconfigsConfigsAutoconnectseekerpeers
+	473, // 445: cln.ListconfigsConfigs.currencyrate_add_source:type_name -> cln.ListconfigsConfigsCurrencyrateaddsource
+	474, // 446: cln.ListconfigsConfigs.currencyrate_disable_source:type_name -> cln.ListconfigsConfigsCurrencyratedisablesource
+	62,  // 447: cln.ListconfigsConfigsConf.source:type_name -> cln.ListconfigsConfigsConf.ListconfigsConfigsConfSource
+	655, // 448: cln.ListconfigsConfigsHtlcminimummsat.value_msat:type_name -> cln.Amount
+	655, // 449: cln.ListconfigsConfigsHtlcmaximummsat.value_msat:type_name -> cln.Amount
+	655, // 450: cln.ListconfigsConfigsMaxdusthtlcexposuremsat.value_msat:type_name -> cln.Amount
+	63,  // 451: cln.ListconfigsConfigsAnnounceaddrdiscovered.value_str:type_name -> cln.ListconfigsConfigsAnnounceaddrdiscovered.ListconfigsConfigsAnnounceaddrdiscoveredValueStr
+	64,  // 452: cln.StopResponse.result:type_name -> cln.StopResponse.StopResult
+	479, // 453: cln.HelpResponse.help:type_name -> cln.HelpHelp
+	65,  // 454: cln.HelpResponse.format_hint:type_name -> cln.HelpResponse.HelpFormathint
+	655, // 455: cln.PreapprovekeysendRequest.amount_msat:type_name -> cln.Amount
+	488, // 456: cln.BkprchannelsapyResponse.channels_apy:type_name -> cln.BkprchannelsapyChannelsApy
+	655, // 457: cln.BkprchannelsapyChannelsApy.routed_out_msat:type_name -> cln.Amount
+	655, // 458: cln.BkprchannelsapyChannelsApy.routed_in_msat:type_name -> cln.Amount
+	655, // 459: cln.BkprchannelsapyChannelsApy.lease_fee_paid_msat:type_name -> cln.Amount
+	655, // 460: cln.BkprchannelsapyChannelsApy.lease_fee_earned_msat:type_name -> cln.Amount
+	655, // 461: cln.BkprchannelsapyChannelsApy.pushed_out_msat:type_name -> cln.Amount
+	655, // 462: cln.BkprchannelsapyChannelsApy.pushed_in_msat:type_name -> cln.Amount
+	655, // 463: cln.BkprchannelsapyChannelsApy.our_start_balance_msat:type_name -> cln.Amount
+	655, // 464: cln.BkprchannelsapyChannelsApy.channel_start_balance_msat:type_name -> cln.Amount
+	655, // 465: cln.BkprchannelsapyChannelsApy.fees_out_msat:type_name -> cln.Amount
+	655, // 466: cln.BkprchannelsapyChannelsApy.fees_in_msat:type_name -> cln.Amount
+	66,  // 467: cln.BkprdumpincomecsvResponse.csv_format:type_name -> cln.BkprdumpincomecsvResponse.BkprdumpincomecsvCsvFormat
+	493, // 468: cln.BkprinspectResponse.txs:type_name -> cln.BkprinspectTxs
+	655, // 469: cln.BkprinspectTxs.fees_paid_msat:type_name -> cln.Amount
+	494, // 470: cln.BkprinspectTxs.outputs:type_name -> cln.BkprinspectTxsOutputs
+	655, // 471: cln.BkprinspectTxsOutputs.output_value_msat:type_name -> cln.Amount
+	655, // 472: cln.BkprinspectTxsOutputs.credit_msat:type_name -> cln.Amount
+	655, // 473: cln.BkprinspectTxsOutputs.debit_msat:type_name -> cln.Amount
+	497, // 474: cln.BkprlistaccounteventsResponse.events:type_name -> cln.BkprlistaccounteventsEvents
+	67,  // 475: cln.BkprlistaccounteventsEvents.item_type:type_name -> cln.BkprlistaccounteventsEvents.BkprlistaccounteventsEventsType
+	655, // 476: cln.BkprlistaccounteventsEvents.credit_msat:type_name -> cln.Amount
+	655, // 477: cln.BkprlistaccounteventsEvents.debit_msat:type_name -> cln.Amount
+	655, // 478: cln.BkprlistaccounteventsEvents.fees_msat:type_name -> cln.Amount
+	500, // 479: cln.BkprlistbalancesResponse.accounts:type_name -> cln.BkprlistbalancesAccounts
+	501, // 480: cln.BkprlistbalancesAccounts.balances:type_name -> cln.BkprlistbalancesAccountsBalances
+	655, // 481: cln.BkprlistbalancesAccountsBalances.balance_msat:type_name -> cln.Amount
+	504, // 482: cln.BkprlistincomeResponse.income_events:type_name -> cln.BkprlistincomeIncomeEvents
+	655, // 483: cln.BkprlistincomeIncomeEvents.credit_msat:type_name -> cln.Amount
+	655, // 484: cln.BkprlistincomeIncomeEvents.debit_msat:type_name -> cln.Amount
+	507, // 485: cln.BkpreditdescriptionbypaymentidResponse.updated:type_name -> cln.BkpreditdescriptionbypaymentidUpdated
+	68,  // 486: cln.BkpreditdescriptionbypaymentidUpdated.item_type:type_name -> cln.BkpreditdescriptionbypaymentidUpdated.BkpreditdescriptionbypaymentidUpdatedType
+	655, // 487: cln.BkpreditdescriptionbypaymentidUpdated.credit_msat:type_name -> cln.Amount
+	655, // 488: cln.BkpreditdescriptionbypaymentidUpdated.debit_msat:type_name -> cln.Amount
+	655, // 489: cln.BkpreditdescriptionbypaymentidUpdated.fees_msat:type_name -> cln.Amount
+	510, // 490: cln.BkpreditdescriptionbyoutpointResponse.updated:type_name -> cln.BkpreditdescriptionbyoutpointUpdated
+	69,  // 491: cln.BkpreditdescriptionbyoutpointUpdated.item_type:type_name -> cln.BkpreditdescriptionbyoutpointUpdated.BkpreditdescriptionbyoutpointUpdatedType
+	655, // 492: cln.BkpreditdescriptionbyoutpointUpdated.credit_msat:type_name -> cln.Amount
+	655, // 493: cln.BkpreditdescriptionbyoutpointUpdated.debit_msat:type_name -> cln.Amount
+	655, // 494: cln.BkpreditdescriptionbyoutpointUpdated.fees_msat:type_name -> cln.Amount
+	515, // 495: cln.BlacklistruneResponse.blacklist:type_name -> cln.BlacklistruneBlacklist
+	522, // 496: cln.ShowrunesResponse.runes:type_name -> cln.ShowrunesRunes
+	523, // 497: cln.ShowrunesRunes.restrictions:type_name -> cln.ShowrunesRunesRestrictions
+	524, // 498: cln.ShowrunesRunesRestrictions.alternatives:type_name -> cln.ShowrunesRunesRestrictionsAlternatives
+	527, // 499: cln.AskreneunreserveRequest.path:type_name -> cln.AskreneunreservePath
+	655, // 500: cln.AskreneunreservePath.amount_msat:type_name -> cln.Amount
+	530, // 501: cln.AskrenelistlayersResponse.layers:type_name -> cln.AskrenelistlayersLayers
+	531, // 502: cln.AskrenelistlayersLayers.created_channels:type_name -> cln.AskrenelistlayersLayersCreatedChannels
+	533, // 503: cln.AskrenelistlayersLayers.constraints:type_name -> cln.AskrenelistlayersLayersConstraints
+	532, // 504: cln.AskrenelistlayersLayers.channel_updates:type_name -> cln.AskrenelistlayersLayersChannelUpdates
+	534, // 505: cln.AskrenelistlayersLayers.biases:type_name -> cln.AskrenelistlayersLayersBiases
+	535, // 506: cln.AskrenelistlayersLayers.node_biases:type_name -> cln.AskrenelistlayersLayersNodeBiases
+	655, // 507: cln.AskrenelistlayersLayersCreatedChannels.capacity_msat:type_name -> cln.Amount
+	655, // 508: cln.AskrenelistlayersLayersChannelUpdates.htlc_minimum_msat:type_name -> cln.Amount
+	655, // 509: cln.AskrenelistlayersLayersChannelUpdates.htlc_maximum_msat:type_name -> cln.Amount
+	655, // 510: cln.AskrenelistlayersLayersChannelUpdates.fee_base_msat:type_name -> cln.Amount
+	655, // 511: cln.AskrenelistlayersLayersConstraints.maximum_msat:type_name -> cln.Amount
+	655, // 512: cln.AskrenelistlayersLayersConstraints.minimum_msat:type_name -> cln.Amount
+	538, // 513: cln.AskrenecreatelayerResponse.layers:type_name -> cln.AskrenecreatelayerLayers
+	539, // 514: cln.AskrenecreatelayerLayers.created_channels:type_name -> cln.AskrenecreatelayerLayersCreatedChannels
+	540, // 515: cln.AskrenecreatelayerLayers.channel_updates:type_name -> cln.AskrenecreatelayerLayersChannelUpdates
+	541, // 516: cln.AskrenecreatelayerLayers.constraints:type_name -> cln.AskrenecreatelayerLayersConstraints
+	542, // 517: cln.AskrenecreatelayerLayers.biases:type_name -> cln.AskrenecreatelayerLayersBiases
+	543, // 518: cln.AskrenecreatelayerLayers.node_biases:type_name -> cln.AskrenecreatelayerLayersNodeBiases
+	655, // 519: cln.AskrenecreatelayerLayersCreatedChannels.capacity_msat:type_name -> cln.Amount
+	655, // 520: cln.AskrenecreatelayerLayersChannelUpdates.htlc_minimum_msat:type_name -> cln.Amount
+	655, // 521: cln.AskrenecreatelayerLayersChannelUpdates.htlc_maximum_msat:type_name -> cln.Amount
+	655, // 522: cln.AskrenecreatelayerLayersChannelUpdates.fee_base_msat:type_name -> cln.Amount
+	655, // 523: cln.AskrenecreatelayerLayersConstraints.maximum_msat:type_name -> cln.Amount
+	655, // 524: cln.AskrenecreatelayerLayersConstraints.minimum_msat:type_name -> cln.Amount
+	548, // 525: cln.AskrenereserveRequest.path:type_name -> cln.AskrenereservePath
+	655, // 526: cln.AskrenereservePath.amount_msat:type_name -> cln.Amount
+	655, // 527: cln.GetroutesRequest.amount_msat:type_name -> cln.Amount
+	655, // 528: cln.GetroutesRequest.maxfee_msat:type_name -> cln.Amount
+	553, // 529: cln.GetroutesResponse.routes:type_name -> cln.GetroutesRoutes
+	655, // 530: cln.GetroutesRoutes.amount_msat:type_name -> cln.Amount
+	554, // 531: cln.GetroutesRoutes.path:type_name -> cln.GetroutesRoutesPath
+	655, // 532: cln.GetroutesRoutesPath.amount_msat:type_name -> cln.Amount
+	655, // 533: cln.AskreneinformchannelRequest.amount_msat:type_name -> cln.Amount
+	70,  // 534: cln.AskreneinformchannelRequest.inform:type_name -> cln.AskreneinformchannelRequest.AskreneinformchannelInform
+	559, // 535: cln.AskreneinformchannelResponse.constraints:type_name -> cln.AskreneinformchannelConstraints
+	655, // 536: cln.AskreneinformchannelConstraints.maximum_msat:type_name -> cln.Amount
+	655, // 537: cln.AskreneinformchannelConstraints.minimum_msat:type_name -> cln.Amount
+	655, // 538: cln.AskrenecreatechannelRequest.capacity_msat:type_name -> cln.Amount
+	655, // 539: cln.AskreneupdatechannelRequest.htlc_minimum_msat:type_name -> cln.Amount
+	655, // 540: cln.AskreneupdatechannelRequest.htlc_maximum_msat:type_name -> cln.Amount
+	655, // 541: cln.AskreneupdatechannelRequest.fee_base_msat:type_name -> cln.Amount
+	566, // 542: cln.AskrenebiaschannelResponse.biases:type_name -> cln.AskrenebiaschannelBiases
+	569, // 543: cln.AskrenebiasnodeResponse.node_biases:type_name -> cln.AskrenebiasnodeNodeBiases
+	572, // 544: cln.AskrenelistreservationsResponse.reservations:type_name -> cln.AskrenelistreservationsReservations
+	655, // 545: cln.AskrenelistreservationsReservations.amount_msat:type_name -> cln.Amount
+	655, // 546: cln.InjectpaymentonionRequest.amount_msat:type_name -> cln.Amount
+	655, // 547: cln.InjectpaymentonionRequest.destination_msat:type_name -> cln.Amount
+	655, // 548: cln.XpayRequest.amount_msat:type_name -> cln.Amount
+	655, // 549: cln.XpayRequest.maxfee:type_name -> cln.Amount
+	655, // 550: cln.XpayRequest.partial_msat:type_name -> cln.Amount
+	655, // 551: cln.XpayResponse.amount_msat:type_name -> cln.Amount
+	655, // 552: cln.XpayResponse.amount_sent_msat:type_name -> cln.Amount
+	71,  // 553: cln.ListchannelmovesRequest.index:type_name -> cln.ListchannelmovesRequest.ListchannelmovesIndex
+	583, // 554: cln.ListchannelmovesResponse.channelmoves:type_name -> cln.ListchannelmovesChannelmoves
+	655, // 555: cln.ListchannelmovesChannelmoves.credit_msat:type_name -> cln.Amount
+	655, // 556: cln.ListchannelmovesChannelmoves.debit_msat:type_name -> cln.Amount
+	72,  // 557: cln.ListchannelmovesChannelmoves.primary_tag:type_name -> cln.ListchannelmovesChannelmoves.ListchannelmovesChannelmovesPrimaryTag
+	655, // 558: cln.ListchannelmovesChannelmoves.fees_msat:type_name -> cln.Amount
+	73,  // 559: cln.ListchainmovesRequest.index:type_name -> cln.ListchainmovesRequest.ListchainmovesIndex
+	586, // 560: cln.ListchainmovesResponse.chainmoves:type_name -> cln.ListchainmovesChainmoves
+	655, // 561: cln.ListchainmovesChainmoves.credit_msat:type_name -> cln.Amount
+	655, // 562: cln.ListchainmovesChainmoves.debit_msat:type_name -> cln.Amount
+	74,  // 563: cln.ListchainmovesChainmoves.primary_tag:type_name -> cln.ListchainmovesChainmoves.ListchainmovesChainmovesPrimaryTag
+	658, // 564: cln.ListchainmovesChainmoves.utxo:type_name -> cln.Outpoint
+	655, // 565: cln.ListchainmovesChainmoves.output_msat:type_name -> cln.Amount
+	75,  // 566: cln.ListnetworkeventsRequest.index:type_name -> cln.ListnetworkeventsRequest.ListnetworkeventsIndex
+	589, // 567: cln.ListnetworkeventsResponse.networkevents:type_name -> cln.ListnetworkeventsNetworkevents
+	594, // 568: cln.ClnrestregisterpathRequest.rune_restrictions:type_name -> cln.ClnrestregisterpathRuneRestrictions
+	654, // 569: cln.ClnrestregisterpathRuneRestrictions.params:type_name -> cln.ClnrestregisterpathRuneRestrictions.ParamsEntry
+	597, // 570: cln.ListcurrencyratesResponse.currencyrates:type_name -> cln.ListcurrencyratesCurrencyrates
+	655, // 571: cln.CurrencyconvertResponse.msat:type_name -> cln.Amount
+	604, // 572: cln.BalanceSnapshotNotification.accounts:type_name -> cln.BalanceSnapshotAccounts
+	655, // 573: cln.BalanceSnapshotAccounts.balance_msat:type_name -> cln.Amount
+	655, // 574: cln.ChannelOpenedNotification.funding_msat:type_name -> cln.Amount
+	656, // 575: cln.ChannelStateChangedNotification.old_state:type_name -> cln.ChannelState
+	656, // 576: cln.ChannelStateChangedNotification.new_state:type_name -> cln.ChannelState
+	76,  // 577: cln.ChannelStateChangedNotification.cause:type_name -> cln.ChannelStateChangedNotification.ChannelStateChangedCause
+	77,  // 578: cln.PeerConnectNotification.direction:type_name -> cln.PeerConnectNotification.PeerConnectDirection
+	615, // 579: cln.PeerConnectNotification.address:type_name -> cln.PeerConnectAddress
+	78,  // 580: cln.PeerConnectAddress.item_type:type_name -> cln.PeerConnectAddress.PeerConnectAddressType
+	79,  // 581: cln.CoinMovementNotification.item_type:type_name -> cln.CoinMovementNotification.CoinMovementType
+	655, // 582: cln.CoinMovementNotification.credit_msat:type_name -> cln.Amount
+	655, // 583: cln.CoinMovementNotification.debit_msat:type_name -> cln.Amount
+	80,  // 584: cln.CoinMovementNotification.primary_tag:type_name -> cln.CoinMovementNotification.CoinMovementPrimaryTag
+	655, // 585: cln.CoinMovementNotification.fees_msat:type_name -> cln.Amount
+	658, // 586: cln.CoinMovementNotification.utxo:type_name -> cln.Outpoint
+	655, // 587: cln.CoinMovementNotification.output_msat:type_name -> cln.Amount
+	655, // 588: cln.ForwardEventNotification.in_msat:type_name -> cln.Amount
+	655, // 589: cln.ForwardEventNotification.out_msat:type_name -> cln.Amount
+	655, // 590: cln.ForwardEventNotification.fee_msat:type_name -> cln.Amount
+	81,  // 591: cln.ForwardEventNotification.status:type_name -> cln.ForwardEventNotification.ForwardEventStatus
+	82,  // 592: cln.ForwardEventNotification.style:type_name -> cln.ForwardEventNotification.ForwardEventStyle
+	655, // 593: cln.InvoiceCreationNotification.msat:type_name -> cln.Amount
+	655, // 594: cln.InvoicePaymentNotification.msat:type_name -> cln.Amount
+	658, // 595: cln.InvoicePaymentNotification.outpoint:type_name -> cln.Outpoint
+	83,  // 596: cln.LogNotification.level:type_name -> cln.LogNotification.LogLevel
+	642, // 597: cln.SendPayFailureNotification.data:type_name -> cln.SendpayFailureData
+	655, // 598: cln.SendpayFailureData.amount_msat:type_name -> cln.Amount
+	655, // 599: cln.SendpayFailureData.amount_sent_msat:type_name -> cln.Amount
+	84,  // 600: cln.SendpayFailureData.status:type_name -> cln.SendpayFailureData.SendpayFailureDataStatus
+	655, // 601: cln.SendPaySuccessNotification.amount_msat:type_name -> cln.Amount
+	655, // 602: cln.SendPaySuccessNotification.amount_sent_msat:type_name -> cln.Amount
+	85,  // 603: cln.SendPaySuccessNotification.status:type_name -> cln.SendPaySuccessNotification.SendpaySuccessStatus
+	86,  // 604: cln.WarningNotification.level:type_name -> cln.WarningNotification.WarningLevel
+	87,  // 605: cln.PayPartEndNotification.status:type_name -> cln.PayPartEndNotification.PayPartEndStatus
+	655, // 606: cln.PayPartStartNotification.total_payment_msat:type_name -> cln.Amount
+	655, // 607: cln.PayPartStartNotification.attempt_msat:type_name -> cln.Amount
+	653, // 608: cln.PayPartStartNotification.hops:type_name -> cln.PayPartStartHops
+	655, // 609: cln.PayPartStartHops.channel_in_msat:type_name -> cln.Amount
+	655, // 610: cln.PayPartStartHops.channel_out_msat:type_name -> cln.Amount
+	88,  // 611: cln.Node.Getinfo:input_type -> cln.GetinfoRequest
+	93,  // 612: cln.Node.ListPeers:input_type -> cln.ListpeersRequest
+	97,  // 613: cln.Node.ListFunds:input_type -> cln.ListfundsRequest
+	101, // 614: cln.Node.SendPay:input_type -> cln.SendpayRequest
+	104, // 615: cln.Node.ListChannels:input_type -> cln.ListchannelsRequest
+	107, // 616: cln.Node.AddGossip:input_type -> cln.AddgossipRequest
+	109, // 617: cln.Node.AddPsbtOutput:input_type -> cln.AddpsbtoutputRequest
+	111, // 618: cln.Node.AutoCleanOnce:input_type -> cln.AutocleanonceRequest
+	121, // 619: cln.Node.AutoCleanStatus:input_type -> cln.AutocleanstatusRequest
+	131, // 620: cln.Node.CheckMessage:input_type -> cln.CheckmessageRequest
+	133, // 621: cln.Node.Close:input_type -> cln.CloseRequest
+	135, // 622: cln.Node.ConnectPeer:input_type -> cln.ConnectRequest
+	138, // 623: cln.Node.CreateInvoice:input_type -> cln.CreateinvoiceRequest
+	141, // 624: cln.Node.Datastore:input_type -> cln.DatastoreRequest
+	143, // 625: cln.Node.DatastoreUsage:input_type -> cln.DatastoreusageRequest
+	146, // 626: cln.Node.CreateOnion:input_type -> cln.CreateonionRequest
+	149, // 627: cln.Node.DelDatastore:input_type -> cln.DeldatastoreRequest
+	151, // 628: cln.Node.DelInvoice:input_type -> cln.DelinvoiceRequest
+	153, // 629: cln.Node.DevForgetChannel:input_type -> cln.DevforgetchannelRequest
+	155, // 630: cln.Node.EmergencyRecover:input_type -> cln.EmergencyrecoverRequest
+	157, // 631: cln.Node.GetEmergencyRecoverData:input_type -> cln.GetemergencyrecoverdataRequest
+	159, // 632: cln.Node.ExposeSecret:input_type -> cln.ExposesecretRequest
+	161, // 633: cln.Node.Recover:input_type -> cln.RecoverRequest
+	163, // 634: cln.Node.RecoverChannel:input_type -> cln.RecoverchannelRequest
+	165, // 635: cln.Node.Invoice:input_type -> cln.InvoiceRequest
+	167, // 636: cln.Node.CreateInvoiceRequest:input_type -> cln.InvoicerequestRequest
+	169, // 637: cln.Node.DisableInvoiceRequest:input_type -> cln.DisableinvoicerequestRequest
+	171, // 638: cln.Node.ListInvoiceRequests:input_type -> cln.ListinvoicerequestsRequest
+	174, // 639: cln.Node.ListDatastore:input_type -> cln.ListdatastoreRequest
+	177, // 640: cln.Node.ListInvoices:input_type -> cln.ListinvoicesRequest
+	181, // 641: cln.Node.SendOnion:input_type -> cln.SendonionRequest
+	184, // 642: cln.Node.ListSendPays:input_type -> cln.ListsendpaysRequest
+	187, // 643: cln.Node.ListTransactions:input_type -> cln.ListtransactionsRequest
+	192, // 644: cln.Node.MakeSecret:input_type -> cln.MakesecretRequest
+	194, // 645: cln.Node.Pay:input_type -> cln.PayRequest
+	196, // 646: cln.Node.ListNodes:input_type -> cln.ListnodesRequest
+	201, // 647: cln.Node.WaitAnyInvoice:input_type -> cln.WaitanyinvoiceRequest
+	204, // 648: cln.Node.WaitInvoice:input_type -> cln.WaitinvoiceRequest
+	207, // 649: cln.Node.WaitSendPay:input_type -> cln.WaitsendpayRequest
+	209, // 650: cln.Node.NewAddr:input_type -> cln.NewaddrRequest
+	211, // 651: cln.Node.Withdraw:input_type -> cln.WithdrawRequest
+	213, // 652: cln.Node.KeySend:input_type -> cln.KeysendRequest
+	215, // 653: cln.Node.FundPsbt:input_type -> cln.FundpsbtRequest
+	218, // 654: cln.Node.SendPsbt:input_type -> cln.SendpsbtRequest
+	220, // 655: cln.Node.SignPsbt:input_type -> cln.SignpsbtRequest
+	222, // 656: cln.Node.UtxoPsbt:input_type -> cln.UtxopsbtRequest
+	225, // 657: cln.Node.TxDiscard:input_type -> cln.TxdiscardRequest
+	227, // 658: cln.Node.TxPrepare:input_type -> cln.TxprepareRequest
+	229, // 659: cln.Node.TxSend:input_type -> cln.TxsendRequest
+	231, // 660: cln.Node.ListPeerChannels:input_type -> cln.ListpeerchannelsRequest
+	242, // 661: cln.Node.ListClosedChannels:input_type -> cln.ListclosedchannelsRequest
+	246, // 662: cln.Node.Decode:input_type -> cln.DecodeRequest
+	258, // 663: cln.Node.DelPay:input_type -> cln.DelpayRequest
+	261, // 664: cln.Node.DelForward:input_type -> cln.DelforwardRequest
+	263, // 665: cln.Node.DisableOffer:input_type -> cln.DisableofferRequest
+	265, // 666: cln.Node.EnableOffer:input_type -> cln.EnableofferRequest
+	267, // 667: cln.Node.Disconnect:input_type -> cln.DisconnectRequest
+	269, // 668: cln.Node.Feerates:input_type -> cln.FeeratesRequest
+	276, // 669: cln.Node.FetchBip353:input_type -> cln.Fetchbip353Request
+	279, // 670: cln.Node.FetchInvoice:input_type -> cln.FetchinvoiceRequest
+	283, // 671: cln.Node.CancelRecurringInvoice:input_type -> cln.CancelrecurringinvoiceRequest
+	285, // 672: cln.Node.FundChannelCancel:input_type -> cln.FundchannelCancelRequest
+	287, // 673: cln.Node.FundChannelComplete:input_type -> cln.FundchannelCompleteRequest
+	289, // 674: cln.Node.FundChannel:input_type -> cln.FundchannelRequest
+	292, // 675: cln.Node.FundChannelStart:input_type -> cln.FundchannelStartRequest
+	295, // 676: cln.Node.GetLog:input_type -> cln.GetlogRequest
+	298, // 677: cln.Node.FunderUpdate:input_type -> cln.FunderupdateRequest
+	300, // 678: cln.Node.GetRoute:input_type -> cln.GetrouteRequest
+	303, // 679: cln.Node.ListAddresses:input_type -> cln.ListaddressesRequest
+	306, // 680: cln.Node.ListForwards:input_type -> cln.ListforwardsRequest
+	309, // 681: cln.Node.ListOffers:input_type -> cln.ListoffersRequest
+	312, // 682: cln.Node.ListPays:input_type -> cln.ListpaysRequest
+	315, // 683: cln.Node.ListHtlcs:input_type -> cln.ListhtlcsRequest
+	318, // 684: cln.Node.MultiFundChannel:input_type -> cln.MultifundchannelRequest
+	325, // 685: cln.Node.MultiWithdraw:input_type -> cln.MultiwithdrawRequest
+	327, // 686: cln.Node.Offer:input_type -> cln.OfferRequest
+	329, // 687: cln.Node.OpenChannelAbort:input_type -> cln.OpenchannelAbortRequest
+	331, // 688: cln.Node.OpenChannelBump:input_type -> cln.OpenchannelBumpRequest
+	334, // 689: cln.Node.OpenChannelInit:input_type -> cln.OpenchannelInitRequest
+	337, // 690: cln.Node.OpenChannelSigned:input_type -> cln.OpenchannelSignedRequest
+	339, // 691: cln.Node.OpenChannelUpdate:input_type -> cln.OpenchannelUpdateRequest
+	342, // 692: cln.Node.Ping:input_type -> cln.PingRequest
+	344, // 693: cln.Node.Plugin:input_type -> cln.PluginRequest
+	347, // 694: cln.Node.RenePayStatus:input_type -> cln.RenepaystatusRequest
+	350, // 695: cln.Node.RenePay:input_type -> cln.RenepayRequest
+	352, // 696: cln.Node.ReserveInputs:input_type -> cln.ReserveinputsRequest
+	355, // 697: cln.Node.SendCustomMsg:input_type -> cln.SendcustommsgRequest
+	357, // 698: cln.Node.SendInvoice:input_type -> cln.SendinvoiceRequest
+	359, // 699: cln.Node.SetChannel:input_type -> cln.SetchannelRequest
+	362, // 700: cln.Node.SetConfig:input_type -> cln.SetconfigRequest
+	365, // 701: cln.Node.SetPsbtVersion:input_type -> cln.SetpsbtversionRequest
+	367, // 702: cln.Node.SignInvoice:input_type -> cln.SigninvoiceRequest
+	369, // 703: cln.Node.SignMessage:input_type -> cln.SignmessageRequest
+	371, // 704: cln.Node.SpliceInit:input_type -> cln.SpliceInitRequest
+	373, // 705: cln.Node.SpliceSigned:input_type -> cln.SpliceSignedRequest
+	375, // 706: cln.Node.SpliceUpdate:input_type -> cln.SpliceUpdateRequest
+	377, // 707: cln.Node.SpliceIn:input_type -> cln.SpliceinRequest
+	379, // 708: cln.Node.SpliceOut:input_type -> cln.SpliceoutRequest
+	381, // 709: cln.Node.DevSplice:input_type -> cln.DevspliceRequest
+	383, // 710: cln.Node.UnreserveInputs:input_type -> cln.UnreserveinputsRequest
+	386, // 711: cln.Node.UpgradeWallet:input_type -> cln.UpgradewalletRequest
+	388, // 712: cln.Node.WaitBlockHeight:input_type -> cln.WaitblockheightRequest
+	390, // 713: cln.Node.Wait:input_type -> cln.WaitRequest
+	400, // 714: cln.Node.ListConfigs:input_type -> cln.ListconfigsRequest
+	475, // 715: cln.Node.Stop:input_type -> cln.StopRequest
+	477, // 716: cln.Node.Help:input_type -> cln.HelpRequest
+	480, // 717: cln.Node.PreApproveKeysend:input_type -> cln.PreapprovekeysendRequest
+	482, // 718: cln.Node.PreApproveInvoice:input_type -> cln.PreapproveinvoiceRequest
+	484, // 719: cln.Node.StaticBackup:input_type -> cln.StaticbackupRequest
+	486, // 720: cln.Node.BkprChannelsApy:input_type -> cln.BkprchannelsapyRequest
+	489, // 721: cln.Node.BkprDumpIncomeCsv:input_type -> cln.BkprdumpincomecsvRequest
+	491, // 722: cln.Node.BkprInspect:input_type -> cln.BkprinspectRequest
+	495, // 723: cln.Node.BkprListAccountEvents:input_type -> cln.BkprlistaccounteventsRequest
+	498, // 724: cln.Node.BkprListBalances:input_type -> cln.BkprlistbalancesRequest
+	502, // 725: cln.Node.BkprListIncome:input_type -> cln.BkprlistincomeRequest
+	505, // 726: cln.Node.BkprEditDescriptionByPaymentId:input_type -> cln.BkpreditdescriptionbypaymentidRequest
+	508, // 727: cln.Node.BkprEditDescriptionByOutpoint:input_type -> cln.BkpreditdescriptionbyoutpointRequest
+	511, // 728: cln.Node.BkprReport:input_type -> cln.BkprreportRequest
+	513, // 729: cln.Node.BlacklistRune:input_type -> cln.BlacklistruneRequest
+	516, // 730: cln.Node.CheckRune:input_type -> cln.CheckruneRequest
+	518, // 731: cln.Node.CreateRune:input_type -> cln.CreateruneRequest
+	520, // 732: cln.Node.ShowRunes:input_type -> cln.ShowrunesRequest
+	525, // 733: cln.Node.AskReneUnreserve:input_type -> cln.AskreneunreserveRequest
+	528, // 734: cln.Node.AskReneListLayers:input_type -> cln.AskrenelistlayersRequest
+	536, // 735: cln.Node.AskReneCreateLayer:input_type -> cln.AskrenecreatelayerRequest
+	544, // 736: cln.Node.AskReneRemoveLayer:input_type -> cln.AskreneremovelayerRequest
+	546, // 737: cln.Node.AskReneReserve:input_type -> cln.AskrenereserveRequest
+	549, // 738: cln.Node.AskReneAge:input_type -> cln.AskreneageRequest
+	551, // 739: cln.Node.GetRoutes:input_type -> cln.GetroutesRequest
+	555, // 740: cln.Node.AskReneDisableNode:input_type -> cln.AskrenedisablenodeRequest
+	557, // 741: cln.Node.AskReneInformChannel:input_type -> cln.AskreneinformchannelRequest
+	560, // 742: cln.Node.AskReneCreateChannel:input_type -> cln.AskrenecreatechannelRequest
+	562, // 743: cln.Node.AskReneUpdateChannel:input_type -> cln.AskreneupdatechannelRequest
+	564, // 744: cln.Node.AskReneBiasChannel:input_type -> cln.AskrenebiaschannelRequest
+	567, // 745: cln.Node.AskreneBiasNode:input_type -> cln.AskrenebiasnodeRequest
+	570, // 746: cln.Node.AskReneListReservations:input_type -> cln.AskrenelistreservationsRequest
+	573, // 747: cln.Node.InjectPaymentOnion:input_type -> cln.InjectpaymentonionRequest
+	575, // 748: cln.Node.InjectOnionMessage:input_type -> cln.InjectonionmessageRequest
+	577, // 749: cln.Node.Xpay:input_type -> cln.XpayRequest
+	579, // 750: cln.Node.SignMessageWithKey:input_type -> cln.SignmessagewithkeyRequest
+	581, // 751: cln.Node.ListChannelMoves:input_type -> cln.ListchannelmovesRequest
+	584, // 752: cln.Node.ListChainMoves:input_type -> cln.ListchainmovesRequest
+	587, // 753: cln.Node.ListNetworkEvents:input_type -> cln.ListnetworkeventsRequest
+	590, // 754: cln.Node.DelNetworkEvent:input_type -> cln.DelnetworkeventRequest
+	592, // 755: cln.Node.ClnrestRegisterPath:input_type -> cln.ClnrestregisterpathRequest
+	595, // 756: cln.Node.ListCurrencyRates:input_type -> cln.ListcurrencyratesRequest
+	598, // 757: cln.Node.CurrencyConvert:input_type -> cln.CurrencyconvertRequest
+	600, // 758: cln.Node.CurrencyRate:input_type -> cln.CurrencyrateRequest
+	602, // 759: cln.Node.SubscribeBalanceSnapshot:input_type -> cln.StreamBalanceSnapshotRequest
+	605, // 760: cln.Node.SubscribeBlockAdded:input_type -> cln.StreamBlockAddedRequest
+	607, // 761: cln.Node.SubscribeChannelOpenFailed:input_type -> cln.StreamChannelOpenFailedRequest
+	609, // 762: cln.Node.SubscribeChannelOpened:input_type -> cln.StreamChannelOpenedRequest
+	611, // 763: cln.Node.SubscribeChannelStateChanged:input_type -> cln.StreamChannelStateChangedRequest
+	613, // 764: cln.Node.SubscribeConnect:input_type -> cln.StreamConnectRequest
+	616, // 765: cln.Node.SubscribeCoinMovement:input_type -> cln.StreamCoinMovementRequest
+	618, // 766: cln.Node.SubscribeCustomMsg:input_type -> cln.StreamCustomMsgRequest
+	620, // 767: cln.Node.SubscribeDeprecatedOneshot:input_type -> cln.StreamDeprecatedOneshotRequest
+	622, // 768: cln.Node.SubscribeDisconnect:input_type -> cln.StreamDisconnectRequest
+	624, // 769: cln.Node.SubscribeForwardEvent:input_type -> cln.StreamForwardEventRequest
+	626, // 770: cln.Node.SubscribeInvoiceCreation:input_type -> cln.StreamInvoiceCreationRequest
+	628, // 771: cln.Node.SubscribeInvoicePayment:input_type -> cln.StreamInvoicePaymentRequest
+	630, // 772: cln.Node.SubscribeLog:input_type -> cln.StreamLogRequest
+	632, // 773: cln.Node.SubscribeOnionMessageForwardFail:input_type -> cln.StreamOnionMessageForwardFailRequest
+	634, // 774: cln.Node.SubscribeOpenChannelPeerSigs:input_type -> cln.StreamOpenChannelPeerSigsRequest
+	636, // 775: cln.Node.SubscribePluginStarted:input_type -> cln.StreamPluginStartedRequest
+	638, // 776: cln.Node.SubscribePluginStopped:input_type -> cln.StreamPluginStoppedRequest
+	640, // 777: cln.Node.SubscribeSendPayFailure:input_type -> cln.StreamSendPayFailureRequest
+	643, // 778: cln.Node.SubscribeSendPaySuccess:input_type -> cln.StreamSendPaySuccessRequest
+	645, // 779: cln.Node.SubscribeShutdown:input_type -> cln.StreamShutdownRequest
+	647, // 780: cln.Node.SubscribeWarning:input_type -> cln.StreamWarningRequest
+	649, // 781: cln.Node.SubscribePayPartEnd:input_type -> cln.StreamPayPartEndRequest
+	651, // 782: cln.Node.SubscribePayPartStart:input_type -> cln.StreamPayPartStartRequest
+	89,  // 783: cln.Node.Getinfo:output_type -> cln.GetinfoResponse
+	94,  // 784: cln.Node.ListPeers:output_type -> cln.ListpeersResponse
+	98,  // 785: cln.Node.ListFunds:output_type -> cln.ListfundsResponse
+	102, // 786: cln.Node.SendPay:output_type -> cln.SendpayResponse
+	105, // 787: cln.Node.ListChannels:output_type -> cln.ListchannelsResponse
+	108, // 788: cln.Node.AddGossip:output_type -> cln.AddgossipResponse
+	110, // 789: cln.Node.AddPsbtOutput:output_type -> cln.AddpsbtoutputResponse
+	112, // 790: cln.Node.AutoCleanOnce:output_type -> cln.AutocleanonceResponse
+	122, // 791: cln.Node.AutoCleanStatus:output_type -> cln.AutocleanstatusResponse
+	132, // 792: cln.Node.CheckMessage:output_type -> cln.CheckmessageResponse
+	134, // 793: cln.Node.Close:output_type -> cln.CloseResponse
+	136, // 794: cln.Node.ConnectPeer:output_type -> cln.ConnectResponse
+	139, // 795: cln.Node.CreateInvoice:output_type -> cln.CreateinvoiceResponse
+	142, // 796: cln.Node.Datastore:output_type -> cln.DatastoreResponse
+	144, // 797: cln.Node.DatastoreUsage:output_type -> cln.DatastoreusageResponse
+	147, // 798: cln.Node.CreateOnion:output_type -> cln.CreateonionResponse
+	150, // 799: cln.Node.DelDatastore:output_type -> cln.DeldatastoreResponse
+	152, // 800: cln.Node.DelInvoice:output_type -> cln.DelinvoiceResponse
+	154, // 801: cln.Node.DevForgetChannel:output_type -> cln.DevforgetchannelResponse
+	156, // 802: cln.Node.EmergencyRecover:output_type -> cln.EmergencyrecoverResponse
+	158, // 803: cln.Node.GetEmergencyRecoverData:output_type -> cln.GetemergencyrecoverdataResponse
+	160, // 804: cln.Node.ExposeSecret:output_type -> cln.ExposesecretResponse
+	162, // 805: cln.Node.Recover:output_type -> cln.RecoverResponse
+	164, // 806: cln.Node.RecoverChannel:output_type -> cln.RecoverchannelResponse
+	166, // 807: cln.Node.Invoice:output_type -> cln.InvoiceResponse
+	168, // 808: cln.Node.CreateInvoiceRequest:output_type -> cln.InvoicerequestResponse
+	170, // 809: cln.Node.DisableInvoiceRequest:output_type -> cln.DisableinvoicerequestResponse
+	172, // 810: cln.Node.ListInvoiceRequests:output_type -> cln.ListinvoicerequestsResponse
+	175, // 811: cln.Node.ListDatastore:output_type -> cln.ListdatastoreResponse
+	178, // 812: cln.Node.ListInvoices:output_type -> cln.ListinvoicesResponse
+	182, // 813: cln.Node.SendOnion:output_type -> cln.SendonionResponse
+	185, // 814: cln.Node.ListSendPays:output_type -> cln.ListsendpaysResponse
+	188, // 815: cln.Node.ListTransactions:output_type -> cln.ListtransactionsResponse
+	193, // 816: cln.Node.MakeSecret:output_type -> cln.MakesecretResponse
+	195, // 817: cln.Node.Pay:output_type -> cln.PayResponse
+	197, // 818: cln.Node.ListNodes:output_type -> cln.ListnodesResponse
+	202, // 819: cln.Node.WaitAnyInvoice:output_type -> cln.WaitanyinvoiceResponse
+	205, // 820: cln.Node.WaitInvoice:output_type -> cln.WaitinvoiceResponse
+	208, // 821: cln.Node.WaitSendPay:output_type -> cln.WaitsendpayResponse
+	210, // 822: cln.Node.NewAddr:output_type -> cln.NewaddrResponse
+	212, // 823: cln.Node.Withdraw:output_type -> cln.WithdrawResponse
+	214, // 824: cln.Node.KeySend:output_type -> cln.KeysendResponse
+	216, // 825: cln.Node.FundPsbt:output_type -> cln.FundpsbtResponse
+	219, // 826: cln.Node.SendPsbt:output_type -> cln.SendpsbtResponse
+	221, // 827: cln.Node.SignPsbt:output_type -> cln.SignpsbtResponse
+	223, // 828: cln.Node.UtxoPsbt:output_type -> cln.UtxopsbtResponse
+	226, // 829: cln.Node.TxDiscard:output_type -> cln.TxdiscardResponse
+	228, // 830: cln.Node.TxPrepare:output_type -> cln.TxprepareResponse
+	230, // 831: cln.Node.TxSend:output_type -> cln.TxsendResponse
+	232, // 832: cln.Node.ListPeerChannels:output_type -> cln.ListpeerchannelsResponse
+	243, // 833: cln.Node.ListClosedChannels:output_type -> cln.ListclosedchannelsResponse
+	247, // 834: cln.Node.Decode:output_type -> cln.DecodeResponse
+	259, // 835: cln.Node.DelPay:output_type -> cln.DelpayResponse
+	262, // 836: cln.Node.DelForward:output_type -> cln.DelforwardResponse
+	264, // 837: cln.Node.DisableOffer:output_type -> cln.DisableofferResponse
+	266, // 838: cln.Node.EnableOffer:output_type -> cln.EnableofferResponse
+	268, // 839: cln.Node.Disconnect:output_type -> cln.DisconnectResponse
+	270, // 840: cln.Node.Feerates:output_type -> cln.FeeratesResponse
+	277, // 841: cln.Node.FetchBip353:output_type -> cln.Fetchbip353Response
+	280, // 842: cln.Node.FetchInvoice:output_type -> cln.FetchinvoiceResponse
+	284, // 843: cln.Node.CancelRecurringInvoice:output_type -> cln.CancelrecurringinvoiceResponse
+	286, // 844: cln.Node.FundChannelCancel:output_type -> cln.FundchannelCancelResponse
+	288, // 845: cln.Node.FundChannelComplete:output_type -> cln.FundchannelCompleteResponse
+	290, // 846: cln.Node.FundChannel:output_type -> cln.FundchannelResponse
+	293, // 847: cln.Node.FundChannelStart:output_type -> cln.FundchannelStartResponse
+	296, // 848: cln.Node.GetLog:output_type -> cln.GetlogResponse
+	299, // 849: cln.Node.FunderUpdate:output_type -> cln.FunderupdateResponse
+	301, // 850: cln.Node.GetRoute:output_type -> cln.GetrouteResponse
+	304, // 851: cln.Node.ListAddresses:output_type -> cln.ListaddressesResponse
+	307, // 852: cln.Node.ListForwards:output_type -> cln.ListforwardsResponse
+	310, // 853: cln.Node.ListOffers:output_type -> cln.ListoffersResponse
+	313, // 854: cln.Node.ListPays:output_type -> cln.ListpaysResponse
+	316, // 855: cln.Node.ListHtlcs:output_type -> cln.ListhtlcsResponse
+	319, // 856: cln.Node.MultiFundChannel:output_type -> cln.MultifundchannelResponse
+	326, // 857: cln.Node.MultiWithdraw:output_type -> cln.MultiwithdrawResponse
+	328, // 858: cln.Node.Offer:output_type -> cln.OfferResponse
+	330, // 859: cln.Node.OpenChannelAbort:output_type -> cln.OpenchannelAbortResponse
+	332, // 860: cln.Node.OpenChannelBump:output_type -> cln.OpenchannelBumpResponse
+	335, // 861: cln.Node.OpenChannelInit:output_type -> cln.OpenchannelInitResponse
+	338, // 862: cln.Node.OpenChannelSigned:output_type -> cln.OpenchannelSignedResponse
+	340, // 863: cln.Node.OpenChannelUpdate:output_type -> cln.OpenchannelUpdateResponse
+	343, // 864: cln.Node.Ping:output_type -> cln.PingResponse
+	345, // 865: cln.Node.Plugin:output_type -> cln.PluginResponse
+	348, // 866: cln.Node.RenePayStatus:output_type -> cln.RenepaystatusResponse
+	351, // 867: cln.Node.RenePay:output_type -> cln.RenepayResponse
+	353, // 868: cln.Node.ReserveInputs:output_type -> cln.ReserveinputsResponse
+	356, // 869: cln.Node.SendCustomMsg:output_type -> cln.SendcustommsgResponse
+	358, // 870: cln.Node.SendInvoice:output_type -> cln.SendinvoiceResponse
+	360, // 871: cln.Node.SetChannel:output_type -> cln.SetchannelResponse
+	363, // 872: cln.Node.SetConfig:output_type -> cln.SetconfigResponse
+	366, // 873: cln.Node.SetPsbtVersion:output_type -> cln.SetpsbtversionResponse
+	368, // 874: cln.Node.SignInvoice:output_type -> cln.SigninvoiceResponse
+	370, // 875: cln.Node.SignMessage:output_type -> cln.SignmessageResponse
+	372, // 876: cln.Node.SpliceInit:output_type -> cln.SpliceInitResponse
+	374, // 877: cln.Node.SpliceSigned:output_type -> cln.SpliceSignedResponse
+	376, // 878: cln.Node.SpliceUpdate:output_type -> cln.SpliceUpdateResponse
+	378, // 879: cln.Node.SpliceIn:output_type -> cln.SpliceinResponse
+	380, // 880: cln.Node.SpliceOut:output_type -> cln.SpliceoutResponse
+	382, // 881: cln.Node.DevSplice:output_type -> cln.DevspliceResponse
+	384, // 882: cln.Node.UnreserveInputs:output_type -> cln.UnreserveinputsResponse
+	387, // 883: cln.Node.UpgradeWallet:output_type -> cln.UpgradewalletResponse
+	389, // 884: cln.Node.WaitBlockHeight:output_type -> cln.WaitblockheightResponse
+	391, // 885: cln.Node.Wait:output_type -> cln.WaitResponse
+	401, // 886: cln.Node.ListConfigs:output_type -> cln.ListconfigsResponse
+	476, // 887: cln.Node.Stop:output_type -> cln.StopResponse
+	478, // 888: cln.Node.Help:output_type -> cln.HelpResponse
+	481, // 889: cln.Node.PreApproveKeysend:output_type -> cln.PreapprovekeysendResponse
+	483, // 890: cln.Node.PreApproveInvoice:output_type -> cln.PreapproveinvoiceResponse
+	485, // 891: cln.Node.StaticBackup:output_type -> cln.StaticbackupResponse
+	487, // 892: cln.Node.BkprChannelsApy:output_type -> cln.BkprchannelsapyResponse
+	490, // 893: cln.Node.BkprDumpIncomeCsv:output_type -> cln.BkprdumpincomecsvResponse
+	492, // 894: cln.Node.BkprInspect:output_type -> cln.BkprinspectResponse
+	496, // 895: cln.Node.BkprListAccountEvents:output_type -> cln.BkprlistaccounteventsResponse
+	499, // 896: cln.Node.BkprListBalances:output_type -> cln.BkprlistbalancesResponse
+	503, // 897: cln.Node.BkprListIncome:output_type -> cln.BkprlistincomeResponse
+	506, // 898: cln.Node.BkprEditDescriptionByPaymentId:output_type -> cln.BkpreditdescriptionbypaymentidResponse
+	509, // 899: cln.Node.BkprEditDescriptionByOutpoint:output_type -> cln.BkpreditdescriptionbyoutpointResponse
+	512, // 900: cln.Node.BkprReport:output_type -> cln.BkprreportResponse
+	514, // 901: cln.Node.BlacklistRune:output_type -> cln.BlacklistruneResponse
+	517, // 902: cln.Node.CheckRune:output_type -> cln.CheckruneResponse
+	519, // 903: cln.Node.CreateRune:output_type -> cln.CreateruneResponse
+	521, // 904: cln.Node.ShowRunes:output_type -> cln.ShowrunesResponse
+	526, // 905: cln.Node.AskReneUnreserve:output_type -> cln.AskreneunreserveResponse
+	529, // 906: cln.Node.AskReneListLayers:output_type -> cln.AskrenelistlayersResponse
+	537, // 907: cln.Node.AskReneCreateLayer:output_type -> cln.AskrenecreatelayerResponse
+	545, // 908: cln.Node.AskReneRemoveLayer:output_type -> cln.AskreneremovelayerResponse
+	547, // 909: cln.Node.AskReneReserve:output_type -> cln.AskrenereserveResponse
+	550, // 910: cln.Node.AskReneAge:output_type -> cln.AskreneageResponse
+	552, // 911: cln.Node.GetRoutes:output_type -> cln.GetroutesResponse
+	556, // 912: cln.Node.AskReneDisableNode:output_type -> cln.AskrenedisablenodeResponse
+	558, // 913: cln.Node.AskReneInformChannel:output_type -> cln.AskreneinformchannelResponse
+	561, // 914: cln.Node.AskReneCreateChannel:output_type -> cln.AskrenecreatechannelResponse
+	563, // 915: cln.Node.AskReneUpdateChannel:output_type -> cln.AskreneupdatechannelResponse
+	565, // 916: cln.Node.AskReneBiasChannel:output_type -> cln.AskrenebiaschannelResponse
+	568, // 917: cln.Node.AskreneBiasNode:output_type -> cln.AskrenebiasnodeResponse
+	571, // 918: cln.Node.AskReneListReservations:output_type -> cln.AskrenelistreservationsResponse
+	574, // 919: cln.Node.InjectPaymentOnion:output_type -> cln.InjectpaymentonionResponse
+	576, // 920: cln.Node.InjectOnionMessage:output_type -> cln.InjectonionmessageResponse
+	578, // 921: cln.Node.Xpay:output_type -> cln.XpayResponse
+	580, // 922: cln.Node.SignMessageWithKey:output_type -> cln.SignmessagewithkeyResponse
+	582, // 923: cln.Node.ListChannelMoves:output_type -> cln.ListchannelmovesResponse
+	585, // 924: cln.Node.ListChainMoves:output_type -> cln.ListchainmovesResponse
+	588, // 925: cln.Node.ListNetworkEvents:output_type -> cln.ListnetworkeventsResponse
+	591, // 926: cln.Node.DelNetworkEvent:output_type -> cln.DelnetworkeventResponse
+	593, // 927: cln.Node.ClnrestRegisterPath:output_type -> cln.ClnrestregisterpathResponse
+	596, // 928: cln.Node.ListCurrencyRates:output_type -> cln.ListcurrencyratesResponse
+	599, // 929: cln.Node.CurrencyConvert:output_type -> cln.CurrencyconvertResponse
+	601, // 930: cln.Node.CurrencyRate:output_type -> cln.CurrencyrateResponse
+	603, // 931: cln.Node.SubscribeBalanceSnapshot:output_type -> cln.BalanceSnapshotNotification
+	606, // 932: cln.Node.SubscribeBlockAdded:output_type -> cln.BlockAddedNotification
+	608, // 933: cln.Node.SubscribeChannelOpenFailed:output_type -> cln.ChannelOpenFailedNotification
+	610, // 934: cln.Node.SubscribeChannelOpened:output_type -> cln.ChannelOpenedNotification
+	612, // 935: cln.Node.SubscribeChannelStateChanged:output_type -> cln.ChannelStateChangedNotification
+	614, // 936: cln.Node.SubscribeConnect:output_type -> cln.PeerConnectNotification
+	617, // 937: cln.Node.SubscribeCoinMovement:output_type -> cln.CoinMovementNotification
+	619, // 938: cln.Node.SubscribeCustomMsg:output_type -> cln.CustomMsgNotification
+	621, // 939: cln.Node.SubscribeDeprecatedOneshot:output_type -> cln.DeprecatedOneshotNotification
+	623, // 940: cln.Node.SubscribeDisconnect:output_type -> cln.DisconnectNotification
+	625, // 941: cln.Node.SubscribeForwardEvent:output_type -> cln.ForwardEventNotification
+	627, // 942: cln.Node.SubscribeInvoiceCreation:output_type -> cln.InvoiceCreationNotification
+	629, // 943: cln.Node.SubscribeInvoicePayment:output_type -> cln.InvoicePaymentNotification
+	631, // 944: cln.Node.SubscribeLog:output_type -> cln.LogNotification
+	633, // 945: cln.Node.SubscribeOnionMessageForwardFail:output_type -> cln.OnionMessageForwardFailNotification
+	635, // 946: cln.Node.SubscribeOpenChannelPeerSigs:output_type -> cln.OpenChannelPeerSigsNotification
+	637, // 947: cln.Node.SubscribePluginStarted:output_type -> cln.PluginStartedNotification
+	639, // 948: cln.Node.SubscribePluginStopped:output_type -> cln.PluginStoppedNotification
+	641, // 949: cln.Node.SubscribeSendPayFailure:output_type -> cln.SendPayFailureNotification
+	644, // 950: cln.Node.SubscribeSendPaySuccess:output_type -> cln.SendPaySuccessNotification
+	646, // 951: cln.Node.SubscribeShutdown:output_type -> cln.ShutdownNotification
+	648, // 952: cln.Node.SubscribeWarning:output_type -> cln.WarningNotification
+	650, // 953: cln.Node.SubscribePayPartEnd:output_type -> cln.PayPartEndNotification
+	652, // 954: cln.Node.SubscribePayPartStart:output_type -> cln.PayPartStartNotification
+	783, // [783:955] is the sub-list for method output_type
+	611, // [611:783] is the sub-list for method input_type
+	611, // [611:611] is the sub-list for extension type_name
+	611, // [611:611] is the sub-list for extension extendee
+	0,   // [0:611] is the sub-list for field type_name
 }
 
 func init() { file_node_proto_init() }
@@ -46187,7 +50759,6 @@ func file_node_proto_init() {
 	file_node_proto_msgTypes[65].OneofWrappers = []any{}
 	file_node_proto_msgTypes[71].OneofWrappers = []any{}
 	file_node_proto_msgTypes[72].OneofWrappers = []any{}
-	file_node_proto_msgTypes[74].OneofWrappers = []any{}
 	file_node_proto_msgTypes[77].OneofWrappers = []any{}
 	file_node_proto_msgTypes[78].OneofWrappers = []any{}
 	file_node_proto_msgTypes[79].OneofWrappers = []any{}
@@ -46304,89 +50875,99 @@ func file_node_proto_init() {
 	file_node_proto_msgTypes[285].OneofWrappers = []any{}
 	file_node_proto_msgTypes[286].OneofWrappers = []any{}
 	file_node_proto_msgTypes[288].OneofWrappers = []any{}
-	file_node_proto_msgTypes[289].OneofWrappers = []any{}
 	file_node_proto_msgTypes[290].OneofWrappers = []any{}
 	file_node_proto_msgTypes[291].OneofWrappers = []any{}
+	file_node_proto_msgTypes[292].OneofWrappers = []any{}
 	file_node_proto_msgTypes[293].OneofWrappers = []any{}
 	file_node_proto_msgTypes[294].OneofWrappers = []any{}
 	file_node_proto_msgTypes[295].OneofWrappers = []any{}
-	file_node_proto_msgTypes[296].OneofWrappers = []any{}
+	file_node_proto_msgTypes[297].OneofWrappers = []any{}
+	file_node_proto_msgTypes[298].OneofWrappers = []any{}
 	file_node_proto_msgTypes[299].OneofWrappers = []any{}
 	file_node_proto_msgTypes[300].OneofWrappers = []any{}
-	file_node_proto_msgTypes[301].OneofWrappers = []any{}
-	file_node_proto_msgTypes[302].OneofWrappers = []any{}
 	file_node_proto_msgTypes[303].OneofWrappers = []any{}
+	file_node_proto_msgTypes[304].OneofWrappers = []any{}
+	file_node_proto_msgTypes[305].OneofWrappers = []any{}
 	file_node_proto_msgTypes[306].OneofWrappers = []any{}
 	file_node_proto_msgTypes[307].OneofWrappers = []any{}
-	file_node_proto_msgTypes[308].OneofWrappers = []any{}
-	file_node_proto_msgTypes[309].OneofWrappers = []any{}
 	file_node_proto_msgTypes[310].OneofWrappers = []any{}
+	file_node_proto_msgTypes[311].OneofWrappers = []any{}
+	file_node_proto_msgTypes[312].OneofWrappers = []any{}
+	file_node_proto_msgTypes[313].OneofWrappers = []any{}
 	file_node_proto_msgTypes[314].OneofWrappers = []any{}
-	file_node_proto_msgTypes[356].OneofWrappers = []any{}
-	file_node_proto_msgTypes[374].OneofWrappers = []any{}
-	file_node_proto_msgTypes[382].OneofWrappers = []any{}
-	file_node_proto_msgTypes[383].OneofWrappers = []any{}
-	file_node_proto_msgTypes[384].OneofWrappers = []any{}
-	file_node_proto_msgTypes[392].OneofWrappers = []any{}
-	file_node_proto_msgTypes[394].OneofWrappers = []any{}
-	file_node_proto_msgTypes[395].OneofWrappers = []any{}
-	file_node_proto_msgTypes[399].OneofWrappers = []any{}
+	file_node_proto_msgTypes[318].OneofWrappers = []any{}
+	file_node_proto_msgTypes[360].OneofWrappers = []any{}
+	file_node_proto_msgTypes[378].OneofWrappers = []any{}
+	file_node_proto_msgTypes[385].OneofWrappers = []any{}
+	file_node_proto_msgTypes[386].OneofWrappers = []any{}
+	file_node_proto_msgTypes[389].OneofWrappers = []any{}
+	file_node_proto_msgTypes[390].OneofWrappers = []any{}
+	file_node_proto_msgTypes[398].OneofWrappers = []any{}
 	file_node_proto_msgTypes[400].OneofWrappers = []any{}
 	file_node_proto_msgTypes[401].OneofWrappers = []any{}
-	file_node_proto_msgTypes[403].OneofWrappers = []any{}
+	file_node_proto_msgTypes[405].OneofWrappers = []any{}
 	file_node_proto_msgTypes[406].OneofWrappers = []any{}
-	file_node_proto_msgTypes[408].OneofWrappers = []any{}
-	file_node_proto_msgTypes[410].OneofWrappers = []any{}
-	file_node_proto_msgTypes[413].OneofWrappers = []any{}
+	file_node_proto_msgTypes[407].OneofWrappers = []any{}
+	file_node_proto_msgTypes[409].OneofWrappers = []any{}
+	file_node_proto_msgTypes[412].OneofWrappers = []any{}
+	file_node_proto_msgTypes[414].OneofWrappers = []any{}
 	file_node_proto_msgTypes[416].OneofWrappers = []any{}
-	file_node_proto_msgTypes[417].OneofWrappers = []any{}
-	file_node_proto_msgTypes[420].OneofWrappers = []any{}
+	file_node_proto_msgTypes[419].OneofWrappers = []any{}
 	file_node_proto_msgTypes[422].OneofWrappers = []any{}
 	file_node_proto_msgTypes[423].OneofWrappers = []any{}
-	file_node_proto_msgTypes[424].OneofWrappers = []any{}
-	file_node_proto_msgTypes[426].OneofWrappers = []any{}
+	file_node_proto_msgTypes[425].OneofWrappers = []any{}
+	file_node_proto_msgTypes[428].OneofWrappers = []any{}
+	file_node_proto_msgTypes[430].OneofWrappers = []any{}
 	file_node_proto_msgTypes[431].OneofWrappers = []any{}
 	file_node_proto_msgTypes[432].OneofWrappers = []any{}
 	file_node_proto_msgTypes[434].OneofWrappers = []any{}
-	file_node_proto_msgTypes[436].OneofWrappers = []any{}
 	file_node_proto_msgTypes[437].OneofWrappers = []any{}
-	file_node_proto_msgTypes[438].OneofWrappers = []any{}
 	file_node_proto_msgTypes[439].OneofWrappers = []any{}
 	file_node_proto_msgTypes[440].OneofWrappers = []any{}
 	file_node_proto_msgTypes[444].OneofWrappers = []any{}
 	file_node_proto_msgTypes[445].OneofWrappers = []any{}
 	file_node_proto_msgTypes[446].OneofWrappers = []any{}
 	file_node_proto_msgTypes[447].OneofWrappers = []any{}
+	file_node_proto_msgTypes[448].OneofWrappers = []any{}
 	file_node_proto_msgTypes[452].OneofWrappers = []any{}
+	file_node_proto_msgTypes[453].OneofWrappers = []any{}
+	file_node_proto_msgTypes[454].OneofWrappers = []any{}
 	file_node_proto_msgTypes[455].OneofWrappers = []any{}
-	file_node_proto_msgTypes[457].OneofWrappers = []any{}
-	file_node_proto_msgTypes[458].OneofWrappers = []any{}
-	file_node_proto_msgTypes[461].OneofWrappers = []any{}
+	file_node_proto_msgTypes[460].OneofWrappers = []any{}
 	file_node_proto_msgTypes[463].OneofWrappers = []any{}
-	file_node_proto_msgTypes[466].OneofWrappers = []any{}
-	file_node_proto_msgTypes[468].OneofWrappers = []any{}
-	file_node_proto_msgTypes[470].OneofWrappers = []any{}
 	file_node_proto_msgTypes[471].OneofWrappers = []any{}
-	file_node_proto_msgTypes[473].OneofWrappers = []any{}
-	file_node_proto_msgTypes[477].OneofWrappers = []any{}
+	file_node_proto_msgTypes[474].OneofWrappers = []any{}
+	file_node_proto_msgTypes[476].OneofWrappers = []any{}
+	file_node_proto_msgTypes[478].OneofWrappers = []any{}
+	file_node_proto_msgTypes[479].OneofWrappers = []any{}
 	file_node_proto_msgTypes[481].OneofWrappers = []any{}
 	file_node_proto_msgTypes[485].OneofWrappers = []any{}
-	file_node_proto_msgTypes[487].OneofWrappers = []any{}
-	file_node_proto_msgTypes[488].OneofWrappers = []any{}
-	file_node_proto_msgTypes[490].OneofWrappers = []any{}
-	file_node_proto_msgTypes[491].OneofWrappers = []any{}
+	file_node_proto_msgTypes[489].OneofWrappers = []any{}
 	file_node_proto_msgTypes[493].OneofWrappers = []any{}
+	file_node_proto_msgTypes[495].OneofWrappers = []any{}
 	file_node_proto_msgTypes[496].OneofWrappers = []any{}
 	file_node_proto_msgTypes[498].OneofWrappers = []any{}
-	file_node_proto_msgTypes[507].OneofWrappers = []any{}
-	file_node_proto_msgTypes[511].OneofWrappers = []any{}
+	file_node_proto_msgTypes[499].OneofWrappers = []any{}
+	file_node_proto_msgTypes[501].OneofWrappers = []any{}
+	file_node_proto_msgTypes[504].OneofWrappers = []any{}
+	file_node_proto_msgTypes[506].OneofWrappers = []any{}
+	file_node_proto_msgTypes[524].OneofWrappers = []any{}
+	file_node_proto_msgTypes[527].OneofWrappers = []any{}
+	file_node_proto_msgTypes[529].OneofWrappers = []any{}
+	file_node_proto_msgTypes[537].OneofWrappers = []any{}
+	file_node_proto_msgTypes[539].OneofWrappers = []any{}
+	file_node_proto_msgTypes[541].OneofWrappers = []any{}
+	file_node_proto_msgTypes[545].OneofWrappers = []any{}
+	file_node_proto_msgTypes[554].OneofWrappers = []any{}
+	file_node_proto_msgTypes[556].OneofWrappers = []any{}
+	file_node_proto_msgTypes[562].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_node_proto_rawDesc), len(file_node_proto_rawDesc)),
-			NumEnums:      79,
-			NumMessages:   513,
+			NumEnums:      88,
+			NumMessages:   567,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
