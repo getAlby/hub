@@ -72,13 +72,7 @@ export default function Lightning() {
       )}
       <div className="flex w-full flex-col items-center gap-8 pt-12 pb-16 text-center">
         <div className="flex flex-col items-center gap-8">
-          {hasChannelManagement ? (
-            <BalanceSwitcher active="lightning" />
-          ) : (
-            <span className="text-xs font-medium leading-none uppercase text-muted-foreground">
-              Spending Balance
-            </span>
-          )}
+          {hasChannelManagement && <BalanceSwitcher active="lightning" />}
           <div className="flex flex-col items-center gap-3">
             <div className="text-5xl md:text-6xl font-medium balance sensitive slashed-zero leading-none">
               <FormattedBitcoinAmount
