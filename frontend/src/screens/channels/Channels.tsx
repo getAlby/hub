@@ -199,17 +199,21 @@ export default function Channels() {
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
                     <DropdownMenuLabel>On-Chain</DropdownMenuLabel>
-                    <DropdownMenuItem
-                      onClick={() => navigate("/channels/onchain/buy-bitcoin")}
-                    >
-                      Buy
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to="/channels/onchain/buy-bitcoin"
+                        className="w-full"
+                      >
+                        Buy
+                      </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() =>
-                        navigate("/channels/onchain/deposit-bitcoin")
-                      }
-                    >
-                      Deposit
+                    <DropdownMenuItem asChild>
+                      <Link
+                        to="/channels/onchain/deposit-bitcoin"
+                        className="w-full"
+                      >
+                        Deposit
+                      </Link>
                     </DropdownMenuItem>
                     {(balances?.onchain.spendableSat || 0) >
                       ONCHAIN_DUST_SATS && (
