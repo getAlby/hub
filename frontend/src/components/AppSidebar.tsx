@@ -248,16 +248,24 @@ export function AppSidebar() {
                   </>
                 )}
                 {!info?.albyAccountConnected ? (
-                  <DropdownMenuItem onClick={() => navigate("/alby/account")}>
-                    <PlugZapIcon />
-                    Connect Alby Account
+                  <DropdownMenuItem asChild>
+                    <Link
+                      to="/alby/account"
+                      className="w-full flex flex-row items-center gap-2"
+                    >
+                      <PlugZapIcon />
+                      Connect Alby Account
+                    </Link>
                   </DropdownMenuItem>
                 ) : (
-                  <DropdownMenuItem
-                    onClick={() => navigate("/settings/alby-account")}
-                  >
-                    <AlbyIcon className="size-4" />
-                    Alby Account Settings
+                  <DropdownMenuItem asChild>
+                    <Link
+                      to="/settings/alby-account"
+                      className="w-full flex flex-row items-center gap-2"
+                    >
+                      <AlbyIcon className="size-4" />
+                      Alby Account Settings
+                    </Link>
                   </DropdownMenuItem>
                 )}
                 {!albyMe?.subscription.plan_code && (
