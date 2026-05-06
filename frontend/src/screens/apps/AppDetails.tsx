@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useLocation, useParams } from "react-router";
+import { Link, useLocation, useNavigate, useParams } from "react-router";
 
 import {
   App,
@@ -99,6 +99,7 @@ type AppInternalProps = {
 
 function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isEditingPermissions, setIsEditingPermissions] = React.useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = React.useState(false);
   const [showConnectionDetails, setShowConnectionDetails] =
@@ -272,14 +273,13 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                           )}
                         <DropdownMenuGroup>
                           {appStoreApp && (
-                            <DropdownMenuItem asChild>
-                              <Link
-                                to={`/apps/new?app=${appStoreApp.id}`}
-                                className="flex flex-1 items-center gap-2"
-                              >
-                                <PlusIcon className="size-4" /> Add Another
-                                Connection
-                              </Link>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                navigate(`/apps/new?app=${appStoreApp.id}`)
+                              }
+                            >
+                              <PlusIcon className="size-4" /> Add Another
+                              Connection
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuItem asChild>
