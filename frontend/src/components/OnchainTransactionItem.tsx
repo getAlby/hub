@@ -41,7 +41,6 @@ function OnchainTransactionItem({
   const typeStateText = typeStateLabel(tx);
   const statusText = isPending ? "Pending" : "Confirmed";
   const createdAt = dayjs(tx.createdAt * 1000).local();
-  const subtitle = `${tx.txId.slice(0, 10)}…${tx.txId.slice(-8)}`;
 
   const icon = (
     <div className="flex items-center">
@@ -87,9 +86,6 @@ function OnchainTransactionItem({
                 {createdAt.fromNow()}
               </span>
             </div>
-            <p className="font-mono text-sm md:text-base text-muted-foreground break-all line-clamp-1">
-              {subtitle}
-            </p>
           </div>
           <div className="flex ml-auto space-x-3 shrink-0">
             <div className="flex flex-col items-end md:text-xl">
