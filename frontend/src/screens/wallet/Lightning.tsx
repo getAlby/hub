@@ -1,19 +1,10 @@
-import {
-  AlertTriangleIcon,
-  ArrowDownIcon,
-  ArrowDownUpIcon,
-  ArrowUpIcon,
-} from "lucide-react";
-import { Link, useNavigate } from "react-router";
+import { AlertTriangleIcon, ArrowDownIcon, ArrowUpIcon } from "lucide-react";
+import { Link } from "react-router";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import TransactionsList from "src/components/TransactionsList";
-import {
-  IconBalanceSwitcher,
-  TabBalanceSwitcher,
-} from "src/components/wallet/BalanceSwitcher";
-import { useSwitcherVariant } from "src/components/wallet/useSwitcherVariant";
+import { BalanceSwitcher } from "src/components/wallet/BalanceSwitcher";
 import {
   Alert,
   AlertDescription,
@@ -28,8 +19,6 @@ export default function Lightning() {
   const { hasChannelManagement } = useInfo();
   const { data: balances } = useBalances(true);
   const { data: channels } = useChannels();
-  const navigate = useNavigate();
-  const [variant] = useSwitcherVariant();
 
   if (!balances) {
     return null;
@@ -82,23 +71,9 @@ export default function Lightning() {
         </Alert>
       )}
       <div className="flex w-full flex-col items-center gap-8 pt-12 pb-16 text-center">
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-8">
           {hasChannelManagement ? (
-            variant === "icons" ? (
-              <IconBalanceSwitcher active="lightning" />
-            ) : variant === "tabs" ? (
-              <TabBalanceSwitcher active="lightning" />
-            ) : (
-              <button
-                type="button"
-                onClick={() => navigate("/wallet/onchain")}
-                aria-label="Toggle balance mode, currently Spending Balance"
-                className="inline-flex items-center justify-center gap-1 text-xs font-medium leading-none uppercase text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Spending Balance
-                <ArrowDownUpIcon aria-hidden className="size-3 shrink-0" />
-              </button>
-            )
+            <BalanceSwitcher active="lightning" />
           ) : (
             <span className="text-xs font-medium leading-none uppercase text-muted-foreground">
               Spending Balance

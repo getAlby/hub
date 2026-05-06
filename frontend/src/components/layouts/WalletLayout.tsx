@@ -8,7 +8,6 @@ import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LinkButton } from "src/components/ui/custom/link-button";
-import { SwitcherVariantToggle } from "src/components/wallet/BalanceSwitcher";
 import { WalletActionsMenu } from "src/components/WalletActionsMenu";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
@@ -65,7 +64,6 @@ export default function WalletLayout() {
         }
       />
       <Outlet />
-      <SwitcherVariantToggle />
     </>
   );
 }
