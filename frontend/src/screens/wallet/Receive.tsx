@@ -22,9 +22,9 @@ export default function Receive() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const activeTab =
-    searchParams.get("type") === "onchain" ? "onchain" : "spending";
+    searchParams.get("type") === "onchain" ? "onchain" : "lightning";
 
-  const isSpendingTab = activeTab === "spending";
+  const isSpendingTab = activeTab === "lightning";
   const isLightningAddressLoading =
     isSpendingTab && info?.albyAccountConnected && !me && !meError;
 
@@ -62,7 +62,7 @@ export default function Receive() {
         >
           <TabsList className="w-full mb-2">
             <TabsTrigger
-              value="spending"
+              value="lightning"
               className="flex gap-2 items-center w-full"
             >
               <ZapIcon className="size-4" />
@@ -76,7 +76,7 @@ export default function Receive() {
               To On-chain Balance
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="spending">
+          <TabsContent value="lightning">
             <ReceiveToLightning />
           </TabsContent>
           <TabsContent value="onchain">
