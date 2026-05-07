@@ -4,8 +4,8 @@ import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
+import { ReceiveToLightning } from "src/components/ReceiveToLightning";
 import { ReceiveToOnchain } from "src/components/ReceiveToOnchain";
-import { ReceiveToSpending } from "src/components/ReceiveToSpending";
 import {
   Tabs,
   TabsContent,
@@ -22,9 +22,9 @@ export default function Receive() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const activeTab =
-    searchParams.get("type") === "onchain" ? "onchain" : "spending";
+    searchParams.get("type") === "onchain" ? "onchain" : "lightning";
 
-  const isSpendingTab = activeTab === "spending";
+  const isSpendingTab = activeTab === "lightning";
   const isLightningAddressLoading =
     isSpendingTab && info?.albyAccountConnected && !me && !meError;
 
@@ -62,11 +62,11 @@ export default function Receive() {
         >
           <TabsList className="w-full mb-2">
             <TabsTrigger
-              value="spending"
+              value="lightning"
               className="flex gap-2 items-center w-full"
             >
               <ZapIcon className="size-4" />
-              To Spending Balance
+              To Lightning Balance
             </TabsTrigger>
             <TabsTrigger
               value="onchain"
@@ -76,8 +76,8 @@ export default function Receive() {
               To On-chain Balance
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="spending">
-            <ReceiveToSpending />
+          <TabsContent value="lightning">
+            <ReceiveToLightning />
           </TabsContent>
           <TabsContent value="onchain">
             <ReceiveToOnchain />

@@ -183,7 +183,7 @@ function SwapInForm() {
               On-chain <MoveRightIcon /> Lightning
             </h2>
             <p className="mt-1 text-muted-foreground">
-              Swap on-chain funds into your lightning spending balance.
+              Swap on-chain funds into your lightning balance.
             </p>
           </div>
           <div className="grid gap-1.5">

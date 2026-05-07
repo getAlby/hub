@@ -9,7 +9,7 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 import { copyToClipboard } from "src/lib/clipboard";
 
-export function ReceiveToSpending() {
+export function ReceiveToLightning() {
   const { data: info } = useInfo();
   const { data: me } = useAlbyMe();
 

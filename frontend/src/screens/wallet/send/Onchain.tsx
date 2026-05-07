@@ -13,9 +13,9 @@ import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
+import { InsufficientLightningBalanceAlert } from "src/components/InsufficientLightningBalanceAlert";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
-import { SpendingAlert } from "src/components/SpendingAlert";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
@@ -144,7 +144,7 @@ function OnchainForm({
       }
       if (balances.onchain.spendableSat <= ONCHAIN_DUST_SATS) {
         throw new Error(
-          "You currently don't have enough sats to pay for an on-chain transaction. Consider swapping from Spending Balance."
+          "You currently don't have enough sats to pay for an on-chain transaction. Consider swapping from Lightning Balance."
         );
       }
       setLoading(true);
@@ -226,7 +226,7 @@ function OnchainForm({
       </div>
       <div className="flex items-center justify-between">
         <Label htmlFor="swap" className="cursor-pointer">
-          Swap from Spending Balance
+          Swap from Lightning Balance
         </Label>
         <Switch id="swap" onCheckedChange={setSwap} />
       </div>
@@ -406,7 +406,7 @@ function SwapForm({
         <div className="grid gap-1">
           <div className="flex justify-between text-xs text-muted-foreground sensitive slashed-zero">
             <div>
-              Spending Balance:{" "}
+              Lightning Balance:{" "}
               <FormattedBitcoinAmount
                 amountMsat={balances.lightning.totalSpendableMsat}
               />
@@ -432,7 +432,7 @@ function SwapForm({
       </div>
       <div className="flex items-center justify-between">
         <Label htmlFor="swap" className="cursor-pointer">
-          Swap from Spending Balance
+          Swap from Lightning Balance
         </Label>
         <Switch id="swap" checked onCheckedChange={setSwap} />
       </div>
@@ -452,7 +452,7 @@ function SwapForm({
           <p>{swapInfo.albyServiceFee + swapInfo.boltzServiceFee}%</p>
         </div>
       </div>
-      <SpendingAlert amountSat={+amountSat} />
+      <InsufficientLightningBalanceAlert amountSat={+amountSat} />
       <div className="flex gap-2">
         <LinkButton to="/wallet/send" variant="outline">
           Back

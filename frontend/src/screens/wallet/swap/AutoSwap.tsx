@@ -161,7 +161,7 @@ function AutoSwapOutForm() {
         </div>
 
         <div className="grid gap-1.5">
-          <Label>Spending balance threshold</Label>
+          <Label>Lightning balance threshold</Label>
           <Input
             type="number"
             placeholder="Amount in satoshis"
@@ -425,7 +425,7 @@ function ActiveSwapOutConfig({ swapConfig }: { swapConfig: AutoSwapConfig }) {
         </div>
         <div className="flex justify-between items-center gap-2">
           <span className="font-medium truncate">
-            Spending Balance Threshold
+            Lightning balance threshold
           </span>
           <span className="shrink-0 text-muted-foreground text-right">
             <FormattedBitcoinAmount

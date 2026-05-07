@@ -5,7 +5,7 @@ import { LinkButton } from "src/components/ui/custom/link-button";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 
-export function SpendingAlert({
+export function InsufficientLightningBalanceAlert({
   className,
   amountSat,
 }: {
@@ -52,7 +52,7 @@ export function SpendingAlert({
             variant="secondary"
             className="w-full"
           >
-            Increase Spending Balance
+            Increase Lightning Balance
           </LinkButton>
         </div>
       </AlertDescription>
