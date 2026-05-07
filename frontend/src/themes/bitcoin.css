@@ -27,3 +27,9 @@
   --sidebar-primary: oklch(0.78 0.163 77.82);
   --sidebar-primary-foreground: oklch(0.116 0 0);
 }
+
+/* Primary is a vivid orange CTA color; render link-variant buttons in
+   foreground so tertiary links don't read as highlighted. */
+.theme-bitcoin [data-slot~="button"][data-variant="link"] {
+  color: var(--foreground);
+}

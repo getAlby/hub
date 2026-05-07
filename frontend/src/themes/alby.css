@@ -75,3 +75,9 @@
     0 0 0 1px #ffdf6f,
     0 0 0 3px color-mix(in oklch, var(--ring), transparent 50%);
 }
+
+/* Primary is a vivid yellow CTA color; render link-variant buttons in
+   foreground so tertiary "Back" links don't read as highlighted. */
+.theme-alby [data-slot~="button"][data-variant="link"] {
+  color: var(--foreground);
+}

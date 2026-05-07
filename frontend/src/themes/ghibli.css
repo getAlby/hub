@@ -59,6 +59,12 @@
   --shadow-2xl: 0 1px 3px 0px oklch(0 0 0 / 0.25);
 }
 
+/* Primary is a light yellow-green CTA color; render link-variant buttons in
+   foreground so tertiary links don't read as highlighted. */
+.theme-ghibli [data-slot~="button"][data-variant="link"] {
+  color: var(--foreground);
+}
+
 .theme-ghibli.dark {
   /* Logo colors */
   --logo-ink: #ffffff;
