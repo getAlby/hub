@@ -131,11 +131,11 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                 </AlertDescription>
               </Alert>
               <div>
-                <p className="text-primary font-medium">Node ID</p>
+                <p className="font-medium text-foreground">Node ID</p>
                 <p className="break-all">{channel.remotePubkey}</p>
               </div>
               <div className="mt-4">
-                <p className="text-primary font-medium">Channel ID</p>
+                <p className="font-medium text-foreground">Channel ID</p>
                 <p className="break-all">{channel.id}</p>
               </div>
             </AlertDialogDescription>
@@ -182,7 +182,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                   <div className="grid gap-1.5">
                     <Label
                       htmlFor="normal"
-                      className="text-primary cursor-pointer"
+                      className="text-foreground cursor-pointer"
                     >
                       Normal Close (Recommended)
                     </Label>
@@ -203,7 +203,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                   <div className="grid gap-1.5">
                     <Label
                       htmlFor="force"
-                      className="text-primary cursor-pointer"
+                      className="text-foreground cursor-pointer"
                     >
                       Force Close
                     </Label>
@@ -236,7 +236,9 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
           <AlertDialogHeader>
             <AlertDialogTitle>Channel closed successfully</AlertDialogTitle>
             <AlertDialogDescription className="text-left">
-              <p className="text-primary font-medium">Funding Transaction Id</p>
+              <p className="font-medium text-foreground">
+                Funding Transaction Id
+              </p>
               <div className="flex items-center justify-between gap-4">
                 <p className="break-all">{fundingTxId}</p>
                 <CopyIcon

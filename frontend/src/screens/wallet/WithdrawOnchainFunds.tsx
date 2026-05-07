@@ -135,7 +135,7 @@ export default function WithdrawOnchainFunds() {
             "You will receive the funds at the destination after the transaction is confirmed"
           }
         />
-        <p className="text-primary">Withdrawal Transaction Id</p>
+        <p className="text-foreground">Withdrawal Transaction Id</p>
         <div className="flex items-center justify-between gap-4 max-w-sm">
           <p className="break-all font-semibold">{transactionId}</p>
           <CopyIcon
