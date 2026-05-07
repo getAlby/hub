@@ -22,7 +22,17 @@ export function parseBip21(uri: string): Bip21Data {
   const result: Bip21Data = { address };
 
   if (separatorIndex >= 0) {
-    const params = new URLSearchParams(withoutScheme.slice(separatorIndex + 1));
+    const rawParams = new URLSearchParams(
+      withoutScheme.slice(separatorIndex + 1)
+    );
+    // BIP-21 query parameter keys are case-insensitive
+    const params = new Map<string, string>();
+    for (const [key, value] of rawParams) {
+      const lower = key.toLowerCase();
+      if (!params.has(lower)) {
+        params.set(lower, value);
+      }
+    }
 
     const amountBtc = params.get("amount");
     if (amountBtc) {

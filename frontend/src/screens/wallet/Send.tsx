@@ -26,12 +26,8 @@ export default function Send() {
   const [isLoading, setLoading] = React.useState(false);
   const [showSwapAlert, setShowSwapAlert] = React.useState(false);
 
-  React.useEffect(() => {
-    const uri = searchParams.get("bip21");
-    if (!uri) {
-      return;
-    }
-    try {
+  const handleBip21 = React.useCallback(
+    (uri: string) => {
       const bip21 = parseBip21(uri);
       if (bip21.lightning) {
         const invoice = new Invoice({ pr: bip21.lightning });
@@ -48,24 +44,33 @@ export default function Send() {
         }
         return;
       }
-      if (bip21.address) {
-        if (!validateBitcoinAddress(bip21.address)) {
-          throw new Error("invalid bitcoin address");
-        }
-        navigate(`/wallet/send/onchain`, {
-          state: {
-            args: {
-              address: bip21.address,
-              amountSat: bip21.amountSat ? String(bip21.amountSat) : undefined,
-            },
-          },
-          replace: true,
-        });
+      if (!bip21.address || !validateBitcoinAddress(bip21.address)) {
+        throw new Error("invalid bitcoin address");
       }
+      navigate(`/wallet/send/onchain`, {
+        state: {
+          args: {
+            address: bip21.address,
+            amountSat: bip21.amountSat ? String(bip21.amountSat) : undefined,
+          },
+        },
+        replace: true,
+      });
+    },
+    [navigate]
+  );
+
+  React.useEffect(() => {
+    const uri = searchParams.get("bip21");
+    if (!uri) {
+      return;
+    }
+    try {
+      handleBip21(uri);
     } catch (error) {
       toast.error("Invalid Bitcoin URI", { description: "" + error });
     }
-  }, [searchParams, navigate]);
+  }, [searchParams, handleBip21]);
 
   const paste = async () => {
     const text = await navigator.clipboard.readText();
@@ -76,6 +81,11 @@ export default function Send() {
     event.preventDefault();
     try {
       setLoading(true);
+      if (/^bitcoin:/i.test(recipient)) {
+        handleBip21(recipient);
+        return;
+      }
+
       if (validateBitcoinAddress(recipient)) {
         navigate(`/wallet/send/onchain`, {
           state: {
