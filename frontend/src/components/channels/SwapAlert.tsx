@@ -46,7 +46,6 @@ export function SwapAlert({
           <ExternalLinkButton
             to="https://guides.getalby.com/user-guide/alby-hub/node/swap-in-and-out"
             variant="outline"
-            className="text-foreground"
           >
             Learn more
             <ExternalLinkIcon className="size-4 ml-2" />
