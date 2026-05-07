@@ -37,7 +37,7 @@ export function SwapAlert({
         <ArrowDownUpIcon className="h-4 w-4" />
         Swap {directionText} existing channels
       </AlertTitle>
-      <AlertDescription className="text-xs text-muted-foreground">
+      <AlertDescription className="text-xs">
         <p>
           It can be more economic to swap funds {directionText} existing
           channels rather than opening new channels or closing existing ones.
@@ -46,6 +46,7 @@ export function SwapAlert({
           <ExternalLinkButton
             to="https://guides.getalby.com/user-guide/alby-hub/node/swap-in-and-out"
             variant="outline"
+            className="text-foreground"
           >
             Learn more
             <ExternalLinkIcon className="size-4 ml-2" />

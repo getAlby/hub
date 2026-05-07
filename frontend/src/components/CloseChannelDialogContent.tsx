@@ -131,11 +131,11 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                 </AlertDescription>
               </Alert>
               <div>
-                <p className="text-primary font-medium">Node ID</p>
+                <p className="font-medium text-foreground">Node ID</p>
                 <p className="break-all">{channel.remotePubkey}</p>
               </div>
               <div className="mt-4">
-                <p className="text-primary font-medium">Channel ID</p>
+                <p className="font-medium text-foreground">Channel ID</p>
                 <p className="break-all">{channel.id}</p>
               </div>
             </AlertDialogDescription>

@@ -30,7 +30,7 @@ export function LatestUsedAppsWidget() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <div>Recently Used Apps</div>
+          <div>Apps with Recent Payments</div>
           <LinkButton to="/apps?tab=connected-apps" variant="ghost" size="sm">
             See All
           </LinkButton>
