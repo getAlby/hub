@@ -61,7 +61,7 @@ function RecentlyUsedAppRow({ app }: { app: App }) {
   return (
     <Link to={`/apps/${app.id}`} className="group">
       <div className="flex items-center w-full gap-4">
-        <AppAvatar app={app} className="w-14 h-14 rounded-lg" />
+        <AppAvatar app={app} className="w-12 h-12 rounded-lg" />
         <p className="text-sm font-medium flex-1 truncate">
           {getAppDisplayName(app.name)}
         </p>
