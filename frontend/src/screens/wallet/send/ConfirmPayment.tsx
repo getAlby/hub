@@ -9,10 +9,10 @@ import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
+import { InsufficientLightningBalanceAlert } from "src/components/InsufficientLightningBalanceAlert";
 import Loading from "src/components/Loading";
 import { PaymentFailedAlert } from "src/components/PaymentFailedAlert";
 import { PendingPaymentAlert } from "src/components/PendingPaymentAlert";
-import { SpendingAlert } from "src/components/SpendingAlert";
 import {
   Card,
   CardContent,
@@ -126,7 +126,10 @@ export default function ConfirmPayment() {
           </CardContent>
           <CardFooter className="flex flex-col gap-2 pt-2">
             <PayFromSelect appId={appId} onChange={setAppId} />
-            <SpendingAlert className="mb-2" amountSat={invoice.satoshi} />
+            <InsufficientLightningBalanceAlert
+              className="mb-2"
+              amountSat={invoice.satoshi}
+            />
             <LoadingButton
               onClick={confirmPayment}
               loading={isLoading}
@@ -137,7 +140,7 @@ export default function ConfirmPayment() {
               Confirm Payment
             </LoadingButton>
             <div className="flex items-center justify-between gap-2 text-muted-foreground text-xs sensitive slashed-zero">
-              Spending Balance:{" "}
+              Lightning Balance:{" "}
               <FormattedBitcoinAmount
                 amountMsat={balances.lightning.totalSpendableMsat}
               />

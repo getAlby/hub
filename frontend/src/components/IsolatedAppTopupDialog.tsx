@@ -68,7 +68,7 @@ export function IsolatedAppTopupDialog({
             <DialogTitle>Increase Balance</DialogTitle>
             <DialogDescription>
               Increase the balance of this sub-wallet. Make sure you always
-              maintain enough funds in your spending balance to prevent
+              maintain enough funds in your lightning balance to prevent
               sub-wallets becoming unspendable.
             </DialogDescription>
           </DialogHeader>

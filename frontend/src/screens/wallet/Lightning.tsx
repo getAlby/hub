@@ -81,15 +81,15 @@ export default function Lightning() {
             <button
               type="button"
               onClick={() => navigate("/wallet/onchain")}
-              aria-label="Toggle balance mode, currently Spending Balance"
+              aria-label="Toggle balance mode, currently Lightning Balance"
               className="inline-flex items-center justify-center gap-1 text-xs font-medium leading-none uppercase text-muted-foreground transition-colors hover:text-foreground"
             >
-              Spending Balance
+              Lightning Balance
               <ArrowDownUpIcon aria-hidden className="size-3 shrink-0" />
             </button>
           ) : (
             <span className="text-xs font-medium leading-none uppercase text-muted-foreground">
-              Spending Balance
+              Lightning Balance
             </span>
           )}
           <div className="flex flex-col items-center gap-3">

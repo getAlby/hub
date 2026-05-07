@@ -59,8 +59,8 @@ export function SubwalletIntro() {
             <div className="flex flex-row gap-3">
               <HandCoinsIcon className="size-6" />
               <div className="font-medium">
-                Sub-wallets depend on your Alby Hub spending balance and receive
-                limit
+                Sub-wallets depend on your Alby Hub lightning balance and
+                receive limit
               </div>
             </div>
             <div className="ml-9 text-muted-foreground text-sm">
@@ -76,10 +76,10 @@ export function SubwalletIntro() {
               </div>
             </div>
             <div className="ml-9 text-muted-foreground text-sm">
-              Make sure you always maintain enough funds in your spending
+              Make sure you always maintain enough funds in your lightning
               balance to prevent sub-wallets becoming unspendable. Sub-wallet
-              payments might fail if the amount isn't available in your spending
-              balance.
+              payments might fail if the amount isn't available in your
+              lightning balance.
             </div>
           </div>
           <div>
