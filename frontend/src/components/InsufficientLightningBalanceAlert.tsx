@@ -52,7 +52,7 @@ export function InsufficientLightningBalanceAlert({
             variant="secondary"
             className="flex-1"
           >
-            Swap in
+            Swap In
           </LinkButton>
           <p>or</p>
           <LinkButton
