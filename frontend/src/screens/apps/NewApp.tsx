@@ -423,7 +423,6 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                               <div className="flex mt-2">
                                 <Checkbox
                                   id="superuser"
-                                  required
                                   checked={superuser}
                                   onCheckedChange={() =>
                                     setSuperuser(!superuser)
