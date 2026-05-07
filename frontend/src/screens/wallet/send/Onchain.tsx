@@ -171,6 +171,7 @@ function OnchainForm({
           amountSat: +amountSat,
           txId: response.txId,
         },
+        replace: true,
       });
       toast("Successfully broadcasted transaction");
     } catch (e) {

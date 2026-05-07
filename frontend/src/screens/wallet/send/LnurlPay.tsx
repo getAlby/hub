@@ -80,6 +80,7 @@ export default function LnurlPay() {
           to: lnAddress.address,
           pageTitle: "Send to Lightning Address",
         },
+        replace: true,
       });
       toast("Successfully paid invoice");
     } catch (e) {
@@ -109,7 +110,7 @@ export default function LnurlPay() {
         pageTitle="Send to Lightning Address"
         title="Send to Lightning Address"
       />
-      <div className="max-w-lg grid gap-4">
+      <div className="md:max-w-lg grid gap-4">
         <PendingPaymentAlert />
         {errorMessage && invoice && (
           <PaymentFailedAlert
@@ -117,86 +118,86 @@ export default function LnurlPay() {
             invoice={invoice.paymentRequest}
           />
         )}
-      </div>
-      <form onSubmit={onSubmit} className="grid gap-6 max-w-lg">
-        <div className="grid gap-2">
-          <div className="text-sm font-medium">Recipient</div>
-          <div className="flex items-center justify-between">
-            <p className="text-sm">{lnAddress.address}</p>
-            <Link to="/wallet/send">
-              <XIcon className="w-4 h-4 cursor-pointer text-muted-foreground" />
-            </Link>
-          </div>
-        </div>
-        {lnAddress.lnurlpData?.description && (
+        <form onSubmit={onSubmit} className="grid gap-6">
           <div className="grid gap-2">
-            <Label>Description</Label>
-            <p className="text-muted-foreground text-sm">
-              {lnAddress.lnurlpData.description}
-            </p>
-          </div>
-        )}
-        <div className="grid gap-2">
-          <Label htmlFor="amount">Amount</Label>
-          <InputWithAdornment
-            id="amount"
-            type="number"
-            value={amountSat}
-            placeholder="Amount in Satoshi..."
-            onChange={(e) => {
-              setAmountSat(e.target.value.trim());
-            }}
-            min={1}
-            max={balances.lightning.totalSpendableSat}
-            required
-            autoFocus
-            endAdornment={
-              <FormattedFiatAmount
-                amountSat={Number(amountSat)}
-                className="mr-2"
-              />
-            }
-          />
-          <div className="grid gap-2">
-            <div className="flex justify-between text-xs text-muted-foreground sensitive slashed-zero">
-              <div>
-                Spending Balance:{" "}
-                <FormattedBitcoinAmount
-                  amountMsat={balances.lightning.totalSpendableMsat}
-                />
-              </div>
-              <FormattedFiatAmount
-                className="text-xs"
-                amountSat={balances.lightning.totalSpendableSat}
-              />
+            <div className="text-sm font-medium">Recipient</div>
+            <div className="flex items-center justify-between">
+              <p className="text-sm">{lnAddress.address}</p>
+              <Link to="/wallet/send">
+                <XIcon className="w-4 h-4 cursor-pointer text-muted-foreground" />
+              </Link>
             </div>
           </div>
-        </div>
-        {!!lnAddress.lnurlpData?.commentAllowed && (
+          {lnAddress.lnurlpData?.description && (
+            <div className="grid gap-2">
+              <Label>Description</Label>
+              <p className="text-muted-foreground text-sm">
+                {lnAddress.lnurlpData.description}
+              </p>
+            </div>
+          )}
           <div className="grid gap-2">
-            <Label htmlFor="comment">Comment</Label>
-            <Input
-              id="comment"
-              type="text"
-              value={comment}
-              placeholder="Optional"
+            <Label htmlFor="amount">Amount</Label>
+            <InputWithAdornment
+              id="amount"
+              type="number"
+              value={amountSat}
+              placeholder="Amount in Satoshi..."
               onChange={(e) => {
-                setComment(e.target.value);
+                setAmountSat(e.target.value.trim());
               }}
+              min={1}
+              max={balances.lightning.totalSpendableSat}
+              required
+              autoFocus
+              endAdornment={
+                <FormattedFiatAmount
+                  amountSat={Number(amountSat)}
+                  className="mr-2"
+                />
+              }
             />
+            <div className="grid gap-2">
+              <div className="flex justify-between text-xs text-muted-foreground sensitive slashed-zero">
+                <div>
+                  Spending Balance:{" "}
+                  <FormattedBitcoinAmount
+                    amountMsat={balances.lightning.totalSpendableMsat}
+                  />
+                </div>
+                <FormattedFiatAmount
+                  className="text-xs"
+                  amountSat={balances.lightning.totalSpendableSat}
+                />
+              </div>
+            </div>
           </div>
-        )}
-        <PayFromSelect appId={appId} onChange={setAppId} />
-        <SpendingAlert amountSat={+amountSat} />
-        <div className="flex gap-2">
-          <LinkButton to="/wallet/send" variant="outline">
-            Back
-          </LinkButton>
-          <LoadingButton loading={isLoading} type="submit" className="flex-1">
-            Send
-          </LoadingButton>
-        </div>
-      </form>
+          {!!lnAddress.lnurlpData?.commentAllowed && (
+            <div className="grid gap-2">
+              <Label htmlFor="comment">Comment</Label>
+              <Input
+                id="comment"
+                type="text"
+                value={comment}
+                placeholder="Optional"
+                onChange={(e) => {
+                  setComment(e.target.value);
+                }}
+              />
+            </div>
+          )}
+          <PayFromSelect appId={appId} onChange={setAppId} />
+          <SpendingAlert amountSat={+amountSat} />
+          <div className="flex gap-2">
+            <LinkButton to="/wallet/send" variant="outline">
+              Back
+            </LinkButton>
+            <LoadingButton loading={isLoading} type="submit" className="flex-1">
+              Send
+            </LoadingButton>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

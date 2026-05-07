@@ -90,7 +90,9 @@ export default function ReceiveOnchain() {
       if (!swapInResponse) {
         throw new Error("Error swapping in");
       }
-      navigate(`/wallet/swap/in/status/${swapInResponse.swapId}`);
+      navigate(`/wallet/swap/in/status/${swapInResponse.swapId}`, {
+        replace: true,
+      });
       toast("Initiated swap");
     } catch (error) {
       toast.error("Failed to initiate swap", {
