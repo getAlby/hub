@@ -63,6 +63,7 @@ export default function ZeroAmount() {
           invoice,
           amountSat,
         },
+        replace: true,
       });
       toast("Successfully paid invoice");
     } catch (e) {

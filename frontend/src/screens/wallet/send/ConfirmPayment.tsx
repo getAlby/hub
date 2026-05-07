@@ -68,6 +68,7 @@ export default function ConfirmPayment() {
           pageTitle: "Pay Invoice",
           invoice,
         },
+        replace: true,
       });
       toast("Successfully paid invoice");
     } catch (e) {
