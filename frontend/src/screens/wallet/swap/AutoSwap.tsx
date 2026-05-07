@@ -425,7 +425,7 @@ function ActiveSwapOutConfig({ swapConfig }: { swapConfig: AutoSwapConfig }) {
         </div>
         <div className="flex justify-between items-center gap-2">
           <span className="font-medium truncate">
-            Lightning Balance Threshold
+            Lightning balance threshold
           </span>
           <span className="shrink-0 text-muted-foreground text-right">
             <FormattedBitcoinAmount
