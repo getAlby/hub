@@ -54,7 +54,7 @@ export default function Swap() {
     const newTabValue = searchParams.get("type");
     if (newTabValue) {
       setTab(newTabValue);
-      setSearchParams({});
+      setSearchParams({}, { replace: true });
     }
   }, [searchParams, setSearchParams]);
 
