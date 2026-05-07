@@ -42,17 +42,26 @@ export function InsufficientLightningBalanceAlert({
       <AlertDescription>
         <p>
           Your payment will likely fail because your maximum spendable balance
-          for the next payment is currently{" "}
+          in your lightning channels for the next payment is currently{" "}
           <FormattedBitcoinAmount amountMsat={maxSpendableMsat} />.
         </p>
-        <div className="flex gap-2 mt-2">
+        <div className="flex gap-2 mt-2 items-center justify-center">
+          <LinkButton
+            to="/wallet/swap?type=in"
+            size="sm"
+            variant="secondary"
+            className="flex-1"
+          >
+            Swap In
+          </LinkButton>
+          <p>or</p>
           <LinkButton
             to="/channels/outgoing"
             size="sm"
             variant="secondary"
-            className="w-full"
+            className="flex-1"
           >
-            Increase Lightning Balance
+            Open Outbound Channel
           </LinkButton>
         </div>
       </AlertDescription>
