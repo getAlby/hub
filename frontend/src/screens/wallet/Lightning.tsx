@@ -4,13 +4,13 @@ import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import TransactionsList from "src/components/TransactionsList";
-import { BalanceSwitcher } from "src/components/wallet/BalanceSwitcher";
 import {
   Alert,
   AlertDescription,
   AlertTitle,
 } from "src/components/ui/alert.tsx";
 import { LinkButton } from "src/components/ui/custom/link-button";
+import { BalanceSwitcher } from "src/components/wallet/BalanceSwitcher";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";

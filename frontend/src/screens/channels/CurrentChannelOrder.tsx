@@ -654,7 +654,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                   {lspOrderResponse.outgoingLiquiditySat > 0 && (
                     <TableRow>
                       <TableCell className="font-medium p-3">
-                        Spending Balance
+                        Lightning Balance
                       </TableCell>
                       <TableCell className="text-right p-3">
                         <FormattedBitcoinAmount
@@ -776,7 +776,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                   variant="secondary"
                   className="w-full"
                 >
-                  Increase Spending Balance
+                  Increase Lightning Balance
                 </LinkButton>
                 <ExternalLinkButton
                   to="https://www.getalby.com/topup"

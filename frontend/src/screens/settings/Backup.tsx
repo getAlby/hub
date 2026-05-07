@@ -170,9 +170,11 @@ export default function Backup() {
           <div>
             <h3 className="text-lg font-medium">Channels Backup</h3>
             <p className="text-sm text-muted-foreground">
-              Your spending balance is stored in your lightning channels. In
-              case of recovery of your Alby Hub, they need to be backed up every
-              time you open a new channel.
+              Your lightning balance can only be recovered on-chain by closing
+              your lightning channels. In case of recovery of your Alby Hub a
+              request will be sent to your peers to close your existing
+              channels. To recover the funds from these channels, a channel
+              backup needs to be created every time you open a new channel.
             </p>
           </div>
 
@@ -209,7 +211,7 @@ export default function Backup() {
                     <p className="text-sm text-muted-foreground mb-4">
                       When enabled, your channels state is dynamically updated
                       and stored end-to-end encrypted by Alby's Versioned
-                      Storage Service. This allows you to recover your spending
+                      Storage Service. This allows you to recover your lightning
                       balance with your recovery phrase alone, without having to
                       close your channels.
                     </p>
@@ -317,8 +319,8 @@ function DynamicChannelsBackupDialog({ info }: Props) {
                 By enabling dynamic channel backups, your channels state is
                 dynamically updated and stored end-to-end encrypted by Alby's
                 Versioned Storage Service. This allows you to recover your
-                spending balance with your recovery phrase alone, without having
-                to close your channels.
+                lightning balance with your recovery phrase alone, without
+                having to close your channels.
               </p>
               <p className="mt-2">
                 As part of enabling dynamic channels backup your hub will be

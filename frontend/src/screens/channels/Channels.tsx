@@ -355,14 +355,14 @@ export default function Channels() {
                         <Tooltip>
                           <TooltipTrigger>
                             <div className="flex flex-row gap-1 items-center justify-start text-sm font-medium">
-                              Spending Balance
+                              Balance
                               <InfoIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
                             </div>
                           </TooltipTrigger>
                           <TooltipContent>
-                            Your spending balance is the funds on your side of
-                            your channels, which you can use to make lightning
-                            payments. Your total lightning balance is{" "}
+                            Your lightning balance is the spendable funds on
+                            your side of your channels. Your total channel
+                            balance is{" "}
                             <FormattedBitcoinAmount
                               amountMsat={
                                 channels

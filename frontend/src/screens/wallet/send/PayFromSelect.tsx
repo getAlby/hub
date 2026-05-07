@@ -19,8 +19,8 @@ import { useApps } from "src/hooks/useApps";
 import { getAppDisplayName } from "src/lib/utils";
 import { App } from "src/types";
 
-const SPENDING_BALANCE = "spending-balance";
-const SPENDING_BALANCE_LABEL = "Spending Balance";
+const LIGHTNING_BALANCE = "lightning-balance";
+const LIGHTNING_BALANCE_LABEL = "Lightning Balance";
 
 type PayFromOption = {
   value: string;
@@ -33,13 +33,13 @@ type Props = {
   onChange(appId: number | undefined): void;
 };
 
-function SpendingOption() {
+function LightningOption() {
   return (
     <div className="flex items-center gap-3">
       <div className="flex size-6 items-center justify-center rounded-lg bg-muted">
         <WalletIcon className="size-3 text-muted-foreground" />
       </div>
-      <div>{SPENDING_BALANCE_LABEL}</div>
+      <div>{LIGHTNING_BALANCE_LABEL}</div>
     </div>
   );
 }
@@ -74,7 +74,7 @@ export default function PayFromSelect({ appId, onChange }: Props) {
 
   const options = React.useMemo<PayFromOption[]>(
     () => [
-      { value: SPENDING_BALANCE, label: SPENDING_BALANCE_LABEL },
+      { value: LIGHTNING_BALANCE, label: LIGHTNING_BALANCE_LABEL },
       ...apps.map((app) => ({
         value: app.id.toString(),
         label: getAppDisplayName(app.name),
@@ -84,8 +84,8 @@ export default function PayFromSelect({ appId, onChange }: Props) {
     [apps]
   );
 
-  const selectedOption = options.find(
-    (opt) => (appId ? opt.value === appId.toString() : undefined) // : opt.value === SPENDING_BALANCE
+  const selectedOption = options.find((opt) =>
+    appId ? opt.value === appId.toString() : undefined
   );
 
   return (
@@ -98,14 +98,14 @@ export default function PayFromSelect({ appId, onChange }: Props) {
         onInputValueChange={setSearch}
         onValueChange={(option) =>
           onChange(
-            option?.value === SPENDING_BALANCE
+            option?.value === LIGHTNING_BALANCE
               ? undefined
               : Number(option?.value)
           )
         }
       >
         <div ref={anchorRef} className="w-full">
-          <ComboboxInput placeholder={SPENDING_BALANCE_LABEL}>
+          <ComboboxInput placeholder={LIGHTNING_BALANCE_LABEL}>
             <InputGroupAddon>
               {selectedOption?.app ? (
                 <AppAvatar
@@ -128,7 +128,7 @@ export default function PayFromSelect({ appId, onChange }: Props) {
                 {option.app ? (
                   <AppOption app={option.app} />
                 ) : (
-                  <SpendingOption />
+                  <LightningOption />
                 )}
               </ComboboxItem>
             )}
