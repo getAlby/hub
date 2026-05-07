@@ -34,12 +34,10 @@ export default function Send() {
         if (invoice.satoshi === 0) {
           navigate(`/wallet/send/0-amount`, {
             state: { args: { paymentRequest: invoice } },
-            replace: true,
           });
         } else {
           navigate(`/wallet/send/confirm-payment`, {
             state: { args: { paymentRequest: invoice } },
-            replace: true,
           });
         }
         return;
@@ -54,7 +52,6 @@ export default function Send() {
             amountSat: bip21.amountSat ? String(bip21.amountSat) : undefined,
           },
         },
-        replace: true,
       });
     },
     [navigate]
