@@ -149,7 +149,7 @@ function SidebarHintCard({
             className="absolute top-6 right-6 text-muted-foreground hover:text-foreground"
             onClick={onClose}
           >
-            <XIcon name="X" className="size-4" />
+            <XIcon className="size-4" />
           </button>
         )}
       </CardHeader>
