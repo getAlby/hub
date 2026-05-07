@@ -180,6 +180,7 @@ Code under `frontend/platform_specific/http/` and `frontend/platform_specific/wa
 - **Keep layouts flat** — avoid nesting cards inside cards or wrapping elements in unnecessary bordered containers. Prefer clear, flat visual hierarchy.
 - **Match existing spacing patterns** — before adding new components, check sibling components for consistent padding, margins, and gaps. Ensure sibling elements have equal dimensions where appropriate.
 - **Write copy from the user's perspective** — Alby Hub IS the wallet; don't explain what a lightning wallet is or tell the user to "connect to a wallet" when they're already inside one. Keep UI copy concise and use the product's own vocabulary (sats, connections, apps).
+- **Use the `*Icon` suffix when importing lucide-react icons** (e.g., `ZapIcon`, `BitcoinIcon`, `ArrowDownIcon`) — both forms are valid lucide exports, but this codebase consistently uses the suffixed alias. Don't mix styles.
 - Strict TypeScript — no `any` types.
 - Functional components with hooks only.
 - SWR for server state; Zustand for client state (stores in `frontend/src/state/`).
