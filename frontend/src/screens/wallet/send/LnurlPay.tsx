@@ -7,10 +7,10 @@ import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
+import { InsufficientLightningBalanceAlert } from "src/components/InsufficientLightningBalanceAlert";
 import Loading from "src/components/Loading";
 import { PaymentFailedAlert } from "src/components/PaymentFailedAlert";
 import { PendingPaymentAlert } from "src/components/PendingPaymentAlert";
-import { SpendingAlert } from "src/components/SpendingAlert";
 import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
@@ -187,7 +187,7 @@ export default function LnurlPay() {
           </div>
         )}
         <PayFromSelect appId={appId} onChange={setAppId} />
-        <SpendingAlert amountSat={+amountSat} />
+        <InsufficientLightningBalanceAlert amountSat={+amountSat} />
         <div className="flex gap-2">
           <LinkButton to="/wallet/send" variant="outline">
             Back

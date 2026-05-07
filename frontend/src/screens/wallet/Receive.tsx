@@ -4,8 +4,8 @@ import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
+import { ReceiveToLightning } from "src/components/ReceiveToLightning";
 import { ReceiveToOnchain } from "src/components/ReceiveToOnchain";
-import { ReceiveToSpending } from "src/components/ReceiveToSpending";
 import {
   Tabs,
   TabsContent,
@@ -77,7 +77,7 @@ export default function Receive() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value="spending">
-            <ReceiveToSpending />
+            <ReceiveToLightning />
           </TabsContent>
           <TabsContent value="onchain">
             <ReceiveToOnchain />

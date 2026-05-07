@@ -258,9 +258,9 @@ function NewChannelInternal({
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  Configure the amount of lightning balance you need. You will
-                  need to deposit on-chain bitcoin to cover the entire channel
-                  size, plus on-chain fees.
+                  Configure the amount of spending balance you need in your new
+                  lightning channel. You will need to deposit on-chain bitcoin
+                  to cover the entire channel size, plus on-chain fees.
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

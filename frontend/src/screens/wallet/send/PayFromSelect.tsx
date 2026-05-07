@@ -84,8 +84,8 @@ export default function PayFromSelect({ appId, onChange }: Props) {
     [apps]
   );
 
-  const selectedOption = options.find(
-    (opt) => (appId ? opt.value === appId.toString() : undefined) // : opt.value === LIGHTNING_BALANCE
+  const selectedOption = options.find((opt) =>
+    appId ? opt.value === appId.toString() : undefined
   );
 
   return (
