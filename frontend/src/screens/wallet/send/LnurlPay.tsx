@@ -121,8 +121,8 @@ export default function LnurlPay() {
         <form onSubmit={onSubmit} className="grid gap-6">
           <div className="grid gap-2">
             <div className="text-sm font-medium">Recipient</div>
-            <div className="flex items-center justify-between">
-              <p className="text-sm">{lnAddress.address}</p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm break-all">{lnAddress.address}</p>
               <Link to="/wallet/send">
                 <XIcon className="w-4 h-4 cursor-pointer text-muted-foreground" />
               </Link>
