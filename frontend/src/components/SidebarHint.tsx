@@ -146,10 +146,10 @@ function SidebarHintCard({
         <CardTitle>{title}</CardTitle>
         {onClose && (
           <button
-            className="absolute top-4 right-4 text-muted-foreground hover:text-primary"
+            className="absolute top-6 right-6 text-muted-foreground hover:text-foreground"
             onClick={onClose}
           >
-            <XIcon name="X" />
+            <XIcon name="X" className="size-4" />
           </button>
         )}
       </CardHeader>
