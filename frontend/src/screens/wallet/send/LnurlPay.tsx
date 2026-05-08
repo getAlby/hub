@@ -5,13 +5,11 @@ import React from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
-import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
-import FormattedFiatAmount from "src/components/FormattedFiatAmount";
+import { CurrencyInputField } from "src/components/CurrencyInputField";
 import { InsufficientLightningBalanceAlert } from "src/components/InsufficientLightningBalanceAlert";
 import Loading from "src/components/Loading";
 import { PaymentFailedAlert } from "src/components/PaymentFailedAlert";
 import { PendingPaymentAlert } from "src/components/PendingPaymentAlert";
-import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
@@ -136,42 +134,21 @@ export default function LnurlPay() {
               </p>
             </div>
           )}
-          <div className="grid gap-2">
-            <Label htmlFor="amount">Amount</Label>
-            <InputWithAdornment
-              id="amount"
-              type="number"
-              value={amountSat}
-              placeholder="Amount in Satoshi..."
-              onChange={(e) => {
-                setAmountSat(e.target.value.trim());
-              }}
-              min={1}
-              max={balances.lightning.totalSpendableSat}
-              required
-              autoFocus
-              endAdornment={
-                <FormattedFiatAmount
-                  amountSat={Number(amountSat)}
-                  className="mr-2"
-                />
-              }
-            />
-            <div className="grid gap-2">
-              <div className="flex justify-between text-xs text-muted-foreground sensitive slashed-zero">
-                <div>
-                  Lightning Balance:{" "}
-                  <FormattedBitcoinAmount
-                    amountMsat={balances.lightning.totalSpendableMsat}
-                  />
-                </div>
-                <FormattedFiatAmount
-                  className="text-xs"
-                  amountSat={balances.lightning.totalSpendableSat}
-                />
-              </div>
-            </div>
-          </div>
+          <CurrencyInputField
+            id="amount"
+            valueSat={amountSat}
+            onValueSatChange={setAmountSat}
+            minSat={1}
+            maxSat={balances.lightning.totalSpendableSat}
+            required
+            autoFocus
+            contextRows={[
+              {
+                label: "Spending balance",
+                amountSat: balances.lightning.totalSpendableSat,
+              },
+            ]}
+          />
           {!!lnAddress.lnurlpData?.commentAllowed && (
             <div className="grid gap-2">
               <Label htmlFor="comment">Comment</Label>
