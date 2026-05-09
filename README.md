@@ -29,6 +29,7 @@ By default Alby Hub uses the embedded LDK based lightning node. Optionally it ca
 - LND
 - Phoenixd
 - Cashu
+- CLN
 - want more? please open an issue.
 
 ## Development
@@ -59,7 +60,7 @@ By default Alby Hub uses the embedded LDK based lightning node. Optionally it ca
 Go to `/frontend`
 
 1. `yarn install`
-2. `yarn dev`
+2. `yarn dev:http`
 
 ### HTTP Production build
 
@@ -157,7 +158,7 @@ For more information on the Go pprof library, see the [official documentation](h
 
 The following configuration options can be set as environment variables or in a .env file
 
-- `RELAY`: default: "wss://relay.getalby.com/v1" (can support multiple separated by commas)
+- `RELAY`: default: "wss://relay.getalby.com,wss://relay2.getalby.com" (supports multiple separated by commas)
 - `DATABASE_URI`: A sqlite filename or postgres URL. Default is SQLite DB `nwc.db` without a path, which will be put in the user home directory: $XDG_DATA_HOME/albyhub/nwc.db
 - `PORT`: The port on which the app should listen on (default: 8080)
 - `WORK_DIR`: Directory to store NWC data files. Default: $XDG_DATA_HOME/albyhub
@@ -210,9 +211,22 @@ Migration of the database is currently experimental. Please make a backup before
 
 - `ENABLE_ADVANCED_SETUP`: set to `false` to force a specific backend type (combined with backend parameters below)
 
+### CLN Backend parameters
+
+Can be configured via env or the UI
+
+- `LN_BACKEND_TYPE`: CLN
+- `CLN_ADDRESS`: the CLN grpc address (grpc-host and grpc-port), e.g. `127.0.0.1:9737`
+- `CLN_LIGHTNING_DIR`: CLN's lightning directory containing the grpc certificates, usually `~/.lightning/<network>`
+
+Optional for hold invoice methods support:
+- `CLN_ADDRESS_HOLD`: the CLN hold plugin grpc address (grpc-host and grpc-port), e.g. `127.0.0.1:9738`
+
+If you are copying the certificates to another machine make sure you get the `ca.pem`, `client.pem` and `client-key.pem` from the lightning directory and optionally from the `hold` directory inside the lightning directory and keep the sub-directory structure of the hold directory.
+
 ### LND Backend parameters
 
-Currently only LND can be configured via env. Other node types must be configured via the UI.
+LND can be configured via env. Other node types may need to be configured via the UI.
 
 _To configure via env, the following parameters must be provided:_
 
@@ -244,6 +258,12 @@ _To configure via env, the following parameters must be provided:_
 (or electrum instead of esplora)
 
 - `LDK_ELECTRUM_SERVER=electrum.mutinynet.com:50001`
+
+##### Signet
+
+- `MEMPOOL_API=https://mempool.space/signet/api`
+- `LDK_NETWORK=signet`
+- `LDK_ESPLORA_SERVER=https://mempool.space/signet/api`
 
 ##### Testnet (Not recommended - try Mutinynet)
 

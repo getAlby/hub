@@ -55,6 +55,7 @@ export function ChangeUnlockPassword() {
   return (
     <>
       <SettingsHeader
+        pageTitle="Unlock Password"
         title="Unlock Password"
         description="Change unlock password to your Hub. Your node will restart after password change."
       />

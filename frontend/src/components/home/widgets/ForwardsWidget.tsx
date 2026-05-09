@@ -26,9 +26,11 @@ export function ForwardsWidget() {
           <div>
             <p className="text-muted-foreground text-xs">Fees Earned</p>
             <p className="text-xl font-semibold">
-              <FormattedBitcoinAmount amount={forwards.totalFeeEarnedMsat} />
+              <FormattedBitcoinAmount
+                amountMsat={forwards.totalFeeEarnedMsat}
+              />
               <FormattedFiatAmount
-                amount={Math.floor(forwards.totalFeeEarnedMsat / 1000)}
+                amountSat={Math.floor(forwards.totalFeeEarnedMsat / 1000)}
               />
             </p>
           </div>
@@ -36,10 +38,12 @@ export function ForwardsWidget() {
             <p className="text-muted-foreground text-xs">Total Routed</p>
             <p className="text-xl font-semibold">
               <FormattedBitcoinAmount
-                amount={forwards.outboundAmountForwardedMsat}
+                amountMsat={forwards.outboundAmountForwardedMsat}
               />
               <FormattedFiatAmount
-                amount={Math.floor(forwards.outboundAmountForwardedMsat / 1000)}
+                amountSat={Math.floor(
+                  forwards.outboundAmountForwardedMsat / 1000
+                )}
               />
             </p>
           </div>

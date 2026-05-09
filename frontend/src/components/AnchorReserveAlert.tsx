@@ -5,10 +5,10 @@ import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 
 export function AnchorReserveAlert({
-  amount,
+  amountSat,
   className,
 }: {
-  amount: number;
+  amountSat: number;
   className?: string;
 }) {
   const { data: balances } = useBalances();
@@ -19,9 +19,9 @@ export function AnchorReserveAlert({
   }
 
   const showAlert =
-    amount &&
+    amountSat &&
     !!channels.length &&
-    +amount > balances.onchain.spendable - channels.length * 25000;
+    +amountSat > balances.onchain.spendableSat - channels.length * 25000;
 
   if (!showAlert) {
     return null;
@@ -36,7 +36,7 @@ export function AnchorReserveAlert({
         including your anchor reserves may put your node at risk of unable to
         reclaim funds in your channel after a force-closure. To prevent this,
         set aside at least{" "}
-        <FormattedBitcoinAmount amount={channels.length * 25000 * 1000} />{" "}
+        <FormattedBitcoinAmount amountMsat={channels.length * 25000 * 1000} />{" "}
         on-chain.
       </AlertDescription>
     </Alert>

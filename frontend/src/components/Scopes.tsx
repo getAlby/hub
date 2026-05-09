@@ -40,18 +40,16 @@ const scopeGroupTitle: Record<ScopeGroup, string> = {
 };
 
 const scopeGroupDescriptions: Record<ScopeGroup, string> = {
-  full_access: "Allow this app to send and receive payments from your wallet",
-  read_only: "Allow this app to receive payments and view transaction history",
-  isolated:
-    "Create a separate wallet for this app with its own isolated balance",
-  custom: "Define specific permissions for this app's wallet access",
+  full_access: "Send and receive payments",
+  read_only: "Receive payments and view history",
+  isolated: "Separate wallet with isolated balance",
+  custom: "Define specific permissions",
 };
 
 interface ScopesProps {
   capabilities: WalletCapabilities;
   scopes: Scope[];
   isolated: boolean;
-  isNewConnection: boolean;
   onScopesChanged: (scopes: Scope[], isolated: boolean) => void;
 }
 
@@ -167,16 +165,19 @@ const Scopes: React.FC<ScopesProps> = ({
                 <button
                   type="button"
                   key={index}
-                  className={`flex gap-4 items-center border-2 rounded-md cursor-pointer ${scopeGroup == sg ? "border-primary" : "border-muted"} p-4`}
+                  className={cn(
+                    "flex gap-3 items-center rounded-lg border-2 cursor-pointer p-4",
+                    scopeGroup == sg ? "border-primary" : "border-muted"
+                  )}
                   onClick={() => {
                     handleScopeGroupChange(sg);
                     setSheetOpen(false);
                   }}
                 >
-                  <ScopeGroupIcon className="shrink-0 w-6 h-6 mx-2" />
-                  <div className="flex flex-col text-left">
-                    <p className="font-semibold">{scopeGroupTitle[sg]}</p>
-                    <span className="text-sm text-muted-foreground">
+                  <ScopeGroupIcon className="shrink-0 size-5 text-muted-foreground" />
+                  <div className="flex flex-col gap-0.5 text-left">
+                    <p className="text-sm font-medium">{scopeGroupTitle[sg]}</p>
+                    <span className="text-xs text-muted-foreground">
                       {scopeGroupDescriptions[sg]}
                     </span>
                   </div>
@@ -192,25 +193,22 @@ const Scopes: React.FC<ScopesProps> = ({
           </SheetFooter>
         </SheetContent>
       </Sheet>
-      <div className="flex flex-col w-full mb-4">
-        <p className="font-medium text-sm mb-2">Wallet permissions</p>
-        <button
-          type="button"
-          className="flex gap-4 items-center border-2 rounded-md cursor-pointer border-muted p-4"
-          onClick={() => {
-            setSheetOpen(true);
-          }}
-        >
-          <ActiveScopeGroupIcon className="shrink-0 w-6 h-6 mx-2" />
-          <div className="flex flex-col text-left">
-            <p className="font-semibold">{scopeGroupTitle[scopeGroup]}</p>
-            <span className="text-sm text-muted-foreground">
-              {scopeGroupDescriptions[scopeGroup]}
-            </span>
-          </div>
-          <ChevronsUpDownIcon className="w-4 h-4" />
-        </button>
-      </div>
+      <button
+        type="button"
+        className="flex items-center gap-2 rounded-lg border cursor-pointer p-4 w-full"
+        onClick={() => {
+          setSheetOpen(true);
+        }}
+      >
+        <ActiveScopeGroupIcon className="shrink-0 size-5 text-muted-foreground" />
+        <div className="flex flex-col gap-0.5 text-left">
+          <p className="text-sm font-medium">{scopeGroupTitle[scopeGroup]}</p>
+          <span className="text-xs text-muted-foreground">
+            {scopeGroupDescriptions[scopeGroup]}
+          </span>
+        </div>
+        <ChevronsUpDownIcon className="ml-auto shrink-0 size-4 text-muted-foreground" />
+      </button>
 
       {scopeGroup == "custom" && (
         <div className="mb-2">

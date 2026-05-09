@@ -58,6 +58,7 @@ export default function NodeAlias() {
   return (
     <div className="grid gap-5">
       <AppHeader
+        pageTitle="Node Alias"
         title="Node Alias"
         description="Set a human-readable name for your lightning node"
       />

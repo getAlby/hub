@@ -8,7 +8,7 @@ import {
   ZapIcon,
 } from "lucide-react";
 import { FormEvent, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 import BudgetAmountSelect from "src/components/BudgetAmountSelect";
 import BudgetRenewalSelect from "src/components/BudgetRenewalSelect";
@@ -60,14 +60,14 @@ function AlbyConnectionCard() {
   const { loading, linkStatus, loadingLinkStatus, linkAccount } =
     useLinkAccount(reloadAlbyAccountApp);
 
-  const [maxAmount, setMaxAmount] = useState(150_000);
+  const [maxAmountSat, setMaxAmountSat] = useState(250_000);
   const [budgetRenewal, setBudgetRenewal] =
     useState<BudgetRenewalType>("weekly");
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
 
-    linkAccount(maxAmount, budgetRenewal);
+    linkAccount(maxAmountSat, budgetRenewal);
   }
 
   return (
@@ -134,13 +134,13 @@ function AlbyConnectionCard() {
                           onChange={setBudgetRenewal}
                         />
                         <BudgetAmountSelect
-                          value={maxAmount}
-                          onChange={setMaxAmount}
-                          minAmount={
+                          valueSat={maxAmountSat}
+                          onChange={setMaxAmountSat}
+                          minAmountSat={
                             25000 /* the minimum should be a bit more than the Alby monthly fee */
                           }
-                          budgetOptions={{
-                            "150k": 150_000,
+                          budgetOptionsSat={{
+                            "250k": 250_000,
                             "500k": 500_000,
                             "1M": 1_000_000,
                           }}

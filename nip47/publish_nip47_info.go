@@ -71,9 +71,7 @@ func (svc *nip47Service) PublishNip47Info(ctx context.Context, pool nostrmodels.
 		permitsNotifications = true
 	} else {
 		app := db.App{}
-		err := svc.db.First(&app, &db.App{
-			ID: appId,
-		}).Error
+		err := svc.db.First(&app, appId).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"walletPubKey": appWalletPubKey,

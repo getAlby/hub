@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router";
 import { AboutAppCard } from "src/components/connections/AboutAppCard";
 import { AppLinksCard } from "src/components/connections/AppLinksCard";
 import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";
@@ -46,9 +46,9 @@ function AppStoreDetailInternal({ appStoreApp }: { appStoreApp: AppStoreApp }) {
   }
 
   return (
-    <div className="grid gap-2">
+    <div className="grid gap-3">
       <AppStoreDetailHeader appStoreApp={appStoreApp} />
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <AboutAppCard appStoreApp={appStoreApp} />
         <AppLinksCard appStoreApp={appStoreApp} />
         {/* <Card>

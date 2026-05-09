@@ -125,8 +125,8 @@ export function ChannelsTable({
               <>
                 {channels
                   .sort((a, b) =>
-                    a.localBalance + a.remoteBalance >
-                    b.localBalance + b.remoteBalance
+                    a.localBalanceMsat + a.remoteBalanceMsat >
+                    b.localBalanceMsat + b.remoteBalanceMsat
                       ? -1
                       : 1
                   )
@@ -172,7 +172,7 @@ function ChannelTableRow({
   hasMultipleChannels,
 }: ChannelTableRowProps) {
   const { data: peerDetails } = useNodeDetails(channel.remotePubkey);
-  const capacity = channel.localBalance + channel.remoteBalance;
+  const capacityMsat = channel.localBalanceMsat + channel.remoteBalanceMsat;
   const alias = peerDetails?.alias || "Unknown";
 
   return (
@@ -197,15 +197,16 @@ function ChannelTableRow({
         )}
       </TableCell>
       <TableCell>
-        <FormattedBitcoinAmount amount={capacity} />
+        <FormattedBitcoinAmount amountMsat={capacityMsat} />
       </TableCell>
-      <TableCell title={channel.unspendablePunishmentReserve + " sats"}>
-        {channel.localBalance < channel.unspendablePunishmentReserve * 1000 && (
+      <TableCell title={channel.unspendablePunishmentReserveSat + " sats"}>
+        {channel.localBalanceMsat <
+          channel.unspendablePunishmentReserveSat * 1000 && (
           <>
             <FormattedBitcoinAmount
-              amount={Math.min(
-                channel.localBalance,
-                channel.unspendablePunishmentReserve * 1000
+              amountMsat={Math.min(
+                channel.localBalanceMsat,
+                channel.unspendablePunishmentReserveSat * 1000
               )}
               showSymbol={false}
             />{" "}
@@ -213,21 +214,23 @@ function ChannelTableRow({
           </>
         )}
         <FormattedBitcoinAmount
-          amount={channel.unspendablePunishmentReserve * 1000}
+          amountMsat={channel.unspendablePunishmentReserveSat * 1000}
         />
       </TableCell>
       <TableCell>
         <div className="relative">
           <Progress
-            value={(channel.localSpendableBalance / capacity) * 100}
+            value={(channel.localSpendableBalanceMsat / capacityMsat) * 100}
             className="h-6 absolute"
           />
           <div className="flex flex-row w-full justify-between px-2 text-xs items-center h-6 mix-blend-exclusion text-white">
             <span>
-              <FormattedBitcoinAmount amount={channel.localSpendableBalance} />
+              <FormattedBitcoinAmount
+                amountMsat={channel.localSpendableBalanceMsat}
+              />
             </span>
             <span>
-              <FormattedBitcoinAmount amount={channel.remoteBalance} />
+              <FormattedBitcoinAmount amountMsat={channel.remoteBalanceMsat} />
             </span>
           </div>
         </div>

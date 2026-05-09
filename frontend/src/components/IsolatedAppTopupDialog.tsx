@@ -26,6 +26,7 @@ export function IsolatedAppTopupDialog({
 }: React.PropsWithChildren<IsolatedAppTopupProps>) {
   const { mutate: reloadApp } = useApp(appId);
   const [amountSat, setAmountSat] = React.useState("");
+  const [description, setDescription] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [open, setOpen] = React.useState(false);
   async function onSubmit(e: React.FormEvent) {
@@ -40,6 +41,7 @@ export function IsolatedAppTopupDialog({
         body: JSON.stringify({
           toAppId: appId,
           amountSat: +amountSat,
+          description,
         }),
       });
       await reloadApp();
@@ -54,6 +56,7 @@ export function IsolatedAppTopupDialog({
   function reset() {
     setOpen(false);
     setAmountSat("");
+    setDescription("");
   }
 
   return (
@@ -65,7 +68,7 @@ export function IsolatedAppTopupDialog({
             <DialogTitle>Increase Balance</DialogTitle>
             <DialogDescription>
               Increase the balance of this sub-wallet. Make sure you always
-              maintain enough funds in your spending balance to prevent
+              maintain enough funds in your lightning balance to prevent
               sub-wallets becoming unspendable.
             </DialogDescription>
           </DialogHeader>
@@ -79,6 +82,18 @@ export function IsolatedAppTopupDialog({
               value={amountSat}
               onChange={(e) => {
                 setAmountSat(e.target.value.trim());
+              }}
+            />
+          </div>
+          <div className="grid gap-2 mt-3">
+            <Label htmlFor="description">Description (optional)</Label>
+            <Input
+              id="description"
+              type="text"
+              placeholder="transfer"
+              value={description}
+              onChange={(e) => {
+                setDescription(e.target.value);
               }}
             />
           </div>

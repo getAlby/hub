@@ -1,6 +1,6 @@
 import { InfoIcon } from "lucide-react";
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import Container from "src/components/Container";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { Button } from "src/components/ui/button";
@@ -14,11 +14,11 @@ export function LNDForm() {
   const [lndAddress, setLndAddress] = React.useState<string>(
     setupStore.nodeInfo.lndAddress || ""
   );
-  const [lndCertHex, setLndCertHex] = React.useState<string>(
-    setupStore.nodeInfo.lndCertHex || ""
+  const [lndCertFile, setLndCertFile] = React.useState<string>(
+    setupStore.nodeInfo.lndCertFile || ""
   );
-  const [lndMacaroonHex, setLndMacaroonHex] = React.useState<string>(
-    setupStore.nodeInfo.lndMacaroonHex || ""
+  const [lndMacaroonFile, setLndMacaroonFile] = React.useState<string>(
+    setupStore.nodeInfo.lndMacaroonFile || ""
   );
 
   // TODO: proper onboarding
@@ -26,8 +26,8 @@ export function LNDForm() {
     e.preventDefault();
     handleSubmit({
       lndAddress,
-      lndCertHex,
-      lndMacaroonHex,
+      lndCertFile,
+      lndMacaroonFile,
     });
   }
 
@@ -43,6 +43,7 @@ export function LNDForm() {
     <Container>
       <TwoColumnLayoutHeader
         title="Configure LND"
+        pageTitle="Configure LND"
         description="Fill out wallet details to finish setup."
       />
       <form className="w-full grid gap-5 mt-6" onSubmit={onSubmit}>
@@ -57,26 +58,28 @@ export function LNDForm() {
           />
         </div>
         <div className="grid gap-1.5">
-          <Label htmlFor="lnd-macaroon-hex">Admin Macaroon (Hex)</Label>
+          <Label htmlFor="lnd-macaroon-file">Admin Macaroon File Path</Label>
           <Input
             required
-            name="lnd-macaroon-hex"
-            onChange={(e) => setLndMacaroonHex(e.target.value)}
-            value={lndMacaroonHex}
+            name="lnd-macaroon-file"
+            onChange={(e) => setLndMacaroonFile(e.target.value)}
+            value={lndMacaroonFile}
             type="text"
-            id="lnd-macaroon-hex"
+            id="lnd-macaroon-file"
           />
         </div>
         <div className="grid gap-1.5">
-          <Label htmlFor="lnd-cert-hex">TLS Certificate (Hex) (optional)</Label>
+          <Label htmlFor="lnd-cert-file">
+            TLS Certificate File Path (optional)
+          </Label>
           <Input
-            name="lnd-cert-hex"
-            onChange={(e) => setLndCertHex(e.target.value)}
-            value={lndCertHex}
+            name="lnd-cert-file"
+            onChange={(e) => setLndCertFile(e.target.value)}
+            value={lndCertFile}
             type="text"
-            id="lnd-cert-hex"
+            id="lnd-cert-file"
           />
-          {!lndCertHex && (
+          {!lndCertFile && (
             <div className="flex flex-row gap-2 items-center justify-start text-sm text-muted-foreground mt-2">
               <InfoIcon className="h-4 w-4 shrink-0" />
               Skipping TLS certificate is not recommended as it may expose your

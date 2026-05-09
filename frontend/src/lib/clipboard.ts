@@ -27,7 +27,7 @@ export async function copyToClipboard(content: string) {
   try {
     await copyPromise;
     toast.success("Copied to clipboard");
-  } catch (e) {
+  } catch {
     toast.error("Failed to copy to clipboard");
   }
 }

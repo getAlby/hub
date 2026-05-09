@@ -34,7 +34,7 @@ export function Bitrefill() {
             const invoice = new Invoice({ pr: parsedData.paymentAddress });
             setInvoice(invoice);
           }
-        } catch (e) {
+        } catch {
           /* empty */
         }
       }
@@ -86,6 +86,7 @@ export function Bitrefill() {
     <>
       <div className="flex flex-col gap-5 h-full">
         <AppHeader
+          pageTitle="Bitrefill"
           title="Bitrefill"
           description="Live on bitcoin by purchasing digital gift cards, eSIMs, and phone refills"
         />
@@ -111,12 +112,12 @@ export function Bitrefill() {
               <div className="flex flex-row gap-2 items-center">
                 <span className="font-medium slashed-zero">
                   <FormattedBitcoinAmount
-                    amount={(invoice?.satoshi || 0) * 1000}
+                    amountMsat={(invoice?.satoshi || 0) * 1000}
                   />
                 </span>
                 <FormattedFiatAmount
                   className="text-muted-foreground"
-                  amount={invoice?.satoshi || 0}
+                  amountSat={invoice?.satoshi || 0}
                 />
               </div>
             </div>

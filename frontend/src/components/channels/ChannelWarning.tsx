@@ -13,7 +13,7 @@ type ChannelWarningProps = {
 };
 
 export function ChannelWarning({ channel }: ChannelWarningProps) {
-  const capacity = channel.localBalance + channel.remoteBalance;
+  const capacityMsat = channel.localBalanceMsat + channel.remoteBalanceMsat;
   let channelWarning = null;
 
   if (channel.error) {
@@ -39,7 +39,7 @@ export function ChannelWarning({ channel }: ChannelWarningProps) {
     );
   } else if (
     channel.status === "online" &&
-    channel.localSpendableBalance > capacity * 0.9
+    channel.localSpendableBalanceMsat > capacityMsat * 0.9
   ) {
     channelWarning = (
       <>

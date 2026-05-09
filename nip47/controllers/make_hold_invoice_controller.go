@@ -11,12 +11,13 @@ import (
 )
 
 type makeHoldInvoiceParams struct {
-	Amount          uint64                 `json:"amount"`
-	PaymentHash     string                 `json:"payment_hash"`
-	Description     string                 `json:"description"`
-	DescriptionHash string                 `json:"description_hash"`
-	Expiry          uint64                 `json:"expiry"`
-	Metadata        map[string]interface{} `json:"metadata,omitempty"`
+	Amount             uint64                 `json:"amount"`
+	PaymentHash        string                 `json:"payment_hash"`
+	Description        string                 `json:"description"`
+	DescriptionHash    string                 `json:"description_hash"`
+	Expiry             uint64                 `json:"expiry"`
+	MinCltvExpiryDelta *uint64                `json:"min_cltv_expiry_delta"`
+	Metadata           map[string]interface{} `json:"metadata,omitempty"`
 }
 type makeHoldInvoiceResponse struct {
 	models.Transaction
@@ -46,14 +47,15 @@ func (controller *nip47Controller) HandleMakeHoldInvoiceEvent(ctx context.Contex
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
-		"requestEventId":  requestEventId,
-		"appId":           appId,
-		"amount":          makeHoldInvoiceParams.Amount,
-		"description":     makeHoldInvoiceParams.Description,
-		"descriptionHash": makeHoldInvoiceParams.DescriptionHash,
-		"expiry":          makeHoldInvoiceParams.Expiry,
-		"paymentHash":     makeHoldInvoiceParams.PaymentHash,
-		"metadata":        makeHoldInvoiceParams.Metadata,
+		"requestEventId":     requestEventId,
+		"appId":              appId,
+		"amount":             makeHoldInvoiceParams.Amount,
+		"description":        makeHoldInvoiceParams.Description,
+		"descriptionHash":    makeHoldInvoiceParams.DescriptionHash,
+		"expiry":             makeHoldInvoiceParams.Expiry,
+		"minCltvExpiryDelta": makeHoldInvoiceParams.MinCltvExpiryDelta,
+		"paymentHash":        makeHoldInvoiceParams.PaymentHash,
+		"metadata":           makeHoldInvoiceParams.Metadata,
 	}).Info("Making hold invoice")
 
 	requestEventIdUint := uint(requestEventId)
@@ -64,6 +66,7 @@ func (controller *nip47Controller) HandleMakeHoldInvoiceEvent(ctx context.Contex
 		makeHoldInvoiceParams.DescriptionHash,
 		makeHoldInvoiceParams.Expiry,
 		makeHoldInvoiceParams.PaymentHash,
+		makeHoldInvoiceParams.MinCltvExpiryDelta,
 		makeHoldInvoiceParams.Metadata,
 		controller.lnClient,
 		&appId,
@@ -72,13 +75,14 @@ func (controller *nip47Controller) HandleMakeHoldInvoiceEvent(ctx context.Contex
 
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
-			"request_event_id": requestEventId,
-			"appId":            appId,
-			"amount":           makeHoldInvoiceParams.Amount,
-			"description":      makeHoldInvoiceParams.Description,
-			"descriptionHash":  makeHoldInvoiceParams.DescriptionHash,
-			"expiry":           makeHoldInvoiceParams.Expiry,
-			"paymentHash":      makeHoldInvoiceParams.PaymentHash,
+			"request_event_id":   requestEventId,
+			"appId":              appId,
+			"amount":             makeHoldInvoiceParams.Amount,
+			"description":        makeHoldInvoiceParams.Description,
+			"descriptionHash":    makeHoldInvoiceParams.DescriptionHash,
+			"expiry":             makeHoldInvoiceParams.Expiry,
+			"minCltvExpiryDelta": makeHoldInvoiceParams.MinCltvExpiryDelta,
+			"paymentHash":        makeHoldInvoiceParams.PaymentHash,
 		}).WithError(err).Error("Failed to make invoice")
 
 		publishResponse(&models.Response{

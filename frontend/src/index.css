@@ -1,5 +1,8 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 @import "sonner/dist/styles.css";
+
+@custom-variant dark (&:is(.dark *));
 
 html,
 body {
@@ -12,7 +15,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-@import "./themes/default.css";
+@import "./themes/base.css";
 @import "./themes/alby.css";
 @import "./themes/bitcoin.css";
 @import "./themes/nostr.css";
@@ -21,6 +24,14 @@ body {
 @import "./themes/claymorphism.css";
 
 @import "./themes/index.css";
+
+@layer base {
+  [role="dialog"],
+  [role="alertdialog"] {
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+}
 
 @layer base {
   button:not([disabled]),
@@ -34,6 +45,21 @@ body {
   [data-slot="command-item"],
   [data-slot="field"] {
     cursor: pointer !important;
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes flash {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
   }
 }
 

@@ -57,8 +57,8 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 			DescriptionHash: tests.MockLNClientTransactions[i].DescriptionHash,
 			Preimage:        &tests.MockLNClientTransactions[i].Preimage,
 			PaymentHash:     tests.MockLNClientTransactions[i].PaymentHash,
-			AmountMsat:      uint64(tests.MockLNClientTransactions[i].Amount),
-			FeeMsat:         uint64(tests.MockLNClientTransactions[i].FeesPaid),
+			AmountMsat:      uint64(tests.MockLNClientTransactions[i].AmountMsat),
+			FeeMsat:         uint64(tests.MockLNClientTransactions[i].FeesPaidMsat),
 			SettledAt:       &settledAt,
 			State:           constants.TRANSACTION_STATE_SETTLED,
 			AppId:           &app.ID,
@@ -86,8 +86,8 @@ func TestHandleListTransactionsEvent(t *testing.T) {
 	assert.Equal(t, tests.MockLNClientTransactions[0].DescriptionHash, transaction.DescriptionHash)
 	assert.Equal(t, tests.MockLNClientTransactions[0].Preimage, transaction.Preimage)
 	assert.Equal(t, tests.MockLNClientTransactions[0].PaymentHash, transaction.PaymentHash)
-	assert.Equal(t, tests.MockLNClientTransactions[0].Amount, transaction.Amount)
-	assert.Equal(t, tests.MockLNClientTransactions[0].FeesPaid, transaction.FeesPaid)
+	assert.Equal(t, tests.MockLNClientTransactions[0].AmountMsat, transaction.Amount)
+	assert.Equal(t, tests.MockLNClientTransactions[0].FeesPaidMsat, transaction.FeesPaid)
 	assert.Equal(t, tests.MockLNClientTransactions[0].SettledAt, transaction.SettledAt)
 	assert.Equal(t, "settled", transaction.State)
 }

@@ -1,9 +1,10 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
 export type DarkMode = "system" | "light" | "dark";
+// eslint-disable-next-line react-refresh/only-export-components
 export const Themes = [
-  "default",
   "alby",
+  "classic",
   "bitcoin",
   "nostr",
   "matrix",
@@ -28,7 +29,7 @@ type ThemeProviderState = {
 };
 
 const initialState: ThemeProviderState = {
-  theme: "default",
+  theme: "alby",
   setTheme: () => null,
   darkMode: "system",
   setDarkMode: () => null,
@@ -39,7 +40,7 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 export function ThemeProvider({
   children,
-  defaultTheme = "default",
+  defaultTheme = "alby",
   defaultDarkMode = "system",
   storageKey = "vite-ui-theme",
   ...props
@@ -71,14 +72,13 @@ export function ThemeProvider({
 
     classList.add(`theme-${theme}`);
 
-    let prefersDark = false;
+    let prefersDark;
     if (darkMode == "system") {
       prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     } else {
       prefersDark = darkMode === "dark";
     }
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsDarkMode(prefersDark);
 
     if (prefersDark) {

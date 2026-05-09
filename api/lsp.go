@@ -17,9 +17,9 @@ import (
 )
 
 func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (*LSPOrderResponse, error) {
-
-	if api.svc.GetLNClient() == nil {
-		return nil, errors.New("LNClient not started")
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
+		return nil, ErrLNClientNotStarted
 	}
 
 	if request.LSPType != lsp.LSP_TYPE_LSPS1 {
@@ -28,7 +28,7 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 
 	logger.Logger.Info("Requesting own node info")
 
-	nodeInfo, err := api.svc.GetLNClient().GetInfo(ctx)
+	nodeInfo, err := lnClient.GetInfo(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
 			"lspIdentifier": request.LSPIdentifier,
@@ -46,7 +46,7 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 
 	logger.Logger.WithField("lspInfo", lspInfo).Info("Connecting to LSP node as a peer")
 
-	err = api.svc.GetLNClient().ConnectPeer(ctx, &lnclient.ConnectPeerRequest{
+	err = lnClient.ConnectPeer(ctx, &lnclient.ConnectPeerRequest{
 		Pubkey:  lspInfo.Pubkey,
 		Address: lspInfo.Address,
 		Port:    lspInfo.Port,
@@ -57,9 +57,13 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 		return nil, err
 	}
 
-	invoice, fee, err := api.requestLSPS1Invoice(ctx, request, nodeInfo.Network, nodeInfo.Pubkey, lspInfo.MaxChannelExpiryBlocks, lspInfo.MinRequiredChannelConfirmations, lspInfo.MinFundingConfirmsWithinBlocks)
-	invoiceAmount := uint64(0)
-	incomingLiquidity := request.Amount
+	invoice, feeSat, err := api.requestLSPS1Invoice(ctx, lnClient, request, nodeInfo.Network, nodeInfo.Pubkey, lspInfo.MaxChannelExpiryBlocks, lspInfo.MinRequiredChannelConfirmations, lspInfo.MinFundingConfirmsWithinBlocks)
+	invoiceAmountSat := uint64(0)
+	incomingLiquiditySat := uint64(0)
+	resolvedAmountSat := ResolveToSat(request.AmountSat, nil, request.Amount, nil)
+	if resolvedAmountSat != nil {
+		incomingLiquiditySat = *resolvedAmountSat
+	}
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to request invoice")
@@ -73,15 +77,19 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 			return nil, err
 		}
 
-		invoiceAmount = uint64(paymentRequest.MSatoshi / 1000)
+		invoiceAmountSat = uint64(paymentRequest.MSatoshi / 1000)
 	}
 
 	newChannelResponse := &LSPOrderResponse{
-		Invoice:           invoice,
-		Fee:               fee,
-		InvoiceAmount:     invoiceAmount,
-		IncomingLiquidity: incomingLiquidity,
-		OutgoingLiquidity: uint64(0), // JIT channel no longer supported
+		Invoice:              invoice,
+		Fee:                  feeSat,
+		FeeSat:               feeSat,
+		InvoiceAmount:        invoiceAmountSat,
+		InvoiceAmountSat:     invoiceAmountSat,
+		IncomingLiquidity:    incomingLiquiditySat,
+		IncomingLiquiditySat: incomingLiquiditySat,
+		OutgoingLiquidity:    uint64(0),
+		OutgoingLiquiditySat: uint64(0),
 	}
 
 	logger.Logger.WithFields(logrus.Fields{
@@ -91,8 +99,8 @@ func (api *api) RequestLSPOrder(ctx context.Context, request *LSPOrderRequest) (
 	return newChannelResponse, nil
 }
 
-func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderRequest, network, pubkey string, channelExpiryBlocks uint64, minRequiredChannelConfirmations uint64, minFundingConfirmsWithinBlocks uint64) (invoice string, fee uint64, err error) {
-	refundAddress, err := api.svc.GetLNClient().GetNewOnchainAddress(ctx)
+func (api *api) requestLSPS1Invoice(ctx context.Context, lnClient lnclient.LNClient, request *LSPOrderRequest, network, pubkey string, channelExpiryBlocks uint64, minRequiredChannelConfirmations uint64, minFundingConfirmsWithinBlocks uint64) (invoice string, feeSat uint64, err error) {
+	refundAddress, err := lnClient.GetNewOnchainAddress(ctx)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to request onchain address")
 		return "", 0, err
@@ -136,9 +144,16 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderReques
 		token = "AlbyHub/" + version.Tag
 	}
 
+	amountSat := uint64(0)
+	resolvedAmountSat := ResolveToSat(request.AmountSat, nil, request.Amount, nil)
+	if resolvedAmountSat != nil {
+		amountSat = *resolvedAmountSat
+	}
+	lspBalanceSat := strconv.FormatUint(amountSat, 10)
+
 	lsps1ChannelRequest := &alby.LSPChannelRequest{
 		PublicKey:                    pubkey,
-		LSPBalanceSat:                strconv.FormatUint(request.Amount, 10),
+		LSPBalanceSat:                lspBalanceSat,
 		ClientBalanceSat:             "0",
 		RequiredChannelConfirmations: requiredChannelConfirmations,
 		FundingConfirmsWithinBlocks:  minFundingConfirmsWithinBlocks,
@@ -155,7 +170,7 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderReques
 
 	if channelResponse.Payment != nil {
 		invoice = channelResponse.Payment.Bolt11.Invoice
-		fee, err = strconv.ParseUint(channelResponse.Payment.Bolt11.FeeTotalSat, 10, 64)
+		feeSat, err = strconv.ParseUint(channelResponse.Payment.Bolt11.FeeTotalSat, 10, 64)
 		if err != nil {
 			logger.Logger.WithError(err).WithFields(logrus.Fields{
 				"lspIdentifier": request.LSPIdentifier,
@@ -164,5 +179,5 @@ func (api *api) requestLSPS1Invoice(ctx context.Context, request *LSPOrderReques
 		}
 	}
 
-	return invoice, fee, nil
+	return invoice, feeSat, nil
 }

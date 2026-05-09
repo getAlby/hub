@@ -12,12 +12,12 @@ export function useBanner() {
   const isDismissedRef = React.useRef(false);
 
   React.useEffect(() => {
-    if (!info || !albyInfo || isDismissedRef.current) {
+    if (!info || !albyInfo || info.hideUpdateBanner || isDismissedRef.current) {
       return;
     }
 
     // vss migration (alby cloud only)
-    // TODO: remove after 2026-01-01
+    // TODO: remove after 2026-08-01
     const vssMigrationRequired =
       info.oauthRedirect &&
       !!albyMe?.subscription.plan_code.includes("buzz") &&

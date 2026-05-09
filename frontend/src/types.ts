@@ -11,7 +11,7 @@ import {
   WalletMinimalIcon,
 } from "lucide-react";
 
-export type BackendType = "LND" | "LDK" | "PHOENIX" | "CASHU";
+export type BackendType = "LND" | "LDK" | "PHOENIX" | "CASHU" | "CLN";
 
 export type Nip47RequestMethod =
   | "get_info"
@@ -96,14 +96,12 @@ export const expiryOptions: Record<string, number> = {
   "1 week": 7,
   "1 month": 30,
   "1 year": 365,
-  Never: 0,
 };
 
-export const budgetOptions: Record<string, number> = {
+export const budgetOptionsSat: Record<string, number> = {
   "10k": 10_000,
   "100k": 100_000,
   "1M": 1_000_000,
-  Unlimited: 0,
 };
 
 export interface ErrorResponse {
@@ -120,20 +118,24 @@ export interface App {
   createdAt: string;
   updatedAt: string;
   lastUsedAt?: string;
+  lastSettledTransactionAt?: string;
   expiresAt?: string;
   isolated: boolean;
-  balance: number;
+  balanceSat: number;
+  balanceMsat: number;
 
   scopes: Scope[];
-  maxAmount: number;
-  budgetUsage: number;
+  maxAmountSat: number;
+  maxAmountMsat: number;
+  budgetUsageSat: number;
+  budgetUsageMsat: number;
   budgetRenewal: BudgetRenewalType;
   metadata?: AppMetadata;
 }
 
 export interface AppPermissions {
   scopes: Scope[];
-  maxAmount: number;
+  maxAmountSat: number;
   budgetRenewal: BudgetRenewalType;
   expiresAt?: Date;
   isolated: boolean;
@@ -164,6 +166,9 @@ export interface InfoResponse {
   nodeAlias: string;
   mempoolUrl: string;
   bitcoinDisplayFormat: BitcoinDisplayFormat;
+  chainDataSourceType?: string;
+  chainDataSourceAddress?: string;
+  hideUpdateBanner: boolean;
 }
 
 export type BitcoinDisplayFormat = "sats" | "bip177";
@@ -201,22 +206,22 @@ export type AppMetadata = {
 export type AutoSwapConfig = {
   type: "out";
   enabled: boolean;
-  balanceThreshold: number;
-  swapAmount: number;
+  balanceThresholdSat: number;
+  swapAmountSat: number;
   destination: string;
 };
 
 export type SwapInfo = {
   albyServiceFee: number;
   boltzServiceFee: number;
-  boltzNetworkFee: number;
-  minAmount: number;
-  maxAmount: number;
+  boltzNetworkFeeSat: number;
+  minAmountSat: number;
+  maxAmountSat: number;
 };
 
 export type BaseSwap = {
   id: string;
-  sendAmount: number;
+  sendAmountSat: number;
   lockupAddress: string;
   paymentHash: string;
   invoice: string;
@@ -227,7 +232,7 @@ export type BaseSwap = {
   updatedAt: string;
   lockupTxId?: string;
   claimTxId?: string;
-  receiveAmount?: number;
+  receiveAmountSat?: number;
 };
 
 export type SwapIn = BaseSwap & {
@@ -256,7 +261,8 @@ export interface MnemonicResponse {
 export interface CreateAppRequest {
   name: string;
   pubkey?: string;
-  maxAmount?: number;
+  maxAmountSat?: number;
+  maxAmountMsat?: number;
   budgetRenewal?: BudgetRenewalType;
   expiresAt?: string;
   scopes: Scope[];
@@ -280,7 +286,8 @@ export interface CreateAppResponse {
 
 export type UpdateAppRequest = {
   name?: string;
-  maxAmount?: number;
+  maxAmountSat?: number;
+  maxAmountMsat?: number;
   budgetRenewal?: string;
   expiresAt?: string | undefined;
   updateExpiresAt?: boolean;
@@ -290,9 +297,12 @@ export type UpdateAppRequest = {
 };
 
 export type Channel = {
-  localBalance: number;
-  localSpendableBalance: number;
-  remoteBalance: number;
+  localBalanceSat: number;
+  localBalanceMsat: number;
+  localSpendableBalanceSat: number;
+  localSpendableBalanceMsat: number;
+  remoteBalanceSat: number;
+  remoteBalanceMsat: number;
   remotePubkey: string;
   id: string;
   fundingTxId: string;
@@ -303,8 +313,8 @@ export type Channel = {
   confirmationsRequired?: number;
   forwardingFeeBaseMsat: number;
   forwardingFeeProportionalMillionths: number;
-  unspendablePunishmentReserve: number;
-  counterpartyUnspendablePunishmentReserve: number;
+  unspendablePunishmentReserveSat: number;
+  counterpartyUnspendablePunishmentReserveSat: number;
   error?: string;
   status: "online" | "opening" | "offline";
   isOutbound: boolean;
@@ -342,18 +352,23 @@ export type SignMessageResponse = {
   signature: string;
 };
 
-export type PayInvoiceResponse = {
-  preimage: string;
-  fee: number;
-};
+export type PayInvoiceResponse = Transaction;
 
 export type CreateOfferRequest = {
   description: string;
 };
 
 export type CreateInvoiceRequest = {
-  amount: number;
+  amountSat?: number;
+  amountMsat?: number;
   description: string;
+};
+
+export type PayInvoiceRequest = {
+  amountSat?: number;
+  amountMsat?: number;
+  metadata?: Record<string, unknown>;
+  fromAppId?: number;
 };
 
 export type OpenChannelRequest = {
@@ -366,22 +381,22 @@ export type OpenChannelResponse = {
   fundingTxId: string;
 };
 
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export type CloseChannelResponse = {};
 
 export type PendingBalancesDetails = {
   channelId: string;
   nodeId: string;
-  amount: number;
+  amountSat: number;
   fundingTxId: string;
   fundingTxVout: number;
 };
 
 export type OnchainBalanceResponse = {
-  spendable: number;
-  total: number;
-  reserved: number;
-  pendingBalancesFromChannelClosures: number;
+  spendableSat: number;
+  totalSat: number;
+  reservedSat: number;
+  pendingBalancesFromChannelClosuresSat: number;
   pendingBalancesDetails: PendingBalancesDetails[];
   pendingSweepBalancesDetails: PendingBalancesDetails[];
 };
@@ -437,11 +452,15 @@ export type SetupNodeInfo = Partial<{
   nextBackupReminder?: string;
 
   lndAddress?: string;
-  lndCertHex?: string;
-  lndMacaroonHex?: string;
+  lndCertFile?: string;
+  lndMacaroonFile?: string;
 
   phoenixdAddress?: string;
   phoenixdAuthorization?: string;
+
+  clnAddress?: string;
+  clnLightningDir?: string;
+  clnAddressHold?: string;
 }>;
 
 export type LSPType = "LSPS1";
@@ -467,8 +486,8 @@ export type RecommendedChannelPeer = {
   network: Network;
   image: string;
   name: string;
-  minimumChannelSize: number;
-  maximumChannelSize: number;
+  minimumChannelSizeSat: number;
+  maximumChannelSizeSat: number;
   note: string;
   publicChannelsAllowed: boolean;
   description: string;
@@ -507,6 +526,13 @@ export type BitcoinRate = {
   rate_cents: number;
 };
 
+export type Currency = {
+  iso_code: string;
+  symbol: string;
+  name: string;
+  priority: number;
+};
+
 // TODO: use camel case (needs mapping in the Alby OAuth Service - see how AlbyInfo is done above)
 export type AlbyMe = {
   identifier: string;
@@ -529,18 +555,38 @@ export type AlbyMe = {
 };
 
 export type LSPOrderRequest = {
-  amount: number;
+  amountSat?: number;
   lspType: LSPType;
   lspIdentifier: string;
   public: boolean;
 };
 
+export type RedeemOnchainFundsRequest = {
+  toAddress: string;
+  amountSat?: number;
+  feeRate?: number;
+  sendAll?: boolean;
+};
+
+export type AutoSwapRequest = {
+  balanceThresholdSat?: number;
+  swapAmountSat?: number;
+  destination: string;
+  destinationType?: string;
+  unlockPassword?: string;
+};
+
+export type InitiateSwapRequest = {
+  swapAmountSat?: number;
+  destination?: string;
+};
+
 export type LSPOrderResponse = {
   invoice?: string;
-  fee: number;
-  invoiceAmount: number;
-  incomingLiquidity: number;
-  outgoingLiquidity: number;
+  feeSat: number;
+  invoiceAmountSat: number;
+  incomingLiquiditySat: number;
+  outgoingLiquiditySat: number;
 };
 
 export type AutoChannelRequest = {
@@ -548,8 +594,8 @@ export type AutoChannelRequest = {
 };
 export type AutoChannelResponse = {
   invoice?: string;
-  fee?: number;
-  channelSize: number;
+  feeSat?: number;
+  channelSizeSat: number;
 };
 
 export type RedeemOnchainFundsResponse = {
@@ -557,12 +603,18 @@ export type RedeemOnchainFundsResponse = {
 };
 
 export type LightningBalanceResponse = {
-  totalSpendable: number;
-  totalReceivable: number;
-  nextMaxSpendable: number;
-  nextMaxReceivable: number;
-  nextMaxSpendableMPP: number;
-  nextMaxReceivableMPP: number;
+  totalSpendableSat: number;
+  totalSpendableMsat: number;
+  totalReceivableSat: number;
+  totalReceivableMsat: number;
+  nextMaxSpendableSat: number;
+  nextMaxSpendableMsat: number;
+  nextMaxReceivableSat: number;
+  nextMaxReceivableMsat: number;
+  nextMaxSpendableMPPSat: number;
+  nextMaxSpendableMPPMsat: number;
+  nextMaxReceivableMPPSat: number;
+  nextMaxReceivableMPPMsat: number;
 };
 
 export type BalancesResponse = {
@@ -571,6 +623,7 @@ export type BalancesResponse = {
 };
 
 export type Transaction = {
+  id: number;
   type: "incoming" | "outgoing";
   state: "settled" | "pending" | "failed";
   appId: number | undefined;
@@ -579,8 +632,10 @@ export type Transaction = {
   descriptionHash: string;
   preimage: string | undefined;
   paymentHash: string;
-  amount: number;
-  feesPaid: number;
+  amountSat: number;
+  amountMsat: number;
+  feesPaidSat: number;
+  feesPaidMsat: number;
   updatedAt: string;
   createdAt: string;
   settledAt: string | undefined;
@@ -608,6 +663,7 @@ export type TransactionMetadata = {
     payer_note: string;
   }; // BOLT-12
   swap_id?: string;
+  user_labels?: Record<string, string>;
 } & Record<string, unknown>;
 
 export type Boostagram = {
@@ -624,11 +680,13 @@ export type Boostagram = {
   senderName: string;
   time: string;
   action: "boost";
+  valueSatTotal: number;
   valueMsatTotal: number;
 };
 
 export type OnchainTransaction = {
   amountSat: number;
+  amountMsat: number;
   createdAt: number;
   type: "incoming" | "outgoing";
   state: "confirmed" | "unconfirmed";
@@ -639,6 +697,8 @@ export type OnchainTransaction = {
 export type ListAppsResponse = {
   apps: App[];
   totalCount: number;
+  totalBalanceSat?: number;
+  totalBalanceMsat?: number;
 };
 
 export type ListTransactionsResponse = {
@@ -649,7 +709,7 @@ export type ListTransactionsResponse = {
 export type NewChannelOrderStatus = "pay" | "paid" | "success" | "opening";
 
 type NewChannelOrderCommon = {
-  amount: string;
+  amountSat: string;
   isPublic: boolean;
   status: NewChannelOrderStatus;
   fundingTxId?: string;
@@ -675,7 +735,9 @@ export type AuthTokenResponse = {
 };
 
 export type GetForwardsResponse = {
+  outboundAmountForwardedSat: number;
   outboundAmountForwardedMsat: number;
+  totalFeeEarnedSat: number;
   totalFeeEarnedMsat: number;
   numForwards: number;
 };

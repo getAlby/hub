@@ -1,6 +1,6 @@
 import { ChevronDownIcon } from "lucide-react";
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
@@ -35,7 +35,7 @@ export function AutoChannel() {
 
   const navigate = useNavigate();
   const [invoice, setInvoice] = React.useState<string>();
-  const [channelSize, setChannelSize] = React.useState<number>();
+  const [channelSizeSat, setChannelSizeSat] = React.useState<number>();
   const [, setPrevChannelIds] = React.useState<string[]>();
 
   React.useEffect(() => {
@@ -91,7 +91,7 @@ export function AutoChannel() {
       }
 
       setInvoice(autoChannelResponse.invoice);
-      setChannelSize(autoChannelResponse.channelSize);
+      setChannelSizeSat(autoChannelResponse.channelSizeSat);
     } catch (error) {
       setLoading(false);
       console.error(error);
@@ -102,17 +102,18 @@ export function AutoChannel() {
   return (
     <>
       <AppHeader
+        pageTitle="Open a lightning channel"
         title="Open a lightning channel"
         description="Open a channel to another node on the lightning network"
       />
       <MempoolAlert />
-      {invoice && channelSize && (
+      {invoice && channelSizeSat && (
         <div className="flex flex-col gap-4 items-center justify-center max-w-md">
           <p className="text-muted-foreground slashed-zero">
             Please pay the lightning invoice below which will cover the costs of
             opening your channel. You will receive a channel with{" "}
-            <FormattedBitcoinAmount amount={channelSize * 1000} /> of receiving
-            capacity.
+            <FormattedBitcoinAmount amountMsat={channelSizeSat * 1000} /> of
+            receiving capacity.
           </p>
           <PayLightningInvoice invoice={invoice} />
 
@@ -183,7 +184,7 @@ export function AutoChannel() {
                   <div className="grid gap-1.5 leading-none">
                     <Label
                       htmlFor="public-channel"
-                      className="flex items-center gap-2"
+                      className="cursor-pointer text-foreground"
                     >
                       Public Channel
                     </Label>

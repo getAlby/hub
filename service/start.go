@@ -22,6 +22,7 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/lnclient/cashu"
+	"github.com/getAlby/hub/lnclient/cln"
 	"github.com/getAlby/hub/lnclient/ldk"
 	"github.com/getAlby/hub/lnclient/lnd"
 	"github.com/getAlby/hub/lnclient/phoenixd"
@@ -89,7 +90,7 @@ func (svc *service) startNostr(ctx context.Context) error {
 	}()
 
 	svc.nip47Service.StartNotifier(ctx, pool)
-	svc.nip47Service.StartNip47InfoPublisher(ctx, pool, svc.lnClient)
+	svc.nip47Service.StartNip47InfoPublisher(ctx, pool, svc.GetLNClient())
 
 	// register a subscriber for events of "nwc_app_created" which handles creation of nostr subscription for new app
 	createAppEventListener := &createAppConsumer{svc: svc, pool: pool}
@@ -235,7 +236,7 @@ func (svc *service) watchSubscription(ctx context.Context, pool *nostr.SimplePoo
 			case <-ctx.Done():
 				return
 			default:
-				go svc.nip47Service.HandleEvent(ctx, pool, event.Event, svc.lnClient)
+				go svc.nip47Service.HandleEvent(ctx, pool, event.Event, svc.GetLNClient())
 			}
 		}
 		logger.Logger.Debug("Relay subscription events channel ended")
@@ -276,9 +277,9 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return errors.New("invalid password")
 	}
 
-	err = svc.cfg.Unlock(encryptionKey)
+	err = svc.cfg.LoadJWTSecret(encryptionKey)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to unlock config")
+		logger.Logger.WithError(err).Error("Failed to load JWT secret")
 		return err
 	}
 
@@ -301,7 +302,7 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return err
 	}
 
-	svc.swapsService = swaps.NewSwapsService(ctx, svc.db, svc.cfg, svc.keys, svc.eventPublisher, svc.lnClient, svc.transactionsService)
+	svc.swapsService = swaps.NewSwapsService(ctx, svc.db, svc.cfg, svc.keys, svc.eventPublisher, svc.GetLNClient(), svc.transactionsService, encryptionKey)
 
 	svc.publishAllAppInfoEvents()
 
@@ -372,6 +373,11 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		cashuWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "cashu")
 
 		lnClient, err = cashu.NewCashuService(svc.cfg, cashuWorkdir, mnemonic, cashuMintUrl)
+	case config.CLNBackendType:
+		CLNAddress, _ := svc.cfg.Get("CLNAddress", encryptionKey)
+		CLNLightningDir, _ := svc.cfg.Get("CLNLightningDir", encryptionKey)
+		CLNAddressHold, _ := svc.cfg.Get("CLNAddressHold", encryptionKey)
+		lnClient, err = cln.NewCLNService(ctx, svc.eventPublisher, CLNAddress, CLNLightningDir, CLNAddressHold)
 	default:
 		logger.Logger.WithField("backend_type", lnBackend).Error("Unsupported LNBackendType")
 		return fmt.Errorf("unsupported backend type: %s", lnBackend)

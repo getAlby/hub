@@ -1,5 +1,5 @@
 import { AlertTriangleIcon, ExternalLinkIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import ExternalLink from "src/components/ExternalLink";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { useChannels } from "src/hooks/useChannels";
@@ -54,11 +54,11 @@ function ChannelWithoutPeerAlertInternal({ channel }: { channel: Channel }) {
           </ExternalLink>{" "}
         </p>
         <p>
-          2. Open{" "}
+          2. Open <span className="font-semibold">Advanced</span> and click{" "}
           <Link to="/peers" className="font-semibold">
-            Peers
+            Connected Peers
           </Link>{" "}
-          to re-connect the peer.
+          to reconnect the peer.
         </p>
       </AlertDescription>
     </Alert>

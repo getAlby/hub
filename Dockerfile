@@ -9,7 +9,7 @@ COPY frontend ./frontend
 RUN echo "Building frontend with base path $BASE_PATH"
 RUN cd frontend && yarn install --network-timeout 3000000 && yarn build:http
 
-FROM golang:1.24 AS builder
+FROM golang:1.25 AS builder
 
 ARG TARGETPLATFORM
 ARG BUILDPLATFORM

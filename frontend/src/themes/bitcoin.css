@@ -1,59 +1,29 @@
 .theme-bitcoin {
-  --background: hsl(0 0% 100%);
-  --foreground: hsl(0 0% 5%);
-
-  --card: hsl(0 0% 100%);
-  --card-foreground: hsl(0 0% 5%);
-
-  --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(0 0% 5%);
-
-  --primary: hsl(42 100% 47%);
-  --primary-foreground: hsl(0 0% 2%);
-
-  --secondary: hsl(0 0% 96%);
-  --secondary-foreground: hsl(0 0% 5%);
-
-  --muted: hsl(0 0% 96%);
-  --muted-foreground: hsl(0 0% 45%);
-
-  --accent: hsl(0 0% 96%);
-  --accent-foreground: hsl(0 0% 5%);
-
-  --destructive: hsl(0 84% 60%);
-
-  --border: hsl(0 0% 92%);
-  --input: hsl(0 0% 85%);
-  --ring: hsl(0 0% 76%);
-
   --radius: 0.5rem;
+
+  --primary: oklch(0.78 0.163 77.82);
+  --primary-foreground: oklch(0.116 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.158 0 0);
+  --chart-1: oklch(0.78 0.163 77.82);
+  --chart-2: oklch(0.765 0.174 62.124);
+  --chart-3: oklch(0.722 0.171 52.177);
+  --chart-4: oklch(0.875 0.173 94.615);
+  --chart-5: oklch(0.645 0.181 38.044);
+  --sidebar-primary: oklch(0.78 0.163 77.82);
+  --sidebar-primary-foreground: oklch(0.116 0 0);
 }
 
 .theme-bitcoin.dark {
-  --background: hsl(60 3% 6%);
-  --foreground: hsl(0 0% 98%);
-
-  --card: hsl(60 3% 6%);
-  --card-foreground: hsl(0 0% 98%);
-
-  --popover: hsl(60 3% 6%);
-  --popover-foreground: hsl(0 0% 98%);
-
-  --primary: hsl(42 100% 47%);
-  --primary-foreground: hsl(0 0% 2%);
-
-  --secondary: hsl(40 5% 12%);
-  --secondary-foreground: hsl(0 0% 98%);
-
-  --muted: hsl(45 4% 18%);
-  --muted-foreground: hsl(40 5% 49%);
-
-  --accent: hsl(42 44% 12%);
-  --accent-foreground: hsl(0 0% 98%);
-
-  --destructive: hsl(0 84% 60%);
-
-  --border: hsl(40 5% 12%);
-  --input: hsl(45 4% 18%);
-  --ring: hsl(42 100% 40%);
+  --primary: oklch(0.78 0.163 77.82);
+  --primary-foreground: oklch(0.116 0 0);
+  --secondary: oklch(0.24 0.004 84.586);
+  --secondary-foreground: oklch(0.985 0 0);
+  --chart-1: oklch(0.78 0.163 77.82);
+  --chart-2: oklch(0.765 0.174 62.124);
+  --chart-3: oklch(0.722 0.171 52.177);
+  --chart-4: oklch(0.875 0.173 94.615);
+  --chart-5: oklch(0.645 0.181 38.044);
+  --sidebar-primary: oklch(0.78 0.163 77.82);
+  --sidebar-primary-foreground: oklch(0.116 0 0);
 }

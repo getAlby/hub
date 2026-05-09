@@ -68,6 +68,11 @@ export function ResetRoutingDataDialogContent() {
     }
   }
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await resetRouter();
+  };
+
   return (
     <AlertDialogContent>
       <AlertDialogHeader>
@@ -75,30 +80,34 @@ export function ResetRoutingDataDialogContent() {
         <AlertDialogDescription className="text-left">
           <div>
             <p>Are you sure you want to clear your routing data?</p>
-            <div className="grid gap-2 mt-4">
-              <Label className="text-primary">Routing Data to Clear</Label>
-              <Select
-                name="resetKey"
-                value={resetKey}
-                onValueChange={(value) => setResetKey(value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Data" />
-                </SelectTrigger>
-                <SelectContent>
-                  {RESET_KEY_OPTIONS.map((resetKey) => (
-                    <SelectItem key={resetKey.value} value={resetKey.value}>
-                      {resetKey.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            <form id="reset-routing-form" onSubmit={handleSubmit}>
+              <div className="grid gap-2 mt-4">
+                <Label className="text-foreground">Routing Data to Clear</Label>
+                <Select
+                  name="resetKey"
+                  value={resetKey}
+                  onValueChange={(value) => setResetKey(value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Data" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {RESET_KEY_OPTIONS.map((resetKey) => (
+                      <SelectItem key={resetKey.value} value={resetKey.value}>
+                        {resetKey.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </form>
             <div className="grid gap-2 mt-4 border rounded-md p-3">
-              <h3 className="text-primary font-semibold">Clear Data Options</h3>
+              <h3 className="font-semibold text-foreground">
+                Clear Data Options
+              </h3>
               {RESET_KEY_OPTIONS.map((resetKey) => (
-                <p>
-                  <span className="text-primary font-medium">
+                <p key={resetKey.value}>
+                  <span className="font-medium text-foreground">
                     {resetKey.label}
                   </span>
                   {" - "}
@@ -106,7 +115,7 @@ export function ResetRoutingDataDialogContent() {
                 </p>
               ))}
             </div>
-            <p className="text-primary font-medium mt-4">
+            <p className="font-medium text-foreground mt-4">
               After clearing, you'll need to login again to restart your node.
             </p>
           </div>
@@ -116,7 +125,11 @@ export function ResetRoutingDataDialogContent() {
         <AlertDialogCancel onClick={() => setResetKey(undefined)}>
           Cancel
         </AlertDialogCancel>
-        <AlertDialogAction disabled={!resetKey} onClick={resetRouter}>
+        <AlertDialogAction
+          disabled={!resetKey}
+          type="submit"
+          form="reset-routing-form"
+        >
           Confirm
         </AlertDialogAction>
       </AlertDialogFooter>

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"os"
-	"sort"
 	"strconv"
 	"time"
 
@@ -72,9 +71,9 @@ func (cs *CashuService) Shutdown() error {
 	return cs.wallet.Shutdown()
 }
 
-func (cs *CashuService) SendPaymentSync(invoice string, amount *uint64) (response *lnclient.PayInvoiceResponse, err error) {
+func (cs *CashuService) SendPaymentSync(invoice string, amountMsat *uint64) (response *lnclient.PayInvoiceResponse, err error) {
 	// TODO: support 0-amount invoices
-	if amount != nil {
+	if amountMsat != nil {
 		return nil, errors.New("0-amount invoices not supported")
 	}
 
@@ -97,20 +96,20 @@ func (cs *CashuService) SendPaymentSync(invoice string, amount *uint64) (respons
 
 	return &lnclient.PayInvoiceResponse{
 		Preimage: meltResponse.Preimage,
-		Fee:      fee * 1000,
+		FeeMsat:  fee * 1000,
 	}, nil
 }
 
-func (cs *CashuService) SendKeysend(amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+func (cs *CashuService) SendKeysend(amountMsat uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	return nil, errors.New("keysend not supported")
 }
 
-func (cs *CashuService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
+func (cs *CashuService) MakeInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
 	// TODO: support expiry
 	if expiry == 0 {
 		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
 	}
-	mintResponse, err := cs.wallet.RequestMint(uint64(amount/1000), cs.wallet.CurrentMint())
+	mintResponse, err := cs.wallet.RequestMint(uint64(amountMsat/1000), cs.wallet.CurrentMint())
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to mint")
 		return nil, err
@@ -120,7 +119,8 @@ func (cs *CashuService) MakeInvoice(ctx context.Context, amount int64, descripti
 	return cs.cashuMintQuoteToTransaction(mintQuote), nil
 }
 
-func (cs *CashuService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
+func (cs *CashuService) MakeHoldInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (transaction *lnclient.Transaction, err error) {
+	_ = minCltvExpiryDelta
 	return nil, errors.New("not implemented")
 }
 
@@ -149,40 +149,6 @@ func (cs *CashuService) LookupInvoice(ctx context.Context, paymentHash string) (
 
 	logger.Logger.WithField("paymentHash", paymentHash).Error("Failed to lookup payment request by payment hash")
 	return nil, errors.New("failed to lookup payment request by payment hash")
-}
-
-func (cs *CashuService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []lnclient.Transaction, err error) {
-	mintQuotes := cs.wallet.GetMintQuotes()
-	meltQuotes := cs.wallet.GetMeltQuotes()
-	transactions = make([]lnclient.Transaction, 0, len(mintQuotes)+len(meltQuotes))
-
-	for _, mintQuote := range mintQuotes {
-		invoiceCreated := time.UnixMilli(mintQuote.CreatedAt * 1000)
-		if time.Since(invoiceCreated) < 24*time.Hour && mintQuote.State != nut04.Paid {
-			cs.checkIncomingPayment(&mintQuote)
-		}
-
-		transaction := cs.cashuMintQuoteToTransaction(&mintQuote)
-		if transaction.SettledAt == nil {
-			continue
-		}
-		transactions = append(transactions, *transaction)
-	}
-
-	for _, meltQuote := range meltQuotes {
-		transaction := cs.cashuMeltQuoteToTransaction(&meltQuote)
-		if transaction.SettledAt == nil {
-			continue
-		}
-		transactions = append(transactions, *transaction)
-	}
-
-	// sort by created date descending
-	sort.SliceStable(transactions, func(i, j int) bool {
-		return transactions[i].CreatedAt > transactions[j].CreatedAt
-	})
-
-	return transactions, nil
 }
 
 func (cs *CashuService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
@@ -221,13 +187,10 @@ func (cs *CashuService) GetNewOnchainAddress(ctx context.Context) (string, error
 }
 
 func (cs *CashuService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
-	return &lnclient.OnchainBalanceResponse{
-		Spendable: 0,
-		Total:     0,
-	}, nil
+	return &lnclient.OnchainBalanceResponse{}, nil
 }
 
-func (cs *CashuService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (string, error) {
+func (cs *CashuService) RedeemOnchainFunds(ctx context.Context, toAddress string, amountSat uint64, feeRate *uint64, sendAll bool) (string, error) {
 	return "", nil
 }
 
@@ -283,14 +246,6 @@ func (cs *CashuService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient
 	}, nil
 }
 
-func (cs *CashuService) SendPaymentProbes(ctx context.Context, invoice string) error {
-	return nil
-}
-
-func (cs *CashuService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
-	return nil
-}
-
 func (cs *CashuService) UpdateChannel(ctx context.Context, updateChannelRequest *lnclient.UpdateChannelRequest) error {
 	return nil
 }
@@ -301,16 +256,18 @@ func (cs *CashuService) GetBalances(ctx context.Context, includeInactiveChannels
 
 	return &lnclient.BalancesResponse{
 		Onchain: lnclient.OnchainBalanceResponse{
-			Spendable: 0,
-			Total:     0,
-		},
+			PendingBalancesDetails:      []lnclient.PendingBalanceDetails{},
+			PendingSweepBalancesDetails: []lnclient.PendingBalanceDetails{}},
 		Lightning: lnclient.LightningBalanceResponse{
-			TotalSpendable:       balance,
-			TotalReceivable:      0,
-			NextMaxSpendable:     balance,
-			NextMaxReceivable:    0,
-			NextMaxSpendableMPP:  balance,
-			NextMaxReceivableMPP: 0,
+			TotalSpendable:          balance,
+			TotalSpendableSat:       balance / 1000,
+			TotalSpendableMsat:      balance,
+			NextMaxSpendable:        balance,
+			NextMaxSpendableSat:     balance / 1000,
+			NextMaxSpendableMsat:    balance,
+			NextMaxSpendableMPP:     balance,
+			NextMaxSpendableMPPSat:  balance / 1000,
+			NextMaxSpendableMPPMsat: balance,
 		},
 	}, nil
 }
@@ -336,7 +293,7 @@ func (cs *CashuService) cashuMintQuoteToTransaction(mintQuote *storage.MintQuote
 		PaymentHash: paymentRequest.PaymentHash,
 		// note: setting dummy preimage so that it gets marked as settled
 		Preimage:        paymentRequest.PaymentHash,
-		Amount:          paymentRequest.MSatoshi,
+		AmountMsat:      paymentRequest.MSatoshi,
 		CreatedAt:       int64(paymentRequest.CreatedAt),
 		ExpiresAt:       expiresAt,
 		Description:     description,
@@ -365,14 +322,14 @@ func (cs *CashuService) cashuMeltQuoteToTransaction(meltQuote *storage.MeltQuote
 		Type:            constants.TRANSACTION_TYPE_OUTGOING,
 		Invoice:         meltQuote.PaymentRequest,
 		PaymentHash:     paymentRequest.PaymentHash,
-		Amount:          paymentRequest.MSatoshi,
+		AmountMsat:      paymentRequest.MSatoshi,
 		CreatedAt:       int64(paymentRequest.CreatedAt),
 		ExpiresAt:       expiresAt,
 		Description:     description,
 		DescriptionHash: descriptionHash,
 		Preimage:        meltQuote.Preimage,
 		SettledAt:       settledAt,
-		FeesPaid:        int64(meltQuote.FeeReserve * 1000),
+		FeesPaidMsat:    int64(meltQuote.FeeReserve * 1000),
 	}
 }
 

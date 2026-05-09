@@ -1,21 +1,22 @@
 import {
+  BotIcon,
   BoxIcon,
-  ChevronsUpDown,
-  CircleHelp,
+  ChevronsUpDownIcon,
+  CircleHelpIcon,
+  HandCoinsIcon,
   HomeIcon,
-  LogOut,
+  LogOutIcon,
   LucideIcon,
   Plug2Icon,
   PlugZapIcon,
-  Settings,
-  Sparkles,
-  SquareStack,
-  StarIcon,
+  SettingsIcon,
+  SparklesIcon,
+  SquareStackIcon,
   WalletIcon,
 } from "lucide-react";
 import React from "react";
 
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router";
 
 import ExternalLink from "src/components/ExternalLink";
 import { AlbyIcon } from "src/components/icons/Alby";
@@ -23,6 +24,7 @@ import { AlbyHubIcon } from "src/components/icons/AlbyHubIcon";
 import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
 import { ProBadge } from "src/components/ProBadge";
 import SidebarHint from "src/components/SidebarHint";
+import { Badge } from "src/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,6 +52,10 @@ import { useHealthCheck } from "src/hooks/useHealthCheck";
 import { useInfo } from "src/hooks/useInfo";
 import { deleteAuthToken } from "src/lib/auth";
 import { isHttpMode } from "src/utils/isHttpMode";
+
+function isPathActive(pathname: string, url: string) {
+  return pathname === url || pathname.startsWith(`${url}/`);
+}
 
 export function AppSidebar() {
   const { data: albyMe } = useAlbyMe();
@@ -88,12 +94,18 @@ export function AppSidebar() {
       {
         title: "Sub-wallets",
         url: "/sub-wallets",
-        icon: SquareStack,
+        icon: SquareStackIcon,
       },
       {
         title: "Connections",
         url: "/apps",
         icon: Plug2Icon,
+      },
+      {
+        title: "AI & Agents",
+        url: "/ai",
+        icon: BotIcon,
+        badge: "NEW",
       },
     ],
     navSecondary: [
@@ -109,12 +121,12 @@ export function AppSidebar() {
       {
         title: "Settings",
         url: "/settings",
-        icon: Settings,
+        icon: SettingsIcon,
       },
       {
-        title: "Review & Earn",
-        url: "/review-earn",
-        icon: StarIcon,
+        title: "Earn",
+        url: "/earn",
+        icon: HandCoinsIcon,
       },
     ],
   };
@@ -127,7 +139,7 @@ export function AppSidebar() {
       <SidebarHeader>
         <div className="p-2 flex flex-row items-center justify-between">
           <Link to="/home" onClick={() => setOpenMobile(false)}>
-            <AlbyHubLogo className="w-32" />
+            <AlbyHubLogo className="h-7" />
           </Link>
           <div className="flex gap-3 items-center">
             <HealthIndicator />
@@ -142,7 +154,7 @@ export function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    isActive={location.pathname === item.url}
+                    isActive={isPathActive(location.pathname, item.url)}
                   >
                     <Link
                       to={item.url}
@@ -152,6 +164,11 @@ export function AppSidebar() {
                     >
                       <item.icon />
                       <span>{item.title}</span>
+                      {item.badge && (
+                        <Badge className="ml-auto text-[10px] px-1.5 py-0">
+                          {item.badge}
+                        </Badge>
+                      )}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -200,7 +217,7 @@ export function AppSidebar() {
                       </div>
                     </>
                   )}
-                  <ChevronsUpDown className="ml-auto size-4" />
+                  <ChevronsUpDownIcon className="ml-auto size-4" />
                 </DropdownMenuTrigger>
               </SidebarMenuButton>
               <DropdownMenuContent
@@ -255,7 +272,7 @@ export function AppSidebar() {
                   <>
                     <UpgradeDialog>
                       <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <Sparkles />
+                        <SparklesIcon />
                         Upgrade to Pro
                       </DropdownMenuItem>
                     </UpgradeDialog>
@@ -265,7 +282,7 @@ export function AppSidebar() {
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={logout}>
-                      <LogOut className="size-4" />
+                      <LogOutIcon className="size-4" />
                       Log out
                     </DropdownMenuItem>
                   </>
@@ -300,7 +317,7 @@ export function NavSecondary({
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton
                 asChild
-                isActive={location.pathname === item.url}
+                isActive={isPathActive(location.pathname, item.url)}
               >
                 <NavLink
                   to={item.url}
@@ -318,7 +335,7 @@ export function NavSecondary({
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <ExternalLink to="https://support.getalby.com">
-                <CircleHelp className="h-4 w-4" />
+                <CircleHelpIcon className="h-4 w-4" />
                 Help
               </ExternalLink>
             </SidebarMenuButton>

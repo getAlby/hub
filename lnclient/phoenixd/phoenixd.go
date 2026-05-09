@@ -5,9 +5,10 @@ import (
 	b64 "encoding/base64"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"net/url"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -28,7 +29,7 @@ type InvoiceResponse struct {
 	Invoice     string `json:"invoice"`
 	IsPaid      bool   `json:"isPaid"`
 	ReceivedSat int64  `json:"receivedSat"`
-	Fees        int64  `json:"fees"`
+	FeesSat     int64  `json:"fees"`
 	CompletedAt int64  `json:"completedAt"`
 	CreatedAt   int64  `json:"createdAt"`
 }
@@ -106,8 +107,20 @@ func (svc *PhoenixService) GetBalances(ctx context.Context, includeInactiveChann
 	}
 	defer resp.Body.Close()
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":        string(body),
+			"status_code": resp.StatusCode,
+		}).Error("phoenixd get balance endpoint returned non-success code")
+		return nil, fmt.Errorf("phoenixd get balance endpoint returned non-success code: %d %s", resp.StatusCode, string(body))
+	}
+
 	var balanceRes BalanceResponse
-	if err := json.NewDecoder(resp.Body).Decode(&balanceRes); err != nil {
+	if err := json.Unmarshal(body, &balanceRes); err != nil {
 		return nil, err
 	}
 
@@ -115,129 +128,20 @@ func (svc *PhoenixService) GetBalances(ctx context.Context, includeInactiveChann
 
 	return &lnclient.BalancesResponse{
 		Onchain: lnclient.OnchainBalanceResponse{
-			Spendable: 0,
-			Total:     0,
-		},
+			PendingBalancesDetails:      []lnclient.PendingBalanceDetails{},
+			PendingSweepBalancesDetails: []lnclient.PendingBalanceDetails{}},
 		Lightning: lnclient.LightningBalanceResponse{
-			TotalSpendable:       balance,
-			TotalReceivable:      0,
-			NextMaxSpendable:     balance,
-			NextMaxReceivable:    0,
-			NextMaxSpendableMPP:  balance,
-			NextMaxReceivableMPP: 0,
+			TotalSpendable:          balance,
+			TotalSpendableSat:       balance / 1000,
+			TotalSpendableMsat:      balance,
+			NextMaxSpendable:        balance,
+			NextMaxSpendableSat:     balance / 1000,
+			NextMaxSpendableMsat:    balance,
+			NextMaxSpendableMPP:     balance,
+			NextMaxSpendableMPPSat:  balance / 1000,
+			NextMaxSpendableMPPMsat: balance,
 		},
 	}, nil
-}
-
-func (svc *PhoenixService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []lnclient.Transaction, err error) {
-	incomingQuery := url.Values{}
-	if from != 0 {
-		incomingQuery.Add("from", strconv.FormatUint(from*1000, 10))
-	}
-	if until != 0 {
-		incomingQuery.Add("to", strconv.FormatUint(until*1000, 10))
-	}
-	if limit != 0 {
-		incomingQuery.Add("limit", strconv.FormatUint(limit, 10))
-	}
-	if offset != 0 {
-		incomingQuery.Add("offset", strconv.FormatUint(offset, 10))
-	}
-	incomingQuery.Add("all", strconv.FormatBool(unpaid))
-
-	incomingUrl := svc.Address + "/payments/incoming?" + incomingQuery.Encode()
-
-	logger.Logger.WithFields(logrus.Fields{
-		"url": incomingUrl,
-	}).Infof("Fetching incoming transactions: %s", incomingUrl)
-	incomingReq, err := http.NewRequestWithContext(ctx, http.MethodGet, incomingUrl, nil)
-	if err != nil {
-		return nil, err
-	}
-	incomingReq.Header.Add("Authorization", "Basic "+svc.Authorization)
-	client := &http.Client{Timeout: 5 * time.Second}
-
-	incomingResp, err := client.Do(incomingReq)
-	if err != nil {
-		return nil, err
-	}
-	defer incomingResp.Body.Close()
-
-	var incomingPayments []InvoiceResponse
-	if err := json.NewDecoder(incomingResp.Body).Decode(&incomingPayments); err != nil {
-		return nil, err
-	}
-	transactions = []lnclient.Transaction{}
-	for _, invoice := range incomingPayments {
-		transaction, err := phoenixInvoiceToTransaction(&invoice)
-		if err != nil {
-			return nil, err
-		}
-
-		transactions = append(transactions, *transaction)
-	}
-
-	// get outgoing payments
-	outgoingQuery := url.Values{}
-	if from != 0 {
-		outgoingQuery.Add("from", strconv.FormatUint(from*1000, 10))
-	}
-	if until != 0 {
-		outgoingQuery.Add("to", strconv.FormatUint(until*1000, 10))
-	}
-	if limit != 0 {
-		outgoingQuery.Add("limit", strconv.FormatUint(limit, 10))
-	}
-	if offset != 0 {
-		outgoingQuery.Add("offset", strconv.FormatUint(offset, 10))
-	}
-	outgoingQuery.Add("all", strconv.FormatBool(unpaid))
-
-	outgoingUrl := svc.Address + "/payments/outgoing?" + outgoingQuery.Encode()
-
-	logger.Logger.WithFields(logrus.Fields{
-		"url": outgoingUrl,
-	}).Infof("Fetching outgoing transactions: %s", outgoingUrl)
-	outgoingReq, err := http.NewRequestWithContext(ctx, http.MethodGet, outgoingUrl, nil)
-	if err != nil {
-		return nil, err
-	}
-	outgoingReq.Header.Add("Authorization", "Basic "+svc.Authorization)
-	outgoingResp, err := client.Do(outgoingReq)
-	if err != nil {
-		return nil, err
-	}
-	defer outgoingResp.Body.Close()
-
-	var outgoingPayments []OutgoingPaymentResponse
-	if err := json.NewDecoder(outgoingResp.Body).Decode(&outgoingPayments); err != nil {
-		return nil, err
-	}
-	for _, invoice := range outgoingPayments {
-		var settledAt *int64
-		if invoice.CompletedAt != 0 {
-			settledAtUnix := time.UnixMilli(invoice.CompletedAt).Unix()
-			settledAt = &settledAtUnix
-		}
-		transaction := lnclient.Transaction{
-			Type:        "outgoing",
-			Invoice:     invoice.Invoice,
-			Preimage:    invoice.Preimage,
-			PaymentHash: invoice.PaymentHash,
-			Amount:      invoice.Sent * 1000,
-			FeesPaid:    invoice.Fees * 1000,
-			CreatedAt:   time.UnixMilli(invoice.CreatedAt).Unix(),
-			SettledAt:   settledAt,
-		}
-		transactions = append(transactions, transaction)
-	}
-
-	// sort by created date descending
-	sort.SliceStable(transactions, func(i, j int) bool {
-		return transactions[i].CreatedAt > transactions[j].CreatedAt
-	})
-
-	return transactions, nil
 }
 
 func (svc *PhoenixService) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
@@ -257,8 +161,20 @@ func fetchNodeInfo(ctx context.Context, svc *PhoenixService) (info *lnclient.Nod
 	}
 	defer resp.Body.Close()
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":        string(body),
+			"status_code": resp.StatusCode,
+		}).Error("phoenixd get info endpoint returned non-success code")
+		return nil, fmt.Errorf("phoenixd get info endpoint returned non-success code: %d %s", resp.StatusCode, string(body))
+	}
+
 	var infoRes InfoResponse
-	if err := json.NewDecoder(resp.Body).Decode(&infoRes); err != nil {
+	if err := json.Unmarshal(body, &infoRes); err != nil {
 		return nil, err
 	}
 	return &lnclient.NodeInfo{
@@ -276,13 +192,13 @@ func (svc *PhoenixService) ListChannels(ctx context.Context) ([]lnclient.Channel
 	return channels, nil
 }
 
-func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
+func (svc *PhoenixService) MakeInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
 	// TODO: support expiry
 	if expiry == 0 {
 		expiry = lnclient.DEFAULT_INVOICE_EXPIRY
 	}
 	form := url.Values{}
-	amountSat := strconv.FormatInt(amount/1000, 10)
+	amountSat := strconv.FormatInt(amountMsat/1000, 10)
 	form.Add("amountSat", amountSat)
 	if description != "" {
 		form.Add("description", description)
@@ -311,8 +227,20 @@ func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, descri
 	}
 	defer resp.Body.Close()
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":        string(body),
+			"status_code": resp.StatusCode,
+		}).Error("phoenixd create invoice endpoint returned non-success code")
+		return nil, fmt.Errorf("phoenixd create invoice endpoint returned non-success code: %d %s", resp.StatusCode, string(body))
+	}
+
 	var invoiceRes MakeInvoiceResponse
-	if err := json.NewDecoder(resp.Body).Decode(&invoiceRes); err != nil {
+	if err := json.Unmarshal(body, &invoiceRes); err != nil {
 		return nil, err
 	}
 
@@ -325,7 +253,7 @@ func (svc *PhoenixService) MakeInvoice(ctx context.Context, amount int64, descri
 	return tx, nil
 }
 
-func (svc *PhoenixService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
+func (svc *PhoenixService) MakeHoldInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (transaction *lnclient.Transaction, err error) {
 	return nil, errors.New("not implemented")
 }
 
@@ -350,8 +278,20 @@ func (svc *PhoenixService) LookupInvoice(ctx context.Context, paymentHash string
 	}
 	defer resp.Body.Close()
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":        string(body),
+			"status_code": resp.StatusCode,
+		}).Error("phoenixd incoming payments endpoint returned non-success code")
+		return nil, fmt.Errorf("phoenixd incoming payments endpoint returned non-success code: %d %s", resp.StatusCode, string(body))
+	}
+
 	var invoiceRes InvoiceResponse
-	if err := json.NewDecoder(resp.Body).Decode(&invoiceRes); err != nil {
+	if err := json.Unmarshal(body, &invoiceRes); err != nil {
 		return nil, err
 	}
 
@@ -363,9 +303,9 @@ func (svc *PhoenixService) LookupInvoice(ctx context.Context, paymentHash string
 	return transaction, nil
 }
 
-func (svc *PhoenixService) SendPaymentSync(payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (svc *PhoenixService) SendPaymentSync(payReq string, amountMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
 	// TODO: support 0-amount invoices
-	if amount != nil {
+	if amountMsat != nil {
 		return nil, errors.New("0-amount invoices not supported")
 	}
 	form := url.Values{}
@@ -383,22 +323,30 @@ func (svc *PhoenixService) SendPaymentSync(payReq string, amount *uint64) (*lncl
 	}
 	defer resp.Body.Close()
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("phoenixd /payinvoice returned non-success status: %d %s", resp.StatusCode, string(body))
+	}
+
 	var payRes PayResponse
-	if err := json.NewDecoder(resp.Body).Decode(&payRes); err != nil {
+	if err := json.Unmarshal(body, &payRes); err != nil {
 		return nil, err
 	}
 
 	return &lnclient.PayInvoiceResponse{
 		Preimage: payRes.PaymentPreimage,
-		Fee:      uint64(payRes.RoutingFeeSat) * 1000,
+		FeeMsat:  uint64(payRes.RoutingFeeSat) * 1000,
 	}, nil
 }
 
-func (svc *PhoenixService) SendKeysend(amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+func (svc *PhoenixService) SendKeysend(amountMsat uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	return nil, errors.New("not implemented")
 }
 
-func (svc *PhoenixService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (txId string, err error) {
+func (svc *PhoenixService) RedeemOnchainFunds(ctx context.Context, toAddress string, amountSat uint64, feeRate *uint64, sendAll bool) (txId string, err error) {
 	return "", errors.New("not implemented")
 }
 
@@ -424,8 +372,16 @@ func (svc *PhoenixService) GetNodeConnectionInfo(ctx context.Context) (nodeConne
 	}
 	defer resp.Body.Close()
 
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("phoenixd /getinfo returned non-success status: %d %s", resp.StatusCode, string(body))
+	}
+
 	var infoRes InfoResponse
-	if err := json.NewDecoder(resp.Body).Decode(&infoRes); err != nil {
+	if err := json.Unmarshal(body, &infoRes); err != nil {
 		return nil, err
 	}
 	return &lnclient.NodeConnectionInfo{
@@ -454,14 +410,6 @@ func (svc *PhoenixService) GetOnchainBalance(ctx context.Context) (*lnclient.Onc
 
 func (svc *PhoenixService) SignMessage(ctx context.Context, message string) (string, error) {
 	return "", errors.New("not implemented")
-}
-
-func (svc *PhoenixService) SendPaymentProbes(ctx context.Context, invoice string) error {
-	return nil
-}
-
-func (svc *PhoenixService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
-	return nil
 }
 
 func (svc *PhoenixService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
@@ -536,8 +484,8 @@ func phoenixInvoiceToTransaction(invoiceRes *InvoiceResponse) (*lnclient.Transac
 		Invoice:         invoiceRes.Invoice,
 		Preimage:        invoiceRes.Preimage,
 		PaymentHash:     invoiceRes.PaymentHash,
-		Amount:          paymentRequest.MSatoshi,
-		FeesPaid:        invoiceRes.Fees * 1000,
+		AmountMsat:      paymentRequest.MSatoshi,
+		FeesPaidMsat:    invoiceRes.FeesSat * 1000,
 		CreatedAt:       time.UnixMilli(invoiceRes.CreatedAt).Unix(),
 		Description:     invoiceRes.Description,
 		SettledAt:       settledAt,

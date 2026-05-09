@@ -23,6 +23,7 @@ export function AppStoreDetailHeader({
   return (
     <>
       <AppHeader
+        pageTitle={appStoreApp.title}
         title={
           <>
             <div className="flex flex-row items-center">

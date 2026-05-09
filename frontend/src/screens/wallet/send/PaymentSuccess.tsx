@@ -6,7 +6,7 @@ import {
   HandCoinsIcon,
 } from "lucide-react";
 import { useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router";
 import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
@@ -41,7 +41,7 @@ export default function PaymentSuccess() {
   const to = state?.to as string;
   const pageTitle = state?.pageTitle as string;
   const invoice = state?.invoice as Invoice;
-  const amount = state?.amount as number;
+  const amountSat = state?.amountSat as number;
 
   const copy = () => {
     copyToClipboard(state.preimage as string);
@@ -49,7 +49,7 @@ export default function PaymentSuccess() {
 
   return (
     <div className="grid gap-4">
-      <AppHeader title={pageTitle || "Send"} />
+      <AppHeader pageTitle={pageTitle || "Send"} title={pageTitle || "Send"} />
       <div className="w-full md:max-w-lg">
         <Card className="w-full">
           <CardHeader>
@@ -60,11 +60,11 @@ export default function PaymentSuccess() {
             <div className="flex flex-col gap-1 items-center">
               <p className="text-2xl font-medium slashed-zero">
                 <FormattedBitcoinAmount
-                  amount={(invoice.satoshi || amount) * 1000}
+                  amountMsat={(invoice.satoshi || amountSat) * 1000}
                 />
               </p>
               <FormattedFiatAmount
-                amount={invoice.satoshi || amount}
+                amountSat={invoice.satoshi || amountSat}
                 className="text-xl"
               />
             </div>

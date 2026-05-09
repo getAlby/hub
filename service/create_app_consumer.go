@@ -35,9 +35,7 @@ func (s *createAppConsumer) ConsumeEvent(ctx context.Context, event *events.Even
 	}
 
 	app := db.App{}
-	err := s.svc.db.First(&app, &db.App{
-		ID: id,
-	}).Error
+	err := s.svc.db.First(&app, id).Error
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"id": id,

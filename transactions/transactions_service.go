@@ -36,15 +36,16 @@ type transactionsService struct {
 
 type TransactionsService interface {
 	events.EventSubscriber
-	MakeInvoice(ctx context.Context, amount uint64, description string, descriptionHash string, expiry uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint, throughNodePubkey *string) (*Transaction, error)
+	MakeInvoice(ctx context.Context, amountMsat uint64, description string, descriptionHash string, expiry uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint, throughNodePubkey *string) (*Transaction, error)
 	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
 	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, totalCount uint64, err error)
 	SendPaymentSync(payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
-	SendKeysend(amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
-	MakeHoldInvoice(ctx context.Context, amount uint64, description string, descriptionHash string, expiry uint64, paymentHash string, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
+	SendKeysend(amountMsat uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
+	MakeHoldInvoice(ctx context.Context, amountMsat uint64, description string, descriptionHash string, expiry uint64, paymentHash string, minCltvExpiryDelta *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SettleHoldInvoice(ctx context.Context, preimage string, lnClient lnclient.LNClient) (*Transaction, error)
 	CancelHoldInvoice(ctx context.Context, paymentHash string, lnClient lnclient.LNClient) error
 	SetTransactionMetadata(ctx context.Context, id uint, metadata map[string]interface{}) error
+	SetTransactionUserLabels(ctx context.Context, id uint, labels map[string]string) error
 }
 
 const (
@@ -140,11 +141,11 @@ func NewTransactionsService(db *gorm.DB, eventPublisher events.EventPublisher) *
 	}
 }
 
-func (svc *transactionsService) MakeInvoice(ctx context.Context, amount uint64, description string, descriptionHash string, expiry uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint, throughNodePubkey *string) (*Transaction, error) {
+func (svc *transactionsService) MakeInvoice(ctx context.Context, amountMsat uint64, description string, descriptionHash string, expiry uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint, throughNodePubkey *string) (*Transaction, error) {
 	logger.Logger.WithFields(logrus.Fields{
 		"app_id":           appId,
 		"request_event_id": requestEventId,
-		"amount":           amount,
+		"amount_msat":      amountMsat,
 		"description":      description,
 		"description_hash": descriptionHash,
 		"expiry":           expiry,
@@ -174,7 +175,7 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount uint64, 
 		appId = &overwriteAppId
 	}
 
-	lnClientTransaction, err := lnClient.MakeInvoice(ctx, int64(amount), description, descriptionHash, int64(expiry), throughNodePubkey)
+	lnClientTransaction, err := lnClient.MakeInvoice(ctx, int64(amountMsat), description, descriptionHash, int64(expiry), throughNodePubkey)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create transaction")
 		return nil, err
@@ -196,7 +197,7 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount uint64, 
 		RequestEventId:  requestEventId,
 		Type:            lnClientTransaction.Type,
 		State:           constants.TRANSACTION_STATE_PENDING,
-		AmountMsat:      uint64(lnClientTransaction.Amount),
+		AmountMsat:      uint64(lnClientTransaction.AmountMsat),
 		Description:     description,
 		DescriptionHash: descriptionHash,
 		PaymentRequest:  lnClientTransaction.Invoice,
@@ -213,7 +214,7 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amount uint64, 
 	return &dbTransaction, nil
 }
 
-func (svc *transactionsService) MakeHoldInvoice(ctx context.Context, amount uint64, description string, descriptionHash string, expiry uint64, paymentHash string, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+func (svc *transactionsService) MakeHoldInvoice(ctx context.Context, amountMsat uint64, description string, descriptionHash string, expiry uint64, paymentHash string, minCltvExpiryDelta *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
 	var err error
 	var metadataBytes []byte
 	if metadata != nil {
@@ -227,7 +228,7 @@ func (svc *transactionsService) MakeHoldInvoice(ctx context.Context, amount uint
 		}
 	}
 
-	lnClientTransaction, err := lnClient.MakeHoldInvoice(ctx, int64(amount), description, descriptionHash, int64(expiry), paymentHash)
+	lnClientTransaction, err := lnClient.MakeHoldInvoice(ctx, int64(amountMsat), description, descriptionHash, int64(expiry), paymentHash, minCltvExpiryDelta)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create hold invoice via LN client")
 		return nil, err
@@ -249,7 +250,7 @@ func (svc *transactionsService) MakeHoldInvoice(ctx context.Context, amount uint
 		RequestEventId:  requestEventId,
 		Type:            constants.TRANSACTION_TYPE_INCOMING,
 		State:           constants.TRANSACTION_STATE_PENDING,
-		AmountMsat:      uint64(lnClientTransaction.Amount),
+		AmountMsat:      uint64(lnClientTransaction.AmountMsat),
 		Description:     description,
 		DescriptionHash: descriptionHash,
 		PaymentRequest:  lnClientTransaction.Invoice,
@@ -304,8 +305,8 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 	if paymentRequest.Payee != "" && paymentRequest.Payee == lnClient.GetPubkey() {
 		var incomingTransaction db.Transaction
 		result := svc.db.Limit(1).Find(&incomingTransaction, &db.Transaction{
-			Type:        constants.TRANSACTION_TYPE_INCOMING,
-			PaymentHash: paymentRequest.PaymentHash,
+			Type:           constants.TRANSACTION_TYPE_INCOMING,
+			PaymentRequest: payReq,
 		})
 		if result.Error == nil && result.RowsAffected > 0 {
 			selfPayment = true
@@ -314,9 +315,9 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 
 	var dbTransaction db.Transaction
 
-	paymentAmount := uint64(paymentRequest.MSatoshi)
+	paymentAmountMsat := uint64(paymentRequest.MSatoshi)
 	if amountMsat != nil && paymentRequest.MSatoshi == 0 {
-		paymentAmount = *amountMsat
+		paymentAmountMsat = *amountMsat
 	}
 
 	err = func() error {
@@ -325,23 +326,23 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 		return svc.db.Transaction(func(tx *gorm.DB) error {
 			var existingSettledTransaction db.Transaction
 			if tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
-				Type:        constants.TRANSACTION_TYPE_OUTGOING,
-				PaymentHash: paymentRequest.PaymentHash,
-				State:       constants.TRANSACTION_STATE_SETTLED,
+				Type:           constants.TRANSACTION_TYPE_OUTGOING,
+				PaymentRequest: payReq,
+				State:          constants.TRANSACTION_STATE_SETTLED,
 			}).RowsAffected > 0 {
-				logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Debug("this invoice has already been paid")
+				logger.Logger.WithField("payment_request", dbTransaction.PaymentRequest).Debug("this invoice has already been paid")
 				return errors.New("this invoice has already been paid")
 			}
 			if tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
-				Type:        constants.TRANSACTION_TYPE_OUTGOING,
-				PaymentHash: paymentRequest.PaymentHash,
-				State:       constants.TRANSACTION_STATE_PENDING,
+				Type:           constants.TRANSACTION_TYPE_OUTGOING,
+				PaymentRequest: payReq,
+				State:          constants.TRANSACTION_STATE_PENDING,
 			}).RowsAffected > 0 {
-				logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Debug("this invoice is already being paid")
+				logger.Logger.WithField("payment_request", dbTransaction.PaymentRequest).Debug("this invoice is already being paid")
 				return errors.New("there is already a payment pending for this invoice")
 			}
 
-			err := svc.validateCanPay(tx, appId, paymentAmount, paymentRequest.Description, selfPayment)
+			err := svc.validateCanPay(tx, appId, paymentAmountMsat, paymentRequest.Description, selfPayment)
 			if err != nil {
 				return err
 			}
@@ -356,8 +357,8 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 				RequestEventId:  requestEventId,
 				Type:            constants.TRANSACTION_TYPE_OUTGOING,
 				State:           constants.TRANSACTION_STATE_PENDING,
-				FeeReserveMsat:  CalculateFeeReserveMsat(paymentAmount),
-				AmountMsat:      paymentAmount,
+				FeeReserveMsat:  CalculateFeeReserveMsat(paymentAmountMsat),
+				AmountMsat:      paymentAmountMsat,
 				PaymentRequest:  payReq,
 				PaymentHash:     paymentRequest.PaymentHash,
 				Description:     paymentRequest.Description,
@@ -381,7 +382,7 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 	logger.Logger.WithFields(logrus.Fields{
 		"app_id":           appId,
 		"request_event_id": requestEventId,
-		"amount":           paymentAmount,
+		"amount_msat":      paymentAmountMsat,
 		"description":      paymentRequest.Description,
 		"description_hash": paymentRequest.DescriptionHash,
 		"expiry":           paymentRequest.Expiry,
@@ -391,7 +392,7 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 
 	var response *lnclient.PayInvoiceResponse
 	if selfPayment {
-		response, err = svc.interceptSelfPayment(paymentRequest.PaymentHash, lnClient)
+		response, err = svc.interceptSelfPayment(payReq, paymentRequest.PaymentHash, lnClient)
 	} else {
 		response, err = lnClient.SendPaymentSync(payReq, amountMsat)
 	}
@@ -411,7 +412,7 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 	// the payment definitely succeeded
 	var settledTransaction *db.Transaction
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
-		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, response.Preimage, response.Fee, selfPayment)
+		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, response.Preimage, response.FeeMsat, selfPayment)
 		return err
 	})
 	if err != nil {
@@ -421,7 +422,7 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 	return settledTransaction, nil
 }
 
-func (svc *transactionsService) SendKeysend(amount uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+func (svc *transactionsService) SendKeysend(amountMsat uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
 	if preimage == "" {
 		preImageBytes, err := makePreimageHex()
 		if err != nil {
@@ -463,7 +464,7 @@ func (svc *transactionsService) SendKeysend(amount uint64, destination string, c
 		balanceValidationLock.Lock()
 		defer balanceValidationLock.Unlock()
 		return svc.db.Transaction(func(tx *gorm.DB) error {
-			err := svc.validateCanPay(tx, appId, amount, "", selfPayment)
+			err := svc.validateCanPay(tx, appId, amountMsat, "", selfPayment)
 			if err != nil {
 				return err
 			}
@@ -474,8 +475,8 @@ func (svc *transactionsService) SendKeysend(amount uint64, destination string, c
 				RequestEventId: requestEventId,
 				Type:           constants.TRANSACTION_TYPE_OUTGOING,
 				State:          constants.TRANSACTION_STATE_PENDING,
-				FeeReserveMsat: CalculateFeeReserveMsat(uint64(amount)),
-				AmountMsat:     amount,
+				FeeReserveMsat: CalculateFeeReserveMsat(uint64(amountMsat)),
+				AmountMsat:     amountMsat,
 				Metadata:       datatypes.JSON(metadataBytes),
 				Boostagram:     datatypes.JSON(boostagramBytes),
 				PaymentHash:    paymentHash,
@@ -491,7 +492,7 @@ func (svc *transactionsService) SendKeysend(amount uint64, destination string, c
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"destination": destination,
-			"amount":      amount,
+			"amount_msat": amountMsat,
 		}).WithError(err).Error("Failed to create DB transaction")
 		return nil, err
 	}
@@ -506,7 +507,7 @@ func (svc *transactionsService) SendKeysend(amount uint64, destination string, c
 			RequestEventId: nil, // it is related to this request but for a different app
 			Type:           constants.TRANSACTION_TYPE_INCOMING,
 			State:          constants.TRANSACTION_STATE_PENDING,
-			AmountMsat:     amount,
+			AmountMsat:     amountMsat,
 			PaymentHash:    paymentHash,
 			Preimage:       &preimage,
 			Description:    svc.getDescriptionFromCustomRecords(customRecords),
@@ -520,20 +521,20 @@ func (svc *transactionsService) SendKeysend(amount uint64, destination string, c
 			return nil, err
 		}
 
-		_, err = svc.interceptSelfPayment(paymentHash, lnClient)
+		_, err = svc.interceptSelfPayment("", paymentHash, lnClient)
 		if err == nil {
 			payKeysendResponse = &lnclient.PayKeysendResponse{
-				Fee: 0,
+				FeeMsat: 0,
 			}
 		}
 	} else {
-		payKeysendResponse, err = lnClient.SendKeysend(amount, destination, customRecords, preimage)
+		payKeysendResponse, err = lnClient.SendKeysend(amountMsat, destination, customRecords, preimage)
 	}
 
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"destination": destination,
-			"amount":      amount,
+			"amount_msat": amountMsat,
 		}).WithError(err).Error("Failed to send payment")
 
 		dbErr := svc.db.Model(&dbTransaction).Updates(&db.Transaction{
@@ -543,7 +544,7 @@ func (svc *transactionsService) SendKeysend(amount uint64, destination string, c
 		if dbErr != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"destination": destination,
-				"amount":      amount,
+				"amount_msat": amountMsat,
 			}).WithError(dbErr).Error("Failed to update DB transaction")
 		}
 
@@ -553,7 +554,7 @@ func (svc *transactionsService) SendKeysend(amount uint64, destination string, c
 	// the payment definitely succeeded
 	var settledTransaction *db.Transaction
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
-		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, preimage, payKeysendResponse.Fee, selfPayment)
+		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, preimage, payKeysendResponse.FeeMsat, selfPayment)
 		return err
 	})
 
@@ -721,7 +722,7 @@ func (svc *transactionsService) checkUnsettledTransaction(ctx context.Context, t
 	// update transaction state
 	if lnClientTransaction.SettledAt != nil {
 		err = svc.db.Transaction(func(tx *gorm.DB) error {
-			_, err = svc.markTransactionSettled(tx, transaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaid), false)
+			_, err = svc.markTransactionSettled(tx, transaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaidMsat), false)
 			return err
 		})
 
@@ -778,7 +779,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 				}
 				dbTransaction = db.Transaction{
 					Type:            constants.TRANSACTION_TYPE_INCOMING,
-					AmountMsat:      uint64(lnClientTransaction.Amount),
+					AmountMsat:      uint64(lnClientTransaction.AmountMsat),
 					PaymentRequest:  lnClientTransaction.Invoice,
 					PaymentHash:     lnClientTransaction.PaymentHash,
 					Description:     description,
@@ -797,7 +798,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 				}
 			}
 
-			_, err := svc.markTransactionSettled(tx, &dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaid), false)
+			_, err := svc.markTransactionSettled(tx, &dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaidMsat), false)
 			return err
 		})
 
@@ -818,7 +819,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			logger.Logger.WithField("event", event).Error("Transaction has no settle deadline")
 			return
 		}
-		svc.markHoldInvoiceAccepted(lnClientTransaction.PaymentHash, *lnClientTransaction.SettleDeadline, false)
+		svc.markHoldInvoiceAccepted(lnClientTransaction.Invoice, *lnClientTransaction.SettleDeadline, false)
 
 	case "nwc_lnclient_payment_sent":
 		lnClientTransaction, ok := event.Properties.(*lnclient.Transaction)
@@ -854,14 +855,44 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 				}
 
 				if result.RowsAffected == 0 {
-					// Note: payments made from outside cannot be associated with an app
-					// for now this is disabled as it only applies to LND, and we do not import LND transactions either.
-					logger.Logger.WithField("payment_hash", lnClientTransaction.PaymentHash).Error("failed to mark payment as sent: payment not found")
-					return NewNotFoundError()
+					result := tx.Limit(1).Find(&dbTransaction, &db.Transaction{
+						Type:        constants.TRANSACTION_TYPE_OUTGOING,
+						PaymentHash: lnClientTransaction.PaymentHash,
+					})
+
+					if result.Error != nil {
+						return result.Error
+					}
+
+					if result.RowsAffected == 0 {
+						dbTransaction = db.Transaction{
+							Type:            constants.TRANSACTION_TYPE_OUTGOING,
+							State:           constants.TRANSACTION_STATE_PENDING,
+							AmountMsat:      uint64(lnClientTransaction.AmountMsat),
+							FeeReserveMsat:  0,
+							PaymentRequest:  lnClientTransaction.Invoice,
+							PaymentHash:     lnClientTransaction.PaymentHash,
+							Description:     lnClientTransaction.Description,
+							DescriptionHash: lnClientTransaction.DescriptionHash,
+						}
+
+						if lnClientTransaction.ExpiresAt != nil {
+							expiresAtValue := time.Unix(*lnClientTransaction.ExpiresAt, 0)
+							dbTransaction.ExpiresAt = &expiresAtValue
+						}
+
+						err := tx.Create(&dbTransaction).Error
+						if err != nil {
+							logger.Logger.WithFields(logrus.Fields{
+								"payment_hash": lnClientTransaction.PaymentHash,
+							}).WithError(err).Error("Failed to create outgoing transaction")
+							return err
+						}
+					}
 				}
 			}
 
-			_, err := svc.markTransactionSettled(tx, &dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaid), false)
+			_, err := svc.markTransactionSettled(tx, &dbTransaction, lnClientTransaction.Preimage, uint64(lnClientTransaction.FeesPaidMsat), false)
 			return err
 		})
 
@@ -898,23 +929,23 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 	}
 }
 
-func (svc *transactionsService) markHoldInvoiceAccepted(paymentHash string, settleDeadline uint32, selfPayment bool) {
+func (svc *transactionsService) markHoldInvoiceAccepted(paymentRequest string, settleDeadline uint32, selfPayment bool) {
 	logger.Logger.WithFields(logrus.Fields{
-		"paymentHash":  paymentHash,
-		"self_payment": selfPayment,
+		"payment_request": paymentRequest,
+		"self_payment":    selfPayment,
 	}).Info("Processing hold invoice accepted event")
 
 	var dbTransaction db.Transaction
 	err := svc.db.Transaction(func(tx *gorm.DB) error {
-		result := tx.Where("payment_hash = ? AND type = ? AND state = ?", paymentHash, constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_PENDING).First(&dbTransaction)
+		result := tx.Where("payment_request = ? AND type = ? AND state = ?", paymentRequest, constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_PENDING).First(&dbTransaction)
 		if result.Error != nil {
 			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 				logger.Logger.WithFields(logrus.Fields{
-					"paymentHash": paymentHash,
+					"payment_request": paymentRequest,
 				}).Warn("No corresponding pending incoming transaction found in DB for accepted hold invoice")
 			}
 			logger.Logger.WithFields(logrus.Fields{
-				"paymentHash": paymentHash,
+				"payment_request": paymentRequest,
 			}).WithError(result.Error).Error("Failed to query DB for accepted hold invoice")
 			return result.Error
 		}
@@ -926,22 +957,23 @@ func (svc *transactionsService) markHoldInvoiceAccepted(paymentHash string, sett
 		}).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
-				"paymentHash": paymentHash,
-				"dbTxID":      dbTransaction.ID,
+				"payment_request": paymentRequest,
+				"id":              dbTransaction.ID,
 			}).WithError(err).Error("Failed to update hold invoice state to accepted in DB")
 			return err
 		}
 
 		logger.Logger.WithFields(logrus.Fields{
-			"paymentHash": paymentHash,
-			"dbTxID":      dbTransaction.ID,
+			"payment_request": paymentRequest,
+			"id":              dbTransaction.ID,
 		}).Info("Updated hold invoice state to accepted in DB")
 
 		return nil
 	})
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
-			"paymentHash": paymentHash,
+			"payment_request": paymentRequest,
+			"id":              dbTransaction.ID,
 		}).WithError(err).Error("Failed DB transaction for hold invoice accepted event")
 	} else {
 		svc.eventPublisher.Publish(&events.Event{
@@ -951,13 +983,18 @@ func (svc *transactionsService) markHoldInvoiceAccepted(paymentHash string, sett
 	}
 }
 
-func (svc *transactionsService) interceptSelfPayment(paymentHash string, lnClient lnclient.LNClient) (*lnclient.PayInvoiceResponse, error) {
-	logger.Logger.WithField("payment_hash", paymentHash).Debug("Intercepting self payment")
+func (svc *transactionsService) interceptSelfPayment(paymentRequest string, paymentHash string, lnClient lnclient.LNClient) (*lnclient.PayInvoiceResponse, error) {
+	logger.Logger.WithFields(logrus.Fields{
+		"payment_request": paymentRequest,
+		"payment_hash":    paymentHash,
+	}).Debug("Intercepting self payment")
 	incomingTransaction := db.Transaction{}
 	result := svc.db.Limit(1).Find(&incomingTransaction, &db.Transaction{
-		Type:        constants.TRANSACTION_TYPE_INCOMING,
-		State:       constants.TRANSACTION_STATE_PENDING,
-		PaymentHash: paymentHash,
+		Type:  constants.TRANSACTION_TYPE_INCOMING,
+		State: constants.TRANSACTION_STATE_PENDING,
+		// NOTE: for keysend, payment request will be ""
+		PaymentRequest: paymentRequest,
+		PaymentHash:    paymentHash,
 	})
 	if result.Error != nil {
 		return nil, result.Error
@@ -968,7 +1005,7 @@ func (svc *transactionsService) interceptSelfPayment(paymentHash string, lnClien
 	}
 
 	if incomingTransaction.Hold {
-		return svc.interceptSelfHoldPayment(paymentHash, lnClient)
+		return svc.interceptSelfHoldPayment(paymentRequest, lnClient)
 	}
 
 	if incomingTransaction.Preimage == nil {
@@ -986,15 +1023,15 @@ func (svc *transactionsService) interceptSelfPayment(paymentHash string, lnClien
 
 	return &lnclient.PayInvoiceResponse{
 		Preimage: *incomingTransaction.Preimage,
-		Fee:      0,
+		FeeMsat:  0,
 	}, nil
 }
 
-func (svc *transactionsService) interceptSelfHoldPayment(paymentHash string, lnClient lnclient.LNClient) (*lnclient.PayInvoiceResponse, error) {
+func (svc *transactionsService) interceptSelfHoldPayment(paymentRequest string, lnClient lnclient.LNClient) (*lnclient.PayInvoiceResponse, error) {
 	settledChannel := make(chan *db.Transaction)
 	canceledChannel := make(chan *db.Transaction)
 
-	holdInvoiceUpdatedConsumer := newHoldInvoiceUpdatedConsumer(paymentHash, settledChannel, canceledChannel)
+	holdInvoiceUpdatedConsumer := newHoldInvoiceUpdatedConsumer(paymentRequest, settledChannel, canceledChannel)
 
 	svc.eventPublisher.RegisterSubscriber(holdInvoiceUpdatedConsumer)
 	defer svc.eventPublisher.RemoveSubscriber(holdInvoiceUpdatedConsumer)
@@ -1009,7 +1046,7 @@ func (svc *transactionsService) interceptSelfHoldPayment(paymentHash string, lnC
 
 	fakeSettleDeadline := clientInfo.BlockHeight + 24
 
-	svc.markHoldInvoiceAccepted(paymentHash, fakeSettleDeadline, true)
+	svc.markHoldInvoiceAccepted(paymentRequest, fakeSettleDeadline, true)
 
 	select {
 	case settledTransaction := <-settledChannel:
@@ -1020,7 +1057,7 @@ func (svc *transactionsService) interceptSelfHoldPayment(paymentHash string, lnC
 
 		return &lnclient.PayInvoiceResponse{
 			Preimage: *settledTransaction.Preimage,
-			Fee:      0,
+			FeeMsat:  0,
 		}, nil
 	case canceledTransaction := <-canceledChannel:
 		logger.Logger.WithField("canceled_transaction", canceledTransaction).Info("self hold payment was canceled")
@@ -1028,10 +1065,10 @@ func (svc *transactionsService) interceptSelfHoldPayment(paymentHash string, lnC
 	}
 }
 
-func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount uint64, description string, selfPayment bool) error {
-	amountWithFeeReserve := amount
+func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amountMsat uint64, description string, selfPayment bool) error {
+	amountWithFeeReserveMsat := amountMsat
 	if !selfPayment {
-		amountWithFeeReserve += CalculateFeeReserveMsat(amount)
+		amountWithFeeReserveMsat += CalculateFeeReserveMsat(amountMsat)
 	}
 
 	// ensure balance for isolated apps
@@ -1054,14 +1091,17 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 		}
 
 		if app.Isolated {
-			balance := queries.GetIsolatedBalance(tx, appPermission.AppId)
+			balanceMsat, err := queries.GetIsolatedBalanceMsat(tx, appPermission.AppId)
+			if err != nil {
+				return fmt.Errorf("failed to calculate isolated balance for app: %w", err)
+			}
 
-			if int64(amountWithFeeReserve) > balance {
+			if int64(amountWithFeeReserveMsat) > balanceMsat {
 				logger.Logger.WithFields(logrus.Fields{
-					"balance":                 balance,
-					"self_payment":            selfPayment,
-					"amount":                  amount,
-					"amount_with_fee_reserve": amountWithFeeReserve,
+					"balance_msat":                 balanceMsat,
+					"self_payment":                 selfPayment,
+					"amount_msat":                  amountMsat,
+					"amount_with_fee_reserve_msat": amountWithFeeReserveMsat,
 				}).Debug("Insufficient budget to make payment from isolated app")
 				message := NewInsufficientBalanceError().Error()
 				if description != "" {
@@ -1081,8 +1121,11 @@ func (svc *transactionsService) validateCanPay(tx *gorm.DB, appId *uint, amount 
 		}
 
 		if appPermission.MaxAmountSat > 0 {
-			budgetUsageSat := queries.GetBudgetUsageSat(tx, &appPermission)
-			if int(amountWithFeeReserve/1000) > appPermission.MaxAmountSat-int(budgetUsageSat) {
+			budgetUsageMsat, err := queries.GetBudgetUsageMsat(tx, &appPermission)
+			if err != nil {
+				return fmt.Errorf("failed to calculate budget usage for app: %w", err)
+			}
+			if int(amountWithFeeReserveMsat/1000) > appPermission.MaxAmountSat-int(budgetUsageMsat/1000) {
 				message := NewQuotaExceededError().Error()
 				if description != "" {
 					message += " " + description
@@ -1328,7 +1371,9 @@ func (svc *transactionsService) SetTransactionMetadata(ctx context.Context, id u
 		return fmt.Errorf("encoded invoice metadata provided is too large. Limit: %d Received: %d", constants.INVOICE_METADATA_MAX_LENGTH, len(metadataBytes))
 	}
 
-	err = svc.db.Model(&db.Transaction{}).Where("id", id).Update("metadata", datatypes.JSON(metadataBytes)).Error
+	// UpdateColumn so we don't bump updated_at — metadata edits (e.g. user
+	// labels) shouldn't reorder the transaction in the list.
+	err = svc.db.Model(&db.Transaction{}).Where("id", id).UpdateColumn("metadata", datatypes.JSON(metadataBytes)).Error
 	if err != nil {
 		logger.Logger.WithError(err).WithField("metadata", metadata).Error("Failed to update transaction metadata")
 		return err
@@ -1337,7 +1382,44 @@ func (svc *transactionsService) SetTransactionMetadata(ctx context.Context, id u
 	return nil
 }
 
-func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransaction *db.Transaction, preimage string, fee uint64, selfPayment bool) (*db.Transaction, error) {
+func (svc *transactionsService) SetTransactionUserLabels(ctx context.Context, id uint, labels map[string]string) error {
+	transaction := db.Transaction{}
+	err := svc.db.WithContext(ctx).First(&transaction, id).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return NewNotFoundError()
+		}
+		return err
+	}
+
+	metadata := map[string]interface{}{}
+	if transaction.Metadata != nil {
+		if err := json.Unmarshal(transaction.Metadata, &metadata); err != nil {
+			return fmt.Errorf("failed to decode existing metadata: %w", err)
+		}
+	}
+
+	sanitizedLabels := map[string]string{}
+	for key, value := range labels {
+		normalizedKey := strings.TrimSpace(key)
+		normalizedValue := strings.TrimSpace(value)
+		if normalizedKey == "" || normalizedValue == "" {
+			continue
+		}
+		sanitizedLabels[normalizedKey] = normalizedValue
+	}
+
+	if len(sanitizedLabels) == 0 {
+		delete(metadata, "user_labels")
+	} else {
+		metadata["user_labels"] = sanitizedLabels
+	}
+
+	return svc.SetTransactionMetadata(ctx, id, metadata)
+}
+
+func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransaction *db.Transaction, preimage string, feeMsat uint64, selfPayment bool) (*db.Transaction, error) {
 	if preimage == "" {
 		return nil, errors.New("no preimage in payment")
 	}
@@ -1353,21 +1435,22 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 
 	var existingSettledTransaction db.Transaction
 	if tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
-		Type:        dbTransaction.Type,
-		PaymentHash: dbTransaction.PaymentHash,
-		State:       constants.TRANSACTION_STATE_SETTLED,
+		Type:           dbTransaction.Type,
+		PaymentRequest: dbTransaction.PaymentRequest,
+		PaymentHash:    dbTransaction.PaymentHash,
+		State:          constants.TRANSACTION_STATE_SETTLED,
 	}).RowsAffected > 0 {
 		logger.Logger.WithField("payment_hash", dbTransaction.PaymentHash).Debug("payment already marked as sent")
 		return &existingSettledTransaction, nil
 	}
 
-	now := time.Now()
+	settledAt := time.Now()
 	err := tx.Model(dbTransaction).Updates(map[string]interface{}{
 		"State":          constants.TRANSACTION_STATE_SETTLED,
 		"Preimage":       &preimage,
-		"FeeMsat":        fee,
+		"FeeMsat":        feeMsat,
 		"FeeReserveMsat": 0,
-		"SettledAt":      &now,
+		"SettledAt":      &settledAt,
 		"SelfPayment":    selfPayment,
 	}).Error
 	if err != nil {
@@ -1392,28 +1475,40 @@ func (svc *transactionsService) markTransactionSettled(tx *gorm.DB, dbTransactio
 		Properties: dbTransaction,
 	})
 
-	if dbTransaction.Type == constants.TRANSACTION_TYPE_OUTGOING && dbTransaction.AppId != nil {
-		svc.checkBudgetUsage(dbTransaction, tx)
+	if dbTransaction.AppId != nil {
+		var app db.App
+		result := tx.Limit(1).Find(&app, &db.App{
+			ID: *dbTransaction.AppId,
+		})
+		if result.RowsAffected == 0 {
+			logger.Logger.WithField("app_id", dbTransaction.AppId).Error("failed to find app by id")
+			return dbTransaction, nil
+		}
+
+		svc.updateAppLastSettledTransactionAt(&app, tx, &settledAt)
+
+		if dbTransaction.Type == constants.TRANSACTION_TYPE_OUTGOING {
+			svc.checkBudgetUsage(&app, dbTransaction, tx)
+		}
 	}
 
 	return dbTransaction, nil
 }
 
-func (svc *transactionsService) checkBudgetUsage(dbTransaction *db.Transaction, gormTransaction *gorm.DB) {
-	var app db.App
-	result := gormTransaction.Limit(1).Find(&app, &db.App{
-		ID: *dbTransaction.AppId,
-	})
-	if result.RowsAffected == 0 {
-		logger.Logger.WithField("app_id", dbTransaction.AppId).Error("failed to find app by id")
+func (svc *transactionsService) updateAppLastSettledTransactionAt(app *db.App, gormTransaction *gorm.DB, settledAt *time.Time) {
+	if err := gormTransaction.Model(app).Update("last_settled_transaction_at", settledAt).Error; err != nil {
+		logger.Logger.WithField("app_id", app.ID).WithError(err).Error("failed to update app last settled transaction time")
 		return
 	}
+}
+
+func (svc *transactionsService) checkBudgetUsage(app *db.App, dbTransaction *db.Transaction, gormTransaction *gorm.DB) {
 	if app.Isolated {
 		return
 	}
 
 	var appPermission db.AppPermission
-	result = gormTransaction.Limit(1).Find(&appPermission, &db.AppPermission{
+	result := gormTransaction.Limit(1).Find(&appPermission, &db.AppPermission{
 		AppId: app.ID,
 		Scope: constants.PAY_INVOICE_SCOPE,
 	})
@@ -1422,9 +1517,14 @@ func (svc *transactionsService) checkBudgetUsage(dbTransaction *db.Transaction, 
 		return
 	}
 
-	budgetUsage := queries.GetBudgetUsageSat(gormTransaction, &appPermission)
+	budgetUsageMsat, err := queries.GetBudgetUsageMsat(gormTransaction, &appPermission)
+	if err != nil {
+		logger.Logger.WithField("app_id", dbTransaction.AppId).WithError(err).Error("failed to get budget usage")
+		return
+	}
+	budgetUsageSat := budgetUsageMsat / 1000
 	warningUsage := uint64(math.Floor(float64(appPermission.MaxAmountSat) * 0.8))
-	if budgetUsage >= warningUsage && budgetUsage-dbTransaction.AmountMsat/1000 < warningUsage {
+	if budgetUsageSat >= warningUsage && budgetUsageSat-dbTransaction.AmountMsat/1000 < warningUsage {
 		svc.eventPublisher.Publish(&events.Event{
 			Event: "nwc_budget_warning",
 			Properties: map[string]interface{}{

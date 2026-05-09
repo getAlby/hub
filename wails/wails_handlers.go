@@ -39,7 +39,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 	case len(authCodeMatch) > 1:
 		code := authCodeMatch[1]
 
-		err := app.svc.GetAlbyOAuthSvc().CallbackHandler(ctx, code, app.svc.GetLNClient())
+		err := app.svc.GetAlbyOAuthSvc().CallbackHandler(ctx, code)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,
@@ -73,7 +73,10 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 
 		switch method {
 		case "GET":
-			app := app.api.GetApp(dbApp)
+			app, err := app.api.GetApp(dbApp)
+			if err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
 			return WailsRequestRouterResponse{Body: app, Error: ""}
 		}
 	}
@@ -94,7 +97,10 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 
 		switch method {
 		case "GET":
-			app := app.api.GetApp(dbApp)
+			app, err := app.api.GetApp(dbApp)
+			if err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
 			return WailsRequestRouterResponse{Body: app, Error: ""}
 		case "PATCH":
 			updateAppRequest := &api.UpdateAppRequest{}
@@ -265,6 +271,37 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		return WailsRequestRouterResponse{Body: node, Error: ""}
 	}
 
+	transactionLabelRegex := regexp.MustCompile(
+		`/api/transactions/([0-9]+)/labels`,
+	)
+	transactionLabelMatch := transactionLabelRegex.FindStringSubmatch(route)
+
+	switch {
+	case len(transactionLabelMatch) > 1:
+		transactionID, err := strconv.ParseUint(transactionLabelMatch[1], 10, 64)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: "Invalid transaction ID"}
+		}
+		switch method {
+		case "PATCH":
+			labelsRequest := &api.SetTransactionUserLabelsRequest{}
+			err = json.Unmarshal([]byte(body), labelsRequest)
+			if err != nil {
+				logger.Logger.WithFields(logrus.Fields{
+					"route":  route,
+					"method": method,
+					"body":   body,
+				}).WithError(err).Error("Failed to decode request to wails router")
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			err = app.api.SetTransactionUserLabels(ctx, uint(transactionID), labelsRequest.Labels)
+			if err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			return WailsRequestRouterResponse{Body: nil, Error: ""}
+		}
+	}
+
 	transactionRegex := regexp.MustCompile(
 		`/api/transactions/([0-9a-fA-F]+)`,
 	)
@@ -339,12 +376,32 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
 		}
-		paymentResponse, err := app.api.SendPayment(ctx, invoice, payRequest.Amount, payRequest.Metadata)
+		amountMsat := api.ResolveToMsat(payRequest.AmountSat, payRequest.AmountMsat, nil, payRequest.Amount)
+		paymentResponse, err := app.api.SendPayment(ctx, invoice, amountMsat, payRequest.Metadata, payRequest.FromAppID)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 
 		return WailsRequestRouterResponse{Body: paymentResponse, Error: ""}
+	}
+
+	albyRateRegex := regexp.MustCompile(`/api/alby/rates/([^/?]+)`)
+	albyRateMatch := albyRateRegex.FindStringSubmatch(route)
+
+	switch {
+	case len(albyRateMatch) > 1:
+		currency := albyRateMatch[1]
+		rate, err := app.svc.GetAlbySvc().GetBitcoinRate(ctx, currency)
+		if err != nil {
+			logger.Logger.WithFields(logrus.Fields{
+				"route":    route,
+				"method":   method,
+				"body":     body,
+				"currency": currency,
+			}).WithError(err).Error("Failed to get Bitcoin rate")
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+		}
+		return WailsRequestRouterResponse{Body: rate, Error: ""}
 	}
 
 	switch route {
@@ -359,7 +416,13 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}).WithError(err).Error("Failed to decode request to wails router")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		err = app.api.Transfer(ctx, transferRequest.FromAppId, transferRequest.ToAppId, transferRequest.AmountSat*1000)
+		amountMsat := uint64(0)
+		resolvedAmountMsat := api.ResolveToMsat(transferRequest.AmountSat, transferRequest.AmountMsat, nil, nil)
+		if resolvedAmountMsat != nil {
+			amountMsat = *resolvedAmountMsat
+		}
+
+		err = app.api.Transfer(ctx, transferRequest.FromAppId, transferRequest.ToAppId, amountMsat, transferRequest.Description)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
@@ -392,17 +455,17 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/alby/rates":
-		rate, err := app.svc.GetAlbySvc().GetBitcoinRate(ctx)
+	case "/api/alby/currencies":
+		currencies, err := app.svc.GetAlbySvc().GetCurrencies(ctx)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"route":  route,
 				"method": method,
 				"body":   body,
-			}).WithError(err).Error("Failed to get Bitcoin rate")
+			}).WithError(err).Error("Failed to get currencies")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		return WailsRequestRouterResponse{Body: rate, Error: ""}
+		return WailsRequestRouterResponse{Body: currencies, Error: ""}
 	case "/api/apps":
 		switch method {
 		case "POST":
@@ -522,7 +585,12 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			}).WithError(err).Error("Failed to decode request to wails router")
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
-		invoice, err := app.api.CreateInvoice(ctx, makeInvoiceRequest.Amount, makeInvoiceRequest.Description)
+		amountMsat := uint64(0)
+		resolvedAmountMsat := api.ResolveToMsat(makeInvoiceRequest.AmountSat, makeInvoiceRequest.AmountMsat, nil, makeInvoiceRequest.Amount)
+		if resolvedAmountMsat != nil {
+			amountMsat = *resolvedAmountMsat
+		}
+		invoice, err := app.api.CreateInvoice(ctx, amountMsat, makeInvoiceRequest.Description)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
@@ -555,7 +623,13 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 
-		redeemOnchainFundsResponse, err := app.api.RedeemOnchainFunds(ctx, redeemOnchainFundsRequest.ToAddress, redeemOnchainFundsRequest.Amount, redeemOnchainFundsRequest.FeeRate, redeemOnchainFundsRequest.SendAll)
+		amountSat := uint64(0)
+		resolvedAmountSat := api.ResolveToSat(redeemOnchainFundsRequest.AmountSat, nil, redeemOnchainFundsRequest.Amount, nil)
+		if resolvedAmountSat != nil {
+			amountSat = *resolvedAmountSat
+		}
+
+		redeemOnchainFundsResponse, err := app.api.RedeemOnchainFunds(ctx, redeemOnchainFundsRequest.ToAddress, amountSat, redeemOnchainFundsRequest.FeeRate, redeemOnchainFundsRequest.SendAll)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
@@ -842,48 +916,6 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
-	case "/api/send-payment-probes":
-		sendPaymentProbesRequest := &api.SendPaymentProbesRequest{}
-		err := json.Unmarshal([]byte(body), sendPaymentProbesRequest)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"route":  route,
-				"method": method,
-				"body":   body,
-			}).WithError(err).Error("Failed to decode request to wails router")
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-		}
-		sendPaymentProbesResponse, err := app.api.SendPaymentProbes(ctx, sendPaymentProbesRequest)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"route":  route,
-				"method": method,
-				"body":   body,
-			}).WithError(err).Error("Failed to send payment probes")
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-		}
-		return WailsRequestRouterResponse{Body: sendPaymentProbesResponse, Error: ""}
-	case "/api/send-spontaneous-payment-probes":
-		sendSpontaneousPaymentProbesRequest := &api.SendSpontaneousPaymentProbesRequest{}
-		err := json.Unmarshal([]byte(body), sendSpontaneousPaymentProbesRequest)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"route":  route,
-				"method": method,
-				"body":   body,
-			}).WithError(err).Error("Failed to decode request to wails router")
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-		}
-		sendSpontaneousPaymentProbesResponse, err := app.api.SendSpontaneousPaymentProbes(ctx, sendSpontaneousPaymentProbesRequest)
-		if err != nil {
-			logger.Logger.WithFields(logrus.Fields{
-				"route":  route,
-				"method": method,
-				"body":   body,
-			}).WithError(err).Error("Failed to send spontaneous payment probes")
-			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-		}
-		return WailsRequestRouterResponse{Body: sendSpontaneousPaymentProbesResponse, Error: ""}
 	case "/api/backup":
 		backupRequest := &api.BasicBackupRequest{}
 		err := json.Unmarshal([]byte(body), backupRequest)

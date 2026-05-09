@@ -28,8 +28,8 @@ func (controller *nip47Controller) HandleGetBudgetEvent(ctx context.Context, nip
 	appPermission := db.AppPermission{}
 	controller.db.Where("app_id = ? AND scope = ?", app.ID, models.PAY_INVOICE_METHOD).First(&appPermission)
 
-	maxAmount := appPermission.MaxAmountSat
-	if maxAmount == 0 {
+	maxAmountSat := appPermission.MaxAmountSat
+	if maxAmountSat == 0 {
 		publishResponse(&models.Response{
 			ResultType: nip47Request.Method,
 			Result:     struct{}{},
@@ -37,10 +37,21 @@ func (controller *nip47Controller) HandleGetBudgetEvent(ctx context.Context, nip
 		return
 	}
 
-	usedBudget := queries.GetBudgetUsageSat(controller.db, &appPermission)
+	usedBudgetMsat, err := queries.GetBudgetUsageMsat(controller.db, &appPermission)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"request_event_id": requestEventId,
+		}).WithError(err).Error("Failed to fetch budget usage")
+		publishResponse(&models.Response{
+			ResultType: nip47Request.Method,
+			Error:      mapNip47Error(err),
+		}, nostr.Tags{})
+		return
+	}
+
 	responsePayload := &getBudgetResponse{
-		TotalBudget:   uint64(maxAmount * 1000),
-		UsedBudget:    usedBudget * 1000,
+		TotalBudget:   uint64(maxAmountSat * 1000),
+		UsedBudget:    usedBudgetMsat,
 		RenewalPeriod: appPermission.BudgetRenewal,
 		RenewsAt:      queries.GetBudgetRenewsAt(appPermission.BudgetRenewal),
 	}

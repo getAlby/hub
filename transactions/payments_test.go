@@ -111,10 +111,11 @@ func TestSendPaymentSync_Duplicate_AlreadyPaid(t *testing.T) {
 	defer svc.Remove()
 
 	svc.DB.Create(&db.Transaction{
-		State:       constants.TRANSACTION_STATE_SETTLED,
-		Type:        constants.TRANSACTION_TYPE_OUTGOING,
-		PaymentHash: tests.MockLNClientTransaction.PaymentHash,
-		AmountMsat:  123000,
+		State:          constants.TRANSACTION_STATE_SETTLED,
+		Type:           constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		AmountMsat:     123000,
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
@@ -131,10 +132,11 @@ func TestSendPaymentSync_Duplicate_Pending(t *testing.T) {
 	defer svc.Remove()
 
 	svc.DB.Create(&db.Transaction{
-		State:       constants.TRANSACTION_STATE_PENDING,
-		Type:        constants.TRANSACTION_TYPE_OUTGOING,
-		PaymentHash: tests.MockLNClientTransaction.PaymentHash,
-		AmountMsat:  123000,
+		State:          constants.TRANSACTION_STATE_PENDING,
+		Type:           constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		AmountMsat:     123000,
 	})
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
@@ -442,8 +444,8 @@ func TestConsumeEvent_FailedMarkedAsSuccessful(t *testing.T) {
 			DescriptionHash: tests.MockLNClientTransaction.DescriptionHash,
 			Preimage:        tests.MockLNClientTransaction.Preimage,
 			PaymentHash:     tests.MockLNClientTransaction.PaymentHash,
-			Amount:          tests.MockLNClientTransaction.Amount,
-			FeesPaid:        tests.MockLNClientTransaction.FeesPaid,
+			AmountMsat:      tests.MockLNClientTransaction.AmountMsat,
+			FeesPaidMsat:    tests.MockLNClientTransaction.FeesPaidMsat,
 		},
 	}, nil)
 

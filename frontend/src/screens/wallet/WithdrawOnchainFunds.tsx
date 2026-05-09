@@ -1,6 +1,6 @@
 import {
   AlertTriangleIcon,
-  ChevronDown,
+  ChevronDownIcon,
   CopyIcon,
   ExternalLinkIcon,
   InfoIcon,
@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FixedFloatButton } from "src/components/FixedFloatButton";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
@@ -28,17 +29,20 @@ import { Checkbox } from "src/components/ui/checkbox";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
+import { Separator } from "src/components/ui/separator";
 import { ONCHAIN_DUST_SATS } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 
 import { copyToClipboard } from "src/lib/clipboard";
-import { RedeemOnchainFundsResponse } from "src/types";
+import {
+  RedeemOnchainFundsRequest,
+  RedeemOnchainFundsResponse,
+} from "src/types";
 import { request } from "src/utils/request";
 
 export default function WithdrawOnchainFunds() {
-  const [isLoading, setLoading] = React.useState(false);
   const { data: info } = useInfo();
   const { data: balances } = useBalances();
   const { data: recommendedFees, error: mempoolError } = useMempoolApi<{
@@ -47,8 +51,9 @@ export default function WithdrawOnchainFunds() {
     economyFee: number;
     minimumFee: number;
   }>("/v1/fees/recommended");
+  const [isLoading, setLoading] = React.useState(false);
   const [onchainAddress, setOnchainAddress] = React.useState("");
-  const [amount, setAmount] = React.useState("");
+  const [amountSat, setAmountSat] = React.useState("");
   const [feeRate, setFeeRate] = React.useState("");
   const [sendAll, setSendAll] = React.useState(false);
   const [showAdvanced, setShowAdvanced] = React.useState(false);
@@ -90,6 +95,12 @@ export default function WithdrawOnchainFunds() {
     }
 
     try {
+      const payload: RedeemOnchainFundsRequest = {
+        toAddress: onchainAddress,
+        amountSat: +amountSat,
+        sendAll,
+        feeRate: +feeRate,
+      };
       const response = await request<RedeemOnchainFundsResponse>(
         "/api/wallet/redeem-onchain-funds",
         {
@@ -97,12 +108,7 @@ export default function WithdrawOnchainFunds() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            toAddress: onchainAddress,
-            amount: +amount,
-            sendAll,
-            feeRate: +feeRate,
-          }),
+          body: JSON.stringify(payload),
         }
       );
       console.info("Redeemed onchain funds", response);
@@ -117,18 +123,19 @@ export default function WithdrawOnchainFunds() {
       });
     }
     setLoading(false);
-  }, [amount, feeRate, onchainAddress, sendAll]);
+  }, [amountSat, feeRate, onchainAddress, sendAll]);
 
   if (transactionId) {
     return (
       <div className="grid gap-5">
         <AppHeader
+          pageTitle="Withdrawal Transaction Broadcasted"
           title="Withdrawal Transaction Broadcasted"
           description={
             "You will receive the funds at the destination after the transaction is confirmed"
           }
         />
-        <p className="text-primary">Withdrawal Transaction Id</p>
+        <p className="text-foreground">Withdrawal Transaction Id</p>
         <div className="flex items-center justify-between gap-4 max-w-sm">
           <p className="break-all font-semibold">{transactionId}</p>
           <CopyIcon
@@ -154,7 +161,7 @@ export default function WithdrawOnchainFunds() {
     return <Loading />;
   }
 
-  if (balances.onchain.spendable <= ONCHAIN_DUST_SATS) {
+  if (balances.onchain.spendableSat <= ONCHAIN_DUST_SATS) {
     return (
       <p>
         You currently don't have enough sats to pay for an onchain transaction.
@@ -165,6 +172,7 @@ export default function WithdrawOnchainFunds() {
   return (
     <div className="grid gap-5">
       <AppHeader
+        pageTitle="Withdraw On-Chain Balance"
         title="Withdraw On-Chain Balance"
         description="Withdraw your onchain funds to another bitcoin wallet"
       />
@@ -188,7 +196,7 @@ export default function WithdrawOnchainFunds() {
                 <p className="text-sm text-muted-foreground sensitive slashed-zero">
                   Current onchain balance:{" "}
                   <FormattedBitcoinAmount
-                    amount={balances.onchain.spendable * 1000}
+                    amountMsat={balances.onchain.spendableSat * 1000}
                   />
                 </p>
                 <div className="flex items-center gap-1">
@@ -196,7 +204,7 @@ export default function WithdrawOnchainFunds() {
                     id="send-all"
                     onCheckedChange={() => setSendAll(!sendAll)}
                   />
-                  <Label htmlFor="send-all" className="text-xs">
+                  <Label htmlFor="send-all" className="text-xs cursor-pointer">
                     Send All
                   </Label>
                 </div>
@@ -205,10 +213,10 @@ export default function WithdrawOnchainFunds() {
                 <Input
                   id="amount"
                   type="number"
-                  value={amount}
+                  value={amountSat}
                   required
                   onChange={(e) => {
-                    setAmount(e.target.value);
+                    setAmountSat(e.target.value);
                   }}
                 />
               )}
@@ -226,7 +234,7 @@ export default function WithdrawOnchainFunds() {
               </Alert>
             )}
             <AnchorReserveAlert
-              amount={sendAll ? balances.onchain.spendable : +amount}
+              amountSat={sendAll ? balances.onchain.spendableSat : +amountSat}
               className="mt-4"
             />
           </div>
@@ -308,7 +316,7 @@ export default function WithdrawOnchainFunds() {
                   className="text-muted-foreground text-xs"
                   onClick={() => setShowAdvanced((current) => !current)}
                 >
-                  <ChevronDown />
+                  <ChevronDownIcon />
                   Advanced Options
                 </Button>
               )}
@@ -347,7 +355,9 @@ export default function WithdrawOnchainFunds() {
                             "entire on-chain balance"
                           ) : (
                             <>
-                              <FormattedBitcoinAmount amount={+amount * 1000} />
+                              <FormattedBitcoinAmount
+                                amountMsat={+amountSat * 1000}
+                              />
                             </>
                           )}
                         </span>
@@ -376,6 +386,12 @@ export default function WithdrawOnchainFunds() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+
+            <Separator className="my-4" />
+            <FixedFloatButton from="BTC" className="w-full" variant="secondary">
+              <ExternalLinkIcon className="size-4" />
+              Withdraw to other Cryptocurrency
+            </FixedFloatButton>
           </div>
         </form>
       </div>

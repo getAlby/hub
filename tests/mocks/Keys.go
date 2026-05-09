@@ -72,14 +72,20 @@ type MockKeys_DeriveKey_Call struct {
 }
 
 // DeriveKey is a helper method to define mock.On call
-//   - path
+//   - path []uint32
 func (_e *MockKeys_Expecter) DeriveKey(path interface{}) *MockKeys_DeriveKey_Call {
 	return &MockKeys_DeriveKey_Call{Call: _e.mock.On("DeriveKey", path)}
 }
 
 func (_c *MockKeys_DeriveKey_Call) Run(run func(path []uint32)) *MockKeys_DeriveKey_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].([]uint32))
+		var arg0 []uint32
+		if args[0] != nil {
+			arg0 = args[0].([]uint32)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
@@ -126,14 +132,20 @@ type MockKeys_GetAppWalletKey_Call struct {
 }
 
 // GetAppWalletKey is a helper method to define mock.On call
-//   - childIndex
+//   - childIndex uint
 func (_e *MockKeys_Expecter) GetAppWalletKey(childIndex interface{}) *MockKeys_GetAppWalletKey_Call {
 	return &MockKeys_GetAppWalletKey_Call{Call: _e.mock.On("GetAppWalletKey", childIndex)}
 }
 
 func (_c *MockKeys_GetAppWalletKey_Call) Run(run func(childIndex uint)) *MockKeys_GetAppWalletKey_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(uint))
+		var arg0 uint
+		if args[0] != nil {
+			arg0 = args[0].(uint)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
@@ -270,14 +282,20 @@ type MockKeys_GetSwapKey_Call struct {
 }
 
 // GetSwapKey is a helper method to define mock.On call
-//   - childIndex
+//   - childIndex uint
 func (_e *MockKeys_Expecter) GetSwapKey(childIndex interface{}) *MockKeys_GetSwapKey_Call {
 	return &MockKeys_GetSwapKey_Call{Call: _e.mock.On("GetSwapKey", childIndex)}
 }
 
 func (_c *MockKeys_GetSwapKey_Call) Run(run func(childIndex uint)) *MockKeys_GetSwapKey_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(uint))
+		var arg0 uint
+		if args[0] != nil {
+			arg0 = args[0].(uint)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
@@ -359,15 +377,26 @@ type MockKeys_Init_Call struct {
 }
 
 // Init is a helper method to define mock.On call
-//   - cfg
-//   - encryptionKey
+//   - cfg config.Config
+//   - encryptionKey string
 func (_e *MockKeys_Expecter) Init(cfg interface{}, encryptionKey interface{}) *MockKeys_Init_Call {
 	return &MockKeys_Init_Call{Call: _e.mock.On("Init", cfg, encryptionKey)}
 }
 
 func (_c *MockKeys_Init_Call) Run(run func(cfg config.Config, encryptionKey string)) *MockKeys_Init_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(config.Config), args[1].(string))
+		var arg0 config.Config
+		if args[0] != nil {
+			arg0 = args[0].(config.Config)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }

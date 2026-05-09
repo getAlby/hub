@@ -18,7 +18,6 @@ export default function RevealPasswordToggle({
   // toggle the button if password view is handled by component itself
   useEffect(() => {
     if (typeof isRevealed !== "undefined") {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setRevealed(isRevealed);
     }
   }, [isRevealed]);

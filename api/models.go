@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	"io"
 	"time"
 
@@ -14,9 +15,9 @@ import (
 type API interface {
 	CreateApp(createAppRequest *CreateAppRequest) (*CreateAppResponse, error)
 	UpdateApp(app *db.App, updateAppRequest *UpdateAppRequest) error
-	Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, amountMsat uint64) error
+	Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, amountMsat uint64, description string) error
 	DeleteApp(app *db.App) error
-	GetApp(app *db.App) *App
+	GetApp(app *db.App) (*App, error)
 	ListApps(limit uint64, offset uint64, filters ListAppsFilters, orderBy string) (*ListAppsResponse, error)
 	CreateLightningAddress(ctx context.Context, createLightningAddressRequest *CreateLightningAddressRequest) error
 	DeleteLightningAddress(ctx context.Context, appId uint) error
@@ -40,21 +41,20 @@ type API interface {
 	GetNewOnchainAddress(ctx context.Context) (string, error)
 	GetUnusedOnchainAddress(ctx context.Context) (string, error)
 	SignMessage(ctx context.Context, message string) (*SignMessageResponse, error)
-	RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (*RedeemOnchainFundsResponse, error)
+	RedeemOnchainFunds(ctx context.Context, toAddress string, amountSat uint64, feeRate *uint64, sendAll bool) (*RedeemOnchainFundsResponse, error)
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
 	ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error)
 	ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error)
-	SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}) (*SendPaymentResponse, error)
-	CreateInvoice(ctx context.Context, amount uint64, description string) (*MakeInvoiceResponse, error)
+	SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}, fromAppId *uint) (*SendPaymentResponse, error)
+	CreateInvoice(ctx context.Context, amountMsat uint64, description string) (*MakeInvoiceResponse, error)
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
+	SetTransactionUserLabels(ctx context.Context, id uint, labels map[string]string) error
 	RequestMempoolApi(ctx context.Context, endpoint string) (interface{}, error)
 	GetInfo(ctx context.Context) (*InfoResponse, error)
 	GetMnemonic(unlockPassword string) (*MnemonicResponse, error)
 	SetNextBackupReminder(backupReminderRequest *BackupReminderRequest) error
 	Start(startRequest *StartRequest)
 	Setup(ctx context.Context, setupRequest *SetupRequest) error
-	SendPaymentProbes(ctx context.Context, sendPaymentProbesRequest *SendPaymentProbesRequest) (*SendPaymentProbesResponse, error)
-	SendSpontaneousPaymentProbes(ctx context.Context, sendSpontaneousPaymentProbesRequest *SendSpontaneousPaymentProbesRequest) (*SendSpontaneousPaymentProbesResponse, error)
 	GetNetworkGraph(ctx context.Context, nodeIds []string) (NetworkGraphResponse, error)
 	SyncWallet() error
 	GetLogOutput(ctx context.Context, logType string, getLogRequest *GetLogOutputRequest) (*GetLogOutputResponse, error)
@@ -85,24 +85,33 @@ type API interface {
 	GetForwards() (*GetForwardsResponse, error)
 }
 
+var ErrLNClientNotStarted = errors.New("LNClient not started")
+
 type App struct {
-	ID                 uint       `json:"id"`
-	Name               string     `json:"name"`
-	Description        string     `json:"description"`
-	AppPubkey          string     `json:"appPubkey"`
-	CreatedAt          time.Time  `json:"createdAt"`
-	UpdatedAt          time.Time  `json:"updatedAt"`
-	LastUsedAt         *time.Time `json:"lastUsedAt"`
-	ExpiresAt          *time.Time `json:"expiresAt"`
-	Scopes             []string   `json:"scopes"`
-	MaxAmountSat       uint64     `json:"maxAmount"`
-	BudgetUsage        uint64     `json:"budgetUsage"`
-	BudgetRenewal      string     `json:"budgetRenewal"`
-	Isolated           bool       `json:"isolated"`
-	WalletPubkey       string     `json:"walletPubkey"`
-	UniqueWalletPubkey bool       `json:"uniqueWalletPubkey"`
-	Balance            int64      `json:"balance"`
-	Metadata           Metadata   `json:"metadata,omitempty"`
+	ID                       uint       `json:"id"`
+	Name                     string     `json:"name"`
+	Description              string     `json:"description"`
+	AppPubkey                string     `json:"appPubkey"`
+	CreatedAt                time.Time  `json:"createdAt"`
+	UpdatedAt                time.Time  `json:"updatedAt"`
+	LastUsedAt               *time.Time `json:"lastUsedAt"`
+	LastSettledTransactionAt *time.Time `json:"lastSettledTransactionAt"`
+	ExpiresAt                *time.Time `json:"expiresAt"`
+	Scopes                   []string   `json:"scopes"`
+	MaxAmount                uint64     `json:"maxAmount"` // deprecated
+	MaxAmountSat             uint64     `json:"maxAmountSat"`
+	MaxAmountMsat            uint64     `json:"maxAmountMsat"`
+	BudgetUsage              uint64     `json:"budgetUsage"` // deprecated
+	BudgetUsageSat           uint64     `json:"budgetUsageSat"`
+	BudgetUsageMsat          uint64     `json:"budgetUsageMsat"`
+	BudgetRenewal            string     `json:"budgetRenewal"`
+	Isolated                 bool       `json:"isolated"`
+	WalletPubkey             string     `json:"walletPubkey"`
+	UniqueWalletPubkey       bool       `json:"uniqueWalletPubkey"`
+	Balance                  int64      `json:"balance"` // deprecated
+	BalanceSat               int64      `json:"balanceSat"`
+	BalanceMsat              int64      `json:"balanceMsat"`
+	Metadata                 Metadata   `json:"metadata,omitempty"`
 }
 
 type ListAppsFilters struct {
@@ -113,13 +122,18 @@ type ListAppsFilters struct {
 }
 
 type ListAppsResponse struct {
-	Apps       []App  `json:"apps"`
-	TotalCount uint64 `json:"totalCount"`
+	Apps             []App  `json:"apps"`
+	TotalCount       uint64 `json:"totalCount"`
+	TotalBalance     *int64 `json:"totalBalance,omitempty"` // deprecated
+	TotalBalanceSat  *int64 `json:"totalBalanceSat,omitempty"`
+	TotalBalanceMsat *int64 `json:"totalBalanceMsat,omitempty"`
 }
 
 type UpdateAppRequest struct {
 	Name            *string   `json:"name"`
-	MaxAmountSat    *uint64   `json:"maxAmount"`
+	MaxAmount       *uint64   `json:"maxAmount"` // deprecated
+	MaxAmountSat    *uint64   `json:"maxAmountSat"`
+	MaxAmountMsat   *uint64   `json:"maxAmountMsat"`
 	BudgetRenewal   *string   `json:"budgetRenewal"`
 	ExpiresAt       *string   `json:"expiresAt"`
 	UpdateExpiresAt bool      `json:"updateExpiresAt"`
@@ -129,15 +143,19 @@ type UpdateAppRequest struct {
 }
 
 type TransferRequest struct {
-	AmountSat uint64 `json:"amountSat"`
-	FromAppId *uint  `json:"fromAppId"`
-	ToAppId   *uint  `json:"toAppId"`
+	AmountSat   *uint64 `json:"amountSat"`
+	AmountMsat  *uint64 `json:"amountMsat"`
+	FromAppId   *uint   `json:"fromAppId"`
+	ToAppId     *uint   `json:"toAppId"`
+	Description string  `json:"description"`
 }
 
 type CreateAppRequest struct {
 	Name           string   `json:"name"`
 	Pubkey         string   `json:"pubkey"`
-	MaxAmountSat   uint64   `json:"maxAmount"`
+	MaxAmount      *uint64  `json:"maxAmount"` // deprecated
+	MaxAmountSat   *uint64  `json:"maxAmountSat"`
+	MaxAmountMsat  *uint64  `json:"maxAmountMsat"`
 	BudgetRenewal  string   `json:"budgetRenewal"`
 	ExpiresAt      string   `json:"expiresAt"`
 	Scopes         []string `json:"scopes"`
@@ -153,8 +171,9 @@ type CreateLightningAddressRequest struct {
 }
 
 type InitiateSwapRequest struct {
-	SwapAmount  uint64 `json:"swapAmount"`
-	Destination string `json:"destination"`
+	SwapAmount    *uint64 `json:"swapAmount"` // deprecated
+	SwapAmountSat *uint64 `json:"swapAmountSat"`
+	Destination   string  `json:"destination"`
 }
 
 type RefundSwapRequest struct {
@@ -163,25 +182,34 @@ type RefundSwapRequest struct {
 }
 
 type EnableAutoSwapRequest struct {
-	BalanceThreshold uint64 `json:"balanceThreshold"`
-	SwapAmount       uint64 `json:"swapAmount"`
-	Destination      string `json:"destination"`
+	BalanceThreshold    *uint64 `json:"balanceThreshold"` // deprecated
+	BalanceThresholdSat *uint64 `json:"balanceThresholdSat"`
+	SwapAmount          *uint64 `json:"swapAmount"` // deprecated
+	SwapAmountSat       *uint64 `json:"swapAmountSat"`
+	Destination         string  `json:"destination"`
+	DestinationType     string  `json:"destinationType"`
+	UnlockPassword      string  `json:"unlockPassword"`
 }
 
 type GetAutoSwapConfigResponse struct {
-	Type             string `json:"type"`
-	Enabled          bool   `json:"enabled"`
-	BalanceThreshold uint64 `json:"balanceThreshold"`
-	SwapAmount       uint64 `json:"swapAmount"`
-	Destination      string `json:"destination"`
+	Type                string `json:"type"`
+	Enabled             bool   `json:"enabled"`
+	BalanceThreshold    uint64 `json:"balanceThreshold"` // deprecated
+	BalanceThresholdSat uint64 `json:"balanceThresholdSat"`
+	SwapAmount          uint64 `json:"swapAmount"` // deprecated
+	SwapAmountSat       uint64 `json:"swapAmountSat"`
+	Destination         string `json:"destination"`
 }
 
 type SwapInfoResponse struct {
-	AlbyServiceFee  float64 `json:"albyServiceFee"`
-	BoltzServiceFee float64 `json:"boltzServiceFee"`
-	BoltzNetworkFee uint64  `json:"boltzNetworkFee"`
-	MinAmount       uint64  `json:"minAmount"`
-	MaxAmount       uint64  `json:"maxAmount"`
+	AlbyServiceFee     float64 `json:"albyServiceFee"`
+	BoltzServiceFee    float64 `json:"boltzServiceFee"`
+	BoltzNetworkFee    uint64  `json:"boltzNetworkFee"` // deprecated
+	BoltzNetworkFeeSat uint64  `json:"boltzNetworkFeeSat"`
+	MinAmount          uint64  `json:"minAmount"` // deprecated
+	MinAmountSat       uint64  `json:"minAmountSat"`
+	MaxAmount          uint64  `json:"maxAmount"` // deprecated
+	MaxAmountSat       uint64  `json:"maxAmountSat"`
 }
 
 type ListSwapsResponse struct {
@@ -195,8 +223,10 @@ type Swap struct {
 	Type               string `json:"type"`
 	State              string `json:"state"`
 	Invoice            string `json:"invoice"`
-	SendAmount         uint64 `json:"sendAmount"`
-	ReceiveAmount      uint64 `json:"receiveAmount"`
+	SendAmount         uint64 `json:"sendAmount"` // deprecated
+	SendAmountSat      uint64 `json:"sendAmountSat"`
+	ReceiveAmount      uint64 `json:"receiveAmount"` // deprecated
+	ReceiveAmountSat   uint64 `json:"receiveAmountSat"`
 	PaymentHash        string `json:"paymentHash"`
 	DestinationAddress string `json:"destinationAddress"`
 	RefundAddress      string `json:"refundAddress"`
@@ -240,8 +270,6 @@ type SetupRequest struct {
 	LNDAddress      string `json:"lndAddress"`
 	LNDCertFile     string `json:"lndCertFile"`
 	LNDMacaroonFile string `json:"lndMacaroonFile"`
-	LNDCertHex      string `json:"lndCertHex"`
-	LNDMacaroonHex  string `json:"lndMacaroonHex"`
 
 	// Phoenixd fields
 	PhoenixdAddress       string `json:"phoenixdAddress"`
@@ -249,6 +277,11 @@ type SetupRequest struct {
 
 	// Cashu fields
 	CashuMintUrl string `json:"cashuMintUrl"`
+
+	// CLN fields
+	CLNAddress      string `json:"clnAddress"`
+	CLNLightningDir string `json:"clnLightningDir"`
+	CLNAddressHold  string `json:"clnAddressHold"`
 }
 
 type CreateAppResponse struct {
@@ -297,6 +330,9 @@ type InfoResponse struct {
 	Relays                      []InfoResponseRelay `json:"relays"`
 	NodeAlias                   string              `json:"nodeAlias"`
 	MempoolUrl                  string              `json:"mempoolUrl"`
+	ChainDataSourceType         string              `json:"chainDataSourceType,omitempty"`
+	ChainDataSourceAddress      string              `json:"chainDataSourceAddress,omitempty"`
+	HideUpdateBanner            bool                `json:"hideUpdateBanner"`
 }
 
 type UpdateSettingsRequest struct {
@@ -331,16 +367,19 @@ type CloseChannelResponse = lnclient.CloseChannelResponse
 type UpdateChannelRequest = lnclient.UpdateChannelRequest
 
 type RebalanceChannelRequest struct {
-	ReceiveThroughNodePubkey string `json:"receiveThroughNodePubkey"`
-	AmountSat                uint64 `json:"amountSat"`
+	ReceiveThroughNodePubkey string  `json:"receiveThroughNodePubkey"`
+	AmountSat                *uint64 `json:"amountSat"`
+	AmountMsat               *uint64 `json:"amountMsat"`
 }
 type RebalanceChannelResponse struct {
-	TotalFeeSat uint64 `json:"totalFeeSat"`
+	TotalFeeSat  uint64 `json:"totalFeeSat"`
+	TotalFeeMsat uint64 `json:"totalFeeMsat"`
 }
 
 type RedeemOnchainFundsRequest struct {
 	ToAddress string  `json:"toAddress"`
-	Amount    uint64  `json:"amount"`
+	Amount    *uint64 `json:"amount"` // deprecated
+	AmountSat *uint64 `json:"amountSat"`
 	FeeRate   *uint64 `json:"feeRate"`
 	SendAll   bool    `json:"sendAll"`
 }
@@ -356,6 +395,10 @@ type SendPaymentResponse = Transaction
 type MakeInvoiceResponse = Transaction
 type LookupInvoiceResponse = Transaction
 
+type SetTransactionUserLabelsRequest struct {
+	Labels map[string]string `json:"labels"`
+}
+
 type ListTransactionsResponse struct {
 	TotalCount   uint64        `json:"totalCount"`
 	Transactions []Transaction `json:"transactions"`
@@ -363,6 +406,7 @@ type ListTransactionsResponse struct {
 
 // TODO: camelCase
 type Transaction struct {
+	ID              uint        `json:"id"`
 	Type            string      `json:"type"`
 	State           string      `json:"state"`
 	Invoice         string      `json:"invoice"`
@@ -370,8 +414,12 @@ type Transaction struct {
 	DescriptionHash string      `json:"descriptionHash"`
 	Preimage        *string     `json:"preimage"`
 	PaymentHash     string      `json:"paymentHash"`
-	Amount          uint64      `json:"amount"`
-	FeesPaid        uint64      `json:"feesPaid"`
+	Amount          uint64      `json:"amount"` // deprecated
+	AmountSat       uint64      `json:"amountSat"`
+	AmountMsat      uint64      `json:"amountMsat"`
+	FeesPaid        uint64      `json:"feesPaid"` // deprecated
+	FeesPaidSat     uint64      `json:"feesPaidSat"`
+	FeesPaidMsat    uint64      `json:"feesPaidMsat"`
 	UpdatedAt       string      `json:"updatedAt"`
 	CreatedAt       string      `json:"createdAt"`
 	SettledAt       *string     `json:"settledAt"`
@@ -397,25 +445,8 @@ type Boostagram struct {
 	SenderName     string `json:"senderName"`
 	Time           string `json:"time"`
 	Action         string `json:"action"`
+	ValueSatTotal  int64  `json:"valueSatTotal"`
 	ValueMsatTotal int64  `json:"valueMsatTotal"`
-}
-
-// debug api
-type SendPaymentProbesRequest struct {
-	Invoice string `json:"invoice"`
-}
-
-type SendPaymentProbesResponse struct {
-	Error string `json:"error"`
-}
-
-type SendSpontaneousPaymentProbesRequest struct {
-	Amount uint64 `json:"amount"`
-	NodeId string `json:"nodeId"`
-}
-
-type SendSpontaneousPaymentProbesResponse struct {
-	Error string `json:"error"`
 }
 
 const (
@@ -441,8 +472,11 @@ type SignMessageResponse struct {
 }
 
 type PayInvoiceRequest struct {
-	Amount   *uint64  `json:"amount"`
-	Metadata Metadata `json:"metadata"`
+	Amount     *uint64  `json:"amount"` // deprecated
+	AmountSat  *uint64  `json:"amountSat"`
+	AmountMsat *uint64  `json:"amountMsat"`
+	Metadata   Metadata `json:"metadata"`
+	FromAppID  *uint    `json:"fromAppId"`
 }
 
 type MakeOfferRequest struct {
@@ -450,8 +484,10 @@ type MakeOfferRequest struct {
 }
 
 type MakeInvoiceRequest struct {
-	Amount      uint64 `json:"amount"`
-	Description string `json:"description"`
+	Amount      *uint64 `json:"amount"` // deprecated
+	AmountSat   *uint64 `json:"amountSat"`
+	AmountMsat  *uint64 `json:"amountMsat"`
+	Description string  `json:"description"`
 }
 
 type ResetRouterRequest struct {
@@ -469,18 +505,23 @@ type BasicRestoreWailsRequest struct {
 type NetworkGraphResponse = lnclient.NetworkGraphResponse
 
 type LSPOrderRequest struct {
-	Amount        uint64 `json:"amount"`
-	LSPType       string `json:"lspType"`
-	LSPIdentifier string `json:"lspIdentifier"`
-	Public        bool   `json:"public"`
+	Amount        *uint64 `json:"amount"` // deprecated
+	AmountSat     *uint64 `json:"amountSat"`
+	LSPType       string  `json:"lspType"`
+	LSPIdentifier string  `json:"lspIdentifier"`
+	Public        bool    `json:"public"`
 }
 
 type LSPOrderResponse struct {
-	Invoice           string `json:"invoice"`
-	Fee               uint64 `json:"fee"`
-	InvoiceAmount     uint64 `json:"invoiceAmount"`
-	IncomingLiquidity uint64 `json:"incomingLiquidity"`
-	OutgoingLiquidity uint64 `json:"outgoingLiquidity"`
+	Invoice              string `json:"invoice"`
+	Fee                  uint64 `json:"fee"` // deprecated
+	FeeSat               uint64 `json:"feeSat"`
+	InvoiceAmount        uint64 `json:"invoiceAmount"` // deprecated
+	InvoiceAmountSat     uint64 `json:"invoiceAmountSat"`
+	IncomingLiquidity    uint64 `json:"incomingLiquidity"` // deprecated
+	IncomingLiquiditySat uint64 `json:"incomingLiquiditySat"`
+	OutgoingLiquidity    uint64 `json:"outgoingLiquidity"` // deprecated
+	OutgoingLiquiditySat uint64 `json:"outgoingLiquiditySat"`
 }
 
 type WalletCapabilitiesResponse struct {
@@ -490,25 +531,33 @@ type WalletCapabilitiesResponse struct {
 }
 
 type Channel struct {
-	LocalBalance                             int64       `json:"localBalance"`
-	LocalSpendableBalance                    int64       `json:"localSpendableBalance"`
-	RemoteBalance                            int64       `json:"remoteBalance"`
-	Id                                       string      `json:"id"`
-	RemotePubkey                             string      `json:"remotePubkey"`
-	FundingTxId                              string      `json:"fundingTxId"`
-	FundingTxVout                            uint32      `json:"fundingTxVout"`
-	Active                                   bool        `json:"active"`
-	Public                                   bool        `json:"public"`
-	InternalChannel                          interface{} `json:"internalChannel"`
-	Confirmations                            *uint32     `json:"confirmations"`
-	ConfirmationsRequired                    *uint32     `json:"confirmationsRequired"`
-	ForwardingFeeBaseMsat                    uint32      `json:"forwardingFeeBaseMsat"`
-	ForwardingFeeProportionalMillionths      uint32      `json:"forwardingFeeProportionalMillionths"`
-	UnspendablePunishmentReserve             uint64      `json:"unspendablePunishmentReserve"`
-	CounterpartyUnspendablePunishmentReserve uint64      `json:"counterpartyUnspendablePunishmentReserve"`
-	Error                                    *string     `json:"error"`
-	Status                                   string      `json:"status"`
-	IsOutbound                               bool        `json:"isOutbound"`
+	LocalBalance                                int64       `json:"localBalance"` // deprecated
+	LocalBalanceSat                             int64       `json:"localBalanceSat"`
+	LocalBalanceMsat                            int64       `json:"localBalanceMsat"`
+	LocalSpendableBalance                       int64       `json:"localSpendableBalance"` // deprecated
+	LocalSpendableBalanceSat                    int64       `json:"localSpendableBalanceSat"`
+	LocalSpendableBalanceMsat                   int64       `json:"localSpendableBalanceMsat"`
+	RemoteBalance                               int64       `json:"remoteBalance"` // deprecated
+	RemoteBalanceSat                            int64       `json:"remoteBalanceSat"`
+	RemoteBalanceMsat                           int64       `json:"remoteBalanceMsat"`
+	Id                                          string      `json:"id"`
+	RemotePubkey                                string      `json:"remotePubkey"`
+	FundingTxId                                 string      `json:"fundingTxId"`
+	FundingTxVout                               uint32      `json:"fundingTxVout"`
+	Active                                      bool        `json:"active"`
+	Public                                      bool        `json:"public"`
+	InternalChannel                             interface{} `json:"internalChannel"`
+	Confirmations                               *uint32     `json:"confirmations"`
+	ConfirmationsRequired                       *uint32     `json:"confirmationsRequired"`
+	ForwardingFeeBaseMsat                       uint32      `json:"forwardingFeeBaseMsat"` // expressed only in msat as per Lightning spec
+	ForwardingFeeProportionalMillionths         uint32      `json:"forwardingFeeProportionalMillionths"`
+	UnspendablePunishmentReserve                uint64      `json:"unspendablePunishmentReserve"` // deprecated
+	UnspendablePunishmentReserveSat             uint64      `json:"unspendablePunishmentReserveSat"`
+	CounterpartyUnspendablePunishmentReserve    uint64      `json:"counterpartyUnspendablePunishmentReserve"` // deprecated
+	CounterpartyUnspendablePunishmentReserveSat uint64      `json:"counterpartyUnspendablePunishmentReserveSat"`
+	Error                                       *string     `json:"error"`
+	Status                                      string      `json:"status"`
+	IsOutbound                                  bool        `json:"isOutbound"`
 }
 
 type MigrateNodeStorageRequest struct {
@@ -561,7 +610,53 @@ type ExecuteCustomNodeCommandRequest struct {
 }
 
 type GetForwardsResponse struct {
+	OutboundAmountForwardedSat  uint64 `json:"outboundAmountForwardedSat"`
 	OutboundAmountForwardedMsat uint64 `json:"outboundAmountForwardedMsat"`
+	TotalFeeEarnedSat           uint64 `json:"totalFeeEarnedSat"`
 	TotalFeeEarnedMsat          uint64 `json:"totalFeeEarnedMsat"`
 	NumForwards                 uint64 `json:"numForwards"`
+}
+
+func ResolveToSat(satValue *uint64, msatValue *uint64, legacyValueSat *uint64, legacyValueMsat *uint64) (resolvedSatValue *uint64) {
+	if legacyValueSat != nil {
+		resolvedSatValue = legacyValueSat
+	}
+
+	if legacyValueMsat != nil {
+		tmpSat := *legacyValueMsat / 1000
+		resolvedSatValue = &tmpSat
+	}
+
+	if satValue != nil {
+		resolvedSatValue = satValue
+	}
+
+	if msatValue != nil {
+		tmpSat := *msatValue / 1000
+		resolvedSatValue = &tmpSat
+	}
+
+	return resolvedSatValue
+}
+
+func ResolveToMsat(satValue *uint64, msatValue *uint64, legacyValueSat *uint64, legacyValueMsat *uint64) (resolvedMsatValue *uint64) {
+	if legacyValueSat != nil {
+		tmpMsat := *legacyValueSat * 1000
+		resolvedMsatValue = &tmpMsat
+	}
+
+	if legacyValueMsat != nil {
+		resolvedMsatValue = legacyValueMsat
+	}
+
+	if satValue != nil {
+		tmpMsat := *satValue * 1000
+		resolvedMsatValue = &tmpMsat
+	}
+
+	if msatValue != nil {
+		resolvedMsatValue = msatValue
+	}
+
+	return resolvedMsatValue
 }

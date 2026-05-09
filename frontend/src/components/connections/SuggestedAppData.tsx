@@ -1,34 +1,42 @@
 import { ZapIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import topup2fiat from "src/assets/suggested-apps/2fiat-topup.png";
 import albyExtension from "src/assets/suggested-apps/alby-extension.png";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
+import albySandbox from "src/assets/suggested-apps/alby-sandbox.png";
+import albyCli from "src/assets/suggested-apps/alby.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
 import bitrefill from "src/assets/suggested-apps/bitrefill.png";
+import bitrequest from "src/assets/suggested-apps/bitrequest.png";
 import bringin from "src/assets/suggested-apps/bringin.png";
 import btcpay from "src/assets/suggested-apps/btcpay.png";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
+import castamatic from "src/assets/suggested-apps/castamatic.png";
 import clams from "src/assets/suggested-apps/clams.png";
-import claude from "src/assets/suggested-apps/claude.png";
 import coracle from "src/assets/suggested-apps/coracle.png";
 import damus from "src/assets/suggested-apps/damus.png";
 import fountain from "src/assets/suggested-apps/fountain.png";
-import goose from "src/assets/suggested-apps/goose.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import iris from "src/assets/suggested-apps/iris.png";
 import jumble from "src/assets/suggested-apps/jumble.png";
+import lendaswap from "src/assets/suggested-apps/lendaswap.png";
 import lightningMessageboard from "src/assets/suggested-apps/lightning-messageboard.png";
 import lnbits from "src/assets/suggested-apps/lnbits.png";
+import lnvps from "src/assets/suggested-apps/lnvps.png";
 import lume from "src/assets/suggested-apps/lume.png";
+import nadanada from "src/assets/suggested-apps/nadanada.png";
 import nakapay from "src/assets/suggested-apps/nakapay.png";
 import nostrcheckserver from "src/assets/suggested-apps/nostrcheck-server.png";
 import nostrudel from "src/assets/suggested-apps/nostrudel.png";
 import nostter from "src/assets/suggested-apps/nostter.png";
 import nostur from "src/assets/suggested-apps/nostur.png";
 import paperScissorsHodl from "src/assets/suggested-apps/paper-scissors-hodl.png";
+import payperq from "src/assets/suggested-apps/payperq.png";
 import primal from "src/assets/suggested-apps/primal.png";
 import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
 import runstr from "src/assets/suggested-apps/runstr.png";
+import sats4ai from "src/assets/suggested-apps/sats4ai.png";
+import satsorter from "src/assets/suggested-apps/sat-sorter.png";
 import satoshisauctionhouse from "src/assets/suggested-apps/satoshis-auction-house.png";
 import simpleboost from "src/assets/suggested-apps/simple-boost.png";
 import snort from "src/assets/suggested-apps/snort.png";
@@ -75,6 +83,7 @@ export type AppStoreApp = {
   hideConnectionQr?: boolean;
   internal?: boolean;
   superuser?: boolean;
+  addedDate?: string;
 };
 
 export const appStoreCategories = {
@@ -176,22 +185,45 @@ export const appStoreApps: AppStoreApp[] = (
       webLink: "https://pos.albylabs.com",
     },
     {
-      id: "goose",
-      title: "Goose",
-      description:
-        "Your local AI agent, automating engineering tasks seamlessly",
-      internal: true,
-      logo: goose,
-      categories: ["ai"],
+      id: "castamatic",
+      title: "Castamatic",
+      description: "Podcast player with Value4Value support",
+      webLink: "https://castamatic.com",
+      appleLink:
+        "https://apps.apple.com/us/app/castamatic-podcast-player/id966632553",
+      logo: castamatic,
       extendedDescription:
-        "Your local AI agent, automating engineering tasks seamlessly",
-      webLink: "https://block.github.io/goose",
+        "Castamatic is a feature-rich podcast player for iOS with built-in Value4Value support. Send boosts and stream sats to your favorite podcasters while you listen.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Download and open{" "}
+            <span className="font-medium text-foreground">Castamatic</span> on
+            your iOS device
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Castamatic</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>Open a podcast that supports Value4Value</li>
+              <li>Tap the Connect Wallet button in the player</li>
+              <li>Select Connect NWC wallet</li>
+              <li>Scan or paste the connection secret from Alby Hub</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["audio"],
+      addedDate: "2026-03-12",
     },
     {
       id: "2fiat",
-      title: "2fiat Topup",
+      title: "2fiat Top up",
       description:
-        "No-KYC virtual prepaid Mastercard with instant lightning topups",
+        "No-KYC virtual prepaid Mastercard with instant lightning top ups",
       logo: topup2fiat,
       categories: ["payment-tools"],
       extendedDescription:
@@ -224,7 +256,7 @@ export const appStoreApps: AppStoreApp[] = (
                   to="https://rolznz.github.io/2fiat-topup/"
                   className="underline"
                 >
-                  2fiat topup
+                  2fiat top up
                 </ExternalLink>{" "}
                 (on mobile save the app to your homescreen and open it there
                 before continuing) and
@@ -253,15 +285,86 @@ export const appStoreApps: AppStoreApp[] = (
       ),
     },
     {
-      id: "claude",
-      title: "Claude",
-      description: "AI assistant for conversations, analysis, and coding",
+      id: "alby-cli-skill",
+      title: "Alby CLI Skill",
+      description: "Skill wrapper that helps AI agents use Alby CLI better",
       extendedDescription:
-        "AI assistant for conversations, analysis, and coding",
+        "Agent skill for Alby CLI with guided setup for skill-enabled coding agents and AI tooling.",
       internal: true,
-      logo: claude,
+      logo: albyCli,
       categories: ["ai"],
-      webLink: "https://claude.ai/",
+      webLink: "https://github.com/getAlby/alby-cli-skill",
+    },
+    {
+      id: "payperq",
+      title: "PayPerQ",
+      description: "Pay-Per-Prompt AI Service",
+      webLink: "https://ppq.ai/invite/3f21c1e5",
+      logo: payperq,
+      hideConnectionQr: true,
+      extendedDescription:
+        "Access all of the latest AI models and tools in one place without the need for subscriptions",
+      installGuide: (
+        <>
+          <ul className="list-inside list-decimal text-muted-foreground">
+            <li>
+              Open{" "}
+              <ExternalLink
+                to="https://ppq.ai/api-docs"
+                className="font-medium text-foreground underline"
+              >
+                PayPerQ API docs page
+              </ExternalLink>{" "}
+              and scroll down to the{" "}
+              <span className="font-medium text-foreground">
+                NWC Auto-Topup
+              </span>{" "}
+              section.
+            </li>
+            <li>
+              Copy the CURL code example for{" "}
+              <span className="font-medium text-foreground">
+                POST /nwc-auto-topup/connect
+              </span>{" "}
+              and paste it into a notepad.
+            </li>
+          </ul>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">Connect Auto-Topup</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Replace the{" "}
+                <span className="font-medium text-foreground">"nwc_url"</span>{" "}
+                field with your connection secret.
+              </li>
+              <li>Execute the CURL command in your terminal.</li>
+              <li>
+                Verify settings with{" "}
+                <code className="text-foreground">
+                  GET https://api.ppq.ai/nwc-auto-topup
+                </code>{" "}
+                along with the{" "}
+                <code className="text-foreground">x-credit-id</code> header.
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["ai"],
+    },
+    {
+      id: "sats4ai",
+      title: "Sats4AI",
+      description: "30+ AI tools paid with lightning micropayments",
+      extendedDescription:
+        "Access 30+ AI tools including image generation, video, text-to-speech, transcription, and more. No signup, no API keys — just pay per use with lightning.",
+      logo: sats4ai,
+      categories: ["ai"],
+      webLink: "https://sats4ai.com",
     },
     {
       id: "simpleboost",
@@ -282,6 +385,60 @@ export const appStoreApps: AppStoreApp[] = (
       logo: lightningMessageboard,
       categories: ["merchant-tools"],
       webLink: "https://github.com/getAlby/lightning-messageboard",
+    },
+    {
+      id: "lnvps",
+      title: "LNVPS",
+      description: "VPS powered by Bitcoin",
+      webLink: "https://lnvps.net/?ref=alby",
+      logo: lnvps,
+      hideConnectionQr: true,
+      extendedDescription:
+        "Run VPS infrastructure with Bitcoin-native billing and automated renewals through Nostr Wallet Connect.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://lnvps.net/?ref=alby"
+              className="font-medium text-foreground underline"
+            >
+              LNVPS
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In LNVPS</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Enable auto-renew on{" "}
+                <ExternalLink
+                  to="https://lnvps.net/vm/billing"
+                  className="font-medium text-foreground underline"
+                >
+                  lnvps.net/vm/billing
+                </ExternalLink>
+              </li>
+              <li>
+                Go to{" "}
+                <ExternalLink
+                  to="https://lnvps.net/account/settings"
+                  className="font-medium text-foreground underline"
+                >
+                  lnvps.net/account/settings
+                </ExternalLink>
+              </li>
+              <li>Paste the connection secret from Alby Hub</li>
+              <li>Save your settings to activate NWC auto-renewal</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["misc"],
     },
     {
       id: "alby-extension",
@@ -331,6 +488,104 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["wallet-interfaces"],
+    },
+    {
+      id: "alby-cli",
+      title: "Alby CLI",
+      description:
+        "Command-line interface for Nostr Wallet Connect with lightning tools",
+      webLink: "https://github.com/getAlby/cli",
+      logo: albyCli,
+      extendedDescription:
+        "Manage your Alby Hub from the command line. Send and receive payments, create invoices, check your balance, and automate lightning workflows. Built for developers and AI agents.",
+      categories: ["wallet-interfaces"],
+      hideConnectionQr: true,
+      installGuide: (
+        <>
+          <div>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Install the CLI globally:{" "}
+                <code className="text-foreground">
+                  npm install -g @getalby/cli
+                </code>
+              </li>
+              <li>
+                Or run directly with npx:{" "}
+                <code className="text-foreground">npx @getalby/cli</code>
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">Connect to your Hub</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Set the <code className="text-foreground">NWC_URL</code>{" "}
+                environment variable or pass the connection string via{" "}
+                <code className="text-foreground">-c</code>
+              </li>
+              <li>
+                Run{" "}
+                <code className="text-foreground">
+                  npx @getalby/cli -c "nostr+walletconnect://..." get-info
+                </code>{" "}
+                to verify the connection
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+    },
+    {
+      id: "alby-sandbox",
+      title: "Alby Sandbox",
+      description: "Interactive Lightning payment scenarios for app builders",
+      webLink: "https://sandbox.albylabs.com",
+      logo: albySandbox,
+      extendedDescription:
+        "Explore real-world Lightning and Nostr Wallet Connect flows with guided scenarios, test wallets, and code-oriented examples for app development.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://sandbox.albylabs.com"
+              className="font-medium text-foreground underline"
+            >
+              sandbox.albylabs.com
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Alby Sandbox</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>Choose any scenario in the sidebar</li>
+              <li>
+                Paste your Alby Hub{" "}
+                <span className="font-medium text-foreground">
+                  connection secret.
+                </span>{" "}
+                If you connected a test wallet first, disconnect it and
+                reconnect using your Alby Hub secret.
+              </li>
+              <li>
+                Click{" "}
+                <span className="font-medium text-foreground">Connect</span>
+              </li>
+              <li>Run a scenario to explore Lightning payment flows</li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["misc"],
     },
     {
       id: "damus",
@@ -512,6 +767,59 @@ export const appStoreApps: AppStoreApp[] = (
       categories: ["misc"],
     },
     {
+      id: "sat-sorter",
+      title: "Sat Sorter",
+      description: "A Bitcoin Budgeting App",
+      webLink: "https://satsorter.com",
+      logo: satsorter,
+      extendedDescription:
+        "A privacy-first, zero-based budgeting app for Bitcoiners. Connects via NWC for automatic Lightning transaction sync.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://satsorter.com"
+              className="font-medium text-foreground underline"
+            >
+              Sat Sorter
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Sat Sorter</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Tap the{" "}
+                <span className="font-medium text-foreground">Wallet</span> icon
+                in the header
+              </li>
+              <li>
+                Tap{" "}
+                <span className="font-medium text-foreground">
+                  Connect Wallet
+                </span>{" "}
+                and select{" "}
+                <span className="font-medium text-foreground">
+                  Nostr Wallet Connect
+                </span>
+              </li>
+              <li>Paste the connection secret from Alby Hub</li>
+              <li>
+                Tap <span className="font-medium text-foreground">Connect</span>{" "}
+                — your Lightning transactions will now sync automatically
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["misc"],
+    },
+    {
       id: "zap-stream",
       title: "Zap Stream",
       description: "Stream and stack sats",
@@ -556,6 +864,78 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["social-media"],
+    },
+    {
+      id: "bitrequest",
+      title: "Bitrequest",
+      description: "Non-custodial payment requests",
+      webLink: "https://www.bitrequest.io",
+      playLink:
+        "https://play.google.com/store/apps/details?id=io.bitrequest.app",
+      appleLink: "https://apps.apple.com/us/app/bitrequest/id1484815377",
+      logo: bitrequest,
+      extendedDescription:
+        "Open-source, Non-custodial app for creating and sharing cryptocurrency payment requests",
+      installGuide: (
+        <>
+          <div>
+            <p className="text-muted-foreground">
+              Open{" "}
+              <ExternalLink
+                to="https://bitrequest.github.io"
+                className="font-medium text-foreground underline"
+              >
+                Bitrequest
+              </ExternalLink>{" "}
+              in your browser, or download the app on iOS or Android
+            </p>
+            <p className="text-muted-foreground mt-4">
+              In the next step, set wallet permissions to{" "}
+              <span className="font-medium text-foreground">Custom</span> and
+              enable:
+            </p>
+            <ul className="list-inside list-disc text-muted-foreground mt-1">
+              <li>Read your node info</li>
+              <li>Create invoices</li>
+              <li>Lookup status of invoices</li>
+              <li>Read transaction history</li>
+            </ul>
+          </div>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Bitrequest</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Click on{" "}
+                <span className="font-medium text-foreground">Bitcoin</span> and
+                then{" "}
+                <span className="font-medium text-foreground">Lightning</span>{" "}
+                to open the{" "}
+                <span className="font-medium text-foreground">
+                  Add lightning node
+                </span>{" "}
+                modal
+              </li>
+              <li>
+                Set{" "}
+                <span className="font-medium text-foreground">
+                  implementation
+                </span>{" "}
+                to <span className="font-medium text-foreground">NWC</span>
+              </li>
+              <li>Enter a name for the connection</li>
+              <li>
+                Paste the connection secret (nostr+walletconnect://....) and
+                click <span className="font-medium text-foreground">OK</span>
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["merchant-tools"],
     },
     {
       id: "btcpay",
@@ -1326,6 +1706,69 @@ export const appStoreApps: AppStoreApp[] = (
       categories: ["social-media"],
     },
     {
+      id: "nadanada",
+      title: "nadanada",
+      description: "No-KYC eSIM, VPN and phone numbers",
+      webLink: "https://nadanada.me?ref=getalby",
+      logo: nadanada,
+      extendedDescription:
+        "Privacy-first eSIM, VPN, and phone numbers with no account required.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://nadanada.me?ref=getalby"
+              className="font-medium text-foreground underline"
+            >
+              nadanada
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In nadanada</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>Choose a service of your choice</li>
+              <li>
+                At checkout, choose{" "}
+                <span className="font-medium text-foreground">
+                  Lightning
+                </span>{" "}
+              </li>
+              <li>
+                Click{" "}
+                <span className="font-medium text-foreground">
+                  Pay with Wallet
+                </span>
+              </li>
+              <li>
+                In the modal, click{" "}
+                <span className="font-medium text-foreground">
+                  Connect Wallet to Pay
+                </span>
+              </li>
+              <li>
+                Choose{" "}
+                <span className="font-medium text-foreground">
+                  Nostr Wallet Connect
+                </span>{" "}
+              </li>
+              <li>
+                Paste the connection secret from Alby Hub and continue to
+                confirm payment
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["misc"],
+      addedDate: "2026-04-10",
+    },
+    {
       id: "nakapay",
       title: "NakaPay",
       description: "Non-custodial Lightning payments for businesses via NWC",
@@ -2023,8 +2466,68 @@ export const appStoreApps: AppStoreApp[] = (
       ),
       categories: ["misc"],
     },
+    {
+      id: "lendaswap",
+      title: "LendaSwap",
+      description: "Self-custodial Bitcoin ↔ Stablecoin atomic swaps",
+      webLink: "https://lendaswap.com/?ref=lnds_e3f8dd88_f7db93dbf176",
+      logo: lendaswap,
+      extendedDescription:
+        "Swap between Lightning Bitcoin and stablecoins (USDC, USDT) on Polygon, Arbitrum, and Ethereum. LendaSwap uses your Hub to pay swap invoices and generate receiving invoices — all self-custodial via HTLCs.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://lendaswap.com/?ref=lnds_e3f8dd88_f7db93dbf176"
+              className="font-medium text-foreground underline"
+            >
+              LendaSwap
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In LendaSwap</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Click the{" "}
+                <span className="font-medium text-foreground">
+                  ⚡ Lightning
+                </span>{" "}
+                button in the header
+              </li>
+              <li>Paste the connection secret from Alby Hub</li>
+              <li>
+                When swapping Lightning → stablecoins, click{" "}
+                <span className="font-medium text-foreground">
+                  Pay with Lightning Wallet
+                </span>{" "}
+                to pay directly from your Hub
+              </li>
+              <li>
+                When swapping stablecoins → Lightning, click{" "}
+                <span className="font-medium text-foreground">
+                  Generate invoice from wallet
+                </span>{" "}
+                to receive directly into your Hub
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      categories: ["payment-tools"],
+      addedDate: "2026-04-10",
+    },
   ] satisfies AppStoreApp[]
 ).sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
+
+export function getAppStoreUrl(app: AppStoreApp) {
+  return app.internal ? `/internal-apps/${app.id}` : `/appstore/${app.id}`;
+}
 
 export const getAppStoreApp = (app: App) => {
   return appStoreApps.find(

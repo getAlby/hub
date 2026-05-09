@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import Container from "src/components/Container";
 import ExternalLink from "src/components/ExternalLink";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
@@ -32,6 +32,7 @@ export function CashuForm() {
     <Container>
       <TwoColumnLayoutHeader
         title="Configure Cashu Mint"
+        pageTitle="Configure Cashu Mint"
         description="Fill out wallet details to finish setup."
       />
       <form className="w-full grid gap-5 mt-6" onSubmit={onSubmit}>

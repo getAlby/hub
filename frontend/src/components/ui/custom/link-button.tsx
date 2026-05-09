@@ -1,6 +1,6 @@
 import type { VariantProps } from "class-variance-authority";
 import * as React from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { cn } from "src/lib/utils";
 import { buttonVariants } from "../buttonVariants";
 
@@ -22,6 +22,8 @@ export function LinkButton({
       to={to}
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
+      data-slot="button"
+      data-variant={variant ?? "default"}
     >
       {children}
     </Link>

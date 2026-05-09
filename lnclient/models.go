@@ -32,8 +32,8 @@ type Transaction struct {
 	DescriptionHash string
 	Preimage        string
 	PaymentHash     string
-	Amount          int64
-	FeesPaid        int64
+	AmountMsat      int64
+	FeesPaidMsat    int64
 	CreatedAt       int64
 	ExpiresAt       *int64
 	SettledAt       *int64
@@ -57,16 +57,15 @@ type NodeConnectionInfo struct {
 }
 
 type LNClient interface {
-	SendPaymentSync(payReq string, amount *uint64) (*PayInvoiceResponse, error)
-	SendKeysend(amount uint64, destination string, customRecords []TLVRecord, preimage string) (*PayKeysendResponse, error)
+	SendPaymentSync(payReq string, amountMsat *uint64) (*PayInvoiceResponse, error)
+	SendKeysend(amountMsat uint64, destination string, customRecords []TLVRecord, preimage string) (*PayKeysendResponse, error)
 	GetPubkey() string
 	GetInfo(ctx context.Context) (info *NodeInfo, err error)
-	MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *Transaction, err error)
-	MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *Transaction, err error)
+	MakeInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *Transaction, err error)
+	MakeHoldInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (transaction *Transaction, err error)
 	SettleHoldInvoice(ctx context.Context, preimage string) (err error)
 	CancelHoldInvoice(ctx context.Context, paymentHash string) (err error)
 	LookupInvoice(ctx context.Context, paymentHash string) (transaction *Transaction, err error)
-	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaid bool, invoiceType string) (transactions []Transaction, err error)
 	ListOnchainTransactions(ctx context.Context) ([]OnchainTransaction, error)
 	Shutdown() error
 	ListChannels(ctx context.Context) (channels []Channel, err error)
@@ -82,9 +81,7 @@ type LNClient interface {
 	ResetRouter(key string) error
 	GetOnchainBalance(ctx context.Context) (*OnchainBalanceResponse, error)
 	GetBalances(ctx context.Context, includeInactiveChannels bool) (*BalancesResponse, error)
-	RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (txId string, err error)
-	SendPaymentProbes(ctx context.Context, invoice string) error
-	SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error
+	RedeemOnchainFunds(ctx context.Context, toAddress string, amountSat uint64, feeRate *uint64, sendAll bool) (txId string, err error)
 	ListPeers(ctx context.Context) ([]PeerDetails, error)
 	GetLogOutput(ctx context.Context, maxLen int) ([]byte, error)
 	SignMessage(ctx context.Context, message string) (string, error)
@@ -98,24 +95,24 @@ type LNClient interface {
 }
 
 type Channel struct {
-	LocalBalance                             int64
-	LocalSpendableBalance                    int64
-	RemoteBalance                            int64
-	Id                                       string
-	RemotePubkey                             string
-	FundingTxId                              string
-	FundingTxVout                            uint32
-	Active                                   bool
-	Public                                   bool
-	InternalChannel                          interface{}
-	Confirmations                            *uint32
-	ConfirmationsRequired                    *uint32
-	ForwardingFeeBaseMsat                    uint32
-	ForwardingFeeProportionalMillionths      uint32
-	UnspendablePunishmentReserve             uint64
-	CounterpartyUnspendablePunishmentReserve uint64
-	Error                                    *string
-	IsOutbound                               bool
+	LocalBalanceMsat                            int64
+	LocalSpendableBalanceMsat                   int64
+	RemoteBalanceMsat                           int64
+	Id                                          string
+	RemotePubkey                                string
+	FundingTxId                                 string
+	FundingTxVout                               uint32
+	Active                                      bool
+	Public                                      bool
+	InternalChannel                             interface{}
+	Confirmations                               *uint32
+	ConfirmationsRequired                       *uint32
+	ForwardingFeeBaseMsat                       uint32
+	ForwardingFeeProportionalMillionths         uint32
+	UnspendablePunishmentReserveSat             uint64
+	CounterpartyUnspendablePunishmentReserveSat uint64
+	Error                                       *string
+	IsOutbound                                  bool
 }
 
 type NodeStatus struct {
@@ -159,19 +156,24 @@ type CloseChannelResponse struct {
 type PendingBalanceDetails struct {
 	ChannelId     string `json:"channelId"`
 	NodeId        string `json:"nodeId"`
-	Amount        uint64 `json:"amount"`
+	Amount        uint64 `json:"amount"` // deprecated
+	AmountSat     uint64 `json:"amountSat"`
 	FundingTxId   string `json:"fundingTxId"`
 	FundingTxVout uint32 `json:"fundingTxVout"`
 }
 
 type OnchainBalanceResponse struct {
-	Spendable                          int64                   `json:"spendable"`
-	Total                              int64                   `json:"total"`
-	Reserved                           int64                   `json:"reserved"`
-	PendingBalancesFromChannelClosures uint64                  `json:"pendingBalancesFromChannelClosures"`
-	PendingBalancesDetails             []PendingBalanceDetails `json:"pendingBalancesDetails"`
-	PendingSweepBalancesDetails        []PendingBalanceDetails `json:"pendingSweepBalancesDetails"`
-	InternalBalances                   interface{}             `json:"internalBalances"`
+	Spendable                             int64                   `json:"spendable"` // deprecated
+	SpendableSat                          int64                   `json:"spendableSat"`
+	Total                                 int64                   `json:"total"` // deprecated
+	TotalSat                              int64                   `json:"totalSat"`
+	Reserved                              int64                   `json:"reserved"` // deprecated
+	ReservedSat                           int64                   `json:"reservedSat"`
+	PendingBalancesFromChannelClosures    uint64                  `json:"pendingBalancesFromChannelClosures"` // deprecated
+	PendingBalancesFromChannelClosuresSat uint64                  `json:"pendingBalancesFromChannelClosuresSat"`
+	PendingBalancesDetails                []PendingBalanceDetails `json:"pendingBalancesDetails"`
+	PendingSweepBalancesDetails           []PendingBalanceDetails `json:"pendingSweepBalancesDetails"`
+	InternalBalances                      interface{}             `json:"internalBalances"`
 }
 
 type PeerDetails struct {
@@ -181,27 +183,39 @@ type PeerDetails struct {
 	IsConnected bool   `json:"isConnected"`
 }
 type LightningBalanceResponse struct {
-	TotalSpendable       int64 `json:"totalSpendable"`
-	TotalReceivable      int64 `json:"totalReceivable"`
-	NextMaxSpendable     int64 `json:"nextMaxSpendable"`
-	NextMaxReceivable    int64 `json:"nextMaxReceivable"`
-	NextMaxSpendableMPP  int64 `json:"nextMaxSpendableMPP"`
-	NextMaxReceivableMPP int64 `json:"nextMaxReceivableMPP"`
+	TotalSpendable           int64 `json:"totalSpendable"` // deprecated
+	TotalSpendableSat        int64 `json:"totalSpendableSat"`
+	TotalSpendableMsat       int64 `json:"totalSpendableMsat"`
+	TotalReceivable          int64 `json:"totalReceivable"` // deprecated
+	TotalReceivableSat       int64 `json:"totalReceivableSat"`
+	TotalReceivableMsat      int64 `json:"totalReceivableMsat"`
+	NextMaxSpendable         int64 `json:"nextMaxSpendable"` // deprecated
+	NextMaxSpendableSat      int64 `json:"nextMaxSpendableSat"`
+	NextMaxSpendableMsat     int64 `json:"nextMaxSpendableMsat"`
+	NextMaxReceivable        int64 `json:"nextMaxReceivable"` // deprecated
+	NextMaxReceivableSat     int64 `json:"nextMaxReceivableSat"`
+	NextMaxReceivableMsat    int64 `json:"nextMaxReceivableMsat"`
+	NextMaxSpendableMPP      int64 `json:"nextMaxSpendableMPP"` // deprecated
+	NextMaxSpendableMPPSat   int64 `json:"nextMaxSpendableMPPSat"`
+	NextMaxSpendableMPPMsat  int64 `json:"nextMaxSpendableMPPMsat"`
+	NextMaxReceivableMPP     int64 `json:"nextMaxReceivableMPP"` // deprecated
+	NextMaxReceivableMPPSat  int64 `json:"nextMaxReceivableMPPSat"`
+	NextMaxReceivableMPPMsat int64 `json:"nextMaxReceivableMPPMsat"`
 }
 
 type PayInvoiceResponse struct {
 	Preimage string `json:"preimage"`
-	Fee      uint64 `json:"fee"`
+	FeeMsat  uint64 `json:"feeMsat"`
 }
 
 type PayOfferResponse = struct {
 	Preimage    string `json:"preimage"`
-	Fee         uint64 `json:"fee"`
-	PaymentHash string `json:"payment_hash"`
+	FeeMsat     uint64 `json:"feeMsat"`
+	PaymentHash string `json:"paymentHash"`
 }
 
 type PayKeysendResponse struct {
-	Fee uint64 `json:"fee"`
+	FeeMsat uint64 `json:"feeMsat"`
 }
 
 type BalancesResponse struct {

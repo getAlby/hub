@@ -1,6 +1,7 @@
 import { HeartIcon } from "lucide-react";
 import {
   Card,
+  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -30,16 +31,24 @@ export function SupportAlbyWidget() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Support Alby</CardTitle>
-        <CardDescription>
-          Upgrade to Pro or setup a recurring payment to support the development
-          of Alby Hub, Alby Go and the NWC ecosystem.
-        </CardDescription>
+      <CardHeader className="px-6 pb-0">
+        <CardTitle className="text-base font-semibold">
+          Support Open Source
+        </CardTitle>
       </CardHeader>
-      <CardFooter className="flex justify-end">
+      <CardContent className="px-6 py-0">
+        <div className="flex items-center gap-4">
+          <div className="flex size-12 items-center justify-center text-orange-500">
+            <HeartIcon className="size-12 stroke-[1.75]" />
+          </div>
+          <CardDescription className="text-sm leading-5">
+            Upgrade to Pro or donate to support the development of Alby Hub,
+            Alby Go and Alby Extension.
+          </CardDescription>
+        </div>
+      </CardContent>
+      <CardFooter className="justify-end px-6 pt-0">
         <LinkButton to="/support-alby" variant="outline">
-          <HeartIcon />
           Become a Supporter
         </LinkButton>
       </CardFooter>

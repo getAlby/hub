@@ -7,6 +7,7 @@ export function OpenedFirstChannel() {
     <div className="flex flex-col items-center justify-center gap-10 p-5 w-full max-w-md">
       <TwoColumnLayoutHeader
         title="Channel Opened"
+        pageTitle="Channel Opened"
         description="Your new lightning channel is ready to use."
       />
 

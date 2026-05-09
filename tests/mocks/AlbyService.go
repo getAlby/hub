@@ -39,8 +39,8 @@ func (_m *MockAlbyService) EXPECT() *MockAlbyService_Expecter {
 }
 
 // GetBitcoinRate provides a mock function for the type MockAlbyService
-func (_mock *MockAlbyService) GetBitcoinRate(ctx context.Context) (*alby.BitcoinRate, error) {
-	ret := _mock.Called(ctx)
+func (_mock *MockAlbyService) GetBitcoinRate(ctx context.Context, currency string) (*alby.BitcoinRate, error) {
+	ret := _mock.Called(ctx, currency)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetBitcoinRate")
@@ -48,18 +48,18 @@ func (_mock *MockAlbyService) GetBitcoinRate(ctx context.Context) (*alby.Bitcoin
 
 	var r0 *alby.BitcoinRate
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context) (*alby.BitcoinRate, error)); ok {
-		return returnFunc(ctx)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) (*alby.BitcoinRate, error)); ok {
+		return returnFunc(ctx, currency)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context) *alby.BitcoinRate); ok {
-		r0 = returnFunc(ctx)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string) *alby.BitcoinRate); ok {
+		r0 = returnFunc(ctx, currency)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*alby.BitcoinRate)
 		}
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = returnFunc(ctx)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = returnFunc(ctx, currency)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -72,14 +72,26 @@ type MockAlbyService_GetBitcoinRate_Call struct {
 }
 
 // GetBitcoinRate is a helper method to define mock.On call
-//   - ctx
-func (_e *MockAlbyService_Expecter) GetBitcoinRate(ctx interface{}) *MockAlbyService_GetBitcoinRate_Call {
-	return &MockAlbyService_GetBitcoinRate_Call{Call: _e.mock.On("GetBitcoinRate", ctx)}
+//   - ctx context.Context
+//   - currency string
+func (_e *MockAlbyService_Expecter) GetBitcoinRate(ctx interface{}, currency interface{}) *MockAlbyService_GetBitcoinRate_Call {
+	return &MockAlbyService_GetBitcoinRate_Call{Call: _e.mock.On("GetBitcoinRate", ctx, currency)}
 }
 
-func (_c *MockAlbyService_GetBitcoinRate_Call) Run(run func(ctx context.Context)) *MockAlbyService_GetBitcoinRate_Call {
+func (_c *MockAlbyService_GetBitcoinRate_Call) Run(run func(ctx context.Context, currency string)) *MockAlbyService_GetBitcoinRate_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		run(
+			arg0,
+			arg1,
+		)
 	})
 	return _c
 }
@@ -89,7 +101,7 @@ func (_c *MockAlbyService_GetBitcoinRate_Call) Return(bitcoinRate *alby.BitcoinR
 	return _c
 }
 
-func (_c *MockAlbyService_GetBitcoinRate_Call) RunAndReturn(run func(ctx context.Context) (*alby.BitcoinRate, error)) *MockAlbyService_GetBitcoinRate_Call {
+func (_c *MockAlbyService_GetBitcoinRate_Call) RunAndReturn(run func(ctx context.Context, currency string) (*alby.BitcoinRate, error)) *MockAlbyService_GetBitcoinRate_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -128,14 +140,20 @@ type MockAlbyService_GetChannelPeerSuggestions_Call struct {
 }
 
 // GetChannelPeerSuggestions is a helper method to define mock.On call
-//   - ctx
+//   - ctx context.Context
 func (_e *MockAlbyService_Expecter) GetChannelPeerSuggestions(ctx interface{}) *MockAlbyService_GetChannelPeerSuggestions_Call {
 	return &MockAlbyService_GetChannelPeerSuggestions_Call{Call: _e.mock.On("GetChannelPeerSuggestions", ctx)}
 }
 
 func (_c *MockAlbyService_GetChannelPeerSuggestions_Call) Run(run func(ctx context.Context)) *MockAlbyService_GetChannelPeerSuggestions_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }
@@ -146,6 +164,68 @@ func (_c *MockAlbyService_GetChannelPeerSuggestions_Call) Return(channelPeerSugg
 }
 
 func (_c *MockAlbyService_GetChannelPeerSuggestions_Call) RunAndReturn(run func(ctx context.Context) ([]alby.ChannelPeerSuggestion, error)) *MockAlbyService_GetChannelPeerSuggestions_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// GetCurrencies provides a mock function for the type MockAlbyService
+func (_mock *MockAlbyService) GetCurrencies(ctx context.Context) ([]alby.Currency, error) {
+	ret := _mock.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetCurrencies")
+	}
+
+	var r0 []alby.Currency
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) ([]alby.Currency, error)); ok {
+		return returnFunc(ctx)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context) []alby.Currency); ok {
+		r0 = returnFunc(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]alby.Currency)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = returnFunc(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockAlbyService_GetCurrencies_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetCurrencies'
+type MockAlbyService_GetCurrencies_Call struct {
+	*mock.Call
+}
+
+// GetCurrencies is a helper method to define mock.On call
+//   - ctx context.Context
+func (_e *MockAlbyService_Expecter) GetCurrencies(ctx interface{}) *MockAlbyService_GetCurrencies_Call {
+	return &MockAlbyService_GetCurrencies_Call{Call: _e.mock.On("GetCurrencies", ctx)}
+}
+
+func (_c *MockAlbyService_GetCurrencies_Call) Run(run func(ctx context.Context)) *MockAlbyService_GetCurrencies_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
+	})
+	return _c
+}
+
+func (_c *MockAlbyService_GetCurrencies_Call) Return(currencys []alby.Currency, err error) *MockAlbyService_GetCurrencies_Call {
+	_c.Call.Return(currencys, err)
+	return _c
+}
+
+func (_c *MockAlbyService_GetCurrencies_Call) RunAndReturn(run func(ctx context.Context) ([]alby.Currency, error)) *MockAlbyService_GetCurrencies_Call {
 	_c.Call.Return(run)
 	return _c
 }
@@ -184,14 +264,20 @@ type MockAlbyService_GetInfo_Call struct {
 }
 
 // GetInfo is a helper method to define mock.On call
-//   - ctx
+//   - ctx context.Context
 func (_e *MockAlbyService_Expecter) GetInfo(ctx interface{}) *MockAlbyService_GetInfo_Call {
 	return &MockAlbyService_GetInfo_Call{Call: _e.mock.On("GetInfo", ctx)}
 }
 
 func (_c *MockAlbyService_GetInfo_Call) Run(run func(ctx context.Context)) *MockAlbyService_GetInfo_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		run(
+			arg0,
+		)
 	})
 	return _c
 }

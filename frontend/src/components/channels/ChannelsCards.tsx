@@ -43,7 +43,8 @@ export function ChannelsCards({
       <CardContent>
         {channels
           .sort((a, b) =>
-            a.localBalance + a.remoteBalance > b.localBalance + b.remoteBalance
+            a.localBalanceMsat + a.remoteBalanceMsat >
+            b.localBalanceMsat + b.remoteBalanceMsat
               ? -1
               : 1
           )
@@ -80,7 +81,7 @@ function ChannelCard({
 }: ChannelCardProps) {
   const { data: node } = useNodeDetails(channel.remotePubkey);
   const alias = node?.alias || "Unknown";
-  const capacity = channel.localBalance + channel.remoteBalance;
+  const capacityMsat = channel.localBalanceMsat + channel.remoteBalanceMsat;
 
   return (
     <>
@@ -155,7 +156,7 @@ function ChannelCard({
             </TooltipProvider>
 
             <p className="text-foreground">
-              <FormattedBitcoinAmount amount={capacity} />
+              <FormattedBitcoinAmount amountMsat={capacityMsat} />
             </p>
           </div>
           <div className="flex justify-between items-center">
@@ -179,20 +180,20 @@ function ChannelCard({
             </TooltipProvider>
 
             <p className="text-foreground">
-              {channel.localBalance <
-                channel.unspendablePunishmentReserve * 1000 && (
+              {channel.localBalanceMsat <
+                channel.unspendablePunishmentReserveSat * 1000 && (
                 <>
                   {formatAmount(
                     Math.min(
-                      channel.localBalance,
-                      channel.unspendablePunishmentReserve * 1000
+                      channel.localBalanceMsat,
+                      channel.unspendablePunishmentReserveSat * 1000
                     )
                   )}{" "}
                   /{" "}
                 </>
               )}
               <FormattedBitcoinAmount
-                amount={channel.unspendablePunishmentReserve * 1000}
+                amountMsat={channel.unspendablePunishmentReserveSat * 1000}
               />
             </p>
           </div>
@@ -207,17 +208,19 @@ function ChannelCard({
           <div className="flex gap-2 items-center">
             <div className="flex-1 relative">
               <Progress
-                value={(channel.localSpendableBalance / capacity) * 100}
+                value={(channel.localSpendableBalanceMsat / capacityMsat) * 100}
                 className="h-6 absolute"
               />
               <div className="flex flex-row w-full justify-between px-2 text-xs items-center h-6 mix-blend-exclusion text-white">
                 <span>
                   <FormattedBitcoinAmount
-                    amount={channel.localSpendableBalance}
+                    amountMsat={channel.localSpendableBalanceMsat}
                   />
                 </span>
                 <span>
-                  <FormattedBitcoinAmount amount={channel.remoteBalance} />
+                  <FormattedBitcoinAmount
+                    amountMsat={channel.remoteBalanceMsat}
+                  />
                 </span>
               </div>
             </div>

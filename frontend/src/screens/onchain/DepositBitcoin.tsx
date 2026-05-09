@@ -5,8 +5,9 @@ import {
   ExternalLinkIcon,
   RefreshCwIcon,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import AppHeader from "src/components/AppHeader";
+import { FixedFloatButton } from "src/components/FixedFloatButton";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
@@ -14,6 +15,7 @@ import LottieLoading from "src/components/LottieLoading";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import OnchainAddressDisplay from "src/components/OnchainAddressDisplay";
 import QRCode from "src/components/QRCode";
+import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -24,6 +26,7 @@ import {
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
+import { Separator } from "src/components/ui/separator";
 import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useOnchainAddress } from "src/hooks/useOnchainAddress";
@@ -42,22 +45,33 @@ export default function DepositBitcoin() {
     onchainAddress ? `/address/${onchainAddress}/utxo` : undefined,
     3000
   );
-
   const [txId, setTxId] = useState("");
-  const [confirmedAmount, setConfirmedAmount] = useState<number | null>(null);
-  const [pendingAmount, setPendingAmount] = useState<number | null>(null);
+  const [confirmedAmountSat, setConfirmedAmountSat] = useState<number | null>(
+    null
+  );
+  const [pendingAmountSat, setPendingAmountSat] = useState<number | null>(null);
+  const startTimeRef = useRef(0);
 
   useEffect(() => {
-    if (!mempoolAddressUtxos || mempoolAddressUtxos.length === 0) {
+    if (startTimeRef.current === 0) {
+      startTimeRef.current = Math.floor(Date.now() / 1000);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (
+      !mempoolAddressUtxos ||
+      mempoolAddressUtxos.length === 0 ||
+      startTimeRef.current === 0
+    ) {
       return;
     }
 
     if (txId) {
       const utxo = mempoolAddressUtxos.find((utxo) => utxo.txid === txId);
       if (utxo?.status.confirmed) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setConfirmedAmount(utxo.value);
-        setPendingAmount(null);
+        setConfirmedAmountSat(utxo.value);
+        setPendingAmountSat(null);
       }
     } else {
       const unconfirmed = mempoolAddressUtxos.find(
@@ -65,7 +79,20 @@ export default function DepositBitcoin() {
       );
       if (unconfirmed) {
         setTxId(unconfirmed.txid);
-        setPendingAmount(unconfirmed.value);
+        setPendingAmountSat(unconfirmed.value);
+        return;
+      }
+
+      const confirmed = mempoolAddressUtxos.find(
+        (utxo) =>
+          utxo.status.confirmed &&
+          !!utxo.status.block_time &&
+          utxo.status.block_time >= startTimeRef.current
+      );
+      if (confirmed) {
+        setTxId(confirmed.txid);
+        setConfirmedAmountSat(confirmed.value);
+        setPendingAmountSat(null);
       }
     }
   }, [mempoolAddressUtxos, txId]);
@@ -77,21 +104,23 @@ export default function DepositBitcoin() {
   return (
     <div className="grid gap-5">
       <AppHeader
+        pageTitle="Deposit Bitcoin to On-Chain Balance"
         title="Deposit Bitcoin to On-Chain Balance"
         description="Deposit bitcoin to your on-chain address which then can be used to open new lightning channels."
         contentRight={
-          <LinkButton to="/channels/onchain/buy-bitcoin">
-            <CreditCardIcon />
-            Buy Bitcoin
-          </LinkButton>
+          <ResponsiveLinkButton
+            icon={CreditCardIcon}
+            text="Buy Bitcoin"
+            to="/channels/onchain/buy-bitcoin"
+          />
         }
       />
       <MempoolAlert />
       <div className="w-80">
-        {confirmedAmount ? (
-          <DepositSuccess amount={confirmedAmount} txId={txId} />
+        {confirmedAmountSat ? (
+          <DepositSuccess amountSat={confirmedAmountSat} txId={txId} />
         ) : txId ? (
-          <DepositPending amount={pendingAmount} txId={txId} />
+          <DepositPending amountSat={pendingAmountSat} txId={txId} />
         ) : (
           <Card>
             <CardContent className="grid gap-6 justify-center">
@@ -107,26 +136,38 @@ export default function DepositBitcoin() {
                 <OnchainAddressDisplay address={onchainAddress} />
               </div>
 
-              <div className="flex flex-row gap-4 justify-center">
-                <LoadingButton
-                  variant="outline"
-                  onClick={getNewAddress}
-                  className="w-28"
-                  loading={loadingAddress}
-                >
-                  {!loadingAddress && <RefreshCwIcon />}
-                  Change
-                </LoadingButton>
-                <Button
+              <div className="flex flex-col">
+                <div className="flex flex-1 flex-row gap-4 justify-center w-full">
+                  <LoadingButton
+                    variant="outline"
+                    onClick={getNewAddress}
+                    className="flex-1"
+                    loading={loadingAddress}
+                  >
+                    {!loadingAddress && <RefreshCwIcon />}
+                    Change
+                  </LoadingButton>
+                  <Button
+                    variant="secondary"
+                    className="flex-1"
+                    onClick={() => {
+                      copyToClipboard(onchainAddress);
+                    }}
+                  >
+                    <CopyIcon />
+                    Copy
+                  </Button>
+                </div>
+                <Separator className="my-4" />
+                <FixedFloatButton
+                  to="BTC"
+                  address={onchainAddress}
+                  className="w-full"
                   variant="secondary"
-                  className="w-28"
-                  onClick={() => {
-                    copyToClipboard(onchainAddress);
-                  }}
                 >
-                  <CopyIcon />
-                  Copy
-                </Button>
+                  <ExternalLinkIcon className="size-4" />
+                  Deposit using other Cryptocurrency
+                </FixedFloatButton>
               </div>
             </CardContent>
           </Card>
@@ -137,10 +178,10 @@ export default function DepositBitcoin() {
 }
 
 function DepositPending({
-  amount,
+  amountSat,
   txId,
 }: {
-  amount: number | null;
+  amountSat: number | null;
   txId: string;
 }) {
   const { data: info } = useInfo();
@@ -152,12 +193,12 @@ function DepositPending({
       </CardHeader>
       <CardContent className="flex flex-col items-center gap-4">
         <LottieLoading size={288} />
-        {amount && (
+        {amountSat && (
           <div className="flex flex-col gap-2 items-center">
             <p className="text-xl font-semibold slashed-zero">
-              <FormattedBitcoinAmount amount={amount * 1000} />
+              <FormattedBitcoinAmount amountMsat={amountSat * 1000} />
             </p>
-            <FormattedFiatAmount amount={amount} />
+            <FormattedFiatAmount amountSat={amountSat} />
           </div>
         )}
         <div>
@@ -175,7 +216,13 @@ function DepositPending({
   );
 }
 
-function DepositSuccess({ amount, txId }: { amount: number; txId: string }) {
+function DepositSuccess({
+  amountSat,
+  txId,
+}: {
+  amountSat: number;
+  txId: string;
+}) {
   const { data: info } = useInfo();
 
   return (
@@ -188,9 +235,9 @@ function DepositSuccess({ amount, txId }: { amount: number; txId: string }) {
           <CircleCheckIcon className="w-72 h-72 p-2" />
           <div className="flex flex-col gap-2 items-center">
             <p className="text-xl font-semibold slashed-zero">
-              <FormattedBitcoinAmount amount={amount * 1000} />
+              <FormattedBitcoinAmount amountMsat={amountSat * 1000} />
             </p>
-            <FormattedFiatAmount amount={amount} />
+            <FormattedFiatAmount amountSat={amountSat} />
           </div>
           <div>
             <ExternalLinkButton

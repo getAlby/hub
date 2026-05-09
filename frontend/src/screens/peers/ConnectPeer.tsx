@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
@@ -23,10 +23,10 @@ export default function ConnectPeer() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!connectionString) {
-      throw new Error("connection details missing");
-    }
     try {
+      if (!connectionString) {
+        throw new Error("connection details missing");
+      }
       const [pubkey, socketAddress] = connectionString.split("@");
       const { address, port } = splitSocketAddress(socketAddress);
       if (!pubkey || !address || !port) {
@@ -66,6 +66,7 @@ export default function ConnectPeer() {
   return (
     <div className="grid gap-5">
       <AppHeader
+        pageTitle="Connect Peer"
         title="Connect Peer"
         description="Manually connect to a lightning network peer"
       />

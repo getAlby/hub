@@ -1,5 +1,5 @@
 import React, { ReactElement } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import Container from "src/components/Container";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { LDKIcon } from "src/components/icons/LDK";
@@ -9,6 +9,7 @@ import { cn } from "src/lib/utils";
 import { BackendType } from "src/types";
 
 import cashu from "src/assets/images/node/cashu.png";
+import cln from "src/assets/images/node/cln.png";
 import lnd from "src/assets/images/node/lnd.png";
 import { backendTypeConfigs } from "src/lib/backendType";
 import useSetupStore from "src/state/SetupStore";
@@ -37,6 +38,10 @@ const backendTypeDisplayConfigs: Partial<
     title: "Cashu Mint",
     icon: <img src={cashu} />,
   },
+  CLN: {
+    title: "CLN",
+    icon: <img src={cln} />,
+  },
 };
 
 const backendTypeDisplayConfigList = Object.entries(
@@ -62,39 +67,38 @@ export function SetupNode() {
   const hasImportedMnemonic = !!setupStore.nodeInfo.mnemonic;
 
   return (
-    <>
-      <Container>
-        <TwoColumnLayoutHeader
-          title="Choose Wallet Implementation"
-          description="Decide between one of available lightning wallet backends."
-        />
-        <div className="flex flex-col gap-5 w-full mt-6">
-          <div className="w-full grid grid-cols-2 gap-4">
-            {backendTypeDisplayConfigList
-              .filter((item) =>
-                hasImportedMnemonic
-                  ? backendTypeConfigs[item.backendType].hasMnemonic
-                  : true
-              )
-              .map((item) => (
-                <div
-                  key={item.backendType}
-                  className={cn(
-                    "border-foreground-muted border px-4 py-6 flex flex-col gap-3 items-center rounded cursor-pointer",
-                    selectedBackendType === item.backendType && "border-primary"
-                  )}
-                  onClick={() => setSelectedBackupType(item.backendType)}
-                >
-                  <div className="h-6 w-6">{item.icon}</div>
-                  {item.title}
-                </div>
-              ))}
-          </div>
-          <Button onClick={() => next()} disabled={!selectedBackendType}>
-            Next
-          </Button>
+    <Container>
+      <TwoColumnLayoutHeader
+        title="Choose Wallet Implementation"
+        pageTitle="Choose Wallet Implementation"
+        description="Decide between one of available lightning wallet backends."
+      />
+      <div className="flex flex-col gap-5 w-full mt-6">
+        <div className="w-full grid grid-cols-2 gap-3">
+          {backendTypeDisplayConfigList
+            .filter((item) =>
+              hasImportedMnemonic
+                ? backendTypeConfigs[item.backendType].hasMnemonic
+                : true
+            )
+            .map((item) => (
+              <div
+                key={item.backendType}
+                className={cn(
+                  "border-foreground-muted border px-4 py-6 flex flex-col gap-3 items-center rounded cursor-pointer",
+                  selectedBackendType === item.backendType && "border-primary"
+                )}
+                onClick={() => setSelectedBackupType(item.backendType)}
+              >
+                <div className="h-6 w-6">{item.icon}</div>
+                {item.title}
+              </div>
+            ))}
         </div>
-      </Container>
-    </>
+        <Button onClick={() => next()} disabled={!selectedBackendType}>
+          Next
+        </Button>
+      </div>
+    </Container>
   );
 }

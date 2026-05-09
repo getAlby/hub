@@ -34,12 +34,12 @@ import { request } from "src/utils/request";
 // Must be a sub-wallet connection with only make invoice and list transactions permissions!
 const LIGHTNING_MESSAGEBOARD_NWC_URL =
   import.meta.env.VITE_LIGHTNING_MESSAGEBOARD_NWC_URL ||
-  "nostr+walletconnect://31758cb11d8060fa87ea955808dc22e3602aad7390717edd56dbbbd136c85a9b?relay=wss://relay.getalby.com/v1&secret=dce4d879ca8d875b0dc38f98425829eff71a5d213db9d5d423bf284fa75efc80";
+  "nostr+walletconnect://31758cb11d8060fa87ea955808dc22e3602aad7390717edd56dbbbd136c85a9b?relay=wss://relay.getalby.com&relay=wss://relay2.getalby.com&secret=dce4d879ca8d875b0dc38f98425829eff71a5d213db9d5d423bf284fa75efc80";
 
 type Message = {
   name?: string;
   message: string;
-  amount: number;
+  amountSat: number;
   created_at: number;
 };
 
@@ -59,14 +59,14 @@ function getSortedMessages(messages: Message[], tab: TabType): Message[] {
   if (tab === "latest") {
     return [...messages].sort((a, b) => b.created_at - a.created_at);
   } else {
-    return [...messages].sort((a, b) => b.amount - a.amount);
+    return [...messages].sort((a, b) => b.amountSat - a.amountSat);
   }
 }
 
 export function LightningMessageboardWidget() {
   const [messageText, setMessageText] = React.useState("");
   const [senderName, setSenderName] = React.useState("");
-  const [amount, setAmount] = React.useState("");
+  const [amountSat, setAmountSat] = React.useState("");
   const [messages, setMessages] = React.useState<Message[]>();
   const [isLoading, setLoading] = React.useState(false);
   const [isSubmitting, setSubmitting] = React.useState(false);
@@ -98,7 +98,7 @@ export function LightningMessageboardWidget() {
                 | { payer_data?: { name?: string } }
                 | undefined
             )?.payer_data?.name as string | undefined,
-            amount: Math.floor(transaction.amount / 1000),
+            amountSat: Math.floor(transaction.amount / 1000),
           }));
 
           _messages.push(...newMessages);
@@ -138,14 +138,14 @@ export function LightningMessageboardWidget() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (+amount < 1000) {
+    if (+amountSat < 1000) {
       toast.error("Amount too low", {
         description: "Minimum payment is 1000 sats",
       });
       return;
     }
 
-    const amountMsat = +amount * 1000;
+    const amountMsat = +amountSat * 1000;
     setSubmitting(true);
     try {
       const transaction = await getNWCClient().makeInvoice({
@@ -181,9 +181,9 @@ export function LightningMessageboardWidget() {
     setSubmitting(false);
   }
 
-  const topPlace = Math.max(
+  const topPlaceSat = Math.max(
     1000,
-    ...(messages?.map((message) => message.amount + 1) || [])
+    ...(messages?.map((message) => message.amountSat + 1) || [])
   );
 
   return (
@@ -237,7 +237,7 @@ export function LightningMessageboardWidget() {
                       <Badge>
                         <ZapIcon />
                         <FormattedBitcoinAmount
-                          amount={message.amount * 1000}
+                          amountMsat={message.amountSat * 1000}
                         />
                       </Badge>
                     </div>
@@ -300,14 +300,14 @@ export function LightningMessageboardWidget() {
                   <Input
                     id="amount"
                     required
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
+                    value={amountSat}
+                    onChange={(e) => setAmountSat(e.target.value)}
                   />
                 </div>
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={() => setAmount("" + topPlace)}
+                  onClick={() => setAmountSat("" + topPlaceSat)}
                 >
                   <ChevronUpIcon />
                   Top

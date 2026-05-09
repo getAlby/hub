@@ -1,9 +1,9 @@
 import {
   CirclePlusIcon,
-  HandCoins,
-  HelpCircle,
-  TriangleAlert,
-  Wallet2,
+  HandCoinsIcon,
+  HelpCircleIcon,
+  TriangleAlertIcon,
+  Wallet2Icon,
 } from "lucide-react";
 import AppHeader from "src/components/AppHeader";
 
@@ -18,6 +18,7 @@ export function SubwalletIntro() {
     <div className="grid gap-4">
       <AppHeader
         title="Sub-wallets"
+        pageTitle="Sub-wallets"
         description="Create sub-wallets for yourself, friends, family or coworkers"
         contentRight={
           <>
@@ -26,7 +27,7 @@ export function SubwalletIntro() {
               variant="outline"
               size="icon"
             >
-              <HelpCircle className="size-4" />
+              <HelpCircleIcon className="size-4" />
             </ExternalLinkButton>
             <ResponsiveLinkButton
               to="/sub-wallets/new"
@@ -44,7 +45,7 @@ export function SubwalletIntro() {
           </div>
           <div>
             <div className="flex flex-row gap-3">
-              <Wallet2 className="size-6" />
+              <Wallet2Icon className="size-6" />
               <div className="font-medium">
                 Sub-wallets are separate wallets hosted by your Alby Hub
               </div>
@@ -56,10 +57,10 @@ export function SubwalletIntro() {
           </div>
           <div>
             <div className="flex flex-row gap-3">
-              <HandCoins className="size-6" />
+              <HandCoinsIcon className="size-6" />
               <div className="font-medium">
-                Sub-wallets depend on your Alby Hub spending balance and receive
-                limit
+                Sub-wallets depend on your Alby Hub lightning balance and
+                receive limit
               </div>
             </div>
             <div className="ml-9 text-muted-foreground text-sm">
@@ -69,16 +70,16 @@ export function SubwalletIntro() {
           </div>
           <div>
             <div className="flex flex-row gap-3">
-              <TriangleAlert className="size-6" />
+              <TriangleAlertIcon className="size-6" />
               <div className="font-medium">
                 Be wary of spending sub-wallets funds
               </div>
             </div>
             <div className="ml-9 text-muted-foreground text-sm">
-              Make sure you always maintain enough funds in your spending
+              Make sure you always maintain enough funds in your lightning
               balance to prevent sub-wallets becoming unspendable. Sub-wallet
-              payments might fail if the amount isn't available in your spending
-              balance.
+              payments might fail if the amount isn't available in your
+              lightning balance.
             </div>
           </div>
           <div>
