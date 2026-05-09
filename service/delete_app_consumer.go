@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 
+	"github.com/getAlby/go-nostr"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
-	"github.com/nbd-wtf/go-nostr"
 )
 
 type deleteAppConsumer struct {

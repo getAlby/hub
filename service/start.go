@@ -14,8 +14,8 @@ import (
 	"github.com/getAlby/hub/swaps"
 	"github.com/getAlby/hub/version"
 
-	"github.com/nbd-wtf/go-nostr"
-	"github.com/nbd-wtf/go-nostr/nip19"
+	"github.com/getAlby/go-nostr"
+	"github.com/getAlby/go-nostr/nip19"
 	"github.com/sirupsen/logrus"
 
 	"github.com/getAlby/hub/config"
