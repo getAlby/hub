@@ -1232,6 +1232,10 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		}
 		return WailsRequestRouterResponse{Body: nil, Error: ""}
 	case "/api/ldk-onchain-source":
+		if method != "PATCH" {
+			return WailsRequestRouterResponse{Body: nil, Error: fmt.Sprintf("method %s not allowed", method)}
+		}
+
 		cfg := app.svc.GetConfig()
 		LNBackendType, _ := cfg.Get("LNBackendType", "")
 
@@ -1281,10 +1285,10 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
 
-			if err := setUpdate("UserChainSource", "esplora", ""); err != nil {
+			if err := setUpdate("UserEsploraUrl", payload.URL, ""); err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
-			if err := setUpdate("UserEsploraUrl", payload.URL, ""); err != nil {
+			if err := setUpdate("UserChainSource", "esplora", ""); err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
 
@@ -1296,10 +1300,10 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
 
-			if err := setUpdate("UserChainSource", "electrum", ""); err != nil {
+			if err := setUpdate("UserElectrumUrl", payload.URL, ""); err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
-			if err := setUpdate("UserElectrumUrl", payload.URL, ""); err != nil {
+			if err := setUpdate("UserChainSource", "electrum", ""); err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
 
@@ -1326,9 +1330,6 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				return WailsRequestRouterResponse{Body: nil, Error: "Invalid unlock password"}
 			}
 
-			if err := setUpdate("UserChainSource", "bitcoind_rpc", ""); err != nil {
-				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
-			}
 			if err := setUpdate("UserBitcoindHost", payload.Host, ""); err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
@@ -1339,6 +1340,9 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
 			if err := setUpdate("UserBitcoindPass", payload.Pass, payload.UnlockPassword); err != nil {
+				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
+			}
+			if err := setUpdate("UserChainSource", "bitcoind_rpc", ""); err != nil {
 				return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 			}
 
