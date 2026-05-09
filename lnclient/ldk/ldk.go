@@ -60,7 +60,7 @@ type LDKService struct {
 const resetRouterKey = "ResetRouter"
 const maxInvoiceExpiry = 24 * time.Hour
 
-func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, vssToken string, setStartupState func(startupState string)) (result lnclient.LNClient, err error) {
+func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, vssToken string, encryptionKey string, setStartupState func(startupState string)) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
 		return nil, errors.New("one or more required LDK configuration are missing")
 	}
@@ -166,8 +166,9 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		// Fetch details from DB
 		host, _ := cfg.Get("UserBitcoindHost", "")
 		portStr, _ := cfg.Get("UserBitcoindPort", "")
-		user, _ := cfg.Get("UserBitcoindUser", "")
-		pass, _ := cfg.Get("UserBitcoindPass", "")
+		// User and pass are encrypted at rest with the unlock password
+		user, _ := cfg.Get("UserBitcoindUser", encryptionKey)
+		pass, _ := cfg.Get("UserBitcoindPass", encryptionKey)
 
 		if host != "" {
 

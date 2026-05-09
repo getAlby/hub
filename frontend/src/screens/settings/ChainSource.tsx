@@ -2,6 +2,7 @@ import { AlertTriangle, Save } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import Loading from "src/components/Loading";
+import PasswordInput from "src/components/password/PasswordInput";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import {
@@ -44,6 +45,7 @@ function ChainSource() {
   const [isLoading, setIsLoading] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [unlockPassword, setUnlockPassword] = useState("");
 
   const [formData, setFormData] = useState<FormData>({
     chainSource: "default",
@@ -104,11 +106,17 @@ function ChainSource() {
 
   const handleSaveClick = () => {
     if (validateForm()) {
+      setUnlockPassword("");
       setIsDialogOpen(true);
     }
   };
 
   const handleSubmit = async () => {
+    if (formData.chainSource === "bitcoind_rpc" && !unlockPassword) {
+      toast.error("Unlock password is required to encrypt RPC credentials.");
+      return;
+    }
+
     setIsDialogOpen(false);
     setIsLoading(true);
 
@@ -126,6 +134,7 @@ function ChainSource() {
               port: formData.port,
               user: formData.user.trim(),
               pass: formData.pass.trim(),
+              unlockPassword,
             }
           : {}),
       };
@@ -143,6 +152,7 @@ function ChainSource() {
       await handleRequestError("Failed to save configuration", error);
     } finally {
       setIsLoading(false);
+      setUnlockPassword("");
     }
   };
 
@@ -298,9 +308,27 @@ function ChainSource() {
                 Are you sure you want to proceed?
               </AlertDialogDescription>
             </AlertDialogHeader>
+            {formData.chainSource === "bitcoind_rpc" && (
+              <div className="grid gap-2">
+                <Label htmlFor="unlock-password">Unlock Password</Label>
+                <PasswordInput
+                  id="unlock-password"
+                  value={unlockPassword}
+                  onChange={setUnlockPassword}
+                />
+                <p className="text-muted-foreground text-xs">
+                  Required to encrypt the RPC user and password at rest.
+                </p>
+              </div>
+            )}
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleSubmit}>
+              <AlertDialogAction
+                onClick={handleSubmit}
+                disabled={
+                  formData.chainSource === "bitcoind_rpc" && !unlockPassword
+                }
+              >
                 Confirm
               </AlertDialogAction>
             </AlertDialogFooter>

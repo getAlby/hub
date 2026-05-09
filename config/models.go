@@ -102,10 +102,11 @@ type Config interface {
 
 
 type UpdateChainConfigRequest struct {
-	ChainSource string `json:"chainSource"` // "esplora", "electrum", "bitcoind_rpc", or "default"
-	URL         string `json:"url"`         // For Esplora/Electrum
-	Host        string `json:"host"`        // For Bitcoind
-	Port        string `json:"port"`
-	User        string `json:"user"`
-	Pass        string `json:"pass"`
+	ChainSource    string `json:"chainSource"` // "esplora", "electrum", "bitcoind_rpc", or "default"
+	URL            string `json:"url"`         // For Esplora/Electrum
+	Host           string `json:"host"`        // For Bitcoind
+	Port           string `json:"port"`
+	User           string `json:"user"`
+	Pass           string `json:"pass"`
+	UnlockPassword string `json:"unlockPassword"`
 }
