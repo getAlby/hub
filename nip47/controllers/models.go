@@ -1,8 +1,8 @@
 package controllers
 
 import (
+	"github.com/getAlby/go-nostr"
 	"github.com/getAlby/hub/nip47/models"
-	"github.com/nbd-wtf/go-nostr"
 )
 
 type publishFunc = func(*models.Response, nostr.Tags)

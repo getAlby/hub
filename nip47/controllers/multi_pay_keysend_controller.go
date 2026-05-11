@@ -4,9 +4,9 @@ import (
 	"context"
 	"sync"
 
+	"github.com/getAlby/go-nostr"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/nip47/models"
-	"github.com/nbd-wtf/go-nostr"
 )
 
 type multiPayKeysendParams struct {

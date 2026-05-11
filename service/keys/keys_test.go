@@ -11,7 +11,7 @@ import (
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/tests/db"
 
-	"github.com/nbd-wtf/go-nostr"
+	"github.com/getAlby/go-nostr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/tyler-smith/go-bip32"

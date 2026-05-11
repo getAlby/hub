@@ -3,7 +3,7 @@ package models
 import (
 	"context"
 
-	"github.com/nbd-wtf/go-nostr"
+	"github.com/getAlby/go-nostr"
 )
 
 type SimplePool interface {

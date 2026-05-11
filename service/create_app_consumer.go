@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/nbd-wtf/go-nostr"
+	"github.com/getAlby/go-nostr"
 	"github.com/sirupsen/logrus"
 
 	"github.com/getAlby/hub/db"
