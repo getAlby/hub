@@ -15,6 +15,7 @@ import castamatic from "src/assets/suggested-apps/castamatic.png";
 import clams from "src/assets/suggested-apps/clams.png";
 import coracle from "src/assets/suggested-apps/coracle.png";
 import damus from "src/assets/suggested-apps/damus.png";
+import directCurrent from "src/assets/suggested-apps/direct-current.png";
 import fountain from "src/assets/suggested-apps/fountain.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import iris from "src/assets/suggested-apps/iris.png";
@@ -623,6 +624,54 @@ export const appStoreApps: AppStoreApp[] = (
         </>
       ),
       categories: ["social-media"],
+    },
+    {
+      id: "direct-current",
+      title: "Direct Current",
+      description: "Bitcoin paywall for creators",
+      extendedDescription:
+        "Sell albums, beats, art, and digital goods globally with Bitcoin Lightning. No middleman, no account freezes.",
+      logo: directCurrent,
+      categories: ["merchant-tools"],
+      webLink: "https://directcurrent.space",
+      hideConnectionQr: true,
+      addedDate: "2026-05-12",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://directcurrent.space"
+              className="font-medium text-foreground underline"
+            >
+              Direct Current
+            </ExternalLink>{" "}
+            in your browser and log into your dashboard
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Direct Current</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Go to{" "}
+                <span className="font-medium text-foreground">Settings</span> →{" "}
+                <span className="font-medium text-foreground">Wallet</span>
+              </li>
+              <li>
+                Select{" "}
+                <span className="font-medium text-foreground">NWC (Self-Custody)</span>
+              </li>
+              <li>
+                Paste the connection secret from Alby Hub and click{" "}
+                <span className="font-medium text-foreground">Save</span>
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
     },
     {
       id: "amethyst",
