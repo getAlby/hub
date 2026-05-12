@@ -34,9 +34,13 @@ export function AlbyAccount() {
           </Card>
         ) : albyMeError ? (
           <Card>
-            <CardContent className="flex items-center justify-center">
-              <p className="text-sm text-muted-foreground">
-                Failed to load Alby Account details
+            <CardContent className="flex flex-col gap-3 text-sm">
+              <h3 className="font-semibold">
+                Alby Account details could not be loaded
+              </h3>
+              <p className="text-muted-foreground">
+                Your Alby Account is still linked, but Alby Hub could not load
+                account details right now.
               </p>
             </CardContent>
           </Card>

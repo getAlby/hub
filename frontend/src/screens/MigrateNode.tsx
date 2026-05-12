@@ -65,7 +65,7 @@ export function MigrateNode() {
 
       navigate("/create-node-migration-file-success");
     } catch (error) {
-      handleRequestError("Failed to backup the node", error);
+      handleRequestError("Backup did not finish", error);
     } finally {
       setLoading(false);
     }

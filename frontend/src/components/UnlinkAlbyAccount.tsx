@@ -42,7 +42,7 @@ export function UnlinkAlbyAccount({
         description: successMessage,
       });
     } catch (error) {
-      toast.error("Disconnect account failed", {
+      toast.error("Alby Account was not disconnected", {
         description: (error as Error).message,
       });
     }

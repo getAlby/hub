@@ -92,7 +92,10 @@ function NewChannelInternal({
 
   React.useEffect(() => {
     if (channelPeerSuggestionsError) {
-      toast.error("Failed to load channel suggestions");
+      toast.error("Channel suggestions could not be loaded", {
+        description:
+          "Alby Hub could not load receiving capacity options. You can still open a channel manually.",
+      });
       navigate("/channels/outgoing");
     }
   }, [channelPeerSuggestionsError, navigate]);
@@ -183,9 +186,9 @@ function NewChannelInternal({
         }
 
         if (!bestPartner) {
-          toast.error("No channel partner found", {
+          toast.error("No channel partner fits this request", {
             description:
-              "No ideal channel partner found. Please choose from the advanced options to continue",
+              "Choose a different amount or use advanced options to continue.",
           });
           return;
         }
@@ -200,7 +203,7 @@ function NewChannelInternal({
       useChannelOrderStore.getState().setOrder(nextOrder as NewChannelOrder);
       navigate("/channels/order");
     } catch (error) {
-      toast.error("Something went wrong", {
+      toast.error("Channel order could not be created", {
         description: "" + error,
       });
       console.error(error);

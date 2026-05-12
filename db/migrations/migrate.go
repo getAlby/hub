@@ -39,6 +39,7 @@ func Migrate(gormDB *gorm.DB) error {
 		_202508192137_forwards,
 		_202509031250_transactions_updated_at_index,
 		_202604081200_app_last_settled_transaction,
+		_202605121200_connection_issues,
 	})
 
 	return m.Migrate()
