@@ -61,6 +61,10 @@ func (svc *permissionsService) HasPermission(app *db.App, scope string) (result 
 }
 
 func (svc *permissionsService) GetPermittedMethods(app *db.App, lnClient lnclient.LNClient) []string {
+	if lnClient == nil {
+		return []string{}
+	}
+
 	appPermissions := []db.AppPermission{}
 	svc.db.Where("app_id = ?", app.ID).Find(&appPermissions)
 	scopes := make([]string, 0, len(appPermissions))
