@@ -186,7 +186,7 @@ func (svc *appsService) DeleteApp(app *db.App) error {
 	}
 	walletPubkey := ""
 	if app.WalletPubkey != nil {
-		// only exists non-legacy apps
+		// only exists for non-legacy apps
 		walletPubkey = *app.WalletPubkey
 	}
 	svc.eventPublisher.Publish(&events.Event{
