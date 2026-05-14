@@ -184,11 +184,17 @@ func (svc *appsService) DeleteApp(app *db.App) error {
 	if err != nil {
 		return err
 	}
+	walletPubkey := ""
+	if app.WalletPubkey != nil {
+		// only exists for non-legacy apps
+		walletPubkey = *app.WalletPubkey
+	}
 	svc.eventPublisher.Publish(&events.Event{
 		Event: "nwc_app_deleted",
 		Properties: map[string]interface{}{
-			"name": app.Name,
-			"id":   app.ID,
+			"name":         app.Name,
+			"id":           app.ID,
+			"walletPubkey": walletPubkey,
 		},
 	})
 	return nil
