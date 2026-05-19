@@ -7,9 +7,9 @@ const pollConfiguration: SWRConfiguration = {
   refreshInterval: 3000,
 };
 
-export function useChannels(poll = false) {
+export function useChannels(poll = false, enabled = true) {
   return useSWR<Channel[]>(
-    "/api/channels",
+    enabled ? "/api/channels" : undefined,
     swrFetcher,
     poll ? pollConfiguration : undefined
   );
