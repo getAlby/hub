@@ -245,7 +245,8 @@ export default function ReceiveInvoice() {
                 {(!info?.albyAccountConnected || !me?.lightning_address) && (
                   <div className="grid gap-2 border-t pt-6">
                     {!info?.albyAccountConnected &&
-                      info.backendType === "LDK" && (
+                      (info.backendType === "LDK" ||
+                        info.backendType === "CLN") && (
                         <LinkButton
                           to="/wallet/receive/offer"
                           variant="outline"
