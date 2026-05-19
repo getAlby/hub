@@ -45,8 +45,12 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
     !!albyMe &&
     nodeConnectionInfo &&
     albyMe?.keysend_pubkey === nodeConnectionInfo?.pubkey;
-  const hasChannel =
-    !hasChannelManagement || (hasChannelManagement && channels.length > 0);
+  const hasOpenedChannel =
+    !hasChannelManagement ||
+    channels.some(
+      (channel) =>
+        channel.active || ["online", "offline"].includes(channel.status)
+    );
   const hasBackedUp =
     hasMnemonic === true &&
     info &&
@@ -64,7 +68,7 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
             title: "Open your first channel",
             description:
               "Establish a new Lightning channel to enable fast and low-fee Bitcoin transactions.",
-            checked: hasChannel,
+            checked: hasOpenedChannel,
             to: "/channels/first",
           },
         ]

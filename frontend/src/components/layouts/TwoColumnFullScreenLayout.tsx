@@ -4,6 +4,7 @@ import { Outlet, useLocation, useNavigate } from "react-router";
 import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
 import { Button } from "src/components/ui/button.tsx";
 import { useInfo } from "src/hooks/useInfo";
+import { cn } from "src/lib/utils";
 
 import AntonopoulosSVG from "public/images/quotes/antonopoulos.svg";
 import BackSVG from "public/images/quotes/back.svg";
@@ -65,6 +66,7 @@ export default function TwoColumnFullScreenLayout() {
   const { data: info } = useInfo();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const anchorFirstChannelExpansion = pathname === "/setup/first-channel";
   const [quote, setQuote] = useState(
     // eslint-disable-next-line react-hooks/purity
     quotes[Math.floor(Math.random() * quotes.length)]
@@ -100,9 +102,15 @@ export default function TwoColumnFullScreenLayout() {
           </div>
         </div>
       </div>
-      <div className="flex items-center justify-center py-12 text-foreground relative">
+      <div
+        className={cn(
+          "flex items-center justify-center py-12 text-foreground relative",
+          anchorFirstChannelExpansion && "overflow-y-auto"
+        )}
+      >
         {pathname.startsWith("/setup") &&
-          !pathname.startsWith("/setup/finish") && (
+          !pathname.startsWith("/setup/finish") &&
+          !pathname.startsWith("/setup/first-channel") && (
             // show the back button on setup pages, except the setup finish page
             <Button
               type="button"
@@ -116,7 +124,13 @@ export default function TwoColumnFullScreenLayout() {
               Back
             </Button>
           )}
-        <Outlet />
+        {anchorFirstChannelExpansion ? (
+          <div className="flex w-full justify-center lg:h-[35rem] lg:items-start">
+            <Outlet />
+          </div>
+        ) : (
+          <Outlet />
+        )}
       </div>
     </div>
   );

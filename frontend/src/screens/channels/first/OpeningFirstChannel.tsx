@@ -4,7 +4,13 @@ import { ChannelWaitingForConfirmations } from "src/components/channels/ChannelW
 import { useChannels } from "src/hooks/useChannels";
 import { useSyncWallet } from "src/hooks/useSyncWallet";
 
-export function OpeningFirstChannel() {
+type OpeningFirstChannelProps = {
+  openedPath?: string;
+};
+
+export function OpeningFirstChannel({
+  openedPath = "/channels/first/opened",
+}: OpeningFirstChannelProps) {
   useSyncWallet();
   const { data: channels } = useChannels(true);
   const navigate = useNavigate();
@@ -13,9 +19,9 @@ export function OpeningFirstChannel() {
 
   React.useEffect(() => {
     if (firstChannel?.active) {
-      navigate("/channels/first/opened");
+      navigate(openedPath);
     }
-  }, [firstChannel, navigate]);
+  }, [firstChannel, navigate, openedPath]);
 
   return <ChannelWaitingForConfirmations channel={firstChannel} />;
 }

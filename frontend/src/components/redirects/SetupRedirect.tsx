@@ -13,6 +13,13 @@ export function SetupRedirect() {
       return;
     }
     if (info.setupCompleted && info.running) {
+      if (location.pathname.startsWith("/setup/first-channel")) {
+        return;
+      }
+      if (location.pathname.startsWith("/setup/finish")) {
+        navigate("/setup/first-channel", { replace: true });
+        return;
+      }
       navigate("/");
       return;
     }

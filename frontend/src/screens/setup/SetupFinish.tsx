@@ -58,6 +58,12 @@ export function SetupFinish() {
   }, [loading]);
 
   useEffect(() => {
+    if (info?.setupCompleted && info.running) {
+      navigate("/setup/first-channel", { replace: true });
+    }
+  }, [info?.setupCompleted, info?.running, navigate]);
+
+  useEffect(() => {
     if (!info) {
       return;
     }

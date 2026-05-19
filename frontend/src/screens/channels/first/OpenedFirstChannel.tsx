@@ -2,7 +2,15 @@ import TickSVG from "public/images/illustrations/tick.svg";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { LinkButton } from "src/components/ui/custom/link-button";
 
-export function OpenedFirstChannel() {
+type OpenedFirstChannelProps = {
+  ctaLabel?: string;
+  ctaTo?: string;
+};
+
+export function OpenedFirstChannel({
+  ctaLabel = "Receive Your First Payment",
+  ctaTo = "/wallet/receive",
+}: OpenedFirstChannelProps) {
   return (
     <div className="flex flex-col items-center justify-center gap-10 p-5 w-full max-w-md">
       <TwoColumnLayoutHeader
@@ -13,8 +21,8 @@ export function OpenedFirstChannel() {
 
       <img src={TickSVG} className="w-48" />
 
-      <LinkButton to="/wallet/receive" className="flex w-full justify-center">
-        Receive Your First Payment
+      <LinkButton to={ctaTo} className="flex w-full justify-center">
+        {ctaLabel}
       </LinkButton>
     </div>
   );

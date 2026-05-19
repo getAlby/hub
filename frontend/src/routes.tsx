@@ -575,6 +575,31 @@ const routes: RouteObject[] = [
             path: "finish",
             element: <SetupFinish />,
           },
+          {
+            path: "first-channel",
+            handle: { crumb: () => "Your First Channel" },
+            children: [
+              {
+                index: true,
+                element: <FirstChannel variant="setup" />,
+              },
+              {
+                path: "opening",
+                element: (
+                  <OpeningFirstChannel openedPath="/setup/first-channel/opened" />
+                ),
+              },
+              {
+                path: "opened",
+                element: (
+                  <OpenedFirstChannel
+                    ctaLabel="Go to dashboard"
+                    ctaTo="/home"
+                  />
+                ),
+              },
+            ],
+          },
         ],
       },
     ],
