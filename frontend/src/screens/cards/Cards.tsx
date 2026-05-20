@@ -1,26 +1,19 @@
 import {
   ArrowUpRightIcon,
   CheckIcon,
+  ClockIcon,
+  CreditCardIcon,
   FingerprintIcon,
-  GlobeIcon,
+  LinkIcon,
   ShieldCheckIcon,
-  SmartphoneIcon,
   SparklesIcon,
   XIcon,
   ZapIcon,
 } from "lucide-react";
 import React from "react";
 import twoFiatLogo from "src/assets/cards/2fiat.png";
-import bitnobLogo from "src/assets/cards/bitnob.png";
-import bitrefillLogo from "src/assets/cards/bitrefill.png";
-import cryptoComLogo from "src/assets/cards/cryptocom.png";
-import foldLogo from "src/assets/cards/fold.png";
 import freedomiaLogo from "src/assets/cards/freedomia.png";
-import gnosisPayLogo from "src/assets/cards/gnosispay.png";
-import metamaskLogo from "src/assets/cards/metamask.png";
-import moonLogo from "src/assets/cards/moon.png";
 import redotpayLogo from "src/assets/cards/redotpay.png";
-import wirexLogo from "src/assets/cards/wirex.png";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { AlbyIcon } from "src/components/icons/Alby";
@@ -31,6 +24,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "src/components/ui/avatar";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
 import { localStorageKeys } from "src/constants";
+import {
+  CardCreatedDialog,
+  ConnectCardDialog,
+  YourCardsSection,
+} from "src/screens/cards/CardManagement";
+import {
+  useUserCards,
+  type UserCard as UserCardType,
+} from "src/screens/cards/useUserCards";
+import { PlusIcon } from "lucide-react";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 import {
@@ -73,6 +76,7 @@ type Provider = {
   selfCustody: boolean;
   lightningNative: boolean;
   kyc: "Full" | "Light" | "None";
+  timeToGet: string;
   topUpVia: string;
   fees: string;
   experimental?: boolean;
@@ -93,144 +97,9 @@ const providers: Provider[] = [
     selfCustody: false,
     lightningNative: false,
     kyc: "Light",
+    timeToGet: "1–2 weeks",
     topUpVia: "USDT (TRC20)",
     fees: "~1.5% + FX",
-  },
-  {
-    id: "metamask",
-    name: "MetaMask Card",
-    url: "https://card.metamask.io",
-    logo: metamaskLogo,
-    initials: "MM",
-    network: "Mastercard",
-    cardType: "Physical",
-    regions: ["Global", "EU", "LATAM"],
-    applePay: true,
-    googlePay: true,
-    selfCustody: true,
-    lightningNative: false,
-    kyc: "Light",
-    topUpVia: "USDC on Linea",
-    fees: "~1% + FX",
-  },
-  {
-    id: "gnosispay",
-    name: "Gnosis Pay",
-    url: "https://gnosispay.com",
-    logo: gnosisPayLogo,
-    initials: "GP",
-    network: "Visa",
-    cardType: "Physical",
-    regions: ["EU", "UK"],
-    applePay: true,
-    googlePay: true,
-    selfCustody: true,
-    lightningNative: false,
-    kyc: "Full",
-    topUpVia: "EURe / GBPe on Gnosis Chain",
-    fees: "0% top-up · FX 2%",
-  },
-  {
-    id: "bitnob",
-    name: "Bitnob",
-    url: "https://bitnob.com",
-    logo: bitnobLogo,
-    initials: "BN",
-    network: "Mastercard",
-    cardType: "Virtual",
-    regions: ["Africa", "LATAM"],
-    applePay: false,
-    googlePay: false,
-    selfCustody: false,
-    lightningNative: true,
-    kyc: "Light",
-    topUpVia: "Direct Lightning",
-    fees: "Free top-up · FX 1%",
-  },
-  {
-    id: "bitrefill",
-    name: "Bitrefill Virtual Visa",
-    url: "https://bitrefill.com",
-    logo: bitrefillLogo,
-    initials: "BR",
-    network: "Visa",
-    cardType: "Virtual",
-    regions: ["Global"],
-    applePay: false,
-    googlePay: false,
-    selfCustody: false,
-    lightningNative: true,
-    kyc: "None",
-    topUpVia: "Direct Lightning",
-    fees: "~3% spread",
-  },
-  {
-    id: "moon",
-    name: "Moon",
-    url: "https://paywithmoon.com",
-    logo: moonLogo,
-    initials: "MN",
-    network: "Visa",
-    cardType: "Virtual",
-    regions: ["Global"],
-    applePay: false,
-    googlePay: false,
-    selfCustody: false,
-    lightningNative: true,
-    kyc: "None",
-    topUpVia: "Direct Lightning",
-    fees: "~3–5% spread",
-  },
-  {
-    id: "cryptocom",
-    name: "Crypto.com Visa",
-    url: "https://crypto.com/cards",
-    logo: cryptoComLogo,
-    initials: "CC",
-    network: "Visa",
-    cardType: "Physical",
-    regions: ["Global", "US", "EU"],
-    applePay: true,
-    googlePay: true,
-    selfCustody: false,
-    lightningNative: false,
-    kyc: "Full",
-    topUpVia: "BTC / USDC deposit",
-    fees: "0% top-up · FX 0.5%",
-  },
-  {
-    id: "fold",
-    name: "Fold Card",
-    url: "https://foldapp.com",
-    logo: foldLogo,
-    initials: "FD",
-    network: "Visa",
-    cardType: "Physical",
-    regions: ["US"],
-    applePay: true,
-    googlePay: true,
-    selfCustody: false,
-    lightningNative: false,
-    kyc: "Full",
-    topUpVia: "On-chain BTC",
-    fees: "Free + swap fee",
-  },
-  {
-    id: "wirex",
-    name: "Wirex",
-    url: "https://wirexapp.com",
-    logo: wirexLogo,
-    initials: "WX",
-    network: "Visa",
-    cardType: "Physical",
-    regions: ["EU", "UK", "Asia"],
-    applePay: true,
-    googlePay: true,
-    selfCustody: false,
-    lightningNative: false,
-    kyc: "Full",
-    topUpVia: "BTC deposit",
-    fees: "~1% + FX",
   },
   {
     id: "2fiat",
@@ -246,6 +115,7 @@ const providers: Provider[] = [
     selfCustody: false,
     lightningNative: false,
     kyc: "Light",
+    timeToGet: "Instant",
     topUpVia: "Crypto deposit",
     fees: "~3% top-up",
     experimental: true,
@@ -264,9 +134,31 @@ const providers: Provider[] = [
     selfCustody: false,
     lightningNative: false,
     kyc: "None",
+    timeToGet: "Instant",
     topUpVia: "Crypto deposit",
     fees: "~3% top-up",
     experimental: true,
+  },
+];
+
+const howItWorksSteps = [
+  {
+    icon: CreditCardIcon,
+    title: "Get a card",
+    description:
+      "Pick a debit card that fits your region — physical or virtual, Apple Pay / Google Pay ready.",
+  },
+  {
+    icon: LinkIcon,
+    title: "Connect it",
+    description:
+      "Save your card's deposit details to your hub once. We hand you a bookmarkable top-up link.",
+  },
+  {
+    icon: ZapIcon,
+    title: "1-click top-ups",
+    description:
+      "Pay from your Lightning balance — no copy-paste, no wrong networks, no surprises at the till.",
   },
 ];
 
@@ -301,6 +193,20 @@ export function Cards() {
     localStorage.setItem(localStorageKeys.cardsHeroDismissed, "true");
   }, []);
 
+  // Card management state (lifted so Connect card lives in the header)
+  const { cards, addCard, removeCard } = useUserCards();
+  const [connectOpen, setConnectOpen] = React.useState(false);
+  // Only set immediately after creating a card — that's the one moment we
+  // hold the NWC pairing URI needed to mint a usable top-up URL. Cleared on close.
+  const [justCreated, setJustCreated] = React.useState<{
+    card: UserCardType;
+    pairingUri: string;
+  } | null>(null);
+
+  const justCreatedProvider = justCreated
+    ? providers.find((p) => p.id === justCreated.card.providerId)
+    : undefined;
+
   const showExperimental = features.includes("Experimental");
 
   const filtered = providers.filter((p) => {
@@ -334,84 +240,138 @@ export function Cards() {
 
   return (
     <>
-      <AppHeader title="Cards" pageTitle="Cards" />
+      <AppHeader
+        title="Cards"
+        pageTitle="Cards"
+        contentRight={
+          <Button size="sm" onClick={() => setConnectOpen(true)}>
+            <PlusIcon className="size-4" />
+            Connect card
+          </Button>
+        }
+      />
 
-      {/* Compact hero */}
+      {/* Hero — AI-style with 3-step strip */}
       {!heroDismissed && (
-        <section className="relative overflow-hidden rounded-xl border border-border bg-card">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-primary/5 to-transparent pointer-events-none" />
-          <button
-            onClick={dismissHero}
-            className="absolute top-4 right-4 z-10 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-            aria-label="Dismiss"
-          >
-            <XIcon className="size-5" />
-          </button>
-          <div className="relative grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 items-center p-6 md:p-8">
-            <div className="max-w-xl">
-              <h2 className="text-2xl md:text-3xl font-bold tracking-tight leading-tight">
-                Pay with Bitcoin{" "}
-                <span className="text-primary">at any checkout</span>
-              </h2>
-              <p className="text-muted-foreground mt-2 text-sm md:text-base">
-                Connect a debit card to your hub once, then top it up from
-                Lightning in one tap. No address copy-paste, no wrong-network
-                mistakes, no surprises at the till.
-              </p>
-              <div className="flex items-center gap-4 mt-4 text-xs text-muted-foreground whitespace-nowrap">
-                <span className="inline-flex items-center gap-1.5">
-                  <GlobeIcon className="size-3.5 text-primary" />
-                  {providers.length} cards worldwide
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <SmartphoneIcon className="size-3.5 text-primary" />
-                  Apple Pay & Google Pay
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <ShieldCheckIcon className="size-3.5 text-primary" />
-                  Self-custody
-                </span>
+        <div className="overflow-hidden">
+          <div className="bg-card text-card-foreground rounded-xl overflow-hidden relative border border-border">
+            <button
+              onClick={dismissHero}
+              className="absolute top-4 right-4 z-10 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Dismiss"
+            >
+              <XIcon className="w-5 h-5" />
+            </button>
+            <div className="flex flex-col lg:flex-row min-h-[360px]">
+              {/* Left */}
+              <div className="flex-1 p-8 lg:p-12 flex flex-col justify-center">
+                <p className="text-muted-foreground text-sm font-medium tracking-widest uppercase mb-4">
+                  Cards + Bitcoin
+                </p>
+                <h2 className="text-4xl lg:text-5xl font-bold tracking-tight leading-[1.1] mb-4">
+                  Got your card ready?
+                  <br />
+                  <span className="text-primary">Connect it.</span>
+                </h2>
+                <p className="text-muted-foreground text-lg max-w-md">
+                  Spend Bitcoin anywhere — connect a debit card to your hub and
+                  top it up from Lightning in one click.
+                </p>
               </div>
-            </div>
 
-            <div className="hidden md:block md:pr-2 lg:pr-4">
-              <div className="relative w-72 aspect-[1.6/1]">
-                <div className="absolute inset-0 rounded-2xl bg-primary text-primary-foreground shadow-xl overflow-hidden">
-                  {/* subtle highlight */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/10 pointer-events-none" />
-                  <div className="relative p-5 h-full flex flex-col justify-between">
-                    <div className="flex items-start justify-between">
-                      <span className="text-xs font-bold tracking-wider">
-                        ALBY HUB
-                      </span>
-                      <AlbyIcon className="size-7" />
-                    </div>
-
-                    <div className="font-mono text-lg leading-none flex items-baseline gap-3 whitespace-nowrap">
-                      <span>••••</span>
-                      <span>••••</span>
-                      <span>••••</span>
-                      <span>4421</span>
-                    </div>
-
-                    <div className="flex items-end justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-[9px] tracking-widest uppercase opacity-60 leading-none mb-1">
-                          Cardholder
-                        </p>
-                        <p className="text-xs font-semibold tracking-wider truncate">
-                          {cardholderName}
-                        </p>
+              {/* Right — card visual */}
+              <div className="flex-1 p-6 pt-12 lg:p-8 lg:pt-14 flex items-center justify-center">
+                <div className="relative w-full max-w-sm aspect-[1.6/1]">
+                  <div className="absolute inset-0 rounded-2xl bg-primary text-primary-foreground shadow-2xl overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/10 pointer-events-none" />
+                    <div className="relative p-6 h-full flex flex-col justify-between">
+                      <div className="flex items-start justify-between">
+                        <span className="text-xs font-bold tracking-wider">
+                          ALBY HUB
+                        </span>
+                        <AlbyIcon className="size-7" />
                       </div>
-                      <VisaLogo className="h-5 w-auto" />
+
+                      <div className="font-mono text-lg leading-none flex items-baseline gap-3 whitespace-nowrap">
+                        <span>••••</span>
+                        <span>••••</span>
+                        <span>••••</span>
+                        <span>4421</span>
+                      </div>
+
+                      <div className="flex items-end justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-[9px] tracking-widest uppercase opacity-60 leading-none mb-1">
+                            Cardholder
+                          </p>
+                          <p className="text-xs font-semibold tracking-wider truncate">
+                            {cardholderName}
+                          </p>
+                        </div>
+                        <VisaLogo className="h-5 w-auto" />
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* Three steps */}
+            <div className="border-t border-border grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-border">
+              {howItWorksSteps.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div key={item.title} className="p-6 lg:p-8">
+                    <Icon className="w-5 h-5 text-primary mb-2" />
+                    <h3 className="font-semibold text-lg mb-1">{item.title}</h3>
+                    <p className="text-muted-foreground text-sm">
+                      {item.description}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </section>
+        </div>
       )}
+
+      {/* Your cards */}
+      <YourCardsSection
+        cards={cards}
+        providers={providers}
+        onConnect={() => setConnectOpen(true)}
+        onRemove={removeCard}
+      />
+
+      <ConnectCardDialog
+        open={connectOpen}
+        onOpenChange={setConnectOpen}
+        providers={providers}
+        onSubmit={async (input) => {
+          const result = await addCard(input);
+          setConnectOpen(false);
+          setJustCreated(result);
+        }}
+      />
+
+      <CardCreatedDialog
+        card={justCreated?.card ?? null}
+        pairingUri={justCreated?.pairingUri ?? null}
+        provider={justCreatedProvider}
+        onOpenChange={(open) => {
+          if (!open) {
+            setJustCreated(null);
+          }
+        }}
+      />
+
+      {/* Section heading for directory */}
+      <div className="pt-2">
+        <h2 className="text-lg font-semibold">Get a card</h2>
+        <p className="text-xs text-muted-foreground">
+          Pick a provider that works in your region, then connect it above.
+        </p>
+      </div>
 
       {/* Filter bar */}
       <section className="rounded-xl border border-border bg-card overflow-hidden">
@@ -512,6 +472,7 @@ export function Cards() {
                 <TableHead>Regions</TableHead>
                 <TableHead className="text-center">Mobile pay</TableHead>
                 <TableHead>KYC</TableHead>
+                <TableHead>Time to get</TableHead>
                 <TableHead>Top up via</TableHead>
                 <TableHead>Fees</TableHead>
                 <TableHead className="w-10" />
@@ -521,7 +482,7 @@ export function Cards() {
               {filtered.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={8}
+                    colSpan={9}
                     className="text-center text-muted-foreground py-10"
                   >
                     No providers match these filters.
@@ -644,6 +605,12 @@ function ProviderRow({ provider }: { provider: Provider }) {
         <div className="flex items-center">
           <KycBadge kyc={provider.kyc} />
         </div>
+      </TableCell>
+      <TableCell>
+        <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground whitespace-nowrap">
+          <ClockIcon className="size-3" />
+          {provider.timeToGet}
+        </span>
       </TableCell>
       <TableCell>
         <div className="flex items-center text-xs text-muted-foreground">
