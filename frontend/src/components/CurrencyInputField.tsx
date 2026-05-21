@@ -237,6 +237,27 @@ export function CurrencyInputField({
     const nextValue = event.target.value.trim();
 
     if (mode === "bitcoin") {
+      if (!isBtcDenominated && nextValue.includes(".")) {
+        setBitcoinDenomination("btc");
+        setBtcValue(nextValue);
+
+        if (!nextValue) {
+          onValueSatChange("");
+          return;
+        }
+
+        const amountBtc = Number(nextValue);
+        if (!Number.isFinite(amountBtc)) {
+          onValueSatChange("");
+          return;
+        }
+
+        onValueSatChange(
+          Math.max(0, Math.round(amountBtc * SATS_PER_BTC)).toString()
+        );
+        return;
+      }
+
       if (isBtcDenominated) {
         setBtcValue(nextValue);
 
