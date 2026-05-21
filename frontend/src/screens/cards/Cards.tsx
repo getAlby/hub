@@ -4,9 +4,9 @@ import {
   ClockIcon,
   CreditCardIcon,
   FingerprintIcon,
+  InfoIcon,
   LinkIcon,
   ShieldCheckIcon,
-  SparklesIcon,
   XIcon,
   ZapIcon,
 } from "lucide-react";
@@ -59,8 +59,7 @@ type FeatureFilter =
   | "GooglePay"
   | "Self-custody"
   | "Lightning-native"
-  | "No KYC"
-  | "Experimental";
+  | "No KYC";
 
 type Provider = {
   id: string;
@@ -77,29 +76,28 @@ type Provider = {
   lightningNative: boolean;
   kyc: "Full" | "Light" | "None";
   timeToGet: string;
-  topUpVia: string;
+  cardCost: string;
   fees: string;
-  experimental?: boolean;
 };
 
 const providers: Provider[] = [
   {
     id: "redotpay",
     name: "RedotPay",
-    url: "https://url.hub.so/redotpay",
+    url: "https://www.redotpay.com",
     logo: redotpayLogo,
     initials: "RP",
     network: "Visa",
-    cardType: "Physical",
-    regions: ["Global", "EU", "LATAM", "Asia"],
+    cardType: "Virtual",
+    regions: ["Global", "US", "UK", "EU", "LATAM", "Asia"],
     applePay: true,
     googlePay: true,
     selfCustody: false,
     lightningNative: false,
-    kyc: "Light",
-    timeToGet: "1–2 weeks",
-    topUpVia: "USDT (TRC20)",
-    fees: "~1.5% + FX",
+    kyc: "Full",
+    timeToGet: "<10 minutes",
+    cardCost: "$10",
+    fees: "~2.2% + FX",
   },
   {
     id: "2fiat",
@@ -107,18 +105,17 @@ const providers: Provider[] = [
     url: "https://2fiat.com",
     logo: twoFiatLogo,
     initials: "2F",
-    network: "Visa",
+    network: "Mastercard",
     cardType: "Virtual",
     regions: ["Global"],
-    applePay: false,
-    googlePay: false,
+    applePay: true,
+    googlePay: true,
     selfCustody: false,
     lightningNative: false,
-    kyc: "Light",
+    kyc: "None",
     timeToGet: "Instant",
-    topUpVia: "Crypto deposit",
-    fees: "~3% top-up",
-    experimental: true,
+    cardCost: "$50",
+    fees: "~6.8% top-up",
   },
   {
     id: "freedomia",
@@ -130,14 +127,13 @@ const providers: Provider[] = [
     cardType: "Virtual",
     regions: ["Global"],
     applePay: false,
-    googlePay: false,
+    googlePay: true,
     selfCustody: false,
     lightningNative: false,
     kyc: "None",
     timeToGet: "Instant",
-    topUpVia: "Crypto deposit",
-    fees: "~3% top-up",
-    experimental: true,
+    cardCost: "$5–30 / mo",
+    fees: "1.3–4.3%",
   },
 ];
 
@@ -194,7 +190,7 @@ export function Cards() {
   }, []);
 
   // Card management state (lifted so Connect card lives in the header)
-  const { cards, addCard, removeCard } = useUserCards();
+  const { cards, addCard } = useUserCards();
   const [connectOpen, setConnectOpen] = React.useState(false);
   // Only set immediately after creating a card — that's the one moment we
   // hold the NWC pairing URI needed to mint a usable top-up URL. Cleared on close.
@@ -207,12 +203,7 @@ export function Cards() {
     ? providers.find((p) => p.id === justCreated.card.providerId)
     : undefined;
 
-  const showExperimental = features.includes("Experimental");
-
   const filtered = providers.filter((p) => {
-    if (p.experimental && !showExperimental) {
-      return false;
-    }
     if (region !== "All" && !p.regions.includes(region)) {
       return false;
     }
@@ -235,8 +226,6 @@ export function Cards() {
     }
     return true;
   });
-
-  const experimentalCount = providers.filter((p) => p.experimental).length;
 
   return (
     <>
@@ -335,13 +324,16 @@ export function Cards() {
         </div>
       )}
 
-      {/* Your cards */}
-      <YourCardsSection
-        cards={cards}
-        providers={providers}
-        onConnect={() => setConnectOpen(true)}
-        onRemove={removeCard}
-      />
+      {/* Your card connections */}
+      {cards.length > 0 && (
+        <div className="pt-2">
+          <h2 className="text-lg font-semibold">Your card connections</h2>
+          <p className="text-xs text-muted-foreground">
+            Tap a card to view or revoke its connection.
+          </p>
+        </div>
+      )}
+      <YourCardsSection cards={cards} providers={providers} />
 
       <ConnectCardDialog
         open={connectOpen}
@@ -428,10 +420,6 @@ export function Cards() {
                 <FingerprintIcon />
                 No KYC
               </ToggleGroupItem>
-              <ToggleGroupItem value="Experimental" aria-label="Experimental">
-                <SparklesIcon />
-                Experimental ({experimentalCount})
-              </ToggleGroupItem>
             </ToggleGroup>
           </div>
         </div>
@@ -473,7 +461,7 @@ export function Cards() {
                 <TableHead className="text-center">Mobile pay</TableHead>
                 <TableHead>KYC</TableHead>
                 <TableHead>Time to get</TableHead>
-                <TableHead>Top up via</TableHead>
+                <TableHead>Card cost</TableHead>
                 <TableHead>Fees</TableHead>
                 <TableHead className="w-10" />
               </TableRow>
@@ -529,11 +517,6 @@ function ProviderRow({ provider }: { provider: Provider }) {
               <span className="font-medium group-hover:underline truncate">
                 {provider.name}
               </span>
-              {provider.experimental && (
-                <Badge variant="outline" className="text-[10px] px-1 py-0">
-                  Experimental
-                </Badge>
-              )}
               {provider.selfCustody && (
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -614,7 +597,7 @@ function ProviderRow({ provider }: { provider: Provider }) {
       </TableCell>
       <TableCell>
         <div className="flex items-center text-xs text-muted-foreground">
-          {provider.topUpVia}
+          {provider.cardCost}
         </div>
       </TableCell>
       <TableCell>
@@ -642,6 +625,18 @@ function KycBadge({ kyc }: { kyc: Provider["kyc"] }) {
       <span className="inline-flex items-center gap-1 text-xs text-positive-foreground">
         <CheckIcon className="size-3" />
         None
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="text-muted-foreground hover:text-foreground cursor-help">
+              <InfoIcon className="size-3" />
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            No-KYC cards typically operate via a single merchant-of-record
+            account. Privacy-friendly, but operationally fragile — the program
+            can be paused or shut down without notice.
+          </TooltipContent>
+        </Tooltip>
       </span>
     );
   }

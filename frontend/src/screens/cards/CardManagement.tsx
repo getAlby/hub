@@ -2,10 +2,8 @@ import {
   AlertTriangleIcon,
   CheckIcon,
   CopyIcon,
-  CreditCardIcon,
   ExternalLinkIcon,
   LinkIcon,
-  PlusIcon,
 } from "lucide-react";
 import React from "react";
 import { Link } from "react-router";
@@ -17,7 +15,6 @@ import QRCode from "src/components/QRCode";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Avatar, AvatarFallback, AvatarImage } from "src/components/ui/avatar";
 import { Button } from "src/components/ui/button";
-import { Card, CardContent } from "src/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -65,57 +62,31 @@ const providerStyle: Record<string, { bg: string; text: string }> = {
 export function YourCardsSection({
   cards,
   providers,
-  onConnect,
 }: {
   cards: UserCard[];
   providers: Provider[];
-  onConnect: () => void;
-  onRemove: (cardId: string) => void;
 }) {
   const providerById = React.useMemo(
     () => Object.fromEntries(providers.map((p) => [p.id, p])),
     [providers]
   );
 
+  if (cards.length === 0) {
+    return null;
+  }
+
   return (
     <section>
-      {cards.length === 0 ? (
-        <EmptyCards onConnect={onConnect} />
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {cards.map((card) => (
-            <UserCardTile
-              key={card.id}
-              card={card}
-              provider={providerById[card.providerId]}
-            />
-          ))}
-        </div>
-      )}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {cards.map((card) => (
+          <UserCardTile
+            key={card.appId}
+            card={card}
+            provider={providerById[card.providerId]}
+          />
+        ))}
+      </div>
     </section>
-  );
-}
-
-function EmptyCards({ onConnect }: { onConnect: () => void }) {
-  return (
-    <Card>
-      <CardContent className="py-10 flex flex-col items-center text-center gap-3">
-        <div className="size-12 rounded-xl bg-muted flex items-center justify-center">
-          <CreditCardIcon className="size-6 text-muted-foreground" />
-        </div>
-        <div>
-          <p className="font-medium">No cards connected yet</p>
-          <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-            Connect a card to top it up from your hub with one click. We save
-            the deposit details once so checkouts are fast.
-          </p>
-        </div>
-        <Button size="sm" onClick={onConnect}>
-          <PlusIcon className="size-4" />
-          Connect your first card
-        </Button>
-      </CardContent>
-    </Card>
   );
 }
 
@@ -144,8 +115,7 @@ function UserCardTile({
     text: "text-primary-foreground",
   };
 
-  // TODO: route to /apps/:connectionId once cards are stored as NWC connections
-  const detailPath = card.appId ? `/apps/${card.appId}` : "/apps";
+  const detailPath = `/apps/${card.appId}`;
 
   return (
     <Link
@@ -263,7 +233,7 @@ export function ConnectCardDialog({
         <DialogHeader>
           <DialogTitle>Connect your card</DialogTitle>
           <DialogDescription>
-            Save your card's deposit details once — we'll hand you a top-up link
+            Save your card's deposit details once. We'll hand you a top-up link
             you can bookmark.
           </DialogDescription>
         </DialogHeader>
@@ -381,7 +351,9 @@ function buildTopupUrl({
   params.set("chainId", String(card.chainId));
   params.set("currency", card.currency);
   params.set("nwc", pairingUri);
-  return `${TOPUP_BASE_URL}/#${params.toString()}`;
+  // Use `#?` so bitcoin-connect's parser (which does indexOf("?") on the
+  // hash) takes the expected branch.
+  return `${TOPUP_BASE_URL}/#?${params.toString()}`;
 }
 
 export function CardCreatedDialog({

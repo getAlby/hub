@@ -477,8 +477,9 @@ const routes: RouteObject[] = [
       },
       {
         path: "cards",
-        element: <Cards />,
+        element: <DefaultRedirect />,
         handle: { crumb: () => "Cards" },
+        children: [{ index: true, element: <Cards /> }],
       },
     ],
   },
