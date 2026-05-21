@@ -244,18 +244,16 @@ export default function ReceiveInvoice() {
                 </LoadingButton>
                 {(!info?.albyAccountConnected || !me?.lightning_address) && (
                   <div className="grid gap-2 border-t pt-6">
-                    {!info?.albyAccountConnected &&
-                      (info.backendType === "LDK" ||
-                        info.backendType === "CLN") && (
-                        <LinkButton
-                          to="/wallet/receive/offer"
-                          variant="outline"
-                          className="w-full"
-                        >
-                          <ReceiptTextIcon className="h-4 w-4" />
-                          Lightning Offer
-                        </LinkButton>
-                      )}
+                    {!info?.albyAccountConnected && info.supportsBolt12 && (
+                      <LinkButton
+                        to="/wallet/receive/offer"
+                        variant="outline"
+                        className="w-full"
+                      >
+                        <ReceiptTextIcon className="h-4 w-4" />
+                        Lightning Offer
+                      </LinkButton>
+                    )}
                     <LinkButton
                       to="/wallet/receive/onchain"
                       variant="outline"

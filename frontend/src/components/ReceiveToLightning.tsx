@@ -40,7 +40,7 @@ export function ReceiveToLightning() {
           <ZapIcon className="w-4 h-4 mr-2" />
           Create Invoice
         </LinkButton>
-        {(info.backendType === "LDK" || info.backendType === "CLN") && (
+        {info.supportsBolt12 && (
           <LinkButton
             to="/wallet/receive/offer"
             variant="outline"

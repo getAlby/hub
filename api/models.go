@@ -333,6 +333,7 @@ type InfoResponse struct {
 	ChainDataSourceType         string              `json:"chainDataSourceType,omitempty"`
 	ChainDataSourceAddress      string              `json:"chainDataSourceAddress,omitempty"`
 	HideUpdateBanner            bool                `json:"hideUpdateBanner"`
+	SupportsBolt12              bool                `json:"supportsBolt12"`
 }
 
 type UpdateSettingsRequest struct {
