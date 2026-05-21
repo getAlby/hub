@@ -13,15 +13,17 @@ export function useRegisterProtocolHandler(basePath: string) {
     const normalizedBasePath = basePath.replace(/\/$/, "");
     const handlerUrl = `${window.location.origin}${normalizedBasePath}/wallet/send?bip21=%s`;
 
-    // Browsers re-prompt every time registerProtocolHandler is called if the
-    // user previously dismissed the prompt without accepting or denying it.
-    // Limit to once per browser session so we don't ask on every page load,
-    // but users still get re-asked occasionally if they didn't opt in.
-    if (sessionStorage.getItem(STORAGE_KEY) === handlerUrl) {
-      return;
-    }
-
     try {
+      // Browsers re-prompt every time registerProtocolHandler is called if the
+      // user previously dismissed the prompt without accepting or denying it.
+      // Limit to once per browser session so we don't ask on every page load,
+      // but users still get re-asked occasionally if they didn't opt in.
+      // sessionStorage access can throw in restricted/private modes, so it's
+      // inside the same try/catch as registerProtocolHandler.
+      if (sessionStorage.getItem(STORAGE_KEY) === handlerUrl) {
+        return;
+      }
+
       navigator.registerProtocolHandler("bitcoin", handlerUrl);
       sessionStorage.setItem(STORAGE_KEY, handlerUrl);
     } catch (e) {
