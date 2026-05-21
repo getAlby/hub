@@ -56,7 +56,7 @@ const SUPPORTED_CURRENCIES: SupportedCurrency[] = ["USDC", "USDT"];
 const providerStyle: Record<string, { bg: string; text: string }> = {
   redotpay: { bg: "bg-rose-600", text: "text-white" },
   "2fiat": { bg: "bg-violet-600", text: "text-white" },
-  freedomia: { bg: "bg-fuchsia-600", text: "text-white" },
+  freedomia: { bg: "bg-orange-500", text: "text-white" },
 };
 
 export function YourCardsSection({
@@ -129,15 +129,6 @@ function UserCardTile({
       )}
     >
       <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/15 pointer-events-none" />
-
-      {provider?.logo && (
-        <img
-          src={provider.logo}
-          alt=""
-          aria-hidden="true"
-          className="absolute -right-10 -bottom-10 size-44 object-contain opacity-15 pointer-events-none"
-        />
-      )}
 
       <div className="relative flex items-center gap-3 min-w-0">
         <Avatar className="size-12 rounded-xl shrink-0 shadow-md">

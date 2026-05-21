@@ -397,29 +397,39 @@ export function Cards() {
               spacing={1}
               className="*:data-[state=on]:bg-primary *:data-[state=on]:text-primary-foreground *:data-[state=on]:border-primary"
             >
-              <ToggleGroupItem value="ApplePay" aria-label="Apple Pay">
-                <AppleIcon />
-                Apple Pay
-              </ToggleGroupItem>
-              <ToggleGroupItem value="GooglePay" aria-label="Google Pay">
-                <GooglePayIcon />
-                Google Pay
-              </ToggleGroupItem>
-              <ToggleGroupItem value="Self-custody" aria-label="Self-custody">
-                <ShieldCheckIcon />
-                Self-custody
-              </ToggleGroupItem>
-              <ToggleGroupItem
-                value="Lightning-native"
-                aria-label="Lightning-native"
-              >
-                <ZapIcon />
-                Lightning
-              </ToggleGroupItem>
-              <ToggleGroupItem value="No KYC" aria-label="No KYC">
-                <FingerprintIcon />
-                No KYC
-              </ToggleGroupItem>
+              {providers.some((p) => p.applePay) && (
+                <ToggleGroupItem value="ApplePay" aria-label="Apple Pay">
+                  <AppleIcon />
+                  Apple Pay
+                </ToggleGroupItem>
+              )}
+              {providers.some((p) => p.googlePay) && (
+                <ToggleGroupItem value="GooglePay" aria-label="Google Pay">
+                  <GooglePayIcon />
+                  Google Pay
+                </ToggleGroupItem>
+              )}
+              {providers.some((p) => p.selfCustody) && (
+                <ToggleGroupItem value="Self-custody" aria-label="Self-custody">
+                  <ShieldCheckIcon />
+                  Self-custody
+                </ToggleGroupItem>
+              )}
+              {providers.some((p) => p.lightningNative) && (
+                <ToggleGroupItem
+                  value="Lightning-native"
+                  aria-label="Lightning-native"
+                >
+                  <ZapIcon />
+                  Lightning
+                </ToggleGroupItem>
+              )}
+              {providers.some((p) => p.kyc === "None") && (
+                <ToggleGroupItem value="No KYC" aria-label="No KYC">
+                  <FingerprintIcon />
+                  No KYC
+                </ToggleGroupItem>
+              )}
             </ToggleGroup>
           </div>
         </div>
@@ -458,7 +468,7 @@ export function Cards() {
                 <TableHead className="w-[260px]">Provider</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Regions</TableHead>
-                <TableHead className="text-center">Mobile pay</TableHead>
+                <TableHead className="text-center">Mobile</TableHead>
                 <TableHead>KYC</TableHead>
                 <TableHead>Time to get</TableHead>
                 <TableHead>Card cost</TableHead>
