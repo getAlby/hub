@@ -199,9 +199,9 @@ const howItWorksSteps = [
   },
   {
     icon: ZapIcon,
-    title: "1-click top-ups",
+    title: "Top up in seconds",
     description:
-      "Pay from your Lightning balance — no copy-paste, no wrong networks, no surprises at the till.",
+      "Pay from your Lightning balance — your card is funded in under a minute, ready to spend on the go.",
   },
 ];
 
