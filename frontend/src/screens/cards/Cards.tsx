@@ -71,7 +71,7 @@ type Provider = {
   logo: string;
   initials: string;
   network: "Visa" | "Mastercard";
-  cardType: "Physical" | "Virtual";
+  cardType: "Physical" | "Virtual" | "Both";
   regions: Region[];
   applePay: boolean;
   googlePay: boolean;
@@ -147,39 +147,44 @@ const providers: Provider[] = [
   {
     id: "bringin",
     name: "Bringin",
-    url: "https://bringin.xyz",
+    url: "https://bringin.app",
     logo: bringinLogo,
     initials: "BR",
     network: "Visa",
-    cardType: "Virtual",
+    cardType: "Both",
     regions: ["EU"],
-    applePay: true,
+    // Direct Apple Pay isn't live — usable today via Curve only, so don't
+    // claim it. Google/Samsung/Fitbit/Garmin Pay are direct.
+    applePay: false,
     googlePay: true,
     selfCustody: false,
     lightningNative: true,
     kyc: "Full",
     timeToGet: "Minutes",
-    cardCost: "Free",
-    fees: "~1%",
+    // Their cards page advertises a €3.49/mo subscription that bundles
+    // both cards. Worth re-confirming during checkout — sources disagree.
+    cardCost: "€3.49 / mo",
+    fees: "1% + 0.5%",
     appStoreId: "bringin",
   },
   {
     id: "wavespace",
     name: "wavecard by wave.space",
-    url: "https://wave.space",
+    url: "https://www.wave.space/card",
     logo: wavespaceLogo,
     initials: "WS",
     network: "Visa",
-    cardType: "Virtual",
-    regions: ["Global"],
-    applePay: true,
+    cardType: "Both",
+    // Card is accepted worldwide, but issuance requires EEA residency.
+    regions: ["EU"],
+    applePay: false,
     googlePay: true,
     selfCustody: false,
     lightningNative: true,
     kyc: "Full",
     timeToGet: "Minutes",
-    cardCost: "Free",
-    fees: "~1%",
+    cardCost: "€2.99 / €29.99",
+    fees: "1% + 0.5%",
     appStoreId: "wavespace",
   },
 ];
