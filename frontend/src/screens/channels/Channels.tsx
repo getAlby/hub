@@ -4,36 +4,28 @@ import {
   ArrowDownUpIcon,
   ArrowRightIcon,
   CopyIcon,
-  ExternalLinkIcon,
   HeartIcon,
-  HourglassIcon,
   InfoIcon,
   LinkIcon,
   Settings2Icon,
-  SparklesIcon,
   UnplugIcon,
   ZapIcon,
 } from "lucide-react";
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router";
 import AppHeader from "src/components/AppHeader.tsx";
 import { ChannelsCards } from "src/components/channels/ChannelsCards.tsx";
 import { ChannelsTable } from "src/components/channels/ChannelsTable.tsx";
 import { HealthCheckAlert } from "src/components/channels/HealthcheckAlert";
 import { LDKChannelMonitorSizeAlert } from "src/components/channels/LDKChannelMonitorSizeAlert";
 import { LDKChannelWithoutPeerAlert } from "src/components/channels/LDKChannelWithoutPeerAlert";
-import { OnchainTransactionsTable } from "src/components/channels/OnchainTransactionsTable.tsx";
 import EmptyState from "src/components/EmptyState.tsx";
 import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
+import { PendingClosedChannelsAlert } from "src/components/PendingClosedChannelsAlert";
 import ResponsiveButton from "src/components/ResponsiveButton";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "src/components/ui/alert.tsx";
 import {
   Card,
   CardContent,
@@ -57,14 +49,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "src/components/ui/tooltip.tsx";
-import { UpgradeDialog } from "src/components/UpgradeDialog";
+import { ProDropdownMenuItem } from "src/components/UpgradeDialog";
 import { ONCHAIN_DUST_SATS } from "src/constants.ts";
-import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useBalances } from "src/hooks/useBalances.ts";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo.ts";
-import { useNodeDetails } from "src/hooks/useNodeDetails";
 import { useSyncWallet } from "src/hooks/useSyncWallet.ts";
 import { copyToClipboard } from "src/lib/clipboard.ts";
 import { cn } from "src/lib/utils.ts";
@@ -72,13 +62,11 @@ import {
   Channel,
   LongUnconfirmedZeroConfChannel,
   MempoolTransaction,
-  PendingBalancesDetails,
 } from "src/types";
 import { request } from "src/utils/request";
 
 export default function Channels() {
   useSyncWallet();
-  const { data: albyMe } = useAlbyMe();
   const { data: channels } = useChannels();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
   const { data: info, hasChannelManagement } = useInfo();
@@ -152,6 +140,7 @@ export default function Channels() {
     <>
       <AppHeader
         title="Node"
+        pageTitle="Node"
         contentRight={
           hasChannelManagement && (
             <div className="flex gap-3 items-center justify-center">
@@ -211,16 +200,23 @@ export default function Channels() {
                   <DropdownMenuGroup>
                     <DropdownMenuLabel>On-Chain</DropdownMenuLabel>
                     <DropdownMenuItem asChild>
-                      <Link to="onchain/buy-bitcoin" className="w-full">
+                      <Link
+                        to="/channels/onchain/buy-bitcoin"
+                        className="w-full"
+                      >
                         Buy
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link to="/channels/onchain/deposit-bitcoin">
+                      <Link
+                        to="/channels/onchain/deposit-bitcoin"
+                        className="w-full"
+                      >
                         Deposit
                       </Link>
                     </DropdownMenuItem>
-                    {(balances?.onchain.spendable || 0) > ONCHAIN_DUST_SATS && (
+                    {(balances?.onchain.spendableSat || 0) >
+                      ONCHAIN_DUST_SATS && (
                       <DropdownMenuItem
                         onClick={() => navigate("/wallet/withdraw")}
                       >
@@ -269,28 +265,13 @@ export default function Channels() {
                         Sign Message
                       </Link>
                     </DropdownMenuItem>
-                    {info?.backendType === "LDK" &&
-                      (!albyMe?.subscription.plan_code ? (
-                        <UpgradeDialog>
-                          <div className="cursor-pointer">
-                            <DropdownMenuItem className="w-full pointer-events-none">
-                              <Link
-                                className="w-full flex items-center"
-                                to="/wallet/node-alias"
-                              >
-                                <SparklesIcon className="size-4 mr-2" /> Set
-                                Node Alias
-                              </Link>
-                            </DropdownMenuItem>
-                          </div>
-                        </UpgradeDialog>
-                      ) : (
-                        <DropdownMenuItem className="w-full">
-                          <Link className="w-full" to="/wallet/node-alias">
-                            Set Node Alias
-                          </Link>
-                        </DropdownMenuItem>
-                      ))}
+                    {info?.backendType === "LDK" && (
+                      <ProDropdownMenuItem
+                        onClick={() => navigate("/wallet/node-alias")}
+                      >
+                        Set Node Alias
+                      </ProDropdownMenuItem>
+                    )}
                   </DropdownMenuGroup>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -347,8 +328,8 @@ export default function Channels() {
               {/* If all channels have less than 20% incoming capacity, show a warning */}
               {channels?.every(
                 (channel) =>
-                  channel.remoteBalance <
-                  (channel.localBalance + channel.remoteBalance) * 0.2
+                  channel.remoteBalanceMsat <
+                  (channel.localBalanceMsat + channel.remoteBalanceMsat) * 0.2
               ) && <LowReceivingCapacityAlert />}
             </>
           )}
@@ -374,29 +355,29 @@ export default function Channels() {
                         <Tooltip>
                           <TooltipTrigger>
                             <div className="flex flex-row gap-1 items-center justify-start text-sm font-medium">
-                              Spending Balance
+                              Balance
                               <InfoIcon className="h-3 w-3 shrink-0 text-muted-foreground" />
                             </div>
                           </TooltipTrigger>
                           <TooltipContent>
-                            Your spending balance is the funds on your side of
-                            your channels, which you can use to make lightning
-                            payments. Your total lightning balance is{" "}
+                            Your lightning balance is the spendable funds on
+                            your side of your channels. Your total channel
+                            balance is{" "}
                             <FormattedBitcoinAmount
-                              amount={
+                              amountMsat={
                                 channels
-                                  ?.map((channel) => channel.localBalance)
+                                  ?.map((channel) => channel.localBalanceMsat)
                                   .reduce((a, b) => a + b, 0) || 0
                               }
                             />{" "}
                             which includes{" "}
                             <FormattedBitcoinAmount
-                              amount={
+                              amountMsat={
                                 channels
                                   ?.map((channel) =>
                                     Math.min(
-                                      channel.localBalance,
-                                      channel.unspendablePunishmentReserve *
+                                      channel.localBalanceMsat,
+                                      channel.unspendablePunishmentReserveSat *
                                         1000
                                     )
                                   )
@@ -421,11 +402,11 @@ export default function Channels() {
                       <>
                         <div className="text-xl font-medium balance sensitive mb-1">
                           <FormattedBitcoinAmount
-                            amount={balances.lightning.totalSpendable}
+                            amountMsat={balances.lightning.totalSpendableMsat}
                           />
                         </div>
                         <FormattedFiatAmount
-                          amount={balances.lightning.totalSpendable / 1000}
+                          amountSat={balances.lightning.totalSpendableSat}
                         />
                       </>
                     )}
@@ -456,11 +437,11 @@ export default function Channels() {
                       <>
                         <div className="text-xl font-medium balance sensitive mb-1">
                           <FormattedBitcoinAmount
-                            amount={balances.lightning.totalReceivable}
+                            amountMsat={balances.lightning.totalReceivableMsat}
                           />
                         </div>
                         <FormattedFiatAmount
-                          amount={balances.lightning.totalReceivable / 1000}
+                          amountSat={balances.lightning.totalReceivableSat}
                         />
                       </>
                     )}
@@ -508,14 +489,14 @@ export default function Channels() {
                   {balances && (
                     <>
                       <div className="mb-1">
-                        <span className="text-xl font-medium balance sensitive mb-1 mr-1">
+                        <span className="mr-1 text-xl font-medium balance sensitive">
                           <FormattedBitcoinAmount
-                            amount={balances.onchain.spendable * 1000}
+                            amountMsat={balances.onchain.spendableSat * 1000}
                           />
                         </span>
                         {!!channels?.length &&
-                          balances.onchain.reserved +
-                            balances.onchain.spendable <
+                          balances.onchain.reservedSat +
+                            balances.onchain.spendableSat <
                             25_000 && (
                             <TooltipProvider>
                               <Tooltip>
@@ -528,7 +509,7 @@ export default function Channels() {
                                   and currently rely on the counterparty. It is
                                   recommended to deposit at least{" "}
                                   <FormattedBitcoinAmount
-                                    amount={25_000 * 1000}
+                                    amountMsat={25_000 * 1000}
                                   />{" "}
                                   to your on-chain balance.
                                 </TooltipContent>
@@ -537,24 +518,23 @@ export default function Channels() {
                           )}
                       </div>
                       <FormattedFiatAmount
-                        amount={balances.onchain.spendable}
+                        amountSat={balances.onchain.spendableSat}
                         className="mb-1"
                       />
-                      {balances &&
-                        balances.onchain.spendable !==
-                          balances.onchain.total && (
-                          <p className="text-xs text-muted-foreground animate-pulse">
-                            +
-                            <FormattedBitcoinAmount
-                              amount={
-                                (balances.onchain.total -
-                                  balances.onchain.spendable) *
-                                1000
-                              }
-                            />{" "}
-                            incoming
-                          </p>
-                        )}
+                      {balances.onchain.totalSat >
+                        balances.onchain.spendableSat && (
+                        <p className="text-xs text-muted-foreground animate-pulse">
+                          +
+                          <FormattedBitcoinAmount
+                            amountMsat={
+                              (balances.onchain.totalSat -
+                                balances.onchain.spendableSat) *
+                              1000
+                            }
+                          />{" "}
+                          incoming
+                        </p>
+                      )}
                     </>
                   )}
                 </div>
@@ -562,45 +542,9 @@ export default function Channels() {
             </Card>
           </div>
 
-          {balances &&
-            balances.onchain.pendingBalancesFromChannelClosures > 0 && (
-              <Alert>
-                <HourglassIcon />
-                <AlertTitle>Pending Closed Channels</AlertTitle>
-                <AlertDescription className="block">
-                  You have{" "}
-                  <FormattedBitcoinAmount
-                    amount={
-                      balances.onchain.pendingBalancesFromChannelClosures * 1000
-                    }
-                  />{" "}
-                  pending from closed channels with
-                  {[
-                    ...balances.onchain.pendingBalancesDetails,
-                    ...balances.onchain.pendingSweepBalancesDetails,
-                  ].map((details, index) => {
-                    const isLast =
-                      index <
-                      balances.onchain.pendingBalancesDetails.length - 1;
-                    return (
-                      <PendingBalancesDetailsItem
-                        details={details}
-                        isLast={isLast}
-                      />
-                    );
-                  })}
-                  . Once spendable again these will become available in your
-                  on-chain balance. Funds from channels that were force closed
-                  may take up to 2 weeks to become available.{" "}
-                  <ExternalLink
-                    to="https://guides.getalby.com/user-guide/alby-hub/faq/why-was-my-lightning-channel-closed-and-what-to-do-next"
-                    className="underline"
-                  >
-                    Learn more
-                  </ExternalLink>
-                </AlertDescription>
-              </Alert>
-            )}
+          {balances && (
+            <PendingClosedChannelsAlert balance={balances.onchain} />
+          )}
 
           {channels && channels.length === 0 && (
             <EmptyState
@@ -623,7 +567,6 @@ export default function Channels() {
             channels={channels}
             longUnconfirmedZeroConfChannels={longUnconfirmedZeroConfChannels}
           />
-          <OnchainTransactionsTable />
         </>
       )}
     </>
@@ -631,17 +574,20 @@ export default function Channels() {
 }
 
 function getNodeHealth(channels: Channel[]) {
-  const totalChannelCapacitySats = channels
-    .map((channel) => (channel.localBalance + channel.remoteBalance) / 1000)
+  const totalChannelCapacitySat = channels
+    .map(
+      (channel) => (channel.localBalanceMsat + channel.remoteBalanceMsat) / 1000
+    )
     .reduce((a, b) => a + b, 0);
   const averageChannelBalance =
     channels
       .map((channel) => {
-        const totalBalance = channel.localBalance + channel.remoteBalance;
-        const expectedBalance = totalBalance / 2;
+        const totalBalanceMsat =
+          channel.localBalanceMsat + channel.remoteBalanceMsat;
+        const expectedBalanceMsat = totalBalanceMsat / 2;
         const actualBalance =
-          Math.min(channel.localBalance, channel.remoteBalance) /
-          expectedBalance;
+          Math.min(channel.localBalanceMsat, channel.remoteBalanceMsat) /
+          expectedBalanceMsat;
         return actualBalance;
       })
       .reduce((a, b) => a + b, 0) / (channels.length || 1);
@@ -653,7 +599,7 @@ function getNodeHealth(channels: Channel[]) {
   const nodeHealth = Math.ceil(
     numUniqueChannelPartners *
       (100 / 2) * // 2 or more channels is great
-      (Math.min(totalChannelCapacitySats, 1_000_000) / 1_000_000) * // 1 million sats or more is great
+      (Math.min(totalChannelCapacitySat, 1_000_000) / 1_000_000) * // 1 million sats or more is great
       (0.9 + averageChannelBalance * 0.1) // +10% for perfectly balanced channels
   );
 
@@ -663,40 +609,4 @@ function getNodeHealth(channels: Channel[]) {
   }
 
   return nodeHealth;
-}
-
-type PendingBalancesDetailsItemProps = {
-  details: PendingBalancesDetails;
-  isLast: boolean;
-};
-
-function PendingBalancesDetailsItem({
-  details,
-  isLast,
-}: PendingBalancesDetailsItemProps) {
-  const { data: info } = useInfo();
-  const { data: nodeDetails } = useNodeDetails(details.nodeId);
-
-  return (
-    <div key={details.channelId} className="inline">
-      &nbsp;
-      <ExternalLink
-        to={`https://amboss.space/node/${details.nodeId}`}
-        className="underline"
-      >
-        {nodeDetails?.alias || "Unknown"}
-        <ExternalLinkIcon className="ml-1 w-4 h-4 inline" />
-      </ExternalLink>{" "}
-      (<FormattedBitcoinAmount amount={details.amount * 1000} />
-      )&nbsp;
-      <ExternalLink
-        to={`${info?.mempoolUrl}/tx/${details.fundingTxId}#flow=&vout=${details.fundingTxVout}`}
-        className="underline"
-      >
-        funding tx
-        <ExternalLinkIcon className="ml-1 w-4 h-4 inline" />
-      </ExternalLink>
-      {isLast && ","}
-    </div>
-  );
 }

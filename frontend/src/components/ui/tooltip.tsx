@@ -1,22 +1,16 @@
-import {
-  PopoverContentProps,
-  PopoverProps,
-  PopoverTriggerProps,
-} from "@radix-ui/react-popover";
-import * as TooltipPrimitive from "@radix-ui/react-tooltip";
-import {
-  TooltipContentProps,
-  TooltipProps,
-  TooltipTriggerProps,
-} from "@radix-ui/react-tooltip";
 import * as React from "react";
-import { PropsWithChildren, createContext, useContext } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import { type PropsWithChildren, createContext, useContext } from "react";
+import {
+  Popover as PopoverPrimitive,
+  Tooltip as TooltipPrimitive,
+} from "radix-ui";
 
 import { cn } from "src/lib/utils";
 
+import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+
 function TooltipProvider({
-  delayDuration = 200,
+  delayDuration = 0,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Provider>) {
   return (
@@ -28,23 +22,17 @@ function TooltipProvider({
   );
 }
 
-function Tooltip({
-  ...props
-}: React.ComponentProps<typeof TooltipPrimitive.Root>) {
+function RadixTooltipRootWithProvider(
+  props: React.ComponentProps<typeof TooltipPrimitive.Root>
+) {
   return (
-    <TooltipProvider>
+    <TooltipProvider delayDuration={200}>
       <TooltipPrimitive.Root data-slot="tooltip" {...props} />
     </TooltipProvider>
   );
 }
 
-function TooltipTrigger({
-  ...props
-}: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
-  return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />;
-}
-
-function TooltipContent({
+function BaseTooltipContent({
   className,
   sideOffset = 0,
   children,
@@ -56,13 +44,13 @@ function TooltipContent({
         data-slot="tooltip-content"
         sideOffset={sideOffset}
         className={cn(
-          "bg-primary text-primary-foreground animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit max-w-72 origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance",
+          "z-50 w-fit origin-(--radix-tooltip-content-transform-origin) animate-in rounded-md bg-foreground px-3 py-1.5 text-xs text-balance text-background fade-in-0 zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
           className
         )}
         {...props}
       >
         {children}
-        <TooltipPrimitive.Arrow className="bg-primary fill-primary z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]" />
+        <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px] bg-foreground fill-foreground" />
       </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>
   );
@@ -71,52 +59,66 @@ function TooltipContent({
 // Hybrid tooltip for touch devices
 
 const TouchContext = createContext<boolean | undefined>(undefined);
+
 const useTouch = () => useContext(TouchContext);
 
-const TouchProvider = (props: PropsWithChildren) => {
+function TouchProvider(props: PropsWithChildren) {
   const isTouch = React.useMemo(
     () => window.matchMedia("(pointer: coarse)").matches,
     []
   );
 
   return <TouchContext.Provider value={isTouch} {...props} />;
-};
+}
 
-const HybridTooltip = (props: TooltipProps & PopoverProps) => {
+type HybridTooltipProps = React.ComponentProps<typeof TooltipPrimitive.Root> &
+  React.ComponentProps<typeof PopoverPrimitive.Root>;
+
+function HybridTooltip(props: HybridTooltipProps) {
   const isTouch = useTouch();
 
-  return isTouch ? <Popover {...props} /> : <Tooltip {...props} />;
-};
+  return isTouch ? (
+    <Popover {...props} />
+  ) : (
+    <RadixTooltipRootWithProvider {...props} />
+  );
+}
 
-const HybridTooltipTrigger = (
-  props: TooltipTriggerProps & PopoverTriggerProps
-) => {
+type HybridTooltipTriggerProps = React.ComponentProps<
+  typeof TooltipPrimitive.Trigger
+> &
+  React.ComponentProps<typeof PopoverPrimitive.Trigger>;
+
+function HybridTooltipTrigger(props: HybridTooltipTriggerProps) {
   const isTouch = useTouch();
 
   return isTouch ? (
     <PopoverTrigger {...props} />
   ) : (
-    <TooltipTrigger {...props} />
+    <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />
   );
-};
+}
 
-const HybridTooltipContent = (
-  props: TooltipContentProps & PopoverContentProps
-) => {
+type HybridTooltipContentProps = React.ComponentProps<
+  typeof TooltipPrimitive.Content
+> &
+  React.ComponentProps<typeof PopoverPrimitive.Content>;
+
+function HybridTooltipContent({
+  className,
+  ...props
+}: HybridTooltipContentProps) {
   const isTouch = useTouch();
 
   return isTouch ? (
     <PopoverContent
       {...props}
-      className={cn(
-        "bg-primary text-primary-foreground text-sm",
-        props.className
-      )}
+      className={cn("bg-foreground text-background text-sm", className)}
     />
   ) : (
-    <TooltipContent {...props} />
+    <BaseTooltipContent {...props} className={className} />
   );
-};
+}
 
 export {
   HybridTooltip as Tooltip,

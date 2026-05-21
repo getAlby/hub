@@ -58,7 +58,7 @@ func TestGetTotalSubwalletBalance(t *testing.T) {
 	}
 	svc.DB.Save(&outgoingPendingSubwalletTx)
 
-	total, err := GetTotalSubwalletBalance(svc.DB)
+	totalBalanceMsat, err := GetTotalSubwalletBalanceMsat(svc.DB)
 	require.NoError(t, err)
-	assert.Equal(t, int64(1600), total)
+	assert.Equal(t, int64(1600), totalBalanceMsat)
 }

@@ -3,11 +3,11 @@ package tests
 import (
 	"time"
 
+	"github.com/getAlby/go-nostr"
 	"github.com/getAlby/hub/constants"
 	db "github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/nip47/cipher"
-	"github.com/nbd-wtf/go-nostr"
 	"gorm.io/gorm"
 )
 

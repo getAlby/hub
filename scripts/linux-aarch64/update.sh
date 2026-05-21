@@ -109,7 +109,7 @@ mkdir albyhub-backup
 
 echo "Creating current backup"
 if command -v rsync > /dev/null 2>&1; then
-  rsync -av data bin lib albyhub-backup/
+  rsync -a data bin lib albyhub-backup/
 else
   mv bin albyhub-backup
   mv lib albyhub-backup
@@ -118,7 +118,7 @@ fi
 
 
 echo "Downloading latest version"
-wget "$ALBYHUB_URL"
+wget -q "$ALBYHUB_URL"
 
 if [ "$SKIP_VERIFY" = false ]; then
   if ! ./verify.sh server-linux-aarch64.tar.bz2 albyhub-Server-Linux-aarch64.tar.bz2; then
@@ -127,7 +127,7 @@ if [ "$SKIP_VERIFY" = false ]; then
   fi
 fi
 
-tar -xvf server-linux-aarch64.tar.bz2
+tar -xf server-linux-aarch64.tar.bz2
 rm server-linux-aarch64.tar.bz2
 
 if sudo systemctl list-units --type=service --all | grep -Fq albyhub.service; then

@@ -12,12 +12,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (api *api) CreateInvoice(ctx context.Context, amount uint64, description string) (*MakeInvoiceResponse, error) {
+func (api *api) CreateInvoice(ctx context.Context, amountMsat uint64, description string) (*MakeInvoiceResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
-	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amount, description, "", 0, nil, lnClient, nil, nil, nil)
+	transaction, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountMsat, description, "", 0, nil, lnClient, nil, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +27,7 @@ func (api *api) CreateInvoice(ctx context.Context, amount uint64, description st
 func (api *api) LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 	transaction, err := api.svc.GetTransactionsService().LookupTransaction(ctx, paymentHash, nil, lnClient, nil)
 	if err != nil {
@@ -36,10 +36,14 @@ func (api *api) LookupInvoice(ctx context.Context, paymentHash string) (*LookupI
 	return toApiTransaction(transaction), nil
 }
 
+func (api *api) SetTransactionUserLabels(ctx context.Context, id uint, labels map[string]string) error {
+	return api.svc.GetTransactionsService().SetTransactionUserLabels(ctx, id, labels)
+}
+
 func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 
 	forceFilterByAppId := false
@@ -63,13 +67,13 @@ func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64,
 	}, nil
 }
 
-func (api *api) SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}) (*SendPaymentResponse, error) {
+func (api *api) SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}, appId *uint) (*SendPaymentResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
 	}
 
-	transaction, err := api.svc.GetTransactionsService().SendPaymentSync(invoice, amountMsat, metadata, lnClient, nil, nil)
+	transaction, err := api.svc.GetTransactionsService().SendPaymentSync(invoice, amountMsat, metadata, lnClient, appId, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -113,6 +117,7 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 	}
 
 	return &Transaction{
+		ID:              transaction.ID,
 		Type:            transaction.Type,
 		State:           strings.ToLower(transaction.State),
 		Invoice:         transaction.PaymentRequest,
@@ -121,8 +126,12 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 		Preimage:        preimage,
 		PaymentHash:     transaction.PaymentHash,
 		Amount:          transaction.AmountMsat,
+		AmountSat:       transaction.AmountMsat / 1000,
+		AmountMsat:      transaction.AmountMsat,
 		AppId:           transaction.AppId,
 		FeesPaid:        transaction.FeeMsat,
+		FeesPaidSat:     transaction.FeeMsat / 1000,
+		FeesPaidMsat:    transaction.FeeMsat,
 		UpdatedAt:       updatedAt,
 		CreatedAt:       createdAt,
 		SettledAt:       settledAt,
@@ -135,7 +144,7 @@ func toApiTransaction(transaction *transactions.Transaction) *Transaction {
 func (api *api) Transfer(ctx context.Context, fromAppId *uint, toAppId *uint, amountMsat uint64, description string) error {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return errors.New("LNClient not started")
+		return ErrLNClientNotStarted
 	}
 
 	for _, appId := range []*uint{fromAppId, toAppId} {
@@ -180,6 +189,7 @@ func toApiBoostagram(boostagram *transactions.Boostagram) *Boostagram {
 		SenderName:     boostagram.SenderName,
 		Time:           boostagram.Time,
 		Action:         boostagram.Action,
+		ValueSatTotal:  boostagram.ValueMsatTotal / 1000,
 		ValueMsatTotal: boostagram.ValueMsatTotal,
 	}
 }

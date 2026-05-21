@@ -14,15 +14,15 @@ type PayLightningInvoiceProps = {
 };
 
 export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
-  const amount = new Invoice({
+  const amountSat = new Invoice({
     pr: invoice,
   }).satoshi;
   const [fiatAmount, setFiatAmount] = React.useState(0);
   React.useEffect(() => {
-    getFiatValue({ satoshi: amount, currency: "USD" }).then((fiatAmount) =>
+    getFiatValue({ satoshi: amountSat, currency: "USD" }).then((fiatAmount) =>
       setFiatAmount(fiatAmount)
     );
-  }, [amount]);
+  }, [amountSat]);
   const copy = () => {
     copyToClipboard(invoice);
   };
@@ -41,7 +41,7 @@ export function PayLightningInvoice({ invoice }: PayLightningInvoiceProps) {
       </div>
       <div>
         <p className="text-lg font-semibold">
-          <FormattedBitcoinAmount amount={amount * 1000} />
+          <FormattedBitcoinAmount amountMsat={amountSat * 1000} />
         </p>
         <p className="flex flex-col items-center justify-center">
           {new Intl.NumberFormat("en-US", {

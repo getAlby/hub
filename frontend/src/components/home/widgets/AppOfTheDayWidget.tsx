@@ -1,14 +1,16 @@
-import { ExternalLinkIcon } from "lucide-react";
-import { appStoreApps } from "src/components/connections/SuggestedAppData";
+import { ChevronRightIcon } from "lucide-react";
+import { Link } from "react-router";
+import {
+  appStoreApps,
+  getAppStoreUrl,
+} from "src/components/connections/SuggestedAppData";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
-import { LinkButton } from "src/components/ui/custom/link-button";
 
 export function AppOfTheDayWidget() {
   function seededRandom(seed: number) {
@@ -27,31 +29,32 @@ export function AppOfTheDayWidget() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>App of the Day</CardTitle>
+      <CardHeader className="px-6 pb-0">
+        <CardTitle className="text-base font-semibold">
+          App of the Day
+        </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="flex gap-3 items-center">
+      <CardContent className="px-6 pt-0">
+        <Link
+          to={getAppStoreUrl(app)}
+          className="group flex items-center gap-4 rounded-md"
+        >
           <img
             src={app.logo}
-            alt="logo"
-            className="inline rounded-lg w-12 h-12"
+            alt={`${app.title} logo`}
+            className="size-15 rounded-lg object-cover"
           />
-          <div className="grow">
-            <CardTitle>{app.title}</CardTitle>
-            <CardDescription>{app.description}</CardDescription>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-base font-semibold text-foreground">
+              {app.title}
+            </p>
+            <CardDescription className="line-clamp-2 text-sm leading-5 text-muted-foreground">
+              {app.description}
+            </CardDescription>
           </div>
-        </div>
+          <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+        </Link>
       </CardContent>
-      <CardFooter className="flex flex-row justify-end">
-        <LinkButton
-          to={app.internal ? `/internal-apps/${app.id}` : `/appstore/${app.id}`}
-          variant="outline"
-        >
-          <ExternalLinkIcon />
-          Open
-        </LinkButton>
-      </CardFooter>
     </Card>
   );
 }

@@ -6,7 +6,7 @@ import {
   ZapIcon,
 } from "lucide-react";
 import React, { ReactElement } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 import { toast } from "sonner";
 import {
   Card,
@@ -146,10 +146,10 @@ function SidebarHintCard({
         <CardTitle>{title}</CardTitle>
         {onClose && (
           <button
-            className="absolute top-4 right-4 text-muted-foreground hover:text-primary"
+            className="absolute top-6 right-6 text-muted-foreground hover:text-foreground"
             onClick={onClose}
           >
-            <XIcon name="X" />
+            <XIcon className="size-4" />
           </button>
         )}
       </CardHeader>

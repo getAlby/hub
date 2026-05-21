@@ -9,7 +9,7 @@ import {
 } from "src/types";
 
 import { CopyIcon, QrCodeIcon, RefreshCwIcon } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
@@ -120,6 +120,7 @@ function Success() {
     <div className="flex flex-col justify-center gap-5 p-5 max-w-md items-stretch">
       <TwoColumnLayoutHeader
         title="Channel Opened"
+        pageTitle="Channel Opened"
         description="Your new lightning channel is ready to use"
       />
 
@@ -166,7 +167,7 @@ function ChannelOpening({ fundingTxId }: { fundingTxId: string | undefined }) {
   return <ChannelWaitingForConfirmations channel={channel} />;
 }
 
-function useEstimatedTransactionFee() {
+function useEstimatedTransactionFeeSat() {
   const { data: recommendedFees } = useMempoolApi<{ fastestFee: number }>(
     "/v1/fees/recommended",
     true
@@ -189,10 +190,10 @@ function PayBitcoinChannelOrder({ order }: { order: NewChannelOrder }) {
   }
 
   // expect at least the user to have more funds than the channel size, hopefully enough to cover mempool fees.
-  if (balances.onchain.spendable > +order.amount) {
+  if (balances.onchain.spendableSat > +order.amountSat) {
     return <PayBitcoinChannelOrderWithSpendableFunds order={order} />;
   }
-  if (balances.onchain.total > +order.amount) {
+  if (balances.onchain.totalSat > +order.amountSat) {
     return <PayBitcoinChannelOrderWaitingDepositConfirmation />;
   }
   return <PayBitcoinChannelOrderTopup order={order} />;
@@ -236,9 +237,9 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
     onchainAddress ? `/address/${onchainAddress}/utxo` : undefined,
     3000
   );
-  const estimatedTransactionFee = useEstimatedTransactionFee();
+  const estimatedTransactionFeeSat = useEstimatedTransactionFeeSat();
 
-  if (!onchainAddress || !balances || !estimatedTransactionFee) {
+  if (!onchainAddress || !balances || !estimatedTransactionFeeSat) {
     return (
       <div className="flex justify-center">
         <Loading />
@@ -249,34 +250,35 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
   // expect at least the user to have more funds than the channel size, hopefully enough to cover mempool fees.
   // This only considers one UTXO and will not work well if the user generates a new address.
   // However, this is just a fallback because LDK only updates onchain balances ~ once per minute.
-  const unspentAmount =
+  const unspentAmountSat =
     mempoolAddressUtxos?.map((utxo) => utxo.value).reduce((a, b) => a + b, 0) ||
     0;
 
-  if (unspentAmount > +order.amount) {
+  if (unspentAmountSat > +order.amountSat) {
     return <PayBitcoinChannelOrderWaitingDepositConfirmation />;
   }
 
   const num0ConfChannels =
     channels?.filter((c) => c.confirmationsRequired === 0).length || 0;
 
-  const estimatedAnchorReserve = Math.max(
-    num0ConfChannels * 25000 - balances.onchain.reserved,
+  const estimatedAnchorReserveSat = Math.max(
+    num0ConfChannels * 25000 - balances.onchain.reservedSat,
     0
   );
 
-  const missingAmount =
-    +order.amount +
-    estimatedTransactionFee +
-    estimatedAnchorReserve -
-    balances.onchain.total;
+  const missingAmountSat =
+    +order.amountSat +
+    estimatedTransactionFeeSat +
+    estimatedAnchorReserveSat -
+    balances.onchain.totalSat;
 
-  const recommendedAmount = Math.ceil(missingAmount / 10000) * 10000;
-  const topupLink = `https://getalby.com/topup?address=${onchainAddress}&receive_amount=${recommendedAmount}`;
+  const recommendedAmountSat = Math.ceil(missingAmountSat / 10000) * 10000;
+  const topupLink = `https://getalby.com/topup?address=${onchainAddress}&receive_amount=${recommendedAmountSat}`;
 
   return (
     <div className="grid gap-5">
       <AppHeader
+        pageTitle="Deposit bitcoin"
         title="Deposit bitcoin"
         description="You don't have enough Bitcoin to open your intended channel"
       />
@@ -286,11 +288,15 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
           <p className="text-xs slashed-zero">
             You currently have{" "}
             <span className="font-semibold sensitive">
-              <FormattedBitcoinAmount amount={balances.onchain.total * 1000} />
+              <FormattedBitcoinAmount
+                amountMsat={balances.onchain.totalSat * 1000}
+              />
             </span>
             . We recommend depositing an additional amount of{" "}
             <span className="font-semibold">
-              <FormattedBitcoinAmount amount={recommendedAmount * 1000} />
+              <FormattedBitcoinAmount
+                amountMsat={recommendedAmountSat * 1000}
+              />
             </span>{" "}
             to open this channel.
           </p>
@@ -363,9 +369,10 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
               be redirected as soon as the transaction is seen in the mempool.
             </CardDescription>
           </CardHeader>
-          {unspentAmount > 0 && (
+          {unspentAmountSat > 0 && (
             <CardContent className="slashed-zero">
-              <FormattedBitcoinAmount amount={unspentAmount * 1000} /> deposited
+              <FormattedBitcoinAmount amountMsat={unspentAmountSat * 1000} />{" "}
+              deposited
             </CardContent>
           )}
         </Card>
@@ -447,7 +454,7 @@ function PayBitcoinChannelOrderWithSpendableFunds({
 
       const openChannelRequest: OpenChannelRequest = {
         pubkey,
-        amountSats: +order.amount,
+        amountSats: +order.amountSat,
         public: order.isPublic,
       };
       const openChannelResponse = await request<OpenChannelResponse>(
@@ -481,7 +488,7 @@ function PayBitcoinChannelOrderWithSpendableFunds({
     }
   }, [
     connectPeer,
-    order.amount,
+    order.amountSat,
     order.isPublic,
     order.paymentMethod,
     peers,
@@ -495,11 +502,12 @@ function PayBitcoinChannelOrderWithSpendableFunds({
 
     hasStartedOpenedChannel = true;
     openChannel();
-  }, [openChannel, order.amount, peers, pubkey]);
+  }, [openChannel, order.amountSat, peers, pubkey]);
 
   return (
     <div className="flex flex-col gap-5">
       <AppHeader
+        pageTitle="Opening channel"
         title="Opening channel"
         description="Your funds have been successfully deposited"
       />
@@ -574,7 +582,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
             const newLSPOrderRequest: LSPOrderRequest = {
               lspType: order.lspType,
               lspIdentifier: order.lspIdentifier,
-              amount: parseInt(order.amount),
+              amountSat: parseInt(order.amountSat),
               public: order.isPublic,
             };
             const response = await request<LSPOrderResponse>(
@@ -610,7 +618,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
     });
   }, [
     channels,
-    order.amount,
+    order.amountSat,
     order.isPublic,
     order.lspType,
     order.lspIdentifier,
@@ -619,14 +627,15 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
   const canPayInternally =
     balances &&
     lspOrderResponse &&
-    balances.lightning.nextMaxSpendableMPP / 1000 >
-      lspOrderResponse.invoiceAmount;
+    balances.lightning.nextMaxSpendableMPPMsat / 1000 >
+      lspOrderResponse.invoiceAmountSat;
   const [isPaying, setPaying] = React.useState(false);
   const [payExternally, setPayExternally] = React.useState(false);
 
   return (
     <div className="flex flex-col gap-5">
       <AppHeader
+        pageTitle="Review Channel Purchase"
         title="Review Channel Purchase"
         description={
           lspOrderResponse
@@ -642,19 +651,21 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
             <div className="border rounded-lg slashed-zero">
               <Table>
                 <TableBody>
-                  {lspOrderResponse.outgoingLiquidity > 0 && (
+                  {lspOrderResponse.outgoingLiquiditySat > 0 && (
                     <TableRow>
                       <TableCell className="font-medium p-3">
-                        Spending Balance
+                        Lightning Balance
                       </TableCell>
                       <TableCell className="text-right p-3">
                         <FormattedBitcoinAmount
-                          amount={lspOrderResponse.outgoingLiquidity * 1000}
+                          amountMsat={
+                            lspOrderResponse.outgoingLiquiditySat * 1000
+                          }
                         />
                       </TableCell>
                     </TableRow>
                   )}
-                  {lspOrderResponse.incomingLiquidity > 0 && (
+                  {lspOrderResponse.incomingLiquiditySat > 0 && (
                     <TableRow>
                       <TableCell className="font-medium p-3">
                         Incoming Liquidity
@@ -662,10 +673,12 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                       <TableCell className="text-right p-3">
                         <div className="flex flex-col items-end">
                           <FormattedBitcoinAmount
-                            amount={lspOrderResponse.incomingLiquidity * 1000}
+                            amountMsat={
+                              lspOrderResponse.incomingLiquiditySat * 1000
+                            }
                           />
                           <FormattedFiatAmount
-                            amount={lspOrderResponse.incomingLiquidity}
+                            amountSat={lspOrderResponse.incomingLiquiditySat}
                             showApprox
                           />
                         </div>
@@ -679,10 +692,10 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                     <TableCell className="font-semibold text-right p-3">
                       <div className="flex flex-col items-end">
                         <FormattedBitcoinAmount
-                          amount={lspOrderResponse.invoiceAmount * 1000}
+                          amountMsat={lspOrderResponse.invoiceAmountSat * 1000}
                         />
                         <FormattedFiatAmount
-                          amount={lspOrderResponse.invoiceAmount}
+                          amountSat={lspOrderResponse.invoiceAmountSat}
                           showApprox
                         />
                       </div>
@@ -763,7 +776,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                   variant="secondary"
                   className="w-full"
                 >
-                  Increase Spending Balance
+                  Increase Lightning Balance
                 </LinkButton>
                 <ExternalLinkButton
                   to="https://www.getalby.com/topup"

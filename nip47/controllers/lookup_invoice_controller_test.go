@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nbd-wtf/go-nostr"
+	"github.com/getAlby/go-nostr"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -51,8 +51,8 @@ func TestHandleLookupInvoiceEvent(t *testing.T) {
 		DescriptionHash: tests.MockLNClientTransaction.DescriptionHash,
 		Preimage:        &tests.MockLNClientTransaction.Preimage,
 		PaymentHash:     tests.MockLNClientTransaction.PaymentHash,
-		AmountMsat:      uint64(tests.MockLNClientTransaction.Amount),
-		FeeMsat:         uint64(tests.MockLNClientTransaction.FeesPaid),
+		AmountMsat:      uint64(tests.MockLNClientTransaction.AmountMsat),
+		FeeMsat:         uint64(tests.MockLNClientTransaction.FeesPaidMsat),
 		SettledAt:       &settledAt,
 		AppId:           &app.ID,
 	}).Error
@@ -75,7 +75,7 @@ func TestHandleLookupInvoiceEvent(t *testing.T) {
 	assert.Equal(t, tests.MockLNClientTransaction.DescriptionHash, transaction.DescriptionHash)
 	assert.Equal(t, tests.MockLNClientTransaction.Preimage, transaction.Preimage)
 	assert.Equal(t, tests.MockLNClientTransaction.PaymentHash, transaction.PaymentHash)
-	assert.Equal(t, tests.MockLNClientTransaction.Amount, transaction.Amount)
-	assert.Equal(t, tests.MockLNClientTransaction.FeesPaid, transaction.FeesPaid)
+	assert.Equal(t, tests.MockLNClientTransaction.AmountMsat, transaction.Amount)
+	assert.Equal(t, tests.MockLNClientTransaction.FeesPaidMsat, transaction.FeesPaid)
 	assert.Equal(t, tests.MockLNClientTransaction.SettledAt, transaction.SettledAt)
 }

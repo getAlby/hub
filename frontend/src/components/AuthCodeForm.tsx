@@ -1,6 +1,6 @@
 import { RefreshCwIcon } from "lucide-react";
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import Container from "src/components/Container";
 import PasswordInput from "src/components/password/PasswordInput";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
@@ -62,6 +62,7 @@ function AuthCodeForm({ url }: AuthCodeFormProps) {
         <div className="grid gap-5">
           <TwoColumnLayoutHeader
             title="Connect your Alby Account"
+            pageTitle="Connect your Alby Account"
             description="A new window will open. Sign in with your Alby Account, copy the Authorization Code, and paste it here."
           />
           {!hasRequestedCode && (

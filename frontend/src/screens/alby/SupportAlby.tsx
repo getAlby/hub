@@ -1,12 +1,12 @@
 import {
   CodeIcon,
-  HandCoins,
+  HandCoinsIcon,
   PlusCircleIcon,
   RefreshCwIcon,
-  Sparkles,
+  SparklesIcon,
 } from "lucide-react";
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
@@ -47,7 +47,7 @@ function SupportAlby() {
   const navigate = useNavigate();
   const { data: info } = useInfo();
 
-  const [amount, setAmount] = React.useState("");
+  const [amountSat, setAmountSat] = React.useState("");
   const [senderName, setSenderName] = React.useState("");
   const [isSubmitting, setSubmitting] = React.useState(false);
   const [open, setOpen] = React.useState(false);
@@ -61,12 +61,12 @@ function SupportAlby() {
 
     setSubmitting(true);
     try {
-      const parsedAmount = parseInt(amount);
-      if (isNaN(parsedAmount) || parsedAmount < 1) {
+      const parsedAmountSat = Number(amountSat);
+      if (!Number.isInteger(parsedAmountSat) || parsedAmountSat < 1) {
         throw new Error("Invalid amount");
       }
 
-      if (+amount < 1000) {
+      if (parsedAmountSat < 1000) {
         toast.error("Amount too low", {
           description: `Minimum payment is ${formatBitcoinAmount(
             1_000 * 1000,
@@ -78,14 +78,14 @@ function SupportAlby() {
 
       // TODO: extract below code as is duplicated with ZapPlanner
       // with fee reserve of max(1% or 10 sats) + 30% to avoid nwc_budget_warning (see transactions service)
-      const maxAmount = Math.floor((parsedAmount * 1.01 + 10) * 1.3);
+      const maxAmountSat = Math.floor((parsedAmountSat * 1.01 + 10) * 1.3);
       const isolated = false;
 
       const createAppRequest: CreateAppRequest = {
         name: SUPPORT_ALBY_CONNECTION_NAME,
         scopes: ["pay_invoice"],
         budgetRenewal: "monthly",
-        maxAmount,
+        maxAmountSat,
         isolated,
         metadata: {
           app_store_app_id: "zapplanner",
@@ -105,7 +105,7 @@ function SupportAlby() {
           },
           body: JSON.stringify({
             recipientLightningAddress: SUPPORT_ALBY_LIGHTNING_ADDRESS,
-            amount: parsedAmount,
+            amount: parsedAmountSat,
             message: "ZapPlanner payment from Alby Hub",
             payerData: JSON.stringify({
               ...(senderName ? { name: senderName } : {}),
@@ -159,6 +159,7 @@ function SupportAlby() {
     <>
       <AppHeader
         title="Support Alby Hub"
+        pageTitle="Support Alby"
         description="We are committed to elevating the Bitcoin ecosystem by offering reliable, efficient, and user-friendly software solutions for seamless transactions. With your help, we can keep pushing boundaries and evolving Alby Hub into something extraordinary."
       />
       <h2 className="text-2xl font-semibold">Become a Supporter</h2>
@@ -174,7 +175,7 @@ function SupportAlby() {
           <CardFooter className="flex justify-end">
             <UpgradeDialog>
               <Button>
-                <Sparkles />
+                <SparklesIcon />
                 Upgrade to Pro
               </Button>
             </UpgradeDialog>
@@ -194,7 +195,7 @@ function SupportAlby() {
               <div className="flex flex-col items-center justify-center gap-2">
                 <DialogTrigger asChild>
                   <Button>
-                    <HandCoins />
+                    <HandCoinsIcon />
                     Setup Donation
                   </Button>
                 </DialogTrigger>
@@ -220,29 +221,29 @@ function SupportAlby() {
                       <div className="col-span-3">
                         <Input
                           id="amount"
-                          value={amount}
+                          value={amountSat}
                           required
-                          onChange={(e) => setAmount(e.target.value)}
+                          onChange={(e) => setAmountSat(e.target.value)}
                         />
                         <div className="grid grid-cols-3 gap-1 mt-1">
                           <Button
                             type="button"
                             variant="outline"
-                            onClick={() => setAmount("3000")}
+                            onClick={() => setAmountSat("3000")}
                           >
                             🙏 3000
                           </Button>
                           <Button
                             type="button"
                             variant="outline"
-                            onClick={() => setAmount("6000")}
+                            onClick={() => setAmountSat("6000")}
                           >
                             💪 6000
                           </Button>
                           <Button
                             type="button"
                             variant="outline"
-                            onClick={() => setAmount("10000")}
+                            onClick={() => setAmountSat("10000")}
                           >
                             ✨ 10000
                           </Button>

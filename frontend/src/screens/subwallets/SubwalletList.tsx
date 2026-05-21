@@ -1,10 +1,9 @@
 import {
   CirclePlusIcon,
-  HelpCircle,
+  HelpCircleIcon,
   InfoIcon,
   ShieldCheckIcon,
   SparklesIcon,
-  TriangleAlert,
   TriangleAlertIcon,
 } from "lucide-react";
 import { useRef, useState } from "react";
@@ -16,7 +15,12 @@ import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import ResponsiveButton from "src/components/ResponsiveButton";
 import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
-import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
+import {
+  Alert,
+  AlertAction,
+  AlertDescription,
+  AlertTitle,
+} from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -72,14 +76,15 @@ export function SubwalletList() {
     return <SubwalletIntro />;
   }
 
-  const subwalletTotalAmount = subwalletAppsData.totalBalance || 0;
+  const subwalletTotalAmountMsat = subwalletAppsData.totalBalanceMsat || 0;
   const isSufficientlyBacked =
-    subwalletTotalAmount <= balances.lightning.totalSpendable;
+    subwalletTotalAmountMsat <= balances.lightning.totalSpendableMsat;
 
   return (
     <div className="grid gap-3">
       <AppHeader
         title="Sub-wallets"
+        pageTitle="Sub-wallets"
         description="Create sub-wallets for yourself, friends, family or coworkers"
         contentRight={
           <>
@@ -88,7 +93,7 @@ export function SubwalletList() {
               variant="outline"
               size="icon"
             >
-              <HelpCircle className="size-4" />
+              <HelpCircleIcon className="size-4" />
             </ExternalLinkButton>
             {!albyMe?.subscription.plan_code &&
             subwalletAppsData.totalCount >= MAX_FREE_SUBWALLETS ? (
@@ -108,37 +113,34 @@ export function SubwalletList() {
 
       {!albyMe?.subscription.plan_code &&
         subwalletAppsData.totalCount >= MAX_FREE_SUBWALLETS && (
-          <>
-            <Alert>
-              <InfoIcon />
-              <AlertTitle>Need more Sub-wallets?</AlertTitle>
-              <AlertDescription className="flex flex-row gap-3">
-                <p className="grow">
-                  Upgrade your subscription plan to Pro unlock unlimited number
-                  of Sub-wallets.
-                </p>
-                <UpgradeDialog>
-                  <Button>
-                    <SparklesIcon />
-                    Upgrade
-                  </Button>
-                </UpgradeDialog>
-              </AlertDescription>
-            </Alert>
-          </>
+          <Alert>
+            <InfoIcon />
+            <AlertTitle>Need more Sub-wallets?</AlertTitle>
+            <AlertDescription>
+              Upgrade to Pro for unlimited sub-wallets.
+            </AlertDescription>
+            <AlertAction>
+              <UpgradeDialog>
+                <Button size="sm">
+                  <SparklesIcon />
+                  Upgrade
+                </Button>
+              </UpgradeDialog>
+            </AlertAction>
+          </Alert>
         )}
 
       {!isSufficientlyBacked && (
         <Alert variant="warning">
-          <TriangleAlert />
+          <TriangleAlertIcon />
           <AlertTitle>
             Sub-wallets you manage are insufficiently backed
           </AlertTitle>
           <AlertDescription className="flex flex-row gap-3">
-            There's not enough bitcoin in your spending balance to honor all
-            balances of sub-wallets under your management. Increase spending
-            capacity by opening a channel or review your channel statuses to
-            back them up again.
+            There's not enough bitcoin in your lightning balance to honor all
+            balances of sub-wallets under your management. Increase your
+            lightning balance by opening a channel or review your channel
+            statuses to back them up again.
             <LinkButton to="/wallet/receive" variant="secondary">
               Deposit Bitcoin
             </LinkButton>
@@ -156,10 +158,10 @@ export function SubwalletList() {
           <CardContent className="grow">
             <div className="mb-1">
               <span className="text-2xl font-medium balance sensitive">
-                <FormattedBitcoinAmount amount={subwalletTotalAmount} />
+                <FormattedBitcoinAmount amountMsat={subwalletTotalAmountMsat} />
               </span>
             </div>
-            <FormattedFiatAmount amount={subwalletTotalAmount / 1000} />
+            <FormattedFiatAmount amountSat={subwalletTotalAmountMsat / 1000} />
           </CardContent>
         </Card>
         <Card className="flex flex-1 flex-col">

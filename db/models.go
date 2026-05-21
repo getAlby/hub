@@ -16,16 +16,17 @@ type UserConfig struct {
 }
 
 type App struct {
-	ID           uint
-	Name         string `validate:"required"`
-	Description  string
-	AppPubkey    string `validate:"required"`
-	WalletPubkey *string
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
-	LastUsedAt   *time.Time
-	Isolated     bool
-	Metadata     datatypes.JSON
+	ID                       uint
+	Name                     string `validate:"required"`
+	Description              string
+	AppPubkey                string `validate:"required"`
+	WalletPubkey             *string
+	CreatedAt                time.Time
+	UpdatedAt                time.Time
+	LastUsedAt               *time.Time
+	LastSettledTransactionAt *time.Time
+	Isolated                 bool
+	Metadata                 datatypes.JSON
 }
 
 type AppPermission struct {
@@ -96,8 +97,8 @@ type Swap struct {
 	Type               string
 	State              string
 	Invoice            string
-	SendAmount         uint64
-	ReceiveAmount      uint64
+	SendAmountSat      uint64 `gorm:"column:send_amount"`
+	ReceiveAmountSat   uint64 `gorm:"column:receive_amount"`
 	Preimage           string
 	PaymentHash        string
 	DestinationAddress string

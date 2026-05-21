@@ -432,7 +432,7 @@ func (svc *LNDService) Shutdown() error {
 	return nil
 }
 
-func (svc *LNDService) SendPaymentSync(payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
+func (svc *LNDService) SendPaymentSync(payReq string, amountMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
 	const MAX_PARTIAL_PAYMENTS = 16
 
 	paymentRequest, err := decodepay.Decodepay(payReq)
@@ -444,8 +444,8 @@ func (svc *LNDService) SendPaymentSync(payReq string, amount *uint64) (*lnclient
 	}
 
 	paymentAmountMsat := uint64(paymentRequest.MSatoshi)
-	if amount != nil {
-		paymentAmountMsat = *amount
+	if amountMsat != nil {
+		paymentAmountMsat = *amountMsat
 	}
 	sendRequest := &routerrpc.SendPaymentRequest{
 		PaymentRequest: payReq,
@@ -454,8 +454,8 @@ func (svc *LNDService) SendPaymentSync(payReq string, amount *uint64) (*lnclient
 		TimeoutSeconds: SEND_PAYMENT_TIMEOUT,
 	}
 
-	if amount != nil {
-		sendRequest.AmtMsat = int64(*amount)
+	if amountMsat != nil {
+		sendRequest.AmtMsat = int64(*amountMsat)
 	}
 
 	payStream, err := svc.client.SendPayment(svc.ctx, sendRequest)
@@ -490,11 +490,11 @@ func (svc *LNDService) SendPaymentSync(payReq string, amount *uint64) (*lnclient
 
 	return &lnclient.PayInvoiceResponse{
 		Preimage: resp.PaymentPreimage,
-		Fee:      uint64(resp.FeeMsat),
+		FeeMsat:  uint64(resp.FeeMsat),
 	}, nil
 }
 
-func (svc *LNDService) SendKeysend(amount uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+func (svc *LNDService) SendKeysend(amountMsat uint64, destination string, custom_records []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	destBytes, err := hex.DecodeString(destination)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -534,13 +534,13 @@ func (svc *LNDService) SendKeysend(amount uint64, destination string, custom_rec
 	destCustomRecords[KEYSEND_CUSTOM_RECORD] = preImageBytes
 	sendPaymentRequest := &routerrpc.SendPaymentRequest{
 		Dest:              destBytes,
-		AmtMsat:           int64(amount),
+		AmtMsat:           int64(amountMsat),
 		PaymentHash:       paymentHashBytes,
 		DestFeatures:      []lnrpc.FeatureBit{lnrpc.FeatureBit_TLV_ONION_REQ},
 		DestCustomRecords: destCustomRecords,
 		MaxParts:          MAX_PARTIAL_PAYMENTS,
 		TimeoutSeconds:    SEND_PAYMENT_TIMEOUT,
-		FeeLimitMsat:      int64(transactions.CalculateFeeReserveMsat(amount)),
+		FeeLimitMsat:      int64(transactions.CalculateFeeReserveMsat(amountMsat)),
 	}
 
 	payStream, err := svc.client.SendPayment(svc.ctx, sendPaymentRequest)
@@ -584,7 +584,7 @@ func (svc *LNDService) SendKeysend(amount uint64, destination string, custom_rec
 	}).Info("Keysend payment successful")
 
 	return &lnclient.PayKeysendResponse{
-		Fee: uint64(resp.FeeMsat),
+		FeeMsat: uint64(resp.FeeMsat),
 	}, nil
 }
 
@@ -601,7 +601,7 @@ func (svc *LNDService) getPaymentResult(stream routerrpc.Router_SendPaymentV2Cli
 	}
 }
 
-func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
+func (svc *LNDService) MakeInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *lnclient.Transaction, err error) {
 	var descriptionHashBytes []byte
 
 	if descriptionHash != "" {
@@ -703,7 +703,7 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, descriptio
 	}
 
 	addInvoiceRequest := &lnrpc.Invoice{
-		ValueMsat:       amount,
+		ValueMsat:       amountMsat,
 		Memo:            description,
 		DescriptionHash: descriptionHashBytes,
 		Expiry:          expiry,
@@ -727,7 +727,7 @@ func (svc *LNDService) MakeInvoice(ctx context.Context, amount int64, descriptio
 	return transaction, nil
 }
 
-func (svc *LNDService) MakeHoldInvoice(ctx context.Context, amount int64, description string, descriptionHash string, expiry int64, paymentHash string) (transaction *lnclient.Transaction, err error) {
+func (svc *LNDService) MakeHoldInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, paymentHash string, minCltvExpiryDelta *uint64) (transaction *lnclient.Transaction, err error) {
 	var descriptionHashBytes []byte
 	var paymentHashBytes []byte
 
@@ -772,12 +772,15 @@ func (svc *LNDService) MakeHoldInvoice(ctx context.Context, amount int64, descri
 	}
 
 	addInvoiceRequest := &invoicesrpc.AddHoldInvoiceRequest{
-		ValueMsat:       amount,
+		ValueMsat:       amountMsat,
 		Memo:            description,
 		DescriptionHash: descriptionHashBytes,
 		Expiry:          expiry,
 		Private:         !hasPublicChannels,
 		Hash:            paymentHashBytes,
+	}
+	if minCltvExpiryDelta != nil {
+		addInvoiceRequest.CltvExpiry = *minCltvExpiryDelta
 	}
 
 	_, err = svc.client.AddHoldInvoice(ctx, addInvoiceRequest)
@@ -940,23 +943,23 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 		}
 
 		channels[i] = lnclient.Channel{
-			InternalChannel:                          lndChannel,
-			LocalBalance:                             lndChannel.LocalBalance * 1000,
-			LocalSpendableBalance:                    int64(math.Max(float64((lndChannel.LocalBalance-int64(lndChannel.LocalConstraints.ChanReserveSat))*1000), float64(0))),
-			RemoteBalance:                            lndChannel.RemoteBalance * 1000,
-			RemotePubkey:                             lndChannel.RemotePubkey,
-			Id:                                       strconv.FormatUint(lndChannel.ChanId, 10),
-			Active:                                   lndChannel.Active,
-			Public:                                   !lndChannel.Private,
-			FundingTxId:                              channelPoint.GetFundingTxidStr(),
-			FundingTxVout:                            channelPoint.GetOutputIndex(),
-			Confirmations:                            &confirmations,
-			ConfirmationsRequired:                    &confirmationsRequired,
-			UnspendablePunishmentReserve:             lndChannel.LocalConstraints.ChanReserveSat,
-			CounterpartyUnspendablePunishmentReserve: lndChannel.RemoteConstraints.ChanReserveSat,
-			IsOutbound:                               lndChannel.Initiator,
-			ForwardingFeeBaseMsat:                    forwardingFeeBaseMsat,
-			ForwardingFeeProportionalMillionths:      forwardingFeeProportionalMillionths,
+			InternalChannel:                 lndChannel,
+			LocalBalanceMsat:                lndChannel.LocalBalance * 1000,
+			LocalSpendableBalanceMsat:       int64(math.Max(float64((lndChannel.LocalBalance-int64(lndChannel.LocalConstraints.ChanReserveSat))*1000), float64(0))),
+			RemoteBalanceMsat:               lndChannel.RemoteBalance * 1000,
+			RemotePubkey:                    lndChannel.RemotePubkey,
+			Id:                              strconv.FormatUint(lndChannel.ChanId, 10),
+			Active:                          lndChannel.Active,
+			Public:                          !lndChannel.Private,
+			FundingTxId:                     channelPoint.GetFundingTxidStr(),
+			FundingTxVout:                   channelPoint.GetOutputIndex(),
+			Confirmations:                   &confirmations,
+			ConfirmationsRequired:           &confirmationsRequired,
+			UnspendablePunishmentReserveSat: lndChannel.LocalConstraints.ChanReserveSat,
+			CounterpartyUnspendablePunishmentReserveSat: lndChannel.RemoteConstraints.ChanReserveSat,
+			IsOutbound:                          lndChannel.Initiator,
+			ForwardingFeeBaseMsat:               forwardingFeeBaseMsat,
+			ForwardingFeeProportionalMillionths: forwardingFeeProportionalMillionths,
 		}
 	}
 
@@ -977,8 +980,8 @@ func (svc *LNDService) ListChannels(ctx context.Context) ([]lnclient.Channel, er
 
 		channels[j+len(activeResp.Channels)] = lnclient.Channel{
 			InternalChannel:       lndChannel,
-			LocalBalance:          lndChannel.Channel.LocalBalance * 1000,
-			RemoteBalance:         lndChannel.Channel.RemoteBalance * 1000,
+			LocalBalanceMsat:      lndChannel.Channel.LocalBalance * 1000,
+			RemoteBalanceMsat:     lndChannel.Channel.RemoteBalance * 1000,
 			RemotePubkey:          lndChannel.Channel.RemoteNodePub,
 			Public:                !lndChannel.Channel.Private,
 			FundingTxId:           fundingTxId,
@@ -1261,6 +1264,7 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 			pendingBalancesDetails = append(pendingBalancesDetails, lnclient.PendingBalanceDetails{
 				NodeId:        closingChannel.Channel.RemoteNodePub,
 				Amount:        uint64(closingChannel.LimboBalance),
+				AmountSat:     uint64(closingChannel.LimboBalance),
 				FundingTxId:   channelPoint.GetFundingTxidStr(),
 				FundingTxVout: channelPoint.GetOutputIndex(),
 			})
@@ -1270,12 +1274,16 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 		"balances": balances,
 	}).Debug("Listed Balances")
 	return &lnclient.OnchainBalanceResponse{
-		Spendable:                          int64(balances.ConfirmedBalance),
-		Total:                              int64(balances.TotalBalance),
-		Reserved:                           int64(balances.ReservedBalanceAnchorChan),
-		PendingBalancesFromChannelClosures: pendingBalancesFromChannelClosures,
-		PendingBalancesDetails:             pendingBalancesDetails,
-		PendingSweepBalancesDetails:        []lnclient.PendingBalanceDetails{},
+		Spendable:                             int64(balances.ConfirmedBalance),
+		SpendableSat:                          int64(balances.ConfirmedBalance),
+		Total:                                 int64(balances.TotalBalance),
+		TotalSat:                              int64(balances.TotalBalance),
+		Reserved:                              int64(balances.ReservedBalanceAnchorChan),
+		ReservedSat:                           int64(balances.ReservedBalanceAnchorChan),
+		PendingBalancesFromChannelClosures:    pendingBalancesFromChannelClosures,
+		PendingBalancesFromChannelClosuresSat: pendingBalancesFromChannelClosures,
+		PendingBalancesDetails:                pendingBalancesDetails,
+		PendingSweepBalancesDetails:           []lnclient.PendingBalanceDetails{},
 		InternalBalances: map[string]interface{}{
 			"balances":         balances,
 			"pending_channels": pendingChannels,
@@ -1283,11 +1291,11 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 	}, nil
 }
 
-func (svc *LNDService) RedeemOnchainFunds(ctx context.Context, toAddress string, amount uint64, feeRate *uint64, sendAll bool) (txId string, err error) {
+func (svc *LNDService) RedeemOnchainFunds(ctx context.Context, toAddress string, amountSat uint64, feeRate *uint64, sendAll bool) (txId string, err error) {
 	sendCoinsRequest := &lnrpc.SendCoinsRequest{
 		Addr:    toAddress,
 		SendAll: sendAll,
-		Amount:  int64(amount),
+		Amount:  int64(amountSat),
 	}
 
 	if feeRate != nil {
@@ -1316,14 +1324,6 @@ func (svc *LNDService) SignMessage(ctx context.Context, message string) (string,
 	}
 
 	return resp.Signature, nil
-}
-
-func (svc *LNDService) SendPaymentProbes(ctx context.Context, invoice string) error {
-	return nil
-}
-
-func (svc *LNDService) SendSpontaneousPaymentProbes(ctx context.Context, amountMsat uint64, nodeId string) error {
-	return nil
 }
 
 func (svc *LNDService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
@@ -1446,12 +1446,24 @@ func (svc *LNDService) GetBalances(ctx context.Context, includeInactiveChannels 
 	return &lnclient.BalancesResponse{
 		Onchain: *onchainBalance,
 		Lightning: lnclient.LightningBalanceResponse{
-			TotalSpendable:       totalSpendable,
-			TotalReceivable:      totalReceivable,
-			NextMaxSpendable:     nextMaxSpendable,
-			NextMaxReceivable:    nextMaxReceivable,
-			NextMaxSpendableMPP:  nextMaxSpendableMPP,
-			NextMaxReceivableMPP: nextMaxReceivableMPP,
+			TotalSpendable:           totalSpendable,
+			TotalSpendableSat:        totalSpendable / 1000,
+			TotalSpendableMsat:       totalSpendable,
+			TotalReceivable:          totalReceivable,
+			TotalReceivableSat:       totalReceivable / 1000,
+			TotalReceivableMsat:      totalReceivable,
+			NextMaxSpendable:         nextMaxSpendable,
+			NextMaxSpendableSat:      nextMaxSpendable / 1000,
+			NextMaxSpendableMsat:     nextMaxSpendable,
+			NextMaxReceivable:        nextMaxReceivable,
+			NextMaxReceivableSat:     nextMaxReceivable / 1000,
+			NextMaxReceivableMsat:    nextMaxReceivable,
+			NextMaxSpendableMPP:      nextMaxSpendableMPP,
+			NextMaxSpendableMPPSat:   nextMaxSpendableMPP / 1000,
+			NextMaxSpendableMPPMsat:  nextMaxSpendableMPP,
+			NextMaxReceivableMPP:     nextMaxReceivableMPP,
+			NextMaxReceivableMPPSat:  nextMaxReceivableMPP / 1000,
+			NextMaxReceivableMPPMsat: nextMaxReceivableMPP,
 		},
 	}, nil
 }
@@ -1576,8 +1588,8 @@ func lndPaymentToTransaction(payment *lnrpc.Payment) (*lnclient.Transaction, err
 		Invoice:         payment.PaymentRequest,
 		Preimage:        payment.PaymentPreimage,
 		PaymentHash:     payment.PaymentHash,
-		Amount:          payment.ValueMsat,
-		FeesPaid:        payment.FeeMsat,
+		AmountMsat:      payment.ValueMsat,
+		FeesPaidMsat:    payment.FeeMsat,
 		CreatedAt:       time.Unix(0, payment.CreationTimeNs).Unix(),
 		Description:     description,
 		DescriptionHash: descriptionHash,
@@ -1621,7 +1633,7 @@ func lndInvoiceToTransaction(invoice *lnrpc.Invoice) *lnclient.Transaction {
 		DescriptionHash: hex.EncodeToString(invoice.DescriptionHash),
 		Preimage:        preimage,
 		PaymentHash:     hex.EncodeToString(invoice.RHash),
-		Amount:          invoice.ValueMsat,
+		AmountMsat:      invoice.ValueMsat,
 		CreatedAt:       invoice.CreationDate,
 		SettledAt:       settledAt,
 		ExpiresAt:       expiresAt,

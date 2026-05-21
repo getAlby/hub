@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/getAlby/go-nostr"
 	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/apps"
 	"github.com/getAlby/hub/config"
@@ -16,7 +17,6 @@ import (
 	nostrmodels "github.com/getAlby/hub/nostr/models"
 	"github.com/getAlby/hub/service/keys"
 	"github.com/getAlby/hub/transactions"
-	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )

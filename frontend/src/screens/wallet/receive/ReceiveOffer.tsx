@@ -66,6 +66,7 @@ export default function ReceiveOffer() {
   return (
     <div className="grid gap-5">
       <AppHeader
+        pageTitle={offer ? "Lightning Offer" : "Create Lightning Offer"}
         title={offer ? "Lightning Offer" : "Create Lightning Offer"}
         description={
           !offer ? "Create a reusable, non-expiring lightning invoice" : ""

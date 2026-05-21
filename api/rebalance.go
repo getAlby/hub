@@ -20,14 +20,20 @@ import (
 func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *RebalanceChannelRequest) (*RebalanceChannelResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
-		return nil, errors.New("LNClient not started")
+		return nil, ErrLNClientNotStarted
+	}
+
+	amountSat := uint64(0)
+	resolvedAmountSat := ResolveToSat(rebalanceChannelRequest.AmountSat, rebalanceChannelRequest.AmountMsat, nil, nil)
+	if resolvedAmountSat != nil {
+		amountSat = *resolvedAmountSat
 	}
 
 	receiveMetadata := map[string]interface{}{
 		"receive_through": rebalanceChannelRequest.ReceiveThroughNodePubkey,
 	}
 
-	receiveInvoice, err := api.svc.GetTransactionsService().MakeInvoice(ctx, rebalanceChannelRequest.AmountSat*1000, "Alby Hub Rebalance through "+rebalanceChannelRequest.ReceiveThroughNodePubkey, "", 0, receiveMetadata, lnClient, nil, nil, &rebalanceChannelRequest.ReceiveThroughNodePubkey)
+	receiveInvoice, err := api.svc.GetTransactionsService().MakeInvoice(ctx, amountSat*1000, "Alby Hub Rebalance through "+rebalanceChannelRequest.ReceiveThroughNodePubkey, "", 0, receiveMetadata, lnClient, nil, nil, &rebalanceChannelRequest.ReceiveThroughNodePubkey)
 	if err != nil {
 		logger.Logger.WithError(err).Error("failed to generate rebalance receive invoice")
 		return nil, err
@@ -84,7 +90,7 @@ func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *R
 		return nil, errors.New("failed to read response body")
 	}
 
-	if res.StatusCode >= 300 {
+	if res.StatusCode != http.StatusOK {
 		logger.Logger.WithFields(logrus.Fields{
 			"request":    newRspCreateOrderRequest,
 			"body":       string(body),
@@ -116,13 +122,13 @@ func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *R
 		return nil, err
 	}
 
-	if paymentRequest.MSatoshi > int64(float64(rebalanceChannelRequest.AmountSat)*float64(1000)*float64(1.003)+1 /*0.3% fees*/) {
+	if paymentRequest.MSatoshi > int64(float64(amountSat)*float64(1000)*float64(1.003)+1 /*0.3% fees*/) {
 		return nil, errors.New("rebalance payment is more expensive than expected")
 	}
 
 	payMetadata := map[string]interface{}{
 		"receive_through": rebalanceChannelRequest.ReceiveThroughNodePubkey,
-		"amount_sat":      rebalanceChannelRequest.AmountSat,
+		"amount_sat":      amountSat,
 		"order_id":        rebalanceCreateOrderResponse.OrderId,
 	}
 
@@ -138,7 +144,10 @@ func (api *api) RebalanceChannel(ctx context.Context, rebalanceChannelRequest *R
 		Properties: map[string]interface{}{},
 	})
 
+	totalFeeMsat := uint64(paymentRequest.MSatoshi) + payRebalanceInvoiceResponse.FeeMsat - amountSat*1000
+
 	return &RebalanceChannelResponse{
-		TotalFeeSat: uint64(paymentRequest.MSatoshi)/1000 + payRebalanceInvoiceResponse.FeeMsat/1000 - rebalanceChannelRequest.AmountSat,
+		TotalFeeSat:  totalFeeMsat / 1000,
+		TotalFeeMsat: totalFeeMsat,
 	}, nil
 }

@@ -3,20 +3,21 @@ import { Label } from "src/components/ui/label";
 
 import type { Invoice } from "@getalby/lightning-tools/bolt11";
 import { XIcon } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
+import { InsufficientLightningBalanceAlert } from "src/components/InsufficientLightningBalanceAlert";
 import Loading from "src/components/Loading";
 import { PaymentFailedAlert } from "src/components/PaymentFailedAlert";
 import { PendingPaymentAlert } from "src/components/PendingPaymentAlert";
-import { SpendingAlert } from "src/components/SpendingAlert";
 import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { useBalances } from "src/hooks/useBalances";
-import { PayInvoiceResponse } from "src/types";
+import PayFromSelect from "src/screens/wallet/send/PayFromSelect";
+import { PayInvoiceRequest, PayInvoiceResponse } from "src/types";
 import { request } from "src/utils/request";
 
 export default function ZeroAmount() {
@@ -25,7 +26,8 @@ export default function ZeroAmount() {
   const { data: balances } = useBalances();
 
   const invoice = state?.args?.paymentRequest as Invoice;
-  const [amount, setAmount] = React.useState("");
+  const [appId, setAppId] = React.useState<number>();
+  const [amountSat, setAmountSat] = React.useState("");
   const [isLoading, setLoading] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
 
@@ -37,6 +39,10 @@ export default function ZeroAmount() {
         throw new Error("no invoice set");
       }
       setLoading(true);
+      const payload: PayInvoiceRequest = {
+        amountMsat: +amountSat * 1000,
+        fromAppId: appId,
+      };
       const payInvoiceResponse = await request<PayInvoiceResponse>(
         `/api/payments/${invoice.paymentRequest}`,
         {
@@ -44,9 +50,7 @@ export default function ZeroAmount() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            amount: +amount * 1000,
-          }),
+          body: JSON.stringify(payload),
         }
       );
       if (!payInvoiceResponse?.preimage) {
@@ -57,8 +61,9 @@ export default function ZeroAmount() {
           preimage: payInvoiceResponse.preimage,
           pageTitle: "Pay Invoice",
           invoice,
-          amount,
+          amountSat,
         },
+        replace: true,
       });
       toast("Successfully paid invoice");
     } catch (e) {
@@ -84,7 +89,7 @@ export default function ZeroAmount() {
 
   return (
     <div className="grid gap-4">
-      <AppHeader title="Pay Invoice" />
+      <AppHeader pageTitle="Pay Invoice" title="Pay Invoice" />
       <div className="max-w-lg grid gap-4">
         <PendingPaymentAlert />
         {errorMessage && (
@@ -119,35 +124,39 @@ export default function ZeroAmount() {
           <InputWithAdornment
             id="amount"
             type="number"
-            value={amount}
+            value={amountSat}
             placeholder="Amount in Satoshi..."
             onChange={(e) => {
-              setAmount(e.target.value.trim());
+              setAmountSat(e.target.value.trim());
             }}
             min={1}
-            max={Math.floor(balances.lightning.totalSpendable / 1000)}
+            max={balances.lightning.totalSpendableSat}
             required
             autoFocus
             endAdornment={
-              <FormattedFiatAmount amount={Number(amount)} className="mr-2" />
+              <FormattedFiatAmount
+                amountSat={Number(amountSat)}
+                className="mr-2"
+              />
             }
           />
           <div className="grid gap-2">
             <div className="flex justify-between text-xs text-muted-foreground sensitive slashed-zero">
               <div>
-                Spending Balance:{" "}
+                Lightning Balance:{" "}
                 <FormattedBitcoinAmount
-                  amount={balances.lightning.totalSpendable}
+                  amountMsat={balances.lightning.totalSpendableMsat}
                 />
               </div>
               <FormattedFiatAmount
                 className="text-xs"
-                amount={balances.lightning.totalSpendable / 1000}
+                amountSat={balances.lightning.totalSpendableSat}
               />
             </div>
           </div>
         </div>
-        <SpendingAlert amount={+amount} />
+        <PayFromSelect appId={appId} onChange={setAppId} />
+        <InsufficientLightningBalanceAlert amountSat={+amountSat} />
         <div className="flex gap-2">
           <LinkButton to="/wallet/send" variant="outline">
             Back

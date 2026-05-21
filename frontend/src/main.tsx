@@ -1,7 +1,6 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "src/App.tsx";
-import "src/fonts.css";
 import "src/index.css";
 import { isHttpMode } from "src/utils/isHttpMode";
 

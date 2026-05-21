@@ -1,6 +1,7 @@
-import { Navigate, RouteObject } from "react-router-dom";
+import { Navigate, RouteObject } from "react-router";
 import AppLayout from "src/components/layouts/AppLayout";
 import SettingsLayout from "src/components/layouts/SettingsLayout";
+import WalletLayout from "src/components/layouts/WalletLayout";
 import TwoColumnFullScreenLayout from "src/components/layouts/TwoColumnFullScreenLayout";
 import { DefaultRedirect } from "src/components/redirects/DefaultRedirect";
 import { HomeRedirect } from "src/components/redirects/HomeRedirect";
@@ -16,6 +17,7 @@ import Start from "src/screens/Start";
 import Unlock from "src/screens/Unlock";
 import { Welcome } from "src/screens/Welcome";
 import AlbyAuthRedirect from "src/screens/alby/AlbyAuthRedirect";
+import { AI } from "src/screens/ai/AI";
 import { AlbyEarn } from "src/screens/alby/AlbyEarn";
 import SupportAlby from "src/screens/alby/SupportAlby";
 import AppDetails from "src/screens/apps/AppDetails";
@@ -36,8 +38,6 @@ import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChan
 import { AlbyCliSkill } from "src/screens/internal-apps/AlbyCliSkill";
 import { Bitrefill } from "src/screens/internal-apps/Bitrefill";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
-import { Claude } from "src/screens/internal-apps/Claude";
-import { Goose } from "src/screens/internal-apps/Goose";
 import { LightningMessageboard } from "src/screens/internal-apps/LightningMessageboard";
 import { SimpleBoost } from "src/screens/internal-apps/SimpleBoost";
 import { Tictactoe } from "src/screens/internal-apps/Tictactoe";
@@ -62,6 +62,7 @@ import { SetupFinish } from "src/screens/setup/SetupFinish";
 import { SetupNode } from "src/screens/setup/SetupNode";
 import { SetupPassword } from "src/screens/setup/SetupPassword";
 import { SetupSecurity } from "src/screens/setup/SetupSecurity";
+import { CLNForm } from "src/screens/setup/node/CLNForm";
 import { CashuForm } from "src/screens/setup/node/CashuForm";
 import { LDKForm } from "src/screens/setup/node/LDKForm";
 import { LNDForm } from "src/screens/setup/node/LNDForm";
@@ -70,7 +71,8 @@ import { PresetNodeForm } from "src/screens/setup/node/PresetNodeForm";
 import { NewSubwallet } from "src/screens/subwallets/NewSubwallet";
 import { SubwalletCreated } from "src/screens/subwallets/SubwalletCreated";
 import { SubwalletList } from "src/screens/subwallets/SubwalletList";
-import Wallet from "src/screens/wallet";
+import Lightning from "src/screens/wallet/Lightning";
+import Onchain from "src/screens/wallet/Onchain";
 import NodeAlias from "src/screens/wallet/NodeAlias";
 import Receive from "src/screens/wallet/Receive";
 import Send from "src/screens/wallet/Send";
@@ -81,7 +83,7 @@ import ReceiveOffer from "src/screens/wallet/receive/ReceiveOffer";
 import ReceiveOnchain from "src/screens/wallet/receive/ReceiveOnchain";
 import ConfirmPayment from "src/screens/wallet/send/ConfirmPayment";
 import LnurlPay from "src/screens/wallet/send/LnurlPay";
-import Onchain from "src/screens/wallet/send/Onchain";
+import OnchainSend from "src/screens/wallet/send/Onchain";
 import OnchainSuccess from "src/screens/wallet/send/OnchainSuccess";
 import PaymentSuccess from "src/screens/wallet/send/PaymentSuccess";
 import ZeroAmount from "src/screens/wallet/send/ZeroAmount";
@@ -117,8 +119,17 @@ const routes: RouteObject[] = [
         handle: { crumb: () => "Wallet" },
         children: [
           {
-            index: true,
-            element: <Wallet />,
+            element: <WalletLayout />,
+            children: [
+              {
+                index: true,
+                element: <Lightning />,
+              },
+              {
+                path: "onchain",
+                element: <Onchain />,
+              },
+            ],
           },
           {
             path: "swap",
@@ -177,7 +188,7 @@ const routes: RouteObject[] = [
               },
               {
                 path: "onchain",
-                element: <Onchain />,
+                element: <OnchainSend />,
               },
               {
                 path: "lnurl-pay",
@@ -341,14 +352,6 @@ const routes: RouteObject[] = [
             element: <Bitrefill />,
           },
           {
-            path: "goose",
-            element: <Goose />,
-          },
-          {
-            path: "claude",
-            element: <Claude />,
-          },
-          {
             path: "alby-cli-skill",
             element: <AlbyCliSkill />,
           },
@@ -466,6 +469,11 @@ const routes: RouteObject[] = [
         element: <AlbyEarn />,
         handle: { crumb: () => "Earn" },
       },
+      {
+        path: "ai",
+        element: <AI />,
+        handle: { crumb: () => "AI & Agents" },
+      },
     ],
   },
   {
@@ -540,6 +548,10 @@ const routes: RouteObject[] = [
               {
                 path: "ldk",
                 element: <LDKForm />,
+              },
+              {
+                path: "cln",
+                element: <CLNForm />,
               },
               {
                 path: "preset",

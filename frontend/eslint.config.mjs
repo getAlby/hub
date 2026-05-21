@@ -30,6 +30,7 @@ export default [
     },
     files: ["**/*.ts", "**/*.tsx"],
     rules: {
+      "react-hooks/set-state-in-effect": "off",
       "@typescript-eslint/no-unused-vars": [
         "warn",
         {

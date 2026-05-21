@@ -8,6 +8,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/getAlby/go-nostr"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
@@ -18,7 +19,6 @@ import (
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/nip47/permissions"
 	nostrmodels "github.com/getAlby/hub/nostr/models"
-	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -85,7 +85,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, pool nostrmodels.Simpl
 	err = svc.db.Model(&app).Update("last_used_at", &now).Error
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
-			"it": app.ID,
+			"app_id": app.ID,
 		}).WithError(err).Error("Failed to update app last used time")
 	}
 

@@ -26,9 +26,9 @@ import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
 
-const skillInstallCommand = "npx skills add getAlby/alby-cli-skill";
+const skillInstallCommand = "npx skills add getAlby/payments-skill";
 const skillInstallPrompt =
-  "Install this skill as a custom skill: https://getalby.com/cli/SKILL.md";
+  "Run `npx -y skills add getAlby/payments-skill -y` to install the Alby bitcoin payments skill";
 const verifyPrompt = "What's your wallet balance?";
 
 export function AlbyCliSkill() {
@@ -57,7 +57,7 @@ export function AlbyCliSkill() {
           "pay_invoice",
           "sign_message",
         ],
-        maxAmount: DEFAULT_APP_BUDGET_SATS,
+        maxAmountSat: DEFAULT_APP_BUDGET_SATS,
         budgetRenewal: DEFAULT_APP_BUDGET_RENEWAL,
         metadata: {
           app_store_app_id: "alby-cli-skill",

@@ -6,13 +6,13 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/getAlby/go-nostr"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/cipher"
 	"github.com/getAlby/hub/nip47/models"
 	nostrmodels "github.com/getAlby/hub/nostr/models"
-	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
 
@@ -71,9 +71,7 @@ func (svc *nip47Service) PublishNip47Info(ctx context.Context, pool nostrmodels.
 		permitsNotifications = true
 	} else {
 		app := db.App{}
-		err := svc.db.First(&app, &db.App{
-			ID: appId,
-		}).Error
+		err := svc.db.First(&app, appId).Error
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"walletPubKey": appWalletPubKey,

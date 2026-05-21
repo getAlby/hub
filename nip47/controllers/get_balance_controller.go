@@ -3,11 +3,11 @@ package controllers
 import (
 	"context"
 
+	"github.com/getAlby/go-nostr"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/db/queries"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
-	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
 
@@ -27,10 +27,10 @@ func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, ni
 		"request_event_id": requestEventId,
 	}).Debug("Getting balance")
 
-	balance := int64(0)
+	balanceMsat := int64(0)
 	if app.Isolated {
 		var err error
-		balance, err = queries.GetIsolatedBalance(controller.db, app.ID)
+		balanceMsat, err = queries.GetIsolatedBalanceMsat(controller.db, app.ID)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"request_event_id": requestEventId,
@@ -53,11 +53,11 @@ func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, ni
 			}, nostr.Tags{})
 			return
 		}
-		balance = balances.Lightning.TotalSpendable
+		balanceMsat = balances.Lightning.TotalSpendable
 	}
 
 	responsePayload := &getBalanceResponse{
-		Balance: balance,
+		Balance: balanceMsat,
 	}
 
 	// this is not part of the spec and does not seem to be used

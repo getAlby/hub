@@ -1,6 +1,6 @@
 import { ChevronLeftIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router";
 import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
 import { Button } from "src/components/ui/button.tsx";
 import { useInfo } from "src/hooks/useInfo";
@@ -85,7 +85,7 @@ export default function TwoColumnFullScreenLayout() {
         />
         <div className="flex-1 w-full h-full flex flex-col">
           <div className="flex flex-row justify-between items-center">
-            <AlbyHubLogo className="w-36" invert={true} />
+            <AlbyHubLogo monochrome className="h-8" />
             {info?.version && (
               <p className="text-sm text-muted-foreground">{info.version}</p>
             )}

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/getAlby/go-nostr"
 	"github.com/getAlby/hub/constants"
-	"github.com/nbd-wtf/go-nostr"
 
 	"github.com/stretchr/testify/assert"
 )

@@ -33,7 +33,7 @@ func TestMakeInvoice_NoApp(t *testing.T) {
 	err = json.Unmarshal(transaction.Metadata, &metadata)
 	assert.NoError(t, err)
 
-	assert.Equal(t, uint64(tests.MockLNClientTransaction.Amount), transaction.AmountMsat)
+	assert.Equal(t, uint64(tests.MockLNClientTransaction.AmountMsat), transaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_STATE_PENDING, transaction.State)
 	assert.Equal(t, tests.MockLNClientTransaction.Preimage, *transaction.Preimage)
 	assert.Equal(t, txMetadata["randomkey"], metadata["randomkey"])
@@ -75,7 +75,7 @@ func TestMakeInvoice_App(t *testing.T) {
 	transaction, err := transactionsService.MakeInvoice(ctx, 1234, "Hello world", "", 0, nil, svc.LNClient, &app.ID, &dbRequestEvent.ID, nil)
 
 	assert.NoError(t, err)
-	assert.Equal(t, uint64(tests.MockLNClientTransaction.Amount), transaction.AmountMsat)
+	assert.Equal(t, uint64(tests.MockLNClientTransaction.AmountMsat), transaction.AmountMsat)
 	assert.Equal(t, constants.TRANSACTION_STATE_PENDING, transaction.State)
 	assert.Equal(t, tests.MockLNClientTransaction.Preimage, *transaction.Preimage)
 	assert.Equal(t, app.ID, *transaction.AppId)

@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/getAlby/go-nostr"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
-	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
 
@@ -34,6 +34,34 @@ func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47
 	responsePayload := &getInfoResponse{
 		Methods:       controller.permissionsService.GetPermittedMethods(app, controller.lnClient),
 		Notifications: supportedNotifications,
+	}
+
+	if app != nil {
+		metadata := map[string]interface{}{}
+		if app.Metadata != nil {
+			jsonErr := json.Unmarshal(app.Metadata, &metadata)
+			if jsonErr != nil {
+				logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
+					"id":       app.ID,
+					"metadata": app.Metadata,
+				}).Error("Failed to deserialize app metadata")
+			}
+		}
+		if metadata["id"] == nil {
+			metadata["id"] = app.ID
+		}
+		if metadata["name"] == nil {
+			metadata["name"] = app.Name
+		}
+		if !app.Isolated {
+			lightningAddress, _ := controller.albyOAuthService.GetLightningAddress()
+			responsePayload.LightningAddress = &lightningAddress
+		} else if metadata[constants.METADATA_APPSTORE_APP_ID_KEY] == constants.SUBWALLET_APPSTORE_APP_ID && metadata["lud16"] != nil {
+			lightningAddress := metadata["lud16"].(string)
+			responsePayload.LightningAddress = &lightningAddress
+		}
+
+		responsePayload.Metadata = metadata
 	}
 
 	// basic permissions check
@@ -70,34 +98,6 @@ func (controller *nip47Controller) HandleGetInfoEvent(ctx context.Context, nip47
 		responsePayload.Network = &network
 		responsePayload.BlockHeight = &info.BlockHeight
 		responsePayload.BlockHash = &info.BlockHash
-
-		if app != nil {
-			metadata := map[string]interface{}{}
-			if app.Metadata != nil {
-				jsonErr := json.Unmarshal(app.Metadata, &metadata)
-				if jsonErr != nil {
-					logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
-						"id":       app.ID,
-						"metadata": app.Metadata,
-					}).Error("Failed to deserialize app metadata")
-				}
-			}
-			if metadata["id"] == nil {
-				metadata["id"] = app.ID
-			}
-			if metadata["name"] == nil {
-				metadata["name"] = app.Name
-			}
-			if !app.Isolated {
-				lightningAddress, _ := controller.albyOAuthService.GetLightningAddress()
-				responsePayload.LightningAddress = &lightningAddress
-			} else if metadata[constants.METADATA_APPSTORE_APP_ID_KEY] == constants.SUBWALLET_APPSTORE_APP_ID && metadata["lud16"] != nil {
-				lightningAddress := metadata["lud16"].(string)
-				responsePayload.LightningAddress = &lightningAddress
-			}
-
-			responsePayload.Metadata = metadata
-		}
 	}
 
 	publishResponse(&models.Response{

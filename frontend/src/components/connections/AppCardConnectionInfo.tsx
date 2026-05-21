@@ -42,12 +42,12 @@ export function AppCardConnectionInfo({
             <div className="flex flex-col items-end justify-end">
               <p>Balance</p>
               <p className="text-xl font-medium">
-                <FormattedBitcoinAmount amount={connection.balance} />
+                <FormattedBitcoinAmount amountMsat={connection.balanceMsat} />
               </p>
             </div>
           </div>
         </>
-      ) : connection.maxAmount > 0 ? (
+      ) : connection.maxAmountSat > 0 ? (
         <>
           <div className="flex flex-row justify-between">
             <div className="mb-2">
@@ -56,8 +56,8 @@ export function AppCardConnectionInfo({
               </p>
               <p className="text-xl font-medium">
                 <FormattedBitcoinAmount
-                  amount={
-                    (connection.maxAmount - connection.budgetUsage) * 1000
+                  amountMsat={
+                    connection.maxAmountMsat - connection.budgetUsageMsat
                   }
                 />
               </p>
@@ -65,7 +65,9 @@ export function AppCardConnectionInfo({
           </div>
           <Progress
             className="h-4"
-            value={100 - (connection.budgetUsage * 100) / connection.maxAmount}
+            value={
+              100 - (connection.budgetUsageSat * 100) / connection.maxAmountSat
+            }
           />
           <div className="flex flex-row justify-between text-xs items-center text-muted-foreground mt-2">
             <div>
@@ -75,10 +77,10 @@ export function AppCardConnectionInfo({
                 : "Never"}
             </div>
             <div>
-              {connection.maxAmount && (
+              {connection.maxAmountSat && (
                 <>
                   <FormattedBitcoinAmount
-                    amount={connection.maxAmount * 1000}
+                    amountMsat={connection.maxAmountMsat}
                   />
                   {connection.budgetRenewal !== "never" && (
                     <> / {getBudgetRenewalLabel(connection.budgetRenewal)}</>
@@ -97,7 +99,7 @@ export function AppCardConnectionInfo({
               </p>
               <p className="text-xl font-medium">
                 <FormattedBitcoinAmount
-                  amount={connection.budgetUsage * 1000}
+                  amountMsat={connection.budgetUsageMsat}
                 />
               </p>
             </div>

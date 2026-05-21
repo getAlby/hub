@@ -118,19 +118,24 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                 <AlertDescription>
                   <div>
                     Closing this channel will move{" "}
-                    <FormattedBitcoinAmount amount={channel.localBalance} /> in
-                    this channel to your on-chain balance and reduce your
+                    <FormattedBitcoinAmount
+                      amountMsat={channel.localBalanceMsat}
+                    />{" "}
+                    in this channel to your on-chain balance and reduce your
                     receive limit by{" "}
-                    <FormattedBitcoinAmount amount={channel.remoteBalance} />.
+                    <FormattedBitcoinAmount
+                      amountMsat={channel.remoteBalanceMsat}
+                    />
+                    .
                   </div>
                 </AlertDescription>
               </Alert>
               <div>
-                <p className="text-primary font-medium">Node ID</p>
+                <p className="font-medium text-foreground">Node ID</p>
                 <p className="break-all">{channel.remotePubkey}</p>
               </div>
               <div className="mt-4">
-                <p className="text-primary font-medium">Channel ID</p>
+                <p className="font-medium text-foreground">Channel ID</p>
                 <p className="break-all">{channel.id}</p>
               </div>
             </AlertDialogDescription>
@@ -177,7 +182,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                   <div className="grid gap-1.5">
                     <Label
                       htmlFor="normal"
-                      className="text-primary font-medium cursor-pointer"
+                      className="text-foreground cursor-pointer"
                     >
                       Normal Close (Recommended)
                     </Label>
@@ -198,7 +203,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
                   <div className="grid gap-1.5">
                     <Label
                       htmlFor="force"
-                      className="text-primary font-medium cursor-pointer"
+                      className="text-foreground cursor-pointer"
                     >
                       Force Close
                     </Label>
@@ -231,7 +236,9 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
           <AlertDialogHeader>
             <AlertDialogTitle>Channel closed successfully</AlertDialogTitle>
             <AlertDialogDescription className="text-left">
-              <p className="text-primary font-medium">Funding Transaction Id</p>
+              <p className="font-medium text-foreground">
+                Funding Transaction Id
+              </p>
               <div className="flex items-center justify-between gap-4">
                 <p className="break-all">{fundingTxId}</p>
                 <CopyIcon

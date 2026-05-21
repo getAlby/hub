@@ -27,7 +27,8 @@ export function SwapAlert({
 
   const isSwapOut = swapType
     ? swapType === "out"
-    : balances.lightning.totalSpendable > balances.lightning.totalReceivable;
+    : balances.lightning.totalSpendableMsat >
+      balances.lightning.totalReceivableMsat;
   const directionText = isSwapOut ? "out from" : "into";
 
   return (
@@ -36,7 +37,7 @@ export function SwapAlert({
         <ArrowDownUpIcon className="h-4 w-4" />
         Swap {directionText} existing channels
       </AlertTitle>
-      <AlertDescription className="text-xs text-muted-foreground">
+      <AlertDescription className="text-xs">
         <p>
           It can be more economic to swap funds {directionText} existing
           channels rather than opening new channels or closing existing ones.

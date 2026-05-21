@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router";
 import { AboutAppCard } from "src/components/connections/AboutAppCard";
 import { AppLinksCard } from "src/components/connections/AppLinksCard";
 import { AppStoreDetailHeader } from "src/components/connections/AppStoreDetailHeader";

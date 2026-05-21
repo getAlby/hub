@@ -117,7 +117,7 @@ func NewService(ctx context.Context) (*service, error) {
 
 	keys := keys.NewKeys()
 
-	albySvc := alby.NewAlbyService(cfg)
+	albySvc := alby.NewAlbyService()
 	albyOAuthSvc := alby.NewAlbyOAuthService(gormDB, cfg, keys, eventPublisher)
 
 	transactionsSvc := transactions.NewTransactionsService(gormDB, eventPublisher)

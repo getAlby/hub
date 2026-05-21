@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
@@ -66,6 +66,7 @@ export default function ConnectPeer() {
   return (
     <div className="grid gap-5">
       <AppHeader
+        pageTitle="Connect Peer"
         title="Connect Peer"
         description="Manually connect to a lightning network peer"
       />

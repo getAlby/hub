@@ -9,13 +9,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/getAlby/go-nostr"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/service/keys"
-	"github.com/nbd-wtf/go-nostr"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
 )
@@ -184,11 +184,17 @@ func (svc *appsService) DeleteApp(app *db.App) error {
 	if err != nil {
 		return err
 	}
+	walletPubkey := ""
+	if app.WalletPubkey != nil {
+		// only exists for non-legacy apps
+		walletPubkey = *app.WalletPubkey
+	}
 	svc.eventPublisher.Publish(&events.Event{
 		Event: "nwc_app_deleted",
 		Properties: map[string]interface{}{
-			"name": app.Name,
-			"id":   app.ID,
+			"name":         app.Name,
+			"id":           app.ID,
+			"walletPubkey": walletPubkey,
 		},
 	})
 	return nil

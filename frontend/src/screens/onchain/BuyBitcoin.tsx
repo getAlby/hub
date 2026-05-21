@@ -170,6 +170,7 @@ export default function BuyBitcoin() {
   return (
     <div className="grid gap-5">
       <AppHeader
+        pageTitle="Buy Bitcoin"
         title="Buy Bitcoin"
         description="Use one of our partner providers to buy bitcoin and deposit it to your on-chain balance."
       />

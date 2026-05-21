@@ -10,9 +10,9 @@ import (
 	"github.com/btcsuite/btcd/btcutil/hdkeychain"
 	"github.com/btcsuite/btcd/chaincfg"
 
+	"github.com/getAlby/go-nostr"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/logger"
-	"github.com/nbd-wtf/go-nostr"
 	"github.com/tyler-smith/go-bip32"
 	"github.com/tyler-smith/go-bip39"
 )

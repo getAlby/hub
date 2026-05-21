@@ -1,5 +1,5 @@
 import {
-  AlertTriangle,
+  AlertTriangleIcon,
   ExternalLinkIcon,
   EyeIcon,
   Link2Icon,
@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import MnemonicDialog from "src/components/mnemonic/MnemonicDialog";
@@ -75,6 +75,7 @@ export default function Backup() {
   return (
     <>
       <SettingsHeader
+        pageTitle="Backup"
         title="Backup"
         description={
           <>
@@ -95,83 +96,85 @@ export default function Backup() {
         }
       />
 
-      {hasMnemonic && (
-        <div className="flex flex-col gap-6">
-          <div>
-            <h3 className="text-lg font-medium">Recovery Phrase</h3>
-            <p className="text-sm text-muted-foreground">
-              Your recovery phrase is a group of 12 random words that back up
-              your wallet on-chain balance. Using them is the only way to
-              recover access to your wallet on another machine or when you lose
-              your unlock password.
-            </p>
-          </div>
-          <Alert variant="destructive">
-            <AlertTriangle />
-            <AlertTitle>Important</AlertTitle>
-            <AlertDescription>
-              If you lose access to your Hub and do not have your recovery
-              phrase, you will lose access to your funds.
-            </AlertDescription>
-          </Alert>
-          {info?.backendType === "CASHU" && <CashuMnemonicWarning />}
-
-          <div>
-            <form
-              onSubmit={onSubmitPassword}
-              className="max-w-md flex flex-col gap-6"
-            >
-              <div className="grid gap-2">
-                <Label htmlFor="password">Password</Label>
-                <PasswordInput
-                  id="password"
-                  onChange={setUnlockPassword}
-                  value={unlockPassword}
-                />
+      <div className="space-y-6 pb-10">
+        {hasMnemonic && (
+          <>
+            <div className="flex flex-col gap-6">
+              <div>
+                <h3 className="text-lg font-medium">Recovery Phrase</h3>
                 <p className="text-sm text-muted-foreground">
-                  Enter your unlock password to view your recovery phrase.
+                  Your recovery phrase is a group of 12 random words that back
+                  up your wallet on-chain balance. Using them is the only way to
+                  recover access to your wallet on another machine or when you
+                  lose your unlock password.
                 </p>
               </div>
-              {!!unlockPassword && (
-                <div className="flex">
-                  <Checkbox id="private" required className="mt-0.5" />
-                  <Label
-                    htmlFor="private"
-                    className="ml-2 text-sm text-foreground"
-                  >
-                    I'll NEVER share my recovery phrase with anyone, including
-                    Alby support
-                  </Label>
-                </div>
-              )}
-              <div className="flex justify-start">
-                <LoadingButton
-                  loading={loading}
-                  variant="secondary"
-                  className="flex gap-2 justify-center"
+              <Alert variant="destructive">
+                <AlertTriangleIcon />
+                <AlertTitle>Important</AlertTitle>
+                <AlertDescription>
+                  If you lose access to your Hub and do not have your recovery
+                  phrase, you will lose access to your funds.
+                </AlertDescription>
+              </Alert>
+              {info?.backendType === "CASHU" && <CashuMnemonicWarning />}
+
+              <div>
+                <form
+                  onSubmit={onSubmitPassword}
+                  className="max-w-md flex flex-col gap-6"
                 >
-                  <EyeIcon />
-                  View Recovery Phrase
-                </LoadingButton>
+                  <div className="grid gap-2">
+                    <Label htmlFor="password">Password</Label>
+                    <PasswordInput
+                      id="password"
+                      onChange={setUnlockPassword}
+                      value={unlockPassword}
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Enter your unlock password to view your recovery phrase.
+                    </p>
+                  </div>
+                  {!!unlockPassword && (
+                    <div className="flex">
+                      <Checkbox id="private" required className="mt-0.5" />
+                      <Label htmlFor="private" className="ml-2 cursor-pointer">
+                        I'll NEVER share my recovery phrase with anyone,
+                        including Alby support
+                      </Label>
+                    </div>
+                  )}
+                  <div className="flex justify-start">
+                    <LoadingButton
+                      loading={loading}
+                      variant="secondary"
+                      className="flex gap-2 justify-center"
+                    >
+                      <EyeIcon />
+                      View Recovery Phrase
+                    </LoadingButton>
+                  </div>
+                </form>
               </div>
-            </form>
-          </div>
-          <MnemonicDialog
-            open={isDialogOpen}
-            onOpenChange={setIsDialogOpen}
-            mnemonic={decryptedMnemonic}
-          />
-        </div>
-      )}
-      <>
-        <Separator className="my-2" />
+              <MnemonicDialog
+                open={isDialogOpen}
+                onOpenChange={setIsDialogOpen}
+                mnemonic={decryptedMnemonic}
+              />
+            </div>
+            <Separator />
+          </>
+        )}
+
         <div className="flex flex-col gap-8">
           <div>
             <h3 className="text-lg font-medium">Channels Backup</h3>
             <p className="text-sm text-muted-foreground">
-              Your spending balance is stored in your lightning channels. In
-              case of recovery of your Alby Hub, they need to be backed up every
-              time you open a new channel.
+              Your lightning balance can only be recovered on-chain by closing
+              your lightning channels. In case of recovery of your Alby Hub a
+              request will be sent to your peers to close your existing
+              channels. To recover the funds from these channels, a channel
+              backup needs to be created every time you open a new channel.
             </p>
           </div>
 
@@ -195,36 +198,34 @@ export default function Backup() {
                 </p>
                 {info?.vssSupported && (
                   <>
-                    <div>
-                      <div className="flex gap-2 mb-1 items-center">
-                        <h3 className="text-sm font-medium">
-                          Dynamic Channels Backup With Instant Recovery
-                        </h3>
-                        {me?.subscription.plan_code && info.ldkVssEnabled ? (
-                          <Badge variant={"positive"}>Active</Badge>
-                        ) : (
-                          <Badge className="shrink-0">Alby Cloud</Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        When enabled, your channels state is dynamically updated
-                        and stored end-to-end encrypted by Alby's Versioned
-                        Storage Service. This allows you to recover your
-                        spending balance with your recovery phrase alone,
-                        without having to close your channels.
-                      </p>
-
-                      {!info.ldkVssEnabled &&
-                        (!me?.subscription.plan_code ? (
-                          <UpgradeDialog>
-                            <Button variant="secondary" size={"lg"}>
-                              Upgrade to Enable Dynamic Channels Backup
-                            </Button>
-                          </UpgradeDialog>
-                        ) : (
-                          <DynamicChannelsBackupDialog info={info} />
-                        ))}
+                    <div className="flex gap-2 mb-1 items-center">
+                      <h3 className="text-sm font-medium">
+                        Dynamic Channels Backup With Instant Recovery
+                      </h3>
+                      {me?.subscription.plan_code && info.ldkVssEnabled ? (
+                        <Badge variant={"positive"}>Active</Badge>
+                      ) : (
+                        <Badge className="shrink-0">Alby Cloud</Badge>
+                      )}
                     </div>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      When enabled, your channels state is dynamically updated
+                      and stored end-to-end encrypted by Alby's Versioned
+                      Storage Service. This allows you to recover your lightning
+                      balance with your recovery phrase alone, without having to
+                      close your channels.
+                    </p>
+
+                    {!info.ldkVssEnabled &&
+                      (!me?.subscription.plan_code ? (
+                        <UpgradeDialog>
+                          <Button variant="secondary" size={"lg"}>
+                            Upgrade to Enable Dynamic Channels Backup
+                          </Button>
+                        </UpgradeDialog>
+                      ) : (
+                        <DynamicChannelsBackupDialog info={info} />
+                      ))}
                   </>
                 )}
               </>
@@ -256,7 +257,7 @@ export default function Backup() {
                     <span className="text-muted-foreground text-sm">
                       To backup your channels state manually, without Alby
                       Account linked, follow the
-                    </span>
+                    </span>{" "}
                     <ExternalLink
                       to="https://guides.getalby.com/user-guide/alby-hub/backups-and-recover#alby-hub-self-hosted-without-an-alby-account"
                       className="underline inline-flex items-center text-sm"
@@ -270,13 +271,13 @@ export default function Backup() {
             )}
           </div>
         </div>
-      </>
 
-      {!hasMnemonic && !info?.vssSupported && (
-        <p className="text-sm text-muted-foreground">
-          No recovery phrase or channel state backup present.
-        </p>
-      )}
+        {!hasMnemonic && !info?.vssSupported && (
+          <p className="text-sm text-muted-foreground">
+            No recovery phrase or channel state backup present.
+          </p>
+        )}
+      </div>
     </>
   );
 }
@@ -318,8 +319,8 @@ function DynamicChannelsBackupDialog({ info }: Props) {
                 By enabling dynamic channel backups, your channels state is
                 dynamically updated and stored end-to-end encrypted by Alby's
                 Versioned Storage Service. This allows you to recover your
-                spending balance with your recovery phrase alone, without having
-                to close your channels.
+                lightning balance with your recovery phrase alone, without
+                having to close your channels.
               </p>
               <p className="mt-2">
                 As part of enabling dynamic channels backup your hub will be
