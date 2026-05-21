@@ -21,6 +21,7 @@ import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";
 
 type CurrencyInputMode = "bitcoin" | "fiat";
+type BitcoinDenomination = "sats" | "btc";
 
 export type CurrencyInputContextRow = {
   label: string;
@@ -103,8 +104,13 @@ function formatFiatInput(amountSat: string, rate: number, currency: string) {
 
 function formatBitcoinValue(
   amountSat: string | number | null | undefined,
-  displayFormat: string | undefined
+  displayFormat: string | undefined,
+  denomination: BitcoinDenomination = "sats"
 ) {
+  if (denomination === "btc") {
+    return `${formatBtcDisplay(amountSat)} BTC`;
+  }
+
   const formattedAmount = new Intl.NumberFormat().format(
     Math.floor(getNumericValue(amountSat))
   );
@@ -114,6 +120,20 @@ function formatBitcoinValue(
   }
 
   return `${formattedAmount} sats`;
+}
+
+function formatBtcDisplay(amountSat: string | number | null | undefined) {
+  return (getNumericValue(amountSat) / SATS_PER_BTC).toFixed(8);
+}
+
+function formatBtcInput(amountSat: string | number | null | undefined) {
+  const amount = getNumericValue(amountSat);
+
+  if (!amount) {
+    return "";
+  }
+
+  return (amount / SATS_PER_BTC).toFixed(8);
 }
 
 export function CurrencyInputField({
@@ -138,6 +158,9 @@ export function CurrencyInputField({
   );
   const [mode, setMode] = React.useState<CurrencyInputMode>("bitcoin");
   const [fiatValue, setFiatValue] = React.useState("");
+  const [bitcoinDenomination, setBitcoinDenomination] =
+    React.useState<BitcoinDenomination>("sats");
+  const [btcValue, setBtcValue] = React.useState("");
 
   const currency = info?.currency || "USD";
   const rate = bitcoinRate?.rate_float;
@@ -150,10 +173,20 @@ export function CurrencyInputField({
     !!error;
   const inputId = id || generatedId;
   const isFiatMode = mode === "fiat";
-  const inputValue = isFiatMode ? fiatValue : valueSat;
-  const showLeadingUnit = isFiatMode || bitcoinUnit !== "sats";
+  const isBtcDenominated = bitcoinDenomination === "btc";
+  const inputValue = isFiatMode
+    ? fiatValue
+    : isBtcDenominated
+      ? btcValue
+      : valueSat;
+  const showLeadingUnit =
+    isFiatMode || isBtcDenominated || bitcoinUnit !== "sats";
   const alternateValue = isFiatMode
-    ? formatBitcoinValue(valueSat, info?.bitcoinDisplayFormat)
+    ? formatBitcoinValue(
+        valueSat,
+        info?.bitcoinDisplayFormat,
+        bitcoinDenomination
+      )
     : formatFiatValue(valueSat, rate, currency);
 
   React.useEffect(() => {
@@ -161,6 +194,12 @@ export function CurrencyInputField({
       setFiatValue("");
     }
   }, [mode, valueSat]);
+
+  React.useEffect(() => {
+    if (mode === "bitcoin" && isBtcDenominated && !valueSat) {
+      setBtcValue("");
+    }
+  }, [isBtcDenominated, mode, valueSat]);
 
   function handleToggleMode() {
     if (!canUseFiat || disabled) {
@@ -173,13 +212,51 @@ export function CurrencyInputField({
       return;
     }
 
+    if (isBtcDenominated) {
+      setBtcValue(formatBtcInput(valueSat));
+    }
+
     setMode("bitcoin");
+  }
+
+  function handleToggleBitcoinDenomination() {
+    if (disabled) {
+      return;
+    }
+
+    if (isBtcDenominated) {
+      setBitcoinDenomination("sats");
+      return;
+    }
+
+    setBtcValue(formatBtcInput(valueSat));
+    setBitcoinDenomination("btc");
   }
 
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     const nextValue = event.target.value.trim();
 
     if (mode === "bitcoin") {
+      if (isBtcDenominated) {
+        setBtcValue(nextValue);
+
+        if (!nextValue) {
+          onValueSatChange("");
+          return;
+        }
+
+        const amountBtc = Number(nextValue);
+        if (!Number.isFinite(amountBtc)) {
+          onValueSatChange("");
+          return;
+        }
+
+        onValueSatChange(
+          Math.max(0, Math.round(amountBtc * SATS_PER_BTC)).toString()
+        );
+        return;
+      }
+
       onValueSatChange(nextValue);
       return;
     }
@@ -207,7 +284,15 @@ export function CurrencyInputField({
       return undefined;
     }
 
-    if (!isFiatMode || !rate) {
+    if (!isFiatMode) {
+      if (isBtcDenominated) {
+        return amountSat / SATS_PER_BTC;
+      }
+
+      return amountSat;
+    }
+
+    if (!rate) {
       return amountSat;
     }
 
@@ -242,16 +327,22 @@ export function CurrencyInputField({
             max={getModeBound(maxSat)}
             min={getModeBound(minSat)}
             onChange={handleChange}
-            placeholder={isFiatMode ? "0.00" : "0"}
+            placeholder={
+              isFiatMode ? "0.00" : isBtcDenominated ? "0.00000000" : "0"
+            }
             required={required}
-            step={isFiatMode ? "any" : 1}
+            step={isFiatMode ? "any" : isBtcDenominated ? 0.00000001 : 1}
             type="number"
             value={inputValue}
           />
           {showLeadingUnit && (
             <InputGroupAddon align="inline-start">
               <InputGroupText>
-                {isFiatMode ? getCurrencySymbol(currency) : bitcoinUnit}
+                {isFiatMode
+                  ? getCurrencySymbol(currency)
+                  : isBtcDenominated
+                    ? "BTC"
+                    : bitcoinUnit}
               </InputGroupText>
             </InputGroupAddon>
           )}
@@ -276,6 +367,25 @@ export function CurrencyInputField({
             >
               <ArrowRightLeftIcon className="size-4" />
             </InputGroupButton>
+            <InputGroupButton
+              aria-label={
+                isBtcDenominated
+                  ? "Display bitcoin amounts in satoshis"
+                  : "Display bitcoin amounts in BTC"
+              }
+              aria-pressed={isBtcDenominated}
+              disabled={disabled}
+              onClick={handleToggleBitcoinDenomination}
+              size="icon-sm"
+              className="!size-9 rounded-none border-l border-input p-0 aria-pressed:bg-accent aria-pressed:text-accent-foreground"
+              title={
+                isBtcDenominated
+                  ? "Display bitcoin amounts in satoshis"
+                  : "Display bitcoin amounts in BTC"
+              }
+            >
+              <span className="text-sm leading-none">₿</span>
+            </InputGroupButton>
           </InputGroupAddon>
         </InputGroup>
         {!!contextRows?.length && (
@@ -292,7 +402,8 @@ export function CurrencyInputField({
                     {row.value ??
                       formatBitcoinValue(
                         row.amountSat,
-                        info?.bitcoinDisplayFormat
+                        info?.bitcoinDisplayFormat,
+                        bitcoinDenomination
                       )}
                   </span>
                 </div>
