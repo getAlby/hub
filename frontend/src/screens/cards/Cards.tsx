@@ -94,7 +94,7 @@ const providers: Provider[] = [
     googlePay: true,
     selfCustody: false,
     lightningNative: false,
-    kyc: "Full",
+    kyc: "Light",
     timeToGet: "<10 minutes",
     cardCost: "$10",
     fees: "~2.2% + FX",
@@ -645,6 +645,24 @@ function KycBadge({ kyc }: { kyc: Provider["kyc"] }) {
             No-KYC cards typically operate via a single merchant-of-record
             account. Privacy-friendly, but operationally fragile — the program
             can be paused or shut down without notice.
+          </TooltipContent>
+        </Tooltip>
+      </span>
+    );
+  }
+  if (kyc === "Light") {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+        Light
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="text-muted-foreground hover:text-foreground cursor-help">
+              <InfoIcon className="size-3" />
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            ID verification only — no proof of address, employer details, or
+            source-of-funds questions.
           </TooltipContent>
         </Tooltip>
       </span>
