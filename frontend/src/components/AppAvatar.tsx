@@ -4,6 +4,7 @@ import codexLogo from "src/assets/suggested-apps/codex.png";
 import cursorLogo from "src/assets/suggested-apps/cursor.png";
 import geminiLogo from "src/assets/suggested-apps/gemini.png";
 import gooseLogo from "src/assets/suggested-apps/goose.png";
+import hermesLogo from "src/assets/suggested-apps/hermes.png";
 import openclawLogo from "src/assets/suggested-apps/openclaw.png";
 import opencodeLogo from "src/assets/suggested-apps/opencode.png";
 import { appStoreApps } from "src/components/connections/SuggestedAppData";
@@ -17,6 +18,7 @@ import { App } from "src/types";
 const agentLogos: Record<string, string> = {
   claude: claudeLogo,
   goose: gooseLogo,
+  hermes: hermesLogo,
   openclaw: openclawLogo,
   cursor: cursorLogo,
   codex: codexLogo,
