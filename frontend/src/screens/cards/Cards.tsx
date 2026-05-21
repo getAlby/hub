@@ -11,9 +11,12 @@ import {
   ZapIcon,
 } from "lucide-react";
 import React from "react";
+import { Link } from "react-router";
 import twoFiatLogo from "src/assets/cards/2fiat.png";
 import freedomiaLogo from "src/assets/cards/freedomia.png";
 import redotpayLogo from "src/assets/cards/redotpay.png";
+import bringinLogo from "src/assets/suggested-apps/bringin.png";
+import wavespaceLogo from "src/assets/suggested-apps/wave-space.png";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { AlbyIcon } from "src/components/icons/Alby";
@@ -78,6 +81,12 @@ type Provider = {
   timeToGet: string;
   cardCost: string;
   fees: string;
+  /**
+   * If set, the provider connects via its own NWC flow in the in-hub app store
+   * (the row's action links to /appstore/<id>) rather than through the
+   * stablecoin top-up Connect-card dialog.
+   */
+  appStoreId?: string;
 };
 
 const providers: Provider[] = [
@@ -134,6 +143,44 @@ const providers: Provider[] = [
     timeToGet: "Instant",
     cardCost: "$5–30 / mo",
     fees: "1.3–4.3%",
+  },
+  {
+    id: "bringin",
+    name: "Bringin",
+    url: "https://bringin.xyz",
+    logo: bringinLogo,
+    initials: "BR",
+    network: "Visa",
+    cardType: "Virtual",
+    regions: ["EU"],
+    applePay: true,
+    googlePay: true,
+    selfCustody: false,
+    lightningNative: true,
+    kyc: "Full",
+    timeToGet: "Minutes",
+    cardCost: "Free",
+    fees: "~1%",
+    appStoreId: "bringin",
+  },
+  {
+    id: "wavespace",
+    name: "wavecard by wave.space",
+    url: "https://wave.space",
+    logo: wavespaceLogo,
+    initials: "WS",
+    network: "Visa",
+    cardType: "Virtual",
+    regions: ["Global"],
+    applePay: true,
+    googlePay: true,
+    selfCustody: false,
+    lightningNative: true,
+    kyc: "Full",
+    timeToGet: "Minutes",
+    cardCost: "Free",
+    fees: "~1%",
+    appStoreId: "wavespace",
   },
 ];
 
@@ -338,7 +385,7 @@ export function Cards() {
       <ConnectCardDialog
         open={connectOpen}
         onOpenChange={setConnectOpen}
-        providers={providers}
+        providers={providers.filter((p) => !p.appStoreId)}
         onSubmit={async (input) => {
           const result = await addCard(input);
           setConnectOpen(false);
@@ -617,12 +664,26 @@ function ProviderRow({ provider }: { provider: Provider }) {
       </TableCell>
       <TableCell>
         <div className="flex items-center">
-          <ExternalLink
-            to={provider.url}
-            className="text-muted-foreground hover:text-foreground transition-colors inline-flex"
-          >
-            <ArrowUpRightIcon className="size-4" />
-          </ExternalLink>
+          {provider.appStoreId ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link
+                  to={`/appstore/${provider.appStoreId}`}
+                  className="text-muted-foreground hover:text-foreground transition-colors inline-flex"
+                >
+                  <ArrowUpRightIcon className="size-4" />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>Set up via App Store</TooltipContent>
+            </Tooltip>
+          ) : (
+            <ExternalLink
+              to={provider.url}
+              className="text-muted-foreground hover:text-foreground transition-colors inline-flex"
+            >
+              <ArrowUpRightIcon className="size-4" />
+            </ExternalLink>
+          )}
         </div>
       </TableCell>
     </TableRow>
