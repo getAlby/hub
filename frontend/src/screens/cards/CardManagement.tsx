@@ -414,23 +414,18 @@ export function CardCreatedDialog({
     <Dialog open={!!card} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{provider?.name ?? "Card"} connected</DialogTitle>
+          <DialogTitle>
+            Your {provider?.name ?? "card"} top-up is ready
+          </DialogTitle>
           <DialogDescription>
-            This is your top-up link. Save it now — you won't see it again.
+            Use this link to send bitcoin to your card anytime over Lightning.
           </DialogDescription>
         </DialogHeader>
 
         <Alert variant="warning">
           <AlertTriangleIcon />
-          <AlertTitle>Save this link before you close this dialog</AlertTitle>
-          <AlertDescription>
-            <p>
-              <span className="font-medium">Bookmark it</span> or{" "}
-              <span className="font-medium">add it to your home screen</span> —
-              the secret in this link can't be recovered later. Lose the link
-              and you'll need to connect a new card.
-            </p>
-          </AlertDescription>
+          <AlertTitle>Save it on the phone you'll top up from</AlertTitle>
+          <AlertDescription>You won't see this link again.</AlertDescription>
         </Alert>
 
         <div className="flex flex-col items-center gap-3">
@@ -438,9 +433,9 @@ export function CardCreatedDialog({
             <QRCode value={topupUrl} size={200} />
           </div>
           <p className="hidden sm:block text-sm text-muted-foreground text-center max-w-xs">
-            Scan with your phone's{" "}
-            <span className="font-medium">camera app</span> to open it, then
-            save it as an app to your homescreen.
+            Scan with your phone's <span className="font-medium">camera</span>,
+            then <span className="font-medium">add it to your home screen</span>{" "}
+            or <span className="font-medium">bookmark</span> it.
           </p>
 
           <div className="w-full">
