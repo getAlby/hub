@@ -310,8 +310,8 @@ export function Cards() {
                   <span className="text-primary">Connect it.</span>
                 </h2>
                 <p className="text-muted-foreground text-lg max-w-md">
-                  Spend Bitcoin anywhere — connect a debit card to your hub and
-                  top it up from Lightning in one click.
+                  Spend Bitcoin anywhere — top up your debit card in less than a
+                  minute, with one click.
                 </p>
               </div>
 
@@ -385,7 +385,7 @@ export function Cards() {
       <ConnectCardDialog
         open={connectOpen}
         onOpenChange={setConnectOpen}
-        providers={providers.filter((p) => !p.appStoreId)}
+        providers={providers}
         onSubmit={async (input) => {
           const result = await addCard(input);
           setConnectOpen(false);

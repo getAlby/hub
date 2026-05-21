@@ -13,6 +13,12 @@ export type Provider = {
   logo: string;
   initials: string;
   network: "Visa" | "Mastercard";
+  /**
+   * If set, the provider has its own NWC pairing flow inside the in-hub app
+   * store. The connect-card dialog routes the user to /appstore/<id> instead
+   * of asking for a stablecoin top-up address.
+   */
+  appStoreId?: string;
 };
 
 // Mirrors bitcoin-card-topup's CardConfig (label/destinationAddress/chainId/currency).

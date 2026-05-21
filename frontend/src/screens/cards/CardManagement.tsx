@@ -1,5 +1,6 @@
 import {
   AlertTriangleIcon,
+  ArrowRightIcon,
   CheckIcon,
   CopyIcon,
   ExternalLinkIcon,
@@ -197,11 +198,13 @@ export function ConnectCardDialog({
     }
   }, [open, providers]);
 
-  const providerName = providers.find((p) => p.id === providerId)?.name;
+  const selectedProvider = providers.find((p) => p.id === providerId);
+  const providerName = selectedProvider?.name;
+  const appStoreId = selectedProvider?.appStoreId;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!providerId || !destinationAddress || submitting) {
+    if (!providerId || !destinationAddress || submitting || appStoreId) {
       return;
     }
     setSubmitting(true);
@@ -247,60 +250,72 @@ export function ConnectCardDialog({
               </Select>
             </Field>
 
-            <Field>
-              <FieldLabel htmlFor="address">Top-up address</FieldLabel>
-              <Input
-                id="address"
-                placeholder="0x…"
-                className="font-mono"
-                value={destinationAddress}
-                onChange={(e) => setDestinationAddress(e.target.value)}
-                autoCapitalize="off"
-                autoCorrect="off"
-                spellCheck={false}
-                required
-              />
-            </Field>
+            {!appStoreId && (
+              <>
+                <Field>
+                  <FieldLabel htmlFor="address">Top-up address</FieldLabel>
+                  <Input
+                    id="address"
+                    placeholder="0x…"
+                    className="font-mono"
+                    value={destinationAddress}
+                    onChange={(e) => setDestinationAddress(e.target.value)}
+                    autoCapitalize="off"
+                    autoCorrect="off"
+                    spellCheck={false}
+                    required
+                  />
+                </Field>
 
-            <div className="grid grid-cols-2 gap-3">
-              <Field>
-                <FieldLabel htmlFor="network">Network</FieldLabel>
-                <Select
-                  value={String(chainId)}
-                  onValueChange={(v) => setChainId(Number(v))}
-                >
-                  <SelectTrigger id="network">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SUPPORTED_CHAINS.map((c) => (
-                      <SelectItem key={c.id} value={String(c.id)}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field>
+                    <FieldLabel htmlFor="network">Network</FieldLabel>
+                    <Select
+                      value={String(chainId)}
+                      onValueChange={(v) => setChainId(Number(v))}
+                    >
+                      <SelectTrigger id="network">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SUPPORTED_CHAINS.map((c) => (
+                          <SelectItem key={c.id} value={String(c.id)}>
+                            {c.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
 
-              <Field>
-                <FieldLabel htmlFor="currency">Currency</FieldLabel>
-                <Select
-                  value={currency}
-                  onValueChange={(v) => setCurrency(v as SupportedCurrency)}
-                >
-                  <SelectTrigger id="currency">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SUPPORTED_CURRENCIES.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-            </div>
+                  <Field>
+                    <FieldLabel htmlFor="currency">Currency</FieldLabel>
+                    <Select
+                      value={currency}
+                      onValueChange={(v) => setCurrency(v as SupportedCurrency)}
+                    >
+                      <SelectTrigger id="currency">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SUPPORTED_CURRENCIES.map((c) => (
+                          <SelectItem key={c} value={c}>
+                            {c}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                </div>
+              </>
+            )}
+
+            {appStoreId && (
+              <p className="text-sm text-muted-foreground">
+                {providerName} pairs through its own app. Continue to the setup
+                guide to get a Nostr Wallet Connect link and finish the
+                connection from there.
+              </p>
+            )}
           </FieldGroup>
 
           <DialogFooter className="mt-6">
@@ -312,14 +327,26 @@ export function ConnectCardDialog({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={submitting}>
-              {submitting ? (
-                <Loading className="size-4" />
-              ) : (
-                <LinkIcon className="size-4" />
-              )}
-              {submitting ? "Connecting…" : "Connect card"}
-            </Button>
+            {appStoreId ? (
+              <Button asChild>
+                <Link
+                  to={`/appstore/${appStoreId}`}
+                  onClick={() => onOpenChange(false)}
+                >
+                  Open setup guide
+                  <ArrowRightIcon className="size-4" />
+                </Link>
+              </Button>
+            ) : (
+              <Button type="submit" disabled={submitting}>
+                {submitting ? (
+                  <Loading className="size-4" />
+                ) : (
+                  <LinkIcon className="size-4" />
+                )}
+                {submitting ? "Connecting…" : "Connect card"}
+              </Button>
+            )}
           </DialogFooter>
         </form>
       </DialogContent>
