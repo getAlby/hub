@@ -330,7 +330,7 @@ export function ConnectCardDialog({
             {appStoreId ? (
               <Button asChild>
                 <Link
-                  to={`/appstore/${appStoreId}`}
+                  to={`/apps/new?app=${appStoreId}`}
                   onClick={() => onOpenChange(false)}
                 >
                   Open setup guide

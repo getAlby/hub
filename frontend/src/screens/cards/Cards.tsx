@@ -668,13 +668,13 @@ function ProviderRow({ provider }: { provider: Provider }) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Link
-                  to={`/appstore/${provider.appStoreId}`}
+                  to={`/apps/new?app=${provider.appStoreId}`}
                   className="text-muted-foreground hover:text-foreground transition-colors inline-flex"
                 >
                   <ArrowUpRightIcon className="size-4" />
                 </Link>
               </TooltipTrigger>
-              <TooltipContent>Set up via App Store</TooltipContent>
+              <TooltipContent>Open setup guide</TooltipContent>
             </Tooltip>
           ) : (
             <ExternalLink
