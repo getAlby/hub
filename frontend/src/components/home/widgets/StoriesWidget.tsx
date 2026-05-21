@@ -34,32 +34,6 @@ type StoryAction = {
   openInNewTab: boolean;
 };
 
-const previewStories: Story[] = [
-  {
-    id: "preview-update",
-    title: "Hub Update",
-    avatar:
-      "https://uploads.getalby-assets.com/images/alby_hub_profile_picture.png",
-    videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    kind: "update",
-  },
-  {
-    id: "preview-alby-go",
-    title: "Alby Go",
-    avatar: "https://uploads.getalby-assets.com/images/alby-go.jpg",
-    videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    kind: "alby-go",
-  },
-  {
-    id: "preview-extension",
-    title: "Alby Extension",
-    avatar:
-      "https://uploads.getalby-assets.com/images/alby_extension_profile_picture.png",
-    videoUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    kind: "alby-extension",
-  },
-];
-
 function loadViewedStoryIds(): Set<string> {
   try {
     const raw = localStorage.getItem(STORIES_VIEWED_STORAGE_KEY);
@@ -208,7 +182,7 @@ export function StoriesWidget() {
         }));
         setStories(mappedStories);
       } catch {
-        setStories(previewStories);
+        setStories([]);
       } finally {
         setIsLoading(false);
       }
@@ -262,7 +236,7 @@ export function StoriesWidget() {
                     <StoryAvatar story={story} viewed={viewed} />
                     <span
                       className={cn(
-                        "w-full text-xs leading-normal",
+                        "w-full text-xs leading-tight",
                         viewed
                           ? "font-medium text-muted-foreground"
                           : "font-semibold text-foreground"
@@ -283,76 +257,71 @@ export function StoriesWidget() {
       >
         <DialogContent
           showCloseButton={false}
-          className="max-w-4xl overflow-hidden border-0 bg-zinc-950 p-0 text-white"
+          className="w-[95vw] max-w-[min(95vw,calc((90vh-80px)*16/9))] sm:max-w-[min(95vw,calc((90vh-80px)*16/9))] max-h-[90vh] overflow-hidden border-0 bg-zinc-950 p-0 text-white sm:rounded-2xl"
         >
           {activeStory && (
             <div className="flex flex-col">
-              <div className="flex items-start justify-between gap-4 border-b border-white/10 px-5 py-4">
-                <div className="min-w-0">
-                  <DialogTitle className="truncate text-lg font-semibold text-white">
-                    {activeStory.title}
-                  </DialogTitle>
-                  <DialogDescription className="mt-1 text-sm text-zinc-300">
-                    Watch the latest update
-                  </DialogDescription>
-                </div>
-                <DialogClose asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="shrink-0 text-white hover:bg-white/10 hover:text-white"
-                  >
-                    <XIcon className="size-5" />
-                    <span className="sr-only">Close story</span>
-                  </Button>
-                </DialogClose>
-              </div>
+              <DialogTitle className="sr-only">{activeStory.title}</DialogTitle>
+              <DialogDescription className="sr-only">
+                Watch the latest update
+              </DialogDescription>
 
               {activeStory.videoUrl && (
-                <div className="aspect-video w-full bg-black">
+                <div className="relative aspect-video w-full overflow-hidden rounded-t-2xl bg-black [transform:translateZ(0)]">
                   <iframe
-                    className="size-full"
+                    className="absolute inset-0 size-full"
                     src={getYouTubeEmbedUrl(activeStory.videoUrl)}
                     title={activeStory.title}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
                   />
+                  <DialogClose asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-3 top-3 z-10 rounded-full bg-black/60 text-white backdrop-blur hover:bg-black/80 hover:text-white"
+                    >
+                      <XIcon className="size-5" />
+                      <span className="sr-only">Close story</span>
+                    </Button>
+                  </DialogClose>
                 </div>
               )}
 
               {activeStory.videoUrl && (
-                <div className="flex items-center justify-end gap-3 px-5 py-4">
-                  {(() => {
-                    const action = getStoryAction(activeStory, info?.version);
-                    if (!action) {
-                      return null;
-                    }
-                    if (action.openInNewTab) {
+                <div className="flex items-center justify-between gap-3 px-6 py-4">
+                  <div className="min-w-0">
+                    <div className="truncate text-base font-semibold text-white">
+                      {activeStory.title}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {(() => {
+                      const action = getStoryAction(activeStory, info?.version);
+                      if (!action) {
+                        return null;
+                      }
+                      if (action.openInNewTab) {
+                        return (
+                          <ExternalLink
+                            to={action.url}
+                            className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                          >
+                            {action.label}
+                          </ExternalLink>
+                        );
+                      }
                       return (
-                        <ExternalLink
-                          to={action.url}
-                          className="inline-flex h-9 items-center rounded-md border border-white/15 px-4 text-sm font-medium text-white transition-colors hover:bg-white/10"
+                        <a
+                          href={action.url}
+                          className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                         >
                           {action.label}
-                        </ExternalLink>
+                        </a>
                       );
-                    }
-                    return (
-                      <a
-                        href={action.url}
-                        className="inline-flex h-9 items-center rounded-md border border-white/15 px-4 text-sm font-medium text-white transition-colors hover:bg-white/10"
-                      >
-                        {action.label}
-                      </a>
-                    );
-                  })()}
-                  <ExternalLink
-                    to={activeStory.videoUrl}
-                    className="inline-flex h-9 items-center rounded-md border border-white/15 px-4 text-sm font-medium text-white transition-colors hover:bg-white/10"
-                  >
-                    Watch on YouTube
-                  </ExternalLink>
+                    })()}
+                  </div>
                 </div>
               )}
             </div>
