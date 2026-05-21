@@ -15,23 +15,22 @@ import {
   DialogDescription,
   DialogTitle,
 } from "src/components/ui/dialog";
-import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";
 
 const STORIES_VIEWED_STORAGE_KEY = "alby-hub-home-stories-viewed";
+
+type StoryCta = {
+  label: string;
+  url: string;
+  openInNewTab: boolean;
+};
 
 type Story = {
   id: string;
   title: string;
   avatar: string;
   videoUrl?: string;
-  kind?: "update" | "alby-go" | "alby-extension";
-};
-
-type StoryAction = {
-  label: string;
-  url: string;
-  openInNewTab: boolean;
+  cta?: StoryCta;
 };
 
 function loadViewedStoryIds(): Set<string> {
@@ -105,60 +104,12 @@ function StoryAvatar({ story, viewed }: { story: Story; viewed: boolean }) {
   );
 }
 
-function normalizeStoryKind(story: Story): Story["kind"] | undefined {
-  if (story.kind) {
-    return story.kind;
-  }
-
-  const normalized = story.title.toLowerCase();
-  if (normalized.includes("alby go")) {
-    return "alby-go";
-  }
-  if (normalized.includes("extension")) {
-    return "alby-extension";
-  }
-  if (normalized.includes("update")) {
-    return "update";
-  }
-  return undefined;
-}
-
-function getStoryAction(
-  story: Story,
-  hubVersion?: string
-): StoryAction | undefined {
-  const kind = normalizeStoryKind(story);
-  if (kind === "update") {
-    return {
-      label: "Update Alby Hub",
-      url: `https://getalby.com/update/hub?version=${encodeURIComponent(hubVersion || "")}`,
-      openInNewTab: true,
-    };
-  }
-  if (kind === "alby-go") {
-    return {
-      label: "Open Alby Go",
-      url: "/appstore/alby-go",
-      openInNewTab: false,
-    };
-  }
-  if (kind === "alby-extension") {
-    return {
-      label: "Install Alby Extension",
-      url: "https://getalby.com/alby-extension",
-      openInNewTab: true,
-    };
-  }
-  return undefined;
-}
-
 export function StoriesWidget() {
   const [stories, setStories] = React.useState<Story[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [activeStory, setActiveStory] = React.useState<Story | null>(null);
   const [viewedIds, setViewedIds] =
     React.useState<Set<string>>(loadViewedStoryIds);
-  const { data: info } = useInfo();
 
   React.useEffect(() => {
     const loadStories = async () => {
@@ -172,13 +123,14 @@ export function StoriesWidget() {
           title: string;
           avatar: string;
           videoUrl?: string;
+          cta?: StoryCta;
         }>;
         const mappedStories = payload.map((story) => ({
           id: String(story.id),
           title: story.title,
           avatar: story.avatar,
           videoUrl: story.videoUrl,
-          kind: (story as { kind?: Story["kind"] }).kind,
+          cta: story.cta,
         }));
         setStories(mappedStories);
       } catch {
@@ -296,32 +248,25 @@ export function StoriesWidget() {
                       {activeStory.title}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {(() => {
-                      const action = getStoryAction(activeStory, info?.version);
-                      if (!action) {
-                        return null;
-                      }
-                      if (action.openInNewTab) {
-                        return (
-                          <ExternalLink
-                            to={action.url}
-                            className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                          >
-                            {action.label}
-                          </ExternalLink>
-                        );
-                      }
-                      return (
-                        <a
-                          href={action.url}
+                  {activeStory.cta && (
+                    <div className="flex items-center gap-2">
+                      {activeStory.cta.openInNewTab ? (
+                        <ExternalLink
+                          to={activeStory.cta.url}
                           className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                         >
-                          {action.label}
+                          {activeStory.cta.label}
+                        </ExternalLink>
+                      ) : (
+                        <a
+                          href={activeStory.cta.url}
+                          className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                        >
+                          {activeStory.cta.label}
                         </a>
-                      );
-                    })()}
-                  </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

@@ -154,11 +154,18 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
+type StoryCta struct {
+	Label        string `json:"label"`
+	URL          string `json:"url"`
+	OpenInNewTab bool   `json:"openInNewTab"`
+}
+
 type Story struct {
-	ID       int    `json:"id"`
-	Title    string `json:"title"`
-	Avatar   string `json:"avatar"`
-	VideoUrl string `json:"videoUrl,omitempty"`
+	ID       int       `json:"id"`
+	Title    string    `json:"title"`
+	Avatar   string    `json:"avatar"`
+	VideoUrl string    `json:"videoUrl,omitempty"`
+	Cta      *StoryCta `json:"cta,omitempty"`
 }
 
 type LSPChannelPaymentBolt11 struct {
