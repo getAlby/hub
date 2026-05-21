@@ -461,8 +461,8 @@ export function Cards() {
 
       {/* Provider table */}
       <section>
-        <div className="rounded-xl border border-border bg-card overflow-hidden">
-          <Table>
+        <div className="rounded-xl border border-border bg-card overflow-x-auto">
+          <Table className="min-w-[720px]">
             <TableHeader>
               <TableRow className="bg-muted/40 hover:bg-muted/40">
                 <TableHead className="w-[260px]">Provider</TableHead>

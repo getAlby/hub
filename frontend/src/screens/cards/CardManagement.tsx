@@ -407,13 +407,13 @@ export function CardCreatedDialog({
         </Alert>
 
         <div className="flex flex-col items-center gap-3">
-          <div className="rounded-xl border border-border p-3 bg-white">
+          <div className="hidden sm:block rounded-xl border border-border p-3 bg-white">
             <QRCode value={topupUrl} size={200} />
           </div>
-          <p className="text-sm text-muted-foreground text-center max-w-xs">
+          <p className="hidden sm:block text-sm text-muted-foreground text-center max-w-xs">
             Scan with your phone's{" "}
-            <span className="font-medium">camera app</span> to open it — this is
-            a regular URL, not a Lightning invoice.
+            <span className="font-medium">camera app</span> to open it, then
+            save it as an app to your homescreen.
           </p>
 
           <div className="w-full">
