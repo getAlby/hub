@@ -128,7 +128,7 @@ const providers: Provider[] = [
   {
     id: "freedomia",
     name: "Freedomia",
-    url: "https://freedomia.io",
+    url: "https://www.freedomia.io/a/getalby",
     logo: freedomiaLogo,
     initials: "FR",
     network: "Visa",
