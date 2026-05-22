@@ -6,6 +6,7 @@ import {
   FingerprintIcon,
   InfoIcon,
   LinkIcon,
+  PlusIcon,
   ShieldCheckIcon,
   XIcon,
   ZapIcon,
@@ -18,7 +19,6 @@ import redotpayLogo from "src/assets/cards/redotpay.png";
 import bringinLogo from "src/assets/suggested-apps/bringin.png";
 import wavespaceLogo from "src/assets/suggested-apps/wave-space.png";
 import AppHeader from "src/components/AppHeader";
-import ExternalLink from "src/components/ExternalLink";
 import { AlbyIcon } from "src/components/icons/Alby";
 import { AppleIcon } from "src/components/icons/Apple";
 import { GooglePayIcon } from "src/components/icons/GooglePay";
@@ -26,6 +26,13 @@ import { VisaLogo } from "src/components/icons/VisaLogo";
 import { Avatar, AvatarFallback, AvatarImage } from "src/components/ui/avatar";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "src/components/ui/dialog";
 import { localStorageKeys } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
@@ -225,6 +232,7 @@ export function Cards() {
 
   const [region, setRegion] = React.useState<Region | "All">("All");
   const [features, setFeatures] = React.useState<FeatureFilter[]>([]);
+  const [connectOpen, setConnectOpen] = React.useState(false);
   const [heroDismissed, setHeroDismissed] = React.useState(
     () => localStorage.getItem(localStorageKeys.cardsHeroDismissed) === "true"
   );
@@ -260,7 +268,22 @@ export function Cards() {
 
   return (
     <>
-      <AppHeader title="Cards" pageTitle="Cards" />
+      <AppHeader
+        title="Cards"
+        pageTitle="Cards"
+        contentRight={
+          <Button size="sm" onClick={() => setConnectOpen(true)}>
+            <PlusIcon className="size-4" />
+            Connect card
+          </Button>
+        }
+      />
+
+      <ConnectCardDialog
+        open={connectOpen}
+        onOpenChange={setConnectOpen}
+        providers={providers}
+      />
 
       {/* Hero — AI-style with 3-step strip */}
       {!heroDismissed && (
@@ -463,7 +486,6 @@ export function Cards() {
                 <TableHead>Time to get</TableHead>
                 <TableHead>Card cost</TableHead>
                 <TableHead>Fees</TableHead>
-                <TableHead className="w-10" />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -496,12 +518,12 @@ export function Cards() {
 
 function ProviderRow({ provider }: { provider: Provider }) {
   return (
-    <TableRow className="[&_td]:py-3">
+    <TableRow
+      className="[&_td]:py-3 cursor-pointer hover:bg-accent/30 transition-colors"
+      onClick={() => window.open(provider.url, "_blank", "noopener,noreferrer")}
+    >
       <TableCell>
-        <ExternalLink
-          to={provider.url}
-          className="flex items-center gap-3 group"
-        >
+        <div className="flex items-center gap-3 group">
           <Avatar className="size-9 rounded-lg">
             <AvatarImage
               src={provider.logo}
@@ -540,7 +562,7 @@ function ProviderRow({ provider }: { provider: Provider }) {
             </div>
             <p className="text-xs text-muted-foreground">{provider.network}</p>
           </div>
-        </ExternalLink>
+        </div>
       </TableCell>
       <TableCell>
         <span className="flex items-center text-xs text-muted-foreground">
@@ -605,31 +627,64 @@ function ProviderRow({ provider }: { provider: Provider }) {
           {provider.fees}
         </div>
       </TableCell>
-      <TableCell>
-        <div className="flex items-center">
-          {provider.appStoreId ? (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link
-                  to={`/apps/new?app=${provider.appStoreId}`}
-                  className="text-muted-foreground hover:text-foreground transition-colors inline-flex"
-                >
-                  <ArrowUpRightIcon className="size-4" />
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent>Open setup guide</TooltipContent>
-            </Tooltip>
-          ) : (
-            <ExternalLink
-              to={provider.url}
-              className="text-muted-foreground hover:text-foreground transition-colors inline-flex"
-            >
-              <ArrowUpRightIcon className="size-4" />
-            </ExternalLink>
-          )}
-        </div>
-      </TableCell>
     </TableRow>
+  );
+}
+
+function ConnectCardDialog({
+  open,
+  onOpenChange,
+  providers,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  providers: Provider[];
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Pick your card provider</DialogTitle>
+          <DialogDescription>
+            We'll take you to the setup guide for the one you choose.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid grid-cols-1 gap-2">
+          {providers.map((p) => {
+            if (!p.appStoreId) {
+              return null;
+            }
+            return (
+              <Link
+                key={p.id}
+                to={`/apps/new?app=${p.appStoreId}`}
+                onClick={() => onOpenChange(false)}
+                className="flex items-center gap-3 rounded-lg border border-border p-3 hover:bg-accent/40 transition-colors"
+              >
+                <Avatar className="size-10 rounded-lg shrink-0">
+                  <AvatarImage
+                    src={p.logo}
+                    alt={p.name}
+                    className="rounded-lg object-contain bg-secondary p-1"
+                  />
+                  <AvatarFallback className="rounded-lg bg-secondary text-secondary-foreground text-xs font-semibold">
+                    {p.initials}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium truncate">{p.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {p.network} · {p.cardType}
+                  </p>
+                </div>
+                <ArrowUpRightIcon className="size-4 text-muted-foreground" />
+              </Link>
+            );
+          })}
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
