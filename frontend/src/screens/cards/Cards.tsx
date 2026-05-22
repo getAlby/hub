@@ -694,7 +694,7 @@ function ConnectCardDialog({
             <div className="min-w-0 flex-1">
               <p className="font-medium truncate">Other card</p>
               <p className="text-xs text-muted-foreground">
-                Any USDC/USDT card not listed
+                Any crypto card not listed
               </p>
             </div>
             <ArrowUpRightIcon className="size-4 text-muted-foreground" />

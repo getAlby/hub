@@ -222,11 +222,11 @@ export const appStoreApps: AppStoreApp[] = (
     {
       id: "bitcoin-card-topup",
       title: "Bitcoin Card Topup",
-      description: "Top up any USDC/USDT debit card with sats over Lightning",
-      logo: topup2fiat,
+      description: "Top up any crypto debit card with sats over Lightning",
+      logo: albyCli,
       categories: ["payment-tools"],
       extendedDescription:
-        "A generic top-up app that swaps Lightning sats to USDC/USDT on Arbitrum, Polygon, or Ethereum and sends them to your card's deposit address. Works with RedotPay, Freedomia, Nexo, Bybit, and any card that accepts on-chain stablecoin deposits.",
+        "A generic top-up app that swaps Lightning sats to a stablecoin and sends them to your card's deposit address. Works with RedotPay, Freedomia, Nexo, Bybit, and any other card that accepts on-chain crypto deposits.",
       webLink: "https://card.albylabs.com",
       installGuide: (
         <>
