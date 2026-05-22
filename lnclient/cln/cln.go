@@ -2128,6 +2128,7 @@ func (c *CLNService) MakeOffer(ctx context.Context, description string) (string,
 	}).Debug("Make Offer")
 
 	req := &clngrpc.OfferRequest{
+		Amount:      "any",
 		Description: &description,
 	}
 	resp, err := c.client.Offer(ctx, req)
