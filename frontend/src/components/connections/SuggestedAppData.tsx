@@ -240,7 +240,7 @@ export const appStoreApps: AppStoreApp[] = (
                 >
                   card.albylabs.com
                 </ExternalLink>{" "}
-                on the phone you'll top up from.
+                on the device you'll top up from.
               </li>
               <li>
                 <span className="font-medium text-foreground">

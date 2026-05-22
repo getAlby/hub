@@ -682,6 +682,23 @@ function ConnectCardDialog({
               </Link>
             );
           })}
+
+          <Link
+            to="/apps/new?app=bitcoin-card-topup"
+            onClick={() => onOpenChange(false)}
+            className="flex items-center gap-3 rounded-lg border border-dashed border-border p-3 hover:bg-accent/40 transition-colors"
+          >
+            <div className="flex items-center justify-center size-10 rounded-lg shrink-0 bg-secondary text-secondary-foreground">
+              <CreditCardIcon className="size-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-medium truncate">Other card</p>
+              <p className="text-xs text-muted-foreground">
+                Any USDC/USDT card not listed
+              </p>
+            </div>
+            <ArrowUpRightIcon className="size-4 text-muted-foreground" />
+          </Link>
         </div>
       </DialogContent>
     </Dialog>
