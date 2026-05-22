@@ -220,6 +220,60 @@ export const appStoreApps: AppStoreApp[] = (
       addedDate: "2026-03-12",
     },
     {
+      id: "bitcoin-card-topup",
+      title: "Bitcoin Card Topup",
+      description: "Top up any USDC/USDT debit card with sats over Lightning",
+      logo: topup2fiat,
+      categories: ["payment-tools"],
+      extendedDescription:
+        "A generic top-up app that swaps Lightning sats to USDC/USDT on Arbitrum, Polygon, or Ethereum and sends them to your card's deposit address. Works with RedotPay, Freedomia, Nexo, Bybit, and any card that accepts on-chain stablecoin deposits.",
+      webLink: "https://card.albylabs.com",
+      installGuide: (
+        <>
+          <div>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Open{" "}
+                <ExternalLink
+                  to="https://card.albylabs.com"
+                  className="underline"
+                >
+                  card.albylabs.com
+                </ExternalLink>{" "}
+                on the phone you'll top up from.
+              </li>
+              <li>
+                <span className="font-medium text-foreground">
+                  Add it to your home screen
+                </span>{" "}
+                (or bookmark it) so you can reopen it later.
+              </li>
+              <li>
+                Enter your card's deposit address, network, and currency to set
+                it up.
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>Copy the connection secret below.</li>
+              <li>
+                In the topup app, tap{" "}
+                <span className="font-medium text-foreground">
+                  Connect Wallet
+                </span>{" "}
+                and paste the connection secret.
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+    },
+    {
       id: "2fiat",
       title: "2fiat Top up",
       description:

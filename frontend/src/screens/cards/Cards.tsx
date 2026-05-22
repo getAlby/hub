@@ -27,16 +27,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "src/components/ui/avatar";
 import { Badge } from "src/components/ui/badge";
 import { Button } from "src/components/ui/button";
 import { localStorageKeys } from "src/constants";
-import {
-  CardCreatedDialog,
-  ConnectCardDialog,
-  YourCardsSection,
-} from "src/screens/cards/CardManagement";
-import {
-  useUserCards,
-  type UserCard as UserCardType,
-} from "src/screens/cards/useUserCards";
-import { PlusIcon } from "lucide-react";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 import {
@@ -107,6 +97,7 @@ const providers: Provider[] = [
     timeToGet: "<10 minutes",
     cardCost: "$10",
     fees: "~2.2% + FX",
+    appStoreId: "bitcoin-card-topup",
   },
   {
     id: "2fiat",
@@ -125,6 +116,7 @@ const providers: Provider[] = [
     timeToGet: "Instant",
     cardCost: "$50",
     fees: "~6.8% top-up",
+    appStoreId: "2fiat",
   },
   {
     id: "freedomia",
@@ -143,6 +135,7 @@ const providers: Provider[] = [
     timeToGet: "Instant",
     cardCost: "$5–30 / mo",
     fees: "1.3–4.3%",
+    appStoreId: "bitcoin-card-topup",
   },
   {
     id: "bringin",
@@ -241,20 +234,6 @@ export function Cards() {
     localStorage.setItem(localStorageKeys.cardsHeroDismissed, "true");
   }, []);
 
-  // Card management state (lifted so Connect card lives in the header)
-  const { cards, addCard } = useUserCards();
-  const [connectOpen, setConnectOpen] = React.useState(false);
-  // Only set immediately after creating a card — that's the one moment we
-  // hold the NWC pairing URI needed to mint a usable top-up URL. Cleared on close.
-  const [justCreated, setJustCreated] = React.useState<{
-    card: UserCardType;
-    pairingUri: string;
-  } | null>(null);
-
-  const justCreatedProvider = justCreated
-    ? providers.find((p) => p.id === justCreated.card.providerId)
-    : undefined;
-
   const filtered = providers.filter((p) => {
     if (region !== "All" && !p.regions.includes(region)) {
       return false;
@@ -281,16 +260,7 @@ export function Cards() {
 
   return (
     <>
-      <AppHeader
-        title="Cards"
-        pageTitle="Cards"
-        contentRight={
-          <Button size="sm" onClick={() => setConnectOpen(true)}>
-            <PlusIcon className="size-4" />
-            Connect card
-          </Button>
-        }
-      />
+      <AppHeader title="Cards" pageTitle="Cards" />
 
       {/* Hero — AI-style with 3-step strip */}
       {!heroDismissed && (
@@ -376,44 +346,12 @@ export function Cards() {
         </div>
       )}
 
-      {/* Your card connections */}
-      {cards.length > 0 && (
-        <div className="pt-2">
-          <h2 className="text-lg font-semibold">Your card connections</h2>
-          <p className="text-xs text-muted-foreground">
-            Tap a card to view or revoke its connection.
-          </p>
-        </div>
-      )}
-      <YourCardsSection cards={cards} providers={providers} />
-
-      <ConnectCardDialog
-        open={connectOpen}
-        onOpenChange={setConnectOpen}
-        providers={providers}
-        onSubmit={async (input) => {
-          const result = await addCard(input);
-          setConnectOpen(false);
-          setJustCreated(result);
-        }}
-      />
-
-      <CardCreatedDialog
-        card={justCreated?.card ?? null}
-        pairingUri={justCreated?.pairingUri ?? null}
-        provider={justCreatedProvider}
-        onOpenChange={(open) => {
-          if (!open) {
-            setJustCreated(null);
-          }
-        }}
-      />
-
       {/* Section heading for directory */}
       <div className="pt-2">
         <h2 className="text-lg font-semibold">Get a card</h2>
         <p className="text-xs text-muted-foreground">
-          Pick a provider that works in your region, then connect it above.
+          Pick a provider that works in your region, then follow its setup guide
+          to connect.
         </p>
       </div>
 
