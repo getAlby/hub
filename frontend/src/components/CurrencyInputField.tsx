@@ -1,5 +1,6 @@
 import { ArrowRightLeftIcon } from "lucide-react";
 import * as React from "react";
+import { toast } from "sonner";
 import {
   Field,
   FieldDescription,
@@ -13,7 +14,6 @@ import {
   InputGroupInput,
   InputGroupText,
 } from "src/components/ui/input-group";
-import { Separator } from "src/components/ui/separator";
 import { Skeleton } from "src/components/ui/skeleton";
 import { BITCOIN_DISPLAY_FORMAT_BIP177 } from "src/constants";
 import { useBitcoinRate } from "src/hooks/useBitcoinRate";
@@ -179,8 +179,6 @@ export function CurrencyInputField({
     : isBtcDenominated
       ? btcValue
       : valueSat;
-  const showLeadingUnit =
-    isFiatMode || isBtcDenominated || bitcoinUnit !== "sats";
   const alternateValue = isFiatMode
     ? formatBitcoinValue(
         valueSat,
@@ -233,13 +231,14 @@ export function CurrencyInputField({
     setBitcoinDenomination("btc");
   }
 
-  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function handleChangeMode(event: React.ChangeEvent<HTMLInputElement>) {
     const nextValue = event.target.value.trim();
 
     if (mode === "bitcoin") {
       if (!isBtcDenominated && nextValue.includes(".")) {
         setBitcoinDenomination("btc");
         setBtcValue(nextValue);
+        toast("Switched to BTC for decimal amount");
 
         if (!nextValue) {
           onValueSatChange("");
@@ -327,112 +326,100 @@ export function CurrencyInputField({
       data-invalid={invalid || undefined}
     >
       {label && <FieldLabel htmlFor={inputId}>{label}</FieldLabel>}
-      <div
-        className={cn(
-          "w-full min-w-0 overflow-hidden rounded-md border border-input bg-background shadow-xs transition-[color,box-shadow]",
-          "focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50",
-          invalid &&
-            "border-destructive ring-destructive/20 focus-within:border-destructive focus-within:ring-destructive/20"
-        )}
-      >
-        <InputGroup className="h-9 min-w-0 rounded-none border-0 shadow-none">
-          <InputGroupInput
-            {...props}
-            id={inputId}
-            aria-invalid={invalid || undefined}
-            className={cn(
-              "sensitive slashed-zero min-w-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-            )}
-            disabled={disabled}
-            inputMode="decimal"
-            max={getModeBound(maxSat)}
-            min={getModeBound(minSat)}
-            onChange={handleChange}
-            placeholder={
-              isFiatMode ? "0.00" : isBtcDenominated ? "0.00000000" : "0"
-            }
-            required={required}
-            step={isFiatMode ? "any" : isBtcDenominated ? 0.00000001 : 1}
-            type="number"
-            value={inputValue}
-          />
-          {showLeadingUnit && (
-            <InputGroupAddon align="inline-start">
-              <InputGroupText>
-                {isFiatMode
-                  ? getCurrencySymbol(currency)
-                  : isBtcDenominated
-                    ? "BTC"
-                    : bitcoinUnit}
-              </InputGroupText>
-            </InputGroupAddon>
+      <InputGroup className="h-9 min-w-0 overflow-hidden">
+        <InputGroupInput
+          {...props}
+          id={inputId}
+          aria-invalid={invalid || undefined}
+          className={cn(
+            "sensitive slashed-zero min-w-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
           )}
-          <InputGroupAddon
-            align="inline-end"
-            className="!mr-0 min-w-0 self-stretch gap-0 py-0 pr-0"
+          disabled={disabled}
+          inputMode="decimal"
+          max={getModeBound(maxSat)}
+          min={getModeBound(minSat)}
+          onChange={handleChangeMode}
+          placeholder={
+            isFiatMode ? "0.00" : isBtcDenominated ? "0.00000000" : "0"
+          }
+          required={required}
+          step={isFiatMode ? "any" : isBtcDenominated ? 0.00000001 : 1}
+          type="number"
+          value={inputValue}
+        />
+        <InputGroupAddon align="inline-start">
+          <InputGroupText>
+            {isFiatMode
+              ? getCurrencySymbol(currency)
+              : isBtcDenominated
+                ? "BTC"
+                : bitcoinUnit}
+          </InputGroupText>
+        </InputGroupAddon>
+        <InputGroupAddon
+          align="inline-end"
+          className="!mr-0 min-w-0 self-stretch gap-0 py-0 pr-0"
+        >
+          <InputGroupText className="sensitive slashed-zero mr-2 min-w-0 max-w-28 truncate tabular-nums sm:max-w-none">
+            {alternateValue ?? <Skeleton className="h-4 w-16" />}
+          </InputGroupText>
+          <InputGroupButton
+            aria-label={
+              isFiatMode ? "Enter amount in bitcoin" : "Enter amount in fiat"
+            }
+            disabled={!canUseFiat || disabled}
+            onClick={handleToggleMode}
+            size="icon-sm"
+            className="peer/swap !size-9 rounded-none border-l border-input p-0 focus-visible:border-l-transparent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+            title={
+              isFiatMode ? "Enter amount in bitcoin" : "Enter amount in fiat"
+            }
           >
-            <InputGroupText className="sensitive slashed-zero mr-2 min-w-0 max-w-28 truncate tabular-nums sm:max-w-none">
-              {alternateValue ?? <Skeleton className="h-4 w-16" />}
-            </InputGroupText>
-            <InputGroupButton
-              aria-label={
-                isFiatMode ? "Enter amount in bitcoin" : "Enter amount in fiat"
-              }
-              disabled={!canUseFiat || disabled}
-              onClick={handleToggleMode}
-              size="icon-sm"
-              className="!size-9 rounded-none border-l border-input p-0"
-              title={
-                isFiatMode ? "Enter amount in bitcoin" : "Enter amount in fiat"
-              }
+            <ArrowRightLeftIcon className="size-4" />
+          </InputGroupButton>
+          <InputGroupButton
+            aria-label={
+              isBtcDenominated
+                ? "Display bitcoin amounts in satoshis"
+                : "Display bitcoin amounts in BTC"
+            }
+            aria-pressed={isBtcDenominated}
+            disabled={disabled}
+            onClick={handleToggleBitcoinDenomination}
+            size="icon-sm"
+            className="!size-9 rounded-none rounded-r-md border-l border-input p-0 focus-visible:border-l-transparent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring peer-focus-visible/swap:border-l-transparent aria-pressed:bg-accent aria-pressed:text-accent-foreground"
+            title={
+              isBtcDenominated
+                ? "Display bitcoin amounts in satoshis"
+                : "Display bitcoin amounts in BTC"
+            }
+          >
+            <span className="text-xs leading-none">
+              {isBtcDenominated ? "BTC" : bitcoinUnit}
+            </span>
+          </InputGroupButton>
+        </InputGroupAddon>
+      </InputGroup>
+      {!!contextRows?.length && (
+        <div className="flex min-w-0 cursor-default flex-col gap-1 text-sm text-muted-foreground">
+          {contextRows.map((row) => (
+            <div
+              className="flex min-w-0 items-center justify-between gap-3"
+              key={row.label}
             >
-              <ArrowRightLeftIcon className="size-4" />
-            </InputGroupButton>
-            <InputGroupButton
-              aria-label={
-                isBtcDenominated
-                  ? "Display bitcoin amounts in satoshis"
-                  : "Display bitcoin amounts in BTC"
-              }
-              aria-pressed={isBtcDenominated}
-              disabled={disabled}
-              onClick={handleToggleBitcoinDenomination}
-              size="icon-sm"
-              className="!size-9 rounded-none border-l border-input p-0 aria-pressed:bg-accent aria-pressed:text-accent-foreground"
-              title={
-                isBtcDenominated
-                  ? "Display bitcoin amounts in satoshis"
-                  : "Display bitcoin amounts in BTC"
-              }
-            >
-              <span className="text-sm leading-none">₿</span>
-            </InputGroupButton>
-          </InputGroupAddon>
-        </InputGroup>
-        {!!contextRows?.length && (
-          <>
-            <Separator />
-            <div className="flex min-w-0 flex-col gap-2 px-3 py-2 text-sm text-muted-foreground">
-              {contextRows.map((row) => (
-                <div
-                  className="flex min-w-0 items-center justify-between gap-3"
-                  key={row.label}
-                >
-                  <span className="truncate">{row.label}:</span>
-                  <span className="sensitive slashed-zero min-w-0 max-w-[55%] truncate text-right tabular-nums">
-                    {row.value ??
-                      formatBitcoinValue(
-                        row.amountSat,
-                        info?.bitcoinDisplayFormat,
-                        bitcoinDenomination
-                      )}
-                  </span>
-                </div>
-              ))}
+              <span className="truncate">{row.label}:</span>
+              <span className="sensitive slashed-zero min-w-0 max-w-[55%] truncate text-right tabular-nums">
+                {row.value ??
+                  formatBitcoinValue(
+                    row.amountSat,
+                    info?.bitcoinDisplayFormat,
+                    bitcoinDenomination
+                  )}
+              </span>
             </div>
-          </>
-        )}
-      </div>
+          ))}
+        </div>
+      )}
       {description && <FieldDescription>{description}</FieldDescription>}
       {error && <FieldError>{error}</FieldError>}
     </Field>
