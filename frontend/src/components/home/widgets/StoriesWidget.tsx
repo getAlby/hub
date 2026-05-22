@@ -89,15 +89,15 @@ function StoryAvatar({ story, viewed }: { story: Story; viewed: boolean }) {
   return (
     <div
       className={cn(
-        "relative box-border flex size-[60px] shrink-0 items-center justify-center rounded-full border-2",
+        "relative box-border flex size-16 shrink-0 items-center justify-center rounded-full border-2 p-0.5",
         viewed ? "border-accent" : "border-primary"
       )}
     >
-      <div className="relative flex size-[56px] items-center justify-center overflow-hidden rounded-full bg-white dark:bg-muted">
+      <div className="relative flex size-full items-center justify-center overflow-hidden rounded-full bg-white dark:bg-muted">
         <img
           src={story.avatar}
           alt={`${story.title} story`}
-          className="size-[56px] rounded-full object-cover"
+          className="size-full rounded-full object-cover"
         />
       </div>
     </div>
