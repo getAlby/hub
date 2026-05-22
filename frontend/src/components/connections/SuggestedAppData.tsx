@@ -1,6 +1,7 @@
 import { ZapIcon } from "lucide-react";
 import { Link } from "react-router";
 import topup2fiat from "src/assets/suggested-apps/2fiat-topup.png";
+import bitcoinCardTopup from "src/assets/suggested-apps/bitcoin-card-topup.png";
 import albyExtension from "src/assets/suggested-apps/alby-extension.png";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
 import albySandbox from "src/assets/suggested-apps/alby-sandbox.png";
@@ -223,7 +224,7 @@ export const appStoreApps: AppStoreApp[] = (
       id: "bitcoin-card-topup",
       title: "Bitcoin Card Topup",
       description: "Top up any crypto debit card with sats over Lightning",
-      logo: albyCli,
+      logo: bitcoinCardTopup,
       categories: ["payment-tools"],
       extendedDescription:
         "A generic top-up app that swaps Lightning sats to a stablecoin and sends them to your card's deposit address. Works with RedotPay, Freedomia, Nexo, Bybit, and any other card that accepts on-chain crypto deposits.",
