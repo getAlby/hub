@@ -33,9 +33,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "src/components/ui/dialog";
-import { localStorageKeys } from "src/constants";
-import { useAlbyMe } from "src/hooks/useAlbyMe";
-import { useInfo } from "src/hooks/useInfo";
 import {
   Table,
   TableBody,
@@ -50,6 +47,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "src/components/ui/tooltip";
+import { localStorageKeys } from "src/constants";
+import { useAlbyMe } from "src/hooks/useAlbyMe";
+import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";
 
 type Region = "Global" | "US" | "EU" | "UK" | "LATAM" | "Africa" | "Asia";
@@ -109,7 +109,7 @@ const providers: Provider[] = [
   {
     id: "2fiat",
     name: "2fiat",
-    url: "https://2fiat.com",
+    url: "https://2fiat.com/getalby",
     logo: twoFiatLogo,
     initials: "2F",
     network: "Mastercard",
@@ -170,7 +170,7 @@ const providers: Provider[] = [
   {
     id: "wavespace",
     name: "wavecard by wave.space",
-    url: "https://www.wave.space/card",
+    url: "https://app.wave.space/spend/?utm_source=albyhub&affiliate=AlbyHub",
     logo: wavespaceLogo,
     initials: "WS",
     network: "Visa",
