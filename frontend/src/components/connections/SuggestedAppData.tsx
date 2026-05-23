@@ -19,7 +19,7 @@ import fountain from "src/assets/suggested-apps/fountain.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import iris from "src/assets/suggested-apps/iris.png";
 import jumble from "src/assets/suggested-apps/jumble.png";
-import lendaswap from "src/assets/suggested-apps/lendaswap.png";
+import satoraLogo from "src/assets/suggested-apps/satora.png";
 import lightningMessageboard from "src/assets/suggested-apps/lightning-messageboard.png";
 import lnbits from "src/assets/suggested-apps/lnbits.png";
 import lnvps from "src/assets/suggested-apps/lnvps.png";
@@ -60,6 +60,7 @@ import { App } from "src/types";
 export type AppStoreApp = {
   id: string;
   title: string;
+  legacyTitles?: string[];
   description: string;
   extendedDescription: string;
 
@@ -2467,22 +2468,24 @@ export const appStoreApps: AppStoreApp[] = (
       categories: ["misc"],
     },
     {
+      // Keep the legacy app store ID so existing LendaSwap connections still match this entry.
       id: "lendaswap",
-      title: "LendaSwap",
+      title: "Satora",
+      legacyTitles: ["LendaSwap"],
       description: "Self-custodial Bitcoin ↔ Stablecoin atomic swaps",
-      webLink: "https://lendaswap.com/?ref=lnds_e3f8dd88_f7db93dbf176",
-      logo: lendaswap,
+      webLink: "https://app.satora.io/?ref=lnds_e3f8dd88_f7db93dbf176",
+      logo: satoraLogo,
       extendedDescription:
-        "Swap between Lightning Bitcoin and stablecoins (USDC, USDT) on Polygon, Arbitrum, and Ethereum. LendaSwap uses your Hub to pay swap invoices and generate receiving invoices — all self-custodial via HTLCs.",
+        "Swap between Lightning Bitcoin and stablecoins (USDC, USDT) on Polygon, Arbitrum, and Ethereum. Satora uses your Hub to pay swap invoices and generate receiving invoices — all self-custodial via HTLCs.",
       installGuide: (
         <>
           <p className="text-muted-foreground">
             Open{" "}
             <ExternalLink
-              to="https://lendaswap.com/?ref=lnds_e3f8dd88_f7db93dbf176"
+              to="https://app.satora.io/?ref=lnds_e3f8dd88_f7db93dbf176"
               className="font-medium text-foreground underline"
             >
-              LendaSwap
+              Satora
             </ExternalLink>{" "}
             in your browser
           </p>
@@ -2491,7 +2494,7 @@ export const appStoreApps: AppStoreApp[] = (
       finalizeGuide: (
         <>
           <div>
-            <h3 className="font-medium">In LendaSwap</h3>
+            <h3 className="font-medium">In Satora</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
                 Click the{" "}
@@ -2533,6 +2536,7 @@ export const getAppStoreApp = (app: App) => {
   return appStoreApps.find(
     (suggestedApp) =>
       suggestedApp.id === (app.metadata?.app_store_app_id ?? "") ||
-      app.name.includes(suggestedApp.title)
+      app.name.includes(suggestedApp.title) ||
+      suggestedApp.legacyTitles?.some((title) => app.name.includes(title))
   );
 };
