@@ -104,6 +104,17 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 
 	scopes, err := permissions.RequestMethodsToScopes(params.RequestMethods)
 
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"request_event_id": requestEventId,
+		}).WithError(err).Error("Failed to convert request methods to scopes")
+		publishResponse(&models.Response{
+			ResultType: nip47Request.Method,
+			Error:      mapNip47Error(err),
+		}, nostr.Tags{})
+		return
+	}
+
 	supportedNotificationTypes := controller.lnClient.GetSupportedNIP47NotificationTypes()
 	if len(params.NotificationTypes) > 0 {
 		if slices.ContainsFunc(params.NotificationTypes, func(method string) bool {
