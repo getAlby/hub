@@ -1,12 +1,12 @@
 import { ZapIcon } from "lucide-react";
 import { Link } from "react-router";
 import topup2fiat from "src/assets/suggested-apps/2fiat-topup.png";
-import bitcoinCardTopup from "src/assets/suggested-apps/bitcoin-card-topup.png";
 import albyExtension from "src/assets/suggested-apps/alby-extension.png";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
 import albySandbox from "src/assets/suggested-apps/alby-sandbox.png";
 import albyCli from "src/assets/suggested-apps/alby.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
+import bitcoinCardTopup from "src/assets/suggested-apps/bitcoin-card-topup.png";
 import bitrefill from "src/assets/suggested-apps/bitrefill.png";
 import bitrequest from "src/assets/suggested-apps/bitrequest.png";
 import bringin from "src/assets/suggested-apps/bringin.png";
@@ -36,9 +36,9 @@ import payperq from "src/assets/suggested-apps/payperq.png";
 import primal from "src/assets/suggested-apps/primal.png";
 import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
 import runstr from "src/assets/suggested-apps/runstr.png";
-import sats4ai from "src/assets/suggested-apps/sats4ai.png";
 import satsorter from "src/assets/suggested-apps/sat-sorter.png";
 import satoshisauctionhouse from "src/assets/suggested-apps/satoshis-auction-house.png";
+import sats4ai from "src/assets/suggested-apps/sats4ai.png";
 import simpleboost from "src/assets/suggested-apps/simple-boost.png";
 import snort from "src/assets/suggested-apps/snort.png";
 import stackernews from "src/assets/suggested-apps/stacker-news.png";
@@ -223,7 +223,7 @@ export const appStoreApps: AppStoreApp[] = (
     {
       id: "bitcoin-card-topup",
       title: "Bitcoin Card Topup",
-      description: "Top up any crypto debit card with sats over Lightning",
+      description: "Top up any crypto debit card instantly with bitcoin",
       logo: bitcoinCardTopup,
       categories: ["payment-tools"],
       extendedDescription:
