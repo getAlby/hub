@@ -178,8 +178,8 @@ func (cs *CashuService) OpenChannel(ctx context.Context, openChannelRequest *lnc
 	return nil, nil
 }
 
-func (cs *CashuService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
-	return nil, nil
+func (cs *CashuService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) error {
+	return nil
 }
 
 func (cs *CashuService) GetNewOnchainAddress(ctx context.Context) (string, error) {
@@ -259,14 +259,8 @@ func (cs *CashuService) GetBalances(ctx context.Context, includeInactiveChannels
 			PendingBalancesDetails:      []lnclient.PendingBalanceDetails{},
 			PendingSweepBalancesDetails: []lnclient.PendingBalanceDetails{}},
 		Lightning: lnclient.LightningBalanceResponse{
-			TotalSpendable:          balance,
-			TotalSpendableSat:       balance / 1000,
 			TotalSpendableMsat:      balance,
-			NextMaxSpendable:        balance,
-			NextMaxSpendableSat:     balance / 1000,
 			NextMaxSpendableMsat:    balance,
-			NextMaxSpendableMPP:     balance,
-			NextMaxSpendableMPPSat:  balance / 1000,
 			NextMaxSpendableMPPMsat: balance,
 		},
 	}, nil

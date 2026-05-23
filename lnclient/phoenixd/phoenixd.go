@@ -131,14 +131,8 @@ func (svc *PhoenixService) GetBalances(ctx context.Context, includeInactiveChann
 			PendingBalancesDetails:      []lnclient.PendingBalanceDetails{},
 			PendingSweepBalancesDetails: []lnclient.PendingBalanceDetails{}},
 		Lightning: lnclient.LightningBalanceResponse{
-			TotalSpendable:          balance,
-			TotalSpendableSat:       balance / 1000,
 			TotalSpendableMsat:      balance,
-			NextMaxSpendable:        balance,
-			NextMaxSpendableSat:     balance / 1000,
 			NextMaxSpendableMsat:    balance,
-			NextMaxSpendableMPP:     balance,
-			NextMaxSpendableMPPSat:  balance / 1000,
 			NextMaxSpendableMPPMsat: balance,
 		},
 	}, nil
@@ -396,8 +390,8 @@ func (svc *PhoenixService) OpenChannel(ctx context.Context, openChannelRequest *
 	return nil, nil
 }
 
-func (svc *PhoenixService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
-	return nil, nil
+func (svc *PhoenixService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) error {
+	return nil
 }
 
 func (svc *PhoenixService) GetNewOnchainAddress(ctx context.Context) (string, error) {
