@@ -5,10 +5,13 @@ import (
 	"errors"
 )
 
+// TLVRecord JSON tags are kept because values flow through the freeform
+// transaction Metadata blob and are surfaced to NIP-47 clients via
+// lookup_invoice / list_transactions.
 type TLVRecord struct {
-	Type uint64
+	Type uint64 `json:"type"`
 	// hex-encoded value
-	Value string
+	Value string `json:"value"`
 }
 
 type Metadata = map[string]interface{}
