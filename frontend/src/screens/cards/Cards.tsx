@@ -374,15 +374,6 @@ export function Cards() {
         </div>
       )}
 
-      {/* Section heading for directory */}
-      <div className="pt-2">
-        <h2 className="text-lg font-semibold">Get a card</h2>
-        <p className="text-xs text-muted-foreground">
-          Pick a provider that works in your region, then follow its setup guide
-          to connect.
-        </p>
-      </div>
-
       {/* Filter bar */}
       <section className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="px-5 py-4 flex flex-wrap items-center gap-x-5 gap-y-3 overflow-x-auto">
