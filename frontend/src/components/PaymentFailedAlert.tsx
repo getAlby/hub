@@ -5,7 +5,7 @@ import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { useChannels } from "src/hooks/useChannels";
-import { request } from "src/utils/request";
+import { sendEvent } from "src/utils/sendEvent";
 
 export function PaymentFailedAlert({
   invoice,
@@ -19,25 +19,12 @@ export function PaymentFailedAlert({
 
   async function sendDetailsToAlby() {
     setSendingDetailsToAlby(true);
-    try {
-      await request(`/api/event`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          event: "payment_failed_details",
-          properties: {
-            invoice,
-            errorMessage,
-            channels,
-          },
-        }),
-      });
-      toast("Thanks for improving Alby Hub.");
-    } catch (error) {
-      console.error(error);
-    }
+    await sendEvent("payment_failed_details", {
+      invoice,
+      errorMessage,
+      channels,
+    });
+    toast("Thanks for improving Alby Hub.");
     setSendingDetailsToAlby(false);
   }
 

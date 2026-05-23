@@ -1413,5 +1413,7 @@ func getEventWhitelist() []string {
 
 		// client-side events
 		"payment_failed_details",
+		"debit_card_url_clicked",
+		"debit_card_connect",
 	}
 }

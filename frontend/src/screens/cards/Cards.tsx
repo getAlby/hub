@@ -51,6 +51,7 @@ import { localStorageKeys } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 import { cn } from "src/lib/utils";
+import { sendEvent } from "src/utils/sendEvent";
 
 type Region = "Global" | "US" | "EU" | "UK" | "LATAM" | "Africa" | "Asia";
 
@@ -524,7 +525,13 @@ function ProviderRow({ provider }: { provider: Provider }) {
   return (
     <TableRow
       className="[&_td]:py-3 cursor-pointer hover:bg-accent/30 transition-colors"
-      onClick={() => window.open(provider.url, "_blank", "noopener,noreferrer")}
+      onClick={() => {
+        sendEvent("debit_card_url_clicked", {
+          name: provider.name,
+          url: provider.url,
+        });
+        window.open(provider.url, "_blank", "noopener,noreferrer");
+      }}
     >
       <TableCell>
         <div className="flex items-center gap-3 group">
@@ -663,7 +670,10 @@ function ConnectCardDialog({
               <Link
                 key={p.id}
                 to={`/apps/new?app=${p.appStoreId}`}
-                onClick={() => onOpenChange(false)}
+                onClick={() => {
+                  sendEvent("debit_card_connect", { name: p.name });
+                  onOpenChange(false);
+                }}
                 className="flex items-center gap-3 rounded-lg border border-border p-3 hover:bg-accent/40 transition-colors"
               >
                 <Avatar className="size-10 rounded-lg shrink-0">
@@ -689,7 +699,10 @@ function ConnectCardDialog({
 
           <Link
             to="/apps/new?app=bitcoin-card-topup"
-            onClick={() => onOpenChange(false)}
+            onClick={() => {
+              sendEvent("debit_card_connect", { name: "Other" });
+              onOpenChange(false);
+            }}
             className="flex items-center gap-3 rounded-lg border border-dashed border-border p-3 hover:bg-accent/40 transition-colors"
           >
             <div className="flex items-center justify-center size-10 rounded-lg shrink-0 bg-secondary text-secondary-foreground">
