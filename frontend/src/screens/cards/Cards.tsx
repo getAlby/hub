@@ -195,19 +195,19 @@ const howItWorksSteps = [
     icon: CreditCardIcon,
     title: "Get a card",
     description:
-      "Pick a debit card that fits your region — physical or virtual, Apple Pay / Google Pay ready.",
+      "Pick a debit card that fits your region. Physical or virtual, Apple Pay or Google Pay ready.",
   },
   {
     icon: LinkIcon,
     title: "Connect it",
     description:
-      "Setup a connection from the card to your hub to seamlessly top up your card with bitcoin.",
+      "Connect your card to your hub once. Your hub keeps the link so you can top up anytime.",
   },
   {
     icon: ZapIcon,
     title: "Top up in seconds",
     description:
-      "Pay from your Lightning balance — your card is funded in under a minute, ready to spend on the go.",
+      "Pay from your Lightning balance. Your card is funded in seconds, ready to spend.",
   },
 ];
 
@@ -313,8 +313,8 @@ export function Cards() {
                   <span className="text-primary">Connect it.</span>
                 </h2>
                 <p className="text-muted-foreground text-lg max-w-md">
-                  Spend Bitcoin anywhere — top up your debit card in less than a
-                  minute, with one click.
+                  Spend Bitcoin anywhere. Top up your debit card from your
+                  Lightning balance in under a minute.
                 </p>
               </div>
 
@@ -443,15 +443,15 @@ export function Cards() {
           </div>
         </div>
 
-        <div className="bg-muted/30 px-5 flex items-center justify-between gap-3 min-h-12">
-          <p className="text-xs text-muted-foreground">
-            Showing{" "}
-            <span className="font-semibold text-foreground">
-              {filtered.length}
-            </span>{" "}
-            of {providers.length} providers
-          </p>
-          {(region !== "All" || features.length > 0) && (
+        {(region !== "All" || features.length > 0) && (
+          <div className="bg-muted/30 px-5 flex items-center justify-between gap-3 min-h-12">
+            <p className="text-xs text-muted-foreground">
+              Showing{" "}
+              <span className="font-semibold text-foreground">
+                {filtered.length}
+              </span>{" "}
+              of {providers.length} providers
+            </p>
             <Button
               variant="ghost"
               size="sm"
@@ -464,8 +464,8 @@ export function Cards() {
               <XIcon className="size-3" />
               Clear filters
             </Button>
-          )}
-        </div>
+          </div>
+        )}
       </section>
 
       {/* Provider table */}
