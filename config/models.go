@@ -6,6 +6,7 @@ const (
 	PhoenixBackendType = "PHOENIX"
 	CashuBackendType   = "CASHU"
 	CLNBackendType     = "CLN"
+	BarkBackendType    = "BARK"
 )
 
 const (

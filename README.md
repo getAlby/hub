@@ -220,6 +220,7 @@ Can be configured via env or the UI
 - `CLN_LIGHTNING_DIR`: CLN's lightning directory containing the grpc certificates, usually `~/.lightning/<network>`
 
 Optional for hold invoice methods support:
+
 - `CLN_ADDRESS_HOLD`: the CLN hold plugin grpc address (grpc-host and grpc-port), e.g. `127.0.0.1:9738`
 
 If you are copying the certificates to another machine make sure you get the `ca.pem`, `client.pem` and `client-key.pem` from the lightning directory and optionally from the `hold` directory inside the lightning directory and keep the sub-directory structure of the hold directory.
@@ -282,6 +283,10 @@ _To configure via env, the following parameters must be provided:_
 ### Phoenixd
 
 See [Phoenixd](scripts/linux-x86_64/phoenixd/README.md)
+
+### Bark
+
+TODO: add environment variables for mainnet/signet
 
 ### Alby OAuth
 

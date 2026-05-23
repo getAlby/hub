@@ -21,6 +21,7 @@ import (
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
+	"github.com/getAlby/hub/lnclient/bark"
 	"github.com/getAlby/hub/lnclient/cashu"
 	"github.com/getAlby/hub/lnclient/cln"
 	"github.com/getAlby/hub/lnclient/ldk"
@@ -373,6 +374,11 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		cashuWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "cashu")
 
 		lnClient, err = cashu.NewCashuService(svc.cfg, cashuWorkdir, mnemonic, cashuMintUrl)
+	case config.BarkBackendType:
+		mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
+		barkWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "bark")
+
+		lnClient, err = bark.NewBarkService(ctx, svc.eventPublisher, barkWorkdir, mnemonic)
 	case config.CLNBackendType:
 		CLNAddress, _ := svc.cfg.Get("CLNAddress", encryptionKey)
 		CLNLightningDir, _ := svc.cfg.Get("CLNLightningDir", encryptionKey)
