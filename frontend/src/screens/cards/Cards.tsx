@@ -122,7 +122,7 @@ const providers: Provider[] = [
     kyc: "None",
     timeToGet: "Instant",
     cardCost: "$50",
-    fees: "~6.8% top-up",
+    fees: "~6.8% top-up + $0.50",
     appStoreId: "2fiat",
   },
   {
@@ -200,7 +200,7 @@ const howItWorksSteps = [
     icon: LinkIcon,
     title: "Connect it",
     description:
-      "Save your card's deposit details to your hub once. We hand you a bookmarkable top-up link.",
+      "Setup a connection from the card to your hub to seamlessly top up your card with bitcoin.",
   },
   {
     icon: ZapIcon,
