@@ -321,8 +321,17 @@ export function Cards() {
               {/* Right — card visual */}
               <div className="flex-1 p-6 pt-12 lg:p-8 lg:pt-14 flex items-center justify-center">
                 <div className="relative w-full max-w-sm aspect-[1.6/1]">
-                  <div className="absolute inset-0 rounded-2xl bg-primary text-primary-foreground shadow-2xl overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/10 pointer-events-none" />
+                  <div
+                    className="absolute inset-0 rounded-2xl bg-primary text-primary-foreground shadow-2xl overflow-hidden"
+                    style={{
+                      // Match the Alby primary-button treatment in alby.css:
+                      // vertical white-to-cream highlight + 1px brand stroke.
+                      backgroundImage:
+                        "linear-gradient(180deg, rgba(255,255,255,0.58) 0%, rgba(255,236,175,0.22) 100%)",
+                      boxShadow:
+                        "0 0 0 1px #ffdf6f, 0 25px 50px -12px rgb(0 0 0 / 0.25)",
+                    }}
+                  >
                     <div className="relative p-6 h-full flex flex-col justify-between">
                       <div className="flex items-start justify-between">
                         <span className="text-xs font-bold tracking-wider">
