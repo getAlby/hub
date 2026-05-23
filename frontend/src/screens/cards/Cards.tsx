@@ -118,7 +118,7 @@ const providers: Provider[] = [
     applePay: true,
     googlePay: true,
     selfCustody: false,
-    lightningNative: false,
+    lightningNative: true,
     kyc: "None",
     timeToGet: "Instant",
     cardCost: "$50",
