@@ -408,7 +408,7 @@ func (svc *albyOAuthService) DeleteLightningAddress(ctx context.Context, address
 
 	res, err := client.Do(req)
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to delete lightning address endpoint")
+		logger.Logger.WithError(err).Error("Failed to request delete lightning address endpoint")
 		return err
 	}
 

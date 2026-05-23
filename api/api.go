@@ -1391,6 +1391,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.HideUpdateBanner = api.cfg.GetEnv().HideUpdateBanner
 	info.LdkVssEnabled = ldkVssEnabled == "true"
 	info.VssSupported = backendType == config.LDKBackendType && api.cfg.GetEnv().LDKVssUrl != ""
+	info.SupportsBolt12 = backendType == config.LDKBackendType || backendType == config.CLNBackendType
 	info.AutoUnlockPasswordEnabled = autoUnlockPassword != ""
 	info.AutoUnlockPasswordSupported = api.cfg.GetEnv().IsDefaultClientId()
 	info.Relays = []InfoResponseRelay{}

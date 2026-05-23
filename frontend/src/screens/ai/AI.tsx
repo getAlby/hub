@@ -29,6 +29,7 @@ import codexLogo from "src/assets/suggested-apps/codex.png";
 import cursorLogo from "src/assets/suggested-apps/cursor.png";
 import geminiLogo from "src/assets/suggested-apps/gemini.png";
 import gooseLogo from "src/assets/suggested-apps/goose.png";
+import hermesLogo from "src/assets/suggested-apps/hermes.png";
 import openclawLogo from "src/assets/suggested-apps/openclaw.png";
 import opencodeLogo from "src/assets/suggested-apps/opencode.png";
 import payperqLogo from "src/assets/suggested-apps/payperq.png";
@@ -80,6 +81,13 @@ const agents: Agent[] = [
     name: "OpenClaw",
     logo: openclawLogo,
     description: "Open-source personal AI assistant",
+    setupUrl: "",
+  },
+  {
+    id: "hermes",
+    name: "Hermes",
+    logo: hermesLogo,
+    description: "Self-improving open-source AI agent by Nous Research",
     setupUrl: "",
   },
   {

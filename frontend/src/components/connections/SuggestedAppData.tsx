@@ -20,7 +20,7 @@ import fountain from "src/assets/suggested-apps/fountain.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import iris from "src/assets/suggested-apps/iris.png";
 import jumble from "src/assets/suggested-apps/jumble.png";
-import lendaswap from "src/assets/suggested-apps/lendaswap.png";
+import satoraLogo from "src/assets/suggested-apps/satora.png";
 import lightningMessageboard from "src/assets/suggested-apps/lightning-messageboard.png";
 import lnbits from "src/assets/suggested-apps/lnbits.png";
 import lnvps from "src/assets/suggested-apps/lnvps.png";
@@ -31,13 +31,11 @@ import nostrcheckserver from "src/assets/suggested-apps/nostrcheck-server.png";
 import nostrudel from "src/assets/suggested-apps/nostrudel.png";
 import nostter from "src/assets/suggested-apps/nostter.png";
 import nostur from "src/assets/suggested-apps/nostur.png";
-import paperScissorsHodl from "src/assets/suggested-apps/paper-scissors-hodl.png";
 import payperq from "src/assets/suggested-apps/payperq.png";
 import primal from "src/assets/suggested-apps/primal.png";
 import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
 import runstr from "src/assets/suggested-apps/runstr.png";
 import satsorter from "src/assets/suggested-apps/sat-sorter.png";
-import satoshisauctionhouse from "src/assets/suggested-apps/satoshis-auction-house.png";
 import sats4ai from "src/assets/suggested-apps/sats4ai.png";
 import simpleboost from "src/assets/suggested-apps/simple-boost.png";
 import snort from "src/assets/suggested-apps/snort.png";
@@ -61,6 +59,7 @@ import { App } from "src/types";
 export type AppStoreApp = {
   id: string;
   title: string;
+  legacyTitles?: string[];
   description: string;
   extendedDescription: string;
 
@@ -2098,47 +2097,6 @@ export const appStoreApps: AppStoreApp[] = (
       categories: ["social-media"],
     },
     {
-      id: "paper-scissors-hodl",
-      title: "Paper Scissors HODL",
-      description: "Paper Scissors Rock with bitcoin at stake",
-      webLink: "https://paper-scissors-hodl.fly.dev",
-      logo: paperScissorsHodl,
-      extendedDescription:
-        "Uses your Hub to pay to play a round, and receive the reward if you win",
-      installGuide: (
-        <>
-          <p className="text-muted-foreground">
-            Open{" "}
-            <ExternalLink
-              to="https://paper-scissors-hodl.fly.dev/"
-              className="font-medium text-foreground underline"
-            >
-              Paper Scissors HODL
-            </ExternalLink>{" "}
-            in your browser
-          </p>
-        </>
-      ),
-      finalizeGuide: (
-        <>
-          <div>
-            <h3 className="font-medium">In Paper Scissors HODL</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
-              <li>Start playing until the Bitcoin Connect screen pops up </li>
-              <li>
-                Choose{" "}
-                <span className="font-medium text-foreground">
-                  Nostr Wallet Connect
-                </span>
-              </li>
-              <li>Paste the connection secret from Alby Hub</li>
-            </ul>
-          </div>
-        </>
-      ),
-      categories: ["games"],
-    },
-    {
       id: "pullthatupjamie-ai",
       title: "Pull That Up Jamie!",
       description: "Instantly pull up anything with private web search + AI",
@@ -2375,47 +2333,6 @@ export const appStoreApps: AppStoreApp[] = (
       categories: ["social-media"],
     },
     {
-      id: "satoshis-auction-house",
-      title: "Satoshi's Auction House",
-      description: "Bitcoin-powered auction platform",
-      webLink: "https://satoshisauction.house",
-      logo: satoshisauctionhouse,
-      extendedDescription:
-        "Buy and sell items through Bitcoin-powered auctions directly from your Hub",
-      installGuide: (
-        <>
-          <p className="text-muted-foreground">
-            Open{" "}
-            <ExternalLink
-              to="https://satoshisauction.house"
-              className="font-medium text-foreground underline"
-            >
-              Satoshi's Auction House
-            </ExternalLink>{" "}
-            in your browser
-          </p>
-        </>
-      ),
-      finalizeGuide: (
-        <>
-          <div>
-            <h3 className="font-medium">In Satoshi's Auction House</h3>
-            <ul className="list-inside list-decimal text-muted-foreground">
-              <li>
-                Click on the Hamburger menu on the top right and click{" "}
-                <span className="font-medium text-foreground">Settings</span>
-              </li>
-              <li>
-                Paste the connection secret from Alby Hub into the receive-only
-                connection secret field
-              </li>
-            </ul>
-          </div>
-        </>
-      ),
-      categories: ["shopping"],
-    },
-    {
       id: "takemysats",
       title: "Take My Sats",
       description: "Create your online store and accept Bitcoin payments",
@@ -2522,22 +2439,24 @@ export const appStoreApps: AppStoreApp[] = (
       categories: ["misc"],
     },
     {
+      // Keep the legacy app store ID so existing LendaSwap connections still match this entry.
       id: "lendaswap",
-      title: "LendaSwap",
+      title: "Satora",
+      legacyTitles: ["LendaSwap"],
       description: "Self-custodial Bitcoin ↔ Stablecoin atomic swaps",
-      webLink: "https://lendaswap.com/?ref=lnds_e3f8dd88_f7db93dbf176",
-      logo: lendaswap,
+      webLink: "https://app.satora.io/?ref=lnds_e3f8dd88_f7db93dbf176",
+      logo: satoraLogo,
       extendedDescription:
-        "Swap between Lightning Bitcoin and stablecoins (USDC, USDT) on Polygon, Arbitrum, and Ethereum. LendaSwap uses your Hub to pay swap invoices and generate receiving invoices — all self-custodial via HTLCs.",
+        "Swap between Lightning Bitcoin and stablecoins (USDC, USDT) on Polygon, Arbitrum, and Ethereum. Satora uses your Hub to pay swap invoices and generate receiving invoices — all self-custodial via HTLCs.",
       installGuide: (
         <>
           <p className="text-muted-foreground">
             Open{" "}
             <ExternalLink
-              to="https://lendaswap.com/?ref=lnds_e3f8dd88_f7db93dbf176"
+              to="https://app.satora.io/?ref=lnds_e3f8dd88_f7db93dbf176"
               className="font-medium text-foreground underline"
             >
-              LendaSwap
+              Satora
             </ExternalLink>{" "}
             in your browser
           </p>
@@ -2546,7 +2465,7 @@ export const appStoreApps: AppStoreApp[] = (
       finalizeGuide: (
         <>
           <div>
-            <h3 className="font-medium">In LendaSwap</h3>
+            <h3 className="font-medium">In Satora</h3>
             <ul className="list-inside list-decimal text-muted-foreground">
               <li>
                 Click the{" "}
@@ -2588,6 +2507,7 @@ export const getAppStoreApp = (app: App) => {
   return appStoreApps.find(
     (suggestedApp) =>
       suggestedApp.id === (app.metadata?.app_store_app_id ?? "") ||
-      app.name.includes(suggestedApp.title)
+      app.name.includes(suggestedApp.title) ||
+      suggestedApp.legacyTitles?.some((title) => app.name.includes(title))
   );
 };
