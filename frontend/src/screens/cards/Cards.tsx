@@ -243,7 +243,11 @@ export function Cards() {
   }, []);
 
   const filtered = providers.filter((p) => {
-    if (region !== "All" && !p.regions.includes(region)) {
+    if (
+      region !== "All" &&
+      !p.regions.includes(region) &&
+      !(region !== "Global" && p.regions.includes("Global"))
+    ) {
       return false;
     }
     for (const f of features) {
