@@ -672,18 +672,7 @@ function ProviderRow({ provider }: { provider: Provider }) {
 
 function ProviderCard({ provider }: { provider: Provider }) {
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={() => openProvider(provider)}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          openProvider(provider);
-        }
-      }}
-      className="rounded-xl border border-border bg-card p-4 cursor-pointer hover:bg-accent/30 transition-colors"
-    >
+    <div className="rounded-xl border border-border bg-card p-4">
       <div className="flex items-center gap-3">
         <Avatar className="size-10 rounded-lg shrink-0">
           <AvatarImage
@@ -709,7 +698,6 @@ function ProviderCard({ provider }: { provider: Provider }) {
             {provider.network} · {provider.cardType}
           </p>
         </div>
-        <ArrowUpRightIcon className="size-4 shrink-0 text-muted-foreground" />
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
@@ -749,6 +737,16 @@ function ProviderCard({ provider }: { provider: Provider }) {
           <span className="text-xs text-muted-foreground">{provider.fees}</span>
         </CardFact>
       </div>
+
+      <Button
+        variant="outline"
+        size="sm"
+        className="mt-4 w-full"
+        onClick={() => openProvider(provider)}
+      >
+        Visit
+        <ArrowUpRightIcon className="size-4" />
+      </Button>
     </div>
   );
 }
