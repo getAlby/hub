@@ -182,7 +182,7 @@ const providers: Provider[] = [
     googlePay: true,
     selfCustody: false,
     lightningNative: true,
-    kyc: "Full",
+    kyc: "Light",
     timeToGet: "Minutes",
     cardCost: "€2.99 / €29.99",
     fees: "1% + 0.5%",
