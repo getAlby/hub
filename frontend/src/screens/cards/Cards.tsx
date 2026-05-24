@@ -34,6 +34,13 @@ import {
   DialogTitle,
 } from "src/components/ui/dialog";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "src/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -96,7 +103,7 @@ const providers: Provider[] = [
     initials: "RP",
     network: "Visa",
     cardType: "Virtual",
-    regions: ["Global", "US", "UK", "EU", "LATAM", "Asia"],
+    regions: ["Global"],
     applePay: true,
     googlePay: true,
     selfCustody: false,
@@ -375,26 +382,27 @@ export function Cards() {
 
       {/* Filter bar */}
       <section className="rounded-xl border border-border bg-card overflow-hidden">
-        <div className="px-5 py-4 flex flex-wrap items-center gap-x-5 gap-y-3 overflow-x-auto">
+        <div className="px-5 py-4 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-x-5 gap-y-3">
           <div className="flex items-center gap-3 shrink-0">
             <p className="text-xs font-medium text-muted-foreground">Region</p>
-            <ToggleGroup
-              type="single"
+            <Select
               value={region}
-              onValueChange={(v) => v && setRegion(v as Region | "All")}
-              variant="outline"
-              size="sm"
-              className="*:data-[state=on]:bg-primary *:data-[state=on]:text-primary-foreground *:data-[state=on]:border-primary"
+              onValueChange={(v) => setRegion(v as Region | "All")}
             >
-              {regionFilters.map((r) => (
-                <ToggleGroupItem key={r.value} value={r.value}>
-                  {r.label}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
+              <SelectTrigger className="h-8 w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {regionFilters.map((r) => (
+                  <SelectItem key={r.value} value={r.value}>
+                    {r.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-3">
             <p className="text-xs font-medium text-muted-foreground">Filter</p>
             <ToggleGroup
               type="multiple"
@@ -403,7 +411,7 @@ export function Cards() {
               variant="outline"
               size="sm"
               spacing={1}
-              className="*:data-[state=on]:bg-primary *:data-[state=on]:text-primary-foreground *:data-[state=on]:border-primary"
+              className="flex-wrap flex-1 min-w-0 *:data-[state=on]:bg-primary *:data-[state=on]:text-primary-foreground *:data-[state=on]:border-primary"
             >
               {providers.some((p) => p.applePay) && (
                 <ToggleGroupItem value="ApplePay" aria-label="Apple Pay">
@@ -467,9 +475,9 @@ export function Cards() {
         )}
       </section>
 
-      {/* Provider table */}
+      {/* Provider table (desktop) / card list (mobile) */}
       <section>
-        <div className="rounded-xl border border-border bg-card overflow-x-auto">
+        <div className="hidden md:block rounded-xl border border-border bg-card overflow-x-auto">
           <Table className="min-w-[720px]">
             <TableHeader>
               <TableRow className="bg-muted/40 hover:bg-muted/40">
@@ -501,6 +509,18 @@ export function Cards() {
           </Table>
         </div>
 
+        {/* Mobile: stacked cards instead of a sideways-scrolling table */}
+        <div className="md:hidden flex flex-col gap-3">
+          {filtered.length === 0 && (
+            <div className="rounded-xl border border-border bg-card text-center text-sm text-muted-foreground py-10">
+              No providers match these filters.
+            </div>
+          )}
+          {filtered.map((p) => (
+            <ProviderCard key={p.id} provider={p} />
+          ))}
+        </div>
+
         <p className="text-xs text-muted-foreground mt-3">
           Alby Hub does not issue or operate these cards. Availability, fees,
           and KYC are set by each provider — values here are approximate and may
@@ -511,17 +531,19 @@ export function Cards() {
   );
 }
 
+function openProvider(provider: Provider) {
+  sendEvent("debit_card_url_clicked", {
+    name: provider.name,
+    url: provider.url,
+  });
+  window.open(provider.url, "_blank", "noopener,noreferrer");
+}
+
 function ProviderRow({ provider }: { provider: Provider }) {
   return (
     <TableRow
       className="[&_td]:py-3 cursor-pointer hover:bg-accent/30 transition-colors"
-      onClick={() => {
-        sendEvent("debit_card_url_clicked", {
-          name: provider.name,
-          url: provider.url,
-        });
-        window.open(provider.url, "_blank", "noopener,noreferrer");
-      }}
+      onClick={() => openProvider(provider)}
     >
       <TableCell>
         <div className="flex items-center gap-3 group">
@@ -629,6 +651,104 @@ function ProviderRow({ provider }: { provider: Provider }) {
         </div>
       </TableCell>
     </TableRow>
+  );
+}
+
+function ProviderCard({ provider }: { provider: Provider }) {
+  return (
+    <div className="rounded-xl border border-border bg-card p-5">
+      <div className="flex items-center gap-3">
+        <Avatar className="size-10 rounded-lg shrink-0">
+          <AvatarImage
+            src={provider.logo}
+            alt={provider.name}
+            className="rounded-lg object-contain bg-secondary p-1"
+          />
+          <AvatarFallback className="rounded-lg bg-secondary text-secondary-foreground text-xs font-semibold">
+            {provider.initials}
+          </AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5">
+            <span className="font-medium truncate">{provider.name}</span>
+            {provider.selfCustody && (
+              <ShieldCheckIcon className="size-3 shrink-0 text-positive-foreground" />
+            )}
+            {provider.lightningNative && (
+              <ZapIcon className="size-3 shrink-0 text-primary" />
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {provider.network} · {provider.cardType}
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4 flex flex-wrap items-center gap-1.5">
+        {provider.regions.map((r) => (
+          <Badge
+            key={r}
+            variant="secondary"
+            className="text-[10px] font-medium px-1.5 py-0"
+          >
+            {r}
+          </Badge>
+        ))}
+        {(provider.applePay || provider.googlePay) && (
+          <span className="flex items-center gap-1.5 ml-1 text-muted-foreground">
+            {provider.applePay && <AppleIcon />}
+            {provider.googlePay && <GooglePayIcon />}
+          </span>
+        )}
+      </div>
+
+      <div className="mt-5 pt-5 border-t border-border/60 grid grid-cols-2 gap-x-4 gap-y-4">
+        <CardFact label="KYC">
+          <KycBadge kyc={provider.kyc} />
+        </CardFact>
+        <CardFact label="Time to get">
+          <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+            <ClockIcon className="size-3" />
+            {provider.timeToGet}
+          </span>
+        </CardFact>
+        <CardFact label="Card cost">
+          <span className="text-xs text-muted-foreground">
+            {provider.cardCost}
+          </span>
+        </CardFact>
+        <CardFact label="Fees">
+          <span className="text-xs text-muted-foreground">{provider.fees}</span>
+        </CardFact>
+      </div>
+
+      <Button
+        variant="outline"
+        size="sm"
+        className="mt-6 w-full"
+        onClick={() => openProvider(provider)}
+      >
+        Visit
+        <ArrowUpRightIcon className="size-4" />
+      </Button>
+    </div>
+  );
+}
+
+function CardFact({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+        {label}
+      </p>
+      {children}
+    </div>
   );
 }
 
