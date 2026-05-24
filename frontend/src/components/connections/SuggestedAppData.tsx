@@ -6,6 +6,7 @@ import albyGo from "src/assets/suggested-apps/alby-go.png";
 import albySandbox from "src/assets/suggested-apps/alby-sandbox.png";
 import albyCli from "src/assets/suggested-apps/alby.png";
 import amethyst from "src/assets/suggested-apps/amethyst.png";
+import bitcoinCardTopup from "src/assets/suggested-apps/bitcoin-card-topup.png";
 import bitrefill from "src/assets/suggested-apps/bitrefill.png";
 import bitrequest from "src/assets/suggested-apps/bitrequest.png";
 import bringin from "src/assets/suggested-apps/bringin.png";
@@ -34,8 +35,8 @@ import payperq from "src/assets/suggested-apps/payperq.png";
 import primal from "src/assets/suggested-apps/primal.png";
 import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
 import runstr from "src/assets/suggested-apps/runstr.png";
-import sats4ai from "src/assets/suggested-apps/sats4ai.png";
 import satsorter from "src/assets/suggested-apps/sat-sorter.png";
+import sats4ai from "src/assets/suggested-apps/sats4ai.png";
 import simpleboost from "src/assets/suggested-apps/simple-boost.png";
 import snort from "src/assets/suggested-apps/snort.png";
 import stackernews from "src/assets/suggested-apps/stacker-news.png";
@@ -217,6 +218,60 @@ export const appStoreApps: AppStoreApp[] = (
       ),
       categories: ["audio"],
       addedDate: "2026-03-12",
+    },
+    {
+      id: "bitcoin-card-topup",
+      title: "Bitcoin Card Topup",
+      description: "Top up any crypto debit card instantly with bitcoin",
+      logo: bitcoinCardTopup,
+      categories: ["payment-tools"],
+      extendedDescription:
+        "A generic top-up app that swaps Lightning sats to a stablecoin and sends them to your card's deposit address. Works with RedotPay, Freedomia, Nexo, Bybit, and any other card that accepts on-chain crypto deposits.",
+      webLink: "https://card.albylabs.com",
+      installGuide: (
+        <>
+          <div>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Open{" "}
+                <ExternalLink
+                  to="https://card.albylabs.com"
+                  className="underline"
+                >
+                  card.albylabs.com
+                </ExternalLink>{" "}
+                on the device you'll top up from.
+              </li>
+              <li>
+                <span className="font-medium text-foreground">
+                  Add it to your home screen
+                </span>{" "}
+                (or bookmark it) so you can reopen it later.
+              </li>
+              <li>
+                Enter your card's deposit address, network, and currency to set
+                it up.
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>Copy the connection secret below.</li>
+              <li>
+                In the topup app, tap{" "}
+                <span className="font-medium text-foreground">
+                  Connect Wallet
+                </span>{" "}
+                and paste the connection secret.
+              </li>
+            </ul>
+          </div>
+        </>
+      ),
     },
     {
       id: "2fiat",

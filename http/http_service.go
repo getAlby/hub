@@ -157,7 +157,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	fullAccessApiGroup.Use(echojwt.WithConfig(jwtConfig))
 	fullAccessApiGroup.Use(httpSvc.requireFullAccess)
 
-	fullAccessApiGroup.POST("/api/event", httpSvc.eventHandler)
+	fullAccessApiGroup.POST("/event", httpSvc.eventHandler)
 	fullAccessApiGroup.PATCH("/unlock-password", httpSvc.changeUnlockPasswordHandler)
 	fullAccessApiGroup.PATCH("/auto-unlock", httpSvc.autoUnlockHandler)
 	fullAccessApiGroup.PATCH("/settings", httpSvc.updateSettingsHandler)
