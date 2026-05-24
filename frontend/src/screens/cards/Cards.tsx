@@ -385,12 +385,11 @@ export function Cards() {
         <div className="px-5 py-4 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-x-5 gap-y-3">
           <div className="flex items-center gap-3 shrink-0">
             <p className="text-xs font-medium text-muted-foreground">Region</p>
-            {/* Mobile: dropdown to avoid a horizontally-scrolling pill row */}
             <Select
               value={region}
               onValueChange={(v) => setRegion(v as Region | "All")}
             >
-              <SelectTrigger className="h-8 flex-1 sm:hidden">
+              <SelectTrigger className="h-8 w-[160px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -401,21 +400,6 @@ export function Cards() {
                 ))}
               </SelectContent>
             </Select>
-            {/* Desktop: connected pills */}
-            <ToggleGroup
-              type="single"
-              value={region}
-              onValueChange={(v) => v && setRegion(v as Region | "All")}
-              variant="outline"
-              size="sm"
-              className="hidden sm:flex *:data-[state=on]:bg-primary *:data-[state=on]:text-primary-foreground *:data-[state=on]:border-primary"
-            >
-              {regionFilters.map((r) => (
-                <ToggleGroupItem key={r.value} value={r.value}>
-                  {r.label}
-                </ToggleGroupItem>
-              ))}
-            </ToggleGroup>
           </div>
 
           <div className="flex items-center gap-3">
