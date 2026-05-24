@@ -96,7 +96,7 @@ const providers: Provider[] = [
     initials: "RP",
     network: "Visa",
     cardType: "Virtual",
-    regions: ["Global", "US", "UK", "EU", "LATAM", "Asia"],
+    regions: ["Global"],
     applePay: true,
     googlePay: true,
     selfCustody: false,
