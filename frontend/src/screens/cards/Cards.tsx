@@ -695,7 +695,7 @@ function ProviderCard({ provider }: { provider: Provider }) {
           </Badge>
         ))}
         {(provider.applePay || provider.googlePay) && (
-          <span className="flex items-center gap-1.5 text-muted-foreground ml-auto">
+          <span className="flex items-center gap-1.5 ml-1 text-muted-foreground">
             {provider.applePay && <AppleIcon />}
             {provider.googlePay && <GooglePayIcon />}
           </span>
