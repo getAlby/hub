@@ -389,7 +389,7 @@ export function Cards() {
               value={region}
               onValueChange={(v) => setRegion(v as Region | "All")}
             >
-              <SelectTrigger className="h-8 w-[160px]">
+              <SelectTrigger className="h-8 w-40">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -656,7 +656,7 @@ function ProviderRow({ provider }: { provider: Provider }) {
 
 function ProviderCard({ provider }: { provider: Provider }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div className="rounded-xl border border-border bg-card p-5">
       <div className="flex items-center gap-3">
         <Avatar className="size-10 rounded-lg shrink-0">
           <AvatarImage
@@ -684,7 +684,7 @@ function ProviderCard({ provider }: { provider: Provider }) {
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+      <div className="mt-4 flex flex-wrap items-center gap-1.5">
         {provider.regions.map((r) => (
           <Badge
             key={r}
@@ -702,7 +702,7 @@ function ProviderCard({ provider }: { provider: Provider }) {
         )}
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2">
+      <div className="mt-5 pt-5 border-t border-border/60 grid grid-cols-2 gap-x-4 gap-y-4">
         <CardFact label="KYC">
           <KycBadge kyc={provider.kyc} />
         </CardFact>
@@ -725,7 +725,7 @@ function ProviderCard({ provider }: { provider: Provider }) {
       <Button
         variant="outline"
         size="sm"
-        className="mt-4 w-full"
+        className="mt-6 w-full"
         onClick={() => openProvider(provider)}
       >
         Visit
