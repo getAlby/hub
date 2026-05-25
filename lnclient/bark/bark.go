@@ -147,15 +147,6 @@ func (bs *BarkService) MakeInvoice(ctx context.Context, amountMsat int64, descri
 	if err != nil {
 		return nil, fmt.Errorf("bark Bolt11Invoice failed: %w", err)
 	}
-	// TODO: Bark's FFI does not expose the preimage at invoice creation, even
-	// though it is generated here (the invoice's payment hash is its hash).
-	// LightningInvoice carries only the bolt11 string and amount, and there is
-	// no later API to fetch the preimage for a received payment
-	// (LightningReceive surfaces only PreimageRevealed bool; CheckLightningPayment
-	// is outgoing-only). If the SDK exposed it, we would store it here and
-	// return it on settlement. Until then, lightningReceiveToTransaction falls
-	// back to the payment hash as a placeholder preimage so markTransactionSettled
-	// can complete — NWC lookup_invoice consumers will receive that placeholder.
 
 	paymentRequest, err := decodepay.Decodepay(invoice.Invoice)
 	if err != nil {
@@ -165,9 +156,24 @@ func (bs *BarkService) MakeInvoice(ctx context.Context, amountMsat int64, descri
 
 	expiresAtUnix := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
 
+	// The preimage is generated alongside the invoice but is not returned by
+	// Bolt11Invoice. Fetch it via the receive status so consumers can rely on
+	// lookup_invoice exposing the real preimage.
+	var preimage string
+	receive, err := bs.wallet.LightningReceiveStatus(paymentRequest.PaymentHash)
+	if err != nil {
+		logger.Logger.WithError(err).WithField("paymentHash", paymentRequest.PaymentHash).Error("Failed to fetch bark receive status for preimage")
+		return nil, err
+	}
+	preimage = receive.PaymentPreimage
+	if preimage == "" {
+		return nil, errors.New("no preimage available")
+	}
+
 	return &lnclient.Transaction{
 		Type:            constants.TRANSACTION_TYPE_INCOMING,
 		Invoice:         invoice.Invoice,
+		Preimage:        preimage,
 		PaymentHash:     paymentRequest.PaymentHash,
 		AmountMsat:      amountMsat,
 		CreatedAt:       int64(paymentRequest.CreatedAt),
@@ -221,8 +227,9 @@ func (bs *BarkService) SendPaymentSync(invoice string, amountMsat *uint64) (*lnc
 }
 
 func (bs *BarkService) LookupInvoice(ctx context.Context, paymentHash string) (*lnclient.Transaction, error) {
+	receive, err := bs.wallet.LightningReceiveStatus(paymentHash)
 	// Try as an incoming receive first.
-	if receive, err := bs.wallet.LightningReceiveStatus(paymentHash); err == nil && receive != nil {
+	if err == nil && receive != nil {
 		return bs.lightningReceiveToTransaction(receive)
 	}
 
@@ -264,8 +271,7 @@ func (bs *BarkService) lightningReceiveToTransaction(receive *bark.LightningRece
 	if receive.PreimageRevealed {
 		now := time.Now().Unix()
 		tx.SettledAt = &now
-		// FIXME: remove placeholder preimage — see TODO in MakeInvoice.
-		tx.Preimage = receive.PaymentHash
+		tx.Preimage = receive.PaymentPreimage
 	}
 	return tx, nil
 }
