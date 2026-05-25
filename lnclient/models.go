@@ -5,8 +5,9 @@ import (
 	"errors"
 )
 
-// TODO: remove JSON tags from these models (LNClient models should not be exposed directly)
-
+// TLVRecord JSON tags are kept because values flow through the freeform
+// transaction Metadata blob and are surfaced to NIP-47 clients via
+// lookup_invoice / list_transactions.
 type TLVRecord struct {
 	Type uint64 `json:"type"`
 	// hex-encoded value
@@ -42,18 +43,18 @@ type Transaction struct {
 }
 
 type OnchainTransaction struct {
-	AmountSat        uint64 `json:"amountSat"`
-	CreatedAt        uint64 `json:"createdAt"`
-	State            string `json:"state"`
-	Type             string `json:"type"`
-	NumConfirmations uint32 `json:"numConfirmations"`
-	TxId             string `json:"txId"`
+	AmountSat        uint64
+	CreatedAt        uint64
+	State            string
+	Type             string
+	NumConfirmations uint32
+	TxId             string
 }
 
 type NodeConnectionInfo struct {
-	Pubkey  string `json:"pubkey"`
-	Address string `json:"address"`
-	Port    int    `json:"port"`
+	Pubkey  string
+	Address string
+	Port    int
 }
 
 type LNClient interface {
@@ -73,7 +74,7 @@ type LNClient interface {
 	GetNodeStatus(ctx context.Context) (nodeStatus *NodeStatus, err error)
 	ConnectPeer(ctx context.Context, connectPeerRequest *ConnectPeerRequest) error
 	OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error)
-	CloseChannel(ctx context.Context, closeChannelRequest *CloseChannelRequest) (*CloseChannelResponse, error)
+	CloseChannel(ctx context.Context, closeChannelRequest *CloseChannelRequest) error
 	UpdateChannel(ctx context.Context, updateChannelRequest *UpdateChannelRequest) error
 	DisconnectPeer(ctx context.Context, peerId string) error
 	MakeOffer(ctx context.Context, description string) (string, error)
@@ -116,111 +117,91 @@ type Channel struct {
 }
 
 type NodeStatus struct {
-	IsReady            bool        `json:"isReady"`
-	InternalNodeStatus interface{} `json:"internalNodeStatus"`
+	IsReady            bool
+	InternalNodeStatus interface{}
 }
 
 type ConnectPeerRequest struct {
-	Pubkey  string `json:"pubkey"`
-	Address string `json:"address"`
-	Port    uint16 `json:"port"`
+	Pubkey  string
+	Address string
+	Port    uint16
 }
 
 type OpenChannelRequest struct {
-	Pubkey     string `json:"pubkey"`
-	AmountSats int64  `json:"amountSats"`
-	Public     bool   `json:"public"`
+	Pubkey     string
+	AmountSats int64
+	Public     bool
 }
 
 type OpenChannelResponse struct {
-	FundingTxId string `json:"fundingTxId"`
+	FundingTxId string
 }
 
 type CloseChannelRequest struct {
-	ChannelId string `json:"channelId"`
-	NodeId    string `json:"nodeId"`
-	Force     bool   `json:"force"`
+	ChannelId string
+	NodeId    string
+	Force     bool
 }
 
 type UpdateChannelRequest struct {
-	ChannelId                                string `json:"channelId"`
-	NodeId                                   string `json:"nodeId"`
-	ForwardingFeeBaseMsat                    uint32 `json:"forwardingFeeBaseMsat"`
-	ForwardingFeeProportionalMillionths      uint32 `json:"forwardingFeeProportionalMillionths"`
-	MaxDustHtlcExposureFromFeeRateMultiplier uint64 `json:"maxDustHtlcExposureFromFeeRateMultiplier"`
-}
-
-type CloseChannelResponse struct {
+	ChannelId                                string
+	NodeId                                   string
+	ForwardingFeeBaseMsat                    uint32
+	ForwardingFeeProportionalMillionths      uint32
+	MaxDustHtlcExposureFromFeeRateMultiplier uint64
 }
 
 type PendingBalanceDetails struct {
-	ChannelId     string `json:"channelId"`
-	NodeId        string `json:"nodeId"`
-	Amount        uint64 `json:"amount"` // deprecated
-	AmountSat     uint64 `json:"amountSat"`
-	FundingTxId   string `json:"fundingTxId"`
-	FundingTxVout uint32 `json:"fundingTxVout"`
+	ChannelId     string
+	NodeId        string
+	AmountSat     uint64
+	FundingTxId   string
+	FundingTxVout uint32
 }
 
 type OnchainBalanceResponse struct {
-	Spendable                             int64                   `json:"spendable"` // deprecated
-	SpendableSat                          int64                   `json:"spendableSat"`
-	Total                                 int64                   `json:"total"` // deprecated
-	TotalSat                              int64                   `json:"totalSat"`
-	Reserved                              int64                   `json:"reserved"` // deprecated
-	ReservedSat                           int64                   `json:"reservedSat"`
-	PendingBalancesFromChannelClosures    uint64                  `json:"pendingBalancesFromChannelClosures"` // deprecated
-	PendingBalancesFromChannelClosuresSat uint64                  `json:"pendingBalancesFromChannelClosuresSat"`
-	PendingBalancesDetails                []PendingBalanceDetails `json:"pendingBalancesDetails"`
-	PendingSweepBalancesDetails           []PendingBalanceDetails `json:"pendingSweepBalancesDetails"`
-	InternalBalances                      interface{}             `json:"internalBalances"`
+	SpendableSat                          int64
+	TotalSat                              int64
+	ReservedSat                           int64
+	PendingBalancesFromChannelClosuresSat uint64
+	PendingBalancesDetails                []PendingBalanceDetails
+	PendingSweepBalancesDetails           []PendingBalanceDetails
+	InternalBalances                      interface{}
 }
 
 type PeerDetails struct {
-	NodeId      string `json:"nodeId"`
-	Address     string `json:"address"`
-	IsPersisted bool   `json:"isPersisted"`
-	IsConnected bool   `json:"isConnected"`
+	NodeId      string
+	Address     string
+	IsPersisted bool
+	IsConnected bool
 }
 type LightningBalanceResponse struct {
-	TotalSpendable           int64 `json:"totalSpendable"` // deprecated
-	TotalSpendableSat        int64 `json:"totalSpendableSat"`
-	TotalSpendableMsat       int64 `json:"totalSpendableMsat"`
-	TotalReceivable          int64 `json:"totalReceivable"` // deprecated
-	TotalReceivableSat       int64 `json:"totalReceivableSat"`
-	TotalReceivableMsat      int64 `json:"totalReceivableMsat"`
-	NextMaxSpendable         int64 `json:"nextMaxSpendable"` // deprecated
-	NextMaxSpendableSat      int64 `json:"nextMaxSpendableSat"`
-	NextMaxSpendableMsat     int64 `json:"nextMaxSpendableMsat"`
-	NextMaxReceivable        int64 `json:"nextMaxReceivable"` // deprecated
-	NextMaxReceivableSat     int64 `json:"nextMaxReceivableSat"`
-	NextMaxReceivableMsat    int64 `json:"nextMaxReceivableMsat"`
-	NextMaxSpendableMPP      int64 `json:"nextMaxSpendableMPP"` // deprecated
-	NextMaxSpendableMPPSat   int64 `json:"nextMaxSpendableMPPSat"`
-	NextMaxSpendableMPPMsat  int64 `json:"nextMaxSpendableMPPMsat"`
-	NextMaxReceivableMPP     int64 `json:"nextMaxReceivableMPP"` // deprecated
-	NextMaxReceivableMPPSat  int64 `json:"nextMaxReceivableMPPSat"`
-	NextMaxReceivableMPPMsat int64 `json:"nextMaxReceivableMPPMsat"`
+	TotalSpendableMsat       int64
+	TotalReceivableMsat      int64
+	NextMaxSpendableMsat     int64
+	NextMaxReceivableMsat    int64
+	NextMaxSpendableMPPMsat  int64
+	NextMaxReceivableMPPMsat int64
 }
 
 type PayInvoiceResponse struct {
-	Preimage string `json:"preimage"`
-	FeeMsat  uint64 `json:"feeMsat"`
+	Preimage string
+	FeeMsat  uint64
 }
 
 type PayOfferResponse = struct {
-	Preimage    string `json:"preimage"`
-	FeeMsat     uint64 `json:"feeMsat"`
-	PaymentHash string `json:"paymentHash"`
+	Preimage    string
+	FeeMsat     uint64
+	PaymentHash string
 }
 
 type PayKeysendResponse struct {
-	FeeMsat uint64 `json:"feeMsat"`
+	FeeMsat uint64
 }
 
 type BalancesResponse struct {
-	Onchain   OnchainBalanceResponse   `json:"onchain"`
-	Lightning LightningBalanceResponse `json:"lightning"`
+	Onchain   OnchainBalanceResponse
+	Lightning LightningBalanceResponse
 }
 
 type NetworkGraphResponse = interface{}

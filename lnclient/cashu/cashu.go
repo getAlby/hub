@@ -171,19 +171,19 @@ func (cs *CashuService) GetNodeConnectionInfo(ctx context.Context) (nodeConnecti
 }
 
 func (cs *CashuService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
-	return nil
+	return errors.New("not implemented")
 }
 
 func (cs *CashuService) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
-	return nil, nil
+	return nil, errors.New("not implemented")
 }
 
-func (cs *CashuService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
-	return nil, nil
+func (cs *CashuService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) error {
+	return errors.New("not implemented")
 }
 
 func (cs *CashuService) GetNewOnchainAddress(ctx context.Context) (string, error) {
-	return "", nil
+	return "", errors.New("not implemented")
 }
 
 func (cs *CashuService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
@@ -191,7 +191,7 @@ func (cs *CashuService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchai
 }
 
 func (cs *CashuService) RedeemOnchainFunds(ctx context.Context, toAddress string, amountSat uint64, feeRate *uint64, sendAll bool) (string, error) {
-	return "", nil
+	return "", errors.New("not implemented")
 }
 
 func (cs *CashuService) ResetRouter(key string) error {
@@ -218,11 +218,11 @@ func (cs *CashuService) ResetRouter(key string) error {
 }
 
 func (cs *CashuService) SignMessage(ctx context.Context, message string) (string, error) {
-	return "", nil
+	return "", errors.New("not implemented")
 }
 
 func (cs *CashuService) DisconnectPeer(ctx context.Context, peerId string) error {
-	return nil
+	return errors.New("not implemented")
 }
 
 func (cs *CashuService) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
@@ -247,7 +247,7 @@ func (cs *CashuService) GetNodeStatus(ctx context.Context) (nodeStatus *lnclient
 }
 
 func (cs *CashuService) UpdateChannel(ctx context.Context, updateChannelRequest *lnclient.UpdateChannelRequest) error {
-	return nil
+	return errors.New("not implemented")
 }
 
 func (cs *CashuService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
@@ -259,14 +259,8 @@ func (cs *CashuService) GetBalances(ctx context.Context, includeInactiveChannels
 			PendingBalancesDetails:      []lnclient.PendingBalanceDetails{},
 			PendingSweepBalancesDetails: []lnclient.PendingBalanceDetails{}},
 		Lightning: lnclient.LightningBalanceResponse{
-			TotalSpendable:          balance,
-			TotalSpendableSat:       balance / 1000,
 			TotalSpendableMsat:      balance,
-			NextMaxSpendable:        balance,
-			NextMaxSpendableSat:     balance / 1000,
 			NextMaxSpendableMsat:    balance,
-			NextMaxSpendableMPP:     balance,
-			NextMaxSpendableMPPSat:  balance / 1000,
 			NextMaxSpendableMPPMsat: balance,
 		},
 	}, nil

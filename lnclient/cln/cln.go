@@ -882,7 +882,7 @@ func clnHoldInvoiceToTransaction(invoice *clngrpcHold.Invoice, decodedInvoice *c
 	return tx, nil
 }
 
-func (c *CLNService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
+func (c *CLNService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) error {
 	logger.Logger.WithFields(logrus.Fields{
 		"closeChannelRequest": closeChannelRequest,
 	}).Debug("Closing Channel")
@@ -901,10 +901,10 @@ func (c *CLNService) CloseChannel(ctx context.Context, closeChannelRequest *lncl
 	_, err := c.client.Close(ctx, req)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to close channel")
-		return nil, fmt.Errorf("close failed: %w", err)
+		return fmt.Errorf("close failed: %w", err)
 	}
 
-	return &lnclient.CloseChannelResponse{}, err
+	return nil
 }
 
 func (c *CLNService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {

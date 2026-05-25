@@ -8,7 +8,6 @@ import (
 
 	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/db"
-	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/swaps"
 )
 
@@ -28,9 +27,9 @@ type API interface {
 	ChangeUnlockPassword(changeUnlockPasswordRequest *ChangeUnlockPasswordRequest) error
 	SetAutoUnlockPassword(unlockPassword string) error
 	Stop() error
-	GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnectionInfo, error)
-	GetNodeStatus(ctx context.Context) (*lnclient.NodeStatus, error)
-	ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error)
+	GetNodeConnectionInfo(ctx context.Context) (*NodeConnectionInfo, error)
+	GetNodeStatus(ctx context.Context) (*NodeStatus, error)
+	ListPeers(ctx context.Context) ([]PeerDetails, error)
 	ConnectPeer(ctx context.Context, connectPeerRequest *ConnectPeerRequest) error
 	DisconnectPeer(ctx context.Context, peerId string) error
 	OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error)
@@ -44,7 +43,7 @@ type API interface {
 	RedeemOnchainFunds(ctx context.Context, toAddress string, amountSat uint64, feeRate *uint64, sendAll bool) (*RedeemOnchainFundsResponse, error)
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
 	ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error)
-	ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error)
+	ListOnchainTransactions(ctx context.Context) ([]OnchainTransaction, error)
 	SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}, fromAppId *uint) (*SendPaymentResponse, error)
 	CreateInvoice(ctx context.Context, amountMsat uint64, description string) (*MakeInvoiceResponse, error)
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
@@ -361,11 +360,68 @@ type AutoUnlockRequest struct {
 	UnlockPassword string `json:"unlockPassword"`
 }
 
-type ConnectPeerRequest = lnclient.ConnectPeerRequest
-type OpenChannelRequest = lnclient.OpenChannelRequest
-type OpenChannelResponse = lnclient.OpenChannelResponse
-type CloseChannelResponse = lnclient.CloseChannelResponse
-type UpdateChannelRequest = lnclient.UpdateChannelRequest
+type ConnectPeerRequest struct {
+	Pubkey  string `json:"pubkey"`
+	Address string `json:"address"`
+	Port    uint16 `json:"port"`
+}
+
+type OpenChannelRequest struct {
+	Pubkey     string `json:"pubkey"`
+	AmountSats int64  `json:"amountSats"`
+	Public     bool   `json:"public"`
+}
+
+type OpenChannelResponse struct {
+	FundingTxId string `json:"fundingTxId"`
+}
+
+type CloseChannelResponse struct {
+}
+
+type UpdateChannelRequest struct {
+	ChannelId                                string `json:"channelId"`
+	NodeId                                   string `json:"nodeId"`
+	ForwardingFeeBaseMsat                    uint32 `json:"forwardingFeeBaseMsat"`
+	ForwardingFeeProportionalMillionths      uint32 `json:"forwardingFeeProportionalMillionths"`
+	MaxDustHtlcExposureFromFeeRateMultiplier uint64 `json:"maxDustHtlcExposureFromFeeRateMultiplier"`
+}
+
+type NodeConnectionInfo struct {
+	Pubkey  string `json:"pubkey"`
+	Address string `json:"address"`
+	Port    int    `json:"port"`
+}
+
+type NodeStatus struct {
+	IsReady            bool        `json:"isReady"`
+	InternalNodeStatus interface{} `json:"internalNodeStatus"`
+}
+
+type PeerDetails struct {
+	NodeId      string `json:"nodeId"`
+	Address     string `json:"address"`
+	IsPersisted bool   `json:"isPersisted"`
+	IsConnected bool   `json:"isConnected"`
+}
+
+type OnchainTransaction struct {
+	AmountSat        uint64 `json:"amountSat"`
+	CreatedAt        uint64 `json:"createdAt"`
+	State            string `json:"state"`
+	Type             string `json:"type"`
+	NumConfirmations uint32 `json:"numConfirmations"`
+	TxId             string `json:"txId"`
+}
+
+type PendingBalanceDetails struct {
+	ChannelId     string `json:"channelId"`
+	NodeId        string `json:"nodeId"`
+	Amount        uint64 `json:"amount"` // deprecated
+	AmountSat     uint64 `json:"amountSat"`
+	FundingTxId   string `json:"fundingTxId"`
+	FundingTxVout uint32 `json:"fundingTxVout"`
+}
 
 type RebalanceChannelRequest struct {
 	ReceiveThroughNodePubkey string  `json:"receiveThroughNodePubkey"`
@@ -389,8 +445,45 @@ type RedeemOnchainFundsResponse struct {
 	TxId string `json:"txId"`
 }
 
-type OnchainBalanceResponse = lnclient.OnchainBalanceResponse
-type BalancesResponse = lnclient.BalancesResponse
+type OnchainBalanceResponse struct {
+	Spendable                             int64                   `json:"spendable"` // deprecated
+	SpendableSat                          int64                   `json:"spendableSat"`
+	Total                                 int64                   `json:"total"` // deprecated
+	TotalSat                              int64                   `json:"totalSat"`
+	Reserved                              int64                   `json:"reserved"` // deprecated
+	ReservedSat                           int64                   `json:"reservedSat"`
+	PendingBalancesFromChannelClosures    uint64                  `json:"pendingBalancesFromChannelClosures"` // deprecated
+	PendingBalancesFromChannelClosuresSat uint64                  `json:"pendingBalancesFromChannelClosuresSat"`
+	PendingBalancesDetails                []PendingBalanceDetails `json:"pendingBalancesDetails"`
+	PendingSweepBalancesDetails           []PendingBalanceDetails `json:"pendingSweepBalancesDetails"`
+	InternalBalances                      interface{}             `json:"internalBalances"`
+}
+
+type LightningBalanceResponse struct {
+	TotalSpendable           int64 `json:"totalSpendable"` // deprecated
+	TotalSpendableSat        int64 `json:"totalSpendableSat"`
+	TotalSpendableMsat       int64 `json:"totalSpendableMsat"`
+	TotalReceivable          int64 `json:"totalReceivable"` // deprecated
+	TotalReceivableSat       int64 `json:"totalReceivableSat"`
+	TotalReceivableMsat      int64 `json:"totalReceivableMsat"`
+	NextMaxSpendable         int64 `json:"nextMaxSpendable"` // deprecated
+	NextMaxSpendableSat      int64 `json:"nextMaxSpendableSat"`
+	NextMaxSpendableMsat     int64 `json:"nextMaxSpendableMsat"`
+	NextMaxReceivable        int64 `json:"nextMaxReceivable"` // deprecated
+	NextMaxReceivableSat     int64 `json:"nextMaxReceivableSat"`
+	NextMaxReceivableMsat    int64 `json:"nextMaxReceivableMsat"`
+	NextMaxSpendableMPP      int64 `json:"nextMaxSpendableMPP"` // deprecated
+	NextMaxSpendableMPPSat   int64 `json:"nextMaxSpendableMPPSat"`
+	NextMaxSpendableMPPMsat  int64 `json:"nextMaxSpendableMPPMsat"`
+	NextMaxReceivableMPP     int64 `json:"nextMaxReceivableMPP"` // deprecated
+	NextMaxReceivableMPPSat  int64 `json:"nextMaxReceivableMPPSat"`
+	NextMaxReceivableMPPMsat int64 `json:"nextMaxReceivableMPPMsat"`
+}
+
+type BalancesResponse struct {
+	Onchain   OnchainBalanceResponse   `json:"onchain"`
+	Lightning LightningBalanceResponse `json:"lightning"`
+}
 
 type SendPaymentResponse = Transaction
 type MakeInvoiceResponse = Transaction
@@ -503,7 +596,7 @@ type BasicRestoreWailsRequest struct {
 	UnlockPassword string `json:"unlockPassword"`
 }
 
-type NetworkGraphResponse = lnclient.NetworkGraphResponse
+type NetworkGraphResponse = interface{}
 
 type LSPOrderRequest struct {
 	Amount        *uint64 `json:"amount"` // deprecated
