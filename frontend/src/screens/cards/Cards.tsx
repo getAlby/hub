@@ -82,7 +82,7 @@ type Provider = {
   googlePay: boolean;
   selfCustody: boolean;
   lightningNative: boolean;
-  kyc: "Full" | "Light" | "None";
+  kyc: boolean;
   timeToGet: string;
   cardCost: string;
   fees: string;
@@ -108,7 +108,7 @@ const providers: Provider[] = [
     googlePay: true,
     selfCustody: false,
     lightningNative: false,
-    kyc: "Light",
+    kyc: true,
     timeToGet: "<10 minutes",
     cardCost: "$10",
     fees: "~2.2% + FX",
@@ -127,7 +127,7 @@ const providers: Provider[] = [
     googlePay: true,
     selfCustody: false,
     lightningNative: true,
-    kyc: "None",
+    kyc: false,
     timeToGet: "Instant",
     cardCost: "$50",
     fees: "~6.8% top-up + $0.50",
@@ -146,7 +146,7 @@ const providers: Provider[] = [
     googlePay: true,
     selfCustody: false,
     lightningNative: false,
-    kyc: "None",
+    kyc: false,
     timeToGet: "Instant",
     cardCost: "$5–30 / mo",
     fees: "1.3–4.3%",
@@ -167,7 +167,7 @@ const providers: Provider[] = [
     googlePay: true,
     selfCustody: false,
     lightningNative: true,
-    kyc: "Full",
+    kyc: true,
     timeToGet: "Minutes",
     // Their cards page advertises a €3.49/mo subscription that bundles
     // both cards. Worth re-confirming during checkout — sources disagree.
@@ -189,7 +189,7 @@ const providers: Provider[] = [
     googlePay: true,
     selfCustody: false,
     lightningNative: true,
-    kyc: "Light",
+    kyc: true,
     timeToGet: "Minutes",
     cardCost: "€2.99 / €29.99",
     fees: "1% + 0.5%",
@@ -271,7 +271,7 @@ export function Cards() {
       if (f === "Lightning-native" && !p.lightningNative) {
         return false;
       }
-      if (f === "No KYC" && p.kyc !== "None") {
+      if (f === "No KYC" && p.kyc) {
         return false;
       }
     }
@@ -440,7 +440,7 @@ export function Cards() {
                   Lightning
                 </ToggleGroupItem>
               )}
-              {providers.some((p) => p.kyc === "None") && (
+              {providers.some((p) => !p.kyc) && (
                 <ToggleGroupItem value="No KYC" aria-label="No KYC">
                   <FingerprintIcon />
                   No KYC
@@ -833,11 +833,11 @@ function ConnectCardDialog({
 }
 
 function KycBadge({ kyc }: { kyc: Provider["kyc"] }) {
-  if (kyc === "None") {
+  if (!kyc) {
     return (
       <span className="inline-flex items-center gap-1 text-xs text-positive-foreground">
         <CheckIcon className="size-3" />
-        None
+        No
         <Tooltip>
           <TooltipTrigger asChild>
             <span className="text-muted-foreground hover:text-foreground cursor-help">
@@ -845,27 +845,10 @@ function KycBadge({ kyc }: { kyc: Provider["kyc"] }) {
             </span>
           </TooltipTrigger>
           <TooltipContent>
-            No-KYC cards typically operate via a single merchant-of-record
-            account. Privacy-friendly, but operationally fragile — the program
-            can be paused or shut down without notice.
-          </TooltipContent>
-        </Tooltip>
-      </span>
-    );
-  }
-  if (kyc === "Light") {
-    return (
-      <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-        Light
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span className="text-muted-foreground hover:text-foreground cursor-help">
-              <InfoIcon className="size-3" />
-            </span>
-          </TooltipTrigger>
-          <TooltipContent>
-            ID verification only — no proof of address, employer details, or
-            source-of-funds questions.
+            No identity verification required. These cards typically operate via
+            a single merchant-of-record account — privacy-friendly, but
+            operationally fragile, and the program can be paused or shut down
+            without notice.
           </TooltipContent>
         </Tooltip>
       </span>
@@ -873,7 +856,19 @@ function KycBadge({ kyc }: { kyc: Provider["kyc"] }) {
   }
   return (
     <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-      {kyc}
+      Yes
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="text-muted-foreground hover:text-foreground cursor-help">
+            <InfoIcon className="size-3" />
+          </span>
+        </TooltipTrigger>
+        <TooltipContent>
+          Identity verification required. What you'll need depends on your
+          passport and country — it can be as little as a passport and selfie,
+          or also include a tax number, proof of address, and other details.
+        </TooltipContent>
+      </Tooltip>
     </span>
   );
 }
