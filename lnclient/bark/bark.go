@@ -2,9 +2,11 @@ package bark
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -16,12 +18,17 @@ import (
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/nip47/notifications"
 )
 
 const (
 	signetServerAddress  = "https://ark.signet.2nd.dev"
 	signetEsploraAddress = "https://esplora.signet.2nd.dev"
-	claimInterval        = 5 * time.Second
+	// Subsystem name reported on movements produced when a lightning receive is
+	// claimed (see bark's Subsystem::LIGHTNING_RECEIVE).
+	lightningReceiveSubsystem = "lightning_receive"
+	// Grace period to allow the notification loop to unwind on shutdown.
+	shutdownGracePeriod = 10 * time.Second
 )
 
 type BarkService struct {
@@ -67,10 +74,12 @@ func NewBarkService(ctx context.Context, eventPublisher events.EventPublisher, w
 		return nil, fmt.Errorf("failed to open bark wallet: %w", err)
 	}
 
-	// Bark provides a built-in background daemon that periodically syncs
-	// with the Ark server and blockchain. Without onchain wallet support
-	// (we don't expose onchain in this minimum integration) it still runs
-	// the lightning-relevant tasks.
+	// Bark provides a built-in background daemon that periodically syncs with
+	// the Ark server and blockchain, participates in rounds, and — crucially for
+	// us — claims incoming lightning receives via the mailbox (it long-polls for
+	// payment notifications and reveals the preimage, crediting the balance). We
+	// don't poll for receives ourselves; instead we observe the resulting wallet
+	// notifications (see runNotificationLoop) to emit payment-received events.
 	if err := wallet.RunDaemon(nil); err != nil {
 		logger.Logger.WithError(err).Warn("Bark daemon failed to start")
 	}
@@ -95,50 +104,102 @@ func NewBarkService(ctx context.Context, eventPublisher events.EventPublisher, w
 	}()
 
 	bs.loopWg.Add(1)
-	go bs.runClaimLoop(loopCtx)
+	go bs.runNotificationLoop(loopCtx)
 
 	return bs, nil
 }
 
-// runClaimLoop periodically claims any pending Lightning receives. Bark's
-// Lightning receives don't auto-credit — once an HTLC is received the
-// preimage must be revealed via TryClaim*, which moves the funds into
-// the spendable balance.
-func (bs *BarkService) runClaimLoop(ctx context.Context) {
+// runNotificationLoop consumes the wallet's notification stream and publishes a
+// payment-received event whenever the daemon claims an incoming lightning
+// receive. The daemon does the actual claiming (it long-polls the mailbox and
+// reveals the preimage); claiming a receive produces a lightning-receive
+// movement, which surfaces here as a MovementCreated notification. This is
+// event-driven — NextNotification blocks until something happens — so we no
+// longer poll every few seconds.
+func (bs *BarkService) runNotificationLoop(ctx context.Context) {
 	defer bs.loopWg.Done()
-	ticker := time.NewTicker(claimInterval)
-	defer ticker.Stop()
+
+	notifications := bs.wallet.Notifications()
+	defer notifications.Destroy()
+
+	// NextNotification blocks; CancelNextNotificationWait unblocks it (returning
+	// nil) so the loop can exit promptly on shutdown.
+	go func() {
+		<-ctx.Done()
+		notifications.CancelNextNotificationWait()
+	}()
+
 	for {
-		select {
-		case <-ctx.Done():
+		if ctx.Err() != nil {
 			return
-		case <-ticker.C:
-			claimed, err := bs.wallet.TryClaimAllLightningReceives(false)
-			if err != nil {
-				logger.Logger.WithError(err).Debug("Bark TryClaimAllLightningReceives failed")
-				continue
-			}
-			for i := range claimed {
-				lr := claimed[i]
-				if !lr.PreimageRevealed {
-					continue
-				}
-				tx, txErr := bs.lightningReceiveToTransaction(&lr)
-				if txErr != nil {
-					logger.Logger.WithError(txErr).WithField("paymentHash", lr.PaymentHash).Warn("Failed to convert claimed Bark receive to transaction")
-					continue
-				}
-				logger.Logger.WithFields(logrus.Fields{
-					"paymentHash": lr.PaymentHash,
-					"amountSats":  lr.AmountSats,
-				}).Info("Bark lightning receive claimed")
-				bs.eventPublisher.Publish(&events.Event{
-					Event:      "nwc_lnclient_payment_received",
-					Properties: tx,
-				})
-			}
 		}
+		notif, err := notifications.NextNotification()
+		if err != nil {
+			logger.Logger.WithError(err).Debug("Bark NextNotification failed")
+			// Back off briefly so a persistent error doesn't spin the loop.
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(time.Second):
+			}
+			continue
+		}
+		if notif == nil {
+			// nil is returned when the wait was cancelled (shutdown) or the
+			// notification source was shut down permanently.
+			return
+		}
+		bs.handleNotification(*notif)
 	}
+}
+
+// handleNotification publishes a payment-received event for a newly claimed
+// lightning receive. Other notification kinds (movement updates, channel
+// lagging, etc.) are ignored.
+func (bs *BarkService) handleNotification(notif bark.WalletNotification) {
+	// Only a freshly created lightning-receive movement represents a newly
+	// claimed receive. Movement updates would re-fire for the same payment, so
+	// we deliberately don't act on them here.
+	created, ok := notif.(bark.WalletNotificationMovementCreated)
+	if !ok {
+		return
+	}
+	movement := created.Movement
+	if !strings.Contains(movement.SubsystemName, lightningReceiveSubsystem) {
+		return
+	}
+
+	var meta struct {
+		PaymentHash string `json:"payment_hash"`
+	}
+	if err := json.Unmarshal([]byte(movement.MetadataJson), &meta); err != nil || meta.PaymentHash == "" {
+		logger.Logger.WithError(err).WithField("movementId", movement.Id).Debug("Bark lightning receive movement missing payment hash")
+		return
+	}
+
+	receive, err := bs.wallet.LightningReceiveStatus(meta.PaymentHash)
+	if err != nil || receive == nil {
+		logger.Logger.WithError(err).WithField("paymentHash", meta.PaymentHash).Warn("Failed to look up claimed Bark receive")
+		return
+	}
+	if !receive.PreimageRevealed {
+		// Not actually credited (e.g. the movement is for a different stage).
+		return
+	}
+
+	tx, err := bs.lightningReceiveToTransaction(receive)
+	if err != nil {
+		logger.Logger.WithError(err).WithField("paymentHash", receive.PaymentHash).Warn("Failed to convert claimed Bark receive to transaction")
+		return
+	}
+	logger.Logger.WithFields(logrus.Fields{
+		"paymentHash": receive.PaymentHash,
+		"amountSats":  receive.AmountSats,
+	}).Info("Bark lightning receive claimed")
+	bs.eventPublisher.Publish(&events.Event{
+		Event:      "nwc_lnclient_payment_received",
+		Properties: tx,
+	})
 }
 
 func (bs *BarkService) MakeInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (*lnclient.Transaction, error) {
@@ -351,7 +412,13 @@ func (bs *BarkService) GetSupportedNIP47Methods() []string {
 }
 
 func (bs *BarkService) GetSupportedNIP47NotificationTypes() []string {
-	return []string{}
+	// payment_received is emitted from runNotificationLoop when the daemon
+	// claims an incoming receive; payment_sent is emitted by the transactions
+	// service when our synchronous SendPaymentSync succeeds.
+	return []string{
+		notifications.PAYMENT_RECEIVED_NOTIFICATION,
+		notifications.PAYMENT_SENT_NOTIFICATION,
+	}
 }
 
 func (bs *BarkService) Shutdown() error {
@@ -364,7 +431,7 @@ func (bs *BarkService) Shutdown() error {
 		}()
 		select {
 		case <-done:
-		case <-time.After(claimInterval + 10*time.Second):
+		case <-time.After(shutdownGracePeriod):
 			logger.Logger.Warn("Timed out waiting for Bark background loops to stop")
 		}
 	}
