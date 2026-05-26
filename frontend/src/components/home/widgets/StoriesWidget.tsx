@@ -150,7 +150,7 @@ export function StoriesWidget() {
                       markStoryViewed(story.id);
                       setActiveStory(story);
                     }}
-                    className="flex w-[73px] shrink-0 flex-col items-center gap-2 text-center"
+                    className="flex w-16 shrink-0 flex-col items-center gap-2 text-center"
                   >
                     <StoryAvatar story={story} viewed={viewed} />
                     <span
