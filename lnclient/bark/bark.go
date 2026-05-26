@@ -369,14 +369,8 @@ func (bs *BarkService) GetBalances(ctx context.Context, includeInactiveChannels 
 			PendingSweepBalancesDetails: []lnclient.PendingBalanceDetails{},
 		},
 		Lightning: lnclient.LightningBalanceResponse{
-			TotalSpendable:          spendableMsat,
-			TotalSpendableSat:       spendableMsat / 1000,
 			TotalSpendableMsat:      spendableMsat,
-			NextMaxSpendable:        spendableMsat,
-			NextMaxSpendableSat:     spendableMsat / 1000,
 			NextMaxSpendableMsat:    spendableMsat,
-			NextMaxSpendableMPP:     spendableMsat,
-			NextMaxSpendableMPPSat:  spendableMsat / 1000,
 			NextMaxSpendableMPPMsat: spendableMsat,
 		},
 	}, nil
@@ -472,8 +466,8 @@ func (bs *BarkService) OpenChannel(ctx context.Context, openChannelRequest *lncl
 	return nil, nil
 }
 
-func (bs *BarkService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
-	return nil, nil
+func (bs *BarkService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) error {
+	return nil
 }
 
 func (bs *BarkService) UpdateChannel(ctx context.Context, updateChannelRequest *lnclient.UpdateChannelRequest) error {
