@@ -68,15 +68,6 @@ function persistViewedStoryIds(ids: Set<string>) {
   }
 }
 
-function isYouTubeUrl(url: string) {
-  try {
-    const host = new URL(url).hostname.replace(/^www\./, "");
-    return host === "youtu.be" || host.endsWith("youtube.com");
-  } catch {
-    return false;
-  }
-}
-
 function getYouTubeEmbedUrl(url: string) {
   try {
     const parsedUrl = new URL(url);
@@ -222,7 +213,7 @@ export function StoriesWidget() {
                 Watch the latest update
               </DialogDescription>
 
-              {activeStory.videoUrl && isYouTubeUrl(activeStory.videoUrl) && (
+              {activeStory.videoUrl && (
                 <div className="relative aspect-video w-full overflow-hidden rounded-t-2xl bg-black [transform:translateZ(0)]">
                   <iframe
                     className="absolute inset-0 size-full"
