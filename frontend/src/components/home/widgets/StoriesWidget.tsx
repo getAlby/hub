@@ -68,34 +68,6 @@ function persistViewedStoryIds(ids: Set<string>) {
   }
 }
 
-function getYouTubeEmbedUrl(url: string) {
-  try {
-    const parsedUrl = new URL(url);
-    const host = parsedUrl.hostname.replace(/^www\./, "");
-    let videoId = "";
-
-    if (host === "youtu.be") {
-      videoId = parsedUrl.pathname.replace("/", "");
-    } else if (host.endsWith("youtube.com")) {
-      if (parsedUrl.pathname === "/watch") {
-        videoId = parsedUrl.searchParams.get("v") || "";
-      } else if (parsedUrl.pathname.startsWith("/shorts/")) {
-        videoId = parsedUrl.pathname.split("/")[2] || "";
-      } else if (parsedUrl.pathname.startsWith("/embed/")) {
-        videoId = parsedUrl.pathname.split("/")[2] || "";
-      }
-    }
-
-    if (!videoId) {
-      return url;
-    }
-
-    return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
-  } catch {
-    return url;
-  }
-}
-
 function StoryAvatar({ story, viewed }: { story: Story; viewed: boolean }) {
   return (
     <div
@@ -217,7 +189,7 @@ export function StoriesWidget() {
                 <div className="relative aspect-video w-full overflow-hidden rounded-t-2xl bg-black [transform:translateZ(0)]">
                   <iframe
                     className="absolute inset-0 size-full"
-                    src={getYouTubeEmbedUrl(activeStory.videoUrl)}
+                    src={activeStory.videoUrl}
                     title={activeStory.title}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
