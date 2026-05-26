@@ -98,7 +98,7 @@ const providers: Provider[] = [
   {
     id: "redotpay",
     name: "RedotPay",
-    url: "https://www.redotpay.com",
+    url: "https://wap.redotpay.com/en/invite/?referralId=qr1a5",
     logo: redotpayLogo,
     initials: "RP",
     network: "Visa",
