@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sync"
 	"time"
 
 	decodepay "github.com/nbd-wtf/ln-decodepay"
@@ -29,7 +30,7 @@ type BarkService struct {
 	eventPublisher events.EventPublisher
 	pubkey         string
 	cancelFn       context.CancelFunc
-	loopDone       chan struct{}
+	loopWg         sync.WaitGroup
 }
 
 func NewBarkService(ctx context.Context, eventPublisher events.EventPublisher, workDir, mnemonic string) (lnclient.LNClient, error) {
@@ -81,9 +82,19 @@ func NewBarkService(ctx context.Context, eventPublisher events.EventPublisher, w
 		eventPublisher: eventPublisher,
 		pubkey:         wallet.Fingerprint(),
 		cancelFn:       cancelFn,
-		loopDone:       make(chan struct{}),
 	}
 
+	// Run maintenance immediately on startup so a wallet that was briefly
+	// offline refreshes any VTXOs that drifted towards expiry before they are
+	// swept by the server. This is fire-and-forget as it may join an Ark round
+	// and take some time.
+	go func() {
+		if err := bs.wallet.Maintenance(); err != nil {
+			logger.Logger.WithError(err).Warn("Bark startup maintenance failed")
+		}
+	}()
+
+	bs.loopWg.Add(1)
 	go bs.runClaimLoop(loopCtx)
 
 	return bs, nil
@@ -94,7 +105,7 @@ func NewBarkService(ctx context.Context, eventPublisher events.EventPublisher, w
 // preimage must be revealed via TryClaim*, which moves the funds into
 // the spendable balance.
 func (bs *BarkService) runClaimLoop(ctx context.Context) {
-	defer close(bs.loopDone)
+	defer bs.loopWg.Done()
 	ticker := time.NewTicker(claimInterval)
 	defer ticker.Stop()
 	for {
@@ -277,6 +288,14 @@ func (bs *BarkService) lightningReceiveToTransaction(receive *bark.LightningRece
 }
 
 func (bs *BarkService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
+	// Balance is computed from local state, which goes stale while the wallet is
+	// closed. Sync with the Ark server first so we report the current balance
+	// rather than a stale (often zero) snapshot. This is the documented pattern:
+	// always Sync() before Balance().
+	if err := bs.wallet.Sync(); err != nil {
+		logger.Logger.WithError(err).Warn("Bark sync failed before reading balance")
+	}
+
 	balance, err := bs.wallet.Balance()
 	if err != nil {
 		return nil, err
@@ -338,10 +357,15 @@ func (bs *BarkService) GetSupportedNIP47NotificationTypes() []string {
 func (bs *BarkService) Shutdown() error {
 	if bs.cancelFn != nil {
 		bs.cancelFn()
+		done := make(chan struct{})
+		go func() {
+			bs.loopWg.Wait()
+			close(done)
+		}()
 		select {
-		case <-bs.loopDone:
-		case <-time.After(claimInterval + 2*time.Second):
-			logger.Logger.Warn("Timed out waiting for Bark claim loop to stop")
+		case <-done:
+		case <-time.After(claimInterval + 10*time.Second):
+			logger.Logger.Warn("Timed out waiting for Bark background loops to stop")
 		}
 	}
 	if err := bs.wallet.StopDaemon(); err != nil {
