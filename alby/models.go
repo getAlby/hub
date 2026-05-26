@@ -161,11 +161,11 @@ type StoryCta struct {
 }
 
 type Story struct {
-	ID       int       `json:"id"`
-	Title    string    `json:"title"`
-	Avatar   string    `json:"avatar"`
-	VideoUrl string    `json:"videoUrl,omitempty"`
-	Cta      *StoryCta `json:"cta,omitempty"`
+	ID      int       `json:"id"`
+	Title   string    `json:"title"`
+	Avatar  string    `json:"avatar"`
+	VideoID string    `json:"videoId,omitempty"`
+	Cta     *StoryCta `json:"cta,omitempty"`
 }
 
 type LSPChannelPaymentBolt11 struct {

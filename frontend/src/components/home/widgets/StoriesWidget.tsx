@@ -32,7 +32,7 @@ type Story = {
   id: string;
   title: string;
   avatar: string;
-  videoUrl?: string;
+  videoId?: string;
   cta?: StoryCta;
 };
 
@@ -40,9 +40,13 @@ type StoryApiResponse = {
   id: number;
   title: string;
   avatar: string;
-  videoUrl?: string;
+  videoId?: string;
   cta?: StoryCta;
 };
+
+function youTubeEmbedUrl(videoId: string) {
+  return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`;
+}
 
 function loadViewedStoryIds(): Set<string> {
   try {
@@ -104,7 +108,7 @@ export function StoriesWidget() {
             id: String(story.id),
             title: story.title,
             avatar: story.avatar,
-            videoUrl: story.videoUrl,
+            videoId: story.videoId,
             cta: story.cta,
           })),
     [data, error]
@@ -185,11 +189,11 @@ export function StoriesWidget() {
                 Watch the latest update
               </DialogDescription>
 
-              {activeStory.videoUrl && (
+              {activeStory.videoId && (
                 <div className="relative aspect-video w-full overflow-hidden rounded-t-2xl bg-black [transform:translateZ(0)]">
                   <iframe
                     className="absolute inset-0 size-full"
-                    src={activeStory.videoUrl}
+                    src={youTubeEmbedUrl(activeStory.videoId)}
                     title={activeStory.title}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                     allowFullScreen
@@ -208,7 +212,7 @@ export function StoriesWidget() {
                 </div>
               )}
 
-              {activeStory.videoUrl && (
+              {activeStory.videoId && (
                 <div className="flex items-center justify-between gap-3 px-6 py-4">
                   <div className="min-w-0">
                     <div className="truncate text-base font-semibold text-white">
