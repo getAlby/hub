@@ -106,8 +106,29 @@ function formatBitcoinValue(
   displayFormat: string | undefined,
   denomination: BitcoinDenomination = "sats"
 ) {
+  const { amount, unit } = formatBitcoinValueParts(
+    amountSat,
+    displayFormat,
+    denomination
+  );
+
+  if (unit === "₿") {
+    return `${unit}${amount}`;
+  }
+
+  return `${amount} ${unit}`;
+}
+
+function formatBitcoinValueParts(
+  amountSat: string | number | null | undefined,
+  displayFormat: string | undefined,
+  denomination: BitcoinDenomination = "sats"
+) {
   if (denomination === "btc") {
-    return `${formatBtcDisplay(amountSat)} BTC`;
+    return {
+      amount: formatBtcDisplay(amountSat),
+      unit: "BTC",
+    };
   }
 
   const formattedAmount = new Intl.NumberFormat().format(
@@ -115,10 +136,16 @@ function formatBitcoinValue(
   );
 
   if (displayFormat === BITCOIN_DISPLAY_FORMAT_BIP177) {
-    return `₿${formattedAmount}`;
+    return {
+      amount: formattedAmount,
+      unit: "₿",
+    };
   }
 
-  return `${formattedAmount} sats`;
+  return {
+    amount: formattedAmount,
+    unit: "sats",
+  };
 }
 
 function formatBtcDisplay(amountSat: string | number | null | undefined) {
@@ -178,6 +205,11 @@ export function CurrencyInputField({
     : isBtcDenominated
       ? btcValue
       : valueSat;
+  const alternateBitcoinValue = formatBitcoinValueParts(
+    valueSat,
+    info?.bitcoinDisplayFormat,
+    bitcoinDenomination
+  );
   const alternateValue = isFiatMode
     ? formatBitcoinValue(
         valueSat,
@@ -221,7 +253,7 @@ export function CurrencyInputField({
   }
 
   function handleAlternateValueClick() {
-    if (disabled || (!isFiatMode && !canUseFiat)) {
+    if (disabled || isFiatMode || !canUseFiat) {
       return;
     }
 
@@ -360,7 +392,16 @@ export function CurrencyInputField({
         />
         <InputGroupAddon align="inline-start">
           {isFiatMode ? (
-            <InputGroupText>{getCurrencySymbol(currency)}</InputGroupText>
+            <InputGroupButton
+              aria-label="Enter amount in bitcoin"
+              disabled={disabled}
+              onClick={handleToggleMode}
+              size="xs"
+              className="h-full rounded-none px-2 text-muted-foreground hover:text-foreground"
+              title="Enter amount in bitcoin"
+            >
+              {getCurrencySymbol(currency)}
+            </InputGroupButton>
           ) : (
             <InputGroupButton
               aria-label={
@@ -387,20 +428,66 @@ export function CurrencyInputField({
           align="inline-end"
           className="!mr-0 min-w-0 self-stretch py-0 pr-1"
         >
-          <InputGroupButton
-            aria-label={
-              isFiatMode ? "Enter amount in bitcoin" : "Enter amount in fiat"
-            }
-            disabled={disabled || (!isFiatMode && !canUseFiat)}
-            onClick={handleAlternateValueClick}
-            size="xs"
-            className="sensitive slashed-zero h-full min-w-0 max-w-28 justify-end truncate rounded-none px-2 text-muted-foreground tabular-nums hover:text-foreground sm:max-w-none"
-            title={
-              isFiatMode ? "Enter amount in bitcoin" : "Enter amount in fiat"
-            }
-          >
-            {alternateValue ?? <Skeleton className="h-4 w-16" />}
-          </InputGroupButton>
+          {isFiatMode ? (
+            <div className="flex h-full min-w-0 items-center">
+              {alternateBitcoinValue.unit === "₿" && (
+                <InputGroupButton
+                  aria-label={
+                    isBtcDenominated
+                      ? "Display bitcoin amounts in satoshis"
+                      : "Display bitcoin amounts in BTC"
+                  }
+                  aria-pressed={isBtcDenominated}
+                  disabled={disabled}
+                  onClick={handleToggleBitcoinDenomination}
+                  size="xs"
+                  className="h-full rounded-none px-1 text-muted-foreground hover:text-foreground aria-pressed:bg-accent aria-pressed:text-accent-foreground"
+                  title={
+                    isBtcDenominated
+                      ? "Display bitcoin amounts in satoshis"
+                      : "Display bitcoin amounts in BTC"
+                  }
+                >
+                  {alternateBitcoinValue.unit}
+                </InputGroupButton>
+              )}
+              <InputGroupText className="sensitive slashed-zero min-w-0 truncate px-1 tabular-nums">
+                {alternateBitcoinValue.amount}
+              </InputGroupText>
+              {alternateBitcoinValue.unit !== "₿" && (
+                <InputGroupButton
+                  aria-label={
+                    isBtcDenominated
+                      ? "Display bitcoin amounts in satoshis"
+                      : "Display bitcoin amounts in BTC"
+                  }
+                  aria-pressed={isBtcDenominated}
+                  disabled={disabled}
+                  onClick={handleToggleBitcoinDenomination}
+                  size="xs"
+                  className="h-full rounded-none px-1 text-muted-foreground hover:text-foreground aria-pressed:bg-accent aria-pressed:text-accent-foreground"
+                  title={
+                    isBtcDenominated
+                      ? "Display bitcoin amounts in satoshis"
+                      : "Display bitcoin amounts in BTC"
+                  }
+                >
+                  {alternateBitcoinValue.unit}
+                </InputGroupButton>
+              )}
+            </div>
+          ) : (
+            <InputGroupButton
+              aria-label="Enter amount in fiat"
+              disabled={disabled || !canUseFiat}
+              onClick={handleAlternateValueClick}
+              size="xs"
+              className="sensitive slashed-zero h-full min-w-0 max-w-28 justify-end truncate rounded-none px-2 text-muted-foreground tabular-nums hover:text-foreground sm:max-w-none"
+              title="Enter amount in fiat"
+            >
+              {alternateValue ?? <Skeleton className="h-4 w-16" />}
+            </InputGroupButton>
+          )}
         </InputGroupAddon>
       </InputGroup>
       {!!contextRows?.length && (
