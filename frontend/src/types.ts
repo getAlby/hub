@@ -169,6 +169,7 @@ export interface InfoResponse {
   chainDataSourceType?: string;
   chainDataSourceAddress?: string;
   hideUpdateBanner: boolean;
+  supportsBolt12: boolean;
 }
 
 export type BitcoinDisplayFormat = "sats" | "bip177";

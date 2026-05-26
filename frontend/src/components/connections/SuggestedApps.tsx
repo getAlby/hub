@@ -28,7 +28,12 @@ function AppCard(app: AppStoreApp) {
             />
             <div className="grow">
               <CardTitle>{app.title}</CardTitle>
-              <CardDescription>{app.description}</CardDescription>
+              <CardDescription>
+                {app.description}
+                {app.legacyTitles?.length
+                  ? ` (Previously ${app.legacyTitles.join(", ")})`
+                  : ""}
+              </CardDescription>
             </div>
           </div>
         </CardContent>

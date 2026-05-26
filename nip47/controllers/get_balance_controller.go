@@ -53,7 +53,7 @@ func (controller *nip47Controller) HandleGetBalanceEvent(ctx context.Context, ni
 			}, nostr.Tags{})
 			return
 		}
-		balanceMsat = balances.Lightning.TotalSpendable
+		balanceMsat = balances.Lightning.TotalSpendableMsat
 	}
 
 	responsePayload := &getBalanceResponse{

@@ -337,7 +337,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
             <img
               src={appStoreApp.logo}
               alt="logo"
-              className="inline rounded-lg w-12 h-12"
+              className="inline rounded-lg w-14 h-14"
             />
           ) : undefined
         }

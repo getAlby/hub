@@ -5,6 +5,7 @@ export const localStorageKeys = {
   authToken: "authToken",
   supportAlbySidebarHintHiddenUntil: "supportAlbySidebarHintHiddenUntil",
   aiHeroDismissed: "aiHeroDismissed",
+  cardsHeroDismissed: "cardsHeroDismissed",
 };
 
 export const ONCHAIN_DUST_SATS = 1000;

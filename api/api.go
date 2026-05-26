@@ -834,12 +834,20 @@ func (api *api) Stop() error {
 	return nil
 }
 
-func (api *api) GetNodeConnectionInfo(ctx context.Context) (*lnclient.NodeConnectionInfo, error) {
+func (api *api) GetNodeConnectionInfo(ctx context.Context) (*NodeConnectionInfo, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return nil, ErrLNClientNotStarted
 	}
-	return lnClient.GetNodeConnectionInfo(ctx)
+	info, err := lnClient.GetNodeConnectionInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return &NodeConnectionInfo{
+		Pubkey:  info.Pubkey,
+		Address: info.Address,
+		Port:    info.Port,
+	}, nil
 }
 
 func (api *api) RefundSwap(refundSwapRequest *RefundSwapRequest) error {
@@ -1127,20 +1135,47 @@ func (api *api) GetSwapMnemonic() string {
 	return api.keys.GetSwapMnemonic()
 }
 
-func (api *api) GetNodeStatus(ctx context.Context) (*lnclient.NodeStatus, error) {
+func (api *api) GetNodeStatus(ctx context.Context) (*NodeStatus, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return nil, ErrLNClientNotStarted
 	}
-	return lnClient.GetNodeStatus(ctx)
+	nodeStatus, err := lnClient.GetNodeStatus(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if nodeStatus == nil {
+		return nil, nil
+	}
+	return toApiNodeStatus(nodeStatus), nil
 }
 
-func (api *api) ListPeers(ctx context.Context) ([]lnclient.PeerDetails, error) {
+func toApiNodeStatus(nodeStatus *lnclient.NodeStatus) *NodeStatus {
+	return &NodeStatus{
+		IsReady:            nodeStatus.IsReady,
+		InternalNodeStatus: nodeStatus.InternalNodeStatus,
+	}
+}
+
+func (api *api) ListPeers(ctx context.Context) ([]PeerDetails, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return nil, ErrLNClientNotStarted
 	}
-	return lnClient.ListPeers(ctx)
+	peers, err := lnClient.ListPeers(ctx)
+	if err != nil {
+		return nil, err
+	}
+	apiPeers := make([]PeerDetails, 0, len(peers))
+	for _, peer := range peers {
+		apiPeers = append(apiPeers, PeerDetails{
+			NodeId:      peer.NodeId,
+			Address:     peer.Address,
+			IsPersisted: peer.IsPersisted,
+			IsConnected: peer.IsConnected,
+		})
+	}
+	return apiPeers, nil
 }
 
 func (api *api) ConnectPeer(ctx context.Context, connectPeerRequest *ConnectPeerRequest) error {
@@ -1148,7 +1183,11 @@ func (api *api) ConnectPeer(ctx context.Context, connectPeerRequest *ConnectPeer
 	if lnClient == nil {
 		return ErrLNClientNotStarted
 	}
-	return lnClient.ConnectPeer(ctx, connectPeerRequest)
+	return lnClient.ConnectPeer(ctx, &lnclient.ConnectPeerRequest{
+		Pubkey:  connectPeerRequest.Pubkey,
+		Address: connectPeerRequest.Address,
+		Port:    connectPeerRequest.Port,
+	})
 }
 
 func (api *api) OpenChannel(ctx context.Context, openChannelRequest *OpenChannelRequest) (*OpenChannelResponse, error) {
@@ -1156,7 +1195,17 @@ func (api *api) OpenChannel(ctx context.Context, openChannelRequest *OpenChannel
 	if lnClient == nil {
 		return nil, ErrLNClientNotStarted
 	}
-	return lnClient.OpenChannel(ctx, openChannelRequest)
+	resp, err := lnClient.OpenChannel(ctx, &lnclient.OpenChannelRequest{
+		Pubkey:     openChannelRequest.Pubkey,
+		AmountSats: openChannelRequest.AmountSats,
+		Public:     openChannelRequest.Public,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &OpenChannelResponse{
+		FundingTxId: resp.FundingTxId,
+	}, nil
 }
 
 func (api *api) DisconnectPeer(ctx context.Context, peerId string) error {
@@ -1180,11 +1229,15 @@ func (api *api) CloseChannel(ctx context.Context, peerId, channelId string, forc
 		"channel_id": channelId,
 		"force":      force,
 	}).Info("Closing channel")
-	return lnClient.CloseChannel(ctx, &lnclient.CloseChannelRequest{
+	err := lnClient.CloseChannel(ctx, &lnclient.CloseChannelRequest{
 		NodeId:    peerId,
 		ChannelId: channelId,
 		Force:     force,
 	})
+	if err != nil {
+		return nil, err
+	}
+	return &CloseChannelResponse{}, nil
 }
 
 func (api *api) UpdateChannel(ctx context.Context, updateChannelRequest *UpdateChannelRequest) error {
@@ -1195,7 +1248,13 @@ func (api *api) UpdateChannel(ctx context.Context, updateChannelRequest *UpdateC
 	logger.Logger.WithFields(logrus.Fields{
 		"request": updateChannelRequest,
 	}).Info("updating channel")
-	return lnClient.UpdateChannel(ctx, updateChannelRequest)
+	return lnClient.UpdateChannel(ctx, &lnclient.UpdateChannelRequest{
+		ChannelId:                                updateChannelRequest.ChannelId,
+		NodeId:                                   updateChannelRequest.NodeId,
+		ForwardingFeeBaseMsat:                    updateChannelRequest.ForwardingFeeBaseMsat,
+		ForwardingFeeProportionalMillionths:      updateChannelRequest.ForwardingFeeProportionalMillionths,
+		MaxDustHtlcExposureFromFeeRateMultiplier: updateChannelRequest.MaxDustHtlcExposureFromFeeRateMultiplier,
+	})
 }
 
 func (api *api) MakeOffer(ctx context.Context, description string) (string, error) {
@@ -1306,7 +1365,70 @@ func (api *api) GetBalances(ctx context.Context) (*BalancesResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	return balances, nil
+	return toApiBalances(balances), nil
+}
+
+func toApiBalances(balances *lnclient.BalancesResponse) *BalancesResponse {
+	totalSpendableMsat := balances.Lightning.TotalSpendableMsat
+	totalReceivableMsat := balances.Lightning.TotalReceivableMsat
+	nextMaxSpendableMsat := balances.Lightning.NextMaxSpendableMsat
+	nextMaxReceivableMsat := balances.Lightning.NextMaxReceivableMsat
+	nextMaxSpendableMPPMsat := balances.Lightning.NextMaxSpendableMPPMsat
+	nextMaxReceivableMPPMsat := balances.Lightning.NextMaxReceivableMPPMsat
+
+	return &BalancesResponse{
+		Onchain: OnchainBalanceResponse{
+			Spendable:                             balances.Onchain.SpendableSat,
+			SpendableSat:                          balances.Onchain.SpendableSat,
+			Total:                                 balances.Onchain.TotalSat,
+			TotalSat:                              balances.Onchain.TotalSat,
+			Reserved:                              balances.Onchain.ReservedSat,
+			ReservedSat:                           balances.Onchain.ReservedSat,
+			PendingBalancesFromChannelClosures:    balances.Onchain.PendingBalancesFromChannelClosuresSat,
+			PendingBalancesFromChannelClosuresSat: balances.Onchain.PendingBalancesFromChannelClosuresSat,
+			PendingBalancesDetails:                toApiPendingBalanceDetails(balances.Onchain.PendingBalancesDetails),
+			PendingSweepBalancesDetails:           toApiPendingBalanceDetails(balances.Onchain.PendingSweepBalancesDetails),
+			InternalBalances:                      balances.Onchain.InternalBalances,
+		},
+		Lightning: LightningBalanceResponse{
+			TotalSpendable:           totalSpendableMsat,
+			TotalSpendableSat:        totalSpendableMsat / 1000,
+			TotalSpendableMsat:       totalSpendableMsat,
+			TotalReceivable:          totalReceivableMsat,
+			TotalReceivableSat:       totalReceivableMsat / 1000,
+			TotalReceivableMsat:      totalReceivableMsat,
+			NextMaxSpendable:         nextMaxSpendableMsat,
+			NextMaxSpendableSat:      nextMaxSpendableMsat / 1000,
+			NextMaxSpendableMsat:     nextMaxSpendableMsat,
+			NextMaxReceivable:        nextMaxReceivableMsat,
+			NextMaxReceivableSat:     nextMaxReceivableMsat / 1000,
+			NextMaxReceivableMsat:    nextMaxReceivableMsat,
+			NextMaxSpendableMPP:      nextMaxSpendableMPPMsat,
+			NextMaxSpendableMPPSat:   nextMaxSpendableMPPMsat / 1000,
+			NextMaxSpendableMPPMsat:  nextMaxSpendableMPPMsat,
+			NextMaxReceivableMPP:     nextMaxReceivableMPPMsat,
+			NextMaxReceivableMPPSat:  nextMaxReceivableMPPMsat / 1000,
+			NextMaxReceivableMPPMsat: nextMaxReceivableMPPMsat,
+		},
+	}
+}
+
+func toApiPendingBalanceDetails(details []lnclient.PendingBalanceDetails) []PendingBalanceDetails {
+	if details == nil {
+		return nil
+	}
+	apiDetails := make([]PendingBalanceDetails, 0, len(details))
+	for _, d := range details {
+		apiDetails = append(apiDetails, PendingBalanceDetails{
+			ChannelId:     d.ChannelId,
+			NodeId:        d.NodeId,
+			Amount:        d.AmountSat,
+			AmountSat:     d.AmountSat,
+			FundingTxId:   d.FundingTxId,
+			FundingTxVout: d.FundingTxVout,
+		})
+	}
+	return apiDetails
 }
 
 // TODO: remove dependency on this endpoint
@@ -1391,6 +1513,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.HideUpdateBanner = api.cfg.GetEnv().HideUpdateBanner
 	info.LdkVssEnabled = ldkVssEnabled == "true"
 	info.VssSupported = backendType == config.LDKBackendType && api.cfg.GetEnv().LDKVssUrl != ""
+	info.SupportsBolt12 = backendType == config.LDKBackendType || backendType == config.CLNBackendType
 	info.AutoUnlockPasswordEnabled = autoUnlockPassword != ""
 	info.AutoUnlockPasswordSupported = api.cfg.GetEnv().IsDefaultClientId()
 	info.Relays = []InfoResponseRelay{}
@@ -1748,12 +1871,27 @@ func (api *api) SyncWallet() error {
 	lnClient.UpdateLastWalletSyncRequest()
 	return nil
 }
-func (api *api) ListOnchainTransactions(ctx context.Context) ([]lnclient.OnchainTransaction, error) {
+func (api *api) ListOnchainTransactions(ctx context.Context) ([]OnchainTransaction, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return nil, ErrLNClientNotStarted
 	}
-	return lnClient.ListOnchainTransactions(ctx)
+	transactions, err := lnClient.ListOnchainTransactions(ctx)
+	if err != nil {
+		return nil, err
+	}
+	apiTransactions := make([]OnchainTransaction, 0, len(transactions))
+	for _, t := range transactions {
+		apiTransactions = append(apiTransactions, OnchainTransaction{
+			AmountSat:        t.AmountSat,
+			CreatedAt:        t.CreatedAt,
+			State:            t.State,
+			Type:             t.Type,
+			NumConfirmations: t.NumConfirmations,
+			TxId:             t.TxId,
+		})
+	}
+	return apiTransactions, nil
 }
 
 func (api *api) GetLogOutput(ctx context.Context, logType string, getLogRequest *GetLogOutputRequest) (*GetLogOutputResponse, error) {
@@ -1829,7 +1967,11 @@ func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 	if lnClient != nil {
 		nodeStatus, _ := lnClient.GetNodeStatus(ctx)
 		if nodeStatus == nil || !nodeStatus.IsReady {
-			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindNodeNotReady, nodeStatus))
+			var apiNodeStatus *NodeStatus
+			if nodeStatus != nil {
+				apiNodeStatus = toApiNodeStatus(nodeStatus)
+			}
+			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindNodeNotReady, apiNodeStatus))
 		}
 
 		channels, err := lnClient.ListChannels(ctx)
