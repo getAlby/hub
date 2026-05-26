@@ -1376,14 +1376,14 @@ func (svc *albyOAuthService) GetStories(ctx context.Context) ([]Story, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Error creating request to stories endpoint")
-		return nil, err
+		return nil, fmt.Errorf("create stories request: %w", err)
 	}
 	setDefaultRequestHeaders(req)
 
 	res, err := client.Do(req)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch stories from API")
-		return nil, err
+		return nil, fmt.Errorf("fetch stories: %w", err)
 	}
 	defer res.Body.Close()
 
@@ -1392,7 +1392,7 @@ func (svc *albyOAuthService) GetStories(ctx context.Context) ([]Story, error) {
 		logger.Logger.WithError(err).WithFields(logrus.Fields{
 			"url": url,
 		}).Error("Failed to read response body")
-		return nil, errors.New("failed to read response body")
+		return nil, fmt.Errorf("read stories response body: %w", err)
 	}
 
 	if res.StatusCode >= 400 {
@@ -1400,7 +1400,7 @@ func (svc *albyOAuthService) GetStories(ctx context.Context) ([]Story, error) {
 			"body":        string(body),
 			"status_code": res.StatusCode,
 		}).Error("stories endpoint returned non-success code")
-		return nil, fmt.Errorf("stories endpoint returned non-success code: %s", string(body))
+		return nil, fmt.Errorf("stories endpoint returned %d: %s", res.StatusCode, string(body))
 	}
 
 	var stories []Story
@@ -1409,7 +1409,7 @@ func (svc *albyOAuthService) GetStories(ctx context.Context) ([]Story, error) {
 			"body":  string(body),
 			"error": err,
 		}).Error("Failed to decode stories API response")
-		return nil, err
+		return nil, fmt.Errorf("decode stories response: %w", err)
 	}
 
 	return stories, nil

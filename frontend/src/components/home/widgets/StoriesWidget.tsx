@@ -1,6 +1,7 @@
 import { XIcon } from "lucide-react";
 import React from "react";
 import { Link } from "react-router";
+import useSWR from "swr";
 import ExternalLink from "src/components/ExternalLink";
 import { Button } from "src/components/ui/button";
 import {
@@ -17,6 +18,7 @@ import {
   DialogTitle,
 } from "src/components/ui/dialog";
 import { cn } from "src/lib/utils";
+import { swrFetcher } from "src/utils/swr";
 
 const STORIES_VIEWED_STORAGE_KEY = "alby-hub-home-stories-viewed";
 
@@ -28,6 +30,14 @@ type StoryCta = {
 
 type Story = {
   id: string;
+  title: string;
+  avatar: string;
+  videoUrl?: string;
+  cta?: StoryCta;
+};
+
+type StoryApiResponse = {
+  id: number;
   title: string;
   avatar: string;
   videoUrl?: string;
@@ -55,6 +65,15 @@ function persistViewedStoryIds(ids: Set<string>) {
     localStorage.setItem(STORIES_VIEWED_STORAGE_KEY, JSON.stringify([...ids]));
   } catch {
     // ignore quota / private mode
+  }
+}
+
+function isYouTubeUrl(url: string) {
+  try {
+    const host = new URL(url).hostname.replace(/^www\./, "");
+    return host === "youtu.be" || host.endsWith("youtube.com");
+  } catch {
+    return false;
   }
 }
 
@@ -106,43 +125,27 @@ function StoryAvatar({ story, viewed }: { story: Story; viewed: boolean }) {
 }
 
 export function StoriesWidget() {
-  const [stories, setStories] = React.useState<Story[]>([]);
-  const [isLoading, setIsLoading] = React.useState(true);
+  const { data, error, isLoading } = useSWR<StoryApiResponse[]>(
+    "/api/alby/stories",
+    swrFetcher
+  );
   const [activeStory, setActiveStory] = React.useState<Story | null>(null);
   const [viewedIds, setViewedIds] =
     React.useState<Set<string>>(loadViewedStoryIds);
 
-  React.useEffect(() => {
-    const loadStories = async () => {
-      try {
-        const response = await fetch("/api/alby/stories");
-        if (!response.ok) {
-          throw new Error(`Failed to fetch stories: ${response.status}`);
-        }
-        const payload = (await response.json()) as Array<{
-          id: number;
-          title: string;
-          avatar: string;
-          videoUrl?: string;
-          cta?: StoryCta;
-        }>;
-        const mappedStories = payload.map((story) => ({
-          id: String(story.id),
-          title: story.title,
-          avatar: story.avatar,
-          videoUrl: story.videoUrl,
-          cta: story.cta,
-        }));
-        setStories(mappedStories);
-      } catch {
-        setStories([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    void loadStories();
-  }, []);
+  const stories = React.useMemo<Story[]>(
+    () =>
+      error || !data
+        ? []
+        : data.map((story) => ({
+            id: String(story.id),
+            title: story.title,
+            avatar: story.avatar,
+            videoUrl: story.videoUrl,
+            cta: story.cta,
+          })),
+    [data, error]
+  );
 
   const markStoryViewed = React.useCallback((storyId: string) => {
     setViewedIds((prev) => {
@@ -219,7 +222,7 @@ export function StoriesWidget() {
                 Watch the latest update
               </DialogDescription>
 
-              {activeStory.videoUrl && (
+              {activeStory.videoUrl && isYouTubeUrl(activeStory.videoUrl) && (
                 <div className="relative aspect-video w-full overflow-hidden rounded-t-2xl bg-black [transform:translateZ(0)]">
                   <iframe
                     className="absolute inset-0 size-full"
