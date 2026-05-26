@@ -147,6 +147,30 @@ function formatBitcoinValueParts(
   };
 }
 
+function BitcoinValueText({
+  amountSat,
+  denomination,
+  displayFormat,
+}: {
+  amountSat: string | number | null | undefined;
+  denomination: BitcoinDenomination;
+  displayFormat: string | undefined;
+}) {
+  const { amount, unit } = formatBitcoinValueParts(
+    amountSat,
+    displayFormat,
+    denomination
+  );
+
+  return (
+    <span className="inline-flex min-w-0 items-center justify-end gap-1">
+      {unit === "₿" && <span>{unit}</span>}
+      <span className="min-w-0 truncate">{amount}</span>
+      {unit !== "₿" && <span>{unit}</span>}
+    </span>
+  );
+}
+
 function formatBtcDisplay(amountSat: string | number | null | undefined) {
   return (getNumericValue(amountSat) / SATS_PER_BTC).toFixed(8);
 }
@@ -478,12 +502,13 @@ export function CurrencyInputField({
             >
               <span className="truncate">{row.label}:</span>
               <span className="sensitive slashed-zero min-w-0 max-w-[55%] truncate text-right tabular-nums">
-                {row.value ??
-                  formatBitcoinValue(
-                    row.amountSat,
-                    info?.bitcoinDisplayFormat,
-                    bitcoinDenomination
-                  )}
+                {row.value ?? (
+                  <BitcoinValueText
+                    amountSat={row.amountSat}
+                    displayFormat={info?.bitcoinDisplayFormat}
+                    denomination={bitcoinDenomination}
+                  />
+                )}
               </span>
             </div>
           ))}
