@@ -25,8 +25,8 @@ const EmptyState: React.FC<Props> = ({
   return (
     <div
       className={cn(
-        "flex flex-1 items-center justify-center rounded-lg p-8",
-        showBorder && "shadow-xs border border-dashed"
+        "flex items-center justify-center rounded-lg p-8",
+        showBorder ? "flex-1 shadow-xs border border-dashed" : "pt-4 pb-12"
       )}
     >
       <div className="flex flex-col items-center gap-1 text-center max-w-sm">
