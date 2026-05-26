@@ -1,4 +1,3 @@
-import { ArrowRightLeftIcon } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 import {
@@ -200,11 +199,15 @@ export function CurrencyInputField({
   }, [isBtcDenominated, mode, valueSat]);
 
   function handleToggleMode() {
-    if (!canUseFiat || disabled) {
+    if (disabled) {
       return;
     }
 
     if (mode === "bitcoin") {
+      if (!canUseFiat) {
+        return;
+      }
+
       setFiatValue(formatFiatInput(valueSat, rate, currency));
       setMode("fiat");
       return;
@@ -215,6 +218,14 @@ export function CurrencyInputField({
     }
 
     setMode("bitcoin");
+  }
+
+  function handleAlternateValueClick() {
+    if (disabled || (!isFiatMode && !canUseFiat)) {
+      return;
+    }
+
+    handleToggleMode();
   }
 
   function handleToggleBitcoinDenomination() {
@@ -348,55 +359,47 @@ export function CurrencyInputField({
           value={inputValue}
         />
         <InputGroupAddon align="inline-start">
-          <InputGroupText>
-            {isFiatMode
-              ? getCurrencySymbol(currency)
-              : isBtcDenominated
-                ? "BTC"
-                : bitcoinUnit}
-          </InputGroupText>
+          {isFiatMode ? (
+            <InputGroupText>{getCurrencySymbol(currency)}</InputGroupText>
+          ) : (
+            <InputGroupButton
+              aria-label={
+                isBtcDenominated
+                  ? "Display bitcoin amounts in satoshis"
+                  : "Display bitcoin amounts in BTC"
+              }
+              aria-pressed={isBtcDenominated}
+              disabled={disabled}
+              onClick={handleToggleBitcoinDenomination}
+              size="xs"
+              className="h-full rounded-none px-2 text-muted-foreground hover:text-foreground aria-pressed:bg-accent aria-pressed:text-accent-foreground"
+              title={
+                isBtcDenominated
+                  ? "Display bitcoin amounts in satoshis"
+                  : "Display bitcoin amounts in BTC"
+              }
+            >
+              {isBtcDenominated ? "BTC" : bitcoinUnit}
+            </InputGroupButton>
+          )}
         </InputGroupAddon>
         <InputGroupAddon
           align="inline-end"
-          className="!mr-0 min-w-0 self-stretch gap-0 py-0 pr-0"
+          className="!mr-0 min-w-0 self-stretch py-0 pr-1"
         >
-          <InputGroupText className="sensitive slashed-zero mr-2 min-w-0 max-w-28 truncate tabular-nums sm:max-w-none">
+          <InputGroupButton
+            aria-label={
+              isFiatMode ? "Enter amount in bitcoin" : "Enter amount in fiat"
+            }
+            disabled={disabled || (!isFiatMode && !canUseFiat)}
+            onClick={handleAlternateValueClick}
+            size="xs"
+            className="sensitive slashed-zero h-full min-w-0 max-w-28 justify-end truncate rounded-none px-2 text-muted-foreground tabular-nums hover:text-foreground sm:max-w-none"
+            title={
+              isFiatMode ? "Enter amount in bitcoin" : "Enter amount in fiat"
+            }
+          >
             {alternateValue ?? <Skeleton className="h-4 w-16" />}
-          </InputGroupText>
-          <InputGroupButton
-            aria-label={
-              isFiatMode ? "Enter amount in bitcoin" : "Enter amount in fiat"
-            }
-            disabled={!canUseFiat || disabled}
-            onClick={handleToggleMode}
-            size="icon-sm"
-            className="peer/swap !size-9 rounded-none border-l border-input p-0 focus-visible:border-l-transparent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
-            title={
-              isFiatMode ? "Enter amount in bitcoin" : "Enter amount in fiat"
-            }
-          >
-            <ArrowRightLeftIcon className="size-4" />
-          </InputGroupButton>
-          <InputGroupButton
-            aria-label={
-              isBtcDenominated
-                ? "Display bitcoin amounts in satoshis"
-                : "Display bitcoin amounts in BTC"
-            }
-            aria-pressed={isBtcDenominated}
-            disabled={disabled}
-            onClick={handleToggleBitcoinDenomination}
-            size="icon-sm"
-            className="!size-9 rounded-none rounded-r-md border-l border-input p-0 focus-visible:border-l-transparent focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring peer-focus-visible/swap:border-l-transparent aria-pressed:bg-accent aria-pressed:text-accent-foreground"
-            title={
-              isBtcDenominated
-                ? "Display bitcoin amounts in satoshis"
-                : "Display bitcoin amounts in BTC"
-            }
-          >
-            <span className="text-xs leading-none">
-              {isBtcDenominated ? "BTC" : bitcoinUnit}
-            </span>
           </InputGroupButton>
         </InputGroupAddon>
       </InputGroup>
