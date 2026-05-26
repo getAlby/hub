@@ -369,7 +369,7 @@ export function CurrencyInputField({
       data-invalid={invalid || undefined}
     >
       {label && <FieldLabel htmlFor={inputId}>{label}</FieldLabel>}
-      <InputGroup className="h-9 min-w-0 overflow-hidden">
+      <InputGroup className="h-9 min-w-0 overflow-hidden has-[>[data-align=inline-start]]:[&>input]:pl-1">
         <InputGroupInput
           {...props}
           id={inputId}
@@ -397,7 +397,7 @@ export function CurrencyInputField({
               disabled={disabled}
               onClick={handleToggleMode}
               size="xs"
-              className="h-full rounded-none px-2 text-muted-foreground hover:text-foreground"
+              className="h-full rounded-none bg-transparent pl-2 pr-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
               title="Enter amount in bitcoin"
             >
               {getCurrencySymbol(currency)}
@@ -413,7 +413,7 @@ export function CurrencyInputField({
               disabled={disabled}
               onClick={handleToggleBitcoinDenomination}
               size="xs"
-              className="h-full rounded-none px-2 text-muted-foreground hover:text-foreground"
+              className="h-full rounded-none bg-transparent pl-2 pr-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
               title={
                 isBtcDenominated
                   ? "Display bitcoin amounts in satoshis"
@@ -441,7 +441,7 @@ export function CurrencyInputField({
                   disabled={disabled}
                   onClick={handleToggleBitcoinDenomination}
                   size="xs"
-                  className="h-full rounded-none px-1 text-muted-foreground hover:text-foreground"
+                  className="h-full rounded-none bg-transparent px-0.5 text-muted-foreground hover:bg-transparent hover:text-foreground"
                   title={
                     isBtcDenominated
                       ? "Display bitcoin amounts in satoshis"
@@ -451,7 +451,7 @@ export function CurrencyInputField({
                   {alternateBitcoinValue.unit}
                 </InputGroupButton>
               )}
-              <InputGroupText className="sensitive slashed-zero min-w-0 truncate px-1 tabular-nums">
+              <InputGroupText className="sensitive slashed-zero min-w-0 truncate px-0.5 tabular-nums">
                 {alternateBitcoinValue.amount}
               </InputGroupText>
               {alternateBitcoinValue.unit !== "₿" && (
@@ -465,7 +465,7 @@ export function CurrencyInputField({
                   disabled={disabled}
                   onClick={handleToggleBitcoinDenomination}
                   size="xs"
-                  className="h-full rounded-none px-1 text-muted-foreground hover:text-foreground"
+                  className="h-full rounded-none bg-transparent px-0.5 text-muted-foreground hover:bg-transparent hover:text-foreground"
                   title={
                     isBtcDenominated
                       ? "Display bitcoin amounts in satoshis"
@@ -482,7 +482,7 @@ export function CurrencyInputField({
               disabled={disabled || !canUseFiat}
               onClick={handleAlternateValueClick}
               size="xs"
-              className="sensitive slashed-zero h-full min-w-0 max-w-28 justify-end truncate rounded-none px-2 text-muted-foreground tabular-nums hover:text-foreground sm:max-w-none"
+              className="sensitive slashed-zero h-full min-w-0 max-w-28 justify-end truncate rounded-none bg-transparent px-1 text-muted-foreground tabular-nums hover:bg-transparent hover:text-foreground sm:max-w-none"
               title="Enter amount in fiat"
             >
               {alternateValue ?? <Skeleton className="h-4 w-16" />}
