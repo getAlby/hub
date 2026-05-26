@@ -15,7 +15,7 @@ export function AppTransactionList({ appId }: { appId: number }) {
         <TransactionsListMenu appId={appId} />
       </CardHeader>
       <CardContent>
-        <TransactionsList appId={appId} showReceiveButton={false} />
+        <TransactionsList appId={appId} />
       </CardContent>
     </Card>
   );
