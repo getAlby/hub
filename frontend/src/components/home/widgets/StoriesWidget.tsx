@@ -1,5 +1,6 @@
 import { XIcon } from "lucide-react";
 import React from "react";
+import { Link } from "react-router";
 import ExternalLink from "src/components/ExternalLink";
 import { Button } from "src/components/ui/button";
 import {
@@ -258,12 +259,12 @@ export function StoriesWidget() {
                           {activeStory.cta.label}
                         </ExternalLink>
                       ) : (
-                        <a
-                          href={activeStory.cta.url}
+                        <Link
+                          to={activeStory.cta.url}
                           className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                         >
                           {activeStory.cta.label}
-                        </a>
+                        </Link>
                       )}
                     </div>
                   )}

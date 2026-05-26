@@ -1395,7 +1395,7 @@ func (svc *albyOAuthService) GetStories(ctx context.Context) ([]Story, error) {
 		return nil, errors.New("failed to read response body")
 	}
 
-	if res.StatusCode >= 300 {
+	if res.StatusCode >= 400 {
 		logger.Logger.WithFields(logrus.Fields{
 			"body":        string(body),
 			"status_code": res.StatusCode,
