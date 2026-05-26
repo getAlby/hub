@@ -1,6 +1,7 @@
 import {
   ClockIcon,
   HandCoinsIcon,
+  HardDriveIcon,
   LandmarkIcon,
   ShieldAlertIcon,
   UnlockIcon,
@@ -77,6 +78,14 @@ export function SetupSecurity() {
                   long, your funds can expire and be lost.
                 </span>
               </div>
+              <div className="flex gap-3 items-center">
+                <HardDriveIcon className="size-6 shrink-0" />
+                <span className="text-sm text-muted-foreground">
+                  Your funds <span className="underline">cannot</span> be
+                  recovered from your recovery phrase alone - the data directory
+                  is required to restore your balance.
+                </span>
+              </div>
             </>
           )}
           <div className="flex gap-3 items-center">
@@ -102,7 +111,7 @@ export function SetupSecurity() {
                 choose the LDK node type.
               </span>
             </div>
-          ) : (
+          ) : store.nodeInfo.backendType === "BARK" ? null : (
             <div className="flex gap-3 items-center">
               <div className="shrink-0">
                 <ShieldAlertIcon className="size-6" />
