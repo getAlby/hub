@@ -413,7 +413,7 @@ export function CurrencyInputField({
               disabled={disabled}
               onClick={handleToggleBitcoinDenomination}
               size="xs"
-              className="h-full rounded-none px-2 text-muted-foreground hover:text-foreground aria-pressed:bg-accent aria-pressed:text-accent-foreground"
+              className="h-full rounded-none px-2 text-muted-foreground hover:text-foreground"
               title={
                 isBtcDenominated
                   ? "Display bitcoin amounts in satoshis"
@@ -441,7 +441,7 @@ export function CurrencyInputField({
                   disabled={disabled}
                   onClick={handleToggleBitcoinDenomination}
                   size="xs"
-                  className="h-full rounded-none px-1 text-muted-foreground hover:text-foreground aria-pressed:bg-accent aria-pressed:text-accent-foreground"
+                  className="h-full rounded-none px-1 text-muted-foreground hover:text-foreground"
                   title={
                     isBtcDenominated
                       ? "Display bitcoin amounts in satoshis"
@@ -465,7 +465,7 @@ export function CurrencyInputField({
                   disabled={disabled}
                   onClick={handleToggleBitcoinDenomination}
                   size="xs"
-                  className="h-full rounded-none px-1 text-muted-foreground hover:text-foreground aria-pressed:bg-accent aria-pressed:text-accent-foreground"
+                  className="h-full rounded-none px-1 text-muted-foreground hover:text-foreground"
                   title={
                     isBtcDenominated
                       ? "Display bitcoin amounts in satoshis"
