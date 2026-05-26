@@ -22,8 +22,6 @@ import (
 )
 
 const (
-	signetServerAddress  = "https://ark.signet.2nd.dev"
-	signetEsploraAddress = "https://esplora.signet.2nd.dev"
 	// Subsystem name reported on movements produced when a lightning receive is
 	// claimed (see bark's Subsystem::LIGHTNING_RECEIVE).
 	lightningReceiveSubsystem = "lightning_receive"
@@ -31,28 +29,72 @@ const (
 	shutdownGracePeriod = 10 * time.Second
 )
 
+// Config holds the user-configurable settings for connecting to an Ark server.
+type Config struct {
+	// Network is the bitcoin network name (e.g. "signet", "bitcoin").
+	Network string
+	// ServerAddress is the Ark server URL.
+	ServerAddress string
+	// EsploraAddress is the Esplora server URL used for chain data.
+	EsploraAddress string
+	// ServerAccessToken is an optional access token required by some Ark
+	// servers (currently used to gate mainnet access ahead of a public launch).
+	ServerAccessToken string
+}
+
 type BarkService struct {
 	wallet         *bark.Wallet
 	workDir        string
+	network        string
 	eventPublisher events.EventPublisher
 	pubkey         string
 	cancelFn       context.CancelFunc
 	loopWg         sync.WaitGroup
 }
 
-func NewBarkService(ctx context.Context, eventPublisher events.EventPublisher, workDir, mnemonic string) (lnclient.LNClient, error) {
+// parseNetwork maps an Alby Hub network name onto a bark network.
+func parseNetwork(network string) (bark.Network, error) {
+	switch network {
+	case "bitcoin", "mainnet":
+		return bark.NetworkBitcoin, nil
+	case "testnet":
+		return bark.NetworkTestnet, nil
+	case "signet":
+		return bark.NetworkSignet, nil
+	case "regtest":
+		return bark.NetworkRegtest, nil
+	default:
+		return 0, fmt.Errorf("unsupported bark network: %q", network)
+	}
+}
+
+func NewBarkService(ctx context.Context, eventPublisher events.EventPublisher, workDir, mnemonic string, config Config) (lnclient.LNClient, error) {
 	if mnemonic == "" {
 		return nil, errors.New("no mnemonic configured")
 	}
 	if workDir == "" {
 		return nil, errors.New("no bark work directory configured")
 	}
+	if config.ServerAddress == "" {
+		return nil, errors.New("no bark server address configured")
+	}
 
-	esplora := signetEsploraAddress
+	network, err := parseNetwork(config.Network)
+	if err != nil {
+		return nil, err
+	}
+
 	cfg := bark.Config{
-		ServerAddress:  signetServerAddress,
-		EsploraAddress: &esplora,
-		Network:        bark.NetworkSignet,
+		ServerAddress: config.ServerAddress,
+		Network:       network,
+	}
+	esploraAddress := config.EsploraAddress
+	if esploraAddress != "" {
+		cfg.EsploraAddress = &esploraAddress
+	}
+	if config.ServerAccessToken != "" {
+		token := config.ServerAccessToken
+		cfg.ServerAccessToken = &token
 	}
 
 	_, statErr := os.Stat(workDir)
@@ -64,7 +106,6 @@ func NewBarkService(ctx context.Context, eventPublisher events.EventPublisher, w
 	}).Info("Opening Bark wallet")
 
 	var wallet *bark.Wallet
-	var err error
 	if isFirstSetup {
 		wallet, err = bark.WalletCreate(mnemonic, cfg, workDir, false)
 	} else {
@@ -88,6 +129,7 @@ func NewBarkService(ctx context.Context, eventPublisher events.EventPublisher, w
 	bs := &BarkService{
 		wallet:         wallet,
 		workDir:        workDir,
+		network:        config.Network,
 		eventPublisher: eventPublisher,
 		pubkey:         wallet.Fingerprint(),
 		cancelFn:       cancelFn,
@@ -381,7 +423,7 @@ func (bs *BarkService) GetInfo(ctx context.Context) (*lnclient.NodeInfo, error) 
 		Alias:   "Bark",
 		Color:   "#897FFF",
 		Pubkey:  bs.pubkey,
-		Network: "signet",
+		Network: bs.network,
 	}, nil
 }
 

@@ -286,7 +286,12 @@ See [Phoenixd](scripts/linux-x86_64/phoenixd/README.md)
 
 ### Bark
 
-TODO: add environment variables for mainnet/signet
+Bark connects to an [Ark](https://second.tech/) server. It can be configured via env.
+
+- `LN_BACKEND_TYPE`: BARK
+- `BARK_SERVER`: the Ark server URL. For signet use `https://ark.signet.2nd.dev`
+- `BARK_ESPLORA_SERVER`: the Esplora server URL used for chain data. For signet use `https://esplora.signet.2nd.dev`.
+- `BARK_SERVER_ACCESS_TOKEN`: an optional access token required by the Ark server (pre-public mainnet launch).
 
 ### Alby OAuth
 

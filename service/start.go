@@ -376,9 +376,15 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		lnClient, err = cashu.NewCashuService(svc.cfg, cashuWorkdir, mnemonic, cashuMintUrl)
 	case config.BarkBackendType:
 		mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
-		barkWorkdir := path.Join(svc.cfg.GetEnv().Workdir, "bark")
+		env := svc.cfg.GetEnv()
+		barkWorkdir := path.Join(env.Workdir, "bark")
 
-		lnClient, err = bark.NewBarkService(ctx, svc.eventPublisher, barkWorkdir, mnemonic)
+		lnClient, err = bark.NewBarkService(ctx, svc.eventPublisher, barkWorkdir, mnemonic, bark.Config{
+			Network:           svc.cfg.GetNetwork(),
+			ServerAddress:     env.BarkServer,
+			EsploraAddress:    env.BarkEsploraServer,
+			ServerAccessToken: env.BarkServerAccessToken,
+		})
 	case config.CLNBackendType:
 		CLNAddress, _ := svc.cfg.Get("CLNAddress", encryptionKey)
 		CLNLightningDir, _ := svc.cfg.Get("CLNLightningDir", encryptionKey)
