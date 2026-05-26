@@ -176,6 +176,11 @@ func (bs *BarkService) runNotificationLoop(ctx context.Context) {
 			return
 		}
 		notif, err := notifications.NextNotification()
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"notification": fmt.Sprintf("%+v", notif),
+			"isNil":        notif == nil,
+			"ctxErr":       ctx.Err(),
+		}).Info("Received Bark notification")
 		if err != nil {
 			logger.Logger.WithError(err).Debug("Bark NextNotification failed")
 			// Back off briefly so a persistent error doesn't spin the loop.
@@ -566,10 +571,155 @@ func (bs *BarkService) ListOnchainTransactions(ctx context.Context) ([]lnclient.
 	return nil, errors.ErrUnsupported
 }
 
+const (
+	nodeCommandDebug                  = "debug"
+	nodeCommandClaimLightningReceives = "claimlightningreceives"
+	nodeCommandRunMaintenance         = "runmaintenance"
+)
+
 func (bs *BarkService) GetCustomNodeCommandDefinitions() []lnclient.CustomNodeCommandDef {
-	return nil
+	return []lnclient.CustomNodeCommandDef{
+		{
+			Name:        nodeCommandDebug,
+			Description: "Dump the wallet's balance breakdown, VTXOs, pending lightning receives, movement history and Ark server info. Useful for debugging a receive that did not credit your balance.",
+			Args:        nil,
+		},
+		{
+			Name:        nodeCommandClaimLightningReceives,
+			Description: "Attempt to claim any pending/unclaimed lightning receives. Use this if an invoice was paid but the funds have not shown up in your balance.",
+			Args:        nil,
+		},
+		{
+			Name:        nodeCommandRunMaintenance,
+			Description: "Run wallet maintenance, which progresses pending rounds and refreshes VTXOs. Use this to nudge funds that are stuck 'pending in round'.",
+			Args:        nil,
+		},
+	}
 }
 
 func (bs *BarkService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
+	switch command.Name {
+	case nodeCommandDebug:
+		return bs.executeCommandDebug()
+	case nodeCommandClaimLightningReceives:
+		return bs.executeCommandClaimLightningReceives()
+	case nodeCommandRunMaintenance:
+		return bs.executeCommandRunMaintenance()
+	}
+
 	return nil, lnclient.ErrUnknownCustomNodeCommand
+}
+
+func (bs *BarkService) executeCommandDebug() (*lnclient.CustomNodeCommandResponse, error) {
+	// Sync first so we report current state rather than a stale snapshot (the
+	// same pattern GetBalances uses before reading the balance).
+	if err := bs.wallet.Sync(); err != nil {
+		logger.Logger.WithError(err).Warn("Bark sync failed before collecting debug info")
+	}
+
+	response := map[string]interface{}{
+		"network": bs.network,
+		"pubkey":  bs.pubkey,
+	}
+
+	if balance, err := bs.wallet.Balance(); err != nil {
+		response["balanceError"] = err.Error()
+	} else {
+		response["balance"] = balance
+	}
+
+	if claimable, err := bs.wallet.ClaimableLightningReceiveBalanceSats(); err != nil {
+		response["claimableLightningReceiveSatsError"] = err.Error()
+	} else {
+		response["claimableLightningReceiveSats"] = claimable
+	}
+
+	if vtxos, err := bs.wallet.Vtxos(); err != nil {
+		response["vtxosError"] = err.Error()
+	} else {
+		response["vtxos"] = vtxos
+	}
+
+	if spendable, err := bs.wallet.SpendableVtxos(); err != nil {
+		response["spendableVtxosError"] = err.Error()
+	} else {
+		response["spendableVtxos"] = spendable
+	}
+
+	if pending, err := bs.wallet.PendingLightningReceives(); err != nil {
+		response["pendingLightningReceivesError"] = err.Error()
+	} else {
+		response["pendingLightningReceives"] = pending
+	}
+
+	if history, err := bs.wallet.History(); err != nil {
+		response["historyError"] = err.Error()
+	} else {
+		response["history"] = history
+	}
+
+	// Round state explains funds stuck in PendingInRoundSats: such funds sit in a
+	// round whose funding tx is waiting for confirmations (6 on mainnet), which
+	// the daemon progresses automatically once confirmed.
+	if rounds, err := bs.wallet.PendingRoundStates(); err != nil {
+		response["pendingRoundStatesError"] = err.Error()
+	} else {
+		response["pendingRoundStates"] = rounds
+	}
+
+	if nextRoundStartTime, err := bs.wallet.NextRoundStartTime(); err != nil {
+		response["nextRoundStartTimeError"] = err.Error()
+	} else {
+		response["nextRoundStartTime"] = nextRoundStartTime
+	}
+
+	if arkInfo := bs.wallet.ArkInfo(); arkInfo != nil {
+		response["arkInfo"] = arkInfo
+	}
+
+	return &lnclient.CustomNodeCommandResponse{
+		Response: response,
+	}, nil
+}
+
+func (bs *BarkService) executeCommandRunMaintenance() (*lnclient.CustomNodeCommandResponse, error) {
+	if err := bs.wallet.Maintenance(); err != nil {
+		return nil, fmt.Errorf("failed to run maintenance: %w", err)
+	}
+
+	logger.Logger.Info("Ran Bark maintenance")
+
+	balance, err := bs.wallet.Balance()
+	if err != nil {
+		return nil, fmt.Errorf("maintenance succeeded but failed to read balance: %w", err)
+	}
+
+	return &lnclient.CustomNodeCommandResponse{
+		Response: map[string]interface{}{
+			"message": "Maintenance completed.",
+			"balance": balance,
+		},
+	}, nil
+}
+
+func (bs *BarkService) executeCommandClaimLightningReceives() (*lnclient.CustomNodeCommandResponse, error) {
+	if err := bs.wallet.Sync(); err != nil {
+		logger.Logger.WithError(err).Warn("Bark sync failed before claiming lightning receives")
+	}
+
+	// wait=false: attempt to claim what is already claimable without blocking on
+	// the server long-polling for not-yet-arrived payments.
+	claimed, err := bs.wallet.TryClaimAllLightningReceives(false)
+	if err != nil {
+		return nil, fmt.Errorf("failed to claim lightning receives: %w", err)
+	}
+
+	logger.Logger.WithField("count", len(claimed)).Info("Attempted to claim Bark lightning receives")
+
+	return &lnclient.CustomNodeCommandResponse{
+		Response: map[string]interface{}{
+			"claimedCount": len(claimed),
+			"claimed":      claimed,
+		},
+	}, nil
 }
