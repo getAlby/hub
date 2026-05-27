@@ -397,6 +397,7 @@ export function CurrencyInputField({
           {...props}
           id={inputId}
           aria-invalid={invalid || undefined}
+          autoComplete="off"
           className={cn(
             "sensitive slashed-zero min-w-0 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
           )}
