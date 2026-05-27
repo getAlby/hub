@@ -7,6 +7,7 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
+import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
 import { CurrencyInputField } from "src/components/CurrencyInputField";
 import { FixedFloatButton } from "src/components/FixedFloatButton";
@@ -27,7 +28,6 @@ import {
   TabsTrigger,
 } from "src/components/ui/tabs";
 import { useBalances } from "src/hooks/useBalances";
-import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { useSwapInfo } from "src/hooks/useSwaps";
 import {
@@ -94,7 +94,6 @@ function SwapInForm() {
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
   const { data: swapInfo } = useSwapInfo("in");
-  const { data: channels } = useChannels();
   const navigate = useNavigate();
 
   const [swapAmountSat, setSwapAmountSat] = useState("");
@@ -159,10 +158,7 @@ function SwapInForm() {
     return <Loading />;
   }
 
-  const spendableOnchainBalanceSatWithAnchorReserves = Math.max(
-    balances.onchain.spendableSat - (channels?.length || 0) * 25000,
-    0
-  );
+  const spendableOnchainBalance = balances.onchain.spendableSat;
   const isInternalSwap = swapFrom === "internal";
   const isCryptoSwappingState =
     swapFrom === "crypto" && cryptoTransaction !== null;
@@ -188,6 +184,9 @@ function SwapInForm() {
                 </div>
               )}
 
+            {isInternalSwap && (
+              <AnchorReserveAlert amountSat={+swapAmountSat} />
+            )}
             <CurrencyInputField
               label="Swap amount"
               autoFocus
@@ -201,9 +200,7 @@ function SwapInForm() {
                     : undefined
                   : Math.min(
                       swapInfo.maxAmountSat,
-                      ...(isInternalSwap
-                        ? [spendableOnchainBalanceSatWithAnchorReserves]
-                        : []),
+                      ...(isInternalSwap ? [spendableOnchainBalance] : []),
                       ...(hasChannelManagement
                         ? [balances.lightning.totalReceivableSat * 0.99]
                         : [])
@@ -215,7 +212,7 @@ function SwapInForm() {
                   ? [
                       {
                         label: "Available on-chain",
-                        amountSat: spendableOnchainBalanceSatWithAnchorReserves,
+                        amountSat: spendableOnchainBalance,
                       },
                     ]
                   : []),

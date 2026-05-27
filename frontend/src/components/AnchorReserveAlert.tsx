@@ -32,12 +32,14 @@ export function AnchorReserveAlert({
       <AlertTriangleIcon className="h-4 w-4" />
       <AlertTitle>Channel Anchor Reserves will be depleted</AlertTitle>
       <AlertDescription>
-        You have channels open and by spending your entire on-chain balance
-        including your anchor reserves may put your node at risk of unable to
-        reclaim funds in your channel after a force-closure. To prevent this,
-        set aside at least{" "}
-        <FormattedBitcoinAmount amountMsat={channels.length * 25000 * 1000} />{" "}
-        on-chain.
+        <p>
+          You have channels open and by spending your entire on-chain balance
+          including your anchor reserves may put your node at risk of unable to
+          reclaim funds in your channel after a force-closure. To prevent this,
+          set aside at least{" "}
+          <FormattedBitcoinAmount amountMsat={channels.length * 25000 * 1000} />{" "}
+          on-chain.
+        </p>
       </AlertDescription>
     </Alert>
   );
