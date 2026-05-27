@@ -21,8 +21,7 @@ export function OnchainTransactionsList() {
           icon={BitcoinIcon}
           title="No on-chain transactions yet"
           description="Your bitcoin transactions will appear here as you start using your wallet."
-          buttonText="Receive to On-chain Balance"
-          buttonLink="/wallet/receive?type=onchain"
+          variant="muted"
           showButton={false}
         />
       </div>

@@ -47,8 +47,7 @@ function TransactionsList({ appId }: TransactionsListProps) {
           icon={ZapIcon}
           title="No lightning payments yet"
           description="Your payments will appear here as you start using your wallet."
-          buttonText="Receive Your First Payment"
-          buttonLink="/wallet/receive"
+          variant="muted"
           showButton={false}
         />
       ) : (
