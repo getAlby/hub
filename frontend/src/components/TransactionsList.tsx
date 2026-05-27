@@ -1,4 +1,4 @@
-import { ZapIcon } from "lucide-react";
+import { LucideIcon, ZapIcon } from "lucide-react";
 import { useRef, useState } from "react";
 import { CustomPagination } from "src/components/CustomPagination";
 import EmptyState from "src/components/EmptyState";
@@ -9,9 +9,17 @@ import { getTransactionsUrl, useTransactions } from "src/hooks/useTransactions";
 
 type TransactionsListProps = {
   appId?: number;
+  emptyIcon?: LucideIcon;
+  emptyTitle?: string;
+  emptyDescription?: string;
 };
 
-function TransactionsList({ appId }: TransactionsListProps) {
+function TransactionsList({
+  appId,
+  emptyIcon = ZapIcon,
+  emptyTitle = "No lightning payments yet",
+  emptyDescription = "Your payments will appear here as you start using your wallet.",
+}: TransactionsListProps) {
   const [page, setPage] = useState(1);
   const transactionListRef = useRef<HTMLDivElement>(null);
   const transactionListKey = getTransactionsUrl(
@@ -44,9 +52,9 @@ function TransactionsList({ appId }: TransactionsListProps) {
     <div ref={transactionListRef} className="flex flex-col flex-1">
       {!transactions.length ? (
         <EmptyState
-          icon={ZapIcon}
-          title="No lightning payments yet"
-          description="Your payments will appear here as you start using your wallet."
+          icon={emptyIcon}
+          title={emptyTitle}
+          description={emptyDescription}
           variant="muted"
           showButton={false}
         />
