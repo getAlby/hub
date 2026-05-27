@@ -10,8 +10,8 @@ import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
-import ExternalLink from "src/components/ExternalLink";
 import { CurrencyInputField } from "src/components/CurrencyInputField";
+import ExternalLink from "src/components/ExternalLink";
 import { InsufficientLightningBalanceAlert } from "src/components/InsufficientLightningBalanceAlert";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
@@ -371,7 +371,7 @@ function SwapForm({
         autoFocus
         contextRows={[
           {
-            label: "Spending balance",
+            label: "Lightning balance",
             amountSat: balances.lightning.totalSpendableSat,
           },
           {

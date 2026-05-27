@@ -127,7 +127,7 @@ export default function ZeroAmount() {
           autoFocus
           contextRows={[
             {
-              label: "Spending balance",
+              label: "Lightning balance",
               amountSat: balances.lightning.totalSpendableSat,
             },
           ]}
