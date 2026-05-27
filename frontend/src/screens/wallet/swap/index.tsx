@@ -196,13 +196,17 @@ function SwapInForm() {
               minSat={swapFrom !== "crypto" ? swapInfo.minAmountSat : undefined}
               maxSat={
                 swapFrom === "crypto"
-                  ? balances.lightning.totalReceivableSat * 0.99
+                  ? hasChannelManagement
+                    ? balances.lightning.totalReceivableSat * 0.99
+                    : undefined
                   : Math.min(
                       swapInfo.maxAmountSat,
                       ...(isInternalSwap
                         ? [spendableOnchainBalanceSatWithAnchorReserves]
                         : []),
-                      balances.lightning.totalReceivableSat * 0.99
+                      ...(hasChannelManagement
+                        ? [balances.lightning.totalReceivableSat * 0.99]
+                        : [])
                     )
               }
               required
@@ -215,10 +219,14 @@ function SwapInForm() {
                       },
                     ]
                   : []),
-                {
-                  label: "Receive limit",
-                  amountSat: balances.lightning.totalReceivableSat,
-                },
+                ...(hasChannelManagement
+                  ? [
+                      {
+                        label: "Receive limit",
+                        amountSat: balances.lightning.totalReceivableSat,
+                      },
+                    ]
+                  : []),
               ]}
             />
           </div>

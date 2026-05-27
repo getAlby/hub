@@ -134,19 +134,27 @@ export default function ReceiveOnchain() {
                 }
                 maxSat={
                   swapFrom === "bitcoin"
-                    ? Math.min(
-                        swapInfo.maxAmountSat,
-                        balances.lightning.totalReceivableSat * 0.99
-                      )
-                    : balances.lightning.totalReceivableSat * 0.99
+                    ? hasChannelManagement
+                      ? Math.min(
+                          swapInfo.maxAmountSat,
+                          balances.lightning.totalReceivableSat * 0.99
+                        )
+                      : swapInfo.maxAmountSat
+                    : hasChannelManagement
+                      ? balances.lightning.totalReceivableSat * 0.99
+                      : undefined
                 }
                 required
-                contextRows={[
-                  {
-                    label: "Receive limit",
-                    amountSat: balances.lightning.totalReceivableSat,
-                  },
-                ]}
+                contextRows={
+                  hasChannelManagement
+                    ? [
+                        {
+                          label: "Receive limit",
+                          amountSat: balances.lightning.totalReceivableSat,
+                        },
+                      ]
+                    : undefined
+                }
               />
               <div className="flex flex-col gap-4">
                 <Label>Swap from</Label>

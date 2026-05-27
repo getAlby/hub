@@ -202,14 +202,22 @@ export default function ReceiveInvoice() {
                   valueSat={amountSat}
                   onValueSatChange={setAmountSat}
                   minSat={1}
-                  maxSat={balances.lightning.totalReceivableSat}
+                  maxSat={
+                    hasChannelManagement
+                      ? balances.lightning.totalReceivableSat
+                      : undefined
+                  }
                   autoFocus
-                  contextRows={[
-                    {
-                      label: "Receive limit",
-                      amountSat: balances.lightning.totalReceivableSat,
-                    },
-                  ]}
+                  contextRows={
+                    hasChannelManagement
+                      ? [
+                          {
+                            label: "Receive limit",
+                            amountSat: balances.lightning.totalReceivableSat,
+                          },
+                        ]
+                      : undefined
+                  }
                 />
                 <div className="grid gap-2">
                   <Label htmlFor="description">Description</Label>
