@@ -162,7 +162,7 @@ function AutoSwapOutForm() {
         </div>
 
         <CurrencyInputField
-          label="Spending balance threshold"
+          label="Lightning balance threshold"
           valueSat={balanceThresholdSat}
           onValueSatChange={setBalanceThresholdSat}
           minSat={Number(swapAmountSat) || undefined}
@@ -418,7 +418,7 @@ function ActiveSwapOutConfig({ swapConfig }: { swapConfig: AutoSwapConfig }) {
         </div>
         <div className="flex justify-between items-center gap-2">
           <span className="font-medium truncate">
-            Spending balance threshold
+            Lightning balance threshold
           </span>
           <span className="shrink-0 text-muted-foreground text-right">
             <FormattedBitcoinAmount

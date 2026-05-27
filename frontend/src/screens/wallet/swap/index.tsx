@@ -384,7 +384,7 @@ function SwapOutForm() {
           required
           contextRows={[
             {
-              label: "Spending balance",
+              label: "Lightning balance",
               amountSat: balances.lightning.totalSpendableSat,
             },
             {

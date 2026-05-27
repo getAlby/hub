@@ -144,7 +144,7 @@ export default function LnurlPay() {
             autoFocus
             contextRows={[
               {
-                label: "Spending balance",
+                label: "Lightning balance",
                 amountSat: balances.lightning.totalSpendableSat,
               },
             ]}
