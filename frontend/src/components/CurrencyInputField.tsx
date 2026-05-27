@@ -452,7 +452,7 @@ export function CurrencyInputField({
         </InputGroupAddon>
         <InputGroupAddon
           align="inline-end"
-          className="!mr-0 min-w-0 self-stretch py-0 pr-1"
+          className="mr-0 min-w-0 self-stretch py-0 pr-4"
         >
           {isFiatMode ? (
             <InputGroupButton
