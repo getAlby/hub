@@ -9,6 +9,7 @@ import TickSVG from "public/images/illustrations/tick.svg";
 import React from "react";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
+import { CurrencyInputField } from "src/components/CurrencyInputField";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
@@ -23,7 +24,6 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
-import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
@@ -197,26 +197,28 @@ export default function ReceiveInvoice() {
               </Card>
             ) : (
               <form onSubmit={handleSubmit} className="grid gap-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="amount">Amount</Label>
-                  <InputWithAdornment
-                    id="amount"
-                    type="number"
-                    value={amountSat?.toString()}
-                    placeholder="Amount in Satoshi..."
-                    onChange={(e) => {
-                      setAmountSat(e.target.value.trim());
-                    }}
-                    min={1}
-                    autoFocus
-                    endAdornment={
-                      <FormattedFiatAmount
-                        amountSat={+amountSat}
-                        className="mr-2"
-                      />
-                    }
-                  />
-                </div>
+                <CurrencyInputField
+                  id="amount"
+                  valueSat={amountSat}
+                  onValueSatChange={setAmountSat}
+                  minSat={1}
+                  maxSat={
+                    hasChannelManagement
+                      ? balances.lightning.totalReceivableSat
+                      : undefined
+                  }
+                  autoFocus
+                  contextRows={
+                    hasChannelManagement
+                      ? [
+                          {
+                            label: "Receive limit",
+                            amountSat: balances.lightning.totalReceivableSat,
+                          },
+                        ]
+                      : undefined
+                  }
+                />
                 <div className="grid gap-2">
                   <Label htmlFor="description">Description</Label>
                   <Input
