@@ -420,7 +420,7 @@ export function CurrencyInputField({
               disabled={disabled}
               onClick={handleToggleMode}
               size="xs"
-              className="h-full rounded-none bg-transparent pl-2 pr-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
+              className="h-full rounded-none bg-transparent pl-2 pr-0 text-muted-foreground hover:bg-transparent hover:text-foreground focus-visible:text-foreground focus-visible:ring-0"
               title="Enter amount in bitcoin"
             >
               {getCurrencySymbol(currency)}
@@ -436,7 +436,7 @@ export function CurrencyInputField({
               disabled={disabled}
               onClick={handleToggleBitcoinDenomination}
               size="xs"
-              className="h-full rounded-none bg-transparent pl-2 pr-0 text-muted-foreground hover:bg-transparent hover:text-foreground"
+              className="h-full rounded-none bg-transparent pl-2 pr-0 text-muted-foreground hover:bg-transparent hover:text-foreground focus-visible:text-foreground focus-visible:ring-0"
               title={
                 isBtcDenominated
                   ? "Display bitcoin amounts in satoshis"
@@ -462,7 +462,7 @@ export function CurrencyInputField({
               disabled={disabled}
               onClick={handleToggleBitcoinDenomination}
               size="xs"
-              className="sensitive slashed-zero h-full min-w-0 justify-end truncate rounded-none bg-transparent px-0.5 text-muted-foreground tabular-nums hover:bg-transparent hover:text-foreground"
+              className="sensitive slashed-zero h-full min-w-0 justify-end truncate rounded-none bg-transparent px-0.5 text-muted-foreground tabular-nums hover:bg-transparent hover:text-foreground focus-visible:text-foreground focus-visible:ring-0"
               title={
                 isBtcDenominated
                   ? "Display bitcoin amounts in satoshis"
@@ -485,7 +485,7 @@ export function CurrencyInputField({
               disabled={disabled || !canUseFiat}
               onClick={handleAlternateValueClick}
               size="xs"
-              className="sensitive slashed-zero h-full min-w-0 max-w-28 justify-end truncate rounded-none bg-transparent px-1 text-muted-foreground tabular-nums hover:bg-transparent hover:text-foreground sm:max-w-none"
+              className="sensitive slashed-zero h-full min-w-0 max-w-28 justify-end truncate rounded-none bg-transparent px-1 text-muted-foreground tabular-nums hover:bg-transparent hover:text-foreground focus-visible:text-foreground focus-visible:ring-0 sm:max-w-none"
               title="Enter amount in fiat"
             >
               {alternateValue ?? <Skeleton className="h-4 w-16" />}
