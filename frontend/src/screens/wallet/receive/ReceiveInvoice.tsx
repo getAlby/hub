@@ -255,7 +255,7 @@ export default function ReceiveInvoice() {
                       className="w-full"
                     >
                       <LinkIcon className="h-4 w-4" />
-                      Receive from On-chain
+                      Receive from On-chain / Other Cryptocurrency
                     </LinkButton>
                   </div>
                 )}
