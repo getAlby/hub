@@ -17,7 +17,7 @@ type Props = {
 
 const variantClasses: Record<Variant, string> = {
   dashed: "shadow-xs border border-dashed",
-  muted: "bg-accent/40",
+  muted: "bg-muted",
   none: "",
 };
 
