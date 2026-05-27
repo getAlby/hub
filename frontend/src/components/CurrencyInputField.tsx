@@ -382,7 +382,9 @@ export function CurrencyInputField({
       return amountSat;
     }
 
-    return ((amountSat / SATS_PER_BTC) * rate).toFixed(2);
+    return ((amountSat / SATS_PER_BTC) * rate).toFixed(
+      getCurrencyFractionDigits(currency)
+    );
   }
 
   return (
