@@ -25,6 +25,9 @@ const (
 	// Subsystem name reported on movements produced when a lightning receive is
 	// claimed (see bark's Subsystem::LIGHTNING_RECEIVE).
 	lightningReceiveSubsystem = "lightning_receive"
+	// Movement status reported once a receive has settled and the balance is
+	// credited. A receive first appears as "pending" and is updated to this.
+	movementStatusSuccessful = "successful"
 	// Grace period to allow the notification loop to unwind on shutdown.
 	shutdownGracePeriod = 10 * time.Second
 )
@@ -176,11 +179,6 @@ func (bs *BarkService) runNotificationLoop(ctx context.Context) {
 			return
 		}
 		notif, err := notifications.NextNotification()
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"notification": fmt.Sprintf("%+v", notif),
-			"isNil":        notif == nil,
-			"ctxErr":       ctx.Err(),
-		}).Info("Received Bark notification")
 		if err != nil {
 			logger.Logger.WithError(err).Debug("Bark NextNotification failed")
 			// Back off briefly so a persistent error doesn't spin the loop.
@@ -200,19 +198,32 @@ func (bs *BarkService) runNotificationLoop(ctx context.Context) {
 	}
 }
 
-// handleNotification publishes a payment-received event for a newly claimed
-// lightning receive. Other notification kinds (movement updates, channel
-// lagging, etc.) are ignored.
+// handleNotification publishes a payment-received event for a newly settled
+// lightning receive. A receive surfaces as a created movement (pending) followed
+// by updates as it settles, so we act on both kinds but only fire once the
+// movement status reaches "successful" — which happens exactly once per receive.
 func (bs *BarkService) handleNotification(notif bark.WalletNotification) {
-	// Only a freshly created lightning-receive movement represents a newly
-	// claimed receive. Movement updates would re-fire for the same payment, so
-	// we deliberately don't act on them here.
-	created, ok := notif.(bark.WalletNotificationMovementCreated)
-	if !ok {
+	logger.Logger.WithFields(notificationLogFields(notif)).Info("Received Bark notification")
+
+	var movement bark.Movement
+	switch n := notif.(type) {
+	case bark.WalletNotificationMovementCreated:
+		movement = n.Movement
+	case bark.WalletNotificationMovementUpdated:
+		movement = n.Movement
+	default:
+		// Channel lagging and other kinds carry no movement to act on.
 		return
 	}
-	movement := created.Movement
+
 	if !strings.Contains(movement.SubsystemName, lightningReceiveSubsystem) {
+		return
+	}
+
+	// A receive is only credited once its movement settles. We always hold the
+	// preimage for our own receives, so PreimageRevealed isn't a useful signal;
+	// the balance is credited when the movement status reaches "successful".
+	if movement.Status != movementStatusSuccessful {
 		return
 	}
 
@@ -229,10 +240,6 @@ func (bs *BarkService) handleNotification(notif bark.WalletNotification) {
 		logger.Logger.WithError(err).WithField("paymentHash", meta.PaymentHash).Warn("Failed to look up claimed Bark receive")
 		return
 	}
-	if !receive.PreimageRevealed {
-		// Not actually credited (e.g. the movement is for a different stage).
-		return
-	}
 
 	tx, err := bs.lightningReceiveToTransaction(receive)
 	if err != nil {
@@ -247,6 +254,34 @@ func (bs *BarkService) handleNotification(notif bark.WalletNotification) {
 		Event:      "nwc_lnclient_payment_received",
 		Properties: tx,
 	})
+}
+
+// notificationLogFields turns a Bark wallet notification into structured log
+// fields describing its concrete type, rather than logging the raw interface
+// pointer (which would just print an address).
+func notificationLogFields(notif bark.WalletNotification) logrus.Fields {
+	switch n := notif.(type) {
+	case bark.WalletNotificationMovementCreated:
+		return movementLogFields("movement_created", n.Movement)
+	case bark.WalletNotificationMovementUpdated:
+		return movementLogFields("movement_updated", n.Movement)
+	case bark.WalletNotificationChannelLagging:
+		return logrus.Fields{"kind": "channel_lagging"}
+	default:
+		return logrus.Fields{"kind": fmt.Sprintf("%T", notif)}
+	}
+}
+
+func movementLogFields(kind string, m bark.Movement) logrus.Fields {
+	return logrus.Fields{
+		"kind":                 kind,
+		"movementId":           m.Id,
+		"status":               m.Status,
+		"subsystemName":        m.SubsystemName,
+		"subsystemKind":        m.SubsystemKind,
+		"effectiveBalanceSats": m.EffectiveBalanceSats,
+		"offchainFeeSats":      m.OffchainFeeSats,
+	}
 }
 
 func (bs *BarkService) MakeInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (*lnclient.Transaction, error) {
