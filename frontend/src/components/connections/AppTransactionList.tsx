@@ -1,4 +1,4 @@
-import { ReceiptIcon } from "lucide-react";
+import { ArrowDownUpIcon } from "lucide-react";
 import TransactionsList from "src/components/TransactionsList";
 import { TransactionsListMenu } from "src/components/TransactionsListMenu";
 import {
@@ -18,7 +18,7 @@ export function AppTransactionList({ appId }: { appId: number }) {
       <CardContent>
         <TransactionsList
           appId={appId}
-          emptyIcon={ReceiptIcon}
+          emptyIcon={ArrowDownUpIcon}
           emptyTitle="No transactions yet"
           emptyDescription="Payments made through this app will appear here."
           emptyVariant="none"
