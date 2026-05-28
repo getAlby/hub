@@ -22,7 +22,6 @@ export function OnchainTransactionsList() {
           title="No on-chain transactions yet"
           description="Your bitcoin transactions will appear here as you start using your wallet."
           variant="muted"
-          showButton={false}
         />
       </div>
     );
