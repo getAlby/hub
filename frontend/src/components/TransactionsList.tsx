@@ -20,7 +20,7 @@ function TransactionsList({
   emptyIcon = ZapIcon,
   emptyTitle = "No lightning payments yet",
   emptyDescription = "Your payments will appear here as you start using your wallet.",
-  emptyVariant = "muted",
+  emptyVariant,
 }: TransactionsListProps) {
   const [page, setPage] = useState(1);
   const transactionListRef = useRef<HTMLDivElement>(null);

@@ -25,7 +25,7 @@ const EmptyState: React.FC<Props> = ({
   icon: Icon,
   title: message,
   description: subMessage,
-  variant = "dashed",
+  variant = "muted",
   buttonText,
   buttonLink,
 }) => {
