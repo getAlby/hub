@@ -56,7 +56,6 @@ function TransactionsList({
           title={emptyTitle}
           description={emptyDescription}
           variant="muted"
-          showButton={false}
         />
       ) : (
         <>

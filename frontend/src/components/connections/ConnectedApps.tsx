@@ -88,7 +88,6 @@ function ConnectedApps() {
           icon={CableIcon}
           title="Connect Your First App"
           description="Connect your app of choice, fine-tune permissions and enjoy a seamless and secure wallet experience."
-          showButton
           buttonText="See Recommended Apps"
           buttonLink="/apps?tab=app-store"
         />

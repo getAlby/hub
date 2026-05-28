@@ -11,8 +11,8 @@ type Props = {
   description: string;
   variant?: Variant;
 } & (
-  | { showButton: true; buttonText: string; buttonLink: string }
-  | { showButton?: false; buttonText?: never; buttonLink?: never }
+  | { buttonText: string; buttonLink: string }
+  | { buttonText?: never; buttonLink?: never }
 );
 
 const variantClasses: Record<Variant, string> = {
@@ -25,7 +25,8 @@ const EmptyState: React.FC<Props> = ({
   title: message,
   description: subMessage,
   variant = "dashed",
-  ...rest
+  buttonText,
+  buttonLink,
 }) => {
   return (
     <div
@@ -38,9 +39,9 @@ const EmptyState: React.FC<Props> = ({
         <Icon className="w-10 h-10 text-muted-foreground" />
         <h3 className="mt-4 text-lg font-semibold">{message}</h3>
         <p className="text-sm text-muted-foreground">{subMessage}</p>
-        {rest.showButton && (
-          <LinkButton to={rest.buttonLink} className="mt-4">
-            {rest.buttonText}
+        {buttonText && buttonLink && (
+          <LinkButton to={buttonLink} className="mt-4">
+            {buttonText}
           </LinkButton>
         )}
       </div>

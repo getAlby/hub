@@ -49,7 +49,6 @@ export function ChannelWaitingForConfirmations({
             icon={FootprintsIcon}
             title="Browse While You Wait"
             description="Feel free to leave this page or browse around Alby Hub! We'll send you an email as soon as your channel is active."
-            showButton
             buttonText="Explore Apps"
             buttonLink="/apps?tab=app-store"
           />
