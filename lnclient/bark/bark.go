@@ -25,9 +25,14 @@ const (
 	// Subsystem name reported on movements produced when a lightning receive is
 	// claimed (see bark's Subsystem::LIGHTNING_RECEIVE).
 	lightningReceiveSubsystem = "lightning_receive"
-	// Movement status reported once a receive has settled and the balance is
-	// credited. A receive first appears as "pending" and is updated to this.
+	// Subsystem name reported on movements produced for outgoing lightning
+	// payments (see bark's Subsystem::LIGHTNING_SEND).
+	lightningSendSubsystem = "lightning_send"
+	// Movement status reported once a movement has settled. A movement first
+	// appears as "pending" and is updated to this once complete.
 	movementStatusSuccessful = "successful"
+	// Movement status reported when a send was definitively not paid.
+	movementStatusFailed = "failed"
 	// Grace period to allow the notification loop to unwind on shutdown.
 	shutdownGracePeriod = 10 * time.Second
 )
@@ -53,6 +58,15 @@ type BarkService struct {
 	pubkey         string
 	cancelFn       context.CancelFunc
 	loopWg         sync.WaitGroup
+	// payment_hash -> waiter that handleLightningSendMovement signals.
+	inflightSends    map[string]chan sendResult
+	inflightSendsMtx sync.Mutex
+}
+
+type sendResult struct {
+	preimage string
+	feeMsat  uint64
+	err      error
 }
 
 // parseNetwork maps an Alby Hub network name onto a bark network.
@@ -87,9 +101,13 @@ func NewBarkService(ctx context.Context, eventPublisher events.EventPublisher, w
 		return nil, err
 	}
 
+	// Usually, you have two wait 2 blocks. You can set nb_min_round_confirmations=0 to make it go faster.
+	roundTxRequiredConfirmations := uint32(0)
+
 	cfg := bark.Config{
-		ServerAddress: config.ServerAddress,
-		Network:       network,
+		ServerAddress:                config.ServerAddress,
+		Network:                      network,
+		RoundTxRequiredConfirmations: &roundTxRequiredConfirmations,
 	}
 	esploraAddress := config.EsploraAddress
 	if esploraAddress != "" {
@@ -136,6 +154,7 @@ func NewBarkService(ctx context.Context, eventPublisher events.EventPublisher, w
 		eventPublisher: eventPublisher,
 		pubkey:         wallet.Fingerprint(),
 		cancelFn:       cancelFn,
+		inflightSends:  make(map[string]chan sendResult),
 	}
 
 	// Run maintenance immediately on startup so a wallet that was briefly
@@ -198,12 +217,8 @@ func (bs *BarkService) runNotificationLoop(ctx context.Context) {
 	}
 }
 
-// handleNotification publishes a payment-received event for a newly settled
-// lightning receive. A receive surfaces as a created movement (pending) followed
-// by updates as it settles, so we act on both kinds but only fire once the
-// movement status reaches "successful" — which happens exactly once per receive.
 func (bs *BarkService) handleNotification(notif bark.WalletNotification) {
-	logger.Logger.WithFields(notificationLogFields(notif)).Info("Received Bark notification")
+	logger.Logger.WithFields(notificationLogFields(notif)).Debug("Received Bark notification")
 
 	var movement bark.Movement
 	switch n := notif.(type) {
@@ -216,10 +231,15 @@ func (bs *BarkService) handleNotification(notif bark.WalletNotification) {
 		return
 	}
 
-	if !strings.Contains(movement.SubsystemName, lightningReceiveSubsystem) {
-		return
+	switch {
+	case strings.Contains(movement.SubsystemName, lightningReceiveSubsystem):
+		bs.handleLightningReceiveMovement(movement)
+	case strings.Contains(movement.SubsystemName, lightningSendSubsystem):
+		bs.handleLightningSendMovement(movement)
 	}
+}
 
+func (bs *BarkService) handleLightningReceiveMovement(movement bark.Movement) {
 	// A receive is only credited once its movement settles. We always hold the
 	// preimage for our own receives, so PreimageRevealed isn't a useful signal;
 	// the balance is credited when the movement status reaches "successful".
@@ -227,17 +247,14 @@ func (bs *BarkService) handleNotification(notif bark.WalletNotification) {
 		return
 	}
 
-	var meta struct {
-		PaymentHash string `json:"payment_hash"`
-	}
-	if err := json.Unmarshal([]byte(movement.MetadataJson), &meta); err != nil || meta.PaymentHash == "" {
-		logger.Logger.WithError(err).WithField("movementId", movement.Id).Debug("Bark lightning receive movement missing payment hash")
+	paymentHash, ok := paymentHashFromMovement(movement)
+	if !ok {
 		return
 	}
 
-	receive, err := bs.wallet.LightningReceiveStatus(meta.PaymentHash)
+	receive, err := bs.wallet.LightningReceiveStatus(paymentHash)
 	if err != nil || receive == nil {
-		logger.Logger.WithError(err).WithField("paymentHash", meta.PaymentHash).Warn("Failed to look up claimed Bark receive")
+		logger.Logger.WithError(err).WithField("paymentHash", paymentHash).Warn("Failed to look up claimed Bark receive")
 		return
 	}
 
@@ -254,6 +271,94 @@ func (bs *BarkService) handleNotification(notif bark.WalletNotification) {
 		Event:      "nwc_lnclient_payment_received",
 		Properties: tx,
 	})
+}
+
+// handleLightningSendMovement delivers a terminal lightning_send outcome to
+// the SendPaymentSync waiter for the matching payment_hash. If no waiter is
+// registered (e.g. the hub was restarted mid-send and SendPaymentSync's
+// goroutine is gone) it falls back to publishing nwc_lnclient_payment_sent /
+// _failed so the transactions service can recover the db transaction state.
+func (bs *BarkService) handleLightningSendMovement(movement bark.Movement) {
+	if movement.Status != movementStatusSuccessful && movement.Status != movementStatusFailed {
+		return
+	}
+
+	var meta struct {
+		PaymentHash     string `json:"payment_hash"`
+		PaymentPreimage string `json:"payment_preimage"`
+	}
+	if err := json.Unmarshal([]byte(movement.MetadataJson), &meta); err != nil || meta.PaymentHash == "" {
+		logger.Logger.WithError(err).WithField("movementId", movement.Id).Debug("Bark lightning send movement missing payment_hash")
+		return
+	}
+
+	if movement.Status == movementStatusFailed {
+		bs.deliverSendResult(meta.PaymentHash, sendResult{err: errors.New("bark lightning send failed")}, func() {
+			bs.eventPublisher.Publish(&events.Event{
+				Event: "nwc_lnclient_payment_failed",
+				Properties: &lnclient.PaymentFailedEventProperties{
+					Transaction: &lnclient.Transaction{
+						Type:        constants.TRANSACTION_TYPE_OUTGOING,
+						PaymentHash: meta.PaymentHash,
+					},
+					Reason: "bark lightning send failed",
+				},
+			})
+		})
+		return
+	}
+
+	if meta.PaymentPreimage == "" {
+		logger.Logger.WithField("paymentHash", meta.PaymentHash).Error("Bark lightning send reported successful but preimage is missing from movement metadata")
+		bs.deliverSendResult(meta.PaymentHash, sendResult{err: errors.New("bark lightning send completed without a preimage")}, nil)
+		return
+	}
+
+	feeMsat := movement.OffchainFeeSats * 1000
+	logger.Logger.WithFields(logrus.Fields{
+		"paymentHash": meta.PaymentHash,
+		"feeMsat":     feeMsat,
+	}).Info("Bark lightning send completed")
+
+	bs.deliverSendResult(meta.PaymentHash, sendResult{preimage: meta.PaymentPreimage, feeMsat: feeMsat}, func() {
+		settledAt := time.Now().Unix()
+		bs.eventPublisher.Publish(&events.Event{
+			Event: "nwc_lnclient_payment_sent",
+			Properties: &lnclient.Transaction{
+				Type:         constants.TRANSACTION_TYPE_OUTGOING,
+				PaymentHash:  meta.PaymentHash,
+				Preimage:     meta.PaymentPreimage,
+				FeesPaidMsat: int64(feeMsat),
+				SettledAt:    &settledAt,
+			},
+		})
+	})
+}
+
+// deliverSendResult delivers to the SendPaymentSync waiter if present, else
+// runs fallback (used to publish an event for the hub-restart recovery path).
+func (bs *BarkService) deliverSendResult(paymentHash string, res sendResult, fallback func()) {
+	if ch, ok := bs.takeInflightSend(paymentHash); ok {
+		ch <- res
+		return
+	}
+	if fallback != nil {
+		fallback()
+	}
+}
+
+func paymentHashFromMovement(movement bark.Movement) (string, bool) {
+	var meta struct {
+		PaymentHash string `json:"payment_hash"`
+	}
+	if err := json.Unmarshal([]byte(movement.MetadataJson), &meta); err != nil || meta.PaymentHash == "" {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"movementId":    movement.Id,
+			"subsystemName": movement.SubsystemName,
+		}).Debug("Bark lightning movement missing payment_hash")
+		return "", false
+	}
+	return meta.PaymentHash, true
 }
 
 // notificationLogFields turns a Bark wallet notification into structured log
@@ -279,8 +384,18 @@ func movementLogFields(kind string, m bark.Movement) logrus.Fields {
 		"status":               m.Status,
 		"subsystemName":        m.SubsystemName,
 		"subsystemKind":        m.SubsystemKind,
+		"metadataJson":         m.MetadataJson,
+		"intendedBalanceSats":  m.IntendedBalanceSats,
 		"effectiveBalanceSats": m.EffectiveBalanceSats,
 		"offchainFeeSats":      m.OffchainFeeSats,
+		"sentToAddresses":      m.SentToAddresses,
+		"receivedOnAddresses":  m.ReceivedOnAddresses,
+		"inputVtxoIds":         m.InputVtxoIds,
+		"outputVtxoIds":        m.OutputVtxoIds,
+		"exitedVtxoIds":        m.ExitedVtxoIds,
+		"createdAt":            m.CreatedAt,
+		"updatedAt":            m.UpdatedAt,
+		"completedAt":          m.CompletedAt,
 	}
 }
 
@@ -343,41 +458,59 @@ func (bs *BarkService) SendPaymentSync(invoice string, amountMsat *uint64) (*lnc
 		return nil, errors.New("0-amount invoices not supported")
 	}
 
-	send, err := bs.wallet.PayLightningInvoice(invoice, nil)
-	if err != nil {
+	paymentRequest, decodeErr := decodepay.Decodepay(invoice)
+	if decodeErr != nil {
+		return nil, fmt.Errorf("failed to decode invoice: %w", decodeErr)
+	}
+	paymentHash := paymentRequest.PaymentHash
+
+	// Register a waiter BEFORE initiating the send so a notification that
+	// arrives before this goroutine reaches the receive cannot be missed.
+	resultCh := make(chan sendResult, 1)
+	if err := bs.registerInflightSend(paymentHash, resultCh); err != nil {
+		return nil, err
+	}
+	defer bs.clearInflightSend(paymentHash)
+
+	if _, err := bs.wallet.PayLightningInvoice(invoice, nil); err != nil {
 		return nil, fmt.Errorf("bark PayLightningInvoice failed: %w", err)
 	}
 
-	preimage := ""
-	if send.Preimage != nil {
-		preimage = *send.Preimage
+	// Block until handleLightningSendMovement delivers a terminal result.
+	res := <-resultCh
+	if res.err != nil {
+		return nil, res.err
 	}
-
-	// PayLightningInvoice can return before the payment settles; in that case
-	// LightningSend.Preimage is nil. Wait for completion via CheckLightningPayment
-	// with wait=true to fetch the real preimage.
-	if preimage == "" {
-		paymentRequest, decodeErr := decodepay.Decodepay(invoice)
-		if decodeErr != nil {
-			return nil, fmt.Errorf("failed to decode invoice while waiting for preimage: %w", decodeErr)
-		}
-		preimagePtr, checkErr := bs.wallet.CheckLightningPayment(paymentRequest.PaymentHash, true)
-		if checkErr != nil {
-			return nil, fmt.Errorf("bark CheckLightningPayment failed: %w", checkErr)
-		}
-		if preimagePtr == nil || *preimagePtr == "" {
-			return nil, errors.New("bark payment did not complete")
-		}
-		preimage = *preimagePtr
-	}
-
-	// Bark's LightningSend struct does not expose a fee field. Lightning routing
-	// fees inside Ark are absorbed into the Ark protocol economics and not
-	// reported per-payment here. Report zero fee for now.
 	return &lnclient.PayInvoiceResponse{
-		Preimage: preimage,
-		FeeMsat:  0,
+		Preimage: res.preimage,
+		FeeMsat:  res.feeMsat,
 	}, nil
+}
+
+func (bs *BarkService) registerInflightSend(paymentHash string, ch chan sendResult) error {
+	bs.inflightSendsMtx.Lock()
+	defer bs.inflightSendsMtx.Unlock()
+	if _, exists := bs.inflightSends[paymentHash]; exists {
+		return fmt.Errorf("a bark lightning send is already in flight for payment hash %s", paymentHash)
+	}
+	bs.inflightSends[paymentHash] = ch
+	return nil
+}
+
+func (bs *BarkService) clearInflightSend(paymentHash string) {
+	bs.inflightSendsMtx.Lock()
+	defer bs.inflightSendsMtx.Unlock()
+	delete(bs.inflightSends, paymentHash)
+}
+
+func (bs *BarkService) takeInflightSend(paymentHash string) (chan sendResult, bool) {
+	bs.inflightSendsMtx.Lock()
+	defer bs.inflightSendsMtx.Unlock()
+	ch, ok := bs.inflightSends[paymentHash]
+	if ok {
+		delete(bs.inflightSends, paymentHash)
+	}
+	return ch, ok
 }
 
 func (bs *BarkService) LookupInvoice(ctx context.Context, paymentHash string) (*lnclient.Transaction, error) {
@@ -722,7 +855,7 @@ func (bs *BarkService) executeCommandRunMaintenance() (*lnclient.CustomNodeComma
 		return nil, fmt.Errorf("failed to run maintenance: %w", err)
 	}
 
-	logger.Logger.Info("Ran Bark maintenance")
+	logger.Logger.Debug("Ran Bark maintenance")
 
 	balance, err := bs.wallet.Balance()
 	if err != nil {
