@@ -8,7 +8,7 @@ import { Button } from "src/components/ui/button";
 import { cn } from "src/lib/utils";
 import { BackendType } from "src/types";
 
-import bark from "src/assets/images/node/bark.png";
+import bark from "src/assets/images/node/bark.jpg";
 import cashu from "src/assets/images/node/cashu.png";
 import cln from "src/assets/images/node/cln.png";
 import lnd from "src/assets/images/node/lnd.png";
