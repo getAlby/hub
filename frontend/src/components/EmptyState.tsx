@@ -3,7 +3,7 @@ import React from "react";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { cn } from "src/lib/utils";
 
-type Variant = "dashed" | "muted";
+type Variant = "dashed" | "muted" | "none";
 
 type Props = {
   icon: LucideIcon;
@@ -18,6 +18,7 @@ type Props = {
 const variantClasses: Record<Variant, string> = {
   dashed: "shadow-xs border border-dashed",
   muted: "bg-muted",
+  none: "",
 };
 
 const EmptyState: React.FC<Props> = ({

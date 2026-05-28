@@ -21,6 +21,7 @@ export function AppTransactionList({ appId }: { appId: number }) {
           emptyIcon={ReceiptIcon}
           emptyTitle="No transactions yet"
           emptyDescription="Payments made through this app will appear here."
+          emptyVariant="none"
         />
       </CardContent>
     </Card>

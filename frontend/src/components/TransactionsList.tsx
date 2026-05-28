@@ -12,6 +12,7 @@ type TransactionsListProps = {
   emptyIcon?: LucideIcon;
   emptyTitle?: string;
   emptyDescription?: string;
+  emptyVariant?: "dashed" | "muted" | "none";
 };
 
 function TransactionsList({
@@ -19,6 +20,7 @@ function TransactionsList({
   emptyIcon = ZapIcon,
   emptyTitle = "No lightning payments yet",
   emptyDescription = "Your payments will appear here as you start using your wallet.",
+  emptyVariant = "muted",
 }: TransactionsListProps) {
   const [page, setPage] = useState(1);
   const transactionListRef = useRef<HTMLDivElement>(null);
@@ -55,7 +57,7 @@ function TransactionsList({
           icon={emptyIcon}
           title={emptyTitle}
           description={emptyDescription}
-          variant="muted"
+          variant={emptyVariant}
         />
       ) : (
         <>
