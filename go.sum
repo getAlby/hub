@@ -689,8 +689,8 @@ github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5t
 github.com/yusufpapurcu/wmi v1.2.4 h1:zFUKzehAFReQwLys1b/iSMl+JQGSCSjtVqQn9bBrPo0=
 github.com/yusufpapurcu/wmi v1.2.4/go.mod h1:SBZ9tNy3G9/m5Oi98Zks0QjeHVDvuK0qfxQmPyzfmi0=
 github.com/zenazn/goji v0.9.0/go.mod h1:7S9M489iMyHBNxwZnk9/EHS098H4/F6TATF2mIxtB1Q=
-gitlab.com/ark-bitcoin/bark-ffi-bindings/golang v0.5.5 h1:xE6Z9HEvGReKsr9w3OC7+KnHEMrTVMF+L4+X9TPxiyk=
-gitlab.com/ark-bitcoin/bark-ffi-bindings/golang v0.5.5/go.mod h1:1jAwB/XR4i3D72fz3qWAd41tQLYcOCGfWZHMagn5fNg=
+gitlab.com/ark-bitcoin/bark-ffi-bindings/golang v0.6.2 h1:UwqTPL4dmG4N+RDJaci6D2MhiWvBbBsCss4nDbYt8TM=
+gitlab.com/ark-bitcoin/bark-ffi-bindings/golang v0.6.2/go.mod h1:1jAwB/XR4i3D72fz3qWAd41tQLYcOCGfWZHMagn5fNg=
 go.etcd.io/bbolt v1.4.3 h1:dEadXpI6G79deX5prL3QRNP6JB8UxVkqo4UPnHaNXJo=
 go.etcd.io/bbolt v1.4.3/go.mod h1:tKQlpPaYCVFctUIgFKFnAlvbmB3tpy1vkTnDWohtc0E=
 go.etcd.io/etcd/api/v3 v3.5.16 h1:WvmyJVbjWqK4R1E+B12RRHz3bRGy9XVfh++MgbN+6n0=
