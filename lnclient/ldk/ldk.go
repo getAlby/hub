@@ -748,7 +748,8 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, descrip
 	}
 
 	var invoiceObj *ldk_node.Bolt11Invoice
-	if amountMsat > maxReceivable && ls.lsps2Pubkey != "" {
+	isJitInvoice := amountMsat > maxReceivable && ls.lsps2Pubkey != ""
+	if isJitInvoice {
 		// Prefer standard receive whenever possible and only use JIT when
 		// inbound liquidity is insufficient for the requested amount.
 		invoiceObj, err = ls.node.Bolt11Payment().ReceiveViaJitChannel(
@@ -783,6 +784,7 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, descrip
 	expiresAtUnix := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
 
 	preimage := ""
+	estimatedLspFeeMsat := int64(0)
 	if payment != nil {
 		switch kind := payment.Kind.(type) {
 		case ldk_node.PaymentKindBolt11:
@@ -793,6 +795,11 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, descrip
 			if kind.Preimage != nil {
 				preimage = *kind.Preimage
 			}
+			if kind.LspFeeLimits.MaxTotalOpeningFeeMsat != nil {
+				estimatedLspFeeMsat = int64(*kind.LspFeeLimits.MaxTotalOpeningFeeMsat)
+			} else if kind.LspFeeLimits.MaxProportionalOpeningFeePpmMsat != nil && amountMsat > 0 {
+				estimatedLspFeeMsat = int64((uint64(amountMsat) * *kind.LspFeeLimits.MaxProportionalOpeningFeePpmMsat) / 1_000_000)
+			}
 		}
 	}
 
@@ -802,6 +809,7 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, descrip
 		PaymentHash:     paymentRequest.PaymentHash,
 		Preimage:        preimage,
 		AmountMsat:      amountMsat,
+		FeesPaidMsat:    estimatedLspFeeMsat,
 		CreatedAt:       int64(paymentRequest.CreatedAt),
 		ExpiresAt:       &expiresAtUnix,
 		Description:     paymentRequest.Description,
@@ -1487,6 +1495,9 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 	var feeMsat uint64 = 0
 	if payment.FeePaidMsat != nil {
 		feeMsat = *payment.FeePaidMsat
+	}
+	if isBolt11JitPaymentKind && bolt11JitPaymentKind.CounterpartySkimmedFeeMsat != nil {
+		feeMsat = *bolt11JitPaymentKind.CounterpartySkimmedFeeMsat
 	}
 
 	return &lnclient.Transaction{

@@ -10,7 +10,7 @@ import (
 )
 
 type makeInvoiceParams struct {
-	Amount          uint64                 `json:"amount"`
+	Amount          uint64                 `json:"amount"` // msats (NIP-47)
 	Description     string                 `json:"description"`
 	DescriptionHash string                 `json:"description_hash"`
 	Expiry          uint64                 `json:"expiry"`

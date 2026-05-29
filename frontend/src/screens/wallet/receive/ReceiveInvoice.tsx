@@ -59,19 +59,16 @@ export default function ReceiveInvoice() {
   const lsps2Source = info?.jitChannelsLiquiditySource;
   const totalReceivableMsat = balances?.lightning.totalReceivableMsat ?? 0;
   const requestedAmountMsat = +amountSat * 1000 || transaction?.amountMsat || 0;
-  const estimatedJitFeeSat = Math.max(
-    2500,
-    Math.ceil((requestedAmountMsat * 14) / 1_000_000)
-  );
-  const formattedEstimatedJitFee = new Intl.NumberFormat().format(
-    estimatedJitFeeSat
-  );
   const isNearReceivingCapacity =
     !!hasChannelManagement && requestedAmountMsat >= 0.8 * totalReceivableMsat;
-  const isJitReceiveLikely =
+  const isJitReceiveInvoice =
     !!hasChannelManagement &&
     !!lsps2Source &&
-    requestedAmountMsat > totalReceivableMsat;
+    !!transaction &&
+    transaction.amountMsat > totalReceivableMsat;
+  const displayedJitFeeMsat = paymentDone
+    ? (invoiceData?.feesPaidMsat ?? transaction?.feesPaidMsat ?? 0)
+    : (transaction?.feesPaidMsat ?? 0);
 
   React.useEffect(() => {
     if (invoiceData?.settledAt) {
@@ -124,8 +121,20 @@ export default function ReceiveInvoice() {
       <InfoIcon className="h-4 w-4" />
       <AlertTitle>New channel fee expected</AlertTitle>
       <AlertDescription>
-        Around {formattedEstimatedJitFee} sats will be deducted when this
-        payment is received to cover the new channel.
+        <p>
+          {displayedJitFeeMsat >= 1000 ? (
+            <>
+              Around <FormattedBitcoinAmount amountMsat={displayedJitFeeMsat} />{" "}
+              will be deducted when this payment is received to open a new
+              channel.
+            </>
+          ) : (
+            <>
+              A fee will be deducted when this payment is received to open a new
+              channel.
+            </>
+          )}
+        </p>
       </AlertDescription>
     </Alert>
   );
@@ -138,7 +147,7 @@ export default function ReceiveInvoice() {
       />
       <div className="flex flex-col md:flex-row gap-12">
         <div className="w-full md:max-w-lg grid gap-6">
-          {!isJitReceiveLikely && isNearReceivingCapacity && (
+          {!lsps2Source && !transaction && isNearReceivingCapacity && (
             <LowReceivingCapacityAlert />
           )}
           <div>
@@ -165,7 +174,7 @@ export default function ReceiveInvoice() {
                           className="text-xl"
                         />
                       </div>
-                      {isJitReceiveLikely && (
+                      {isJitReceiveInvoice && displayedJitFeeMsat >= 1000 && (
                         <div className="w-full">{newChannelFeeAlert}</div>
                       )}
                     </CardContent>
@@ -246,7 +255,6 @@ export default function ReceiveInvoice() {
                       />
                     }
                   />
-                  {isJitReceiveLikely && newChannelFeeAlert}
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="description">Description</Label>

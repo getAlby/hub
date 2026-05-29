@@ -75,6 +75,8 @@ func TestHandleMakeInvoiceEvent(t *testing.T) {
 				map[string]interface{}{"h": "i"},
 			},
 		},
+		"key1": "value1",
+		"key2": float64(42),
 	}
 
 	assert.Nil(t, publishedResponse.Error)
