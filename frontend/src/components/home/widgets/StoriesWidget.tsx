@@ -17,10 +17,9 @@ import {
   DialogDescription,
   DialogTitle,
 } from "src/components/ui/dialog";
+import { localStorageKeys } from "src/constants";
 import { cn } from "src/lib/utils";
 import { swrFetcher } from "src/utils/swr";
-
-const STORIES_VIEWED_STORAGE_KEY = "alby-hub-home-stories-viewed";
 
 type StoryCta = {
   label: string;
@@ -50,7 +49,7 @@ function youTubeEmbedUrl(videoId: string) {
 
 function loadViewedStoryIds(): Set<string> {
   try {
-    const raw = localStorage.getItem(STORIES_VIEWED_STORAGE_KEY);
+    const raw = localStorage.getItem(localStorageKeys.homeStoriesViewed);
     if (!raw) {
       return new Set();
     }
@@ -66,7 +65,10 @@ function loadViewedStoryIds(): Set<string> {
 
 function persistViewedStoryIds(ids: Set<string>) {
   try {
-    localStorage.setItem(STORIES_VIEWED_STORAGE_KEY, JSON.stringify([...ids]));
+    localStorage.setItem(
+      localStorageKeys.homeStoriesViewed,
+      JSON.stringify([...ids])
+    );
   } catch {
     // ignore quota / private mode
   }
@@ -154,7 +156,7 @@ export function StoriesWidget() {
                       markStoryViewed(story.id);
                       setActiveStory(story);
                     }}
-                    className="flex w-16 shrink-0 flex-col items-center gap-2 text-center"
+                    className="flex w-20 shrink-0 flex-col items-center gap-2 text-center"
                   >
                     <StoryAvatar story={story} viewed={viewed} />
                     <span
