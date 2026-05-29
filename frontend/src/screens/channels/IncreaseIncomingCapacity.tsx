@@ -487,8 +487,8 @@ function NewChannelInternal({
           <Button size="lg">Review Order</Button>
         </form>
 
-        <div className="flex-1 flex flex-col justify-end items-center gap-4">
-          <p className="mt-32 text-sm text-muted-foreground text-center">
+        <div className="flex-1 flex flex-col justify-end gap-2">
+          <p className="text-sm text-muted-foreground text-center">
             Other options
           </p>
           <LinkButton
