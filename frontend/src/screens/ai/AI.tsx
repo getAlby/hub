@@ -662,7 +662,7 @@ const whyLightningItems = [
     icon: EyeOffIcon,
     title: "Private by Default",
     description:
-      "No credit cards or personal info shared with merchants. Your agent pays over Lightning — fast, direct, and private.",
+      "No credit cards or personal info shared with merchants. Your agent pays over lightning — fast, direct, and private.",
   },
   {
     icon: ZapIcon,

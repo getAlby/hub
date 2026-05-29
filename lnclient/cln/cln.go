@@ -882,7 +882,7 @@ func clnHoldInvoiceToTransaction(invoice *clngrpcHold.Invoice, decodedInvoice *c
 	return tx, nil
 }
 
-func (c *CLNService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
+func (c *CLNService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) error {
 	logger.Logger.WithFields(logrus.Fields{
 		"closeChannelRequest": closeChannelRequest,
 	}).Debug("Closing Channel")
@@ -901,10 +901,10 @@ func (c *CLNService) CloseChannel(ctx context.Context, closeChannelRequest *lncl
 	_, err := c.client.Close(ctx, req)
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to close channel")
-		return nil, fmt.Errorf("close failed: %w", err)
+		return fmt.Errorf("close failed: %w", err)
 	}
 
-	return &lnclient.CloseChannelResponse{}, err
+	return nil
 }
 
 func (c *CLNService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
@@ -994,25 +994,25 @@ func (c *CLNService) GetBalances(ctx context.Context, includeInactiveChannels bo
 
 		if ch.SpendableMsat != nil {
 			spendable := int64(ch.SpendableMsat.Msat)
-			lightning.TotalSpendable += spendable
+			lightning.TotalSpendableMsat += spendable
 
-			if spendable > lightning.NextMaxSpendable {
-				lightning.NextMaxSpendable = spendable
+			if spendable > lightning.NextMaxSpendableMsat {
+				lightning.NextMaxSpendableMsat = spendable
 			}
 		}
 
 		if ch.ReceivableMsat != nil {
 			receivable := int64(ch.ReceivableMsat.Msat)
-			lightning.TotalReceivable += receivable
+			lightning.TotalReceivableMsat += receivable
 
-			if receivable > lightning.NextMaxReceivable {
-				lightning.NextMaxReceivable = receivable
+			if receivable > lightning.NextMaxReceivableMsat {
+				lightning.NextMaxReceivableMsat = receivable
 			}
 		}
 	}
 
-	lightning.NextMaxSpendableMPP = lightning.TotalSpendable
-	lightning.NextMaxReceivableMPP = lightning.TotalReceivable
+	lightning.NextMaxSpendableMPPMsat = lightning.TotalSpendableMsat
+	lightning.NextMaxReceivableMPPMsat = lightning.TotalReceivableMsat
 
 	return &lnclient.BalancesResponse{
 		Onchain:   *onchainBalance,
@@ -1274,24 +1274,24 @@ func (c *CLNService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBa
 		}
 
 		amt := satInt64(utxo.AmountMsat)
-		balances.Total += amt
+		balances.TotalSat += amt
 
 		if utxo.Reserved {
-			balances.Reserved += amt
+			balances.ReservedSat += amt
 			reservedSats += amt
 		}
 
 		switch utxo.Status {
 		case clngrpc.ListfundsOutputs_CONFIRMED:
 			if !utxo.Reserved {
-				balances.Spendable += amt
+				balances.SpendableSat += amt
 			}
 
 		case clngrpc.ListfundsOutputs_UNCONFIRMED:
 			balances.PendingSweepBalancesDetails = append(
 				balances.PendingSweepBalancesDetails,
 				lnclient.PendingBalanceDetails{
-					Amount:        uint64(amt),
+					AmountSat:     uint64(amt),
 					FundingTxId:   hex.EncodeToString(utxo.Txid),
 					FundingTxVout: utxo.Output,
 				},
@@ -1305,13 +1305,13 @@ func (c *CLNService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBa
 		}
 
 		amt := sat(ch.OurAmountMsat)
-		balances.PendingBalancesFromChannelClosures += amt
+		balances.PendingBalancesFromChannelClosuresSat += amt
 		chanIdStr := hex.EncodeToString(ch.ChannelId)
 
 		detail := lnclient.PendingBalanceDetails{
 			ChannelId: chanIdStr,
 			NodeId:    hex.EncodeToString(ch.PeerId),
-			Amount:    amt,
+			AmountSat: amt,
 		}
 
 		if pc, ok := chByID[chanIdStr]; ok {
@@ -2128,6 +2128,7 @@ func (c *CLNService) MakeOffer(ctx context.Context, description string) (string,
 	}).Debug("Make Offer")
 
 	req := &clngrpc.OfferRequest{
+		Amount:      "any",
 		Description: &description,
 	}
 	resp, err := c.client.Offer(ctx, req)

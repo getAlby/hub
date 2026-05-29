@@ -96,31 +96,20 @@ func (_c *MockLNClient_CancelHoldInvoice_Call) RunAndReturn(run func(ctx context
 }
 
 // CloseChannel provides a mock function for the type MockLNClient
-func (_mock *MockLNClient) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
+func (_mock *MockLNClient) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) error {
 	ret := _mock.Called(ctx, closeChannelRequest)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CloseChannel")
 	}
 
-	var r0 *lnclient.CloseChannelResponse
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error)); ok {
-		return returnFunc(ctx, closeChannelRequest)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, *lnclient.CloseChannelRequest) *lnclient.CloseChannelResponse); ok {
+	var r0 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, *lnclient.CloseChannelRequest) error); ok {
 		r0 = returnFunc(ctx, closeChannelRequest)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*lnclient.CloseChannelResponse)
-		}
+		r0 = ret.Error(0)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, *lnclient.CloseChannelRequest) error); ok {
-		r1 = returnFunc(ctx, closeChannelRequest)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
+	return r0
 }
 
 // MockLNClient_CloseChannel_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CloseChannel'
@@ -153,12 +142,12 @@ func (_c *MockLNClient_CloseChannel_Call) Run(run func(ctx context.Context, clos
 	return _c
 }
 
-func (_c *MockLNClient_CloseChannel_Call) Return(closeChannelResponse *lnclient.CloseChannelResponse, err error) *MockLNClient_CloseChannel_Call {
-	_c.Call.Return(closeChannelResponse, err)
+func (_c *MockLNClient_CloseChannel_Call) Return(err error) *MockLNClient_CloseChannel_Call {
+	_c.Call.Return(err)
 	return _c
 }
 
-func (_c *MockLNClient_CloseChannel_Call) RunAndReturn(run func(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error)) *MockLNClient_CloseChannel_Call {
+func (_c *MockLNClient_CloseChannel_Call) RunAndReturn(run func(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) error) *MockLNClient_CloseChannel_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -29,8 +29,6 @@ var MockNodeInfo = lnclient.NodeInfo{
 
 var MockLNClientBalances = lnclient.BalancesResponse{
 	Lightning: lnclient.LightningBalanceResponse{
-		TotalSpendable:     21000,
-		TotalSpendableSat:  21,
 		TotalSpendableMsat: 21000,
 	},
 }
@@ -181,8 +179,8 @@ func (mln *MockLn) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient
 func (mln *MockLn) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
 	return nil, nil
 }
-func (mln *MockLn) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
-	return nil, nil
+func (mln *MockLn) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) error {
+	return nil
 }
 func (mln *MockLn) GetNewOnchainAddress(ctx context.Context) (string, error) {
 	return "", nil

@@ -24,36 +24,27 @@ export function AppStoreDetailHeader({
     <>
       <AppHeader
         pageTitle={appStoreApp.title}
-        title={
-          <>
-            <div className="flex flex-row items-center">
-              <img
-                src={appStoreApp.logo}
-                className="w-14 h-14 rounded-lg mr-4"
-              />
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  {appStoreApp.title}
-                  {!!connectedApps.length && (
-                    <Badge
-                      variant="positive"
-                      className="flex items-center gap-1"
-                    >
-                      <CheckCircleIcon className="w-3 h-3" />{" "}
-                      {connectedApps.length > 1
-                        ? `${connectedApps.length} Connections`
-                        : "Connected"}
-                    </Badge>
-                  )}
-                </div>
-                <div className="text-sm font-normal text-muted-foreground">
-                  {appStoreApp.description}
-                </div>
-              </div>
-            </div>
-          </>
+        icon={
+          <img
+            src={appStoreApp.logo}
+            alt="logo"
+            className="inline rounded-lg w-14 h-14"
+          />
         }
-        description=""
+        title={
+          <div className="flex items-center gap-2">
+            {appStoreApp.title}
+            {!!connectedApps.length && (
+              <Badge variant="positive" className="flex items-center gap-1">
+                <CheckCircleIcon className="w-3 h-3" />{" "}
+                {connectedApps.length > 1
+                  ? `${connectedApps.length} Connections`
+                  : "Connected"}
+              </Badge>
+            )}
+          </div>
+        }
+        description={appStoreApp.description}
         contentRight={
           contentRight !== undefined ? (
             contentRight

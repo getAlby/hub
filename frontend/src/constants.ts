@@ -5,6 +5,7 @@ export const localStorageKeys = {
   authToken: "authToken",
   supportAlbySidebarHintHiddenUntil: "supportAlbySidebarHintHiddenUntil",
   aiHeroDismissed: "aiHeroDismissed",
+  cardsHeroDismissed: "cardsHeroDismissed",
   homeStoriesViewed: "alby-hub-home-stories-viewed",
 };
 
