@@ -247,13 +247,13 @@ export default function ReceiveInvoice() {
                   onValueSatChange={setAmountSat}
                   minSat={1}
                   maxSat={
-                    hasChannelManagement
+                    hasChannelManagement && !lsps2Source
                       ? balances.lightning.totalReceivableSat
                       : undefined
                   }
                   autoFocus
                   contextRows={
-                    hasChannelManagement
+                    hasChannelManagement && !lsps2Source
                       ? [
                           {
                             label: "Receive limit",
