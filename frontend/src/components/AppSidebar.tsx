@@ -2,6 +2,7 @@ import {
   BotIcon,
   BoxIcon,
   ChevronsUpDownIcon,
+  CreditCardIcon,
   CircleHelpIcon,
   HandCoinsIcon,
   HomeIcon,
@@ -22,9 +23,9 @@ import ExternalLink from "src/components/ExternalLink";
 import { AlbyIcon } from "src/components/icons/Alby";
 import { AlbyHubIcon } from "src/components/icons/AlbyHubIcon";
 import { AlbyHubLogo } from "src/components/icons/AlbyHubLogo";
-import { Badge } from "src/components/ui/badge";
 import { ProBadge } from "src/components/ProBadge";
 import SidebarHint from "src/components/SidebarHint";
+import { Badge } from "src/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -105,6 +106,11 @@ export function AppSidebar() {
         title: "AI & Agents",
         url: "/ai",
         icon: BotIcon,
+      },
+      {
+        title: "Cards",
+        url: "/cards",
+        icon: CreditCardIcon,
         badge: "NEW",
       },
     ],

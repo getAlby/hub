@@ -1169,7 +1169,7 @@ func (svc *LNDService) UpdateChannel(ctx context.Context, updateChannelRequest *
 	return nil
 }
 
-func (svc *LNDService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
+func (svc *LNDService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) error {
 	logger.Logger.WithFields(logrus.Fields{
 		"request": closeChannelRequest,
 	}).Info("Closing Channel")
@@ -1177,7 +1177,7 @@ func (svc *LNDService) CloseChannel(ctx context.Context, closeChannelRequest *ln
 	resp, err := svc.client.ListChannels(ctx, &lnrpc.ListChannelsRequest{})
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to fetch channels")
-		return nil, err
+		return err
 	}
 
 	var foundChannel *lnrpc.Channel
@@ -1191,12 +1191,12 @@ func (svc *LNDService) CloseChannel(ctx context.Context, closeChannelRequest *ln
 
 	if foundChannel == nil {
 		logger.Logger.WithField("request", closeChannelRequest).Error("Failed to find channel to close")
-		return nil, errors.New("no channel exists with the given id")
+		return errors.New("no channel exists with the given id")
 	}
 
 	channelPoint, err := svc.parseChannelPoint(foundChannel.ChannelPoint)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	stream, err := svc.client.CloseChannel(ctx, &lnrpc.CloseChannelRequest{
@@ -1205,13 +1205,13 @@ func (svc *LNDService) CloseChannel(ctx context.Context, closeChannelRequest *ln
 	})
 	if err != nil {
 		logger.Logger.WithField("request", closeChannelRequest).WithError(err).Error("Failed to close channel")
-		return nil, err
+		return err
 	}
 
 	for {
 		resp, err := stream.Recv()
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		switch update := resp.Update.(type) {
@@ -1219,13 +1219,13 @@ func (svc *LNDService) CloseChannel(ctx context.Context, closeChannelRequest *ln
 			closingHash := update.ClosePending.Txid
 			txid, err := chainhash.NewHash(closingHash)
 			if err != nil {
-				return nil, err
+				return err
 			}
 			logger.Logger.WithFields(logrus.Fields{
 				"closingTxid": txid.String(),
 			}).Info("Channel close pending")
 			// TODO: return the closing tx id or fire an event
-			return &lnclient.CloseChannelResponse{}, nil
+			return nil
 		}
 	}
 }
@@ -1263,7 +1263,6 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 			}
 			pendingBalancesDetails = append(pendingBalancesDetails, lnclient.PendingBalanceDetails{
 				NodeId:        closingChannel.Channel.RemoteNodePub,
-				Amount:        uint64(closingChannel.LimboBalance),
 				AmountSat:     uint64(closingChannel.LimboBalance),
 				FundingTxId:   channelPoint.GetFundingTxidStr(),
 				FundingTxVout: channelPoint.GetOutputIndex(),
@@ -1274,13 +1273,9 @@ func (svc *LNDService) GetOnchainBalance(ctx context.Context) (*lnclient.Onchain
 		"balances": balances,
 	}).Debug("Listed Balances")
 	return &lnclient.OnchainBalanceResponse{
-		Spendable:                             int64(balances.ConfirmedBalance),
 		SpendableSat:                          int64(balances.ConfirmedBalance),
-		Total:                                 int64(balances.TotalBalance),
 		TotalSat:                              int64(balances.TotalBalance),
-		Reserved:                              int64(balances.ReservedBalanceAnchorChan),
 		ReservedSat:                           int64(balances.ReservedBalanceAnchorChan),
-		PendingBalancesFromChannelClosures:    pendingBalancesFromChannelClosures,
 		PendingBalancesFromChannelClosuresSat: pendingBalancesFromChannelClosures,
 		PendingBalancesDetails:                pendingBalancesDetails,
 		PendingSweepBalancesDetails:           []lnclient.PendingBalanceDetails{},
@@ -1446,23 +1441,11 @@ func (svc *LNDService) GetBalances(ctx context.Context, includeInactiveChannels 
 	return &lnclient.BalancesResponse{
 		Onchain: *onchainBalance,
 		Lightning: lnclient.LightningBalanceResponse{
-			TotalSpendable:           totalSpendable,
-			TotalSpendableSat:        totalSpendable / 1000,
 			TotalSpendableMsat:       totalSpendable,
-			TotalReceivable:          totalReceivable,
-			TotalReceivableSat:       totalReceivable / 1000,
 			TotalReceivableMsat:      totalReceivable,
-			NextMaxSpendable:         nextMaxSpendable,
-			NextMaxSpendableSat:      nextMaxSpendable / 1000,
 			NextMaxSpendableMsat:     nextMaxSpendable,
-			NextMaxReceivable:        nextMaxReceivable,
-			NextMaxReceivableSat:     nextMaxReceivable / 1000,
 			NextMaxReceivableMsat:    nextMaxReceivable,
-			NextMaxSpendableMPP:      nextMaxSpendableMPP,
-			NextMaxSpendableMPPSat:   nextMaxSpendableMPP / 1000,
 			NextMaxSpendableMPPMsat:  nextMaxSpendableMPP,
-			NextMaxReceivableMPP:     nextMaxReceivableMPP,
-			NextMaxReceivableMPPSat:  nextMaxReceivableMPP / 1000,
 			NextMaxReceivableMPPMsat: nextMaxReceivableMPP,
 		},
 	}, nil

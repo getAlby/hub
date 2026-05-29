@@ -11,7 +11,7 @@ import {
   WalletMinimalIcon,
 } from "lucide-react";
 
-export type BackendType = "LND" | "LDK" | "PHOENIX" | "CASHU";
+export type BackendType = "LND" | "LDK" | "PHOENIX" | "CASHU" | "CLN";
 
 export type Nip47RequestMethod =
   | "get_info"
@@ -170,6 +170,7 @@ export interface InfoResponse {
   chainDataSourceAddress?: string;
   jitChannelsLiquiditySource?: string;
   hideUpdateBanner: boolean;
+  supportsBolt12: boolean;
 }
 
 export type BitcoinDisplayFormat = "sats" | "bip177";
@@ -369,6 +370,7 @@ export type PayInvoiceRequest = {
   amountSat?: number;
   amountMsat?: number;
   metadata?: Record<string, unknown>;
+  fromAppId?: number;
 };
 
 export type OpenChannelRequest = {
@@ -457,6 +459,10 @@ export type SetupNodeInfo = Partial<{
 
   phoenixdAddress?: string;
   phoenixdAuthorization?: string;
+
+  clnAddress?: string;
+  clnLightningDir?: string;
+  clnAddressHold?: string;
 }>;
 
 export type LSPType = "LSPS1";

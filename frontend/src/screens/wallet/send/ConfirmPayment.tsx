@@ -9,10 +9,10 @@ import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
+import { InsufficientLightningBalanceAlert } from "src/components/InsufficientLightningBalanceAlert";
 import Loading from "src/components/Loading";
 import { PaymentFailedAlert } from "src/components/PaymentFailedAlert";
 import { PendingPaymentAlert } from "src/components/PendingPaymentAlert";
-import { SpendingAlert } from "src/components/SpendingAlert";
 import {
   Card,
   CardContent,
@@ -21,6 +21,7 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 import { useBalances } from "src/hooks/useBalances";
+import PayFromSelect from "src/screens/wallet/send/PayFromSelect";
 import {
   PayInvoiceRequest,
   PayInvoiceResponse,
@@ -35,6 +36,7 @@ export default function ConfirmPayment() {
 
   const invoice = state?.args?.paymentRequest as Invoice;
   const metadata = state?.args?.metadata as TransactionMetadata;
+  const [appId, setAppId] = React.useState<number>();
   const [isLoading, setLoading] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState("");
 
@@ -44,6 +46,7 @@ export default function ConfirmPayment() {
       setLoading(true);
       const payload: PayInvoiceRequest = {
         metadata,
+        fromAppId: appId,
       };
       const payInvoiceResponse = await request<PayInvoiceResponse>(
         `/api/payments/${invoice.paymentRequest}`,
@@ -65,6 +68,7 @@ export default function ConfirmPayment() {
           pageTitle: "Pay Invoice",
           invoice,
         },
+        replace: true,
       });
       toast("Successfully paid invoice");
     } catch (e) {
@@ -105,7 +109,7 @@ export default function ConfirmPayment() {
           <CardHeader>
             <CardTitle className="text-center">Confirm Payment</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col items-center gap-6 pt-2">
+          <CardContent className="grid gap-6 pt-2">
             <div className="flex flex-col gap-1 items-center">
               <p className="text-2xl font-medium slashed-zero">
                 <FormattedBitcoinAmount amountMsat={invoice.satoshi * 1000} />
@@ -116,13 +120,17 @@ export default function ConfirmPayment() {
               />
             </div>
             {invoice.description && (
-              <p className="text-lg text-muted-foreground break-anywhere">
+              <p className="text-lg text-center text-muted-foreground break-anywhere">
                 {invoice.description}
               </p>
             )}
           </CardContent>
           <CardFooter className="flex flex-col gap-2 pt-2">
-            <SpendingAlert className="mb-2" amountSat={invoice.satoshi} />
+            <PayFromSelect appId={appId} onChange={setAppId} />
+            <InsufficientLightningBalanceAlert
+              className="mb-2"
+              amountSat={invoice.satoshi}
+            />
             <LoadingButton
               onClick={confirmPayment}
               loading={isLoading}
@@ -133,7 +141,7 @@ export default function ConfirmPayment() {
               Confirm Payment
             </LoadingButton>
             <div className="flex items-center justify-between gap-2 text-muted-foreground text-xs sensitive slashed-zero">
-              Spending Balance:{" "}
+              Lightning Balance:{" "}
               <FormattedBitcoinAmount
                 amountMsat={balances.lightning.totalSpendableMsat}
               />

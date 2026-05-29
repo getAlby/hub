@@ -337,7 +337,7 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
             <img
               src={appStoreApp.logo}
               alt="logo"
-              className="inline rounded-lg w-12 h-12"
+              className="inline rounded-lg w-14 h-14"
             />
           ) : undefined
         }
@@ -423,7 +423,6 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
                               <div className="flex mt-2">
                                 <Checkbox
                                   id="superuser"
-                                  required
                                   checked={superuser}
                                   onCheckedChange={() =>
                                     setSuperuser(!superuser)

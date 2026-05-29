@@ -214,7 +214,7 @@ function NewChannelInternal({
       <AppHeader
         pageTitle="Open Channel with On-Chain"
         title="Open Channel with On-Chain"
-        description="Funds used to open a channel minus fees will be added to your spending balance"
+        description="Funds used to open a channel minus fees will be added to your lightning balance"
         contentRight={
           <div className="flex items-end">
             <Link to="/channels/incoming" className="underline text-sm">
@@ -252,15 +252,15 @@ function NewChannelInternal({
                 <TooltipTrigger type="button">
                   <div className="flex flex-row gap-2 items-center justify-start text-sm">
                     <Label htmlFor="amount">
-                      Increase spending balance (sats)
+                      Increase lightning balance (sats)
                     </Label>
                     <InfoIcon className="h-4 w-4 shrink-0 text-muted-foreground" />
                   </div>
                 </TooltipTrigger>
                 <TooltipContent>
-                  Configure the amount of spending capacity you need. You will
-                  need to deposit on-chain bitcoin to cover the entire channel
-                  size, plus on-chain fees.
+                  Configure the amount of spending balance you need in your new
+                  lightning channel. You will need to deposit on-chain bitcoin
+                  to cover the entire channel size, plus on-chain fees.
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

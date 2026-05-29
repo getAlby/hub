@@ -3,9 +3,9 @@ package cipher
 import (
 	"fmt"
 
+	"github.com/getAlby/go-nostr/nip04"
+	"github.com/getAlby/go-nostr/nip44"
 	"github.com/getAlby/hub/constants"
-	"github.com/nbd-wtf/go-nostr/nip04"
-	"github.com/nbd-wtf/go-nostr/nip44"
 )
 
 const (

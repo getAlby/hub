@@ -1,17 +1,17 @@
 import {
   ClipboardPasteIcon,
   ExternalLinkIcon,
-  InfoIcon,
   MoveRightIcon,
   RefreshCwIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 import { toast } from "sonner";
+import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
+import { CurrencyInputField } from "src/components/CurrencyInputField";
 import { FixedFloatButton } from "src/components/FixedFloatButton";
 import { FixedFloatSwapInFlow } from "src/components/FixedFloatSwapInFlow";
-import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import ResponsiveLinkButton from "src/components/ResponsiveLinkButton";
@@ -27,14 +27,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "src/components/ui/tabs";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "src/components/ui/tooltip";
 import { useBalances } from "src/hooks/useBalances";
-import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { useSwapInfo } from "src/hooks/useSwaps";
 import {
@@ -54,7 +47,7 @@ export default function Swap() {
     const newTabValue = searchParams.get("type");
     if (newTabValue) {
       setTab(newTabValue);
-      setSearchParams({});
+      setSearchParams({}, { replace: true });
     }
   }, [searchParams, setSearchParams]);
 
@@ -101,7 +94,6 @@ function SwapInForm() {
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances();
   const { data: swapInfo } = useSwapInfo("in");
-  const { data: channels } = useChannels();
   const navigate = useNavigate();
 
   const [swapAmountSat, setSwapAmountSat] = useState("");
@@ -166,10 +158,7 @@ function SwapInForm() {
     return <Loading />;
   }
 
-  const spendableOnchainBalanceSatWithAnchorReserves = Math.max(
-    balances.onchain.spendableSat - (channels?.length || 0) * 25000,
-    0
-  );
+  const spendableOnchainBalance = balances.onchain.spendableSat;
   const isInternalSwap = swapFrom === "internal";
   const isCryptoSwappingState =
     swapFrom === "crypto" && cryptoTransaction !== null;
@@ -183,7 +172,7 @@ function SwapInForm() {
               On-chain <MoveRightIcon /> Lightning
             </h2>
             <p className="mt-1 text-muted-foreground">
-              Swap on-chain funds into your lightning spending balance.
+              Swap on-chain funds into your lightning balance.
             </p>
           </div>
           <div className="grid gap-1.5">
@@ -195,74 +184,48 @@ function SwapInForm() {
                 </div>
               )}
 
-            <Label>Swap amount</Label>
-            <Input
-              type="number"
+            {isInternalSwap && (
+              <AnchorReserveAlert amountSat={+swapAmountSat} />
+            )}
+            <CurrencyInputField
+              label="Swap amount"
               autoFocus
-              placeholder="Amount in satoshis"
-              value={swapAmountSat}
-              min={swapFrom !== "crypto" ? swapInfo.minAmountSat : undefined}
-              max={
+              valueSat={swapAmountSat}
+              onValueSatChange={setSwapAmountSat}
+              minSat={swapFrom !== "crypto" ? swapInfo.minAmountSat : undefined}
+              maxSat={
                 swapFrom === "crypto"
-                  ? balances.lightning.totalReceivableSat * 0.99
+                  ? hasChannelManagement
+                    ? balances.lightning.totalReceivableSat * 0.99
+                    : undefined
                   : Math.min(
                       swapInfo.maxAmountSat,
-                      ...(isInternalSwap
-                        ? [spendableOnchainBalanceSatWithAnchorReserves]
-                        : []),
-                      balances.lightning.totalReceivableSat * 0.99
+                      ...(isInternalSwap ? [spendableOnchainBalance] : []),
+                      ...(hasChannelManagement
+                        ? [balances.lightning.totalReceivableSat * 0.99]
+                        : [])
                     )
               }
-              onChange={(e) => setSwapAmountSat(e.target.value)}
               required
+              contextRows={[
+                ...(isInternalSwap
+                  ? [
+                      {
+                        label: "Available on-chain",
+                        amountSat: spendableOnchainBalance,
+                      },
+                    ]
+                  : []),
+                ...(hasChannelManagement
+                  ? [
+                      {
+                        label: "Receive limit",
+                        amountSat: balances.lightning.totalReceivableSat,
+                      },
+                    ]
+                  : []),
+              ]}
             />
-
-            <div className="flex justify-between">
-              {balances && (
-                <div>
-                  <p className="text-xs text-muted-foreground">
-                    Receiving Capacity:{" "}
-                    <FormattedBitcoinAmount
-                      amountMsat={balances.lightning.totalReceivableMsat}
-                    />
-                  </p>
-                  {isInternalSwap && (
-                    <p className="text-xs text-muted-foreground flex items-center justify-center gap-1">
-                      Spendable On-Chain Balance:{" "}
-                      <FormattedBitcoinAmount
-                        amountMsat={
-                          spendableOnchainBalanceSatWithAnchorReserves * 1000
-                        }
-                      />
-                      {!!channels?.length && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <div className="flex flex-row gap-1 items-center text-muted-foreground">
-                                <InfoIcon className="h-3 w-3 shrink-0" />
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              To ensure you can close channels, you need to set
-                              aside at least{" "}
-                              <FormattedBitcoinAmount
-                                amountMsat={channels.length * 25000 * 1000}
-                              />{" "}
-                              on-chain. Your total on-chain balance is{" "}
-                              <FormattedBitcoinAmount
-                                amountMsat={
-                                  balances.onchain.spendableSat * 1000
-                                }
-                              />
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
           </div>
           <div className="flex flex-col gap-4">
             <Label>Swap from</Label>
@@ -405,35 +368,28 @@ function SwapOutForm() {
         </p>
       </div>
       <div className="grid gap-1.5">
-        <Label>Swap amount</Label>
-        <Input
-          type="number"
+        <CurrencyInputField
+          label="Swap amount"
           autoFocus
-          placeholder="Amount in satoshis"
-          value={swapAmountSat}
-          min={swapInfo.minAmountSat}
-          max={Math.min(
+          valueSat={swapAmountSat}
+          onValueSatChange={setSwapAmountSat}
+          minSat={swapInfo.minAmountSat}
+          maxSat={Math.min(
             swapInfo.maxAmountSat,
             balances.lightning.totalSpendableSat
           )}
-          onChange={(e) => setSwapAmountSat(e.target.value)}
           required
+          contextRows={[
+            {
+              label: "Lightning balance",
+              amountSat: balances.lightning.totalSpendableSat,
+            },
+            {
+              label: "Minimum",
+              amountSat: swapInfo.minAmountSat,
+            },
+          ]}
         />
-
-        <div className="flex justify-between">
-          {balances && (
-            <p className="text-xs text-muted-foreground">
-              Balance:{" "}
-              <FormattedBitcoinAmount
-                amountMsat={balances.lightning.totalSpendableMsat}
-              />
-            </p>
-          )}
-          <p className="text-xs text-muted-foreground">
-            Minimum:{" "}
-            <FormattedBitcoinAmount amountMsat={swapInfo.minAmountSat * 1000} />
-          </p>
-        </div>
       </div>
       <div className="flex flex-col gap-4">
         <Label>Swap to</Label>

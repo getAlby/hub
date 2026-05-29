@@ -137,10 +137,10 @@ export function SubwalletList() {
             Sub-wallets you manage are insufficiently backed
           </AlertTitle>
           <AlertDescription className="flex flex-row gap-3">
-            There's not enough bitcoin in your spending balance to honor all
-            balances of sub-wallets under your management. Increase spending
-            capacity by opening a channel or review your channel statuses to
-            back them up again.
+            There's not enough bitcoin in your lightning balance to honor all
+            balances of sub-wallets under your management. Increase your
+            lightning balance by opening a channel or review your channel
+            statuses to back them up again.
             <LinkButton to="/wallet/receive" variant="secondary">
               Deposit Bitcoin
             </LinkButton>

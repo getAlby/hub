@@ -9,7 +9,7 @@ import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 import { copyToClipboard } from "src/lib/clipboard";
 
-export function ReceiveToSpending() {
+export function ReceiveToLightning() {
   const { data: info } = useInfo();
   const { data: me } = useAlbyMe();
 
@@ -40,7 +40,7 @@ export function ReceiveToSpending() {
           <ZapIcon className="w-4 h-4 mr-2" />
           Create Invoice
         </LinkButton>
-        {info.backendType === "LDK" && (
+        {info.supportsBolt12 && (
           <LinkButton
             to="/wallet/receive/offer"
             variant="outline"

@@ -34,11 +34,13 @@
 /*
  * Default (primary) buttons: subtle highlight overlay on top of `bg-primary`.
  * Sets `background-image` only so Tailwind's `background-color: var(--primary)`
- * remains the base. Keyed off `data-variant` only so it still matches when
- * `asChild` lets a Radix wrapper (e.g. DialogTrigger) overwrite `data-slot`.
+ * remains the base. Matches `data-slot~="button"` so Radix's Slot forwarding
+ * still picks up `<Button asChild>` (e.g. DialogTrigger asChild) without
+ * leaking onto unrelated items that also expose `data-variant` (e.g.
+ * DropdownMenuItem, Badge).
  */
 .theme-alby
-  :is(button, a, span)[data-variant="default"]:not(
+  :is(button, a, span)[data-slot~="button"][data-variant="default"]:not(
     :disabled,
     [aria-disabled="true"]
   ) {
@@ -51,7 +53,7 @@
 }
 
 .theme-alby
-  :is(button, a, span)[data-variant="default"]:hover:not(
+  :is(button, a, span)[data-slot~="button"][data-variant="default"]:hover:not(
     :disabled,
     [aria-disabled="true"]
   ) {
@@ -65,7 +67,7 @@
 
 /* Keep keyboard focus ring (Button uses ring via box-shadow); stack with brand stroke. */
 .theme-alby
-  :is(button, a, span)[data-variant="default"]:focus-visible:not(
+  :is(button, a, span)[data-slot~="button"][data-variant="default"]:focus-visible:not(
     :disabled,
     [aria-disabled="true"]
   ) {

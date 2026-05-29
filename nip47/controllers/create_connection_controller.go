@@ -5,12 +5,12 @@ import (
 	"slices"
 	"time"
 
+	"github.com/getAlby/go-nostr"
 	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/models"
 	"github.com/getAlby/hub/nip47/permissions"
-	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
 
@@ -103,6 +103,17 @@ func (controller *nip47Controller) HandleCreateConnectionEvent(ctx context.Conte
 	}
 
 	scopes, err := permissions.RequestMethodsToScopes(params.RequestMethods)
+
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"request_event_id": requestEventId,
+		}).WithError(err).Error("Failed to convert request methods to scopes")
+		publishResponse(&models.Response{
+			ResultType: nip47Request.Method,
+			Error:      mapNip47Error(err),
+		}, nostr.Tags{})
+		return
+	}
 
 	supportedNotificationTypes := controller.lnClient.GetSupportedNIP47NotificationTypes()
 	if len(params.NotificationTypes) > 0 {

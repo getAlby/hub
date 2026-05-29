@@ -496,7 +496,7 @@ function NewChannelInternal({
             className="w-full"
             variant="secondary"
           >
-            Increase Spending Balance
+            Increase Lightning Balance
           </LinkButton>
           <ExternalLinkButton
             to="https://www.getalby.com/topup"

@@ -213,7 +213,7 @@ func (svc *swapsService) EnableAutoSwapOut(encryptionKey string) error {
 					logger.Logger.WithError(err).Error("Failed to get balance")
 					continue
 				}
-				lightningBalance := uint64(balance.Lightning.TotalSpendable)
+				lightningBalance := uint64(balance.Lightning.TotalSpendableMsat)
 				balanceThresholdMilliSats := balanceThreshold * 1000
 				if lightningBalance < balanceThresholdMilliSats {
 					logger.Logger.Info("Threshold requirements not met for swap, ignoring")

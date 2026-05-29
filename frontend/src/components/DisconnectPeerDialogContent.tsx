@@ -53,7 +53,7 @@ export function DisconnectPeerDialogContent({ peer }: Props) {
               Are you sure you wish to disconnect from{" "}
               {peerDetails?.alias || "this peer"}?
             </p>
-            <p className="text-primary font-medium mt-4">Peer Pubkey</p>
+            <p className="font-medium text-foreground mt-4">Peer Pubkey</p>
             <p className="break-all">{peer.nodeId}</p>
           </div>
         </AlertDialogDescription>

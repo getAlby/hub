@@ -131,14 +131,8 @@ func (svc *PhoenixService) GetBalances(ctx context.Context, includeInactiveChann
 			PendingBalancesDetails:      []lnclient.PendingBalanceDetails{},
 			PendingSweepBalancesDetails: []lnclient.PendingBalanceDetails{}},
 		Lightning: lnclient.LightningBalanceResponse{
-			TotalSpendable:          balance,
-			TotalSpendableSat:       balance / 1000,
 			TotalSpendableMsat:      balance,
-			NextMaxSpendable:        balance,
-			NextMaxSpendableSat:     balance / 1000,
 			NextMaxSpendableMsat:    balance,
-			NextMaxSpendableMPP:     balance,
-			NextMaxSpendableMPPSat:  balance / 1000,
 			NextMaxSpendableMPPMsat: balance,
 		},
 	}, nil
@@ -351,7 +345,7 @@ func (svc *PhoenixService) RedeemOnchainFunds(ctx context.Context, toAddress str
 }
 
 func (svc *PhoenixService) ResetRouter(key string) error {
-	return nil
+	return errors.New("not implemented")
 }
 
 func (svc *PhoenixService) Shutdown() error {
@@ -390,18 +384,18 @@ func (svc *PhoenixService) GetNodeConnectionInfo(ctx context.Context) (nodeConne
 }
 
 func (svc *PhoenixService) ConnectPeer(ctx context.Context, connectPeerRequest *lnclient.ConnectPeerRequest) error {
-	return nil
+	return errors.New("not implemented")
 }
 func (svc *PhoenixService) OpenChannel(ctx context.Context, openChannelRequest *lnclient.OpenChannelRequest) (*lnclient.OpenChannelResponse, error) {
-	return nil, nil
+	return nil, errors.New("not implemented")
 }
 
-func (svc *PhoenixService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
-	return nil, nil
+func (svc *PhoenixService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) error {
+	return errors.New("not implemented")
 }
 
 func (svc *PhoenixService) GetNewOnchainAddress(ctx context.Context) (string, error) {
-	return "", nil
+	return "", errors.New("not implemented")
 }
 
 func (svc *PhoenixService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainBalanceResponse, error) {
@@ -442,11 +436,11 @@ func (svc *PhoenixService) GetNetworkGraph(ctx context.Context, nodeIds []string
 func (svc *PhoenixService) UpdateLastWalletSyncRequest() {}
 
 func (svc *PhoenixService) DisconnectPeer(ctx context.Context, peerId string) error {
-	return nil
+	return errors.New("not implemented")
 }
 
 func (svc *PhoenixService) UpdateChannel(ctx context.Context, updateChannelRequest *lnclient.UpdateChannelRequest) error {
-	return nil
+	return errors.New("not implemented")
 }
 
 func (svc *PhoenixService) GetSupportedNIP47Methods() []string {
@@ -499,7 +493,7 @@ func (svc *PhoenixService) GetCustomNodeCommandDefinitions() []lnclient.CustomNo
 }
 
 func (svc *PhoenixService) ExecuteCustomNodeCommand(ctx context.Context, command *lnclient.CustomNodeCommandRequest) (*lnclient.CustomNodeCommandResponse, error) {
-	return nil, nil
+	return nil, lnclient.ErrUnknownCustomNodeCommand
 }
 
 func (svc *PhoenixService) MakeOffer(ctx context.Context, description string) (string, error) {

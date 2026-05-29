@@ -6,13 +6,13 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/getAlby/go-nostr"
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/nip47/cipher"
 	"github.com/getAlby/hub/nip47/models"
 	nostrmodels "github.com/getAlby/hub/nostr/models"
-	"github.com/nbd-wtf/go-nostr"
 	"github.com/sirupsen/logrus"
 )
 

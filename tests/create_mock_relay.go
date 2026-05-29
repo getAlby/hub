@@ -3,8 +3,8 @@ package tests
 import (
 	"context"
 
+	"github.com/getAlby/go-nostr"
 	"github.com/getAlby/hub/logger"
-	"github.com/nbd-wtf/go-nostr"
 )
 
 type mockSimplePool struct {

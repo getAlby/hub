@@ -2,13 +2,11 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
+import { CurrencyInputField } from "src/components/CurrencyInputField";
 import { FixedFloatSwapInFlow } from "src/components/FixedFloatSwapInFlow";
-import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
-import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import { MempoolAlert } from "src/components/MempoolAlert";
-import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Label } from "src/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "src/components/ui/radio-group";
@@ -90,7 +88,9 @@ export default function ReceiveOnchain() {
       if (!swapInResponse) {
         throw new Error("Error swapping in");
       }
-      navigate(`/wallet/swap/in/status/${swapInResponse.swapId}`);
+      navigate(`/wallet/swap/in/status/${swapInResponse.swapId}`, {
+        replace: true,
+      });
       toast("Initiated swap");
     } catch (error) {
       toast.error("Failed to initiate swap", {
@@ -124,48 +124,38 @@ export default function ReceiveOnchain() {
                   0.8 * balances.lightning.totalReceivableMsat && (
                   <LowReceivingCapacityAlert />
                 )}
-              <div className="grid gap-1.5">
-                <Label>Amount</Label>
-                <InputWithAdornment
-                  type="number"
-                  autoFocus
-                  placeholder="Amount in satoshis"
-                  value={swapAmountSat}
-                  min={
-                    swapFrom === "bitcoin" ? swapInfo.minAmountSat : undefined
-                  }
-                  max={
-                    swapFrom === "bitcoin"
+              <CurrencyInputField
+                label="Amount"
+                autoFocus
+                valueSat={swapAmountSat}
+                onValueSatChange={setSwapAmountSat}
+                minSat={
+                  swapFrom === "bitcoin" ? swapInfo.minAmountSat : undefined
+                }
+                maxSat={
+                  swapFrom === "bitcoin"
+                    ? hasChannelManagement
                       ? Math.min(
                           swapInfo.maxAmountSat,
                           balances.lightning.totalReceivableSat * 0.99
                         )
-                      : balances.lightning.totalReceivableSat * 0.99
-                  }
-                  onChange={(e) => setSwapAmountSat(e.target.value)}
-                  required
-                  endAdornment={
-                    <FormattedFiatAmount
-                      amountSat={+swapAmountSat}
-                      className="mr-2"
-                    />
-                  }
-                />
-                <div className="grid">
-                  <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
-                    <div>
-                      Receiving Capacity:{" "}
-                      <FormattedBitcoinAmount
-                        amountMsat={balances.lightning.totalReceivableMsat}
-                      />
-                    </div>
-                    <FormattedFiatAmount
-                      className="text-xs"
-                      amountSat={balances.lightning.totalReceivableSat}
-                    />
-                  </div>
-                </div>
-              </div>
+                      : swapInfo.maxAmountSat
+                    : hasChannelManagement
+                      ? balances.lightning.totalReceivableSat * 0.99
+                      : undefined
+                }
+                required
+                contextRows={
+                  hasChannelManagement
+                    ? [
+                        {
+                          label: "Receive limit",
+                          amountSat: balances.lightning.totalReceivableSat,
+                        },
+                      ]
+                    : undefined
+                }
+              />
               <div className="flex flex-col gap-4">
                 <Label>Swap from</Label>
                 <RadioGroup

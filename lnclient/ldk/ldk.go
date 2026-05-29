@@ -1140,7 +1140,7 @@ func (ls *LDKService) UpdateChannel(ctx context.Context, updateChannelRequest *l
 	return nil
 }
 
-func (ls *LDKService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) (*lnclient.CloseChannelResponse, error) {
+func (ls *LDKService) CloseChannel(ctx context.Context, closeChannelRequest *lnclient.CloseChannelRequest) error {
 	logger.Logger.WithFields(logrus.Fields{
 		"request": closeChannelRequest,
 	}).Info("Closing Channel")
@@ -1153,9 +1153,9 @@ func (ls *LDKService) CloseChannel(ctx context.Context, closeChannelRequest *lnc
 	}
 	if err != nil {
 		logger.Logger.WithError(err).Error("CloseChannel failed")
-		return nil, err
+		return err
 	}
-	return &lnclient.CloseChannelResponse{}, nil
+	return nil
 }
 
 func (ls *LDKService) GetNewOnchainAddress(ctx context.Context) (string, error) {
@@ -1196,7 +1196,6 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 				pendingBalancesDetails = append(pendingBalancesDetails, lnclient.PendingBalanceDetails{
 					NodeId:        nodeId,
 					ChannelId:     channelId,
-					Amount:        amountSat,
 					AmountSat:     amountSat,
 					FundingTxId:   fundingTxId,
 					FundingTxVout: uint32(fundingTxIndex),
@@ -1233,7 +1232,6 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 			pendingSweepBalanceDetails = append(pendingSweepBalanceDetails, lnclient.PendingBalanceDetails{
 				NodeId:        *nodeId,
 				ChannelId:     *channelId,
-				Amount:        amountSat,
 				AmountSat:     amountSat,
 				FundingTxId:   *fundingTxId,
 				FundingTxVout: uint32(*fundingTxIndex),
@@ -1259,13 +1257,9 @@ func (ls *LDKService) GetOnchainBalance(ctx context.Context) (*lnclient.OnchainB
 	}
 
 	return &lnclient.OnchainBalanceResponse{
-		Spendable:                             int64(balances.SpendableOnchainBalanceSats),
 		SpendableSat:                          int64(balances.SpendableOnchainBalanceSats),
-		Total:                                 int64(balances.TotalOnchainBalanceSats - balances.TotalAnchorChannelsReserveSats),
 		TotalSat:                              int64(balances.TotalOnchainBalanceSats - balances.TotalAnchorChannelsReserveSats),
-		Reserved:                              int64(balances.TotalAnchorChannelsReserveSats),
 		ReservedSat:                           int64(balances.TotalAnchorChannelsReserveSats),
-		PendingBalancesFromChannelClosures:    pendingBalancesFromChannelClosuresSat,
 		PendingBalancesFromChannelClosuresSat: pendingBalancesFromChannelClosuresSat,
 		PendingBalancesDetails:                pendingBalancesDetails,
 		PendingSweepBalancesDetails:           pendingSweepBalanceDetails,
@@ -1662,7 +1656,7 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 					fundingTxId = details.FundingTxId
 					fundingTxVout = details.FundingTxVout
 					fundingTxUrl = fmt.Sprintf("https://mempool.space/tx/%s#flow=&vout=%d", fundingTxId, fundingTxVout)
-					pendingBalance += details.Amount
+					pendingBalance += details.AmountSat
 				}
 			}
 			for _, details := range onchainBalance.PendingSweepBalancesDetails {
@@ -1670,7 +1664,7 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 					fundingTxId = details.FundingTxId
 					fundingTxVout = details.FundingTxVout
 					fundingTxUrl = fmt.Sprintf("https://mempool.space/tx/%s#flow=&vout=%d", fundingTxId, fundingTxVout)
-					pendingBalance += details.Amount
+					pendingBalance += details.AmountSat
 				}
 			}
 		}
@@ -1932,23 +1926,11 @@ func (ls *LDKService) GetBalances(ctx context.Context, includeInactiveChannels b
 	return &lnclient.BalancesResponse{
 		Onchain: *onchainBalance,
 		Lightning: lnclient.LightningBalanceResponse{
-			TotalSpendable:           totalSpendable,
-			TotalSpendableSat:        totalSpendable / 1000,
 			TotalSpendableMsat:       totalSpendable,
-			TotalReceivable:          totalReceivable,
-			TotalReceivableSat:       totalReceivable / 1000,
 			TotalReceivableMsat:      totalReceivable,
-			NextMaxSpendable:         nextMaxSpendable,
-			NextMaxSpendableSat:      nextMaxSpendable / 1000,
 			NextMaxSpendableMsat:     nextMaxSpendable,
-			NextMaxReceivable:        nextMaxReceivable,
-			NextMaxReceivableSat:     nextMaxReceivable / 1000,
 			NextMaxReceivableMsat:    nextMaxReceivable,
-			NextMaxSpendableMPP:      nextMaxSpendableMPP,
-			NextMaxSpendableMPPSat:   nextMaxSpendableMPP / 1000,
 			NextMaxSpendableMPPMsat:  nextMaxSpendableMPP,
-			NextMaxReceivableMPP:     nextMaxReceivableMPP,
-			NextMaxReceivableMPPSat:  nextMaxReceivableMPP / 1000,
 			NextMaxReceivableMPPMsat: nextMaxReceivableMPP,
 		},
 	}, nil

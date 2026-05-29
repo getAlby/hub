@@ -189,7 +189,7 @@ export function RebalanceChannelDialogContent({
                   You have another channel with less funds
                 </AlertTitle>
                 <AlertDescription>
-                  Consider choosing a channel with less spending balance to
+                  Consider choosing a channel with less local balance to
                   rebalance into.
                 </AlertDescription>
               </Alert>

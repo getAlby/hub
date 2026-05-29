@@ -10,15 +10,13 @@ import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
+import { CurrencyInputField } from "src/components/CurrencyInputField";
 import ExternalLink from "src/components/ExternalLink";
-import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
-import FormattedFiatAmount from "src/components/FormattedFiatAmount";
+import { InsufficientLightningBalanceAlert } from "src/components/InsufficientLightningBalanceAlert";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
-import { SpendingAlert } from "src/components/SpendingAlert";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
-import { InputWithAdornment } from "src/components/ui/custom/input-with-adornment";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
 import { Input } from "src/components/ui/input";
@@ -144,7 +142,7 @@ function OnchainForm({
       }
       if (balances.onchain.spendableSat <= ONCHAIN_DUST_SATS) {
         throw new Error(
-          "You currently don't have enough sats to pay for an on-chain transaction. Consider swapping from Spending Balance."
+          "You currently don't have enough sats to pay for an on-chain transaction. Consider swapping from Lightning Balance."
         );
       }
       setLoading(true);
@@ -171,6 +169,7 @@ function OnchainForm({
           amountSat: +amountSat,
           txId: response.txId,
         },
+        replace: true,
       });
       toast("Successfully broadcasted transaction");
     } catch (e) {
@@ -189,43 +188,24 @@ function OnchainForm({
 
   return (
     <form onSubmit={onSubmit} className="grid gap-6">
-      <div className="grid gap-2">
-        <Label htmlFor="amount">Amount</Label>
-        <InputWithAdornment
-          id="amount"
-          type="number"
-          value={amountSat}
-          placeholder="Amount in Satoshi..."
-          onChange={(e) => {
-            setAmountSat(e.target.value.trim());
-          }}
-          min={ONCHAIN_DUST_SATS}
-          max={balances.onchain.spendableSat}
-          required
-          autoFocus
-          endAdornment={
-            <FormattedFiatAmount
-              amountSat={Number(amountSat)}
-              className="mr-2"
-            />
-          }
-        />
-        <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
-          <div>
-            On-chain Balance:{" "}
-            <FormattedBitcoinAmount
-              amountMsat={balances.onchain.spendableSat * 1000}
-            />
-          </div>
-          <FormattedFiatAmount
-            className="text-xs"
-            amountSat={balances.onchain.spendableSat}
-          />
-        </div>
-      </div>
+      <CurrencyInputField
+        id="amount"
+        valueSat={amountSat}
+        onValueSatChange={setAmountSat}
+        minSat={ONCHAIN_DUST_SATS}
+        maxSat={balances.onchain.spendableSat}
+        required
+        autoFocus
+        contextRows={[
+          {
+            label: "On-chain available",
+            amountSat: balances.onchain.spendableSat,
+          },
+        ]}
+      />
       <div className="flex items-center justify-between">
         <Label htmlFor="swap" className="cursor-pointer">
-          Swap from Spending Balance
+          Swap from Lightning Balance
         </Label>
         <Switch id="swap" onCheckedChange={setSwap} />
       </div>
@@ -378,60 +358,31 @@ function SwapForm({
 
   return (
     <form onSubmit={onSubmit} className="grid gap-6">
-      <div className="grid gap-2">
-        <Label htmlFor="amount">Amount</Label>
-        <InputWithAdornment
-          id="amount"
-          type="number"
-          value={amountSat}
-          placeholder="Amount in Satoshi..."
-          onChange={(e) => {
-            setAmountSat(e.target.value.trim());
-          }}
-          min={swapInfo.minAmountSat}
-          max={Math.min(
-            swapInfo.maxAmountSat,
-            balances.lightning.totalSpendableSat
-          )}
-          required
-          autoFocus
-          endAdornment={
-            <FormattedFiatAmount
-              amountSat={Number(amountSat)}
-              className="mr-2"
-            />
-          }
-        />
-        <div className="grid gap-1">
-          <div className="flex justify-between text-xs text-muted-foreground sensitive slashed-zero">
-            <div>
-              Spending Balance:{" "}
-              <FormattedBitcoinAmount
-                amountMsat={balances.lightning.totalSpendableMsat}
-              />
-            </div>
-            <FormattedFiatAmount
-              className="text-xs"
-              amountSat={balances.lightning.totalSpendableSat}
-            />
-          </div>
-          <div className="flex justify-between text-muted-foreground text-xs sensitive slashed-zero">
-            <div>
-              Minimum:{" "}
-              <FormattedBitcoinAmount
-                amountMsat={swapInfo.minAmountSat * 1000}
-              />
-            </div>
-            <FormattedFiatAmount
-              className="text-xs"
-              amountSat={swapInfo.minAmountSat}
-            />
-          </div>
-        </div>
-      </div>
+      <CurrencyInputField
+        id="amount"
+        valueSat={amountSat}
+        onValueSatChange={setAmountSat}
+        minSat={swapInfo.minAmountSat}
+        maxSat={Math.min(
+          swapInfo.maxAmountSat,
+          balances.lightning.totalSpendableSat
+        )}
+        required
+        autoFocus
+        contextRows={[
+          {
+            label: "Lightning balance",
+            amountSat: balances.lightning.totalSpendableSat,
+          },
+          {
+            label: "Minimum",
+            amountSat: swapInfo.minAmountSat,
+          },
+        ]}
+      />
       <div className="flex items-center justify-between">
         <Label htmlFor="swap" className="cursor-pointer">
-          Swap from Spending Balance
+          Swap from Lightning Balance
         </Label>
         <Switch id="swap" checked onCheckedChange={setSwap} />
       </div>
@@ -451,7 +402,7 @@ function SwapForm({
           <p>{swapInfo.albyServiceFee + swapInfo.boltzServiceFee}%</p>
         </div>
       </div>
-      <SpendingAlert amountSat={+amountSat} />
+      <InsufficientLightningBalanceAlert amountSat={+amountSat} />
       <div className="flex gap-2">
         <LinkButton to="/wallet/send" variant="outline">
           Back
