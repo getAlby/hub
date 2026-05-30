@@ -17,6 +17,7 @@ import { AlbyExtensionWidget } from "src/components/home/widgets/AlbyExtensionWi
 import { AlbyGoWidget } from "src/components/home/widgets/AlbyGoWidget";
 import { AppOfTheDayWidget } from "src/components/home/widgets/AppOfTheDayWidget";
 import { BlockHeightWidget } from "src/components/home/widgets/BlockHeightWidget";
+import { FeeRateWidget } from "src/components/home/widgets/FeeRateWidget";
 import { ForwardsWidget } from "src/components/home/widgets/ForwardsWidget";
 import { LatestUsedAppsWidget } from "src/components/home/widgets/LatestUsedAppsWidget";
 import { LightningMessageboardWidget } from "src/components/home/widgets/LightningMessageboardWidget";
@@ -45,6 +46,7 @@ function Home() {
       <div className="columns-1 lg:columns-2 gap-3 *:mb-3 *:break-inside-avoid">
         <OnboardingChecklist />
         <WhatsNewWidget />
+        <FeeRateWidget />
         <LatestUsedAppsWidget />
         <NewArrivalsWidget />
         <AppOfTheDayWidget />

@@ -2119,3 +2119,38 @@ func (api *api) GetForwards() (*GetForwardsResponse, error) {
 		NumForwards:                 uint64(numForwards),
 	}, nil
 }
+
+func (api *api) GetTransactionStats() (*GetTransactionStatsResponse, error) {
+	var stats struct {
+		TotalVolumeMsat   uint64
+		TotalFeesPaidMsat uint64
+		NumPayments       uint64
+	}
+
+	// Aggregate settled outgoing payments. Self-payments are excluded because
+	// they never traverse the network and would dilute the fee rate towards zero.
+	//
+	// Scaling note: the WHERE is index-assisted via idx_transactions_state_type
+	// (no full table scan), but amount_msat/fee_msat are not in any index, so each
+	// matching row is fetched from the table to compute the SUM. This is fine for
+	// typical hubs (thousands of payments) but is O(outgoing settled rows) on every
+	// dashboard load. Before this needs to scale to millions of payments, add a
+	// covering index on transactions(type, state, self_payment, amount_msat, fee_msat)
+	// to make it an index-only scan, or maintain a cached running total.
+	err := api.db.Model(&db.Transaction{}).
+		Select("COALESCE(SUM(amount_msat), 0) AS total_volume_msat, COALESCE(SUM(fee_msat), 0) AS total_fees_paid_msat, COUNT(*) AS num_payments").
+		Where("type = ? AND state = ? AND self_payment = ?",
+			constants.TRANSACTION_TYPE_OUTGOING, constants.TRANSACTION_STATE_SETTLED, false).
+		Scan(&stats).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &GetTransactionStatsResponse{
+		TotalVolumeSat:    stats.TotalVolumeMsat / 1000,
+		TotalVolumeMsat:   stats.TotalVolumeMsat,
+		TotalFeesPaidSat:  stats.TotalFeesPaidMsat / 1000,
+		TotalFeesPaidMsat: stats.TotalFeesPaidMsat,
+		NumPayments:       stats.NumPayments,
+	}, nil
+}
