@@ -2,13 +2,11 @@ package ldk
 
 import (
 	"context"
-	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/big"
 	"math"
 	"net"
 	"net/http"
@@ -146,8 +144,7 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	builder.SetCustomLogger(ldkLogger)
 	builder.SetNodeAlias(alias)
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
-	lsps2Sources := parseLiquiditySourceLsps2(cfg.GetEnv().LDKLiquiditySourceLsps2)
-	lsps2Pubkey, lsps2Address := getRandomLiquiditySourceLsps2(lsps2Sources)
+	lsps2Pubkey, lsps2Address := parseLiquiditySourceLsps2(cfg.GetEnv().LDKLiquiditySourceLsps2)
 	if lsps2Pubkey != "" {
 		builder.SetLiquiditySourceLsps2(lsps2Pubkey, lsps2Address, nil)
 	}
@@ -721,7 +718,11 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, descrip
 
 	maxReceivable := ls.getMaxReceivable()
 
-	if amountMsat > maxReceivable {
+	isVariableAmountInvoice := amountMsat == 0
+	isJitInvoice := ls.lsps2Pubkey != "" &&
+		(amountMsat > maxReceivable || (isVariableAmountInvoice && maxReceivable == 0))
+
+	if amountMsat > maxReceivable && !isJitInvoice {
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_incoming_liquidity_required",
 			Properties: map[string]interface{}{
@@ -748,10 +749,13 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, descrip
 	}
 
 	var invoiceObj *ldk_node.Bolt11Invoice
-	isJitInvoice := amountMsat > maxReceivable && ls.lsps2Pubkey != ""
-	if isJitInvoice {
-		// Prefer standard receive whenever possible and only use JIT when
-		// inbound liquidity is insufficient for the requested amount.
+	if isJitInvoice && isVariableAmountInvoice {
+		invoiceObj, err = ls.node.Bolt11Payment().ReceiveVariableAmountViaJitChannel(
+			descriptionType,
+			uint32(expiry),
+			nil,
+		)
+	} else if isJitInvoice {
 		invoiceObj, err = ls.node.Bolt11Payment().ReceiveViaJitChannel(
 			uint64(amountMsat),
 			descriptionType,
@@ -2597,55 +2601,22 @@ func sanitizeChainEndpoint(endpoint string, port string) string {
 	return sanitized
 }
 
-type liquiditySourceLsps2 struct {
-	pubkey  string
-	address string
-}
-
-func parseLiquiditySourceLsps2(lsps2Addresses string) []liquiditySourceLsps2 {
-	sources := []liquiditySourceLsps2{}
-
-	for _, entry := range strings.Split(lsps2Addresses, ",") {
-		entry = strings.TrimSpace(entry)
-		if entry == "" {
-			continue
-		}
-
-		pubkey, address, hasSeparator := strings.Cut(entry, "@")
-		if !hasSeparator || pubkey == "" || address == "" {
-            logger.Logger.WithField("entry", entry).Warn("Invalid LDK_LSPS2_ADDRESSES entry, expected <pubkey>@<host>:<port>")
-			continue
-		}
-
-		if _, _, err := net.SplitHostPort(address); err != nil {
-            logger.Logger.WithField("entry", entry).WithError(err).Warn("Invalid LDK_LSPS2_ADDRESSES host:port")
-			continue
-		}
-
-		sources = append(sources, liquiditySourceLsps2{
-			pubkey:  pubkey,
-			address: address,
-		})
-	}
-    logger.Logger.WithField("sources",sources).Debug("LDK_LSPS2_ADDRESSES:")
-
-	return sources
-}
-
-func getRandomLiquiditySourceLsps2(sources []liquiditySourceLsps2) (pubkey string, address string) {
-	if len(sources) == 0 {
+func parseLiquiditySourceLsps2(lsps2Address string) (pubkey string, address string) {
+	entry := strings.TrimSpace(lsps2Address)
+	if entry == "" {
 		return "", ""
 	}
-	if len(sources) == 1 {
-		return sources[0].pubkey, sources[0].address
+
+	pubkey, address, hasSeparator := strings.Cut(entry, "@")
+	if !hasSeparator || pubkey == "" || address == "" {
+		logger.Logger.WithField("entry", entry).Warn("Invalid LDK_LSPS2_ADDRESS, expected <pubkey>@<host>:<port>")
+		return "", ""
 	}
 
-	randomIndex, err := rand.Int(rand.Reader, big.NewInt(int64(len(sources))))
-	if err != nil {
-		logger.Logger.WithError(err).Warn("Failed to select random LDK LSPS2 source, defaulting to first")
-		return sources[0].pubkey, sources[0].address
+	if _, _, err := net.SplitHostPort(address); err != nil {
+		logger.Logger.WithField("entry", entry).WithError(err).Warn("Invalid LDK_LSPS2_ADDRESS host:port")
+		return "", ""
 	}
 
-	selected := sources[int(randomIndex.Int64())]
-	return selected.pubkey, selected.address
+	return pubkey, address
 }
