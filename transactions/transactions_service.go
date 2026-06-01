@@ -152,13 +152,21 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amountMsat uint
 		"metadata":         metadata,
 	}).Debug("Making invoice")
 
-	combinedMetadata := map[string]interface{}{}
-	for key, value := range metadata {
-		combinedMetadata[key] = value
+	var metadataBytes []byte
+	if metadata != nil {
+		var err error
+		metadataBytes, err = json.Marshal(metadata)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to serialize metadata")
+			return nil, err
+		}
+		if len(metadataBytes) > constants.INVOICE_METADATA_MAX_LENGTH {
+			return nil, fmt.Errorf("encoded invoice metadata provided is too large. Limit: %d Received: %d", constants.INVOICE_METADATA_MAX_LENGTH, len(metadataBytes))
+		}
 	}
 
-	if combinedMetadata["app_id"] != nil {
-		overwriteAppIdType, ok := combinedMetadata["app_id"].(float64)
+	if metadata["app_id"] != nil {
+		overwriteAppIdType, ok := metadata["app_id"].(float64)
 		if !ok {
 			return nil, errors.New("failed to overwrite app ID")
 		}
@@ -171,24 +179,6 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amountMsat uint
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to create transaction")
 		return nil, err
-	}
-	for key, value := range lnClientTransaction.Metadata {
-		if _, exists := combinedMetadata[key]; exists {
-			continue
-		}
-		combinedMetadata[key] = value
-	}
-
-	var metadataBytes []byte
-	if len(combinedMetadata) > 0 {
-		metadataBytes, err = json.Marshal(combinedMetadata)
-		if err != nil {
-			logger.Logger.WithError(err).Error("Failed to serialize metadata")
-			return nil, err
-		}
-		if len(metadataBytes) > constants.INVOICE_METADATA_MAX_LENGTH {
-			return nil, fmt.Errorf("encoded invoice metadata provided is too large. Limit: %d Received: %d", constants.INVOICE_METADATA_MAX_LENGTH, len(metadataBytes))
-		}
 	}
 
 	var preimage *string
@@ -805,33 +795,6 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 					logger.Logger.WithFields(logrus.Fields{
 						"payment_hash": lnClientTransaction.PaymentHash,
 					}).WithError(err).Error("Failed to create transaction")
-					return err
-				}
-			}
-
-			if lnClientTransaction.Metadata != nil {
-				mergedMetadata := map[string]interface{}{}
-				if dbTransaction.Metadata != nil {
-					if err := json.Unmarshal(dbTransaction.Metadata, &mergedMetadata); err != nil {
-						logger.Logger.WithError(err).WithField("payment_hash", lnClientTransaction.PaymentHash).Warn("Failed to deserialize existing transaction metadata; overwriting with latest lnclient metadata")
-						mergedMetadata = map[string]interface{}{}
-					}
-				}
-				for key, value := range lnClientTransaction.Metadata {
-					mergedMetadata[key] = value
-				}
-				metadataBytes, err := json.Marshal(mergedMetadata)
-				if err != nil {
-					logger.Logger.WithError(err).WithField("payment_hash", lnClientTransaction.PaymentHash).Error("Failed to serialize merged transaction metadata")
-					return err
-				}
-				if len(metadataBytes) > constants.INVOICE_METADATA_MAX_LENGTH {
-					return fmt.Errorf("encoded invoice metadata provided is too large. Limit: %d Received: %d", constants.INVOICE_METADATA_MAX_LENGTH, len(metadataBytes))
-				}
-				dbTransaction.Metadata = datatypes.JSON(metadataBytes)
-				err = tx.Model(&dbTransaction).Update("metadata", dbTransaction.Metadata).Error
-				if err != nil {
-					logger.Logger.WithError(err).WithField("payment_hash", lnClientTransaction.PaymentHash).Error("Failed to update transaction metadata")
 					return err
 				}
 			}
