@@ -161,13 +161,15 @@ export function StoriesWidget() {
                     <StoryAvatar story={story} viewed={viewed} />
                     <span
                       className={cn(
-                        "w-full text-xs leading-tight",
+                        "flex min-h-[2lh] w-full flex-col text-xs leading-tight",
                         viewed
                           ? "font-medium text-muted-foreground"
                           : "font-semibold text-foreground"
                       )}
                     >
-                      {story.title}
+                      {story.title.split(" ").map((word, i) => (
+                        <span key={i}>{word}</span>
+                      ))}
                     </span>
                   </button>
                 );
