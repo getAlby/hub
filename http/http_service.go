@@ -182,9 +182,11 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	fullAccessApiGroup.POST("/wallet/redeem-onchain-funds", httpSvc.redeemOnchainFundsHandler)
 	fullAccessApiGroup.POST("/wallet/sign-message", httpSvc.signMessageHandler)
 	fullAccessApiGroup.POST("/wallet/sync", httpSvc.walletSyncHandler)
+	fullAccessApiGroup.POST("/payments/offer", httpSvc.payOfferHandler)
 	fullAccessApiGroup.POST("/payments/:invoice", httpSvc.sendPaymentHandler)
 	fullAccessApiGroup.POST("/invoices", httpSvc.makeInvoiceHandler)
 	fullAccessApiGroup.POST("/offers", httpSvc.makeOfferHandler)
+	fullAccessApiGroup.POST("/bip353/lookup", httpSvc.lookupBIP353Handler)
 	fullAccessApiGroup.POST("/reset-router", httpSvc.resetRouterHandler)
 	fullAccessApiGroup.POST("/stop", httpSvc.stopHandler)
 	fullAccessApiGroup.POST("/command", httpSvc.execCustomNodeCommandHandler)
@@ -650,6 +652,55 @@ func (httpSvc *HttpService) sendPaymentHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, paymentResponse)
+}
+
+func (httpSvc *HttpService) payOfferHandler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	var payOfferRequest api.PayOfferRequest
+	if err := c.Bind(&payOfferRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	amountMsat := api.ResolveToMsat(payOfferRequest.AmountSat, payOfferRequest.AmountMsat, nil, payOfferRequest.Amount)
+	if amountMsat == nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "Bad request: amount is required to pay a BOLT-12 offer",
+		})
+	}
+
+	paymentResponse, err := httpSvc.api.PayOffer(ctx, payOfferRequest.Offer, *amountMsat, payOfferRequest.PayerNote, payOfferRequest.Metadata, payOfferRequest.FromAppID)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, paymentResponse)
+}
+
+func (httpSvc *HttpService) lookupBIP353Handler(c echo.Context) error {
+	ctx := c.Request().Context()
+
+	var lookupRequest api.LookupBIP353Request
+	if err := c.Bind(&lookupRequest); err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: fmt.Sprintf("Bad request: %s", err.Error()),
+		})
+	}
+
+	offer, err := httpSvc.api.LookupBIP353Offer(ctx, lookupRequest.Address)
+
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, offer)
 }
 
 func (httpSvc *HttpService) makeOfferHandler(c echo.Context) error {

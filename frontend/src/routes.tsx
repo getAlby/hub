@@ -82,6 +82,7 @@ import WithdrawOnchainFunds from "src/screens/wallet/WithdrawOnchainFunds";
 import ReceiveInvoice from "src/screens/wallet/receive/ReceiveInvoice";
 import ReceiveOffer from "src/screens/wallet/receive/ReceiveOffer";
 import ReceiveOnchain from "src/screens/wallet/receive/ReceiveOnchain";
+import Bolt12Pay from "src/screens/wallet/send/Bolt12Pay";
 import ConfirmPayment from "src/screens/wallet/send/ConfirmPayment";
 import LnurlPay from "src/screens/wallet/send/LnurlPay";
 import OnchainSend from "src/screens/wallet/send/Onchain";
@@ -194,6 +195,10 @@ const routes: RouteObject[] = [
               {
                 path: "lnurl-pay",
                 element: <LnurlPay />,
+              },
+              {
+                path: "bolt12",
+                element: <Bolt12Pay />,
               },
               {
                 path: "0-amount",

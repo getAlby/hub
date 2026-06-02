@@ -46,6 +46,8 @@ type API interface {
 	ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error)
 	ListOnchainTransactions(ctx context.Context) ([]OnchainTransaction, error)
 	SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}, fromAppId *uint) (*SendPaymentResponse, error)
+	PayOffer(ctx context.Context, offer string, amountMsat uint64, payerNote string, metadata map[string]interface{}, fromAppId *uint) (*PayOfferResponse, error)
+	LookupBIP353Offer(ctx context.Context, address string) (*LookupBIP353OfferResponse, error)
 	CreateInvoice(ctx context.Context, amountMsat uint64, description string) (*MakeInvoiceResponse, error)
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
 	SetTransactionUserLabels(ctx context.Context, id uint, labels map[string]string) error
@@ -576,6 +578,26 @@ type PayInvoiceRequest struct {
 
 type MakeOfferRequest struct {
 	Description string `json:"description"`
+}
+
+type PayOfferRequest struct {
+	Offer      string   `json:"offer"`
+	Amount     *uint64  `json:"amount"` // deprecated
+	AmountSat  *uint64  `json:"amountSat"`
+	AmountMsat *uint64  `json:"amountMsat"`
+	PayerNote  string   `json:"payerNote"`
+	Metadata   Metadata `json:"metadata"`
+	FromAppID  *uint    `json:"fromAppId"`
+}
+
+type PayOfferResponse = Transaction
+
+type LookupBIP353Request struct {
+	Address string `json:"address"`
+}
+
+type LookupBIP353OfferResponse struct {
+	Offer string `json:"offer"`
 }
 
 type MakeInvoiceRequest struct {

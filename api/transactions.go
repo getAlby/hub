@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/getAlby/hub/bip353"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/transactions"
 	"github.com/sirupsen/logrus"
@@ -78,6 +79,29 @@ func (api *api) SendPayment(ctx context.Context, invoice string, amountMsat *uin
 		return nil, err
 	}
 	return toApiTransaction(transaction), nil
+}
+
+func (api *api) PayOffer(ctx context.Context, offer string, amountMsat uint64, payerNote string, metadata map[string]interface{}, appId *uint) (*PayOfferResponse, error) {
+	lnClient := api.svc.GetLNClient()
+	if lnClient == nil {
+		return nil, ErrLNClientNotStarted
+	}
+
+	transaction, err := api.svc.GetTransactionsService().SendOfferSync(ctx, offer, amountMsat, payerNote, metadata, lnClient, appId, nil)
+	if err != nil {
+		return nil, err
+	}
+	return toApiTransaction(transaction), nil
+}
+
+func (api *api) LookupBIP353Offer(ctx context.Context, address string) (*LookupBIP353OfferResponse, error) {
+	offer, err := bip353.LookupOffer(ctx, address)
+	if err != nil {
+		return nil, err
+	}
+	return &LookupBIP353OfferResponse{
+		Offer: offer,
+	}, nil
 }
 
 func toApiTransaction(transaction *transactions.Transaction) *Transaction {

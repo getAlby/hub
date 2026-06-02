@@ -41,6 +41,7 @@ type TransactionsService interface {
 	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, totalCount uint64, err error)
 	SendPaymentSync(payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SendKeysend(amountMsat uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
+	SendOfferSync(ctx context.Context, offer string, amountMsat uint64, payerNote string, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	MakeHoldInvoice(ctx context.Context, amountMsat uint64, description string, descriptionHash string, expiry uint64, paymentHash string, minCltvExpiryDelta *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SettleHoldInvoice(ctx context.Context, preimage string, lnClient lnclient.LNClient) (*Transaction, error)
 	CancelHoldInvoice(ctx context.Context, paymentHash string, lnClient lnclient.LNClient) error
@@ -413,6 +414,93 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 	var settledTransaction *db.Transaction
 	err = svc.db.Transaction(func(tx *gorm.DB) error {
 		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, response.Preimage, response.FeeMsat, selfPayment)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return settledTransaction, nil
+}
+
+func (svc *transactionsService) SendOfferSync(ctx context.Context, offer string, amountMsat uint64, payerNote string, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+	var metadataBytes []byte
+	if metadata != nil {
+		var err error
+		metadataBytes, err = json.Marshal(metadata)
+		if err != nil {
+			logger.Logger.WithError(err).Error("Failed to serialize metadata")
+			return nil, err
+		}
+		if len(metadataBytes) > constants.INVOICE_METADATA_MAX_LENGTH {
+			return nil, fmt.Errorf("encoded payment metadata provided is too large. Limit: %d Received: %d", constants.INVOICE_METADATA_MAX_LENGTH, len(metadataBytes))
+		}
+	}
+
+	// We only support paying variable-amount offers, so an amount is required.
+	if amountMsat == 0 {
+		return nil, errors.New("amount is required to pay a BOLT-12 offer")
+	}
+
+	var dbTransaction db.Transaction
+	err := func() error {
+		balanceValidationLock.Lock()
+		defer balanceValidationLock.Unlock()
+		return svc.db.Transaction(func(tx *gorm.DB) error {
+			err := svc.validateCanPay(tx, appId, amountMsat, payerNote, false)
+			if err != nil {
+				return err
+			}
+
+			dbTransaction = db.Transaction{
+				AppId:          appId,
+				RequestEventId: requestEventId,
+				Type:           constants.TRANSACTION_TYPE_OUTGOING,
+				State:          constants.TRANSACTION_STATE_PENDING,
+				FeeReserveMsat: CalculateFeeReserveMsat(amountMsat),
+				AmountMsat:     amountMsat,
+				PaymentRequest: offer,
+				Description:    payerNote,
+				Metadata:       datatypes.JSON(metadataBytes),
+			}
+			return tx.Create(&dbTransaction).Error
+		})
+	}()
+
+	if err != nil {
+		logger.Logger.WithField("offer", offer).WithError(err).Error("Failed to create DB transaction")
+		return nil, err
+	}
+
+	logger.Logger.WithFields(logrus.Fields{
+		"app_id":           appId,
+		"request_event_id": requestEventId,
+		"amount_msat":      amountMsat,
+		"metadata":         metadata,
+	}).Debug("Initiating BOLT-12 offer payment")
+
+	response, err := lnClient.PayOfferSync(ctx, offer, amountMsat, payerNote)
+	if err != nil {
+		logger.Logger.WithField("offer", offer).WithError(err).Error("Failed to pay offer")
+
+		svc.db.Transaction(func(tx *gorm.DB) error {
+			return svc.markPaymentFailed(tx, &dbTransaction, err.Error())
+		})
+
+		return nil, err
+	}
+
+	// the payment definitely succeeded
+	var settledTransaction *db.Transaction
+	err = svc.db.Transaction(func(tx *gorm.DB) error {
+		// the payment hash is only known once the offer has been paid
+		if response.PaymentHash != "" {
+			dbTransaction.PaymentHash = response.PaymentHash
+			if err := tx.Model(&dbTransaction).Update("PaymentHash", response.PaymentHash).Error; err != nil {
+				return err
+			}
+		}
+		settledTransaction, err = svc.markTransactionSettled(tx, &dbTransaction, response.Preimage, response.FeeMsat, false)
 		return err
 	})
 	if err != nil {

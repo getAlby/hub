@@ -2294,6 +2294,10 @@ func (c *CLNService) SendPaymentProbes(ctx context.Context, invoice string) erro
 	return nil
 }
 
+func (c *CLNService) PayOfferSync(ctx context.Context, offer string, amountMsat uint64, payerNote string) (*lnclient.PayOfferResponse, error) {
+	return nil, errors.New("paying BOLT-12 offers is not supported by this node")
+}
+
 func (c *CLNService) SendPaymentSync(payReq string, amount *uint64) (*lnclient.PayInvoiceResponse, error) {
 	logger.Logger.WithFields(logrus.Fields{
 		"payReq": payReq,

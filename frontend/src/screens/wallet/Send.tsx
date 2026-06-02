@@ -14,7 +14,9 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
+import { LookupBIP353OfferResponse } from "src/types";
 import { parseBip21 } from "src/utils/parseBip21";
+import { request } from "src/utils/request";
 
 export default function Send() {
   const { data: balances } = useBalances();
@@ -57,6 +59,23 @@ export default function Send() {
     [navigate]
   );
 
+  const resolveBip353Offer = async (address: string): Promise<string> => {
+    const response = await request<LookupBIP353OfferResponse>(
+      `/api/bip353/lookup`,
+      {
+        method: "POST",
+        body: JSON.stringify({ address }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!response?.offer) {
+      throw new Error("No BOLT-12 offer found for this address");
+    }
+    return response.offer;
+  };
+
   React.useEffect(() => {
     const uri = searchParams.get("bip21");
     if (!uri) {
@@ -92,17 +111,47 @@ export default function Send() {
         return;
       }
 
+      // Raw BOLT-12 offer
+      if (/^lno1/i.test(recipient)) {
+        navigate(`/wallet/send/bolt12`, {
+          state: { args: { offer: recipient } },
+        });
+        return;
+      }
+
+      // BIP-353 address (₿user@domain) explicitly resolves to a BOLT-12 offer
+      if (recipient.startsWith("₿")) {
+        const offer = await resolveBip353Offer(recipient);
+        navigate(`/wallet/send/bolt12`, {
+          state: { args: { offer, to: recipient } },
+        });
+        return;
+      }
+
       if (recipient.includes("@")) {
-        const lnAddress = new LightningAddress(recipient);
-        await lnAddress.fetch();
-        if (lnAddress.lnurlpData) {
-          navigate(`/wallet/send/lnurl-pay`, {
-            state: {
-              args: { lnAddress },
-            },
-          });
-          return;
+        // Prefer a Lightning Address (LNURL-pay) if the domain serves one
+        try {
+          const lnAddress = new LightningAddress(recipient);
+          await lnAddress.fetch();
+          if (lnAddress.lnurlpData) {
+            navigate(`/wallet/send/lnurl-pay`, {
+              state: {
+                args: { lnAddress },
+              },
+            });
+            return;
+          }
+        } catch (error) {
+          // fall through to BIP-353 resolution
+          console.error(error);
         }
+
+        // Otherwise try to resolve a BIP-353 BOLT-12 offer
+        const offer = await resolveBip353Offer(recipient);
+        navigate(`/wallet/send/bolt12`, {
+          state: { args: { offer, to: recipient } },
+        });
+        return;
       }
 
       const invoice = new Invoice({ pr: recipient });

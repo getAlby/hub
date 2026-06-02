@@ -60,6 +60,7 @@ type NodeConnectionInfo struct {
 type LNClient interface {
 	SendPaymentSync(payReq string, amountMsat *uint64) (*PayInvoiceResponse, error)
 	SendKeysend(amountMsat uint64, destination string, customRecords []TLVRecord, preimage string) (*PayKeysendResponse, error)
+	PayOfferSync(ctx context.Context, offer string, amountMsat uint64, payerNote string) (*PayOfferResponse, error)
 	GetPubkey() string
 	GetInfo(ctx context.Context) (info *NodeInfo, err error)
 	MakeInvoice(ctx context.Context, amountMsat int64, description string, descriptionHash string, expiry int64, throughNodePubkey *string) (transaction *Transaction, err error)

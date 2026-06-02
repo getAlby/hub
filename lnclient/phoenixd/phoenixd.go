@@ -297,6 +297,10 @@ func (svc *PhoenixService) LookupInvoice(ctx context.Context, paymentHash string
 	return transaction, nil
 }
 
+func (svc *PhoenixService) PayOfferSync(ctx context.Context, offer string, amountMsat uint64, payerNote string) (*lnclient.PayOfferResponse, error) {
+	return nil, errors.New("paying BOLT-12 offers is not supported by this node")
+}
+
 func (svc *PhoenixService) SendPaymentSync(payReq string, amountMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
 	// TODO: support 0-amount invoices
 	if amountMsat != nil {

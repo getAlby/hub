@@ -372,6 +372,21 @@ export type PayInvoiceRequest = {
   fromAppId?: number;
 };
 
+export type PayOfferResponse = Transaction;
+
+export type PayOfferRequest = {
+  offer: string;
+  amountSat?: number;
+  amountMsat?: number;
+  payerNote?: string;
+  metadata?: Record<string, unknown>;
+  fromAppId?: number;
+};
+
+export type LookupBIP353OfferResponse = {
+  offer: string;
+};
+
 export type OpenChannelRequest = {
   pubkey: string;
   amountSats: number;

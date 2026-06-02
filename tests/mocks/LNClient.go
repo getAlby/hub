@@ -1794,6 +1794,86 @@ func (_c *MockLNClient_ResetRouter_Call) RunAndReturn(run func(key string) error
 	return _c
 }
 
+// PayOfferSync provides a mock function for the type MockLNClient
+func (_mock *MockLNClient) PayOfferSync(ctx context.Context, offer string, amountMsat uint64, payerNote string) (*lnclient.PayOfferResponse, error) {
+	ret := _mock.Called(ctx, offer, amountMsat, payerNote)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PayOfferSync")
+	}
+
+	var r0 *lnclient.PayOfferResponse
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint64, string) (*lnclient.PayOfferResponse, error)); ok {
+		return returnFunc(ctx, offer, amountMsat, payerNote)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, uint64, string) *lnclient.PayOfferResponse); ok {
+		r0 = returnFunc(ctx, offer, amountMsat, payerNote)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*lnclient.PayOfferResponse)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, string, uint64, string) error); ok {
+		r1 = returnFunc(ctx, offer, amountMsat, payerNote)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// MockLNClient_PayOfferSync_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'PayOfferSync'
+type MockLNClient_PayOfferSync_Call struct {
+	*mock.Call
+}
+
+// PayOfferSync is a helper method to define mock.On call
+//   - ctx context.Context
+//   - offer string
+//   - amountMsat uint64
+//   - payerNote string
+func (_e *MockLNClient_Expecter) PayOfferSync(ctx interface{}, offer interface{}, amountMsat interface{}, payerNote interface{}) *MockLNClient_PayOfferSync_Call {
+	return &MockLNClient_PayOfferSync_Call{Call: _e.mock.On("PayOfferSync", ctx, offer, amountMsat, payerNote)}
+}
+
+func (_c *MockLNClient_PayOfferSync_Call) Run(run func(ctx context.Context, offer string, amountMsat uint64, payerNote string)) *MockLNClient_PayOfferSync_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 string
+		if args[1] != nil {
+			arg1 = args[1].(string)
+		}
+		var arg2 uint64
+		if args[2] != nil {
+			arg2 = args[2].(uint64)
+		}
+		var arg3 string
+		if args[3] != nil {
+			arg3 = args[3].(string)
+		}
+		run(
+			arg0,
+			arg1,
+			arg2,
+			arg3,
+		)
+	})
+	return _c
+}
+
+func (_c *MockLNClient_PayOfferSync_Call) Return(payOfferResponse *lnclient.PayOfferResponse, err error) *MockLNClient_PayOfferSync_Call {
+	_c.Call.Return(payOfferResponse, err)
+	return _c
+}
+
+func (_c *MockLNClient_PayOfferSync_Call) RunAndReturn(run func(ctx context.Context, offer string, amountMsat uint64, payerNote string) (*lnclient.PayOfferResponse, error)) *MockLNClient_PayOfferSync_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // SendKeysend provides a mock function for the type MockLNClient
 func (_mock *MockLNClient) SendKeysend(amountMsat uint64, destination string, customRecords []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
 	ret := _mock.Called(amountMsat, destination, customRecords, preimage)

@@ -432,6 +432,10 @@ func (svc *LNDService) Shutdown() error {
 	return nil
 }
 
+func (svc *LNDService) PayOfferSync(ctx context.Context, offer string, amountMsat uint64, payerNote string) (*lnclient.PayOfferResponse, error) {
+	return nil, errors.New("paying BOLT-12 offers is not supported by this node")
+}
+
 func (svc *LNDService) SendPaymentSync(payReq string, amountMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
 	const MAX_PARTIAL_PAYMENTS = 16
 

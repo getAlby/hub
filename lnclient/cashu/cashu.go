@@ -71,6 +71,10 @@ func (cs *CashuService) Shutdown() error {
 	return cs.wallet.Shutdown()
 }
 
+func (cs *CashuService) PayOfferSync(ctx context.Context, offer string, amountMsat uint64, payerNote string) (*lnclient.PayOfferResponse, error) {
+	return nil, errors.New("paying BOLT-12 offers is not supported by this node")
+}
+
 func (cs *CashuService) SendPaymentSync(invoice string, amountMsat *uint64) (response *lnclient.PayInvoiceResponse, err error) {
 	// TODO: support 0-amount invoices
 	if amountMsat != nil {

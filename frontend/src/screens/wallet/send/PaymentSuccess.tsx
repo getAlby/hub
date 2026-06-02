@@ -34,13 +34,13 @@ export default function PaymentSuccess() {
     }
   }, [state, navigate]);
 
-  if (!state?.preimage || !state?.invoice) {
+  if (!state?.preimage) {
     return null;
   }
 
   const to = state?.to as string;
   const pageTitle = state?.pageTitle as string;
-  const invoice = state?.invoice as Invoice;
+  const invoice = state?.invoice as Invoice | undefined;
   const amountSat = state?.amountSat as number;
 
   const copy = () => {
@@ -60,25 +60,25 @@ export default function PaymentSuccess() {
             <div className="flex flex-col gap-1 items-center">
               <p className="text-2xl font-medium slashed-zero">
                 <FormattedBitcoinAmount
-                  amountMsat={(invoice.satoshi || amountSat) * 1000}
+                  amountMsat={(invoice?.satoshi || amountSat) * 1000}
                 />
               </p>
               <FormattedFiatAmount
-                amountSat={invoice.satoshi || amountSat}
+                amountSat={invoice?.satoshi || amountSat}
                 className="text-xl"
               />
             </div>
-            {(to || invoice.description || invoice.successAction) && (
+            {(to || invoice?.description || invoice?.successAction) && (
               <div className="flex flex-col items-center w-full gap-4">
                 {to && (
                   <p className="text-muted-foreground">
                     to <span className="text-foreground">{to}</span>
                   </p>
                 )}
-                {invoice.description && (
+                {invoice?.description && (
                   <p className="text-muted-foreground">{invoice.description}</p>
                 )}
-                <SuccessAction action={invoice.successAction} />
+                <SuccessAction action={invoice?.successAction ?? null} />
               </div>
             )}
           </CardContent>

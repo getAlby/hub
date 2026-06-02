@@ -115,6 +115,12 @@ func (mln *MockLn) SendKeysend(amountMsat uint64, destination string, custom_rec
 	}, nil
 }
 
+func (mln *MockLn) PayOfferSync(ctx context.Context, offer string, amountMsat uint64, payerNote string) (*lnclient.PayOfferResponse, error) {
+	return &lnclient.PayOfferResponse{
+		Preimage: "123preimage",
+	}, nil
+}
+
 func (mln *MockLn) GetInfo(ctx context.Context) (info *lnclient.NodeInfo, err error) {
 	return &MockNodeInfo, nil
 }
