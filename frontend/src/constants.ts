@@ -6,7 +6,7 @@ export const localStorageKeys = {
   supportAlbySidebarHintHiddenUntil: "supportAlbySidebarHintHiddenUntil",
   aiHeroDismissed: "aiHeroDismissed",
   cardsHeroDismissed: "cardsHeroDismissed",
-  homeStoriesViewed: "alby-hub-home-stories-viewed",
+  homeStoriesViewed: "homeStoriesViewed",
 };
 
 export const ONCHAIN_DUST_SATS = 1000;
