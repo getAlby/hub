@@ -70,7 +70,7 @@ export function About() {
         {info.jitChannelsLiquiditySource && (
           <div className="grid gap-2">
             <p className="font-medium text-sm">
-              Just-in-Time channels Liquidity Source LSP2
+              Just-in-Time channels Liquidity Source LSPS2
             </p>
             <div className="flex flex-col gap-1 text-sm text-muted-foreground">
               {lsps2Pubkey ? (
