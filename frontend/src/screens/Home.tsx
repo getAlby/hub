@@ -23,6 +23,7 @@ import { LightningMessageboardWidget } from "src/components/home/widgets/Lightni
 import { NewArrivalsWidget } from "src/components/home/widgets/NewArrivalsWidget";
 import { NodeStatusWidget } from "src/components/home/widgets/NodeStatusWidget";
 import { OnchainFeesWidget } from "src/components/home/widgets/OnchainFeesWidget";
+import { StoriesWidget } from "src/components/home/widgets/StoriesWidget";
 import { SupportAlbyWidget } from "src/components/home/widgets/SupportAlbyWidget";
 import { WhatsNewWidget } from "src/components/home/widgets/WhatsNewWidget";
 import { SearchInput } from "src/components/ui/search-input";
@@ -44,6 +45,7 @@ function Home() {
       />
       <div className="columns-1 lg:columns-2 gap-3 *:mb-3 *:break-inside-avoid">
         <OnboardingChecklist />
+        <StoriesWidget />
         <WhatsNewWidget />
         <LatestUsedAppsWidget />
         <NewArrivalsWidget />
