@@ -514,28 +514,7 @@ func (bs *BarkService) takeInflightSend(paymentHash string) (chan sendResult, bo
 }
 
 func (bs *BarkService) LookupInvoice(ctx context.Context, paymentHash string) (*lnclient.Transaction, error) {
-	receive, err := bs.wallet.LightningReceiveStatus(paymentHash)
-	// Try as an incoming receive first.
-	if err == nil && receive != nil {
-		return bs.lightningReceiveToTransaction(receive)
-	}
-
-	// Fall back to outgoing payment lookup.
-	preimagePtr, err := bs.wallet.CheckLightningPayment(paymentHash, false)
-	if err != nil {
-		return nil, fmt.Errorf("bark CheckLightningPayment failed: %w", err)
-	}
-
-	tx := &lnclient.Transaction{
-		Type:        constants.TRANSACTION_TYPE_OUTGOING,
-		PaymentHash: paymentHash,
-	}
-	if preimagePtr != nil && *preimagePtr != "" {
-		tx.Preimage = *preimagePtr
-		now := time.Now().Unix()
-		tx.SettledAt = &now
-	}
-	return tx, nil
+	return nil, errors.New("this method should not be called")
 }
 
 func (bs *BarkService) lightningReceiveToTransaction(receive *bark.LightningReceive) (*lnclient.Transaction, error) {
@@ -564,14 +543,6 @@ func (bs *BarkService) lightningReceiveToTransaction(receive *bark.LightningRece
 }
 
 func (bs *BarkService) GetBalances(ctx context.Context, includeInactiveChannels bool) (*lnclient.BalancesResponse, error) {
-	// Balance is computed from local state, which goes stale while the wallet is
-	// closed. Sync with the Ark server first so we report the current balance
-	// rather than a stale (often zero) snapshot. This is the documented pattern:
-	// always Sync() before Balance().
-	if err := bs.wallet.Sync(); err != nil {
-		logger.Logger.WithError(err).Warn("Bark sync failed before reading balance")
-	}
-
 	balance, err := bs.wallet.Balance()
 	if err != nil {
 		return nil, err
