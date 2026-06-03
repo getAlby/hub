@@ -82,8 +82,7 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
       : []),
     {
       title: "Send or receive your first payment",
-      description:
-        "Use your newly opened channel to make a transaction on the Lightning Network.",
+      description: "Add funds to your wallet, then make your first payment.",
       checked: hasTransaction,
       to: "/wallet",
     },
