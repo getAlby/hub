@@ -2,6 +2,7 @@ package nip47
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/getAlby/go-nostr"
@@ -114,6 +115,18 @@ func (svc *nip47Service) StartNip47InfoPublisher(ctx context.Context, pool *nost
 			case req := <-svc.nip47InfoPublishQueue.Channel():
 				_, err := svc.PublishNip47Info(ctx, pool, req.AppId, req.AppWalletPubKey, req.AppWalletPrivKey, req.RelayUrl, lnClient)
 				if err != nil {
+					// the app connection no longer exists (e.g. it was deleted),
+					// so the info event can never be published - drop the item
+					// instead of retrying forever
+					if errors.Is(err, gorm.ErrRecordNotFound) {
+						logger.Logger.WithError(err).WithFields(logrus.Fields{
+							"app_id":        req.AppId,
+							"wallet_pubkey": req.AppWalletPubKey,
+							"relay_url":     req.RelayUrl,
+						}).Warn("Skipping NIP47 info publish for deleted app")
+						continue
+					}
+
 					logger.Logger.WithError(err).WithFields(logrus.Fields{
 						"wallet_pubkey": req.AppWalletPubKey,
 						"relay_url":     req.RelayUrl,
