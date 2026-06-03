@@ -66,24 +66,22 @@ export function SetupSecurity() {
               <div className="flex gap-3 items-center">
                 <LandmarkIcon className="size-6 shrink-0" />
                 <span className="text-sm text-muted-foreground">
-                  Bark is in beta - use at your own risk with only small
-                  amounts!
+                  Bark is in beta - use at your own risk!
                 </span>
               </div>
               <div className="flex gap-3 items-center">
                 <ClockIcon className="size-6 shrink-0" />
                 <span className="text-sm text-muted-foreground">
-                  Your balance must be refreshed periodically. Open Alby Hub
-                  regularly and keep it online - if it stays closed for too
-                  long, your funds can expire and be lost.
+                  Your funds will be refreshed periodically which will incur a
+                  small fee.
                 </span>
               </div>
               <div className="flex gap-3 items-center">
                 <HardDriveIcon className="size-6 shrink-0" />
                 <span className="text-sm text-muted-foreground">
-                  Your funds <span className="underline">cannot</span> be
-                  recovered from your recovery phrase alone - the data directory
-                  is required to restore your balance.
+                  During beta, your funds{" "}
+                  <span className="underline">cannot</span> be recovered from
+                  your recovery phrase alone.
                 </span>
               </div>
             </>
