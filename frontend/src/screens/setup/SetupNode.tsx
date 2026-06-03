@@ -69,7 +69,8 @@ export function SetupNode() {
     navigate(`/setup/node/${selectedBackendType.toLowerCase()}`);
   }
 
-  const hasImportedMnemonic = !!setupStore.nodeInfo.mnemonic;
+  const hasImportedMnemonic =
+    !!setupStore.nodeInfo.mnemonic && setupStore.hasImportedMnemonic;
 
   return (
     <Container>

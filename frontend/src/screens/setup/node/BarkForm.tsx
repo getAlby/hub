@@ -19,7 +19,9 @@ export function BarkForm() {
     useSetupStore.getState().updateNodeInfo({
       backendType: "BARK",
     });
-    navigate("/setup/security");
+    navigate("/setup/security", {
+      replace: true,
+    });
   }, [navigate, searchParams]);
 
   return (

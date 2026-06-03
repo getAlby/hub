@@ -50,8 +50,9 @@ export function ImportMnemonic() {
       mnemonic,
       nextBackupReminder: sixMonthsLater.toISOString(),
     });
+    setupStore.setHasImportedMnemonic(true);
 
-    navigate(`/setup/security`);
+    navigate(`/setup/node`);
   }
 
   return (
