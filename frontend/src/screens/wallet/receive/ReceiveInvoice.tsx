@@ -11,6 +11,7 @@ import React from "react";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { CurrencyInputField } from "src/components/CurrencyInputField";
+import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
@@ -74,6 +75,7 @@ export default function ReceiveInvoice() {
   const displayedJitFeeMsat = paymentDone
     ? (invoiceData?.feesPaidMsat ?? transaction?.feesPaidMsat ?? 0)
     : (transaction?.feesPaidMsat ?? 0);
+  const netReceiveMsat = Math.max(0, requestedAmountMsat - displayedJitFeeMsat);
 
   React.useEffect(() => {
     if (invoiceData?.settledAt) {
@@ -124,23 +126,43 @@ export default function ReceiveInvoice() {
   const newChannelFeeAlert = (
     <Alert>
       <InfoIcon className="h-4 w-4" />
-      <AlertTitle>New channel fee expected</AlertTitle>
-      <AlertDescription>
-        <p>
-          {displayedJitFeeMsat >= 1000 ? (
-            <>
-              Around <FormattedBitcoinAmount amountMsat={displayedJitFeeMsat} />{" "}
-              will be deducted when this payment is received to open a new
-              channel.
-            </>
-          ) : (
-            <>
-              A fee will be deducted when this payment is received to open a new
-              channel.
-            </>
-          )}
-        </p>
-      </AlertDescription>
+      {displayedJitFeeMsat >= 1000 ? (
+        <>
+          <AlertTitle>
+            You'll receive about{" "}
+            <FormattedBitcoinAmount amountMsat={netReceiveMsat} />
+          </AlertTitle>
+          <AlertDescription>
+            <p>
+              <FormattedBitcoinAmount amountMsat={displayedJitFeeMsat} /> of
+              this payment is a one-time fee to open a Lightning channel, which
+              lets you receive payments.{" "}
+              <ExternalLink
+                to="https://guides.getalby.com/user-guide/alby-hub/node/increase-receiving-capacity"
+                className="underline"
+              >
+                Learn more
+              </ExternalLink>
+            </p>
+          </AlertDescription>
+        </>
+      ) : (
+        <>
+          <AlertTitle>New channel fee</AlertTitle>
+          <AlertDescription>
+            <p>
+              A fee will be deducted from this payment to open a Lightning
+              channel, which lets you receive payments.{" "}
+              <ExternalLink
+                to="https://guides.getalby.com/user-guide/alby-hub/node/increase-receiving-capacity"
+                className="underline"
+              >
+                Learn more
+              </ExternalLink>
+            </p>
+          </AlertDescription>
+        </>
+      )}
     </Alert>
   );
 
