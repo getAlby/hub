@@ -123,9 +123,16 @@ jobs:
         run: wails build --platform linux/amd64 -webview2 embed -o "${{ env.EXEC_NAME }}" -tags "wails,webkit2_41" -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}'"
         shell: bash
 
+      # The bark FFI static library is built for the GNU/mingw target and embeds
+      # Rust's getrandom/ring code, which references Windows CNG symbols such as
+      # BCryptGenRandom. The upstream bark bindings only link -lbark_ffi_go, so
+      # the missing Windows system libraries are appended here via -extldflags.
+      # These must come after -lbark_ffi_go on the link line, which only
+      # -extldflags guarantees (cgo #cgo directives get ordered before the bark
+      # module and are dropped by the single-pass linker).
       - name: Build Windows App
         if: runner.os == 'Windows'
-        run: wails build --platform windows/amd64 -webview2 embed -o "${{ env.EXEC_NAME }}.exe" -tags "wails" -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}'"
+        run: wails build --platform windows/amd64 -webview2 embed -o "${{ env.EXEC_NAME }}.exe" -tags "wails" -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}' -extldflags '-lbcrypt -lntdll -luserenv -lws2_32 -lcrypt32 -lncrypt -lsecur32 -ladvapi32'"
         shell: bash
 
       - name: Import Code-Signing Certificates for macOS
