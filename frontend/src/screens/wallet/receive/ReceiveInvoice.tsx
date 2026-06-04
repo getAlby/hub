@@ -62,11 +62,6 @@ export default function ReceiveInvoice() {
   const requestedAmountMsat = +amountSat * 1000 || transaction?.amountMsat || 0;
   const isNearReceivingCapacity =
     !!hasChannelManagement && requestedAmountMsat >= 0.8 * totalReceivableMsat;
-  const isJitReceiveLikely =
-    !!hasChannelManagement &&
-    !!lsps2Source &&
-    !!amountSat &&
-    +amountSat * 1000 > totalReceivableMsat;
   const isJitReceiveInvoice =
     !!hasChannelManagement &&
     !!lsps2Source &&
@@ -285,7 +280,6 @@ export default function ReceiveInvoice() {
                       : undefined
                   }
                 />
-                {isJitReceiveLikely && newChannelFeeAlert}
                 <div className="grid gap-2">
                   <Label htmlFor="description">Description</Label>
                   <Input
