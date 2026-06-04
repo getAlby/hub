@@ -12,9 +12,6 @@ import { useInfo } from "src/hooks/useInfo";
 import OnboardingChecklist from "src/screens/wallet/OnboardingChecklist";
 
 import React from "react";
-import { AlbyAccountWidget } from "src/components/home/widgets/AlbyAccountWidget";
-import { AlbyExtensionWidget } from "src/components/home/widgets/AlbyExtensionWidget";
-import { AlbyGoWidget } from "src/components/home/widgets/AlbyGoWidget";
 import { AppOfTheDayWidget } from "src/components/home/widgets/AppOfTheDayWidget";
 import { BlockHeightWidget } from "src/components/home/widgets/BlockHeightWidget";
 import { ForwardsWidget } from "src/components/home/widgets/ForwardsWidget";
@@ -51,11 +48,6 @@ function Home() {
         <NewArrivalsWidget />
         <AppOfTheDayWidget />
         <SupportAlbyWidget />
-        <div className="flex flex-col gap-3">
-          <AlbyAccountWidget />
-          <AlbyGoWidget />
-          <AlbyExtensionWidget />
-        </div>
         <LightningMessageboardWidget />
         <Card>
           <CardHeader>
