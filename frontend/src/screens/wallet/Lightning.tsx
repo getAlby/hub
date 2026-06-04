@@ -16,7 +16,7 @@ import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 
 export default function Lightning() {
-  const { hasChannelManagement } = useInfo();
+  const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances(true);
   const { data: channels } = useChannels();
 
@@ -37,7 +37,10 @@ export default function Lightning() {
     balances.lightning.totalReceivableMsat <
       balances.lightning.totalSpendableMsat * 0.1;
   const showOpenFirstChannel =
-    hasChannelManagement && channels && !hasChannelsOpen;
+    hasChannelManagement &&
+    channels &&
+    !hasChannelsOpen &&
+    !info?.jitChannelsLiquiditySource;
 
   return (
     <>

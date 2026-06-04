@@ -58,7 +58,7 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
   const hasTransaction = transactions.totalCount > 0;
 
   const checklistItems: Omit<ChecklistItem, "disabled">[] = [
-    ...(hasChannelManagement
+    ...(hasChannelManagement && !info.jitChannelsLiquiditySource
       ? [
           {
             title: "Open your first channel",
