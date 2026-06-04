@@ -245,6 +245,7 @@ _To configure via env, the following parameters must be provided:_
 - `LDK_MAX_PATH_COUNT`: Maximum number of paths that may be used by MPP payments.
 - `LDK_LOG_LEVEL`: Log level for the LDK node. Higher is more verbose. Default: 3. This is separate from the main application log level, allowing you to enable more verbose LDK logging (e.g., level 4, 5 or 6) without enabling verbose logging for the entire application.
 - `LDK_CHANNEL_MONITOR_WARNING_SIZE_BYTES`: If a channel monitor is larger than this value, a performance warning will be shown on the node page.
+- `LDK_LSPS2_ADDRESSES`: Enables LSPS2 just-in-time (JIT) channels for receiving. When set, Alby Hub can receive payments even without inbound liquidity: the configured LSP opens a channel on the fly and the fee is deducted from the incoming payment. Expected format is a single `<pubkey>@<host>:<port>`. When set, the "Open Your First Channel" prompts are hidden since the first channel is created automatically on the first receive.
 
 #### LDK Network Configuration
 
@@ -254,6 +255,7 @@ _To configure via env, the following parameters must be provided:_
 - `NETWORK=signet`
 - `LDK_ESPLORA_SERVER=https://mutinynet.com/api`
 - `LDK_GOSSIP_SOURCE=https://rgs.mutinynet.com/snapshot` (NOTE: by default ALby Hub does not use RGS)
+- `LDK_LSPS2_ADDRESSES=03466abad0e5162c07e58c6e66a9ccac1f587944fd837d84cc3e777b8138dd9936@192.243.215.98:25030` (optional, for JIT channel receives on Mutinynet — verify current details with the LSP LQwD)
 
 (or electrum instead of esplora)
 
