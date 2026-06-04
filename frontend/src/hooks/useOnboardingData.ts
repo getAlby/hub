@@ -3,6 +3,7 @@
 import { ALBY_ACCOUNT_APP_NAME } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useApps } from "src/hooks/useApps";
+import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
 import { useNodeConnectionInfo } from "src/hooks/useNodeConnectionInfo";
@@ -24,6 +25,7 @@ interface UseOnboardingDataResponse {
 export const useOnboardingData = (): UseOnboardingDataResponse => {
   const { data: albyMe } = useAlbyMe();
   const { data: appsData } = useApps();
+  const { data: balances } = useBalances();
   const { data: channels } = useChannels();
   const { data: info, hasChannelManagement, hasMnemonic } = useInfo();
   const { data: nodeConnectionInfo } = useNodeConnectionInfo();
@@ -31,6 +33,7 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
 
   const isLoading =
     !appsData ||
+    !balances ||
     !channels ||
     !info ||
     !nodeConnectionInfo ||
@@ -55,7 +58,8 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
   const hasCustomApp =
     appsData &&
     appsData.apps.find((x) => x.name !== ALBY_ACCOUNT_APP_NAME) !== undefined;
-  const hasTransaction = transactions.totalCount > 0;
+  const hasFundsOrTransaction =
+    transactions.totalCount > 0 || balances.lightning.totalSpendableSat > 0;
 
   const checklistItems: Omit<ChecklistItem, "disabled">[] = [
     ...(hasChannelManagement
@@ -81,9 +85,9 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
         ]
       : []),
     {
-      title: "Send or receive your first payment",
-      description: "Add funds to your wallet, then make your first payment.",
-      checked: hasTransaction,
+      title: "Receive your first payment",
+      description: "Add funds to your wallet to start using it.",
+      checked: hasFundsOrTransaction,
       to: "/wallet",
     },
     {
