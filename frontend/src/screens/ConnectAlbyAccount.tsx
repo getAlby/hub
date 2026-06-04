@@ -100,7 +100,7 @@ export function ConnectAlbyAccount({ connectUrl }: ConnectAlbyAccountProps) {
             </CardHeader>
           </Card>
         </div>
-        <div className="flex flex-col items-center justify-center gap-2 mt-10">
+        <div className="flex flex-col items-center justify-center gap-2 mt-5">
           <LinkButton to={connectUrl || "/alby/auth"} size="lg">
             Connect
           </LinkButton>

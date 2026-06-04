@@ -8,6 +8,7 @@ import { Button } from "src/components/ui/button";
 import { cn } from "src/lib/utils";
 import { BackendType } from "src/types";
 
+import bark from "src/assets/images/node/bark.jpg";
 import cashu from "src/assets/images/node/cashu.png";
 import cln from "src/assets/images/node/cln.png";
 import lnd from "src/assets/images/node/lnd.png";
@@ -42,6 +43,10 @@ const backendTypeDisplayConfigs: Partial<
     title: "CLN",
     icon: <img src={cln} />,
   },
+  BARK: {
+    title: "Bark",
+    icon: <img src={bark} />,
+  },
 };
 
 const backendTypeDisplayConfigList = Object.entries(
@@ -64,7 +69,8 @@ export function SetupNode() {
     navigate(`/setup/node/${selectedBackendType.toLowerCase()}`);
   }
 
-  const hasImportedMnemonic = !!setupStore.nodeInfo.mnemonic;
+  const hasImportedMnemonic =
+    !!setupStore.nodeInfo.mnemonic && setupStore.hasImportedMnemonic;
 
   return (
     <Container>
