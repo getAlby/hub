@@ -1,9 +1,12 @@
 import { toast } from "sonner";
-import { LIST_TRANSACTIONS_LIMIT } from "src/constants";
 import { ListTransactionsResponse, Transaction } from "src/types";
 import { request } from "src/utils/request";
 
 const LABEL_COLUMN_PREFIX = "label_";
+
+// Use a large page size to keep the number of round-trips low when
+// exporting wallets that have thousands of transactions.
+const EXPORT_TRANSACTIONS_PAGE_SIZE = 1000;
 
 // based on https://stackoverflow.com/a/68146412
 const escapeCsvCell = (raw: string) => {
@@ -57,13 +60,14 @@ export const convertToCSV = (transactions: Transaction[]) => {
 };
 
 export const handleExportTransactions = async (appId?: number) => {
+  const toastId = toast.loading("Exporting transactions…");
   try {
     // Fetch all transactions by paginating through all pages
     let allTransactions: Transaction[] = [];
     let offset = 0;
 
     while (true) {
-      let url = `/api/transactions?limit=${LIST_TRANSACTIONS_LIMIT}&offset=${offset}`;
+      let url = `/api/transactions?limit=${EXPORT_TRANSACTIONS_PAGE_SIZE}&offset=${offset}`;
       if (appId) {
         url += `&appId=${appId}`;
       }
@@ -75,11 +79,15 @@ export const handleExportTransactions = async (appId?: number) => {
       }
 
       allTransactions = [...allTransactions, ...data.transactions];
+      toast.loading(
+        `Exporting ${allTransactions.length.toLocaleString()} transactions…`,
+        { id: toastId }
+      );
 
-      if (data.transactions.length < LIST_TRANSACTIONS_LIMIT) {
+      if (data.transactions.length < EXPORT_TRANSACTIONS_PAGE_SIZE) {
         break;
       }
-      offset += LIST_TRANSACTIONS_LIMIT;
+      offset += EXPORT_TRANSACTIONS_PAGE_SIZE;
     }
 
     // Convert to CSV and create download
@@ -96,9 +104,11 @@ export const handleExportTransactions = async (appId?: number) => {
     link.click();
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
-    toast("Transactions saved to your downloads folder");
+    toast.success("Transactions saved to your downloads folder", {
+      id: toastId,
+    });
   } catch (error) {
     console.error("Error downloading transactions:", error);
-    toast.error("Failed to export transactions");
+    toast.error("Failed to export transactions", { id: toastId });
   }
 };
