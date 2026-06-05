@@ -33,6 +33,7 @@ import hermesLogo from "src/assets/suggested-apps/hermes.png";
 import openclawLogo from "src/assets/suggested-apps/openclaw.png";
 import opencodeLogo from "src/assets/suggested-apps/opencode.png";
 import payperqLogo from "src/assets/suggested-apps/payperq.png";
+import piLogo from "src/assets/suggested-apps/pi.png";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
@@ -156,6 +157,13 @@ const agents: Agent[] = [
     name: "OpenCode",
     logo: opencodeLogo,
     description: "Terminal-based AI coding assistant",
+    setupUrl: "",
+  },
+  {
+    id: "pi",
+    name: "Pi",
+    logo: piLogo,
+    description: "Minimal terminal coding agent, great for local LLMs",
     setupUrl: "",
   },
 ];

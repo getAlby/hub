@@ -655,6 +655,34 @@ func (_c *MockAlbyOAuthService_GetMe_Call) RunAndReturn(run func(ctx context.Con
 	return _c
 }
 
+// GetStories provides a mock function for the type MockAlbyOAuthService
+func (_mock *MockAlbyOAuthService) GetStories(ctx context.Context) ([]alby.Story, error) {
+	ret := _mock.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetStories")
+	}
+
+	var r0 []alby.Story
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context) ([]alby.Story, error)); ok {
+		return returnFunc(ctx)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context) []alby.Story); ok {
+		r0 = returnFunc(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]alby.Story)
+		}
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = returnFunc(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
 // GetUserIdentifier provides a mock function for the type MockAlbyOAuthService
 func (_mock *MockAlbyOAuthService) GetUserIdentifier() (string, error) {
 	ret := _mock.Called()

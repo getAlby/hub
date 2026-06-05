@@ -21,7 +21,9 @@ export function LDKForm() {
     useSetupStore.getState().updateNodeInfo({
       backendType: "LDK",
     });
-    navigate("/setup/security");
+    navigate("/setup/security", {
+      replace: true,
+    });
   }, [navigate, searchParams]);
 
   return (

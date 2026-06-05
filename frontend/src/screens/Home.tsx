@@ -12,9 +12,6 @@ import { useInfo } from "src/hooks/useInfo";
 import OnboardingChecklist from "src/screens/wallet/OnboardingChecklist";
 
 import React from "react";
-import { AlbyAccountWidget } from "src/components/home/widgets/AlbyAccountWidget";
-import { AlbyExtensionWidget } from "src/components/home/widgets/AlbyExtensionWidget";
-import { AlbyGoWidget } from "src/components/home/widgets/AlbyGoWidget";
 import { AppOfTheDayWidget } from "src/components/home/widgets/AppOfTheDayWidget";
 import { BlockHeightWidget } from "src/components/home/widgets/BlockHeightWidget";
 import { ForwardsWidget } from "src/components/home/widgets/ForwardsWidget";
@@ -23,6 +20,7 @@ import { LightningMessageboardWidget } from "src/components/home/widgets/Lightni
 import { NewArrivalsWidget } from "src/components/home/widgets/NewArrivalsWidget";
 import { NodeStatusWidget } from "src/components/home/widgets/NodeStatusWidget";
 import { OnchainFeesWidget } from "src/components/home/widgets/OnchainFeesWidget";
+import { StoriesWidget } from "src/components/home/widgets/StoriesWidget";
 import { SupportAlbyWidget } from "src/components/home/widgets/SupportAlbyWidget";
 import { WhatsNewWidget } from "src/components/home/widgets/WhatsNewWidget";
 import { SearchInput } from "src/components/ui/search-input";
@@ -44,16 +42,12 @@ function Home() {
       />
       <div className="columns-1 lg:columns-2 gap-3 *:mb-3 *:break-inside-avoid">
         <OnboardingChecklist />
+        <StoriesWidget />
         <WhatsNewWidget />
         <LatestUsedAppsWidget />
         <NewArrivalsWidget />
         <AppOfTheDayWidget />
         <SupportAlbyWidget />
-        <div className="flex flex-col gap-3">
-          <AlbyAccountWidget />
-          <AlbyGoWidget />
-          <AlbyExtensionWidget />
-        </div>
         <LightningMessageboardWidget />
         <Card>
           <CardHeader>
