@@ -292,6 +292,7 @@ Bark connects to an [Ark](https://second.tech/) server. It can be configured via
 - `BARK_SERVER`: the Ark server URL. For signet use `https://ark.signet.2nd.dev`
 - `BARK_ESPLORA_SERVER`: the Esplora server URL used for chain data. For signet use `https://esplora.signet.2nd.dev`.
 - `BARK_SERVER_ACCESS_TOKEN`: an optional access token required by the Ark server (pre-public mainnet launch).
+- `BARK_LOG_LEVEL`: Log level for Bark. Higher is more verbose. Default: 3. This is separate from the main application log level, allowing you to enable more verbose Bark logging (e.g., level 4 or 5) without enabling verbose logging for the entire application.
 
 ### Alby OAuth
 

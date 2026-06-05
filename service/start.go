@@ -384,6 +384,8 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 			ServerAddress:     env.BarkServer,
 			EsploraAddress:    env.BarkEsploraServer,
 			ServerAccessToken: env.BarkServerAccessToken,
+			LogLevel:          env.BarkLogLevel,
+			LogToFile:         env.LogToFile,
 		})
 	case config.CLNBackendType:
 		CLNAddress, _ := svc.cfg.Get("CLNAddress", encryptionKey)
