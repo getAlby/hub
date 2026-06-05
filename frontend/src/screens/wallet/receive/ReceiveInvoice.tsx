@@ -52,11 +52,11 @@ export default function ReceiveInvoice() {
   const [transaction, setTransaction] = React.useState<Transaction | null>(
     null
   );
-  const [paymentDone, setPaymentDone] = React.useState(false);
   const { data: invoiceData } = useTransaction(
     transaction ? transaction.paymentHash : "",
     true
   );
+  const paymentDone = !!invoiceData?.settledAt;
   const lsps2Source = info?.jitChannelsLiquiditySource;
   const totalReceivableMsat = balances?.lightning.totalReceivableMsat ?? 0;
   const requestedAmountMsat = +amountSat * 1000 || transaction?.amountMsat || 0;
@@ -68,15 +68,9 @@ export default function ReceiveInvoice() {
     !!transaction &&
     transaction.amountMsat > totalReceivableMsat;
   const displayedJitFeeMsat = paymentDone
-    ? (invoiceData?.feesPaidMsat ?? transaction?.feesPaidMsat ?? 0)
+    ? (invoiceData?.feesPaidMsat ?? 0)
     : (transaction?.feesPaidMsat ?? 0);
   const netReceiveMsat = Math.max(0, requestedAmountMsat - displayedJitFeeMsat);
-
-  React.useEffect(() => {
-    if (invoiceData?.settledAt) {
-      setPaymentDone(true);
-    }
-  }, [invoiceData]);
 
   if (!balances || !info || (info.albyAccountConnected && !me)) {
     return <Loading />;
