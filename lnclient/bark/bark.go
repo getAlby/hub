@@ -474,7 +474,7 @@ func (bs *BarkService) SendPaymentSync(invoice string, amountMsat *uint64) (*lnc
 	}
 	defer bs.clearInflightSend(paymentHash)
 
-	if _, err := bs.wallet.PayLightningInvoice(invoice, nil); err != nil {
+	if _, err := bs.wallet.PayLightningInvoice(invoice, nil, false); err != nil {
 		return nil, fmt.Errorf("bark PayLightningInvoice failed: %w", err)
 	}
 
