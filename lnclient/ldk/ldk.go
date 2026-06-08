@@ -763,14 +763,13 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, descrip
 
 	maxReceivable := ls.getMaxReceivable()
 
-	isVariableAmountInvoice := amountMsat == 0
 	jitChannelsDisabled, _ := ls.cfg.Get("JitChannelsDisabled", "")
 	// JIT channels are only used for users without a public channel - users with
 	// a public channel should increase inbound liquidity manually.
 	isJitInvoice := ls.lsps2Pubkey != "" &&
 		jitChannelsDisabled != "true" &&
 		!ls.hasPublicChannel() &&
-		(amountMsat > maxReceivable || (isVariableAmountInvoice && maxReceivable == 0))
+		amountMsat > maxReceivable
 
 	if amountMsat > maxReceivable && !isJitInvoice {
 		ls.eventPublisher.Publish(&events.Event{
@@ -799,13 +798,7 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, descrip
 	}
 
 	var invoiceObj *ldk_node.Bolt11Invoice
-	if isJitInvoice && isVariableAmountInvoice {
-		invoiceObj, err = ls.node.Bolt11Payment().ReceiveVariableAmountViaJitChannel(
-			descriptionType,
-			uint32(expiry),
-			nil,
-		)
-	} else if isJitInvoice {
+	if isJitInvoice {
 		invoiceObj, err = ls.node.Bolt11Payment().ReceiveViaJitChannel(
 			uint64(amountMsat),
 			descriptionType,
