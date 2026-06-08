@@ -465,7 +465,7 @@ export type SetupNodeInfo = Partial<{
   clnAddressHold?: string;
 }>;
 
-export type LSPType = "LSPS1";
+export type LSPType = "LSPS1" | "LSPS2";
 
 export type LSPChannelOfferPaymentMethod =
   | "card"
@@ -499,9 +499,8 @@ export type RecommendedChannelPeer = {
       pubkey: string;
       host: string;
     }
-  | {
+  | ({
       paymentMethod: "lightning";
-      type: LSPType;
       identifier: string;
       contactUrl: string;
       terms?: string;
@@ -510,7 +509,10 @@ export type RecommendedChannelPeer = {
       feeTotalSat1m?: number;
       feeTotalSat2m?: number;
       feeTotalSat3m?: number;
-    }
+    } & (
+      | { type: "LSPS1" }
+      | { type: "LSPS2"; nodeAddress: string } // nodeid@ip:port
+    ))
 );
 
 export type AlbyInfo = {

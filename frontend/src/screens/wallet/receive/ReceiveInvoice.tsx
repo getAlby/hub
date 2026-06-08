@@ -33,6 +33,8 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useBalances } from "src/hooks/useBalances";
+import { useChannelPeerSuggestions } from "src/hooks/useChannelPeerSuggestions";
+import { useChannels } from "src/hooks/useChannels";
 
 import { useInfo } from "src/hooks/useInfo";
 import { useTransaction } from "src/hooks/useTransaction";
@@ -45,6 +47,8 @@ export default function ReceiveInvoice() {
   const { data: info, hasChannelManagement } = useInfo();
   const { data: me } = useAlbyMe();
   const { data: balances } = useBalances();
+  const { data: channelPeerSuggestions } = useChannelPeerSuggestions();
+  const { data: channels } = useChannels();
 
   const [isLoading, setLoading] = React.useState(false);
   const [amountSat, setAmountSat] = React.useState<string>("");
@@ -58,6 +62,21 @@ export default function ReceiveInvoice() {
   );
   const paymentDone = !!invoiceData?.settledAt;
   const lsps2Source = info?.jitChannelsLiquiditySource;
+  // when JIT is enabled and the user has no channels yet, the configured
+  // liquidity source may have a minimum channel size - enforce it as the
+  // minimum receivable amount on the input.
+  const jitMinimumReceiveSat = React.useMemo(() => {
+    if (!lsps2Source || !channelPeerSuggestions || !!channels?.length) {
+      return undefined;
+    }
+    const match = channelPeerSuggestions.find(
+      (peer) =>
+        peer.paymentMethod === "lightning" &&
+        peer.type === "LSPS2" &&
+        peer.nodeAddress === lsps2Source
+    );
+    return match?.minimumChannelSizeSat;
+  }, [channelPeerSuggestions, channels, lsps2Source]);
   const totalReceivableMsat = balances?.lightning.totalReceivableMsat ?? 0;
   const requestedAmountMsat = +amountSat * 1000 || transaction?.amountMsat || 0;
   const isNearReceivingCapacity =
@@ -127,7 +146,7 @@ export default function ReceiveInvoice() {
               this payment is a one-time fee to open a Lightning channel, which
               lets you receive payments.{" "}
               <ExternalLink
-                to="https://guides.getalby.com/user-guide/alby-hub/node/increase-receiving-capacity"
+                to="https://guides.getalby.com/user-guide/alby-hub/faq/what-are-just-in-time-channels"
                 className="underline"
               >
                 Learn more
@@ -229,7 +248,6 @@ export default function ReceiveInvoice() {
                     <CardFooter className="flex flex-col gap-2 pt-2">
                       <Button
                         onClick={() => {
-                          setPaymentDone(false);
                           setTransaction(null);
                         }}
                         variant="outline"
@@ -256,7 +274,7 @@ export default function ReceiveInvoice() {
                   id="amount"
                   valueSat={amountSat}
                   onValueSatChange={setAmountSat}
-                  minSat={1}
+                  minSat={jitMinimumReceiveSat ?? 1}
                   maxSat={
                     hasChannelManagement && !lsps2Source
                       ? balances.lightning.totalReceivableSat
@@ -264,14 +282,21 @@ export default function ReceiveInvoice() {
                   }
                   autoFocus
                   contextRows={
-                    hasChannelManagement && !lsps2Source
+                    jitMinimumReceiveSat
                       ? [
                           {
-                            label: "Receive limit",
-                            amountSat: balances.lightning.totalReceivableSat,
+                            label: "Minimum amount",
+                            amountSat: jitMinimumReceiveSat,
                           },
                         ]
-                      : undefined
+                      : hasChannelManagement && !lsps2Source
+                        ? [
+                            {
+                              label: "Receive limit",
+                              amountSat: balances.lightning.totalReceivableSat,
+                            },
+                          ]
+                        : undefined
                   }
                 />
                 <div className="grid gap-2">

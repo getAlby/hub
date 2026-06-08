@@ -175,6 +175,45 @@ func (svc *albyService) GetChannelPeerSuggestions(ctx context.Context) ([]Channe
 		suggestions[i].MaximumChannelSizeSat = suggestions[i].MaximumChannelSize
 	}
 
+	// TODO: remove before merging - injected test LSPS2 suggestions
+	{
+		maxExpiry := uint32(13140)
+		suggestions = append(suggestions, ChannelPeerSuggestion{
+			Network:                    "signet",
+			PaymentMethod:              "lightning",
+			Identifier:                 "alby",
+			Type:                       "LSPS2",
+			ContactUrl:                 "https://getalby.com",
+			NodeAddress:                "025010bd608771bc13f08f696e3dd226bf3a9ae6ea461e3922ed9bdca7bb0edfe5@141.95.84.44:9735",
+			MinimumChannelSize:         3000,
+			MinimumChannelSizeSat:      3000,
+			MaximumChannelSize:         16000000,
+			MaximumChannelSizeSat:      16000000,
+			MaximumChannelExpiryBlocks: &maxExpiry,
+			Name:                       "Alby (Mutinynet)",
+			Description:                "Alby Test LSPS2",
+			PublicChannelsAllowed:      false,
+			Terms:                      "For testing only",
+		})
+		suggestions = append(suggestions, ChannelPeerSuggestion{
+			Network:                    "bitcoin",
+			PaymentMethod:              "lightning",
+			Identifier:                 "megalith",
+			Type:                       "LSPS2",
+			ContactUrl:                 "https://megalithic.me/contact",
+			NodeAddress:                "03e30fda71887a916ef5548a4d02b06fe04aaa1a8de9e24134ce7f139cf79d7579@64.23.192.68:9736",
+			MinimumChannelSize:         2501,
+			MinimumChannelSizeSat:      2501,
+			MaximumChannelSize:         16000000,
+			MaximumChannelSizeSat:      16000000,
+			MaximumChannelExpiryBlocks: &maxExpiry,
+			Name:                       "Megalith 2",
+			Description:                "Megalith is one of the biggest and most stable routing nodes on the Lightning Network.",
+			PublicChannelsAllowed:      false,
+			Terms:                      "Megalith will do its best to keep your channel open for at least 3 months. Your channel will stay open indefinitely if you use it regularly and keep your hub online.",
+		})
+	}
+
 	logger.Logger.WithFields(logrus.Fields{"channel_suggestions": suggestions}).Debug("Alby channel peer suggestions response")
 	return suggestions, nil
 }

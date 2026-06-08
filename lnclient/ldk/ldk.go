@@ -28,6 +28,7 @@ import (
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 
+	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
@@ -62,7 +63,7 @@ type LDKService struct {
 const resetRouterKey = "ResetRouter"
 const maxInvoiceExpiry = 24 * time.Hour
 
-func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, vssToken string, setStartupState func(startupState string)) (result lnclient.LNClient, err error) {
+func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, vssToken string, setStartupState func(startupState string), channelPeerSuggestions []alby.ChannelPeerSuggestion) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
 		return nil, errors.New("one or more required LDK configuration are missing")
 	}
@@ -144,12 +145,41 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	builder.SetCustomLogger(ldkLogger)
 	builder.SetNodeAlias(alias)
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
-	lsps2Pubkey, lsps2Address := parseLiquiditySourceLsps2(cfg.GetEnv().LDKLiquiditySourceLsps2)
+
+	liquiditySourceLsps2 := cfg.GetEnv().LDKLiquiditySourceLsps2
+	network := cfg.GetNetwork()
+
+	// if no explicit override, try a matching LSPS2 suggestion for this network
+	if liquiditySourceLsps2 == "" {
+		for _, suggestion := range channelPeerSuggestions {
+			if suggestion.PaymentMethod == "lightning" &&
+				suggestion.Type == lsp.LSP_TYPE_LSPS2 &&
+				suggestion.Network == network &&
+				suggestion.NodeAddress != "" {
+				liquiditySourceLsps2 = suggestion.NodeAddress
+				break
+			}
+		}
+	}
+
+	// fall back to a hardcoded per-network default
+	if liquiditySourceLsps2 == "" {
+		switch network {
+		case "signet":
+			// Alby LSP (Mutinynet)
+			liquiditySourceLsps2 = "025010bd608771bc13f08f696e3dd226bf3a9ae6ea461e3922ed9bdca7bb0edfe5@141.95.84.44:9735"
+		case "bitcoin":
+			// Megalith LSP 2
+			liquiditySourceLsps2 = "034066e29e402d9cf55af1ae1026cc5adf92eed1e0e421785442f53717ad1453b0@64.23.159.177:9735"
+		}
+	}
+
+	lsps2Pubkey, lsps2Address := parseLiquiditySourceLsps2(liquiditySourceLsps2)
+
 	if lsps2Pubkey != "" {
 		builder.SetLiquiditySourceLsps2(lsps2Pubkey, lsps2Address, nil)
 	}
 
-	network := cfg.GetNetwork()
 	switch network {
 	case "signet":
 		builder.SetNetwork(ldk_node.NetworkSignet)
