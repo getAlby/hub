@@ -31,7 +31,6 @@ import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useBalances } from "src/hooks/useBalances";
-import { useChannelPeerSuggestions } from "src/hooks/useChannelPeerSuggestions";
 import { useChannels } from "src/hooks/useChannels";
 
 import { useInfo } from "src/hooks/useInfo";
@@ -45,7 +44,6 @@ export default function ReceiveInvoice() {
   const { data: info, hasChannelManagement } = useInfo();
   const { data: me } = useAlbyMe();
   const { data: balances } = useBalances();
-  const { data: channelPeerSuggestions } = useChannelPeerSuggestions();
   const { data: channels } = useChannels();
 
   const [isLoading, setLoading] = React.useState(false);
@@ -66,22 +64,8 @@ export default function ReceiveInvoice() {
     if (info?.jitChannelsMinPaymentSizeMsat) {
       return Math.ceil(info.jitChannelsMinPaymentSizeMsat / 1000);
     }
-    // Fallback for older backends that only expose peer suggestions.
-    if (!lsps2Source || !channelPeerSuggestions) {
-      return undefined;
-    }
-    const match = channelPeerSuggestions.find(
-      (peer) =>
-        peer.paymentMethod === "lightning" &&
-        peer.type === "LSPS2" &&
-        peer.nodeAddress === lsps2Source
-    );
-    return match?.minimumChannelSizeSat;
-  }, [
-    channelPeerSuggestions,
-    info?.jitChannelsMinPaymentSizeMsat,
-    lsps2Source,
-  ]);
+    return undefined;
+  }, [info?.jitChannelsMinPaymentSizeMsat]);
   // only enforce the minimum on the input when the user has no channels yet -
   // their first channel must meet the minimum size.
   const jitMinimumReceiveSat = channels?.length
