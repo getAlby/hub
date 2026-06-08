@@ -729,6 +729,16 @@ func (ls *LDKService) getMaxReceivable() int64 {
 	return int64(receivable)
 }
 
+func (ls *LDKService) hasPublicChannel() bool {
+	channels := ls.node.ListChannels()
+	for _, channel := range channels {
+		if channel.IsAnnounced {
+			return true
+		}
+	}
+	return false
+}
+
 func (ls *LDKService) getMaxSpendable() uint64 {
 	var spendable uint64 = 0
 	channels := ls.node.ListChannels()
@@ -749,7 +759,10 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, descrip
 	maxReceivable := ls.getMaxReceivable()
 
 	isVariableAmountInvoice := amountMsat == 0
+	// JIT channels are only used for users without a public channel - users with
+	// a public channel should increase inbound liquidity manually.
 	isJitInvoice := ls.lsps2Pubkey != "" &&
+		!ls.hasPublicChannel() &&
 		(amountMsat > maxReceivable || (isVariableAmountInvoice && maxReceivable == 0))
 
 	if amountMsat > maxReceivable && !isJitInvoice {
