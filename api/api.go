@@ -1557,12 +1557,24 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 			type lsps2SourceProvider interface {
 				GetLiquiditySourceLsps2() string
 			}
+			type lsps2MinPaymentSizeProvider interface {
+				GetLiquiditySourceLsps2MinPaymentSizeMsat() *uint64
+			}
+			type lsps2MaxPaymentSizeProvider interface {
+				GetLiquiditySourceLsps2MaxPaymentSizeMsat() *uint64
+			}
 
 			if ldkService, ok := api.svc.GetLNClient().(chainSourceProvider); ok {
 				info.ChainDataSourceType, info.ChainDataSourceAddress = ldkService.GetChainDataSource()
 			}
 			if ldkService, ok := api.svc.GetLNClient().(lsps2SourceProvider); ok {
 				info.JitChannelsLiquiditySource = ldkService.GetLiquiditySourceLsps2()
+			}
+			if ldkService, ok := api.svc.GetLNClient().(lsps2MinPaymentSizeProvider); ok {
+				info.JitChannelsMinPaymentSizeMsat = ldkService.GetLiquiditySourceLsps2MinPaymentSizeMsat()
+			}
+			if ldkService, ok := api.svc.GetLNClient().(lsps2MaxPaymentSizeProvider); ok {
+				info.JitChannelsMaxPaymentSizeMsat = ldkService.GetLiquiditySourceLsps2MaxPaymentSizeMsat()
 			}
 		}
 	}

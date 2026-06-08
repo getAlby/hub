@@ -331,6 +331,8 @@ type InfoResponse struct {
 	ChainDataSourceType         string              `json:"chainDataSourceType,omitempty"`
 	ChainDataSourceAddress      string              `json:"chainDataSourceAddress,omitempty"`
 	JitChannelsLiquiditySource  string              `json:"jitChannelsLiquiditySource,omitempty"`
+	JitChannelsMinPaymentSizeMsat *uint64           `json:"jitChannelsMinPaymentSizeMsat,omitempty"`
+	JitChannelsMaxPaymentSizeMsat *uint64           `json:"jitChannelsMaxPaymentSizeMsat,omitempty"`
 	JitChannelsEnabled          bool                `json:"jitChannelsEnabled"`
 	HideUpdateBanner            bool                `json:"hideUpdateBanner"`
 	SupportsBolt12              bool                `json:"supportsBolt12"`

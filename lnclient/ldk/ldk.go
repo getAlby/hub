@@ -57,11 +57,16 @@ type LDKService struct {
 	pubkey                             string
 	lsps2Pubkey                        string
 	lsps2Address                       string
+	lsps2InfoMu                        sync.Mutex
+	lsps2InfoFetchedAt                 time.Time
+	lsps2MinPaymentSizeMsat            *uint64
+	lsps2MaxPaymentSizeMsat            *uint64
 	shuttingDown                       bool
 }
 
 const resetRouterKey = "ResetRouter"
 const maxInvoiceExpiry = 24 * time.Hour
+const lsps2InfoCacheTTL = 60 * time.Minute
 
 func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, vssToken string, setStartupState func(startupState string), channelPeerSuggestions []alby.ChannelPeerSuggestion) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
@@ -2617,6 +2622,80 @@ func (ls *LDKService) GetLiquiditySourceLsps2() string {
 		return ""
 	}
 	return fmt.Sprintf("%s@%s", ls.lsps2Pubkey, ls.lsps2Address)
+}
+
+func (ls *LDKService) GetLiquiditySourceLsps2MinPaymentSizeMsat() *uint64 {
+	ls.fetchLsps2OpeningFeeParams()
+	return ls.lsps2MinPaymentSizeMsat
+}
+
+func (ls *LDKService) GetLiquiditySourceLsps2MaxPaymentSizeMsat() *uint64 {
+	ls.fetchLsps2OpeningFeeParams()
+	return ls.lsps2MaxPaymentSizeMsat
+}
+
+func (ls *LDKService) fetchLsps2OpeningFeeParams() {
+	if ls.lsps2Pubkey == "" || ls.lsps2Address == "" {
+		return
+	}
+
+	ls.lsps2InfoMu.Lock()
+	defer ls.lsps2InfoMu.Unlock()
+
+	if !ls.lsps2InfoFetchedAt.IsZero() && time.Since(ls.lsps2InfoFetchedAt) < lsps2InfoCacheTTL {
+		return
+	}
+
+	response, err := ls.node.Lsps2Liquidity().RequestOpeningFeeParams()
+	if err != nil {
+		logger.Logger.WithError(err).Warn("Failed to fetch LSPS2 opening fee params")
+		return
+	}
+
+	var minPaymentSizeMsat *uint64
+	var maxPaymentSizeMsat *uint64
+	for _, params := range response.OpeningFeeParamsMenu {
+		effectiveMinPaymentSizeMsat, ok := effectiveLsps2MinPaymentSizeMsat(params)
+		if !ok {
+			continue
+		}
+		if minPaymentSizeMsat == nil || effectiveMinPaymentSizeMsat < *minPaymentSizeMsat {
+			value := effectiveMinPaymentSizeMsat
+			minPaymentSizeMsat = &value
+		}
+		if maxPaymentSizeMsat == nil || params.MaxPaymentSizeMsat > *maxPaymentSizeMsat {
+			value := params.MaxPaymentSizeMsat
+			maxPaymentSizeMsat = &value
+		}
+	}
+
+	ls.lsps2MinPaymentSizeMsat = minPaymentSizeMsat
+	ls.lsps2MaxPaymentSizeMsat = maxPaymentSizeMsat
+	ls.lsps2InfoFetchedAt = time.Now()
+}
+
+func effectiveLsps2MinPaymentSizeMsat(params ldk_node.Lsps2OpeningFeeParams) (uint64, bool) {
+	paymentSizeMsat := params.MinPaymentSizeMsat
+
+	for range 8 {
+		openingFeeMsat := ldk_node.Lsps2ComputeOpeningFeeMsat(paymentSizeMsat, params)
+		if openingFeeMsat == nil {
+			return 0, false
+		}
+		// The incoming amount must be strictly greater than the opening fee,
+		// otherwise the LSP can't forward any value after skimming its fee.
+		if *openingFeeMsat < paymentSizeMsat {
+			return paymentSizeMsat, paymentSizeMsat <= params.MaxPaymentSizeMsat
+		}
+
+		nextPaymentSizeMsat := *openingFeeMsat + 1
+		if nextPaymentSizeMsat <= paymentSizeMsat || nextPaymentSizeMsat > params.MaxPaymentSizeMsat {
+			return 0, false
+		}
+		paymentSizeMsat = nextPaymentSizeMsat
+	}
+
+	return 0, false
 }
 
 func sanitizeChainEndpoint(endpoint string, port string) string {

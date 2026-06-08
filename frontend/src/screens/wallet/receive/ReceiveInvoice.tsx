@@ -62,9 +62,11 @@ export default function ReceiveInvoice() {
   const lsps2Source = info?.jitChannelsEnabled
     ? info?.jitChannelsLiquiditySource
     : undefined;
-  // the configured JIT liquidity source may enforce a minimum channel size -
-  // any payment that opens a new channel must be at least this amount.
-  const lsps2MinimumChannelSizeSat = React.useMemo(() => {
+  const lsps2MinimumPaymentSizeSat = React.useMemo(() => {
+    if (info?.jitChannelsMinPaymentSizeMsat) {
+      return Math.ceil(info.jitChannelsMinPaymentSizeMsat / 1000);
+    }
+    // Fallback for older backends that only expose peer suggestions.
     if (!lsps2Source || !channelPeerSuggestions) {
       return undefined;
     }
@@ -75,12 +77,28 @@ export default function ReceiveInvoice() {
         peer.nodeAddress === lsps2Source
     );
     return match?.minimumChannelSizeSat;
-  }, [channelPeerSuggestions, lsps2Source]);
+  }, [
+    channelPeerSuggestions,
+    info?.jitChannelsMinPaymentSizeMsat,
+    lsps2Source,
+  ]);
   // only enforce the minimum on the input when the user has no channels yet -
   // their first channel must meet the minimum size.
   const jitMinimumReceiveSat = channels?.length
     ? undefined
-    : lsps2MinimumChannelSizeSat;
+    : lsps2MinimumPaymentSizeSat;
+  const lsps2MaximumPaymentSizeSat = React.useMemo(() => {
+    if (info?.jitChannelsMaxPaymentSizeMsat) {
+      return Math.floor(info.jitChannelsMaxPaymentSizeMsat / 1000);
+    }
+    return undefined;
+  }, [info?.jitChannelsMaxPaymentSizeMsat]);
+  const jitMaximumReceiveSat =
+    hasChannelManagement && lsps2Source
+      ? lsps2MaximumPaymentSizeSat
+      : !lsps2Source && hasChannelManagement
+        ? balances?.lightning.totalReceivableSat
+        : undefined;
   const totalReceivableMsat = balances?.lightning.totalReceivableMsat ?? 0;
   const requestedAmountMsat = +amountSat * 1000 || transaction?.amountMsat || 0;
   const isNearReceivingCapacity =
@@ -128,13 +146,13 @@ export default function ReceiveInvoice() {
       // small to open a second channel, so add a hint alongside the error.
       const likelyTooSmallForNewChannel =
         !!channels?.length &&
-        !!lsps2MinimumChannelSizeSat &&
-        requestedAmountSat < lsps2MinimumChannelSizeSat &&
+        !!lsps2MinimumPaymentSizeSat &&
+        requestedAmountSat < lsps2MinimumPaymentSizeSat &&
         requestedAmountSat * 1000 > totalReceivableMsat;
       let description = "" + e;
       if (likelyTooSmallForNewChannel) {
         description += `\n\nThis amount is over your receiving capacity and may be too small to open a new Lightning channel. Try receiving at least ${new Intl.NumberFormat().format(
-          lsps2MinimumChannelSizeSat as number
+          lsps2MinimumPaymentSizeSat as number
         )} sats, or lower the amount to fit your current capacity.`;
       }
       toast.error("Failed to create invoice", {
@@ -288,20 +306,27 @@ export default function ReceiveInvoice() {
                           jitMinimumReceiveSat
                         )} sats to open your first lightning channel`
                       );
+                    } else if (
+                      jitMaximumReceiveSat &&
+                      e.currentTarget.validity.rangeOverflow
+                    ) {
+                      e.currentTarget.setCustomValidity(
+                        `This JIT channel setup supports receiving at most ${new Intl.NumberFormat().format(
+                          jitMaximumReceiveSat
+                        )} sats in a single payment`
+                      );
+                    } else {
+                      e.currentTarget.setCustomValidity("");
                     }
                   }}
-                  maxSat={
-                    hasChannelManagement && !lsps2Source
-                      ? balances.lightning.totalReceivableSat
-                      : undefined
-                  }
+                  maxSat={jitMaximumReceiveSat}
                   autoFocus
                   contextRows={
-                    hasChannelManagement && !lsps2Source
+                    hasChannelManagement && !lsps2Source && jitMaximumReceiveSat
                       ? [
                           {
                             label: "Receive limit",
-                            amountSat: balances.lightning.totalReceivableSat,
+                            amountSat: jitMaximumReceiveSat,
                           },
                         ]
                       : undefined

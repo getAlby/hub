@@ -19,6 +19,12 @@ export function About() {
   const lsps2Label =
     lsps2NodeDetails?.alias ||
     (lsps2Pubkey ? lsps2Pubkey.slice(0, 8) + "..." : lsps2Source);
+  const lsps2MinPaymentSizeSat = info?.jitChannelsMinPaymentSizeMsat
+    ? Math.ceil(info.jitChannelsMinPaymentSizeMsat / 1000)
+    : undefined;
+  const lsps2MaxPaymentSizeSat = info?.jitChannelsMaxPaymentSizeMsat
+    ? Math.floor(info.jitChannelsMaxPaymentSizeMsat / 1000)
+    : undefined;
 
   if (!info || (info.albyAccountConnected && !albyMe && !albyMeError)) {
     return <Loading />;
@@ -85,6 +91,19 @@ export function About() {
                 <p>{lsps2Label}</p>
               )}
               <p className="break-all">{info.jitChannelsLiquiditySource}</p>
+              {(lsps2MinPaymentSizeSat || lsps2MaxPaymentSizeSat) && (
+                <p>
+                  JIT payment size:{" "}
+                  {lsps2MinPaymentSizeSat
+                    ? new Intl.NumberFormat().format(lsps2MinPaymentSizeSat)
+                    : "?"}
+                  {" - "}
+                  {lsps2MaxPaymentSizeSat
+                    ? new Intl.NumberFormat().format(lsps2MaxPaymentSizeSat)
+                    : "?"}{" "}
+                  sats
+                </p>
+              )}
             </div>
           </div>
         )}

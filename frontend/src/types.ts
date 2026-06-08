@@ -169,6 +169,8 @@ export interface InfoResponse {
   chainDataSourceType?: string;
   chainDataSourceAddress?: string;
   jitChannelsLiquiditySource?: string;
+  jitChannelsMinPaymentSizeMsat?: number;
+  jitChannelsMaxPaymentSizeMsat?: number;
   jitChannelsEnabled: boolean;
   hideUpdateBanner: boolean;
   supportsBolt12: boolean;
