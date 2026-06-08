@@ -6,6 +6,7 @@ import { useInfo } from "src/hooks/useInfo";
 
 import {
   ArrowRightLeftIcon,
+  BoxIcon,
   BugIcon,
   CloudBackupIcon,
   CodeIcon,
@@ -162,6 +163,11 @@ export default function SettingsLayout() {
             </NavGroup>
 
             <NavGroup label="Advanced">
+              {info?.backendType === "LDK" && (
+                <MenuItem to="/settings/node" icon={BoxIcon}>
+                  Node
+                </MenuItem>
+              )}
               <MenuItem to="/settings/developer" icon={CodeIcon}>
                 Developer
               </MenuItem>

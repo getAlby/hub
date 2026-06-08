@@ -50,6 +50,7 @@ import Peers from "src/screens/peers/Peers";
 import { About } from "src/screens/settings/About";
 import { AlbyAccount } from "src/screens/settings/AlbyAccount";
 import { AutoUnlock } from "src/screens/settings/AutoUnlock";
+import { NodeSettings } from "src/screens/settings/NodeSettings";
 import Backup from "src/screens/settings/Backup";
 import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
 import DebugTools from "src/screens/settings/DebugTools";
@@ -253,6 +254,11 @@ const routes: RouteObject[] = [
                 path: "auto-unlock",
                 element: <AutoUnlock />,
                 handle: { crumb: () => "Auto Unlock" },
+              },
+              {
+                path: "node",
+                element: <NodeSettings />,
+                handle: { crumb: () => "Node" },
               },
               {
                 path: "change-unlock-password",

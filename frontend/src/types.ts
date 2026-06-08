@@ -169,6 +169,7 @@ export interface InfoResponse {
   chainDataSourceType?: string;
   chainDataSourceAddress?: string;
   jitChannelsLiquiditySource?: string;
+  jitChannelsEnabled: boolean;
   hideUpdateBanner: boolean;
   supportsBolt12: boolean;
 }
