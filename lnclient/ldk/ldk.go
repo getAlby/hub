@@ -1638,15 +1638,22 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			return
 		}
 
-		isTrusted := eventType.CounterpartyNodeId != nil && slices.Contains(ls.node.Config().AnchorChannelsConfig.TrustedPeersNoReserve, *eventType.CounterpartyNodeId)
-
 		channel := channels[channelIndex]
+
+		// assume it's a JIT channel if the channel peer matches
+		// checking outbound capacity doesn't work (outbound capacity can be initially 0)
+		isJit := !channel.IsOutbound && ls.lsps2Pubkey != "" && *eventType.CounterpartyNodeId == ls.lsps2Pubkey
+
+		isTrusted := eventType.CounterpartyNodeId != nil &&
+			(slices.Contains(ls.node.Config().AnchorChannelsConfig.TrustedPeersNoReserve, *eventType.CounterpartyNodeId) || isJit)
+
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_channel_ready",
 			Properties: map[string]interface{}{
 				"counterparty_node_id": eventType.CounterpartyNodeId,
 				"node_type":            config.LDKBackendType,
 				"public":               channel.IsAnnounced,
+				"jit":                  isJit,
 				"capacity":             channel.ChannelValueSats,
 				"is_outbound":          channel.IsOutbound,
 				"trusted":              isTrusted,
