@@ -62,11 +62,10 @@ export default function ReceiveInvoice() {
   );
   const paymentDone = !!invoiceData?.settledAt;
   const lsps2Source = info?.jitChannelsLiquiditySource;
-  // when JIT is enabled and the user has no channels yet, the configured
-  // liquidity source may have a minimum channel size - enforce it as the
-  // minimum receivable amount on the input.
-  const jitMinimumReceiveSat = React.useMemo(() => {
-    if (!lsps2Source || !channelPeerSuggestions || !!channels?.length) {
+  // the configured JIT liquidity source may enforce a minimum channel size -
+  // any payment that opens a new channel must be at least this amount.
+  const lsps2MinimumChannelSizeSat = React.useMemo(() => {
+    if (!lsps2Source || !channelPeerSuggestions) {
       return undefined;
     }
     const match = channelPeerSuggestions.find(
@@ -76,7 +75,12 @@ export default function ReceiveInvoice() {
         peer.nodeAddress === lsps2Source
     );
     return match?.minimumChannelSizeSat;
-  }, [channelPeerSuggestions, channels, lsps2Source]);
+  }, [channelPeerSuggestions, lsps2Source]);
+  // only enforce the minimum on the input when the user has no channels yet -
+  // their first channel must meet the minimum size.
+  const jitMinimumReceiveSat = channels?.length
+    ? undefined
+    : lsps2MinimumChannelSizeSat;
   const totalReceivableMsat = balances?.lightning.totalReceivableMsat ?? 0;
   const requestedAmountMsat = +amountSat * 1000 || transaction?.amountMsat || 0;
   const isNearReceivingCapacity =
@@ -118,8 +122,24 @@ export default function ReceiveInvoice() {
         toast("Successfully created invoice");
       }
     } catch (e) {
+      const requestedAmountSat = parseInt(amountSat) || 0;
+      // the user already has channels but this amount exceeds their receiving
+      // capacity (so a new channel is needed) and is below the LSP's minimum
+      // channel size - the receive may have failed because the amount was too
+      // small to open a second channel, so add a hint alongside the error.
+      const likelyTooSmallForNewChannel =
+        !!channels?.length &&
+        !!lsps2MinimumChannelSizeSat &&
+        requestedAmountSat < lsps2MinimumChannelSizeSat &&
+        requestedAmountSat * 1000 > totalReceivableMsat;
+      let description = "" + e;
+      if (likelyTooSmallForNewChannel) {
+        description += `\n\nThis amount is over your receiving capacity and may be too small to open a new Lightning channel. Try receiving at least ${new Intl.NumberFormat().format(
+          lsps2MinimumChannelSizeSat as number
+        )} sats, or lower the amount to fit your current capacity.`;
+      }
       toast.error("Failed to create invoice", {
-        description: "" + e,
+        description,
       });
       console.error(e);
     } finally {
