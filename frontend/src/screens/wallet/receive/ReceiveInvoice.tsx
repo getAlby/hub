@@ -1,7 +1,6 @@
 import {
   ArrowLeftIcon,
   CopyIcon,
-  InfoIcon,
   LinkIcon,
   PlusIcon,
   ReceiptTextIcon,
@@ -17,7 +16,6 @@ import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import QRCode from "src/components/QRCode";
-import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -95,7 +93,6 @@ export default function ReceiveInvoice() {
   const displayedJitFeeMsat = paymentDone
     ? (invoiceData?.feesPaidMsat ?? 0)
     : (transaction?.feesPaidMsat ?? 0);
-  const netReceiveMsat = Math.max(0, requestedAmountMsat - displayedJitFeeMsat);
 
   if (!balances || !info || (info.albyAccountConnected && !me)) {
     return <Loading />;
@@ -154,46 +151,30 @@ export default function ReceiveInvoice() {
   };
 
   const newChannelFeeAlert = (
-    <Alert>
-      <InfoIcon className="h-4 w-4" />
+    <p className="text-sm text-muted-foreground text-center">
       {displayedJitFeeMsat >= 1000 ? (
         <>
-          <AlertTitle>
-            You'll receive about{" "}
-            <FormattedBitcoinAmount amountMsat={netReceiveMsat} />
-          </AlertTitle>
-          <AlertDescription>
-            <p>
-              <FormattedBitcoinAmount amountMsat={displayedJitFeeMsat} /> of
-              this payment is a one-time fee to open a Lightning channel, which
-              lets you receive payments.{" "}
-              <ExternalLink
-                to="https://guides.getalby.com/user-guide/alby-hub/faq/what-are-just-in-time-channels"
-                className="underline"
-              >
-                Learn more
-              </ExternalLink>
-            </p>
-          </AlertDescription>
+          Includes a <FormattedBitcoinAmount amountMsat={displayedJitFeeMsat} />{" "}
+          channel fee.{" "}
+          <ExternalLink
+            to="https://guides.getalby.com/user-guide/alby-hub/faq/what-are-just-in-time-channels"
+            className="underline"
+          >
+            Learn more
+          </ExternalLink>
         </>
       ) : (
         <>
-          <AlertTitle>New channel fee</AlertTitle>
-          <AlertDescription>
-            <p>
-              A fee will be deducted from this payment to open a Lightning
-              channel, which lets you receive payments.{" "}
-              <ExternalLink
-                to="https://guides.getalby.com/user-guide/alby-hub/node/increase-receiving-capacity"
-                className="underline"
-              >
-                Learn more
-              </ExternalLink>
-            </p>
-          </AlertDescription>
+          Includes a fee to set up receiving.{" "}
+          <ExternalLink
+            to="https://guides.getalby.com/user-guide/alby-hub/node/increase-receiving-capacity"
+            className="underline"
+          >
+            Learn more
+          </ExternalLink>
         </>
       )}
-    </Alert>
+    </p>
   );
 
   return (
