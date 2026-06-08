@@ -275,6 +275,18 @@ export default function ReceiveInvoice() {
                   valueSat={amountSat}
                   onValueSatChange={setAmountSat}
                   minSat={jitMinimumReceiveSat ?? 1}
+                  onInvalid={(e) => {
+                    if (
+                      jitMinimumReceiveSat &&
+                      e.currentTarget.validity.rangeUnderflow
+                    ) {
+                      e.currentTarget.setCustomValidity(
+                        `You need to receive at least ${new Intl.NumberFormat().format(
+                          jitMinimumReceiveSat
+                        )} sats to open your first lightning channel`
+                      );
+                    }
+                  }}
                   maxSat={
                     hasChannelManagement && !lsps2Source
                       ? balances.lightning.totalReceivableSat
@@ -282,21 +294,14 @@ export default function ReceiveInvoice() {
                   }
                   autoFocus
                   contextRows={
-                    jitMinimumReceiveSat
+                    hasChannelManagement && !lsps2Source
                       ? [
                           {
-                            label: "Minimum amount",
-                            amountSat: jitMinimumReceiveSat,
+                            label: "Receive limit",
+                            amountSat: balances.lightning.totalReceivableSat,
                           },
                         ]
-                      : hasChannelManagement && !lsps2Source
-                        ? [
-                            {
-                              label: "Receive limit",
-                              amountSat: balances.lightning.totalReceivableSat,
-                            },
-                          ]
-                        : undefined
+                      : undefined
                   }
                 />
                 <div className="grid gap-2">

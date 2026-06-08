@@ -298,6 +298,10 @@ export function CurrencyInputField({
   }
 
   function handleChangeMode(event: React.ChangeEvent<HTMLInputElement>) {
+    // clear any custom validity set via onInvalid so the field re-validates
+    // on the next submit
+    event.currentTarget.setCustomValidity("");
+
     const nextValue = event.target.value.trim();
 
     if (mode === "bitcoin") {
