@@ -174,24 +174,16 @@ export default function ReceiveInvoice() {
         <>
           Includes a <FormattedBitcoinAmount amountMsat={displayedJitFeeMsat} />{" "}
           channel fee.{" "}
-          <ExternalLink
-            to="https://guides.getalby.com/user-guide/alby-hub/faq/what-are-just-in-time-channels"
-            className="underline"
-          >
-            Learn more
-          </ExternalLink>
         </>
       ) : (
-        <>
-          Includes a fee to set up receiving.{" "}
-          <ExternalLink
-            to="https://guides.getalby.com/user-guide/alby-hub/node/increase-receiving-capacity"
-            className="underline"
-          >
-            Learn more
-          </ExternalLink>
-        </>
+        <>Includes a fee to set up a channel. </>
       )}
+      <ExternalLink
+        to="https://guides.getalby.com/user-guide/alby-hub/faq/what-are-just-in-time-channels"
+        className="underline"
+      >
+        Learn more
+      </ExternalLink>
     </p>
   );
 
