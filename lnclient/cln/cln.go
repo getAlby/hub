@@ -2,6 +2,7 @@ package cln
 
 import (
 	"context"
+	crand "crypto/rand"
 	"crypto/sha256"
 	"crypto/tls"
 	"crypto/x509"
@@ -9,7 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"math/rand"
+	mrand "math/rand"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -680,7 +681,7 @@ func (c *CLNService) subscribeOpenHoldInvoices(ctx context.Context) {
 
 			backoff := min(baseBackoff*time.Duration(1<<attempt), maxBackoff)
 
-			jitter := time.Duration(rand.Int63n(int64(backoff / 2)))
+			jitter := time.Duration(mrand.Int63n(int64(backoff / 2)))
 			sleep := backoff/2 + jitter
 
 			logger.Logger.WithError(err).
@@ -2055,9 +2056,15 @@ func (c *CLNService) MakeInvoice(ctx context.Context, amountMsat int64, descript
 			Value: &clngrpc.AmountOrAny_Any{Any: true}}
 	}
 
+	preimage, err := GeneratePreimage()
+	if err != nil {
+		return nil, err
+	}
+
 	req := &clngrpc.InvoiceRequest{
 		Description:  description,
 		Label:        label,
+		Preimage:     preimage,
 		Expiry:       &myExpiry,
 		Deschashonly: &deschashonly,
 		AmountMsat:   &Amount,
@@ -2068,7 +2075,7 @@ func (c *CLNService) MakeInvoice(ctx context.Context, amountMsat int64, descript
 	if throughNodePubkey != nil {
 		throughNodePubkeyBytes, err := hex.DecodeString(*throughNodePubkey)
 		if err != nil {
-			return nil, fmt.Errorf("Could not convert throughNodePubkey to bytes")
+			return nil, err
 		}
 		lpc, err := c.client.ListPeerChannels(ctx, &clngrpc.ListpeerchannelsRequest{
 			Id: throughNodePubkeyBytes,
@@ -2108,7 +2115,7 @@ func (c *CLNService) MakeInvoice(ctx context.Context, amountMsat int64, descript
 		Invoice:         resp.Bolt11,
 		Description:     description,
 		DescriptionHash: descriptionHash,
-		Preimage:        "",
+		Preimage:        hex.EncodeToString(preimage),
 		PaymentHash:     hex.EncodeToString(resp.PaymentHash),
 		AmountMsat:      amountMsat,
 		FeesPaidMsat:    0,
@@ -2120,6 +2127,17 @@ func (c *CLNService) MakeInvoice(ctx context.Context, amountMsat int64, descript
 	}
 
 	return transaction, nil
+}
+
+func GeneratePreimage() ([]byte, error) {
+	preimage := make([]byte, 32)
+
+	_, err := crand.Read(preimage[:])
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate preimage: %w", err)
+	}
+
+	return preimage, nil
 }
 
 func (c *CLNService) MakeOffer(ctx context.Context, description string) (string, error) {
