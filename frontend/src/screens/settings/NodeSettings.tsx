@@ -1,4 +1,5 @@
 import { toast } from "sonner";
+import ExternalLink from "src/components/ExternalLink";
 import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
 import { Checkbox } from "src/components/ui/checkbox";
@@ -49,7 +50,13 @@ export function NodeSettings() {
             JIT (just-in-time) channels let you receive payments larger than
             your current inbound capacity by automatically opening a new channel
             through a liquidity provider. The provider's fee is deducted from
-            the incoming payment.
+            the incoming payment.{" "}
+            <ExternalLink
+              to="https://guides.getalby.com/user-guide/alby-hub/faq/what-are-just-in-time-channels"
+              className="underline"
+            >
+              Learn more
+            </ExternalLink>
           </p>
         </div>
         <div className="flex items-center">
