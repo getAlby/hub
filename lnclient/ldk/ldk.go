@@ -146,36 +146,31 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	builder.SetNodeAlias(alias)
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
 
+	liquiditySourceLsps2 := cfg.GetEnv().LDKLiquiditySourceLsps2
 	network := cfg.GetNetwork()
 
-	jitChannelsDisabled, _ := cfg.Get("JitChannelsDisabled", "")
-	liquiditySourceLsps2 := ""
-	if jitChannelsDisabled != "true" {
-		liquiditySourceLsps2 = cfg.GetEnv().LDKLiquiditySourceLsps2
-
-		// if no explicit override, try a matching LSPS2 suggestion for this network
-		if liquiditySourceLsps2 == "" {
-			for _, suggestion := range channelPeerSuggestions {
-				if suggestion.PaymentMethod == "lightning" &&
-					suggestion.Type == lsp.LSP_TYPE_LSPS2 &&
-					suggestion.Network == network &&
-					suggestion.NodeAddress != "" {
-					liquiditySourceLsps2 = suggestion.NodeAddress
-					break
-				}
+	// if no explicit override, try a matching LSPS2 suggestion for this network
+	if liquiditySourceLsps2 == "" {
+		for _, suggestion := range channelPeerSuggestions {
+			if suggestion.PaymentMethod == "lightning" &&
+				suggestion.Type == lsp.LSP_TYPE_LSPS2 &&
+				suggestion.Network == network &&
+				suggestion.NodeAddress != "" {
+				liquiditySourceLsps2 = suggestion.NodeAddress
+				break
 			}
 		}
+	}
 
-		// fall back to a hardcoded per-network default
-		if liquiditySourceLsps2 == "" {
-			switch network {
-			case "signet":
-				// Alby LSP (Mutinynet)
-				liquiditySourceLsps2 = "025010bd608771bc13f08f696e3dd226bf3a9ae6ea461e3922ed9bdca7bb0edfe5@141.95.84.44:9735"
-			case "bitcoin":
-				// Megalith LSP 2
-				liquiditySourceLsps2 = "034066e29e402d9cf55af1ae1026cc5adf92eed1e0e421785442f53717ad1453b0@64.23.159.177:9735"
-			}
+	// fall back to a hardcoded per-network default
+	if liquiditySourceLsps2 == "" {
+		switch network {
+		case "signet":
+			// Alby LSP (Mutinynet)
+			liquiditySourceLsps2 = "025010bd608771bc13f08f696e3dd226bf3a9ae6ea461e3922ed9bdca7bb0edfe5@141.95.84.44:9735"
+		case "bitcoin":
+			// Megalith LSP 2
+			liquiditySourceLsps2 = "034066e29e402d9cf55af1ae1026cc5adf92eed1e0e421785442f53717ad1453b0@64.23.159.177:9735"
 		}
 	}
 
@@ -764,9 +759,11 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, descrip
 	maxReceivable := ls.getMaxReceivable()
 
 	isVariableAmountInvoice := amountMsat == 0
+	jitChannelsDisabled, _ := ls.cfg.Get("JitChannelsDisabled", "")
 	// JIT channels are only used for users without a public channel - users with
 	// a public channel should increase inbound liquidity manually.
 	isJitInvoice := ls.lsps2Pubkey != "" &&
+		jitChannelsDisabled != "true" &&
 		!ls.hasPublicChannel() &&
 		(amountMsat > maxReceivable || (isVariableAmountInvoice && maxReceivable == 0))
 

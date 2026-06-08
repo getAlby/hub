@@ -61,7 +61,9 @@ export default function ReceiveInvoice() {
     true
   );
   const paymentDone = !!invoiceData?.settledAt;
-  const lsps2Source = info?.jitChannelsLiquiditySource;
+  const lsps2Source = info?.jitChannelsEnabled
+    ? info?.jitChannelsLiquiditySource
+    : undefined;
   // the configured JIT liquidity source may enforce a minimum channel size -
   // any payment that opens a new channel must be at least this amount.
   const lsps2MinimumChannelSizeSat = React.useMemo(() => {

@@ -1,9 +1,6 @@
-import { InfoIcon } from "lucide-react";
-
 import { toast } from "sonner";
 import Loading from "src/components/Loading";
 import SettingsHeader from "src/components/SettingsHeader";
-import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
 import { Checkbox } from "src/components/ui/checkbox";
 import { Label } from "src/components/ui/label";
 
@@ -21,6 +18,8 @@ export function NodeSettings() {
     return <p>Your Hub does not support this feature.</p>;
   }
 
+  const hasJitSource = !!info.jitChannelsLiquiditySource;
+
   async function setJitChannelsEnabled(enabled: boolean) {
     try {
       await request("/api/settings", {
@@ -31,11 +30,7 @@ export function NodeSettings() {
         body: JSON.stringify({ jitChannelsEnabled: enabled }),
       });
       await refetchInfo();
-      toast(
-        enabled
-          ? "JIT channels enabled. Restart your Hub to apply."
-          : "JIT channels disabled. Restart your Hub to apply."
-      );
+      toast(enabled ? "JIT channels enabled" : "JIT channels disabled");
     } catch (error) {
       handleRequestError("Failed to update JIT channels setting", error);
     }
@@ -61,6 +56,7 @@ export function NodeSettings() {
           <Checkbox
             id="jit-channels"
             checked={info.jitChannelsEnabled}
+            disabled={!hasJitSource}
             onCheckedChange={(checked) =>
               setJitChannelsEnabled(checked === true)
             }
@@ -69,13 +65,12 @@ export function NodeSettings() {
             Enable JIT channels for receiving
           </Label>
         </div>
-        <Alert>
-          <InfoIcon />
-          <AlertTitle>Restart required</AlertTitle>
-          <AlertDescription>
-            Changes to this setting only take effect after you restart your Hub.
-          </AlertDescription>
-        </Alert>
+        {!hasJitSource && (
+          <p className="text-sm text-muted-foreground">
+            No JIT liquidity source is available for your network, so JIT
+            channels can't be used.
+          </p>
+        )}
       </div>
     </>
   );
