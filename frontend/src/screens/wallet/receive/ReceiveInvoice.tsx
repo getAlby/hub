@@ -57,30 +57,30 @@ export default function ReceiveInvoice() {
     true
   );
   const paymentDone = !!invoiceData?.settledAt;
-  const lsps2Source = info?.jitChannelsEnabled
-    ? info?.jitChannelsLiquiditySource
-    : undefined;
+  const jitChannelsEnabled = !!info?.jitChannelsEnabled;
+  const configuredLsps2Source = info?.jitChannelsLiquiditySource;
+  const lsps2Source = jitChannelsEnabled ? configuredLsps2Source : undefined;
   const lsps2MinimumPaymentSizeSat = React.useMemo(() => {
-    if (info?.jitChannelsMinPaymentSizeMsat) {
+    if (jitChannelsEnabled && info?.jitChannelsMinPaymentSizeMsat) {
       return Math.ceil(info.jitChannelsMinPaymentSizeMsat / 1000);
     }
     return undefined;
-  }, [info?.jitChannelsMinPaymentSizeMsat]);
+  }, [info?.jitChannelsMinPaymentSizeMsat, jitChannelsEnabled]);
   // only enforce the minimum on the input when the user has no channels yet -
   // their first channel must meet the minimum size.
   const jitMinimumReceiveSat = channels?.length
     ? undefined
     : lsps2MinimumPaymentSizeSat;
   const lsps2MaximumPaymentSizeSat = React.useMemo(() => {
-    if (info?.jitChannelsMaxPaymentSizeMsat) {
+    if (jitChannelsEnabled && info?.jitChannelsMaxPaymentSizeMsat) {
       return Math.floor(info.jitChannelsMaxPaymentSizeMsat / 1000);
     }
     return undefined;
-  }, [info?.jitChannelsMaxPaymentSizeMsat]);
+  }, [info?.jitChannelsMaxPaymentSizeMsat, jitChannelsEnabled]);
   const jitMaximumReceiveSat =
     hasChannelManagement && lsps2Source
       ? lsps2MaximumPaymentSizeSat
-      : !lsps2Source && hasChannelManagement
+      : !configuredLsps2Source && hasChannelManagement
         ? balances?.lightning.totalReceivableSat
         : undefined;
   const totalReceivableMsat = balances?.lightning.totalReceivableMsat ?? 0;
@@ -129,6 +129,7 @@ export default function ReceiveInvoice() {
       // channel size - the receive may have failed because the amount was too
       // small to open a second channel, so add a hint alongside the error.
       const likelyTooSmallForNewChannel =
+        jitChannelsEnabled &&
         !!channels?.length &&
         !!lsps2MinimumPaymentSizeSat &&
         requestedAmountSat < lsps2MinimumPaymentSizeSat &&
