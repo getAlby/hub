@@ -756,7 +756,7 @@ function getInspirationCategories(hasChannelManagement: boolean): {
       },
     },
     {
-      label: "Hub",
+      label: "Alby Hub",
       icon: BoxIcon,
       prompts: [
         "create a sub-wallet for my mum",
