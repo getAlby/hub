@@ -11,6 +11,7 @@ import {
   CodeIcon,
   FingerprintIcon,
   InfoIcon,
+  LinkIcon,
   KeyRoundIcon,
   type LucideIcon,
   PowerIcon,
@@ -162,6 +163,11 @@ export default function SettingsLayout() {
             </NavGroup>
 
             <NavGroup label="Advanced">
+              {info?.backendType === "LDK" && (
+                <MenuItem to="/settings/chain-source" icon={LinkIcon}>
+                  Chain Source
+                </MenuItem>
+              )}
               <MenuItem to="/settings/developer" icon={CodeIcon}>
                 Developer
               </MenuItem>
