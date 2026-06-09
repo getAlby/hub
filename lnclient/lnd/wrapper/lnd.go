@@ -16,9 +16,16 @@ import (
 	"gopkg.in/macaroon.v2"
 )
 
-type LNPayReq struct {
-	PayReq  *lnrpc.PayReq
-	Keysend bool
+type SubscribeInvoicesWrapper interface {
+	Recv() (*lnrpc.Invoice, error)
+}
+
+type SubscribeSingleInvoiceWrapper interface {
+	Recv() (*lnrpc.Invoice, error)
+}
+
+type SubscribePaymentWrapper interface {
+	Recv() (*lnrpc.Payment, error)
 }
 
 // LNDoptions are the options for the connection to the lnd node.
@@ -110,10 +117,6 @@ func (wrapper *LNDWrapper) SendPayment(ctx context.Context, req *routerrpc.SendP
 	return wrapper.routerClient.SendPaymentV2(ctx, req, options...)
 }
 
-func (wrapper *LNDWrapper) ChannelBalance(ctx context.Context, req *lnrpc.ChannelBalanceRequest, options ...grpc.CallOption) (*lnrpc.ChannelBalanceResponse, error) {
-	return wrapper.client.ChannelBalance(ctx, req, options...)
-}
-
 func (wrapper *LNDWrapper) AddInvoice(ctx context.Context, req *lnrpc.Invoice, options ...grpc.CallOption) (*lnrpc.AddInvoiceResponse, error) {
 	return wrapper.client.AddInvoice(ctx, req, options...)
 }
@@ -146,10 +149,6 @@ func (wrapper *LNDWrapper) ListInvoices(ctx context.Context, req *lnrpc.ListInvo
 	return wrapper.client.ListInvoices(ctx, req, options...)
 }
 
-func (wrapper *LNDWrapper) ListPayments(ctx context.Context, req *lnrpc.ListPaymentsRequest, options ...grpc.CallOption) (*lnrpc.ListPaymentsResponse, error) {
-	return wrapper.client.ListPayments(ctx, req, options...)
-}
-
 func (wrapper *LNDWrapper) LookupInvoice(ctx context.Context, req *lnrpc.PaymentHash, options ...grpc.CallOption) (*lnrpc.Invoice, error) {
 	return wrapper.client.LookupInvoice(ctx, req, options...)
 }
@@ -162,10 +161,6 @@ func (wrapper *LNDWrapper) GetInfo(ctx context.Context, req *lnrpc.GetInfoReques
 	return wrapper.client.GetInfo(ctx, req, options...)
 }
 
-func (wrapper *LNDWrapper) GetNetworkInfo(ctx context.Context, req *lnrpc.NetworkInfoRequest, options ...grpc.CallOption) (*lnrpc.NetworkInfo, error) {
-	return wrapper.client.GetNetworkInfo(ctx, req, options...)
-}
-
 func (wrapper *LNDWrapper) DescribeGraph(ctx context.Context, req *lnrpc.ChannelGraphRequest, options ...grpc.CallOption) (*lnrpc.ChannelGraph, error) {
 	return wrapper.client.DescribeGraph(ctx, req, options...)
 }
@@ -176,24 +171,6 @@ func (wrapper *LNDWrapper) GetState(ctx context.Context, req *lnrpc.GetStateRequ
 
 func (wrapper *LNDWrapper) GetNodeInfo(ctx context.Context, req *lnrpc.NodeInfoRequest, options ...grpc.CallOption) (*lnrpc.NodeInfo, error) {
 	return wrapper.client.GetNodeInfo(ctx, req, options...)
-}
-
-func (wrapper *LNDWrapper) DecodeBolt11(ctx context.Context, bolt11 string, options ...grpc.CallOption) (*lnrpc.PayReq, error) {
-	return wrapper.client.DecodePayReq(ctx, &lnrpc.PayReqString{
-		PayReq: bolt11,
-	})
-}
-
-func (wrapper *LNDWrapper) SubscribePayment(ctx context.Context, req *routerrpc.TrackPaymentRequest, options ...grpc.CallOption) (SubscribePaymentWrapper, error) {
-	return wrapper.routerClient.TrackPaymentV2(ctx, req, options...)
-}
-
-func (wrapper *LNDWrapper) IsIdentityPubkey(pubkey string) (isOurPubkey bool) {
-	return pubkey == wrapper.IdentityPubkey
-}
-
-func (wrapper *LNDWrapper) GetMainPubkey() (pubkey string) {
-	return wrapper.IdentityPubkey
 }
 
 func (wrapper *LNDWrapper) SignMessage(ctx context.Context, req *lnrpc.SignMessageRequest, options ...grpc.CallOption) (*lnrpc.SignMessageResponse, error) {
