@@ -2233,10 +2233,25 @@ export const appStoreApps: AppStoreApp[] = (
       title: "Bitrefill",
       description: "Live on bitcoin",
       extendedDescription: "Buy gift cards and e-sims with no KYC",
-      internal: true,
       webLink: "https://bitrefill.com",
       logo: bitrefill,
       categories: ["shopping"],
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Bitrefill</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                At checkout, choose to pay with{" "}
+                <span className="font-medium text-foreground">
+                  Nostr Wallet Connect
+                </span>
+              </li>
+              <li>Paste the connection secret to connect Alby Hub</li>
+            </ul>
+          </div>
+        </>
+      ),
     },
     {
       id: "bringin",
