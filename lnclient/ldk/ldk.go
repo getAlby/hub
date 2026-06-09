@@ -894,7 +894,6 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 		// channels from trusted LSP peers as 0-conf, so it reports ConfirmationsRequired
 		// as nil/0. Override to 6 for public channels so the UI shows confirmation
 		// progress while opening instead of an indefinite blank loading spinner.
-		// https://github.com/getAlby/hub/issues/2294
 		confirmationsRequired := ldkChannel.ConfirmationsRequired
 		if ldkChannel.IsAnnounced {
 			publicChannelConfirmationsRequired := uint32(6)
