@@ -48,7 +48,11 @@ export function ReceiveToLightning() {
           <AccordionItem value="more-options">
             <AccordionTrigger>View more options</AccordionTrigger>
             <AccordionContent className="flex flex-col gap-2">
-              <LinkButton to="invoice" variant="outline" className="w-full">
+              <LinkButton
+                to="/wallet/receive/invoice"
+                variant="outline"
+                className="w-full"
+              >
                 <ZapIcon className="size-4" />
                 Create Invoice
               </LinkButton>
@@ -62,7 +66,11 @@ export function ReceiveToLightning() {
                   Lightning Offer
                 </LinkButton>
               )}
-              <LinkButton to="onchain" variant="outline" className="w-full">
+              <LinkButton
+                to="/wallet/receive/onchain"
+                variant="outline"
+                className="w-full"
+              >
                 <LinkIcon className="size-4" />
                 Receive from On-chain / Other Cryptocurrency
               </LinkButton>
