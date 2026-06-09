@@ -20,7 +20,6 @@ import fountain from "src/assets/suggested-apps/fountain.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import iris from "src/assets/suggested-apps/iris.png";
 import jumble from "src/assets/suggested-apps/jumble.png";
-import satoraLogo from "src/assets/suggested-apps/satora.png";
 import lightningMessageboard from "src/assets/suggested-apps/lightning-messageboard.png";
 import lnbits from "src/assets/suggested-apps/lnbits.png";
 import lnvps from "src/assets/suggested-apps/lnvps.png";
@@ -36,6 +35,7 @@ import primal from "src/assets/suggested-apps/primal.png";
 import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
 import runstr from "src/assets/suggested-apps/runstr.png";
 import satsorter from "src/assets/suggested-apps/sat-sorter.png";
+import satoraLogo from "src/assets/suggested-apps/satora.png";
 import sats4ai from "src/assets/suggested-apps/sats4ai.png";
 import simpleboost from "src/assets/suggested-apps/simple-boost.png";
 import snort from "src/assets/suggested-apps/snort.png";
@@ -2233,10 +2233,40 @@ export const appStoreApps: AppStoreApp[] = (
       title: "Bitrefill",
       description: "Live on bitcoin",
       extendedDescription: "Buy gift cards and e-sims with no KYC",
-      internal: true,
       webLink: "https://bitrefill.com",
       logo: bitrefill,
       categories: ["shopping"],
+      appleLink:
+        "https://apps.apple.com/us/app/bitrefill-esims-gift-cards/id1378102623",
+      playLink:
+        "https://play.google.com/store/apps/details?id=com.bitrefill.app&hl=en",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://bitrefill.com"
+              className="font-medium text-foreground underline"
+            >
+              Bitrefill
+            </ExternalLink>{" "}
+            in your browser, or download the app on iOS or Android
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Bitrefill</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Go to settings {"->"} wallets {"->"} lightning {"->"} payments.
+              </li>
+              <li>Paste the connection secret to connect Alby Hub</li>
+            </ul>
+          </div>
+        </>
+      ),
     },
     {
       id: "bringin",
