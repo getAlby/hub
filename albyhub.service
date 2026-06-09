@@ -1,0 +1,16 @@
+[Unit]
+Description=Alby Hub - Lightning Wallet Service
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/.local/share/albyhub
+ExecStart=STORE_PATH_PLACEHOLDER/bin/albyhub
+Restart=always
+RestartSec=10
+
+Environment="WORK_DIR=%h/.local/share/albyhub"
+Environment="PORT=8087"
+
+[Install]
+WantedBy=default.target
