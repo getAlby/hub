@@ -4,8 +4,6 @@ import { BalancesResponse } from "src/types";
 import { swrFetcher } from "src/utils/swr";
 
 const pollConfiguration: SWRConfiguration = {
-  // SWR also revalidates on window focus, so a longer interval keeps the
-  // balance fresh without flooding the backend from long-lived open tabs.
   refreshInterval: 10000,
 };
 
