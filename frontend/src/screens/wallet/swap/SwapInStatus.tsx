@@ -32,7 +32,6 @@ import {
   TooltipTrigger,
 } from "src/components/ui/tooltip";
 import { useInfo } from "src/hooks/useInfo";
-import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useSwap } from "src/hooks/useSwaps";
 import { useSyncWallet } from "src/hooks/useSyncWallet";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -45,28 +44,15 @@ import { request } from "src/utils/request";
 
 export default function SwapInStatus() {
   const { data: info } = useInfo();
-  const { data: recommendedFees } = useMempoolApi<{
-    fastestFee: number;
-    halfHourFee: number;
-    economyFee: number;
-    minimumFee: number;
-  }>("/v1/fees/recommended");
   useSyncWallet(); // ensure funds show up on node page after swap completes
   const { swapId } = useParams() as { swapId: string };
   const { data: swap } = useSwap<SwapIn>(swapId, true);
 
-  const [feeRate, setFeeRate] = useState("");
   const [isPaying, setPaying] = useState(false);
   const [searchParams] = useSearchParams();
 
   const isInternalSwap = searchParams.has("internal", "true");
   const [, setPaidWithAlbyHub] = React.useState(false);
-
-  useEffect(() => {
-    if (recommendedFees?.fastestFee) {
-      setFeeRate(recommendedFees.fastestFee.toString());
-    }
-  }, [recommendedFees]);
 
   useEffect(() => {
     if (isPaying && swap?.lockupTxId) {
@@ -81,13 +67,9 @@ export default function SwapInStatus() {
         if (!swap) {
           throw new Error("swap not loaded");
         }
-        if (!feeRate) {
-          throw new Error("No fee rate set");
-        }
         const payload: RedeemOnchainFundsRequest = {
           toAddress: swap.lockupAddress,
           amountSat: swap.sendAmountSat,
-          feeRate: +feeRate,
         };
         const response = await request<RedeemOnchainFundsResponse>(
           "/api/wallet/redeem-onchain-funds",
@@ -111,10 +93,10 @@ export default function SwapInStatus() {
         setPaying(false);
       }
     })();
-  }, [feeRate, swap]);
+  }, [swap]);
 
   React.useEffect(() => {
-    if (isInternalSwap && feeRate && swap) {
+    if (isInternalSwap && swap) {
       setPaidWithAlbyHub((current) => {
         if (current) {
           return current;
@@ -125,7 +107,7 @@ export default function SwapInStatus() {
         return true;
       });
     }
-  }, [feeRate, isInternalSwap, payWithAlbyHub, swap]);
+  }, [isInternalSwap, payWithAlbyHub, swap]);
 
   if (!swap) {
     return <Loading />;
