@@ -2,7 +2,6 @@ import {
   ArrowRightIcon,
   ArrowUpRightIcon,
   BotIcon,
-  BoxIcon,
   CheckCircleIcon,
   ChevronRightIcon,
   CopyIcon,
@@ -13,6 +12,7 @@ import {
   LayoutGridIcon,
   type LucideIcon,
   RepeatIcon,
+  Settings2Icon,
   ShieldCheckIcon,
   ShoppingBagIcon,
   SparklesIcon,
@@ -63,6 +63,7 @@ import {
   DEFAULT_APP_BUDGET_SATS,
   localStorageKeys,
 } from "src/constants";
+import { useInfo } from "src/hooks/useInfo";
 import { copyToClipboard } from "src/lib/clipboard";
 import { createApp } from "src/requests/createApp";
 import { handleRequestError } from "src/utils/handleRequestError";
@@ -680,95 +681,108 @@ const whyLightningItems = [
   },
 ];
 
-const inspirationCategories: {
+function getInspirationCategories(hasChannelManagement: boolean): {
   label: string;
   icon: LucideIcon;
   prompts: string[];
   skill?: { prompt: string; skillName: string; url: string };
-}[] = [
-  {
-    label: "Wallet",
-    icon: ZapIcon,
-    prompts: [
-      "send $5 to hub@getalby.com for coffee",
-      "how much is $10 in sats right now?",
-      "make an invoice for 50,000 sats",
-    ],
-  },
-  {
-    label: "Shopping",
-    icon: ShoppingBagIcon,
-    prompts: [
-      "buy a $25 Netflix gift card on bitrefill.com",
-      "get me an eSIM with 5GB of data for my trip to Portugal on bitrefill.com",
-      "what gift cards are available in the US on bitrefill.com?",
-    ],
-    skill: {
-      prompt:
-        "Run `npx -y skills add bitrefill/agents -y` to install the Bitrefill Skill",
-      skillName: "Bitrefill Skill",
-      url: "https://bitrefill.com/agents",
+}[] {
+  return [
+    {
+      label: "Wallet",
+      icon: ZapIcon,
+      prompts: [
+        "send $5 to hub@getalby.com for coffee",
+        "how much is $10 in sats right now?",
+        "make an invoice for 50,000 sats",
+      ],
     },
-  },
-  {
-    label: "Creative",
-    icon: SparklesIcon,
-    prompts: [
-      "generate a watercolor painting of a mountain cabin at sunset on ppq.ai",
-      "generate a cool bitcoin logo on ppq.ai and print it on a t-shirt on unhuman.store",
-      "create a logo for my coffee shop using ppq.ai image generation",
-    ],
-  },
-  {
-    label: "Services",
-    icon: LayersIcon,
-    prompts: [
-      "search podcasts for discussions about bitcoin scaling",
-      "set up an anonymous email address on lnemail.net",
-      "buy the domain my-awesome-project.dev on unhuman.domains",
-      "spin up a VPS with 2 cores and 4GB RAM on lnvps.net",
-    ],
-  },
-  {
-    label: "Automation",
-    icon: RepeatIcon,
-    prompts: [
-      "read payouts.csv and send 1,000 sats to each lightning address",
-      "calculate how much I spent this month and break it down by day",
-      "export all my transactions from the last 12 months as a CSV",
-    ],
-  },
-  {
-    label: "Build Apps",
-    icon: HammerIcon,
-    prompts: [
-      "build an AI image generator that charges 500 sats per image",
-      "create a file converter that charges 50 sats per conversion",
-      "build a blog where readers unlock articles for 50 sats each",
-    ],
-    skill: {
-      prompt:
-        "Run `npx -y skills add getAlby/builder-skill -y` to install the Builder Skill",
-      skillName: "Builder Skill",
-      url: "https://github.com/getAlby/builder-skill",
+    {
+      label: "Shopping",
+      icon: ShoppingBagIcon,
+      prompts: [
+        "buy a $25 Netflix gift card on bitrefill.com",
+        "get me an eSIM with 5GB of data for my trip to Portugal on bitrefill.com",
+        "what gift cards are available in the US on bitrefill.com?",
+      ],
+      skill: {
+        prompt:
+          "Run `npx -y skills add bitrefill/agents -y` to install the Bitrefill Skill",
+        skillName: "Bitrefill Skill",
+        url: "https://bitrefill.com/agents",
+      },
     },
-  },
-  {
-    label: "Node",
-    icon: BoxIcon,
-    prompts: [
-      "open a channel with 2M sats to ACINQ's node",
-      "show me my channels and their balances",
-      "what's my node's connection info?",
-    ],
-    skill: {
-      prompt:
-        "Run `npx -y skills add getAlby/hub-skill -y` to install the Alby Hub Skill",
-      skillName: "Alby Hub Skill",
-      url: "https://github.com/getAlby/hub-skill",
+    {
+      label: "Creative",
+      icon: SparklesIcon,
+      prompts: [
+        "generate a watercolor painting of a mountain cabin at sunset on ppq.ai",
+        "generate a cool bitcoin logo on ppq.ai and print it on a t-shirt on unhuman.store",
+        "create a logo for my coffee shop using ppq.ai image generation",
+      ],
     },
-  },
-];
+    {
+      label: "Services",
+      icon: LayersIcon,
+      prompts: [
+        "search podcasts for discussions about bitcoin scaling",
+        "set up an anonymous email address on lnemail.net",
+        "buy the domain my-awesome-project.dev on unhuman.domains",
+        "spin up a VPS with 2 cores and 4GB RAM on lnvps.net",
+      ],
+    },
+    {
+      label: "Automation",
+      icon: RepeatIcon,
+      prompts: [
+        "read payouts.csv and send 1,000 sats to each lightning address",
+        "calculate how much I spent this month and break it down by day",
+        "export all my transactions from the last 12 months as a CSV",
+      ],
+    },
+    {
+      label: "Build Apps",
+      icon: HammerIcon,
+      prompts: [
+        "build an AI image generator that charges 500 sats per image",
+        "create a file converter that charges 50 sats per conversion",
+        "build a blog where readers unlock articles for 50 sats each",
+      ],
+      skill: {
+        prompt:
+          "Run `npx -y skills add getAlby/builder-skill -y` to install the Builder Skill",
+        skillName: "Builder Skill",
+        url: "https://github.com/getAlby/builder-skill",
+      },
+    },
+    {
+      label: "Hub",
+      icon: Settings2Icon,
+      prompts: [
+        "create a sub-wallet for my mum",
+        "setup a new alby hub on my VPS",
+        "give me an on-chain deposit address",
+        "create a new app connection with a 21,000 sat monthly budget",
+        "list all my app connections and their budgets",
+        "make a read-only connection I can share with my accountant",
+        'revoke the connection called "old laptop"',
+        ...(hasChannelManagement
+          ? [
+              "open a channel with 2M sats to ACINQ's node",
+              "show me my channels and their balances",
+              "what's my node's connection info?",
+            ]
+          : []),
+      ],
+      skill: {
+        prompt:
+          "Run `npx -y skills add getAlby/hub-skill -y` to install the Alby Hub Skill",
+        skillName: "Alby Hub Skill",
+        url: "https://github.com/getAlby/hub-skill",
+      },
+    },
+  ];
+}
 
 function RotatingPrompt({ prompts }: { prompts: string[] }) {
   const [index, setIndex] = React.useState(0);
@@ -832,6 +846,10 @@ function RotatingPrompt({ prompts }: { prompts: string[] }) {
 }
 
 function InspirationPrompts() {
+  const { hasChannelManagement } = useInfo();
+  const inspirationCategories =
+    getInspirationCategories(!!hasChannelManagement);
+
   return (
     <Tabs defaultValue={inspirationCategories[0].label}>
       <div className="rounded-xl border border-border bg-card overflow-hidden">
