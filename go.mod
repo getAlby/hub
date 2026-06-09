@@ -259,7 +259,7 @@ require (
 require (
 	github.com/BoltzExchange/boltz-client/v2 v2.12.0
 	github.com/btcsuite/btcd/btcec/v2 v2.5.0
-	github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0
+	github.com/btcsuite/btcd/chaincfg/chainhash v1.2.0
 	github.com/decred/dcrd/crypto/blake256 v1.1.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
 	github.com/golang-jwt/jwt/v5 v5.3.1

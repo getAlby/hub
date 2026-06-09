@@ -44,8 +44,8 @@ github.com/btcsuite/btcd/btcutil v1.2.0 h1:p3+S2g3Q+7G5NOh4Ji+2UrBOrg5Z0Q4ykzShW
 github.com/btcsuite/btcd/btcutil v1.2.0/go.mod h1:/Taflm113pYjUpbWKKQEfa6XOtI/+WS8awxeMZpY75k=
 github.com/btcsuite/btcd/btcutil/psbt v1.1.9 h1:UmfOIiWMZcVMOLaN+lxbbLSuoINGS1WmK1TZNI0b4yk=
 github.com/btcsuite/btcd/btcutil/psbt v1.1.9/go.mod h1:ehBEvU91lxSlXtA+zZz3iFYx7Yq9eqnKx4/kSrnsvMY=
-github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0 h1:59Kx4K6lzOW5w6nFlA0v5+lk/6sjybR934QNHSJZPTQ=
-github.com/btcsuite/btcd/chaincfg/chainhash v1.1.0/go.mod h1:7SFka0XMvUgj3hfZtydOrQY2mwhPclbT2snogU7SQQc=
+github.com/btcsuite/btcd/chaincfg/chainhash v1.2.0 h1:yMIg99+4aBvqfl/HzJRKfxTX9rGfikoI9uvFzterhc8=
+github.com/btcsuite/btcd/chaincfg/chainhash v1.2.0/go.mod h1:Y72Ren9gfhlEvnwnT78BGcSNO2UMphTKLn9AorF+5rg=
 github.com/btcsuite/btcd/chainhash/v2 v2.0.0 h1:PMLlSloHJuEeB80XG9EjpXWNEKAZAMLl6YHZ6YsEuoA=
 github.com/btcsuite/btcd/chainhash/v2 v2.0.0/go.mod h1:mKxcZ7oGTXE7IRV+sS9hP4EVBwc/SzfNR+52IsOP9j8=
 github.com/btcsuite/btclog v0.0.0-20241003133417-09c4e92e319c h1:4HxD1lBUGUddhzgaNgrCPsFWd7cGYNpeFUgd9ZIgyM0=
