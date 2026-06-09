@@ -1,5 +1,5 @@
 import { ZapIcon } from "lucide-react";
-import { Link, useLocation } from "react-router";
+import { Link } from "react-router";
 import topup2fiat from "src/assets/suggested-apps/2fiat-topup.png";
 import albyExtension from "src/assets/suggested-apps/alby-extension.png";
 import albyGo from "src/assets/suggested-apps/alby-go.png";
@@ -53,41 +53,9 @@ import zapplepay from "src/assets/suggested-apps/zapple-pay.png";
 import zappybird from "src/assets/suggested-apps/zappy-bird.png";
 import zapstore from "src/assets/suggested-apps/zapstore.png";
 import zeus from "src/assets/suggested-apps/zeus.png";
+import { BitcoinCardTopupInstallGuide } from "src/components/connections/BitcoinCardTopupInstallGuide";
 import ExternalLink from "src/components/ExternalLink";
 import { App } from "src/types";
-
-// The card topup app supports configuration presets selected via a `provider`
-// query param (e.g. linked from the Cards page). Read it straight from the URL
-// so the link opens card.albylabs.com pre-configured for the chosen provider.
-function BitcoinCardTopupInstallGuide() {
-  const provider = new URLSearchParams(useLocation().search).get("provider");
-  const url = provider
-    ? `https://card.albylabs.com?provider=${encodeURIComponent(provider)}`
-    : "https://card.albylabs.com";
-
-  return (
-    <div>
-      <ul className="list-inside list-decimal text-muted-foreground">
-        <li>
-          Open{" "}
-          <ExternalLink to={url} className="underline">
-            card.albylabs.com
-          </ExternalLink>{" "}
-          on the device you'll top up from.
-        </li>
-        <li>
-          <span className="font-medium text-foreground">
-            Add it to your home screen
-          </span>{" "}
-          (or bookmark it) so you can reopen it later.
-        </li>
-        <li>
-          Enter your card's deposit address, network, and currency to set it up.
-        </li>
-      </ul>
-    </div>
-  );
-}
 
 export type AppStoreApp = {
   id: string;
