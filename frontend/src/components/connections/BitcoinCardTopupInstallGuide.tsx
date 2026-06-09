@@ -26,9 +26,7 @@ export function BitcoinCardTopupInstallGuide() {
           </span>{" "}
           (or bookmark it) so you can reopen it later.
         </li>
-        <li>
-          Enter your card's deposit address, network, and currency to set it up.
-        </li>
+        <li>Enter your card's deposit details to set it up.</li>
       </ul>
     </div>
   );
