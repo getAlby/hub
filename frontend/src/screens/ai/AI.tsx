@@ -2,6 +2,7 @@ import {
   ArrowRightIcon,
   ArrowUpRightIcon,
   BotIcon,
+  BoxIcon,
   CheckCircleIcon,
   ChevronRightIcon,
   CopyIcon,
@@ -12,7 +13,6 @@ import {
   LayoutGridIcon,
   type LucideIcon,
   RepeatIcon,
-  Settings2Icon,
   ShieldCheckIcon,
   ShoppingBagIcon,
   SparklesIcon,
@@ -757,7 +757,7 @@ function getInspirationCategories(hasChannelManagement: boolean): {
     },
     {
       label: "Hub",
-      icon: Settings2Icon,
+      icon: BoxIcon,
       prompts: [
         "create a sub-wallet for my mum",
         "setup a new alby hub on my VPS",
