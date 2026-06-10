@@ -282,9 +282,13 @@ export default function ReceiveInvoice() {
                       e.currentTarget.validity.rangeOverflow
                     ) {
                       e.currentTarget.setCustomValidity(
-                        `This JIT channel setup supports receiving at most ${new Intl.NumberFormat().format(
-                          jitMaximumReceiveSat
-                        )} sats in a single payment`
+                        lsps2Source
+                          ? `This JIT channel setup supports receiving at most ${new Intl.NumberFormat().format(
+                              jitMaximumReceiveSat
+                            )} sats in a single payment`
+                          : `You can receive at most ${new Intl.NumberFormat().format(
+                              jitMaximumReceiveSat
+                            )} sats with your current capacity`
                       );
                     } else {
                       e.currentTarget.setCustomValidity("");
