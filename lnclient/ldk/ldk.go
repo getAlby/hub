@@ -2648,7 +2648,7 @@ func (ls *LDKService) fetchLsps2OpeningFeeParams() {
 	var minPaymentSizeMsat *uint64
 	var maxPaymentSizeMsat *uint64
 	for _, params := range response.OpeningFeeParamsMenu {
-		effectiveMinPaymentSizeMsat, ok := effectiveLsps2MinPaymentSizeMsat(params)
+		effectiveMinPaymentSizeMsat, ok := computeLsps2MinPaymentSizeMsat(params)
 		if !ok {
 			continue
 		}
@@ -2667,7 +2667,14 @@ func (ls *LDKService) fetchLsps2OpeningFeeParams() {
 	ls.lsps2InfoFetchedAt = time.Now()
 }
 
-func effectiveLsps2MinPaymentSizeMsat(params ldk_node.Lsps2OpeningFeeParams) (uint64, bool) {
+// finds the smallest incoming payment for which the user is left
+// with a usable amount after the LSP skims its LSPS2 opening fee.
+func computeLsps2MinPaymentSizeMsat(params ldk_node.Lsps2OpeningFeeParams) (uint64, bool) {
+	// The smallest amount the user must net after the opening fee. We require a
+	// whole satoshi rather than a single millisat so the minimum payment size
+	// represents a usable receive.
+	const minNetReceiveMsat = 1000
+
 	paymentSizeMsat := params.MinPaymentSizeMsat
 
 	for range 8 {
@@ -2675,13 +2682,14 @@ func effectiveLsps2MinPaymentSizeMsat(params ldk_node.Lsps2OpeningFeeParams) (ui
 		if openingFeeMsat == nil {
 			return 0, false
 		}
-		// The incoming amount must be strictly greater than the opening fee,
-		// otherwise the LSP can't forward any value after skimming its fee.
-		if *openingFeeMsat < paymentSizeMsat {
+		// The incoming amount must exceed the opening fee by at least 1 sat,
+		// otherwise the user receives a sub-satoshi (effectively zero) amount
+		// after the LSP skims its fee.
+		if *openingFeeMsat+minNetReceiveMsat <= paymentSizeMsat {
 			return paymentSizeMsat, paymentSizeMsat <= params.MaxPaymentSizeMsat
 		}
 
-		nextPaymentSizeMsat := *openingFeeMsat + 1
+		nextPaymentSizeMsat := *openingFeeMsat + minNetReceiveMsat
 		if nextPaymentSizeMsat <= paymentSizeMsat || nextPaymentSizeMsat > params.MaxPaymentSizeMsat {
 			return 0, false
 		}
