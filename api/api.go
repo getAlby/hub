@@ -1493,6 +1493,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info := InfoResponse{}
 	backendType, _ := api.cfg.Get("LNBackendType", "")
 	ldkVssEnabled, _ := api.cfg.Get("LdkVssEnabled", "")
+	jitChannelsEnabled, _ := api.cfg.Get("JitChannelsEnabled", "")
 	autoUnlockPassword, _ := api.cfg.Get("AutoUnlockPassword", "")
 	setupCompleted, err := api.cfg.SetupCompleted()
 	if err != nil {
@@ -1516,6 +1517,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.EnableAdvancedSetup = api.cfg.GetEnv().EnableAdvancedSetup
 	info.HideUpdateBanner = api.cfg.GetEnv().HideUpdateBanner
 	info.LdkVssEnabled = ldkVssEnabled == "true"
+	info.JitChannelsEnabled = jitChannelsEnabled != "false"
 	info.VssSupported = backendType == config.LDKBackendType && api.cfg.GetEnv().LDKVssUrl != ""
 	info.SupportsBolt12 = backendType == config.LDKBackendType || backendType == config.CLNBackendType
 	info.AutoUnlockPasswordEnabled = autoUnlockPassword != ""
@@ -1552,9 +1554,27 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 			type chainSourceProvider interface {
 				GetChainDataSource() (string, string)
 			}
+			type lsps2SourceProvider interface {
+				GetLiquiditySourceLsps2() string
+			}
+			type lsps2MinPaymentSizeProvider interface {
+				GetLiquiditySourceLsps2MinPaymentSizeMsat() *uint64
+			}
+			type lsps2MaxPaymentSizeProvider interface {
+				GetLiquiditySourceLsps2MaxPaymentSizeMsat() *uint64
+			}
 
 			if ldkService, ok := api.svc.GetLNClient().(chainSourceProvider); ok {
 				info.ChainDataSourceType, info.ChainDataSourceAddress = ldkService.GetChainDataSource()
+			}
+			if ldkService, ok := api.svc.GetLNClient().(lsps2SourceProvider); ok {
+				info.JitChannelsLiquiditySource = ldkService.GetLiquiditySourceLsps2()
+			}
+			if ldkService, ok := api.svc.GetLNClient().(lsps2MinPaymentSizeProvider); ok {
+				info.JitChannelsMinPaymentSizeMsat = ldkService.GetLiquiditySourceLsps2MinPaymentSizeMsat()
+			}
+			if ldkService, ok := api.svc.GetLNClient().(lsps2MaxPaymentSizeProvider); ok {
+				info.JitChannelsMaxPaymentSizeMsat = ldkService.GetLiquiditySourceLsps2MaxPaymentSizeMsat()
 			}
 		}
 	}
@@ -1566,7 +1586,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	return &info, nil
 }
 
-func (api *api) SetCurrency(currency string) error {
+func (api *api) setCurrency(currency string) error {
 	if currency == "" {
 		return fmt.Errorf("currency value cannot be empty")
 	}
@@ -1580,7 +1600,7 @@ func (api *api) SetCurrency(currency string) error {
 	return nil
 }
 
-func (api *api) SetBitcoinDisplayFormat(format string) error {
+func (api *api) setBitcoinDisplayFormat(format string) error {
 	if format != constants.BITCOIN_DISPLAY_FORMAT_SATS && format != constants.BITCOIN_DISPLAY_FORMAT_BIP177 {
 		return fmt.Errorf("bitcoin display format must be '%s' or '%s'", constants.BITCOIN_DISPLAY_FORMAT_SATS, constants.BITCOIN_DISPLAY_FORMAT_BIP177)
 	}
@@ -1594,18 +1614,40 @@ func (api *api) SetBitcoinDisplayFormat(format string) error {
 	return nil
 }
 
+func (api *api) setJitChannelsEnabled(enabled bool) error {
+	value := "true"
+	if !enabled {
+		value = "false"
+	}
+
+	err := api.cfg.SetUpdate("JitChannelsEnabled", value, "")
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to update JIT channels setting")
+		return err
+	}
+
+	return nil
+}
+
 func (api *api) UpdateSettings(updateSettingsRequest *UpdateSettingsRequest) error {
 	if updateSettingsRequest.Currency != "" {
-		err := api.SetCurrency(updateSettingsRequest.Currency)
+		err := api.setCurrency(updateSettingsRequest.Currency)
 		if err != nil {
 			return fmt.Errorf("failed to set currency: %w", err)
 		}
 	}
 
 	if updateSettingsRequest.BitcoinDisplayFormat != "" {
-		err := api.SetBitcoinDisplayFormat(updateSettingsRequest.BitcoinDisplayFormat)
+		err := api.setBitcoinDisplayFormat(updateSettingsRequest.BitcoinDisplayFormat)
 		if err != nil {
 			return fmt.Errorf("failed to set bitcoin display format: %w", err)
+		}
+	}
+
+	if updateSettingsRequest.JitChannelsEnabled != nil {
+		err := api.setJitChannelsEnabled(*updateSettingsRequest.JitChannelsEnabled)
+		if err != nil {
+			return fmt.Errorf("failed to set JIT channels setting: %w", err)
 		}
 	}
 

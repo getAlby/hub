@@ -326,11 +326,14 @@ export default function Channels() {
           {!!channels?.length && (
             <>
               {/* If all channels have less than 20% incoming capacity, show a warning */}
-              {channels?.every(
-                (channel) =>
-                  channel.remoteBalanceMsat <
-                  (channel.localBalanceMsat + channel.remoteBalanceMsat) * 0.2
-              ) && <LowReceivingCapacityAlert />}
+              {!(
+                info?.jitChannelsEnabled && info?.jitChannelsLiquiditySource
+              ) &&
+                channels?.every(
+                  (channel) =>
+                    channel.remoteBalanceMsat <
+                    (channel.localBalanceMsat + channel.remoteBalanceMsat) * 0.2
+                ) && <LowReceivingCapacityAlert />}
             </>
           )}
 

@@ -119,6 +119,7 @@ type ChannelPeerSuggestion struct {
 	Description                string  `json:"description"`
 	Note                       string  `json:"note"`
 	PublicChannelsAllowed      bool    `json:"publicChannelsAllowed"`
+	NodeAddress                string  `json:"nodeAddress"`
 	FeeTotalSat1m              *uint32 `json:"feeTotalSat1m"`
 	FeeTotalSat2m              *uint32 `json:"feeTotalSat2m"`
 	FeeTotalSat3m              *uint32 `json:"feeTotalSat3m"`
