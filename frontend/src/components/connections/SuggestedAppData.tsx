@@ -84,6 +84,9 @@ export type AppStoreApp = {
   hideConnectionQr?: boolean;
   internal?: boolean;
   superuser?: boolean;
+  // Receive-only apps (e.g. merchant payment receivers) default to read-only
+  // permissions in the new connection flow.
+  readonly?: boolean;
   addedDate?: string;
 };
 
@@ -796,6 +799,7 @@ export const appStoreApps: AppStoreApp[] = (
     },
     {
       id: "sat-sorter",
+      readonly: true,
       title: "Sat Sorter",
       description: "A Bitcoin Budgeting App",
       webLink: "https://satsorter.com",
@@ -895,6 +899,7 @@ export const appStoreApps: AppStoreApp[] = (
     },
     {
       id: "bitrequest",
+      readonly: true,
       title: "Bitrequest",
       description: "Non-custodial payment requests",
       webLink: "https://www.bitrequest.io",
@@ -917,17 +922,6 @@ export const appStoreApps: AppStoreApp[] = (
               </ExternalLink>{" "}
               in your browser, or download the app on iOS or Android
             </p>
-            <p className="text-muted-foreground mt-4">
-              In the next step, set wallet permissions to{" "}
-              <span className="font-medium text-foreground">Custom</span> and
-              enable:
-            </p>
-            <ul className="list-inside list-disc text-muted-foreground mt-1">
-              <li>Read your node info</li>
-              <li>Create invoices</li>
-              <li>Lookup status of invoices</li>
-              <li>Read transaction history</li>
-            </ul>
           </div>
         </>
       ),
@@ -967,6 +961,7 @@ export const appStoreApps: AppStoreApp[] = (
     },
     {
       id: "btcpay",
+      readonly: true,
       title: "BTCPay Server",
       description: "Bitcoin payment processor",
       webLink: "https://btcpayserver.org/",
@@ -1455,6 +1450,7 @@ export const appStoreApps: AppStoreApp[] = (
     },
     {
       id: "clams",
+      readonly: true,
       title: "Clams",
       description: "Multi wallet accounting tool",
       webLink: "https://clams.tech/",
@@ -1491,6 +1487,7 @@ export const appStoreApps: AppStoreApp[] = (
     },
     {
       id: "nostrcheck-server",
+      readonly: true,
       title: "Nostrcheck Server",
       description: "Sovereign Nostr services",
       webLink: "https://github.com/quentintaranpino/nostrcheck-server",
@@ -1798,6 +1795,7 @@ export const appStoreApps: AppStoreApp[] = (
     },
     {
       id: "nakapay",
+      readonly: true,
       title: "NakaPay",
       description: "Non-custodial Lightning payments for businesses via NWC",
       webLink: "https://www.nakapay.app",
@@ -2338,6 +2336,7 @@ export const appStoreApps: AppStoreApp[] = (
     },
     {
       id: "takemysats",
+      readonly: true,
       title: "Take My Sats",
       description: "Create your online store and accept Bitcoin payments",
       webLink: "https://www.takemysats.com",

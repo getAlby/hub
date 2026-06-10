@@ -80,6 +80,17 @@ export const validBudgetRenewals: BudgetRenewalType[] = [
   "never",
 ];
 
+// Scopes granted to a read-only connection: receive payments and view
+// balance/history, but never send/spend.
+export const READ_ONLY_SCOPES: Scope[] = [
+  "get_balance",
+  "get_info",
+  "make_invoice",
+  "lookup_invoice",
+  "list_transactions",
+  "notifications",
+];
+
 export const scopeDescriptions: Record<Scope, string> = {
   get_balance: "Read your balance",
   get_info: "Read your node info",
