@@ -40,7 +40,7 @@ export default function Lightning() {
     hasChannelManagement &&
     channels &&
     !hasChannelsOpen &&
-    !info?.jitChannelsLiquiditySource;
+    !(info?.jitChannelsEnabled && info?.jitChannelsLiquiditySource);
 
   return (
     <>

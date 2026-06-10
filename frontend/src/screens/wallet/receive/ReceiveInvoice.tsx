@@ -80,7 +80,7 @@ export default function ReceiveInvoice() {
   const jitMaximumReceiveSat =
     hasChannelManagement && lsps2Source
       ? lsps2MaximumPaymentSizeSat
-      : !configuredLsps2Source && hasChannelManagement
+      : !lsps2Source && hasChannelManagement
         ? balances?.lightning.totalReceivableSat
         : undefined;
   const totalReceivableMsat = balances?.lightning.totalReceivableMsat ?? 0;
