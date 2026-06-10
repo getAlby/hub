@@ -71,7 +71,7 @@ export default function SwapInStatus() {
         const payload: RedeemOnchainFundsRequest = {
           toAddress: swap.lockupAddress,
           amountSat: swap.sendAmountSat,
-          feeRate: +feeRate,
+          ...(feeRate ? { feeRate: +feeRate } : {}),
         };
         const response = await request<RedeemOnchainFundsResponse>(
           "/api/wallet/redeem-onchain-funds",
