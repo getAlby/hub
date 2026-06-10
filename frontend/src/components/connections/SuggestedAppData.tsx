@@ -20,7 +20,6 @@ import fountain from "src/assets/suggested-apps/fountain.png";
 import hablanews from "src/assets/suggested-apps/habla-news.png";
 import iris from "src/assets/suggested-apps/iris.png";
 import jumble from "src/assets/suggested-apps/jumble.png";
-import satoraLogo from "src/assets/suggested-apps/satora.png";
 import lightningMessageboard from "src/assets/suggested-apps/lightning-messageboard.png";
 import lnbits from "src/assets/suggested-apps/lnbits.png";
 import lnvps from "src/assets/suggested-apps/lnvps.png";
@@ -36,6 +35,7 @@ import primal from "src/assets/suggested-apps/primal.png";
 import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
 import runstr from "src/assets/suggested-apps/runstr.png";
 import satsorter from "src/assets/suggested-apps/sat-sorter.png";
+import satoraLogo from "src/assets/suggested-apps/satora.png";
 import sats4ai from "src/assets/suggested-apps/sats4ai.png";
 import simpleboost from "src/assets/suggested-apps/simple-boost.png";
 import snort from "src/assets/suggested-apps/snort.png";
@@ -53,6 +53,7 @@ import zapplepay from "src/assets/suggested-apps/zapple-pay.png";
 import zappybird from "src/assets/suggested-apps/zappy-bird.png";
 import zapstore from "src/assets/suggested-apps/zapstore.png";
 import zeus from "src/assets/suggested-apps/zeus.png";
+import { BitcoinCardTopupInstallGuide } from "src/components/connections/BitcoinCardTopupInstallGuide";
 import ExternalLink from "src/components/ExternalLink";
 import { App } from "src/types";
 
@@ -83,6 +84,9 @@ export type AppStoreApp = {
   hideConnectionQr?: boolean;
   internal?: boolean;
   superuser?: boolean;
+  // Receive-only apps (e.g. merchant payment receivers) default to read-only
+  // permissions in the new connection flow.
+  readonly?: boolean;
   addedDate?: string;
 };
 
@@ -228,34 +232,7 @@ export const appStoreApps: AppStoreApp[] = (
       extendedDescription:
         "A generic top-up app that swaps Lightning sats to a stablecoin and sends them to your card's deposit address. Works with RedotPay, Freedomia, Nexo, Bybit, and any other card that accepts on-chain crypto deposits.",
       webLink: "https://card.albylabs.com",
-      installGuide: (
-        <>
-          <div>
-            <ul className="list-inside list-decimal text-muted-foreground">
-              <li>
-                Open{" "}
-                <ExternalLink
-                  to="https://card.albylabs.com"
-                  className="underline"
-                >
-                  card.albylabs.com
-                </ExternalLink>{" "}
-                on the device you'll top up from.
-              </li>
-              <li>
-                <span className="font-medium text-foreground">
-                  Add it to your home screen
-                </span>{" "}
-                (or bookmark it) so you can reopen it later.
-              </li>
-              <li>
-                Enter your card's deposit address, network, and currency to set
-                it up.
-              </li>
-            </ul>
-          </div>
-        </>
-      ),
+      installGuide: <BitcoinCardTopupInstallGuide />,
       finalizeGuide: (
         <>
           <div>
@@ -822,6 +799,7 @@ export const appStoreApps: AppStoreApp[] = (
     },
     {
       id: "sat-sorter",
+      readonly: true,
       title: "Sat Sorter",
       description: "A Bitcoin Budgeting App",
       webLink: "https://satsorter.com",
@@ -921,6 +899,7 @@ export const appStoreApps: AppStoreApp[] = (
     },
     {
       id: "bitrequest",
+      readonly: true,
       title: "Bitrequest",
       description: "Non-custodial payment requests",
       webLink: "https://www.bitrequest.io",
@@ -943,17 +922,6 @@ export const appStoreApps: AppStoreApp[] = (
               </ExternalLink>{" "}
               in your browser, or download the app on iOS or Android
             </p>
-            <p className="text-muted-foreground mt-4">
-              In the next step, set wallet permissions to{" "}
-              <span className="font-medium text-foreground">Custom</span> and
-              enable:
-            </p>
-            <ul className="list-inside list-disc text-muted-foreground mt-1">
-              <li>Read your node info</li>
-              <li>Create invoices</li>
-              <li>Lookup status of invoices</li>
-              <li>Read transaction history</li>
-            </ul>
           </div>
         </>
       ),
@@ -993,6 +961,7 @@ export const appStoreApps: AppStoreApp[] = (
     },
     {
       id: "btcpay",
+      readonly: true,
       title: "BTCPay Server",
       description: "Bitcoin payment processor",
       webLink: "https://btcpayserver.org/",
@@ -1481,6 +1450,7 @@ export const appStoreApps: AppStoreApp[] = (
     },
     {
       id: "clams",
+      readonly: true,
       title: "Clams",
       description: "Multi wallet accounting tool",
       webLink: "https://clams.tech/",
@@ -1517,6 +1487,7 @@ export const appStoreApps: AppStoreApp[] = (
     },
     {
       id: "nostrcheck-server",
+      readonly: true,
       title: "Nostrcheck Server",
       description: "Sovereign Nostr services",
       webLink: "https://github.com/quentintaranpino/nostrcheck-server",
@@ -1824,6 +1795,7 @@ export const appStoreApps: AppStoreApp[] = (
     },
     {
       id: "nakapay",
+      readonly: true,
       title: "NakaPay",
       description: "Non-custodial Lightning payments for businesses via NWC",
       webLink: "https://www.nakapay.app",
@@ -2233,10 +2205,40 @@ export const appStoreApps: AppStoreApp[] = (
       title: "Bitrefill",
       description: "Live on bitcoin",
       extendedDescription: "Buy gift cards and e-sims with no KYC",
-      internal: true,
       webLink: "https://bitrefill.com",
       logo: bitrefill,
       categories: ["shopping"],
+      appleLink:
+        "https://apps.apple.com/us/app/bitrefill-esims-gift-cards/id1378102623",
+      playLink:
+        "https://play.google.com/store/apps/details?id=com.bitrefill.app&hl=en",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://bitrefill.com"
+              className="font-medium text-foreground underline"
+            >
+              Bitrefill
+            </ExternalLink>{" "}
+            in your browser, or download the app on iOS or Android
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Bitrefill</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Go to settings {"->"} wallets {"->"} lightning {"->"} payments.
+              </li>
+              <li>Paste the connection secret to connect Alby Hub</li>
+            </ul>
+          </div>
+        </>
+      ),
     },
     {
       id: "bringin",
@@ -2334,6 +2336,7 @@ export const appStoreApps: AppStoreApp[] = (
     },
     {
       id: "takemysats",
+      readonly: true,
       title: "Take My Sats",
       description: "Create your online store and accept Bitcoin payments",
       webLink: "https://www.takemysats.com",

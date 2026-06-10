@@ -1,4 +1,4 @@
-import { LinkIcon } from "lucide-react";
+import { BitcoinIcon } from "lucide-react";
 import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
 import OnchainTransactionItem from "src/components/OnchainTransactionItem";
@@ -18,12 +18,9 @@ export function OnchainTransactionsList() {
     return (
       <div className="flex w-full flex-1 flex-col">
         <EmptyState
-          icon={LinkIcon}
+          icon={BitcoinIcon}
           title="No on-chain transactions yet"
-          description="Your most recent incoming and outgoing on-chain transactions will show up here."
-          buttonText="Receive to On-chain Balance"
-          buttonLink="/wallet/receive?type=onchain"
-          showBorder={false}
+          description="Your bitcoin transactions will appear here as you start using your wallet."
         />
       </div>
     );

@@ -31,6 +31,7 @@ import {
   CreateAppResponse,
   Nip47NotificationType,
   Nip47RequestMethod,
+  READ_ONLY_SCOPES,
   Scope,
   WalletCapabilities,
   validBudgetRenewals,
@@ -105,6 +106,14 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
 
   /* eslint-disable react-hooks/preserve-manual-memoization */
   const initialScopes: Scope[] = React.useMemo(() => {
+    // Receive-only app store apps (e.g. merchant payment receivers) default to
+    // read-only permissions, unless the deep link explicitly requests methods.
+    if (appStoreApp?.readonly && !reqMethodsParam) {
+      return capabilities.scopes.filter((scope) =>
+        READ_ONLY_SCOPES.includes(scope)
+      );
+    }
+
     const methods = reqMethodsParam
       ? reqMethodsParam.split(" ")
       : capabilities.methods;
@@ -185,8 +194,10 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
 
     return scopes;
   }, [
+    appStoreApp?.readonly,
     capabilities.methods,
     capabilities.notificationTypes,
+    capabilities.scopes,
     isolatedParam,
     notificationTypesParam,
     reqMethodsParam,

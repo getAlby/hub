@@ -776,10 +776,16 @@ function ConnectCardDialog({
             if (!p.appStoreId) {
               return null;
             }
+            // The generic card topup app pre-configures itself from a `provider`
+            // query param; pass the selected provider so its preset is applied.
+            const to =
+              p.appStoreId === "bitcoin-card-topup"
+                ? `/apps/new?app=${p.appStoreId}&provider=${encodeURIComponent(p.id)}`
+                : `/apps/new?app=${p.appStoreId}`;
             return (
               <Link
                 key={p.id}
-                to={`/apps/new?app=${p.appStoreId}`}
+                to={to}
                 onClick={() => {
                   sendEvent("debit_card_connect", { name: p.name });
                   onOpenChange(false);

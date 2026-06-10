@@ -4,7 +4,7 @@ import { ListTransactionsResponse } from "src/types";
 import { swrFetcher } from "src/utils/swr";
 
 const pollConfiguration: SWRConfiguration = {
-  refreshInterval: 3000,
+  refreshInterval: 10000,
 };
 
 export function getTransactionsUrl(appId?: number, limit = 100, page = 1) {
