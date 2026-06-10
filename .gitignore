@@ -31,3 +31,4 @@ glalby
 *.db-wal
 *.db-journal
 albyhub-data
+.claude/worktrees
