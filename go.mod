@@ -19,7 +19,7 @@ require (
 	github.com/stretchr/testify v1.11.1
 	github.com/tyler-smith/go-bip39 v1.1.0
 	github.com/wailsapp/wails/v2 v2.12.0
-	gitlab.com/ark-bitcoin/bark-ffi-bindings/golang v0.7.0
+	gitlab.com/ark-bitcoin/bark-ffi-bindings/golang v0.8.0
 	golang.org/x/crypto v0.52.0
 	golang.org/x/oauth2 v0.36.0
 	google.golang.org/grpc v1.79.3
