@@ -4,6 +4,8 @@ import { Link, useLocation, useParams } from "react-router";
 import {
   App,
   AppPermissions,
+  BudgetRenewalType,
+  Scope,
   UpdateAppRequest,
   WalletCapabilities,
 } from "src/types";
@@ -24,8 +26,8 @@ import {
 import { toast } from "sonner";
 import AppAvatar from "src/components/AppAvatar";
 import AppHeader from "src/components/AppHeader";
-import { AboutAppCard } from "src/components/connections/AboutAppCard";
-import { AppLinksCard } from "src/components/connections/AppLinksCard";
+import { AppLinks } from "src/components/connections/AppLinksCard";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import { AppTransactionList } from "src/components/connections/AppTransactionList";
 import { AppUsage } from "src/components/connections/AppUsage";
 import { ConnectionDetailsModal } from "src/components/connections/ConnectionDetailsModal";
@@ -69,6 +71,95 @@ import { useAppsForAppStoreApp } from "src/hooks/useApps";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { cn, getAppDisplayName } from "src/lib/utils";
 
+function formatList(items: string[]): string {
+  if (items.length === 1) {
+    return items[0];
+  }
+  if (items.length === 2) {
+    return `${items[0]} and ${items[1]}`;
+  }
+  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
+}
+
+const budgetPeriodLabels: Record<BudgetRenewalType, string> = {
+  daily: "day",
+  weekly: "week",
+  monthly: "month",
+  yearly: "year",
+  never: "",
+  "": "",
+};
+
+function getSecondaryAbilities(scopes: Scope[]): string[] {
+  const abilities: string[] = [];
+  if (scopes.includes("make_invoice")) {
+    abilities.push("receive payments");
+  }
+  if (
+    scopes.includes("get_balance") ||
+    scopes.includes("get_info") ||
+    scopes.includes("list_transactions") ||
+    scopes.includes("lookup_invoice")
+  ) {
+    abilities.push("read your balance and activity");
+  }
+  if (scopes.includes("sign_message")) {
+    abilities.push("sign messages");
+  }
+  return abilities;
+}
+
+function PermissionsSummary({
+  scopes,
+  maxAmountSat,
+  budgetRenewal,
+}: {
+  scopes: Scope[];
+  maxAmountSat: number;
+  budgetRenewal: BudgetRenewalType;
+}) {
+  if (scopes.includes("superuser")) {
+    return (
+      <p>
+        This app has full access and can create other connections to your
+        wallet.
+      </p>
+    );
+  }
+
+  const canSpend = scopes.includes("pay_invoice");
+  const secondary = getSecondaryAbilities(scopes);
+
+  if (!canSpend && !secondary.length) {
+    return <p>This app has no access to your wallet.</p>;
+  }
+
+  if (!canSpend) {
+    return <p>This app can {formatList(secondary)}.</p>;
+  }
+
+  return (
+    <p>
+      This app can send payments
+      {maxAmountSat > 0 ? (
+        <>
+          {" "}
+          up to{" "}
+          <span className="font-medium text-foreground">
+            <FormattedBitcoinAmount amountMsat={maxAmountSat * 1000} />
+          </span>
+          {budgetRenewal !== "never" && (
+            <> per {budgetPeriodLabels[budgetRenewal]}</>
+          )}
+        </>
+      ) : (
+        <> with no spending limit set</>
+      )}
+      .{!!secondary.length && <> It can also {formatList(secondary)}.</>}
+    </p>
+  );
+}
+
 function AppDetails() {
   const { id } = useParams() as { id: string };
   const { data: app, mutate: refetchApp, error } = useApp(parseInt(id));
@@ -104,6 +195,8 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
   const [showConnectionDetails, setShowConnectionDetails] =
     React.useState(false);
   const [showDisconnectAppDialog, setShowDisconnectAppDialog] =
+    React.useState(false);
+  const [showPermissionDetails, setShowPermissionDetails] =
     React.useState(false);
 
   const { data: albyMe } = useAlbyMe();
@@ -189,6 +282,46 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
     (app.isolated && !permissions.isolated) ||
     (!app.scopes.includes("pay_invoice") &&
       permissions.scopes.includes("pay_invoice"));
+
+  const permissionsSection = (
+    <div>
+      <div className="flex flex-row justify-between items-center mb-2">
+        <p className="font-semibold">Permissions</p>
+        <button
+          type="button"
+          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+          onClick={() => setShowPermissionDetails((current) => !current)}
+        >
+          {showPermissionDetails ? "Hide details" : "Show details"}
+          <ChevronDownIcon
+            className={cn(
+              "size-4 transition-transform",
+              showPermissionDetails && "rotate-180"
+            )}
+          />
+        </button>
+      </div>
+      {showPermissionDetails ? (
+        <Permissions
+          capabilities={capabilities}
+          permissions={savedPermissions}
+          setPermissions={setPermissions}
+          readOnly
+        />
+      ) : (
+        <div className="text-sm text-muted-foreground space-y-1">
+          <PermissionsSummary
+            scopes={app.scopes}
+            maxAmountSat={app.maxAmountSat}
+            budgetRenewal={app.budgetRenewal}
+          />
+          {app.expiresAt && (
+            <p>Expires {new Date(app.expiresAt).toLocaleDateString()}</p>
+          )}
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <>
@@ -390,17 +523,6 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
             }
             description={""}
           />
-          {!isEditingPermissions && (
-            <>
-              {appStoreApp && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <AboutAppCard appStoreApp={appStoreApp} />
-                  <AppLinksCard appStoreApp={appStoreApp} />
-                </div>
-              )}
-              <AppUsage app={app} />
-            </>
-          )}
           {isEditingPermissions ? (
             <form
               id="app-details"
@@ -453,23 +575,43 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
               </Card>
             </form>
           ) : (
-            <Card>
-              <CardHeader>
-                <CardTitle>
-                  <div className="flex flex-row justify-between items-center">
-                    Permissions
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Permissions
-                  capabilities={capabilities}
-                  permissions={savedPermissions}
-                  setPermissions={setPermissions}
-                  readOnly
-                />
-              </CardContent>
-            </Card>
+            <div
+              className={cn(
+                "grid grid-cols-1 gap-3 items-start",
+                appStoreApp && "lg:grid-cols-3"
+              )}
+            >
+              <div
+                className={cn(
+                  "flex flex-col gap-3 min-w-0",
+                  appStoreApp && "lg:col-span-2"
+                )}
+              >
+                <AppUsage app={app} />
+                {!appStoreApp && (
+                  <Card>
+                    <CardContent className="py-6">
+                      {permissionsSection}
+                    </CardContent>
+                  </Card>
+                )}
+                <AppTransactionList appId={app.id} />
+              </div>
+              {appStoreApp && (
+                <Card className="gap-4">
+                  <CardHeader>
+                    <CardTitle>About the App</CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex flex-col gap-4">
+                    <p className="text-muted-foreground">
+                      {appStoreApp.extendedDescription}
+                    </p>
+                    <AppLinks appStoreApp={appStoreApp} />
+                    <div className="border-t pt-4">{permissionsSection}</div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           )}
           {!isEditingPermissions && (
             <>
@@ -485,7 +627,6 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                   onClose={() => setShowDisconnectAppDialog(false)}
                 />
               )}
-              <AppTransactionList appId={app.id} />
             </>
           )}
         </div>

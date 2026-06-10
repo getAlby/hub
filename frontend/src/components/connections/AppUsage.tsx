@@ -72,31 +72,34 @@ export function AppUsage({ app }: { app: App }) {
     deletingLightningAddress,
   } = useDeleteLightningAddress(app.id);
 
+  const isSubwallet =
+    app.metadata?.app_store_app_id === SUBWALLET_APPSTORE_APP_ID;
+
   return (
     <>
-      {app.isolated && (
-        <div
-          className={cn(
-            "grid grid-cols-1 gap-3",
-            app.metadata?.app_store_app_id === SUBWALLET_APPSTORE_APP_ID &&
-              "lg:grid-cols-2"
-          )}
-        >
-          <Card className="justify-between">
-            <CardHeader>
-              <CardTitle>Isolated Balance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex justify-between items-end">
-                <div>
-                  <p className="font-medium text-2xl">
-                    <FormattedBitcoinAmount amountMsat={app.balanceMsat} />
-                  </p>
-                  <FormattedFiatAmount
-                    amountSat={Math.floor(app.balanceMsat / 1000)}
-                  />
-                </div>
-                <div className="flex gap-2 items-center">
+      <Card className="slashed-zero gap-4">
+        <CardHeader>
+          <CardTitle>Usage</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-5">
+          <div
+            className={cn(
+              "grid grid-cols-1 gap-6 sm:gap-4",
+              app.isolated ? "sm:grid-cols-3" : "sm:grid-cols-2"
+            )}
+          >
+            {app.isolated && (
+              <div className="flex flex-col">
+                <p className="text-xs text-secondary-foreground font-medium">
+                  Isolated Balance
+                </p>
+                <p className="text-xl font-medium">
+                  <FormattedBitcoinAmount amountMsat={app.balanceMsat} />
+                </p>
+                <FormattedFiatAmount
+                  amountSat={Math.floor(app.balanceMsat / 1000)}
+                />
+                <div className="flex gap-2 items-center mt-3">
                   {app.balanceMsat > 0 && (
                     <IsolatedAppDrawDownDialog appId={app.id}>
                       <Button size="sm" variant="outline">
@@ -113,156 +116,138 @@ export function AppUsage({ app }: { app: App }) {
                   </IsolatedAppTopupDialog>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-          {app.metadata?.app_store_app_id === SUBWALLET_APPSTORE_APP_ID && (
-            <Card className="justify-between">
-              <CardHeader>
-                <CardTitle>Lightning Address</CardTitle>
-
-                {!app.metadata.lud16 && (
-                  <CardDescription>
-                    <p className="text-muted-foreground">
-                      Create a lightning address for this particular app
-                      connection
-                    </p>
-                  </CardDescription>
-                )}
-              </CardHeader>
-              <CardContent>
-                {!app.metadata.lud16 && (
-                  <div className="flex items-center gap-2">
-                    <InputWithAdornment
-                      type="text"
-                      value={intendedLightningAddress}
-                      onChange={(e) =>
-                        setIntendedLightningAddress(e.target.value)
-                      }
-                      required
-                      autoComplete="off"
-                      endAdornment={
-                        <span className="mr-1 text-muted-foreground text-xs">
-                          @getalby.com
-                        </span>
-                      }
-                      className="flex-1"
-                    />
-                    {!albyMe?.subscription.plan_code ? (
-                      <UpgradeDialog>
-                        <Button className="shrink-0" variant="secondary">
-                          Create
-                        </Button>
-                      </UpgradeDialog>
-                    ) : (
-                      <LoadingButton
-                        className="shrink-0"
-                        variant="secondary"
-                        loading={creatingLightningAddress}
-                        onClick={() =>
-                          createLightningAddress(intendedLightningAddress)
-                        }
-                      >
-                        Create
-                      </LoadingButton>
-                    )}
-                  </div>
-                )}
-                {app.metadata.lud16 && (
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <p className="font-semibold break-all min-w-0 flex-1">
-                      {app.metadata.lud16}
-                    </p>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Button
-                        size="sm"
-                        onClick={() =>
-                          copyToClipboard(app.metadata?.lud16 || "")
-                        }
-                        variant="outline"
-                      >
-                        <CopyIcon />
-                        Copy
-                      </Button>
-                      <LoadingButton
-                        size="sm"
-                        variant="outline"
-                        loading={deletingLightningAddress}
-                        onClick={deleteSubwalletLightningAddress}
-                      >
-                        <Trash2Icon />
-                        Remove
-                      </LoadingButton>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Spent</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="font-medium text-2xl">
-              <FormattedBitcoinAmount amountMsat={totalSpentSat * 1000} />
-            </p>
-            <FormattedFiatAmount amountSat={totalSpentSat} />
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Total Received</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="font-medium text-2xl">
-              <FormattedBitcoinAmount amountMsat={totalReceivedSat * 1000} />
-            </p>
-            <FormattedFiatAmount amountSat={totalReceivedSat} />
-          </CardContent>
-        </Card>
-      </div>
-
-      {app.maxAmountSat > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Budget</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-row justify-between mb-2">
-              <div>
-                <p className="text-xs text-secondary-foreground font-medium">
-                  Left in budget
-                </p>
-                <p className="text-xl font-medium">
-                  <FormattedBitcoinAmount
-                    amountMsat={app.maxAmountMsat - app.budgetUsageMsat}
-                  />
-                </p>
-                <FormattedFiatAmount
-                  amountSat={app.maxAmountSat - app.budgetUsageSat}
-                />
-              </div>
-              <div>
-                <p className="text-xs text-secondary-foreground font-medium">
-                  Budget renewal
-                </p>
-                <p className="text-xl font-medium">
-                  <FormattedBitcoinAmount amountMsat={app.maxAmountMsat} />
-                  {app.budgetRenewal !== "never" && (
-                    <> / {getBudgetRenewalLabel(app.budgetRenewal)}</>
-                  )}
-                </p>
-                <FormattedFiatAmount amountSat={app.maxAmountSat} />
-              </div>
+            )}
+            <div className="flex flex-col">
+              <p className="text-xs text-secondary-foreground font-medium">
+                Total Spent
+              </p>
+              <p className="text-xl font-medium">
+                <FormattedBitcoinAmount amountMsat={totalSpentSat * 1000} />
+              </p>
+              <FormattedFiatAmount amountSat={totalSpentSat} />
             </div>
-            <Progress
-              className="h-4"
-              value={100 - (app.budgetUsageSat * 100) / app.maxAmountSat}
-            />
+            <div className="flex flex-col">
+              <p className="text-xs text-secondary-foreground font-medium">
+                Total Received
+              </p>
+              <p className="text-xl font-medium">
+                <FormattedBitcoinAmount amountMsat={totalReceivedSat * 1000} />
+              </p>
+              <FormattedFiatAmount amountSat={totalReceivedSat} />
+            </div>
+          </div>
+
+          {app.maxAmountSat > 0 && (
+            <div className="flex flex-col gap-2 border-t pt-5">
+              <div className="flex flex-row justify-between">
+                <div>
+                  <p className="text-xs text-secondary-foreground font-medium">
+                    Left in budget
+                  </p>
+                  <p className="text-xl font-medium">
+                    <FormattedBitcoinAmount
+                      amountMsat={app.maxAmountMsat - app.budgetUsageMsat}
+                    />
+                  </p>
+                  <FormattedFiatAmount
+                    amountSat={app.maxAmountSat - app.budgetUsageSat}
+                  />
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-secondary-foreground font-medium">
+                    Budget renewal
+                  </p>
+                  <p className="text-xl font-medium">
+                    <FormattedBitcoinAmount amountMsat={app.maxAmountMsat} />
+                    {app.budgetRenewal !== "never" && (
+                      <> / {getBudgetRenewalLabel(app.budgetRenewal)}</>
+                    )}
+                  </p>
+                  <FormattedFiatAmount amountSat={app.maxAmountSat} />
+                </div>
+              </div>
+              <Progress
+                className="h-2 mt-1"
+                value={100 - (app.budgetUsageSat * 100) / app.maxAmountSat}
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {app.isolated && isSubwallet && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Lightning Address</CardTitle>
+
+            {!app.metadata?.lud16 && (
+              <CardDescription>
+                Create a lightning address for this particular app connection
+              </CardDescription>
+            )}
+          </CardHeader>
+          <CardContent>
+            {!app.metadata?.lud16 && (
+              <div className="flex items-center gap-2">
+                <InputWithAdornment
+                  type="text"
+                  value={intendedLightningAddress}
+                  onChange={(e) => setIntendedLightningAddress(e.target.value)}
+                  required
+                  autoComplete="off"
+                  endAdornment={
+                    <span className="mr-1 text-muted-foreground text-xs">
+                      @getalby.com
+                    </span>
+                  }
+                  className="flex-1"
+                />
+                {!albyMe?.subscription.plan_code ? (
+                  <UpgradeDialog>
+                    <Button className="shrink-0" variant="secondary">
+                      Create
+                    </Button>
+                  </UpgradeDialog>
+                ) : (
+                  <LoadingButton
+                    className="shrink-0"
+                    variant="secondary"
+                    loading={creatingLightningAddress}
+                    onClick={() =>
+                      createLightningAddress(intendedLightningAddress)
+                    }
+                  >
+                    Create
+                  </LoadingButton>
+                )}
+              </div>
+            )}
+            {app.metadata?.lud16 && (
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <p className="font-semibold break-all min-w-0 flex-1">
+                  {app.metadata.lud16}
+                </p>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button
+                    size="sm"
+                    onClick={() => copyToClipboard(app.metadata?.lud16 || "")}
+                    variant="outline"
+                  >
+                    <CopyIcon />
+                    Copy
+                  </Button>
+                  <LoadingButton
+                    size="sm"
+                    variant="outline"
+                    loading={deletingLightningAddress}
+                    onClick={deleteSubwalletLightningAddress}
+                  >
+                    <Trash2Icon />
+                    Remove
+                  </LoadingButton>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
