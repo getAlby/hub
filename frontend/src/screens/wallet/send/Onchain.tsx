@@ -1,4 +1,4 @@
-import { InfoIcon, PencilIcon, XIcon } from "lucide-react";
+import { InfoIcon, XIcon } from "lucide-react";
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -16,7 +16,6 @@ import { Label } from "src/components/ui/label";
 import { Switch } from "src/components/ui/switch";
 import { ONCHAIN_DUST_SATS } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
-import { useInfo } from "src/hooks/useInfo";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useSwapInfo } from "src/hooks/useSwaps";
 import {
@@ -107,30 +106,10 @@ function OnchainForm({
   setSwap: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
   const navigate = useNavigate();
-  const { data: info } = useInfo();
   const { data: balances } = useBalances();
-  const { data: recommendedFees, error: mempoolError } = useMempoolApi<{
-    fastestFee: number;
-    halfHourFee: number;
-    economyFee: number;
-    minimumFee: number;
-  }>("/v1/fees/recommended");
 
   const [feeRate, setFeeRate] = React.useState("");
   const [isLoading, setLoading] = React.useState(false);
-  const [editFee, setEditFee] = React.useState(false);
-
-  React.useEffect(() => {
-    if (recommendedFees?.fastestFee) {
-      setFeeRate(recommendedFees.fastestFee.toString());
-    }
-  }, [recommendedFees]);
-
-  React.useEffect(() => {
-    if (mempoolError) {
-      setEditFee(true);
-    }
-  }, [mempoolError]);
 
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -180,7 +159,7 @@ function OnchainForm({
     }
   };
 
-  if (!info || !balances || (!recommendedFees && !mempoolError)) {
+  if (!balances) {
     return <Loading />;
   }
 
@@ -208,31 +187,7 @@ function OnchainForm({
         <Switch id="swap" onCheckedChange={setSwap} />
       </div>
       <div className="grid gap-2 text-sm border-t pt-6">
-        {!editFee ? (
-          <div className="flex items-center justify-between">
-            <Label>On-chain Fee Rate (sat/vB)</Label>
-            <button
-              type="button"
-              className="flex items-center gap-2 cursor-pointer"
-              onClick={() => setEditFee(true)}
-            >
-              {feeRate ? (
-                <p>{feeRate} sat/vB</p>
-              ) : (
-                <Loading className="w-4 h-4" />
-              )}
-              <PencilIcon className="w-4 h-4" />
-            </button>
-          </div>
-        ) : (
-          <FeeRateField
-            feeRate={feeRate}
-            onFeeRateChange={setFeeRate}
-            recommendedFees={recommendedFees}
-            hasMempoolError={Boolean(mempoolError)}
-            mempoolUrl={info?.mempoolUrl}
-          />
-        )}
+        <FeeRateField feeRate={feeRate} onFeeRateChange={setFeeRate} />
       </div>
       {amountSat && +amountSat < 10_000 && (
         <Alert>

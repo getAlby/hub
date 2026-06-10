@@ -2,7 +2,6 @@ import {
   ClipboardPasteIcon,
   ExternalLinkIcon,
   MoveRightIcon,
-  PencilIcon,
   RefreshCwIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -31,7 +30,6 @@ import {
 } from "src/components/ui/tabs";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
-import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useSwapInfo } from "src/hooks/useSwaps";
 import {
   CreateInvoiceRequest,
@@ -100,29 +98,10 @@ function SwapInForm() {
   const navigate = useNavigate();
 
   const [swapAmountSat, setSwapAmountSat] = useState("");
-  const { data: recommendedFees, error: mempoolError } = useMempoolApi<{
-    fastestFee: number;
-    halfHourFee: number;
-    economyFee: number;
-    minimumFee: number;
-  }>("/v1/fees/recommended");
   const [feeRate, setFeeRate] = useState("");
-  const [editFee, setEditFee] = useState(false);
   const [loading, setLoading] = useState(false);
   const [cryptoTransaction, setCryptoTransaction] =
     useState<Transaction | null>(null);
-
-  useEffect(() => {
-    if (recommendedFees?.fastestFee) {
-      setFeeRate(recommendedFees.fastestFee.toString());
-    }
-  }, [recommendedFees]);
-
-  useEffect(() => {
-    if (mempoolError) {
-      setEditFee(true);
-    }
-  }, [mempoolError]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -313,33 +292,7 @@ function SwapInForm() {
         <>
           <div className="flex flex-col pt-4 gap-4 border-t">
             {isInternalSwap && (
-              <>
-                {!editFee ? (
-                  <div className="flex items-center justify-between">
-                    <Label>On-chain Fee Rate (sat/vB)</Label>
-                    <button
-                      type="button"
-                      className="flex items-center gap-2 cursor-pointer"
-                      onClick={() => setEditFee(true)}
-                    >
-                      {feeRate ? (
-                        <p className="text-sm">{feeRate} sat/vB</p>
-                      ) : (
-                        <Loading className="w-4 h-4" />
-                      )}
-                      <PencilIcon className="w-4 h-4" />
-                    </button>
-                  </div>
-                ) : (
-                  <FeeRateField
-                    feeRate={feeRate}
-                    onFeeRateChange={setFeeRate}
-                    recommendedFees={recommendedFees}
-                    hasMempoolError={Boolean(mempoolError)}
-                    mempoolUrl={info?.mempoolUrl}
-                  />
-                )}
-              </>
+              <FeeRateField feeRate={feeRate} onFeeRateChange={setFeeRate} />
             )}
             <div className="flex items-center justify-between">
               <Label>{isInternalSwap ? "Swap Fee" : "Fee"}</Label>

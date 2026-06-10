@@ -1,6 +1,5 @@
 import {
   AlertTriangleIcon,
-  ChevronDownIcon,
   CopyIcon,
   ExternalLinkIcon,
   InfoIcon,
@@ -34,7 +33,6 @@ import { Separator } from "src/components/ui/separator";
 import { ONCHAIN_DUST_SATS } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
-import { useMempoolApi } from "src/hooks/useMempoolApi";
 
 import { copyToClipboard } from "src/lib/clipboard";
 import {
@@ -46,32 +44,13 @@ import { request } from "src/utils/request";
 export default function WithdrawOnchainFunds() {
   const { data: info } = useInfo();
   const { data: balances } = useBalances();
-  const { data: recommendedFees, error: mempoolError } = useMempoolApi<{
-    fastestFee: number;
-    halfHourFee: number;
-    economyFee: number;
-    minimumFee: number;
-  }>("/v1/fees/recommended");
   const [isLoading, setLoading] = React.useState(false);
   const [onchainAddress, setOnchainAddress] = React.useState("");
   const [amountSat, setAmountSat] = React.useState("");
   const [feeRate, setFeeRate] = React.useState("");
   const [sendAll, setSendAll] = React.useState(false);
-  const [showAdvanced, setShowAdvanced] = React.useState(false);
   const [transactionId, setTransactionId] = React.useState("");
   const [confirmDialogOpen, setConfirmDialogOpen] = React.useState(false);
-
-  React.useEffect(() => {
-    if (mempoolError) {
-      setShowAdvanced(true);
-    }
-  }, [mempoolError]);
-
-  React.useEffect(() => {
-    if (recommendedFees?.fastestFee) {
-      setFeeRate(recommendedFees.fastestFee.toString());
-    }
-  }, [recommendedFees]);
 
   const copy = (text: string) => {
     copyToClipboard(text);
@@ -158,7 +137,7 @@ export default function WithdrawOnchainFunds() {
     );
   }
 
-  if (!info || !balances || (!recommendedFees && !mempoolError)) {
+  if (!info || !balances) {
     return <Loading />;
   }
 
@@ -256,28 +235,9 @@ export default function WithdrawOnchainFunds() {
             </p>
           </div>
           {(info?.backendType === "LDK" || info?.backendType === "LND") && (
-            <>
-              {showAdvanced && (
-                <FeeRateField
-                  feeRate={feeRate}
-                  onFeeRateChange={setFeeRate}
-                  recommendedFees={recommendedFees}
-                  hasMempoolError={Boolean(mempoolError)}
-                  mempoolUrl={info?.mempoolUrl}
-                />
-              )}
-              {!showAdvanced && (
-                <Button
-                  type="button"
-                  variant="link"
-                  className="text-muted-foreground text-xs"
-                  onClick={() => setShowAdvanced((current) => !current)}
-                >
-                  <ChevronDownIcon />
-                  Advanced Options
-                </Button>
-              )}
-            </>
+            <div className="border-t pt-4">
+              <FeeRateField feeRate={feeRate} onFeeRateChange={setFeeRate} />
+            </div>
           )}
 
           <div>

@@ -1,8 +1,12 @@
-import { AlertTriangleIcon, ExternalLinkIcon } from "lucide-react";
+import { AlertTriangleIcon, ExternalLinkIcon, PencilIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import ExternalLink from "src/components/ExternalLink";
+import Loading from "src/components/Loading";
 import { Button } from "src/components/ui/button";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
+import { useInfo } from "src/hooks/useInfo";
+import { useMempoolApi } from "src/hooks/useMempoolApi";
 
 type RecommendedFees = {
   fastestFee: number;
@@ -14,22 +18,65 @@ type RecommendedFees = {
 type FeeRateFieldProps = {
   feeRate: string;
   onFeeRateChange: (value: string) => void;
-  recommendedFees?: RecommendedFees;
-  hasMempoolError?: boolean;
-  mempoolUrl?: string;
 };
 
-export function FeeRateField({
-  feeRate,
-  onFeeRateChange,
-  recommendedFees,
-  hasMempoolError,
-  mempoolUrl,
-}: FeeRateFieldProps) {
+export function FeeRateField({ feeRate, onFeeRateChange }: FeeRateFieldProps) {
+  const { data: info } = useInfo();
+  const { data: recommendedFees, error: mempoolError } =
+    useMempoolApi<RecommendedFees>("/v1/fees/recommended");
+  const [isEditing, setIsEditing] = useState(false);
+  const hasInitializedDefaultFee = useRef(false);
+
+  useEffect(() => {
+    if (
+      recommendedFees?.fastestFee &&
+      !hasInitializedDefaultFee.current &&
+      !feeRate
+    ) {
+      hasInitializedDefaultFee.current = true;
+      onFeeRateChange(recommendedFees.fastestFee.toString());
+    }
+  }, [feeRate, onFeeRateChange, recommendedFees]);
+
+  useEffect(() => {
+    if (mempoolError) {
+      setIsEditing(true);
+    }
+  }, [mempoolError]);
+
+  if (!info || (!recommendedFees && !mempoolError)) {
+    return (
+      <div className="flex items-center justify-between">
+        <Label>On-chain Fee Rate (sat/vB)</Label>
+        <Loading className="w-4 h-4" />
+      </div>
+    );
+  }
+
+  if (!isEditing) {
+    return (
+      <div className="flex items-center justify-between">
+        <Label>On-chain Fee Rate (sat/vB)</Label>
+        {feeRate ? (
+          <button
+            type="button"
+            className="flex items-center gap-2 cursor-pointer"
+            onClick={() => setIsEditing(true)}
+          >
+            <p className="text-sm">{feeRate} sat/vB</p>
+            <PencilIcon className="w-4 h-4" />
+          </button>
+        ) : (
+          <Loading className="w-4 h-4" />
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-2">
       <Label htmlFor="fee-rate">On-chain Fee Rate (sat/vB)</Label>
-      {hasMempoolError && (
+      {mempoolError && (
         <div className="text-muted-foreground text-xs flex gap-1 items-center">
           <AlertTriangleIcon className="h-3 w-3" />
           Failed to fetch fee estimates. Try refreshing the page.
@@ -68,9 +115,9 @@ export function FeeRateField({
           >
             High priority: {recommendedFees.fastestFee}
           </Button>
-          {mempoolUrl && (
+          {info.mempoolUrl && (
             <ExternalLink
-              to={mempoolUrl}
+              to={info.mempoolUrl}
               className="text-muted-foreground text-sm underline flex items-center gap-2"
             >
               View on Mempool
