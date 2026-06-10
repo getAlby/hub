@@ -130,7 +130,7 @@ func TestHandleCreateConnectionEvent_IsolatedUnsupportedBackendType(t *testing.T
 
 	assert.NotNil(t, publishedResponse.Error)
 	assert.Equal(t, constants.ERROR_INTERNAL, publishedResponse.Error.Code)
-	assert.Equal(t, "sub-wallets are currently not supported on your node backend. Try LDK or LND", publishedResponse.Error.Message)
+	assert.Equal(t, "sub-wallets are currently not supported on your node backend. Try LDK, LND, PHOENIX, BARK, or CLN", publishedResponse.Error.Message)
 	assert.Equal(t, models.CREATE_CONNECTION_METHOD, publishedResponse.ResultType)
 }
 

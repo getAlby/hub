@@ -418,6 +418,13 @@ func (svc *albyOAuthService) DeleteLightningAddress(ctx context.Context, address
 		return errors.New("failed to read response body")
 	}
 
+	if res.StatusCode == http.StatusNotFound {
+		// The lightning address was already deleted on the Alby account
+		// (e.g. removed previously). Treat as success so deletion is idempotent.
+		logger.Logger.WithField("address", address).Info("Lightning address already deleted on Alby account, ignoring 404")
+		return nil
+	}
+
 	if res.StatusCode >= 300 {
 		return fmt.Errorf("DELETE request to /internal/lightning_addresses/%s returned non-success status: %d %s", address, res.StatusCode, string(responseBody))
 	}
@@ -1367,6 +1374,52 @@ func (svc *albyOAuthService) requestAutoChannel(ctx context.Context, url string,
 		ChannelSize:    channelSizeSat,
 		ChannelSizeSat: channelSizeSat,
 	}, nil
+}
+
+func (svc *albyOAuthService) GetStories(ctx context.Context) ([]Story, error) {
+	client := &http.Client{Timeout: 10 * time.Second}
+	url := fmt.Sprintf("%s/stories", albyInternalAPIURL)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Error creating request to stories endpoint")
+		return nil, fmt.Errorf("create stories request: %w", err)
+	}
+	setDefaultRequestHeaders(req)
+
+	res, err := client.Do(req)
+	if err != nil {
+		logger.Logger.WithError(err).Error("Failed to fetch stories from API")
+		return nil, fmt.Errorf("fetch stories: %w", err)
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"url": url,
+		}).Error("Failed to read response body")
+		return nil, fmt.Errorf("read stories response body: %w", err)
+	}
+
+	if res.StatusCode >= 300 {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":        string(body),
+			"status_code": res.StatusCode,
+		}).Error("stories endpoint returned non-success code")
+		return nil, fmt.Errorf("stories endpoint returned %d: %s", res.StatusCode, string(body))
+	}
+
+	var stories []Story
+	if err := json.Unmarshal(body, &stories); err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"body":  string(body),
+			"error": err,
+		}).Error("Failed to decode stories API response")
+		return nil, fmt.Errorf("decode stories response: %w", err)
+	}
+
+	return stories, nil
 }
 
 func setDefaultRequestHeaders(req *http.Request) {

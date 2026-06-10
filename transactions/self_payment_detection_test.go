@@ -67,6 +67,11 @@ func TestSendPaymentSync_SelfPaymentDetection_WithoutIncomingTransaction(t *test
 	assert.Equal(t, uint64(123000), transaction.AmountMsat)
 }
 
+// Self-payment detection is based solely on having an incoming transaction for
+// the same invoice, not on the invoice payee matching our node pubkey. A
+// mismatching pubkey must not prevent detection: some backends (e.g. Bark)
+// don't own the node behind the invoice, and the payee is unavailable for
+// private BOLT12 payments.
 func TestSendPaymentSync_SelfPaymentDetection_DifferentPubkey(t *testing.T) {
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
@@ -89,6 +94,6 @@ func TestSendPaymentSync_SelfPaymentDetection_DifferentPubkey(t *testing.T) {
 
 	assert.NoError(t, err)
 	assert.NotNil(t, transaction)
-	assert.False(t, transaction.SelfPayment)
+	assert.True(t, transaction.SelfPayment)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transaction.State)
 }

@@ -9,6 +9,7 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
+import { CurrencyInputField } from "src/components/CurrencyInputField";
 import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
@@ -160,37 +161,29 @@ function AutoSwapOutForm() {
           </p>
         </div>
 
-        <div className="grid gap-1.5">
-          <Label>Lightning balance threshold</Label>
-          <Input
-            type="number"
-            placeholder="Amount in satoshis"
-            value={balanceThresholdSat}
-            min={swapAmountSat}
-            onChange={(e) => setBalanceThresholdSat(e.target.value)}
-            required
-          />
-          <p className="text-xs text-muted-foreground">
-            Swap out as soon as this amount is reached
-          </p>
-        </div>
+        <CurrencyInputField
+          label="Lightning balance threshold"
+          valueSat={balanceThresholdSat}
+          onValueSatChange={setBalanceThresholdSat}
+          minSat={Number(swapAmountSat) || undefined}
+          required
+          description="Swap out as soon as this amount is reached"
+        />
 
-        <div className="grid gap-1.5">
-          <Label>Swap amount</Label>
-          <Input
-            type="number"
-            placeholder="Amount in satoshis"
-            value={swapAmountSat}
-            min={swapInfo.minAmountSat}
-            max={swapInfo.maxAmountSat}
-            onChange={(e) => setSwapAmountSat(e.target.value)}
-            required
-          />
-          <p className="text-xs text-muted-foreground">
-            Minimum{" "}
-            <FormattedBitcoinAmount amountMsat={swapInfo.minAmountSat * 1000} />
-          </p>
-        </div>
+        <CurrencyInputField
+          label="Swap amount"
+          valueSat={swapAmountSat}
+          onValueSatChange={setSwapAmountSat}
+          minSat={swapInfo.minAmountSat}
+          maxSat={swapInfo.maxAmountSat}
+          required
+          contextRows={[
+            {
+              label: "Minimum",
+              amountSat: swapInfo.minAmountSat,
+            },
+          ]}
+        />
         <div className="flex flex-col gap-4">
           <Label>Swap to</Label>
           <RadioGroup

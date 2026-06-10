@@ -1,8 +1,15 @@
+import { useEffect } from "react";
 import Container from "src/components/Container";
 import TwoColumnLayoutHeader from "src/components/TwoColumnLayoutHeader";
 import { LinkButton } from "src/components/ui/custom/link-button";
+import useSetupStore from "src/state/SetupStore";
 
 export function SetupAdvanced() {
+  useEffect(() => {
+    // in case the user goes back, reset the imported mnemonic flag
+    useSetupStore.getState().setHasImportedMnemonic(false);
+  }, []);
+
   return (
     <Container>
       <div className="grid gap-5">

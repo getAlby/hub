@@ -1,5 +1,7 @@
 import {
+  ClockIcon,
   HandCoinsIcon,
+  HardDriveIcon,
   LandmarkIcon,
   ShieldAlertIcon,
   UnlockIcon,
@@ -36,17 +38,18 @@ export function SetupSecurity() {
         />
 
         <div className="flex flex-col gap-6 w-full mt-6">
-          {store.nodeInfo.backendType !== "CASHU" && (
-            <div className="flex gap-3 items-center">
-              <div className="shrink-0">
-                <HandCoinsIcon className="size-6" />
+          {store.nodeInfo.backendType !== "CASHU" &&
+            store.nodeInfo.backendType !== "BARK" && (
+              <div className="flex gap-3 items-center">
+                <div className="shrink-0">
+                  <HandCoinsIcon className="size-6" />
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  Alby Hub is a spending wallet - do not keep all your savings
+                  on it!
+                </span>
               </div>
-              <span className="text-sm text-muted-foreground">
-                Alby Hub is a spending wallet - do not keep all your savings on
-                it!
-              </span>
-            </div>
-          )}
+            )}
           {store.nodeInfo.backendType === "CASHU" && (
             <div className="flex gap-3 items-center">
               <div className="shrink-0">
@@ -57,6 +60,31 @@ export function SetupSecurity() {
                 with only small amounts!
               </span>
             </div>
+          )}
+          {store.nodeInfo.backendType === "BARK" && (
+            <>
+              <div className="flex gap-3 items-center">
+                <LandmarkIcon className="size-6 shrink-0" />
+                <span className="text-sm text-muted-foreground">
+                  Bark is in beta - use at your own risk!
+                </span>
+              </div>
+              <div className="flex gap-3 items-center">
+                <ClockIcon className="size-6 shrink-0" />
+                <span className="text-sm text-muted-foreground">
+                  Your funds will be refreshed periodically which will incur a
+                  small fee.
+                </span>
+              </div>
+              <div className="flex gap-3 items-center">
+                <HardDriveIcon className="size-6 shrink-0" />
+                <span className="text-sm text-muted-foreground">
+                  During beta, your funds{" "}
+                  <span className="underline">cannot</span> be recovered from
+                  your recovery phrase alone.
+                </span>
+              </div>
+            </>
           )}
           <div className="flex gap-3 items-center">
             <div className="shrink-0">
@@ -81,7 +109,7 @@ export function SetupSecurity() {
                 choose the LDK node type.
               </span>
             </div>
-          ) : (
+          ) : store.nodeInfo.backendType === "BARK" ? null : (
             <div className="flex gap-3 items-center">
               <div className="shrink-0">
                 <ShieldAlertIcon className="size-6" />
