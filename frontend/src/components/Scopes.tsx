@@ -19,7 +19,12 @@ import {
   SheetTitle,
 } from "src/components/ui/sheet";
 import { cn } from "src/lib/utils";
-import { Scope, WalletCapabilities, scopeDescriptions } from "src/types";
+import {
+  READ_ONLY_SCOPES,
+  Scope,
+  WalletCapabilities,
+  scopeDescriptions,
+} from "src/types";
 
 const scopeGroups = ["full_access", "read_only", "isolated", "custom"] as const;
 type ScopeGroup = (typeof scopeGroups)[number];
@@ -65,17 +70,8 @@ const Scopes: React.FC<ScopesProps> = ({
   }, [capabilities.scopes]);
 
   const readOnlyScopes: Scope[] = React.useMemo(() => {
-    const readOnlyScopes: Scope[] = [
-      "get_balance",
-      "get_info",
-      "make_invoice",
-      "lookup_invoice",
-      "list_transactions",
-      "notifications",
-    ];
-
     return capabilities.scopes.filter((scope) =>
-      readOnlyScopes.includes(scope)
+      READ_ONLY_SCOPES.includes(scope)
     );
   }, [capabilities.scopes]);
 

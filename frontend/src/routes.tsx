@@ -37,7 +37,6 @@ import { FirstChannel } from "src/screens/channels/first/FirstChannel";
 import { OpenedFirstChannel } from "src/screens/channels/first/OpenedFirstChannel";
 import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChannel";
 import { AlbyCliSkill } from "src/screens/internal-apps/AlbyCliSkill";
-import { Bitrefill } from "src/screens/internal-apps/Bitrefill";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
 import { LightningMessageboard } from "src/screens/internal-apps/LightningMessageboard";
 import { SimpleBoost } from "src/screens/internal-apps/SimpleBoost";
@@ -354,10 +353,6 @@ const routes: RouteObject[] = [
           {
             path: "zapplanner",
             element: <ZapPlanner />,
-          },
-          {
-            path: "bitrefill",
-            element: <Bitrefill />,
           },
           {
             path: "alby-cli-skill",

@@ -552,6 +552,7 @@ export default function Channels() {
               icon={UnplugIcon}
               title="No Channels Available"
               description="Connect to the Lightning Network by establishing your first channel and start transacting."
+              variant="dashed"
               buttonText="Open Channel"
               buttonLink="/channels/incoming"
             />

@@ -188,6 +188,16 @@ Code under `frontend/platform_specific/http/` and `frontend/platform_specific/wa
 - New screens added to `frontend/src/routes.tsx`.
 - ESLint + Prettier enforced via pre-commit hooks (husky).
 
+### Branches
+
+Use a type prefix followed by a short, dash-separated summary: `feat/`, `chore/`, or `fix/`. For example:
+
+```text
+feat/add-cashu-backend
+fix/payment-timeout-crash
+chore/bump-go-1.25
+```
+
 ### Commits
 
 Follow **Conventional Commits** format (`feat:`, `fix:`, `chore:`, etc.) — enforced by commitlint.

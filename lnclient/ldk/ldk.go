@@ -983,6 +983,19 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 
 		isActive := ldkChannel.IsUsable /* superset of ldkChannel.IsReady */ && channelError == nil
 
+		// Public channels require 6 confirmations before they can be gossiped/announced
+		// (BOLT-7), and they only become usable once announced. However, LDK accepts
+		// channels from trusted LSP peers as 0-conf, so it reports ConfirmationsRequired
+		// as nil/0. Override to 6 for public channels so the UI shows confirmation
+		// progress while opening instead of an indefinite blank loading spinner.
+		confirmationsRequired := ldkChannel.ConfirmationsRequired
+		if ldkChannel.IsAnnounced {
+			publicChannelConfirmationsRequired := uint32(6)
+			if confirmationsRequired == nil || *confirmationsRequired < publicChannelConfirmationsRequired {
+				confirmationsRequired = &publicChannelConfirmationsRequired
+			}
+		}
+
 		channels = append(channels, lnclient.Channel{
 			InternalChannel:                     internalChannel,
 			LocalBalanceMsat:                    int64(ldkChannel.ChannelValueSats*1000 - ldkChannel.InboundCapacityMsat - ldkChannel.CounterpartyUnspendablePunishmentReserve*1000),
@@ -995,7 +1008,7 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			FundingTxId:                         fundingTxId,
 			FundingTxVout:                       fundingTxVout,
 			Confirmations:                       ldkChannel.Confirmations,
-			ConfirmationsRequired:               ldkChannel.ConfirmationsRequired,
+			ConfirmationsRequired:               confirmationsRequired,
 			ForwardingFeeBaseMsat:               ldkChannel.Config.ForwardingFeeBaseMsat,
 			ForwardingFeeProportionalMillionths: ldkChannel.Config.ForwardingFeeProportionalMillionths,
 			UnspendablePunishmentReserveSat:     unspendablePunishmentReserveSat,

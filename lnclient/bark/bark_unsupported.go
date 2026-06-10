@@ -22,6 +22,8 @@ type Config struct {
 	ServerAddress     string
 	EsploraAddress    string
 	ServerAccessToken string
+	LogLevel          string
+	LogToFile         bool
 }
 
 func NewBarkService(ctx context.Context, eventPublisher events.EventPublisher, workDir, mnemonic string, config Config) (lnclient.LNClient, error) {

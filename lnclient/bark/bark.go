@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -50,6 +51,12 @@ type Config struct {
 	// ServerAccessToken is an optional access token required by some Ark
 	// servers (currently used to gate mainnet access ahead of a public launch).
 	ServerAccessToken string
+	// LogLevel is the logrus level (as an int string, e.g. "3" for Info) used
+	// for bark's own internal logs. Defaults to Info if empty/unparseable.
+	LogLevel string
+	// LogToFile controls whether bark's logs are also written to a dedicated
+	// bark.log file alongside the other backend logs.
+	LogToFile bool
 }
 
 type BarkService struct {
@@ -102,6 +109,14 @@ func NewBarkService(ctx context.Context, eventPublisher events.EventPublisher, w
 	if err != nil {
 		return nil, err
 	}
+
+	// Forward bark's internal logs into a dedicated logger. Done before opening
+	// the wallet so any logs emitted during open are captured.
+	logLevel, err := strconv.Atoi(config.LogLevel)
+	if err != nil {
+		logLevel = int(logrus.InfoLevel)
+	}
+	installBarkLogger(logrus.Level(logLevel), config.LogToFile, workDir)
 
 	// Usually, you have two wait 2 blocks. You can set nb_min_round_confirmations=0 to make it go faster.
 	roundTxRequiredConfirmations := uint32(0)
