@@ -530,8 +530,7 @@ func (svc *LNDService) SendKeysend(amountMsat uint64, destination string, custom
 		destCustomRecords[record.Type] = decodedValue
 	}
 	const MAX_PARTIAL_PAYMENTS = 16
-	const KEYSEND_CUSTOM_RECORD = 5482373484
-	destCustomRecords[KEYSEND_CUSTOM_RECORD] = preImageBytes
+	destCustomRecords[lnclient.KeysendPreimageTlvType] = preImageBytes
 	sendPaymentRequest := &routerrpc.SendPaymentRequest{
 		Dest:              destBytes,
 		AmtMsat:           int64(amountMsat),

@@ -431,6 +431,10 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 }
 
 func (svc *transactionsService) SendKeysend(amountMsat uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error) {
+	customRecords = slices.DeleteFunc(slices.Clone(customRecords), func(record lnclient.TLVRecord) bool {
+		return record.Type == lnclient.KeysendPreimageTlvType
+	})
+
 	if preimage == "" {
 		preImageBytes, err := makePreimageHex()
 		if err != nil {

@@ -14,6 +14,9 @@ type TLVRecord struct {
 	Value string `json:"value"`
 }
 
+// KeysendPreimageTlvType identifies the protocol-defined keysend preimage record.
+const KeysendPreimageTlvType uint64 = 5482373484
+
 type Metadata = map[string]interface{}
 
 type NodeInfo struct {

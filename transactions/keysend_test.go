@@ -17,6 +17,18 @@ import (
 	"github.com/getAlby/hub/tests"
 )
 
+type recordingKeysendLNClient struct {
+	lnclient.LNClient
+	customRecords []lnclient.TLVRecord
+	preimage      string
+}
+
+func (client *recordingKeysendLNClient) SendKeysend(amountMsat uint64, destination string, customRecords []lnclient.TLVRecord, preimage string) (*lnclient.PayKeysendResponse, error) {
+	client.customRecords = append([]lnclient.TLVRecord(nil), customRecords...)
+	client.preimage = preimage
+	return &lnclient.PayKeysendResponse{FeeMsat: 1}, nil
+}
+
 func TestSendKeysend(t *testing.T) {
 	svc, err := tests.CreateTestService(t)
 	require.NoError(t, err)
@@ -69,6 +81,70 @@ func TestSendKeysend_CustomPreimage(t *testing.T) {
 	assert.Zero(t, transaction.FeeReserveMsat)
 	assert.NotNil(t, transaction.Preimage)
 	assert.Equal(t, customPreimage, *transaction.Preimage)
+}
+
+func TestSendKeysend_FiltersKeysendPreimageTlv(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	lnClient := &recordingKeysendLNClient{LNClient: svc.LNClient}
+	customRecords := []lnclient.TLVRecord{
+		{
+			Type:  lnclient.KeysendPreimageTlvType,
+			Value: "not-hex",
+		},
+	}
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	transaction, err := transactionsService.SendKeysend(uint64(1000), "fake destination", customRecords, "", lnClient, nil, nil)
+	require.NoError(t, err)
+
+	assert.Empty(t, lnClient.customRecords)
+	assert.Len(t, lnClient.preimage, 64)
+	assert.Equal(t, lnClient.preimage, *transaction.Preimage)
+	assert.Len(t, customRecords, 1)
+
+	var metadata struct {
+		TLVRecords []lnclient.TLVRecord `json:"tlv_records"`
+	}
+	require.NoError(t, json.Unmarshal(transaction.Metadata, &metadata))
+	assert.Empty(t, metadata.TLVRecords)
+}
+
+func TestSendKeysend_FiltersKeysendPreimageTlvAndPreservesCustomRecords(t *testing.T) {
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	lnClient := &recordingKeysendLNClient{LNClient: svc.LNClient}
+	customPreimage := "018465013e2337234a7e5530a21c4a8cf70d84231f4a8ff0b1e2cce3cb2bd03b"
+	applicationRecord := lnclient.TLVRecord{
+		Type:  1234567,
+		Value: "010203",
+	}
+	customRecords := []lnclient.TLVRecord{
+		{
+			Type:  lnclient.KeysendPreimageTlvType,
+			Value: "not-hex",
+		},
+		applicationRecord,
+	}
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	transaction, err := transactionsService.SendKeysend(uint64(1000), "fake destination", customRecords, customPreimage, lnClient, nil, nil)
+	require.NoError(t, err)
+
+	assert.Equal(t, customPreimage, lnClient.preimage)
+	assert.Equal(t, customPreimage, *transaction.Preimage)
+	assert.Equal(t, []lnclient.TLVRecord{applicationRecord}, lnClient.customRecords)
+	assert.Len(t, customRecords, 2)
+
+	var metadata struct {
+		TLVRecords []lnclient.TLVRecord `json:"tlv_records"`
+	}
+	require.NoError(t, json.Unmarshal(transaction.Metadata, &metadata))
+	assert.Equal(t, []lnclient.TLVRecord{applicationRecord}, metadata.TLVRecords)
 }
 
 func TestSendKeysend_App_NoPermission(t *testing.T) {
