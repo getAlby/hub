@@ -1493,7 +1493,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info := InfoResponse{}
 	backendType, _ := api.cfg.Get("LNBackendType", "")
 	ldkVssEnabled, _ := api.cfg.Get("LdkVssEnabled", "")
-	jitChannelsDisabled, _ := api.cfg.Get("JitChannelsDisabled", "")
+	jitChannelsEnabled, _ := api.cfg.Get("JitChannelsEnabled", "")
 	autoUnlockPassword, _ := api.cfg.Get("AutoUnlockPassword", "")
 	setupCompleted, err := api.cfg.SetupCompleted()
 	if err != nil {
@@ -1517,7 +1517,7 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	info.EnableAdvancedSetup = api.cfg.GetEnv().EnableAdvancedSetup
 	info.HideUpdateBanner = api.cfg.GetEnv().HideUpdateBanner
 	info.LdkVssEnabled = ldkVssEnabled == "true"
-	info.JitChannelsEnabled = jitChannelsDisabled != "true"
+	info.JitChannelsEnabled = jitChannelsEnabled != "false"
 	info.VssSupported = backendType == config.LDKBackendType && api.cfg.GetEnv().LDKVssUrl != ""
 	info.SupportsBolt12 = backendType == config.LDKBackendType || backendType == config.CLNBackendType
 	info.AutoUnlockPasswordEnabled = autoUnlockPassword != ""
@@ -1615,12 +1615,12 @@ func (api *api) setBitcoinDisplayFormat(format string) error {
 }
 
 func (api *api) setJitChannelsEnabled(enabled bool) error {
-	value := "false"
+	value := "true"
 	if !enabled {
-		value = "true"
+		value = "false"
 	}
 
-	err := api.cfg.SetUpdate("JitChannelsDisabled", value, "")
+	err := api.cfg.SetUpdate("JitChannelsEnabled", value, "")
 	if err != nil {
 		logger.Logger.WithError(err).Error("Failed to update JIT channels setting")
 		return err

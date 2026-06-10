@@ -763,11 +763,11 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, descrip
 
 	maxReceivable := ls.getMaxReceivable()
 
-	jitChannelsDisabled, _ := ls.cfg.Get("JitChannelsDisabled", "")
+	jitChannelsEnabled, _ := ls.cfg.Get("JitChannelsEnabled", "")
 	// JIT channels are only used for users without a public channel - users with
 	// a public channel should increase inbound liquidity manually.
 	isJitInvoice := ls.lsps2Pubkey != "" &&
-		jitChannelsDisabled != "true" &&
+		jitChannelsEnabled != "false" &&
 		!ls.hasPublicChannel() &&
 		amountMsat > maxReceivable
 
