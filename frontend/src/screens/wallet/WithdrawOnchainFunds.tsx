@@ -55,7 +55,7 @@ export default function WithdrawOnchainFunds() {
     setLoading(true);
     try {
       if (!onchainAddress) {
-        throw new Error("No onchain address");
+        throw new Error("No on-chain address");
       }
       if (!feeRate) {
         throw new Error("No fee rate set");
@@ -86,14 +86,14 @@ export default function WithdrawOnchainFunds() {
           body: JSON.stringify(payload),
         }
       );
-      console.info("Redeemed onchain funds", response);
+      console.info("Redeemed on-chain funds", response);
       if (!response?.txId) {
         throw new Error("No address in response");
       }
       setTransactionId(response.txId);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to redeem onchain funds", {
+      toast.error("Failed to redeem on-chain funds", {
         description: "" + error,
       });
     }
@@ -139,7 +139,7 @@ export default function WithdrawOnchainFunds() {
   if (balances.onchain.spendableSat <= ONCHAIN_DUST_SATS) {
     return (
       <p>
-        You currently don't have enough sats to pay for an onchain transaction.
+        You currently don't have enough sats to pay for an on-chain transaction.
       </p>
     );
   }
@@ -149,12 +149,12 @@ export default function WithdrawOnchainFunds() {
       <AppHeader
         pageTitle="Withdraw On-Chain Balance"
         title="Withdraw On-Chain Balance"
-        description="Withdraw your onchain funds to another bitcoin wallet"
+        description="Withdraw your on-chain funds to another bitcoin wallet"
       />
 
       <div className="max-w-lg">
         <p>
-          Your on-chain balance will be withdrawn to the onchain bitcoin wallet
+          Your on-chain balance will be withdrawn to the on-chain bitcoin wallet
           address you specify below.
         </p>
         <form
@@ -169,7 +169,7 @@ export default function WithdrawOnchainFunds() {
               <Label htmlFor="amount">Amount</Label>
               <div className="flex justify-between items-center">
                 <p className="text-sm text-muted-foreground sensitive slashed-zero">
-                  Current onchain balance:{" "}
+                  Current on-chain balance:{" "}
                   <FormattedBitcoinAmount
                     amountMsat={balances.onchain.spendableSat * 1000}
                   />
@@ -202,7 +202,7 @@ export default function WithdrawOnchainFunds() {
                 <AlertTriangleIcon />
                 <AlertTitle>Entire wallet balance will be sent</AlertTitle>
                 <AlertDescription>
-                  Your entire wallet balance will be sent minus onchain
+                  Your entire wallet balance will be sent minus on-chain
                   transaction fees. The exact amount cannot be determined until
                   the payment is made.
                 </AlertDescription>
@@ -214,7 +214,7 @@ export default function WithdrawOnchainFunds() {
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="onchain-address">Onchain Address</Label>
+            <Label htmlFor="onchain-address">On-chain Address</Label>
             <Input
               id="onchain-address"
               type="text"
@@ -244,7 +244,7 @@ export default function WithdrawOnchainFunds() {
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
-                    Confirm Onchain Transaction
+                    Confirm On-chain Transaction
                   </AlertDialogTitle>
                   <AlertDialogDescription>
                     <div>

@@ -86,10 +86,10 @@ export default function SwapInStatus() {
         if (!response?.txId) {
           throw new Error("No address in response");
         }
-        console.info("Redeemed onchain funds", response);
+        console.info("Redeemed on-chain funds", response);
       } catch (error) {
         console.error(error);
-        toast.error("Failed to redeem onchain funds", {
+        toast.error("Failed to redeem on-chain funds", {
           description: "" + error,
         });
         setPaying(false);
@@ -249,7 +249,7 @@ export default function SwapInStatus() {
                     <div className="flex items-center text-muted-foreground text-sm">
                       <CircleCheckIcon className="w-5 h-5 mr-2 text-green-600 dark:text-emerald-500" />
                       <div className="flex items-center gap-2">
-                        <p>Onchain deposit confirmed</p>
+                        <p>On-chain deposit confirmed</p>
                         <ExternalLink
                           to={`${info?.mempoolUrl}/tx/${swap.lockupTxId}`}
                           className="flex items-center underline text-foreground"
@@ -303,7 +303,7 @@ export default function SwapInStatus() {
                         <Tooltip>
                           <TooltipTrigger>
                             <div className="flex items-center gap-2">
-                              <p>Onchain deposit failed</p>
+                              <p>On-chain deposit failed</p>
                               <ExternalLink
                                 to={`${info?.mempoolUrl}/tx/${swap.lockupTxId}`}
                                 className="flex items-center underline text-foreground"
@@ -339,7 +339,7 @@ export default function SwapInStatus() {
                     <Tooltip>
                       <TooltipTrigger>
                         <div className="flex items-center gap-2">
-                          <p>Onchain deposit failed</p>
+                          <p>On-chain deposit failed</p>
                           <ExternalLink
                             to={`${info?.mempoolUrl}/address/${swap.lockupAddress}`}
                             className="flex items-center underline text-foreground"
