@@ -53,6 +53,7 @@ import zapplepay from "src/assets/suggested-apps/zapple-pay.png";
 import zappybird from "src/assets/suggested-apps/zappy-bird.png";
 import zapstore from "src/assets/suggested-apps/zapstore.png";
 import zeus from "src/assets/suggested-apps/zeus.png";
+import { BitcoinCardTopupInstallGuide } from "src/components/connections/BitcoinCardTopupInstallGuide";
 import ExternalLink from "src/components/ExternalLink";
 import { App } from "src/types";
 
@@ -228,34 +229,7 @@ export const appStoreApps: AppStoreApp[] = (
       extendedDescription:
         "A generic top-up app that swaps Lightning sats to a stablecoin and sends them to your card's deposit address. Works with RedotPay, Freedomia, Nexo, Bybit, and any other card that accepts on-chain crypto deposits.",
       webLink: "https://card.albylabs.com",
-      installGuide: (
-        <>
-          <div>
-            <ul className="list-inside list-decimal text-muted-foreground">
-              <li>
-                Open{" "}
-                <ExternalLink
-                  to="https://card.albylabs.com"
-                  className="underline"
-                >
-                  card.albylabs.com
-                </ExternalLink>{" "}
-                on the device you'll top up from.
-              </li>
-              <li>
-                <span className="font-medium text-foreground">
-                  Add it to your home screen
-                </span>{" "}
-                (or bookmark it) so you can reopen it later.
-              </li>
-              <li>
-                Enter your card's deposit address, network, and currency to set
-                it up.
-              </li>
-            </ul>
-          </div>
-        </>
-      ),
+      installGuide: <BitcoinCardTopupInstallGuide />,
       finalizeGuide: (
         <>
           <div>
