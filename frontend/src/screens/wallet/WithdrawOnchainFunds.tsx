@@ -1,9 +1,4 @@
-import {
-  AlertTriangleIcon,
-  CopyIcon,
-  ExternalLinkIcon,
-  InfoIcon,
-} from "lucide-react";
+import { AlertTriangleIcon, CopyIcon, ExternalLinkIcon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
@@ -246,14 +241,6 @@ export default function WithdrawOnchainFunds() {
               open={confirmDialogOpen}
             >
               <Button className="w-full">Withdraw</Button>
-              {feeRate && (
-                <div className="mt-2 text-muted-foreground text-sm flex gap-1 items-center justify-center">
-                  <InfoIcon className="h-4 w-4" />
-                  On-chain payment will be made with{" "}
-                  <span className="font-semibold">{feeRate} sat/vB</span> fee
-                </div>
-              )}
-
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
