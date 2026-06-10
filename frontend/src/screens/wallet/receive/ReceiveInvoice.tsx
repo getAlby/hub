@@ -155,14 +155,8 @@ export default function ReceiveInvoice() {
 
   const newChannelFeeAlert = (
     <p className="text-sm text-muted-foreground text-center">
-      {displayedJitFeeMsat >= 1000 ? (
-        <>
-          Includes a <FormattedBitcoinAmount amountMsat={displayedJitFeeMsat} />{" "}
-          channel fee.{" "}
-        </>
-      ) : (
-        <>Includes a fee to set up a channel. </>
-      )}
+      Includes a <FormattedBitcoinAmount amountMsat={displayedJitFeeMsat} />{" "}
+      channel fee.{" "}
       <ExternalLink
         to="https://guides.getalby.com/user-guide/alby-hub/faq/what-are-just-in-time-channels"
         className="underline"
