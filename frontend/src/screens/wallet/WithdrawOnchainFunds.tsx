@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FeeRateField } from "src/components/FeeRateField";
 import { FixedFloatButton } from "src/components/FixedFloatButton";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
@@ -257,57 +258,13 @@ export default function WithdrawOnchainFunds() {
           {(info?.backendType === "LDK" || info?.backendType === "LND") && (
             <>
               {showAdvanced && (
-                <div className="grid gap-2">
-                  <Label htmlFor="fee-rate">Fee Rate (Sat/vB)</Label>
-                  {mempoolError && (
-                    <div className="text-muted-foreground text-xs flex gap-1 items-center">
-                      <AlertTriangleIcon className="h-3 w-3" />
-                      Failed to fetch fee estimates. Try refreshing the page.
-                    </div>
-                  )}
-                  <Input
-                    id="fee-rate"
-                    type="number"
-                    value={feeRate}
-                    step={1}
-                    required
-                    min={recommendedFees?.minimumFee || 1}
-                    onChange={(e) => {
-                      setFeeRate(e.target.value);
-                    }}
-                  />
-                  {recommendedFees && (
-                    <div className="flex items-center mt-2 gap-4">
-                      <Button
-                        variant="positive"
-                        className="rounded-full"
-                        type="button"
-                        onClick={() =>
-                          setFeeRate(recommendedFees.economyFee.toString())
-                        }
-                      >
-                        Low priority: {recommendedFees.economyFee}
-                      </Button>{" "}
-                      <Button
-                        variant="positive"
-                        className="rounded-full"
-                        type="button"
-                        onClick={() =>
-                          setFeeRate(recommendedFees.fastestFee.toString())
-                        }
-                      >
-                        High priority: {recommendedFees.fastestFee}
-                      </Button>{" "}
-                      <ExternalLink
-                        to={info?.mempoolUrl}
-                        className="text-sm text-muted-foreground underline flex items-center gap-2"
-                      >
-                        View on Mempool
-                        <ExternalLinkIcon className="w-4 h-4" />
-                      </ExternalLink>
-                    </div>
-                  )}
-                </div>
+                <FeeRateField
+                  feeRate={feeRate}
+                  onFeeRateChange={setFeeRate}
+                  recommendedFees={recommendedFees}
+                  hasMempoolError={Boolean(mempoolError)}
+                  mempoolUrl={info?.mempoolUrl}
+                />
               )}
               {!showAdvanced && (
                 <Button

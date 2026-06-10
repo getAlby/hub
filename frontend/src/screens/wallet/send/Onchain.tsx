@@ -1,25 +1,17 @@
-import {
-  AlertTriangleIcon,
-  ExternalLinkIcon,
-  InfoIcon,
-  PencilIcon,
-  XIcon,
-} from "lucide-react";
+import { InfoIcon, PencilIcon, XIcon } from "lucide-react";
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { toast } from "sonner";
 import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
 import { CurrencyInputField } from "src/components/CurrencyInputField";
-import ExternalLink from "src/components/ExternalLink";
+import { FeeRateField } from "src/components/FeeRateField";
 import { InsufficientLightningBalanceAlert } from "src/components/InsufficientLightningBalanceAlert";
 import Loading from "src/components/Loading";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import { Alert, AlertDescription, AlertTitle } from "src/components/ui/alert";
-import { Button } from "src/components/ui/button";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
-import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import { Switch } from "src/components/ui/switch";
 import { ONCHAIN_DUST_SATS } from "src/constants";
@@ -134,6 +126,12 @@ function OnchainForm({
     }
   }, [recommendedFees]);
 
+  React.useEffect(() => {
+    if (mempoolError) {
+      setEditFee(true);
+    }
+  }, [mempoolError]);
+
   const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     try {
@@ -212,8 +210,9 @@ function OnchainForm({
       <div className="grid gap-2 text-sm border-t pt-6">
         {!editFee ? (
           <div className="flex items-center justify-between">
-            <p className="text-muted-foreground">On-chain Fee Rate</p>
-            <div
+            <Label>On-chain Fee Rate (sat/vB)</Label>
+            <button
+              type="button"
               className="flex items-center gap-2 cursor-pointer"
               onClick={() => setEditFee(true)}
             >
@@ -223,60 +222,16 @@ function OnchainForm({
                 <Loading className="w-4 h-4" />
               )}
               <PencilIcon className="w-4 h-4" />
-            </div>
+            </button>
           </div>
         ) : (
-          <div className="grid gap-2">
-            <Label htmlFor="fee-rate">Fee Rate (Sat/vB)</Label>
-            {mempoolError && (
-              <div className="text-muted-foreground text-xs flex gap-1 items-center">
-                <AlertTriangleIcon className="h-3 w-3" />
-                Failed to fetch fee estimates. Try refreshing the page.
-              </div>
-            )}
-            <Input
-              id="fee-rate"
-              type="number"
-              value={feeRate}
-              step={1}
-              required
-              min={recommendedFees?.minimumFee || 1}
-              onChange={(e) => {
-                setFeeRate(e.target.value);
-              }}
-            />
-            {recommendedFees && (
-              <div className="flex items-center mt-2 gap-4">
-                <Button
-                  variant="positive"
-                  className="rounded-full"
-                  type="button"
-                  onClick={() =>
-                    setFeeRate(recommendedFees.economyFee.toString())
-                  }
-                >
-                  Low priority: {recommendedFees.economyFee}
-                </Button>{" "}
-                <Button
-                  variant="positive"
-                  className="rounded-full"
-                  type="button"
-                  onClick={() =>
-                    setFeeRate(recommendedFees.fastestFee.toString())
-                  }
-                >
-                  High priority: {recommendedFees.fastestFee}
-                </Button>{" "}
-                <ExternalLink
-                  to={info?.mempoolUrl}
-                  className="text-muted-foreground underline flex items-center gap-2"
-                >
-                  View on Mempool
-                  <ExternalLinkIcon className="w-4 h-4" />
-                </ExternalLink>
-              </div>
-            )}
-          </div>
+          <FeeRateField
+            feeRate={feeRate}
+            onFeeRateChange={setFeeRate}
+            recommendedFees={recommendedFees}
+            hasMempoolError={Boolean(mempoolError)}
+            mempoolUrl={info?.mempoolUrl}
+          />
         )}
       </div>
       {amountSat && +amountSat < 10_000 && (
@@ -388,7 +343,7 @@ function SwapForm({
       </div>
       <div className="grid gap-2 text-sm border-t pt-6">
         <div className="flex items-center justify-between">
-          <p className="text-muted-foreground">On-chain Fee Rate</p>
+          <Label>On-chain Fee Rate</Label>
           <p>
             {recommendedFees?.fastestFee ? (
               <p>{recommendedFees?.fastestFee} sat/vB</p>

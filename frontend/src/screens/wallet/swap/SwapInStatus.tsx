@@ -52,6 +52,7 @@ export default function SwapInStatus() {
   const [searchParams] = useSearchParams();
 
   const isInternalSwap = searchParams.has("internal", "true");
+  const feeRate = searchParams.get("feeRate") || "";
   const [, setPaidWithAlbyHub] = React.useState(false);
 
   useEffect(() => {
@@ -70,6 +71,7 @@ export default function SwapInStatus() {
         const payload: RedeemOnchainFundsRequest = {
           toAddress: swap.lockupAddress,
           amountSat: swap.sendAmountSat,
+          feeRate: +feeRate,
         };
         const response = await request<RedeemOnchainFundsResponse>(
           "/api/wallet/redeem-onchain-funds",
@@ -93,7 +95,7 @@ export default function SwapInStatus() {
         setPaying(false);
       }
     })();
-  }, [swap]);
+  }, [feeRate, swap]);
 
   React.useEffect(() => {
     // only auto-redeem while the swap is still awaiting its on-chain deposit,
