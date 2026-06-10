@@ -99,7 +99,12 @@ export default function SwapInStatus() {
     // only auto-redeem while the swap is still awaiting its on-chain deposit,
     // otherwise a refresh/revisit of ?internal=true would submit a second
     // redeem request for an already-funded swap
-    if (isInternalSwap && swap && swap.state === "PENDING" && !swap.lockupTxId) {
+    if (
+      isInternalSwap &&
+      swap &&
+      swap.state === "PENDING" &&
+      !swap.lockupTxId
+    ) {
       setPaidWithAlbyHub((current) => {
         if (current) {
           return current;
