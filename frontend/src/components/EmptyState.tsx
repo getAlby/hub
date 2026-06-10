@@ -3,37 +3,44 @@ import React from "react";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { cn } from "src/lib/utils";
 
-interface Props {
+type Variant = "dashed" | "muted" | "none";
+
+type Props = {
   icon: LucideIcon;
   title: string;
   description: string;
-  buttonText: string;
-  buttonLink: string;
-  showButton?: boolean;
-  showBorder?: boolean;
-}
+  variant?: Variant;
+} & (
+  | { buttonText: string; buttonLink: string }
+  | { buttonText?: never; buttonLink?: never }
+);
+
+const variantClasses: Record<Variant, string> = {
+  dashed: "shadow-xs border border-dashed",
+  muted: "bg-muted",
+  none: "",
+};
 
 const EmptyState: React.FC<Props> = ({
   icon: Icon,
   title: message,
   description: subMessage,
+  variant = "muted",
   buttonText,
   buttonLink,
-  showButton = true,
-  showBorder = true,
 }) => {
   return (
     <div
       className={cn(
         "flex flex-1 items-center justify-center rounded-lg p-8",
-        showBorder && "shadow-xs border border-dashed"
+        variantClasses[variant]
       )}
     >
       <div className="flex flex-col items-center gap-1 text-center max-w-sm">
         <Icon className="w-10 h-10 text-muted-foreground" />
         <h3 className="mt-4 text-lg font-semibold">{message}</h3>
         <p className="text-sm text-muted-foreground">{subMessage}</p>
-        {showButton && (
+        {buttonText && buttonLink && (
           <LinkButton to={buttonLink} className="mt-4">
             {buttonText}
           </LinkButton>
