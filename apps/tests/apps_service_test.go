@@ -54,5 +54,5 @@ func TestHandleCreateApp_IsolatedUnsupportedBackendType(t *testing.T) {
 	assert.Nil(t, app)
 	assert.Equal(t, "", secretKey)
 	require.Error(t, err)
-	assert.Equal(t, "sub-wallets are currently not supported on your node backend. Try LDK or LND", err.Error())
+	assert.Equal(t, "sub-wallets are currently not supported on your node backend. Try LDK, LND, PHOENIX, BARK, or CLN", err.Error())
 }

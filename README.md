@@ -246,6 +246,7 @@ _To configure via env, the following parameters must be provided:_
 - `LDK_MAX_PATH_COUNT`: Maximum number of paths that may be used by MPP payments.
 - `LDK_LOG_LEVEL`: Log level for the LDK node. Higher is more verbose. Default: 3. This is separate from the main application log level, allowing you to enable more verbose LDK logging (e.g., level 4, 5 or 6) without enabling verbose logging for the entire application.
 - `LDK_CHANNEL_MONITOR_WARNING_SIZE_BYTES`: If a channel monitor is larger than this value, a performance warning will be shown on the node page.
+- `LDK_LSPS2_ADDRESSES`: Override the LSPS2 just-in-time (JIT) LSP provider for receiving. When set, Alby Hub can receive payments even without inbound liquidity: the configured LSP opens a channel on the fly and the fee is deducted from the incoming payment. Expected format is a single `<pubkey>@<host>:<port>`. When set, the "Open Your First Channel" prompts are hidden since the first channel is created automatically on the first receive.
 
 #### LDK Network Configuration
 
@@ -291,7 +292,8 @@ Bark connects to an [Ark](https://second.tech/) server. It can be configured via
 - `LN_BACKEND_TYPE`: BARK
 - `BARK_SERVER`: the Ark server URL. For signet use `https://ark.signet.2nd.dev`
 - `BARK_ESPLORA_SERVER`: the Esplora server URL used for chain data. For signet use `https://esplora.signet.2nd.dev`.
-- `BARK_SERVER_ACCESS_TOKEN`: an optional access token required by the Ark server (pre-public mainnet launch).
+- `BARK_SERVER_ACCESS_TOKEN`: an optional access token, only required if using a private Ark server.
+- `BARK_LOG_LEVEL`: Log level for Bark. Higher is more verbose. Default: 3. This is separate from the main application log level, allowing you to enable more verbose Bark logging (e.g., level 4 or 5) without enabling verbose logging for the entire application.
 
 ### Alby OAuth
 

@@ -64,8 +64,6 @@ type API interface {
 	MigrateNodeStorage(ctx context.Context, to string) error
 	GetWalletCapabilities(ctx context.Context) (*WalletCapabilitiesResponse, error)
 	Health(ctx context.Context) (*HealthResponse, error)
-	SetCurrency(currency string) error
-	SetBitcoinDisplayFormat(format string) error
 	UpdateSettings(updateSettingsRequest *UpdateSettingsRequest) error
 	LookupSwap(swapId string) (*LookupSwapResponse, error)
 	ListSwaps() (*ListSwapsResponse, error)
@@ -332,6 +330,10 @@ type InfoResponse struct {
 	MempoolUrl                  string              `json:"mempoolUrl"`
 	ChainDataSourceType         string              `json:"chainDataSourceType,omitempty"`
 	ChainDataSourceAddress      string              `json:"chainDataSourceAddress,omitempty"`
+	JitChannelsLiquiditySource  string              `json:"jitChannelsLiquiditySource,omitempty"`
+	JitChannelsMinPaymentSizeMsat *uint64           `json:"jitChannelsMinPaymentSizeMsat,omitempty"`
+	JitChannelsMaxPaymentSizeMsat *uint64           `json:"jitChannelsMaxPaymentSizeMsat,omitempty"`
+	JitChannelsEnabled          bool                `json:"jitChannelsEnabled"`
 	HideUpdateBanner            bool                `json:"hideUpdateBanner"`
 	SupportsBolt12              bool                `json:"supportsBolt12"`
 }
@@ -339,6 +341,7 @@ type InfoResponse struct {
 type UpdateSettingsRequest struct {
 	Currency             string `json:"currency"`
 	BitcoinDisplayFormat string `json:"bitcoinDisplayFormat"`
+	JitChannelsEnabled   *bool  `json:"jitChannelsEnabled"`
 }
 
 type SetNodeAliasRequest struct {

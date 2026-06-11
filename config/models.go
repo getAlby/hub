@@ -38,6 +38,7 @@ type AppConfig struct {
 	LDKMaxPathCount                    uint8  `envconfig:"LDK_MAX_PATH_COUNT" default:"5"`
 	LDKChannelMonitorWarningSizeBytes  uint64 `envconfig:"LDK_CHANNEL_MONITOR_WARNING_SIZE_BYTES" default:"5000000"`
 	LDKVssUrl                          string `envconfig:"LDK_VSS_URL" default:"https://vss.getalbypro.com/vss"`
+	LDKLiquiditySourceLsps2            string `envconfig:"LDK_LSPS2_ADDRESSES"`
 	LDKListeningAddresses              string `envconfig:"LDK_LISTENING_ADDRESSES" default:"[::]:9735"`
 	LDKAnnouncementAddresses           string `envconfig:"LDK_ANNOUNCEMENT_ADDRESSES"`
 	LDKTransientNetworkGraph           bool   `envconfig:"LDK_TRANSIENT_NETWORK_GRAPH" default:"false"`
@@ -67,6 +68,7 @@ type AppConfig struct {
 	BarkServer                         string `envconfig:"BARK_SERVER" default:"https://ark.second.tech"`
 	BarkEsploraServer                  string `envconfig:"BARK_ESPLORA_SERVER" default:"https://mempool.second.tech/api"`
 	BarkServerAccessToken              string `envconfig:"BARK_SERVER_ACCESS_TOKEN"`
+	BarkLogLevel                       string `envconfig:"BARK_LOG_LEVEL" default:"3"`
 }
 
 func (c *AppConfig) IsDefaultClientId() bool {

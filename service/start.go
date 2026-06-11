@@ -362,7 +362,12 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		setStartupState := func(startupState string) {
 			svc.startupState = startupState
 		}
-		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, mnemonic, ldkWorkdir, vssToken, setStartupState)
+
+		channelPeerSuggestions, suggestionsErr := svc.albySvc.GetChannelPeerSuggestions(ctx)
+		if suggestionsErr != nil {
+			logger.Logger.WithError(suggestionsErr).Warn("Failed to fetch channel peer suggestions for LSPS2 liquidity source")
+		}
+		lnClient, err = ldk.NewLDKService(ctx, svc.cfg, svc.eventPublisher, mnemonic, ldkWorkdir, vssToken, setStartupState, channelPeerSuggestions)
 	case config.PhoenixBackendType:
 		PhoenixdAddress, _ := svc.cfg.Get("PhoenixdAddress", encryptionKey)
 		PhoenixdAuthorization, _ := svc.cfg.Get("PhoenixdAuthorization", encryptionKey)
@@ -384,6 +389,8 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 			ServerAddress:     env.BarkServer,
 			EsploraAddress:    env.BarkEsploraServer,
 			ServerAccessToken: env.BarkServerAccessToken,
+			LogLevel:          env.BarkLogLevel,
+			LogToFile:         env.LogToFile,
 		})
 	case config.CLNBackendType:
 		CLNAddress, _ := svc.cfg.Get("CLNAddress", encryptionKey)

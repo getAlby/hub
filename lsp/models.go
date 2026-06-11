@@ -6,6 +6,7 @@ type LSP struct {
 
 const (
 	LSP_TYPE_LSPS1 = "LSPS1"
+	LSP_TYPE_LSPS2 = "LSPS2"
 )
 
 func OlympusMutinynetLSP() LSP {

@@ -37,7 +37,6 @@ import { FirstChannel } from "src/screens/channels/first/FirstChannel";
 import { OpenedFirstChannel } from "src/screens/channels/first/OpenedFirstChannel";
 import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChannel";
 import { AlbyCliSkill } from "src/screens/internal-apps/AlbyCliSkill";
-import { Bitrefill } from "src/screens/internal-apps/Bitrefill";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
 import { LightningMessageboard } from "src/screens/internal-apps/LightningMessageboard";
 import { SimpleBoost } from "src/screens/internal-apps/SimpleBoost";
@@ -50,6 +49,7 @@ import Peers from "src/screens/peers/Peers";
 import { About } from "src/screens/settings/About";
 import { AlbyAccount } from "src/screens/settings/AlbyAccount";
 import { AutoUnlock } from "src/screens/settings/AutoUnlock";
+import { NodeSettings } from "src/screens/settings/NodeSettings";
 import Backup from "src/screens/settings/Backup";
 import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
 import DebugTools from "src/screens/settings/DebugTools";
@@ -255,6 +255,11 @@ const routes: RouteObject[] = [
                 handle: { crumb: () => "Auto Unlock" },
               },
               {
+                path: "node",
+                element: <NodeSettings />,
+                handle: { crumb: () => "Node" },
+              },
+              {
                 path: "change-unlock-password",
                 element: <ChangeUnlockPassword />,
                 handle: { crumb: () => "Unlock Password" },
@@ -348,10 +353,6 @@ const routes: RouteObject[] = [
           {
             path: "zapplanner",
             element: <ZapPlanner />,
-          },
-          {
-            path: "bitrefill",
-            element: <Bitrefill />,
           },
           {
             path: "alby-cli-skill",

@@ -418,6 +418,13 @@ func (svc *albyOAuthService) DeleteLightningAddress(ctx context.Context, address
 		return errors.New("failed to read response body")
 	}
 
+	if res.StatusCode == http.StatusNotFound {
+		// The lightning address was already deleted on the Alby account
+		// (e.g. removed previously). Treat as success so deletion is idempotent.
+		logger.Logger.WithField("address", address).Info("Lightning address already deleted on Alby account, ignoring 404")
+		return nil
+	}
+
 	if res.StatusCode >= 300 {
 		return fmt.Errorf("DELETE request to /internal/lightning_addresses/%s returned non-success status: %d %s", address, res.StatusCode, string(responseBody))
 	}

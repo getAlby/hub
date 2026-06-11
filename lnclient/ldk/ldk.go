@@ -28,6 +28,7 @@ import (
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 	"github.com/sirupsen/logrus"
 
+	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/events"
 	"github.com/getAlby/hub/lnclient"
@@ -54,13 +55,20 @@ type LDKService struct {
 	lastWalletSyncRequest              time.Time
 	redeemedOnchainFundsWithinThisSync bool
 	pubkey                             string
+	lsps2Pubkey                        string
+	lsps2Address                       string
+	lsps2InfoMu                        sync.Mutex
+	lsps2InfoFetchedAt                 time.Time
+	lsps2MinPaymentSizeMsat            *uint64
+	lsps2MaxPaymentSizeMsat            *uint64
 	shuttingDown                       bool
 }
 
 const resetRouterKey = "ResetRouter"
 const maxInvoiceExpiry = 24 * time.Hour
+const lsps2InfoCacheTTL = 60 * time.Minute
 
-func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, vssToken string, setStartupState func(startupState string)) (result lnclient.LNClient, err error) {
+func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events.EventPublisher, mnemonic, workDir string, vssToken string, setStartupState func(startupState string), channelPeerSuggestions []alby.ChannelPeerSuggestion) (result lnclient.LNClient, err error) {
 	if mnemonic == "" || workDir == "" {
 		return nil, errors.New("one or more required LDK configuration are missing")
 	}
@@ -143,7 +151,40 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	builder.SetNodeAlias(alias)
 	builder.SetEntropyBip39Mnemonic(mnemonic, nil)
 
+	liquiditySourceLsps2 := cfg.GetEnv().LDKLiquiditySourceLsps2
 	network := cfg.GetNetwork()
+
+	// if no explicit override, try a matching LSPS2 suggestion for this network
+	if liquiditySourceLsps2 == "" {
+		for _, suggestion := range channelPeerSuggestions {
+			if suggestion.PaymentMethod == "lightning" &&
+				suggestion.Type == lsp.LSP_TYPE_LSPS2 &&
+				suggestion.Network == network &&
+				suggestion.NodeAddress != "" {
+				liquiditySourceLsps2 = suggestion.NodeAddress
+				break
+			}
+		}
+	}
+
+	// fall back to a hardcoded per-network default
+	if liquiditySourceLsps2 == "" {
+		switch network {
+		case "signet":
+			// Alby LSP (Mutinynet)
+			liquiditySourceLsps2 = "025010bd608771bc13f08f696e3dd226bf3a9ae6ea461e3922ed9bdca7bb0edfe5@141.95.84.44:9735"
+		case "bitcoin":
+			// Megalith LSP 2
+			liquiditySourceLsps2 = "034066e29e402d9cf55af1ae1026cc5adf92eed1e0e421785442f53717ad1453b0@64.23.159.177:9735"
+		}
+	}
+
+	lsps2Pubkey, lsps2Address := parseLiquiditySourceLsps2(liquiditySourceLsps2)
+
+	if lsps2Pubkey != "" {
+		builder.SetLiquiditySourceLsps2(lsps2Pubkey, lsps2Address, nil)
+	}
+
 	switch network {
 	case "signet":
 		builder.SetNetwork(ldk_node.NetworkSignet)
@@ -251,6 +292,8 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 		eventPublisher:      eventPublisher,
 		cfg:                 cfg,
 		pubkey:              nodeId,
+		lsps2Pubkey:         lsps2Pubkey,
+		lsps2Address:        lsps2Address,
 		ctx:                 ldkCtx,
 	}
 
@@ -691,6 +734,16 @@ func (ls *LDKService) getMaxReceivable() int64 {
 	return int64(receivable)
 }
 
+func (ls *LDKService) hasPublicChannel() bool {
+	channels := ls.node.ListChannels()
+	for _, channel := range channels {
+		if channel.IsAnnounced {
+			return true
+		}
+	}
+	return false
+}
+
 func (ls *LDKService) getMaxSpendable() uint64 {
 	var spendable uint64 = 0
 	channels := ls.node.ListChannels()
@@ -710,7 +763,15 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, descrip
 
 	maxReceivable := ls.getMaxReceivable()
 
-	if amountMsat > maxReceivable {
+	jitChannelsEnabled, _ := ls.cfg.Get("JitChannelsEnabled", "")
+	// JIT channels are only used for users without a public channel - users with
+	// a public channel should increase inbound liquidity manually.
+	isJitInvoice := ls.lsps2Pubkey != "" &&
+		jitChannelsEnabled != "false" &&
+		!ls.hasPublicChannel() &&
+		amountMsat > maxReceivable
+
+	if amountMsat > maxReceivable && !isJitInvoice {
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_incoming_liquidity_required",
 			Properties: map[string]interface{}{
@@ -736,9 +797,21 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, descrip
 		}
 	}
 
-	invoiceObj, err := ls.node.Bolt11Payment().Receive(uint64(amountMsat),
-		descriptionType,
-		uint32(expiry))
+	var invoiceObj *ldk_node.Bolt11Invoice
+	if isJitInvoice {
+		invoiceObj, err = ls.node.Bolt11Payment().ReceiveViaJitChannel(
+			uint64(amountMsat),
+			descriptionType,
+			uint32(expiry),
+			nil,
+		)
+	} else {
+		invoiceObj, err = ls.node.Bolt11Payment().Receive(
+			uint64(amountMsat),
+			descriptionType,
+			uint32(expiry),
+		)
+	}
 
 	if err != nil {
 		logger.Logger.WithError(err).Error("MakeInvoice failed")
@@ -746,7 +819,7 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, descrip
 	}
 
 	payment := ls.node.Payment(invoiceObj.PaymentHash())
-	invoice := *payment.Kind.(ldk_node.PaymentKindBolt11).Bolt11Invoice
+	invoice := invoiceObj.String()
 	paymentRequest, err := decodepay.Decodepay(invoice)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
@@ -757,12 +830,33 @@ func (ls *LDKService) MakeInvoice(ctx context.Context, amountMsat int64, descrip
 	}
 	expiresAtUnix := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
 
+	preimage := ""
+	estimatedLspFeeMsat := int64(0)
+	if payment != nil {
+		switch kind := payment.Kind.(type) {
+		case ldk_node.PaymentKindBolt11:
+			if kind.Preimage != nil {
+				preimage = *kind.Preimage
+			}
+		case ldk_node.PaymentKindBolt11Jit:
+			if kind.Preimage != nil {
+				preimage = *kind.Preimage
+			}
+			if kind.LspFeeLimits.MaxTotalOpeningFeeMsat != nil {
+				estimatedLspFeeMsat = int64(*kind.LspFeeLimits.MaxTotalOpeningFeeMsat)
+			} else if kind.LspFeeLimits.MaxProportionalOpeningFeePpmMsat != nil && amountMsat > 0 {
+				estimatedLspFeeMsat = int64((uint64(amountMsat) * *kind.LspFeeLimits.MaxProportionalOpeningFeePpmMsat) / 1_000_000)
+			}
+		}
+	}
+
 	transaction = &lnclient.Transaction{
 		Type:            "incoming",
 		Invoice:         invoice,
 		PaymentHash:     paymentRequest.PaymentHash,
-		Preimage:        *payment.Kind.(ldk_node.PaymentKindBolt11).Preimage,
+		Preimage:        preimage,
 		AmountMsat:      amountMsat,
+		FeesPaidMsat:    estimatedLspFeeMsat,
 		CreatedAt:       int64(paymentRequest.CreatedAt),
 		ExpiresAt:       &expiresAtUnix,
 		Description:     paymentRequest.Description,
@@ -889,6 +983,19 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 
 		isActive := ldkChannel.IsUsable /* superset of ldkChannel.IsReady */ && channelError == nil
 
+		// Public channels require 6 confirmations before they can be gossiped/announced
+		// (BOLT-7), and they only become usable once announced. However, LDK accepts
+		// channels from trusted LSP peers as 0-conf, so it reports ConfirmationsRequired
+		// as nil/0. Override to 6 for public channels so the UI shows confirmation
+		// progress while opening instead of an indefinite blank loading spinner.
+		confirmationsRequired := ldkChannel.ConfirmationsRequired
+		if ldkChannel.IsAnnounced {
+			publicChannelConfirmationsRequired := uint32(6)
+			if confirmationsRequired == nil || *confirmationsRequired < publicChannelConfirmationsRequired {
+				confirmationsRequired = &publicChannelConfirmationsRequired
+			}
+		}
+
 		channels = append(channels, lnclient.Channel{
 			InternalChannel:                     internalChannel,
 			LocalBalanceMsat:                    int64(ldkChannel.ChannelValueSats*1000 - ldkChannel.InboundCapacityMsat - ldkChannel.CounterpartyUnspendablePunishmentReserve*1000),
@@ -901,7 +1008,7 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			FundingTxId:                         fundingTxId,
 			FundingTxVout:                       fundingTxVout,
 			Confirmations:                       ldkChannel.Confirmations,
-			ConfirmationsRequired:               ldkChannel.ConfirmationsRequired,
+			ConfirmationsRequired:               confirmationsRequired,
 			ForwardingFeeBaseMsat:               ldkChannel.Config.ForwardingFeeBaseMsat,
 			ForwardingFeeProportionalMillionths: ldkChannel.Config.ForwardingFeeProportionalMillionths,
 			UnspendablePunishmentReserveSat:     unspendablePunishmentReserveSat,
@@ -1364,6 +1471,20 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 		paymentHash = bolt11PaymentKind.Hash
 	}
 
+	bolt11JitPaymentKind, isBolt11JitPaymentKind := payment.Kind.(ldk_node.PaymentKindBolt11Jit)
+	if isBolt11JitPaymentKind {
+		createdAt = int64(payment.CreatedAt)
+		if payment.CreatedAt == 0 {
+			createdAt = int64(payment.LatestUpdateTimestamp)
+		}
+		if payment.Status == ldk_node.PaymentStatusSucceeded && bolt11JitPaymentKind.Preimage != nil {
+			preimage = *bolt11JitPaymentKind.Preimage
+			lastUpdate := int64(payment.LatestUpdateTimestamp)
+			settledAt = &lastUpdate
+		}
+		paymentHash = bolt11JitPaymentKind.Hash
+	}
+
 	bolt12PaymentKind, isBolt12PaymentKind := payment.Kind.(ldk_node.PaymentKindBolt12Offer)
 
 	if isBolt12PaymentKind {
@@ -1428,6 +1549,9 @@ func (ls *LDKService) ldkPaymentToTransaction(payment *ldk_node.PaymentDetails) 
 	var feeMsat uint64 = 0
 	if payment.FeePaidMsat != nil {
 		feeMsat = *payment.FeePaidMsat
+	}
+	if isBolt11JitPaymentKind && bolt11JitPaymentKind.CounterpartySkimmedFeeMsat != nil {
+		feeMsat = *bolt11JitPaymentKind.CounterpartySkimmedFeeMsat
 	}
 
 	return &lnclient.Transaction{
@@ -1522,15 +1646,22 @@ func (ls *LDKService) handleLdkEvent(event *ldk_node.Event) {
 			return
 		}
 
-		isTrusted := eventType.CounterpartyNodeId != nil && slices.Contains(ls.node.Config().AnchorChannelsConfig.TrustedPeersNoReserve, *eventType.CounterpartyNodeId)
-
 		channel := channels[channelIndex]
+
+		// assume it's a JIT channel if the channel peer matches
+		// checking outbound capacity doesn't work (outbound capacity can be initially 0)
+		isJit := !channel.IsOutbound && ls.lsps2Pubkey != "" && *eventType.CounterpartyNodeId == ls.lsps2Pubkey
+
+		isTrusted := eventType.CounterpartyNodeId != nil &&
+			(slices.Contains(ls.node.Config().AnchorChannelsConfig.TrustedPeersNoReserve, *eventType.CounterpartyNodeId) || isJit)
+
 		ls.eventPublisher.Publish(&events.Event{
 			Event: "nwc_channel_ready",
 			Properties: map[string]interface{}{
 				"counterparty_node_id": eventType.CounterpartyNodeId,
 				"node_type":            config.LDKBackendType,
 				"public":               channel.IsAnnounced,
+				"jit":                  isJit,
 				"capacity":             channel.ChannelValueSats,
 				"is_outbound":          channel.IsOutbound,
 				"trusted":              isTrusted,
@@ -1890,6 +2021,8 @@ func (ls *LDKService) deleteOldLDKPayments() {
 		deletablePaymentKind := false
 		switch (payment.Kind).(type) {
 		case ldk_node.PaymentKindBolt11:
+			deletablePaymentKind = true
+		case ldk_node.PaymentKindBolt11Jit:
 			deletablePaymentKind = true
 		case ldk_node.PaymentKindSpontaneous:
 			deletablePaymentKind = true
@@ -2490,6 +2623,95 @@ func (ls *LDKService) GetChainDataSource() (string, string) {
 	return "esplora", sanitizeChainEndpoint(endpoint, "")
 }
 
+func (ls *LDKService) GetLiquiditySourceLsps2() string {
+	if ls.lsps2Pubkey == "" || ls.lsps2Address == "" {
+		return ""
+	}
+	return fmt.Sprintf("%s@%s", ls.lsps2Pubkey, ls.lsps2Address)
+}
+
+func (ls *LDKService) GetLiquiditySourceLsps2MinPaymentSizeMsat() *uint64 {
+	ls.fetchLsps2OpeningFeeParams()
+	return ls.lsps2MinPaymentSizeMsat
+}
+
+func (ls *LDKService) GetLiquiditySourceLsps2MaxPaymentSizeMsat() *uint64 {
+	ls.fetchLsps2OpeningFeeParams()
+	return ls.lsps2MaxPaymentSizeMsat
+}
+
+func (ls *LDKService) fetchLsps2OpeningFeeParams() {
+	if ls.lsps2Pubkey == "" || ls.lsps2Address == "" {
+		return
+	}
+
+	ls.lsps2InfoMu.Lock()
+	defer ls.lsps2InfoMu.Unlock()
+
+	if !ls.lsps2InfoFetchedAt.IsZero() && time.Since(ls.lsps2InfoFetchedAt) < lsps2InfoCacheTTL {
+		return
+	}
+
+	response, err := ls.node.Lsps2Liquidity().RequestOpeningFeeParams()
+	if err != nil {
+		logger.Logger.WithError(err).Warn("Failed to fetch LSPS2 opening fee params")
+		return
+	}
+
+	var minPaymentSizeMsat *uint64
+	var maxPaymentSizeMsat *uint64
+	for _, params := range response.OpeningFeeParamsMenu {
+		effectiveMinPaymentSizeMsat, ok := computeLsps2MinPaymentSizeMsat(params)
+		if !ok {
+			continue
+		}
+		if minPaymentSizeMsat == nil || effectiveMinPaymentSizeMsat < *minPaymentSizeMsat {
+			value := effectiveMinPaymentSizeMsat
+			minPaymentSizeMsat = &value
+		}
+		if maxPaymentSizeMsat == nil || params.MaxPaymentSizeMsat > *maxPaymentSizeMsat {
+			value := params.MaxPaymentSizeMsat
+			maxPaymentSizeMsat = &value
+		}
+	}
+
+	ls.lsps2MinPaymentSizeMsat = minPaymentSizeMsat
+	ls.lsps2MaxPaymentSizeMsat = maxPaymentSizeMsat
+	ls.lsps2InfoFetchedAt = time.Now()
+}
+
+// finds the smallest incoming payment for which the user is left
+// with a usable amount after the LSP skims its LSPS2 opening fee.
+func computeLsps2MinPaymentSizeMsat(params ldk_node.Lsps2OpeningFeeParams) (uint64, bool) {
+	// The smallest amount the user must net after the opening fee. We require a
+	// whole satoshi rather than a single millisat so the minimum payment size
+	// represents a usable receive.
+	const minNetReceiveMsat = 1000
+
+	paymentSizeMsat := params.MinPaymentSizeMsat
+
+	for range 8 {
+		openingFeeMsat := ldk_node.Lsps2ComputeOpeningFeeMsat(paymentSizeMsat, params)
+		if openingFeeMsat == nil {
+			return 0, false
+		}
+		// The incoming amount must exceed the opening fee by at least 1 sat,
+		// otherwise the user receives a sub-satoshi (effectively zero) amount
+		// after the LSP skims its fee.
+		if *openingFeeMsat+minNetReceiveMsat <= paymentSizeMsat {
+			return paymentSizeMsat, paymentSizeMsat <= params.MaxPaymentSizeMsat
+		}
+
+		nextPaymentSizeMsat := *openingFeeMsat + minNetReceiveMsat
+		if nextPaymentSizeMsat <= paymentSizeMsat || nextPaymentSizeMsat > params.MaxPaymentSizeMsat {
+			return 0, false
+		}
+		paymentSizeMsat = nextPaymentSizeMsat
+	}
+
+	return 0, false
+}
+
 func sanitizeChainEndpoint(endpoint string, port string) string {
 	u, err := url.Parse(endpoint)
 	if err != nil || u.Host == "" {
@@ -2522,4 +2744,24 @@ func sanitizeChainEndpoint(endpoint string, port string) string {
 	}
 
 	return sanitized
+}
+
+func parseLiquiditySourceLsps2(lsps2Address string) (pubkey string, address string) {
+	entry := strings.TrimSpace(lsps2Address)
+	if entry == "" {
+		return "", ""
+	}
+
+	pubkey, address, hasSeparator := strings.Cut(entry, "@")
+	if !hasSeparator || pubkey == "" || address == "" {
+		logger.Logger.WithField("entry", entry).Warn("Invalid LDK_LSPS2_ADDRESS, expected <pubkey>@<host>:<port>")
+		return "", ""
+	}
+
+	if _, _, err := net.SplitHostPort(address); err != nil {
+		logger.Logger.WithField("entry", entry).WithError(err).Warn("Invalid LDK_LSPS2_ADDRESS host:port")
+		return "", ""
+	}
+
+	return pubkey, address
 }

@@ -152,6 +152,13 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amountMsat uint
 		"metadata":         metadata,
 	}).Debug("Making invoice")
 
+	if amountMsat%1000 != 0 {
+		return nil, errors.New("the amount must be a whole number of satoshis")
+	}
+	if amountMsat < 1000 {
+		return nil, errors.New("the amount must be at least 1 satoshi")
+	}
+
 	var metadataBytes []byte
 	if metadata != nil {
 		var err error
@@ -198,6 +205,7 @@ func (svc *transactionsService) MakeInvoice(ctx context.Context, amountMsat uint
 		Type:            lnClientTransaction.Type,
 		State:           constants.TRANSACTION_STATE_PENDING,
 		AmountMsat:      uint64(lnClientTransaction.AmountMsat),
+		FeeMsat:         uint64(max(lnClientTransaction.FeesPaidMsat, 0)),
 		Description:     description,
 		DescriptionHash: descriptionHash,
 		PaymentRequest:  lnClientTransaction.Invoice,

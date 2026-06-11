@@ -62,7 +62,8 @@ export const useOnboardingData = (): UseOnboardingDataResponse => {
     transactions.totalCount > 0 || balances.lightning.totalSpendableSat > 0;
 
   const checklistItems: Omit<ChecklistItem, "disabled">[] = [
-    ...(hasChannelManagement
+    ...(hasChannelManagement &&
+    !(info.jitChannelsEnabled && info.jitChannelsLiquiditySource)
       ? [
           {
             title: "Open your first channel",

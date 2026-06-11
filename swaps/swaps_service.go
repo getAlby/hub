@@ -11,7 +11,6 @@ import (
 	"io"
 	"net/http"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -71,26 +70,6 @@ type SwapsService interface {
 const (
 	AlbySwapServiceFee = 1.0
 )
-
-type FeeRates struct {
-	FastestFee  uint64 `json:"fastestFee"`
-	HalfHourFee uint64 `json:"halfHourFee"`
-	HourFee     uint64 `json:"hourFee"`
-	EconomyFee  uint64 `json:"economyFee"`
-	MinimumFee  uint64 `json:"minimumFee"`
-}
-
-type TxStatusInfo struct {
-	Confirmed   bool   `json:"confirmed"`
-	BlockHeight uint32 `json:"block_height"`
-	BlockHash   string `json:"block_hash"`
-	BlockTime   uint64 `json:"block_time"`
-}
-
-type MempoolTx struct {
-	TxId   string       `json:"txid"`
-	Status TxStatusInfo `json:"status"`
-}
 
 type SwapInfo struct {
 	AlbyServiceFee     float64
@@ -727,7 +706,7 @@ func (svc *swapsService) RefundSwap(swapId, address string, enableRetries bool) 
 			continue
 		}
 
-		feeRates, err := svc.getFeeRates()
+		feeRate, err := svc.getFeeRate()
 		if err != nil {
 			logger.Logger.WithError(err).WithFields(logrus.Fields{
 				"swapId":    swapId,
@@ -738,7 +717,6 @@ func (svc *swapsService) RefundSwap(swapId, address string, enableRetries bool) 
 
 		cooperative := swapTransactionResp.TimeoutBlockHeight > nodeInfo.BlockHeight
 
-		fastestFee := float64(feeRates.FastestFee)
 		refundTransaction, _, err = boltz.ConstructTransaction(
 			network,
 			boltz.CurrencyBtc,
@@ -756,7 +734,7 @@ func (svc *swapsService) RefundSwap(swapId, address string, enableRetries bool) 
 				},
 			},
 			boltz.Fee{
-				SatsPerVbyte: &fastestFee,
+				SatsPerVbyte: &feeRate,
 			},
 			svc.boltzApi,
 		)
@@ -1136,7 +1114,7 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 			return
 		case <-claimTicker.C:
 			if swap.ClaimTxId != "" {
-				tx, err := svc.getMempoolTx(swap.ClaimTxId)
+				confirmed, err := svc.isTransactionConfirmed(swap.ClaimTxId)
 				if err != nil {
 					logger.Logger.WithError(err).WithFields(logrus.Fields{
 						"swapId":    swap.SwapId,
@@ -1144,7 +1122,7 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 					}).Debug("Claim poll failed; will retry")
 					break
 				}
-				if tx.Status.Confirmed {
+				if confirmed {
 					svc.markSwapState(swap, constants.SWAP_STATE_SUCCESS)
 					logger.Logger.WithField("swapId", swap.SwapId).Info("Swap succeeded")
 					if swap.UsedXpub {
@@ -1263,16 +1241,14 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 					feeSat := lockupAmountSat - swap.ReceiveAmountSat
 					boltzFee.Sats = &feeSat
 				} else {
-					var feeRates *FeeRates
-					feeRates, err = svc.getFeeRates()
+					feeRate, err := svc.getFeeRate()
 					if err != nil {
 						logger.Logger.WithError(err).WithFields(logrus.Fields{
 							"swapId": swap.SwapId,
 						}).Error("Failed to fetch fee rate to create claim transaction")
 						return
 					}
-					fastestFee := float64(feeRates.FastestFee)
-					boltzFee.SatsPerVbyte = &fastestFee
+					boltzFee.SatsPerVbyte = &feeRate
 				}
 
 				var claimTransaction boltz.Transaction
@@ -1347,90 +1323,16 @@ func (svc *swapsService) startSwapOutListener(swap *db.Swap) {
 	}
 }
 
-func (svc *swapsService) getMempoolTx(txId string) (*MempoolTx, error) {
-	var transaction MempoolTx
-	endpoint := fmt.Sprintf("/tx/%s", txId)
-	if err := svc.requestMempoolApi(endpoint, &transaction); err != nil {
-		return nil, err
-	}
-	return &transaction, nil
-}
-
-func (svc *swapsService) getFeeRates() (*FeeRates, error) {
-	var rates FeeRates
-	if err := svc.requestMempoolApi("/v1/fees/recommended", &rates); err != nil {
-		return nil, err
-	}
-	return &rates, nil
-}
-
-func (svc *swapsService) requestMempoolApi(endpoint string, result interface{}) error {
-	for attempt := 1; attempt <= 10; attempt++ {
-		err := svc.doMempoolRequest(endpoint, result)
-		if err != nil {
-			logger.Logger.WithError(err).WithFields(logrus.Fields{
-				"attempt":  attempt,
-				"endpoint": endpoint,
-			}).Error("Mempool API request failed, retrying")
-			time.Sleep(1 * time.Second)
-			continue
-		}
-		return nil
-	}
-
-	return fmt.Errorf("ran out of attempts to request %s", endpoint)
-}
-
-func (svc *swapsService) doMempoolRequest(endpoint string, result interface{}) error {
-	url := svc.cfg.GetEnv().MempoolApi + endpoint
-	url = strings.ReplaceAll(url, "testnet/", "")
-
-	client := http.Client{
-		Timeout: time.Second * 10,
-	}
-
-	req, err := http.NewRequestWithContext(svc.ctx, http.MethodGet, url, nil)
+func (svc *swapsService) isTransactionConfirmed(txId string) (bool, error) {
+	transaction, err := svc.boltzApi.GetTransactionDetails(txId, boltz.CurrencyBtc)
 	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to create http request")
-		return err
+		return false, err
 	}
-	res, err := client.Do(req)
-	if err != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to send request")
-		return err
-	}
+	return transaction.Confirmations > 0, nil
+}
 
-	defer res.Body.Close()
-
-	body, readErr := io.ReadAll(res.Body)
-	if readErr != nil {
-		logger.Logger.WithError(err).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to read response body")
-		return errors.New("failed to read response body")
-	}
-
-	if res.StatusCode != http.StatusOK {
-		logger.Logger.WithFields(logrus.Fields{
-			"endpoint":    endpoint,
-			"status_code": res.StatusCode,
-			"body":        string(body),
-		}).Error("Swaps mempool API endpoint returned non-success code")
-		return fmt.Errorf("swaps mempool API endpoint returned non-success code: %s", string(body))
-	}
-
-	jsonErr := json.Unmarshal(body, &result)
-	if jsonErr != nil {
-		logger.Logger.WithError(jsonErr).WithFields(logrus.Fields{
-			"url": url,
-		}).Error("Failed to deserialize json")
-		return fmt.Errorf("failed to deserialize json %s %s", url, string(body))
-	}
-	return nil
+func (svc *swapsService) getFeeRate() (float64, error) {
+	return svc.boltzApi.GetFeeEstimation(boltz.CurrencyBtc)
 }
 
 func (svc *swapsService) bumpAutoswapXpubIndex(swapId uint) {

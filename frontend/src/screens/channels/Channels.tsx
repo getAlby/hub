@@ -326,11 +326,14 @@ export default function Channels() {
           {!!channels?.length && (
             <>
               {/* If all channels have less than 20% incoming capacity, show a warning */}
-              {channels?.every(
-                (channel) =>
-                  channel.remoteBalanceMsat <
-                  (channel.localBalanceMsat + channel.remoteBalanceMsat) * 0.2
-              ) && <LowReceivingCapacityAlert />}
+              {!(
+                info?.jitChannelsEnabled && info?.jitChannelsLiquiditySource
+              ) &&
+                channels?.every(
+                  (channel) =>
+                    channel.remoteBalanceMsat <
+                    (channel.localBalanceMsat + channel.remoteBalanceMsat) * 0.2
+                ) && <LowReceivingCapacityAlert />}
             </>
           )}
 
@@ -551,6 +554,7 @@ export default function Channels() {
               icon={UnplugIcon}
               title="No Channels Available"
               description="Connect to the Lightning Network by establishing your first channel and start transacting."
+              variant="dashed"
               buttonText="Open Channel"
               buttonLink="/channels/incoming"
             />
