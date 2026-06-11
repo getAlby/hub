@@ -38,10 +38,17 @@ export default function FirstChannelJitAlert() {
     "loading" | "ok" | "failed"
   >("loading");
   const deadlineRef = React.useRef<number | null>(null);
+  // single-flight the non-idempotent probe invoice: hold the in-flight request
+  // so effect re-entry (e.g. StrictMode remount) reuses the same POST instead
+  // of creating a duplicate invoice. Reset when the probe window ends.
+  const probeRequestRef = React.useRef<Promise<Transaction | undefined> | null>(
+    null
+  );
 
   React.useEffect(() => {
     if (!isJitEnabled) {
       deadlineRef.current = null;
+      probeRequestRef.current = null;
       return;
     }
 
@@ -66,16 +73,20 @@ export default function FirstChannelJitAlert() {
 
     // wait for the minimum payment size before requesting the probe invoice.
     if (minPaymentSizeMsat) {
-      request<Transaction>("/api/invoices", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          amountMsat: minPaymentSizeMsat,
-          description: "",
-        } as CreateInvoiceRequest),
-      })
+      // reuse an already in-flight probe so a re-run doesn't issue a second POST.
+      const probeRequest =
+        probeRequestRef.current ??
+        (probeRequestRef.current = request<Transaction>("/api/invoices", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amountMsat: minPaymentSizeMsat,
+            description: "",
+          } as CreateInvoiceRequest),
+        }));
+      probeRequest
         .then(() => {
           if (!cancelled) {
             clearTimeout(timer);
