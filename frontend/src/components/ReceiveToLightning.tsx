@@ -26,8 +26,8 @@ export function ReceiveToLightning() {
   return (
     <div className="flex flex-col gap-5">
       <Card>
-        <FirstChannelJitAlert />
         <CardContent className="flex flex-col items-center gap-6">
+          <FirstChannelJitAlert />
           <QRCode value={me.lightning_address} className="w-full h-auto" />
           <div className="flex max-w-full items-center justify-center gap-1">
             <p className="min-w-0 text-center font-medium text-lg break-all">
