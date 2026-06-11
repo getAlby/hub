@@ -16,6 +16,7 @@ import { Link } from "react-router";
 import twoFiatLogo from "src/assets/cards/2fiat.png";
 import freedomiaLogo from "src/assets/cards/freedomia.png";
 import redotpayLogo from "src/assets/cards/redotpay.png";
+import solvocardLogo from "src/assets/cards/solvocard.png";
 import bringinLogo from "src/assets/suggested-apps/bringin.png";
 import wavespaceLogo from "src/assets/suggested-apps/wave-space.png";
 import AppHeader from "src/components/AppHeader";
@@ -75,7 +76,7 @@ type Provider = {
   url: string;
   logo: string;
   initials: string;
-  network: "Visa" | "Mastercard";
+  networks: ("Visa" | "Mastercard")[];
   cardType: "Physical" | "Virtual" | "Both";
   regions: Region[];
   applePay: boolean;
@@ -101,7 +102,7 @@ const providers: Provider[] = [
     url: "https://wap.redotpay.com/en/invite/?referralId=qr1a5",
     logo: redotpayLogo,
     initials: "RP",
-    network: "Visa",
+    networks: ["Visa"],
     cardType: "Virtual",
     regions: ["Global"],
     applePay: true,
@@ -120,7 +121,7 @@ const providers: Provider[] = [
     url: "https://2fiat.com/getalby",
     logo: twoFiatLogo,
     initials: "2F",
-    network: "Mastercard",
+    networks: ["Mastercard"],
     cardType: "Virtual",
     regions: ["Global"],
     applePay: true,
@@ -139,7 +140,7 @@ const providers: Provider[] = [
     url: "https://www.freedomia.io/a/getalby",
     logo: freedomiaLogo,
     initials: "FR",
-    network: "Visa",
+    networks: ["Visa"],
     cardType: "Virtual",
     regions: ["Global"],
     applePay: false,
@@ -153,12 +154,31 @@ const providers: Provider[] = [
     appStoreId: "bitcoin-card-topup",
   },
   {
+    id: "solvocard",
+    name: "Solvocard",
+    url: "https://www.solvocard.com/auth/sign-up?ref=77CEM87Q",
+    logo: solvocardLogo,
+    initials: "SC",
+    networks: ["Visa", "Mastercard"],
+    cardType: "Virtual",
+    regions: ["Global"],
+    applePay: true,
+    googlePay: true,
+    selfCustody: false,
+    lightningNative: false,
+    kyc: false,
+    timeToGet: "Instant",
+    cardCost: "$99",
+    fees: "4% deposit + $1 card topup",
+    appStoreId: "bitcoin-card-topup",
+  },
+  {
     id: "bringin",
     name: "Bringin",
     url: "https://bringin.app",
     logo: bringinLogo,
     initials: "BR",
-    network: "Visa",
+    networks: ["Visa"],
     cardType: "Both",
     regions: ["EU"],
     // Direct Apple Pay isn't live — usable today via Curve only, so don't
@@ -181,7 +201,7 @@ const providers: Provider[] = [
     url: "https://app.wave.space/spend/?utm_source=albyhub&affiliate=AlbyHub",
     logo: wavespaceLogo,
     initials: "WS",
-    network: "Visa",
+    networks: ["Visa"],
     cardType: "Both",
     // Card is accepted worldwide, but issuance requires EEA residency.
     regions: ["EU"],
@@ -583,7 +603,9 @@ function ProviderRow({ provider }: { provider: Provider }) {
                 </Tooltip>
               )}
             </div>
-            <p className="text-xs text-muted-foreground">{provider.network}</p>
+            <p className="text-xs text-muted-foreground">
+              {provider.networks.join(" / ")}
+            </p>
           </div>
         </div>
       </TableCell>
@@ -679,7 +701,7 @@ function ProviderCard({ provider }: { provider: Provider }) {
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-            {provider.network} · {provider.cardType}
+            {provider.networks.join(" / ")} · {provider.cardType}
           </p>
         </div>
       </div>
@@ -780,7 +802,7 @@ function ConnectCardDialog({
             // query param; pass the selected provider so its preset is applied.
             const to =
               p.appStoreId === "bitcoin-card-topup"
-                ? `/apps/new?app=${p.appStoreId}&provider=${encodeURIComponent(p.id)}`
+                ? `/apps/new?app=${p.appStoreId}&provider=${encodeURIComponent(p.id)}&name=${encodeURIComponent(`${p.name} - Bitcoin Card Topup`)}`
                 : `/apps/new?app=${p.appStoreId}`;
             return (
               <Link
@@ -805,7 +827,7 @@ function ConnectCardDialog({
                 <div className="min-w-0 flex-1">
                   <p className="font-medium truncate">{p.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {p.network} · {p.cardType}
+                    {p.networks.join(" / ")} · {p.cardType}
                   </p>
                 </div>
                 <ArrowUpRightIcon className="size-4 text-muted-foreground" />
