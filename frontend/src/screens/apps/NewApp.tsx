@@ -89,10 +89,8 @@ const NewAppInternal = ({ capabilities }: NewAppInternalProps) => {
   const pubkey = queryParams.get("pubkey") ?? "";
   const returnTo = queryParams.get("return_to") ?? "";
 
-  const nameParam = (queryParams.get("name") || queryParams.get("c")) ?? "";
-  const [appName, setAppName] = useState(
-    appStoreApp ? appStoreApp.title : nameParam
-  );
+  const nameParam = queryParams.get("name") || queryParams.get("c");
+  const [appName, setAppName] = useState(nameParam || appStoreApp?.title || "");
 
   const budgetRenewalParam = queryParams.get(
     "budget_renewal"
