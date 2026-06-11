@@ -1,11 +1,22 @@
-import { CopyIcon, LinkIcon, ReceiptTextIcon, ZapIcon } from "lucide-react";
+import {
+  ChevronRightIcon,
+  CopyIcon,
+  LinkIcon,
+  ReceiptTextIcon,
+  ZapIcon,
+} from "lucide-react";
+import { Link } from "react-router";
 import FirstChannelJitAlert from "src/components/FirstChannelJitAlert";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "src/components/ui/accordion";
 import { Button } from "src/components/ui/button";
-import { Card, CardContent, CardFooter } from "src/components/ui/card";
-import { LinkButton } from "src/components/ui/custom/link-button";
-import { Separator } from "src/components/ui/separator";
+import { Card, CardContent } from "src/components/ui/card";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -19,45 +30,82 @@ export function ReceiveToLightning() {
   }
 
   return (
-    <div className="grid gap-2">
+    <div className="flex flex-col gap-5">
       <FirstChannelJitAlert />
       <Card>
         <CardContent className="flex flex-col items-center gap-6">
           <QRCode value={me.lightning_address} className="w-full h-auto" />
-          <p className="text-center font-medium text-lg break-all">
-            {me.lightning_address}
-          </p>
-        </CardContent>
-        <CardFooter className="flex flex-col gap-2 pt-2">
-          <Button
-            variant="secondary"
-            onClick={() => {
-              copyToClipboard(me.lightning_address);
-            }}
-            className="w-full"
-          >
-            <CopyIcon className="size-4" /> Copy Lightning Address
-          </Button>
-          <Separator className="my-4" />
-          <LinkButton to="invoice" variant="outline" className="w-full">
-            <ZapIcon className="w-4 h-4 mr-2" />
-            Create Invoice
-          </LinkButton>
-          {info.supportsBolt12 && (
-            <LinkButton
-              to="/wallet/receive/offer"
-              variant="outline"
-              className="w-full"
+          <div className="flex max-w-full items-center justify-center gap-1">
+            <p className="min-w-0 text-center font-medium text-lg break-all">
+              {me.lightning_address}
+            </p>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Copy Lightning Address"
+              className="shrink-0"
+              onClick={() => {
+                copyToClipboard(me.lightning_address);
+              }}
             >
-              <ReceiptTextIcon className="h-4 w-4 mr-2" />
-              Lightning Offer
-            </LinkButton>
-          )}
-          <LinkButton to="onchain" variant="outline" className="w-full">
-            <LinkIcon className="w-4 h-4 mr-2" />
-            Receive from On-chain / Other Cryptocurrency
-          </LinkButton>
-        </CardFooter>
+              <CopyIcon className="size-4" />
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+      <Card className="py-2">
+        <CardContent>
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="more-options">
+              <AccordionTrigger>Other ways to receive</AccordionTrigger>
+              <AccordionContent className="flex flex-col divide-y pb-1">
+                <Link
+                  to="/wallet/receive/invoice"
+                  className="group flex items-center gap-3 py-3"
+                >
+                  <ZapIcon className="size-5 shrink-0 text-muted-foreground" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Create Invoice</p>
+                    <p className="text-xs text-muted-foreground">
+                      Request a specific amount with a one-time invoice
+                    </p>
+                  </div>
+                  <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                </Link>
+                {info.supportsBolt12 && (
+                  <Link
+                    to="/wallet/receive/offer"
+                    className="group flex items-center gap-3 py-3"
+                  >
+                    <ReceiptTextIcon className="size-5 shrink-0 text-muted-foreground" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Lightning Offer</p>
+                      <p className="text-xs text-muted-foreground">
+                        Share a reusable payment code that never expires
+                      </p>
+                    </div>
+                    <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                )}
+                <Link
+                  to="/wallet/receive/onchain"
+                  className="group flex items-center gap-3 py-3"
+                >
+                  <LinkIcon className="size-5 shrink-0 text-muted-foreground" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">
+                      On-chain or Other Cryptocurrency
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Swap funds from on-chain bitcoin or other cryptocurrencies
+                    </p>
+                  </div>
+                  <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        </CardContent>
       </Card>
     </div>
   );
