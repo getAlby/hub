@@ -131,14 +131,18 @@ export default function FirstChannelJitAlert() {
     }
 
     // they already have channels but a JIT channel couldn't be obtained, so they
-    // can only receive up to their current capacity without opening one.
+    // can only receive up to their current capacity without opening one. Wait for
+    // balances so we don't claim a misleading "0" receivable amount.
+    if (!balances) {
+      return null;
+    }
     return (
       <Alert>
         <InfoIcon className="h-4 w-4" />
         <AlertDescription className="inline">
           You can currently receive up to{" "}
           <FormattedBitcoinAmount
-            amountMsat={balances?.lightning.totalReceivableMsat ?? 0}
+            amountMsat={balances.lightning.totalReceivableMsat}
           />
           . If you want to receive a larger payment,{" "}
           <Link className="underline" to="/channels/incoming">
