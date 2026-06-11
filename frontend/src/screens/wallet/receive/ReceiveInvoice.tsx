@@ -16,6 +16,12 @@ import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import QRCode from "src/components/QRCode";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "src/components/ui/accordion";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -333,26 +339,33 @@ export default function ReceiveInvoice() {
                   Create Invoice
                 </LoadingButton>
                 {(!info?.albyAccountConnected || !me?.lightning_address) && (
-                  <div className="grid gap-2 border-t pt-6">
-                    {!info?.albyAccountConnected && info.supportsBolt12 && (
-                      <LinkButton
-                        to="/wallet/receive/offer"
-                        variant="outline"
-                        className="w-full"
-                      >
-                        <ReceiptTextIcon className="h-4 w-4" />
-                        Lightning Offer
-                      </LinkButton>
-                    )}
-                    <LinkButton
-                      to="/wallet/receive/onchain"
-                      variant="outline"
-                      className="w-full"
-                    >
-                      <LinkIcon className="h-4 w-4" />
-                      Receive from On-chain / Other Cryptocurrency
-                    </LinkButton>
-                  </div>
+                  <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="more-options">
+                      <AccordionTrigger>
+                        View other ways to receive
+                      </AccordionTrigger>
+                      <AccordionContent className="flex flex-col gap-2">
+                        {!info?.albyAccountConnected && info.supportsBolt12 && (
+                          <LinkButton
+                            to="/wallet/receive/offer"
+                            variant="outline"
+                            className="w-full"
+                          >
+                            <ReceiptTextIcon className="h-4 w-4" />
+                            Lightning Offer
+                          </LinkButton>
+                        )}
+                        <LinkButton
+                          to="/wallet/receive/onchain"
+                          variant="outline"
+                          className="w-full"
+                        >
+                          <LinkIcon className="h-4 w-4" />
+                          Receive from On-chain / Other Cryptocurrency
+                        </LinkButton>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
                 )}
               </form>
             )}
