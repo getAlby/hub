@@ -155,7 +155,7 @@ export default function ReceiveInvoice() {
       toast.error("Failed to create invoice", {
         description,
       });
-      if (jitChannelsEnabled) {
+      if (lsps2Source) {
         setJitChannelRequestFailed(true);
       }
       console.error(e);
