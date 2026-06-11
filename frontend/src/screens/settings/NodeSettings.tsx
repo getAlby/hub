@@ -69,7 +69,7 @@ export function NodeSettings() {
           <Switch
             id="jit-channels"
             checked={info.jitChannelsEnabled}
-            disabled={!hasJitSource}
+            disabled={!hasJitSource && !info.jitChannelsEnabled}
             onCheckedChange={setJitChannelsEnabled}
           />
         </div>
