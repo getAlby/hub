@@ -1,4 +1,11 @@
-import { CopyIcon, LinkIcon, ReceiptTextIcon, ZapIcon } from "lucide-react";
+import {
+  ChevronRightIcon,
+  CopyIcon,
+  LinkIcon,
+  ReceiptTextIcon,
+  ZapIcon,
+} from "lucide-react";
+import { Link } from "react-router";
 import FirstChannelJitAlert from "src/components/FirstChannelJitAlert";
 import Loading from "src/components/Loading";
 import QRCode from "src/components/QRCode";
@@ -10,7 +17,6 @@ import {
 } from "src/components/ui/accordion";
 import { Button } from "src/components/ui/button";
 import { Card, CardContent } from "src/components/ui/card";
-import { LinkButton } from "src/components/ui/custom/link-button";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useInfo } from "src/hooks/useInfo";
 import { copyToClipboard } from "src/lib/clipboard";
@@ -47,38 +53,55 @@ export function ReceiveToLightning() {
           </div>
         </CardContent>
       </Card>
-      <Card className="py-0">
+      <Card className="py-2">
         <CardContent>
           <Accordion type="single" collapsible className="w-full">
             <AccordionItem value="more-options">
-              <AccordionTrigger>View other ways to receive</AccordionTrigger>
-              <AccordionContent className="flex flex-col gap-2">
-                <LinkButton
+              <AccordionTrigger>Other ways to receive</AccordionTrigger>
+              <AccordionContent className="flex flex-col divide-y pb-1">
+                <Link
                   to="/wallet/receive/invoice"
-                  variant="outline"
-                  className="w-full"
+                  className="group flex items-center gap-3 py-3"
                 >
-                  <ZapIcon className="size-4" />
-                  Create Invoice
-                </LinkButton>
+                  <ZapIcon className="size-5 shrink-0 text-muted-foreground" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Create Invoice</p>
+                    <p className="text-xs text-muted-foreground">
+                      Request a specific amount with a one-time invoice
+                    </p>
+                  </div>
+                  <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                </Link>
                 {info.supportsBolt12 && (
-                  <LinkButton
+                  <Link
                     to="/wallet/receive/offer"
-                    variant="outline"
-                    className="w-full"
+                    className="group flex items-center gap-3 py-3"
                   >
-                    <ReceiptTextIcon className="size-4" />
-                    Lightning Offer
-                  </LinkButton>
+                    <ReceiptTextIcon className="size-5 shrink-0 text-muted-foreground" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Lightning Offer</p>
+                      <p className="text-xs text-muted-foreground">
+                        Share a reusable payment code that never expires
+                      </p>
+                    </div>
+                    <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                  </Link>
                 )}
-                <LinkButton
+                <Link
                   to="/wallet/receive/onchain"
-                  variant="outline"
-                  className="w-full"
+                  className="group flex items-center gap-3 py-3"
                 >
-                  <LinkIcon className="size-4" />
-                  Receive from On-chain / Other Cryptocurrency
-                </LinkButton>
+                  <LinkIcon className="size-5 shrink-0 text-muted-foreground" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">
+                      On-chain or Other Cryptocurrency
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Swap funds from on-chain bitcoin or other cryptocurrencies
+                    </p>
+                  </div>
+                  <ChevronRightIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                </Link>
               </AccordionContent>
             </AccordionItem>
           </Accordion>
