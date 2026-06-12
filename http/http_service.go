@@ -765,7 +765,9 @@ func (httpSvc *HttpService) listTransactionsHandler(c echo.Context) error {
 		}
 	}
 
-	transactions, err := httpSvc.api.ListTransactions(ctx, appId, limit, offset)
+	searchTerm := c.QueryParam("q")
+
+	transactions, err := httpSvc.api.ListTransactions(ctx, appId, limit, offset, searchTerm)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{

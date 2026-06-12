@@ -314,7 +314,7 @@ func TestNotifications_FailedKnownPendingAndExistingFailedPayment(t *testing.T) 
 		},
 	}, map[string]interface{}{})
 
-	transactions, totalCount, err := transactionsService.ListTransactions(ctx, uint64(0), uint64(0), uint64(0), uint64(0), true, false, nil, svc.LNClient, nil, false)
+	transactions, totalCount, err := transactionsService.ListTransactions(ctx, uint64(0), uint64(0), uint64(0), uint64(0), true, false, nil, svc.LNClient, nil, false, "")
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(2), totalCount)
 	for _, transaction := range transactions {
@@ -348,7 +348,7 @@ func TestNotifications_SentAfterMarkedPaymentFailed(t *testing.T) {
 		Properties: tests.MockLNClientTransaction,
 	}, map[string]interface{}{})
 
-	transactions, totalCount, err := transactionsService.ListTransactions(ctx, uint64(0), uint64(0), uint64(0), uint64(0), true, false, nil, svc.LNClient, nil, false)
+	transactions, totalCount, err := transactionsService.ListTransactions(ctx, uint64(0), uint64(0), uint64(0), uint64(0), true, false, nil, svc.LNClient, nil, false, "")
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(1), totalCount)
 	assert.Equal(t, constants.TRANSACTION_STATE_SETTLED, transactions[0].State)
@@ -392,7 +392,7 @@ func TestNotifications_SentAfterMarkedTwoPaymentsFailed(t *testing.T) {
 		Properties: tests.MockLNClientTransaction,
 	}, map[string]interface{}{})
 
-	transactions, totalCount, err := transactionsService.ListTransactions(ctx, uint64(0), uint64(0), uint64(0), uint64(0), true, false, nil, svc.LNClient, nil, false)
+	transactions, totalCount, err := transactionsService.ListTransactions(ctx, uint64(0), uint64(0), uint64(0), uint64(0), true, false, nil, svc.LNClient, nil, false, "")
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(2), totalCount)
 	assert.Equal(t, latestFailedTransaction.ID, transactions[0].ID)
@@ -436,7 +436,7 @@ func TestNotifications_SentWithFailedAndPendingPayment(t *testing.T) {
 		Properties: tests.MockLNClientTransaction,
 	}, map[string]interface{}{})
 
-	transactions, totalCount, err := transactionsService.ListTransactions(ctx, uint64(0), uint64(0), uint64(0), uint64(0), true, false, nil, svc.LNClient, nil, false)
+	transactions, totalCount, err := transactionsService.ListTransactions(ctx, uint64(0), uint64(0), uint64(0), uint64(0), true, false, nil, svc.LNClient, nil, false, "")
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(2), totalCount)
 	assert.Equal(t, pendingTransaction.ID, transactions[0].ID)

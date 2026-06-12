@@ -4,6 +4,7 @@ import {
   CreditCardIcon,
   DownloadIcon,
   EllipsisVerticalIcon,
+  SearchIcon,
 } from "lucide-react";
 import { Link } from "react-router";
 import ExternalLink from "src/components/ExternalLink";
@@ -16,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "src/components/ui/dropdown-menu";
 import { ProDropdownMenuItem } from "src/components/UpgradeDialog";
+import { useCommandPaletteContext } from "src/contexts/CommandPaletteContext";
 import { handleExportTransactions } from "./transactions-utils";
 
 export function WalletActionsMenu({
@@ -23,6 +25,8 @@ export function WalletActionsMenu({
 }: {
   hasChannelManagement: boolean;
 }) {
+  const { setOpen: setCommandPaletteOpen } = useCommandPaletteContext();
+
   return (
     <DropdownMenu>
       <Button asChild size="icon" variant="ghost">
@@ -60,6 +64,10 @@ export function WalletActionsMenu({
           </DropdownMenuItem>
           <DropdownMenuSeparator />
         </div>
+        <DropdownMenuItem onClick={() => setCommandPaletteOpen(true)}>
+          <SearchIcon className="h-4 w-4" />
+          Search Transactions
+        </DropdownMenuItem>
         <ProDropdownMenuItem onClick={() => handleExportTransactions()}>
           <DownloadIcon className="h-4 w-4" />
           Export Transactions

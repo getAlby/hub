@@ -1,5 +1,9 @@
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import {
+  ArrowDownIcon,
   ArrowUpDownIcon,
+  ArrowUpIcon,
   Code2Icon,
   CreditCardIcon,
   FileSignatureIcon,
@@ -23,7 +27,9 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { useNavigate } from "react-router";
+import useSWR from "swr";
 import AppAvatar from "src/components/AppAvatar";
+import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 
 import {
   CommandDialog,
@@ -34,6 +40,11 @@ import {
   CommandSeparator,
 } from "src/components/ui/command";
 import { useApps } from "src/hooks/useApps";
+import { getTransactionsUrl } from "src/hooks/useTransactions";
+import { ListTransactionsResponse } from "src/types";
+import { swrFetcher } from "src/utils/swr";
+
+dayjs.extend(relativeTime);
 
 interface CommandPaletteProps {
   open?: boolean;
@@ -52,6 +63,12 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     },
     undefined,
     !!searchText?.length
+  );
+
+  const { data: transactionsBySearch } = useSWR<ListTransactionsResponse>(
+    searchText ? getTransactionsUrl(undefined, 5, 1, searchText) : null,
+    swrFetcher,
+    { keepPreviousData: true }
   );
 
   const runCommand = React.useCallback(
@@ -240,6 +257,40 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
               >
                 <AppAvatar app={app} className="size-4" />
                 <span>{app.name}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        )}
+        {!!searchText && !!transactionsBySearch?.transactions.length && (
+          <CommandGroup heading="Transactions" forceMount>
+            {transactionsBySearch.transactions.map((tx) => (
+              <CommandItem
+                key={tx.paymentHash}
+                value={`tx-${tx.paymentHash}`}
+                onSelect={() =>
+                  runCommand(() => navigate(`/wallet?q=${tx.paymentHash}`))
+                }
+              >
+                {tx.type === "incoming" ? <ArrowDownIcon /> : <ArrowUpIcon />}
+                <span className="truncate sensitive">
+                  {tx.description ||
+                    (tx.type === "incoming"
+                      ? tx.metadata?.payer_data?.name
+                        ? `Received from ${tx.metadata.payer_data.name}`
+                        : "Received"
+                      : tx.metadata?.recipient_data?.identifier
+                        ? `Sent to ${tx.metadata.recipient_data.identifier}`
+                        : "Sent")}
+                </span>
+                <span className="ml-auto flex shrink-0 items-center gap-2 slashed-zero">
+                  <span className="sensitive">
+                    {tx.type === "outgoing" ? "-" : "+"}
+                    <FormattedBitcoinAmount amountMsat={tx.amountMsat} />
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {dayjs(tx.updatedAt).fromNow()}
+                  </span>
+                </span>
               </CommandItem>
             ))}
           </CommandGroup>

@@ -2,11 +2,13 @@ package transactions
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gorm.io/datatypes"
 
 	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/db"
@@ -48,7 +50,7 @@ func TestListTransactions_Paid(t *testing.T) {
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	incomingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, 0, 0, 0, 0, false, false, nil, svc.LNClient, nil, false)
+	incomingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, 0, 0, 0, 0, false, false, nil, svc.LNClient, nil, false, "")
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(1), totalCount)
 	assert.Equal(t, 1, len(incomingTransactions))
@@ -114,7 +116,7 @@ func TestListTransactions_UnpaidIncoming(t *testing.T) {
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	incomingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, 0, 0, 0, 0, false, true, nil, svc.LNClient, nil, false)
+	incomingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, 0, 0, 0, 0, false, true, nil, svc.LNClient, nil, false, "")
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(3), totalCount)
 	assert.Equal(t, 3, len(incomingTransactions))
@@ -182,7 +184,7 @@ func TestListTransactions_UnpaidOutgoing(t *testing.T) {
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	outgoingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, 0, 0, 0, 0, true, false, nil, svc.LNClient, nil, false)
+	outgoingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, 0, 0, 0, 0, true, false, nil, svc.LNClient, nil, false, "")
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(3), totalCount)
 	assert.Equal(t, 3, len(outgoingTransactions))
@@ -250,7 +252,7 @@ func TestListTransactions_Unpaid(t *testing.T) {
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	outgoingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, 0, 0, 0, 0, true, true, nil, svc.LNClient, nil, false)
+	outgoingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, 0, 0, 0, 0, true, true, nil, svc.LNClient, nil, false, "")
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(5), totalCount)
 	assert.Equal(t, 5, len(outgoingTransactions))
@@ -286,7 +288,7 @@ func TestListTransactions_Limit(t *testing.T) {
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	incomingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, 0, 0, 1, 0, false, false, nil, svc.LNClient, nil, false)
+	incomingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, 0, 0, 1, 0, false, false, nil, svc.LNClient, nil, false, "")
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(2), totalCount)
 	assert.Equal(t, 1, len(incomingTransactions))
@@ -343,7 +345,7 @@ func TestListTransactions_Offset(t *testing.T) {
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	incomingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, 0, 0, 1, 2, false, false, nil, svc.LNClient, nil, false)
+	incomingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, 0, 0, 1, 2, false, false, nil, svc.LNClient, nil, false, "")
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(4), totalCount)
 	assert.Equal(t, 1, len(incomingTransactions))
@@ -394,7 +396,7 @@ func TestListTransactions_FromUntil(t *testing.T) {
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	incomingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, uint64(time.Now().Add(4*time.Minute).Unix()), uint64(time.Now().Add(6*time.Minute).Unix()), 0, 0, false, false, nil, svc.LNClient, nil, false)
+	incomingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, uint64(time.Now().Add(4*time.Minute).Unix()), uint64(time.Now().Add(6*time.Minute).Unix()), 0, 0, false, false, nil, svc.LNClient, nil, false, "")
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(1), totalCount)
 	assert.Equal(t, 1, len(incomingTransactions))
@@ -456,7 +458,7 @@ func TestListTransactions_FromUntilUnpaidOutgoing(t *testing.T) {
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	incomingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, uint64(time.Now().Add(4*time.Minute).Unix()), uint64(time.Now().Add(6*time.Minute).Unix()), 0, 0, true, false, nil, svc.LNClient, nil, false)
+	incomingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, uint64(time.Now().Add(4*time.Minute).Unix()), uint64(time.Now().Add(6*time.Minute).Unix()), 0, 0, true, false, nil, svc.LNClient, nil, false, "")
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(1), totalCount)
 	assert.Equal(t, "second", incomingTransactions[0].Description)
@@ -518,9 +520,65 @@ func TestListTransactions_FromUntilUnpaidIncoming(t *testing.T) {
 
 	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
 
-	incomingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, uint64(time.Now().Add(4*time.Minute).Unix()), uint64(time.Now().Add(6*time.Minute).Unix()), 0, 0, false, true, nil, svc.LNClient, nil, false)
+	incomingTransactions, totalCount, err := transactionsService.ListTransactions(ctx, uint64(time.Now().Add(4*time.Minute).Unix()), uint64(time.Now().Add(6*time.Minute).Unix()), 0, 0, false, true, nil, svc.LNClient, nil, false, "")
 	assert.NoError(t, err)
 	assert.Equal(t, uint64(1), totalCount)
 	assert.Equal(t, "second", incomingTransactions[0].Description)
 	assert.Equal(t, constants.TRANSACTION_TYPE_INCOMING, incomingTransactions[0].Type)
+}
+
+func TestListTransactions_Search(t *testing.T) {
+	ctx := context.TODO()
+
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	mockPreimage := tests.MockLNClientTransaction.Preimage
+	createSettled := func(description string, metadata map[string]interface{}) {
+		dbTransaction := &db.Transaction{
+			State:       constants.TRANSACTION_STATE_SETTLED,
+			Type:        constants.TRANSACTION_TYPE_INCOMING,
+			PaymentHash: tests.MockLNClientTransaction.PaymentHash,
+			Preimage:    &mockPreimage,
+			AmountMsat:  123000,
+			Description: description,
+		}
+		if metadata != nil {
+			metadataBytes, err := json.Marshal(metadata)
+			require.NoError(t, err)
+			dbTransaction.Metadata = datatypes.JSON(metadataBytes)
+		}
+		require.NoError(t, svc.DB.Create(dbTransaction).Error)
+	}
+
+	createSettled("Coffee at the cafe", nil)
+	createSettled("", map[string]interface{}{"user_labels": map[string]string{"trip": "vacation"}})
+	createSettled("", map[string]interface{}{"comment": "thanks for lunch"})
+	createSettled("", map[string]interface{}{"recipient_data": map[string]string{"identifier": "alice@getalby.com"}})
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+
+	search := func(term string) uint64 {
+		_, totalCount, err := transactionsService.ListTransactions(ctx, 0, 0, 0, 0, false, false, nil, svc.LNClient, nil, false, term)
+		assert.NoError(t, err)
+		return totalCount
+	}
+
+	// no search term returns all settled transactions
+	assert.Equal(t, uint64(4), search(""))
+	// description match (case-insensitive)
+	assert.Equal(t, uint64(1), search("coffee"))
+	// label value and label key are both searchable
+	assert.Equal(t, uint64(1), search("vacation"))
+	assert.Equal(t, uint64(1), search("trip"))
+	// comment match
+	assert.Equal(t, uint64(1), search("lunch"))
+	// recipient identifier match
+	assert.Equal(t, uint64(1), search("alice@getalby.com"))
+	// internal JSON key names must not match (no false positives)
+	assert.Equal(t, uint64(0), search("user_labels"))
+	assert.Equal(t, uint64(0), search("recipient_data"))
+	// term with no matches
+	assert.Equal(t, uint64(0), search("nonexistent"))
 }

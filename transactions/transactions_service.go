@@ -38,7 +38,7 @@ type TransactionsService interface {
 	events.EventSubscriber
 	MakeInvoice(ctx context.Context, amountMsat uint64, description string, descriptionHash string, expiry uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint, throughNodePubkey *string) (*Transaction, error)
 	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
-	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, totalCount uint64, err error)
+	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool, searchTerm string) (transactions []Transaction, totalCount uint64, err error)
 	SendPaymentSync(payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SendKeysend(amountMsat uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	MakeHoldInvoice(ctx context.Context, amountMsat uint64, description string, descriptionHash string, expiry uint64, paymentHash string, minCltvExpiryDelta *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
@@ -628,7 +628,7 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 	return &transaction, nil
 }
 
-func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool) (transactions []Transaction, totalCount uint64, err error) {
+func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool, searchTerm string) (transactions []Transaction, totalCount uint64, err error) {
 	svc.checkUnsettledTransactions(ctx, lnClient)
 
 	var isIsolatedApp bool
@@ -662,6 +662,39 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 
 	if transactionType != nil {
 		tx = tx.Where("type = ?", *transactionType)
+	}
+
+	if searchTerm != "" {
+		likeTerm := "%" + strings.ToLower(searchTerm) + "%"
+		lowerTerm := strings.ToLower(searchTerm)
+
+		// Search specific user-facing metadata fields (labels, comment, payer/recipient)
+		// rather than the whole metadata blob, to avoid matching internal JSON keys.
+		// JSON access differs between SQLite and PostgreSQL.
+		var metadataFields []string
+		if svc.db.Dialector.Name() == "postgres" {
+			metadataFields = []string{
+				"metadata->>'user_labels'",
+				"metadata->>'comment'",
+				"metadata->'payer_data'->>'name'",
+				"metadata->'recipient_data'->>'identifier'",
+			}
+		} else {
+			metadataFields = []string{
+				"json_extract(metadata, '$.user_labels')",
+				"json_extract(metadata, '$.comment')",
+				"json_extract(metadata, '$.payer_data.name')",
+				"json_extract(metadata, '$.recipient_data.identifier')",
+			}
+		}
+
+		conditions := []string{"LOWER(description) LIKE ?", "payment_hash = ?"}
+		args := []interface{}{likeTerm, lowerTerm}
+		for _, field := range metadataFields {
+			conditions = append(conditions, "LOWER("+field+") LIKE ?")
+			args = append(args, likeTerm)
+		}
+		tx = tx.Where(strings.Join(conditions, " OR "), args...)
 	}
 
 	if from > 0 {

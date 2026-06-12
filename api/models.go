@@ -43,7 +43,7 @@ type API interface {
 	SignMessage(ctx context.Context, message string) (*SignMessageResponse, error)
 	RedeemOnchainFunds(ctx context.Context, toAddress string, amountSat uint64, feeRate *uint64, sendAll bool) (*RedeemOnchainFundsResponse, error)
 	GetBalances(ctx context.Context) (*BalancesResponse, error)
-	ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error)
+	ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64, searchTerm string) (*ListTransactionsResponse, error)
 	ListOnchainTransactions(ctx context.Context) ([]OnchainTransaction, error)
 	SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}, fromAppId *uint) (*SendPaymentResponse, error)
 	CreateInvoice(ctx context.Context, amountMsat uint64, description string) (*MakeInvoiceResponse, error)
