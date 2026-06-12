@@ -1,4 +1,5 @@
 import {
+  AlertTriangleIcon,
   ArrowLeftIcon,
   CopyIcon,
   LinkIcon,
@@ -7,6 +8,7 @@ import {
 } from "lucide-react";
 import TickSVG from "public/images/illustrations/tick.svg";
 import React from "react";
+import { Link } from "react-router";
 import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import { CurrencyInputField } from "src/components/CurrencyInputField";
@@ -22,6 +24,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "src/components/ui/accordion";
+import { Alert, AlertDescription } from "src/components/ui/alert";
 import { Button } from "src/components/ui/button";
 import {
   Card,
@@ -53,6 +56,8 @@ export default function ReceiveInvoice() {
   const { data: channels } = useChannels();
 
   const [isLoading, setLoading] = React.useState(false);
+  const [jitChannelRequestFailed, setJitChannelRequestFailed] =
+    React.useState(false);
   const [amountSat, setAmountSat] = React.useState<string>("");
   const [description, setDescription] = React.useState<string>("");
   const [transaction, setTransaction] = React.useState<Transaction | null>(
@@ -111,6 +116,7 @@ export default function ReceiveInvoice() {
 
     try {
       setLoading(true);
+      setJitChannelRequestFailed(false);
       const invoice = await request<Transaction>("/api/invoices", {
         method: "POST",
         headers: {
@@ -149,6 +155,9 @@ export default function ReceiveInvoice() {
       toast.error("Failed to create invoice", {
         description,
       });
+      if (lsps2Source) {
+        setJitChannelRequestFailed(true);
+      }
       console.error(e);
     } finally {
       setLoading(false);
@@ -370,6 +379,17 @@ export default function ReceiveInvoice() {
               </form>
             )}
           </div>
+          {!transaction && jitChannelRequestFailed && (
+            <Alert variant="warning">
+              <AlertTriangleIcon className="h-4 w-4" />
+              <AlertDescription className="inline">
+                Failed to request a just-in-time channel invoice.{" "}
+                <Link className="underline" to="/channels/incoming">
+                  Manually open a channel.
+                </Link>
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
         {!transaction &&
           (!info?.albyAccountConnected || !me?.lightning_address) && (
