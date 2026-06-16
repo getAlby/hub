@@ -212,6 +212,11 @@ export type HealthResponse = {
   alarms: HealthAlarm[];
 };
 
+export type NodeStatus = {
+  isReady: boolean;
+  internalNodeStatus: unknown;
+};
+
 export type Network = "bitcoin" | "testnet" | "signet";
 
 export type AppMetadata = {
