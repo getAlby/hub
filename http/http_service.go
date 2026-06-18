@@ -18,6 +18,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
+	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/apps"
 	"github.com/getAlby/hub/config"
 	"github.com/getAlby/hub/events"
@@ -43,6 +44,7 @@ type jwtCustomClaims struct {
 type HttpService struct {
 	api            api.API
 	albyHttpSvc    *AlbyHttpService
+	albySvc        alby.AlbyService
 	cfg            config.Config
 	eventPublisher events.EventPublisher
 	db             *gorm.DB
@@ -53,6 +55,7 @@ func NewHttpService(svc service.Service, eventPublisher events.EventPublisher) *
 	return &HttpService{
 		api:            api.NewAPI(svc, svc.GetDB(), svc.GetConfig(), svc.GetKeys(), svc.GetAlbySvc(), svc.GetAlbyOAuthSvc(), eventPublisher),
 		albyHttpSvc:    NewAlbyHttpService(svc, svc.GetAlbySvc(), svc.GetAlbyOAuthSvc(), svc.GetConfig().GetEnv()),
+		albySvc:        svc.GetAlbySvc(),
 		cfg:            svc.GetConfig(),
 		eventPublisher: eventPublisher,
 		db:             svc.GetDB(),
@@ -194,6 +197,8 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	fullAccessApiGroup.POST("/autoswap", httpSvc.enableAutoSwapOutHandler)
 	fullAccessApiGroup.DELETE("/autoswap", httpSvc.disableAutoSwapOutHandler)
 	fullAccessApiGroup.POST("/node/alias", httpSvc.setNodeAliasHandler)
+	// the AI assistant pays a per-request inference fee (L402), so it requires full access
+	fullAccessApiGroup.POST("/ai/chat", httpSvc.aiChatHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(readOnlyApiGroup, fullAccessApiGroup, e)
 }

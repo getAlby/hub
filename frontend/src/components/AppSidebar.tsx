@@ -108,6 +108,11 @@ export function AppSidebar() {
         icon: BotIcon,
       },
       {
+        title: "Assistant",
+        url: "/chat",
+        icon: SparklesIcon,
+      },
+      {
         title: "Cards",
         url: "/cards",
         icon: CreditCardIcon,

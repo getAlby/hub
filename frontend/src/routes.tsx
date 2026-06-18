@@ -18,6 +18,7 @@ import Unlock from "src/screens/Unlock";
 import { Welcome } from "src/screens/Welcome";
 import AlbyAuthRedirect from "src/screens/alby/AlbyAuthRedirect";
 import { AI } from "src/screens/ai/AI";
+import { Chat } from "src/screens/ai/Chat";
 import { Cards } from "src/screens/cards/Cards";
 import { AlbyEarn } from "src/screens/alby/AlbyEarn";
 import SupportAlby from "src/screens/alby/SupportAlby";
@@ -476,6 +477,11 @@ const routes: RouteObject[] = [
         path: "ai",
         element: <AI />,
         handle: { crumb: () => "AI & Agents" },
+      },
+      {
+        path: "chat",
+        element: <Chat />,
+        handle: { crumb: () => "Assistant" },
       },
       {
         path: "cards",

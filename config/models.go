@@ -69,6 +69,10 @@ type AppConfig struct {
 	BarkEsploraServer                  string `envconfig:"BARK_ESPLORA_SERVER" default:"https://mempool.second.tech/api"`
 	BarkServerAccessToken              string `envconfig:"BARK_SERVER_ACCESS_TOKEN"`
 	BarkLogLevel                       string `envconfig:"BARK_LOG_LEVEL" default:"3"`
+	LLM402BaseUrl                      string `envconfig:"LLM402_BASE_URL" default:"https://llm402.ai/v1"`
+	LLM402Model                        string `envconfig:"LLM402_MODEL" default:"claude-sonnet-latest"`
+	LLM402MaxSatsPerCall               uint64 `envconfig:"LLM402_MAX_SATS_PER_CALL" default:"1000"`
+	LLM402Token                        string `envconfig:"LLM402_TOKEN"` // optional prepaid-balance token; if unset, pay per-request via L402
 }
 
 func (c *AppConfig) IsDefaultClientId() bool {
