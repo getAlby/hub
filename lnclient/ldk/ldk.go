@@ -978,7 +978,7 @@ func (ls *LDKService) ListChannels(ctx context.Context) ([]lnclient.Channel, err
 			channelError = &channelErrorValue
 		} else if ldkChannel.IsUsable && ldkChannel.CounterpartyForwardingInfoFeeBaseMsat == nil {
 			// if we don't have this, routing will not work (LND <-> LDK interoperability bug - https://github.com/lightningnetwork/lnd/issues/6870 )
-			channelErrorValue := "Counterparty forwarding info not available. Please contact support@getalby.com"
+			channelErrorValue := "Channel routing info is still syncing. Restart Alby Hub if this warning does not clear soon."
 			channelError = &channelErrorValue
 		}
 
