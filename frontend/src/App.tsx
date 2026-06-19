@@ -18,7 +18,8 @@ const router = createRouterFunc(routes, {
 });
 
 function App() {
-  const { data: info } = useInfo();
+  const isInternalReview =
+    window.location.pathname.startsWith("/internal-review/");
 
   useRegisterProtocolHandler(basePath);
 
@@ -30,12 +31,22 @@ function App() {
           defaultDarkMode="system"
           storageKey="vite-ui-theme"
         >
-          {info && <RouterProvider router={router} />}
+          {isInternalReview ? (
+            <RouterProvider router={router} />
+          ) : (
+            <HubRouter />
+          )}
           <Toaster position="bottom-right" richColors={true} />
         </ThemeProvider>
       </TouchProvider>
     </>
   );
+}
+
+function HubRouter() {
+  const { data: info } = useInfo();
+
+  return info ? <RouterProvider router={router} /> : null;
 }
 
 export default App;

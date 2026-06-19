@@ -54,6 +54,8 @@
 
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-payment-lightning: var(--payment-lightning);
+  --color-payment-onchain: var(--payment-onchain);
 
   --shadow-sm: none;
 

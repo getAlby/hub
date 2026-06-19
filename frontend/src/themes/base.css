@@ -50,6 +50,8 @@
   --positive-foreground: oklch(0.623 0.169 149.178);
   --warning: oklch(0.976 0.016 73.092);
   --warning-foreground: oklch(0.645 0.192 41.712);
+  --payment-lightning: #ffdf6f;
+  --payment-onchain: #fb923c;
 }
 
 .dark,
@@ -96,4 +98,6 @@
   --positive-foreground: oklch(0.859 0.14 152.167);
   --warning: oklch(0.318 0.035 71.647);
   --warning-foreground: oklch(0.848 0.117 72.544);
+  --payment-lightning: #ffdf6f;
+  --payment-onchain: #fb923c;
 }

@@ -20,8 +20,8 @@ import {
 } from "src/components/ui/card";
 import { copyToClipboard } from "src/lib/clipboard";
 
-import TickSVG from "public/images/illustrations/tick.svg";
 import AppHeader from "src/components/AppHeader";
+import LottieSuccess from "src/components/LottieSuccess";
 import { LinkButton } from "src/components/ui/custom/link-button";
 
 export default function PaymentSuccess() {
@@ -56,7 +56,7 @@ export default function PaymentSuccess() {
             <CardTitle className="text-center">Payment Successful</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-6">
-            <img src={TickSVG} className="w-48" />
+            <LottieSuccess />
             <div className="flex flex-col gap-1 items-center">
               <p className="text-2xl font-medium slashed-zero">
                 <FormattedBitcoinAmount
