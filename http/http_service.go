@@ -138,6 +138,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	readOnlyApiGroup.GET("/wallet/address", httpSvc.onchainAddressHandler)
 	readOnlyApiGroup.GET("/wallet/capabilities", httpSvc.capabilitiesHandler)
 	readOnlyApiGroup.GET("/transactions", httpSvc.listTransactionsHandler)
+	readOnlyApiGroup.GET("/transactions/stats", httpSvc.transactionStatsHandler)
 	readOnlyApiGroup.GET("/transactions/:paymentHash", httpSvc.lookupTransactionHandler)
 	readOnlyApiGroup.GET("/balances", httpSvc.balancesHandler)
 	readOnlyApiGroup.GET("/mempool", httpSvc.mempoolApiHandler)
@@ -1605,4 +1606,15 @@ func (httpSvc *HttpService) forwardsHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, forwards)
+}
+
+func (httpSvc *HttpService) transactionStatsHandler(c echo.Context) error {
+	stats, err := httpSvc.api.GetTransactionStats()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: fmt.Sprintf("Failed to get transaction stats: %s", err.Error()),
+		})
+	}
+
+	return c.JSON(http.StatusOK, stats)
 }

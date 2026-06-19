@@ -759,3 +759,11 @@ export type GetForwardsResponse = {
   totalFeeEarnedMsat: number;
   numForwards: number;
 };
+
+export type GetTransactionStatsResponse = {
+  totalVolumeSat: number;
+  totalVolumeMsat: number;
+  totalFeesPaidSat: number;
+  totalFeesPaidMsat: number;
+  numPayments: number;
+};
