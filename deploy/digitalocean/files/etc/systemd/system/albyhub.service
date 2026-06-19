@@ -1,0 +1,25 @@
+[Unit]
+Description=Alby Hub (bitcoin lightning node)
+After=docker.service network-online.target
+Requires=docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/albyhub/hub.env
+Environment=ALBYHUB_IMAGE=ghcr.io/getalby/hub:latest
+ExecStartPre=-/usr/bin/docker rm -f albyhub
+ExecStart=/usr/bin/docker run --rm --name albyhub \
+  --env-file /etc/albyhub/hub.env \
+  -e WORK_DIR=/data/albyhub \
+  -e LDK_LISTENING_ADDRESSES=[::]:9735 \
+  -v /opt/albyhub/data:/data \
+  -p 127.0.0.1:8080:8080 \
+  -p 9735:9735 \
+  ${ALBYHUB_IMAGE}
+ExecStop=/usr/bin/docker stop albyhub
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
