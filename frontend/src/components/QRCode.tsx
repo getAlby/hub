@@ -2,7 +2,6 @@ import { type ReactNode, useEffect, useMemo, useRef } from "react";
 import QRCodeStyling, { type Options } from "qr-code-styling";
 import { BitcoinPaymentIcon } from "src/components/icons/BitcoinPayment";
 import { LightningIcon } from "src/components/icons/Lightning";
-import { useTheme } from "src/components/ui/theme-provider";
 import { cn } from "src/lib/utils";
 
 export type Props = {
@@ -28,12 +27,9 @@ function QRCode({
   paymentType,
   centerContent,
 }: Props) {
-  const { isDarkMode } = useTheme();
   const resolvedFrameType = paymentType ?? frameType;
   const hasCenterContent = Boolean(centerContent);
   const containerRef = useRef<HTMLDivElement>(null);
-  const qrForeground = isDarkMode ? "#FFFFFF" : "#242424";
-  const qrBackground = isDarkMode ? "#242424" : "#FFFFFF";
   const options = useMemo<Options>(
     () => ({
       type: "svg",
@@ -53,32 +49,23 @@ function QRCode({
         margin: 4,
       },
       dotsOptions: {
-        color: qrForeground,
+        color: "var(--qr-foreground)",
         type: "dots",
         roundSize: false,
       },
       cornersSquareOptions: {
-        color: qrForeground,
+        color: "var(--qr-foreground)",
         type: "extra-rounded",
       },
       cornersDotOptions: {
-        color: qrForeground,
+        color: "var(--qr-foreground)",
         type: "dot",
       },
       backgroundOptions: {
-        color: qrBackground,
+        color: "var(--qr-background)",
       },
     }),
-    [
-      hasCenterContent,
-      level,
-      paymentType,
-      qrBackground,
-      qrForeground,
-      showAvatar,
-      size,
-      value,
-    ]
+    [hasCenterContent, level, paymentType, showAvatar, size, value]
   );
 
   useEffect(() => {
@@ -98,7 +85,7 @@ function QRCode({
   return (
     <div
       className={cn(
-        "relative w-full max-w-64 rounded-[28px] p-2",
+        "relative w-full rounded-[28px] p-2",
         resolvedFrameType === "lightning"
           ? "bg-payment-lightning"
           : resolvedFrameType === "onchain"
@@ -106,15 +93,16 @@ function QRCode({
             : "bg-primary",
         className
       )}
+      style={{ maxWidth: size }}
     >
-      <div className="rounded-3xl bg-white p-4 dark:bg-[#242424]">
+      <div className="rounded-3xl bg-qr-background p-4">
         <div
           ref={containerRef}
           className="aspect-square w-full overflow-hidden [&_svg]:size-full"
         />
       </div>
       {(paymentType || centerContent) && (
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white p-1 text-white dark:bg-[#242424] dark:text-[#242424]">
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-qr-background p-1 text-qr-background">
           {centerContent ??
             (paymentType === "lightning" ? (
               <LightningIcon className="size-12" />
