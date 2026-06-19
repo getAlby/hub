@@ -152,6 +152,17 @@ export interface AppPermissions {
   isolated: boolean;
 }
 
+export interface ConnectionIssue {
+  id: number;
+  appId: number;
+  requestEventId: number;
+  method: string;
+  category: string;
+  errorCode: string;
+  errorMessage: string;
+  createdAt: string;
+}
+
 export interface InfoResponse {
   backendType: BackendType;
   setupCompleted: boolean;

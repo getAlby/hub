@@ -505,6 +505,42 @@ func (api *api) GetApp(dbApp *db.App) (*App, error) {
 	return &response, nil
 }
 
+func (api *api) ListConnectionIssues(appId uint, limit uint64) ([]ConnectionIssue, error) {
+	if limit == 0 || limit > 20 {
+		limit = 10
+	}
+
+	dbIssues := []db.ConnectionIssue{}
+	err := api.db.
+		Where("app_id = ?", appId).
+		Order("created_at DESC").
+		Limit(int(limit)).
+		Find(&dbIssues).
+		Error
+	if err != nil {
+		logger.Logger.WithError(err).WithFields(logrus.Fields{
+			"app_id": appId,
+		}).Error("Failed to list connection issues")
+		return nil, err
+	}
+
+	issues := make([]ConnectionIssue, len(dbIssues))
+	for i, issue := range dbIssues {
+		issues[i] = ConnectionIssue{
+			ID:             issue.ID,
+			AppId:          issue.AppId,
+			RequestEventId: issue.RequestEventId,
+			Method:         issue.Method,
+			Category:       issue.Category,
+			ErrorCode:      issue.ErrorCode,
+			ErrorMessage:   issue.ErrorMessage,
+			CreatedAt:      issue.CreatedAt,
+		}
+	}
+
+	return issues, nil
+}
+
 func (api *api) ListApps(limit uint64, offset uint64, filters ListAppsFilters, orderBy string) (*ListAppsResponse, error) {
 	// TODO: join dbApps and permissions
 	dbApps := []db.App{}

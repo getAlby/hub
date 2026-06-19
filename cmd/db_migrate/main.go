@@ -19,6 +19,7 @@ var expectedTables = []string{
 	"app_permissions",
 	"request_events",
 	"response_events",
+	"connection_issues",
 	"transactions",
 	"swaps",
 	"user_configs",
@@ -151,6 +152,11 @@ func migrateDB(from, to *gorm.DB) error {
 		return fmt.Errorf("failed to migrate response_events: %w", err)
 	}
 
+	logger.Logger.Info("migrating connection_issues...")
+	if err := migrateTable[db.ConnectionIssue](from, tx); err != nil {
+		return fmt.Errorf("failed to migrate connection_issues: %w", err)
+	}
+
 	logger.Logger.Info("migrating transactions...")
 	if err := migrateTable[db.Transaction](from, tx); err != nil {
 		return fmt.Errorf("failed to migrate transactions: %w", err)
@@ -270,6 +276,7 @@ func resetSequences(db *gorm.DB) error {
 		{"app_permissions", "app_permissions_2_id_seq"},
 		{"request_events", "request_events_id_seq"},
 		{"response_events", "response_events_id_seq"},
+		{"connection_issues", "connection_issues_id_seq"},
 		{"transactions", "transactions_id_seq"},
 		{"user_configs", "user_configs_id_seq"},
 	}

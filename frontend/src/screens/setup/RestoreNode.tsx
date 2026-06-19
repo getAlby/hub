@@ -93,7 +93,7 @@ export function RestoreNode() {
 
       setRestored(true);
     } catch (error) {
-      handleRequestError("Failed to restore backup", error);
+      handleRequestError("Restore did not finish", error);
     } finally {
       setShowAlert(false);
       setLoading(false);

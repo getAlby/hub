@@ -37,7 +37,7 @@ export function DisconnectPeerDialogContent({ peer }: Props) {
       await reloadPeers();
     } catch (e) {
       console.error(e);
-      toast.error("Failed to disconnect peer", {
+      toast.error("Peer was not disconnected", {
         description: "" + e,
       });
     }
