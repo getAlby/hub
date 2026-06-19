@@ -160,15 +160,11 @@ function ChannelOrderLightningInvoiceCard() {
 
 function FixedFloatWaitingCard() {
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="text-center">Waiting for Payment...</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col items-center gap-6">
-        <LottieLoading size={288} />
-        <PaymentAmount amountSat={10000} />
-      </CardContent>
-      <CardFooter className="flex flex-col gap-3 pt-2">
+    <div className="flex w-full flex-col items-center justify-center gap-6">
+      <p className="font-semibold leading-none">Waiting for Payment...</p>
+      <LottieLoading size={288} />
+      <PaymentAmount amountSat={10000} />
+      <div className="flex w-full flex-col gap-3">
         <Button type="button" className="w-full" variant="secondary">
           <CopyIcon className="size-4" />
           Copy Invoice
@@ -182,30 +178,26 @@ function FixedFloatWaitingCard() {
           <ExternalLinkIcon className="size-4" />
           Open Fixed Float
         </FixedFloatButton>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }
 
 function FixedFloatSuccessCard() {
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="text-center">Transaction Received!</CardTitle>
-      </CardHeader>
-      <CardContent className="flex flex-col items-center gap-6">
-        <LottieSuccess />
-        <PaymentAmount amountSat={10000} />
-      </CardContent>
-      <CardFooter className="flex flex-col gap-3 pt-2">
+    <div className="flex w-full flex-col items-center justify-center gap-6">
+      <p className="font-semibold leading-none">Transaction Received!</p>
+      <LottieSuccess />
+      <PaymentAmount amountSat={10000} />
+      <div className="flex w-full flex-col gap-3">
         <Button type="button" variant="outline" className="w-full">
           Receive Another Payment
         </Button>
         <Button variant="link" className="w-full">
           Back to Wallet
         </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }
 
