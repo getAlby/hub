@@ -10,10 +10,10 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 
-import TickSVG from "public/images/illustrations/tick.svg";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
 import LottieLoading from "src/components/LottieLoading";
+import LottieSuccess from "src/components/LottieSuccess";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
 import { LinkButton } from "src/components/ui/custom/link-button";
 import { useInfo } from "src/hooks/useInfo";
@@ -50,7 +50,7 @@ export default function OnchainSuccess() {
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-6">
             {mempoolTx?.status.confirmed ? (
-              <img src={TickSVG} className="w-48" />
+              <LottieSuccess />
             ) : (
               <LottieLoading size={288} />
             )}
