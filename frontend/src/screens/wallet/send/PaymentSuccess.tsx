@@ -82,17 +82,17 @@ export default function PaymentSuccess() {
               </div>
             )}
           </CardContent>
-          <CardFooter className="flex flex-col gap-2 pt-2">
+          <CardFooter className="flex flex-col gap-3 pt-2">
             <Button onClick={copy} variant="outline" className="w-full">
-              <CopyIcon className="w-4 h-4 mr-2" />
+              <CopyIcon className="size-4" />
               Copy Preimage
             </Button>
             <LinkButton to="/wallet/send" variant="outline" className="w-full">
-              <HandCoinsIcon className="w-4 h-4 mr-2" />
+              <HandCoinsIcon className="size-4" />
               Make Another Payment
             </LinkButton>
             <LinkButton to="/wallet" variant="link" className="w-full">
-              <ArrowLeftIcon className="w-4 h-4 mr-2" />
+              <ArrowLeftIcon className="size-4" />
               Back to Wallet
             </LinkButton>
           </CardFooter>
