@@ -1,0 +1,32 @@
+#!/bin/sh
+
+myip=$(hostname -I | awk '{print$1}')
+cat <<EOF
+********************************************************************************
+
+Welcome to DigitalOcean's 1-Click Alby Hub Droplet.
+To keep this Droplet secure, the UFW firewall is enabled.
+All ports are BLOCKED except 22 (SSH), 80 (HTTP), and 443 (HTTPS).
+
+Access Alby Hub
+    URL: http://${myip}
+
+In a web browser, you can view:
+ * The Alby Hub instance on this Droplet: http://${myip}
+ * The Alby Hub GitHub repository for issues/feature requests: https://github.com/getAlby/hub
+
+On the server:
+  * Alby Hub is served from Docker Compose in /opt/albyhub
+  * Alby Hub data is stored in /opt/albyhub/data
+  * The app is started automatically on first boot
+  * To inspect the service, run:
+      cd /opt/albyhub && docker compose ps
+      cd /opt/albyhub && docker compose logs -f
+
+If the app is still starting, refresh http://${myip} after a moment.
+
+For help and more information, visit https://getalby.com
+
+********************************************************************************
+To delete this message of the day: rm -rf $(readlink -f ${0})
+EOF
