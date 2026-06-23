@@ -745,6 +745,9 @@ func (httpSvc *HttpService) listTransactionsHandler(c echo.Context) error {
 	limit := uint64(20)
 	offset := uint64(0)
 	var appId *uint
+	filters := api.ListTransactionsFilters{
+		ShowFailed: true,
+	}
 
 	if limitParam := c.QueryParam("limit"); limitParam != "" {
 		if parsedLimit, err := strconv.ParseUint(limitParam, 10, 64); err == nil {
@@ -765,7 +768,20 @@ func (httpSvc *HttpService) listTransactionsHandler(c echo.Context) error {
 		}
 	}
 
-	transactions, err := httpSvc.api.ListTransactions(ctx, appId, limit, offset)
+	if minAmountSatParam := c.QueryParam("minAmountSat"); minAmountSatParam != "" {
+		if parsedMinAmountSat, err := strconv.ParseUint(minAmountSatParam, 10, 64); err == nil && parsedMinAmountSat > 0 {
+			minAmountMsat := parsedMinAmountSat * 1000
+			filters.MinAmountMsat = &minAmountMsat
+		}
+	}
+
+	if showFailedParam := c.QueryParam("showFailed"); showFailedParam != "" {
+		if parsedShowFailed, err := strconv.ParseBool(showFailedParam); err == nil {
+			filters.ShowFailed = parsedShowFailed
+		}
+	}
+
+	transactions, err := httpSvc.api.ListTransactions(ctx, appId, limit, offset, filters)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
