@@ -306,23 +306,22 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	// check for and forward new LDK events to LDKEventBroadcaster (through ldkEventConsumer)
 	go func() {
 		for {
+			if ldkCtx.Err() != nil {
+				return
+			}
+
+			event := node.WaitNextEvent()
+			eventPtr := &event
+
+			ls.handleLdkEvent(eventPtr)
 			select {
 			case <-ldkCtx.Done():
+			case ldkEventConsumer <- eventPtr:
+			}
+
+			node.EventHandled()
+			if ldkCtx.Err() != nil {
 				return
-			default:
-				// NOTE: currently do not use WaitNextEvent() as it can possibly block the LDK thread (to confirm)
-				event := node.NextEvent()
-				if event == nil {
-					// if there is no event, wait before polling again to avoid 100% CPU usage
-					// TODO: remove this and use WaitNextEvent()
-					time.Sleep(time.Duration(1000) * time.Millisecond)
-					continue
-				}
-
-				ls.handleLdkEvent(event)
-				ldkEventConsumer <- event
-
-				node.EventHandled()
 			}
 		}
 	}()
