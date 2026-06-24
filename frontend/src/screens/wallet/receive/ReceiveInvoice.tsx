@@ -46,6 +46,7 @@ import { useInfo } from "src/hooks/useInfo";
 import { useTransaction } from "src/hooks/useTransaction";
 import { copyToClipboard } from "src/lib/clipboard";
 import { cn } from "src/lib/utils";
+import ReceiveToSelect from "src/screens/wallet/receive/ReceiveToSelect";
 import { CreateInvoiceRequest, Transaction } from "src/types";
 import { request } from "src/utils/request";
 
@@ -60,6 +61,7 @@ export default function ReceiveInvoice() {
     React.useState(false);
   const [amountSat, setAmountSat] = React.useState<string>("");
   const [description, setDescription] = React.useState<string>("");
+  const [toAppId, setToAppId] = React.useState<number>();
   const [transaction, setTransaction] = React.useState<Transaction | null>(
     null
   );
@@ -125,6 +127,7 @@ export default function ReceiveInvoice() {
         body: JSON.stringify({
           amountMsat: (parseInt(amountSat) || 0) * 1000,
           description,
+          toAppId,
         } as CreateInvoiceRequest),
       });
 
@@ -334,6 +337,7 @@ export default function ReceiveInvoice() {
                     }}
                   />
                 </div>
+                <ReceiveToSelect appId={toAppId} onChange={setToAppId} />
                 <LoadingButton
                   className={cn(
                     "w-full",
