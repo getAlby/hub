@@ -229,11 +229,9 @@ export default function WithdrawOnchainFunds() {
               cannot be reversed.
             </p>
           </div>
-          {(info?.backendType === "LDK" || info?.backendType === "LND") && (
-            <div className="border-t pt-4">
-              <FeeRateField feeRate={feeRate} onFeeRateChange={setFeeRate} />
-            </div>
-          )}
+          <div className="border-t pt-4">
+            <FeeRateField feeRate={feeRate} onFeeRateChange={setFeeRate} />
+          </div>
 
           <div>
             <AlertDialog
