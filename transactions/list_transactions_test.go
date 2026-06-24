@@ -350,6 +350,96 @@ func TestListTransactions_Offset(t *testing.T) {
 	assert.Equal(t, "third", incomingTransactions[0].Description)
 }
 
+func TestListTransactions_MinAmount(t *testing.T) {
+	ctx := context.TODO()
+
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	mockPreimage := tests.MockLNClientTransaction.Preimage
+	svc.DB.Create(&db.Transaction{
+		State:          constants.TRANSACTION_STATE_SETTLED,
+		Type:           constants.TRANSACTION_TYPE_INCOMING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		Preimage:       &mockPreimage,
+		AmountMsat:     1000,
+		Description:    "small",
+	})
+	svc.DB.Create(&db.Transaction{
+		State:          constants.TRANSACTION_STATE_SETTLED,
+		Type:           constants.TRANSACTION_TYPE_INCOMING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		Preimage:       &mockPreimage,
+		AmountMsat:     10000,
+		Description:    "large",
+	})
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+	minAmountMsat := uint64(5000)
+
+	filteredTransactions, totalCount, err := transactionsService.ListTransactions(ctx, 0, 0, 0, 0, false, false, nil, svc.LNClient, nil, false, ListTransactionsFilter{
+		MinAmountMsat: &minAmountMsat,
+		ShowFailed:    true,
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, uint64(1), totalCount)
+	require.Len(t, filteredTransactions, 1)
+	assert.Equal(t, "large", filteredTransactions[0].Description)
+}
+
+func TestListTransactions_HideFailed(t *testing.T) {
+	ctx := context.TODO()
+
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	mockPreimage := tests.MockLNClientTransaction.Preimage
+	svc.DB.Create(&db.Transaction{
+		State:          constants.TRANSACTION_STATE_SETTLED,
+		Type:           constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		Preimage:       &mockPreimage,
+		AmountMsat:     123000,
+		Description:    "settled",
+		UpdatedAt:      time.Now().Add(2 * time.Minute),
+	})
+	svc.DB.Create(&db.Transaction{
+		State:          constants.TRANSACTION_STATE_FAILED,
+		Type:           constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		Preimage:       &mockPreimage,
+		AmountMsat:     123000,
+		Description:    "failed",
+		UpdatedAt:      time.Now().Add(1 * time.Minute),
+	})
+	svc.DB.Create(&db.Transaction{
+		State:          constants.TRANSACTION_STATE_PENDING,
+		Type:           constants.TRANSACTION_TYPE_OUTGOING,
+		PaymentRequest: tests.MockLNClientTransaction.Invoice,
+		PaymentHash:    tests.MockLNClientTransaction.PaymentHash,
+		Preimage:       &mockPreimage,
+		AmountMsat:     123000,
+		Description:    "pending",
+	})
+
+	transactionsService := NewTransactionsService(svc.DB, svc.EventPublisher)
+
+	filteredTransactions, totalCount, err := transactionsService.ListTransactions(ctx, 0, 0, 0, 0, true, false, nil, svc.LNClient, nil, false, ListTransactionsFilter{
+		ShowFailed: false,
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, uint64(2), totalCount)
+	require.Len(t, filteredTransactions, 2)
+	assert.Equal(t, "settled", filteredTransactions[0].Description)
+	assert.Equal(t, "pending", filteredTransactions[1].Description)
+}
+
 func TestListTransactions_FromUntil(t *testing.T) {
 	ctx := context.TODO()
 

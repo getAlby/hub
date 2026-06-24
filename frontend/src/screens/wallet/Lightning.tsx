@@ -1,9 +1,11 @@
 import { AlertTriangleIcon, ArrowDownIcon, ArrowUpIcon } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import TransactionsList from "src/components/TransactionsList";
+import { TransactionsListMenu } from "src/components/TransactionsListMenu";
 import {
   Alert,
   AlertDescription,
@@ -14,8 +16,14 @@ import { BalanceSwitcher } from "src/components/wallet/BalanceSwitcher";
 import { useBalances } from "src/hooks/useBalances";
 import { useChannels } from "src/hooks/useChannels";
 import { useInfo } from "src/hooks/useInfo";
+import {
+  defaultTransactionFilters,
+  type TransactionFilters,
+} from "src/hooks/useTransactions";
 
 export default function Lightning() {
+  const [transactionFilters, setTransactionFilters] =
+    useState<TransactionFilters>(defaultTransactionFilters);
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances(true);
   const { data: channels } = useChannels();
@@ -99,7 +107,14 @@ export default function Lightning() {
           </LinkButton>
         </div>
       </div>
-      <TransactionsList />
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-xl font-medium">Transactions</h2>
+        <TransactionsListMenu
+          filters={transactionFilters}
+          onFiltersChange={setTransactionFilters}
+        />
+      </div>
+      <TransactionsList filters={transactionFilters} />
     </>
   );
 }
