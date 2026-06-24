@@ -770,7 +770,14 @@ func (httpSvc *HttpService) listTransactionsHandler(c echo.Context) error {
 
 	if minAmountSatParam := c.QueryParam("minAmountSat"); minAmountSatParam != "" {
 		if parsedMinAmountSat, err := strconv.ParseUint(minAmountSatParam, 10, 64); err == nil && parsedMinAmountSat > 0 {
-			minAmountMsat := parsedMinAmountSat * 1000
+			const msatPerSat = uint64(1000)
+			if parsedMinAmountSat > ^uint64(0)/msatPerSat {
+				return c.JSON(http.StatusBadRequest, ErrorResponse{
+					Message: "minAmountSat is too large",
+				})
+			}
+
+			minAmountMsat := parsedMinAmountSat * msatPerSat
 			filters.MinAmountMsat = &minAmountMsat
 		}
 	}
