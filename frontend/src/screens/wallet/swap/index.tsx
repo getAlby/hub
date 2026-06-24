@@ -135,7 +135,7 @@ function SwapInForm() {
         ...(swapFrom === "internal"
           ? {
               internalPayment: true,
-              ...(feeRate ? { feeRate: parseInt(feeRate) } : {}),
+              ...(feeRate ? { feeRate: +feeRate } : {}),
             }
           : {}),
       };

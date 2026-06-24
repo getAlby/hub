@@ -499,8 +499,7 @@ func (svc *swapsService) SwapIn(amountSat uint64, autoSwap bool, internalPayment
 	logger.Logger.WithField("swapId", swap.Id).Info("Swap created")
 
 	if internalPayment {
-		var lockupTxId string
-		lockupTxId, err = svc.lnClient.RedeemOnchainFunds(svc.ctx, swap.Address, swap.ExpectedAmount, feeRate, false)
+		_, err = svc.lnClient.RedeemOnchainFunds(svc.ctx, swap.Address, swap.ExpectedAmount, feeRate, false)
 		if err != nil {
 			logger.Logger.WithError(err).WithFields(logrus.Fields{
 				"swapId":    swap.Id,
@@ -508,18 +507,6 @@ func (svc *swapsService) SwapIn(amountSat uint64, autoSwap bool, internalPayment
 			}).Error("Failed to fund internal swap in")
 			return nil, err
 		}
-
-		err = svc.db.Model(&dbSwap).Updates(&db.Swap{
-			LockupTxId: lockupTxId,
-		}).Error
-		if err != nil {
-			logger.Logger.WithError(err).WithFields(logrus.Fields{
-				"swapId":     swap.Id,
-				"lockupTxId": lockupTxId,
-			}).Error("Failed to save internal swap lockup txid")
-			return nil, err
-		}
-		dbSwap.LockupTxId = lockupTxId
 	}
 
 	go svc.startSwapInListener(&dbSwap)
