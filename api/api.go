@@ -1050,10 +1050,11 @@ func (api *api) InitiateSwapIn(ctx context.Context, initiateSwapInRequest *Initi
 		return nil, errors.New("invalid swap amount")
 	}
 
-	swapInResponse, err := api.svc.GetSwapsService().SwapIn(amountSat, false)
+	swapInResponse, err := api.svc.GetSwapsService().SwapIn(amountSat, false, initiateSwapInRequest.InternalPayment, initiateSwapInRequest.FeeRate)
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
-			"amount_sat": amountSat,
+			"amount_sat":       amountSat,
+			"internal_payment": initiateSwapInRequest.InternalPayment,
 		}).WithError(err).Error("Failed to initiate swap in")
 		return nil, err
 	}

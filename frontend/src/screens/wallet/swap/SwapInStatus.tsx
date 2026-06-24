@@ -6,9 +6,7 @@ import {
   CopyIcon,
   ExternalLinkIcon,
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router";
-import { toast } from "sonner";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
@@ -35,12 +33,7 @@ import { useInfo } from "src/hooks/useInfo";
 import { useSwap } from "src/hooks/useSwaps";
 import { useSyncWallet } from "src/hooks/useSyncWallet";
 import { copyToClipboard } from "src/lib/clipboard";
-import {
-  RedeemOnchainFundsRequest,
-  RedeemOnchainFundsResponse,
-  SwapIn,
-} from "src/types";
-import { request } from "src/utils/request";
+import { SwapIn } from "src/types";
 
 export default function SwapInStatus() {
   const { data: info } = useInfo();
@@ -48,76 +41,9 @@ export default function SwapInStatus() {
   const { swapId } = useParams() as { swapId: string };
   const { data: swap } = useSwap<SwapIn>(swapId, true);
 
-  const [isPaying, setPaying] = useState(false);
   const [searchParams] = useSearchParams();
 
   const isInternalSwap = searchParams.has("internal", "true");
-  const feeRate = searchParams.get("feeRate") || "";
-  const [, setPaidWithAlbyHub] = React.useState(false);
-
-  useEffect(() => {
-    if (isPaying && swap?.lockupTxId) {
-      setPaying(false);
-    }
-  }, [isPaying, swap?.lockupTxId]);
-
-  const payWithAlbyHub = React.useCallback(() => {
-    (async () => {
-      setPaying(true);
-      try {
-        if (!swap) {
-          throw new Error("swap not loaded");
-        }
-        const payload: RedeemOnchainFundsRequest = {
-          toAddress: swap.lockupAddress,
-          amountSat: swap.sendAmountSat,
-          ...(feeRate ? { feeRate: +feeRate } : {}),
-        };
-        const response = await request<RedeemOnchainFundsResponse>(
-          "/api/wallet/redeem-onchain-funds",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
-          }
-        );
-        if (!response?.txId) {
-          throw new Error("No address in response");
-        }
-        console.info("Redeemed on-chain funds", response);
-      } catch (error) {
-        console.error(error);
-        toast.error("Failed to redeem on-chain funds", {
-          description: "" + error,
-        });
-        setPaying(false);
-      }
-    })();
-  }, [feeRate, swap]);
-
-  React.useEffect(() => {
-    // only auto-redeem while the swap is still awaiting its on-chain deposit,
-    // otherwise a refresh/revisit of ?internal=true would submit a second
-    // redeem request for an already-funded swap
-    if (
-      isInternalSwap &&
-      swap &&
-      swap.state === "PENDING" &&
-      !swap.lockupTxId
-    ) {
-      setPaidWithAlbyHub((current) => {
-        if (current) {
-          return current;
-        }
-        setTimeout(() => {
-          payWithAlbyHub();
-        }, 1);
-        return true;
-      });
-    }
-  }, [isInternalSwap, payWithAlbyHub, swap]);
 
   if (!swap) {
     return <Loading />;

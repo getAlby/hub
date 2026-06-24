@@ -132,6 +132,12 @@ function SwapInForm() {
 
       const payload: InitiateSwapRequest = {
         swapAmountSat: parseInt(swapAmountSat),
+        ...(swapFrom === "internal"
+          ? {
+              internalPayment: true,
+              ...(feeRate ? { feeRate: parseInt(feeRate) } : {}),
+            }
+          : {}),
       };
       const swapInResponse = await request<SwapResponse>("/api/swaps/in", {
         method: "POST",
@@ -145,9 +151,7 @@ function SwapInForm() {
       }
       navigate(
         `/wallet/swap/in/status/${swapInResponse.swapId}${
-          swapFrom === "internal"
-            ? `?internal=true&feeRate=${encodeURIComponent(feeRate)}`
-            : ""
+          swapFrom === "internal" ? "?internal=true" : ""
         }`
       );
       toast("Initiated swap");

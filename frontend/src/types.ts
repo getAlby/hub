@@ -597,6 +597,8 @@ export type AutoSwapRequest = {
 export type InitiateSwapRequest = {
   swapAmountSat?: number;
   destination?: string;
+  internalPayment?: boolean;
+  feeRate?: number;
 };
 
 export type LSPOrderResponse = {
