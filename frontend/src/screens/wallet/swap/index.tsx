@@ -33,7 +33,8 @@ import { useInfo } from "src/hooks/useInfo";
 import { useSwapInfo } from "src/hooks/useSwaps";
 import {
   CreateInvoiceRequest,
-  InitiateSwapRequest,
+  InitiateSwapInRequest,
+  InitiateSwapOutRequest,
   SwapResponse,
   Transaction,
 } from "src/types";
@@ -130,7 +131,7 @@ function SwapInForm() {
         return;
       }
 
-      const payload: InitiateSwapRequest = {
+      const payload: InitiateSwapInRequest = {
         swapAmountSat: parseInt(swapAmountSat),
         ...(swapFrom === "internal"
           ? {
@@ -338,7 +339,7 @@ function SwapOutForm() {
 
     try {
       setLoading(true);
-      const payload: InitiateSwapRequest = {
+      const payload: InitiateSwapOutRequest = {
         swapAmountSat: parseInt(swapAmountSat),
         destination,
       };

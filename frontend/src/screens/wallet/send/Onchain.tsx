@@ -19,7 +19,7 @@ import { useBalances } from "src/hooks/useBalances";
 import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useSwapInfo } from "src/hooks/useSwaps";
 import {
-  InitiateSwapRequest,
+  InitiateSwapOutRequest,
   RedeemOnchainFundsRequest,
   RedeemOnchainFundsResponse,
   SwapResponse,
@@ -233,7 +233,7 @@ function SwapForm({
     event.preventDefault();
     try {
       setLoading(true);
-      const payload: InitiateSwapRequest = {
+      const payload: InitiateSwapOutRequest = {
         swapAmountSat: +amountSat,
         destination: address,
       };

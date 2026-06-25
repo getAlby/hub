@@ -594,11 +594,15 @@ export type AutoSwapRequest = {
   unlockPassword?: string;
 };
 
-export type InitiateSwapRequest = {
-  swapAmountSat?: number;
-  destination?: string;
+export type InitiateSwapInRequest = {
+  swapAmountSat: number;
   internalPayment?: boolean;
   feeRate?: number;
+};
+
+export type InitiateSwapOutRequest = {
+  swapAmountSat: number;
+  destination: string;
 };
 
 export type LSPOrderResponse = {

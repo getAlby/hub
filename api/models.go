@@ -69,8 +69,8 @@ type API interface {
 	ListSwaps() (*ListSwapsResponse, error)
 	GetSwapInInfo() (*SwapInfoResponse, error)
 	GetSwapOutInfo() (*SwapInfoResponse, error)
-	InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapRequest) (*swaps.SwapResponse, error)
-	InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapRequest) (*swaps.SwapResponse, error)
+	InitiateSwapIn(ctx context.Context, initiateSwapInRequest *InitiateSwapInRequest) (*swaps.SwapResponse, error)
+	InitiateSwapOut(ctx context.Context, initiateSwapOutRequest *InitiateSwapOutRequest) (*swaps.SwapResponse, error)
 	RefundSwap(refundSwapRequest *RefundSwapRequest) error
 	GetSwapMnemonic() string
 	GetAutoSwapConfig() (*GetAutoSwapConfigResponse, error)
@@ -168,12 +168,17 @@ type CreateLightningAddressRequest struct {
 	AppId   uint   `json:"appId"`
 }
 
-type InitiateSwapRequest struct {
+type InitiateSwapInRequest struct {
 	SwapAmount      *uint64 `json:"swapAmount"` // deprecated
 	SwapAmountSat   *uint64 `json:"swapAmountSat"`
-	Destination     string  `json:"destination"`
 	InternalPayment bool    `json:"internalPayment"`
 	FeeRate         *uint64 `json:"feeRate"`
+}
+
+type InitiateSwapOutRequest struct {
+	SwapAmount    *uint64 `json:"swapAmount"` // deprecated
+	SwapAmountSat *uint64 `json:"swapAmountSat"`
+	Destination   string  `json:"destination"`
 }
 
 type RefundSwapRequest struct {
