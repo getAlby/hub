@@ -302,8 +302,8 @@ function SwapInForm() {
             <div className="flex items-center justify-between">
               <Label>{isInternalSwap ? "Swap Fee" : "Fee"}</Label>
               <p className="text-muted-foreground text-sm">
-                {swapInfo.albyServiceFee + swapInfo.boltzServiceFee}%
-                {!isInternalSwap && " + on-chain fees"}
+                {swapInfo.albyServiceFee + swapInfo.boltzServiceFee}% + on-chain
+                fees
               </p>
             </div>
           </div>
