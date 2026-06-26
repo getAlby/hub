@@ -96,9 +96,9 @@ export default function ReceiveToSelect({ appId, onChange }: Props) {
         onInputValueChange={setSearch}
         onValueChange={(option) =>
           onChange(
-            option?.value === LIGHTNING_BALANCE
+            !option || option.value === LIGHTNING_BALANCE
               ? undefined
-              : Number(option?.value)
+              : Number(option.value)
           )
         }
       >
