@@ -302,7 +302,7 @@ function PayBitcoinChannelOrderTopup({ order }: { order: NewChannelOrder }) {
           </p>
           <p className="text-xs text-muted-foreground">
             This amount includes cost for the channel opening and potential
-            channel onchain reserves.
+            channel on-chain reserves.
           </p>
           <div className="flex flex-row gap-2 items-center">
             <Input

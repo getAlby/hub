@@ -1,15 +1,10 @@
-import {
-  AlertTriangleIcon,
-  ChevronDownIcon,
-  CopyIcon,
-  ExternalLinkIcon,
-  InfoIcon,
-} from "lucide-react";
+import { AlertTriangleIcon, CopyIcon, ExternalLinkIcon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 import { AnchorReserveAlert } from "src/components/AnchorReserveAlert";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
+import { FeeRateField } from "src/components/FeeRateField";
 import { FixedFloatButton } from "src/components/FixedFloatButton";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import Loading from "src/components/Loading";
@@ -33,7 +28,6 @@ import { Separator } from "src/components/ui/separator";
 import { ONCHAIN_DUST_SATS } from "src/constants";
 import { useBalances } from "src/hooks/useBalances";
 import { useInfo } from "src/hooks/useInfo";
-import { useMempoolApi } from "src/hooks/useMempoolApi";
 
 import { copyToClipboard } from "src/lib/clipboard";
 import {
@@ -45,32 +39,13 @@ import { request } from "src/utils/request";
 export default function WithdrawOnchainFunds() {
   const { data: info } = useInfo();
   const { data: balances } = useBalances();
-  const { data: recommendedFees, error: mempoolError } = useMempoolApi<{
-    fastestFee: number;
-    halfHourFee: number;
-    economyFee: number;
-    minimumFee: number;
-  }>("/v1/fees/recommended");
   const [isLoading, setLoading] = React.useState(false);
   const [onchainAddress, setOnchainAddress] = React.useState("");
   const [amountSat, setAmountSat] = React.useState("");
   const [feeRate, setFeeRate] = React.useState("");
   const [sendAll, setSendAll] = React.useState(false);
-  const [showAdvanced, setShowAdvanced] = React.useState(false);
   const [transactionId, setTransactionId] = React.useState("");
   const [confirmDialogOpen, setConfirmDialogOpen] = React.useState(false);
-
-  React.useEffect(() => {
-    if (mempoolError) {
-      setShowAdvanced(true);
-    }
-  }, [mempoolError]);
-
-  React.useEffect(() => {
-    if (recommendedFees?.fastestFee) {
-      setFeeRate(recommendedFees.fastestFee.toString());
-    }
-  }, [recommendedFees]);
 
   const copy = (text: string) => {
     copyToClipboard(text);
@@ -80,7 +55,7 @@ export default function WithdrawOnchainFunds() {
     setLoading(true);
     try {
       if (!onchainAddress) {
-        throw new Error("No onchain address");
+        throw new Error("No on-chain address");
       }
       if (!feeRate) {
         throw new Error("No fee rate set");
@@ -111,14 +86,14 @@ export default function WithdrawOnchainFunds() {
           body: JSON.stringify(payload),
         }
       );
-      console.info("Redeemed onchain funds", response);
+      console.info("Redeemed on-chain funds", response);
       if (!response?.txId) {
         throw new Error("No address in response");
       }
       setTransactionId(response.txId);
     } catch (error) {
       console.error(error);
-      toast.error("Failed to redeem onchain funds", {
+      toast.error("Failed to redeem on-chain funds", {
         description: "" + error,
       });
     }
@@ -157,14 +132,14 @@ export default function WithdrawOnchainFunds() {
     );
   }
 
-  if (!info || !balances || (!recommendedFees && !mempoolError)) {
+  if (!info || !balances) {
     return <Loading />;
   }
 
   if (balances.onchain.spendableSat <= ONCHAIN_DUST_SATS) {
     return (
       <p>
-        You currently don't have enough sats to pay for an onchain transaction.
+        You currently don't have enough sats to pay for an on-chain transaction.
       </p>
     );
   }
@@ -174,12 +149,12 @@ export default function WithdrawOnchainFunds() {
       <AppHeader
         pageTitle="Withdraw On-Chain Balance"
         title="Withdraw On-Chain Balance"
-        description="Withdraw your onchain funds to another bitcoin wallet"
+        description="Withdraw your on-chain funds to another bitcoin wallet"
       />
 
       <div className="max-w-lg">
         <p>
-          Your on-chain balance will be withdrawn to the onchain bitcoin wallet
+          Your on-chain balance will be withdrawn to the on-chain bitcoin wallet
           address you specify below.
         </p>
         <form
@@ -194,7 +169,7 @@ export default function WithdrawOnchainFunds() {
               <Label htmlFor="amount">Amount</Label>
               <div className="flex justify-between items-center">
                 <p className="text-sm text-muted-foreground sensitive slashed-zero">
-                  Current onchain balance:{" "}
+                  Current on-chain balance:{" "}
                   <FormattedBitcoinAmount
                     amountMsat={balances.onchain.spendableSat * 1000}
                   />
@@ -227,7 +202,7 @@ export default function WithdrawOnchainFunds() {
                 <AlertTriangleIcon />
                 <AlertTitle>Entire wallet balance will be sent</AlertTitle>
                 <AlertDescription>
-                  Your entire wallet balance will be sent minus onchain
+                  Your entire wallet balance will be sent minus on-chain
                   transaction fees. The exact amount cannot be determined until
                   the payment is made.
                 </AlertDescription>
@@ -239,7 +214,7 @@ export default function WithdrawOnchainFunds() {
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="onchain-address">Onchain Address</Label>
+            <Label htmlFor="onchain-address">On-chain Address</Label>
             <Input
               id="onchain-address"
               type="text"
@@ -254,74 +229,9 @@ export default function WithdrawOnchainFunds() {
               cannot be reversed.
             </p>
           </div>
-          {(info?.backendType === "LDK" || info?.backendType === "LND") && (
-            <>
-              {showAdvanced && (
-                <div className="grid gap-2">
-                  <Label htmlFor="fee-rate">Fee Rate (Sat/vB)</Label>
-                  {mempoolError && (
-                    <div className="text-muted-foreground text-xs flex gap-1 items-center">
-                      <AlertTriangleIcon className="h-3 w-3" />
-                      Failed to fetch fee estimates. Try refreshing the page.
-                    </div>
-                  )}
-                  <Input
-                    id="fee-rate"
-                    type="number"
-                    value={feeRate}
-                    step={1}
-                    required
-                    min={recommendedFees?.minimumFee || 1}
-                    onChange={(e) => {
-                      setFeeRate(e.target.value);
-                    }}
-                  />
-                  {recommendedFees && (
-                    <div className="flex items-center mt-2 gap-4">
-                      <Button
-                        variant="positive"
-                        className="rounded-full"
-                        type="button"
-                        onClick={() =>
-                          setFeeRate(recommendedFees.economyFee.toString())
-                        }
-                      >
-                        Low priority: {recommendedFees.economyFee}
-                      </Button>{" "}
-                      <Button
-                        variant="positive"
-                        className="rounded-full"
-                        type="button"
-                        onClick={() =>
-                          setFeeRate(recommendedFees.fastestFee.toString())
-                        }
-                      >
-                        High priority: {recommendedFees.fastestFee}
-                      </Button>{" "}
-                      <ExternalLink
-                        to={info?.mempoolUrl}
-                        className="text-sm text-muted-foreground underline flex items-center gap-2"
-                      >
-                        View on Mempool
-                        <ExternalLinkIcon className="w-4 h-4" />
-                      </ExternalLink>
-                    </div>
-                  )}
-                </div>
-              )}
-              {!showAdvanced && (
-                <Button
-                  type="button"
-                  variant="link"
-                  className="text-muted-foreground text-xs"
-                  onClick={() => setShowAdvanced((current) => !current)}
-                >
-                  <ChevronDownIcon />
-                  Advanced Options
-                </Button>
-              )}
-            </>
-          )}
+          <div className="border-t pt-4">
+            <FeeRateField feeRate={feeRate} onFeeRateChange={setFeeRate} />
+          </div>
 
           <div>
             <AlertDialog
@@ -329,18 +239,10 @@ export default function WithdrawOnchainFunds() {
               open={confirmDialogOpen}
             >
               <Button className="w-full">Withdraw</Button>
-              {feeRate && (
-                <div className="mt-2 text-muted-foreground text-sm flex gap-1 items-center justify-center">
-                  <InfoIcon className="h-4 w-4" />
-                  On-chain payment will be made with{" "}
-                  <span className="font-semibold">{feeRate} sat/vB</span> fee
-                </div>
-              )}
-
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
-                    Confirm Onchain Transaction
+                    Confirm On-chain Transaction
                   </AlertDialogTitle>
                   <AlertDialogDescription>
                     <div>
