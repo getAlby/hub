@@ -687,7 +687,7 @@ func (httpSvc *HttpService) makeInvoiceHandler(c echo.Context) error {
 		amountMsat = *resolvedAmountMsat
 	}
 
-	invoice, err := httpSvc.api.CreateInvoice(c.Request().Context(), amountMsat, makeInvoiceRequest.Description)
+	invoice, err := httpSvc.api.CreateInvoice(c.Request().Context(), amountMsat, makeInvoiceRequest.Description, makeInvoiceRequest.ToAppID)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
