@@ -69,7 +69,8 @@
         "scripts/014-ufw-albyhub.sh",
         "scripts/015-albyhub.sh",
         "scripts/020-application-tag.sh",
-        "scripts/900-cleanup.sh"
+        "scripts/900-cleanup.sh",
+        "scripts/999-img-check.sh"
       ]
     }
   ]
