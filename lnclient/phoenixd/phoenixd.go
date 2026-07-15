@@ -21,6 +21,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+
+// errNotFound indicates that a payment was not found at the queried endpoint.
+var errNotFound = errors.New("phoenixd: payment not found")
+
 type InvoiceResponse struct {
 	PaymentHash string `json:"paymentHash"`
 	Preimage    string `json:"preimage"`
@@ -259,42 +263,85 @@ func (svc *PhoenixService) CancelHoldInvoice(ctx context.Context, paymentHash st
 	return errors.New("not implemented")
 }
 
+// LookupInvoice looks up a transaction by payment hash. It first checks
+// incoming payments, then falls back to outgoing payments if the incoming
+// payment is not found (HTTP 404).
 func (svc *PhoenixService) LookupInvoice(ctx context.Context, paymentHash string) (transaction *lnclient.Transaction, err error) {
+	transaction, err = svc.lookupIncomingPayment(ctx, paymentHash)
+	if err == nil {
+		return transaction, nil
+	}
+
+	// Only fall back to outgoing lookup when incoming returns not-found.
+	if !errors.Is(err, errNotFound) {
+		return nil, err
+	}
+
+	return svc.lookupOutgoingPayment(ctx, paymentHash)
+}
+
+// lookupIncomingPayment fetches an incoming payment from Phoenixd by payment hash.
+func (svc *PhoenixService) lookupIncomingPayment(ctx context.Context, paymentHash string) (*lnclient.Transaction, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, svc.Address+"/payments/incoming/"+paymentHash, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create phoenixd incoming payment request: %w", err)
 	}
 	req.Header.Add("Authorization", "Basic "+svc.Authorization)
 	client := &http.Client{Timeout: 5 * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("call phoenixd incoming payment endpoint: %w", err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("read phoenixd incoming payment response: %w", err)
+	}
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, errNotFound
 	}
 	if resp.StatusCode != http.StatusOK {
-		logger.Logger.WithFields(logrus.Fields{
-			"body":        string(body),
-			"status_code": resp.StatusCode,
-		}).Error("phoenixd incoming payments endpoint returned non-success code")
 		return nil, fmt.Errorf("phoenixd incoming payments endpoint returned non-success code: %d %s", resp.StatusCode, string(body))
 	}
 
 	var invoiceRes InvoiceResponse
 	if err := json.Unmarshal(body, &invoiceRes); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("decode phoenixd incoming payment response: %w", err)
 	}
 
-	transaction, err = phoenixInvoiceToTransaction(&invoiceRes)
+	return phoenixInvoiceToTransaction(&invoiceRes)
+}
+
+// lookupOutgoingPayment fetches an outgoing payment from Phoenixd using the
+// /payments/outgoingbyhash/{paymentHash} endpoint.
+func (svc *PhoenixService) lookupOutgoingPayment(ctx context.Context, paymentHash string) (*lnclient.Transaction, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, svc.Address+"/payments/outgoingbyhash/"+paymentHash, nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create phoenixd outgoing payment request: %w", err)
+	}
+	req.Header.Add("Authorization", "Basic "+svc.Authorization)
+	client := &http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("call phoenixd outgoing payment endpoint: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read phoenixd outgoing payment response: %w", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("phoenixd outgoing payment lookup returned non-success code: %d %s", resp.StatusCode, string(body))
 	}
 
-	return transaction, nil
+	var paymentRes OutgoingPaymentResponse
+	if err := json.Unmarshal(body, &paymentRes); err != nil {
+		return nil, fmt.Errorf("decode phoenixd outgoing payment response: %w", err)
+	}
+
+	return outgoingPaymentToTransaction(&paymentRes)
 }
 
 func (svc *PhoenixService) SendPaymentSync(payReq string, amountMsat *uint64) (*lnclient.PayInvoiceResponse, error) {
@@ -482,6 +529,40 @@ func phoenixInvoiceToTransaction(invoiceRes *InvoiceResponse) (*lnclient.Transac
 		FeesPaidMsat:    invoiceRes.FeesSat * 1000,
 		CreatedAt:       time.UnixMilli(invoiceRes.CreatedAt).Unix(),
 		Description:     invoiceRes.Description,
+		SettledAt:       settledAt,
+		ExpiresAt:       &expiresAt,
+		DescriptionHash: paymentRequest.DescriptionHash,
+	}, nil
+}
+
+// outgoingPaymentToTransaction converts a Phoenixd OutgoingPaymentResponse
+// to an lnclient.Transaction.
+func outgoingPaymentToTransaction(payment *OutgoingPaymentResponse) (*lnclient.Transaction, error) {
+	var settledAt *int64
+	if payment.CompletedAt != 0 {
+		settledAtUnix := time.UnixMilli(payment.CompletedAt).Unix()
+		settledAt = &settledAtUnix
+	}
+
+	paymentRequest, err := decodepay.Decodepay(payment.Invoice)
+	if err != nil {
+		logger.Logger.WithFields(logrus.Fields{
+			"bolt11": payment.Invoice,
+		}).Errorf("Failed to decode bolt11 invoice: %v", err)
+		return nil, fmt.Errorf("decode phoenixd outgoing payment bolt11: %w", err)
+	}
+
+	expiresAt := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
+
+	return &lnclient.Transaction{
+		Type:            "outgoing",
+		Invoice:         payment.Invoice,
+		Preimage:        payment.Preimage,
+		PaymentHash:     payment.PaymentHash,
+		AmountMsat:      paymentRequest.MSatoshi,
+		FeesPaidMsat:    payment.Fees * 1000,
+		CreatedAt:       time.UnixMilli(payment.CreatedAt).Unix(),
+		Description:     paymentRequest.Description,
 		SettledAt:       settledAt,
 		ExpiresAt:       &expiresAt,
 		DescriptionHash: paymentRequest.DescriptionHash,
