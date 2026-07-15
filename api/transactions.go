@@ -40,7 +40,7 @@ func (api *api) SetTransactionUserLabels(ctx context.Context, id uint, labels ma
 	return api.svc.GetTransactionsService().SetTransactionUserLabels(ctx, id, labels)
 }
 
-func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error) {
+func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64, filters ListTransactionsFilters) (*ListTransactionsResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
 		return nil, ErrLNClientNotStarted
@@ -51,13 +51,16 @@ func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64,
 		forceFilterByAppId = true
 	}
 
-	transactions, totalCount, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, true, false, nil, lnClient, appId, forceFilterByAppId)
+	dbTransactions, totalCount, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, true, false, nil, lnClient, appId, forceFilterByAppId, transactions.ListTransactionsFilter{
+		MinAmountMsat: filters.MinAmountMsat,
+		ShowFailed:    filters.ShowFailed,
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	apiTransactions := []Transaction{}
-	for _, transaction := range transactions {
+	for _, transaction := range dbTransactions {
 		apiTransactions = append(apiTransactions, *toApiTransaction(&transaction))
 	}
 

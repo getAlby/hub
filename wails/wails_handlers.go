@@ -326,9 +326,12 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		limit := uint64(20)
 		offset := uint64(0)
 		var appId *uint
+		filters := api.ListTransactionsFilters{
+			ShowFailed: true,
+		}
 
-		// Extract limit and offset parameters
-		paramRegex := regexp.MustCompile(`[?&](limit|offset|appId)=([^&]+)`)
+		// Extract list transaction parameters
+		paramRegex := regexp.MustCompile(`[?&](limit|offset|appId|minAmountSat|showFailed)=([^&]+)`)
 		paramMatches := paramRegex.FindAllStringSubmatch(route, -1)
 		for _, match := range paramMatches {
 			switch match[1] {
@@ -345,10 +348,24 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 					var unsignedAppId = uint(parsedAppId)
 					appId = &unsignedAppId
 				}
+			case "minAmountSat":
+				if parsedMinAmountSat, err := strconv.ParseUint(match[2], 10, 64); err == nil && parsedMinAmountSat > 0 {
+					const msatPerSat = uint64(1000)
+					if parsedMinAmountSat > ^uint64(0)/msatPerSat {
+						return WailsRequestRouterResponse{Body: nil, Error: "minAmountSat is too large"}
+					}
+
+					minAmountMsat := parsedMinAmountSat * msatPerSat
+					filters.MinAmountMsat = &minAmountMsat
+				}
+			case "showFailed":
+				if parsedShowFailed, err := strconv.ParseBool(match[2]); err == nil {
+					filters.ShowFailed = parsedShowFailed
+				}
 			}
 		}
 
-		transactions, err := app.api.ListTransactions(ctx, appId, limit, offset)
+		transactions, err := app.api.ListTransactions(ctx, appId, limit, offset, filters)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
