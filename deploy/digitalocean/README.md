@@ -67,3 +67,41 @@ That snapshot is the artifact you use.
 ```text
 http://<droplet-ip>
 ```
+
+## Updating
+
+The DigitalOcean Marketplace update is currently run manually instead of using the GitHub release workflow.
+
+This keeps the release workflow simpler. Otherwise, we would need to wait for the GHCR Docker image for the release tag to become available before building the snapshot, because the Packer build pulls:
+
+```text
+ghcr.io/getalby/hub:<version>
+```
+
+For each new release:
+
+1. Wait until the Docker image for the release tag is available in GHCR.
+2. Export the required environment variables:
+
+```bash
+export DIGITALOCEAN_API_TOKEN=dop_v1_...
+export ALBYHUB_VERSION=v1.23.0
+```
+
+3. Build the DigitalOcean snapshot:
+
+```bash
+cd deploy/digitalocean
+./build.sh
+```
+
+4. Confirm that `manifest.json` was created and contains the new snapshot artifact.
+5. Submit the Marketplace update:
+
+```bash
+./scripts/marketplace-submit.sh
+```
+
+The script reads the snapshot image ID from `manifest.json` and sends the update request to the DigitalOcean Vendor Portal.
+
+Once this manual flow has been verified during a release, we can move it into `.github/workflows/release.yaml` by adding a job that waits for the GHCR image, builds the snapshot and runs the Marketplace submission script.
