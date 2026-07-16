@@ -20,8 +20,8 @@ import {
 } from "src/components/ui/card";
 import { copyToClipboard } from "src/lib/clipboard";
 
-import TickSVG from "public/images/illustrations/tick.svg";
 import AppHeader from "src/components/AppHeader";
+import LottieSuccess from "src/components/LottieSuccess";
 import { LinkButton } from "src/components/ui/custom/link-button";
 
 export default function PaymentSuccess() {
@@ -56,7 +56,7 @@ export default function PaymentSuccess() {
             <CardTitle className="text-center">Payment Successful</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-6">
-            <img src={TickSVG} className="w-48" />
+            <LottieSuccess />
             <div className="flex flex-col gap-1 items-center">
               <p className="text-2xl font-medium slashed-zero">
                 <FormattedBitcoinAmount
@@ -82,17 +82,17 @@ export default function PaymentSuccess() {
               </div>
             )}
           </CardContent>
-          <CardFooter className="flex flex-col gap-2 pt-2">
+          <CardFooter className="flex flex-col gap-3 pt-2">
             <Button onClick={copy} variant="outline" className="w-full">
-              <CopyIcon className="w-4 h-4 mr-2" />
+              <CopyIcon className="size-4" />
               Copy Preimage
             </Button>
             <LinkButton to="/wallet/send" variant="outline" className="w-full">
-              <HandCoinsIcon className="w-4 h-4 mr-2" />
+              <HandCoinsIcon className="size-4" />
               Make Another Payment
             </LinkButton>
             <LinkButton to="/wallet" variant="link" className="w-full">
-              <ArrowLeftIcon className="w-4 h-4 mr-2" />
+              <ArrowLeftIcon className="size-4" />
               Back to Wallet
             </LinkButton>
           </CardFooter>

@@ -54,6 +54,10 @@
 
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
+  --color-payment-lightning: var(--payment-lightning);
+  --color-payment-onchain: var(--payment-onchain);
+  --color-qr-foreground: var(--qr-foreground);
+  --color-qr-background: var(--qr-background);
 
   --shadow-sm: none;
 

@@ -42,6 +42,7 @@ import { LightningMessageboard } from "src/screens/internal-apps/LightningMessag
 import { SimpleBoost } from "src/screens/internal-apps/SimpleBoost";
 import { Tictactoe } from "src/screens/internal-apps/Tictactoe";
 import { ZapPlanner } from "src/screens/internal-apps/ZapPlanner";
+import { PaymentComponents } from "src/screens/internal-review/PaymentComponents";
 import BuyBitcoin from "src/screens/onchain/BuyBitcoin";
 import DepositBitcoin from "src/screens/onchain/DepositBitcoin";
 import ConnectPeer from "src/screens/peers/ConnectPeer";
@@ -95,6 +96,15 @@ import SwapInStatus from "src/screens/wallet/swap/SwapInStatus";
 import SwapOutStatus from "src/screens/wallet/swap/SwapOutStatus";
 
 const routes: RouteObject[] = [
+  {
+    path: "/internal-review/payment-components",
+    element: (
+      <main className="min-h-screen p-4 font-sans">
+        <PaymentComponents />
+      </main>
+    ),
+    handle: { crumb: () => "Payment Components" },
+  },
   {
     path: "/",
     element: <AppLayout />,

@@ -6,7 +6,6 @@ import {
   PlusIcon,
   ReceiptTextIcon,
 } from "lucide-react";
-import TickSVG from "public/images/illustrations/tick.svg";
 import React from "react";
 import { Link } from "react-router";
 import { toast } from "sonner";
@@ -16,6 +15,7 @@ import ExternalLink from "src/components/ExternalLink";
 import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
+import LottieSuccess from "src/components/LottieSuccess";
 import LowReceivingCapacityAlert from "src/components/LowReceivingCapacityAlert";
 import QRCode from "src/components/QRCode";
 import {
@@ -198,13 +198,16 @@ export default function ReceiveInvoice() {
                 {!paymentDone ? (
                   <>
                     <CardHeader>
-                      <CardTitle className="flex justify-center">
-                        <Loading className="size-4 mr-2" />
-                        <p>Waiting for payment</p>
+                      <CardTitle className="flex items-center justify-center gap-2">
+                        <Loading variant="loader" />
+                        <p>Waiting for Payment...</p>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="flex flex-col items-center gap-6">
-                      <QRCode value={transaction.invoice} />
+                      <QRCode
+                        value={transaction.invoice}
+                        paymentType="lightning"
+                      />
                       <div className="flex flex-col gap-1 items-center">
                         <p className="text-2xl font-medium slashed-zero">
                           <FormattedBitcoinAmount
@@ -220,13 +223,13 @@ export default function ReceiveInvoice() {
                         <div className="w-full">{newChannelFeeAlert}</div>
                       )}
                     </CardContent>
-                    <CardFooter className="flex flex-col gap-2">
+                    <CardFooter className="flex flex-col gap-3">
                       <Button
                         className="w-full"
                         onClick={copy}
                         variant="outline"
                       >
-                        <CopyIcon className="w-4 h-4 mr-2" />
+                        <CopyIcon className="size-4" />
                         Copy Invoice
                       </Button>
                     </CardFooter>
@@ -239,7 +242,7 @@ export default function ReceiveInvoice() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="flex flex-col items-center gap-6">
-                      <img src={TickSVG} className="w-48" />
+                      <LottieSuccess />
                       <div className="flex flex-col gap-1 items-center">
                         <p className="text-2xl font-medium slashed-zero">
                           <FormattedBitcoinAmount
@@ -252,7 +255,7 @@ export default function ReceiveInvoice() {
                         />
                       </div>
                     </CardContent>
-                    <CardFooter className="flex flex-col gap-2 pt-2">
+                    <CardFooter className="flex flex-col gap-3 pt-2">
                       <Button
                         onClick={() => {
                           setTransaction(null);
@@ -260,7 +263,7 @@ export default function ReceiveInvoice() {
                         variant="outline"
                         className="w-full"
                       >
-                        <PlusIcon className="w-4 h-4 mr-2" />
+                        <PlusIcon className="size-4" />
                         Create Another Invoice
                       </Button>
                       <LinkButton
@@ -268,7 +271,7 @@ export default function ReceiveInvoice() {
                         variant="link"
                         className="w-full"
                       >
-                        <ArrowLeftIcon className="w-4 h-4 mr-2" />
+                        <ArrowLeftIcon className="size-4" />
                         Back to Wallet
                       </LinkButton>
                     </CardFooter>

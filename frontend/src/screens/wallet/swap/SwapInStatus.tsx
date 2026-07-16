@@ -214,9 +214,13 @@ export default function SwapInStatus() {
                   <FormattedFiatAmount amountSat={swap.sendAmountSat} />
                 </div>
                 {!swap.lockupTxId && !isInternalSwap && (
-                  <div className="flex justify-center gap-4 flex-wrap">
+                  <div className="flex w-full flex-col gap-3">
                     {swap.state !== "FAILED" && (
-                      <Button onClick={copyAddress} variant="outline">
+                      <Button
+                        className="w-full"
+                        onClick={copyAddress}
+                        variant="outline"
+                      >
                         <CopyIcon />
                         Copy Address
                       </Button>
@@ -225,6 +229,7 @@ export default function SwapInStatus() {
                       <ExternalLinkButton
                         to={`bitcoin:${swap.lockupAddress}?amount=${swap.sendAmountSat / 100_000_000}`}
                         variant="secondary"
+                        className="w-full"
                       >
                         Open in External Wallet
                         <ExternalLinkIcon />

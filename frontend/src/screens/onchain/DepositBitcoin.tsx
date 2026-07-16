@@ -1,5 +1,4 @@
 import {
-  CircleCheckIcon,
   CopyIcon,
   CreditCardIcon,
   ExternalLinkIcon,
@@ -12,6 +11,7 @@ import { FormattedBitcoinAmount } from "src/components/FormattedBitcoinAmount";
 import FormattedFiatAmount from "src/components/FormattedFiatAmount";
 import Loading from "src/components/Loading";
 import LottieLoading from "src/components/LottieLoading";
+import LottieSuccess from "src/components/LottieSuccess";
 import { MempoolAlert } from "src/components/MempoolAlert";
 import OnchainAddressDisplay from "src/components/OnchainAddressDisplay";
 import QRCode from "src/components/QRCode";
@@ -129,7 +129,7 @@ export default function DepositBitcoin() {
                 target="_blank"
                 className="flex justify-center"
               >
-                <QRCode value={onchainAddress} />
+                <QRCode value={onchainAddress} paymentType="onchain" />
               </a>
 
               <div className="flex flex-wrap gap-2 items-center justify-center">
@@ -137,11 +137,11 @@ export default function DepositBitcoin() {
               </div>
 
               <div className="flex flex-col">
-                <div className="flex flex-1 flex-row gap-4 justify-center w-full">
+                <div className="flex w-full flex-col gap-3">
                   <LoadingButton
                     variant="outline"
                     onClick={getNewAddress}
-                    className="flex-1"
+                    className="w-full"
                     loading={loadingAddress}
                   >
                     {!loadingAddress && <RefreshCwIcon />}
@@ -149,7 +149,7 @@ export default function DepositBitcoin() {
                   </LoadingButton>
                   <Button
                     variant="secondary"
-                    className="flex-1"
+                    className="w-full"
                     onClick={() => {
                       copyToClipboard(onchainAddress);
                     }}
@@ -163,10 +163,10 @@ export default function DepositBitcoin() {
                   to="BTC"
                   address={onchainAddress}
                   className="w-full"
-                  variant="secondary"
+                  variant="outline"
                 >
                   <ExternalLinkIcon className="size-4" />
-                  Deposit using other Cryptocurrency
+                  Top Up with Crypto
                 </FixedFloatButton>
               </div>
             </CardContent>
@@ -201,14 +201,14 @@ function DepositPending({
             <FormattedFiatAmount amountSat={amountSat} />
           </div>
         )}
-        <div>
+        <div className="w-full">
           <ExternalLinkButton
             to={`${info?.mempoolUrl}/tx/${txId}`}
             variant="outline"
-            className="flex items-center mt-2"
+            className="mt-2 w-full"
           >
             View on Mempool
-            <ExternalLinkIcon className="size-4 ml-2" />
+            <ExternalLinkIcon className="size-4" />
           </ExternalLinkButton>
         </div>
       </CardContent>
@@ -232,21 +232,21 @@ function DepositSuccess({
           <CardTitle className="text-center">Payment Received!</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col items-center gap-4">
-          <CircleCheckIcon className="w-72 h-72 p-2" />
+          <LottieSuccess />
           <div className="flex flex-col gap-2 items-center">
             <p className="text-xl font-semibold slashed-zero">
               <FormattedBitcoinAmount amountMsat={amountSat * 1000} />
             </p>
             <FormattedFiatAmount amountSat={amountSat} />
           </div>
-          <div>
+          <div className="w-full">
             <ExternalLinkButton
               to={`${info?.mempoolUrl}/tx/${txId}`}
               variant="outline"
-              className="flex items-center mt-2"
+              className="mt-2 w-full"
             >
               View on Mempool
-              <ExternalLinkIcon className="size-4 ml-2" />
+              <ExternalLinkIcon className="size-4" />
             </ExternalLinkButton>
           </div>
         </CardContent>
