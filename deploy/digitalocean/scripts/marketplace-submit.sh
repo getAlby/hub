@@ -1,4 +1,6 @@
-#!/bin/bash -x
+#!/bin/bash
+
+set -euo pipefail
 
 IMAGE_ID=$(jq '.builds[-1].artifact_id | split(":")[1] | tonumber' manifest.json)
 DIGITALOCEAN_APP_ID=236815239
@@ -26,11 +28,5 @@ echo https://api.digitalocean.com/api/v1/vendor-portal/apps/${DIGITALOCEAN_APP_I
 curl --fail-with-body -X PATCH -H "Content-Type: application/json" -H "Authorization: Bearer ${DIGITALOCEAN_API_TOKEN}" \
   -d @update.json  https://api.digitalocean.com/api/v1/vendor-portal/apps/${DIGITALOCEAN_APP_ID}
 
-if [ $? -eq 0 ]
-then
-  echo "Digital Ocean Market Place update complete"
-  rm update.json
-else
-  echo "Digital Ocean Market Place update failed"
-  exit 1
-fi
+echo "Digital Ocean Market Place update complete"
+rm update.json
