@@ -27,6 +27,7 @@ Go to the [Deploy it yourself](#deploy-it-yourself) section below.
 By default Alby Hub uses the embedded LDK based lightning node. Optionally it can be configured to use an external node:
 
 - LND
+- LDK Server
 - Phoenixd
 - Cashu
 - CLN
@@ -235,6 +236,58 @@ _To configure via env, the following parameters must be provided:_
 - `LND_ADDRESS`: the LND gRPC address, eg. `localhost:10009` (used with the LND backend)
 - `LND_CERT_FILE`: the location where LND's `tls.cert` file can be found (used with the LND backend)
 - `LND_MACAROON_FILE`: the location where LND's `admin.macaroon` file can be found (used with the LND backend)
+
+### LDK Server backend parameters
+
+LDK Server can be configured via env or the UI.
+
+To configure via env, provide:
+
+- `LN_BACKEND_TYPE`: `LDK_SERVER`
+- `LDK_SERVER_GRPC_ADDRESS`: the `ldk-server` gRPC address, e.g. `127.0.0.1:3536`
+- `LDK_SERVER_TLS_CERT_FILE`: path to the `ldk-server` TLS certificate, usually `<storage_dir>/tls.crt`
+- `LDK_SERVER_API_KEY`: the hex-encoded API key used by `ldk-server`
+
+```bash
+xxd -p -c 64 /var/lib/ldk-server/bitcoin/api_key
+```
+
+If Alby Hub runs on a different machine than `ldk-server`:
+
+- set `grpc_service_address` in `ldk-server` to a reachable bind address such as `0.0.0.0:3536`
+- add the public hostname or IP to `[tls].hosts`
+- copy `tls.crt` to the Hub machine
+- keep clocks reasonably in sync, because `ldk-server` rejects stale HMAC timestamps
+
+Troubleshooting remote auth:
+
+- `LDK_SERVER_API_KEY` must be the 64-character hex string derived from the raw `api_key` file, not the raw file bytes themselves
+- if you use `ldk-server-cli`, pass the hex string directly or inline the `xxd` call
+- do not use `KEY="$(xxd -p -c 64 /path/to/api_key)" ldk-server-cli ... --api-key "$KEY"` because Bash expands `"$KEY"` before that temporary assignment is applied
+
+Working examples:
+
+```bash
+KEY="$(xxd -p -c 64 /var/lib/ldk-server/bitcoin/api_key)"
+ldk-server-cli --base-url 141.95.84.44:3536 --api-key "$KEY" --tls-cert /path/to/tls.crt get-node-info
+```
+
+```bash
+ldk-server-cli --base-url 141.95.84.44:3536 --api-key "$(xxd -p -c 64 /var/lib/ldk-server/bitcoin/api_key)" --tls-cert /path/to/tls.crt get-node-info
+```
+
+#### Optional: JIT receiving over LSPS2
+
+If you want Hub to receive via `ldk-server` without pre-existing inbound liquidity, configure an LSPS2 client in `ldk-server`:
+
+```toml
+[liquidity.lsps2_client]
+node_pubkey = "<lsp node pubkey>"
+address = "<lsp host>:9735"
+# token = "<optional token>"
+```
+
+With that in place, Hub can use `ldk-server`'s JIT invoice RPCs for receiving through the remote node.
 
 ### LDK Backend parameters
 
