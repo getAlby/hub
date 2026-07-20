@@ -81,6 +81,7 @@ type API interface {
 	ExecuteCustomNodeCommand(ctx context.Context, command string) (interface{}, error)
 	SendEvent(event string, properties interface{})
 	GetForwards() (*GetForwardsResponse, error)
+	GetTransactionStats() (*GetTransactionStatsResponse, error)
 }
 
 var ErrLNClientNotStarted = errors.New("LNClient not started")
@@ -713,6 +714,17 @@ type GetForwardsResponse struct {
 	TotalFeeEarnedSat           uint64 `json:"totalFeeEarnedSat"`
 	TotalFeeEarnedMsat          uint64 `json:"totalFeeEarnedMsat"`
 	NumForwards                 uint64 `json:"numForwards"`
+}
+
+// GetTransactionStatsResponse aggregates settled outgoing lightning payments
+// (excluding self-payments, which never traverse the network) so the frontend
+// can show a volume-weighted fee rate: TotalFeesPaidMsat / TotalVolumeMsat.
+type GetTransactionStatsResponse struct {
+	TotalVolumeSat    uint64 `json:"totalVolumeSat"`
+	TotalVolumeMsat   uint64 `json:"totalVolumeMsat"`
+	TotalFeesPaidSat  uint64 `json:"totalFeesPaidSat"`
+	TotalFeesPaidMsat uint64 `json:"totalFeesPaidMsat"`
+	NumPayments       uint64 `json:"numPayments"`
 }
 
 func ResolveToSat(satValue *uint64, msatValue *uint64, legacyValueSat *uint64, legacyValueMsat *uint64) (resolvedSatValue *uint64) {
