@@ -29,6 +29,7 @@ import { AppLinksCard } from "src/components/connections/AppLinksCard";
 import { AppTransactionList } from "src/components/connections/AppTransactionList";
 import { AppUsage } from "src/components/connections/AppUsage";
 import { ConnectionDetailsModal } from "src/components/connections/ConnectionDetailsModal";
+import { ConnectionIssuesCard } from "src/components/connections/ConnectionIssuesCard";
 import { DisconnectApp } from "src/components/connections/DisconnectApp";
 import { getAppStoreApp } from "src/components/connections/SuggestedAppData";
 import Loading from "src/components/Loading";
@@ -64,7 +65,7 @@ import {
   SUBWALLET_APPSTORE_APP_ID,
 } from "src/constants";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
-import { useApp } from "src/hooks/useApp";
+import { useApp, useConnectionIssues } from "src/hooks/useApp";
 import { useAppsForAppStoreApp } from "src/hooks/useApps";
 import { useCapabilities } from "src/hooks/useCapabilities";
 import { cn, getAppDisplayName } from "src/lib/utils";
@@ -105,6 +106,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
     React.useState(false);
   const [showDisconnectAppDialog, setShowDisconnectAppDialog] =
     React.useState(false);
+  const { data: connectionIssues } = useConnectionIssues(app.id);
 
   const { data: albyMe } = useAlbyMe();
 
@@ -399,6 +401,11 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
                 </div>
               )}
               <AppUsage app={app} />
+              <ConnectionIssuesCard
+                appName={appName}
+                issues={connectionIssues}
+                onViewDetails={() => setShowConnectionDetails(true)}
+              />
             </>
           )}
           {isEditingPermissions ? (

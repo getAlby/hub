@@ -38,11 +38,11 @@ export function InsufficientLightningBalanceAlert({
   return (
     <Alert className={className}>
       <AlertTriangleIcon className="h-4 w-4" />
-      <AlertTitle>Maximum Spendable Balance Too Low</AlertTitle>
+      <AlertTitle>Not enough spendable balance</AlertTitle>
       <AlertDescription>
         <p>
-          Your payment will likely fail because your maximum spendable balance
-          in your lightning channels for the next payment is currently{" "}
+          This payment is above the wallet's current spendable balance. The most
+          you can send right now is{" "}
           <FormattedBitcoinAmount amountMsat={maxSpendableMsat} />.
         </p>
         <div className="flex gap-2 mt-2 items-center justify-center">

@@ -55,7 +55,7 @@ export default function ConnectPeer() {
       setConnectionString("");
       navigate("/peers");
     } catch (e) {
-      toast.error("Failed to connect peer", {
+      toast.error("Peer is not connected", {
         description: "" + e,
       });
       console.error(e);

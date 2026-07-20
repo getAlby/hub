@@ -18,6 +18,7 @@ type API interface {
 	DeleteApp(app *db.App) error
 	GetApp(app *db.App) (*App, error)
 	ListApps(limit uint64, offset uint64, filters ListAppsFilters, orderBy string) (*ListAppsResponse, error)
+	ListConnectionIssues(appId uint, limit uint64) ([]ConnectionIssue, error)
 	CreateLightningAddress(ctx context.Context, createLightningAddressRequest *CreateLightningAddressRequest) error
 	DeleteLightningAddress(ctx context.Context, appId uint) error
 	ListChannels(ctx context.Context) ([]Channel, error)
@@ -125,6 +126,17 @@ type ListAppsResponse struct {
 	TotalBalance     *int64 `json:"totalBalance,omitempty"` // deprecated
 	TotalBalanceSat  *int64 `json:"totalBalanceSat,omitempty"`
 	TotalBalanceMsat *int64 `json:"totalBalanceMsat,omitempty"`
+}
+
+type ConnectionIssue struct {
+	ID             uint      `json:"id"`
+	AppId          uint      `json:"appId"`
+	RequestEventId uint      `json:"requestEventId"`
+	Method         string    `json:"method"`
+	Category       string    `json:"category"`
+	ErrorCode      string    `json:"errorCode"`
+	ErrorMessage   string    `json:"errorMessage"`
+	CreatedAt      time.Time `json:"createdAt"`
 }
 
 type UpdateAppRequest struct {
