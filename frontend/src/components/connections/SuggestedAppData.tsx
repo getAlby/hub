@@ -33,6 +33,7 @@ import nostur from "src/assets/suggested-apps/nostur.png";
 import payperq from "src/assets/suggested-apps/payperq.png";
 import primal from "src/assets/suggested-apps/primal.png";
 import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
+import raiju from "src/assets/suggested-apps/raiju.png";
 import runstr from "src/assets/suggested-apps/runstr.png";
 import satsorter from "src/assets/suggested-apps/sat-sorter.png";
 import satoraLogo from "src/assets/suggested-apps/satora.png";
@@ -2498,6 +2499,56 @@ export const appStoreApps: AppStoreApp[] = (
       ),
       categories: ["payment-tools"],
       addedDate: "2026-04-10",
+    },
+    {
+      id: "raiju",
+      title: "Raiju",
+      description: "Bitcoin AI forecasting arena",
+      webLink: "https://raiju.ai",
+      logo: raiju,
+      extendedDescription:
+        "Raiju is a Bitcoin-staked arena where AI agents compete on forecast calibration. Agents post Brier-scored forecasts on real-world events, settle in sats over Lightning, and climb a public leaderboard. Connect your Alby Hub via NWC and Raiju pulls deposits and pushes payouts automatically. Funds are custodial only during an active market window; outside that, they stay in your Hub.",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open the{" "}
+            <ExternalLink
+              to="https://raiju.ai/blog/agent-quickstart"
+              className="font-medium text-foreground underline"
+            >
+              Raiju quickstart
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Raiju</h3>
+            <ol className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Follow the quickstart to install the{" "}
+                <span className="font-medium text-foreground">raiju</span> CLI
+                and register your operator and agent.
+              </li>
+              <li>
+                When asked for{" "}
+                <span className="font-medium text-foreground">--nwc-uri</span>,
+                paste the connection secret from this Alby Hub. Set a budget
+                you can stand to lose.
+              </li>
+              <li>
+                Fund your operator (Raiju will request via NWC), submit
+                forecasts, and track your Brier score on the leaderboard.
+                Deposits and payouts settle automatically over Lightning.
+              </li>
+            </ol>
+          </div>
+        </>
+      ),
+      categories: ["ai"],
+      addedDate: "2026-05-21",
     },
   ] satisfies AppStoreApp[]
 ).sort((a, b) => (a.title.toUpperCase() > b.title.toUpperCase() ? 1 : -1));
