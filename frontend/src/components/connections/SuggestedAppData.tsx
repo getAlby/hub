@@ -14,6 +14,7 @@ import btcpay from "src/assets/suggested-apps/btcpay.png";
 import buzzpay from "src/assets/suggested-apps/buzzpay.png";
 import castamatic from "src/assets/suggested-apps/castamatic.png";
 import clams from "src/assets/suggested-apps/clams.png";
+import conpac from "src/assets/suggested-apps/conpac.png";
 import coracle from "src/assets/suggested-apps/coracle.png";
 import damus from "src/assets/suggested-apps/damus.png";
 import fountain from "src/assets/suggested-apps/fountain.png";
@@ -1923,6 +1924,49 @@ export const appStoreApps: AppStoreApp[] = (
       internal: true,
       logo: tictactoe,
       categories: ["games"],
+    },
+    {
+      id: "conpac",
+      title: "Conway's Game of Pacman",
+      description: "Pac-Man vs the Game of Life",
+      extendedDescription:
+        "Pay for arcade plays and continues and zap the leaderboard straight from your Hub",
+      webLink: "https://conwaysgameofpacman.xyz/",
+      logo: conpac,
+      categories: ["games"],
+      addedDate: "2026-07-21",
+      installGuide: (
+        <>
+          <p className="text-muted-foreground">
+            Open{" "}
+            <ExternalLink
+              to="https://conwaysgameofpacman.xyz"
+              className="font-medium text-foreground underline"
+            >
+              Conway's Game of Pacman
+            </ExternalLink>{" "}
+            in your browser
+          </p>
+        </>
+      ),
+      finalizeGuide: (
+        <>
+          <div>
+            <h3 className="font-medium">In Conway's Game of Pacman</h3>
+            <ul className="list-inside list-decimal text-muted-foreground">
+              <li>
+                Click{" "}
+                <span className="font-medium text-foreground">stats</span> →{" "}
+                <span className="font-medium text-foreground">
+                  Connect wallet
+                </span>
+              </li>
+              <li>Paste the connection secret from Alby Hub</li>
+              <li>Plays, continues, and leaderboard zaps are now one tap</li>
+            </ul>
+          </div>
+        </>
+      ),
     },
     {
       id: "nostur",
