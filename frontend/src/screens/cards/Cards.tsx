@@ -198,7 +198,7 @@ const providers: Provider[] = [
   {
     id: "wavespace",
     name: "wavecard by wave.space",
-    url: "https://app.wave.space/spend/?utm_source=albyhub&affiliate=AlbyHub",
+    url: "https://app.wave.space/?utm_source=albyhub&affiliate=AlbyHub",
     logo: wavespaceLogo,
     initials: "WS",
     networks: ["Visa"],
