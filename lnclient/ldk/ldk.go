@@ -172,8 +172,8 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 	if liquiditySourceLsps2 == "" {
 		switch network {
 		case "signet":
-			// Alby LSP (Mutinynet)
-			liquiditySourceLsps2 = "025010bd608771bc13f08f696e3dd226bf3a9ae6ea461e3922ed9bdca7bb0edfe5@141.95.84.44:9735"
+			// Megalith LSP 2 (Mutinynet)
+			liquiditySourceLsps2 = "03e30fda71887a916ef5548a4d02b06fe04aaa1a8de9e24134ce7f139cf79d7579@64.23.192.68:9736"
 		case "bitcoin":
 			// Megalith LSP 2
 			liquiditySourceLsps2 = "034066e29e402d9cf55af1ae1026cc5adf92eed1e0e421785442f53717ad1453b0@64.23.159.177:9735"
