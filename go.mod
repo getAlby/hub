@@ -12,7 +12,7 @@ require (
 	github.com/go-gormigrate/gormigrate/v2 v2.1.6
 	github.com/google/uuid v1.6.0
 	github.com/labstack/echo/v4 v4.15.2
-	github.com/mattn/go-sqlite3 v1.14.45
+	github.com/mattn/go-sqlite3 v1.14.46
 	github.com/nbd-wtf/ln-decodepay v1.13.0
 	github.com/orandin/lumberjackrus v1.0.1
 	github.com/peterldowns/pgtestdb v0.1.1
