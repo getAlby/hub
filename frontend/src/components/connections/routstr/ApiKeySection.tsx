@@ -719,8 +719,8 @@ function RoutstrApiKeySectionInner({ app, onMetadataUpdate }: Props) {
                   )}
                 {autoRefill.enabled && autoRefill.amount < 100 && (
                   <p className="text-xs text-amber-600 dark:text-amber-400">
-                    ⚠️ Each refill pays a ~20 sats network fee. Amounts under
-                    100 sats mostly go to fees.
+                    ⚠️ Each refill pays a network fee. Small amounts can go
+                    mostly to fees.
                   </p>
                 )}
                 {autoRefill.enabled && (
