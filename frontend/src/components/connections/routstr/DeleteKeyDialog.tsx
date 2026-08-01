@@ -43,9 +43,18 @@ export function DeleteKeyDialog({
           : (result?.keys || []).reduce((sum, k) => sum + (k.balance || 0), 0);
       setBalance(total);
       setDaemonUnreachable(false);
-    } catch {
-      // If we can't reach routstrd, allow deletion (orphaned key cleanup)
-      setBalance(0);
+    } catch (error) {
+      // Distinguish a confirmed "client not found" (safe to delete — the
+      // handleDelete path also treats it as success) from a transient
+      // failure (daemon restarting, network blip). Treating a transient
+      // failure as zero balance would let the key be deleted while it
+      // still holds sats, stranding them.
+      const message = error instanceof Error ? error.message : String(error);
+      if (/not found/i.test(message)) {
+        setBalance(0);
+      } else {
+        setBalance(null);
+      }
       setDaemonUnreachable(true);
     }
   }, []);

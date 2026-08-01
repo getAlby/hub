@@ -75,19 +75,20 @@ export function CreateKeyDialog({
   const handleCreateKey = async () => {
     setIsProcessing(true);
     try {
-      // 1. Fund via Hub's LN from this app's wallet
-      if (Number(amount) > 0) {
-        setStep("paying");
-        await fundFromHub(Number(amount), connectionAppId);
-      }
-
-      // 2. Create the API key (free)
+      // 1. Create the API key first (free). Funding before key creation
+      // would leave sats spent with no key if the daemon call failed.
       const clientName = `routstr-app-${connectionAppId}-${Date.now()}`;
       const clientResult = await createRoutstrdClient(clientName);
       const apiKey = clientResult?.client?.apiKey;
       const clientId = clientResult?.client?.id || clientName;
       if (!apiKey) {
         throw new Error("Failed to create API key");
+      }
+
+      // 2. Fund via Hub's LN from this app's wallet
+      if (Number(amount) > 0) {
+        setStep("paying");
+        await fundFromHub(Number(amount), connectionAppId);
       }
 
       setCreatedKey(apiKey);

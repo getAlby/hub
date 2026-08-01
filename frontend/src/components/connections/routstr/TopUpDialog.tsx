@@ -35,7 +35,7 @@ export function TopUpDialog({ open, onOpenChange, onTopUp, appId }: Props) {
 
   const handleTopUp = async () => {
     const numAmount = Number(amount);
-    if (numAmount < 1) {
+    if (!Number.isInteger(numAmount) || numAmount < 1) {
       toast.error("Enter a valid amount");
       return;
     }

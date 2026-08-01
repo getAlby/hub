@@ -283,10 +283,14 @@ export async function fundFromHub(
  */
 export async function refundFromHub(
   amount: number,
-  appId: number
+  appId: number,
+  mintUrl: string
 ): Promise<number> {
   if (!appId) {
     throw new Error("refundFromHub requires the Routstr appId");
+  }
+  if (!mintUrl) {
+    throw new Error("refundFromHub requires the active mint URL");
   }
 
   // 1. Create an invoice scoped to the Routstr app (credited to its wallet on payment)
@@ -311,7 +315,7 @@ export async function refundFromHub(
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         invoice,
-        mintUrl: "https://mint.cubabitcoin.org",
+        mintUrl,
       }),
       timeoutMs: 90_000,
     }

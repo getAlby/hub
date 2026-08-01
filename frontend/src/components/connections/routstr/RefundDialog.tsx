@@ -59,6 +59,9 @@ export function RefundDialog({
   const lastBalance = useRef<number | null>(null);
   const lastProviderTokens = useRef(0);
   const lastFee = useRef<number | null>(null);
+  // Balance at the last mint fee quote — avoids re-quoting (and creating a
+  // lingering app-scoped invoice) on every dialog open / silent refresh.
+  const lastQuotedBalance = useRef(0);
   const hasEverLoaded = useRef(false);
 
   const doLoadBalances = useCallback(async () => {
@@ -84,9 +87,18 @@ export function RefundDialog({
     }
     const totalRefundable = walletBal + providerFloat;
 
-    // 3. Get real fee: create a Hub invoice, query the mint for melt quote on it
+    // 3. Get real fee: create a Hub invoice, query the mint for melt quote on it.
+    // Only re-quote when the balance moved materially — every quote creates an
+    // app-scoped invoice that lingers as a pending transaction, and the dialog
+    // refreshes on every open (open + silent background refresh).
     let fee = 0;
-    if (activeMint && totalRefundable > 0) {
+    if (
+      lastQuotedBalance.current !== 0 &&
+      lastFee.current !== null &&
+      Math.abs(totalRefundable - lastQuotedBalance.current) < 10
+    ) {
+      fee = lastFee.current;
+    } else if (activeMint && totalRefundable > 0) {
       try {
         const invResult = await request<{ invoice: string }>("/api/invoices", {
           method: "POST",
@@ -111,6 +123,7 @@ export function RefundDialog({
             fee = typeof quote.fee_reserve === "number" ? quote.fee_reserve : 0;
           }
         }
+        lastQuotedBalance.current = totalRefundable;
       } catch {
         fee = 0;
       }
@@ -207,7 +220,10 @@ export function RefundDialog({
         }
       }
       setRefundPhase(`Refunding ${amountToRefund} sats...`);
-      const refunded = await refundFromHub(amountToRefund, appId);
+      if (!mintUrl) {
+        throw new Error("No active mint to melt from");
+      }
+      const refunded = await refundFromHub(amountToRefund, appId, mintUrl);
       toast.success(`Refunded ${refunded} sats to your Routstr wallet`);
       setStep("done");
       onRefundComplete();

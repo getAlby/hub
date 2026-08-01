@@ -754,9 +754,6 @@ export default function ModelSelect({
         >
           <Search className="h-3.5 w-3.5" />
           {browseOnly ? "Models available" : "Add Model"}
-          <kbd className="ml-1 pointer-events-none inline-flex h-5 select-none items-center gap-0.5 rounded border border-border bg-muted px-1.5 text-[10px] font-medium text-muted-foreground">
-            <span className="text-[9px]">⌘</span>J
-          </kbd>
         </Button>
         {!browseOnly && selected && (
           <SelectedChip model={selected} onRemove={handleRemove} />

@@ -446,7 +446,11 @@ export function Routstr() {
               )}
 
               <div className="flex gap-3 justify-end mt-2">
-                <Button variant="outline" onClick={() => setStep("start")}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStep("start")}
+                >
                   <ArrowLeftIcon className="w-4 h-4 mr-2" />
                   Back
                 </Button>

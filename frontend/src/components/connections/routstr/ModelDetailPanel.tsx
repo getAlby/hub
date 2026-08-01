@@ -63,7 +63,15 @@ export default function ModelDetailPanel({
         const provs = result?.providers || [];
         setProviderCount(provs.length);
         if (provs.length > 0) {
-          const p = provs[0].pricing || {};
+          // Mirror ModelPricingStrip: sort by prompt+completion so the
+          // cheapest provider's pricing is shown, not the first in the list.
+          const cheapest = [...provs].sort(
+            (a, b) =>
+              (a.pricing?.prompt ?? 0) +
+              (a.pricing?.completion ?? 0) -
+              ((b.pricing?.prompt ?? 0) + (b.pricing?.completion ?? 0))
+          )[0];
+          const p = cheapest.pricing || {};
           setCheapestPrompt(p.prompt ?? null);
           setCheapestCompletion(p.completion ?? null);
         } else {
