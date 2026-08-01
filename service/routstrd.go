@@ -680,7 +680,7 @@ func (r *RoutstrdService) checkAutoRefill(ctx context.Context) {
 		r.recordAutoRefill(nowT, 0, 0, time.Time{}, "no Routstr app found")
 		return
 	}
-	cfg := r.readAutoRefillConfig(app)
+	cfg := readAutoRefillConfig(app)
 	if cfg == nil || !cfg.Enabled || cfg.Threshold <= 0 || cfg.Amount <= 0 {
 		// Stopped (or unconfigured) is a normal state, not an error
 		r.recordAutoRefill(nowT, 0, 0, time.Time{}, "")
@@ -788,7 +788,7 @@ func (r *RoutstrdService) GetAutoRefillStatus() *AutoRefillStatus {
 	if app == nil {
 		return status
 	}
-	cfg := r.readAutoRefillConfig(app)
+	cfg := readAutoRefillConfig(app)
 	status.AppID = app.ID
 	if cfg != nil {
 		status.Enabled = cfg.Enabled
@@ -828,7 +828,7 @@ func (r *RoutstrdService) SetAutoRefillEnabled(ctx context.Context, enabled bool
 	if app == nil {
 		return nil, errors.New("no Routstr app found")
 	}
-	cfg := r.readAutoRefillConfig(app)
+	cfg := readAutoRefillConfig(app)
 	if cfg == nil {
 		cfg = &AutoRefillConfig{Enabled: enabled, Threshold: 500, Amount: 1000, CooldownMs: 5 * 60 * 1000}
 	}
@@ -908,6 +908,15 @@ func (r *RoutstrdService) findRoutstrApp() *db.App {
 	if err := r.svc.GetDB().Find(&apps).Error; err != nil {
 		return nil
 	}
+	return selectRoutstrApp(apps)
+}
+
+// selectRoutstrApp picks the Routstr app to supervise, in tier order:
+//  1. an app with auto-refill enabled and sane values,
+//  2. the first app with an explicit autoRefill block ("configured"),
+//  3. the first Routstr app (fallback).
+// Returns nil when no Routstr app exists.
+func selectRoutstrApp(apps []db.App) *db.App {
 	var fallback *db.App
 	var configured *db.App
 	for i := range apps {
@@ -927,10 +936,10 @@ func (r *RoutstrdService) findRoutstrApp() *db.App {
 			if !hasAutoRefillBlock {
 				continue
 			}
-			cfg := r.readAutoRefillConfig(&apps[i])
 			if configured == nil {
 				configured = &apps[i]
 			}
+			cfg := readAutoRefillConfig(&apps[i])
 			if cfg.Enabled && cfg.Threshold > 0 && cfg.Amount > 0 {
 				return &apps[i]
 			}
@@ -943,7 +952,7 @@ func (r *RoutstrdService) findRoutstrApp() *db.App {
 }
 
 // readAutoRefillConfig parses routstr.autoRefill from the app metadata.
-func (r *RoutstrdService) readAutoRefillConfig(app *db.App) *AutoRefillConfig {
+func readAutoRefillConfig(app *db.App) *AutoRefillConfig {
 	var meta map[string]interface{}
 	if err := json.Unmarshal(app.Metadata, &meta); err != nil {
 		return nil

@@ -12,14 +12,14 @@ import (
 func TestReadAutoRefillConfigNoRoutstrBlock(t *testing.T) {
 	// No routstr metadata at all → nil (unconfigured; callers use defaults).
 	app := &db.App{Metadata: datatypes.JSON([]byte(`{}`))}
-	cfg := (&RoutstrdService{}).readAutoRefillConfig(app)
+	cfg := readAutoRefillConfig(app)
 	assert.Nil(t, cfg)
 }
 
 func TestReadAutoRefillConfigMissingBlockReturnsDefaults(t *testing.T) {
 	// routstr block present but no autoRefill → sane defaults, never zeros.
 	app := &db.App{Metadata: datatypes.JSON([]byte(`{"routstr":{}}`))}
-	cfg := (&RoutstrdService{}).readAutoRefillConfig(app)
+	cfg := readAutoRefillConfig(app)
 	require.NotNil(t, cfg)
 	assert.Equal(t, false, cfg.Enabled)
 	assert.Equal(t, int64(500), cfg.Threshold)
@@ -29,7 +29,7 @@ func TestReadAutoRefillConfigMissingBlockReturnsDefaults(t *testing.T) {
 
 func TestReadAutoRefillConfigEmptyBlockReturnsDefaults(t *testing.T) {
 	app := &db.App{Metadata: datatypes.JSON([]byte(`{"routstr":{"autoRefill":{}}}`))}
-	cfg := (&RoutstrdService{}).readAutoRefillConfig(app)
+	cfg := readAutoRefillConfig(app)
 	require.NotNil(t, cfg)
 	assert.Equal(t, false, cfg.Enabled)
 	assert.Equal(t, int64(500), cfg.Threshold)
@@ -40,7 +40,7 @@ func TestReadAutoRefillConfigFullBlock(t *testing.T) {
 	app := &db.App{Metadata: datatypes.JSON([]byte(
 		`{"routstr":{"autoRefill":{"enabled":true,"threshold":200,"amount":500,"cooldownMs":60000}}}`,
 	))}
-	cfg := (&RoutstrdService{}).readAutoRefillConfig(app)
+	cfg := readAutoRefillConfig(app)
 	require.NotNil(t, cfg)
 	assert.Equal(t, true, cfg.Enabled)
 	assert.Equal(t, int64(200), cfg.Threshold)
@@ -53,7 +53,7 @@ func TestReadAutoRefillConfigPartialBlockFillsDefaults(t *testing.T) {
 	app := &db.App{Metadata: datatypes.JSON([]byte(
 		`{"routstr":{"autoRefill":{"threshold":123}}}`,
 	))}
-	cfg := (&RoutstrdService{}).readAutoRefillConfig(app)
+	cfg := readAutoRefillConfig(app)
 	require.NotNil(t, cfg)
 	assert.Equal(t, false, cfg.Enabled)
 	assert.Equal(t, int64(123), cfg.Threshold)
@@ -63,6 +63,6 @@ func TestReadAutoRefillConfigPartialBlockFillsDefaults(t *testing.T) {
 
 func TestReadAutoRefillConfigMalformedJSON(t *testing.T) {
 	app := &db.App{Metadata: datatypes.JSON([]byte(`not-json`))}
-	cfg := (&RoutstrdService{}).readAutoRefillConfig(app)
+	cfg := readAutoRefillConfig(app)
 	assert.Nil(t, cfg)
 }
