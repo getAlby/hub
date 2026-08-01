@@ -217,11 +217,18 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	// Public OpenAI-compatible proxy for external tools (Hermes, OpenCode, etc.).
 	// Auth is the routstrd API key in Authorization — NOT Hub JWT.
 	// /routstr/v1/chat/completions → http://127.0.0.1:8008/v1/chat/completions
+	//
+	// IMPORTANT: only /routstr/v1/* is exposed. The daemon binds *:8008 with
+	// unauthenticated admin endpoints (/stop, /wallet, /clients, /refund, ...);
+	// a catch-all /routstr/* proxy would let anyone reach those through the
+	// public Hub port.
 	routstrOpenAIProxy := httputil.NewSingleHostReverseProxy(&url.URL{
 		Scheme: "http",
 		Host:   "127.0.0.1:8008",
 	})
-	e.Any("/routstr/*", echo.WrapHandler(http.StripPrefix("/routstr", routstrOpenAIProxy)))
+	openAIProxyHandler := echo.WrapHandler(http.StripPrefix("/routstr", routstrOpenAIProxy))
+	e.Any("/routstr/v1/*", openAIProxyHandler)
+	e.Any("/routstr/v1/", openAIProxyHandler)
 
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(readOnlyApiGroup, fullAccessApiGroup, e)
 }
@@ -1263,8 +1270,10 @@ func (httpSvc *HttpService) appsDeleteHandler(c echo.Context) error {
 	}
 
 	if err := httpSvc.api.DeleteApp(dbApp); err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: "Failed to delete app",
+		// Surface the reason (e.g. the Routstr balance guard) instead of a
+		// generic failure.
+		return c.JSON(http.StatusConflict, ErrorResponse{
+			Message: err.Error(),
 		})
 	}
 	return c.NoContent(http.StatusNoContent)

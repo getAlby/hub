@@ -93,9 +93,9 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 	// Both daemons keep their DBs in WAL mode, so copying only the main
 	// .db file would silently drop uncheckpointed operations from the
 	// backup (measured: coco.db-wal can hold 4+ MB of recent mints/melts,
-	// routstr.db-wal 4+ MB of client/usage state). The app is already
-	// stopped at this point, so the daemons are idle and the checkpoint
-	// completes cleanly.
+	// routstr.db-wal 4+ MB of client/usage state). Note: only the Hub's own
+	// DB is stopped here — the daemons keep running and may still write;
+	// checkpointSqliteDatabase handles that with _busy_timeout + retries.
 	for _, daemonDb := range []string{
 		filepath.Join(os.Getenv("HOME"), ".cocod", "coco.db"),
 		filepath.Join(os.Getenv("HOME"), ".routstrd", "routstr.db"),
@@ -258,17 +258,22 @@ func (api *api) RestoreBackup(unlockPassword string, r io.Reader) error {
 
 		// Entries produced from files outside workDir (routstrd/cocod state
 		// under $HOME, archived as "../../.routstrd/...") must resolve
-		// against the home directory. Resolving them under workDir/restore
-		// would land them in the wrong place (e.g. /root/hub/.cocod instead
-		// of /root/.cocod) and the daemons would never find them, leaving a
+		// against the directory the ".." segments point to relative to
+		// workDir. Derive it by walking up from workDir once per ".."
+		// segment (with $HOME as the practical anchor when workDir sits
+		// directly under it). Resolving under workDir/restore would land
+		// them in the wrong place (e.g. /root/hub/.cocod instead of
+		// /root/.cocod) and the daemons would never find them, leaving a
 		// restored instance with an empty Cashu wallet and no API keys.
 		var fsFilePath string
 		if strings.HasPrefix(zipName, ".."+string(filepath.Separator)) {
 			trimmed := zipName
+			upDir := workDir
 			for strings.HasPrefix(trimmed, ".."+string(filepath.Separator)) {
 				trimmed = trimmed[len(".."+string(filepath.Separator)):]
+				upDir = filepath.Dir(upDir)
 			}
-			fsFilePath = filepath.Join(os.Getenv("HOME"), trimmed)
+			fsFilePath = filepath.Join(upDir, trimmed)
 		} else {
 			fsFilePath = filepath.Join(workDir, "restore", zipName)
 		}
@@ -410,6 +415,13 @@ func checkpointSqliteDatabase(dbPath string) error {
 		err := sqlDb.QueryRow("PRAGMA wal_checkpoint(TRUNCATE)").Scan(&busy, &logPages, &checkpointedPages)
 		if err != nil {
 			lastErr = err
+			time.Sleep(time.Duration(attempt+1) * 500 * time.Millisecond)
+			continue
+		}
+		if busy > 0 {
+			// A concurrent writer blocked the checkpoint; retry rather
+			// than pretending the WAL was flushed.
+			lastErr = fmt.Errorf("wal checkpoint busy (%d)", busy)
 			time.Sleep(time.Duration(attempt+1) * 500 * time.Millisecond)
 			continue
 		}

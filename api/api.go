@@ -330,6 +330,23 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 }
 
 func (api *api) DeleteApp(userApp *db.App) error {
+	// Routstr guard: the app's isolated wallet holds real sats that
+	// DeleteApp does not refund (it only removes the row — verified
+	// 2026-08-01: deleting a funded Routstr app strands its balance).
+	// Refuse deletion until the wallet is empty so sats cannot be orphaned.
+	var meta map[string]interface{}
+	if err := json.Unmarshal(userApp.Metadata, &meta); err == nil {
+		if id, _ := meta["app_store_app_id"].(string); id == "routstr" {
+			balanceMsat, err := queries.GetIsolatedBalanceMsat(api.svc.GetDB(), userApp.ID)
+			if err != nil {
+				return fmt.Errorf("cannot delete Routstr app: check wallet balance: %w", err)
+			}
+			if balanceMsat > 0 {
+				return fmt.Errorf("cannot delete Routstr app: the app wallet still holds %d sats. Refund or transfer it out first", balanceMsat/1000)
+			}
+		}
+	}
+
 	// Delete lightning address if one exists
 	if api.appsSvc.HasLightningAddress(userApp) {
 		err := api.DeleteLightningAddress(context.Background(), userApp.ID)

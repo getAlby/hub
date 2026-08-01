@@ -14,8 +14,9 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"syscall"
 	"time"
+
+	decodepay "github.com/nbd-wtf/ln-decodepay"
 
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/db/queries"
@@ -100,7 +101,9 @@ func (r *RoutstrdService) Start(ctx context.Context) error {
 	r.mu.Unlock()
 
 	childCtx, cancel := context.WithCancel(ctx)
+	r.mu.Lock()
 	r.cancelFn = cancel
+	r.mu.Unlock()
 
 	r.wg.Add(1)
 	go func() {
@@ -116,15 +119,13 @@ func (r *RoutstrdService) Start(ctx context.Context) error {
 // Cashu wallet state is not interrupted by brief Hub restarts).
 func (r *RoutstrdService) Stop() {
 	r.mu.Lock()
-	if !r.running {
-		r.mu.Unlock()
-		return
-	}
 	r.running = false
+	cancelFn := r.cancelFn
+	r.cancelFn = nil
 	r.mu.Unlock()
 
-	if r.cancelFn != nil {
-		r.cancelFn()
+	if cancelFn != nil {
+		cancelFn()
 	}
 
 	// Graceful stop of routstrd only — do not stop cocod (wallet)
@@ -295,6 +296,8 @@ func (r *RoutstrdService) checkCocodHealth() bool {
 	home := os.Getenv("HOME")
 	socketPath := filepath.Join(home, ".cocod", "cocod.sock")
 	if _, err := os.Stat(socketPath); err != nil {
+		// Socket missing: daemon is down, or hung on startup (mint rate
+		// limiter) — either way the supervisor should try to recover it.
 		return false
 	}
 
@@ -305,11 +308,19 @@ func (r *RoutstrdService) checkCocodHealth() bool {
 			if r.processExists(pid) {
 				return true
 			}
+			// PID file points at a dead process — reconcile the stale files
+			// so the next spawn binds the socket cleanly (startCocod does
+			// the same before spawning).
+			_ = os.Remove(socketPath)
+			_ = os.Remove(pidPath)
+			logger.Logger.WithField("pid", pid).Warn("cocod pid file points at a dead process; removed stale socket and pid files")
+			return false
 		}
 	}
 
-	// Socket exists but PID unknown — treat as healthy (socket is the IPC surface)
-	return true
+	// Socket exists but PID unknown — ambiguous (stale socket from a crash).
+	// Treat as unhealthy; startCocod reconciles and respawns.
+	return false
 }
 
 func (r *RoutstrdService) startCocod() error {
@@ -317,11 +328,33 @@ func (r *RoutstrdService) startCocod() error {
 
 	home := os.Getenv("HOME")
 	pidPath := filepath.Join(home, ".cocod", "cocod.pid")
+	socketPath := filepath.Join(home, ".cocod", "cocod.sock")
+
+	// Reconcile stale state before spawning:
+	// - pid file references a dead process → remove pid + stale socket
+	// - pid alive but socket missing → hung daemon (mint rate limiter);
+	//   kill it so the respawn binds the socket cleanly
+	// - no pid file → remove any stale socket
 	if data, err := os.ReadFile(pidPath); err == nil {
-		if pid, err := strconv.Atoi(strings.TrimSpace(string(data))); err == nil && r.processExists(pid) {
-			logger.Logger.WithField("pid", pid).Info("cocod already running")
-			return nil
+		if pid, err := strconv.Atoi(strings.TrimSpace(string(data))); err == nil && pid > 0 {
+			if r.processExists(pid) {
+				if _, err := os.Stat(socketPath); err != nil {
+					logger.Logger.WithField("pid", pid).Warn("cocod pid alive but socket missing (hung); killing and respawning")
+					_ = killProcess(pid)
+					_ = os.Remove(pidPath)
+					_ = os.Remove(socketPath)
+				} else {
+					logger.Logger.WithField("pid", pid).Info("cocod already running")
+					return nil
+				}
+			} else {
+				logger.Logger.WithField("pid", pid).Warn("cocod pid file references a dead process; cleaning stale files")
+				_ = os.Remove(pidPath)
+				_ = os.Remove(socketPath)
+			}
 		}
+	} else {
+		_ = os.Remove(socketPath)
 	}
 
 	cocodBin := r.resolveBinary("cocod")
@@ -333,8 +366,8 @@ func (r *RoutstrdService) startCocod() error {
 	cmd.Stdout = nil
 	cmd.Stderr = nil
 	cmd.Stdin = nil
-	// Detach so Hub restarts don't kill cocod
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+	// Detach so Hub restarts don't kill cocod (no-op on Windows)
+	setDetachedProcess(cmd)
 
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("spawn cocod: %w", err)
@@ -365,7 +398,7 @@ func (r *RoutstrdService) startRoutstrd() error {
 		cmd.Stdout = nil
 		cmd.Stderr = nil
 		cmd.Stdin = nil
-		cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+		setDetachedProcess(cmd)
 
 		if err := cmd.Start(); err != nil {
 			logger.Logger.WithError(err).Warn("routstrd start CLI failed, falling back to direct daemon spawn")
@@ -396,7 +429,7 @@ func (r *RoutstrdService) startRoutstrd() error {
 	cmd.Stdout = nil
 	cmd.Stderr = nil
 	cmd.Stdin = nil
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+	setDetachedProcess(cmd)
 
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("spawn routstrd: %w", err)
@@ -442,9 +475,7 @@ func (r *RoutstrdService) processExists(pid int) bool {
 	if pid <= 0 {
 		return false
 	}
-	// Signal 0 checks existence without killing
-	err := syscall.Kill(pid, 0)
-	return err == nil
+	return processAlive(pid)
 }
 
 func (r *RoutstrdService) setError(msg string) {
@@ -494,7 +525,9 @@ func (r *RoutstrdService) ensureNwcConnected(ctx context.Context) {
 		r.svc.eventPublisher.Publish(&events.Event{
 			Event: "routstrd_nwc_reconnect_failed",
 			Properties: map[string]interface{}{
-				"error": err.Error(),
+				// Errors can embed raw daemon response bodies — keep
+				// published properties short.
+				"error": shortError(err),
 			},
 		})
 		return
@@ -674,6 +707,21 @@ func (r *RoutstrdService) checkAutoRefill(ctx context.Context) {
 		return
 	}
 
+	// The daemon is unauthenticated on localhost — verify the returned
+	// invoice is exactly for cfg.Amount before paying it. A wrong or hostile
+	// response would otherwise drain the Routstr wallet up to its budget.
+	payReq, decodeErr := decodepay.Decodepay(invResp.Output.Invoice)
+	if decodeErr != nil || payReq.MSatoshi != cfg.Amount*1000 {
+		r.markAutoRefillAttempted(nowT)
+		r.recordAutoRefill(nowT, balance, 0, time.Time{}, "mint invoice amount mismatch")
+		logger.Logger.WithFields(map[string]interface{}{
+			"expected_msat": cfg.Amount * 1000,
+			"actual_msat":   payReq.MSatoshi,
+			"decode_error":  decodeErr,
+		}).Warn("auto-refill: mint invoice amount does not match requested amount")
+		return
+	}
+
 	// Pay it from the Routstr app's isolated wallet (Hub-direct, no relay)
 	appID := app.ID
 	lnClient := r.svc.GetLNClient()
@@ -769,7 +817,13 @@ func (r *RoutstrdService) SetAutoRefillEnabled(ctx context.Context, enabled bool
 	}
 	if enabled {
 		logger.Logger.Info("auto-refill: started (immediate check)")
-		r.checkAutoRefill(ctx)
+		// Run the immediate check off the request thread: it talks to the
+		// daemon and can take tens of seconds (invoice + payment timeouts).
+		go func() {
+			checkCtx, cancelCheck := context.WithTimeout(context.Background(), 60*time.Second)
+			defer cancelCheck()
+			r.checkAutoRefill(checkCtx)
+		}()
 	} else {
 		logger.Logger.Info("auto-refill: stopped")
 	}
@@ -808,6 +862,19 @@ func (r *RoutstrdService) markAutoRefillAttempted(t time.Time) {
 
 func now() time.Time { return time.Now() }
 
+// shortError truncates error strings for event properties so raw daemon
+// response bodies never leak into the event bus.
+func shortError(err error) string {
+	if err == nil {
+		return ""
+	}
+	msg := err.Error()
+	if len(msg) > 300 {
+		return msg[:300] + "..."
+	}
+	return msg
+}
+
 // findRoutstrApp returns the Routstr app the auto top-up loop should honor:
 // the one with an enabled config, else the one with any autoRefill config
 // block (so status/start/stop keep pointing at the app the user configured
@@ -831,10 +898,15 @@ func (r *RoutstrdService) findRoutstrApp() *db.App {
 			if fallback == nil {
 				fallback = &apps[i]
 			}
-			cfg := r.readAutoRefillConfig(&apps[i])
-			if cfg == nil {
+			routstrMeta, _ := meta["routstr"].(map[string]interface{})
+			_, hasAutoRefillBlock := routstrMeta["autoRefill"].(map[string]interface{})
+			// Only apps with an explicit autoRefill block count as
+			// "configured": readAutoRefillConfig always returns defaulted
+			// values, so it cannot distinguish absent from configured.
+			if !hasAutoRefillBlock {
 				continue
 			}
+			cfg := r.readAutoRefillConfig(&apps[i])
 			if configured == nil {
 				configured = &apps[i]
 			}
