@@ -25,7 +25,7 @@ Routstr does not depend on one AI vendor. Providers are community-run Routstr en
 
 ### The request lifecycle
 
-```
+```text
 Your app → base URL + key → daemon
   1. client lookup (usage accounting)
   2. wallet balance gate (Cashu mint balance)

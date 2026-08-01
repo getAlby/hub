@@ -26,6 +26,8 @@ The daemon binds `*:8008` and exposes **unauthenticated admin endpoints** (`/cli
 
 `albyhub.bkp` is an encrypted ZIP: PBKDF2 (4096 iterations, 8-byte salt) derives the key, AES-256-OFB (16-byte IV) encrypts. See [backup-restore.md](backup-restore.md).
 
+> **Known weakness (inherited from upstream).** 4096 PBKDF2 iterations is weak for a password-derived key, and the archive has no authentication (an attacker who knows the password can tamper undetected; OFB has no integrity check). This fork adds the daemon databases (Cashu mnemonic, keys) to the archive, raising the value of the target. Mitigations: use a long random backup password, keep backups offline. A stronger KDF (scrypt/Argon2) + authenticated encryption (AES-GCM) is the right upstream fix.
+
 ## Reporting
 
 Open an issue in this repository. For sensitive findings, contact the maintainers directly.

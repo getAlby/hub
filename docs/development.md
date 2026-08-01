@@ -72,5 +72,6 @@ Two gotchas, both hit in production:
 
 - **PATH must include the bun bin dir.** cocod and routstrd are bun scripts with `#!/usr/bin/env bun`; systemd's default PATH lacks `/root/.bun/bin`, so the daemons die instantly on spawn (silently — the Hub discards their stderr). `Environment=PATH=...` fixes it.
 - **Enable auto-unlock** (`PATCH /api/auto-unlock {"unlockPassword": "..."}`) so the Hub opens its wallet on restart without a human. Tradeoff: anyone with config access can start it — do this only with a strong unlock password.
+- **User=root is a simplification** for a single-tenant VPS: the Hub, the daemons, and all data live under `/root`. For a hardened multi-user host, run the service as a dedicated user with `WorkingDirectory` + data dirs owned by it.
 
 `deploy.sh` at the repo root runs the atomic deploy sequence: build frontend, build binary, `systemctl restart alby-hub`, unlock, wait for daemons, verify. (`UNLOCK_PASSWORD` env var overrides the default.)

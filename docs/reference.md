@@ -16,6 +16,11 @@ Base: `http://localhost:8008` (or through the Hub proxy).
 | `GET /status`, `GET /health` | health |
 | `POST /wallet/receive/bolt11` | mint a Lightning invoice to buy ecash |
 | `POST /wallet/send/bolt11` | melt ecash to pay a Lightning invoice |
+| `GET /wallet/balance` | Cashu wallet balance by mint (auto-refill + status) |
+| `POST /refund` | reclaim prepaid provider tokens back into the wallet (`mintUrl`) |
+| `POST /nwc/connect` | (re)connect the NWC funding source |
+| `GET /nwc/status` | NWC connection status |
+| `POST /stop` | graceful daemon shutdown (Hub calls it on stop) |
 | `GET /usagePi` | (typo) alternate usage endpoint |
 
 Provider federation: `provider_index` and `disabled_providers` live in the daemon store; providers announce over Nostr and are validated by pubkey.

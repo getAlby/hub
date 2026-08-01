@@ -12,7 +12,7 @@ Thanks for wanting to help. This is a small fork with a specific goal: keep the 
 ## Setup
 
 ```sh
-cd frontend && yarn install
+cd frontend && yarn install && yarn build:http   # build:http emits frontend/dist, which cmd/http/main.go embeds
 cd .. && go build -o hub cmd/http/main.go
 ```
 

@@ -73,7 +73,7 @@ How a user goes from zero to a working AI gateway, and what happens behind the s
 
 | Control | What it does | Behind the scenes |
 |---|---|---|
-| Start / Stop | Turn auto top-up on or off | The Hub supervision loop (15s tick) reads the `autoRefill` config from app metadata: when the balance drops below the threshold, it funds the Cashu wallet from the Routstr wallet, with a 5-minute cooldown. The buttons hit `POST /api/routstrd/autorefill/start|stop`; the status line shows the live pool balance, last refill, and errors (polled every 30s). |
+| Start / Stop | Turn auto top-up on or off | The Hub supervision loop (15s tick) reads the `autoRefill` config from app metadata: when the balance drops below the threshold, it funds the Cashu wallet from the Routstr wallet, with a 5-minute cooldown. The buttons hit `POST /api/routstrd/autorefill/start` and `POST /api/routstrd/autorefill/stop`; the status line shows the live pool balance, last refill, and errors (polled every 30s). |
 | Base URLs | Same device vs external | As shown at Step 5: direct daemon (`:8008`) or Hub proxy (`:8080/routstr/v1`). |
 
 ## Dialogs

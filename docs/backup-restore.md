@@ -39,3 +39,5 @@ The stale SQLite `LOCK` file is excluded. Paths that escape the storage dir (`..
 ## Crypto format
 
 PBKDF2 (4096 iterations, 8-byte salt) derives the key; AES-256-OFB (16-byte IV) encrypts the ZIP.
+
+> **No authentication.** The archive has no integrity/authenticity check beyond the encryption (OFB is unauthenticated) and the KDF is weak at 4096 iterations. Use a long random backup password and keep archives offline. See [security.md](security.md).

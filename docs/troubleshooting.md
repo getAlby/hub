@@ -54,11 +54,13 @@ The client was already removed (ghost). The dialog treats it as success: "alread
 
 ```sh
 pkill -f cocod          # kill ALL cocod daemons
-rm -f cocod.sock cocod.pid
+rm -f ~/.cocod/cocod.sock ~/.cocod/cocod.pid
 # clear stuck pending mint operations from coco.db:
 # DELETE FROM coco_cashu_mint_operations WHERE state='pending';
-start one cocod daemon
+cocod daemon            # start exactly one cocod daemon
 ```
+
+The supervisor reconciles stale cocod state automatically (dead pid + stale socket are cleaned on the next spawn), so this manual recovery is only needed for the hung-on-rate-limiter case above.
 
 ## Models available shows nothing (or 502 on refresh)
 

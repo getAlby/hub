@@ -48,6 +48,8 @@ The wizard creates an isolated app wallet, mints your API key, and funds it with
 
 plus your `sk-` key. That is the whole integration surface for any OpenAI-compatible client.
 
+> **TLS for external use.** The public proxy (`/routstr/v1`) is plain HTTP on the Hub port. For anything beyond a trusted LAN, put the Hub behind a TLS reverse proxy (Caddy/nginx) so keys and completions are not sent in cleartext.
+
 See [docs/deploy.md](docs/deploy.md) for the full install, and [docs/user-flow.md](docs/user-flow.md) for the annotated walkthrough of every screen.
 
 ## Documentation

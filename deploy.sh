@@ -19,9 +19,12 @@ systemctl restart alby-hub
 sleep 6
 
 echo "== unlock =="
-TOKEN=$(curl -s -m 15 -X POST http://localhost:8080/api/start \
-  -H "Content-Type: application/json" \
-  -d "{\"unlockPassword\":\"$UNLOCK_PASSWORD\"}" \
+# Build the JSON payload with python3 so quotes/backslashes in the password
+# cannot produce malformed JSON.
+TOKEN=$(printf '%s' "$UNLOCK_PASSWORD" \
+  | python3 -c "import sys,json; print(json.dumps({'unlockPassword': sys.stdin.read()}))" \
+  | curl -s -m 15 -X POST http://localhost:8080/api/start \
+      -H "Content-Type: application/json" --data-binary @- \
   | python3 -c "import sys,json; print(json.load(sys.stdin).get('token',''))" 2>/dev/null)
 [ -z "$TOKEN" ] && { echo "UNLOCK FAILED"; exit 1; }
 echo "token: ${TOKEN:0:12}..."
