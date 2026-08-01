@@ -32,3 +32,6 @@ glalby
 *.db-journal
 albyhub-data
 .claude/worktrees
+hub
+albyhub
+audit.log
