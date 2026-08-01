@@ -380,19 +380,41 @@ export async function refundFromHub(
           if (retrySend <= 0) {
             break;
           }
-          const retryInvoice = await createAppScopedInvoice(retrySend, appId);
-          const retryMelt = await routstrdFetch<{ message: string }>(
-            "/wallet/send/bolt11",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ invoice: retryInvoice, mintUrl }),
-              timeoutMs: 90_000,
+          try {
+            const retryInvoice = await createAppScopedInvoice(retrySend, appId);
+            const retryMelt = await routstrdFetch<{ message: string }>(
+              "/wallet/send/bolt11",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ invoice: retryInvoice, mintUrl }),
+                timeoutMs: 90_000,
+              }
+            );
+            if (retryMelt?.message) {
+              totalRefunded += retrySend;
+              succeeded = true;
             }
-          );
-          if (retryMelt?.message) {
-            totalRefunded += retrySend;
-            succeeded = true;
+          } catch (retryError) {
+            const retryMessage =
+              retryError instanceof Error
+                ? retryError.message
+                : String(retryError);
+            if (
+              /insufficient|not enough (funds|proofs)|non-negative/i.test(
+                retryMessage
+              )
+            ) {
+              // Same degenerate/insufficient condition — try the next
+              // smaller send.
+              continue;
+            }
+            // A non-retryable retry failure: preserve any progress made by
+            // earlier passes (including earlier successful shrinks).
+            if (totalRefunded > 0) {
+              throw new PartialRefundError(totalRefunded, retryMessage);
+            }
+            throw retryError;
           }
         }
         if (!succeeded) {
@@ -451,8 +473,15 @@ async function getMeltQuoteFee(
       }
     );
     if (mtResp.ok) {
-      const quote = await mtResp.json();
-      return typeof quote.fee_reserve === "number" ? quote.fee_reserve : 0;
+      const quote: unknown = await mtResp.json();
+      if (
+        typeof quote === "object" &&
+        quote !== null &&
+        "fee_reserve" in quote &&
+        typeof (quote as { fee_reserve?: unknown }).fee_reserve === "number"
+      ) {
+        return (quote as { fee_reserve: number }).fee_reserve;
+      }
     }
   } catch {
     // fall through — fee unknown, treat as 0
