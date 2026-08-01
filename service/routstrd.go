@@ -821,8 +821,10 @@ func (r *RoutstrdService) GetAutoRefillStatus() *AutoRefillStatus {
 // flips the routstr.autoRefill.enabled flag in the Routstr app metadata
 // (the same read-modify-write the UI performs) and, when starting, runs one
 // immediate check so the user sees the loop act right away (cooldown still
-// respected to avoid fee-heavy refills).
-func (r *RoutstrdService) SetAutoRefillEnabled(ctx context.Context, enabled bool) (*AutoRefillStatus, error) {
+// respected to avoid fee-heavy refills). Optional threshold/amount (start
+// only) override the stored config atomically — the user's typed values are
+// what the loop honors, no blur-save race.
+func (r *RoutstrdService) SetAutoRefillEnabled(ctx context.Context, enabled bool, threshold, amount *int64) (*AutoRefillStatus, error) {
 	app := r.findRoutstrApp()
 	if app == nil {
 		return nil, errors.New("no Routstr app found")
@@ -832,6 +834,14 @@ func (r *RoutstrdService) SetAutoRefillEnabled(ctx context.Context, enabled bool
 		cfg = &AutoRefillConfig{Enabled: enabled, Threshold: 500, Amount: 1000, CooldownMs: 5 * 60 * 1000}
 	}
 	cfg.Enabled = enabled
+	if enabled {
+		if threshold != nil && *threshold > 0 {
+			cfg.Threshold = *threshold
+		}
+		if amount != nil && *amount > 0 {
+			cfg.Amount = *amount
+		}
+	}
 	if err := r.writeAutoRefillConfig(app, cfg); err != nil {
 		return nil, err
 	}

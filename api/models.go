@@ -55,7 +55,7 @@ type API interface {
 	GetMnemonic(unlockPassword string) (*MnemonicResponse, error)
 	// Auto top-up control + status for the Hub-side Cashu auto-refill loop
 	GetAutoRefillStatus() (*service.AutoRefillStatus, error)
-	SetAutoRefillEnabled(ctx context.Context, enabled bool) (*service.AutoRefillStatus, error)
+	SetAutoRefillEnabled(ctx context.Context, enabled bool, threshold, amount *int64) (*service.AutoRefillStatus, error)
 	SetNextBackupReminder(backupReminderRequest *BackupReminderRequest) error
 	Start(startRequest *StartRequest)
 	Setup(ctx context.Context, setupRequest *SetupRequest) error

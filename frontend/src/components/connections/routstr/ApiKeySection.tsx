@@ -369,7 +369,11 @@ function RoutstrApiKeySectionInner({ app, onMetadataUpdate }: Props) {
     }
   }, [showCreate, loadModels]);
 
-  const updateAppMetadata = async (updates: Partial<RoutstrMetadata>) => {
+  const updateAppMetadata = async (
+    updates: Omit<Partial<RoutstrMetadata>, "autoRefill"> & {
+      autoRefill?: Partial<NonNullable<RoutstrMetadata["autoRefill"]>>;
+    }
+  ) => {
     try {
       // Read-modify-write against the SERVER, never the closure: a key
       // created while this call was queued must not be clobbered by a
@@ -380,12 +384,25 @@ function RoutstrApiKeySectionInner({ app, onMetadataUpdate }: Props) {
       };
       const freshMeta = (freshApp?.metadata || {}) as Record<string, unknown>;
       const freshRoutstr = (freshMeta.routstr || {}) as RoutstrMetadata;
+      // autoRefill merges DEEP: `enabled` is owned by the Start/Stop API and
+      // must survive this write unchanged. A shallow spread of `updates`
+      // would drop it (undefined), which the server reads as disabled and
+      // silently stops a running auto top-up (hit 2026-08-01: blur-save
+      // raced Start and the PATCH landed after the start POST, stopping it).
+      const mergedAutoRefill = {
+        ...(freshRoutstr.autoRefill || {}),
+        ...(updates.autoRefill || {}),
+      };
       // Always re-assert the app-store id — stale writebacks wiped it from
       // some apps' metadata (2026-07-31), which hid the Routstr section.
       const newMetadata = {
         app_store_app_id: ROUTSTR_APP_ID,
         ...freshMeta,
-        routstr: { ...freshRoutstr, ...updates },
+        routstr: {
+          ...freshRoutstr,
+          ...updates,
+          autoRefill: mergedAutoRefill,
+        },
       };
       await request(`/api/apps/${app.appPubkey}`, {
         method: "PATCH",
@@ -404,41 +421,58 @@ function RoutstrApiKeySectionInner({ app, onMetadataUpdate }: Props) {
   ) => {
     // `enabled` is owned by the Start/Stop API (server-side). This handler
     // runs on input blur (including blur-on-unmount when the inputs disappear
-    // after a stop) — writing the local `enabled` here resurrects a stale
-    // value after a server-side stop (hit 2026-08-01: auto top-up re-enabled
-    // itself ~4 min after Stop). Always take enabled from the last server
-    // status instead.
-    const serverEnabled = autoRefillStatus?.enabled ?? next.enabled;
-    const safe = { ...next, enabled: serverEnabled };
-    setAutoRefill(safe);
-    setSavingAutoRefill(true);
+    // after a stop) — writing `enabled` here resurrects a stale value after a
+    // server-side stop, or stops a just-started loop when the blur-save races
+    // the Start click (hit 2026-08-01: PATCH landed after the start POST).
+    // updateAppMetadata deep-merges autoRefill, so the server's current
+    // enabled survives; only threshold/amount/cooldown are written.
+    const { enabled: _serverOwned, ...values } = next;
+    setAutoRefill(next);
     try {
       await updateAppMetadata({
         autoRefill: {
-          ...safe,
-          cooldownMs: safe.cooldownMs ?? 5 * 60 * 1000,
+          ...values,
+          cooldownMs: values.cooldownMs ?? 5 * 60 * 1000,
         },
       });
       toast.success(
-        safe.enabled
-          ? `Auto top-up on: refills ${safe.amount} sats below ${safe.threshold} sats`
+        _serverOwned
+          ? `Auto top-up on: refills ${values.amount} sats below ${values.threshold} sats`
           : "Auto top-up off"
       );
     } finally {
-      setSavingAutoRefill(false);
+      // No button loading here: this runs on input blur (including when the
+      // user clicks Start/Stop), and toggling `savingAutoRefill` would
+      // disable the Start button for the blur-save's duration — swallowing
+      // the click that triggered the blur (hit 2026-08-01).
     }
   };
 
   const handleStartAutoRefill = async () => {
     setSavingAutoRefill(true);
     try {
+      // Send the typed values with the start: the server persists them
+      // atomically with enabled=true, so what the user entered is what the
+      // loop honors (no blur-save race).
       const status = await request<NonNullable<typeof autoRefillStatus>>(
         "/api/routstrd/autorefill/start",
-        { method: "POST" }
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            threshold: autoRefill.threshold,
+            amount: autoRefill.amount,
+          }),
+        }
       );
       if (status) {
         setAutoRefillStatus(status);
-        setAutoRefill((prev) => ({ ...prev, enabled: status.enabled }));
+        setAutoRefill((prev) => ({
+          ...prev,
+          enabled: status.enabled,
+          threshold: status.threshold,
+          amount: status.amount,
+        }));
       }
       onMetadataUpdate();
       toast.success("Auto top-up started");
@@ -723,39 +757,40 @@ function RoutstrApiKeySectionInner({ app, onMetadataUpdate }: Props) {
                     mostly to fees.
                   </p>
                 )}
-                {autoRefill.enabled && (
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>Top up</span>
-                    <Input
-                      type="number"
-                      min={1}
-                      value={autoRefill.amount}
-                      onChange={(e) =>
-                        setAutoRefill({
-                          ...autoRefill,
-                          amount: Math.max(1, Number(e.target.value) || 1),
-                        })
-                      }
-                      onBlur={() => handleSaveAutoRefill(autoRefill)}
-                      className="h-7 w-24 tabular-nums"
-                    />
-                    <span>sats when balance &lt;</span>
-                    <Input
-                      type="number"
-                      min={1}
-                      value={autoRefill.threshold}
-                      onChange={(e) =>
-                        setAutoRefill({
-                          ...autoRefill,
-                          threshold: Math.max(1, Number(e.target.value) || 1),
-                        })
-                      }
-                      onBlur={() => handleSaveAutoRefill(autoRefill)}
-                      className="h-7 w-24 tabular-nums"
-                    />
-                    <span>sats</span>
-                  </div>
-                )}
+                {/* Values are editable before AND while running: type your
+                    threshold/amount, press Start, and the loop honors exactly
+                    those values. */}
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>Top up</span>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={autoRefill.amount}
+                    onChange={(e) =>
+                      setAutoRefill({
+                        ...autoRefill,
+                        amount: Math.max(1, Number(e.target.value) || 1),
+                      })
+                    }
+                    onBlur={() => handleSaveAutoRefill(autoRefill)}
+                    className="h-7 w-24 tabular-nums"
+                  />
+                  <span>sats when balance &lt;</span>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={autoRefill.threshold}
+                    onChange={(e) =>
+                      setAutoRefill({
+                        ...autoRefill,
+                        threshold: Math.max(1, Number(e.target.value) || 1),
+                      })
+                    }
+                    onBlur={() => handleSaveAutoRefill(autoRefill)}
+                    className="h-7 w-24 tabular-nums"
+                  />
+                  <span>sats</span>
+                </div>
               </div>
             </>
           ) : (

@@ -275,7 +275,13 @@ func (httpSvc *HttpService) routstrdAutoRefillStatusHandler(c echo.Context) erro
 }
 
 func (httpSvc *HttpService) routstrdAutoRefillStartHandler(c echo.Context) error {
-	status, err := httpSvc.api.SetAutoRefillEnabled(c.Request().Context(), true)
+	var body struct {
+		Threshold *int64 `json:"threshold"`
+		Amount    *int64 `json:"amount"`
+	}
+	// Body is optional: no body (or empty) keeps the stored config.
+	_ = c.Bind(&body)
+	status, err := httpSvc.api.SetAutoRefillEnabled(c.Request().Context(), true, body.Threshold, body.Amount)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: err.Error(),
@@ -285,7 +291,7 @@ func (httpSvc *HttpService) routstrdAutoRefillStartHandler(c echo.Context) error
 }
 
 func (httpSvc *HttpService) routstrdAutoRefillStopHandler(c echo.Context) error {
-	status, err := httpSvc.api.SetAutoRefillEnabled(c.Request().Context(), false)
+	status, err := httpSvc.api.SetAutoRefillEnabled(c.Request().Context(), false, nil, nil)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, ErrorResponse{
 			Message: err.Error(),

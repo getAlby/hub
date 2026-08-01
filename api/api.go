@@ -202,9 +202,36 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 
 		// Update the app metadata if provided
 		if updateAppRequest.Metadata != nil {
+			// routstr.autoRefill.enabled is owned by the Start/Stop API
+			// (server-side). The generic metadata PATCH must NEVER change it:
+			// a UI blur-save racing a Start/Stop click would otherwise
+			// resurrect the stale value and silently stop or start the loop.
+			// Force the current DB value regardless of what the request says
+			// (Start/Stop persist via their own endpoints, not this PATCH).
+			incomingMeta := *updateAppRequest.Metadata
+			if incomingRoutstr, ok := incomingMeta["routstr"].(map[string]interface{}); ok {
+				if incomingAR, ok := incomingRoutstr["autoRefill"].(map[string]interface{}); ok {
+					var currentApp db.App
+					if err := tx.First(&currentApp, userApp.ID).Error; err == nil {
+						var existingMeta Metadata
+						if currentApp.Metadata != nil {
+							if err := json.Unmarshal(currentApp.Metadata, &existingMeta); err == nil {
+								if existingRoutstr, ok := existingMeta["routstr"].(map[string]interface{}); ok {
+									if existingAR, ok := existingRoutstr["autoRefill"].(map[string]interface{}); ok {
+										if existingEnabled, ok := existingAR["enabled"]; ok {
+											incomingAR["enabled"] = existingEnabled
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
 			var metadataBytes []byte
 			var err error
-			metadataBytes, err = json.Marshal(*updateAppRequest.Metadata)
+			metadataBytes, err = json.Marshal(incomingMeta)
 			if err != nil {
 				logger.Logger.WithError(err).Error("Failed to serialize metadata")
 				return err
@@ -1615,13 +1642,15 @@ func (api *api) GetAutoRefillStatus() (*service.AutoRefillStatus, error) {
 
 // SetAutoRefillEnabled starts/stops the Hub-side Cashu auto-refill loop.
 // Start persists enabled=true in the Routstr app metadata and runs an
-// immediate check; stop persists enabled=false.
-func (api *api) SetAutoRefillEnabled(ctx context.Context, enabled bool) (*service.AutoRefillStatus, error) {
+// immediate check; stop persists enabled=false. Optional threshold/amount
+// (when starting) override the stored config atomically, so the values the
+// user just typed are the values the loop honors — no blur-save race.
+func (api *api) SetAutoRefillEnabled(ctx context.Context, enabled bool, threshold, amount *int64) (*service.AutoRefillStatus, error) {
 	rs := api.svc.GetRoutstrdService()
 	if rs == nil {
 		return nil, errors.New("routstrd service not available")
 	}
-	return rs.SetAutoRefillEnabled(ctx, enabled)
+	return rs.SetAutoRefillEnabled(ctx, enabled, threshold, amount)
 }
 
 func (api *api) setCurrency(currency string) error {
