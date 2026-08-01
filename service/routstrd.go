@@ -345,7 +345,7 @@ func (r *RoutstrdService) startCocod() error {
 					// A hung cocod is stuck walking pending mint operations
 					// (mint rate limiter). Clear them so the respawn binds
 					// the socket instead of replaying the same hang.
-					r.clearStuckCocodOps()
+					clearStuckCocodOps(filepath.Join(home, ".cocod", "coco.db"))
 					_ = killProcess(pid)
 					_ = os.Remove(pidPath)
 					_ = os.Remove(socketPath)
@@ -386,13 +386,12 @@ func (r *RoutstrdService) startCocod() error {
 }
 
 // clearStuckCocodOps deletes pending mint operations from the cocod SQLite
-// database. A cocod daemon hung on the mint rate limiter is stuck replaying
-// stale pending operations at startup (each quote-state check round-trips to
-// the mint), so the socket never appears. Clearing them is the documented
-// recovery; the ops are unpaid quotes — no ecash is in flight for them.
-func (r *RoutstrdService) clearStuckCocodOps() {
-	home := os.Getenv("HOME")
-	dbPath := filepath.Join(home, ".cocod", "coco.db")
+// database at dbPath. A cocod daemon hung on the mint rate limiter is stuck
+// replaying stale pending operations at startup (each quote-state check
+// round-trips to the mint), so the socket never appears. Clearing them is
+// the documented recovery; the ops are unpaid quotes — no ecash is in flight
+// for them. The path is a parameter so the recovery is testable.
+func clearStuckCocodOps(dbPath string) {
 	db, err := sql.Open("sqlite3", dbPath+"?_busy_timeout=5000")
 	if err != nil {
 		logger.Logger.WithError(err).Warn("cocod recovery: cannot open coco.db")
@@ -915,6 +914,7 @@ func (r *RoutstrdService) findRoutstrApp() *db.App {
 //  1. an app with auto-refill enabled and sane values,
 //  2. the first app with an explicit autoRefill block ("configured"),
 //  3. the first Routstr app (fallback).
+//
 // Returns nil when no Routstr app exists.
 func selectRoutstrApp(apps []db.App) *db.App {
 	var fallback *db.App
