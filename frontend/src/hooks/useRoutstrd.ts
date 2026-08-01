@@ -285,8 +285,20 @@ export async function fundFromHub(
  * change (fee overestimate or proof overshoot) to the wallet, which the
  * next pass re-quotes and melts. The loop stops when the balance is zero
  * or when the fee exceeds the remainder (a sub-fee amount no melt can
- * move). The fee is never assumed — it is queried every pass.
+ * move). The fee is never assumed — it is queried every pass (re-quoted
+ * only when the remaining balance moved materially, to avoid a throwaway
+ * quote invoice per pass).
  */
+export class PartialRefundError extends Error {
+  totalRefunded: number;
+
+  constructor(totalRefunded: number, message: string) {
+    super(message);
+    this.name = "PartialRefundError";
+    this.totalRefunded = totalRefunded;
+  }
+}
+
 export async function refundFromHub(
   appId: number,
   mintUrl: string
@@ -299,6 +311,11 @@ export async function refundFromHub(
   }
 
   let totalRefunded = 0;
+  // Fee-quote cache: the mint's fee is flat for small amounts, so consecutive
+  // passes with a similar balance reuse the last quote instead of creating a
+  // throwaway app-scoped invoice on every pass (up to 6 pending per refund).
+  let lastQuotedBalance = 0;
+  let lastFee = 0;
 
   for (let pass = 0; pass < 6; pass++) {
     const bal = await getRoutstrdBalance();
@@ -309,9 +326,18 @@ export async function refundFromHub(
       break;
     }
 
-    // 1. Quote the mint's melt fee fresh for the FULL remaining balance.
-    const quoteInvoice = await createAppScopedInvoice(walletBal, appId);
-    const fee = await getMeltQuoteFee(quoteInvoice, mintUrl);
+    // 1. Quote the mint's melt fee for the FULL remaining balance. Reuse the
+    //    last quote when the balance barely moved (|Δ| < 10 sats).
+    let fee = lastFee;
+    if (
+      lastQuotedBalance === 0 ||
+      Math.abs(walletBal - lastQuotedBalance) >= 10
+    ) {
+      const quoteInvoice = await createAppScopedInvoice(walletBal, appId);
+      fee = await getMeltQuoteFee(quoteInvoice, mintUrl);
+      lastQuotedBalance = walletBal;
+      lastFee = fee;
+    }
 
     const send = Math.floor(walletBal - fee);
     if (send <= 0) {
@@ -370,9 +396,18 @@ export async function refundFromHub(
           }
         }
         if (!succeeded) {
+          // Earlier passes already moved sats to the app wallet — surface the
+          // partial progress instead of a blanket failure.
+          if (totalRefunded > 0) {
+            throw new PartialRefundError(totalRefunded, message);
+          }
           throw error;
         }
         continue;
+      }
+      if (totalRefunded > 0) {
+        // A later pass failed after earlier melts succeeded.
+        throw new PartialRefundError(totalRefunded, message);
       }
       throw error;
     }
@@ -401,6 +436,10 @@ async function getMeltQuoteFee(
   invoice: string,
   mintUrl: string
 ): Promise<number> {
+  // The mint quote endpoint has no built-in timeout — abort after 90s so a
+  // slow/unresponsive mint cannot hang the refund drain loop.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 90_000);
   try {
     const mtResp = await fetch(
       `${mintUrl.replace(/\/+$/, "")}/v1/melt/quote/bolt11`,
@@ -408,6 +447,7 @@ async function getMeltQuoteFee(
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ request: invoice, unit: "sat" }),
+        signal: controller.signal,
       }
     );
     if (mtResp.ok) {
@@ -416,6 +456,8 @@ async function getMeltQuoteFee(
     }
   } catch {
     // fall through — fee unknown, treat as 0
+  } finally {
+    clearTimeout(timer);
   }
   return 0;
 }

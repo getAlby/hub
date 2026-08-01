@@ -12,6 +12,7 @@ import { LoadingButton } from "src/components/ui/custom/loading-button";
 import {
   getRoutstrdBalance,
   getRoutstrdKeyBalances,
+  PartialRefundError,
   reclaimProviderTokens,
   refundFromHub,
 } from "src/hooks/useRoutstrd";
@@ -209,8 +210,18 @@ export function RefundDialog({
       setStep("done");
       onRefundComplete();
     } catch (error) {
-      handleRequestError("Refund failed", error);
-      setStep("confirm");
+      if (error instanceof PartialRefundError && error.totalRefunded > 0) {
+        // Earlier drain passes already moved sats — report the partial
+        // outcome instead of a blanket failure.
+        toast.warning(
+          `Partially refunded ${error.totalRefunded} sats to your Routstr wallet (${error.message})`
+        );
+        setStep("done");
+        onRefundComplete();
+      } else {
+        handleRequestError("Refund failed", error);
+        setStep("confirm");
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -271,10 +282,9 @@ export function RefundDialog({
                         Balance too low
                       </p>
                       <p className="text-[10px] text-muted-foreground/60">
-                        {totalRefundable !== null &&
-                        totalRefundable < minRequired
-                          ? `Top up to at least ${minRequired} sats first.`
-                          : `Network fee (~${effectiveFee} sats) leaves nothing to refund.`}
+                        {totalRefundable === 0
+                          ? `Network fee (~${effectiveFee} sats) leaves nothing to refund.`
+                          : `Top up to at least ${minRequired} sats first.`}
                       </p>
                     </div>
                   )}
