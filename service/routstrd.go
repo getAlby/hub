@@ -741,7 +741,7 @@ func (r *RoutstrdService) checkAutoRefill(ctx context.Context) {
 	// invoice is exactly for cfg.Amount before paying it. A wrong or hostile
 	// response would otherwise drain the Routstr wallet up to its budget.
 	payReq, decodeErr := decodepay.Decodepay(invResp.Output.Invoice)
-	if decodeErr != nil || payReq.MSatoshi != cfg.Amount*1000 {
+	if decodeErr != nil || validateRefillInvoiceAmount(payReq.MSatoshi, cfg.Amount*1000) != nil {
 		r.markAutoRefillAttempted(nowT)
 		r.recordAutoRefill(nowT, balance, 0, time.Time{}, "mint invoice amount mismatch")
 		logger.Logger.WithFields(map[string]interface{}{
@@ -987,6 +987,17 @@ func (r *RoutstrdService) readAutoRefillConfig(app *db.App) *AutoRefillConfig {
 		cfg.CooldownMs = int64(v)
 	}
 	return cfg
+}
+
+// validateRefillInvoiceAmount verifies the decoded invoice amount matches the
+// requested refill amount. Called with the decodepay result at the call site;
+// the daemon is unauthenticated on localhost, so a mismatched invoice must
+// never be paid from the Routstr wallet.
+func validateRefillInvoiceAmount(actualMsat, requestedMsat int64) error {
+	if actualMsat != requestedMsat {
+		return fmt.Errorf("invoice amount %d msat != requested %d msat", actualMsat, requestedMsat)
+	}
+	return nil
 }
 
 // getCashuWalletBalance returns the total routstrd Cashu wallet balance in sats.
