@@ -9,6 +9,7 @@ import { getTransactionsUrl, useTransactions } from "src/hooks/useTransactions";
 
 type TransactionsListProps = {
   appId?: number;
+  poll?: boolean;
   emptyIcon?: LucideIcon;
   emptyTitle?: string;
   emptyDescription?: string;
@@ -17,6 +18,7 @@ type TransactionsListProps = {
 
 function TransactionsList({
   appId,
+  poll = false,
   emptyIcon = ZapIcon,
   emptyTitle = "No lightning payments yet",
   emptyDescription = "Your payments will appear here as you start using your wallet.",
@@ -31,7 +33,7 @@ function TransactionsList({
   );
   const { data: transactionData, isLoading } = useTransactions(
     appId,
-    false,
+    poll,
     LIST_TRANSACTIONS_LIMIT,
     page
   );

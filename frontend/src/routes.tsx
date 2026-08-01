@@ -39,6 +39,7 @@ import { OpeningFirstChannel } from "src/screens/channels/first/OpeningFirstChan
 import { AlbyCliSkill } from "src/screens/internal-apps/AlbyCliSkill";
 import { BuzzPay } from "src/screens/internal-apps/BuzzPay";
 import { LightningMessageboard } from "src/screens/internal-apps/LightningMessageboard";
+import { Routstr } from "src/screens/internal-apps/Routstr";
 import { SimpleBoost } from "src/screens/internal-apps/SimpleBoost";
 import { Tictactoe } from "src/screens/internal-apps/Tictactoe";
 import { ZapPlanner } from "src/screens/internal-apps/ZapPlanner";
@@ -54,6 +55,7 @@ import Backup from "src/screens/settings/Backup";
 import { ChangeUnlockPassword } from "src/screens/settings/ChangeUnlockPassword";
 import DebugTools from "src/screens/settings/DebugTools";
 import DeveloperSettings from "src/screens/settings/DeveloperSettings";
+import RoutstrApiKeys from "src/screens/settings/RoutstrApiKeys";
 import Settings from "src/screens/settings/Settings";
 
 import { ImportMnemonic } from "src/screens/setup/ImportMnemonic";
@@ -285,6 +287,11 @@ const routes: RouteObject[] = [
                 path: "debug-tools",
                 element: <DebugTools />,
               },
+              {
+                path: "routstr-keys",
+                element: <RoutstrApiKeys />,
+                handle: { crumb: () => "Routstr API Keys" },
+              },
             ],
           },
         ],
@@ -357,6 +364,10 @@ const routes: RouteObject[] = [
           {
             path: "alby-cli-skill",
             element: <AlbyCliSkill />,
+          },
+          {
+            path: "routstr",
+            element: <Routstr />,
           },
           {
             path: "tictactoe",

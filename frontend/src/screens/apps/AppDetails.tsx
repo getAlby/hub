@@ -30,6 +30,7 @@ import { AppTransactionList } from "src/components/connections/AppTransactionLis
 import { AppUsage } from "src/components/connections/AppUsage";
 import { ConnectionDetailsModal } from "src/components/connections/ConnectionDetailsModal";
 import { DisconnectApp } from "src/components/connections/DisconnectApp";
+import { RoutstrApiKeySection } from "src/components/connections/routstr/ApiKeySection";
 import { getAppStoreApp } from "src/components/connections/SuggestedAppData";
 import Loading from "src/components/Loading";
 import Permissions from "src/components/Permissions";
@@ -71,7 +72,7 @@ import { cn, getAppDisplayName } from "src/lib/utils";
 
 function AppDetails() {
   const { id } = useParams() as { id: string };
-  const { data: app, mutate: refetchApp, error } = useApp(parseInt(id));
+  const { data: app, mutate: refetchApp, error } = useApp(parseInt(id), true);
   const { data: capabilities } = useCapabilities();
 
   if (error) {
@@ -471,6 +472,7 @@ function AppInternal({ app, refetchApp, capabilities }: AppInternalProps) {
               </CardContent>
             </Card>
           )}
+          <RoutstrApiKeySection app={app} onMetadataUpdate={refetchApp} />
           {!isEditingPermissions && (
             <>
               {showConnectionDetails && (

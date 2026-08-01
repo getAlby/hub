@@ -8,7 +8,13 @@ import {
   CardTitle,
 } from "src/components/ui/card";
 
-export function AppTransactionList({ appId }: { appId: number }) {
+export function AppTransactionList({
+  appId,
+  poll = true,
+}: {
+  appId: number;
+  poll?: boolean;
+}) {
   return (
     <Card>
       <CardHeader className="flex items-center justify-between">
@@ -18,6 +24,7 @@ export function AppTransactionList({ appId }: { appId: number }) {
       <CardContent>
         <TransactionsList
           appId={appId}
+          poll={poll}
           emptyIcon={ArrowDownUpIcon}
           emptyTitle="No transactions yet"
           emptyDescription="Payments made through this app will appear here."
