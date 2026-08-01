@@ -8,6 +8,27 @@ cd /root/hub
 # Required: the Hub's unlock password (never defaulted in a public repo).
 UNLOCK_PASSWORD="${UNLOCK_PASSWORD:?set UNLOCK_PASSWORD, e.g. UNLOCK_PASSWORD=... ./deploy.sh}"
 
+# Pinned daemon versions — the supervision code and the dist patch are
+# written against these; an unpinned `bun add -g` update can break the
+# integration silently.
+ROUTSTRD_VERSION="0.3.11"
+COCOD_VERSION="0.0.24"
+
+echo "== ensure pinned daemon versions =="
+INSTALLED_ROUTSTRD=$(python3 -c "import json; print(json.load(open('/root/.bun/install/global/node_modules/routstrd/package.json')).get('version',''))" 2>/dev/null || echo "")
+if [ "$INSTALLED_ROUTSTRD" != "$ROUTSTRD_VERSION" ]; then
+  echo "installing routstrd@$ROUTSTRD_VERSION (had $INSTALLED_ROUTSTRD)"
+  bun add -g routstrd@$ROUTSTRD_VERSION
+fi
+INSTALLED_COCOD=$(python3 -c "import json; print(json.load(open('/root/.bun/install/global/node_modules/@routstr/cocod/package.json')).get('version',''))" 2>/dev/null || echo "")
+if [ "$INSTALLED_COCOD" != "$COCOD_VERSION" ]; then
+  echo "installing cocod@$COCOD_VERSION (had $INSTALLED_COCOD)"
+  bun add -g @routstr/cocod@$COCOD_VERSION
+fi
+
+echo "== apply routstrd dist patch (idempotent) =="
+scripts/patch-routstrd-dist.sh
+
 echo "== build frontend =="
 (cd frontend && yarn build:http 2>&1 | tail -2)
 echo "== build binary =="
