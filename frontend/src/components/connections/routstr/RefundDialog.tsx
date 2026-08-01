@@ -9,7 +9,12 @@ import {
   DialogTitle,
 } from "src/components/ui/dialog";
 import { LoadingButton } from "src/components/ui/custom/loading-button";
-import { getRoutstrdBalance, refundFromHub } from "src/hooks/useRoutstrd";
+import {
+  getRoutstrdBalance,
+  getRoutstrdKeyBalances,
+  reclaimProviderTokens,
+  refundFromHub,
+} from "src/hooks/useRoutstrd";
 import { request } from "src/utils/request";
 import { handleRequestError } from "src/utils/handleRequestError";
 
@@ -42,12 +47,17 @@ export function RefundDialog({
     "confirm"
   );
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  // Prepaid provider tokens (apikey:* entries) — not in the wallet, but
+  // reclaimable via the daemon /refund before melting.
+  const [providerTokens, setProviderTokens] = useState(0);
+  const [mintUrl, setMintUrl] = useState<string | null>(null);
   const [mintFee, setMintFee] = useState<number | null>(null);
   const [loadingBalances, setLoadingBalances] = useState(false);
   const [refundPhase, setRefundPhase] = useState("");
 
   // Cache last-known values so subsequent opens feel instant
   const lastBalance = useRef<number | null>(null);
+  const lastProviderTokens = useRef(0);
   const lastFee = useRef<number | null>(null);
   const hasEverLoaded = useRef(false);
 
@@ -55,14 +65,28 @@ export function RefundDialog({
     // 1. Get Cashu balance from daemon
     const balResult = await getRoutstrdBalance();
     const mints = balResult?.balances ? Object.keys(balResult.balances) : [];
-    const mintUrl = balResult?.activeMint || mints[0];
+    const activeMint = balResult?.activeMint || mints[0] || null;
     const walletBal = balResult?.balances
       ? Object.values(balResult.balances).reduce((a, b) => a + b, 0)
       : 0;
 
-    // 2. Get real fee: create a Hub invoice, query the mint for melt quote on it
+    // 2. Prepaid provider tokens (apikey:* entries in /keys/balance). These
+    // are NOT in the wallet and cannot be melted directly — the refund
+    // reclaims them first (daemon /refund), so show them as refundable.
+    let providerFloat: number;
+    try {
+      const keyResult = await getRoutstrdKeyBalances();
+      providerFloat = (keyResult?.keys || [])
+        .filter((k) => k.id !== "wallet")
+        .reduce((sum, k) => sum + (k.balance || 0), 0);
+    } catch {
+      providerFloat = 0;
+    }
+    const totalRefundable = walletBal + providerFloat;
+
+    // 3. Get real fee: create a Hub invoice, query the mint for melt quote on it
     let fee = 0;
-    if (mintUrl && walletBal > 0) {
+    if (activeMint && totalRefundable > 0) {
       try {
         const invResult = await request<{ invoice: string }>("/api/invoices", {
           method: "POST",
@@ -70,12 +94,12 @@ export function RefundDialog({
           // App-scoped: even the fee-quote invoice belongs to the Routstr
           // wallet, so the main wallet is never involved (it's unpaid —
           // used only to query the mint's fee_reserve).
-          body: JSON.stringify({ amount: walletBal * 1000, appId }),
+          body: JSON.stringify({ amount: totalRefundable * 1000, appId }),
         });
         const invoice = invResult?.invoice;
         if (invoice) {
           const mtResp = await fetch(
-            `${mintUrl.replace(/\/+$/, "")}/v1/melt/quote/bolt11`,
+            `${activeMint.replace(/\/+$/, "")}/v1/melt/quote/bolt11`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -94,8 +118,11 @@ export function RefundDialog({
 
     // Update state and cache
     setWalletBalance(walletBal);
+    setProviderTokens(providerFloat);
+    setMintUrl(activeMint);
     setMintFee(fee);
     lastBalance.current = walletBal;
+    lastProviderTokens.current = providerFloat;
     lastFee.current = fee;
     hasEverLoaded.current = true;
   }, [appId]);
@@ -127,6 +154,7 @@ export function RefundDialog({
       if (hasEverLoaded.current) {
         // Show cache immediately, refresh silently in background
         setWalletBalance(lastBalance.current);
+        setProviderTokens(lastProviderTokens.current);
         setMintFee(lastFee.current);
         setLoadingBalances(false);
         loadBalancesSilent();
@@ -142,11 +170,14 @@ export function RefundDialog({
     MIN_REFUND_SATS,
     effectiveFee + INPUT_FEE_BUFFER + 1
   );
+  // Refundable = wallet + reclaimable provider tokens (reclaimed before melt).
+  const totalRefundable =
+    walletBalance !== null ? walletBalance + providerTokens : null;
   const sendAmount =
-    walletBalance !== null && walletBalance >= minRequired
-      ? walletBalance - effectiveFee - INPUT_FEE_BUFFER
+    totalRefundable !== null && totalRefundable >= minRequired
+      ? Math.floor(totalRefundable - effectiveFee - INPUT_FEE_BUFFER)
       : 0;
-  const canRefund = walletBalance !== null && walletBalance >= minRequired;
+  const canRefund = totalRefundable !== null && totalRefundable >= minRequired;
 
   const handleRefund = async () => {
     if (!canRefund || sendAmount <= 0) {
@@ -155,8 +186,28 @@ export function RefundDialog({
     setIsProcessing(true);
     setStep("processing");
     try {
-      setRefundPhase(`Refunding ${sendAmount} sats...`);
-      const refunded = await refundFromHub(sendAmount, appId);
+      let amountToRefund = sendAmount;
+      if (providerTokens > 0 && mintUrl) {
+        setRefundPhase("Reclaiming provider tokens...");
+        try {
+          await reclaimProviderTokens(mintUrl);
+        } catch {
+          // Provider refund failed — continue with the wallet balance only
+        }
+        // Re-read the wallet balance after the reclaim
+        const fresh = await getRoutstrdBalance();
+        const freshWallet = fresh?.balances
+          ? Object.values(fresh.balances).reduce((a, b) => a + b, 0)
+          : 0;
+        amountToRefund = Math.floor(
+          freshWallet - effectiveFee - INPUT_FEE_BUFFER
+        );
+        if (amountToRefund <= 0) {
+          throw new Error("Nothing left to refund after reclaiming tokens");
+        }
+      }
+      setRefundPhase(`Refunding ${amountToRefund} sats...`);
+      const refunded = await refundFromHub(amountToRefund, appId);
       toast.success(`Refunded ${refunded} sats to your Routstr wallet`);
       setStep("done");
       onRefundComplete();
@@ -190,9 +241,18 @@ export function RefundDialog({
                       API Key balance
                     </span>
                     <span className="font-medium tabular-nums">
-                      {walletBalance ?? "?"} sats
+                      {totalRefundable ?? "?"} sats
                     </span>
                   </div>
+                  {walletBalance !== null && providerTokens > 0 && (
+                    <div className="flex justify-between text-[10px] text-muted-foreground/60">
+                      <span>
+                        {walletBalance} in wallet + {providerTokens.toFixed(2)}{" "}
+                        in provider tokens
+                      </span>
+                      <span>reclaimed on refund</span>
+                    </div>
+                  )}
                   {walletBalance !== null && (
                     <div className="flex justify-between text-muted-foreground">
                       <span>Network fee (fee_reserve)</span>
@@ -215,8 +275,8 @@ export function RefundDialog({
                       </p>
                       <p className="text-[10px] text-muted-foreground/60">
                         Minimum refund is {MIN_REFUND_SATS} sats.{" "}
-                        {walletBalance !== null &&
-                        walletBalance < MIN_REFUND_SATS
+                        {totalRefundable !== null &&
+                        totalRefundable < MIN_REFUND_SATS
                           ? `Top up to at least ${MIN_REFUND_SATS} sats first.`
                           : `Network fee (~${effectiveFee} sats) + input fees (~${INPUT_FEE_BUFFER} sats) leave nothing to refund.`}
                       </p>

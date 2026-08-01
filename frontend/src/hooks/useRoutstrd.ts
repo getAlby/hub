@@ -167,6 +167,26 @@ export async function getRoutstrdBalance() {
   }>("/balance");
 }
 
+/**
+ * Reclaims prepaid provider tokens (the `apikey:*` entries in /keys/balance)
+ * back into the daemon's Cashu wallet at the given mint. Provider tokens are
+ * ecash deposited at the provider's mint for prepayment — they are NOT in the
+ * wallet and cannot be melted until reclaimed. Called before a refund so the
+ * refund covers all money, not just the wallet pile.
+ */
+export async function reclaimProviderTokens(mintUrl: string) {
+  return routstrdFetch<{
+    message: string;
+    pendingTokens: number;
+    apiKeys: number;
+    results: Array<{ baseUrl: string; success: boolean }>;
+  }>("/refund", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mintUrl }),
+  });
+}
+
 export async function getRoutstrdModelProviders(modelId: string) {
   return routstrdFetch<{
     id: string;
