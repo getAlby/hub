@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,6 +17,7 @@ import (
 	"sync"
 	"time"
 
+	_ "github.com/mattn/go-sqlite3"
 	decodepay "github.com/nbd-wtf/ln-decodepay"
 
 	"github.com/getAlby/hub/db"
@@ -340,6 +342,10 @@ func (r *RoutstrdService) startCocod() error {
 			if r.processExists(pid) {
 				if _, err := os.Stat(socketPath); err != nil {
 					logger.Logger.WithField("pid", pid).Warn("cocod pid alive but socket missing (hung); killing and respawning")
+					// A hung cocod is stuck walking pending mint operations
+					// (mint rate limiter). Clear them so the respawn binds
+					// the socket instead of replaying the same hang.
+					r.clearStuckCocodOps()
 					_ = killProcess(pid)
 					_ = os.Remove(pidPath)
 					_ = os.Remove(socketPath)
@@ -377,6 +383,30 @@ func (r *RoutstrdService) startCocod() error {
 
 	logger.Logger.WithField("pid", cmd.Process.Pid).Info("cocod daemon spawned")
 	return nil
+}
+
+// clearStuckCocodOps deletes pending mint operations from the cocod SQLite
+// database. A cocod daemon hung on the mint rate limiter is stuck replaying
+// stale pending operations at startup (each quote-state check round-trips to
+// the mint), so the socket never appears. Clearing them is the documented
+// recovery; the ops are unpaid quotes — no ecash is in flight for them.
+func (r *RoutstrdService) clearStuckCocodOps() {
+	home := os.Getenv("HOME")
+	dbPath := filepath.Join(home, ".cocod", "coco.db")
+	db, err := sql.Open("sqlite3", dbPath+"?_busy_timeout=5000")
+	if err != nil {
+		logger.Logger.WithError(err).Warn("cocod recovery: cannot open coco.db")
+		return
+	}
+	defer db.Close()
+	res, err := db.Exec("DELETE FROM coco_cashu_mint_operations WHERE state = 'pending'")
+	if err != nil {
+		logger.Logger.WithError(err).Warn("cocod recovery: cannot clear pending mint operations")
+		return
+	}
+	if n, _ := res.RowsAffected(); n > 0 {
+		logger.Logger.WithField("cleared", n).Info("cocod recovery: cleared stuck pending mint operations")
+	}
 }
 
 func (r *RoutstrdService) startRoutstrd() error {
