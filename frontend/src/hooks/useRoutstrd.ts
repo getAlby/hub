@@ -274,15 +274,20 @@ export async function fundFromHub(
 }
 
 /**
- * Refund the Cashu wallet back to the Routstr app's isolated NWC wallet.
+ * Refund the ENTIRE Cashu wallet back to the Routstr app's isolated wallet.
  *
- * Uses an APP-SCOPED invoice: the invoice is created for the Routstr app
+ * Uses APP-SCOPED invoices: the invoice is created for the Routstr app
  * itself, so when the mint melts Cashu to pay it, the sats are credited
- * DIRECTLY to the Routstr app wallet — no main-wallet hop, no transfer,
- * no hidden fee. The amount shown in the dialog is the amount that lands.
+ * DIRECTLY to the Routstr app wallet — no main-wallet hop, no transfer.
+ *
+ * Drains to zero: each pass quotes the mint's melt fee fresh for the full
+ * remaining balance, then melts `balance − fee`. The mint returns any
+ * change (fee overestimate or proof overshoot) to the wallet, which the
+ * next pass re-quotes and melts. The loop stops when the balance is zero
+ * or when the fee exceeds the remainder (a sub-fee amount no melt can
+ * move). The fee is never assumed — it is queried every pass.
  */
 export async function refundFromHub(
-  amount: number,
   appId: number,
   mintUrl: string
 ): Promise<number> {
@@ -293,36 +298,124 @@ export async function refundFromHub(
     throw new Error("refundFromHub requires the active mint URL");
   }
 
-  // 1. Create an invoice scoped to the Routstr app (credited to its wallet on payment)
-  const invResult = await request<{
-    invoice: string;
-    r_hash?: string;
-  }>("/api/invoices", {
+  let totalRefunded = 0;
+
+  for (let pass = 0; pass < 6; pass++) {
+    const bal = await getRoutstrdBalance();
+    const walletBal = bal?.balances
+      ? Object.values(bal.balances).reduce((a, b) => a + b, 0)
+      : 0;
+    if (walletBal <= 0) {
+      break;
+    }
+
+    // 1. Quote the mint's melt fee fresh for the FULL remaining balance.
+    const quoteInvoice = await createAppScopedInvoice(walletBal, appId);
+    const fee = await getMeltQuoteFee(quoteInvoice, mintUrl);
+
+    const send = Math.floor(walletBal - fee);
+    if (send <= 0) {
+      // The fee covers the whole remainder — nothing meltable left. This is
+      // the floor: any sub-fee balance cannot be moved.
+      break;
+    }
+
+    try {
+      // 2. Melt `send` (balance − fee) via an app-scoped invoice. Proofs
+      //    cover send + the melt's own fee quote, and the mint returns any
+      //    change to the wallet, drained on the next pass.
+      const meltInvoice = await createAppScopedInvoice(send, appId);
+      const meltResult = await routstrdFetch<{ message: string }>(
+        "/wallet/send/bolt11",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ invoice: meltInvoice, mintUrl }),
+          timeoutMs: 90_000,
+        }
+      );
+      if (!meltResult?.message) {
+        throw new Error("Melt failed: no confirmation from daemon");
+      }
+      totalRefunded += send;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (
+        /insufficient|not enough (funds|proofs)|non-negative/i.test(message)
+      ) {
+        // Known coco-cashu-core degenerate case: when the selected proofs
+        // exactly equal invoice + fee, the swap path computes a zero/negative
+        // keep amount ("amount must be a non-negative number"). Retry with a
+        // smaller send — the wallet's per-proof input fee can also add 1-2
+        // sats at small denominations. The next pass re-quotes anyway.
+        let succeeded = false;
+        for (let shrink = 1; shrink <= 4 && !succeeded; shrink++) {
+          const retrySend = send - shrink;
+          if (retrySend <= 0) {
+            break;
+          }
+          const retryInvoice = await createAppScopedInvoice(retrySend, appId);
+          const retryMelt = await routstrdFetch<{ message: string }>(
+            "/wallet/send/bolt11",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ invoice: retryInvoice, mintUrl }),
+              timeoutMs: 90_000,
+            }
+          );
+          if (retryMelt?.message) {
+            totalRefunded += retrySend;
+            succeeded = true;
+          }
+        }
+        if (!succeeded) {
+          throw error;
+        }
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  return totalRefunded;
+}
+
+async function createAppScopedInvoice(
+  amountSat: number,
+  appId: number
+): Promise<string> {
+  const invResult = await request<{ invoice: string }>("/api/invoices", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ amount: amount * 1000, appId }),
+    body: JSON.stringify({ amount: amountSat * 1000, appId }),
   });
   const invoice = invResult?.invoice;
   if (!invoice) {
     throw new Error("Failed to create invoice on Hub");
   }
+  return invoice;
+}
 
-  // 2. Melt Cashu tokens to pay that invoice → sats land in the Routstr wallet
-  const meltResult = await routstrdFetch<{ message: string }>(
-    "/wallet/send/bolt11",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        invoice,
-        mintUrl,
-      }),
-      timeoutMs: 90_000,
+async function getMeltQuoteFee(
+  invoice: string,
+  mintUrl: string
+): Promise<number> {
+  try {
+    const mtResp = await fetch(
+      `${mintUrl.replace(/\/+$/, "")}/v1/melt/quote/bolt11`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ request: invoice, unit: "sat" }),
+      }
+    );
+    if (mtResp.ok) {
+      const quote = await mtResp.json();
+      return typeof quote.fee_reserve === "number" ? quote.fee_reserve : 0;
     }
-  );
-  if (!meltResult?.message) {
-    throw new Error("Melt failed: no confirmation from daemon");
+  } catch {
+    // fall through — fee unknown, treat as 0
   }
-
-  return amount;
+  return 0;
 }

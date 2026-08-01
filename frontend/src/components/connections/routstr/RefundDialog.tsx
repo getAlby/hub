@@ -26,16 +26,6 @@ type Props = {
   appId: number;
 };
 
-const MIN_REFUND_SATS = 10;
-/**
- * Input-fee buffer: the Cashu mint charges an input fee per proof
- * (input_fee_ppk, typically 100msat/proof → ~1 sat for small wallets)
- * plus output/swap fees (~1 sat). Without this buffer the melt can
- * fail with "Not enough funds available to send" even when the balance
- * covers invoice + fee_reserve.
- */
-const INPUT_FEE_BUFFER = 2;
-
 export function RefundDialog({
   open,
   onOpenChange,
@@ -179,16 +169,17 @@ export function RefundDialog({
   }, [open, loadBalances, loadBalancesSilent]);
 
   const effectiveFee = mintFee ?? 0;
-  const minRequired = Math.max(
-    MIN_REFUND_SATS,
-    effectiveFee + INPUT_FEE_BUFFER + 1
-  );
+  // Melt anything that leaves at least 1 sat after the fee, so the wallet
+  // can be drained to zero (no arbitrary 10-sat floor).
+  const minRequired = Math.max(1, effectiveFee + 1);
   // Refundable = wallet + reclaimable provider tokens (reclaimed before melt).
+  // The refund drains the whole wallet: net = balance − fee (no extra buffer
+  // is held back, so nothing is left behind as dust).
   const totalRefundable =
     walletBalance !== null ? walletBalance + providerTokens : null;
   const sendAmount =
     totalRefundable !== null && totalRefundable >= minRequired
-      ? Math.floor(totalRefundable - effectiveFee - INPUT_FEE_BUFFER)
+      ? Math.floor(totalRefundable - effectiveFee)
       : 0;
   const canRefund = totalRefundable !== null && totalRefundable >= minRequired;
 
@@ -199,7 +190,6 @@ export function RefundDialog({
     setIsProcessing(true);
     setStep("processing");
     try {
-      let amountToRefund = sendAmount;
       if (providerTokens > 0 && mintUrl) {
         setRefundPhase("Reclaiming provider tokens...");
         try {
@@ -207,23 +197,14 @@ export function RefundDialog({
         } catch {
           // Provider refund failed — continue with the wallet balance only
         }
-        // Re-read the wallet balance after the reclaim
-        const fresh = await getRoutstrdBalance();
-        const freshWallet = fresh?.balances
-          ? Object.values(fresh.balances).reduce((a, b) => a + b, 0)
-          : 0;
-        amountToRefund = Math.floor(
-          freshWallet - effectiveFee - INPUT_FEE_BUFFER
-        );
-        if (amountToRefund <= 0) {
-          throw new Error("Nothing left to refund after reclaiming tokens");
-        }
       }
-      setRefundPhase(`Refunding ${amountToRefund} sats...`);
       if (!mintUrl) {
         throw new Error("No active mint to melt from");
       }
-      const refunded = await refundFromHub(amountToRefund, appId, mintUrl);
+      setRefundPhase("Refunding wallet balance...");
+      // refundFromHub drains the ENTIRE Cashu wallet (fee quoted fresh each
+      // pass), so the wallet ends at zero — no dust left behind.
+      const refunded = await refundFromHub(appId, mintUrl);
       toast.success(`Refunded ${refunded} sats to your Routstr wallet`);
       setStep("done");
       onRefundComplete();
@@ -290,11 +271,10 @@ export function RefundDialog({
                         Balance too low
                       </p>
                       <p className="text-[10px] text-muted-foreground/60">
-                        Minimum refund is {MIN_REFUND_SATS} sats.{" "}
                         {totalRefundable !== null &&
-                        totalRefundable < MIN_REFUND_SATS
-                          ? `Top up to at least ${MIN_REFUND_SATS} sats first.`
-                          : `Network fee (~${effectiveFee} sats) + input fees (~${INPUT_FEE_BUFFER} sats) leave nothing to refund.`}
+                        totalRefundable < minRequired
+                          ? `Top up to at least ${minRequired} sats first.`
+                          : `Network fee (~${effectiveFee} sats) leaves nothing to refund.`}
                       </p>
                     </div>
                   )}
