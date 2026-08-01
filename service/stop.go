@@ -8,6 +8,11 @@ import (
 )
 
 func (svc *service) StopApp() {
+	// Stop routstrd service first (before cancelling context)
+	if svc.routstrdService != nil {
+		svc.routstrdService.Stop()
+	}
+
 	if svc.appCancelFn != nil {
 		logger.Logger.Info("Stopping app...")
 		svc.appCancelFn()

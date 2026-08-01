@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"io"
@@ -19,6 +20,7 @@ import (
 	"github.com/getAlby/hub/db"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/utils"
+	_ "github.com/mattn/go-sqlite3"
 	"golang.org/x/crypto/pbkdf2"
 )
 
@@ -59,11 +61,13 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 	}
 	logger.Logger.WithField("path", lnStorageDir).Info("Found node storage dir")
 
-	// Reset the routing data to decrease the LDK DB size
+	// Reset the routing data to decrease the LDK DB size. This is an
+	// optional size optimization, not a correctness requirement — some
+	// backends (Bark, Cashu) don't implement it. The backup must still be
+	// created: the goal is that a backup always captures everything.
 	err = lnClient.ResetRouter("ALL")
 	if err != nil {
-		logger.Logger.WithError(err).Error("Failed to reset router")
-		return fmt.Errorf("failed to reset router: %w", err)
+		logger.Logger.WithError(err).Warn("Failed to reset router (backup continues; routing data will be included)")
 	}
 	// Stop the app to ensure no new requests are processed.
 	api.svc.StopApp()
@@ -85,21 +89,66 @@ func (api *api) CreateBackup(unlockPassword string, w io.Writer) error {
 		return fmt.Errorf("failed to close database: %w", err)
 	}
 
+	// Checkpoint the routstrd + cocod SQLite databases before archiving.
+	// Both daemons keep their DBs in WAL mode, so copying only the main
+	// .db file would silently drop uncheckpointed operations from the
+	// backup (measured: coco.db-wal can hold 4+ MB of recent mints/melts,
+	// routstr.db-wal 4+ MB of client/usage state). Note: only the Hub's own
+	// DB is stopped here — the daemons keep running and may still write;
+	// checkpointSqliteDatabase handles that with _busy_timeout + retries.
+	for _, daemonDb := range []string{
+		filepath.Join(os.Getenv("HOME"), ".cocod", "coco.db"),
+		filepath.Join(os.Getenv("HOME"), ".routstrd", "routstr.db"),
+	} {
+		if err := checkpointSqliteDatabase(daemonDb); err != nil {
+			logger.Logger.WithError(err).WithField("db", daemonDb).Warn("Failed to checkpoint daemon database before backup (archiving anyway)")
+		}
+	}
+
 	var filesToArchive []string
 
 	if lnStorageDir != "" {
-		lnFiles, err := filepath.Glob(filepath.Join(workDir, lnStorageDir, "*"))
+		// Some backends (LDK) return a path relative to workDir, others
+		// (Bark) return an absolute path. Join accordingly so the glob
+		// actually matches — a mismatched path silently archives nothing.
+		storagePath := lnStorageDir
+		if !filepath.IsAbs(storagePath) {
+			storagePath = filepath.Join(workDir, storagePath)
+		}
+		lnFiles, err := filepath.Glob(filepath.Join(storagePath, "*"))
 		if err != nil {
 			return fmt.Errorf("failed to list files in the LNClient storage directory: %w", err)
 		}
 		logger.Logger.WithField("lnFiles", lnFiles).Info("Listed node storage dir")
 
-		// Avoid backing up log files.
+		// Avoid backing up log files and stale lock files (a restored
+		// LOCK containing the old PID could confuse the new instance).
 		lnFiles = utils.Filter(lnFiles, func(s string) bool {
-			return filepath.Ext(s) != ".log"
+			base := filepath.Base(s)
+			return filepath.Ext(s) != ".log" && base != "LOCK"
 		})
 
 		filesToArchive = append(filesToArchive, lnFiles...)
+	}
+
+	// Include cocod Cashu wallet (proofs, balances, mint state)
+	cocodDir := filepath.Join(os.Getenv("HOME"), ".cocod")
+	cocodDb := filepath.Join(cocodDir, "coco.db")
+	cocodConfig := filepath.Join(cocodDir, "config.json")
+	for _, candidate := range []string{cocodDb, cocodConfig} {
+		if _, err := os.Stat(candidate); err == nil {
+			filesToArchive = append(filesToArchive, candidate)
+		}
+	}
+
+	// Include routstrd critical files (clients, balances, NWC connection)
+	routstrdDir := filepath.Join(os.Getenv("HOME"), ".routstrd")
+	routstrdDb := filepath.Join(routstrdDir, "routstr.db")
+	routstrdConfig := filepath.Join(routstrdDir, "config.json")
+	for _, candidate := range []string{routstrdDb, routstrdConfig} {
+		if _, err := os.Stat(candidate); err == nil {
+			filesToArchive = append(filesToArchive, candidate)
+		}
 	}
 
 	cw, err := encryptingWriter(w, unlockPassword)
@@ -205,7 +254,29 @@ func (api *api) RestoreBackup(unlockPassword string, r io.Reader) error {
 	}
 
 	extractZipEntry := func(zipFile *zip.File) error {
-		fsFilePath := filepath.Join(workDir, "restore", filepath.FromSlash(zipFile.Name))
+		zipName := filepath.FromSlash(zipFile.Name)
+
+		// Entries produced from files outside workDir (routstrd/cocod state
+		// under $HOME, archived as "../../.routstrd/...") must resolve
+		// against the directory the ".." segments point to relative to
+		// workDir. Derive it by walking up from workDir once per ".."
+		// segment (with $HOME as the practical anchor when workDir sits
+		// directly under it). Resolving under workDir/restore would land
+		// them in the wrong place (e.g. /root/hub/.cocod instead of
+		// /root/.cocod) and the daemons would never find them, leaving a
+		// restored instance with an empty Cashu wallet and no API keys.
+		var fsFilePath string
+		if strings.HasPrefix(zipName, ".."+string(filepath.Separator)) {
+			trimmed := zipName
+			upDir := workDir
+			for strings.HasPrefix(trimmed, ".."+string(filepath.Separator)) {
+				trimmed = trimmed[len(".."+string(filepath.Separator)):]
+				upDir = filepath.Dir(upDir)
+			}
+			fsFilePath = filepath.Join(upDir, trimmed)
+		} else {
+			fsFilePath = filepath.Join(workDir, "restore", zipName)
+		}
 
 		if err = os.MkdirAll(filepath.Dir(fsFilePath), 0700); err != nil {
 			return fmt.Errorf("failed to create directory for zip entry: %w", err)
@@ -318,4 +389,49 @@ func decryptingReader(r io.Reader, password string) (io.Reader, error) {
 	}
 
 	return cr, nil
+}
+
+// checkpointSqliteDatabase flushes a SQLite WAL file into the main database
+// file (PRAGMA wal_checkpoint(TRUNCATE)) so that a subsequent file copy
+// captures the complete state. Safe to call while another process holds the
+// database open (WAL mode allows concurrent readers); the checkpoint only
+// needs a brief write lock, and _busy_timeout + retries cover the rare case
+// of a concurrent writer.
+func checkpointSqliteDatabase(dbPath string) error {
+	if _, err := os.Stat(dbPath); err != nil {
+		// Database does not exist (fresh install) — nothing to checkpoint.
+		return nil
+	}
+
+	sqlDb, err := sql.Open("sqlite3", dbPath+"?_busy_timeout=5000")
+	if err != nil {
+		return fmt.Errorf("failed to open database for checkpoint: %w", err)
+	}
+	defer sqlDb.Close()
+
+	var lastErr error
+	for attempt := 0; attempt < 3; attempt++ {
+		var busy, logPages, checkpointedPages int
+		err := sqlDb.QueryRow("PRAGMA wal_checkpoint(TRUNCATE)").Scan(&busy, &logPages, &checkpointedPages)
+		if err != nil {
+			lastErr = err
+			time.Sleep(time.Duration(attempt+1) * 500 * time.Millisecond)
+			continue
+		}
+		if busy > 0 {
+			// A concurrent writer blocked the checkpoint; retry rather
+			// than pretending the WAL was flushed.
+			lastErr = fmt.Errorf("wal checkpoint busy (%d)", busy)
+			time.Sleep(time.Duration(attempt+1) * 500 * time.Millisecond)
+			continue
+		}
+		logger.Logger.WithFields(map[string]interface{}{
+			"db":           dbPath,
+			"busy":         busy,
+			"log_pages":    logPages,
+			"checkpointed": checkpointedPages,
+		}).Info("Checkpointed daemon database before backup")
+		return nil
+	}
+	return fmt.Errorf("wal checkpoint failed after retries: %w", lastErr)
 }

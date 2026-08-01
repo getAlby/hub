@@ -31,6 +31,7 @@ import nostrudel from "src/assets/suggested-apps/nostrudel.png";
 import nostter from "src/assets/suggested-apps/nostter.png";
 import nostur from "src/assets/suggested-apps/nostur.png";
 import payperq from "src/assets/suggested-apps/payperq.png";
+import routstr from "src/assets/suggested-apps/routstr.png";
 import primal from "src/assets/suggested-apps/primal.png";
 import pullthatupjamie from "src/assets/suggested-apps/pullthatupjamie.png";
 import runstr from "src/assets/suggested-apps/runstr.png";
@@ -385,6 +386,18 @@ export const appStoreApps: AppStoreApp[] = (
           </div>
         </>
       ),
+      categories: ["ai"],
+    },
+    {
+      id: "routstr",
+      title: "Routstr",
+      description: "Pay-per-request AI router",
+      webLink: "https://routstr.com",
+      logo: routstr,
+      hideConnectionQr: true,
+      internal: true,
+      extendedDescription:
+        "One OpenAI-compatible key for every model. No subscriptions. Pay per request with Lightning. Auto-routing.",
       categories: ["ai"],
     },
     {

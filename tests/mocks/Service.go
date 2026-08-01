@@ -44,6 +44,52 @@ func (_m *MockService) EXPECT() *MockService_Expecter {
 	return &MockService_Expecter{mock: &_m.Mock}
 }
 
+// GetRoutstrdService provides a mock function for the type MockService
+func (_mock *MockService) GetRoutstrdService() *service.RoutstrdService {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetRoutstrdService")
+	}
+
+	var r0 *service.RoutstrdService
+	if returnFunc, ok := ret.Get(0).(func() *service.RoutstrdService); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*service.RoutstrdService)
+		}
+	}
+	return r0
+}
+
+// MockService_GetRoutstrdService_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetRoutstrdService'
+type MockService_GetRoutstrdService_Call struct {
+	*mock.Call
+}
+
+// GetRoutstrdService is a helper method to define mock.On call
+func (_e *MockService_Expecter) GetRoutstrdService() *MockService_GetRoutstrdService_Call {
+	return &MockService_GetRoutstrdService_Call{Call: _e.mock.On("GetRoutstrdService")}
+}
+
+func (_c *MockService_GetRoutstrdService_Call) Run(run func()) *MockService_GetRoutstrdService_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockService_GetRoutstrdService_Call) Return(_a0 *service.RoutstrdService) *MockService_GetRoutstrdService_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockService_GetRoutstrdService_Call) RunAndReturn(run func() *service.RoutstrdService) *MockService_GetRoutstrdService_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetAlbyOAuthSvc provides a mock function for the type MockService
 func (_mock *MockService) GetAlbyOAuthSvc() alby.AlbyOAuthService {
 	ret := _mock.Called()

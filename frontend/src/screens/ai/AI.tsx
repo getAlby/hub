@@ -33,6 +33,7 @@ import hermesLogo from "src/assets/suggested-apps/hermes.png";
 import openclawLogo from "src/assets/suggested-apps/openclaw.png";
 import opencodeLogo from "src/assets/suggested-apps/opencode.png";
 import payperqLogo from "src/assets/suggested-apps/payperq.png";
+import routstrLogo from "src/assets/suggested-apps/routstr.png";
 import piLogo from "src/assets/suggested-apps/pi.png";
 import AppHeader from "src/components/AppHeader";
 import ExternalLink from "src/components/ExternalLink";
@@ -475,6 +476,33 @@ export function AI() {
                 </CardContent>
               </Card>
             </ExternalLink>
+
+            <Link to="/internal-apps/routstr">
+              <Card className="group relative h-full hover:border-primary/30 transition-colors p-0">
+                <CardContent className="p-4 flex flex-col h-full">
+                  <div className="flex items-center gap-3 mb-3">
+                    <img
+                      src={routstrLogo}
+                      alt="Routstr"
+                      className="w-10 h-10 rounded-lg"
+                    />
+                    <div className="flex-1">
+                      <p className="font-semibold">Routstr</p>
+                      <p className="text-xs text-muted-foreground">
+                        Decentralized AI Inference Router
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground flex-1">
+                    One OpenAI-compatible key for every model. No subscriptions.
+                    Pay per request with Lightning.
+                  </p>
+                  <p className="text-xs text-muted-foreground/60 mt-3 font-mono">
+                    Auto-routing
+                  </p>
+                </CardContent>
+              </Card>
+            </Link>
 
             <ExternalLink to="https://402index.io">
               <Card className="group relative h-full hover:border-primary/30 transition-colors p-0">

@@ -15,6 +15,7 @@ import {
   KeyRoundIcon,
   type LucideIcon,
   PowerIcon,
+  ShieldIcon,
   SlidersHorizontalIcon,
   UserIcon,
 } from "lucide-react";
@@ -148,6 +149,12 @@ export default function SettingsLayout() {
                 )}
               </NavGroup>
             )}
+
+            <NavGroup label="Apps">
+              <MenuItem to="/settings/routstr-keys" icon={ShieldIcon}>
+                Routstr API Keys
+              </MenuItem>
+            </NavGroup>
 
             <NavGroup label="Account">
               {info?.albyAccountConnected && (

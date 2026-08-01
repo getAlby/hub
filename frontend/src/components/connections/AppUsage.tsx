@@ -52,13 +52,23 @@ export function AppUsage({ app }: { app: App }) {
     }
   }, [transactionsResponse?.transactions]);
 
+  // Tally must reconcile with Isolated Balance: balance = received − spent,
+  // where spent counts SETTLED + PENDING outgoing (amount + fees) and
+  // received counts SETTLED incoming only — mirroring GetIsolatedBalanceMsat.
+  // Counting only settled outgoing made the tally short by the pending
+  // amount + fee while a payment was in flight (hit 2026-08-01: Total Spent
+  // 450 + balance 520 ≠ received 1,000 until the last refill settled).
   const totalSpentSat = allTransactions
-    .filter((tx) => tx.type === "outgoing" && tx.state === "settled")
+    .filter(
+      (tx) =>
+        tx.type === "outgoing" &&
+        (tx.state === "settled" || tx.state === "pending")
+    )
     .map((tx) => Math.floor((tx.amountMsat + tx.feesPaidMsat) / 1000))
     .reduce((a, b) => a + b, 0);
 
   const totalReceivedSat = allTransactions
-    .filter((tx) => tx.type === "incoming")
+    .filter((tx) => tx.type === "incoming" && tx.state === "settled")
     .map((tx) => tx.amountSat)
     .reduce((a, b) => a + b, 0);
 

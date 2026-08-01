@@ -34,10 +34,11 @@ export const request = async <T>(
     }
 
     if (!fetchResponse.ok) {
+      const errBody = body as ErrorResponse & { error?: string };
       throw new Error(
         fetchResponse.status +
           " " +
-          ((body as ErrorResponse)?.message || "Unknown error")
+          (errBody?.message || errBody?.error || "Unknown error")
       );
     }
     return body;

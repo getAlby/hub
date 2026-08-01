@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"slices"
 	"strconv"
 	"strings"
@@ -66,9 +68,10 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		ContentTypeNosniff:    "nosniff",
 		XFrameOptions:         "DENY",
-		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https://uploads.getalby-assets.com https://cdn.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com https://zapplanner.albylabs.com wss://relay.getalby.com wss://relay2.getalby.com; frame-src https://www.youtube-nocookie.com",
+		ContentSecurityPolicy: "default-src 'self'; img-src 'self' https://uploads.getalby-assets.com https://cdn.getalby-assets.com https://getalby.com; connect-src 'self' https://api.getalby.com https://getalby.com https://zapplanner.albylabs.com wss://relay.getalby.com wss://relay2.getalby.com https://mint.cubabitcoin.org; frame-src https://www.youtube-nocookie.com",
 		ReferrerPolicy:        "no-referrer",
 	}))
+	e.Use(middleware.Gzip())
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
 		LogURI:       true,
 		LogStatus:    true,
@@ -195,6 +198,38 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	fullAccessApiGroup.DELETE("/autoswap", httpSvc.disableAutoSwapOutHandler)
 	fullAccessApiGroup.POST("/node/alias", httpSvc.setNodeAliasHandler)
 
+	// Hub-side auto top-up control (start/stop/status). Registered before the
+	// /routstrd/* daemon proxy — static routes win over the wildcard, and
+	// these are handled by the Hub, not forwarded to the daemon.
+	fullAccessApiGroup.GET("/routstrd/autorefill/status", httpSvc.routstrdAutoRefillStatusHandler)
+	fullAccessApiGroup.POST("/routstrd/autorefill/start", httpSvc.routstrdAutoRefillStartHandler)
+	fullAccessApiGroup.POST("/routstrd/autorefill/stop", httpSvc.routstrdAutoRefillStopHandler)
+
+	// Proxy /api/routstrd/* to local routstrd daemon (localhost:8008)
+	// Hub UI management — requires JWT full access
+	routstrdProxy := httputil.NewSingleHostReverseProxy(&url.URL{
+		Scheme: "http",
+		Host:   "localhost:8008",
+	})
+	fullAccessApiGroup.Any("/routstrd/*", echo.WrapHandler(http.StripPrefix("/api/routstrd", routstrdProxy)))
+	fullAccessApiGroup.Any("/routstrd/", echo.WrapHandler(http.StripPrefix("/api/routstrd", routstrdProxy)))
+
+	// Public OpenAI-compatible proxy for external tools (Hermes, OpenCode, etc.).
+	// Auth is the routstrd API key in Authorization — NOT Hub JWT.
+	// /routstr/v1/chat/completions → http://127.0.0.1:8008/v1/chat/completions
+	//
+	// IMPORTANT: only /routstr/v1/* is exposed. The daemon binds *:8008 with
+	// unauthenticated admin endpoints (/stop, /wallet, /clients, /refund, ...);
+	// a catch-all /routstr/* proxy would let anyone reach those through the
+	// public Hub port.
+	routstrOpenAIProxy := httputil.NewSingleHostReverseProxy(&url.URL{
+		Scheme: "http",
+		Host:   "127.0.0.1:8008",
+	})
+	openAIProxyHandler := echo.WrapHandler(http.StripPrefix("/routstr", routstrOpenAIProxy))
+	e.Any("/routstr/v1/*", openAIProxyHandler)
+	e.Any("/routstr/v1/", openAIProxyHandler)
+
 	httpSvc.albyHttpSvc.RegisterSharedRoutes(readOnlyApiGroup, fullAccessApiGroup, e)
 }
 
@@ -227,6 +262,42 @@ func (httpSvc *HttpService) infoHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, responseBody)
+}
+
+func (httpSvc *HttpService) routstrdAutoRefillStatusHandler(c echo.Context) error {
+	status, err := httpSvc.api.GetAutoRefillStatus()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+	return c.JSON(http.StatusOK, status)
+}
+
+func (httpSvc *HttpService) routstrdAutoRefillStartHandler(c echo.Context) error {
+	var body struct {
+		Threshold *int64 `json:"threshold"`
+		Amount    *int64 `json:"amount"`
+	}
+	// Body is optional: no body (or empty) keeps the stored config.
+	_ = c.Bind(&body)
+	status, err := httpSvc.api.SetAutoRefillEnabled(c.Request().Context(), true, body.Threshold, body.Amount)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+	return c.JSON(http.StatusOK, status)
+}
+
+func (httpSvc *HttpService) routstrdAutoRefillStopHandler(c echo.Context) error {
+	status, err := httpSvc.api.SetAutoRefillEnabled(c.Request().Context(), false, nil, nil)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+	return c.JSON(http.StatusOK, status)
 }
 
 func (httpSvc *HttpService) eventHandler(c echo.Context) error {
@@ -687,7 +758,7 @@ func (httpSvc *HttpService) makeInvoiceHandler(c echo.Context) error {
 		amountMsat = *resolvedAmountMsat
 	}
 
-	invoice, err := httpSvc.api.CreateInvoice(c.Request().Context(), amountMsat, makeInvoiceRequest.Description)
+	invoice, err := httpSvc.api.CreateInvoice(c.Request().Context(), amountMsat, makeInvoiceRequest.Description, makeInvoiceRequest.AppId)
 
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, ErrorResponse{
@@ -1205,8 +1276,10 @@ func (httpSvc *HttpService) appsDeleteHandler(c echo.Context) error {
 	}
 
 	if err := httpSvc.api.DeleteApp(dbApp); err != nil {
-		return c.JSON(http.StatusInternalServerError, ErrorResponse{
-			Message: "Failed to delete app",
+		// Surface the reason (e.g. the Routstr balance guard) instead of a
+		// generic failure.
+		return c.JSON(http.StatusConflict, ErrorResponse{
+			Message: err.Error(),
 		})
 	}
 	return c.NoContent(http.StatusNoContent)

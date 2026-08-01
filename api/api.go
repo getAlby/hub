@@ -202,9 +202,36 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 
 		// Update the app metadata if provided
 		if updateAppRequest.Metadata != nil {
+			// routstr.autoRefill.enabled is owned by the Start/Stop API
+			// (server-side). The generic metadata PATCH must NEVER change it:
+			// a UI blur-save racing a Start/Stop click would otherwise
+			// resurrect the stale value and silently stop or start the loop.
+			// Force the current DB value regardless of what the request says
+			// (Start/Stop persist via their own endpoints, not this PATCH).
+			incomingMeta := *updateAppRequest.Metadata
+			if incomingRoutstr, ok := incomingMeta["routstr"].(map[string]interface{}); ok {
+				if incomingAR, ok := incomingRoutstr["autoRefill"].(map[string]interface{}); ok {
+					var currentApp db.App
+					if err := tx.First(&currentApp, userApp.ID).Error; err == nil {
+						var existingMeta Metadata
+						if currentApp.Metadata != nil {
+							if err := json.Unmarshal(currentApp.Metadata, &existingMeta); err == nil {
+								if existingRoutstr, ok := existingMeta["routstr"].(map[string]interface{}); ok {
+									if existingAR, ok := existingRoutstr["autoRefill"].(map[string]interface{}); ok {
+										if existingEnabled, ok := existingAR["enabled"]; ok {
+											incomingAR["enabled"] = existingEnabled
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
 			var metadataBytes []byte
 			var err error
-			metadataBytes, err = json.Marshal(*updateAppRequest.Metadata)
+			metadataBytes, err = json.Marshal(incomingMeta)
 			if err != nil {
 				logger.Logger.WithError(err).Error("Failed to serialize metadata")
 				return err
@@ -330,6 +357,23 @@ func (api *api) UpdateApp(userApp *db.App, updateAppRequest *UpdateAppRequest) e
 }
 
 func (api *api) DeleteApp(userApp *db.App) error {
+	// Routstr guard: the app's isolated wallet holds real sats that
+	// DeleteApp does not refund (it only removes the row — verified
+	// 2026-08-01: deleting a funded Routstr app strands its balance).
+	// Refuse deletion until the wallet is empty so sats cannot be orphaned.
+	var meta map[string]interface{}
+	if err := json.Unmarshal(userApp.Metadata, &meta); err == nil {
+		if id, _ := meta["app_store_app_id"].(string); id == "routstr" {
+			balanceMsat, err := queries.GetIsolatedBalanceMsat(api.svc.GetDB(), userApp.ID)
+			if err != nil {
+				return fmt.Errorf("cannot delete Routstr app: check wallet balance: %w", err)
+			}
+			if balanceMsat > 0 {
+				return fmt.Errorf("cannot delete Routstr app: the app wallet still holds %d sats. Refund or transfer it out first", balanceMsat/1000)
+			}
+		}
+	}
+
 	// Delete lightning address if one exists
 	if api.appsSvc.HasLightningAddress(userApp) {
 		err := api.DeleteLightningAddress(context.Background(), userApp.ID)
@@ -1586,6 +1630,29 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	return &info, nil
 }
 
+// GetAutoRefillStatus returns the live state of the Hub-side Cashu
+// auto-refill loop (config, pool balance, last activity).
+func (api *api) GetAutoRefillStatus() (*service.AutoRefillStatus, error) {
+	rs := api.svc.GetRoutstrdService()
+	if rs == nil {
+		return nil, errors.New("routstrd service not available")
+	}
+	return rs.GetAutoRefillStatus(), nil
+}
+
+// SetAutoRefillEnabled starts/stops the Hub-side Cashu auto-refill loop.
+// Start persists enabled=true in the Routstr app metadata and runs an
+// immediate check; stop persists enabled=false. Optional threshold/amount
+// (when starting) override the stored config atomically, so the values the
+// user just typed are the values the loop honors — no blur-save race.
+func (api *api) SetAutoRefillEnabled(ctx context.Context, enabled bool, threshold, amount *int64) (*service.AutoRefillStatus, error) {
+	rs := api.svc.GetRoutstrdService()
+	if rs == nil {
+		return nil, errors.New("routstrd service not available")
+	}
+	return rs.SetAutoRefillEnabled(ctx, enabled, threshold, amount)
+}
+
 func (api *api) setCurrency(currency string) error {
 	if currency == "" {
 		return fmt.Errorf("currency value cannot be empty")
@@ -2037,6 +2104,19 @@ func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 
 		if len(offlineChannels) > 0 {
 			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindChannelsOffline, nil))
+		}
+	}
+
+	// Check routstrd daemon health
+	if api.svc.GetRoutstrdService() != nil {
+		routstrdOk, cocodOk := api.svc.GetRoutstrdService().Status()
+		if !routstrdOk || !cocodOk {
+			details := map[string]interface{}{
+				"routstrd_healthy": routstrdOk,
+				"cocod_healthy":    cocodOk,
+				"last_error":       api.svc.GetRoutstrdService().LastError(),
+			}
+			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindRoutstrdOffline, details))
 		}
 	}
 
