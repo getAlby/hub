@@ -8,6 +8,7 @@ import (
 
 	"github.com/getAlby/hub/alby"
 	"github.com/getAlby/hub/db"
+	"github.com/getAlby/hub/service"
 	"github.com/getAlby/hub/swaps"
 )
 
@@ -46,12 +47,15 @@ type API interface {
 	ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64) (*ListTransactionsResponse, error)
 	ListOnchainTransactions(ctx context.Context) ([]OnchainTransaction, error)
 	SendPayment(ctx context.Context, invoice string, amountMsat *uint64, metadata map[string]interface{}, fromAppId *uint) (*SendPaymentResponse, error)
-	CreateInvoice(ctx context.Context, amountMsat uint64, description string) (*MakeInvoiceResponse, error)
+	CreateInvoice(ctx context.Context, amountMsat uint64, description string, appId *uint) (*MakeInvoiceResponse, error)
 	LookupInvoice(ctx context.Context, paymentHash string) (*LookupInvoiceResponse, error)
 	SetTransactionUserLabels(ctx context.Context, id uint, labels map[string]string) error
 	RequestMempoolApi(ctx context.Context, endpoint string) (interface{}, error)
 	GetInfo(ctx context.Context) (*InfoResponse, error)
 	GetMnemonic(unlockPassword string) (*MnemonicResponse, error)
+	// Auto top-up control + status for the Hub-side Cashu auto-refill loop
+	GetAutoRefillStatus() (*service.AutoRefillStatus, error)
+	SetAutoRefillEnabled(ctx context.Context, enabled bool) (*service.AutoRefillStatus, error)
 	SetNextBackupReminder(backupReminderRequest *BackupReminderRequest) error
 	Start(startRequest *StartRequest)
 	Setup(ctx context.Context, setupRequest *SetupRequest) error
@@ -304,38 +308,38 @@ type InfoResponseRelay struct {
 }
 
 type InfoResponse struct {
-	BackendType                 string              `json:"backendType"`
-	SetupCompleted              bool                `json:"setupCompleted"`
-	OAuthRedirect               bool                `json:"oauthRedirect"`
-	Running                     bool                `json:"running"`
-	Unlocked                    bool                `json:"unlocked"`
-	AlbyAuthUrl                 string              `json:"albyAuthUrl"`
-	NextBackupReminder          string              `json:"nextBackupReminder"`
-	AlbyUserIdentifier          string              `json:"albyUserIdentifier"`
-	AlbyAccountConnected        bool                `json:"albyAccountConnected"`
-	Version                     string              `json:"version"`
-	Network                     string              `json:"network"`
-	EnableAdvancedSetup         bool                `json:"enableAdvancedSetup"`
-	LdkVssEnabled               bool                `json:"ldkVssEnabled"`
-	VssSupported                bool                `json:"vssSupported"`
-	StartupState                string              `json:"startupState"`
-	StartupError                string              `json:"startupError"`
-	StartupErrorTime            time.Time           `json:"startupErrorTime"`
-	AutoUnlockPasswordSupported bool                `json:"autoUnlockPasswordSupported"`
-	AutoUnlockPasswordEnabled   bool                `json:"autoUnlockPasswordEnabled"`
-	Currency                    string              `json:"currency"`
-	BitcoinDisplayFormat        string              `json:"bitcoinDisplayFormat"`
-	Relays                      []InfoResponseRelay `json:"relays"`
-	NodeAlias                   string              `json:"nodeAlias"`
-	MempoolUrl                  string              `json:"mempoolUrl"`
-	ChainDataSourceType         string              `json:"chainDataSourceType,omitempty"`
-	ChainDataSourceAddress      string              `json:"chainDataSourceAddress,omitempty"`
-	JitChannelsLiquiditySource  string              `json:"jitChannelsLiquiditySource,omitempty"`
-	JitChannelsMinPaymentSizeMsat *uint64           `json:"jitChannelsMinPaymentSizeMsat,omitempty"`
-	JitChannelsMaxPaymentSizeMsat *uint64           `json:"jitChannelsMaxPaymentSizeMsat,omitempty"`
-	JitChannelsEnabled          bool                `json:"jitChannelsEnabled"`
-	HideUpdateBanner            bool                `json:"hideUpdateBanner"`
-	SupportsBolt12              bool                `json:"supportsBolt12"`
+	BackendType                   string              `json:"backendType"`
+	SetupCompleted                bool                `json:"setupCompleted"`
+	OAuthRedirect                 bool                `json:"oauthRedirect"`
+	Running                       bool                `json:"running"`
+	Unlocked                      bool                `json:"unlocked"`
+	AlbyAuthUrl                   string              `json:"albyAuthUrl"`
+	NextBackupReminder            string              `json:"nextBackupReminder"`
+	AlbyUserIdentifier            string              `json:"albyUserIdentifier"`
+	AlbyAccountConnected          bool                `json:"albyAccountConnected"`
+	Version                       string              `json:"version"`
+	Network                       string              `json:"network"`
+	EnableAdvancedSetup           bool                `json:"enableAdvancedSetup"`
+	LdkVssEnabled                 bool                `json:"ldkVssEnabled"`
+	VssSupported                  bool                `json:"vssSupported"`
+	StartupState                  string              `json:"startupState"`
+	StartupError                  string              `json:"startupError"`
+	StartupErrorTime              time.Time           `json:"startupErrorTime"`
+	AutoUnlockPasswordSupported   bool                `json:"autoUnlockPasswordSupported"`
+	AutoUnlockPasswordEnabled     bool                `json:"autoUnlockPasswordEnabled"`
+	Currency                      string              `json:"currency"`
+	BitcoinDisplayFormat          string              `json:"bitcoinDisplayFormat"`
+	Relays                        []InfoResponseRelay `json:"relays"`
+	NodeAlias                     string              `json:"nodeAlias"`
+	MempoolUrl                    string              `json:"mempoolUrl"`
+	ChainDataSourceType           string              `json:"chainDataSourceType,omitempty"`
+	ChainDataSourceAddress        string              `json:"chainDataSourceAddress,omitempty"`
+	JitChannelsLiquiditySource    string              `json:"jitChannelsLiquiditySource,omitempty"`
+	JitChannelsMinPaymentSizeMsat *uint64             `json:"jitChannelsMinPaymentSizeMsat,omitempty"`
+	JitChannelsMaxPaymentSizeMsat *uint64             `json:"jitChannelsMaxPaymentSizeMsat,omitempty"`
+	JitChannelsEnabled            bool                `json:"jitChannelsEnabled"`
+	HideUpdateBanner              bool                `json:"hideUpdateBanner"`
+	SupportsBolt12                bool                `json:"supportsBolt12"`
 }
 
 type UpdateSettingsRequest struct {
@@ -586,6 +590,9 @@ type MakeInvoiceRequest struct {
 	AmountSat   *uint64 `json:"amountSat"`
 	AmountMsat  *uint64 `json:"amountMsat"`
 	Description string  `json:"description"`
+	// AppId scopes the invoice to an app: when paid, sats are credited
+	// directly to that app's (isolated) wallet instead of the main wallet.
+	AppId *uint `json:"appId"`
 }
 
 type ResetRouterRequest struct {
@@ -670,6 +677,7 @@ const (
 	HealthAlarmKindChannelsOffline   HealthAlarmKind = "channels_offline"
 	HealthAlarmKindNostrRelayOffline HealthAlarmKind = "nostr_relay_offline"
 	HealthAlarmKindVssNoSubscription HealthAlarmKind = "vss_no_subscription"
+	HealthAlarmKindRoutstrdOffline   HealthAlarmKind = "routstrd_offline"
 )
 
 type HealthAlarm struct {

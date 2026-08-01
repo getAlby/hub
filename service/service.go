@@ -48,6 +48,7 @@ type service struct {
 	keys                 keys.Keys
 	relayStatuses        []RelayStatus
 	startupState         string
+	routstrdService      *RoutstrdService
 }
 
 func NewService(ctx context.Context) (*service, error) {
@@ -135,6 +136,7 @@ func NewService(ctx context.Context) (*service, error) {
 		db:                  gormDB,
 		keys:                keys,
 	}
+	svc.routstrdService = NewRoutstrdService(svc)
 
 	eventPublisher.RegisterSubscriber(svc.transactionsService)
 	eventPublisher.RegisterSubscriber(svc.nip47Service)
@@ -282,6 +284,10 @@ func (svc *service) GetRelayStatuses() []RelayStatus {
 
 func (svc *service) GetStartupState() string {
 	return svc.startupState
+}
+
+func (svc *service) GetRoutstrdService() *RoutstrdService {
+	return svc.routstrdService
 }
 
 func (svc *service) removeExcessEvents() {

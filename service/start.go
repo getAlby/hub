@@ -314,6 +314,14 @@ func (svc *service) StartApp(encryptionKey string) error {
 		return err
 	}
 
+	// Start routstrd service (non-blocking, manages its own goroutines)
+	if svc.routstrdService != nil {
+		err = svc.routstrdService.Start(ctx)
+		if err != nil {
+			logger.Logger.WithError(err).Warn("Failed to start routstrd service")
+		}
+	}
+
 	svc.appCancelFn = cancelFn
 
 	return nil

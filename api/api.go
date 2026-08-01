@@ -1586,6 +1586,27 @@ func (api *api) GetInfo(ctx context.Context) (*InfoResponse, error) {
 	return &info, nil
 }
 
+// GetAutoRefillStatus returns the live state of the Hub-side Cashu
+// auto-refill loop (config, pool balance, last activity).
+func (api *api) GetAutoRefillStatus() (*service.AutoRefillStatus, error) {
+	rs := api.svc.GetRoutstrdService()
+	if rs == nil {
+		return nil, errors.New("routstrd service not available")
+	}
+	return rs.GetAutoRefillStatus(), nil
+}
+
+// SetAutoRefillEnabled starts/stops the Hub-side Cashu auto-refill loop.
+// Start persists enabled=true in the Routstr app metadata and runs an
+// immediate check; stop persists enabled=false.
+func (api *api) SetAutoRefillEnabled(ctx context.Context, enabled bool) (*service.AutoRefillStatus, error) {
+	rs := api.svc.GetRoutstrdService()
+	if rs == nil {
+		return nil, errors.New("routstrd service not available")
+	}
+	return rs.SetAutoRefillEnabled(ctx, enabled)
+}
+
 func (api *api) setCurrency(currency string) error {
 	if currency == "" {
 		return fmt.Errorf("currency value cannot be empty")
@@ -2037,6 +2058,19 @@ func (api *api) Health(ctx context.Context) (*HealthResponse, error) {
 
 		if len(offlineChannels) > 0 {
 			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindChannelsOffline, nil))
+		}
+	}
+
+	// Check routstrd daemon health
+	if api.svc.GetRoutstrdService() != nil {
+		routstrdOk, cocodOk := api.svc.GetRoutstrdService().Status()
+		if !routstrdOk || !cocodOk {
+			details := map[string]interface{}{
+				"routstrd_healthy": routstrdOk,
+				"cocod_healthy":    cocodOk,
+				"last_error":       api.svc.GetRoutstrdService().LastError(),
+			}
+			alarms = append(alarms, NewHealthAlarm(HealthAlarmKindRoutstrdOffline, details))
 		}
 	}
 

@@ -34,4 +34,5 @@ type Service interface {
 	GetKeys() keys.Keys
 	GetRelayStatuses() []RelayStatus
 	GetStartupState() string
+	GetRoutstrdService() *RoutstrdService
 }
