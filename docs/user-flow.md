@@ -76,15 +76,6 @@ How a user goes from zero to a working AI gateway, and what happens behind the s
 | Start / Stop | Turn auto top-up on or off | The Hub supervision loop (15s tick) reads the `autoRefill` config from app metadata: when the balance drops below the threshold, it funds the Cashu wallet from the Routstr wallet, with a 5-minute cooldown. The buttons hit `POST /api/routstrd/autorefill/start` and `POST /api/routstrd/autorefill/stop`; the status line shows the live pool balance, last refill, and errors (polled every 30s). |
 | Base URLs | Same device vs external | As shown at Step 5: direct daemon (`:8008`) or Hub proxy (`:8080/routstr/v1`). |
 
-## Dialogs
-
-| Dialog | What it does |
-|---|---|
-| ![Top Up API Balance](images/dialog-topup.png) | Deposits sats as ecash (mint invoice paid from the Routstr wallet). |
-| ![Refund API Balance](images/dialog-refund.png) | Shows the full refundable balance (Cashu wallet + prepaid provider tokens, with the split), the network fee (fee_reserve), and the net back to the Routstr wallet. Provider tokens are reclaimed first (daemon `/refund`), then the wallet is melted. Minimum refund 10 sats. |
-| ![Delete API Key](images/dialog-delete.png) | Warns when the wallet still holds sats so you can refund first and nothing is stranded, then removes the key from the daemon. |
-| ![Models available](images/dialog-models.png) | Searchable, filterable catalog of every model in the federation, grouped by month with per-model sats pricing. |
-
 ## What happens on a request
 
 ```
