@@ -4,7 +4,6 @@
 
 Point any OpenAI-compatible client (your own app, an agent, a CLI tool) at your Hub, and Routstr routes each request to the cheapest provider in a federation of community-run endpoints that has that model. No subscriptions, no signups, no credit card. Your sats, your gateway.
 
-![Setup wizard](docs/images/wizard-2-topup.png)
 
 ## Why Routstr fits Alby Hub
 
