@@ -687,18 +687,9 @@ func (r *RoutstrdService) checkAutoRefill(ctx context.Context) {
 		return
 	}
 
-	cooldown := time.Duration(cfg.CooldownMs) * time.Millisecond
-	if cooldown <= 0 {
-		cooldown = 5 * time.Minute
-	}
-
 	r.mu.Lock()
 	last := r.lastAutoRefill
 	r.mu.Unlock()
-	if time.Since(last) < cooldown {
-		r.recordAutoRefill(nowT, 0, 0, time.Time{}, "")
-		return
-	}
 
 	balance, err := r.getCashuWalletBalance()
 	if err != nil {
@@ -706,8 +697,8 @@ func (r *RoutstrdService) checkAutoRefill(ctx context.Context) {
 		logger.Logger.WithError(err).Debug("auto-refill: could not read Cashu wallet balance")
 		return
 	}
-	if balance >= cfg.Threshold {
-		// Healthy: pool is above the line, nothing to do
+	if !shouldAutoRefill(balance, cfg.Threshold, last, nowT, cfg.CooldownMs) {
+		// Healthy (pool above the line) or within the cooldown — nothing to do
 		r.recordAutoRefill(nowT, balance, 0, time.Time{}, "")
 		return
 	}
@@ -987,6 +978,20 @@ func (r *RoutstrdService) readAutoRefillConfig(app *db.App) *AutoRefillConfig {
 		cfg.CooldownMs = int64(v)
 	}
 	return cfg
+}
+
+// shouldAutoRefill reports whether the pool is below the threshold AND the
+// cooldown since the last refill attempt has elapsed. A zero/negative
+// cooldown falls back to 5 minutes; a zero last-refill time means "never
+// refilled" and always passes the cooldown gate.
+func shouldAutoRefill(balanceSat, thresholdSat int64, lastRefillAt, nowT time.Time, cooldownMs int64) bool {
+	if balanceSat >= thresholdSat {
+		return false
+	}
+	if cooldownMs <= 0 {
+		cooldownMs = 5 * 60 * 1000
+	}
+	return nowT.Sub(lastRefillAt) >= time.Duration(cooldownMs)*time.Millisecond
 }
 
 // validateRefillInvoiceAmount verifies the decoded invoice amount matches the
