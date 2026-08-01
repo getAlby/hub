@@ -16,6 +16,7 @@ import {
   reclaimProviderTokens,
   refundFromHub,
 } from "src/hooks/useRoutstrd";
+import { computeMinRequired } from "src/components/connections/routstr/refundLogic";
 import { request } from "src/utils/request";
 import { handleRequestError } from "src/utils/handleRequestError";
 
@@ -172,7 +173,7 @@ export function RefundDialog({
   const effectiveFee = mintFee ?? 0;
   // Melt anything that leaves at least 1 sat after the fee, so the wallet
   // can be drained to zero (no arbitrary 10-sat floor).
-  const minRequired = Math.max(1, effectiveFee + 1);
+  const minRequired = computeMinRequired(effectiveFee);
   // Refundable = wallet + reclaimable provider tokens (reclaimed before melt).
   // The refund drains the whole wallet: net = balance − fee (no extra buffer
   // is held back, so nothing is left behind as dust).

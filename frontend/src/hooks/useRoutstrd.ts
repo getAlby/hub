@@ -1,4 +1,9 @@
 import { request } from "src/utils/request";
+import {
+  computeRefundSend,
+  isRetryableMeltError,
+  shouldRequoteFee,
+} from "src/components/connections/routstr/refundLogic";
 
 // Module-level cache for getAllRoutstrdModels
 let cachedModels: { models: RoutstrdModel[] } | null = null;
@@ -329,17 +334,14 @@ export async function refundFromHub(
     // 1. Quote the mint's melt fee for the FULL remaining balance. Reuse the
     //    last quote when the balance barely moved (|Δ| < 10 sats).
     let fee = lastFee;
-    if (
-      lastQuotedBalance === 0 ||
-      Math.abs(walletBal - lastQuotedBalance) >= 10
-    ) {
+    if (shouldRequoteFee(lastQuotedBalance, walletBal)) {
       const quoteInvoice = await createAppScopedInvoice(walletBal, appId);
       fee = await getMeltQuoteFee(quoteInvoice, mintUrl);
       lastQuotedBalance = walletBal;
       lastFee = fee;
     }
 
-    const send = Math.floor(walletBal - fee);
+    const send = computeRefundSend(walletBal, fee);
     if (send <= 0) {
       // The fee covers the whole remainder — nothing meltable left. This is
       // the floor: any sub-fee balance cannot be moved.
@@ -366,9 +368,7 @@ export async function refundFromHub(
       totalRefunded += send;
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      if (
-        /insufficient|not enough (funds|proofs)|non-negative/i.test(message)
-      ) {
+      if (isRetryableMeltError(message)) {
         // Known coco-cashu-core degenerate case: when the selected proofs
         // exactly equal invoice + fee, the swap path computes a zero/negative
         // keep amount ("amount must be a non-negative number"). Retry with a
@@ -400,11 +400,7 @@ export async function refundFromHub(
               retryError instanceof Error
                 ? retryError.message
                 : String(retryError);
-            if (
-              /insufficient|not enough (funds|proofs)|non-negative/i.test(
-                retryMessage
-              )
-            ) {
+            if (isRetryableMeltError(retryMessage)) {
               // Same degenerate/insufficient condition — try the next
               // smaller send.
               continue;
