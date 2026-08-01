@@ -81,8 +81,8 @@ How a user goes from zero to a working AI gateway, and what happens behind the s
 | Dialog | What it does |
 |---|---|
 | ![Top Up API Balance](images/dialog-topup.png) | Deposits sats as ecash (mint invoice paid from the Routstr wallet). |
-| ![Refund API Balance](images/dialog-refund.png) | Shows API Key balance, network fee (fee_reserve), and net back to the Routstr wallet before confirming the melt. Minimum refund 10 sats. |
-| ![Delete API Key](images/dialog-delete.png) | Confirms the wallet balance is zero before removing the key from the daemon. |
+| ![Refund API Balance](images/dialog-refund.png) | Shows the full refundable balance (Cashu wallet + prepaid provider tokens, with the split), the network fee (fee_reserve), and the net back to the Routstr wallet. Provider tokens are reclaimed first (daemon `/refund`), then the wallet is melted. Minimum refund 10 sats. |
+| ![Delete API Key](images/dialog-delete.png) | Warns when the wallet still holds sats so you can refund first and nothing is stranded, then removes the key from the daemon. |
 | ![Models available](images/dialog-models.png) | Searchable, filterable catalog of every model in the federation, grouped by month with per-model sats pricing. |
 
 ## What happens on a request
