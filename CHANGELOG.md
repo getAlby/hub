@@ -36,6 +36,7 @@ All changes since forking [getAlby/hub](https://github.com/getAlby/hub).
 - New internal-app wizard (`Routstr.tsx`), Routstr connection components, `useRoutstrd` hook, suggested-app store entry.
 - **Live app page (2026-08-01):** the app detail page polls (3s app data, 10s transactions) so new payments appear without a manual refresh. The Total Spent/Received tally now mirrors the balance computation (counts pending outgoing, settled incoming only), so `Balance = Received − Spent` always holds. Auto top-up card warns when the refill amount is under ~100 sats (fees dominate) or the Routstr wallet can't cover a refill.
 - **Refund shows all money (2026-08-01):** the refund dialog's balance now includes prepaid provider tokens (`apikey:*` entries) alongside the Cashu wallet, with a split note, and the refund action reclaims those tokens (daemon `/refund`) before melting — so the refund covers the full balance, not just the wallet pile.
+- **Unconfigured apps report sane auto top-up defaults (2026-08-01):** the status endpoint now reports threshold 500 / amount 1000 (the values Start will use) instead of 0/0 when an app has no `autoRefill` config, matching the card's inputs. Deleting a Routstr app removes its config and strands its wallet sats — see [troubleshooting.md](docs/troubleshooting.md).
 
 ## Security
 

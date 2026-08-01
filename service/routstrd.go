@@ -860,14 +860,17 @@ func (r *RoutstrdService) readAutoRefillConfig(app *db.App) *AutoRefillConfig {
 		return nil
 	}
 	raw, _ := routstrMeta["autoRefill"].(map[string]interface{})
-	if raw == nil {
-		return nil
-	}
+	// Missing block = unconfigured: report (and, on Start, use) the sane
+	// defaults rather than zeros, so status matches the UI inputs and the
+	// loop never misreads an unconfigured app as "refill 0 sats".
 	cfg := &AutoRefillConfig{
 		Enabled:    false,
 		Threshold:  500,
 		Amount:     1000,
 		CooldownMs: 5 * 60 * 1000,
+	}
+	if raw == nil {
+		return cfg
 	}
 	if v, ok := raw["enabled"].(bool); ok {
 		cfg.Enabled = v

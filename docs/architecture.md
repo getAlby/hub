@@ -76,6 +76,8 @@ There are no new tables, columns, or migrations. Routstr state lives in two plac
 - **App metadata** (key, client id, balance, auto top-up config)
 - **The daemon's own databases** (`routstr.db`, `coco.db`), which the Hub treats like any external service's state
 
+> **Lifecycle hazard (hit 2026-08-01):** the auto top-up config and the isolated wallet are *owned by the app*. Deleting a Routstr app (Apps Cleanup or the app-page Delete) removes the config with it and strands the wallet's sats — `DeleteApp` deletes only the app row; it does not refund the wallet, and backup zips are client-downloaded (none exist on disk). After any cleanup/reinstall, re-enable auto top-up with Start — it uses the sane defaults (threshold 500, amount 1000) when no config exists.
+
 ### Wallet setup is the standard app flow
 
 The wizard creates the Routstr connection through the same path as every other Hub app: `createApp` with NWC permission scopes (`ISOLATED_SCOPES`), an optional budget and renewal, and `isolated: true`. The result is an ordinary Hub app with its own app wallet, exactly like any NWC app. The money rails are the Hub's own (endpoints in [reference.md](reference.md)):

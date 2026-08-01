@@ -2,6 +2,16 @@
 
 Operational knowledge, all verified live on a running instance.
 
+## Auto top-up config missing after reinstall / cleanup
+
+**Symptom:** after deleting a Routstr app (Apps Cleanup, or app-page Delete) and reconnecting, the auto top-up card shows empty values and `GET /api/routstrd/autorefill/status` reports `threshold: 0, amount: 0` (unconfigured). The config lived in the deleted app's metadata.
+
+**Impact:** nothing refills the Cashu pool until you re-enable.
+
+**Resolution:** press **Start** on the card. With no config present, Start uses the sane defaults (threshold 500 sats, amount 1000 sats, 5-min cooldown). If the pool is at or above the threshold, the immediate check refills nothing, so starting is free. Adjust the inputs first if you want different values.
+
+> Deleting a Routstr app also strands its isolated wallet sats (the Hub does not refund app wallets on delete) and there is no on-disk backup archive — refund the wallet before deleting, or keep the backup zip you downloaded.
+
 ## Mint outage
 
 **Symptom:** Top Up, wizard funding, and auto top-up fail; `POST /wallet/receive/bolt11` returns `400` with `{"detail":"could not fetch bolt11 payment request from backend","code":20000}` (Nutshell/0.20).
