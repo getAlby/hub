@@ -78,6 +78,7 @@ function RoutstrApiKeySectionInner({ app, onMetadataUpdate }: Props) {
   const [usage, setUsage] = useState<{
     totals: { requests: number; satsCost: number };
     models: Array<{ model: string; requests: number; satsCost: number }>;
+    clients: Array<{ client: string; requests: number; satsCost: number }>;
   } | null>(null);
   const [liveBalance, setLiveBalance] = useState<number | null>(null);
   const [models, setModels] = useState<RoutstrdModel[]>([]);
@@ -634,13 +635,25 @@ function RoutstrApiKeySectionInner({ app, onMetadataUpdate }: Props) {
                 showHubUrl
               />
 
-              {/* Usage summary */}
-              {usage && usage.totals && usage.totals.requests > 0 && (
-                <div className="flex gap-4 text-sm text-muted-foreground">
-                  <span>{usage.totals.requests} requests</span>
-                  <span>{usage.totals.satsCost} sats spent</span>
-                </div>
-              )}
+              {/* Usage summary: scoped to THIS app's daemon client, not the
+                  daemon-wide totals (which span every key ever created). */}
+              {(() => {
+                const myUsage = usage?.clients?.find(
+                  (c) => c.client === routstrMeta.clientId
+                );
+                const myRequests = myUsage?.requests ?? 0;
+                if (!myUsage || myRequests === 0) {
+                  return null;
+                }
+                return (
+                  <div className="flex gap-4 text-sm text-muted-foreground">
+                    <span>
+                      {myRequests} {myRequests === 1 ? "request" : "requests"}
+                    </span>
+                    <span>{myUsage.satsCost.toFixed(2)} sats spent</span>
+                  </div>
+                );
+              })()}
 
               {/* Auto top-up */}
               <div className="rounded-lg border border-border p-3 space-y-3">
