@@ -396,6 +396,8 @@ Once the user has authorized the app connection a `nwc:success` message is sent 
 If you need help contact support@getalby.com or reach out on Nostr: npub1getal6ykt05fsz5nqu4uld09nfj3y3qxmv8crys4aeut53unfvlqr80nfm
 You can also visit the chat of our Community on [Telegram](https://t.me/getalby).
 
+For security vulnerabilities, please follow our [security policy](SECURITY.md).
+
 ## ⚡️Donations
 
 Want to support the work on Alby?
