@@ -25,6 +25,7 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         build:
           [
@@ -128,7 +129,15 @@ jobs:
         run: go build ${{ env.GOTAGS }} -o build/bin/${{ env.PACKAGE_NAME }}/bin/${{ env.EXEC_NAME }} -ldflags "-X 'github.com/getAlby/hub/version.Tag=${{ env.TAG }}'" cmd/http/main.go
 
       - name: Import Code-Signing Certificates for macOS
-        if: runner.os == 'macOS'
+        if: >-
+          runner.os == 'macOS' &&
+          (
+            !github.event.pull_request ||
+            (
+              github.event.pull_request.head.repo.full_name == github.repository &&
+              github.actor != 'dependabot[bot]'
+            )
+          )
         uses: Apple-Actions/import-codesign-certs@v3
         with:
           # The certificates in a PKCS12 file encoded as a base64 string
@@ -165,7 +174,15 @@ jobs:
         shell: bash
 
       - name: Sign the MacOS binary and libraries
-        if: runner.os == 'macOS'
+        if: >-
+          runner.os == 'macOS' &&
+          (
+            !github.event.pull_request ||
+            (
+              github.event.pull_request.head.repo.full_name == github.repository &&
+              github.actor != 'dependabot[bot]'
+            )
+          )
         run: |
           /usr/bin/codesign -s "Developer ID Application: Alby Inc." -f -v --deep --timestamp --options runtime ./build/bin/${{ env.PACKAGE_NAME }}/bin/${{ env.EXEC_NAME }}
           /usr/bin/codesign -s "Developer ID Application: Alby Inc." -f -v --deep --timestamp --options runtime ./build/bin/${{ env.PACKAGE_NAME }}/lib/*.dylib
@@ -189,7 +206,16 @@ jobs:
           cd ../../..
 
       - name: Notarize the zip file
-        if: runner.os == 'macOS' && inputs.build-release
+        if: >-
+          runner.os == 'macOS' &&
+          inputs.build-release &&
+          (
+            !github.event.pull_request ||
+            (
+              github.event.pull_request.head.repo.full_name == github.repository &&
+              github.actor != 'dependabot[bot]'
+            )
+          )
         run: |
           echo "Notarizing Zip Files"
           gon -log-level=info -log-json ./build/darwin/http/gon-notarize.json
