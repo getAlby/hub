@@ -27,6 +27,10 @@ const backendTypeDisplayConfigs: Partial<
     title: "LDK",
     icon: <LDKIcon />,
   },
+  LDK_SERVER: {
+    title: "LDK Server",
+    icon: <LDKIcon />,
+  },
   PHOENIX: {
     title: "phoenixd",
     icon: <PhoenixdIcon />,

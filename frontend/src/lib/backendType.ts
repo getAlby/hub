@@ -17,6 +17,11 @@ export const backendTypeConfigs: Record<BackendType, BackendTypeConfig> = {
     hasChannelManagement: true,
     hasNodeBackup: true,
   },
+  LDK_SERVER: {
+    hasMnemonic: false,
+    hasChannelManagement: true,
+    hasNodeBackup: false,
+  },
   PHOENIX: {
     hasMnemonic: false,
     hasChannelManagement: false,

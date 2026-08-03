@@ -25,6 +25,7 @@ import (
 	"github.com/getAlby/hub/lnclient/cashu"
 	"github.com/getAlby/hub/lnclient/cln"
 	"github.com/getAlby/hub/lnclient/ldk"
+	ldkserver "github.com/getAlby/hub/lnclient/ldk-server"
 	"github.com/getAlby/hub/lnclient/lnd"
 	"github.com/getAlby/hub/lnclient/phoenixd"
 	"github.com/getAlby/hub/logger"
@@ -373,6 +374,11 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		PhoenixdAuthorization, _ := svc.cfg.Get("PhoenixdAuthorization", encryptionKey)
 
 		lnClient, err = phoenixd.NewPhoenixService(ctx, PhoenixdAddress, PhoenixdAuthorization)
+	case config.LDKServerBackendType:
+		ldkServerAddress, _ := svc.cfg.Get("LDKServerAddress", encryptionKey)
+		ldkServerTlsCertPem, _ := svc.cfg.Get("LDKServerTlsCertPem", encryptionKey)
+		ldkServerApiKey, _ := svc.cfg.Get("LDKServerApiKey", encryptionKey)
+		lnClient, err = ldkserver.NewLDKServerService(ctx, svc.eventPublisher, ldkServerAddress, ldkServerTlsCertPem, ldkServerApiKey)
 	case config.CashuBackendType:
 		mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
 		cashuMintUrl, _ := svc.cfg.Get("CashuMintUrl", encryptionKey)
