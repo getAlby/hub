@@ -11,7 +11,6 @@ import { isHttpMode } from "src/utils/isHttpMode";
 const createRouterFunc = isHttpMode() ? createBrowserRouter : createHashRouter;
 const basePath =
   import.meta.env.BASE_URL !== "/" ? import.meta.env.BASE_URL : "";
-const internalReviewPath = `${basePath.replace(/\/$/, "")}/internal-review/`;
 const router = createRouterFunc(routes, {
   // if running on a subpath, use the subpath as the router basename
   // BASE_URL is set via process.env.BASE_PATH, see https://vite.dev/guide/build#public-base-path
@@ -19,8 +18,7 @@ const router = createRouterFunc(routes, {
 });
 
 function App() {
-  const isInternalReview =
-    window.location.pathname.startsWith(internalReviewPath);
+  const { data: info } = useInfo();
 
   useRegisterProtocolHandler(basePath);
 
@@ -32,22 +30,12 @@ function App() {
           defaultDarkMode="system"
           storageKey="vite-ui-theme"
         >
-          {isInternalReview ? (
-            <RouterProvider router={router} />
-          ) : (
-            <HubRouter />
-          )}
+          {info && <RouterProvider router={router} />}
           <Toaster position="bottom-right" richColors={true} />
         </ThemeProvider>
       </TouchProvider>
     </>
   );
-}
-
-function HubRouter() {
-  const { data: info } = useInfo();
-
-  return info ? <RouterProvider router={router} /> : null;
 }
 
 export default App;
