@@ -62,6 +62,7 @@ type LDKService struct {
 	lsps2MinPaymentSizeMsat            *uint64
 	lsps2MaxPaymentSizeMsat            *uint64
 	shuttingDown                       bool
+	eventHandlingMutex                 sync.Mutex
 }
 
 const resetRouterKey = "ResetRouter"
@@ -311,19 +312,41 @@ func NewLDKService(ctx context.Context, cfg config.Config, eventPublisher events
 			case <-ldkCtx.Done():
 				return
 			default:
-				// NOTE: currently do not use WaitNextEvent() as it can possibly block the LDK thread (to confirm)
-				event := node.NextEvent()
-				if event == nil {
-					// if there is no event, wait before polling again to avoid 100% CPU usage
-					// TODO: remove this and use WaitNextEvent()
-					time.Sleep(time.Duration(1000) * time.Millisecond)
-					continue
+			}
+
+			// NextEventAsync parks this goroutine on a Go channel until the next event
+			// arrives - unlike WaitNextEvent it does not block an OS thread in FFI.
+			// NOTE: the call cannot be cancelled; after shutdown it stays parked until
+			// the node emits a final event or the process exits.
+			event := node.NextEventAsync()
+
+			// eventHandlingMutex is held while handling so Shutdown() can wait
+			// for in-flight event handling to finish before stopping the node.
+			// Events dropped without EventHandled() are redelivered by LDK on
+			// the next startup.
+			ok := func() bool {
+				ls.eventHandlingMutex.Lock()
+				defer ls.eventHandlingMutex.Unlock()
+
+				if ldkCtx.Err() != nil {
+					return false
 				}
 
-				ls.handleLdkEvent(event)
-				ldkEventConsumer <- event
+				ls.handleLdkEvent(&event)
 
-				node.EventHandled()
+				select {
+				case ldkEventConsumer <- &event:
+				case <-ldkCtx.Done():
+					return false
+				}
+
+				if err := node.EventHandled(); err != nil {
+					logger.Logger.WithError(err).Error("Failed to mark LDK event as handled")
+				}
+				return true
+			}()
+			if !ok {
+				return
 			}
 		}
 	}()
@@ -486,6 +509,13 @@ func (ls *LDKService) Shutdown() error {
 	logger.Logger.Info("shutting down LDK client")
 	logger.Logger.Info("cancelling LDK context")
 	ls.cancel()
+
+	// wait for in-flight LDK event handling to finish - handleLdkEvent makes
+	// node calls which must not run once the node is stopped and destroyed.
+	// Held until the end of Shutdown; the event loop checks the cancelled
+	// context under this mutex before touching the node.
+	ls.eventHandlingMutex.Lock()
+	defer ls.eventHandlingMutex.Unlock()
 
 	maxAttempts := 40
 	for i := 0; ls.syncing; i++ {
