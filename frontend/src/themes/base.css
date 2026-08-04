@@ -102,6 +102,8 @@
   --warning-foreground: oklch(0.848 0.117 72.544);
   --payment-lightning: #ffdf6f;
   --payment-onchain: #fb923c;
-  --qr-foreground: #ffffff;
-  --qr-background: #242424;
+  /* QR codes stay dark-on-light even in dark mode: many scanner apps
+     (e.g. Phoenix) cannot read inverted QR codes */
+  --qr-foreground: #242424;
+  --qr-background: #ffffff;
 }
