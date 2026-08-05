@@ -164,10 +164,8 @@ github.com/fsnotify/fsnotify v1.9.0 h1:2Ml+OJNzbYCTzsxtv8vKSFD9PbJjmhYF14k/jKC7S
 github.com/fsnotify/fsnotify v1.9.0/go.mod h1:8jBTzvmWwFyi3Pb8djgCCO5IBqzKJ/Jwo8TRcHyHii0=
 github.com/fxamacker/cbor/v2 v2.7.0 h1:iM5WgngdRBanHcxugY4JySA0nk1wZorNOpTgCMedv5E=
 github.com/fxamacker/cbor/v2 v2.7.0/go.mod h1:pxXPTn3joSm21Gbwsv0w9OSA2y1HFR9qXEeXQVeNoDQ=
-github.com/getAlby/go-nostr v0.0.0-20260513161014-22fb7840c7a4 h1:Z93wPXKIMY4Emr+zDz0R0NrSg1FEVGrzcqqomuSrmko=
-github.com/getAlby/go-nostr v0.0.0-20260513161014-22fb7840c7a4/go.mod h1:BtlkV9evCTjpY0YeFhoNgycp7XNFbnfVXJPoykp+NtM=
-github.com/getAlby/ldk-node-go v0.0.0-20260608130949-5ba22268f000 h1:rlW59HX0myVvttj1VKiyNPNP564ecEDlUHRxC2dIDYs=
-github.com/getAlby/ldk-node-go v0.0.0-20260608130949-5ba22268f000/go.mod h1:8BRjtKcz8E0RyYTPEbMS8VIdgredcGSLne8vHDtcRLg=
+github.com/getAlby/go-nostr v0.0.0-20260805072924-9844f892c3c8 h1:r2Th/F2tHpQl+eHIiGxMlF7R8tsdLQxrPMoIOacabO0=
+github.com/getAlby/go-nostr v0.0.0-20260805072924-9844f892c3c8/go.mod h1:UtZi+MvE7ayGS85zEr5RH2s96T2ok5Gotgp3n65sULU=
 github.com/getAlby/ldk-node-go v0.0.0-20260804150503-a3db1213cce4 h1:cgefKtvNpBxdQT/taKoYC9C4BTF8tH+Q0uIBfOPLvgI=
 github.com/getAlby/ldk-node-go v0.0.0-20260804150503-a3db1213cce4/go.mod h1:8BRjtKcz8E0RyYTPEbMS8VIdgredcGSLne8vHDtcRLg=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
