@@ -8,7 +8,7 @@ require (
 	github.com/btcsuite/btcd/btcutil v1.2.0
 	github.com/elnosh/gonuts v0.4.2
 	github.com/getAlby/go-nostr v0.0.0-20260805072924-9844f892c3c8
-	github.com/getAlby/ldk-node-go v0.0.0-20260804150503-a3db1213cce4
+	github.com/getAlby/ldk-node-go v0.0.0-20260805080406-af22e238c194
 	github.com/go-gormigrate/gormigrate/v2 v2.1.6
 	github.com/google/uuid v1.6.0
 	github.com/labstack/echo/v4 v4.15.4
