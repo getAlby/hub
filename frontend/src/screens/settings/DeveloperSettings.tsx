@@ -13,10 +13,12 @@ import { Separator } from "src/components/ui/separator";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { copyToClipboard } from "src/lib/clipboard";
 import { AuthTokenResponse } from "src/types";
+import { isHttpMode } from "src/utils/isHttpMode";
 import { request } from "src/utils/request";
 
 export default function DeveloperSettings() {
   const { data: albyMe } = useAlbyMe();
+  const _isHttpMode = isHttpMode();
   const [token, setToken] = React.useState<string>();
   const [tokenPermission, setTokenPermission] = React.useState<string>();
   const [expiryDays, setExpiryDays] = React.useState<string>("365");
@@ -103,7 +105,14 @@ export default function DeveloperSettings() {
             be removed entirely in the future.
           </div>
         </div>
-        {!token && !showCreateTokenForm && (
+        {!_isHttpMode && (
+          <div className="text-sm text-muted-foreground">
+            API access is not available in the desktop app because it does not
+            expose an HTTP API. To use the API, install the Alby Hub server
+            version instead.
+          </div>
+        )}
+        {_isHttpMode && !token && !showCreateTokenForm && (
           <div>
             <Button
               size={"lg"}
