@@ -8,7 +8,8 @@ import { Button } from "src/components/ui/button";
 import { cn } from "src/lib/utils";
 import { BackendType } from "src/types";
 
-import bark from "src/assets/images/node/bark.jpg";
+import barkDark from "src/assets/images/node/bark-dark.svg";
+import barkLight from "src/assets/images/node/bark-light.svg";
 import cashu from "src/assets/images/node/cashu.png";
 import cln from "src/assets/images/node/cln.png";
 import lnd from "src/assets/images/node/lnd.png";
@@ -45,7 +46,12 @@ const backendTypeDisplayConfigs: Partial<
   },
   BARK: {
     title: "Bark",
-    icon: <img src={bark} />,
+    icon: (
+      <>
+        <img src={barkLight} className="dark:hidden" />
+        <img src={barkDark} className="hidden dark:block" />
+      </>
+    ),
   },
 };
 
