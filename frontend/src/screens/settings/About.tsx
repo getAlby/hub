@@ -5,6 +5,7 @@ import SettingsHeader from "src/components/SettingsHeader";
 import { Badge } from "src/components/ui/badge";
 import { useAlbyMe } from "src/hooks/useAlbyMe";
 import { useNodeDetails } from "src/hooks/useNodeDetails";
+import { backendTypeConfigs } from "src/lib/backendType";
 
 import { useInfo } from "src/hooks/useInfo";
 
@@ -58,9 +59,12 @@ export function About() {
         </div>
         <div className="grid gap-2">
           <p className="font-medium text-sm">Lightning Node Backend</p>
-          <p className="text-muted-foreground text-sm slashed-zero">
-            {info.backendType}
-          </p>
+          <div className="flex items-center gap-2 text-muted-foreground text-sm">
+            <div className="h-6 w-6">
+              {backendTypeConfigs[info.backendType].icon}
+            </div>
+            <p>{backendTypeConfigs[info.backendType].title}</p>
+          </div>
         </div>
         {info.chainDataSourceType && (
           <div className="grid gap-2">
