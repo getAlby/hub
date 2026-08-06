@@ -1268,8 +1268,7 @@ export const appStoreApps: AppStoreApp[] = (
       title: "wavecard® by wave.space",
       description:
         "Spend Bitcoin from your AlbyHub at 150M+ merchants worldwide",
-      webLink:
-        "https://app.wave.space/spend/?utm_source=albyhub&affiliate=AlbyHub",
+      webLink: "https://app.wave.space/?utm_source=albyhub&affiliate=AlbyHub",
       logo: wavespace,
       extendedDescription:
         "The world's first Bitcoin VISA Debit Card that allows you to spend BTC globally, anywhere VISA is accepted – straight from the safety of your own NWC-enabled wallet. ✨ EXCLUSIVE ALBYHUB SPECIAL🐝 → Get 21% cashback on your wavecard transactions (up to 10,000 sats) using code »AlbyHub«",
@@ -1281,10 +1280,10 @@ export const appStoreApps: AppStoreApp[] = (
               <li>
                 Open{" "}
                 <ExternalLink
-                  to="https://app.wave.space/spend/?utm_source=albyhub&affiliate=AlbyHub"
+                  to="https://app.wave.space/?utm_source=albyhub&affiliate=AlbyHub"
                   className="font-medium text-foreground underline"
                 >
-                  wave.space/spend
+                  wave.space
                 </ExternalLink>{" "}
                 in your browser and{" "}
                 <span className="font-medium text-foreground">

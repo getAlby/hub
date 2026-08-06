@@ -600,7 +600,7 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		if resolvedAmountMsat != nil {
 			amountMsat = *resolvedAmountMsat
 		}
-		invoice, err := app.api.CreateInvoice(ctx, amountMsat, makeInvoiceRequest.Description)
+		invoice, err := app.api.CreateInvoice(ctx, amountMsat, makeInvoiceRequest.Description, makeInvoiceRequest.ToAppID)
 		if err != nil {
 			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}

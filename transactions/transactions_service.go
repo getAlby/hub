@@ -314,7 +314,11 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 	selfPayment := false
 	var incomingTransaction db.Transaction
 	result := svc.db.Limit(1).Find(&incomingTransaction, &db.Transaction{
-		Type:           constants.TRANSACTION_TYPE_INCOMING,
+		Type: constants.TRANSACTION_TYPE_INCOMING,
+		// NOTE: filter by payment hash so the payment hash index is used,
+		// but also match the payment request as wrapped invoices share
+		// the same hash but have different payment requests
+		PaymentHash:    paymentRequest.PaymentHash,
 		PaymentRequest: payReq,
 	})
 	if result.Error == nil && result.RowsAffected > 0 {
@@ -335,18 +339,26 @@ func (svc *transactionsService) SendPaymentSync(payReq string, amountMsat *uint6
 			var existingSettledTransaction db.Transaction
 			if tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
 				Type:           constants.TRANSACTION_TYPE_OUTGOING,
+				PaymentHash:    paymentRequest.PaymentHash,
 				PaymentRequest: payReq,
 				State:          constants.TRANSACTION_STATE_SETTLED,
 			}).RowsAffected > 0 {
-				logger.Logger.WithField("payment_request", dbTransaction.PaymentRequest).Debug("this invoice has already been paid")
+				logger.Logger.WithFields(logrus.Fields{
+					"payment_request": payReq,
+					"payment_hash":    paymentRequest.PaymentHash,
+				}).Debug("this invoice has already been paid")
 				return errors.New("this invoice has already been paid")
 			}
 			if tx.Limit(1).Find(&existingSettledTransaction, &db.Transaction{
 				Type:           constants.TRANSACTION_TYPE_OUTGOING,
+				PaymentHash:    paymentRequest.PaymentHash,
 				PaymentRequest: payReq,
 				State:          constants.TRANSACTION_STATE_PENDING,
 			}).RowsAffected > 0 {
-				logger.Logger.WithField("payment_request", dbTransaction.PaymentRequest).Debug("this invoice is already being paid")
+				logger.Logger.WithFields(logrus.Fields{
+					"payment_request": payReq,
+					"payment_hash":    paymentRequest.PaymentHash,
+				}).Debug("this invoice is already being paid")
 				return errors.New("there is already a payment pending for this invoice")
 			}
 
@@ -827,7 +839,7 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 			logger.Logger.WithField("event", event).Error("Transaction has no settle deadline")
 			return
 		}
-		svc.markHoldInvoiceAccepted(lnClientTransaction.Invoice, *lnClientTransaction.SettleDeadline, false)
+		svc.markHoldInvoiceAccepted(lnClientTransaction.Invoice, lnClientTransaction.PaymentHash, *lnClientTransaction.SettleDeadline, false)
 
 	case "nwc_lnclient_payment_sent":
 		lnClientTransaction, ok := event.Properties.(*lnclient.Transaction)
@@ -937,23 +949,28 @@ func (svc *transactionsService) ConsumeEvent(ctx context.Context, event *events.
 	}
 }
 
-func (svc *transactionsService) markHoldInvoiceAccepted(paymentRequest string, settleDeadline uint32, selfPayment bool) {
+func (svc *transactionsService) markHoldInvoiceAccepted(paymentRequest string, paymentHash string, settleDeadline uint32, selfPayment bool) {
 	logger.Logger.WithFields(logrus.Fields{
 		"payment_request": paymentRequest,
+		"payment_hash":    paymentHash,
 		"self_payment":    selfPayment,
 	}).Info("Processing hold invoice accepted event")
 
 	var dbTransaction db.Transaction
 	err := svc.db.Transaction(func(tx *gorm.DB) error {
-		result := tx.Where("payment_request = ? AND type = ? AND state = ?", paymentRequest, constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_PENDING).First(&dbTransaction)
+		// NOTE: filter by payment hash so the payment hash index is used,
+		// but also match the payment request as wrapped invoices share the same hash
+		result := tx.Where("payment_hash = ? AND payment_request = ? AND type = ? AND state = ?", paymentHash, paymentRequest, constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_STATE_PENDING).First(&dbTransaction)
 		if result.Error != nil {
 			if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 				logger.Logger.WithFields(logrus.Fields{
 					"payment_request": paymentRequest,
+					"payment_hash":    paymentHash,
 				}).Warn("No corresponding pending incoming transaction found in DB for accepted hold invoice")
 			}
 			logger.Logger.WithFields(logrus.Fields{
 				"payment_request": paymentRequest,
+				"payment_hash":    paymentHash,
 			}).WithError(result.Error).Error("Failed to query DB for accepted hold invoice")
 			return result.Error
 		}
@@ -966,6 +983,7 @@ func (svc *transactionsService) markHoldInvoiceAccepted(paymentRequest string, s
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{
 				"payment_request": paymentRequest,
+				"payment_hash":    paymentHash,
 				"id":              dbTransaction.ID,
 			}).WithError(err).Error("Failed to update hold invoice state to accepted in DB")
 			return err
@@ -973,6 +991,7 @@ func (svc *transactionsService) markHoldInvoiceAccepted(paymentRequest string, s
 
 		logger.Logger.WithFields(logrus.Fields{
 			"payment_request": paymentRequest,
+			"payment_hash":    paymentHash,
 			"id":              dbTransaction.ID,
 		}).Info("Updated hold invoice state to accepted in DB")
 
@@ -981,6 +1000,7 @@ func (svc *transactionsService) markHoldInvoiceAccepted(paymentRequest string, s
 	if err != nil {
 		logger.Logger.WithFields(logrus.Fields{
 			"payment_request": paymentRequest,
+			"payment_hash":    paymentHash,
 			"id":              dbTransaction.ID,
 		}).WithError(err).Error("Failed DB transaction for hold invoice accepted event")
 	} else {
@@ -1013,7 +1033,7 @@ func (svc *transactionsService) interceptSelfPayment(paymentRequest string, paym
 	}
 
 	if incomingTransaction.Hold {
-		return svc.interceptSelfHoldPayment(paymentRequest, lnClient)
+		return svc.interceptSelfHoldPayment(paymentRequest, paymentHash, lnClient)
 	}
 
 	if incomingTransaction.Preimage == nil {
@@ -1035,7 +1055,7 @@ func (svc *transactionsService) interceptSelfPayment(paymentRequest string, paym
 	}, nil
 }
 
-func (svc *transactionsService) interceptSelfHoldPayment(paymentRequest string, lnClient lnclient.LNClient) (*lnclient.PayInvoiceResponse, error) {
+func (svc *transactionsService) interceptSelfHoldPayment(paymentRequest string, paymentHash string, lnClient lnclient.LNClient) (*lnclient.PayInvoiceResponse, error) {
 	settledChannel := make(chan *db.Transaction)
 	canceledChannel := make(chan *db.Transaction)
 
@@ -1054,7 +1074,7 @@ func (svc *transactionsService) interceptSelfHoldPayment(paymentRequest string, 
 
 	fakeSettleDeadline := clientInfo.BlockHeight + 24
 
-	svc.markHoldInvoiceAccepted(paymentRequest, fakeSettleDeadline, true)
+	svc.markHoldInvoiceAccepted(paymentRequest, paymentHash, fakeSettleDeadline, true)
 
 	select {
 	case settledTransaction := <-settledChannel:
