@@ -21,7 +21,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-
 // errNotFound indicates that a payment was not found at the queried endpoint.
 var errNotFound = errors.New("phoenixd: payment not found")
 
@@ -554,13 +553,20 @@ func outgoingPaymentToTransaction(payment *OutgoingPaymentResponse) (*lnclient.T
 
 	expiresAt := time.UnixMilli(int64(paymentRequest.CreatedAt) * 1000).Add(time.Duration(paymentRequest.Expiry) * time.Second).Unix()
 
+	// unlike incoming payments, "fees" on outgoing payments is in millisats,
+	// and "sent" (in sats) includes the fees
+	amountMsat := paymentRequest.MSatoshi
+	if amountMsat == 0 {
+		amountMsat = payment.Sent*1000 - payment.Fees
+	}
+
 	return &lnclient.Transaction{
 		Type:            "outgoing",
 		Invoice:         payment.Invoice,
 		Preimage:        payment.Preimage,
 		PaymentHash:     payment.PaymentHash,
-		AmountMsat:      paymentRequest.MSatoshi,
-		FeesPaidMsat:    payment.Fees * 1000,
+		AmountMsat:      amountMsat,
+		FeesPaidMsat:    payment.Fees,
 		CreatedAt:       time.UnixMilli(payment.CreatedAt).Unix(),
 		Description:     paymentRequest.Description,
 		SettledAt:       settledAt,
