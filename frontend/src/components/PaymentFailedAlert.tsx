@@ -31,11 +31,11 @@ export function PaymentFailedAlert({
   return (
     <Alert>
       <TriangleAlertIcon className="h-4 w-4" />
-      <AlertTitle>Payment Failed</AlertTitle>
+      <AlertTitle>Payment was not sent</AlertTitle>
       <AlertDescription>
         <p>
-          Try the payment again, read our payments guide, and optionally send
-          details about the failed payment to help improve Alby Hub.
+          Alby Hub could not complete this payment. No sats were sent unless you
+          see it in your transactions.
         </p>
         <div className="flex flex-wrap gap-2 mt-2">
           <ExternalLinkButton

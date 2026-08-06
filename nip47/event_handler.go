@@ -285,6 +285,7 @@ func (svc *nip47Service) HandleEvent(ctx context.Context, pool nostrmodels.Simpl
 	// TODO: update all previous occurrences of svc.publishResponseEvent to also use the channel
 	publishResponse := func(nip47Response *models.Response, tags nostr.Tags) {
 		var state string
+		svc.recordConnectionIssue(&app, &requestEvent, nip47Response)
 		resp, err := svc.CreateResponse(event, nip47Response, tags, nip47Cipher, appWalletPrivKey)
 		if err != nil {
 			logger.Logger.WithFields(logrus.Fields{

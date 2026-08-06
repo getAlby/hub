@@ -127,6 +127,7 @@ func (httpSvc *HttpService) RegisterSharedRoutes(e *echo.Echo) {
 	readOnlyApiGroup.GET("/apps", httpSvc.appsListHandler)
 	readOnlyApiGroup.GET("/apps/:pubkey", httpSvc.appsShowByPubkeyHandler)
 	readOnlyApiGroup.GET("/v2/apps/:id", httpSvc.appsShowHandler)
+	readOnlyApiGroup.GET("/v2/apps/:id/issues", httpSvc.appConnectionIssuesHandler)
 	readOnlyApiGroup.GET("/channels", httpSvc.channelsListHandler)
 	readOnlyApiGroup.GET("/channels/suggestions", httpSvc.channelPeerSuggestionsHandler)
 	readOnlyApiGroup.GET("/channel-offer", httpSvc.channelOfferHandler)
@@ -1140,6 +1141,43 @@ func (httpSvc *HttpService) appsShowHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, response)
+}
+
+func (httpSvc *HttpService) appConnectionIssuesHandler(c echo.Context) error {
+	appIdStr := c.Param("id")
+	if appIdStr == "" {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "App ID is required",
+		})
+	}
+
+	appId, err := strconv.ParseUint(appIdStr, 10, 64)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: "Invalid App ID",
+		})
+	}
+
+	dbApp := httpSvc.appsSvc.GetAppById(uint(appId))
+	if dbApp == nil {
+		return c.JSON(http.StatusNotFound, ErrorResponse{
+			Message: "App not found",
+		})
+	}
+
+	limit := uint64(0)
+	if limitParam := c.QueryParam("limit"); limitParam != "" {
+		limit, _ = strconv.ParseUint(limitParam, 10, 64)
+	}
+
+	issues, err := httpSvc.api.ListConnectionIssues(uint(appId), limit)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, ErrorResponse{
+			Message: err.Error(),
+		})
+	}
+
+	return c.JSON(http.StatusOK, issues)
 }
 
 func (httpSvc *HttpService) appsUpdateHandler(c echo.Context) error {

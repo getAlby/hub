@@ -193,7 +193,7 @@ function NewChannelInternal({
       setShowConfirmModal(false);
       navigate("/channels/order");
     } catch (error) {
-      toast.error("Something went wrong", {
+      toast.error("Channel order could not be created", {
         description: `${error}`,
       });
       setShowConfirmModal(false);

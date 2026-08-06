@@ -63,6 +63,20 @@ type ResponseEvent struct {
 	UpdatedAt time.Time
 }
 
+type ConnectionIssue struct {
+	ID             uint
+	AppId          uint `validate:"required"`
+	App            App
+	RequestEventId uint `validate:"required"`
+	RequestEvent   RequestEvent
+	Method         string
+	Category       string
+	ErrorCode      string
+	ErrorMessage   string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
 type Transaction struct {
 	ID              uint
 	AppId           *uint

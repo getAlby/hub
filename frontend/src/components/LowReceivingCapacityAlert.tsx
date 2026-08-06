@@ -10,9 +10,10 @@ export default function LowReceivingCapacityAlert() {
   return (
     <Alert variant="warning">
       <AlertTriangleIcon className="h-4 w-4" />
-      <AlertTitle>Low receiving capacity</AlertTitle>
+      <AlertTitle>You need more receiving capacity</AlertTitle>
       <AlertDescription className="inline">
-        You likely won't be able to receive payments until you{" "}
+        This wallet cannot receive larger payments right now. Add receiving
+        capacity,{" "}
         <Link className="underline" to="/wallet/send">
           spend
         </Link>
@@ -22,7 +23,7 @@ export default function LowReceivingCapacityAlert() {
         </Link>
         , or{" "}
         <Link className="underline" to="/channels/incoming">
-          increase your receiving capacity.
+          open an incoming channel.
         </Link>
       </AlertDescription>
     </Alert>

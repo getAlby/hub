@@ -482,7 +482,7 @@ function PayBitcoinChannelOrderWithSpendableFunds({
       });
     } catch (error) {
       console.error(error);
-      toast.error("Something went wrong", {
+      toast.error("Channel was not opened", {
         description: "" + error,
       });
     }
@@ -608,7 +608,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
             }
             setLspOrderResponse(response);
           } catch (error) {
-            toast.error("Something went wrong", {
+            toast.error("Channel order could not be created", {
               description: "" + error,
             });
           }
@@ -737,7 +737,7 @@ function PayLightningChannelOrder({ order }: { order: NewChannelOrder }) {
                         });
                         toast("Channel successfully requested");
                       } catch (e) {
-                        toast.error("Failed to send: ", {
+                        toast.error("Channel payment was not sent", {
                           description: "" + e,
                         });
                         console.error(e);
