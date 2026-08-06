@@ -73,7 +73,7 @@ jobs:
       - name: Setup NodeJS
         uses: actions/setup-node@v4
         with:
-          node-version: "20.x"
+          node-version: "22.x"
 
       - name: Install Wails
         run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.12.0
@@ -129,7 +129,15 @@ jobs:
         shell: bash
 
       - name: Import Code-Signing Certificates for macOS
-        if: runner.os == 'macOS'
+        if: >-
+          runner.os == 'macOS' &&
+          (
+            !github.event.pull_request ||
+            (
+              github.event.pull_request.head.repo.full_name == github.repository &&
+              github.actor != 'dependabot[bot]'
+            )
+          )
         uses: Apple-Actions/import-codesign-certs@v3
         with:
           # The certificates in a PKCS12 file encoded as a base64 string
@@ -190,7 +198,15 @@ jobs:
           mv ./build/out/${{ env.PACKAGE_NAME }}.tar.bz2 ./build/bin/
 
       - name: Sign the macOS binary
-        if: runner.os == 'macOS'
+        if: >-
+          runner.os == 'macOS' &&
+          (
+            !github.event.pull_request ||
+            (
+              github.event.pull_request.head.repo.full_name == github.repository &&
+              github.actor != 'dependabot[bot]'
+            )
+          )
         run: |
           echo "Signing Package"
           /usr/bin/codesign -s "Developer ID Application: Alby Inc." -f -v --deep --timestamp --options runtime --entitlements ./build/darwin/entitlements.plist "./build/bin/${{ env.EXEC_NAME }}.app"
@@ -222,7 +238,15 @@ jobs:
           EOF
 
       - name: Notarize the DMG image
-        if: runner.os == 'macOS'
+        if: >-
+          runner.os == 'macOS' &&
+          (
+            !github.event.pull_request ||
+            (
+              github.event.pull_request.head.repo.full_name == github.repository &&
+              github.actor != 'dependabot[bot]'
+            )
+          )
         run: |
           echo "Notarizing Zip Files"
           gon -log-level=info -log-json ./build/darwin/gon-notarize.json
