@@ -50,32 +50,38 @@ func (api *api) SetTransactionUserLabels(ctx context.Context, id uint, labels ma
 }
 
 // ParseListTransactionsFilters parses transaction filter query parameters
-// shared by the HTTP and Wails transports. Invalid values are ignored, except
-// values that could not be safely applied, which return an error.
+// shared by the HTTP and Wails transports. Invalid values return an error.
 func ParseListTransactionsFilters(query url.Values) (ListTransactionsFilters, error) {
 	filters := ListTransactionsFilters{}
 
-	switch transactionType := query.Get("type"); transactionType {
-	case constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_TYPE_OUTGOING:
+	if transactionType := query.Get("type"); transactionType != "" {
+		if transactionType != constants.TRANSACTION_TYPE_INCOMING && transactionType != constants.TRANSACTION_TYPE_OUTGOING {
+			return filters, fmt.Errorf("invalid type: %s", transactionType)
+		}
 		filters.Type = &transactionType
 	}
 
 	if minAmountSatParam := query.Get("minAmountSat"); minAmountSatParam != "" {
-		if minAmountSat, err := strconv.ParseUint(minAmountSatParam, 10, 64); err == nil && minAmountSat > 0 {
-			const msatPerSat = uint64(1000)
-			if minAmountSat > ^uint64(0)/msatPerSat {
-				return filters, fmt.Errorf("minAmountSat is too large")
-			}
-
-			minAmountMsat := minAmountSat * msatPerSat
-			filters.MinAmountMsat = &minAmountMsat
+		minAmountSat, err := strconv.ParseUint(minAmountSatParam, 10, 64)
+		if err != nil || minAmountSat == 0 {
+			return filters, fmt.Errorf("invalid minAmountSat: %s", minAmountSatParam)
 		}
+
+		const msatPerSat = uint64(1000)
+		if minAmountSat > ^uint64(0)/msatPerSat {
+			return filters, fmt.Errorf("minAmountSat is too large")
+		}
+
+		minAmountMsat := minAmountSat * msatPerSat
+		filters.MinAmountMsat = &minAmountMsat
 	}
 
 	if hideFailedParam := query.Get("hideFailed"); hideFailedParam != "" {
-		if hideFailed, err := strconv.ParseBool(hideFailedParam); err == nil {
-			filters.HideFailed = hideFailed
+		hideFailed, err := strconv.ParseBool(hideFailedParam)
+		if err != nil {
+			return filters, fmt.Errorf("invalid hideFailed: %s", hideFailedParam)
 		}
+		filters.HideFailed = hideFailed
 	}
 
 	filters.SearchTerm = strings.TrimSpace(query.Get("search"))

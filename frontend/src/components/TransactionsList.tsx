@@ -1,5 +1,5 @@
 import { LucideIcon, ZapIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { CustomPagination } from "src/components/CustomPagination";
 import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
@@ -29,6 +29,18 @@ function TransactionsList({
 }: TransactionsListProps) {
   const [page, setPage] = useState(1);
   const { filters } = useTransactionFiltersStore();
+
+  // Reset pagination during render when the filters or app change, so no
+  // request is made for a page that may not exist under the new list.
+  const [prevListIdentity, setPrevListIdentity] = useState({ appId, filters });
+  if (
+    prevListIdentity.appId !== appId ||
+    prevListIdentity.filters !== filters
+  ) {
+    setPrevListIdentity({ appId, filters });
+    setPage(1);
+  }
+
   const transactionListRef = useRef<HTMLDivElement>(null);
   const transactionListKey = getTransactionsUrl(
     appId,
@@ -46,10 +58,6 @@ function TransactionsList({
   const transactions = transactionData?.transactions || [];
   const totalCount = transactionData?.totalCount || 0;
   const hasActiveFilters = hasActiveTransactionFilters(filters);
-
-  useEffect(() => {
-    setPage(1);
-  }, [appId, filters]);
 
   const handlePageChange = (page: number) => {
     setPage(page);
