@@ -3,7 +3,7 @@ import {
   CalendarSyncIcon,
   CreditCardIcon,
 } from "lucide-react";
-import { Outlet } from "react-router";
+import { Outlet, useMatch } from "react-router";
 import AppHeader from "src/components/AppHeader";
 import Loading from "src/components/Loading";
 import { ExternalLinkButton } from "src/components/ui/custom/external-link-button";
@@ -17,6 +17,7 @@ export default function WalletLayout() {
   useSyncWallet();
   const { data: info, hasChannelManagement } = useInfo();
   const { data: balances } = useBalances(true);
+  const isOnchain = !!useMatch("/wallet/onchain");
 
   if (!info || !balances) {
     return <Loading />;
@@ -59,7 +60,10 @@ export default function WalletLayout() {
               <CreditCardIcon />
               Buy
             </ExternalLinkButton>
-            <WalletActionsMenu hasChannelManagement={!!hasChannelManagement} />
+            <WalletActionsMenu
+              hasChannelManagement={!!hasChannelManagement}
+              isOnchain={isOnchain}
+            />
           </div>
         }
       />

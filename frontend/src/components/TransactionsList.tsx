@@ -5,15 +5,11 @@ import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
 import TransactionItem from "src/components/TransactionItem";
 import { LIST_TRANSACTIONS_LIMIT } from "src/constants";
-import {
-  getTransactionsUrl,
-  type TransactionFilters,
-  useTransactions,
-} from "src/hooks/useTransactions";
+import { getTransactionsUrl, useTransactions } from "src/hooks/useTransactions";
+import useTransactionFiltersStore from "src/state/TransactionFiltersStore";
 
 type TransactionsListProps = {
   appId?: number;
-  filters?: TransactionFilters;
   emptyIcon?: LucideIcon;
   emptyTitle?: string;
   emptyDescription?: string;
@@ -22,13 +18,13 @@ type TransactionsListProps = {
 
 function TransactionsList({
   appId,
-  filters,
   emptyIcon = ZapIcon,
   emptyTitle = "No lightning payments yet",
   emptyDescription = "Your payments will appear here as you start using your wallet.",
   emptyVariant,
 }: TransactionsListProps) {
   const [page, setPage] = useState(1);
+  const { filters } = useTransactionFiltersStore();
   const transactionListRef = useRef<HTMLDivElement>(null);
   const transactionListKey = getTransactionsUrl(
     appId,
@@ -46,11 +42,11 @@ function TransactionsList({
   const transactions = transactionData?.transactions || [];
   const totalCount = transactionData?.totalCount || 0;
   const hasActiveFilters =
-    !!filters && ((filters.minAmountSat ?? 0) > 0 || !!filters.hideFailed);
+    (filters.minAmountSat ?? 0) > 0 || !!filters.hideFailed;
 
   useEffect(() => {
     setPage(1);
-  }, [appId, filters?.minAmountSat, filters?.hideFailed]);
+  }, [appId, filters.minAmountSat, filters.hideFailed]);
 
   const handlePageChange = (page: number) => {
     setPage(page);
