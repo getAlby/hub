@@ -12,7 +12,7 @@ import {
   ZapIcon,
 } from "lucide-react";
 import React from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import twoFiatLogo from "src/assets/cards/2fiat.png";
 import freedomiaLogo from "src/assets/cards/freedomia.png";
 import redotpayLogo from "src/assets/cards/redotpay.png";
@@ -34,6 +34,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "src/components/ui/dialog";
+import { Input } from "src/components/ui/input";
+import { Label } from "src/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -783,8 +785,77 @@ function ConnectCardDialog({
   onOpenChange: (open: boolean) => void;
   providers: Provider[];
 }) {
+  const navigate = useNavigate();
+  const [showOtherCardForm, setShowOtherCardForm] = React.useState(false);
+  const [otherCardName, setOtherCardName] = React.useState("");
+
+  const handleOpenChange = (o: boolean) => {
+    if (o) {
+      setShowOtherCardForm(false);
+      setOtherCardName("");
+    }
+    onOpenChange(o);
+  };
+
+  const handleOtherCardSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cardName = otherCardName.trim();
+    if (!cardName) {
+      return;
+    }
+    sendEvent("debit_card_connect", { name: cardName });
+    onOpenChange(false);
+    navigate(
+      `/apps/new?app=bitcoin-card-topup&name=${encodeURIComponent(`${cardName} - Bitcoin Card Topup`)}`
+    );
+  };
+
+  if (showOtherCardForm) {
+    return (
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Name your card</DialogTitle>
+            <DialogDescription>
+              We'll use it to label your top-up connection.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form
+            onSubmit={handleOtherCardSubmit}
+            className="flex flex-col gap-4"
+          >
+            <div className="grid gap-1.5">
+              <Label htmlFor="other-card-name">Card name</Label>
+              <Input
+                autoFocus
+                type="text"
+                id="other-card-name"
+                value={otherCardName}
+                onChange={(e) => setOtherCardName(e.target.value)}
+                placeholder="e.g. Moon"
+                required
+                autoComplete="off"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setShowOtherCardForm(false)}
+              >
+                Back
+              </Button>
+              <Button type="submit">Continue</Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Pick your card provider</DialogTitle>
@@ -835,13 +906,10 @@ function ConnectCardDialog({
             );
           })}
 
-          <Link
-            to="/apps/new?app=bitcoin-card-topup"
-            onClick={() => {
-              sendEvent("debit_card_connect", { name: "Other" });
-              onOpenChange(false);
-            }}
-            className="flex items-center gap-3 rounded-lg border border-dashed border-border p-3 hover:bg-accent/40 transition-colors"
+          <button
+            type="button"
+            onClick={() => setShowOtherCardForm(true)}
+            className="flex items-center gap-3 rounded-lg border border-dashed border-border p-3 hover:bg-accent/40 transition-colors text-left"
           >
             <div className="flex items-center justify-center size-10 rounded-lg shrink-0 bg-secondary text-secondary-foreground">
               <CreditCardIcon className="size-5" />
@@ -853,7 +921,7 @@ function ConnectCardDialog({
               </p>
             </div>
             <ArrowUpRightIcon className="size-4 text-muted-foreground" />
-          </Link>
+          </button>
         </div>
       </DialogContent>
     </Dialog>
