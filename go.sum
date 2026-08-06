@@ -166,8 +166,8 @@ github.com/fxamacker/cbor/v2 v2.7.0 h1:iM5WgngdRBanHcxugY4JySA0nk1wZorNOpTgCMedv
 github.com/fxamacker/cbor/v2 v2.7.0/go.mod h1:pxXPTn3joSm21Gbwsv0w9OSA2y1HFR9qXEeXQVeNoDQ=
 github.com/getAlby/go-nostr v0.0.0-20260805072924-9844f892c3c8 h1:r2Th/F2tHpQl+eHIiGxMlF7R8tsdLQxrPMoIOacabO0=
 github.com/getAlby/go-nostr v0.0.0-20260805072924-9844f892c3c8/go.mod h1:UtZi+MvE7ayGS85zEr5RH2s96T2ok5Gotgp3n65sULU=
-github.com/getAlby/ldk-node-go v0.0.0-20260804150503-a3db1213cce4 h1:cgefKtvNpBxdQT/taKoYC9C4BTF8tH+Q0uIBfOPLvgI=
-github.com/getAlby/ldk-node-go v0.0.0-20260804150503-a3db1213cce4/go.mod h1:8BRjtKcz8E0RyYTPEbMS8VIdgredcGSLne8vHDtcRLg=
+github.com/getAlby/ldk-node-go v0.0.0-20260805080406-af22e238c194 h1:ig9ilZEJ1g0uGsgCdhJSDGwHaCR1f3V+0/HR6ZIeLjc=
+github.com/getAlby/ldk-node-go v0.0.0-20260805080406-af22e238c194/go.mod h1:8BRjtKcz8E0RyYTPEbMS8VIdgredcGSLne8vHDtcRLg=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-gormigrate/gormigrate/v2 v2.1.6 h1:VtX+l1Stj2v5RGubVQk0LS/8EPGXR+ldcOyCmlmKoyg=
 github.com/go-gormigrate/gormigrate/v2 v2.1.6/go.mod h1:PZpedQc4tWaxn6kvXicwhinh3L0seLpMc5ReKRX5id4=
@@ -593,6 +593,8 @@ github.com/yusufpapurcu/wmi v1.2.4 h1:zFUKzehAFReQwLys1b/iSMl+JQGSCSjtVqQn9bBrPo
 github.com/yusufpapurcu/wmi v1.2.4/go.mod h1:SBZ9tNy3G9/m5Oi98Zks0QjeHVDvuK0qfxQmPyzfmi0=
 gitlab.com/ark-bitcoin/bark-ffi-bindings/golang v0.12.1 h1:jEnl0leC9n7EsT9Rn339nC9e/9GWCMPXzmzowzxmY24=
 gitlab.com/ark-bitcoin/bark-ffi-bindings/golang v0.12.1/go.mod h1:1jAwB/XR4i3D72fz3qWAd41tQLYcOCGfWZHMagn5fNg=
+gitlab.com/ark-bitcoin/bark-ffi-bindings/golang v0.15.0 h1:X6TmMsVcvwOo5CxnlOQ/104OBO7cdOvYcTIatS5yfu4=
+gitlab.com/ark-bitcoin/bark-ffi-bindings/golang v0.15.0/go.mod h1:1jAwB/XR4i3D72fz3qWAd41tQLYcOCGfWZHMagn5fNg=
 go.etcd.io/bbolt v1.4.3 h1:dEadXpI6G79deX5prL3QRNP6JB8UxVkqo4UPnHaNXJo=
 go.etcd.io/bbolt v1.4.3/go.mod h1:tKQlpPaYCVFctUIgFKFnAlvbmB3tpy1vkTnDWohtc0E=
 go.etcd.io/etcd/api/v3 v3.5.16 h1:WvmyJVbjWqK4R1E+B12RRHz3bRGy9XVfh++MgbN+6n0=
