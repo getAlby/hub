@@ -326,12 +326,10 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		limit := uint64(20)
 		offset := uint64(0)
 		var appId *uint
-		filters := api.ListTransactionsFilters{
-			ShowFailed: true,
-		}
+		filters := api.ListTransactionsFilters{}
 
 		// Extract list transaction parameters
-		paramRegex := regexp.MustCompile(`[?&](limit|offset|appId|minAmountSat|showFailed)=([^&]+)`)
+		paramRegex := regexp.MustCompile(`[?&](limit|offset|appId|minAmountSat|hideFailed)=([^&]+)`)
 		paramMatches := paramRegex.FindAllStringSubmatch(route, -1)
 		for _, match := range paramMatches {
 			switch match[1] {
@@ -358,9 +356,9 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 					minAmountMsat := parsedMinAmountSat * msatPerSat
 					filters.MinAmountMsat = &minAmountMsat
 				}
-			case "showFailed":
-				if parsedShowFailed, err := strconv.ParseBool(match[2]); err == nil {
-					filters.ShowFailed = parsedShowFailed
+			case "hideFailed":
+				if parsedHideFailed, err := strconv.ParseBool(match[2]); err == nil {
+					filters.HideFailed = parsedHideFailed
 				}
 			}
 		}

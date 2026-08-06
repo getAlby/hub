@@ -745,9 +745,7 @@ func (httpSvc *HttpService) listTransactionsHandler(c echo.Context) error {
 	limit := uint64(20)
 	offset := uint64(0)
 	var appId *uint
-	filters := api.ListTransactionsFilters{
-		ShowFailed: true,
-	}
+	filters := api.ListTransactionsFilters{}
 
 	if limitParam := c.QueryParam("limit"); limitParam != "" {
 		if parsedLimit, err := strconv.ParseUint(limitParam, 10, 64); err == nil {
@@ -782,9 +780,9 @@ func (httpSvc *HttpService) listTransactionsHandler(c echo.Context) error {
 		}
 	}
 
-	if showFailedParam := c.QueryParam("showFailed"); showFailedParam != "" {
-		if parsedShowFailed, err := strconv.ParseBool(showFailedParam); err == nil {
-			filters.ShowFailed = parsedShowFailed
+	if hideFailedParam := c.QueryParam("hideFailed"); hideFailedParam != "" {
+		if parsedHideFailed, err := strconv.ParseBool(hideFailedParam); err == nil {
+			filters.HideFailed = parsedHideFailed
 		}
 	}
 

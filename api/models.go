@@ -499,7 +499,7 @@ type SetTransactionUserLabelsRequest struct {
 
 type ListTransactionsFilters struct {
 	MinAmountMsat *uint64
-	ShowFailed    bool
+	HideFailed    bool
 }
 
 type ListTransactionsResponse struct {

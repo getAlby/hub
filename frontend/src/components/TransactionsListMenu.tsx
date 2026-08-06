@@ -44,8 +44,7 @@ export const TransactionsListMenu = ({
   };
   const hasFilterControls = !!onFiltersChange;
   const hasActiveFilters =
-    (currentFilters.minAmountSat ?? 0) > 0 ||
-    (currentFilters.showFailed ?? true) === false;
+    (currentFilters.minAmountSat ?? 0) > 0 || !!currentFilters.hideFailed;
 
   const setMinAmountSat = (value: string) => {
     onFiltersChange?.({
@@ -57,7 +56,7 @@ export const TransactionsListMenu = ({
   const setShowFailed = (checked: boolean) => {
     onFiltersChange?.({
       ...currentFilters,
-      showFailed: checked,
+      hideFailed: !checked,
     });
   };
 
@@ -88,7 +87,7 @@ export const TransactionsListMenu = ({
             </DropdownMenuRadioGroup>
             <DropdownMenuSeparator />
             <DropdownMenuCheckboxItem
-              checked={currentFilters.showFailed ?? true}
+              checked={!currentFilters.hideFailed}
               onCheckedChange={(checked) => setShowFailed(checked === true)}
             >
               Show failed payments

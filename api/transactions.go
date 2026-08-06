@@ -56,9 +56,9 @@ func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64,
 		forceFilterByAppId = true
 	}
 
-	dbTransactions, totalCount, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, true, false, nil, lnClient, appId, forceFilterByAppId, transactions.ListTransactionsFilter{
+	dbTransactions, totalCount, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, true, false, nil, lnClient, appId, forceFilterByAppId, &transactions.ListTransactionsFilters{
 		MinAmountMsat: filters.MinAmountMsat,
-		ShowFailed:    filters.ShowFailed,
+		HideFailed:    filters.HideFailed,
 	})
 	if err != nil {
 		return nil, err

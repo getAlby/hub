@@ -9,12 +9,10 @@ const pollConfiguration: SWRConfiguration = {
 
 export type TransactionFilters = {
   minAmountSat?: number;
-  showFailed?: boolean;
+  hideFailed?: boolean;
 };
 
-export const defaultTransactionFilters: TransactionFilters = {
-  showFailed: true,
-};
+export const defaultTransactionFilters: TransactionFilters = {};
 
 export function getTransactionsUrl(
   appId?: number,
@@ -34,8 +32,8 @@ export function getTransactionsUrl(
   if (filters?.minAmountSat && filters.minAmountSat > 0) {
     searchParams.set("minAmountSat", String(filters.minAmountSat));
   }
-  if (filters?.showFailed !== undefined) {
-    searchParams.set("showFailed", String(filters.showFailed));
+  if (filters?.hideFailed) {
+    searchParams.set("hideFailed", "true");
   }
 
   const url = `/api/transactions?${searchParams.toString()}`;

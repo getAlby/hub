@@ -38,7 +38,7 @@ type TransactionsService interface {
 	events.EventSubscriber
 	MakeInvoice(ctx context.Context, amountMsat uint64, description string, descriptionHash string, expiry uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint, throughNodePubkey *string) (*Transaction, error)
 	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
-	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool, filters ...ListTransactionsFilter) (transactions []Transaction, totalCount uint64, err error)
+	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool, filters *ListTransactionsFilters) (transactions []Transaction, totalCount uint64, err error)
 	SendPaymentSync(payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SendKeysend(amountMsat uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	MakeHoldInvoice(ctx context.Context, amountMsat uint64, description string, descriptionHash string, expiry uint64, paymentHash string, minCltvExpiryDelta *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
@@ -60,9 +60,9 @@ var balanceValidationLock = &sync.Mutex{}
 
 type Transaction = db.Transaction
 
-type ListTransactionsFilter struct {
+type ListTransactionsFilters struct {
 	MinAmountMsat *uint64
-	ShowFailed    bool
+	HideFailed    bool
 }
 
 type Boostagram struct {
@@ -645,15 +645,8 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 	return &transaction, nil
 }
 
-func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool, filters ...ListTransactionsFilter) (transactions []Transaction, totalCount uint64, err error) {
+func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool, filters *ListTransactionsFilters) (transactions []Transaction, totalCount uint64, err error) {
 	svc.checkUnsettledTransactions(ctx, lnClient)
-
-	filter := ListTransactionsFilter{
-		ShowFailed: true,
-	}
-	if len(filters) > 0 {
-		filter = filters[0]
-	}
 
 	var isIsolatedApp bool
 	if appId != nil {
@@ -688,11 +681,13 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 		tx = tx.Where("type = ?", *transactionType)
 	}
 
-	if filter.MinAmountMsat != nil {
-		tx = tx.Where("amount_msat >= ?", *filter.MinAmountMsat)
-	}
-	if !filter.ShowFailed {
-		tx = tx.Where("state != ?", constants.TRANSACTION_STATE_FAILED)
+	if filters != nil {
+		if filters.MinAmountMsat != nil {
+			tx = tx.Where("amount_msat >= ?", *filters.MinAmountMsat)
+		}
+		if filters.HideFailed {
+			tx = tx.Where("state != ?", constants.TRANSACTION_STATE_FAILED)
+		}
 	}
 
 	if from > 0 {

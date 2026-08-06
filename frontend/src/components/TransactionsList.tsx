@@ -46,12 +46,11 @@ function TransactionsList({
   const transactions = transactionData?.transactions || [];
   const totalCount = transactionData?.totalCount || 0;
   const hasActiveFilters =
-    !!filters &&
-    ((filters.minAmountSat ?? 0) > 0 || filters.showFailed === false);
+    !!filters && ((filters.minAmountSat ?? 0) > 0 || !!filters.hideFailed);
 
   useEffect(() => {
     setPage(1);
-  }, [appId, filters?.minAmountSat, filters?.showFailed]);
+  }, [appId, filters?.minAmountSat, filters?.hideFailed]);
 
   const handlePageChange = (page: number) => {
     setPage(page);
