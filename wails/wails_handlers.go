@@ -326,41 +326,35 @@ func (app *WailsApp) WailsRequestRouter(route string, method string, body string
 		limit := uint64(20)
 		offset := uint64(0)
 		var appId *uint
-		filters := api.ListTransactionsFilters{}
 
-		// Extract list transaction parameters
-		paramRegex := regexp.MustCompile(`[?&](limit|offset|appId|minAmountSat|hideFailed)=([^&]+)`)
-		paramMatches := paramRegex.FindAllStringSubmatch(route, -1)
-		for _, match := range paramMatches {
-			switch match[1] {
-			case "limit":
-				if parsedLimit, err := strconv.ParseUint(match[2], 10, 64); err == nil {
-					limit = parsedLimit
-				}
-			case "offset":
-				if parsedOffset, err := strconv.ParseUint(match[2], 10, 64); err == nil {
-					offset = parsedOffset
-				}
-			case "appId":
-				if parsedAppId, err := strconv.ParseUint(match[2], 10, 64); err == nil {
-					var unsignedAppId = uint(parsedAppId)
-					appId = &unsignedAppId
-				}
-			case "minAmountSat":
-				if parsedMinAmountSat, err := strconv.ParseUint(match[2], 10, 64); err == nil && parsedMinAmountSat > 0 {
-					const msatPerSat = uint64(1000)
-					if parsedMinAmountSat > ^uint64(0)/msatPerSat {
-						return WailsRequestRouterResponse{Body: nil, Error: "minAmountSat is too large"}
-					}
+		parsedUrl, err := url.Parse(route)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: "invalid route"}
+		}
+		query := parsedUrl.Query()
 
-					minAmountMsat := parsedMinAmountSat * msatPerSat
-					filters.MinAmountMsat = &minAmountMsat
-				}
-			case "hideFailed":
-				if parsedHideFailed, err := strconv.ParseBool(match[2]); err == nil {
-					filters.HideFailed = parsedHideFailed
-				}
+		if limitParam := query.Get("limit"); limitParam != "" {
+			if parsedLimit, err := strconv.ParseUint(limitParam, 10, 64); err == nil {
+				limit = parsedLimit
 			}
+		}
+
+		if offsetParam := query.Get("offset"); offsetParam != "" {
+			if parsedOffset, err := strconv.ParseUint(offsetParam, 10, 64); err == nil {
+				offset = parsedOffset
+			}
+		}
+
+		if appIdParam := query.Get("appId"); appIdParam != "" {
+			if parsedAppId, err := strconv.ParseUint(appIdParam, 10, 64); err == nil {
+				var unsignedAppId = uint(parsedAppId)
+				appId = &unsignedAppId
+			}
+		}
+
+		filters, err := api.ParseListTransactionsFilters(query)
+		if err != nil {
+			return WailsRequestRouterResponse{Body: nil, Error: err.Error()}
 		}
 
 		transactions, err := app.api.ListTransactions(ctx, appId, limit, offset, filters)

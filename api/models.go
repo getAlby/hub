@@ -498,8 +498,10 @@ type SetTransactionUserLabelsRequest struct {
 }
 
 type ListTransactionsFilters struct {
+	Type          *string
 	MinAmountMsat *uint64
 	HideFailed    bool
+	SearchTerm    string
 }
 
 type ListTransactionsResponse struct {

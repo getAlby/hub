@@ -8,11 +8,22 @@ const pollConfiguration: SWRConfiguration = {
 };
 
 export type TransactionFilters = {
+  searchTerm?: string;
+  type?: "incoming" | "outgoing";
   minAmountSat?: number;
   hideFailed?: boolean;
 };
 
 export const defaultTransactionFilters: TransactionFilters = {};
+
+export function hasActiveTransactionFilters(filters: TransactionFilters) {
+  return (
+    !!filters.searchTerm ||
+    !!filters.type ||
+    (filters.minAmountSat ?? 0) > 0 ||
+    !!filters.hideFailed
+  );
+}
 
 export function getTransactionsUrl(
   appId?: number,
@@ -28,6 +39,12 @@ export function getTransactionsUrl(
 
   if (appId) {
     searchParams.set("appId", String(appId));
+  }
+  if (filters?.searchTerm) {
+    searchParams.set("search", filters.searchTerm);
+  }
+  if (filters?.type) {
+    searchParams.set("type", filters.type);
   }
   if (filters?.minAmountSat && filters.minAmountSat > 0) {
     searchParams.set("minAmountSat", String(filters.minAmountSat));

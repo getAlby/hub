@@ -745,7 +745,6 @@ func (httpSvc *HttpService) listTransactionsHandler(c echo.Context) error {
 	limit := uint64(20)
 	offset := uint64(0)
 	var appId *uint
-	filters := api.ListTransactionsFilters{}
 
 	if limitParam := c.QueryParam("limit"); limitParam != "" {
 		if parsedLimit, err := strconv.ParseUint(limitParam, 10, 64); err == nil {
@@ -766,24 +765,11 @@ func (httpSvc *HttpService) listTransactionsHandler(c echo.Context) error {
 		}
 	}
 
-	if minAmountSatParam := c.QueryParam("minAmountSat"); minAmountSatParam != "" {
-		if parsedMinAmountSat, err := strconv.ParseUint(minAmountSatParam, 10, 64); err == nil && parsedMinAmountSat > 0 {
-			const msatPerSat = uint64(1000)
-			if parsedMinAmountSat > ^uint64(0)/msatPerSat {
-				return c.JSON(http.StatusBadRequest, ErrorResponse{
-					Message: "minAmountSat is too large",
-				})
-			}
-
-			minAmountMsat := parsedMinAmountSat * msatPerSat
-			filters.MinAmountMsat = &minAmountMsat
-		}
-	}
-
-	if hideFailedParam := c.QueryParam("hideFailed"); hideFailedParam != "" {
-		if parsedHideFailed, err := strconv.ParseBool(hideFailedParam); err == nil {
-			filters.HideFailed = parsedHideFailed
-		}
+	filters, err := api.ParseListTransactionsFilters(c.QueryParams())
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, ErrorResponse{
+			Message: err.Error(),
+		})
 	}
 
 	transactions, err := httpSvc.api.ListTransactions(ctx, appId, limit, offset, filters)

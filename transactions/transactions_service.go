@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"regexp"
 	"slices"
 	"strconv"
 	"strings"
@@ -38,7 +39,7 @@ type TransactionsService interface {
 	events.EventSubscriber
 	MakeInvoice(ctx context.Context, amountMsat uint64, description string, descriptionHash string, expiry uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint, throughNodePubkey *string) (*Transaction, error)
 	LookupTransaction(ctx context.Context, paymentHash string, transactionType *string, lnClient lnclient.LNClient, appId *uint) (*Transaction, error)
-	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool, filters *ListTransactionsFilters) (transactions []Transaction, totalCount uint64, err error)
+	ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool, filters *ListTransactionsFilters) (transactions []Transaction, totalCount uint64, err error)
 	SendPaymentSync(payReq string, amountMsat *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	SendKeysend(amountMsat uint64, destination string, customRecords []lnclient.TLVRecord, preimage string, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
 	MakeHoldInvoice(ctx context.Context, amountMsat uint64, description string, descriptionHash string, expiry uint64, paymentHash string, minCltvExpiryDelta *uint64, metadata map[string]interface{}, lnClient lnclient.LNClient, appId *uint, requestEventId *uint) (*Transaction, error)
@@ -61,8 +62,24 @@ var balanceValidationLock = &sync.Mutex{}
 type Transaction = db.Transaction
 
 type ListTransactionsFilters struct {
+	Type          *string
 	MinAmountMsat *uint64
 	HideFailed    bool
+	SearchTerm    string
+}
+
+var paymentHashRegex = regexp.MustCompile("^[0-9a-f]{64}$")
+
+// escapeLikePattern makes a string match literally in a LIKE ... ESCAPE '\'
+// clause by escaping the wildcard characters % and _. This is not an SQL
+// injection concern (search terms are always passed as bound parameters);
+// without it a term like "50%" would behave as a wildcard pattern.
+// The backslash must be escaped first.
+func escapeLikePattern(s string) string {
+	s = strings.ReplaceAll(s, `\`, `\\`)
+	s = strings.ReplaceAll(s, "%", `\%`)
+	s = strings.ReplaceAll(s, "_", `\_`)
+	return s
 }
 
 type Boostagram struct {
@@ -645,7 +662,7 @@ func (svc *transactionsService) LookupTransaction(ctx context.Context, paymentHa
 	return &transaction, nil
 }
 
-func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, transactionType *string, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool, filters *ListTransactionsFilters) (transactions []Transaction, totalCount uint64, err error) {
+func (svc *transactionsService) ListTransactions(ctx context.Context, from, until, limit, offset uint64, unpaidOutgoing bool, unpaidIncoming bool, lnClient lnclient.LNClient, appId *uint, forceFilterByAppId bool, filters *ListTransactionsFilters) (transactions []Transaction, totalCount uint64, err error) {
 	svc.checkUnsettledTransactions(ctx, lnClient)
 
 	var isIsolatedApp bool
@@ -677,16 +694,39 @@ func (svc *transactionsService) ListTransactions(ctx context.Context, from, unti
 		tx = tx.Where("state = ? OR type = ?", constants.TRANSACTION_STATE_SETTLED, constants.TRANSACTION_TYPE_INCOMING)
 	}
 
-	if transactionType != nil {
-		tx = tx.Where("type = ?", *transactionType)
-	}
-
 	if filters != nil {
+		if filters.Type != nil {
+			tx = tx.Where("type = ?", *filters.Type)
+		}
 		if filters.MinAmountMsat != nil {
 			tx = tx.Where("amount_msat >= ?", *filters.MinAmountMsat)
 		}
 		if filters.HideFailed {
 			tx = tx.Where("state != ?", constants.TRANSACTION_STATE_FAILED)
+		}
+		if searchTerm := strings.ToLower(strings.TrimSpace(filters.SearchTerm)); searchTerm != "" {
+			likePattern := "%" + escapeLikePattern(searchTerm) + "%"
+			labelsCondition := `EXISTS (SELECT 1 FROM json_each(transactions.metadata, '$.user_labels') AS user_labels WHERE LOWER(user_labels.key) LIKE ? ESCAPE '\' OR LOWER(user_labels.value) LIKE ? ESCAPE '\')`
+			if svc.db.Dialector.Name() == "postgres" {
+				labelsCondition = `EXISTS (SELECT 1 FROM jsonb_each_text((transactions.metadata->'user_labels')::jsonb) AS user_labels WHERE LOWER(user_labels.key) LIKE ? ESCAPE '\' OR LOWER(user_labels.value) LIKE ? ESCAPE '\')`
+			}
+			conditions := `LOWER(description) LIKE ? ESCAPE '\' OR ` + labelsCondition
+			args := []interface{}{likePattern, likePattern, likePattern}
+
+			paymentHash := ""
+			if paymentHashRegex.MatchString(searchTerm) {
+				paymentHash = searchTerm
+			} else if strings.HasPrefix(searchTerm, "ln") {
+				if paymentRequest, err := decodepay.Decodepay(searchTerm); err == nil {
+					paymentHash = strings.ToLower(paymentRequest.PaymentHash)
+				}
+			}
+			if paymentHash != "" {
+				conditions += " OR payment_hash = ?"
+				args = append(args, paymentHash)
+			}
+
+			tx = tx.Where(conditions, args...)
 		}
 	}
 

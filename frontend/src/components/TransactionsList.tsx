@@ -5,7 +5,11 @@ import EmptyState from "src/components/EmptyState";
 import Loading from "src/components/Loading";
 import TransactionItem from "src/components/TransactionItem";
 import { LIST_TRANSACTIONS_LIMIT } from "src/constants";
-import { getTransactionsUrl, useTransactions } from "src/hooks/useTransactions";
+import {
+  getTransactionsUrl,
+  hasActiveTransactionFilters,
+  useTransactions,
+} from "src/hooks/useTransactions";
 import useTransactionFiltersStore from "src/state/TransactionFiltersStore";
 
 type TransactionsListProps = {
@@ -41,12 +45,11 @@ function TransactionsList({
   );
   const transactions = transactionData?.transactions || [];
   const totalCount = transactionData?.totalCount || 0;
-  const hasActiveFilters =
-    (filters.minAmountSat ?? 0) > 0 || !!filters.hideFailed;
+  const hasActiveFilters = hasActiveTransactionFilters(filters);
 
   useEffect(() => {
     setPage(1);
-  }, [appId, filters.minAmountSat, filters.hideFailed]);
+  }, [appId, filters]);
 
   const handlePageChange = (page: number) => {
     setPage(page);

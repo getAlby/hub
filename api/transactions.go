@@ -4,9 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/getAlby/hub/constants"
 	"github.com/getAlby/hub/logger"
 	"github.com/getAlby/hub/transactions"
 	"github.com/sirupsen/logrus"
@@ -45,6 +49,40 @@ func (api *api) SetTransactionUserLabels(ctx context.Context, id uint, labels ma
 	return api.svc.GetTransactionsService().SetTransactionUserLabels(ctx, id, labels)
 }
 
+// ParseListTransactionsFilters parses transaction filter query parameters
+// shared by the HTTP and Wails transports. Invalid values are ignored, except
+// values that could not be safely applied, which return an error.
+func ParseListTransactionsFilters(query url.Values) (ListTransactionsFilters, error) {
+	filters := ListTransactionsFilters{}
+
+	switch transactionType := query.Get("type"); transactionType {
+	case constants.TRANSACTION_TYPE_INCOMING, constants.TRANSACTION_TYPE_OUTGOING:
+		filters.Type = &transactionType
+	}
+
+	if minAmountSatParam := query.Get("minAmountSat"); minAmountSatParam != "" {
+		if minAmountSat, err := strconv.ParseUint(minAmountSatParam, 10, 64); err == nil && minAmountSat > 0 {
+			const msatPerSat = uint64(1000)
+			if minAmountSat > ^uint64(0)/msatPerSat {
+				return filters, fmt.Errorf("minAmountSat is too large")
+			}
+
+			minAmountMsat := minAmountSat * msatPerSat
+			filters.MinAmountMsat = &minAmountMsat
+		}
+	}
+
+	if hideFailedParam := query.Get("hideFailed"); hideFailedParam != "" {
+		if hideFailed, err := strconv.ParseBool(hideFailedParam); err == nil {
+			filters.HideFailed = hideFailed
+		}
+	}
+
+	filters.SearchTerm = strings.TrimSpace(query.Get("search"))
+
+	return filters, nil
+}
+
 func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64, offset uint64, filters ListTransactionsFilters) (*ListTransactionsResponse, error) {
 	lnClient := api.svc.GetLNClient()
 	if lnClient == nil {
@@ -56,9 +94,11 @@ func (api *api) ListTransactions(ctx context.Context, appId *uint, limit uint64,
 		forceFilterByAppId = true
 	}
 
-	dbTransactions, totalCount, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, true, false, nil, lnClient, appId, forceFilterByAppId, &transactions.ListTransactionsFilters{
+	dbTransactions, totalCount, err := api.svc.GetTransactionsService().ListTransactions(ctx, 0, 0, limit, offset, true, false, lnClient, appId, forceFilterByAppId, &transactions.ListTransactionsFilters{
+		Type:          filters.Type,
 		MinAmountMsat: filters.MinAmountMsat,
 		HideFailed:    filters.HideFailed,
+		SearchTerm:    filters.SearchTerm,
 	})
 	if err != nil {
 		return nil, err

@@ -11,10 +11,17 @@ import {
 } from "src/components/ui/dialog";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
+import { ToggleGroup, ToggleGroupItem } from "src/components/ui/toggle-group";
 import {
   defaultTransactionFilters,
   type TransactionFilters,
 } from "src/hooks/useTransactions";
+
+const TYPE_OPTIONS: { label: string; value: string }[] = [
+  { label: "All", value: "all" },
+  { label: "Sent", value: "outgoing" },
+  { label: "Received", value: "incoming" },
+];
 
 type TransactionsFilterDialogProps = {
   open: boolean;
@@ -29,11 +36,15 @@ export function TransactionsFilterDialog({
   filters,
   onFiltersChange,
 }: TransactionsFilterDialogProps) {
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [type, setType] = React.useState("all");
   const [minAmountSat, setMinAmountSat] = React.useState("");
   const [hideFailed, setHideFailed] = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
+      setSearchTerm(filters.searchTerm ?? "");
+      setType(filters.type ?? "all");
       setMinAmountSat(filters.minAmountSat ? String(filters.minAmountSat) : "");
       setHideFailed(!!filters.hideFailed);
     }
@@ -43,6 +54,8 @@ export function TransactionsFilterDialog({
     e.preventDefault();
     const parsedMinAmountSat = parseInt(minAmountSat, 10);
     onFiltersChange({
+      searchTerm: searchTerm.trim() || undefined,
+      type: type === "incoming" || type === "outgoing" ? type : undefined,
       minAmountSat: parsedMinAmountSat > 0 ? parsedMinAmountSat : undefined,
       hideFailed,
     });
@@ -65,9 +78,34 @@ export function TransactionsFilterDialog({
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-2 mt-5">
-            <Label htmlFor="minAmountSat">Minimum amount (sats)</Label>
+            <Label htmlFor="searchTerm">Search</Label>
             <Input
               autoFocus
+              id="searchTerm"
+              type="text"
+              placeholder="Description, payment hash, invoice or label"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="grid gap-2 mt-4">
+            <Label>Direction</Label>
+            <ToggleGroup
+              type="single"
+              variant="outline"
+              value={type}
+              onValueChange={(value) => value && setType(value)}
+            >
+              {TYPE_OPTIONS.map((option) => (
+                <ToggleGroupItem key={option.value} value={option.value}>
+                  {option.label}
+                </ToggleGroupItem>
+              ))}
+            </ToggleGroup>
+          </div>
+          <div className="grid gap-2 mt-4">
+            <Label htmlFor="minAmountSat">Minimum amount (sats)</Label>
+            <Input
               id="minAmountSat"
               type="number"
               min="1"
