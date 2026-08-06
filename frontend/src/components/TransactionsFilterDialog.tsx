@@ -52,11 +52,14 @@ export function TransactionsFilterDialog({
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const parsedMinAmountSat = parseInt(minAmountSat, 10);
+    const parsedMinAmountSat = Number(minAmountSat);
     onFiltersChange({
       searchTerm: searchTerm.trim() || undefined,
       type: type === "incoming" || type === "outgoing" ? type : undefined,
-      minAmountSat: parsedMinAmountSat > 0 ? parsedMinAmountSat : undefined,
+      minAmountSat:
+        Number.isSafeInteger(parsedMinAmountSat) && parsedMinAmountSat > 0
+          ? parsedMinAmountSat
+          : undefined,
       hideFailed,
     });
     onOpenChange(false);
