@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"path"
 	"strconv"
 	"time"
@@ -24,6 +25,7 @@ import (
 	"github.com/getAlby/hub/lnclient/bark"
 	"github.com/getAlby/hub/lnclient/cashu"
 	"github.com/getAlby/hub/lnclient/cln"
+	"github.com/getAlby/hub/lnclient/greenlight"
 	"github.com/getAlby/hub/lnclient/ldk"
 	"github.com/getAlby/hub/lnclient/lnd"
 	"github.com/getAlby/hub/lnclient/phoenixd"
@@ -299,6 +301,11 @@ func (svc *service) StartApp(encryptionKey string) error {
 		svc.eventPublisher.Publish(&events.Event{
 			Event: "nwc_node_start_failed",
 		})
+		// GL signer may have been started inside launchGreenlight — stop it
+		// so keys are not left live after a failed unlock/start.
+		if svc.glSigner != nil {
+			svc.glSigner.Stop()
+		}
 		cancelFn()
 		return err
 	}
@@ -397,6 +404,8 @@ func (svc *service) launchLNBackend(ctx context.Context, encryptionKey string) e
 		CLNLightningDir, _ := svc.cfg.Get("CLNLightningDir", encryptionKey)
 		CLNAddressHold, _ := svc.cfg.Get("CLNAddressHold", encryptionKey)
 		lnClient, err = cln.NewCLNService(ctx, svc.eventPublisher, CLNAddress, CLNLightningDir, CLNAddressHold)
+	case config.GreenlightBackendType:
+		lnClient, err = svc.launchGreenlight(ctx, encryptionKey)
 	default:
 		logger.Logger.WithField("backend_type", lnBackend).Error("Unsupported LNBackendType")
 		return fmt.Errorf("unsupported backend type: %s", lnBackend)
@@ -490,3 +499,117 @@ func (svc *service) requestVssToken(ctx context.Context) (string, error) {
 	}
 	return vssToken, nil
 }
+
+// launchGreenlight provisions (register/recover from mnemonic if needed), starts the
+// local signer, then connects the gRPC LNClient.
+func (svc *service) launchGreenlight(ctx context.Context, encryptionKey string) (lnclient.LNClient, error) {
+	env := svc.cfg.GetEnv()
+	network := svc.cfg.GetNetwork()
+	if network == "" {
+		network = "signet"
+	}
+	// Map hub network labels to the value glcli/-n expects. GL supports
+	// bitcoin | testnet | signet (per docs bitcoin|testnet|regtest and
+	// scheduler; signet is accepted for dev). Default clean unknown -> signet
+	// for backward compat, but pass real networks through so the signer is
+	// spawned against the SAME network as the node (a testnet node without
+	// its local signer attached on testnet is read-only).
+	glNet := network
+	switch network {
+	case "mainnet", "bitcoin":
+		glNet = "bitcoin"
+	case "testnet", "regtest", "signet":
+		glNet = network
+	case "":
+		glNet = "signet"
+	default:
+		logger.Logger.WithField("network", network).Warn("greenlight: unsupported network label, using signet")
+		glNet = "signet"
+	}
+
+	workdir := path.Join(env.Workdir, "greenlight")
+	signerDir := workdir
+	if d, _ := svc.cfg.Get("GreenlightSignerDataDir", encryptionKey); d != "" {
+		signerDir = d
+	} else if env.GreenlightSignerDataDir != "" {
+		signerDir = env.GreenlightSignerDataDir
+	}
+
+	mnemonic, _ := svc.cfg.Get("Mnemonic", encryptionKey)
+	credsPath, _ := svc.cfg.Get("GreenlightCredsPath", encryptionKey)
+	nodeURI, _ := svc.cfg.Get("GreenlightNodeURI", encryptionKey)
+	serverName, _ := svc.cfg.Get("GreenlightServerName", encryptionKey)
+	if serverName == "" {
+		serverName = env.GreenlightServerName
+	}
+	if credsPath == "" {
+		credsPath = env.GreenlightCredsPath
+	}
+	if nodeURI == "" {
+		nodeURI = env.GreenlightNodeURI
+	}
+
+	// Preconfigured connect (local gl-testing harness or operator PEMs+URI):
+	// skip Blockstream register even if setup also stored a mnemonic.
+	preconfigured := credsPath != "" && nodeURI != ""
+
+	// Product path: mnemonic present and no usable connect config yet → register/recover.
+	if mnemonic != "" && !preconfigured {
+		svc.startupState = "Provisioning Greenlight"
+		nobodyCrt := env.GreenlightNobodyCrt
+		nobodyKey := env.GreenlightNobodyKey
+		if nobodyCrt == "" {
+			nobodyCrt = os.Getenv("GL_NOBODY_CRT")
+		}
+		if nobodyKey == "" {
+			nobodyKey = os.Getenv("GL_NOBODY_KEY")
+		}
+		extractScript := path.Join("lnclient", "greenlight", "extract_creds.py")
+		if _, err := os.Stat(extractScript); err != nil {
+			extractScript = "/root/hub/lnclient/greenlight/extract_creds.py"
+		}
+		dir, uri, err := greenlight.EnsureProvisioned(
+			signerDir, glNet, env.GreenlightGlcliPath, nobodyCrt, nobodyKey, mnemonic, extractScript,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("greenlight provision: %w", err)
+		}
+		credsPath = dir
+		if nodeURI == "" {
+			nodeURI = uri
+		}
+		_ = svc.cfg.SetUpdate("GreenlightCredsPath", credsPath, "")
+		_ = svc.cfg.SetUpdate("GreenlightNodeURI", nodeURI, "")
+		_ = svc.cfg.SetUpdate("GreenlightSignerDataDir", signerDir, "")
+	}
+
+	if credsPath == "" || nodeURI == "" {
+		return nil, fmt.Errorf("greenlight requires mnemonic (setup) or GREENLIGHT_CREDS_PATH + GREENLIGHT_NODE_URI")
+	}
+
+	// Start local glcli signer only when this box holds hsm_secret (product path).
+	// Local gl-testing keeps an in-process VLS signer; do not spawn a mismatched glcli.
+	hsmPath := path.Join(signerDir, "hsm_secret")
+	if _, err := os.Stat(hsmPath); err == nil {
+		svc.startupState = "Starting Greenlight signer"
+		if svc.glSigner == nil {
+			svc.glSigner = NewGreenlightSignerService()
+		}
+		if err := svc.glSigner.Start(ctx, signerDir, glNet, env.GreenlightGlcliPath); err != nil {
+			return nil, fmt.Errorf("start greenlight signer: %w", err)
+		}
+		time.Sleep(2 * time.Second)
+	} else {
+		logger.Logger.Info("No hsm_secret in greenlight workdir; assuming external signer (e.g. gl-testing)")
+	}
+
+	svc.startupState = "Connecting to Greenlight"
+	return greenlight.NewGreenlightService(ctx, svc.eventPublisher, workdir, greenlight.Config{
+		CredsPath:     credsPath,
+		NodeURI:       nodeURI,
+		ServerName:    serverName,
+		Network:       glNet,
+		SignerDataDir: signerDir,
+	})
+}
+

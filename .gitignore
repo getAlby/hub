@@ -1,6 +1,7 @@
 .DS_Store
 .env
 .env.local
+.env.bak*
 *.db
 *.macaroon
 node_modules
@@ -8,7 +9,12 @@ nostr-wallet-connect
 nwc.db
 .breez
 .data
+.data.*
 .idea
+
+# compiled server binary
+/hub
+dist
 
 frontend/dist
 frontend/node_modules
