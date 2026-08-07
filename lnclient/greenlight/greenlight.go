@@ -234,7 +234,13 @@ func (g *GreenlightService) SendKeysend(amount uint64, destination string, custo
 	}).Debug("Send Keysend")
 
 	if preimage != "" {
-		return nil, errors.New("preimage not supported for keysends")
+		// The hub's transactions service always synthesizes a preimage for
+		// accounting (transactions_service.go SendKeysend). CLN's keysend
+		// derives its own preimage server-side and there is no cln-grpc
+		// field to override it, so accept and ignore rather than reject:
+		// rejecting here made every outgoing NIP-47 pay_keysend fail with
+		// "preimage not supported for keysends".
+		logger.Logger.Debug("keysend: ignoring caller-supplied preimage (CLN derives its own)")
 	}
 
 	Destination, err := hex.DecodeString(destination)
@@ -1179,23 +1185,15 @@ func (g *GreenlightService) GetLogOutput(ctx context.Context, maxLen int) ([]byt
 }
 
 func (g *GreenlightService) SignMessage(ctx context.Context, message string) (string, error) {
-	logger.Logger.WithFields(logrus.Fields{
-		"message": message,
-	}).Debug("Signing Message")
-
-	req := &clngrpc.SignmessageRequest{
-		Message: message,
-	}
-	resp, err := g.client.SignMessage(ctx, req)
-	if err != nil {
-		logger.Logger.WithError(err).Error("signmessage failed")
-		return "", fmt.Errorf("signmessage failed: %w", err)
-	}
-	if resp == nil {
-		return "", fmt.Errorf("signmessage result empty")
-	}
-
-	return resp.Zbase, nil
+	// NOT SUPPORTED: empirically (regtest harness + live testnet node,
+	// v26.06gl1 with glcli signer) the VLS signer never completes the
+	// hsmd SignMessage request, which wedges lightningd's serial hsmd
+	// queue and freezes ALL signing operations (invoice creation starts
+	// timing out) until the hosted node restarts. The same freeze was
+	// documented for the gl-testing python signer; the production Rust
+	// VLS signer hangs identically. Return a clean error instead of
+	// freezing the node.
+	return "", errors.New("sign message is not supported by the greenlight backend (VLS signer hangs on signmessage, freezing the node's hsmd queue)")
 }
 
 func (g *GreenlightService) GetStorageDir() (string, error) {
@@ -1337,7 +1335,9 @@ func (g *GreenlightService) GetSupportedNIP47Methods() []string {
 		models.LIST_TRANSACTIONS_METHOD,
 		models.MULTI_PAY_INVOICE_METHOD,
 		models.MULTI_PAY_KEYSEND_METHOD,
-		models.SIGN_MESSAGE_METHOD,
+		// sign_message intentionally omitted: the VLS signer hangs on it
+		// and freezes the node (see SignMessage) — do not advertise a
+		// method that can wedge the hsmd queue.
 	}
 
 	return methods

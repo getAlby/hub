@@ -145,13 +145,15 @@ func TestLiveE2E(t *testing.T) {
 	})
 
 	t.Run("SignMessage", func(t *testing.T) {
-		// SignMessage is a plain cln.Node passthrough (wrapper.rs: sign_message
-		// -> self.inner) and is covered by the mock suite. On the gl-testing
-		// harness the in-process python signer hangs on signmessage, which
-		// wedges lightningd's serial hsmd queue and freezes the node, so we
-		// must not call it here. The production signer is the Rust VLS binary
-		// (gl-signerproxy + vlsd), a different implementation.
-		t.Log("skipped: gl-testing python signer hangs on signmessage (node-freezing); covered by mock tests")
+		// SignMessage is NOT supported by the greenlight backend. The
+		// gl-testing in-process python signer hangs on signmessage and
+		// wedges lightningd's serial hsmd queue (freezing the node), and
+		// the SAME freeze was empirically reproduced on the production
+		// Rust VLS signer + hosted testnet node (v26.06gl1): signmessage
+		// never completes and invoice creation subsequently times out.
+		// The backend returns a clean error instead (see SignMessage), so
+		// calling it cannot freeze the node.
+		t.Log("skipped: SignMessage is stubbed with a not-supported error (node-freezing hang verified on both python and production signers)")
 	})
 
 	t.Run("ListPeers", func(t *testing.T) {

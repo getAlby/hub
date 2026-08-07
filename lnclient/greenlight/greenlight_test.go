@@ -24,6 +24,7 @@ import (
 	"github.com/getAlby/hub/lnclient"
 	"github.com/getAlby/hub/lnclient/cln/clngrpc"
 	"github.com/getAlby/hub/logger"
+	"github.com/getAlby/hub/nip47/models"
 	"github.com/sirupsen/logrus"
 )
 
@@ -644,12 +645,24 @@ func TestSendKeysend(t *testing.T) {
 	svc, cleanup := newTestService(t, newMockNode())
 	defer cleanup()
 
+	// empty preimage: original path
 	resp, err := svc.SendKeysend(1000, "02f1d2e5f1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d", nil, "")
 	if err != nil {
 		t.Fatalf("SendKeysend failed: %v", err)
 	}
 	if resp.FeeMsat != 5 {
 		t.Errorf("expected fee 5, got %d", resp.FeeMsat)
+	}
+
+	// non-empty preimage: the hub's transactions service always passes one,
+	// so it must be accepted (CLN derives its own) — not rejected like the
+	// upstream CLN backend bug that broke every NIP-47 pay_keysend.
+	resp2, err := svc.SendKeysend(2000, "02f1d2e5f1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d", nil, "1111111111111111111111111111111111111111111111111111111111111111")
+	if err != nil {
+		t.Fatalf("SendKeysend with caller preimage failed: %v", err)
+	}
+	if resp2.FeeMsat != 5 {
+		t.Errorf("expected fee 5, got %d", resp2.FeeMsat)
 	}
 }
 
@@ -811,12 +824,11 @@ func TestSignMessage(t *testing.T) {
 	svc, cleanup := newTestService(t, newMockNode())
 	defer cleanup()
 
-	sig, err := svc.SignMessage(context.Background(), "hello")
-	if err != nil {
-		t.Fatalf("SignMessage failed: %v", err)
-	}
-	if sig == "" {
-		t.Errorf("expected signature")
+	// SignMessage is deliberately unsupported: the VLS signer hangs on
+	// signmessage and wedges the node's hsmd queue (see SignMessage).
+	_, err := svc.SignMessage(context.Background(), "hello")
+	if err == nil {
+		t.Fatalf("expected SignMessage to return not-supported error")
 	}
 }
 
@@ -856,6 +868,11 @@ func TestSupportedMethodsAndNotifications(t *testing.T) {
 	methods := svc.GetSupportedNIP47Methods()
 	if len(methods) == 0 {
 		t.Errorf("expected supported methods")
+	}
+	for _, m := range methods {
+		if m == models.SIGN_MESSAGE_METHOD {
+			t.Errorf("sign_message must not be advertised: it freezes the node (see SignMessage)")
+		}
 	}
 	// push tier: pump covers incoming payments with persisted index catch-up
 	notifications := svc.GetSupportedNIP47NotificationTypes()

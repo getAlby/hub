@@ -9,11 +9,14 @@ separate VLS (Validating Lightning Signer) process.
 
 - Full NIP-47 surface: payments (pay_invoice, pay_keysend), invoices,
   lookup, balances (channel + onchain), channels (open/close/update),
-  onchain (withdraw, new address), offers (BOLT12), peers, network graph,
-  sign_message.
+  onchain (withdraw, new address), offers (BOLT12), peers, network graph.
+  (`sign_message` is NOT supported — see below.)
 - Incoming payments: `WaitAnyInvoice` pump with a persisted pay index
-  (restart-safe catch-up, no missed payments) + `StreamIncoming` for
-  incoming keysend with TLV records (NIP-47 app identification works).
+  (restart-safe catch-up, no missed payments) + `StreamIncoming` (raw
+  codec). Note: on the current GL stack keysend pseudo-invoices carry a
+  bolt11, so `StreamIncoming`'s `bolt11 == ""` guard never fires and ALL
+  incoming payments (invoice + keysend) are handled by the pump — keysend
+  TLV records are therefore not captured (the pump maps via LookupInvoice).
 - Custody: the hub never holds the seed. All signing happens in the
   signer process (VLS), which validates channel state and fees before
   signing — a compromised hub cannot move funds.
@@ -21,6 +24,12 @@ separate VLS (Validating Lightning Signer) process.
 ## Not supported (by design)
 
 - Hold invoices (GL/cln node does not expose them)
+- `sign_message`: the VLS signer (both the gl-testing python signer and
+  the production Rust glcli signer, verified on a live testnet node)
+  hangs on the hsmd SignMessage request, which wedges lightningd's serial
+  hsmd queue and freezes ALL signing operations (invoice creation times
+  out) until the hosted node restarts. The backend returns a clean
+  not-supported error instead and does not advertise the method.
 - `ResetRouter` (LDK-only concept)
 - Channel state notifications (`nwc_channel_ready` / `nwc_channel_closed`):
   all six `cln.Node` `Subscribe*` stream RPCs are `unimplemented!()` stubs
