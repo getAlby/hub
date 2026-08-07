@@ -930,10 +930,11 @@ function ConnectCardDialog({
             );
           })}
 
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => setShowOtherCardForm(true)}
-            className="flex items-center gap-3 rounded-lg border border-dashed border-border p-3 hover:bg-accent/40 transition-colors text-left"
+            className="h-auto w-full justify-start gap-3 whitespace-normal rounded-lg border border-dashed border-border p-3 text-left text-base font-normal hover:bg-accent/40 dark:hover:bg-accent/40"
           >
             <div className="flex items-center justify-center size-10 rounded-lg shrink-0 bg-secondary text-secondary-foreground">
               <CreditCardIcon className="size-5" />
@@ -945,7 +946,7 @@ function ConnectCardDialog({
               </p>
             </div>
             <ArrowUpRightIcon className="size-4 text-muted-foreground" />
-          </button>
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
