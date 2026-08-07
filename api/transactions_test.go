@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"net/url"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -59,4 +60,39 @@ func TestCreateInvoice_ToAppNotFound(t *testing.T) {
 	assert.Nil(t, transaction)
 	require.Error(t, err)
 	assert.Equal(t, "app does not exist", err.Error())
+}
+
+func TestParseListTransactionsFilters(t *testing.T) {
+	minAmountMsat := uint64(1000_000)
+	outgoing := "outgoing"
+
+	filters, err := ParseListTransactionsFilters(url.Values{
+		"type":         {"outgoing"},
+		"minAmountSat": {"1000"},
+		"hideFailed":   {"true"},
+		"search":       {" coffee "},
+	})
+	require.NoError(t, err)
+	assert.Equal(t, ListTransactionsFilters{
+		Type:          &outgoing,
+		MinAmountMsat: &minAmountMsat,
+		HideFailed:    true,
+		SearchTerm:    "coffee",
+	}, filters)
+
+	filters, err = ParseListTransactionsFilters(url.Values{})
+	require.NoError(t, err)
+	assert.Equal(t, ListTransactionsFilters{}, filters)
+
+	for _, invalidQuery := range []url.Values{
+		{"type": {"sideways"}},
+		{"minAmountSat": {"abc"}},
+		{"minAmountSat": {"-1"}},
+		{"minAmountSat": {"0"}},
+		{"minAmountSat": {"18446744073709551615"}},
+		{"hideFailed": {"maybe"}},
+	} {
+		_, err = ParseListTransactionsFilters(invalidQuery)
+		assert.Error(t, err, "query: %v", invalidQuery)
+	}
 }
