@@ -124,16 +124,31 @@ git push origin feat/greenlight-backend
 | Commits behind upstream master | 37 (merge-base `bf9c346a9899`) |
 | Conflicts | 2 (both frontend, see Part B) |
 | `go build ./...` | OK |
-| `go test ./lnclient/greenlight/` | ok (1.5s, all pass) |
+| `go test ./lnclient/greenlight/` | ok (~1.5s, all pass) |
 | `yarn build:http` | OK (dist 4.8MB; needed `yarn install` for `qr-code-styling`) |
 | Live smoke (regtest harness) | running: True, GREENLIGHT, invoice minted, UI 200 |
-| Merge commit | `3621d58c` → rewritten to `b330fc3e` after email fix |
-| Push | `3e6b2c4d..b330fc3e feat/greenlight-backend` ✓ |
+| Post-merge drift vs upstream | **0** (relationship clean — see pitfall below) |
+| Merge commit | `580b91e1` |
+| Branch tip / pushed | `2d7529d1` → `+ b330fc3e...2d7529d1 (forced update)` ✓ |
 
 ## Pitfalls (learned the hard way)
 
 - **Email privacy restriction**: welliv's account blocks pushes exposing the
   private email. Always commit with the noreply address (Part Prereqs).
+- **⚠️ NEVER use `git filter-branch` to rewrite the email of a merged branch**:
+  it rewrites *every* commit SHA in the range — including the upstream commits
+  — so the fork's history no longer matches upstream's SHAs and every future
+  `git merge upstream/master` re-conflicts on the same files
+  (`git rev-list --count HEAD..upstream/master` stays > 0 forever).
+  **Correct approach** (what this repo's history uses):
+  1. `git branch keep <rewritten-tip>` (save your commits)
+  2. `git reset --hard <fork-base>` (the last commit before the merge)
+  3. `git merge upstream/master` (brings **original** upstream SHAs) → resolve
+     conflicts
+  4. `git cherry-pick <fork-base>..keep^` (re-applies your local commits;
+     cherry-pick uses the current committer identity = noreply)
+  5. verify `git rev-list --count HEAD..upstream/master` → **0**
+  6. `git push --force-with-lease`
 - **Persisted GL config**: `GREENLIGHT_CREDS_PATH`/`GREENLIGHT_NODE_URI` are
   stored in the encrypted config DB at provisioning; env changes alone don't
   take effect on an existing workdir. Use a fresh workdir to re-point a hub.
