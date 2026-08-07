@@ -16,7 +16,7 @@ import { useMempoolApi } from "src/hooks/useMempoolApi";
 import { useSwapInfo } from "src/hooks/useSwaps";
 import {
   CreateInvoiceRequest,
-  InitiateSwapRequest,
+  InitiateSwapInRequest,
   SwapResponse,
   Transaction,
 } from "src/types";
@@ -75,7 +75,7 @@ export default function ReceiveOnchain() {
         return;
       }
 
-      const payload: InitiateSwapRequest = {
+      const payload: InitiateSwapInRequest = {
         swapAmountSat: parseInt(swapAmountSat),
       };
       const swapInResponse = await request<SwapResponse>("/api/swaps/in", {

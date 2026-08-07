@@ -94,7 +94,7 @@ export function CloseChannelDialogContent({ alias, channel }: Props) {
               Are you sure you want to close the channel with {alias}?
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This channel is inactive. Some channels require up to 6 onchain
+              This channel is inactive. Some channels require up to 6 on-chain
               confirmations before they are usable.
             </AlertDialogDescription>
           </AlertDialogHeader>
