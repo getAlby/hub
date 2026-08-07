@@ -34,6 +34,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "src/components/ui/dialog";
+import { FieldError } from "src/components/ui/field";
 import { Input } from "src/components/ui/input";
 import { Label } from "src/components/ui/label";
 import {
@@ -788,11 +789,23 @@ function ConnectCardDialog({
   const navigate = useNavigate();
   const [showOtherCardForm, setShowOtherCardForm] = React.useState(false);
   const [otherCardName, setOtherCardName] = React.useState("");
+  const [otherCardNameError, setOtherCardNameError] = React.useState("");
+
+  // The dialog is controlled and opened programmatically (no DialogTrigger),
+  // so onOpenChange never fires with true — reset the form here instead.
+  React.useEffect(() => {
+    if (open) {
+      setShowOtherCardForm(false);
+      setOtherCardName("");
+      setOtherCardNameError("");
+    }
+  }, [open]);
 
   const handleOpenChange = (o: boolean) => {
     if (o) {
       setShowOtherCardForm(false);
       setOtherCardName("");
+      setOtherCardNameError("");
     }
     onOpenChange(o);
   };
@@ -801,6 +814,7 @@ function ConnectCardDialog({
     e.preventDefault();
     const cardName = otherCardName.trim();
     if (!cardName) {
+      setOtherCardNameError("Enter a card name");
       return;
     }
     sendEvent("debit_card_connect", { name: cardName });
@@ -832,11 +846,21 @@ function ConnectCardDialog({
                 type="text"
                 id="other-card-name"
                 value={otherCardName}
-                onChange={(e) => setOtherCardName(e.target.value)}
+                onChange={(e) => {
+                  setOtherCardName(e.target.value);
+                  setOtherCardNameError("");
+                }}
                 placeholder="e.g. Moon"
                 required
                 autoComplete="off"
+                aria-invalid={!!otherCardNameError || undefined}
+                aria-describedby={
+                  otherCardNameError ? "other-card-name-error" : undefined
+                }
               />
+              <FieldError id="other-card-name-error">
+                {otherCardNameError}
+              </FieldError>
             </div>
             <div className="flex justify-end gap-2">
               <Button
