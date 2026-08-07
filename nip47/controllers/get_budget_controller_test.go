@@ -207,6 +207,41 @@ func TestHandleGetBudgetEvent_NoBudget(t *testing.T) {
 	assert.Nil(t, publishedResponse.Error)
 }
 
+func TestHandleGetBudgetEvent_DatabaseError(t *testing.T) {
+	ctx := context.TODO()
+	svc, err := tests.CreateTestService(t)
+	require.NoError(t, err)
+	defer svc.Remove()
+
+	nip47Request := &models.Request{}
+	err = json.Unmarshal([]byte(nip47GetBudgetJson), nip47Request)
+	assert.NoError(t, err)
+
+	app, _, err := tests.CreateApp(svc)
+	assert.NoError(t, err)
+
+	dbRequestEvent := &db.RequestEvent{}
+	err = svc.DB.Create(&dbRequestEvent).Error
+	assert.NoError(t, err)
+
+	// simulate a database failure that is not a record-not-found error
+	err = svc.DB.Exec("DROP TABLE app_permissions").Error
+	assert.NoError(t, err)
+
+	var publishedResponse *models.Response
+
+	publishResponse := func(response *models.Response, tags nostr.Tags) {
+		publishedResponse = response
+	}
+
+	NewTestNip47Controller(svc).
+		HandleGetBudgetEvent(ctx, nip47Request, dbRequestEvent.ID, app, publishResponse)
+
+	assert.Nil(t, publishedResponse.Result)
+	require.NotNil(t, publishedResponse.Error)
+	assert.Equal(t, constants.ERROR_INTERNAL, publishedResponse.Error.Code)
+}
+
 func TestHandleGetBudgetEvent_NoPayInvoicePermission(t *testing.T) {
 	ctx := context.TODO()
 	svc, err := tests.CreateTestService(t)
